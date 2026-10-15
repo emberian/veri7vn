@@ -26,7 +26,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | native-admission | Implement the authoritative native admission boundary | admission | planned | — | native-registry, operational-model |
 | plan-composition | Implement typed composition and justified finite-search quotients | composition | planned | — | operational-model, interpretation-model, native-registry |
 | state-effects | Implement modeled state transitions and effect authority | state and effects | planned | — | operational-model, native-registry |
-| source-import | Build reproducible snapshot import and missing-store replacement | sources | planned | — | source-semantics |
+| source-import | Build reproducible snapshot import and missing-store replacement | sources | planned | — | source-semantics, native-registry |
 | dependency-updates | Implement dependency-aware generation publication and reuse | updates | planned | — | source-import, state-effects, native-registry |
 | strategy-engine | Implement budgeted native search strategies and replayable proposals | search | planned | — | plan-composition, native-admission, state-effects |
 | runtime-service | Expose authoritative native runtime operations to clients | runtime | planned | — | native-registry, native-admission, state-effects |

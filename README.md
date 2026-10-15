@@ -16,6 +16,7 @@ production framework.
 - [Work board](project/BOARD.md), generated from [tasks.json](project/tasks.json)
 - [Design decisions](project/DECISIONS.md)
 - [Mandatory proof obligations](project/PROOF_OBLIGATIONS.md)
+- [Preimplementation omissions audit](docs/review/PREIMPLEMENTATION.md)
 - [Architecture synthesis](docs/ARCHITECTURE_PROPOSAL.md)
 - [Interface contracts](docs/contracts/README.md)
 - [Product acceptance](docs/product/ACCEPTANCE.md) and [coverage](docs/coverage/README.md)

@@ -1,4 +1,4 @@
-# Shared contracts, revision 0
+# Shared contracts, semantic revision 1
 
 These are the **early integration baseline**, not claims of implemented admission
 or verified execution. Changes are expected as the first real specialist crosses
@@ -9,6 +9,26 @@ fixtures together.
 Revision-0 integration adjustments: requests distinguish immutable build/source
 environments from mutable-state and time observations; package descriptors permit
 support/data/unfinished developments with no capability exports or native session.
+
+## Revision 1 changes and consumers
+
+This semantic revision incorporates the source-backed [preimplementation audit,
+G01–G08](../review/PREIMPLEMENTATION.md). Descriptor format `veri7vn.package/0`, its
+schema, and the existing executable probes are unchanged. The new obligations are
+requirements for future implementation, not features those probes already verify.
+
+| Clarification | Contracts | Implementing consumers |
+|---|---|---|
+| Claim scope/modality, candidate artifacts, literal-preserving views, extensible codecs, per-subgoal completeness and scoped routing blockers | C02/C03 | Interpretation, operational model, domain families, composition, synthesis and clients |
+| Semantic admission versus operational qualification/activation; feedback/exam provenance and selected private-safe exports | C01/C02 | Registry, authoring, package lifecycle, qualification, deployment |
+| Retention/retirement/current authority; state restoration; event versus receipt time and acquisition configuration | C04 | Source ingestion, dependency updates, dialogue, lifecycle, runtime |
+| Discovery/onboarding/testing/background effects; final arbitration before context commit; cached-handle retirement and uncertain external outcomes | C05 | Scheduler, state/effects, connectors, runtime and qualification |
+
+Exact retention periods, qualification thresholds/holdout policy, codec signatures,
+ingestion duplicate/late-sample policies and external-action retry semantics remain
+owned design decisions. They cannot be filled in independently by each consumer.
+
+## Contract index
 
 | ID | Boundary | Owner role | Acceptance evidence |
 |---|---|---|---|
@@ -31,9 +51,15 @@ only establishes descriptor shape.
   attachments; its native types need not belong to a universal value datatype.
 - **Generation:** an immutable resolved environment for running work.
 - **Proposal:** a candidate reading, plan, result, definition, proof or effect.
-  Producing a proposal confers no authority to publish it.
+  Producing a proposal confers no authority to activate it as a capability or commit
+  an effect; it may be presented to an ordinary user as a candidate artifact.
 - **Accepted result:** a licensed claim/result with a specific assurance route and
   dependencies, issued by the corresponding acceptance boundary.
+
+Claim scope describes what a claim concerns—a mathematical consequence, observed
+test run, finite model, source report or bounded candidate set—independently of how
+it is supported. Artifact delivery and conversational speech acts do not themselves
+assert universal correctness.
 
 Native `typ`, `term`, `cterm`, `thm`, `Proof.context` and theory identities stay
 native. A portable locator or receipt lets a runtime resolve or replay an object;
@@ -41,7 +67,7 @@ it is **not a serialized theorem or a proof of the locator's assertions**.
 
 ## Compatibility discipline
 
-Contract IDs are stable. Revision `0` is an integration baseline, not a promised
+Contract IDs are stable. Semantic revision `1` is an integration baseline, not a promised
 public ABI. Package format `veri7vn.package/0` rejects unknown fields so a misspelled
 or invented assurance field cannot be silently ignored. Adding a field changes
 the schema and fixture suite; changing meaning also changes the contract revision.
@@ -49,7 +75,8 @@ Future negotiation/migration must be explicit. No client may reinterpret an
 unknown result tag as success.
 
 Human package versions communicate author releases; they do not identify exact
-bytes or guarantee semantic substitutability. Published generations never mutate.
+bytes or guarantee semantic substitutability. Published generation identities never change their meaning; retention and current
+authority are managed separately under C04.
 Digests can identify artifacts under a declared hash convention; cryptographic
 authentication and proof are separate concerns. No global signing or hashing
 scheme is mandated by this baseline.

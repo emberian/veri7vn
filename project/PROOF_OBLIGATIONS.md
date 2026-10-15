@@ -5,6 +5,13 @@ All ten currently have status `open`. Small prototype and scaffold lemmas do
 not discharge them. The ledger prevents assurance closure from passing merely
 because the implementation makes few formal claims.
 
+The [preimplementation audit](../docs/review/PREIMPLEMENTATION.md), G01–G08,
+supplies mandatory concrete cases for these targets: scoped/model/test claims,
+partial and composite results, lossless payloads, route-specific obstructions,
+qualification effects, learning isolation, event-time observations and retirement.
+The proof statement must preserve the claim's scope; a theorem about a computation
+must not become a claim of empirical world accuracy or universal optimality.
+
 Each owning task must split its obligation into concrete statements as its
 language and representations become precise. Record the Isabelle declaration,
 assumptions, supported fragment, representation relation, authoritative runtime

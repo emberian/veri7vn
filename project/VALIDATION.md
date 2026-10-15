@@ -62,3 +62,22 @@ consumer is not a general package loader. Schema checking does not prove a
 package's claims. The full coverage, authoring, assurance and deployment gates
 remain open in the task graph. Earlier arithmetic/C experiments retain their
 separate research status; this foundation check does not revalidate them.
+
+## Preimplementation omissions review
+
+After checkpoint `81e1b31`, four source-review lanes inspected domain specialists,
+the inherited runtime, the workbench and pinned sibling implementations. Their
+[synthesis](../docs/review/PREIMPLEMENTATION.md) records G01–G08 design requirements
+and exact source reports. This produced semantic contract revision 1 and additional
+task acceptance cases; descriptor format 0 and executable scaffold are unchanged.
+
+This audit did not execute upstream specialists or sibling applications. Its
+source-derived defect candidates and proposed regressions are not new end-to-end
+reproductions. The provisional 119-entry domain partition is not completed
+behavioral migration. All mandatory metatheory obligations remain open.
+
+Validation after the documentation changes: seven coordination tests and all
+19 schema fixtures pass; local Markdown references resolve and changed files pass
+`git diff --check`. No native rebuild was needed for documentation/task changes.
+The task ledger still distinguishes future checks from completed evidence; source
+reports are design inputs, not fabricated implementation completion.

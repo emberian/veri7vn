@@ -63,6 +63,14 @@ semantic obligations, actual executable bridge, refuting checks, integration
 consumers, and relevant performance measurements. Each handoff supplies evidence
 and remaining dependencies.
 
+The [preimplementation audit](../docs/review/PREIMPLEMENTATION.md), G01–G08,
+is required design input. Before downstream signatures are consumed, registry,
+operational, interpretation and source owners co-review concrete literal/codec,
+claim-scope, partial-result, refusal, qualification and lifecycle cases. The codec
+registration contract belongs to native-registry; semantic profiles remain open
+native developments. This is a concrete interface gate, not a requirement to
+finish every domain migration before building the core.
+
 A consumed contract change identifies consumers and updates fixtures/checks with
 a migration plan. Prefer preserving useful work over a one-lane simplification
 that breaks consumers. Do not create competing package schemas, authority flags,

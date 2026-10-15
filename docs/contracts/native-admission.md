@@ -1,6 +1,7 @@
 # C02 — Native admission and assurance
 
-Revision 0. This is an implementation contract; the scaffold's native diagnostic
+Semantic revision 1. Descriptor format remains `veri7vn.package/0`.
+This is an implementation contract; the scaffold's native diagnostic
 probe does not implement the admission boundary described here.
 
 ## Native interface
@@ -60,6 +61,13 @@ result can retain explicit assumptions. `refined_execution` does not manufacture
 native theorem for each invocation. `oracle_consequence` must never be substituted
 silently after a stricter request fails. Empirical tests and model scores are useful
 development records but are not additional proof routes.
+
+The route is orthogonal to claim scope/modality (C03) and to operational qualification
+or activation (C01). Proving a model computation or a faithfully recorded test run
+does not generalize it to real-world truth or universal program correctness. Ordinary
+candidate artifacts and speech acts can be presented without inventing such a claim.
+The current routes remain unchanged; an observer wrapper still requires its real
+implementation bridge and does not complete the lift of the observed backend.
 
 The metadata describing a route is an inspection view of the accepted native
 record. No author-supplied `verified: true`, `proof_status`, or route string grants

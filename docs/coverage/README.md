@@ -5,6 +5,12 @@ from being mistaken for completion of Oracle7. The current platform has **no
 completed specialist lifts** under the proposed full package contract. Existing
 IRs and Isabelle probes are partial feasibility evidence.
 
+The [preimplementation audit](../review/PREIMPLEMENTATION.md) adds source-backed
+G01–G08 interface/lifecycle requirements and a provisional partition of all 119
+unclassified entries. It does not replace the reviewed migration decisions.
+Coverage follows actual entry surfaces, inherited/virtual dispatch, state reads
+and writes, failure/expiry/cancellation and restart behavior—not just manifests.
+
 ## Reproduce the denominator
 
 Run `python audit/coverage/generate.py`, then
@@ -52,7 +58,7 @@ handles each family. One manifest can ultimately span several families.
 | COV-DOMAIN | 119 currently unclassified manifests, plus springs | Classify actual operations before shared abstraction selection: quantities, tables, algorithms, symbolic mathematics, interpretation/formatting, or new families. No bulk closure from matching method signatures. |
 | COV-MATH | `wander-train/math_organ_v3.py`, `math_solver_v3.py`, `math_general_v1.py` and reachable predecessors | Exact/approximate distinctions, domain/branch conditions, partiality, symbolic parsing, equivalence and solver witnesses. Preserve valid behavior while explicitly repairing reproduced errors. |
 | COV-COMPOSE | `specialists/_gate/network_v3.py` and gates/registries | Typed composition, consumption/history, meaningful Boolean values, search-state equivalence, conflicts, failure and budgets; replace English round trips with connected typed interfaces. |
-| COV-SYNTH | `wander-train/code_organ_v3.py`, code chat adapters | Example-guided program search, observational equivalence scope, retained-program lifecycle; tests may guide search but generalized contracts need evidence. |
+| COV-SYNTH | `root/wander-train/code_organ_v3.py`, code chat adapters; admitted w32/w37/w482/w486 paths | Separately disposition catalogue/toolchain execution, ordered pipeline/differential samples, and bounded typed enumeration with retained programs. Preserve ordinary-user tentative artifacts, language choice and emitted-code behavior; example agreement does not establish universal equivalence. See runtime audit R4–R6. |
 | COV-GRAPH | `wander-train/oracle_release_conceptnet.py`, graph stores | Relation chains and witnesses, depth/frontier bounds, provenance and uncertain source interpretation. |
 | COV-ROUTE | Admitted chain from `HEAD_MANIFEST.json`, runtime superclass dependencies, `oracle7.py` | Actual reachable priority/fallback/ambiguity/context semantics, text normalization and licensed rendering. Every remaining reachable route gets a disposition; old dead code receives evidence-based exclusion. |
 | COV-DOC | Runtime document/definition retrieval and installed corpus stores | Retrieval versus entailment, quotation/synthesis distinction, source spans and unknown authorship, refusal/decline behavior. Exact source selection/retrieval reachability still needs mapping. |

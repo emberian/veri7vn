@@ -1,6 +1,7 @@
 # C04 — Environments, observations and reuse
 
-Revision 0. Immutable generation and whole-snapshot invalidation are the baseline.
+Semantic revision 1. Descriptor format remains `veri7vn.package/0`.
+Immutable generation and whole-snapshot invalidation are the baseline.
 Selective invalidation is a later optimization with an adequacy obligation.
 
 ## Pinning
@@ -48,6 +49,17 @@ provenance stays unknown. An imported fact retains qualifiers, rank, units and
 references where available; a proof cannot recover fields discarded by ingestion.
 Snapshots are observations, not assertions that all recorded statements are true.
 
+Acquisition records distinguish source event time, receipt/ingestion or poll time,
+and evaluation time. Polling an old message again cannot make its event fresh.
+Record sequence/deduplication identity, raw payload reference where retained,
+source/configuration/schema version, mapping/calibration/quality policy, units and
+measured-versus-simulated origin per observation. Current configuration must not
+retroactively relabel old samples. Windows and aggregates specify their population,
+sample/rejection/missingness treatment and estimator convention; absence of a new
+valid sample is distinct from a fresh valid last-known value. Duplicate/late events,
+invalid samples and configuration changes require explicit ingestion policies, whose
+exact choices remain with the source/connector lanes rather than fixed here.
+
 Dependency records distinguish:
 
 - the entire pinned source snapshot;
@@ -76,6 +88,35 @@ cause revalidation/recomputation. Selective reuse requires both a theorem/argume
 that observations are adequate and actual instrumentation implementing those
 observations; an attractive cache key alone proves nothing.
 
+## Retention, retirement and current authority
+
+Immutable identity preserves what a historical object meant; it does not require
+perpetual payload retention or authorize continued use. Manage execution retirement,
+expiry/revocation, managed payload deletion, retained non-content tombstones/receipts
+and selected exports as distinct operations. Check current authority on every
+invocation/publication/commit path, including cached handles and follow-ups. An old
+pin or valid proof cannot bypass retirement of private material. In-flight work has
+an explicit revocation/retirement policy; retention limits can override further access
+without changing the mathematical meaning of an already formed theorem.
+
+Retention/export classes cover transcripts, source data, caches, learned state,
+feedback, summaries, gap-derived examples and other derivatives. Track dependencies
+so lifecycle operations can find those managed copies. Define what is removed,
+invalidated or retained under the chosen policy; do not promise erasure of uncontrolled
+external copies or public commitments. Forgetting may intentionally limit future
+replayability. Exact periods, retained receipt fields and revocation treatment are
+policy choices still to be settled, not implicit defaults from immutable generations.
+
+## Restore versus re-execute
+
+Read-only recall, restoration of recorded session state and a newly authorized
+execution are separate operations. Restore typed state transitions/checkpoints and
+recorded accepted bindings, subject to current access/retirement policy. Re-asking
+historical natural-language questions is not restoration: it may reinterpret them,
+change source observations or repeat actions. Action attempt/acknowledgement records
+support reconciliation, not automatic replay. If required state was intentionally
+forgotten, report the restoration limit rather than reconstructing it through effects.
+
 ## Cross-lane checks
 
 Insert a competing relation row and invalidate uniqueness without changing the
@@ -86,3 +127,11 @@ them current. Reject a cached artifact loaded under an incompatible runtime setu
 Run two follow-ups or freshness checks with the same immutable environment but
 different state/time observations and prevent unsound reuse. Mutate an effect's
 precondition state before commit and require the executor to detect the mismatch.
+Expire/delete a reader during a cached follow-up and pending action; inspect managed
+derivatives and exports. Restore after one mock action without increasing its effect
+count. Poll the same old sample repeatedly, change units/configuration, and introduce
+an invalid latest sample without changing the provenance/freshness of earlier records.
+
+These requirements follow [G06/G07](../review/PREIMPLEMENTATION.md) and [workbench
+findings 1/5–7](../review/workbench-gaps.md); the scaffold has no implemented lifecycle
+or ingestion engine yet.

@@ -32,6 +32,14 @@ search are part of the product, not miscellaneous scripts left to the recipient.
 | ACC-15 Behavioral migration | All manifests and reachable core/workbench operations have explicit decisions and linked evidence. Known bugs are repaired against intended contracts instead of reproduced for apparent parity. | Completed coverage ledger, upstream comparison where valid, independent property/negative cases, source-unavailable limitations, no opaque adapters counted as completed lifts. |
 | ACC-16 Maintainability and handoff | The recipient can add and revise a specialist, diagnose a failure, profile it, package it and obtain useful deployed behavior without the original developers. | Versioned tutorial/reference, working examples across actual families, generated API docs, readable source, build scripts, troubleshooting and a documented recipient rehearsal. Known gaps remain in the tracker. |
 
+The [preimplementation audit](../review/PREIMPLEMENTATION.md), G01–G08, supplies
+required concrete cases for these criteria. In particular, ordinary-user candidate
+artifacts and speech acts coexist with strict claim admission; imports include
+original Oracle7 development material; partial/multipart outcomes retain structure;
+qualification, background effects, retention and session restoration have explicit
+lifecycles. The task ledger assigns their consumers and refuting checks. Source
+review alone does not pass these acceptance criteria.
+
 ## Dependency order for parallel work
 
 1. Coverage/reachability and product interaction design can proceed alongside

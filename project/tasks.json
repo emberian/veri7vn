@@ -282,11 +282,16 @@
       "acceptance": [
         "Classify all 119 currently unclassified manifests from actual operations; do not assume they are numeric.",
         "Account for the inherited runtime, all inventoried source entries and materialized data separately, with evidence for exclusions.",
-        "Six siblings remain investigations unless an explicit scope decision adds implementations."
+        "Six siblings remain investigations unless an explicit scope decision adds implementations.",
+        "Refine the domain partition using actual SQL/encoding, finite probability/statistics, graph optimization, calendar/affine/logarithmic/frame profiles and guarded boundary variants; shared class names do not imply matching semantics.",
+        "Map Film, author code experimentation, optional public registry/integrity evidence, gap-journal drafts, feedback requalification and conversation-recall workflows explicitly. Final Film/external-publication scope decisions remain open until recorded; six siblings remain stress tests.",
+        "Build a surface -> actual dispatch/base-order/virtual-override route -> state read/write/transition -> failure/expiry/cancellation -> migration matrix. Inspect super and explicit base calls, required resources and observed activation; manifest presence or a newer same-name method does not establish reachability or dead code."
       ],
       "checks": [
         "Check coverage decisions against the pinned inventory and trace representative dispatch/override paths.",
-        "Review every exclusion, missing-data entry and mapping to family tasks; flag unknown reachability explicitly."
+        "Review every exclusion, missing-data entry and mapping to family tasks; flag unknown reachability explicitly.",
+        "Design-review evidence to produce: map each G01-G08 source case to a concrete owner, supported fragment and proof/behavior obligation before calling the relevant family classified.",
+        "Source-backed matrix review spans user front doors, inherited helpers, workbench operations, persistent/in-memory learning and background workers, including lifecycle/error paths; distinguish source reachability from exercised activation."
       ],
       "evidence": [],
       "notes": "Does not block known interface work; family tasks may be split after classification while retaining closure gates.",
@@ -297,6 +302,16 @@
       ],
       "acceptance_ids": [
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -314,15 +329,23 @@
         "tests/registry/**"
       ],
       "deliverables": [
-        "Native registry signatures, implementation and pinned generation resolution"
+        "Native registry signatures, implementation and pinned generation resolution",
+        "Shared extensible native semantic-profile/value-and-claim codec registration interface, owned by native-registry and co-reviewed by operational-model and interpretation-model"
       ],
       "acceptance": [
         "Capabilities retain native types, meanings and contexts without a closed universal value type.",
-        "Resolved generations retain exact package/runtime/policy dependencies and do not mutate in-flight contexts."
+        "Resolved generations retain exact package/runtime/policy dependencies and do not mutate in-flight contexts.",
+        "Own the common codec/profile interface: native carrier, representation relation, original literal boundaries, encoding/case/normalization conventions, lossless supported serialization, display projection, shape/schema, materialization bounds and evidence dependencies. Families extend native types rather than a closed universal value datatype.",
+        "Operational-model and interpretation-model co-review this shared interface before composition, ingestion, runtime and client consumers adopt it; independently invented scalar/list/display-text wire conventions are not acceptable.",
+        "Registrations separate claim scope, artifact lifecycle, formal admission, operational qualification and active publication; routing feedback/learned state and scoped veto policy participate in exact identities.",
+        "Retirement/revocation checks constrain invocation even through pinned generations or cached handles; historical meaning does not confer perpetual access or effect authority."
       ],
       "checks": [
         "Target evidence: native registration/lookup/namespace/context transport tests and conflicting-export diagnostics.",
-        "Target evidence: generation publication and concurrent old-generation request checks with native object identity preserved."
+        "Target evidence: generation publication and concurrent old-generation request checks with native object identity preserved.",
+        "Proposed codec conformance cases from DG-02: SQL NULL/blob and an ordered truncated rowset; multimode; exact rational; symbolic expression with parameters; framed vector; graph/logic witness; command text retained as data rather than an effect.",
+        "Proposed profile compatibility cases: temperature point versus delta, logarithmic level/reference, angle/frame conventions and exact versus display-rounded values.",
+        "Pre-signature design-contract review: jointly exercise concrete G01-G08 cases with registry, operational, interpretation and source owners before downstream signatures are consumed; record adopted profiles/outcomes/authority boundaries and unresolved decisions, not a generic claim of extensibility."
       ],
       "evidence": [],
       "notes": "",
@@ -335,6 +358,17 @@
         "ACC-01",
         "ACC-07",
         "ACC-08"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -358,11 +392,17 @@
       "acceptance": [
         "Plans, queries, strategies and effects retain domain conditions, failures and contextual dependencies.",
         "Every claimed invariant has an identified authoritative consumer and a generation/refinement/replay bridge.",
-        "Open HOL vocabulary is connected parametrically; arbitrary native calls are not counted as completed semantics."
+        "Open HOL vocabulary is connected parametrically; arbitrary native calls are not counted as completed semantics.",
+        "Model claim kind/scope independently of assurance route and candidate/admitted lifecycle: mathematical consequences, source or backend observations, finite-model predictions, exact test observations and bounded optimizations remain distinct.",
+        "Co-review the native-registry codec/profile boundary while independently developing parametric semantics; retain partial/complete collection status, ordering, per-subgoal dependencies and intermediate state, feasible/optimal/impossible claims, and scoped routing blockers.",
+        "Operational transitions include effectful observation/qualification and post-arbitration conversation commits; a helper response, tentative code artifact or test observation is not automatically an admitted world claim."
       ],
       "checks": [
         "Target evidence: typing/scope preservation and representative transition proofs with executable counterexample checks.",
-        "Review theorem assumptions and actual consuming interfaces; reject a parallel handwritten lookalike model as closure."
+        "Review theorem assumptions and actual consuming interfaces; reject a parallel handwritten lookalike model as closure.",
+        "Proposed formal-interface cases: a twenty-row prefix cannot discharge a complete-query goal; a feasible path cannot discharge an optimum; one solved multipart subgoal cannot discharge unsolved parts.",
+        "Proposed claim-scope case: certified computation of a classifier/finite model does not establish world correctness or worst-case behavior outside the declared model.",
+        "Pre-signature design-contract review: jointly exercise concrete G01-G08 cases with registry, operational, interpretation and source owners before downstream signatures are consumed; record adopted profiles/outcomes/authority boundaries and unresolved decisions, not a generic claim of extensibility."
       ],
       "evidence": [],
       "notes": "",
@@ -375,6 +415,16 @@
         "ACC-05",
         "ACC-08",
         "ACC-11"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -398,11 +448,18 @@
       "acceptance": [
         "Conflicting source reports remain data and do not become contradictory global HOL axioms.",
         "Existence, absence, uniqueness, count, extremum and ranking have explicit candidate-region/snapshot dependencies.",
-        "Whole-snapshot invalidation is the baseline; selective reuse requires an adequacy obligation."
+        "Whole-snapshot invalidation is the baseline; selective reuse requires an adequacy obligation.",
+        "Specify version/configuration-pinned observations of external-language engines separately from formally modeled fragments; syntax/runtime rejection, missing input, budget exhaustion and veri7vn failure remain distinct outcomes.",
+        "Acquisition semantics retain source event time, ingestion/poll/evaluation clock, sequence/deduplication identity, rejected/missing samples, per-observation measured/simulated origin and window population/aggregation conventions.",
+        "Model partial collections and finite policy/model evaluations with applicability, supplied observations, assumptions, checked/unresolved conditions and exact licensed conclusions; partial rule success is not complete compliance.",
+        "Retention/retirement rules cover source and derived observations and explicitly state where forgetting limits future replay."
       ],
       "checks": [
         "Target evidence: sound query/observation results and counterexamples to positive-row-only uniqueness or absence reuse.",
-        "Inspect qualifiers, rank, units, references and declared import loss in the semantic contract."
+        "Inspect qualifiers, rank, units, references and declared import loss in the semantic contract.",
+        "Proposed observer cases: SQLite NULL/order/error/budget outcomes and backend/version/config changes, without treating an opaque invocation as a completed semantic lift.",
+        "Proposed streaming cases: repeated old MQTT event, missing/rejected latest sample, mixed-unit or mapping-version change and a time-window query over the declared sample population.",
+        "Pre-signature design-contract review: jointly exercise concrete G01-G08 cases with registry, operational, interpretation and source owners before downstream signatures are consumed; record adopted profiles/outcomes/authority boundaries and unresolved decisions, not a generic claim of extensibility."
       ],
       "evidence": [],
       "notes": "",
@@ -413,6 +470,14 @@
       "acceptance_ids": [
         "ACC-06",
         "ACC-07"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md"
       ]
     },
     {
@@ -436,11 +501,18 @@
       "acceptance": [
         "Recognition elaborates under declared language rules with alternatives and missing information retained.",
         "Rendering preserves the exact accepted claim, premises and uncertainty; text cannot silently strengthen a conditional/source-dependent result.",
-        "No theorem purports to establish the user mental intent from arbitrary natural language."
+        "No theorem purports to establish the user mental intent from arbitrary natural language.",
+        "Preserve immutable original text/bytes, declared literal boundaries and source maps alongside separately normalized language views; quoted code/strings, case-sensitive genotypes and encoded payloads cannot be silently rewritten.",
+        "Co-review native-registry profiles/codecs and carry complete/partial/multipart result structure into licensed rendering rather than flattening it to answer prose.",
+        "Represent applicable candidates, unresolved readings and scoped blockers with discharge conditions. A veto constrains its interpretation/premise/capability/request scope rather than becoming either universal refusal or permission for unchecked fallback.",
+        "C03 distinguishes help, questions, acknowledgements, instructions and reference/code artifacts from world-claim speech acts. Substantive assertions within those acts still retain their claim scope and applicable evidence; no fabricated theorem is needed merely to offer help."
       ],
       "checks": [
         "Target evidence: interpretation/renderer correspondence checks on ambiguous entities, quantities, conditions, paraphrases and follow-ups.",
-        "Target evidence: rejected renderings that drop a hypothesis, disagreement or source qualification."
+        "Target evidence: rejected renderings that drop a hypothesis, disagreement or source qualification.",
+        "Proposed literal regressions: two spaces versus one in hash/encoding payload, multiline JSON source positions, case-sensitive genotype, and title You versus pronoun you.",
+        "Proposed routing cases: blocked false-premise reading cannot be evaded by broad fallback; refusal of one reading does not forbid another justified reading; addressed personal-source priority remains explicit.",
+        "Pre-signature design-contract review: jointly exercise concrete G01-G08 cases with registry, operational, interpretation and source owners before downstream signatures are consumed; record adopted profiles/outcomes/authority boundaries and unresolved decisions, not a generic claim of extensibility."
       ],
       "evidence": [],
       "notes": "",
@@ -452,6 +524,16 @@
         "ACC-03",
         "ACC-04",
         "ACC-05"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -474,11 +556,17 @@
       "acceptance": [
         "Inspect CLI/server/UI, imports, exams, sensors, computer/SSH/file/MCP readers, feedback, conversations and registry/transfer code.",
         "Separate enabled source behavior from documentation claims and choose reusable UI/CLI components with evidence.",
-        "Record external registry/Solana scope as a decision without silently requiring or deleting it."
+        "Record external registry/Solana scope as a decision without silently requiring or deleting it.",
+        "Trace the closed author loop: opt-in decline journal -> inspect original request/reason -> draft examples/binding/specification -> development/qualification -> deployment -> feedback and versioned requalification.",
+        "Explicitly disposition ordinary authored-code/test experimentation, browser-local Film/route visualization, optional remote narration/illustration and integrity/public-registry evidence; expert theory editing alone does not count as preserving code experimentation.",
+        "Separate semantic admission, empirical operational qualification and active publication; map held-out exposure/imported exam history, repeated source probes, negative-space routing/interception tests and mutable feedback state.",
+        "Audit qualification/preview/discovery/polling as potentially effectful operations and trace expiry, managed deletion, derived private data and reconnect replay."
       ],
       "checks": [
         "Target evidence: code-level workflow traces and sandboxed local fixture exercises without contacting unrequested services.",
-        "Cross-check the workflow inventory with coverage decisions and ACC-02/11/14."
+        "Cross-check the workflow inventory with coverage decisions and ACC-02/11/14.",
+        "Source-backed workflow review: Film export must preserve conditions/historical status; optional remote media generation is a separate export/effect choice, not implied by local playback.",
+        "Proposed transfer case: imported exam_log history remains attributable exposure rather than being erased or mistaken for a fresh recipient held-out evaluation."
       ],
       "evidence": [],
       "notes": "",
@@ -492,6 +580,13 @@
         "ACC-11",
         "ACC-14",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/workbench-gaps.md"
       ]
     },
     {
@@ -515,11 +610,17 @@
       "acceptance": [
         "Measure startup, admission, warm execution, sources, search, checking, rendering, tail latency, memory and cancellation separately.",
         "Cover macOS ARM64 and Linux x86_64 evidence/availability under D11; identify cold dependency closure early.",
-        "Choose budgets from representative workloads and report unknowns rather than extrapolating toy probes."
+        "Choose budgets from representative workloads and report unknowns rather than extrapolating toy probes.",
+        "Qualification workloads record baseline/candidate code, interpretation/routing policy, learned state, panel/split/scorer/runtime identity and exposure; measure negative-space interception/abstention as well as added answers and latency.",
+        "Budget finite enumerations by actual state space/integer size and materialization bounds, and measure whole-session background polling/worker interference alongside per-call costs.",
+        "Nonpublishing evaluation/benchmark runs isolate both in-memory and persistent learned state. Retained objects declare request/session/global owner scope, exact identity/dependencies and activation authority; disabling disk writes alone is not isolation."
       ],
       "checks": [
         "Target evidence: reproducible baseline runs with toolchain, workload, hardware and warm/cold state recorded.",
-        "Review benchmark coverage against reader, mathematical, stateful, search and workbench workloads."
+        "Review benchmark coverage against reader, mathematical, stateful, search and workbench workloads.",
+        "Proposed workload cases: concurrent sensor acquisition plus interactive search, collection pagination/truncation, exponential finite truth tables/counting, and interruption of effectful qualification.",
+        "Review that repeatable regression, fresh held-out evaluation, aborted/spent exposure and formal admission are reported separately.",
+        "Proposed R6 contamination checks: compare normal requests before/after a nonpublishing benchmark, exercise two sessions and same-name learned programs, reload after primitive changes, and verify both disk and in-memory libraries remain isolated."
       ],
       "evidence": [],
       "notes": "",
@@ -530,6 +631,14 @@
       "acceptance_ids": [
         "ACC-12",
         "ACC-13"
+      ],
+      "design_inputs": [
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -552,11 +661,17 @@
       "acceptance": [
         "Cover negative sqrt(x^2), NaN/0-over-0, precision-losing equivalence, interval-boundary checks, parser execution, late timeout work and Boolean-presence search collapse.",
         "Distinguish reproduced component behavior from end-to-end routing; preserve input, old behavior and intended replacement semantics.",
-        "Rounded search/cache keys receive independent counterexample tests rather than an unsupported claim that every suspected failure was reproduced."
+        "Rounded search/cache keys receive independent counterexample tests rather than an unsupported claim that every suspected failure was reproduced.",
+        "Add source/trace-backed proposed regressions separately from already executed audit cases: MQTT repoll timestamp refresh, expiry-bypassing follow-up, imported held-out log, context update before outer guard, literal-space corruption, partial-row completion loss and scoped refusal/fallback evasion.",
+        "Each proposed case records source/trace scope, expected repaired contract and whether it has actually been executed; source inspection alone must not be reported as reproduced runtime evidence."
       ],
       "checks": [
         "Review audit/results/components.json and audit/results/baseline.jsonl against tools/probe_components.py and tools/probe_runtime.py.",
-        "Target evidence: tests that fail faulty behavior and validate repaired partiality/domain/precision/cancellation/search contracts without copying the implementation."
+        "Target evidence: tests that fail faulty behavior and validate repaired partiality/domain/precision/cancellation/search contracts without copying the implementation.",
+        "Proposed local fixtures: one MQTT event repolled at later times stays old; expired cached reader cannot answer a pronoun follow-up; replay after one mock action leaves its effect count one.",
+        "Proposed qualification fixture: transfer an examined package, retain sender exposure, and distinguish repeatable regression from the chosen fresh-recipient evaluation policy.",
+        "Proposed state/routing fixtures: an outer rejected answer does not commit an adopted referent; a scoped blocker survives fallback while a genuinely different justified interpretation remains available.",
+        "Proposed payload/result fixtures: hash two-space and one-space literals separately; preserve SQL row-prefix completeness and per-part multipart outcomes."
       ],
       "evidence": [],
       "notes": "",
@@ -571,6 +686,17 @@
         "ACC-08",
         "ACC-11",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -593,11 +719,18 @@
       "acceptance": [
         "A novice-facing edit and an expert native edit operate on coherent package objects.",
         "Show ambiguity, missing premises, counterexamples, change impact, search failure and proposed repairs at the point of use.",
-        "Specify keyboard/CLI access, durable history and recoverable errors before choosing implementation stack."
+        "Specify keyboard/CLI access, durable history and recoverable errors before choosing implementation stack.",
+        "Design the first-useful-artifact path from opt-in gap journal to editable draft with blank/proposed expectations, through qualification and deployed use; unanswered requests do not become ground truth.",
+        "Show tentative ordinary-user code with exact test observations and unmet obligations alongside qualified/admitted artifacts, without making candidate inspection an expert-only mode.",
+        "Specify explicit expiry/retirement/forgetting/export controls over private sources and derived artifacts; distinguish recall, state restoration and new execution.",
+        "Keep visible workflow decisions for Film/explanation export, code experimentation, feedback loops and optional external publication; final scope choices are open until recorded.",
+        "Design an approachable Oracle7-original package intake flow that shows manifest/card/panel/scorer/source mappings, preserved originals/evaluation provenance and unresolved Python semantics; import must not mean only the new veri7vn format."
       ],
       "checks": [
         "Target evidence: walkthroughs covering create/import, sqrt-domain repair, conflicting rows, composition, profiling and deployment.",
-        "Review each workflow against ACC-01 through ACC-04 and ACC-16 without claiming an independent recipient trial."
+        "Review each workflow against ACC-01 through ACC-04 and ACC-16 without claiming an independent recipient trial.",
+        "Proposed walkthroughs: journal-enabled decline to draft to qualified capability; tentative code evaluated against user tests; retire/delete a recalled source; share an explanation retaining claim conditions without unintended private export.",
+        "Proposed author walkthrough: open an existing Oracle7 specialist, inspect a known-family migration and an unresolved custom organ, revise the mapped package and retain the original and exposure record."
       ],
       "evidence": [],
       "notes": "",
@@ -611,6 +744,13 @@
         "ACC-02",
         "ACC-03",
         "ACC-16"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/workbench-gaps.md"
       ]
     },
     {
@@ -635,11 +775,16 @@
       "acceptance": [
         "Check exact target, context/ancestry, hypotheses, premises, type/sort conditions, flex-flex constraints, completed derivations, oracles and permitted theory extensions.",
         "Kernel, refined execution and authorized oracle routes stay distinct and cannot silently downgrade.",
-        "Actual accepted records are tied to native objects and executable artifacts; caller metadata cannot manufacture authority."
+        "Actual accepted records are tied to native objects and executable artifacts; caller metadata cannot manufacture authority.",
+        "Admission validates the exact claim scope: proved finite-model/observer computations do not license broader world claims, complete enumeration, optimality or impossibility without their specific obligations.",
+        "Empirical operational qualification remains a separate exact-version record and activation condition; formal admission does not waive recognizer/interception/held-out/resource tests, and empirical success creates no fourth proof route.",
+        "Tentative code/results may be presented with exact observed tests and outstanding obligations but cannot be promoted through candidate/result formatting or backend-observation labels."
       ],
       "checks": [
         "Target evidence: assumed false theorem, hidden hypothesis/oracle, forbidden ancestor, skipped proof, wrong target and unrelated artifact negative probes.",
-        "Target evidence: legitimate scoped consequences, context export and implementation attachment; connect enforcement to the formal acceptance invariant."
+        "Target evidence: legitimate scoped consequences, context export and implementation attachment; connect enforcement to the formal acceptance invariant.",
+        "Proposed negative claims: feasible path presented as optimal, prefix presented as complete, finite-model score presented as calibrated world probability, and passed examples presented as a universal theorem.",
+        "Proposed activation cases: admitted kernel with intrusive binding still fails operational qualification; qualified candidate without formal evidence remains a candidate."
       ],
       "evidence": [],
       "notes": "",
@@ -649,6 +794,14 @@
       ],
       "acceptance_ids": [
         "ACC-08"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -675,11 +828,16 @@
         "Compose structured values without reparsing rendered English and retain units, domain conditions, failures and conflicting answers.",
         "Finite-search deduplication preserves the selected observation relation, meaningful Boolean values, resource consumption and relevant history.",
         "Any bounded completeness claim names its search space, fuel and pruning assumptions.",
-        "Composition retains per-request session/state version and observation/evaluation time with its clock basis; identical package/data generations do not imply identical fresh observations."
+        "Composition retains per-request session/state version and observation/evaluation time with its clock basis; identical package/data generations do not imply identical fresh observations.",
+        "Consume native-registry profile/codec interfaces and preserve affine point/delta, logarithmic reference, frame/angle, exact/approximate and literal semantics through composition.",
+        "Compose typed collection/artifact references with completeness/order and per-subgoal outcomes/dependencies; dependent questions share explicit structured intermediate state.",
+        "Preserve claim-specific feasibility/optimality/completeness/impossibility obligations and scoped routing blockers across plan choice and finite-search quotients."
       ],
       "checks": [
         "Target evidence: plan refinement/composition proofs connected to execution and multi-family typed composition cases.",
-        "Target evidence: contradictory-path, Boolean-flag and rounded-key counterexamples plus equivalence/pruning tests."
+        "Target evidence: contradictory-path, Boolean-flag and rounded-key counterexamples plus equivalence/pruning tests.",
+        "Proposed composition cases: SQL partial rowset with NULL/blob; nonunique mode; framed kinematic vector; symbolic expression with parameter; a two-part request whose first part alone succeeds.",
+        "Proposed negative conversions: add two affine points, treat dB as linear addition, reinterpret a feasible path as optimum, or bypass an applicable veto by replanning."
       ],
       "evidence": [],
       "notes": "",
@@ -691,6 +849,14 @@
       "acceptance_ids": [
         "ACC-05",
         "ACC-09"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -716,12 +882,21 @@
         "Freshness, sessions, target/precondition checks, idempotency and partial failures have explicit semantics.",
         "Untrusted proposals cannot publish facts, active dispatch, snapshots or external effects through alternate paths.",
         "Cancellation prevents late publication; modeled fuel is distinguished from external worker time/memory limits.",
-        "Requests retain explicit session/state snapshot or version and observation/evaluation time with clock basis; commits validate relevant prestate and freshness at the actual authority boundary."
+        "Requests retain explicit session/state snapshot or version and observation/evaluation time with clock basis; commits validate relevant prestate and freshness at the actual authority boundary.",
+        "Every external operation uses the executor boundary, including connect/discover/preview/test/qualify/requalify/poll/replay; tool discovery and a read-only annotation alone grant no execution authority.",
+        "Background acquisition jobs have owners, budgets, start/stop/restart/retirement semantics and no late publication after removal; source event times remain distinct from repeated receipt/poll times.",
+        "Commit structured adopted-answer conversation deltas only after final arbitration; recording an utterance is distinct from adopting its answer as context.",
+        "Restore recorded state/checkpoints without re-executing old questions/actions; enforce expiry/revocation during cached follow-ups and pending commits, including pinned old generations.",
+        "Nonpublishing evaluation/benchmark runs isolate both in-memory and persistent learned state. Retained objects declare request/session/global owner scope, exact identity/dependencies and activation authority; disabling disk writes alone is not isolation.",
+        "Parallel execution requires explicit per-request recorder/library/session state and publication controls; the upstream single executor is not evidence that shared mutable flags are safe to parallelize."
       ],
       "checks": [
         "Target evidence: transition invariants connected to the actual commit path.",
         "Target evidence: cancellation races, retry/partial failure, cross-request budget misuse and late-worker publication tests using local mock executors.",
-        "Target evidence: changed prestate and expired freshness reject or revalidate a pending effect even when package/data generation is unchanged."
+        "Target evidence: changed prestate and expired freshness reject or revalidate a pending effect even when package/data generation is unchanged.",
+        "Proposed mock qualification counter: test/feedback/onboarding must not invoke a mutating tool without selected authority.",
+        "Proposed lifecycle tests: state-before-guard rejection, one-effect reconnect, delete/expire during follow-up, remove sensor during pending poll, and background worker contention/cancellation.",
+        "Proposed R6 contamination checks: compare normal requests before/after a nonpublishing benchmark, exercise two sessions and same-name learned programs, reload after primitive changes, and verify both disk and in-memory libraries remain isolated."
       ],
       "evidence": [],
       "notes": "",
@@ -732,6 +907,14 @@
       "acceptance_ids": [
         "ACC-07",
         "ACC-11"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -741,7 +924,8 @@
       "milestone": "C",
       "status": "planned",
       "depends_on": [
-        "source-semantics"
+        "source-semantics",
+        "native-registry"
       ],
       "owner": null,
       "paths": [
@@ -755,11 +939,17 @@
       "acceptance": [
         "Record acquisition, selection/query policy, licenses, qualifiers/rank/units/references and known information loss.",
         "Missing relations_v2/names/label-alias data receives an explicit compatible replacement or unavailable disposition; do not claim original bit identity.",
-        "Imported assertions enter as observations under C04 rather than new global axioms."
+        "Imported assertions enter as observations under C04 rather than new global axioms.",
+        "Consume the shared native-registry profile/codec contract for concrete imported payloads; preserve original bytes, type/schema, NULL/missing/error distinctions and declared partial materialization.",
+        "Sensor ingestion records event/receipt/poll clocks, deduplication identity, raw payload reference, per-observation units/calibration/quality versions and measured/simulated origin; specify duplicate/late/rejected events and window populations.",
+        "Discovery/qualification/import preview uses recorded/mock sources unless live execution is authorized; credentials are references outside transferable packages and connector/schema identities are versioned.",
+        "Source and derived-payload retention classes are carried into the managed store, including limits on replay after forgetting."
       ],
       "checks": [
         "Target evidence: reproducible fixture import and source-schema compatibility/loss tests, including v1 versus v2 distinctions.",
-        "Target evidence: malformed/partial import recovery and source manifest inspection; record unknown provenance as unknown."
+        "Target evidence: malformed/partial import recovery and source manifest inspection; record unknown provenance as unknown.",
+        "Proposed ingestion regressions: old MQTT sample repolled, mixed-unit/configuration history, rejected latest reading, truncated rows and removal during a pending read.",
+        "Proposed connector import case: changed remote tool schema cannot retain stale argument coercions or execute probes under obsolete authority."
       ],
       "evidence": [],
       "notes": "",
@@ -771,6 +961,14 @@
         "ACC-06",
         "ACC-14",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md"
       ]
     },
     {
@@ -797,12 +995,17 @@
         "Source, grammar/linker, assumption, contract, implementation and policy updates identify affected consumers.",
         "Whole-generation invalidation is sound by default; selective reuse is optional and requires adequacy plus instrumented observations.",
         "Historical results preserve their pins and are never relabeled current; active requests keep old generations.",
-        "Reuse keys and adequacy checks include relevant request state/session version and time/clock dependencies; environmental generation alone cannot license freshness-sensitive reuse."
+        "Reuse keys and adequacy checks include relevant request state/session version and time/clock dependencies; environmental generation alone cannot license freshness-sensitive reuse.",
+        "Version feedback-derived vocabulary/routing/credit and operational qualification with the package/policy identity; evaluate proposals in isolation and publish atomically only after applicable qualification.",
+        "Retirement, revocation and managed forgetting invalidate relevant cached handles, follow-ups and derived private data; an old pin preserves historical meaning without granting ongoing authority.",
+        "Track source-event identity, clock/window observations, rejected samples and changed units/configuration when deciding reuse; repolling a stale message cannot refresh event freshness."
       ],
       "checks": [
         "Target evidence: insert a competing row/add an absent row/change ranking/remove evidence/change assumptions and observe correct invalidation.",
         "Target evidence: update during running requests, incompatible compiled artifact reuse and failed publication recovery.",
-        "Target evidence: mutate session state or advance the declared clock without changing the environment generation and reject stale reuse."
+        "Target evidence: mutate session state or advance the declared clock without changing the environment generation and reject stale reuse.",
+        "Proposed update cases: right/wrong feedback while requests run; failed requalification preserves active policy; expired follow-up and deleted derived draft content cannot survive through stale cache identities.",
+        "Proposed privacy check: inspect managed source/history/cache/learned/example/export stores after retirement/forgetting under the selected policy without claiming erasure of external copies."
       ],
       "evidence": [],
       "notes": "",
@@ -814,6 +1017,14 @@
       "acceptance_ids": [
         "ACC-07",
         "ACC-14"
+      ],
+      "design_inputs": [
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -839,11 +1050,15 @@
       "acceptance": [
         "Support retrieval, theorem application, simplification, splitting, counterexamples, conjectures, synthesis and refinement through declared actions.",
         "Search-policy changes preserve acceptance authority; budget/cancellation enforcement is outside speculative strategy code.",
-        "Multi-step cross-capability goals work on the end-user runtime and traces distinguish failure, timeout and refutation."
+        "Multi-step cross-capability goals work on the end-user runtime and traces distinguish failure, timeout and refutation.",
+        "Strategy steps consume registered profiles and preserve result completeness, optimality scope, per-subgoal state and applicable scoped blockers.",
+        "Search may return inspectable tentative artifacts and empirical observations with exact obligations; a budget stop is not impossibility and successful samples do not license universal equivalence.",
+        "External validation/observation workers and background activity remain under the same executor/resource authority as explicit actions."
       ],
       "checks": [
         "Target evidence: soundness policy-independence/transition results connected to the scheduler acceptance path.",
-        "Target evidence: multi-step strategy scenarios, hostile/late worker proposals, cancellation and resource attribution; avoid arbitrary generated privileged ML."
+        "Target evidence: multi-step strategy scenarios, hostile/late worker proposals, cancellation and resource attribution; avoid arbitrary generated privileged ML.",
+        "Proposed search cases: partial multipart success, nonoptimal feasible witness, sampling-based candidate equivalence and a route-specific failed check encountered during alternative-plan search."
       ],
       "evidence": [],
       "notes": "",
@@ -856,6 +1071,15 @@
         "ACC-08",
         "ACC-09",
         "ACC-12"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -882,11 +1106,19 @@
         "Client operations resolve a pinned generation and cannot construct accepted native results from JSON.",
         "Streaming diagnostics/results, cancellation and reconnect/session behavior preserve request identity and commit authority.",
         "Boundary serialization is explicit and avoids repeated conversion on hot internal paths.",
-        "Each request carries the session/state snapshot or version and observation/evaluation time with declared clock basis in addition to its immutable environment pin."
+        "Each request carries the session/state snapshot or version and observation/evaluation time with declared clock basis in addition to its immutable environment pin.",
+        "Use the shared registered codecs/profiles for lossless supported payloads and structured claim scope, collection completeness, per-part outcomes and candidate artifacts; preserve original text/bytes and normalized-view source maps.",
+        "Expose help/instruction/question/reference speech acts without falsely treating them as accepted world assertions; substantive claims retain their appropriate licensing.",
+        "Separate transcript recall, checkpoint/transition restoration and explicit new execution. Restoring a session never reruns old natural-language questions or external actions.",
+        "Apply retirement/expiry/privacy and job ownership/budgets to reconnects, cached handles, background acquisition and qualification operations as well as foreground calls.",
+        "Packaged CPU-only core reasoning, included source snapshots and existing local authoring work with networking disabled. Normal startup requires no external LLM/prover/CDN/download; explicitly connected capabilities report honest unavailability until their optional services are deliberately configured."
       ],
       "checks": [
         "Target evidence: protocol conformance and malformed/unknown-tag/forged-receipt tests against actual native handlers.",
-        "Target evidence: concurrent requests, interrupted clients and reconnect/replay cases with timing and allocation measurements."
+        "Target evidence: concurrent requests, interrupted clients and reconnect/replay cases with timing and allocation measurements.",
+        "Proposed wire cases: NULL/blob, partial ordered rows, exact rational, framed vector and tentative code with test observations round-trip without becoming display strings or proof authority.",
+        "Proposed lifecycle cases: reconnect after one mock effect, guard-withheld answer leaves adopted context unchanged, and expired private reader remains unavailable after restoration.",
+        "Proposed offline acceptance: disable network in a clean installed environment and launch the packaged core/workbench, inspect/edit/run local specialists and use shipped snapshots/search; verify no mandatory remote assets or downloads, while optional external connectors fail with scoped dependency diagnostics."
       ],
       "evidence": [],
       "notes": "",
@@ -902,6 +1134,16 @@
         "ACC-08",
         "ACC-11",
         "ACC-12"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -927,11 +1169,19 @@
         "Meaning, language/source bindings, code, examples, evidence and deployment dependencies remain connected.",
         "Round trips preserve custom native edits; derived artifacts do not become independently drifting contract copies.",
         "Failed import/build/admission preserves the working generation; transfer excludes local history and unselected source documents.",
-        "Support/data/theory packages may have zero callable capability exports; absent native payload is legal only under the agreed zero-export descriptor rules, without invented fake operators."
+        "Support/data/theory packages may have zero callable capability exports; absent native payload is legal only under the agreed zero-export descriptor rules, without invented fake operators.",
+        "Packages reference registered semantic profiles/codecs and maintain independent candidate, semantic-admission, operational-qualification and active-publication states.",
+        "Qualification receipts bind exact candidate/baseline generations, interpretations/routing, mutable learned state, panel/split/scorer/runtime and exposure history. Sender evidence and recipient evaluation remain distinguishable; a rerun is not automatically fresh held-out evidence.",
+        "Declare retention/export classes for private sources, transcripts, gap-derived examples, feedback, learned state and caches. Managed forgetting/retirement constrains derived material and future replay without promising erasure of uncontrolled copies.",
+        "Transfer uses selected/classified contents rather than exporting every non-cache file; imported exam history is preserved as attributable exposure instead of silently erased or misinterpreted.",
+        "Intake accepts Oracle7-original manifests/cards/panels/scorers/source references as well as veri7vn packages. Preserve originals and evaluation/exposure provenance, recognize supported family mappings and return inspectable migration diagnostics; unknown Python remains unresolved until a genuine semantic/implementation bridge exists."
       ],
       "checks": [
         "Target evidence: native/approachable-authoring round trips, dependency conflicts, generated-file ownership and reproducible build checks.",
-        "Target evidence: malicious/malformed imports, partial build failure, recovery and transfer-content inspection."
+        "Target evidence: malicious/malformed imports, partial build failure, recovery and transfer-content inspection.",
+        "Proposed imported-heldout-log case: import an examined package, rerun permitted regressions and correctly apply the chosen fresh qualification/exposure policy, including aborted/spent evaluations.",
+        "Proposed export/retention case: private-reader exclusion alone is insufficient if its content has reached examples or other derived artifacts; inspect the selected package closure.",
+        "Proposed legacy-intake cases: a known-family Oracle7 package with manifest/card/panel/scorer/source reference, imported exam log and an unknown organ. Preserve originals and report precise missing mappings/obligations without executing or admitting unknown Python by import alone."
       ],
       "evidence": [],
       "notes": "",
@@ -943,6 +1193,16 @@
       "acceptance_ids": [
         "ACC-01",
         "ACC-14"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -970,11 +1230,17 @@
         "Create, import, revise, inspect and invoke the currently implemented package/runtime operations through UI and CLI, with expert theory access.",
         "Present actual runtime-provided alternatives, diagnostics, source/evidence records and dependency identities; do not manufacture success or semantic authority in the client.",
         "Provide the initial editor/session/reconnect/operation surface for later search, assistance and profiling integration. Substantive deployed search and profiling usability remain mandatory in authoring-assistance and workspace-integration.",
-        "Map upstream workbench functions to implemented operations or their remaining named tasks; an unimplemented required workflow does not count as preserved by this initial client scaffold."
+        "Map upstream workbench functions to implemented operations or their remaining named tasks; an unimplemented required workflow does not count as preserved by this initial client scaffold.",
+        "Consume the registry-backed codec/profile projection instead of flattening SQL collections, NULL/blob, symbolic parameters or framed values to generic scalar/list prose; compact views retain completeness and per-part outcome markers.",
+        "Present tentative ordinary-user artifacts and exact test observations separately from native admission and operational qualification, using actual runtime records.",
+        "Expose the initial gap-journal, retention/expiry and explanation/export workflow operations selected by the interaction design, with Film/code-experimentation scope decisions visible rather than silently omitted.",
+        "Expose the runtime legacy-intake operations and migration diagnostics for Oracle7 manifests/cards/panels/scorers/source references, including preserved originals and explicitly unresolved custom code."
       ],
       "checks": [
         "Target evidence: UI/CLI conformance against real package/runtime editing, inspection, basic run and cancellation handlers.",
-        "Target evidence: reconnect, accessible interaction, malformed-result handling and editing without lost custom changes. Record incomplete later-stage workflows as pending rather than simulated successes."
+        "Target evidence: reconnect, accessible interaction, malformed-result handling and editing without lost custom changes. Record incomplete later-stage workflows as pending rather than simulated successes.",
+        "Proposed UI conformance cases: a truncated table, partly solved multipart request, code reference text versus execution proposal, and a tentative program with passed tests but unproved contract.",
+        "Proposed workflow mapping check: UI/CLI capabilities share authoritative operations but any parity gaps are enumerated; no fake controls imply completed Film or code-runner support."
       ],
       "evidence": [],
       "notes": "",
@@ -988,6 +1254,17 @@
         "ACC-01",
         "ACC-02",
         "ACC-03"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -1014,11 +1291,16 @@
       "acceptance": [
         "Explain the interpretation, failed/unproved condition, source/proof span and useful next actions.",
         "Distinguish restricting a domain from changing the result, ambiguity from contradiction, and failed search from refutation.",
-        "Repairs create reviewable package versions and cannot bypass admission."
+        "Repairs create reviewable package versions and cannot bypass admission.",
+        "Explain scoped blockers, partial/incomplete results and finite policy/model applicability: distinguish observed/proved/assumed/unresolved predicates before proposing a repair.",
+        "Connect opt-in journal declines to editable draft requests/examples/bindings with source/reason and retention class; unanswered requests and blank expected answers remain proposals.",
+        "Repair proposals preserve ordinary-user tentative artifacts and author choices without converting exact test observations or generated explanations into universal evidence."
       ],
       "checks": [
         "Target evidence: negative sqrt-domain alternatives, ambiguous entities, conflicting source rows, missing hypotheses and budget exhaustion.",
-        "Target evidence: apply/reject repair and revalidate impacted consumers through shared native operations."
+        "Target evidence: apply/reject repair and revalidate impacted consumers through shared native operations.",
+        "Proposed diagnosis cases: missing-reading extension versus guarded decline, partly satisfied policy rule versus complete compliance, partial rows, and a feasible nonoptimal path.",
+        "Proposed gap-loop case: inspect a decline, seed a draft, add intended expectations and requalify without bypassing the blocker or silently adopting private journal material."
       ],
       "evidence": [],
       "notes": "",
@@ -1031,6 +1313,14 @@
         "ACC-03",
         "ACC-04",
         "ACC-08"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md"
       ]
     },
     {
@@ -1056,11 +1346,14 @@
       "acceptance": [
         "Stable HOL-derived operations compile at build/admission rather than invoking code generation for each request.",
         "Efficient runtime representations preserve the admitted implementation relation and exact/approximate/partial distinctions.",
-        "Kernel reconstruction, refined execution and evaluation-oracle conversions retain their separate dependencies and costs."
+        "Kernel reconstruction, refined execution and evaluation-oracle conversions retain their separate dependencies and costs.",
+        "Lowering honors the registered semantic profile, including affine/logarithmic/frame conventions, exact rational values, normative rounding and supported materialization/completeness guarantees.",
+        "A compiled observer/model/test computation retains its limited claim scope; staging does not turn an observed backend run or finite-model prediction into a stronger theorem."
       ],
       "checks": [
         "Target evidence: artifact association/code-setup mismatch and route downgrade negative tests.",
-        "Target evidence: warm execution/allocation, compilation amortization, witness/checker cost and correctness comparisons on representative workloads."
+        "Target evidence: warm execution/allocation, compilation amortization, witness/checker cost and correctness comparisons on representative workloads.",
+        "Proposed optimized execution cases: temperature point/delta, dB aggregation, framed kinematics, exact finite probability, policy-specific rounding and partial collection bounds."
       ],
       "evidence": [],
       "notes": "",
@@ -1071,6 +1364,12 @@
       "acceptance_ids": [
         "ACC-08",
         "ACC-12"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md"
       ]
     },
     {
@@ -1099,11 +1398,14 @@
       "acceptance": [
         "Preserve or repair ordered recognition, domain/role guards, linking ambiguity, joins, and unique/absent/multiple answers.",
         "Per-reader domain conditions and missing-source limitations survive shared implementation reuse.",
-        "Executed queries and witnesses connect to source/query semantics and licensed rendering."
+        "Executed queries and witnesses connect to source/query semantics and licensed rendering.",
+        "Preserve per-reader recognition ownership and boundary variants, explicit entity/role identity and scoped guard evidence before rendering; store failure is dependency failure, not silent permission for weaker fallback.",
+        "Use shared codecs and complete/partial query claims rather than extracting identity or uniqueness back from prose."
       ],
       "checks": [
         "Target evidence: every migrated relation manifest has behavior, semantic bridge and deployed execution evidence.",
-        "Target evidence: ordered-rule parity where intended, ambiguity/uniqueness/update adversarial cases and source-scale throughput/memory measurements."
+        "Target evidence: ordered-rule parity where intended, ambiguity/uniqueness/update adversarial cases and source-scale throughput/memory measurements.",
+        "Proposed reader cases: capitalized title versus pronoun, animal-only medicine boundary where applicable, handwritten versus mined reader precedence, missing store, and alternate candidate under a scoped blocker."
       ],
       "evidence": [],
       "notes": "",
@@ -1119,6 +1421,12 @@
         "ACC-06",
         "ACC-12",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md"
       ]
     },
     {
@@ -1147,11 +1455,14 @@
       "acceptance": [
         "Preserve ordered fact rules, guards, declines and structured values independently of sentence rendering.",
         "Retrieval, quotation, source-dependent synthesis and entailment are distinguished; unknown corpus authorship remains unknown.",
-        "Evidence spans identify actual retained sources without overstating their truth or completeness."
+        "Evidence spans identify actual retained sources without overstating their truth or completeness.",
+        "Expose factual observations, quotations, reference/help speech acts and adopted claims distinctly, retaining boundary guards and per-part coverage.",
+        "Historical conversation recall identifies date/route and original result scope, and obeys private-source expiry/retention rather than silently presenting recalled text as a current world fact."
       ],
       "checks": [
         "Target evidence: per-fact/document route dispositions, source-span/quotation/conditional-renderer cases and boundary-variant tests.",
-        "Target evidence: retrieval quality and source-scale latency/memory with actual accepted-claim correspondence."
+        "Target evidence: retrieval quality and source-scale latency/memory with actual accepted-claim correspondence.",
+        "Proposed output cases: guarded FactsOrgan variant, quoted historical answer, command-shaped reference data and partial multipart fact response."
       ],
       "evidence": [],
       "notes": "",
@@ -1166,6 +1477,13 @@
         "ACC-06",
         "ACC-12",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md"
       ]
     },
     {
@@ -1192,11 +1510,17 @@
       "acceptance": [
         "Use the classification of 119 manifests plus springs to choose formulas, tables, algorithms or additional operational languages.",
         "Each implemented operation connects to its native meaning and intended domain/units/failure behavior; wrappers alone do not close coverage.",
-        "New family requirements update common contracts and consumers rather than forcing incompatible data through an arithmetic-only IR."
+        "New family requirements update common contracts and consumers rather than forcing incompatible data through an arithmetic-only IR.",
+        "Own concrete semantic-profile subfamilies for affine/logarithmic/framed/calendar quantities, encodings and executable syntax, exact finite probability/counting/statistics, and scoped policy/physical-model evaluation as supported by classified source behavior.",
+        "For external-language behavior, distinguish formally supported fragments from version/configuration-pinned observations of an actual engine invocation; its observer implementation still needs a genuine bridge and controlled executor.",
+        "Preserve structured collections/NULL/blob, multimodes, symbolic parameters, rational probabilities, vectors and checked/unresolved policy conditions through shared codecs.",
+        "Finite-model probabilities, empirical estimates, heuristic scores and world assertions are distinct; no obligation to implement general Bayesian inference or all external-language semantics is inferred."
       ],
       "checks": [
         "Target evidence: per-family intended-contract/negative cases, executable bridge checks and cross-capability compositions.",
-        "Target evidence: representative concrete workload measurements and per-manifest coverage evidence; split into owned child tasks as classification permits."
+        "Target evidence: representative concrete workload measurements and per-manifest coverage evidence; split into owned child tasks as classification permits.",
+        "Proposed family cases: quoted-space hashes and multiline JSON positions; SQLite syntax versus runtime error/budget stop; replacement-dependent probabilities and PMF normalization; sample/population and multimode conventions.",
+        "Proposed model/profile cases: continuous EOQ optimum versus integer policy, temperature point/delta, dB references, relative-angle frame, normative rounding and incomplete cooling-rule conditions."
       ],
       "evidence": [],
       "notes": "Broad parent gate; split by actual operation families, preserving the denominator and gate ID.",
@@ -1211,6 +1535,13 @@
         "ACC-05",
         "ACC-12",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md"
       ]
     },
     {
@@ -1238,11 +1569,14 @@
       "acceptance": [
         "Exact, floating-point and bounded approximation semantics remain distinct, including partiality and branch conditions.",
         "Safe structured parsing replaces unchecked evaluation; solver answers carry adequate witnesses/conditions.",
-        "Repair reproduced defects against intended contracts while preserving valid capability coverage."
+        "Repair reproduced defects against intended contracts while preserving valid capability coverage.",
+        "Connect exact rational, symbolic expression/parameter and approximate-display profiles to their native codecs; antiderivative constants and branch/domain conditions cannot exist only in prose.",
+        "Preserve witness, complete-solution/finite-search and optimum/impossibility scope in solver results rather than promoting a returned candidate into a stronger claim."
       ],
       "checks": [
         "Target evidence: sqrt-negative, NaN, division, high-precision equivalence, interval completeness and parser-side-effect regressions.",
-        "Target evidence: solver witness validation, branch/domain counterexamples and representative numerical/symbolic performance."
+        "Target evidence: solver witness validation, branch/domain counterexamples and representative numerical/symbolic performance.",
+        "Proposed representation cases: exact fraction surviving client/plan execution, symbolic derivative with parameters and antiderivative family retaining its integration constant."
       ],
       "evidence": [],
       "notes": "",
@@ -1257,6 +1591,12 @@
         "ACC-08",
         "ACC-12",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md"
       ]
     },
     {
@@ -1283,11 +1623,14 @@
       "acceptance": [
         "Path and relation-chain claims retain source adoption and edge provenance rather than asserting unconditional world truth.",
         "Depth/frontier bounds, cycles, deduplication and finite-search quotients have explicit soundness and any completeness scope.",
-        "Disagreement and alternate paths survive pruning where observable."
+        "Disagreement and alternate paths survive pruning where observable.",
+        "Explicitly own finite graph algorithms/optimization alongside source-dependent relation chains: graph profile fixes directedness, parallel edges, isolated vertices, weights and tie behavior.",
+        "Keep feasible path/tree, cost, bound, optimality certificate, complete enumeration and unreachable/disconnected claim separate; no-found-path or valid witness alone cannot establish stronger claims."
       ],
       "checks": [
         "Target evidence: cyclic graphs, missing/contradictory edges, multiple paths, bounds exhaustion and quotient counterexamples.",
-        "Target evidence: executable path checker connection and frontier/time/memory measurements on representative graphs."
+        "Target evidence: executable path checker connection and frontier/time/memory measurements on representative graphs.",
+        "Proposed graph cases: valid but nonoptimal path, directed input to an MST contract, unreachable target, equal optima, negative-edge parsing and witness retention through registered codecs."
       ],
       "evidence": [],
       "notes": "",
@@ -1303,6 +1646,12 @@
         "ACC-09",
         "ACC-12",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md"
       ]
     },
     {
@@ -1331,11 +1680,17 @@
       "acceptance": [
         "Follow-ups, freshness, sensor observations, proposed/confirmed actions and persisted/session state follow explicit contracts.",
         "Implement scoped required computer/SSH/file/MCP/sensor integrations or record justified decisions from the audit.",
-        "External actions cannot escape authority checks or commit after cancellation; no tests contact unrequested real services."
+        "External actions cannot escape authority checks or commit after cancellation; no tests contact unrequested real services.",
+        "Connect/discover/test/qualify/preview/poll/replay are explicit executor operations with credential references, schema/version identity, validated arguments and authority independent of server read-only labels.",
+        "Implement the acquisition state machine with original event times, sequence/deduplication, quality/mapping/unit versions, per-observation measured/simulated origin and defined duplicate/late/missing/rejected sample handling.",
+        "Background jobs have resource owners and restart/removal semantics; feedback proposes versioned routing changes and requalification without publishing unmeasured behavior early.",
+        "Retired/expired readers and deleted private data remain unavailable through follow-ups, cached objects and restored sessions."
       ],
       "checks": [
         "Target evidence: local mock connector conformance, stale readings, session isolation, idempotent retries and interrupted actions.",
-        "Target evidence: real executor/model correspondence and end-to-end stateful specialist workflows with bounded resources."
+        "Target evidence: real executor/model correspondence and end-to-end stateful specialist workflows with bounded resources.",
+        "Proposed local fixtures: mutating MCP tool during qualification; schema change; old MQTT message repolled; mixed units/configs; invalid latest reading; removal during a pending poll.",
+        "Proposed feedback/expiry cases: failed requalification preserves old routing, cached pronoun follow-up respects expiry, and replay of a recorded action does not invoke the connector again."
       ],
       "evidence": [],
       "notes": "",
@@ -1350,6 +1705,13 @@
         "ACC-06",
         "ACC-11",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/workbench-gaps.md"
       ]
     },
     {
@@ -1377,11 +1739,17 @@
       "acceptance": [
         "Reachable inherited routes get preservation/repair/exclusion evidence; fallback does not answer a different question as if successful.",
         "Entity/role ambiguity, follow-ups, assumptions, failure and disagreement survive routing and dialogue state.",
-        "Rendering exposes exactly the licensed structured claim and relevant conditions under the request pin."
+        "Rendering exposes exactly the licensed structured claim and relevant conditions under the request pin.",
+        "Implement versioned positive precedence, addressed personal-source routes, unresolved readings and scoped veto/discharge policy; neither universal core-first routing nor indiscriminate fallback matches the required semantics.",
+        "Dependent multipart requests share explicit intermediate state and retain per-part outcome/dependencies; final answer arbitration precedes committing adopted conversation deltas.",
+        "Preserve original literals/source maps, exact claim kind/scope, collection completeness and tentative artifact lifecycle during rendering; help/instruction/reference speech acts remain distinct from world claims.",
+        "Recall/restoration obey retirement/private-data rules and preserve historical status without re-executing questions or adopting an outer-guard-withheld answer."
       ],
       "checks": [
         "Target evidence: negative-square-root misrouting, numeric-document fallback, ambiguous aliases, context changes and contradictory candidates.",
-        "Target evidence: interpretation/renderer bridge checks and whole-path latency measurements across family interfaces."
+        "Target evidence: interpretation/renderer bridge checks and whole-path latency measurements across family interfaces.",
+        "Proposed routing regressions: scoped refusal cannot be evaded, alternate justified interpretation remains possible, local-source precedence is explicit, and state-before-guard failure leaves referents unchanged.",
+        "Proposed dialogue cases: only some multipart questions succeed, dependent second question uses the accepted first result, expired follow-up, tentative code response and help with no fabricated fact claim."
       ],
       "evidence": [],
       "notes": "",
@@ -1397,6 +1765,17 @@
         "ACC-05",
         "ACC-12",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -1423,11 +1802,21 @@
       "acceptance": [
         "Retain logical results, heuristic search experience and executable improvements as distinct reusable products.",
         "New vocabulary/abstractions or generalized programs require explicit obligations; successful examples alone do not authorize universal claims.",
-        "Stale/failed candidates, learned templates and upstream retained programs have transparent lifecycle/disposition rules."
+        "Stale/failed candidates, learned templates and upstream retained programs have transparent lifecycle/disposition rules.",
+        "Map and deliberately preserve/repair all three original code-growth mechanisms: catalogue/toolchain generation and checking, ordered pipeline synthesis with differential samples, and typed bounded enumeration with retained library. They are not interchangeable evidence or one generic search label.",
+        "Ordinary users may inspect/use tentative artifacts under exact user-test/backend observations and outstanding obligations; candidate lifecycle and safe explicit execution are separate from formal capability admission.",
+        "Scope observational equivalence to the actual differential/user samples unless stronger evidence establishes a general contract; later generalization or library activation passes appropriate admission and operational qualification.",
+        "Feedback and gap-derived learning are attributable versioned proposals with exposure/retention history; qualify against binding interference/negative space and publish atomically without unauthorized validation effects.",
+        "Nonpublishing evaluation/benchmark runs isolate both in-memory and persistent learned state. Retained objects declare request/session/global owner scope, exact identity/dependencies and activation authority; disabling disk writes alone is not isolation.",
+        "Restore retained candidates with recorded evidence and scope rather than admitting them by name/import. Language/toolchain choice, emitted-artifact delivery and missing-toolchain/timeout/mismatch distinctions remain covered for the three original mechanisms."
       ],
       "checks": [
         "Target evidence: persist/reload/reuse each product category and admit a useful abstraction or implementation improvement.",
-        "Target evidence: overgeneralization, stale context, observational-equivalence scope and alternate-promotion-path negatives; measure retained-search benefit and cost."
+        "Target evidence: overgeneralization, stale context, observational-equivalence scope and alternate-promotion-path negatives; measure retained-search benefit and cost.",
+        "Proposed mechanism matrix: one source-grounded catalogue/toolchain case, one ordered pipeline/differential-sample case and one bounded typed enum/library case, with exact success/failure/budget/evidence semantics.",
+        "Proposed candidate-growth cases: user tests pass but universal claim remains unproved; persisted sample-equivalent program fails a new input; imported exposure is retained; feedback requalification failure preserves active policy.",
+        "Proposed R6 contamination checks: compare normal requests before/after a nonpublishing benchmark, exercise two sessions and same-name learned programs, reload after primitive changes, and verify both disk and in-memory libraries remain isolated.",
+        "Proposed R5 artifact checks execute emitted output against its model/reference where permitted, include a counterexample beyond training samples and distinguish target unavailability from failed synthesis; stronger general claims need their separate bridge."
       ],
       "evidence": [],
       "notes": "",
@@ -1442,6 +1831,16 @@
         "ACC-10",
         "ACC-12",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -1469,12 +1868,17 @@
         "Authors can request useful proof/search help and retain accepted results as normal editable package material.",
         "Suggestions state unresolved obligations and preserve authorial choices such as domain restriction versus changed meaning.",
         "Heuristic assistance cannot bypass native admission or silently overwrite custom edits.",
-        "Substantive multi-step proof/search, retained growth and repair are usable through the actual client and engine; placeholder controls or fixed proof replay do not satisfy this gate."
+        "Substantive multi-step proof/search, retained growth and repair are usable through the actual client and engine; placeholder controls or fixed proof replay do not satisfy this gate.",
+        "Implement the closed improvement loop from opt-in gap discovery and scoped decline diagnosis to editable examples/specification, candidate generation, qualification/admission, deployment and versioned feedback.",
+        "Keep exact test observations and tentative ordinary-user code usable while showing unmet obligations; journal-derived blank answers never become ground truth.",
+        "Include author code experimentation and structured explanation/Film export in the explicit workflow disposition, preserving claim conditions and private-data boundaries; final open scope choices require a recorded decision."
       ],
       "checks": [
         "Target evidence: author workflows spanning failed contract, explanation, assisted repair, new abstraction and deployed reuse.",
         "Target evidence: rejected candidate recovery, cancellation, edit conflict and explanation fidelity across UI/CLI.",
-        "Target evidence: author-triggered multi-step search across capabilities, inspectable failure/budget traces and retained accepted results through UI and CLI."
+        "Target evidence: author-triggered multi-step search across capabilities, inspectable failure/budget traces and retained accepted results through UI and CLI.",
+        "Proposed workflow cases: missing-reading gap becomes a useful deployed specialist; guarded decline cannot be trained away; tentative code receives user tests; feedback changes policy only after qualified publication.",
+        "Proposed artifact check: explanation/Film output retains result provenance, conditions and historical state; generated decoration remains labeled and optional remote calls use explicit authority."
       ],
       "evidence": [],
       "notes": "",
@@ -1490,6 +1894,13 @@
         "ACC-09",
         "ACC-10",
         "ACC-16"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/workbench-gaps.md"
       ]
     },
     {
@@ -1516,11 +1927,14 @@
       "acceptance": [
         "Evaluate native ML, Sepref/LLVM compatibility and measured value; unsupported backends receive explicit evidence-based disposition.",
         "Transformations preserve the selected equality/error/observation relation and connect generated artifacts to admitted meanings.",
-        "Compiler/runtime/ABI boundaries are explicit; no theorem about an intermediate model is called full machine-code verification."
+        "Compiler/runtime/ABI boundaries are explicit; no theorem about an intermediate model is called full machine-code verification.",
+        "Backend optimization uses profile-specific observation relations: preserve exact/rounded/normative arithmetic, affine/logarithmic/frame conventions and collection completeness/ordering where claimed.",
+        "External engine observations and finite-model computations retain their declared backend/model boundaries after refinement; no wider language/world correctness is implied."
       ],
       "checks": [
         "Target evidence: optimization/representation preservation or checked translation certificates plus artifact conformance cases.",
-        "Target evidence: reproducible correctness/performance comparisons, RC1/toolchain compatibility and compilation amortization."
+        "Target evidence: reproducible correctness/performance comparisons, RC1/toolchain compatibility and compilation amortization.",
+        "Proposed refinement counterexamples include exact rational loss, prohibited affine arithmetic, normative-rounding changes and a truncated result promoted to complete."
       ],
       "evidence": [],
       "notes": "Required outcome is a defensible performant portfolio, not a mandate to use every researched backend.",
@@ -1532,6 +1946,13 @@
         "ACC-05",
         "ACC-08",
         "ACC-12"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -1561,11 +1982,18 @@
         "Supported macOS ARM64 and Linux x86_64 installations launch pinned prebuilt artifacts and admit/edit capabilities without surprise HOL-Analysis builds.",
         "Dependency/license/source closure is explicit; runtime-specific derivatives can be rebuilt from durable developments.",
         "Failed installation/update preserves a working version; optional extracted runtimes declare reduced features.",
-        "Resolve D19 licensing and redistribution closure for platform code, reused upstream code, runtime/heaps and bundled data before claiming distributable installation; do not select the project license without its recorded decision."
+        "Resolve D19 licensing and redistribution closure for platform code, reused upstream code, runtime/heaps and bundled data before claiming distributable installation; do not select the project license without its recorded decision.",
+        "Inventory optional external-language engines and connector/media providers with pinned versions/configuration/licenses and credentials outside transferable artifacts.",
+        "Deployment/update/recovery preserves qualification/exposure and retention policy, restores state without replaying actions and stops retired background jobs; old pinned artifacts do not reactivate revoked private capabilities.",
+        "Keep local explanation/Film, code experimentation and optional external publication compatibility decisions explicit in the shipped feature matrix rather than silently omitting them.",
+        "Packaged CPU-only core reasoning, included source snapshots and existing local authoring work with networking disabled. Normal startup requires no external LLM/prover/CDN/download; explicitly connected capabilities report honest unavailability until their optional services are deliberately configured.",
+        "Offline/local operation uses measured hardware/resource envelopes; it does not inherit an unverified original 2 GB memory promise."
       ],
       "checks": [
         "Target evidence: clean-environment install/launch/search/edit/admission checks on each declared target and reproducible source rebuild.",
-        "Target evidence: missing/incompatible dependency, interrupted update, recovery and launch/admission resource measurements."
+        "Target evidence: missing/incompatible dependency, interrupted update, recovery and launch/admission resource measurements.",
+        "Proposed clean-install/recovery cases: restore an examined package, resume one recorded action without rerunning it, respect deleted/expired private readers and prevent restarted pollers from recreating removed history.",
+        "Proposed offline acceptance: disable network in a clean installed environment and launch the packaged core/workbench, inspect/edit/run local specialists and use shipped snapshots/search; verify no mandatory remote assets or downloads, while optional external connectors fail with scoped dependency diagnostics."
       ],
       "evidence": [],
       "notes": "",
@@ -1579,6 +2007,14 @@
         "ACC-12",
         "ACC-13",
         "ACC-14"
+      ],
+      "design_inputs": [
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -1611,12 +2047,15 @@
         "Every manifest and reachable core/workbench surface has an evidence-linked decision, and every required in-scope capability is implemented, passes its behavioral/semantic acceptance and runs in the deployment. A disposition label alone is not completion.",
         "Compatible family interfaces compose with conditions, sources, disagreement and state preserved; incompatibilities are justified against the agreed product scope.",
         "Required opaque adapters, partial lifts and unresolved implementation failures block this gate. Exclusions require an explicit agreed scope decision and evidence, not convenience or an unimplemented label.",
-        "Original unavailable upstream data is recorded separately with its precise effect and explicit replacement/unavailability disposition. Available replacement/test sources exercise the required platform behavior; the limitation cannot be used to waive implementation obligations or claim original-data parity."
+        "Original unavailable upstream data is recorded separately with its precise effect and explicit replacement/unavailability disposition. Available replacement/test sources exercise the required platform behavior; the limitation cannot be used to waive implementation obligations or claim original-data parity.",
+        "Cross-family closure exercises the shared codec/profile boundary, scoped claims, partial/multipart/optimality semantics, scoped routing and operational qualification\u2014not merely per-family output equality.",
+        "Required source-review cases retain their source/proposed/executed distinction and become passing regressions before affected migration claims close; optional Film/publication decisions remain explicit rather than unowned omissions."
       ],
       "checks": [
         "Target evidence: cross-family scenarios, intended upstream comparisons, independent negative cases and whole-path measurements.",
         "Audit coverage denominator and source/data limitations against ACC-15; reopen any unsupported completion claim.",
-        "Review all required capability rows for passing executable evidence and connected semantic obligations; unresolved implementation rows fail the gate, while original-data limitations and agreed exclusions remain separately enumerated."
+        "Review all required capability rows for passing executable evidence and connected semantic obligations; unresolved implementation rows fail the gate, while original-data limitations and agreed exclusions remain separately enumerated.",
+        "Review G01-G08 traceability across family packages and all proposed regression cases, including literal spaces, partial rows, scoped refusal, MQTT repoll time, expiry follow-up, imported held-out log and state-before-guard."
       ],
       "evidence": [],
       "notes": "",
@@ -1635,6 +2074,19 @@
         "ACC-10",
         "ACC-11",
         "ACC-15"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -1663,12 +2115,18 @@
         "Authors create/import, inspect, compose, repair, profile, package and deploy across actual supported families.",
         "Change impact reaches the editor and running generations; source inspection and effect confirmation use actual runtime operations.",
         "Package transfer/history/recovery and expert native editing work coherently without hidden developer steps.",
-        "The shipped installation exposes serious multi-step search, retained growth and actionable profiling/refinement in the ordinary author workflow; required usability or implementation gaps block completion."
+        "The shipped installation exposes serious multi-step search, retained growth and actionable profiling/refinement in the ordinary author workflow; required usability or implementation gaps block completion.",
+        "Exercise gap-journal-to-deployed-specialist, exact-test tentative code, qualification/feedback, recall/retirement/forgetting and structured explanation/export as explicit workflows with final agreed Film/code-experimentation scope.",
+        "UI/CLI maintain actual claim/completeness/lifecycle records and private export boundaries; effectful qualification/background acquisition uses the same authority as ordinary execution.",
+        "Packaged CPU-only core reasoning, included source snapshots and existing local authoring work with networking disabled. Normal startup requires no external LLM/prover/CDN/download; explicitly connected capabilities report honest unavailability until their optional services are deliberately configured."
       ],
       "checks": [
         "Target evidence: end-to-end UI/CLI workflows on shipped runtime and interruption/fault-recovery scenarios.",
         "Review usability limitations separately from automated checks and ensure every ACC-02 workflow has a disposition.",
-        "Target evidence: from a clean shipped installation, use the client to orchestrate nontrivial search, diagnose a cost, obtain a justified improvement and retain/redeploy it."
+        "Target evidence: from a clean shipped installation, use the client to orchestrate nontrivial search, diagnose a cost, obtain a justified improvement and retain/redeploy it.",
+        "Proposed integrated cases: import examined package without fictitious fresh holdout; run a mock effectful probe only under chosen authority; reconnect without replaying action; erase/retire managed private derivatives under policy.",
+        "Trace the first useful authored artifact through revision, empirical qualification, applicable formal admission and ordinary deployed use without relying on developer-only scaffolding.",
+        "Proposed offline acceptance: disable network in a clean installed environment and launch the packaged core/workbench, inspect/edit/run local specialists and use shipped snapshots/search; verify no mandatory remote assets or downloads, while optional external connectors fail with scoped dependency diagnostics."
       ],
       "evidence": [],
       "notes": "",
@@ -1687,6 +2145,16 @@
         "ACC-11",
         "ACC-13",
         "ACC-14"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -1712,11 +2180,14 @@
         "Every mandatory named obligation in project/PROOF_OBLIGATIONS.md is established with its required mechanized result and actual generation/refinement/replay bridge to the authoritative implementation. Merely auditing whichever theorems happen to exist does not satisfy this gate.",
         "Each obligation records assumptions, representation/observation relation, exact theorem and consumer, assurance route and deployed artifact association. Unproved mandatory targets or disconnected implementations block completion.",
         "Admission, interpretation/rendering, composition, source queries, growth, updates and effects have no alternate unchecked publication path.",
-        "Trusted runtime/compiler/OS boundaries are explicitly recorded under the adopted assurance contract; an omitted mandatory bridge cannot be relabeled a limitation to pass the gate."
+        "Trusted runtime/compiler/OS boundaries are explicitly recorded under the adopted assurance contract; an omitted mandatory bridge cannot be relabeled a limitation to pass the gate.",
+        "Mandatory proof/runtime bridges cover the adopted claim/profile/codec, partial-result, scoped routing, observation/qualification effects and retention semantics from G01-G07; widening an interface reopens affected proof obligations.",
+        "Exact empirical observations and operational qualification remain outside universal proof claims while their acquisition/publication authority is connected to the modeled system."
       ],
       "checks": [
         "Target evidence: reconcile every mandatory named entry in project/PROOF_OBLIGATIONS.md with established theorem statements, actual authoritative handlers and deployed executable artifacts; missing connections fail the gate.",
-        "Target evidence: run hidden-assumption/oracle/axiom/artifact/context adversarial cases and mutation/differential checks capable of exposing model/runtime mismatch and stale or forged acceptance."
+        "Target evidence: run hidden-assumption/oracle/axiom/artifact/context adversarial cases and mutation/differential checks capable of exposing model/runtime mismatch and stale or forged acceptance.",
+        "Audit the implemented C01-C05 signatures and PO-01 through PO-10 against concrete G01-G07 negative cases; reject assurance records that erase claim scope or lifecycle restrictions."
       ],
       "evidence": [],
       "notes": "",
@@ -1735,6 +2206,18 @@
         "ACC-09",
         "ACC-10",
         "ACC-11"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -1761,11 +2244,15 @@
       "acceptance": [
         "Meet or explicitly revise justified startup/admission/search/execution/evidence/update budgets on supported targets.",
         "Attribute tail latency, allocation/live memory, I/O and checking costs; avoid moving costs into unmeasured setup.",
-        "Optimizations retain assurance and disagreement/cancellation semantics; no stale benchmark claims after artifact changes."
+        "Optimizations retain assurance and disagreement/cancellation semantics; no stale benchmark claims after artifact changes.",
+        "Whole-session tests include background acquisition, qualification, streaming/window aggregation and interactive search interference, with actual finite state spaces and materialization limits.",
+        "Operational utility metrics include negative-space interception/abstention, extension interference and honest exposure provenance in addition to latency and proof-checker costs."
       ],
       "checks": [
         "Target evidence: cold/warm/load/concurrent/cancellation workloads with pinned hardware, toolchain, sources and runtime manifests.",
-        "Target evidence: semantic/certificate checks for changed optimizations and measured regression comparisons at actual end-user scale."
+        "Target evidence: semantic/certificate checks for changed optimizations and measured regression comparisons at actual end-user scale.",
+        "Proposed combined load: background sensor/window work and effectful mock qualification alongside multipart interactive search, cancellation and candidate-code testing.",
+        "Proposed R6 load check: nonpublishing evaluation followed by normal work cannot contaminate in-memory or disk search libraries; concurrent sessions use explicit state rather than shared recorder/learning switches."
       ],
       "evidence": [],
       "notes": "",
@@ -1779,6 +2266,14 @@
         "ACC-11",
         "ACC-12",
         "ACC-13"
+      ],
+      "design_inputs": [
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -1808,12 +2303,15 @@
         "Clean installations support authoring, serious search, retained growth and efficient family execution on declared targets.",
         "Release artifacts omit credentials, private history and unlicensed/unselected corpora; source/runtime/dependency closure is reproducible.",
         "D19 has reviewed licensing/redistribution evidence and an explicit project-license decision; unresolved rights block release inclusion rather than disappearing from manifests.",
-        "Original unavailable-data limitations have an explicit reviewed disposition separate from implementation completeness and original-data parity. Excluding product functionality requires an agreed scope decision; listing a limitation cannot silently narrow the required product."
+        "Original unavailable-data limitations have an explicit reviewed disposition separate from implementation completeness and original-data parity. Excluding product functionality requires an agreed scope decision; listing a limitation cannot silently narrow the required product.",
+        "Resolve each required G01-G08 workflow/contract obligation with passing implementation evidence; documented open Film/external-publication choices must receive explicit scope decisions before relevant release claims.",
+        "Release contents preserve candidate/qualification/admission distinctions, exposure history, private export/retirement policy and the scope of external observations; source audit proposals alone are not executed acceptance evidence."
       ],
       "checks": [
         "Target evidence: clean-target acceptance matrix, update/recovery run and packaged-content/license/dependency review.",
         "Root reviews every completion and coverage claim against actual artifact behavior before release acceptance.",
-        "Fail release acceptance for any required in-scope implementation, deployment, performance or mandatory-proof gap; enumerate original-data limitations, agreed exclusions and the still-required recipient rehearsal separately."
+        "Fail release acceptance for any required in-scope implementation, deployment, performance or mandatory-proof gap; enumerate original-data limitations, agreed exclusions and the still-required recipient rehearsal separately.",
+        "Cross-check the final feature/assurance/export matrix against G01-G08 and all source-reviewed workflow rows, including three synthesis mechanisms, author gap loop, code experimentation and explanation/Film decisions."
       ],
       "evidence": [],
       "notes": "Preparing and validating a release does not authorize unsolicited publication or contacting the upstream author.",
@@ -1841,6 +2339,19 @@
         "ACC-14",
         "ACC-15",
         "ACC-16"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G02: docs/review/PREIMPLEMENTATION.md",
+        "G03: docs/review/PREIMPLEMENTATION.md",
+        "G04: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G06: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/domain-gaps.md",
+        "docs/review/workbench-gaps.md",
+        "docs/review/runtime-gaps.md"
       ]
     },
     {
@@ -1865,11 +2376,15 @@
       "acceptance": [
         "A recipient can add/revise a specialist, diagnose a failure, profile/refine it, package it and obtain deployed behavior without implementer intervention.",
         "Documentation spans actual families, native expert access, source provenance, search/growth, recovery and known limits.",
-        "Independent user evidence is distinguished from developer rehearsal; genuine gaps remain tracked rather than labeled passed."
+        "Independent user evidence is distinguished from developer rehearsal; genuine gaps remain tracked rather than labeled passed.",
+        "Tutorial/rehearsal covers the first useful artifact from a declined request, tentative code plus exact user tests, qualification versus formal admission, versioned feedback, private recall/retirement and an explanation export under the agreed Film scope.",
+        "The recipient can see which source-derived scope decisions were made, where private data/exposure lives and how a candidate becomes an ordinary deployed capability."
       ],
       "checks": [
         "Target evidence: follow documentation from a clean environment to edit, diagnose, deploy and extend several representative specialists.",
-        "Record actual participant, assistance required, failures and fixes; arrange any external contact only with user authorization."
+        "Record actual participant, assistance required, failures and fixes; arrange any external contact only with user authorization.",
+        "Rehearse gap -> draft -> revise -> qualify/admit -> deploy -> feedback using the documented runtime; inspect resulting exposure/retention and export records without silently executing optional remote services.",
+        "Rehearse starting from an actual Oracle7-original specialist package and its evaluation/source material, not only a hand-written veri7vn tutorial package."
       ],
       "evidence": [],
       "notes": "",
@@ -1885,7 +2400,15 @@
         "ACC-13",
         "ACC-14",
         "ACC-16"
+      ],
+      "design_inputs": [
+        "G01: docs/review/PREIMPLEMENTATION.md",
+        "G05: docs/review/PREIMPLEMENTATION.md",
+        "G07: docs/review/PREIMPLEMENTATION.md",
+        "G08: docs/review/PREIMPLEMENTATION.md",
+        "docs/review/workbench-gaps.md"
       ]
     }
-  ]
+  ],
+  "design_review": "G01-G08 in docs/review/PREIMPLEMENTATION.md and referenced source reports are design inputs/proposed acceptance cases, not completed implementation or executed regression evidence."
 }

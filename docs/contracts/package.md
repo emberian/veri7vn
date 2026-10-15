@@ -1,6 +1,7 @@
 # C01 — Specialist package
 
-Revision 0. Descriptor structure is implemented by
+Semantic revision 1. Descriptor format remains `veri7vn.package/0`.
+Descriptor structure is implemented by
 [`schemas/package.schema.json`](../../schemas/package.schema.json). Loading and
 native export validation remain work for the packaging and admission lanes.
 
@@ -84,6 +85,43 @@ Authoring diagnostics should point to the relevant source and failed obligation,
 show concrete counterexamples when available, and preserve alternatives when a
 repair changes intent. Native specifications, diagnostic source maps, tests,
 performance records and build outputs should remain navigable from the package.
+
+## Qualification, activation and transfer
+
+Keep native semantic admission (C02), operational qualification and active publication
+separate. A proved kernel can have an intrusive recognizer, regress abstention or miss
+deployment requirements. Qualification records bind candidate and baseline artifacts,
+interpretation/routing policy, learned state, source/state observations, exam/scorer,
+dataset/split, runtime/resource conditions and exposure history. Preserve negative-space
+and extension-interference tests alongside successful answers and measured cost.
+Tests never substitute for proof, and proof does not waive product qualification.
+
+Development runs, repeatable regressions and fresh held-out evaluation are distinct.
+Imported exam history remains attributable sender evidence; rerunning an exposed set
+does not become fresh recipient evidence by deleting its log. Aborted/spent runs must
+not become measured successes or failures. Exact holdout discipline, thresholds and
+activation criteria remain explicit policy decisions, not inherited accidents.
+
+Feedback links an attributable event to the actual request/result/invocation and
+distinguishes intended interpretation, factual correctness and route choice. It
+proposes a versioned policy change, evaluated before atomic activation; failed
+qualification leaves the previous policy active. Correction/undo and retention
+apply to feedback and derived learning. A user's "right" mark is not a proof.
+Gap-derived examples retain their original request/reason and proposal status;
+an unanswered question or blank expected value is not training ground truth.
+
+Exports select classified contents rather than copying every local file or relying
+on a single private/source flag. Check transitive included artifacts: examples,
+feedback, recall indexes and traces may contain private material. Credentials remain
+references outside transferable packages. Integrity hashes, attribution/registration
+and exam receipts are different from semantic proof. Transfer records the chosen
+contents and recipient dependencies without promising authority or replayability for
+material deliberately omitted under retention/export policy (C04). Exact publication
+and external registry compatibility remain scoped product decisions.
+
+These obligations come from [G05/G07/G08](../review/PREIMPLEMENTATION.md) and
+[workbench findings 1–5/8](../review/workbench-gaps.md). They add no descriptor fields
+in format 0 and do not claim a qualification or transfer engine already exists.
 
 ## Cross-lane acceptance
 

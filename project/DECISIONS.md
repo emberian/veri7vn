@@ -25,6 +25,10 @@ override this register or the user.
 | D17 | open | Missing corpus replacement snapshot/extraction policy; exact original is unknown. Document compatibility semantics and retain the limitation. |
 | D18 | open | Full migration scope of six siblings. Present requirement is discovery/contract stress testing; expansion needs an explicit decision. |
 | D19 | open | Project license and redistribution closure for runtime, solvers and corpora. Do not infer a license grant for new code from an upstream license or publish before this is settled. |
+| D20 | baseline | Preimplementation audit G01–G03: claim scope/modality, assurance route and artifact lifecycle are separate. Ordinary-user tentative artifacts and scoped model/test/observation results remain useful; no empirical proof route or opaque-wrapper completion loophole. Native-registry owns extensible codec/profile registration, reviewed with operational and interpretation lanes. Original literals survive language normalization; composite/partial results retain their exact scope. |
+| D21 | baseline | Audit G04/G07: routing blockers are scoped, not a universal terminal decline or indiscriminate fallback. Final outcome arbitration precedes authoritative answer-state adoption; transcript recording is separate. Session restoration does not re-execute old requests. Retirement/retention/access authority constrains cached handles and pinned generations. |
+| D22 | baseline | Audit G05/G06: native semantic admission, empirical operational qualification and active publication are distinct. Feedback/configuration changes publish versioned policies. Connector discovery/test/requalification and background acquisition obey effect authority; source event time is distinct from receipt/poll time and origin/configuration belongs to each observation. |
+| D23 | open | Exact qualification/held-out exposure policy, managed deletion/in-flight revocation details, original code-experimentation replacement and Film workflow disposition. These now have explicit task requirements; no source feature is silently excluded. External registry scope remains D16. |
 
 ## Change protocol
 
@@ -45,3 +49,7 @@ permission barriers.
   package exports. C03/C04 now require request observation context and commit
   preconditions; C01 permits support packages without fake capabilities. These are
   integration repairs before consumers depend on revision 0.
+- The [preimplementation omissions review](../docs/review/PREIMPLEMENTATION.md)
+  checks actual runtime, domain, workbench and sibling source against that baseline.
+  Its G01–G08 requirements elaborate shared semantic contracts before concrete
+  interfaces are consumed. They do not mark any migration or metatheory complete.
