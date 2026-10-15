@@ -1,0 +1,1891 @@
+{
+  "schema_version": 1,
+  "updated": "2026-10-15",
+  "scope": "Complete Isabelle-native specialist engineering environment; see project/PLAN.md and docs/product/ACCEPTANCE.md.",
+  "evidence_policy": "Checks on planned tasks are target evidence to implement and review, not claims of existing scripts or executed verification. Root reviews completion. Evidence paths are references, not certificates.",
+  "ownership_policy": "Planned paths are tentative partitions to refine at dispatch. Shared contracts and integration files require coordinated changes. Root owns ledger/status updates after initial delegated population.",
+  "milestones": {
+    "F": "Foundation",
+    "C": "Coherent core",
+    "W": "Workspace",
+    "P": "Coverage and performance",
+    "H": "Handoff"
+  },
+  "decision_register": "project/DECISIONS.md",
+  "tasks": [
+    {
+      "id": "f-project",
+      "title": "Record project scope, decisions and integration discipline",
+      "area": "coordination",
+      "milestone": "F",
+      "status": "done",
+      "depends_on": [],
+      "owner": "root",
+      "paths": [
+        "README.md",
+        "AGENTS.md",
+        "docs/ARCHITECTURE_PROPOSAL.md",
+        "project/PLAN.md",
+        "project/DECISIONS.md",
+        "project/VALIDATION.md",
+        "project/PROOF_OBLIGATIONS.md"
+      ],
+      "deliverables": [
+        "Project plan, decision register, contributor instructions and foundation review"
+      ],
+      "acceptance": [
+        "Whole product scope and agent ownership are explicit; prototypes remain distinct from new platform implementation.",
+        "Native deployment, authoring, sources, serious search, growth and performant execution have tracked acceptance gates."
+      ],
+      "checks": [
+        "Root reviews the plan against the current conversation and ACC-01 through ACC-16.",
+        "Root records foundation integration checks and limitations in project/VALIDATION.md."
+      ],
+      "evidence": [
+        "project/PLAN.md",
+        "project/DECISIONS.md",
+        "AGENTS.md",
+        "README.md",
+        "project/VALIDATION.md",
+        "project/PROOF_OBLIGATIONS.md"
+      ],
+      "notes": "Accepted by root after cross-lane review and recorded foundation checks on 2026-10-15; product implementation remains open.",
+      "contracts": [],
+      "acceptance_ids": [
+        "ACC-16"
+      ]
+    },
+    {
+      "id": "f-contracts",
+      "title": "Establish shared package and authority contracts with fixtures",
+      "area": "contracts",
+      "milestone": "F",
+      "status": "done",
+      "depends_on": [],
+      "owner": "contracts_scaffold",
+      "paths": [
+        "docs/contracts/**",
+        "schemas/**"
+      ],
+      "deliverables": [
+        "C01-C05 contract baseline, package schema and structural fixtures"
+      ],
+      "acceptance": [
+        "Package descriptors cannot grant proof authority by author-supplied status fields.",
+        "Generation, admission, structured results and proposal/effect boundaries share one documented vocabulary."
+      ],
+      "checks": [
+        "Run python3 schemas/check.py in the documented schema environment.",
+        "Inspect positive and negative fixtures; confirm native authority is not claimed by schema validation."
+      ],
+      "evidence": [
+        "docs/contracts/README.md",
+        "schemas/package.schema.json",
+        "schemas/fixtures/index.json",
+        "schemas/check.py",
+        "project/VALIDATION.md"
+      ],
+      "notes": "Accepted by root after cross-lane review and recorded foundation checks on 2026-10-15; product implementation remains open.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-01",
+        "ACC-08"
+      ]
+    },
+    {
+      "id": "f-native",
+      "title": "Provide isolated warm native build and boundary probes",
+      "area": "native bootstrap",
+      "milestone": "F",
+      "status": "done",
+      "depends_on": [],
+      "owner": "native_bootstrap",
+      "paths": [
+        "src/isabelle/**",
+        "tools/dev/**",
+        "tests/scaffold/**"
+      ],
+      "deliverables": [
+        "Veri7vn_Core scaffold, scoped build driver and native smoke assertions"
+      ],
+      "acceptance": [
+        "The documented command runs against bundled HOL with bounded resources and workspace-local state.",
+        "Native transport and hidden assumptions are demonstrated without labeling inspection as admission."
+      ],
+      "checks": [
+        "Run python3 tools/dev/check-native under the shared build lock.",
+        "Review var/native-scaffold/receipt.json and assertion logs, distinguishing cached from executed checks."
+      ],
+      "evidence": [
+        "src/isabelle/ROOT",
+        "tests/scaffold/Native_Boundary_Smoke.thy",
+        "tools/dev/check-native",
+        "tools/dev/README.md",
+        "project/VALIDATION.md"
+      ],
+      "notes": "Accepted by root after cross-lane review and recorded foundation checks on 2026-10-15; product implementation remains open.",
+      "contracts": [
+        "C02"
+      ],
+      "acceptance_ids": [
+        "ACC-08",
+        "ACC-12"
+      ]
+    },
+    {
+      "id": "f-coverage",
+      "title": "Inventory coverage and define product acceptance",
+      "area": "coverage",
+      "milestone": "F",
+      "status": "done",
+      "depends_on": [],
+      "owner": "coverage_readiness",
+      "paths": [
+        "audit/coverage/**",
+        "docs/coverage/**",
+        "docs/product/**"
+      ],
+      "deliverables": [
+        "Pinned manifest/source inventory, reviewed-disposition scaffold and ACC-01 through ACC-16"
+      ],
+      "acceptance": [
+        "The denominator accounts for 305 manifests, 124 class names, inherited runtime and workbench surfaces without calling every Python file reachable.",
+        "Unclassified domain families, unavailable data and sibling investigations remain visible."
+      ],
+      "checks": [
+        "Run python3 audit/coverage/generate.py --check.",
+        "Review coverage denominators and ensure no prototype is recorded as a completed lift."
+      ],
+      "evidence": [
+        "audit/coverage/inventory.json",
+        "audit/coverage/decisions.json",
+        "docs/coverage/README.md",
+        "docs/product/ACCEPTANCE.md",
+        "project/VALIDATION.md"
+      ],
+      "notes": "Accepted by root after cross-lane review and recorded foundation checks on 2026-10-15; product implementation remains open.",
+      "contracts": [],
+      "acceptance_ids": [
+        "ACC-15",
+        "ACC-16"
+      ]
+    },
+    {
+      "id": "f-tools",
+      "title": "Provide minimal task validation and derived coordination views",
+      "area": "coordination tooling",
+      "milestone": "F",
+      "status": "done",
+      "depends_on": [],
+      "owner": "project_tools",
+      "paths": [
+        "tools/project.py",
+        "tests/project/**",
+        "project/tasks.json",
+        "project/BOARD.md"
+      ],
+      "deliverables": [
+        "Read-only ledger validator, ready list, stable board and initial task DAG"
+      ],
+      "acceptance": [
+        "Cycles, missing dependencies and unsupported completion states fail validation; readiness is derived.",
+        "Overlap warnings are advisory and the board is generated from the ledger."
+      ],
+      "checks": [
+        "Run python3 -m unittest discover -s tests/project -v.",
+        "Run python3 tools/project.py check and review the ready/board output."
+      ],
+      "evidence": [
+        "tools/project.py",
+        "tests/project/test_project.py",
+        "project/tasks.json",
+        "project/BOARD.md",
+        "project/VALIDATION.md"
+      ],
+      "notes": "Accepted by root after cross-lane review and recorded foundation checks on 2026-10-15; product implementation remains open.",
+      "contracts": [],
+      "acceptance_ids": [
+        "ACC-16"
+      ]
+    },
+    {
+      "id": "foundation-integration",
+      "title": "Review and integrate the parallel scaffolds",
+      "area": "integration",
+      "milestone": "F",
+      "status": "done",
+      "depends_on": [
+        "f-project",
+        "f-contracts",
+        "f-native",
+        "f-coverage",
+        "f-tools"
+      ],
+      "owner": "root",
+      "paths": [
+        "project/VALIDATION.md"
+      ],
+      "deliverables": [
+        "Reviewed foundation evidence and dispatch-ready ownership/contract map"
+      ],
+      "acceptance": [
+        "All foundation checks pass or have an explicit honest limitation, and contract consumers agree on the starting baseline.",
+        "The scaffold does not claim comprehensive formal verification or completed behavioral migration."
+      ],
+      "checks": [
+        "Review the recorded schema, coverage, ledger and native checks together; run any missing narrow check.",
+        "Inspect the actual native theorem/probe statements and coverage dispositions before marking prerequisites done."
+      ],
+      "evidence": [
+        "project/VALIDATION.md"
+      ],
+      "notes": "Accepted by root after cross-lane review and recorded foundation checks on 2026-10-15; product implementation remains open.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-01",
+        "ACC-08",
+        "ACC-15",
+        "ACC-16"
+      ]
+    },
+    {
+      "id": "coverage-disposition",
+      "title": "Classify reachable core behavior and sibling interface pressures",
+      "area": "coverage",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "foundation-integration"
+      ],
+      "owner": null,
+      "paths": [
+        "audit/coverage/decisions.json",
+        "docs/coverage/classification/**",
+        "tools/audit/reachability/**"
+      ],
+      "deliverables": [
+        "Per-manifest and reachable-core/workbench classification with stable work-package links",
+        "Sibling contract-stress report and missing-source disposition"
+      ],
+      "acceptance": [
+        "Classify all 119 currently unclassified manifests from actual operations; do not assume they are numeric.",
+        "Account for the inherited runtime, all inventoried source entries and materialized data separately, with evidence for exclusions.",
+        "Six siblings remain investigations unless an explicit scope decision adds implementations."
+      ],
+      "checks": [
+        "Check coverage decisions against the pinned inventory and trace representative dispatch/override paths.",
+        "Review every exclusion, missing-data entry and mapping to family tasks; flag unknown reachability explicitly."
+      ],
+      "evidence": [],
+      "notes": "Does not block known interface work; family tasks may be split after classification while retaining closure gates.",
+      "contracts": [
+        "C01",
+        "C03",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "native-registry",
+      "title": "Implement native capabilities and immutable environment registry",
+      "area": "registry",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "foundation-integration"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/registry/**",
+        "tests/registry/**"
+      ],
+      "deliverables": [
+        "Native registry signatures, implementation and pinned generation resolution"
+      ],
+      "acceptance": [
+        "Capabilities retain native types, meanings and contexts without a closed universal value type.",
+        "Resolved generations retain exact package/runtime/policy dependencies and do not mutate in-flight contexts."
+      ],
+      "checks": [
+        "Target evidence: native registration/lookup/namespace/context transport tests and conflicting-export diagnostics.",
+        "Target evidence: generation publication and concurrent old-generation request checks with native object identity preserved."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-01",
+        "ACC-07",
+        "ACC-08"
+      ]
+    },
+    {
+      "id": "operational-model",
+      "title": "Define executable operational calculi and their native bridge",
+      "area": "metatheory",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "foundation-integration"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/model/**",
+        "tests/model/**",
+        "docs/formal/operational.md"
+      ],
+      "deliverables": [
+        "Typed/scoped operational signatures, transition semantics and implementation-connection plan"
+      ],
+      "acceptance": [
+        "Plans, queries, strategies and effects retain domain conditions, failures and contextual dependencies.",
+        "Every claimed invariant has an identified authoritative consumer and a generation/refinement/replay bridge.",
+        "Open HOL vocabulary is connected parametrically; arbitrary native calls are not counted as completed semantics."
+      ],
+      "checks": [
+        "Target evidence: typing/scope preservation and representative transition proofs with executable counterexample checks.",
+        "Review theorem assumptions and actual consuming interfaces; reject a parallel handwritten lookalike model as closure."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C02",
+        "C03",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-05",
+        "ACC-08",
+        "ACC-11"
+      ]
+    },
+    {
+      "id": "source-semantics",
+      "title": "Specify source observations, adoption and query dependencies",
+      "area": "sources",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "foundation-integration"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/sources/semantics/**",
+        "tests/sources/semantics/**",
+        "docs/formal/sources.md"
+      ],
+      "deliverables": [
+        "Observation/query semantics, scoped adoption policy and snapshot contracts"
+      ],
+      "acceptance": [
+        "Conflicting source reports remain data and do not become contradictory global HOL axioms.",
+        "Existence, absence, uniqueness, count, extremum and ranking have explicit candidate-region/snapshot dependencies.",
+        "Whole-snapshot invalidation is the baseline; selective reuse requires an adequacy obligation."
+      ],
+      "checks": [
+        "Target evidence: sound query/observation results and counterexamples to positive-row-only uniqueness or absence reuse.",
+        "Inspect qualifiers, rank, units, references and declared import loss in the semantic contract."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C03",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-06",
+        "ACC-07"
+      ]
+    },
+    {
+      "id": "interpretation-model",
+      "title": "Specify typed interpretation and licensed rendering",
+      "area": "language",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "foundation-integration"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/language/model/**",
+        "tests/language/model/**",
+        "docs/formal/interpretation.md"
+      ],
+      "deliverables": [
+        "Scoped goal/interpretation model, ambiguity protocol and structured-claim renderer contract"
+      ],
+      "acceptance": [
+        "Recognition elaborates under declared language rules with alternatives and missing information retained.",
+        "Rendering preserves the exact accepted claim, premises and uncertainty; text cannot silently strengthen a conditional/source-dependent result.",
+        "No theorem purports to establish the user mental intent from arbitrary natural language."
+      ],
+      "checks": [
+        "Target evidence: interpretation/renderer correspondence checks on ambiguous entities, quantities, conditions, paraphrases and follow-ups.",
+        "Target evidence: rejected renderings that drop a hypothesis, disagreement or source qualification."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C03",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-03",
+        "ACC-04",
+        "ACC-05"
+      ]
+    },
+    {
+      "id": "workbench-audit",
+      "title": "Audit upstream authoring, local integrations and transfer workflows",
+      "area": "authoring discovery",
+      "milestone": "W",
+      "status": "planned",
+      "depends_on": [
+        "foundation-integration"
+      ],
+      "owner": null,
+      "paths": [
+        "docs/workbench/audit/**",
+        "audit/workbench/**"
+      ],
+      "deliverables": [
+        "Reachable workflow inventory and preserve/repair/defer decisions"
+      ],
+      "acceptance": [
+        "Inspect CLI/server/UI, imports, exams, sensors, computer/SSH/file/MCP readers, feedback, conversations and registry/transfer code.",
+        "Separate enabled source behavior from documentation claims and choose reusable UI/CLI components with evidence.",
+        "Record external registry/Solana scope as a decision without silently requiring or deleting it."
+      ],
+      "checks": [
+        "Target evidence: code-level workflow traces and sandboxed local fixture exercises without contacting unrequested services.",
+        "Cross-check the workflow inventory with coverage decisions and ACC-02/11/14."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C03",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-11",
+        "ACC-14",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "performance-envelope",
+      "title": "Establish representative workloads and deployment budgets",
+      "area": "performance",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "foundation-integration"
+      ],
+      "owner": null,
+      "paths": [
+        "benchmarks/envelope/**",
+        "docs/performance/envelope.md",
+        "tools/performance/envelope/**"
+      ],
+      "deliverables": [
+        "Reproducible workload/hardware manifests, cost attribution and initial regression budgets"
+      ],
+      "acceptance": [
+        "Measure startup, admission, warm execution, sources, search, checking, rendering, tail latency, memory and cancellation separately.",
+        "Cover macOS ARM64 and Linux x86_64 evidence/availability under D11; identify cold dependency closure early.",
+        "Choose budgets from representative workloads and report unknowns rather than extrapolating toy probes."
+      ],
+      "checks": [
+        "Target evidence: reproducible baseline runs with toolchain, workload, hardware and warm/cold state recorded.",
+        "Review benchmark coverage against reader, mathematical, stateful, search and workbench workloads."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-12",
+        "ACC-13"
+      ]
+    },
+    {
+      "id": "known-regressions",
+      "title": "Turn reproduced Oracle7 defects into independent regression obligations",
+      "area": "behavioral correctness",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "foundation-integration"
+      ],
+      "owner": null,
+      "paths": [
+        "tests/regressions/**",
+        "docs/coverage/known-defects.md"
+      ],
+      "deliverables": [
+        "Scoped component/runtime defect fixtures and intended repaired contracts"
+      ],
+      "acceptance": [
+        "Cover negative sqrt(x^2), NaN/0-over-0, precision-losing equivalence, interval-boundary checks, parser execution, late timeout work and Boolean-presence search collapse.",
+        "Distinguish reproduced component behavior from end-to-end routing; preserve input, old behavior and intended replacement semantics.",
+        "Rounded search/cache keys receive independent counterexample tests rather than an unsupported claim that every suspected failure was reproduced."
+      ],
+      "checks": [
+        "Review audit/results/components.json and audit/results/baseline.jsonl against tools/probe_components.py and tools/probe_runtime.py.",
+        "Target evidence: tests that fail faulty behavior and validate repaired partiality/domain/precision/cancellation/search contracts without copying the implementation."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C02",
+        "C03",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-03",
+        "ACC-05",
+        "ACC-08",
+        "ACC-11",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "workspace-interaction",
+      "title": "Design the specialist authoring and diagnosis workflows",
+      "area": "authoring design",
+      "milestone": "W",
+      "status": "planned",
+      "depends_on": [
+        "workbench-audit"
+      ],
+      "owner": null,
+      "paths": [
+        "docs/workbench/interaction/**",
+        "design/workbench/**"
+      ],
+      "deliverables": [
+        "Interaction model and reviewable flows for package editing, inspection, repair, profiling and deployment"
+      ],
+      "acceptance": [
+        "A novice-facing edit and an expert native edit operate on coherent package objects.",
+        "Show ambiguity, missing premises, counterexamples, change impact, search failure and proposed repairs at the point of use.",
+        "Specify keyboard/CLI access, durable history and recoverable errors before choosing implementation stack."
+      ],
+      "checks": [
+        "Target evidence: walkthroughs covering create/import, sqrt-domain repair, conflicting rows, composition, profiling and deployment.",
+        "Review each workflow against ACC-01 through ACC-04 and ACC-16 without claiming an independent recipient trial."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C03",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-01",
+        "ACC-02",
+        "ACC-03",
+        "ACC-16"
+      ]
+    },
+    {
+      "id": "native-admission",
+      "title": "Implement the authoritative native admission boundary",
+      "area": "admission",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "native-registry",
+        "operational-model"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/admission/**",
+        "tests/admission/**",
+        "docs/formal/admission.md"
+      ],
+      "deliverables": [
+        "Opaque accepted records, theorem/implementation admission and policy enforcement"
+      ],
+      "acceptance": [
+        "Check exact target, context/ancestry, hypotheses, premises, type/sort conditions, flex-flex constraints, completed derivations, oracles and permitted theory extensions.",
+        "Kernel, refined execution and authorized oracle routes stay distinct and cannot silently downgrade.",
+        "Actual accepted records are tied to native objects and executable artifacts; caller metadata cannot manufacture authority."
+      ],
+      "checks": [
+        "Target evidence: assumed false theorem, hidden hypothesis/oracle, forbidden ancestor, skipped proof, wrong target and unrelated artifact negative probes.",
+        "Target evidence: legitimate scoped consequences, context export and implementation attachment; connect enforcement to the formal acceptance invariant."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C02",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-08"
+      ]
+    },
+    {
+      "id": "plan-composition",
+      "title": "Implement typed composition and justified finite-search quotients",
+      "area": "composition",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "operational-model",
+        "interpretation-model",
+        "native-registry"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/plans/**",
+        "tests/plans/**",
+        "docs/formal/composition.md"
+      ],
+      "deliverables": [
+        "Typed plan elaborator/executor, composition results and search-state equivalence/subsumption rules"
+      ],
+      "acceptance": [
+        "Compose structured values without reparsing rendered English and retain units, domain conditions, failures and conflicting answers.",
+        "Finite-search deduplication preserves the selected observation relation, meaningful Boolean values, resource consumption and relevant history.",
+        "Any bounded completeness claim names its search space, fuel and pruning assumptions.",
+        "Composition retains per-request session/state version and observation/evaluation time with its clock basis; identical package/data generations do not imply identical fresh observations."
+      ],
+      "checks": [
+        "Target evidence: plan refinement/composition proofs connected to execution and multi-family typed composition cases.",
+        "Target evidence: contradictory-path, Boolean-flag and rounded-key counterexamples plus equivalence/pruning tests."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C02",
+        "C03",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-05",
+        "ACC-09"
+      ]
+    },
+    {
+      "id": "state-effects",
+      "title": "Implement modeled state transitions and effect authority",
+      "area": "state and effects",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "operational-model",
+        "native-registry"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/effects/**",
+        "tests/effects/**",
+        "docs/formal/effects.md"
+      ],
+      "deliverables": [
+        "State/session model and authoritative propose-check-stage-commit executor"
+      ],
+      "acceptance": [
+        "Freshness, sessions, target/precondition checks, idempotency and partial failures have explicit semantics.",
+        "Untrusted proposals cannot publish facts, active dispatch, snapshots or external effects through alternate paths.",
+        "Cancellation prevents late publication; modeled fuel is distinguished from external worker time/memory limits.",
+        "Requests retain explicit session/state snapshot or version and observation/evaluation time with clock basis; commits validate relevant prestate and freshness at the actual authority boundary."
+      ],
+      "checks": [
+        "Target evidence: transition invariants connected to the actual commit path.",
+        "Target evidence: cancellation races, retry/partial failure, cross-request budget misuse and late-worker publication tests using local mock executors.",
+        "Target evidence: changed prestate and expired freshness reject or revalidate a pending effect even when package/data generation is unchanged."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-07",
+        "ACC-11"
+      ]
+    },
+    {
+      "id": "source-import",
+      "title": "Build reproducible snapshot import and missing-store replacement",
+      "area": "sources",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "source-semantics"
+      ],
+      "owner": null,
+      "paths": [
+        "src/sources/import/**",
+        "tests/sources/import/**",
+        "docs/sources/**"
+      ],
+      "deliverables": [
+        "Importer/source manifests, versioned test sources and documented replacement policy"
+      ],
+      "acceptance": [
+        "Record acquisition, selection/query policy, licenses, qualifiers/rank/units/references and known information loss.",
+        "Missing relations_v2/names/label-alias data receives an explicit compatible replacement or unavailable disposition; do not claim original bit identity.",
+        "Imported assertions enter as observations under C04 rather than new global axioms."
+      ],
+      "checks": [
+        "Target evidence: reproducible fixture import and source-schema compatibility/loss tests, including v1 versus v2 distinctions.",
+        "Target evidence: malformed/partial import recovery and source manifest inspection; record unknown provenance as unknown."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-06",
+        "ACC-14",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "dependency-updates",
+      "title": "Implement dependency-aware generation publication and reuse",
+      "area": "updates",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "source-import",
+        "state-effects",
+        "native-registry"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/updates/**",
+        "tests/updates/**",
+        "docs/formal/updates.md"
+      ],
+      "deliverables": [
+        "Dependency graph, atomic generation update and invalidation/revalidation implementation"
+      ],
+      "acceptance": [
+        "Source, grammar/linker, assumption, contract, implementation and policy updates identify affected consumers.",
+        "Whole-generation invalidation is sound by default; selective reuse is optional and requires adequacy plus instrumented observations.",
+        "Historical results preserve their pins and are never relabeled current; active requests keep old generations.",
+        "Reuse keys and adequacy checks include relevant request state/session version and time/clock dependencies; environmental generation alone cannot license freshness-sensitive reuse."
+      ],
+      "checks": [
+        "Target evidence: insert a competing row/add an absent row/change ranking/remove evidence/change assumptions and observe correct invalidation.",
+        "Target evidence: update during running requests, incompatible compiled artifact reuse and failed publication recovery.",
+        "Target evidence: mutate session state or advance the declared clock without changing the environment generation and reject stale reuse."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C02",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-07",
+        "ACC-14"
+      ]
+    },
+    {
+      "id": "strategy-engine",
+      "title": "Implement budgeted native search strategies and replayable proposals",
+      "area": "search",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "plan-composition",
+        "native-admission",
+        "state-effects"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/search/**",
+        "tests/search/**",
+        "docs/search/strategies.md"
+      ],
+      "deliverables": [
+        "Strategy syntax/interpreter, search scheduler, traces and proposal/replay interface"
+      ],
+      "acceptance": [
+        "Support retrieval, theorem application, simplification, splitting, counterexamples, conjectures, synthesis and refinement through declared actions.",
+        "Search-policy changes preserve acceptance authority; budget/cancellation enforcement is outside speculative strategy code.",
+        "Multi-step cross-capability goals work on the end-user runtime and traces distinguish failure, timeout and refutation."
+      ],
+      "checks": [
+        "Target evidence: soundness policy-independence/transition results connected to the scheduler acceptance path.",
+        "Target evidence: multi-step strategy scenarios, hostile/late worker proposals, cancellation and resource attribution; avoid arbitrary generated privileged ML."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C02",
+        "C03",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-08",
+        "ACC-09",
+        "ACC-12"
+      ]
+    },
+    {
+      "id": "runtime-service",
+      "title": "Expose authoritative native runtime operations to clients",
+      "area": "runtime",
+      "milestone": "C",
+      "status": "planned",
+      "depends_on": [
+        "native-registry",
+        "native-admission",
+        "state-effects"
+      ],
+      "owner": null,
+      "paths": [
+        "src/runtime/service/**",
+        "tests/runtime/service/**",
+        "docs/runtime/protocol.md"
+      ],
+      "deliverables": [
+        "Versioned local protocol, native operation handlers and session/request lifecycle"
+      ],
+      "acceptance": [
+        "Client operations resolve a pinned generation and cannot construct accepted native results from JSON.",
+        "Streaming diagnostics/results, cancellation and reconnect/session behavior preserve request identity and commit authority.",
+        "Boundary serialization is explicit and avoids repeated conversion on hot internal paths.",
+        "Each request carries the session/state snapshot or version and observation/evaluation time with declared clock basis in addition to its immutable environment pin."
+      ],
+      "checks": [
+        "Target evidence: protocol conformance and malformed/unknown-tag/forged-receipt tests against actual native handlers.",
+        "Target evidence: concurrent requests, interrupted clients and reconnect/replay cases with timing and allocation measurements."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-08",
+        "ACC-11",
+        "ACC-12"
+      ]
+    },
+    {
+      "id": "package-lifecycle",
+      "title": "Implement editable packages, imports, builds and versions",
+      "area": "packages",
+      "milestone": "W",
+      "status": "planned",
+      "depends_on": [
+        "native-admission",
+        "native-registry"
+      ],
+      "owner": null,
+      "paths": [
+        "src/packages/**",
+        "tests/packages/**",
+        "docs/packages/**"
+      ],
+      "deliverables": [
+        "Canonical package loader/editor/build graph, version/import/export and generated-file rules"
+      ],
+      "acceptance": [
+        "Meaning, language/source bindings, code, examples, evidence and deployment dependencies remain connected.",
+        "Round trips preserve custom native edits; derived artifacts do not become independently drifting contract copies.",
+        "Failed import/build/admission preserves the working generation; transfer excludes local history and unselected source documents.",
+        "Support/data/theory packages may have zero callable capability exports; absent native payload is legal only under the agreed zero-export descriptor rules, without invented fake operators."
+      ],
+      "checks": [
+        "Target evidence: native/approachable-authoring round trips, dependency conflicts, generated-file ownership and reproducible build checks.",
+        "Target evidence: malicious/malformed imports, partial build failure, recovery and transfer-content inspection."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-01",
+        "ACC-14"
+      ]
+    },
+    {
+      "id": "workspace-client",
+      "title": "Build the browser workbench and coherent CLI authoring surface",
+      "area": "authoring client",
+      "milestone": "W",
+      "status": "planned",
+      "depends_on": [
+        "workbench-audit",
+        "workspace-interaction",
+        "package-lifecycle",
+        "runtime-service"
+      ],
+      "owner": null,
+      "paths": [
+        "src/workbench/**",
+        "src/cli/**",
+        "tests/workbench/client/**"
+      ],
+      "deliverables": [
+        "Package editor/inspector, runtime-backed source/evidence views, basic run/cancel operations and coherent CLI"
+      ],
+      "acceptance": [
+        "Create, import, revise, inspect and invoke the currently implemented package/runtime operations through UI and CLI, with expert theory access.",
+        "Present actual runtime-provided alternatives, diagnostics, source/evidence records and dependency identities; do not manufacture success or semantic authority in the client.",
+        "Provide the initial editor/session/reconnect/operation surface for later search, assistance and profiling integration. Substantive deployed search and profiling usability remain mandatory in authoring-assistance and workspace-integration.",
+        "Map upstream workbench functions to implemented operations or their remaining named tasks; an unimplemented required workflow does not count as preserved by this initial client scaffold."
+      ],
+      "checks": [
+        "Target evidence: UI/CLI conformance against real package/runtime editing, inspection, basic run and cancellation handlers.",
+        "Target evidence: reconnect, accessible interaction, malformed-result handling and editing without lost custom changes. Record incomplete later-stage workflows as pending rather than simulated successes."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-01",
+        "ACC-02",
+        "ACC-03"
+      ]
+    },
+    {
+      "id": "diagnostics-repair",
+      "title": "Provide precise counterexamples and reviewable repair proposals",
+      "area": "diagnostics",
+      "milestone": "W",
+      "status": "planned",
+      "depends_on": [
+        "native-admission",
+        "interpretation-model",
+        "workbench-audit",
+        "package-lifecycle"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/diagnostics/**",
+        "tests/diagnostics/**",
+        "docs/workbench/diagnostics.md"
+      ],
+      "deliverables": [
+        "Structured diagnosis pipeline and repair proposal/revalidation operations"
+      ],
+      "acceptance": [
+        "Explain the interpretation, failed/unproved condition, source/proof span and useful next actions.",
+        "Distinguish restricting a domain from changing the result, ambiguity from contradiction, and failed search from refutation.",
+        "Repairs create reviewable package versions and cannot bypass admission."
+      ],
+      "checks": [
+        "Target evidence: negative sqrt-domain alternatives, ambiguous entities, conflicting source rows, missing hypotheses and budget exhaustion.",
+        "Target evidence: apply/reject repair and revalidate impacted consumers through shared native operations."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "acceptance_ids": [
+        "ACC-03",
+        "ACC-04",
+        "ACC-08"
+      ]
+    },
+    {
+      "id": "staged-execution",
+      "title": "Compile stable operations once with explicit assurance boundaries",
+      "area": "execution",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "native-registry",
+        "native-admission",
+        "performance-envelope"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/execution/**",
+        "tests/execution/**",
+        "benchmarks/staging/**"
+      ],
+      "deliverables": [
+        "Staged native executors/checkers and artifact-to-contract associations"
+      ],
+      "acceptance": [
+        "Stable HOL-derived operations compile at build/admission rather than invoking code generation for each request.",
+        "Efficient runtime representations preserve the admitted implementation relation and exact/approximate/partial distinctions.",
+        "Kernel reconstruction, refined execution and evaluation-oracle conversions retain their separate dependencies and costs."
+      ],
+      "checks": [
+        "Target evidence: artifact association/code-setup mismatch and route downgrade negative tests.",
+        "Target evidence: warm execution/allocation, compilation amortization, witness/checker cost and correctness comparisons on representative workloads."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C02",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-08",
+        "ACC-12"
+      ]
+    },
+    {
+      "id": "relation-family",
+      "title": "Migrate relation readers, linking and guarded query behavior",
+      "area": "relation specialists",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "source-import",
+        "interpretation-model",
+        "plan-composition",
+        "native-admission",
+        "staged-execution"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/relations/**",
+        "tests/families/relations/**",
+        "examples/specialists/relations/**"
+      ],
+      "deliverables": [
+        "Relation package family, typed query implementation and per-reader migration evidence"
+      ],
+      "acceptance": [
+        "Preserve or repair ordered recognition, domain/role guards, linking ambiguity, joins, and unique/absent/multiple answers.",
+        "Per-reader domain conditions and missing-source limitations survive shared implementation reuse.",
+        "Executed queries and witnesses connect to source/query semantics and licensed rendering."
+      ],
+      "checks": [
+        "Target evidence: every migrated relation manifest has behavior, semantic bridge and deployed execution evidence.",
+        "Target evidence: ordered-rule parity where intended, ambiguity/uniqueness/update adversarial cases and source-scale throughput/memory measurements."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-04",
+        "ACC-05",
+        "ACC-06",
+        "ACC-12",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "facts-document-family",
+      "title": "Migrate fact rules and source-grounded document retrieval",
+      "area": "facts and documents",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "source-import",
+        "interpretation-model",
+        "native-admission",
+        "staged-execution"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/facts/**",
+        "src/families/documents/**",
+        "tests/families/facts-documents/**",
+        "examples/specialists/facts-documents/**"
+      ],
+      "deliverables": [
+        "FactsOrgan/boundary packages and document/definition retrieval with source spans"
+      ],
+      "acceptance": [
+        "Preserve ordered fact rules, guards, declines and structured values independently of sentence rendering.",
+        "Retrieval, quotation, source-dependent synthesis and entailment are distinguished; unknown corpus authorship remains unknown.",
+        "Evidence spans identify actual retained sources without overstating their truth or completeness."
+      ],
+      "checks": [
+        "Target evidence: per-fact/document route dispositions, source-span/quotation/conditional-renderer cases and boundary-variant tests.",
+        "Target evidence: retrieval quality and source-scale latency/memory with actual accepted-claim correspondence."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-04",
+        "ACC-06",
+        "ACC-12",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "domain-families",
+      "title": "Implement classified domain families with genuine semantic bridges",
+      "area": "domain specialists",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "plan-composition",
+        "native-admission",
+        "staged-execution"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/domains/**",
+        "tests/families/domains/**",
+        "examples/specialists/domains/**"
+      ],
+      "deliverables": [
+        "Family implementations and coverage decisions for classified domain-specific specialists including quantities"
+      ],
+      "acceptance": [
+        "Use the classification of 119 manifests plus springs to choose formulas, tables, algorithms or additional operational languages.",
+        "Each implemented operation connects to its native meaning and intended domain/units/failure behavior; wrappers alone do not close coverage.",
+        "New family requirements update common contracts and consumers rather than forcing incompatible data through an arithmetic-only IR."
+      ],
+      "checks": [
+        "Target evidence: per-family intended-contract/negative cases, executable bridge checks and cross-capability compositions.",
+        "Target evidence: representative concrete workload measurements and per-manifest coverage evidence; split into owned child tasks as classification permits."
+      ],
+      "evidence": [],
+      "notes": "Broad parent gate; split by actual operation families, preserving the denominator and gate ID.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-12",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "mathematics-family",
+      "title": "Implement mathematical capabilities with branch and precision contracts",
+      "area": "mathematical specialists",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "known-regressions",
+        "plan-composition",
+        "native-admission",
+        "staged-execution"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/mathematics/**",
+        "tests/families/mathematics/**",
+        "examples/specialists/mathematics/**"
+      ],
+      "deliverables": [
+        "Supported symbolic/numeric/solver families, witnesses and repaired behavior dispositions"
+      ],
+      "acceptance": [
+        "Exact, floating-point and bounded approximation semantics remain distinct, including partiality and branch conditions.",
+        "Safe structured parsing replaces unchecked evaluation; solver answers carry adequate witnesses/conditions.",
+        "Repair reproduced defects against intended contracts while preserving valid capability coverage."
+      ],
+      "checks": [
+        "Target evidence: sqrt-negative, NaN, division, high-precision equivalence, interval completeness and parser-side-effect regressions.",
+        "Target evidence: solver witness validation, branch/domain counterexamples and representative numerical/symbolic performance."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03"
+      ],
+      "acceptance_ids": [
+        "ACC-03",
+        "ACC-05",
+        "ACC-08",
+        "ACC-12",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "graph-family",
+      "title": "Implement source-dependent graph reasoning with explicit bounds",
+      "area": "graph specialists",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "source-import",
+        "plan-composition",
+        "strategy-engine"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/graphs/**",
+        "tests/families/graphs/**",
+        "examples/specialists/graphs/**"
+      ],
+      "deliverables": [
+        "ConceptNet-style relational-chain capabilities, path witnesses and bounded-search semantics"
+      ],
+      "acceptance": [
+        "Path and relation-chain claims retain source adoption and edge provenance rather than asserting unconditional world truth.",
+        "Depth/frontier bounds, cycles, deduplication and finite-search quotients have explicit soundness and any completeness scope.",
+        "Disagreement and alternate paths survive pruning where observable."
+      ],
+      "checks": [
+        "Target evidence: cyclic graphs, missing/contradictory edges, multiple paths, bounds exhaustion and quotient counterexamples.",
+        "Target evidence: executable path checker connection and frontier/time/memory measurements on representative graphs."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-05",
+        "ACC-06",
+        "ACC-09",
+        "ACC-12",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "stateful-connectors",
+      "title": "Migrate site/session specialists and controlled local connectors",
+      "area": "stateful specialists",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "workbench-audit",
+        "state-effects",
+        "source-import",
+        "runtime-service"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/stateful/**",
+        "src/connectors/**",
+        "tests/connectors/**",
+        "examples/specialists/stateful/**"
+      ],
+      "deliverables": [
+        "Stateful site packages, connector executors and local integration fixtures"
+      ],
+      "acceptance": [
+        "Follow-ups, freshness, sensor observations, proposed/confirmed actions and persisted/session state follow explicit contracts.",
+        "Implement scoped required computer/SSH/file/MCP/sensor integrations or record justified decisions from the audit.",
+        "External actions cannot escape authority checks or commit after cancellation; no tests contact unrequested real services."
+      ],
+      "checks": [
+        "Target evidence: local mock connector conformance, stale readings, session isolation, idempotent retries and interrupted actions.",
+        "Target evidence: real executor/model correspondence and end-to-end stateful specialist workflows with bounded resources."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-06",
+        "ACC-11",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "routing-dialogue",
+      "title": "Implement contextual routing, ambiguity resolution and answer rendering",
+      "area": "dialogue",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "interpretation-model",
+        "plan-composition",
+        "runtime-service",
+        "diagnostics-repair"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/language/runtime/**",
+        "tests/language/runtime/**",
+        "examples/dialogue/**"
+      ],
+      "deliverables": [
+        "Priority/fallback and contextual dialogue implementation connected to interpretation/rendering semantics"
+      ],
+      "acceptance": [
+        "Reachable inherited routes get preservation/repair/exclusion evidence; fallback does not answer a different question as if successful.",
+        "Entity/role ambiguity, follow-ups, assumptions, failure and disagreement survive routing and dialogue state.",
+        "Rendering exposes exactly the licensed structured claim and relevant conditions under the request pin."
+      ],
+      "checks": [
+        "Target evidence: negative-square-root misrouting, numeric-document fallback, ambiguous aliases, context changes and contradictory candidates.",
+        "Target evidence: interpretation/renderer bridge checks and whole-path latency measurements across family interfaces."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-03",
+        "ACC-04",
+        "ACC-05",
+        "ACC-12",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "synthesis-growth",
+      "title": "Implement retained synthesis, abstractions and admitted growth",
+      "area": "growth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "strategy-engine",
+        "package-lifecycle",
+        "dependency-updates"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/growth/**",
+        "tests/growth/**",
+        "examples/growth/**"
+      ],
+      "deliverables": [
+        "Example-guided synthesis, conjecture/generalization and separate persistent result/experience/artifact stores"
+      ],
+      "acceptance": [
+        "Retain logical results, heuristic search experience and executable improvements as distinct reusable products.",
+        "New vocabulary/abstractions or generalized programs require explicit obligations; successful examples alone do not authorize universal claims.",
+        "Stale/failed candidates, learned templates and upstream retained programs have transparent lifecycle/disposition rules."
+      ],
+      "checks": [
+        "Target evidence: persist/reload/reuse each product category and admit a useful abstraction or implementation improvement.",
+        "Target evidence: overgeneralization, stale context, observational-equivalence scope and alternate-promotion-path negatives; measure retained-search benefit and cost."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-09",
+        "ACC-10",
+        "ACC-12",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "authoring-assistance",
+      "title": "Integrate assisted obligations, search and repair into authoring",
+      "area": "authoring assistance",
+      "milestone": "W",
+      "status": "planned",
+      "depends_on": [
+        "workspace-client",
+        "diagnostics-repair",
+        "strategy-engine",
+        "synthesis-growth"
+      ],
+      "owner": null,
+      "paths": [
+        "src/authoring/assistance/**",
+        "tests/workbench/assistance/**",
+        "examples/authoring/**"
+      ],
+      "deliverables": [
+        "Author-facing counterexample/lemma/condition/synthesis/refinement assistance"
+      ],
+      "acceptance": [
+        "Authors can request useful proof/search help and retain accepted results as normal editable package material.",
+        "Suggestions state unresolved obligations and preserve authorial choices such as domain restriction versus changed meaning.",
+        "Heuristic assistance cannot bypass native admission or silently overwrite custom edits.",
+        "Substantive multi-step proof/search, retained growth and repair are usable through the actual client and engine; placeholder controls or fixed proof replay do not satisfy this gate."
+      ],
+      "checks": [
+        "Target evidence: author workflows spanning failed contract, explanation, assisted repair, new abstraction and deployed reuse.",
+        "Target evidence: rejected candidate recovery, cancellation, edit conflict and explanation fidelity across UI/CLI.",
+        "Target evidence: author-triggered multi-step search across capabilities, inspectable failure/budget traces and retained accepted results through UI and CLI."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-03",
+        "ACC-09",
+        "ACC-10",
+        "ACC-16"
+      ]
+    },
+    {
+      "id": "refinement-backends",
+      "title": "Deliver the justified efficient backend portfolio",
+      "area": "refinement",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "staged-execution",
+        "plan-composition",
+        "performance-envelope"
+      ],
+      "owner": null,
+      "paths": [
+        "src/backends/**",
+        "tests/backends/**",
+        "benchmarks/backends/**",
+        "docs/performance/backends.md"
+      ],
+      "deliverables": [
+        "Backend decision and implemented useful refinements with representation/artifact contracts"
+      ],
+      "acceptance": [
+        "Evaluate native ML, Sepref/LLVM compatibility and measured value; unsupported backends receive explicit evidence-based disposition.",
+        "Transformations preserve the selected equality/error/observation relation and connect generated artifacts to admitted meanings.",
+        "Compiler/runtime/ABI boundaries are explicit; no theorem about an intermediate model is called full machine-code verification."
+      ],
+      "checks": [
+        "Target evidence: optimization/representation preservation or checked translation certificates plus artifact conformance cases.",
+        "Target evidence: reproducible correctness/performance comparisons, RC1/toolchain compatibility and compilation amortization."
+      ],
+      "evidence": [],
+      "notes": "Required outcome is a defensible performant portfolio, not a mandate to use every researched backend.",
+      "contracts": [
+        "C02",
+        "C04"
+      ],
+      "acceptance_ids": [
+        "ACC-05",
+        "ACC-08",
+        "ACC-12"
+      ]
+    },
+    {
+      "id": "deployment-builder",
+      "title": "Build pinned native deployments with clean install and recovery",
+      "area": "deployment",
+      "milestone": "H",
+      "status": "planned",
+      "depends_on": [
+        "package-lifecycle",
+        "runtime-service",
+        "staged-execution",
+        "dependency-updates",
+        "performance-envelope"
+      ],
+      "owner": null,
+      "paths": [
+        "deployment/**",
+        "tools/deploy/**",
+        "tests/deployment/**",
+        "docs/deployment/**"
+      ],
+      "deliverables": [
+        "Runtime/heap/capability/index build manifests, installers, updates and recovery procedure"
+      ],
+      "acceptance": [
+        "Supported macOS ARM64 and Linux x86_64 installations launch pinned prebuilt artifacts and admit/edit capabilities without surprise HOL-Analysis builds.",
+        "Dependency/license/source closure is explicit; runtime-specific derivatives can be rebuilt from durable developments.",
+        "Failed installation/update preserves a working version; optional extracted runtimes declare reduced features.",
+        "Resolve D19 licensing and redistribution closure for platform code, reused upstream code, runtime/heaps and bundled data before claiming distributable installation; do not select the project license without its recorded decision."
+      ],
+      "checks": [
+        "Target evidence: clean-environment install/launch/search/edit/admission checks on each declared target and reproducible source rebuild.",
+        "Target evidence: missing/incompatible dependency, interrupted update, recovery and launch/admission resource measurements."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-12",
+        "ACC-13",
+        "ACC-14"
+      ]
+    },
+    {
+      "id": "family-integration",
+      "title": "Close behavioral coverage and cross-family execution",
+      "area": "integration",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "relation-family",
+        "facts-document-family",
+        "domain-families",
+        "mathematics-family",
+        "graph-family",
+        "stateful-connectors",
+        "routing-dialogue",
+        "synthesis-growth",
+        "dependency-updates",
+        "known-regressions"
+      ],
+      "owner": null,
+      "paths": [
+        "tests/integration/families/**",
+        "docs/coverage/integration.md"
+      ],
+      "deliverables": [
+        "Complete family/feature acceptance matrix and coverage closure review"
+      ],
+      "acceptance": [
+        "Every manifest and reachable core/workbench surface has an evidence-linked decision, and every required in-scope capability is implemented, passes its behavioral/semantic acceptance and runs in the deployment. A disposition label alone is not completion.",
+        "Compatible family interfaces compose with conditions, sources, disagreement and state preserved; incompatibilities are justified against the agreed product scope.",
+        "Required opaque adapters, partial lifts and unresolved implementation failures block this gate. Exclusions require an explicit agreed scope decision and evidence, not convenience or an unimplemented label.",
+        "Original unavailable upstream data is recorded separately with its precise effect and explicit replacement/unavailability disposition. Available replacement/test sources exercise the required platform behavior; the limitation cannot be used to waive implementation obligations or claim original-data parity."
+      ],
+      "checks": [
+        "Target evidence: cross-family scenarios, intended upstream comparisons, independent negative cases and whole-path measurements.",
+        "Audit coverage denominator and source/data limitations against ACC-15; reopen any unsupported completion claim.",
+        "Review all required capability rows for passing executable evidence and connected semantic obligations; unresolved implementation rows fail the gate, while original-data limitations and agreed exclusions remain separately enumerated."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-04",
+        "ACC-05",
+        "ACC-06",
+        "ACC-07",
+        "ACC-10",
+        "ACC-11",
+        "ACC-15"
+      ]
+    },
+    {
+      "id": "workspace-integration",
+      "title": "Integrate complete authoring, change and deployment workflows",
+      "area": "integration",
+      "milestone": "W",
+      "status": "planned",
+      "depends_on": [
+        "workspace-client",
+        "authoring-assistance",
+        "diagnostics-repair",
+        "dependency-updates",
+        "deployment-builder",
+        "stateful-connectors"
+      ],
+      "owner": null,
+      "paths": [
+        "tests/integration/workspace/**",
+        "docs/workbench/integration.md"
+      ],
+      "deliverables": [
+        "Integrated author workflow matrix with recovery, profiling and deployed execution"
+      ],
+      "acceptance": [
+        "Authors create/import, inspect, compose, repair, profile, package and deploy across actual supported families.",
+        "Change impact reaches the editor and running generations; source inspection and effect confirmation use actual runtime operations.",
+        "Package transfer/history/recovery and expert native editing work coherently without hidden developer steps.",
+        "The shipped installation exposes serious multi-step search, retained growth and actionable profiling/refinement in the ordinary author workflow; required usability or implementation gaps block completion."
+      ],
+      "checks": [
+        "Target evidence: end-to-end UI/CLI workflows on shipped runtime and interruption/fault-recovery scenarios.",
+        "Review usability limitations separately from automated checks and ensure every ACC-02 workflow has a disposition.",
+        "Target evidence: from a clean shipped installation, use the client to orchestrate nontrivial search, diagnose a cost, obtain a justified improvement and retain/redeploy it."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-01",
+        "ACC-02",
+        "ACC-03",
+        "ACC-07",
+        "ACC-11",
+        "ACC-13",
+        "ACC-14"
+      ]
+    },
+    {
+      "id": "proof-implementation-closure",
+      "title": "Establish mandatory metatheory obligations and their runtime connections",
+      "area": "assurance integration",
+      "milestone": "H",
+      "status": "planned",
+      "depends_on": [
+        "family-integration",
+        "workspace-integration",
+        "refinement-backends"
+      ],
+      "owner": null,
+      "paths": [
+        "docs/formal/closure/**",
+        "tests/integration/assurance/**"
+      ],
+      "deliverables": [
+        "Complete project/PROOF_OBLIGATIONS.md obligation-to-theorem/runtime map, implementation-bridge evidence and adversarial closure suite"
+      ],
+      "acceptance": [
+        "Every mandatory named obligation in project/PROOF_OBLIGATIONS.md is established with its required mechanized result and actual generation/refinement/replay bridge to the authoritative implementation. Merely auditing whichever theorems happen to exist does not satisfy this gate.",
+        "Each obligation records assumptions, representation/observation relation, exact theorem and consumer, assurance route and deployed artifact association. Unproved mandatory targets or disconnected implementations block completion.",
+        "Admission, interpretation/rendering, composition, source queries, growth, updates and effects have no alternate unchecked publication path.",
+        "Trusted runtime/compiler/OS boundaries are explicitly recorded under the adopted assurance contract; an omitted mandatory bridge cannot be relabeled a limitation to pass the gate."
+      ],
+      "checks": [
+        "Target evidence: reconcile every mandatory named entry in project/PROOF_OBLIGATIONS.md with established theorem statements, actual authoritative handlers and deployed executable artifacts; missing connections fail the gate.",
+        "Target evidence: run hidden-assumption/oracle/axiom/artifact/context adversarial cases and mutation/differential checks capable of exposing model/runtime mismatch and stale or forged acceptance."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-04",
+        "ACC-05",
+        "ACC-07",
+        "ACC-08",
+        "ACC-09",
+        "ACC-10",
+        "ACC-11"
+      ]
+    },
+    {
+      "id": "performance-hardening",
+      "title": "Meet measured whole-system performance and resource budgets",
+      "area": "performance integration",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "family-integration",
+        "workspace-integration",
+        "refinement-backends",
+        "performance-envelope"
+      ],
+      "owner": null,
+      "paths": [
+        "benchmarks/integration/**",
+        "docs/performance/integration.md",
+        "tests/integration/resources/**"
+      ],
+      "deliverables": [
+        "Representative performance report, regression budgets and focused optimizations"
+      ],
+      "acceptance": [
+        "Meet or explicitly revise justified startup/admission/search/execution/evidence/update budgets on supported targets.",
+        "Attribute tail latency, allocation/live memory, I/O and checking costs; avoid moving costs into unmeasured setup.",
+        "Optimizations retain assurance and disagreement/cancellation semantics; no stale benchmark claims after artifact changes."
+      ],
+      "checks": [
+        "Target evidence: cold/warm/load/concurrent/cancellation workloads with pinned hardware, toolchain, sources and runtime manifests.",
+        "Target evidence: semantic/certificate checks for changed optimizations and measured regression comparisons at actual end-user scale."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C02",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-09",
+        "ACC-11",
+        "ACC-12",
+        "ACC-13"
+      ]
+    },
+    {
+      "id": "release-integration",
+      "title": "Validate the complete deployable product and release contents",
+      "area": "release integration",
+      "milestone": "H",
+      "status": "planned",
+      "depends_on": [
+        "proof-implementation-closure",
+        "performance-hardening",
+        "deployment-builder",
+        "family-integration",
+        "workspace-integration"
+      ],
+      "owner": null,
+      "paths": [
+        "tests/integration/release/**",
+        "docs/release/**",
+        "project/RELEASE_REVIEW.md"
+      ],
+      "deliverables": [
+        "Pinned release candidate, complete acceptance evidence index and known-limitations review"
+      ],
+      "acceptance": [
+        "All required in-scope functional, assurance, performance and deployment conditions in ACC-01 through ACC-16 pass with linked executable evidence. Unresolved implementation or mandatory-proof gaps block this gate; a visible gap is not acceptance. The independent recipient rehearsal is the subsequent recipient-handoff gate, and the project is not complete until it also passes.",
+        "Clean installations support authoring, serious search, retained growth and efficient family execution on declared targets.",
+        "Release artifacts omit credentials, private history and unlicensed/unselected corpora; source/runtime/dependency closure is reproducible.",
+        "D19 has reviewed licensing/redistribution evidence and an explicit project-license decision; unresolved rights block release inclusion rather than disappearing from manifests.",
+        "Original unavailable-data limitations have an explicit reviewed disposition separate from implementation completeness and original-data parity. Excluding product functionality requires an agreed scope decision; listing a limitation cannot silently narrow the required product."
+      ],
+      "checks": [
+        "Target evidence: clean-target acceptance matrix, update/recovery run and packaged-content/license/dependency review.",
+        "Root reviews every completion and coverage claim against actual artifact behavior before release acceptance.",
+        "Fail release acceptance for any required in-scope implementation, deployment, performance or mandatory-proof gap; enumerate original-data limitations, agreed exclusions and the still-required recipient rehearsal separately."
+      ],
+      "evidence": [],
+      "notes": "Preparing and validating a release does not authorize unsolicited publication or contacting the upstream author.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-01",
+        "ACC-02",
+        "ACC-03",
+        "ACC-04",
+        "ACC-05",
+        "ACC-06",
+        "ACC-07",
+        "ACC-08",
+        "ACC-09",
+        "ACC-10",
+        "ACC-11",
+        "ACC-12",
+        "ACC-13",
+        "ACC-14",
+        "ACC-15",
+        "ACC-16"
+      ]
+    },
+    {
+      "id": "recipient-handoff",
+      "title": "Prepare maintainable documentation and rehearse independent authorship",
+      "area": "handoff",
+      "milestone": "H",
+      "status": "planned",
+      "depends_on": [
+        "release-integration"
+      ],
+      "owner": null,
+      "paths": [
+        "docs/tutorials/**",
+        "docs/reference/**",
+        "docs/handoff/**",
+        "examples/tutorial/**"
+      ],
+      "deliverables": [
+        "Versioned tutorials/reference, maintainable examples, troubleshooting and recipient rehearsal report"
+      ],
+      "acceptance": [
+        "A recipient can add/revise a specialist, diagnose a failure, profile/refine it, package it and obtain deployed behavior without implementer intervention.",
+        "Documentation spans actual families, native expert access, source provenance, search/growth, recovery and known limits.",
+        "Independent user evidence is distinguished from developer rehearsal; genuine gaps remain tracked rather than labeled passed."
+      ],
+      "checks": [
+        "Target evidence: follow documentation from a clean environment to edit, diagnose, deploy and extend several representative specialists.",
+        "Record actual participant, assistance required, failures and fixes; arrange any external contact only with user authorization."
+      ],
+      "evidence": [],
+      "notes": "",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-13",
+        "ACC-14",
+        "ACC-16"
+      ]
+    }
+  ]
+}

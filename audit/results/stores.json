@@ -1,0 +1,86 @@
+[
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13a_wordnet_build_a_v4/wordnet_specialist.sqlite3",
+    "sha256": "5f330958033a397aeb1c7e8c4ce165edd1dd2c5e2a91efdf2dcd936c6b22b9c7",
+    "size": 77045760,
+    "zst_size": 19751628
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_conceptnet_build_a_v1/conceptnet_specialist.sqlite3",
+    "sha256": "5e28406c418ca1c82e5fae81ebafe826018c10094b66989c2ca5e97017913669",
+    "size": 491732992,
+    "zst_size": 98294620
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_build_a_v1/wikipedia_specialist.sqlite3",
+    "sha256": "206020fdc40b7d3a76ce89d5b4e590a05e0772a363b254e139153a5b506e6b62",
+    "size": 816103424,
+    "zst_size": 358653251
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_full_build_a_v1/wikipedia_specialist.sqlite3",
+    "sha256": "cdbcfc53f8d12952ad748f47107384e218b5221b32b91c2d4ae59b2bbdbcdbd3",
+    "size": 1154691072,
+    "zst_size": 508181350
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_wiktionary_build_a_v1/wiktionary_specialist.sqlite3",
+    "sha256": "5ad78211433bd419be073ec60678c6df792b204f63b043cdbf28420b7ce63d1a",
+    "size": 234348544,
+    "zst_size": 76271098
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13e7_dbpedia_openstax_full_fable_bench_a_v1/edges.sqlite",
+    "sha256": "4fec21d22bcfa1d1f0eca8ec24f4dbfbab34f238d4e4ad939742c12c03f585f7",
+    "size": 218963968,
+    "zst_size": 51109853
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13e7_dbpedia_openstax_full_fable_bench_a_v1/wikipedia_specialist.sqlite3",
+    "sha256": "aa65fbce784eda2a91226bb2af5f5bfe19d94ed0de2f0883968218b533d43e22",
+    "size": 1616203776,
+    "zst_size": 703408458
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13e7_wiki_openstax_full_fable_build_a_v1/edges.sqlite",
+    "sha256": "718c7b0a66353c4b43ab566f889f61b87d9a0dd9c48b3cecab48f6ae4deaab91",
+    "size": 218963968,
+    "zst_size": 51109851
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13e7_wiki_openstax_full_fable_build_a_v1/wikipedia_specialist.sqlite3",
+    "sha256": "ab0ac8981c068b4f8818fee93048df9a5ef7b5730f33171400d711e3bdd677ef",
+    "size": 1278554112,
+    "zst_size": 551620077
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13e8_dbpedia_enslot_openstax_full_fable_bench_a_v1/edges.sqlite",
+    "sha256": "0e70778f9dbb396e6f305ed4438d889da1e258e7fc7115a4a88c7da96f2e8ecb",
+    "size": 2195775488,
+    "zst_size": 510997742
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m13e8_dbpedia_enslot_openstax_full_fable_bench_a_v1/wikipedia_specialist.sqlite3",
+    "sha256": "1c2441a858c531bffb75c4d02b4011b7a0d683f7376e4999ad2b6cdb09faee00",
+    "size": 13587066880,
+    "zst_size": 5708200540
+  },
+  {
+    "path": "root/fable-content/oracle-m-series-2026-08-15/m31_wordnet_corpus_v3.sqlite3",
+    "sha256": "73ec6c387676eac85d5b55e8f7c0df89c5ebf0f1f7ad183c7596e2f59dc7862c",
+    "size": 252764160,
+    "zst_size": 61367860
+  },
+  {
+    "path": "root/relstore/relations_v1.sqlite3",
+    "sha256": "8ef21f19237b8f977735e56a7b62e29943b37d01b5cb6778c217f9c080fbb6da",
+    "size": 3593560064,
+    "zst_size": 1113221569
+  },
+  {
+    "path": "root/textbooks/textbook_store_v1.sqlite3",
+    "sha256": "c00facfea790caff6cc686c4509319998ffd81350ca130b9a96a6d2936468206",
+    "size": 129978368,
+    "zst_size": 20140488
+  }
+]

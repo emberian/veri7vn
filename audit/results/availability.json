@@ -1,0 +1,222 @@
+{
+  "revision": "c5d6a29d5bc5e2525078e5a53afa1abf659e4d69",
+  "required_missing": [
+    "root/relstore/relations_v2.sqlite3",
+    "root/relstore/names_v1.sqlite3",
+    "root/relstore/linking_src/labels.tsv",
+    "root/relstore/linking_src/aliases.tsv"
+  ],
+  "unregistered_domains": [
+    {
+      "specialist": "rel-animators",
+      "domain": "animators"
+    },
+    {
+      "specialist": "rel-anime",
+      "domain": "anime"
+    },
+    {
+      "specialist": "rel-biathletes",
+      "domain": "biathletes"
+    },
+    {
+      "specialist": "rel-bloggers",
+      "domain": "bloggers"
+    },
+    {
+      "specialist": "rel-brands",
+      "domain": "brands"
+    },
+    {
+      "specialist": "rel-channels",
+      "domain": "channels"
+    },
+    {
+      "specialist": "rel-computerscientists",
+      "domain": "computerscientists"
+    },
+    {
+      "specialist": "rel-crosscountry",
+      "domain": "crosscountry"
+    },
+    {
+      "specialist": "rel-curlers",
+      "domain": "curlers"
+    },
+    {
+      "specialist": "rel-editors",
+      "domain": "editors"
+    },
+    {
+      "specialist": "rel-equestrians",
+      "domain": "equestrians"
+    },
+    {
+      "specialist": "rel-fencers",
+      "domain": "fencers"
+    },
+    {
+      "specialist": "rel-fieldhockey",
+      "domain": "fieldhockey"
+    },
+    {
+      "specialist": "rel-galaxies",
+      "domain": "galaxies"
+    },
+    {
+      "specialist": "rel-geologists",
+      "domain": "geologists"
+    },
+    {
+      "specialist": "rel-graphicartists",
+      "domain": "graphicartists"
+    },
+    {
+      "specialist": "rel-gridiron",
+      "domain": "gridiron"
+    },
+    {
+      "specialist": "rel-gymnasts",
+      "domain": "gymnasts"
+    },
+    {
+      "specialist": "rel-handball",
+      "domain": "handball"
+    },
+    {
+      "specialist": "rel-hotels",
+      "domain": "hotels"
+    },
+    {
+      "specialist": "rel-illustrators",
+      "domain": "illustrators"
+    },
+    {
+      "specialist": "rel-leagues",
+      "domain": "leagues"
+    },
+    {
+      "specialist": "rel-libraries",
+      "domain": "libraries"
+    },
+    {
+      "specialist": "rel-militaryunits",
+      "domain": "militaryunits"
+    },
+    {
+      "specialist": "rel-missionaries",
+      "domain": "missionaries"
+    },
+    {
+      "specialist": "rel-monuments",
+      "domain": "monuments"
+    },
+    {
+      "specialist": "rel-nurses",
+      "domain": "nurses"
+    },
+    {
+      "specialist": "rel-observatories",
+      "domain": "observatories"
+    },
+    {
+      "specialist": "rel-pharmacists",
+      "domain": "pharmacists"
+    },
+    {
+      "specialist": "rel-police",
+      "domain": "police"
+    },
+    {
+      "specialist": "rel-printmakers",
+      "domain": "printmakers"
+    },
+    {
+      "specialist": "rel-racketsports",
+      "domain": "racketsports"
+    },
+    {
+      "specialist": "rel-rowers",
+      "domain": "rowers"
+    },
+    {
+      "specialist": "rel-shooters",
+      "domain": "shooters"
+    },
+    {
+      "specialist": "rel-skaters",
+      "domain": "skaters"
+    },
+    {
+      "specialist": "rel-skiers",
+      "domain": "skiers"
+    },
+    {
+      "specialist": "rel-snooker",
+      "domain": "snooker"
+    },
+    {
+      "specialist": "rel-spacecraft",
+      "domain": "spacecraft"
+    },
+    {
+      "specialist": "rel-speedskaters",
+      "domain": "speedskaters"
+    },
+    {
+      "specialist": "rel-spies",
+      "domain": "spies"
+    },
+    {
+      "specialist": "rel-stations",
+      "domain": "stations"
+    },
+    {
+      "specialist": "rel-statisticians",
+      "domain": "statisticians"
+    },
+    {
+      "specialist": "rel-temples",
+      "domain": "temples"
+    },
+    {
+      "specialist": "rel-theatres",
+      "domain": "theatres"
+    },
+    {
+      "specialist": "rel-themeparks",
+      "domain": "themeparks"
+    },
+    {
+      "specialist": "rel-tradeunionists",
+      "domain": "tradeunionists"
+    },
+    {
+      "specialist": "rel-translators",
+      "domain": "translators"
+    },
+    {
+      "specialist": "rel-triathletes",
+      "domain": "triathletes"
+    },
+    {
+      "specialist": "rel-tvproducers",
+      "domain": "tvproducers"
+    },
+    {
+      "specialist": "rel-volleyball",
+      "domain": "volleyball"
+    },
+    {
+      "specialist": "rel-waterpolo",
+      "domain": "waterpolo"
+    },
+    {
+      "specialist": "rel-youtubers",
+      "domain": "youtubers"
+    }
+  ],
+  "v2_description": "v1 plus 27.7M facts over 2,456 more properties (upstream w524 docstring)",
+  "names_description": "English labels/aliases and sitelink counts; builder inputs absent",
+  "interpretation": "Release completeness failure; successful published hash verification does not check these dependencies."
+}

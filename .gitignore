@@ -1,0 +1,5 @@
+upstream/
+.venv/
+var/
+__pycache__/
+*.pyc

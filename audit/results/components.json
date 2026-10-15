@@ -1,0 +1,105 @@
+{
+  "scope": "unmodified components; not end-to-end routing",
+  "positive_only_equivalence": true,
+  "nan_equals_one": true,
+  "sixty_digit_check_accepts_1e_minus_20_error": true,
+  "math": [
+    {
+      "question": "simplify sqrt(x^2)",
+      "result": {
+        "answer": "x",
+        "value": "x",
+        "check": "equivalent to the input at random points (variables positive, the textbook convention)",
+        "steps": [
+          "read sqrt(x**2)",
+          "simplify"
+        ],
+        "directive": "simplify",
+        "method": null
+      },
+      "why": ""
+    },
+    {
+      "question": "simplify sqrt(x^2) for negative x",
+      "result": {
+        "answer": "x",
+        "value": "x",
+        "check": "equivalent to the input at random points (variables positive, the textbook convention)",
+        "steps": [
+          "read sqrt(x**2)",
+          "simplify"
+        ],
+        "directive": "simplify",
+        "method": null
+      },
+      "why": ""
+    },
+    {
+      "question": "evaluate 0/0",
+      "result": {
+        "answer": "nan",
+        "value": "nan",
+        "check": "recomputed numerically",
+        "steps": [
+          "read nan",
+          "evaluate"
+        ],
+        "directive": "evaluate",
+        "method": null
+      },
+      "why": ""
+    },
+    {
+      "question": "solve x^2 < 1/100",
+      "result": null,
+      "why": "inequality check failed"
+    },
+    {
+      "question": "solve x^2 < 4",
+      "result": {
+        "answer": "Interval.open(-2, 2)",
+        "value": "Interval.open(-2, 2)",
+        "check": "a point of the solution set satisfies the inequality",
+        "steps": [
+          "read x**2 < 4",
+          "solve over the reals"
+        ],
+        "directive": "solve",
+        "method": null
+      },
+      "why": ""
+    },
+    {
+      "question": "evaluate 2 + 3 * 4",
+      "result": {
+        "answer": "14",
+        "value": "14",
+        "check": "recomputed numerically",
+        "steps": [
+          "read 14",
+          "evaluate"
+        ],
+        "directive": "evaluate",
+        "method": null
+      },
+      "why": ""
+    }
+  ],
+  "math_parser_stdout": "731942\n",
+  "timeout": {
+    "result": null,
+    "started": true,
+    "finished_when_returned": false,
+    "continued_after_return": true
+  },
+  "contradictory_search_paths": {
+    "question": "A 2 kg ball moves at 3 m/s. What is its kinetic energy in joules?",
+    "givens": [
+      "Q(2 (0, 1, 0, 0, 0, 0)  2 kg)",
+      "Q(3 (1, 0, -1, 0, 0, 0)  3 m/s)"
+    ],
+    "goal": "('dim', (2, 1, -2, 0, 0, 0), 'joules', 1)",
+    "status": "answered",
+    "answer": "True"
+  }
+}

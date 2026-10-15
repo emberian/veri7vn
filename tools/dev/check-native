@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+"""Build the native scaffold with isolated Isabelle state and save a test receipt."""
+import argparse
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import signal
+import subprocess
+import sys
+import time
+from fixture_exports import export_data
+
+ROOT = Path(__file__).resolve().parents[2]
+EXPECTED = (
+    "contract_transport", "hidden_hypothesis_exposed",
+    "exported_premise_exposed", "full_statement_preserved",
+    "descriptor_exports_resolved", "unresolved_export_rejected", "wrong_kind_rejected",
+)
+
+
+def source_snapshot():
+    sources = sorted(
+        list((ROOT / "src/isabelle").rglob("*")) +
+        list((ROOT / "tests/scaffold").rglob("*")) + [Path(__file__).resolve(),
+        Path(__file__).resolve().with_name("fixture_exports.py")])
+    return {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sources if p.is_file()}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--isabelle", default=os.environ.get(
+        "VERI7VN_ISABELLE", "/Applications/Isabelle2026-RC1.app/bin/isabelle"),
+        help="Isabelle executable (default: installed RC1; or VERI7VN_ISABELLE)")
+    parser.add_argument("--timeout", type=int, default=600,
+                        help="maximum seconds per tool invocation (default: 600)")
+    args = parser.parse_args()
+    if args.timeout < 1:
+        parser.error("--timeout must be positive")
+    executable = Path(args.isabelle).expanduser().resolve()
+    state = ROOT / "var/native-scaffold"
+    state.mkdir(parents=True, exist_ok=True)
+    # All invocations in this checkout share a lock, including executable overrides.
+    with (state / "build.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            parser.exit(2, "Another native scaffold check holds var/native-scaffold/build.lock.\n")
+        return check(executable, state, args.timeout)
+
+
+def check(executable, state, timeout):
+    env = os.environ.copy()
+    # Isabelle's supported state-root override; HOME is left untouched.
+    env["USER_HOME"] = str(state / "user-state")
+    receipt = {
+        "format": "veri7vn.native-scaffold-receipt/0",
+        "status": "running", "scope": "native integration smoke; not admission",
+        "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "executable": str(executable), "user_home": env["USER_HOME"],
+        "host": {"system": platform.system(), "machine": platform.machine()},
+        "resources": {"build_jobs": 1, "threads": 2, "command_timeout_seconds": timeout},
+        "sources_sha256": source_snapshot(),
+        "commands": [], "checks": [],
+    }
+    receipt_path = state / "receipt.json"
+
+    def save():
+        temporary = state / "receipt.json.tmp"
+        temporary.write_text(json.dumps(receipt, indent=2) + "\n")
+        temporary.replace(receipt_path)
+
+    def run(arguments, log_name):
+        command = [str(executable), *arguments]
+        entry = {"argv": command, "log": str((state / log_name).relative_to(ROOT))}
+        receipt["commands"].append(entry)
+        save()
+        begin = time.monotonic()
+        process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, text=True, start_new_session=True)
+        try:
+            output, _ = process.communicate(timeout=timeout)
+        except (subprocess.TimeoutExpired, KeyboardInterrupt) as failure:
+            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                output, _ = process.communicate(timeout=10)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL)
+                output, _ = process.communicate()
+            (state / log_name).write_text(output)
+            entry.update(returncode=process.returncode, seconds=time.monotonic() - begin,
+                         interrupted=type(failure).__name__)
+            raise RuntimeError(f"{arguments[0]} interrupted: {type(failure).__name__}") from failure
+        (state / log_name).write_text(output)
+        entry.update(returncode=process.returncode, seconds=time.monotonic() - begin)
+        if process.returncode:
+            raise RuntimeError(f"{arguments[0]} failed ({process.returncode}); see {entry['log']}\n{output[-5000:]}")
+        return output
+
+    start = time.monotonic()
+    save()
+    try:
+        if not executable.is_file():
+            raise RuntimeError(f"Isabelle executable not found: {executable}")
+        descriptor = ROOT / "tests/scaffold/package.json"
+        generated = state / "fixture_exports.ML"
+        generated_text = export_data(descriptor.read_bytes())
+        if not generated.exists() or generated.read_text() != generated_text:
+            generated.write_text(generated_text)
+        receipt["fixture_bridge"] = {
+            "descriptor": str(descriptor.relative_to(ROOT)),
+            "generated_data": str(generated.relative_to(ROOT)),
+            "generated_sha256": hashlib.sha256(generated.read_bytes()).hexdigest(),
+        }
+        receipt["isabelle_version"] = run(["version"], "version.log").strip()
+        receipt["isabelle_settings"] = run(
+            ["getenv", "ISABELLE_IDENTIFIER", "ML_SYSTEM", "ML_PLATFORM", "ISABELLE_HOME_USER"],
+            "settings.log").strip()
+        print(f"Building native scaffold with {receipt['isabelle_version']} (one job, two threads).", flush=True)
+        build = run(["build", "-b", "-d", "src/isabelle", "-D", "tests/scaffold",
+                     "-j", "1", "-o", "threads=2", "Veri7vn_Scaffold_Tests"], "build.log")
+        print(build.strip(), flush=True)
+        observations = run(["build_log", "-v", "-M", "VERI7VN_", "Veri7vn_Scaffold_Tests"],
+                           "smoke.log")
+        missing = [name for name in EXPECTED if f"VERI7VN_SMOKE {name} PASS" not in observations]
+        if missing:
+            raise RuntimeError(f"Missing integration assertions in build log: {missing}")
+        receipt["checks"] = list(EXPECTED)
+        receipt["status"] = "passed"
+        print(observations.strip(), flush=True)
+    except (OSError, RuntimeError, ValueError, KeyError, TypeError) as failure:
+        receipt["status"] = "failed"
+        receipt["failure"] = str(failure)
+        print(str(failure), file=sys.stderr)
+    finally:
+        # Agents can edit shared inputs without taking the build lock. A
+        # successful tool exit must not certify a mixture of source generations.
+        try:
+            after = source_snapshot()
+            receipt["sources_sha256_after"] = after
+            stable = after == receipt["sources_sha256"]
+            bridge = receipt.get("fixture_bridge")
+            if bridge:
+                generated_after = hashlib.sha256(
+                    (ROOT / bridge["generated_data"]).read_bytes()).hexdigest()
+                bridge["generated_sha256_after"] = generated_after
+                stable = stable and generated_after == bridge["generated_sha256"]
+            receipt["inputs_stable"] = stable
+        except OSError as failure:
+            receipt["inputs_stable"] = False
+            receipt["stability_error"] = str(failure)
+        if not receipt["inputs_stable"]:
+            receipt["status"] = "unstable"
+            receipt["failure"] = "Inputs changed during the check; rerun after edits settle."
+            print(receipt["failure"], file=sys.stderr)
+        receipt["elapsed_seconds"] = time.monotonic() - start
+        save()
+        print(f"Receipt: {receipt_path}", flush=True)
+    return 0 if receipt["status"] == "passed" else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

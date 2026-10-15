@@ -1,0 +1,1 @@
+SELECT id,title,doi_norm,publication_year,cited_by_count FROM openalex.works WHERE hasAnyTokens(search_text_lc,['definitional','conservativity']) AND hasAnyTokens(search_text_lc,['isabelle','hol','higher']) ORDER BY cited_by_count DESC LIMIT 18

@@ -1,0 +1,1 @@
+SELECT paper_key,title,abstract,arxiv_id,has_fulltext,oa_url FROM academic.catalog WHERE paper_key IN ('10.1007/978-3-319-22102-1_11','10.1007/978-3-642-02444-3_10','10.48550/arxiv.2101.03807','10.48550/arxiv.2002.10212','10.48550/arxiv.2502.19311') LIMIT 10

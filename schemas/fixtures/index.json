@@ -1,0 +1,81 @@
+{
+  "schema": "package.schema.json",
+  "cases": [
+    {
+      "file": "fixtures/package/valid-complete.json",
+      "valid": true
+    },
+    {
+      "file": "fixtures/package/valid-unfinished.json",
+      "valid": true
+    },
+    {
+      "file": "fixtures/package/invalid-verified-flag.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-proof-status.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-typo.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-unknown-format.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-path-absolute.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-path-traversal.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-path-inner-traversal.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-path-uri.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-path-windows.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-path-backslash.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-path-newline.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-path-dot.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/invalid-path-empty-segment.json",
+      "valid": false
+    },
+    {
+      "file": "fixtures/package/valid-theory-library.json",
+      "valid": true
+    },
+    {
+      "file": "fixtures/package/valid-data.json",
+      "valid": true
+    },
+    {
+      "file": "fixtures/package/valid-blank-development.json",
+      "valid": true
+    },
+    {
+      "file": "fixtures/package/invalid-exports-without-native.json",
+      "valid": false
+    }
+  ]
+}

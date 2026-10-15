@@ -1,0 +1,21 @@
+{
+ "release": "oracle7",
+ "head": "oracle_release_runtime_w540",
+ "published_root": "04daf3ae439e55b7fea5f73e944b52d75f2535536bcf6a077a23d7a28802476f",
+ "computed_root": "04daf3ae439e55b7fea5f73e944b52d75f2535536bcf6a077a23d7a28802476f",
+ "root_matches": true,
+ "parts": 311,
+ "verified": 311,
+ "specialists_verified": 307,
+ "changed": [],
+ "missing": [],
+ "extra_local": [],
+ "anchor": {
+  "chain": "solana-mainnet",
+  "program": "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr",
+  "memo": "Oracle7 release w540, 2026-10-14. oracle7 merkle 04daf3ae439e55b7fea5f73e944b52d75f2535536bcf6a077a23d7a28802476f. oracle7-slim merkle 1098e64e421c3bad51651b8dc066b7e8cdf578d1f81003a7b29dba00498190f2. Recipe: RELEASE_HASHES.json in each repository.",
+  "signature": "54PaqBXeGLEH8UbrVC3UydKfMFxnqbPSrpy5gTeXFdSBfmNK9EUdzzBeWioX35oHqQgXynaWjuNo6VVcP2mUKP46",
+  "block_time_utc": "2026-10-15T04:49Z",
+  "explorer": "https://explorer.solana.com/tx/54PaqBXeGLEH8UbrVC3UydKfMFxnqbPSrpy5gTeXFdSBfmNK9EUdzzBeWioX35oHqQgXynaWjuNo6VVcP2mUKP46"
+ }
+}

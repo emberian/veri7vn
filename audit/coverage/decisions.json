@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "default_status": "not_lifted",
+  "note": "An absent entry means not lifted. Do not infer completed coverage from source-family membership or a passing upstream exam.",
+  "allowed_statuses": ["not_lifted", "investigating", "opaque_adapter", "partially_lifted", "preserved", "repaired", "unavailable_source", "excluded_with_rationale"],
+  "required_fields_per_entry": ["status", "scope", "source_revision", "source_paths", "capability_packages", "implementation_evidence", "assurance_evidence", "behavior_evidence", "deployment_evidence", "limitations"],
+  "completion_rule": "Preserved or repaired requires evidence for exact declared scope; partial methods/kinds must remain explicitly uncovered. Unavailable source and exclusion record dispositions, not implemented capabilities. Behavioral tests alone are not refinement evidence.",
+  "entries": {}
+}

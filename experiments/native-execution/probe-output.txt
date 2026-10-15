@@ -1,0 +1,8 @@
+MEASURE native_1000_pairs repeats=10000 elapsed_ms=30.03 cpu_ms=22.856 gc_ms=0.0
+MEASURE static_conv_100_pairs repeats=100 elapsed_ms=1915.713 cpu_ms=903.105 gc_ms=26.21
+MEASURE dynamic_conv_100_pairs repeats=10 elapsed_ms=295.518 cpu_ms=120.198 gc_ms=0.0
+MEASURE kernel_simp_100_pairs repeats=10 elapsed_ms=495.47 cpu_ms=300.991 gc_ms=5.211
+STATIC_ORACLES Code_Generator.holds
+RECONSTRUCTED_ORACLES 
+PROBE_OK
+val it = (): unit

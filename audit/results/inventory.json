@@ -1,0 +1,2551 @@
+{
+  "revision": "c5d6a29d5bc5e2525078e5a53afa1abf659e4d69",
+  "source_files": 1757,
+  "source_lines": 199658,
+  "fold_count": 317,
+  "fold_lines": 27249,
+  "overridden_methods": [
+    [
+      "chat",
+      293
+    ],
+    [
+      "_c480_dispatch",
+      12
+    ],
+    [
+      "__init__",
+      7
+    ],
+    [
+      "_c480_math",
+      3
+    ],
+    [
+      "peek",
+      3
+    ],
+    [
+      "_c482_org",
+      2
+    ],
+    [
+      "_receive",
+      2
+    ],
+    [
+      "_register",
+      2
+    ],
+    [
+      "_c474_reader",
+      2
+    ],
+    [
+      "_r434_passage",
+      2
+    ],
+    [
+      "_c426_bridge",
+      2
+    ],
+    [
+      "take",
+      2
+    ],
+    [
+      "_f420_try",
+      2
+    ],
+    [
+      "_k181_fill",
+      2
+    ],
+    [
+      "_k181_render",
+      2
+    ],
+    [
+      "_k193_edge_cause",
+      2
+    ],
+    [
+      "_k193_cause_title",
+      2
+    ],
+    [
+      "_k193_no_repeat",
+      2
+    ],
+    [
+      "_vessels_load",
+      2
+    ],
+    [
+      "_vessels_save",
+      2
+    ]
+  ],
+  "hash_parts": 311,
+  "core_hashed_parts": [
+    "core/admitted",
+    "workbench",
+    "oracle7.py",
+    "PACK_MANIFEST.json"
+  ],
+  "unpacked_store_bytes": 25865752576,
+  "packed_store_count": 14,
+  "folds": [
+    {
+      "module": "oracle_release_runtime_w540",
+      "lines": 81,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w411",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w410",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w539",
+      "lines": 147,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w538",
+      "lines": 184,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w409",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w408",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w407",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w537",
+      "lines": 66,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w536",
+      "lines": 134,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w534",
+      "lines": 150,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w533",
+      "lines": 218,
+      "methods": [
+        "_c533_part",
+        "_c533_family_reply",
+        "chat",
+        "_c533_one"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w532",
+      "lines": 106,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w406",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w405",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w404",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w531",
+      "lines": 71,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w530",
+      "lines": 212,
+      "methods": [
+        "_c528_chat",
+        "_c528_precedence",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w403",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w402",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w401",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w529",
+      "lines": 114,
+      "methods": [
+        "chat",
+        "_c527_parts"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w399",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w398",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w396",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w395",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w526",
+      "lines": 68,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w525",
+      "lines": 135,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w524",
+      "lines": 81,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w393",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w392",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w391",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w390",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w389",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w388",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w387",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w386",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w385",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w523",
+      "lines": 30,
+      "methods": []
+    },
+    {
+      "module": "oracle_release_runtime_w384",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w383",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w382",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w522",
+      "lines": 29,
+      "methods": []
+    },
+    {
+      "module": "oracle_release_runtime_w521",
+      "lines": 190,
+      "methods": [
+        "chat",
+        "_c521_check",
+        "_c521_agents"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w381",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w380",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w379",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w378",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w377",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w376",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w520",
+      "lines": 93,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w519",
+      "lines": 122,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w518",
+      "lines": 41,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w517",
+      "lines": 373,
+      "methods": [
+        "_c517",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w516",
+      "lines": 248,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w515",
+      "lines": 83,
+      "methods": [
+        "_c515",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w514",
+      "lines": 284,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w513",
+      "lines": 226,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w511",
+      "lines": 154,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w375",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w374",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w373",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w510",
+      "lines": 152,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w508",
+      "lines": 77,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w369",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w368",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w367",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w504",
+      "lines": 72,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w366",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w365",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w364",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w503",
+      "lines": 50,
+      "methods": [
+        "_c480_dispatch"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w502",
+      "lines": 39,
+      "methods": [
+        "_c480_dispatch"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w363",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w362",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w361",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w500",
+      "lines": 65,
+      "methods": [
+        "_c500_soc",
+        "_c500_turns",
+        "_c480_dispatch"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w498",
+      "lines": 62,
+      "methods": [
+        "_c480_dispatch",
+        "_c498_reply"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w496",
+      "lines": 85,
+      "methods": [
+        "_c496_org",
+        "chat",
+        "_c480_dispatch"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w494",
+      "lines": 78,
+      "methods": [
+        "_c494_org",
+        "chat",
+        "_c480_dispatch"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w492",
+      "lines": 111,
+      "methods": [
+        "_c492_tt",
+        "_c480_dispatch"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w490",
+      "lines": 56,
+      "methods": [
+        "_c480_math",
+        "_c480_dispatch"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w488",
+      "lines": 58,
+      "methods": [
+        "_c480_dispatch"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w486",
+      "lines": 89,
+      "methods": [
+        "__init__",
+        "__getattr__",
+        "answer",
+        "_c482_org",
+        "_c480_dispatch"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w360",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w359",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w358",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w357",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w482",
+      "lines": 91,
+      "methods": [
+        "_c480_math",
+        "_c482_org",
+        "_c480_dispatch"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w356",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w480",
+      "lines": 325,
+      "methods": [
+        "_c480_math",
+        "_c480_rel",
+        "_c480_answered",
+        "_c480_dialogue",
+        "chat",
+        "_c480_dispatch",
+        "_c480_dialogue_reply",
+        "_c480_math_reply",
+        "_c480_rel_reply",
+        "_c478_db",
+        "_c478_ready",
+        "_receive",
+        "_register"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w354",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w353",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w352",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w351",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w350",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w349",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w476",
+      "lines": 81,
+      "methods": [
+        "_c474_reader",
+        "_c476_op",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w348",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w347",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w346",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w474",
+      "lines": 81,
+      "methods": [
+        "_c474_reader",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w345",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w344",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w343",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w342",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w341",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w340",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w339",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w338",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w337",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w336",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w335",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w334",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w472",
+      "lines": 118,
+      "methods": [
+        "_r472_ackwords",
+        "_r472_thread",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w333",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w332",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w331",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w330",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w329",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w328",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w327",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w326",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w325",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w324",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w323",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w322",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w321",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w320",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w319",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w318",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w317",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w316",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w315",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w314",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w468",
+      "lines": 254,
+      "methods": [
+        "_r468_thread",
+        "_r468_subjects",
+        "_r468_replies",
+        "_r468_remember",
+        "_r468_bind",
+        "_r468_door",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w313",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w312",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w311",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w310",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w309",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w308",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w307",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w305",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w304",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w303",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w301",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w300",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w299",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w298",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w297",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w296",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w456",
+      "lines": 103,
+      "methods": [
+        "_r456_program",
+        "_r456_all_empty",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w458",
+      "lines": 100,
+      "methods": [
+        "_r458_is_computation",
+        "_r458_named",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w295",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w294",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w293",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w292",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w291",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w290",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w289",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w288",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w287",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w286",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w285",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w284",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w280",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w442",
+      "lines": 154,
+      "methods": [
+        "_r436_db",
+        "_r436_aliases",
+        "_r436_covered",
+        "_r434_passage"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w278",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w276",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w275",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w274",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w273",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w272",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w271",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w270",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w269",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w268",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w434",
+      "lines": 234,
+      "methods": [
+        "_r434_verdict",
+        "_r434_passage",
+        "_r434_receipt",
+        "_r434_options",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w432",
+      "lines": 147,
+      "methods": [
+        "_r432_passage",
+        "_r432_options",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w267",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w266",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w265",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w430",
+      "lines": 127,
+      "methods": [
+        "_c430_word_problem",
+        "_c426_bridge",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w264",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w263",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w262",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w428",
+      "lines": 327,
+      "methods": [
+        "__init__",
+        "peek",
+        "take",
+        "_t428_extract",
+        "_t428_try",
+        "_t428_answer",
+        "_t428_math_words",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w426",
+      "lines": 368,
+      "methods": [
+        "_c426_derived",
+        "_c426_derived_rows",
+        "_c426_pages_like",
+        "_c426_first_sentence",
+        "_c426_years",
+        "_c426_dated_sentence",
+        "_c426_best_on_page",
+        "_c426_head_nouns",
+        "_c426_isa",
+        "_c426_answer",
+        "_c426_compare",
+        "_c426_both",
+        "_c426_from_derived",
+        "_c426_bridge",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w259",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w258",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w257",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w424",
+      "lines": 92,
+      "methods": [
+        "_c424_definition",
+        "_f420_try"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w422",
+      "lines": 113,
+      "methods": [
+        "_m422_typeset",
+        "_m422_function_subject",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w420",
+      "lines": 485,
+      "methods": [
+        "_f420_declined",
+        "_f420_uncovered",
+        "_f420_pages",
+        "_f420_page",
+        "_f420_title",
+        "_f420_page_of",
+        "_f420_fts",
+        "_f420_spans",
+        "_f420_type",
+        "_f420_passes",
+        "_f420_coverage",
+        "_f420_names",
+        "_f420_best_on_page",
+        "_f420_try",
+        "_f420_answer",
+        "_f420_withhold",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w412",
+      "lines": 263,
+      "methods": [
+        "_x410_manifest",
+        "_x410_fold_doc",
+        "_x410_answer",
+        "_x410_identity",
+        "_x410_maker",
+        "_x410_works",
+        "_x410_changed",
+        "_x410_limits",
+        "_x410_refusal",
+        "_x410_direction",
+        "_x410_size",
+        "_x410_speed",
+        "_x410_inquiry",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w256",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w255",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w254",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w400",
+      "lines": 304,
+      "methods": [
+        "_d400_mem",
+        "_d400_note",
+        "_d400_page",
+        "_d400_answer",
+        "_d400_made_of",
+        "_d400_where",
+        "_d400_genus_or",
+        "_d400_session_summary",
+        "_d400_edges",
+        "_d400_causal",
+        "_d400_verify",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w253",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w252",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w251",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w212",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w244",
+      "lines": 101,
+      "methods": [
+        "__init__",
+        "_s244_declined",
+        "_s244_lookup",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w242",
+      "lines": 223,
+      "methods": [
+        "_s240_relation",
+        "_k181_fill",
+        "_k181_render",
+        "_s240_edges",
+        "_k193_edge_cause",
+        "_k193_cause_title",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w198",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w197",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w195",
+      "lines": 42,
+      "methods": [
+        "_k193_no_repeat",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w193",
+      "lines": 239,
+      "methods": [
+        "_definitional_turn",
+        "_k193_edge_cause",
+        "_k193_cause_title",
+        "_k193_short_kernel",
+        "_k193_untold",
+        "_k193_no_repeat",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w191",
+      "lines": 123,
+      "methods": [
+        "_s187_state",
+        "_s187_page_of",
+        "_s187_novel_claims",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w184",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w183",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w181",
+      "lines": 201,
+      "methods": [
+        "_k181_ask",
+        "_k181_usable",
+        "_k181_fill",
+        "_k181_render",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w179",
+      "lines": 162,
+      "methods": [
+        "_measuring",
+        "_vessels_load",
+        "_vessels_save",
+        "_event",
+        "_an_terms",
+        "_rel_pair",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w175",
+      "lines": 267,
+      "methods": [
+        "_vessels_load",
+        "_vessels_save",
+        "_event",
+        "_weight",
+        "_receive",
+        "_paths_q",
+        "_recite",
+        "chat",
+        "_register"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w171",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w170",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w168",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w167",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w165",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w164",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w162",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w161",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w159",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w158",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w156",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w155",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w153",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w151",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w150",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w148",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w147",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w145",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w144",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w142",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w141",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w139",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w138",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w136",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w135",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w133",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w132",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w129",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w128",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w123",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w122",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w117",
+      "lines": 393,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w110",
+      "lines": 305,
+      "methods": [
+        "_gather",
+        "_say",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w114",
+      "lines": 309,
+      "methods": [
+        "_hgather",
+        "_hsay",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w116",
+      "lines": 310,
+      "methods": [
+        "_state_vector",
+        "_in_words",
+        "_as_shape",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w106",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w105",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w103",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w102",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w100",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w99",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w97",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w96",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w94",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w93",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w91",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w90",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w88",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w87",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w85",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w84",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w82",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w81",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w75",
+      "lines": 244,
+      "methods": [
+        "_candidates",
+        "_route",
+        "_refuse",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w72",
+      "lines": 70,
+      "methods": [
+        "_referents",
+        "_stop_terms"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w71",
+      "lines": 245,
+      "methods": [
+        "_referents",
+        "_resolve",
+        "_about_program",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w70",
+      "lines": 68,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w66",
+      "lines": 41,
+      "methods": []
+    },
+    {
+      "module": "oracle_release_runtime_w65",
+      "lines": 107,
+      "methods": [
+        "_operator_table",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w60",
+      "lines": 64,
+      "methods": [
+        "_was_refusal",
+        "_justify"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w64",
+      "lines": 137,
+      "methods": []
+    },
+    {
+      "module": "oracle_release_runtime_w59",
+      "lines": 164,
+      "methods": [
+        "_witness_op",
+        "chat",
+        "_decline"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w63",
+      "lines": 68,
+      "methods": []
+    },
+    {
+      "module": "oracle_release_runtime_w58",
+      "lines": 212,
+      "methods": [
+        "_prior_turn",
+        "_choice_reason",
+        "_justify",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w62",
+      "lines": 68,
+      "methods": []
+    },
+    {
+      "module": "oracle_release_runtime_w57",
+      "lines": 84,
+      "methods": [
+        "_loaded_head",
+        "_self_answer"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w61",
+      "lines": 49,
+      "methods": []
+    },
+    {
+      "module": "oracle_release_runtime_w56",
+      "lines": 115,
+      "methods": [
+        "_premise_terms",
+        "_deduction_relevant",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w33",
+      "lines": 258,
+      "methods": [
+        "_read_manifest",
+        "_read_world",
+        "_read_gates",
+        "_read_charter",
+        "_self_answer",
+        "_witness_self",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w55",
+      "lines": 360,
+      "methods": [
+        "__init__",
+        "__add__",
+        "__sub__",
+        "__mul__",
+        "__truediv__",
+        "__neg__",
+        "text",
+        "__init__",
+        "peek",
+        "take",
+        "expr",
+        "term",
+        "factor",
+        "_ingest",
+        "_extract",
+        "_algebra",
+        "_witness_alg",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w54",
+      "lines": 378,
+      "methods": [
+        "_store",
+        "_ingest",
+        "_closure",
+        "_try_pair",
+        "_derive",
+        "_witness_deduce",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w32",
+      "lines": 371,
+      "methods": [
+        "_pick_language",
+        "_pick_task",
+        "_verify",
+        "_witness_code",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w51",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w31",
+      "lines": 48,
+      "methods": []
+    },
+    {
+      "module": "oracle_release_runtime_w50",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w29",
+      "lines": 353,
+      "methods": [
+        "__init__",
+        "__init__",
+        "peek",
+        "eat",
+        "parse",
+        "expr",
+        "term",
+        "pow_",
+        "unary",
+        "atom",
+        "_witness_compute",
+        "_carry",
+        "_resolve_followup",
+        "_compute",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w48",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w24",
+      "lines": 92,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w47",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w23",
+      "lines": 80,
+      "methods": [
+        "_bench",
+        "made_of_lookup",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w46",
+      "lines": 32,
+      "methods": []
+    },
+    {
+      "module": "oracle_release_runtime_w22",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w37",
+      "lines": 348,
+      "methods": [
+        "_read_pipeline",
+        "_samples",
+        "_expected",
+        "_emit",
+        "_run",
+        "_witness_synth",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w45",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w21",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w36",
+      "lines": 468,
+      "methods": [
+        "_pick_language"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w44",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w20",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w34",
+      "lines": 217,
+      "methods": [
+        "_world_material",
+        "_compose",
+        "_witness_story",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w42",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w19",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w41",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w18",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w16",
+      "lines": 81,
+      "methods": [
+        "_doors_from",
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w15",
+      "lines": 39,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w12",
+      "lines": 56,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w10",
+      "lines": 52,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w6",
+      "lines": 63,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w4",
+      "lines": 59,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_w1",
+      "lines": 40,
+      "methods": [
+        "chat"
+      ]
+    },
+    {
+      "module": "oracle_release_runtime_ao",
+      "lines": 169,
+      "methods": [
+        "_live_topic",
+        "_topic_or_referent",
+        "_convert",
+        "chat"
+      ]
+    }
+  ]
+}

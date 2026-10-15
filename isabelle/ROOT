@@ -1,0 +1,5 @@
+session Veri7vn = HOL +
+  options [document = false]
+  theories
+    Veri7vn_IR
+    Veri7vn_Springs

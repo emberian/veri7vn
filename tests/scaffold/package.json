@@ -1,0 +1,35 @@
+{
+  "format": "veri7vn.package/0",
+  "package": {
+    "id": "veri7vn.scaffold",
+    "version": "0.0.0",
+    "title": "Native boundary integration fixture",
+    "description": "A real native export fixture for development checks; not an admitted or deployable specialist."
+  },
+  "files": [
+    {"path": "ROOT", "role": "source"},
+    {"path": "Native_Boundary_Smoke.thy", "role": "source"},
+    {"path": "README.md", "role": "documentation"}
+  ],
+  "requires": [],
+  "native": {
+    "session": "Veri7vn_Scaffold_Tests",
+    "theories": ["Veri7vn_Scaffold_Tests.Native_Boundary_Smoke"]
+  },
+  "capabilities": [{
+    "id": "increment_twice",
+    "title": "Increment a natural number twice",
+    "specification": {
+      "theory": "Veri7vn_Scaffold_Tests.Native_Boundary_Smoke",
+      "name": "Native_Boundary_Smoke.smoke_specification"
+    },
+    "contracts": [{
+      "theory": "Veri7vn_Scaffold_Tests.Native_Boundary_Smoke",
+      "name": "Native_Boundary_Smoke.smoke_contract"
+    }],
+    "executable": {
+      "theory": "Veri7vn_Scaffold_Tests.Native_Boundary_Smoke",
+      "name": "Native_Boundary_Smoke.smoke_execute"
+    }
+  }]
+}
