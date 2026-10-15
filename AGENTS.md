@@ -6,6 +6,10 @@ The user-approved direction is a robust specialist engineering environment nativ
 to Isabelle, with efficient deployed execution and search. Do not substitute an
 arithmetic demo or an external prover wrapper for that objective.
 
+Current gate: architecture revision 2 is proposed for agreement.
+`design-convergence` holds implementation fan-out; design review and the requested
+prototype cleanup do not themselves approve the new implementation choices.
+
 ## Coordination
 
 - Root owns design synthesis, dispatch, and integration. Implementation belongs
@@ -30,9 +34,12 @@ arithmetic demo or an external prover wrapper for that objective.
 
 ## Evidence and implementation
 
-- `src/isabelle/` is new platform source. `isabelle/`, `o7ir/`, and `generated/`
-  are older prototypes. Reuse requires checking statements and their connection
-  to the actual implementation; do not promote by renaming.
+- `src/isabelle/` is native platform source. The old `isabelle/`, `o7ir/`, and
+  `generated/` prototype files were removed; see the
+  [cleanup and Git recovery record](docs/design/prototype-cleanup.md).
+  Native probes in `experiments/` and upstream audit tools remain research
+  evidence. Reuse requires checking statements and their connection to the
+  actual implementation; do not promote by renaming.
 - No `sorry`, `skip_proof`, arbitrary axiomatization, or hidden oracle counts as
   checked coverage. A native theorem can retain hypotheses or rely on an
   unacceptable extension. Follow the full admission contract.

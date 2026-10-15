@@ -14,22 +14,25 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | f-coverage | Inventory coverage and define product acceptance | coverage | done | coverage_readiness | — |
 | f-tools | Provide minimal task validation and derived coordination views | coordination tooling | done | project_tools | — |
 | foundation-integration | Review and integrate the parallel scaffolds | integration | done | root | — |
-| coverage-disposition | Classify reachable core behavior and sibling interface pressures | coverage | planned (dispatchable) | — | — |
-| native-registry | Implement native capabilities and immutable environment registry | registry | planned (dispatchable) | — | — |
-| operational-model | Define executable operational calculi and their native bridge | metatheory | planned (dispatchable) | — | — |
-| source-semantics | Specify source observations, adoption and query dependencies | sources | planned (dispatchable) | — | — |
-| interpretation-model | Specify typed interpretation and licensed rendering | language | planned (dispatchable) | — | — |
-| workbench-audit | Audit upstream authoring, local integrations and transfer workflows | authoring discovery | planned (dispatchable) | — | — |
-| performance-envelope | Establish representative workloads and deployment budgets | performance | planned (dispatchable) | — | — |
-| known-regressions | Turn reproduced Oracle7 defects into independent regression obligations | behavioral correctness | planned (dispatchable) | — | — |
+| design-convergence | Converge and agree the concrete implementation architecture | design integration | review | root | — |
+| native-linkage-feasibility | Resolve finite native linkage and bounded proof transport feasibility | native feasibility | planned | — | design-convergence |
+| runtime-host-bootstrap | Probe the resident Scala/PIDE host and durable protocol seam | host feasibility | planned | — | design-convergence |
+| coverage-disposition | Classify reachable core behavior and sibling interface pressures | coverage | planned | — | design-convergence |
+| native-registry | Implement native capabilities and immutable environment registry | registry | planned | — | design-convergence, native-linkage-feasibility |
+| operational-model | Implement and prove the executable HOL authority machine | metatheory | planned | — | design-convergence |
+| source-semantics | Specify source observations, adoption and query dependencies | sources | planned | — | design-convergence |
+| interpretation-model | Specify typed interpretation and licensed rendering | language | planned | — | design-convergence |
+| workbench-audit | Audit upstream authoring, local integrations and transfer workflows | authoring discovery | planned | — | design-convergence |
+| performance-envelope | Establish representative workloads and deployment budgets | performance | planned | — | design-convergence |
+| known-regressions | Turn reproduced Oracle7 defects into independent regression obligations | behavioral correctness | planned | — | design-convergence |
 | workspace-interaction | Design the specialist authoring and diagnosis workflows | authoring design | planned | — | workbench-audit |
 | native-admission | Implement the authoritative native admission boundary | admission | planned | — | native-registry, operational-model |
 | plan-composition | Implement typed composition and justified finite-search quotients | composition | planned | — | operational-model, interpretation-model, native-registry |
-| state-effects | Implement modeled state transitions and effect authority | state and effects | planned | — | operational-model, native-registry |
+| state-effects | Implement generated state/effect transitions and linearized execution authority | state and effects | planned | — | operational-model, native-registry |
 | source-import | Build reproducible snapshot import and missing-store replacement | sources | planned | — | source-semantics, native-registry |
 | dependency-updates | Implement dependency-aware generation publication and reuse | updates | planned | — | source-import, state-effects, native-registry |
 | strategy-engine | Implement budgeted native search strategies and replayable proposals | search | planned | — | plan-composition, native-admission, state-effects |
-| runtime-service | Expose authoritative native runtime operations to clients | runtime | planned | — | native-registry, native-admission, state-effects |
+| runtime-service | Implement the Scala/PIDE host, durable writer and native protocol | runtime | planned | — | native-registry, native-admission, state-effects, runtime-host-bootstrap |
 | package-lifecycle | Implement editable packages, imports, builds and versions | packages | planned | — | native-admission, native-registry |
 | workspace-client | Build the browser workbench and coherent CLI authoring surface | authoring client | planned | — | workbench-audit, workspace-interaction, package-lifecycle, runtime-service |
 | diagnostics-repair | Provide precise counterexamples and reviewable repair proposals | diagnostics | planned | — | native-admission, interpretation-model, workbench-audit, package-lifecycle |
@@ -54,11 +57,4 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 
 ## Ready to dispatch
 
-- **coverage-disposition** — Classify reachable core behavior and sibling interface pressures
-- **native-registry** — Implement native capabilities and immutable environment registry
-- **operational-model** — Define executable operational calculi and their native bridge
-- **source-semantics** — Specify source observations, adoption and query dependencies
-- **interpretation-model** — Specify typed interpretation and licensed rendering
-- **workbench-audit** — Audit upstream authoring, local integrations and transfer workflows
-- **performance-envelope** — Establish representative workloads and deployment budgets
-- **known-regressions** — Turn reproduced Oracle7 defects into independent regression obligations
+None.

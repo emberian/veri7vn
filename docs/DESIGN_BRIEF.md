@@ -1,8 +1,9 @@
 # veri7vn: design brief
 
-Status: foundation execution authorized, 2026-10-15. The Isabelle-native direction
-and authoring-focused product requirements are accepted. Concrete interfaces are
-being established as a versioned baseline; the complete platform remains work.
+Status: foundation complete, 2026-10-15. The Isabelle-native direction and
+authoring-focused product requirements are accepted. Architecture revision 2 is
+under review; implementation fan-out is held for design agreement. Descriptor
+schemas are not frozen executable interfaces; the complete platform remains work.
 
 Current synthesis: [ARCHITECTURE_PROPOSAL.md](ARCHITECTURE_PROPOSAL.md).
 Current work and decisions: [project plan](../project/PLAN.md) and
@@ -35,12 +36,14 @@ Current work and decisions: [project plan](../project/PLAN.md) and
 
 ## Important corrections to earlier exploration
 
-The existing `o7ir/`, `isabelle/`, `generated/`, and compilation tests are exploratory
-prototypes. Their presence is not an architectural commitment. The checked DAG
-theorem establishes expression/DAG evaluation correspondence for parametric pure
-operations. It does not establish correctness of the Python lift, natural-language
-interpretation, database operations, routing, state, C emission, or whole-system
-behavior.
+The early `o7ir/`, root `isabelle/`, `generated/`, and compilation-test prototype
+was removed at the user's request on 2026-10-15. The
+[cleanup record](design/prototype-cleanup.md) gives its recoverable Git history.
+The native scaffold, isolated native probes, and upstream audit tooling remain.
+The old checked DAG theorem established expression/DAG evaluation correspondence
+for parametric pure operations. It did not establish correctness of the Python
+lift, natural-language interpretation, database operations, routing, state,
+C emission, or whole-system behavior.
 
 An extracted standalone executable is an available deployment direction, not a
 requirement that forbids a native Isabelle deployment. Likewise, a compiler for
@@ -95,6 +98,6 @@ use `cv show <id> --kind prompt,answer`, then `--around` or `--range`. Current c
 
 The user subsequently authorized project management and early scaffolding for
 parallel agents. The project plan now governs that work. Writing this brief does
-not authorize external publication or silently promote existing prototypes into
+not authorize external publication or silently promote research probes into
 the production framework. Consequential interface changes must be reconciled with
 their consumers before broader dependent implementation.

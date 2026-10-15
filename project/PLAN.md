@@ -4,6 +4,13 @@ Foundation execution authorized, 2026-10-15. This phase organizes and tests the
 interfaces needed for parallel implementation. It does not claim the whole
 platform exists or shrink the destination to the first runnable fragment.
 
+Foundation integration is complete. The user's subsequent request reopened the
+architecture before implementation fan-out. [Revision 2](../docs/ARCHITECTURE_PROPOSAL.md)
+is the resulting concrete recommendation, cross-reviewed against shipped behavior.
+`design-convergence` remains the gate pending user agreement; no implementation
+lane is currently dispatchable. The obsolete Python/IR/C prototype was removed
+at the user's request, with [Git recovery](../docs/design/prototype-cleanup.md).
+
 ## Product completion
 
 An author can create/import a specialist, inspect interpretations and sources,
@@ -41,7 +48,7 @@ before parallel work begins. `tasks.json` records the actual DAG. Interfaces and
 fixtures are common join points. Proof and implementation lanes meet at real
 correspondence checks throughout, not for the first time at project end.
 
-## Foundation fan-out
+## Completed foundation ownership
 
 | Lane | Initial edit ownership | Deliverable |
 |---|---|---|
@@ -55,6 +62,41 @@ After integration, partition native directories by subsystem and assign interfac
 stewards. Bootstrap ownership is temporary, not a permanent monopoly on native
 work. Two lanes must not receive overlapping edit paths merely because their
 task names differ.
+
+## Implementation ownership after design agreement
+
+Keep the task IDs as requirements and completion gates, but dispatch against the
+concrete shared boundaries rather than letting each task invent a registry or
+publication protocol. The intended first wave has these independently useful seams:
+
+| Seam | Initial work and shared consumer |
+|---|---|
+| Authority model | Executable HOL `step`, scoped outcomes/blockers, commit/lifecycle judgments; actual generated runtime consumer, not only a reference model |
+| Native linkage | Finite typed packing/dispatch, representation associations and bounded worker proof transport; registry, admission and staging jointly review |
+| Host bootstrap | Warm Headless/PIDE startup, custom protocol, cancellation and durable acknowledgement/dispatch seam; complete runtime-service integrates later |
+| Sources and interpretation | Native observation/query semantics, lossless input views, explicit adoption and interpretation derivations against the agreed profiles |
+| Authoring and migration | Recovered workflow/coverage dispositions, canonical source ownership and recipe boundaries; actual family instances feed the shared signatures |
+| Performance and regressions | Representative cost envelope and source-backed refuting cases from the first integrated paths |
+
+The native gate, linked executable instance and durable host boundary are a joint
+integration seam. Their owners return concrete signatures and narrow feasibility
+evidence before those signatures freeze for downstream consumers. This does not
+require every proof, family or UI to finish first. Registry/admission, full runtime,
+package lifecycle and migration work then grow around the shared objects; root
+owns synthesis, reviews and integration rather than production implementation.
+
+The two early feasibility tasks in `tasks.json` prevent expensive surprises from
+being hidden behind completed admission/state-effect dependencies. They are
+bounded tests of real technical uncertainty, not a compulsory toy walkthrough.
+All probes remain unexecuted until recorded evidence says otherwise. Reuse warm
+artifacts and the existing serialized build/resource controls.
+
+Runtime control, typed family interpreters and optimized kernels are generated
+from admitted definitions. Scala owns process/I/O/durability mechanisms under an
+explicit trusted trace contract. UI/CLI and search are consumers. New source data,
+recipe instances and typed plans reuse existing executable bundles; new carriers,
+kernels and code setup receive separate compilation/qualification. This growth
+cost distinction is an acceptance condition, not a later optimization.
 
 ## Contract-first integration
 
@@ -88,6 +130,10 @@ active ownership; planned path globs are tentative until work is claimed.
   and actual consumer. Tests/descriptors cannot fill a missing proof bridge.
   [PO-01–10](PROOF_OBLIGATIONS.md) are mandatory obligations; auditing only
   whichever theorems happen to have been implemented cannot close assurance.
+- Formal targets are `established` by proofs and actual consumers; enumerated
+  TB-01–05 native/host contracts are `qualified` with their explicit remaining
+  trust assumptions. Conformance tests do not prove the host, and owned algorithm,
+  finite-linking and authority proofs cannot be waived by moving them into TCB.
 - Optimizations need behavior/certificate checks and representative measurements:
   time, allocations/live memory, I/O, search states, witness/checking cost,
   compilation amortization, and tail latency where relevant. Set product budgets

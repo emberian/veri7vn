@@ -48,8 +48,8 @@ Immutable deployment inputs remain a tracked requirement.
   can proceed before mature search/profiling, whose actual usability remains a
   mandatory integration gate. Independent recipient rehearsal is a final gate.
 
-The checked task graph contains 43 tasks. On foundation acceptance, six foundation
-tasks are complete and eight initial implementation lanes become dispatchable.
+At foundation acceptance the checked graph contained 43 tasks: six foundation
+tasks were complete and eight initial implementation lanes became dispatchable.
 The board is generated from the ledger. Relative local Markdown references and
 current evidence paths are checked during the final checkpoint review.
 
@@ -60,8 +60,8 @@ policy/metatheory, clean target deployment, or completed upstream migration.
 The native inspector is diagnostic, not an admission implementation. The fixture
 consumer is not a general package loader. Schema checking does not prove a
 package's claims. The full coverage, authoring, assurance and deployment gates
-remain open in the task graph. Earlier arithmetic/C experiments retain their
-separate research status; this foundation check does not revalidate them.
+remain open in the task graph. This foundation check did not revalidate the
+earlier arithmetic/C prototype, which was subsequently removed at user request.
 
 ## Preimplementation omissions review
 
@@ -81,3 +81,33 @@ Validation after the documentation changes: seven coordination tests and all
 `git diff --check`. No native rebuild was needed for documentation/task changes.
 The task ledger still distinguishes future checks from completed evidence; source
 reports are design inputs, not fabricated implementation completion.
+
+## Architecture convergence and prototype cleanup
+
+After checkpoint `9e4f619`, the user requested reconsideration before implementation
+fan-out, then removal of the superseded Python prototype. Four scoped reviews
+challenged semantics, runtime, authoring and coverage. Root's
+[revision 2 synthesis](../docs/ARCHITECTURE_PROPOSAL.md) now selects generated HOL
+control, open native meanings, finite typed execution/linkage, canonical theory
+source, resident Scala/PIDE deployment and one durable state/effect protocol.
+Cross-review resolved runtime guards, cross-generation session migration, atomic
+executor handoff, retirement/revocation policy and formal versus trusted closure.
+No remaining architectural blocker was reported. User design agreement is pending.
+
+The [cleanup record](../docs/design/prototype-cleanup.md) identifies 13 removed
+tracked files and their Git recovery commit. Audit/development Python tools,
+upstream reference, native experiments and shared caches remain. Current docs no
+longer offer the deleted runner as an entrypoint. Cleanup checks passed seven
+project tests, nineteen schema fixtures and the actual descriptor; native inputs
+and generated-data hashes still match the last successful stable receipt. No
+native rebuild was needed or performed for documentation and obsolete-file removal.
+
+The updated graph has 46 tasks, including two early linkage/proof-transport and
+host/recovery feasibility tasks. All seven project tests pass; root's final graph
+check has zero warnings and zero dispatchable tasks. `design-convergence` is in
+review, not done. All PO-01–10 remain open, and TB-01–05 remain unqualified.
+Design scenarios and new technical probes are explicitly unexecuted.
+
+Local Markdown target checks and `git diff --check` pass. No new production
+implementation, performance result, source migration, native proof, deployment
+qualification or external publication is claimed by this checkpoint.

@@ -62,5 +62,9 @@ Source layout:
 
 - `src/isabelle/`: minimal native implementation session.
 - `tests/scaffold/`: integration theories with positive and negative assertions.
-- `isabelle/`, `o7ir/`, `generated/`, `experiments/`: earlier experiments, excluded
-  from this build graph.
+- `experiments/`: retained isolated native feasibility probes, excluded from this
+  build graph.
+
+The earlier root `isabelle/`, `o7ir/`, and `generated/` prototype and its runner
+were removed. See the [cleanup and Git recovery record](../../docs/design/prototype-cleanup.md).
+The native scaffold and upstream audit/research tools are retained independently.

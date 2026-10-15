@@ -2,9 +2,11 @@
 
 Research proposal, 2026-10-15. Author: `native_metatheory` research agent. This is
 input to the design discussion, not an agreed architecture or an implementation
-claim. The existing `o7ir/` and `isabelle/` prototypes are unchanged. The only new
-executable work in this lane is the isolated context/admission probe described
-below.
+claim. This research lane added only the isolated context/admission probe
+described below. The earlier `o7ir/` and root `isabelle/` prototypes were later
+removed at the user's request; the [cleanup record](../design/prototype-cleanup.md)
+identifies their recoverable Git history. This native probe and the subsequent
+scaffold under `src/isabelle/` remain in the checkout.
 
 ## Recommendation
 

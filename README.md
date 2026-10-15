@@ -5,10 +5,13 @@ Oracle7-style specialists. The intended product supports authoring, interpretati
 debugging, composition, proof search, synthesis, refinement, and continued growth
 on the end-user machine.
 
-**Current status: project foundation and early scaffold.** The architecture direction
-is accepted for this work. The platform and comprehensive metatheory are not yet
-implemented. Existing arithmetic/C prototypes are research evidence, not the
-production framework.
+**Current status: foundation complete; concrete design under review.** The native
+direction is accepted, while [architecture revision 2](docs/ARCHITECTURE_PROPOSAL.md)
+is proposed for agreement before implementation fan-out. The platform and
+comprehensive metatheory are not yet implemented. The superseded Python
+expression/DAG/C prototype has been removed;
+the [cleanup record](docs/design/prototype-cleanup.md) identifies its recoverable
+Git history. Native feasibility probes and upstream audit tools are retained.
 
 ## Start here
 
@@ -31,9 +34,9 @@ python3 tools/project.py ready
 python3 tools/project.py board > project/BOARD.md
 ```
 
-[Native development checks](tools/dev/README.md) and [package-schema checks](schemas/README.md)
-are separate from the old prototype runner `tools/check.sh`. See the validation
-record for the exact commands exercised on the current checkout.
+[Native development checks](tools/dev/README.md) and
+[package-schema checks](schemas/README.md) are the current scaffold entrypoints.
+See the validation record for the exact commands exercised on the current checkout.
 
 ## Repository map
 
@@ -45,7 +48,6 @@ record for the exact commands exercised on the current checkout.
 | `src/isabelle/`, `tools/dev/`, `tests/scaffold/` | New native platform scaffold and scoped checks |
 | `docs/research/`, `experiments/` | Research reports and isolated feasibility experiments |
 | `audit/results/`, `tools/probe_*`, `tools/inventory.py` | Upstream audit evidence and reproduction tools |
-| `o7ir/`, `isabelle/`, `generated/`, `tests/test_compilation.py` | Earlier expression/DAG/C prototype; not the platform |
 | `upstream/` | Ignored checkout of the downloaded Oracle7 release |
 | `var/`, `.venv/` | Ignored local artifacts and development dependencies |
 
