@@ -1,0 +1,140 @@
+Started at Thu Oct 15 19:06:18 GMT-4 2026 (polyml-5.9.2_arm64_32-darwin on Mac)
+ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
+ISABELLE_BUILD_OPTIONS=""
+
+ML_PLATFORM="arm64_32-darwin"
+ML_HOME="/Applications/Isabelle2026-RC1.app/Contents/Resources/contrib/polyml-5.9.2-4/arm64_32-darwin"
+ML_SYSTEM="polyml-5.9.2"
+ML_OPTIONS="--minheap 500 --enablegcsharing"
+
+Session Pure/Pure
+Session Misc/Tools
+Session HOL/HOL (main)
+Session Unsorted/Veri7vn_Codegen
+Session Unsorted/Veri7vn_HTML_Bytes
+Session Unsorted/Veri7vn_Mathematics
+Session Unsorted/Veri7vn_Interpretation_Core
+Session Unsorted/Veri7vn_Natural_Mathematics
+Session Unsorted/Veri7vn_Controlled_Templates
+Session Unsorted/Veri7vn_Projection
+Session Unsorted/Veri7vn_Registry
+Session Unsorted/Veri7vn_Admission
+Session Unsorted/Veri7vn_Native_Development
+Session Unsorted/Veri7vn_Mathematics_Profiles
+Session Unsorted/Veri7vn_Mathematics_Bundle
+Session Unsorted/Veri7vn_Refined_Templates
+Session Unsorted/Veri7vn_Source_Semantics
+Session Unsorted/Veri7vn_Effects
+Session Unsorted/Veri7vn_Authority_Metadata
+Session Unsorted/Veri7vn_Authority_Events
+Session Unsorted/Veri7vn_Authority
+Session Unsorted/Veri7vn_Admission_Metadata
+Session Unsorted/Veri7vn_Authority_Codec
+Session Unsorted/Veri7vn_Interpretation
+Session Unsorted/Veri7vn_Effect_Tickets
+Session Unsorted/Veri7vn_Mathematics_Ticket_Execution
+Session Unsorted/Veri7vn_Runtime_Service
+Session Unsorted/Veri7vn_Native_State_Owner_Tests
+Building Veri7vn_Registry ...
+Veri7vn_Registry: theory Veri7vn_Registry.Veri7vn_Registry
+Veri7vn_Registry: theory Veri7vn_Registry.Registry_Tests
+Veri7vn_Registry: theory Veri7vn_Registry.Veri7vn_Registry 100% (0.607s cumulated time)
+Veri7vn_Registry: theory Veri7vn_Registry.Registry_Tests 100% (0.464s cumulated time)
+Timing Veri7vn_Registry (2 threads, 1.139s elapsed time, 0.576s cpu time, 0.073s GC time, factor 0.51)
+Finished Veri7vn_Registry (0:00:05 elapsed time, 0:00:04 cpu time, factor 0.78)
+Building Veri7vn_Admission ...
+Veri7vn_Admission: theory Veri7vn_Admission.Veri7vn_Admission
+Veri7vn_Admission: theory Veri7vn_Admission.Veri7vn_Admission 100% (0.929s cumulated time)
+Timing Veri7vn_Admission (2 threads, 0.961s elapsed time, 0.789s cpu time, 0.058s GC time, factor 0.82)
+Finished Veri7vn_Admission (0:00:05 elapsed time, 0:00:04 cpu time, factor 0.90)
+Building Veri7vn_Native_Development ...
+Veri7vn_Native_Development: theory Veri7vn_Native_Development.Expert_Source
+Veri7vn_Native_Development: theory Veri7vn_Native_Development.Native_Development_Test
+Veri7vn_Native_Development: theory Veri7vn_Native_Development.Expert_Source 100% (0.115s cumulated time)
+Veri7vn_Native_Development: theory Veri7vn_Native_Development.Native_Development_Test 100% (0.717s cumulated time)
+Timing Veri7vn_Native_Development (2 threads, 0.865s elapsed time, 0.738s cpu time, 0.040s GC time, factor 0.85)
+Finished Veri7vn_Native_Development (0:00:05 elapsed time, 0:00:04 cpu time, factor 0.91)
+Building Veri7vn_Runtime_Service ...
+Veri7vn_Runtime_Service: theory Veri7vn_Effect_Tickets.Veri7vn_Effect_Tickets
+Veri7vn_Runtime_Service: theory Veri7vn_HTML_Bytes.HTML_Bytes
+Veri7vn_Runtime_Service: theory Veri7vn_Interpretation_Core.Veri7vn_Interpretation
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_Exact
+Veri7vn_Runtime_Service: theory Veri7vn_Effect_Tickets.Veri7vn_Effect_Tickets 100% (0.213s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Controlled_Templates.Controlled_Templates
+Veri7vn_Runtime_Service: theory Veri7vn_Interpretation_Core.Veri7vn_Grammar
+Veri7vn_Runtime_Service: theory Veri7vn_Interpretation.Veri7vn_Rendering
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_Display
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_Polynomial
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_Representation
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_Syntax
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_ASCII
+Veri7vn_Runtime_Service: theory Veri7vn_Natural_Mathematics.Natural_Mathematics
+Veri7vn_Runtime_Service: theory Veri7vn_Projection.Veri7vn_Bounded_Projection
+Veri7vn_Runtime_Service: theory Veri7vn_Registry.Veri7vn_Registry
+Veri7vn_Runtime_Service: theory Veri7vn_Admission.Veri7vn_Admission
+Veri7vn_Runtime_Service: theory Veri7vn_Registry.Veri7vn_Registry 100% (0.255s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Projection.Veri7vn_Bounded_Projection 100% (0.042s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Admission_Metadata.Admission_Metadata
+Veri7vn_Runtime_Service: theory Veri7vn_Controlled_Templates.Checked_Statements
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics_Profiles.Mathematics_Profiles
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics_Bundle.Mathematics_Bundle
+Veri7vn_Runtime_Service: theory Veri7vn_Admission.Veri7vn_Admission 100% (1.041s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_HTML_Bytes.HTML_Bytes 100% (0.860s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Interpretation_Core.Veri7vn_Interpretation 100% (3.459s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Interpretation_Core.Veri7vn_Grammar 100% (0.839s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Interpretation.Veri7vn_Rendering 100% (7.381s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_Exact 100% (2.624s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_Syntax 100% (1.364s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_ASCII 100% (1.626s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Controlled_Templates.Controlled_Templates 100% (1.118s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_Representation 100% (0.337s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_Display 100% (0.765s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics.Mathematics_Polynomial 100% (1.593s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Admission_Metadata.Admission_Metadata 100% (1.049s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Natural_Mathematics.Natural_Mathematics 100% (3.174s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Controlled_Templates.Checked_Statements 100% (0.798s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics_Profiles.Mathematics_Profiles 100% (0.637s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics_Ticket_Execution.Mathematics_Ticket_Execution
+Veri7vn_Runtime_Service: theory Veri7vn_Refined_Templates.Refined_Template_Bridge
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics_Bundle.Mathematics_Bundle 100% (6.084s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Runtime_Service.Native_Service
+Veri7vn_Runtime_Service: theory Veri7vn_Mathematics_Ticket_Execution.Mathematics_Ticket_Execution 100% (0.588s cumulated time)
+Veri7vn_Runtime_Service: theory Veri7vn_Refined_Templates.Refined_Template_Bridge 100% (1.397s cumulated time)
+Veri7vn_Runtime_Service FAILED (see also "isabelle build_log -H Error Veri7vn_Runtime_Service")
+*** ML error (line 268 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** } expected but CancelRequest was found
+*** ML error (line 268 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** End of pattern expected but } was found
+*** ML error (line 268 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** => expected but ( was found
+*** ML error (line 269 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** } expected but RetireCapability was found
+*** ML error (line 269 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** End of pattern expected but } was found
+*** ML error (line 269 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** => expected but ( was found
+*** ML error (line 270 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** } expected but RetireSource was found
+*** ML error (line 270 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** End of pattern expected but } was found
+*** ML error (line 270 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** => expected but ( was found
+*** ML error (line 271 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** } expected but Revoke was found
+*** ML error (line 271 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** End of pattern expected but } was found
+*** ML error (line 271 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** => expected but ( was found
+*** ML error (line 272 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** } expected but Forget was found
+*** ML error (line 272 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** End of pattern expected but } was found
+*** ML error (line 272 of "/Users/ember/dev/o7vn/src/runtime/service/metadata_frame.ML"):
+*** => expected but ( was found
+*** 
+*** At command "ML_file" (line 161 of "/Users/ember/dev/o7vn/src/runtime/service/Native_Service.thy")
+Veri7vn_Native_State_Owner_Tests CANCELLED
+Unfinished session(s): Veri7vn_Native_State_Owner_Tests, Veri7vn_Runtime_Service
+
+Finished at Thu Oct 15 19:07:19 GMT-4 2026
+0:01:00 elapsed time, 0:00:59 cpu time, factor 0.97

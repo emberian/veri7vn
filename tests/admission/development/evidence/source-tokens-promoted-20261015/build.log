@@ -1,0 +1,47 @@
+Started at Thu Oct 15 13:21:14 GMT-4 2026 (polyml-5.9.2_arm64_32-darwin on nextop)
+ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
+ISABELLE_BUILD_OPTIONS=""
+
+ML_PLATFORM="arm64_32-darwin"
+ML_HOME="/Applications/Isabelle2026-RC1.app/Contents/Resources/contrib/polyml-5.9.2-4/arm64_32-darwin"
+ML_SYSTEM="polyml-5.9.2"
+ML_OPTIONS="--minheap 500 --enablegcsharing"
+
+Session Pure/Pure
+Session Misc/Tools
+Session HOL/HOL (main)
+Session Unsorted/Veri7vn_Registry
+Session Unsorted/Veri7vn_Admission
+Session Unsorted/Veri7vn_Admission_Core_Checks
+Session Unsorted/Veri7vn_Native_Recovery_Tests
+Session Unsorted/Veri7vn_Source_Tokens
+Building Veri7vn_Registry ...
+Veri7vn_Registry: theory Veri7vn_Registry.Veri7vn_Registry
+Veri7vn_Registry: theory Veri7vn_Registry.Registry_Tests
+Veri7vn_Registry: theory Veri7vn_Registry.Veri7vn_Registry 100% (0.813s cumulated time)
+Veri7vn_Registry: theory Veri7vn_Registry.Registry_Tests 100% (0.531s cumulated time)
+Timing Veri7vn_Registry (2 threads, 1.461s elapsed time, 0.621s cpu time, 0.072s GC time, factor 0.43)
+Finished Veri7vn_Registry (0:00:10 elapsed time, 0:00:05 cpu time, factor 0.52)
+Building Veri7vn_Admission ...
+Veri7vn_Admission: theory Veri7vn_Admission.Veri7vn_Admission
+Veri7vn_Admission: theory Veri7vn_Admission.Veri7vn_Admission 100% (1.871s cumulated time)
+Timing Veri7vn_Admission (2 threads, 1.907s elapsed time, 1.167s cpu time, 0.087s GC time, factor 0.61)
+Finished Veri7vn_Admission (0:00:09 elapsed time, 0:00:06 cpu time, factor 0.73)
+Building Veri7vn_Admission_Core_Checks ...
+Veri7vn_Admission_Core_Checks: theory Veri7vn_Admission_Core_Checks.Admission_Core_Tests
+Veri7vn_Admission_Core_Checks: theory Veri7vn_Admission_Core_Checks.Admission_Core_Tests 100% (0.775s cumulated time)
+Timing Veri7vn_Admission_Core_Checks (2 threads, 0.802s elapsed time, 0.584s cpu time, 0.090s GC time, factor 0.73)
+Finished Veri7vn_Admission_Core_Checks (0:00:08 elapsed time, 0:00:06 cpu time, factor 0.78)
+Building Veri7vn_Native_Recovery_Tests ...
+Veri7vn_Native_Recovery_Tests: theory Veri7vn_Native_Recovery_Tests.Native_Recovery_Tests
+Veri7vn_Native_Recovery_Tests: theory Veri7vn_Native_Recovery_Tests.Native_Recovery_Tests 100% (0.444s cumulated time)
+Timing Veri7vn_Native_Recovery_Tests (2 threads, 0.470s elapsed time, 0.333s cpu time, 0.044s GC time, factor 0.71)
+Finished Veri7vn_Native_Recovery_Tests (0:00:06 elapsed time, 0:00:05 cpu time, factor 0.87)
+Building Veri7vn_Source_Tokens ...
+Veri7vn_Source_Tokens: theory Veri7vn_Source_Tokens.Source_Tokens_Test
+Veri7vn_Source_Tokens: theory Veri7vn_Source_Tokens.Source_Tokens_Test 100% (0.153s cumulated time)
+Timing Veri7vn_Source_Tokens (2 threads, 0.182s elapsed time, 0.149s cpu time, 0.000s GC time, factor 0.82)
+Finished Veri7vn_Source_Tokens (0:00:06 elapsed time, 0:00:05 cpu time, factor 0.76)
+
+Finished at Thu Oct 15 13:22:05 GMT-4 2026
+0:00:51 elapsed time, 0:00:29 cpu time, factor 0.57

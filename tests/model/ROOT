@@ -1,0 +1,4 @@
+session Veri7vn_Authority_Tests = Veri7vn_Authority_Proofs +
+  options [document = false, threads = 2]
+  theories
+    Authority_Tests

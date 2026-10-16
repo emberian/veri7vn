@@ -1,6 +1,6 @@
 # C04 — Environments, observations and reuse
 
-Semantic revision 1. Descriptor format remains `veri7vn.package/0`.
+Semantic revision 2. Descriptor format remains `veri7vn.package/0`.
 Immutable generation and whole-snapshot invalidation are the baseline.
 Selective invalidation is a later optimization with an adequacy obligation.
 
@@ -135,3 +135,49 @@ an invalid latest sample without changing the provenance/freshness of earlier re
 These requirements follow [G06/G07](../review/PREIMPLEMENTATION.md) and [workbench
 findings 1/5–7](../review/workbench-gaps.md); the scaffold has no implemented lifecycle
 or ingestion engine yet.
+
+## Revision 2 — proof-only objects and executable pins
+
+Native lineage and executable build identity are independent. A proof-only accepted
+consequence may carry no execution dependency even inside a request using a real
+compiled application bundle. Never use a reserved numeric generation to pretend it
+was compiled. The C03 typed execution dependency and separately checked requirement
+preserve actual executable identity when execution is relevant. Ordinary theorem
+additions need no application rebuild; context transport/admission still checks their
+real ancestry, hypotheses and policy. Changing code equations, serializers, foreign
+bindings or compiled artifacts reopens the corresponding executable association.
+
+
+## Generated numeric setup and durable native identity
+
+D31 fixes the generated numeric baseline to efficient exact nat/int representations
+from the installed narrow Isabelle Code_Target_Numeral closure. That selected code
+setup and its source identity belong to executable pins; logical nat/int meanings
+are unchanged. Code-generation consumers must use the qualified shared setup and
+same compiled carrier universe where they exchange values. Unary representation
+of arbitrary metadata numbers is not an acceptable deployed implementation.
+
+D32 separates stable workspace-scoped durable metadata IDs from fresh in-process
+native handles. The existing host journal allocates IDs durably before use. On
+restart, committed artifacts are bounded, checked against the latest lifecycle
+and reconstructed under the exact approved native context/code closure. Complete
+C02 admission and exact saved semantic correspondence precede binding durable IDs
+to fresh native objects and atomically enabling the recovered state. A parsed ID,
+manifest, digest or pretty-printed target never supplies this authority. Recovery
+does not reissue requests or external effects. Missing deliberately forgotten
+payloads remain unavailable; old native/context/cache roots must not bypass access
+or managed forgetting.
+
+## Managed native dependency closure
+
+D35 requires authoritative native producers to connect managed source/literal,
+target, assumption and private-context dependencies to retained associations.
+A semantic generation ID alone is insufficient unless its complete lifecycle
+edges were actually registered. Private-generation invalidation may be conservative;
+it must not revoke unrelated public HOL context. Restoration derives all accessible
+retained evidence from the latest generated checkpoint, including unused evidence
+which could answer future requests. Artifact origin commits remain distinct from
+the latest authorization checkpoint. Reconstructability is checked before durable
+retention; restoration repeats native admission and saved-semantic comparison before
+atomic installation. Forget durably removes access before releasing managed roots;
+incomplete erasure is retryable and cannot restore access or replay external work.

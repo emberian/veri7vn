@@ -1,4 +1,4 @@
-# Shared contracts, semantic revision 1
+# Shared contracts — C03/C04 revision 2; other contracts revision 1
 
 These are the **early integration baseline**, not claims of implemented admission
 or verified execution. Changes are expected as the first real specialist crosses
@@ -71,7 +71,7 @@ it is **not a serialized theorem or a proof of the locator's assertions**.
 
 ## Compatibility discipline
 
-Contract IDs are stable. Semantic revision `1` is an integration baseline, not a promised
+Contract IDs are stable. The per-contract semantic revision is an integration baseline, not a promised
 public ABI. Package format `veri7vn.package/0` rejects unknown fields so a misspelled
 or invented assurance field cannot be silently ignored. Adding a field changes
 the schema and fixture suite; changing meaning also changes the contract revision.
@@ -89,3 +89,17 @@ The integration coordinator owns cross-contract decisions. Each implementing lan
 owns its producer and consumer obligations, while the contract lane owns these
 shared definitions and fixtures. Avoid parallel copies of these types in independent
 subsystems without a shared generated definition or conformance check.
+
+## Revision 2 migration and consumers
+
+C03/C04 now distinguish absent execution dependency from a real executable pin,
+and semantic target equality from a requested execution requirement (D30).
+Operational model owns the shared datatype and gate; admission, registry, language
+rendering, staged execution, plans and native host consume it. Regenerate the finite
+metadata codec/schema seal and update fixtures together. Existing numeric-only wire
+images are not silently reinterpreted: reject the old schema or reconstruct through
+an explicit admitted migration. Descriptor format `veri7vn.package/0` is unchanged.
+Positive integration checks include a kernel fact in an ordinary bundle request;
+negative checks include absent/wrong execution dependency for an executable-specific
+request and an unknown bundle rejected by native registry ingress. These checks are
+required migration evidence, not claims that every consumer already passed.

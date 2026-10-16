@@ -1,0 +1,4 @@
+session Veri7vn_Mathematics_Ticket_Execution = Veri7vn_Mathematics_Bundle +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Effect_Tickets
+  theories Mathematics_Ticket_Execution

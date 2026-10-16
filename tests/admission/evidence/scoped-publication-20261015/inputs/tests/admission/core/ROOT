@@ -1,0 +1,3 @@
+session Veri7vn_Admission_Core_Checks = Veri7vn_Admission +
+  options [document = false]
+  theories Admission_Core_Tests

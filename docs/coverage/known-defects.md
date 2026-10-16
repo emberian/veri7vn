@@ -8,7 +8,8 @@ skips five math checks; use the project environment for complete evidence.
 No full upstream app, external service, or untrusted arbitrary program runs.
 The parser probe evaluates only a fixed harmless print; timeout work is controlled
 by local Events. Safe module imports, extracted original AST bodies and mocks are
-identified below. All native repairs and actual consumer links remain open.
+identified below. Native repair evidence and remaining consumer boundaries are recorded below; the
+upstream characterization suite alone does not establish a native repair.
 
 | Case / test | Exercised old behavior and independent counterexample | Required native replacement / owner |
 |---|---|---|
@@ -64,5 +65,39 @@ route. The desired native intake/exposure policy is retained separately in
 Remaining distinctions: numeric adopted state has been reproduced in the scoped
 composition above; arbitrary entity referent adoption through the entire live
 chain has not. No full routed cache-error example, persistence/learning isolation
-qualification, fresh recipient evaluation, or native repaired implementation is
-claimed. Corpus replacement and external-publication scope remain D17/D16.
+qualification or fresh recipient evaluation is claimed. Native mathematics
+component evidence is scoped in the review below; it does not close the broad
+known-regressions task. Corpus replacement and external-publication scope remain D17/D16.
+
+
+## Native mathematics consumer review (2026-10-15)
+
+This review follows `Mathematics_Exact`, `Mathematics_ASCII`,
+`Mathematics_Real_Guards`, `Mathematics_Solutions`, the exact tests, and the
+`mathematics_bundle.ML` decoder/dispatcher. It does not count a theorem name or an
+export declaration as execution. The sole registered bundle operation is
+`QualifiedExactArithmetic`; its accepted requests are closed rational expression
+or bounded postfix ASCII evaluation. The expression datatype has no square root,
+inequality, tolerance, or equation-solver constructor.
+
+| Reproduced defect | Existing native statement and executed-path boundary | Remaining acceptance consumer |
+|---|---|---|
+| Negative `sqrt(x²)` | `real_square_branch` returns `Some (abs x)` for every real x; identity requires nonnegative x. Rational witness tests separately reject -2 and accept 2. These are branch proofs, not an executed root request. | Interpretation must retain the negative-domain premise, select an admitted root operation, and return 2 for x=-2; reject the unrestricted identity. No such registered operation exists yet. |
+| 0/0 and NaN equivalence | `math_eval_refinement` and `math_eval_no_value` connect explicit `None` to absence of a relational value. `math_equal` returns `None` for undefined operands. Exact tests invoke generated `evaluate_ascii` on `0 0 /`; bundle tests exercise prepare/execute/project and `Undefined_Arithmetic` view, pending bundle qualification. | Run the checked bundle path, including nested undefined operands and typed output. Natural-language `evaluate 0/0` is not provided by the current integer binary phrase grammar. There is no NaN rational constructor and no blanket repair claim for external engine NaN. |
+| Precision-losing agreement | `within_tolerance` compares exact rational differences; exact tests invoke its generated code at 10^-40 versus difference 10^-20. Bundle rational views retain signed numerator and positive denominator. | Bundle exact-pair regressions can establish preserved distinction. Agreement/tolerance is not a registered operation, so dispatch-level agreement repair remains open. |
+| Small interval | `square_interval_complete` and `real_square_interval_complete` cover every point under a positive radius; endpoint and zero lemmas cover radius 1/10. | Add actual inequality request/complete-set result and retain strict endpoints -1/10 and 1/10, zero interior, and outside point 1/5. Candidate membership alone is insufficient. |
+| Parser effects | Generated `evaluate_ascii` tests reject the fixed print bytes and distinguish missing parameters, syntax, undefined arithmetic and power bound. Its grammar is inert integer postfix arithmetic. Bundle source routes bytes through that same generated dispatch. | Qualify bundle execution and byte-to-output tests, including signs and malformed powers. This is a scoped grammar replacement; it does not implement general upstream symbolic syntax or establish full interpretation/routing repair. |
+
+The current bundle tests also cover release/ownership and bounded projection,
+which matter when an exact result reaches a runtime consumer. Root and interval
+proofs cannot be smuggled into this path by testing an unrelated arithmetic
+expression. Similarly, a generated tolerance helper is not evidence that planner
+agreement calls it.
+
+Verification receipt `var/native-scaffold/sessions/f6f61c21e18caa0d/receipt.json`
+is **overall failed** in `Veri7vn_Natural_Mathematics`; it is not a green combined
+qualification. The mathematics owner reports the mathematics test session passed
+in an earlier attempt under that directory, whose build log was overwritten by a
+retry. Independent cached marker extraction is requested before treating that
+reported execution as durable regression evidence. Bundle tests have not yet
+been independently built in this review; frozen native inputs remain unchanged.

@@ -1,0 +1,46 @@
+Started at Thu Oct 15 20:31:01 GMT-4 2026 (polyml-5.9.2_arm64_32-darwin on Mac)
+ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
+ISABELLE_BUILD_OPTIONS=""
+
+ML_PLATFORM="arm64_32-darwin"
+ML_HOME="/Applications/Isabelle2026-RC1.app/Contents/Resources/contrib/polyml-5.9.2-4/arm64_32-darwin"
+ML_SYSTEM="polyml-5.9.2"
+ML_OPTIONS="--minheap 500 --enablegcsharing"
+
+Session Pure/Pure
+Session Misc/Tools
+Session HOL/HOL (main)
+Session Unsorted/Veri7vn_Codegen
+Session Unsorted/Veri7vn_HTML_Bytes
+Session Unsorted/Veri7vn_Mathematics
+Session Unsorted/Veri7vn_Interpretation_Core
+Session Unsorted/Veri7vn_Natural_Mathematics
+Session Unsorted/Veri7vn_Controlled_Templates
+Session Unsorted/Veri7vn_Projection
+Session Unsorted/Veri7vn_Registry
+Session Unsorted/Veri7vn_Admission
+Session Unsorted/Veri7vn_Mathematics_Profiles
+Session Unsorted/Veri7vn_Mathematics_Bundle
+Session Unsorted/Veri7vn_Refined_Templates
+Session Unsorted/Veri7vn_Source_Semantics
+Session Unsorted/Veri7vn_Effects
+Session Unsorted/Veri7vn_Authority_Metadata
+Session Unsorted/Veri7vn_Authority_Events
+Session Unsorted/Veri7vn_Authority
+Session Unsorted/Veri7vn_Admission_Metadata
+Session Unsorted/Veri7vn_Authority_Codec
+Session Unsorted/Veri7vn_Interpretation
+Session Unsorted/Veri7vn_Effect_Tickets
+Session Unsorted/Veri7vn_Mathematics_Ticket_Execution
+Session Unsorted/Veri7vn_Runtime_Service
+Session Unsorted/Veri7vn_Native_State_Owner_Tests
+Building Veri7vn_Native_State_Owner_Tests ...
+Veri7vn_Native_State_Owner_Tests: theory Veri7vn_Native_State_Owner_Tests.Native_State_Owner_Tests
+Veri7vn_Native_State_Owner_Tests: theory Veri7vn_Native_State_Owner_Tests.Native_Math_Recovery_Tests
+Veri7vn_Native_State_Owner_Tests: theory Veri7vn_Native_State_Owner_Tests.Native_State_Owner_Tests 100% (0.163s cumulated time)
+Veri7vn_Native_State_Owner_Tests: theory Veri7vn_Native_State_Owner_Tests.Native_Math_Recovery_Tests 100% (1.295s cumulated time)
+Timing Veri7vn_Native_State_Owner_Tests (2 threads, 1.527s elapsed time, 1.339s cpu time, 0.077s GC time, factor 0.88)
+Finished Veri7vn_Native_State_Owner_Tests (0:00:07 elapsed time, 0:00:07 cpu time, factor 0.99)
+
+Finished at Thu Oct 15 20:31:15 GMT-4 2026
+0:00:13 elapsed time, 0:00:07 cpu time, factor 0.55

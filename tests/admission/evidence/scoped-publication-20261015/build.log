@@ -1,0 +1,81 @@
+Started at Thu Oct 15 20:26:29 GMT-4 2026 (polyml-5.9.2_arm64_32-darwin on Mac)
+ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
+ISABELLE_BUILD_OPTIONS=""
+
+ML_PLATFORM="arm64_32-darwin"
+ML_HOME="/Applications/Isabelle2026-RC1.app/Contents/Resources/contrib/polyml-5.9.2-4/arm64_32-darwin"
+ML_SYSTEM="polyml-5.9.2"
+ML_OPTIONS="--minheap 500 --enablegcsharing"
+
+Session Pure/Pure
+Session Misc/Tools
+Session HOL/HOL (main)
+Session Unsorted/Veri7vn_Registry
+Session Unsorted/Veri7vn_Admission
+Session Unsorted/Veri7vn_Admission_Core_Checks
+Session Unsorted/Veri7vn_Native_Development
+Session Unsorted/Veri7vn_Native_Recovery_Tests
+Building Veri7vn_Admission ...
+Veri7vn_Admission: theory Veri7vn_Admission.Veri7vn_Admission
+Veri7vn_Admission: theory Veri7vn_Admission.Veri7vn_Admission 100% (0.985s cumulated time)
+Timing Veri7vn_Admission (2 threads, 1.003s elapsed time, 0.904s cpu time, 0.097s GC time, factor 0.90)
+Finished Veri7vn_Admission (0:00:04 elapsed time, 0:00:04 cpu time, factor 0.89)
+Building Veri7vn_Native_Development ...
+Veri7vn_Native_Development: theory Veri7vn_Native_Development.Expert_Source
+Veri7vn_Native_Development: theory Veri7vn_Native_Development.Managed_Development_Test
+Veri7vn_Native_Development: theory Veri7vn_Native_Development.Provenance_Specialist
+Veri7vn_Native_Development: theory Veri7vn_Native_Development.Native_Development_Test
+Veri7vn_Native_Development FAILED (see also "isabelle build_log -H Error Veri7vn_Native_Development")
+*** ML error (line 36 of "/Users/ember/dev/o7vn/tests/admission/development/Managed_Development_Test.thy"):
+*** Type error in function application.
+***    Function: restore : (unit -> P.development) -> unit -> P.development
+***    Argument: (fn () => P.named_theorem development name) :
+***       unit -> P.consequence
+***    Reason:
+***       Can't unify P.development (*Created from opaque signature*) with
+***          P.consequence (*Created from opaque signature*)
+***          (Different type constructors)
+*** ML error (line 40 of "/Users/ember/dev/o7vn/tests/admission/development/Managed_Development_Test.thy"):
+*** Type error in function application.
+***    Function: N.register_produced allocator :
+***       Veri7vn_Managed_Provenance.consequence -> N.descriptor
+***    Argument: fact : P.development
+***    Reason:
+***       Can't unify
+***          Veri7vn_Managed_Provenance.consequence
+***             (*Created from opaque signature*)
+***          with P.development (*Created from opaque signature*)
+***          (Different type constructors)
+*** ML error (line 65 of "/Users/ember/dev/o7vn/tests/admission/development/Managed_Development_Test.thy"):
+*** Type error in function application.
+***    Function: P.source_dependencies : P.consequence -> int list
+***    Argument: fact : P.development
+***    Reason:
+***       Can't unify P.consequence (*Created from opaque signature*) with
+***          P.development (*Created from opaque signature*)
+***          (Different type constructors)
+*** ML error (line 82 of "/Users/ember/dev/o7vn/tests/admission/development/Managed_Development_Test.thy"):
+*** Type error in function application.
+***    Function: P.is_live : P.consequence -> bool
+***    Argument: fact : P.development
+***    Reason:
+***       Can't unify P.consequence (*Created from opaque signature*) with
+***          P.development (*Created from opaque signature*)
+***          (Different type constructors)
+*** 
+*** At command "ML" (line 4 of "/Users/ember/dev/o7vn/tests/admission/development/Managed_Development_Test.thy")
+Building Veri7vn_Admission_Core_Checks ...
+Veri7vn_Admission_Core_Checks: theory Veri7vn_Admission_Core_Checks.Admission_Core_Tests
+Veri7vn_Admission_Core_Checks: theory Veri7vn_Admission_Core_Checks.Admission_Core_Tests 100% (0.342s cumulated time)
+Timing Veri7vn_Admission_Core_Checks (2 threads, 0.360s elapsed time, 0.354s cpu time, 0.056s GC time, factor 0.98)
+Finished Veri7vn_Admission_Core_Checks (0:00:03 elapsed time, 0:00:03 cpu time, factor 1.00)
+Building Veri7vn_Native_Recovery_Tests ...
+Veri7vn_Native_Recovery_Tests: theory Veri7vn_Native_Recovery_Tests.Expert_Recovery_Tests
+Veri7vn_Native_Recovery_Tests: theory Veri7vn_Native_Recovery_Tests.Native_Recovery_Tests
+Veri7vn_Native_Recovery_Tests FAILED (see also "isabelle build_log -H Error Veri7vn_Native_Recovery_Tests")
+*** SML lexical error: bad escape character in string (line 35 of "/Users/ember/dev/o7vn/tests/admission/recovery/Expert_Recovery_Tests.thy") at ∉ set (cla ...
+*** At command "ML" (line 4 of "/Users/ember/dev/o7vn/tests/admission/recovery/Expert_Recovery_Tests.thy")
+Unfinished session(s): Veri7vn_Native_Development, Veri7vn_Native_Recovery_Tests
+
+Finished at Thu Oct 15 20:26:45 GMT-4 2026
+0:00:15 elapsed time, 0:00:09 cpu time, factor 0.63

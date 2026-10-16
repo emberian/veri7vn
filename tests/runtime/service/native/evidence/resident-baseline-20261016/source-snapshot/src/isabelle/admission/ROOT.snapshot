@@ -1,0 +1,4 @@
+session Veri7vn_Admission = Veri7vn_Registry +
+  options [document = false]
+  sessions HOL
+  theories Veri7vn_Admission

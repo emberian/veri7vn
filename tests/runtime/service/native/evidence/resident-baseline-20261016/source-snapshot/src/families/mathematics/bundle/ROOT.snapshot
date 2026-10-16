@@ -1,0 +1,4 @@
+session Veri7vn_Mathematics_Bundle = Veri7vn_Mathematics_Profiles +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Admission Veri7vn_Projection
+  theories Mathematics_Bundle

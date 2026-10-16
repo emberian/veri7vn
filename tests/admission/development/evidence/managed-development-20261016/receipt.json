@@ -1,0 +1,873 @@
+{
+  "format": "veri7vn.native-scaffold-receipt/0",
+  "attempt_id": "0bdc71ea70dc40e9b752245c6353eefb",
+  "archive_receipt": "var/native-scaffold/sessions/fe9f8d5b32b933ac/attempts/0bdc71ea70dc40e9b752245c6353eefb/receipt.json",
+  "status": "failed",
+  "driver_pid": 86144,
+  "scope": "native integration smoke; not admission",
+  "started_utc": "2026-10-16T00:28:05Z",
+  "executable": "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+  "user_home": "/Users/ember/dev/o7vn/var/native-scaffold/user-state",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "resources": {
+    "build_jobs": 1,
+    "threads": 2,
+    "command_timeout_seconds": 120
+  },
+  "snapshot_mode": "conservative",
+  "sources_sha256": {
+    "src/isabelle/admission/ROOT": "ac73f27b6a94f9ee63fe96be7f33ae4104f1cd3c3d37e2cd9cd6069c5e421089",
+    "src/isabelle/admission/Veri7vn_Admission.thy": "e26797ac77319f13e2008bf5afb63925ccbba175e6d85a5839b72c4813ffc6b0",
+    "src/isabelle/admission/bridge/Admission_Metadata.thy": "30f0bdc006f0fda8c26ce854dad8edd276e9a075e42464b4ae28b86b675909e6",
+    "src/isabelle/admission/bridge/ROOT": "d97fc9304d825a4f6c556f56473d15f6403f350079b9a7d4c304ecd2ed22aaad",
+    "src/isabelle/admission/development/native_development.ML": "733075ec19d6d8c42c3eb4327a2b54cdddc37c553f76b605c85708aa596c08a8",
+    "src/isabelle/admission/family_certificate.ML": "5844daaa0cdaad27139cfeb3e3cdcb5764901decddf865d1f75cbcbd0cb3d915",
+    "src/isabelle/admission/literal_spans.ML": "9b4e29d4a6eac119c0f4dfcf754ded8ac393948ff103160365d41fb743f51f90",
+    "src/isabelle/admission/managed_provenance.ML": "77b644755a2a1f9b120d9f10ac01afac2a054517013587855a032ab90b451c81",
+    "src/isabelle/admission/native_admission.ML": "ca9fd257f6059b823f1b5a0800448e1ca9026430cd1a3fe44f46d66349496a9d",
+    "src/isabelle/admission/native_authority_descriptor.ML": "a494cbec048da6c616a10e00b67ebcd5a7836b2f7d7cf3f1c3014a9cfa0ad994",
+    "src/isabelle/admission/native_committed_recovery.ML": "22eebdfc5e7dda1f5059904e5ef134ab1ca7dbf9d1b6bf226d530f6f69d2da3f",
+    "src/isabelle/admission/native_descriptor.ML": "980cd85eb16d126aea2560b2b66bb5a692cf8a2a888f2a9a9392e5fae1a35ba1",
+    "src/isabelle/admission/native_identity_allocator.ML": "2dd910263c567e118860ce18ba2136d27eb9b10a1fc5223ad61fced123b69605",
+    "src/isabelle/admission/proof_transport.ML": "0021cbaee75924288a1f0c0e79aba077e77a8caadd3b497cdb84098a82013f88",
+    "src/isabelle/admission/recovery/native_recovery_check.ML": "d9204dfd1c30d879d36042c8788ae33897a33f195e037bed879043e5a1eb4644",
+    "src/isabelle/admission/recovery/native_recovery_export.ML": "fdec485b3835f8782a547f9cf07dbd4ee38dde2e892676eea0e08354a91f325f",
+    "src/isabelle/admission/recovery/native_recovery_graph.ML": "b27aa9fd2342082508473ac831e1ed445375d82febf70aa9cee5ca9a254b12f2",
+    "src/isabelle/admission/recovery/native_recovery_inputs.ML": "a91b5de047f6b5de257a924ac08b7d1a017e24c245de2a4765d3fd85e63842ff",
+    "src/isabelle/admission/recovery/native_recovery_replay.ML": "c9c6c2846bf185be959913548cdc60b83070123df3dbf9e30e6b6911652afcd5",
+    "src/isabelle/admission/recovery/native_recovery_source.ML": "a46a9d1fda2e442fd05d320fc4a68af27ef48e2a8a2d3b1e683b1088e16bfaf0",
+    "src/isabelle/admission/source/ROOT": "b4176bab8019a8e12a9526703dff42ac31316d20618b034ff7abb2883233c701",
+    "src/isabelle/admission/source/Veri7vn_Source_Admission.thy": "ad1e73f52dd46b2fd55c22b29822702cede691c373079053347516b845fa7738",
+    "src/isabelle/admission/source/source_admission.ML": "beefca511fb2952039c48b35676eb0165d8933ea4403b2d194ab37fa98a0db80",
+    "src/isabelle/admission/transport/Admission_Transport_Tests.thy": "734e26f311071549de0cb707845ea74991d98c48e5e5c300fbdb5632b469c6fe",
+    "src/isabelle/admission/transport/ROOT": "72e14d9a57420649133c1ade0ccf3f40c33add0e3f5a3ab6df4610809e6f44e2",
+    "src/isabelle/registry/README.md": "42f816fb7f455cd679f4d089ae8360a8408c4b7633074f982247dfe646d293e5",
+    "src/isabelle/registry/RECOVERY.md": "72b1e7c43320c4c590bc172653b82798fab542823dfcf50c32d301d9eebeaf4b",
+    "src/isabelle/registry/ROOT": "dc153c75e71d90d4568776c8f5f0d791790f51f1793212f5077461ccea989f60",
+    "src/isabelle/registry/Registry_Tests.thy": "ce4f7016019844dbd44b1d02043302827b0d56e59e9895688231fd72f70ea1af",
+    "src/isabelle/registry/Veri7vn_Registry.thy": "d56c2a422b26d416a0b7c613c70403342756c1fb43fe66ca7f302a5e9bfb7cbf",
+    "src/isabelle/registry/executable_identity.ML": "2843850213d3bac3deacff93608bd419e5c2f374a8b8d826e26089df9ec01cc1",
+    "src/isabelle/registry/managed_unit.ML": "fc71920aba39a9d3c9643408b09ad10ce79d2de152ba3dfc893e2de1af872137",
+    "src/isabelle/registry/native_literals.ML": "8be87cfd8e90040b129f8bb697c6cdc28e956b2ade906f0aebfd4ca6ebdbc01c",
+    "src/isabelle/registry/native_profiles.ML": "5d09fd6dda9cbd211712101a4f0b8a6a7191e1a54d61e86f5e340ddf78e53322",
+    "src/isabelle/registry/native_registry.ML": "fa9dafaefa4c4c641b3616942d5cad992ea81cb24b4e5bf2554ff712c15ddbad",
+    "src/isabelle/registry/native_sequent.ML": "30c72b8b4120bc33e2d057d1fccab0ebe88283b54c6809ac5b00db01aacee8fe",
+    "src/isabelle/registry/recovery_manifest.ML": "1ee00a158d9f0e9f51139079aea8375590ee545bd80666bd9532a5afa8c31a45",
+    "src/isabelle/registry/typed_runtime_store.ML": "951367742a1e74e3f2f566f02f3dca8eeeaa3fe708c1499275131aa1a31d7498",
+    "tests/admission/admission_tests.ML": "2cf8139d3ab5970ad11d7ab716eca0798ed882ff184142a13dc202f58870c0b9",
+    "tests/admission/core/Admission_Core_Tests.thy": "429dcf7f2215677c1d5ab6c6db06685ced189731d878dfaa55c415264af19cdf",
+    "tests/admission/core/ROOT": "3ecf05746d6efa9f150d9b63105d45e51394f7cf5def4730cb2540486184b9ff",
+    "tests/admission/development/Expert_Source.thy": "709c930b72a05537e3cea6ec0ca680bd19aabf472b7dcc35abdb664a40c1f715",
+    "tests/admission/development/Managed_Development_Test.thy": "1f2a55defa19ae3c672d3048858bef9db429fd4afeef58b8167687b71e85d729",
+    "tests/admission/development/Native_Development_Test.thy": "73bad86a5772e7ea95abd10536809569e9d1d0e92a3a390a2c2e6f86d6adbb7a",
+    "tests/admission/development/Provenance_Specialist.thy": "8b9b9430ef294a0ee1563fd9046c2d8d439357e767d0fd68621b4c1220ac0401",
+    "tests/admission/development/ROOT": "c95abb7213678154e41a6db9697c9759e26153f972e360748282c72a49328b72",
+    "tests/admission/development/evidence/native-development-20261015/README.md": "d449f3e1ca2336f90a28b9456a6ba48a072931d57dd5b5004001fa70618d3db9",
+    "tests/admission/development/evidence/native-development-20261015/build.log": "7f1a025fcaef3a84d05a991a5680ef0435931695af87d11fdb68289f07150ed2",
+    "tests/admission/development/evidence/native-development-20261015/inputs/src/isabelle/admission/development/native_development.ML": "733075ec19d6d8c42c3eb4327a2b54cdddc37c553f76b605c85708aa596c08a8",
+    "tests/admission/development/evidence/native-development-20261015/inputs/src/isabelle/admission/literal_spans.ML": "9b4e29d4a6eac119c0f4dfcf754ded8ac393948ff103160365d41fb743f51f90",
+    "tests/admission/development/evidence/native-development-20261015/inputs/src/isabelle/admission/native_admission.ML": "ca9fd257f6059b823f1b5a0800448e1ca9026430cd1a3fe44f46d66349496a9d",
+    "tests/admission/development/evidence/native-development-20261015/inputs/tests/admission/development/Expert_Source.thy": "709c930b72a05537e3cea6ec0ca680bd19aabf472b7dcc35abdb664a40c1f715",
+    "tests/admission/development/evidence/native-development-20261015/inputs/tests/admission/development/Native_Development_Test.thy": "8a513174d849e7880face0766705d3b73d8f5529cd0dda355dc6add6efcf279c",
+    "tests/admission/development/evidence/native-development-20261015/inputs/tests/admission/development/ROOT": "171efbe4b0044c48a00415226a241e0a27e8be8e8658d48d58b54a1ede7afef6",
+    "tests/admission/development/evidence/native-development-20261015/receipt.json": "fba2a914dbb861008ed36263afc7818f0ff27b2651bb2a9d3f982b41ec6df72f",
+    "tests/admission/development/evidence/source-tokens-20261015/README.md": "e32f7c67d13b7d75063365b9c90bc634c48190364fc633b3b77a72cda6dd5303",
+    "tests/admission/development/evidence/source-tokens-20261015/build.log": "ce64893dd996f8634913fc8aac9aecb374b6548907af8950efe1a512d31386ef",
+    "tests/admission/development/evidence/source-tokens-20261015/inputs/src/isabelle/admission/development/source_tokens.ML": "f15d56501988097f0c87f424b3b87e016671d74f48b3f83cdd51ffe5a3d21bc5",
+    "tests/admission/development/evidence/source-tokens-20261015/inputs/tests/admission/development/source_tokens/ROOT": "e0e775a76c87313fa49ee5995cb10c8ed871e5b748af9af42a0c29eb40a193db",
+    "tests/admission/development/evidence/source-tokens-20261015/inputs/tests/admission/development/source_tokens/Source_Tokens_Test.thy": "8d3c4a03d28aebbc8da6b778dd708a7445a83bf76f588a7f16ada7004d2ad3b6",
+    "tests/admission/development/evidence/source-tokens-20261015/inputs/tests/admission/development/source_tokens/check_source_tokens.ML": "94983f9d430e09a633d1fdb03ec3e0fe65a841a8375d0a78e74df9d1f7257e3b",
+    "tests/admission/development/evidence/source-tokens-20261015/receipt.json": "2dc19f87031806da00b33cbd40ab845a727d94e6f9fe9951a40539f36fb7e167",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/README.md": "3b3bc29536b3f5a89bb40bb4fc28778a8bbfca8cb68ac9a4c9fad931fabae12f",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/build.log": "0b416b07c592a1c3bf8ae6fe4b0c2b997b66fd13258f2b23f26ad9bc82af2881",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/inputs/src/isabelle/admission/literal_spans.ML": "9b4e29d4a6eac119c0f4dfcf754ded8ac393948ff103160365d41fb743f51f90",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/inputs/tests/admission/development/source_tokens/ROOT": "e0e775a76c87313fa49ee5995cb10c8ed871e5b748af9af42a0c29eb40a193db",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/inputs/tests/admission/development/source_tokens/Source_Tokens_Test.thy": "a284502c5ab0d64b7effbcc137b9505e98a1e97e2f45ec5c53884b642259f42a",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/inputs/tests/admission/development/source_tokens/check_source_tokens.ML": "94f454eca7df3a1abd508ce72d15dd4113e8d5390816bebb28e8f0818dba0735",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/receipt.json": "c620bcbbf7d546834e2eb1a3018453978f86be77964f5c3ee71edf49a105d88e",
+    "tests/admission/development/source_tokens/ROOT": "e0e775a76c87313fa49ee5995cb10c8ed871e5b748af9af42a0c29eb40a193db",
+    "tests/admission/development/source_tokens/Source_Tokens_Test.thy": "a284502c5ab0d64b7effbcc137b9505e98a1e97e2f45ec5c53884b642259f42a",
+    "tests/admission/development/source_tokens/check_source_tokens.ML": "94f454eca7df3a1abd508ce72d15dd4113e8d5390816bebb28e8f0818dba0735",
+    "tests/admission/recovery/Expert_Recovery_Tests.thy": "47d728ffc469d70090b232032a23a15bc3e7d3aff12c7242b7ecc090c7f64365",
+    "tests/admission/recovery/Native_Recovery_Tests.thy": "3a362f4685b3063a580fd2cada19974182683934b852f769ad781d917cad42d8",
+    "tests/admission/recovery/ROOT": "2e54219566835e5345fbf312f6802d6517045690966d3595c9db6fe3357e1647",
+    "tools/dev/check-native": "ffa243f0398a552427da950ecdba29b6f3d30e64a6eefb7a1d6e6ad2ff6c22ec"
+  },
+  "session": "Veri7vn_Admission_Core_Checks",
+  "sessions": [
+    "Veri7vn_Admission_Core_Checks",
+    "Veri7vn_Native_Development",
+    "Veri7vn_Native_Recovery_Tests"
+  ],
+  "session_roots": [
+    "src/isabelle/registry",
+    "src/isabelle/admission",
+    "tests/admission/core",
+    "tests/admission/development",
+    "tests/admission/recovery"
+  ],
+  "expected_markers": [
+    "ADMISSION actual_theorem PASS",
+    "ADMISSION construction_scope_abort_fresh_only PASS",
+    "ADMISSION closed_construction_scope_refuses_publication PASS",
+    "ADMISSION construction_scope_commit_transfers PASS",
+    "ADMISSION producer_id_exhaustion_refused PASS",
+    "ADMISSION producer_id_exhaustion_no_stranded_lease PASS",
+    "native_development_source_reconstruction_ok",
+    "managed_native_development_descriptor_ok",
+    "RECOVERY public_native_recheck_and_release PASS",
+    "RECOVERY private_definition_source_recheck PASS",
+    "RECOVERY shared_context_multifact_composition PASS",
+    "RECOVERY shared_input_owner_and_release PASS",
+    "RECOVERY managed_expert_replay_named_theorems PASS",
+    "RECOVERY expert_owned_replay_cancellation PASS",
+    "RECOVERY expert_concurrent_context_release PASS"
+  ],
+  "session_logs": {},
+  "commands": [
+    {
+      "argv": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "version"
+      ],
+      "log": "var/native-scaffold/sessions/fe9f8d5b32b933ac/attempts/0bdc71ea70dc40e9b752245c6353eefb/version.log",
+      "pid": 86147,
+      "status": "finished",
+      "owned_processes": [
+        {
+          "pid": 86147,
+          "parent": 86144,
+          "group": 86147,
+          "started": "Thu Oct 15 20:28:05 2026    ",
+          "state": "Rs"
+        },
+        {
+          "pid": 86163,
+          "parent": 86147,
+          "group": 86147,
+          "started": "Thu Oct 15 20:28:05 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86165,
+          "parent": 86163,
+          "group": 86147,
+          "started": "Thu Oct 15 20:28:05 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86168,
+          "parent": 86165,
+          "group": 86147,
+          "started": "Thu Oct 15 20:28:05 2026    ",
+          "state": "R"
+        }
+      ],
+      "process_cleanup": {
+        "observed": [
+          {
+            "pid": 86147,
+            "parent": 86144,
+            "group": 86147,
+            "started": "Thu Oct 15 20:28:05 2026    ",
+            "state": "Rs"
+          },
+          {
+            "pid": 86163,
+            "parent": 86147,
+            "group": 86147,
+            "started": "Thu Oct 15 20:28:05 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86165,
+            "parent": 86163,
+            "group": 86147,
+            "started": "Thu Oct 15 20:28:05 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86168,
+            "parent": 86165,
+            "group": 86147,
+            "started": "Thu Oct 15 20:28:05 2026    ",
+            "state": "R"
+          }
+        ],
+        "signalled": [],
+        "survivors": [],
+        "status": "clean"
+      },
+      "returncode": 0,
+      "seconds": 0.42637779100914486
+    },
+    {
+      "argv": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "getenv",
+        "ISABELLE_IDENTIFIER",
+        "ML_SYSTEM",
+        "ML_PLATFORM",
+        "ISABELLE_HOME_USER"
+      ],
+      "log": "var/native-scaffold/sessions/fe9f8d5b32b933ac/attempts/0bdc71ea70dc40e9b752245c6353eefb/settings.log",
+      "pid": 86186,
+      "status": "finished",
+      "owned_processes": [
+        {
+          "pid": 86186,
+          "parent": 86144,
+          "group": 86186,
+          "started": "Thu Oct 15 20:28:05 2026    ",
+          "state": "Ss"
+        },
+        {
+          "pid": 86188,
+          "parent": 86186,
+          "group": 86186,
+          "started": "Thu Oct 15 20:28:05 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86200,
+          "parent": 86186,
+          "group": 86186,
+          "started": "Thu Oct 15 20:28:05 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86206,
+          "parent": 86186,
+          "group": 86186,
+          "started": "Thu Oct 15 20:28:05 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86208,
+          "parent": 86206,
+          "group": 86186,
+          "started": "Thu Oct 15 20:28:05 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86209,
+          "parent": 86208,
+          "group": 86186,
+          "started": "Thu Oct 15 20:28:05 2026    ",
+          "state": "R"
+        }
+      ],
+      "process_cleanup": {
+        "observed": [
+          {
+            "pid": 86186,
+            "parent": 86144,
+            "group": 86186,
+            "started": "Thu Oct 15 20:28:05 2026    ",
+            "state": "Ss"
+          },
+          {
+            "pid": 86188,
+            "parent": 86186,
+            "group": 86186,
+            "started": "Thu Oct 15 20:28:05 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86200,
+            "parent": 86186,
+            "group": 86186,
+            "started": "Thu Oct 15 20:28:05 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86206,
+            "parent": 86186,
+            "group": 86186,
+            "started": "Thu Oct 15 20:28:05 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86208,
+            "parent": 86206,
+            "group": 86186,
+            "started": "Thu Oct 15 20:28:05 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86209,
+            "parent": 86208,
+            "group": 86186,
+            "started": "Thu Oct 15 20:28:05 2026    ",
+            "state": "R"
+          }
+        ],
+        "signalled": [],
+        "survivors": [],
+        "status": "clean"
+      },
+      "returncode": 0,
+      "seconds": 0.4284724999743048
+    },
+    {
+      "argv": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "build",
+        "-v",
+        "-b",
+        "-d",
+        "src/isabelle/registry",
+        "-d",
+        "src/isabelle/admission",
+        "-d",
+        "tests/admission/core",
+        "-d",
+        "tests/admission/development",
+        "-d",
+        "tests/admission/recovery",
+        "-j",
+        "1",
+        "-o",
+        "threads=2",
+        "Veri7vn_Admission_Core_Checks",
+        "Veri7vn_Native_Development",
+        "Veri7vn_Native_Recovery_Tests"
+      ],
+      "log": "var/native-scaffold/sessions/fe9f8d5b32b933ac/attempts/0bdc71ea70dc40e9b752245c6353eefb/build.log",
+      "pid": 86221,
+      "status": "finished",
+      "owned_processes": [
+        {
+          "pid": 86221,
+          "parent": 86144,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:06 2026    ",
+          "state": "Ss"
+        },
+        {
+          "pid": 86229,
+          "parent": 86221,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:06 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86237,
+          "parent": 86221,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:06 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86259,
+          "parent": 86221,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:06 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86262,
+          "parent": 86259,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:06 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86263,
+          "parent": 86262,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:06 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86271,
+          "parent": 86263,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:06 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86278,
+          "parent": 86221,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:06 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86466,
+          "parent": 86278,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:07 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86492,
+          "parent": 86466,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:07 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86493,
+          "parent": 86492,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:07 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86565,
+          "parent": 86278,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:12 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86567,
+          "parent": 86278,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:12 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86569,
+          "parent": 86567,
+          "group": 86569,
+          "started": "Thu Oct 15 20:28:12 2026    ",
+          "state": "Ss"
+        },
+        {
+          "pid": 86566,
+          "parent": 86565,
+          "group": 86566,
+          "started": "Thu Oct 15 20:28:12 2026    ",
+          "state": "Ss"
+        },
+        {
+          "pid": 86568,
+          "parent": 86566,
+          "group": 86566,
+          "started": "Thu Oct 15 20:28:12 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86570,
+          "parent": 86569,
+          "group": 86569,
+          "started": "Thu Oct 15 20:28:12 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86590,
+          "parent": 86278,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:13 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86592,
+          "parent": 86590,
+          "group": 86592,
+          "started": "Thu Oct 15 20:28:13 2026    ",
+          "state": "Rs"
+        },
+        {
+          "pid": 86594,
+          "parent": 86278,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:13 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86595,
+          "parent": 86594,
+          "group": 86595,
+          "started": "Thu Oct 15 20:28:13 2026    ",
+          "state": "Ss"
+        },
+        {
+          "pid": 86596,
+          "parent": 86595,
+          "group": 86595,
+          "started": "Thu Oct 15 20:28:13 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86649,
+          "parent": 86278,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:17 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86647,
+          "parent": 86278,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:17 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86648,
+          "parent": 86647,
+          "group": 86648,
+          "started": "Thu Oct 15 20:28:17 2026    ",
+          "state": "Ss"
+        },
+        {
+          "pid": 86650,
+          "parent": 86649,
+          "group": 86650,
+          "started": "Thu Oct 15 20:28:17 2026    ",
+          "state": "Ss"
+        },
+        {
+          "pid": 86651,
+          "parent": 86648,
+          "group": 86648,
+          "started": "Thu Oct 15 20:28:17 2026    ",
+          "state": "R"
+        },
+        {
+          "pid": 86652,
+          "parent": 86650,
+          "group": 86650,
+          "started": "Thu Oct 15 20:28:17 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86661,
+          "parent": 86278,
+          "group": 86221,
+          "started": "Thu Oct 15 20:28:18 2026    ",
+          "state": "S"
+        },
+        {
+          "pid": 86662,
+          "parent": 86661,
+          "group": 86662,
+          "started": "Thu Oct 15 20:28:18 2026    ",
+          "state": "Ss"
+        },
+        {
+          "pid": 86663,
+          "parent": 86662,
+          "group": 86662,
+          "started": "Thu Oct 15 20:28:18 2026    ",
+          "state": "S"
+        }
+      ],
+      "process_cleanup": {
+        "observed": [
+          {
+            "pid": 86221,
+            "parent": 86144,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:06 2026    ",
+            "state": "Ss"
+          },
+          {
+            "pid": 86229,
+            "parent": 86221,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:06 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86237,
+            "parent": 86221,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:06 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86259,
+            "parent": 86221,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:06 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86262,
+            "parent": 86259,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:06 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86263,
+            "parent": 86262,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:06 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86271,
+            "parent": 86263,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:06 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86278,
+            "parent": 86221,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:06 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86466,
+            "parent": 86278,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:07 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86492,
+            "parent": 86466,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:07 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86493,
+            "parent": 86492,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:07 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86565,
+            "parent": 86278,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:12 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86567,
+            "parent": 86278,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:12 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86569,
+            "parent": 86567,
+            "group": 86569,
+            "started": "Thu Oct 15 20:28:12 2026    ",
+            "state": "Ss"
+          },
+          {
+            "pid": 86566,
+            "parent": 86565,
+            "group": 86566,
+            "started": "Thu Oct 15 20:28:12 2026    ",
+            "state": "Ss"
+          },
+          {
+            "pid": 86568,
+            "parent": 86566,
+            "group": 86566,
+            "started": "Thu Oct 15 20:28:12 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86570,
+            "parent": 86569,
+            "group": 86569,
+            "started": "Thu Oct 15 20:28:12 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86590,
+            "parent": 86278,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:13 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86592,
+            "parent": 86590,
+            "group": 86592,
+            "started": "Thu Oct 15 20:28:13 2026    ",
+            "state": "Rs"
+          },
+          {
+            "pid": 86594,
+            "parent": 86278,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:13 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86595,
+            "parent": 86594,
+            "group": 86595,
+            "started": "Thu Oct 15 20:28:13 2026    ",
+            "state": "Ss"
+          },
+          {
+            "pid": 86596,
+            "parent": 86595,
+            "group": 86595,
+            "started": "Thu Oct 15 20:28:13 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86649,
+            "parent": 86278,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:17 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86647,
+            "parent": 86278,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:17 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86648,
+            "parent": 86647,
+            "group": 86648,
+            "started": "Thu Oct 15 20:28:17 2026    ",
+            "state": "Ss"
+          },
+          {
+            "pid": 86650,
+            "parent": 86649,
+            "group": 86650,
+            "started": "Thu Oct 15 20:28:17 2026    ",
+            "state": "Ss"
+          },
+          {
+            "pid": 86651,
+            "parent": 86648,
+            "group": 86648,
+            "started": "Thu Oct 15 20:28:17 2026    ",
+            "state": "R"
+          },
+          {
+            "pid": 86652,
+            "parent": 86650,
+            "group": 86650,
+            "started": "Thu Oct 15 20:28:17 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86661,
+            "parent": 86278,
+            "group": 86221,
+            "started": "Thu Oct 15 20:28:18 2026    ",
+            "state": "S"
+          },
+          {
+            "pid": 86662,
+            "parent": 86661,
+            "group": 86662,
+            "started": "Thu Oct 15 20:28:18 2026    ",
+            "state": "Ss"
+          },
+          {
+            "pid": 86663,
+            "parent": 86662,
+            "group": 86662,
+            "started": "Thu Oct 15 20:28:18 2026    ",
+            "state": "S"
+          }
+        ],
+        "signalled": [],
+        "survivors": [],
+        "status": "clean"
+      },
+      "returncode": 1,
+      "seconds": 13.897262915997999
+    }
+  ],
+  "checks": [],
+  "isabelle_version": "Isabelle2026-RC1",
+  "isabelle_settings": "ISABELLE_IDENTIFIER=Isabelle2026-RC1\nML_SYSTEM=polyml-5.9.2\nML_PLATFORM=\nISABELLE_HOME_USER=/Users/ember/dev/o7vn/var/native-scaffold/user-state/.isabelle/Isabelle2026-RC1",
+  "failure": "build failed (1); see var/native-scaffold/sessions/fe9f8d5b32b933ac/build.log\nStarted at Thu Oct 15 20:28:08 GMT-4 2026 (polyml-5.9.2_arm64_32-darwin on Mac)\nISABELLE_TOOL_JAVA_OPTIONS=\"-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m\"\nISABELLE_BUILD_OPTIONS=\"\"\n\nML_PLATFORM=\"arm64_32-darwin\"\nML_HOME=\"/Applications/Isabelle2026-RC1.app/Contents/Resources/contrib/polyml-5.9.2-4/arm64_32-darwin\"\nML_SYSTEM=\"polyml-5.9.2\"\nML_OPTIONS=\"--minheap 500 --enablegcsharing\"\n\nSession Pure/Pure\nSession Misc/Tools\nSession HOL/HOL (main)\nSession Unsorted/Veri7vn_Registry\nSession Unsorted/Veri7vn_Admission\nSession Unsorted/Veri7vn_Admission_Core_Checks\nSession Unsorted/Veri7vn_Native_Development\nSession Unsorted/Veri7vn_Native_Recovery_Tests\nBuilding Veri7vn_Native_Development ...\nVeri7vn_Native_Development: theory Veri7vn_Native_Development.Expert_Source\nVeri7vn_Native_Development: theory Veri7vn_Native_Development.Managed_Development_Test\nVeri7vn_Native_Development: theory Veri7vn_Native_Development.Native_Development_Test\nVeri7vn_Native_Development: theory Veri7vn_Native_Development.Provenance_Specialist\nVeri7vn_Native_Development: theory Veri7vn_Native_Development.Expert_Source 100% (0.159s cumulated time)\nVeri7vn_Native_Development: theory Veri7vn_Native_Development.Provenance_Specialist 100% (0.058s cumulated time)\nVeri7vn_Native_Development: theory Veri7vn_Native_Development.Native_Development_Test 100% (0.624s cumulated time)\nVeri7vn_Native_Development: theory Veri7vn_Native_Development.Managed_Development_Test 100% (0.632s cumulated time)\nTiming Veri7vn_Native_Development (2 threads, 0.858s elapsed time, 1.134s cpu time, 0.060s GC time, factor 1.32)\nFinished Veri7vn_Native_Development (0:00:04 elapsed time, 0:00:04 cpu time, factor 1.04)\nBuilding Veri7vn_Native_Recovery_Tests ...\nVeri7vn_Native_Recovery_Tests: theory Veri7vn_Native_Recovery_Tests.Expert_Recovery_Tests\nVeri7vn_Native_Recovery_Tests: theory Veri7vn_Native_Recovery_Tests.Native_Recovery_Tests\nVeri7vn_Native_Recovery_Tests FAILED (see also \"isabelle build_log -H Error Veri7vn_Native_Recovery_Tests\")\n*** ML error (line 103 of \"/Users/ember/dev/o7vn/tests/admission/recovery/Expert_Recovery_Tests.thy\"):\n*** Value or constructor (sleep) has not been declared in structure OS.Process\n*** ML error (line 121 of \"/Users/ember/dev/o7vn/tests/admission/recovery/Expert_Recovery_Tests.thy\"):\n*** Value or constructor (sleep) has not been declared in structure OS.Process\n*** \n*** At command \"ML\" (line 4 of \"/Users/ember/dev/o7vn/tests/admission/recovery/Expert_Recovery_Tests.thy\")\nUnfinished session(s): Veri7vn_Native_Recovery_Tests\n\nFinished at Thu Oct 15 20:28:19 GMT-4 2026\n0:00:11 elapsed time, 0:00:05 cpu time, factor 0.52\n",
+  "sources_sha256_after": {
+    "src/isabelle/admission/ROOT": "ac73f27b6a94f9ee63fe96be7f33ae4104f1cd3c3d37e2cd9cd6069c5e421089",
+    "src/isabelle/admission/Veri7vn_Admission.thy": "e26797ac77319f13e2008bf5afb63925ccbba175e6d85a5839b72c4813ffc6b0",
+    "src/isabelle/admission/bridge/Admission_Metadata.thy": "30f0bdc006f0fda8c26ce854dad8edd276e9a075e42464b4ae28b86b675909e6",
+    "src/isabelle/admission/bridge/ROOT": "d97fc9304d825a4f6c556f56473d15f6403f350079b9a7d4c304ecd2ed22aaad",
+    "src/isabelle/admission/development/native_development.ML": "733075ec19d6d8c42c3eb4327a2b54cdddc37c553f76b605c85708aa596c08a8",
+    "src/isabelle/admission/family_certificate.ML": "5844daaa0cdaad27139cfeb3e3cdcb5764901decddf865d1f75cbcbd0cb3d915",
+    "src/isabelle/admission/literal_spans.ML": "9b4e29d4a6eac119c0f4dfcf754ded8ac393948ff103160365d41fb743f51f90",
+    "src/isabelle/admission/managed_provenance.ML": "77b644755a2a1f9b120d9f10ac01afac2a054517013587855a032ab90b451c81",
+    "src/isabelle/admission/native_admission.ML": "ca9fd257f6059b823f1b5a0800448e1ca9026430cd1a3fe44f46d66349496a9d",
+    "src/isabelle/admission/native_authority_descriptor.ML": "a494cbec048da6c616a10e00b67ebcd5a7836b2f7d7cf3f1c3014a9cfa0ad994",
+    "src/isabelle/admission/native_committed_recovery.ML": "22eebdfc5e7dda1f5059904e5ef134ab1ca7dbf9d1b6bf226d530f6f69d2da3f",
+    "src/isabelle/admission/native_descriptor.ML": "980cd85eb16d126aea2560b2b66bb5a692cf8a2a888f2a9a9392e5fae1a35ba1",
+    "src/isabelle/admission/native_identity_allocator.ML": "2dd910263c567e118860ce18ba2136d27eb9b10a1fc5223ad61fced123b69605",
+    "src/isabelle/admission/proof_transport.ML": "0021cbaee75924288a1f0c0e79aba077e77a8caadd3b497cdb84098a82013f88",
+    "src/isabelle/admission/recovery/native_recovery_check.ML": "d9204dfd1c30d879d36042c8788ae33897a33f195e037bed879043e5a1eb4644",
+    "src/isabelle/admission/recovery/native_recovery_export.ML": "fdec485b3835f8782a547f9cf07dbd4ee38dde2e892676eea0e08354a91f325f",
+    "src/isabelle/admission/recovery/native_recovery_graph.ML": "b27aa9fd2342082508473ac831e1ed445375d82febf70aa9cee5ca9a254b12f2",
+    "src/isabelle/admission/recovery/native_recovery_inputs.ML": "a91b5de047f6b5de257a924ac08b7d1a017e24c245de2a4765d3fd85e63842ff",
+    "src/isabelle/admission/recovery/native_recovery_replay.ML": "c9c6c2846bf185be959913548cdc60b83070123df3dbf9e30e6b6911652afcd5",
+    "src/isabelle/admission/recovery/native_recovery_source.ML": "a46a9d1fda2e442fd05d320fc4a68af27ef48e2a8a2d3b1e683b1088e16bfaf0",
+    "src/isabelle/admission/source/ROOT": "b4176bab8019a8e12a9526703dff42ac31316d20618b034ff7abb2883233c701",
+    "src/isabelle/admission/source/Veri7vn_Source_Admission.thy": "ad1e73f52dd46b2fd55c22b29822702cede691c373079053347516b845fa7738",
+    "src/isabelle/admission/source/source_admission.ML": "beefca511fb2952039c48b35676eb0165d8933ea4403b2d194ab37fa98a0db80",
+    "src/isabelle/admission/transport/Admission_Transport_Tests.thy": "734e26f311071549de0cb707845ea74991d98c48e5e5c300fbdb5632b469c6fe",
+    "src/isabelle/admission/transport/ROOT": "72e14d9a57420649133c1ade0ccf3f40c33add0e3f5a3ab6df4610809e6f44e2",
+    "src/isabelle/registry/README.md": "42f816fb7f455cd679f4d089ae8360a8408c4b7633074f982247dfe646d293e5",
+    "src/isabelle/registry/RECOVERY.md": "72b1e7c43320c4c590bc172653b82798fab542823dfcf50c32d301d9eebeaf4b",
+    "src/isabelle/registry/ROOT": "dc153c75e71d90d4568776c8f5f0d791790f51f1793212f5077461ccea989f60",
+    "src/isabelle/registry/Registry_Tests.thy": "ce4f7016019844dbd44b1d02043302827b0d56e59e9895688231fd72f70ea1af",
+    "src/isabelle/registry/Veri7vn_Registry.thy": "d56c2a422b26d416a0b7c613c70403342756c1fb43fe66ca7f302a5e9bfb7cbf",
+    "src/isabelle/registry/executable_identity.ML": "2843850213d3bac3deacff93608bd419e5c2f374a8b8d826e26089df9ec01cc1",
+    "src/isabelle/registry/managed_unit.ML": "fc71920aba39a9d3c9643408b09ad10ce79d2de152ba3dfc893e2de1af872137",
+    "src/isabelle/registry/native_literals.ML": "8be87cfd8e90040b129f8bb697c6cdc28e956b2ade906f0aebfd4ca6ebdbc01c",
+    "src/isabelle/registry/native_profiles.ML": "5d09fd6dda9cbd211712101a4f0b8a6a7191e1a54d61e86f5e340ddf78e53322",
+    "src/isabelle/registry/native_registry.ML": "fa9dafaefa4c4c641b3616942d5cad992ea81cb24b4e5bf2554ff712c15ddbad",
+    "src/isabelle/registry/native_sequent.ML": "30c72b8b4120bc33e2d057d1fccab0ebe88283b54c6809ac5b00db01aacee8fe",
+    "src/isabelle/registry/recovery_manifest.ML": "1ee00a158d9f0e9f51139079aea8375590ee545bd80666bd9532a5afa8c31a45",
+    "src/isabelle/registry/typed_runtime_store.ML": "951367742a1e74e3f2f566f02f3dca8eeeaa3fe708c1499275131aa1a31d7498",
+    "tests/admission/admission_tests.ML": "2cf8139d3ab5970ad11d7ab716eca0798ed882ff184142a13dc202f58870c0b9",
+    "tests/admission/core/Admission_Core_Tests.thy": "429dcf7f2215677c1d5ab6c6db06685ced189731d878dfaa55c415264af19cdf",
+    "tests/admission/core/ROOT": "3ecf05746d6efa9f150d9b63105d45e51394f7cf5def4730cb2540486184b9ff",
+    "tests/admission/development/Expert_Source.thy": "709c930b72a05537e3cea6ec0ca680bd19aabf472b7dcc35abdb664a40c1f715",
+    "tests/admission/development/Managed_Development_Test.thy": "1f2a55defa19ae3c672d3048858bef9db429fd4afeef58b8167687b71e85d729",
+    "tests/admission/development/Native_Development_Test.thy": "73bad86a5772e7ea95abd10536809569e9d1d0e92a3a390a2c2e6f86d6adbb7a",
+    "tests/admission/development/Provenance_Specialist.thy": "8b9b9430ef294a0ee1563fd9046c2d8d439357e767d0fd68621b4c1220ac0401",
+    "tests/admission/development/ROOT": "c95abb7213678154e41a6db9697c9759e26153f972e360748282c72a49328b72",
+    "tests/admission/development/evidence/native-development-20261015/README.md": "d449f3e1ca2336f90a28b9456a6ba48a072931d57dd5b5004001fa70618d3db9",
+    "tests/admission/development/evidence/native-development-20261015/build.log": "7f1a025fcaef3a84d05a991a5680ef0435931695af87d11fdb68289f07150ed2",
+    "tests/admission/development/evidence/native-development-20261015/inputs/src/isabelle/admission/development/native_development.ML": "733075ec19d6d8c42c3eb4327a2b54cdddc37c553f76b605c85708aa596c08a8",
+    "tests/admission/development/evidence/native-development-20261015/inputs/src/isabelle/admission/literal_spans.ML": "9b4e29d4a6eac119c0f4dfcf754ded8ac393948ff103160365d41fb743f51f90",
+    "tests/admission/development/evidence/native-development-20261015/inputs/src/isabelle/admission/native_admission.ML": "ca9fd257f6059b823f1b5a0800448e1ca9026430cd1a3fe44f46d66349496a9d",
+    "tests/admission/development/evidence/native-development-20261015/inputs/tests/admission/development/Expert_Source.thy": "709c930b72a05537e3cea6ec0ca680bd19aabf472b7dcc35abdb664a40c1f715",
+    "tests/admission/development/evidence/native-development-20261015/inputs/tests/admission/development/Native_Development_Test.thy": "8a513174d849e7880face0766705d3b73d8f5529cd0dda355dc6add6efcf279c",
+    "tests/admission/development/evidence/native-development-20261015/inputs/tests/admission/development/ROOT": "171efbe4b0044c48a00415226a241e0a27e8be8e8658d48d58b54a1ede7afef6",
+    "tests/admission/development/evidence/native-development-20261015/receipt.json": "fba2a914dbb861008ed36263afc7818f0ff27b2651bb2a9d3f982b41ec6df72f",
+    "tests/admission/development/evidence/source-tokens-20261015/README.md": "e32f7c67d13b7d75063365b9c90bc634c48190364fc633b3b77a72cda6dd5303",
+    "tests/admission/development/evidence/source-tokens-20261015/build.log": "ce64893dd996f8634913fc8aac9aecb374b6548907af8950efe1a512d31386ef",
+    "tests/admission/development/evidence/source-tokens-20261015/inputs/src/isabelle/admission/development/source_tokens.ML": "f15d56501988097f0c87f424b3b87e016671d74f48b3f83cdd51ffe5a3d21bc5",
+    "tests/admission/development/evidence/source-tokens-20261015/inputs/tests/admission/development/source_tokens/ROOT": "e0e775a76c87313fa49ee5995cb10c8ed871e5b748af9af42a0c29eb40a193db",
+    "tests/admission/development/evidence/source-tokens-20261015/inputs/tests/admission/development/source_tokens/Source_Tokens_Test.thy": "8d3c4a03d28aebbc8da6b778dd708a7445a83bf76f588a7f16ada7004d2ad3b6",
+    "tests/admission/development/evidence/source-tokens-20261015/inputs/tests/admission/development/source_tokens/check_source_tokens.ML": "94983f9d430e09a633d1fdb03ec3e0fe65a841a8375d0a78e74df9d1f7257e3b",
+    "tests/admission/development/evidence/source-tokens-20261015/receipt.json": "2dc19f87031806da00b33cbd40ab845a727d94e6f9fe9951a40539f36fb7e167",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/README.md": "3b3bc29536b3f5a89bb40bb4fc28778a8bbfca8cb68ac9a4c9fad931fabae12f",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/build.log": "0b416b07c592a1c3bf8ae6fe4b0c2b997b66fd13258f2b23f26ad9bc82af2881",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/inputs/src/isabelle/admission/literal_spans.ML": "9b4e29d4a6eac119c0f4dfcf754ded8ac393948ff103160365d41fb743f51f90",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/inputs/tests/admission/development/source_tokens/ROOT": "e0e775a76c87313fa49ee5995cb10c8ed871e5b748af9af42a0c29eb40a193db",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/inputs/tests/admission/development/source_tokens/Source_Tokens_Test.thy": "a284502c5ab0d64b7effbcc137b9505e98a1e97e2f45ec5c53884b642259f42a",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/inputs/tests/admission/development/source_tokens/check_source_tokens.ML": "94f454eca7df3a1abd508ce72d15dd4113e8d5390816bebb28e8f0818dba0735",
+    "tests/admission/development/evidence/source-tokens-promoted-20261015/receipt.json": "c620bcbbf7d546834e2eb1a3018453978f86be77964f5c3ee71edf49a105d88e",
+    "tests/admission/development/source_tokens/ROOT": "e0e775a76c87313fa49ee5995cb10c8ed871e5b748af9af42a0c29eb40a193db",
+    "tests/admission/development/source_tokens/Source_Tokens_Test.thy": "a284502c5ab0d64b7effbcc137b9505e98a1e97e2f45ec5c53884b642259f42a",
+    "tests/admission/development/source_tokens/check_source_tokens.ML": "94f454eca7df3a1abd508ce72d15dd4113e8d5390816bebb28e8f0818dba0735",
+    "tests/admission/recovery/Expert_Recovery_Tests.thy": "47d728ffc469d70090b232032a23a15bc3e7d3aff12c7242b7ecc090c7f64365",
+    "tests/admission/recovery/Native_Recovery_Tests.thy": "3a362f4685b3063a580fd2cada19974182683934b852f769ad781d917cad42d8",
+    "tests/admission/recovery/ROOT": "2e54219566835e5345fbf312f6802d6517045690966d3595c9db6fe3357e1647",
+    "tools/dev/check-native": "ffa243f0398a552427da950ecdba29b6f3d30e64a6eefb7a1d6e6ad2ff6c22ec"
+  },
+  "inputs_stable": true,
+  "elapsed_seconds": 14.76288262498565
+}

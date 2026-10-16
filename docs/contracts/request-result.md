@@ -1,6 +1,6 @@
 # C03 — Requests, interpretations, results and diagnostics
 
-Semantic revision 1. Descriptor format remains `veri7vn.package/0`.
+Semantic revision 2. Descriptor format remains `veri7vn.package/0`.
 These are shared semantic variants; wire encoding and concrete ML
 signatures are **reserved**, pending the first integrated native client.
 
@@ -183,3 +183,41 @@ These are source-backed requirements from [G01–G04/G08](../review/PREIMPLEMENT
 The [runtime R1–R4/R7 review](../review/runtime-gaps.md) supplies the routing,
 dependent-turn, ordinary-artifact and final-arbitration cases.
 They are not claims that the present native smoke tests implement these behaviors.
+
+## Revision 2 — semantic target and execution provenance
+
+An accepted claim records an explicit execution dependency: `NoExecution` or
+`ExecutableGeneration g`. Absence means its admitted evidence needs no executable
+bundle; it is not the integer zero or an imaginary registered bundle. A request
+can pin its real running bundle while asking a purely semantic question. A kernel
+consequence with no execution dependency may answer that question.
+
+The requested semantic target remains exact in proposition, interpretation, scope,
+modality, premises and semantic lineage. Its execution requirement is checked
+separately: no required executable provenance permits either an independent kernel
+consequence or correctly pinned execution; requiring generation g admits only that
+actual generation. The emitted claim always retains its actual execution dependency.
+Refined execution requires the request's real registered executable pin; the current
+conservative oracle profile does too. A kernel theorem cannot satisfy a request for
+evidence about a specific executable merely by omitting that dependency.
+
+Native gate-owned descriptors derive both target and structured claim projection
+from actual native objects and registered elaborators. A caller's scope labels or
+matching numeric target ID do not prove this correspondence. Unknown request pins
+are rejected by real registry ingress; generated control rejects incompatible actual
+dependencies against authentic request pins. These are distinct checks.
+
+## Parameterized requests and output specialization
+
+D34 permits an original typed question whose result is unknown when it is opened.
+Reservation-aware opening records its immutable template/profile, inputs, graph,
+scopes, premises and owned result slots. An unbound result slot cannot license a
+goal. The native gate checks actual typed substitution and the generated reducer
+checks one-shot ownership, current dependencies, scope preservation and cancellation.
+Keep original and specialized requirements; a numeric target replacement is not a
+substitution proof. Acquisition binds downstream inputs without inventing their
+results: each graph node has its own result slot. Pure computation has no fabricated
+external attempt; external results retain the exact confirmed attempt and input.
+Candidate binding and authorized historical retention remain distinct. The exact
+slot ledger and corresponding publication share the durable transaction and ack.
+Restore reconstructs these associations without rerunning their computation/effects.

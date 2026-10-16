@@ -1,0 +1,4 @@
+session Veri7vn_Source_Admission = Veri7vn_Row_Kernel +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Admission Veri7vn_Effect_Tickets
+  theories Veri7vn_Source_Admission

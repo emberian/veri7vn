@@ -1,0 +1,4 @@
+session Veri7vn_Authority_Codec = Veri7vn_Authority +
+  options [document = false, threads = 2]
+  theories
+    Authority_Codec

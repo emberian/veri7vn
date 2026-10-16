@@ -102,6 +102,14 @@ does not become fresh recipient evidence by deleting its log. Aborted/spent runs
 not become measured successes or failures. Exact holdout discipline, thresholds and
 activation criteria remain explicit policy decisions, not inherited accidents.
 
+D36 treats exposure eligibility separately from run outcome. A measured run may
+have spent its held-out allowance; an aborted run may already have exposed data.
+Reserve/consume eligibility durably before data access or execution. Neither crash
+nor deletion of a local log refunds freshness, and unknown imported exposure is not
+fresh eligibility. Active publication checks the exact candidate, scoped measured
+binding, independently admitted native capabilities, explicit policy and expected
+previous active version in one current-state transaction.
+
 Feedback links an attributable event to the actual request/result/invocation and
 distinguishes intended interpretation, factual correctness and route choice. It
 proposes a versioned policy change, evaluated before atomic activation; failed

@@ -40,6 +40,48 @@ does not cover a broader dispatcher. One target can need several proofs.
 
 ## Quantification and concrete consumers
 
+### Reviewed post-transition licensing component (PO-04/10; integration still open)
+
+`Veri7vn_Authority_Proofs.publication_authorized` establishes that any binding newly
+visible after `step s ev` is licensed in that resulting state. It is not the earlier,
+incorrect claim that a newly specialized output was already licensed in the prestate.
+`acknowledged_output_contract` connects successful durable acknowledgement of an output
+to its permitted original assignment and poststate licensing. `output_original_requirement`,
+`output_scope_unchanged` and `output_premise_occurrences` preserve original template
+ownership, scope, interpretation/generation and each original premise occurrence.
+`retained_output_managed_closure` and `forgotten_private_edge_removes_assignment`
+connect modeled retained output dependencies and private-source invalidation.
+
+The same checked theory proves stale revoked session/read/utterance ingress rejection
+and removed history references. Root read its full statements, matched Core/Codec/Proofs
+hashes and inspected immutable attempt
+`0e9d8d9756b80da2/attempts/f3b1d3d826ae42af9d91d3c3db2deb59`: the proof session passed
+in 15 seconds (9.991 seconds cumulative theory); Core and Codec also finished. Overall
+batch failed two separate runtime fixture leaves. The native-evidence locale explicitly
+assumes faithful attachment of evidence-table claims, a TB-01 boundary; it is not a
+proof of arbitrary domain algorithms or native/compiler correctness. Actual resident
+state/frame/gate/host composition, rendered-byte linkage and external-effect/job guards
+remain open. D42 changes reopen dependent formal statements and codec/consumer checks.
+
+### Reviewed finite-list Forget component (PO-09/10; integration still open)
+
+`Effects_Closure_Totality.forget_closure_total` establishes
+`∃result. forget_closure values removed = Some result` for arbitrary finite lists.
+There is no distinct-ID, acyclicity or complete-membership premise. Together with
+`Veri7vn_Effects.forget_closure_closed` and `forget_closure_minimal`, the returned set
+contains the seeds and is the least closed set under the declared managed dependency
+edges. The proof uses a decreasing finite cardinality of remaining retained IDs.
+
+Root reviewed the statements and current source hashes against immutable native
+attempt `752964f45b43867e/attempts/ceb68e69059f4b22a1d926481149bf52`; the closure child
+finished successfully in eight seconds (0.662 s theory), although the overall batch
+failed in Admission. This is a checked formal component, not closure of PO-09/10:
+actual dependency completeness, current-state publication, generated reducer linkage,
+host erasure/worker termination and the performance refinement remain open. The native
+authority invokes the same modeled `forget_closure`; its resident consumer still needs
+the updated codec/frame/assembly qualification. List saturation is not an efficiency
+claim and must not be replaced by an unproved optimized graph traversal.
+
 Instantiate these targets over a concrete finite linked signature, its actual
 interpretation rules, native operation specifications and selected code setup.
 Generic authority preservation concerns typing, dependencies, scopes and allowed
