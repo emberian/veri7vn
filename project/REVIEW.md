@@ -29,7 +29,7 @@ Launcher verification improved in a bounded
 is not a whole-system performance envelope. [VALIDATION.md](VALIDATION.md) records
 component and runtime evidence with their limits.
 
-## Current integration checkpoint
+## Integration
 
 Workshop convergence joins four real journeys: author/repair/Build, ask/Search,
 conversation/adoption, and governed acquisition/use. Shared native parent
@@ -67,7 +67,7 @@ completion remains unaccepted. Its 119 domain manifests map to 81 semantic
 profiles, encouraging shared families rather than duplicate implementations.
 Task counts measure organization, not completion percentage.
 
-## Untouched scope now made explicit
+## Capability work
 
 The ledger separately tracks finite probability/statistics, literal formats and
 calendar, bounded transcendental models, versioned policy evaluation, governed

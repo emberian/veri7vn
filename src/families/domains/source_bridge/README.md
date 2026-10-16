@@ -1,120 +1,23 @@
 # Qualified source quantities
 
-`Source_Quantity_Bridge.thy` composes the actual source integer-cell meaning with
-the existing exact quantity/domain interpreter. Its first closed unit profile is
-m, cm, mm, N, N/m, kg and g. It checks the original `reported_units`, retains the
-whole qualified observation and original cell coordinates, and rejects missing,
-malformed, NULL, REAL, wrong-unit or out-of-range input. Invalid inputs retain
-all individual projection outcomes; they cannot be dropped to change arity.
-The domain result remains the existing typed Answer/Rejected/Blocked outcome.
-Spring meaning is conditional on the existing exact ideal-model premise.
+`Source_Quantity_Bridge.thy` connects actual integer-cell meaning to existing exact Domain dispatch. Initial units:m,cm,mm,N,N/m,kg,g. Preserve whole observation/coordinates/reported_units; distinguish unavailable/missing/malformed/NULL/REAL/wrong-unit/out-of-range refusals without dropping inputs. Replies remain Answer/Rejected/Blocked; springs retain ideal-model conditions.
 
-`native/source_quantity_consumer.ML` is the fixed **internal** SourceDomain
-wrapper approved for the shared ingress. It consumes the source owner's
-`VERI7VN_QUALIFIED_SOURCE_CELL`; there is no local source producer, raw batch
-accessor, permission machine, ticket issuer or callback registration. The actual
-Common/SourceCell producer now exists as an uncompiled source dependency.
+`native/source_quantity_consumer.ML` implements the sealed SourceDomain wrapper over source-owned VERI7VN_QUALIFIED_SOURCE_CELL. It verifies exact protected(obs,row,column), getter value/unit and accepted selection proposition/receiver with no hidden hypotheses/oracles. Kernel source_cell_quantity_bridge derives LinearValue(of_int n). Independent cell leases survive producer release; source/declaration invalidation denies children.
 
-For each actual cell the wrapper verifies the exact protected `(obs,row,column)`
-input and selected-cell proposition against its integer/unit/coordinate getters.
-The source's accepted specialization must match that same proposition and native
-receiver generation, with no hidden assumptions or oracles. Kernel inference via
-`source_cell_quantity_bridge` derives the exact unit-tagged `LinearValue(of_int n)`
-correspondence. The wrapper owns an independently retained cell child, preserving
-producer-handle release; source/declaration invalidation still denies every child.
+The operation is parsed from the actual Scope child's owned source slice. Cells must be predecessor children of the same parent; allocator comes from that parent. Claim child once and retain an independent view. The derived DomainCall is not claimed to occur in original source bytes. Domain_Request owns calculation/model conditions; wrapper retains original operation, Common acquisition/cell bindings and all dependencies. result_view exposes complete observation/selection/unit/value.
 
-The native operation is parsed from the actual SourceDomain Scope child's exact
-owned source slice. The wrapper derives its allocator from that actual parent,
-requires each Cell's protected Scope child as a predecessor from the same parent,
-claims the operation child once and independently retains its own child view.
-Ordinary release of the producer child preserves legitimate descendants; shared
-parent denial still blocks every view. No numeric child ID constructs authority.
+Installed prepare_child_into/reconstruct_into publish under caller cleanup roots; heavy preparation remains interruptible. Ordinary prepare/reconstruct are conveniences. Assembly must retain wrapper ancestry through charge, execution, specialization, display, recovery and Forget. Extracted family_request or bare Domain gate cannot license source-derived output.
 
-The complete
-DomainCall is a new derivative artifact, not a claim that the original source
-wire contained DomainCall syntax. Existing `Domain_Request` owns the calculation
-and exact model/input condition associations. Source cell/acquisition bindings,
-original operation source, source-derived facts and all native dependencies stay
-inside the sealed wrapper. `result_view` includes full source observation,
-selection, canonical unit profile and typed value for recipient inspection.
+## Checks/status
 
-Installed constructors use `prepare_into`/`reconstruct_into` with their caller-owned
-cleanup root, preserving ownership when interruption arrives immediately after
-publication. `prepare_child_into` is the installed construction name; ordinary `prepare`/`reconstruct` are convenience calls.
+Native theories/functor/tests are queued/uncompiled. Source_Quantity_Bridge_Tests covers pure composition; Source_Quantity_Kernel_Tests actual of_int bundle; Source_Quantity_Protected_Tests actual Scope→Common→Cell→wrapper→private charged DomainWorker. Targets:100cm→1m,3N/m×2m→6N, unit/NULL/model/dimension/foreign-parent refusal, retained views/source invalidation, interrupt cleanup and same-owner reconstruction/output substitution. Private tickets model charged commands, not resident reducer/journal; same-owner reconstruction is not crash recovery. Separate body/1 and metadata/2 originals survive.
 
-Assembly must retain this fixed wrapper through charge, execution, gate,
-publication, rendering, durable recovery and Forget. Its internal `family_request`
-access does not authorize publication through an extracted Domain request.
-`source_bindings` retains the actual opaque acquisition roots; selected-cell
-proofs or metadata strings alone are not source qualification. Every output
-specialization rechecks the wrapper and same Domain output association.
+Domain dependency bundle passed06c735c6fe8317f8/81feaa2f44f44819aa79a3e1114a5e83 (rational/of_int/prepare_into rollback); composition/producer/service need separate checks.
 
-Snapshots are inert. Recovery reconstructs the actual source cells, original
-operation owner and authenticated derivative owner, calls `reconstruct`, then
-compares the entire native correspondence. Restored derivative sources are
-independently leased and their caller-owned base is not dropped. No saved term,
-ID, metadata record or receipt creates a source cell or native authority.
+## D67 recovery and gate
 
-Current verification status: all new native theories/functor/tests are queued,
-not yet compiled. `tests/integration/quantities/Source_Quantity_Bridge_Tests.thy`
-checks generated pure projection/composition. `Source_Quantity_Kernel_Tests.thy`
-separately checks actual bundle `of_int` normalization/execution/projection.
-`Source_Quantity_Protected_Tests.thy` now invokes the actual private Common→Cell→
-wrapper→charged DomainWorker path, with original source metadata fixtures. It
-checks source100cm→exact1m, source3N/m×2m→exact6N, typed unit/NULL/model/dimension
-refusals, foreign parents, independent retained views and source invalidation, plus deterministic interruption after a computed output
-with cleanup that preserves independent positive consumers.
-Its private tickets model already charged commands; it does not execute the
-resident generated reducer/journal. Same-owner reconstruction checks actual
-native correspondence and rejects output substitution; it is not crash recovery.
-Source invalidation checks lower native Forget guards, not an installed lifecycle
-RPC. Actual authenticated Scope/Common restart and resident publication remain
-open. Body wire/1 and metadata frame/2 are separate existing format versions;
-these fixtures preserve both exactly. Wrapper ownership acquisition and root publication use a short mask. Heavy
-Domain preparation uses the domain owner's `prepare_into` cleanup root under
-restored interruptibility. The domain owner reports actual bundle execution,
-exact rational/of_int normalization and prepare_into rollback PASS in receipt
-`06c735c6fe8317f8/81feaa2f44f44819aa79a3e1114a5e83`. This is dependency
-evidence; the SourceDomain composition and service/source producers still await
-their own checks.
+Closed pairs: source-quantities/1 + source-domain-request(empty evidence); source-quantities-runtime-refinement/1 + source-domain-output(nonempty source-qualified RuntimeRefinement). They cannot fall back to plain Domain decoding.
 
-Recovery integration proposal (pending root/assembly agreement): the fixed native
-payload must carry a distinct `SourceDomain` tag, not reuse a bare `DomainRequest`.
-The authenticated outer request/goal/slot/semantic-generation/code-generation
-meanings remain the shared envelope meanings. Its native material must retain
-`Q.saved`, the original operation owner, the derivative owner, the full original
-source settings/body/metadata owners, the actual Scope parent/ordered plan and
-required live children, and each original Common acquisition association and Cell
-selection. Shared Domain condition-role validation applies inside this material;
-it does not replace the source acquisition qualification or correspondence.
+Authenticated payload retains Q.saved, original operation/derivative owners, source settings/body/metadata, Scope parent/ordered plan/live children, Common associations, cells and Domain conditions. Restore authenticated originals/Scope/Common first without tickets/recharge; then cells/conditions and Q.reconstruct_into compare full correspondence. Binary originals need authenticated binary owners, not relabelled UTF-8. Missing ancestry rejects the whole payload. No source restore factory/codec is implemented here.
 
-Restore first authenticates retained originals and reconstructs the actual Scope
-and Common association without issuing acquisition tickets or charging again.
-Only then may the source owner reconstruct opaque Cells, the Domain owner restore
-condition associations, and `Q.reconstruct_into` compare the entire saved
-correspondence. Binary body/metadata originals need an authenticated binary input
-owner; the existing UTF-8 native-input pool cannot represent them by relabelling
-their encoding. A missing source/condition/Scope reconstruction must refuse the
-whole SourceDomain payload. Executing or publishing a recovered naked Domain
-request would lose the original source guard and is not an allowed fallback.
-No SourceDomain restart codec or source restoration factory is implemented here.
-
-D67 fixes the closed request pair `source-quantities/1` /
-`source-domain-request` (empty evidence), and output pair
-`source-quantities-runtime-refinement/1` / `source-domain-output` (nonempty
-source-qualified RuntimeRefinement). These retain the shared request-slot and
-evidence category meanings. They cannot fall back to the plain Domain decoder.
-
-The nested `Q.Gate` is now a concrete uncompiled leaf. Its
-`specialize_into bridge actual_request actual_output cleanup_root` constructs
-the Domain gate lexically from that wrapper's actual Domain request. The public
-API exposes no Domain request or bare Domain gate. Its exact target is the full
-`Q.specialize` conjunction; its projection contains both the actual typed Domain
-display/conditions and every original source view. All getters check the full
-source/wrapper/Domain/output/bridge ancestry. The gate retains an independent Q
-view; Q views share the same actual Domain request and release the underlying
-Cell/Scope/Domain leases only when the final view is released. The native output
-and display bridge remain guarded assembly-owned resources: releasing either
-makes the gate unavailable. The protected fixture now checks full-target equality,
-source-view projection, producer-release survival and source invalidation through
-this actual nested gate. Neither the new gate nor those checks are qualified yet.
+Nested Q.Gate.specialize_into constructs the actual Domain gate lexically from the same wrapper/request/output, exposing only full Q.specialize target plus Domain display/conditions and original source views. Getters recheck complete ancestry; independent Q views share the underlying request until last release. Assembly owns output/display resources. Full-target/projection/survival/invalidation checks and tagged recovery/installed delivery remain unqualified.

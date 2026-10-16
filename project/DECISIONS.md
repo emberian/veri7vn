@@ -58,23 +58,23 @@ The agreed [revision 2 architecture](../docs/ARCHITECTURE_PROPOSAL.md) combines 
 
 Record the reason, affected contracts, migration and refuting checks for consequential changes. Preserve authenticated old codec meanings or reject them explicitly. Update implementation status in the task ledger rather than declaring a migration complete here.
 
-## Corrections retained
+## Scope
 
 Ordinary deployment may include Isabelle. Authoring, stateful specialists and connectors are core compatibility scope. Examples guide search but cannot license universal rewrites. Support packages need no fake callable exports. Expression/DAG correctness does not establish routing, sources, state or deployment.
 
-## Revision 2 rationale and migration
+## Architecture rationale
 
 One generated authority and statically linked typed family interpreters avoid incompatible permission machines and universal untyped values. C01–C05 connect runtime guards, worker proof transport, generation migration, publication and recovery. Descriptor validation remains structural; actual native objects and executable consumers supply semantics.
 
-## Integration review — native/host event serialization
+## native/host event serialization
 
 Revision and epoch alone miss changes such as AddBlocker and SetOutcome. Serialize all generated events with staging, precommit, artifact installation, transaction and acknowledgement, or prove an equivalent complete-state token. Restore grants, blockers, outcomes and lifecycle state. Rendering consumes currently licensed visible bindings, not raw Accepted tags (D24, PO-04, TB-05).
 
-## Integration review — numeral representation and native recovery
+## numeral representation and native recovery
 
 D31 uses the narrow Code_Target_Numeral/Nat/Int closure; unary nat cannot represent large metadata efficiently. Migrate actual generated consumers and pins without changing HOL meanings. Durable ID ranges commit before issuance; crashes burn unused IDs. Reconstruction checks complete native target, hypotheses, premises, sorts, interpretation, generation and dependencies against the latest lifecycle checkpoint. Pure source kernels sit below family admission; sealed executable wrappers join both without cycles or duplicate carriers.
 
-## Integration review — requests, lifecycle and qualification
+## requests, lifecycle and qualification
 
 Reserve immutable requirements before answers exist. Each graph node has its own output slot; checked native substitution preserves every original premise occurrence and its correspondence. Retained snapshots and reserved future outputs are distinct. Native producers attach complete managed provenance; public contexts survive unrelated private-source invalidation.
 
@@ -82,19 +82,19 @@ The generated authority owns adoption, freshness, costs, jobs and qualification.
 
 Unknown source origins and incomparable clocks remain explicit. Window absence needs original-population coverage. REAL cells retain binary64 bytes separately from numeric meaning; long text and streamed decoding require independent semantic preservation.
 
-## Integration review — ordinary expert source and actual operation instances
+## ordinary expert source and actual operation instances
 
 C01 includes original expert .thy source. Controlled constructors record conservative extensions; resetting policy over a finished worker theory bypasses admission. Replay approved imports/commands/methods against original byte spans. Unsupported packages remain editable and diagnosable. Boot identity pins actual loaded source/setup/toolchain, not theory names or a heap trailer.
 
 A sealed fixed-family instance joins executable registration, source declaration, tickets and qualification. Representation/profile IDs alone do not create a callable association. Thresholds use actual bound metric values/units and remain operational policy; identical sequent syntax across different definitions does not establish preservation.
 
-## Integration review — access, exposure and real search consumers
+## access, exposure and real search consumers
 
 Retained access preserves original read versions, session and clock requirements; follow-up requests cannot erase them. Recipient projections expose selected qualified content and necessary conditions, not privileged raw rows or theorem/context getters. Promotion retains Forget provenance.
 
 Search begins with bounded fixed retrieval/application/simplification/splitting and independently reconstructed proof transport. Complete scope still includes cross-family retrieval, synthesis, counterexamples, conjecture/refinement proposals, adaptive orchestration and deployed budget/cancellation. A failed proof route is not a refutation.
 
-## Integration review — native assembly and reconstruction identity
+## native assembly and reconstruction identity
 
 One native state carrier, owner and private ticket instance serve the resident application. Reject unsupported commands before committing their state. Shared durable generations reconstruct one actual context island; equal replay text in sibling theories is insufficient for native composition. Distinct logical generations may share physical construction while retaining separate parent/source provenance.
 
@@ -108,7 +108,7 @@ Recovery preserves native definition command forms, code certificates and ordere
 
 Fixed row metadata may decode in a public context only when it contains public constructor data. Actual protected configuration slices establish declaration ownership; caller numeric IDs cannot supply request/attempt/output authority. A shared fixed-checker source pool preserves equal-byte distinct origins and rejects conflicting payloads.
 
-## Integration review — lifetime, source fidelity and display contracts
+## lifetime, source fidelity and display contracts
 
 Use independent input leases and explicit invalidation. Mask bounded ownership mutations and rollback, not proof search or long joins. Resident cleanup drains worker and completion monitor before releasing roots. Raw input, prepared parameter and execution are separate managed rows.
 
@@ -118,11 +118,11 @@ Preserve original bytes and translate Isabelle symbol positions to original byte
 
 A fixed native display contract joins original integer capture/AST, result projection and sentence meaning/escaping. Actual emission and recovery retain its identity, math execution pin and statement-checker pin. Shared bridge IDs share an owner; equal pins alone do not merge logical identities. Release bridges before shared instances/contexts. Source/context fragments install atomically; no resident raw saved-ID factory is exposed.
 
-### Remaining effect authorization design
+### Effect authorization
 
 Attempts need an explicit owning goal, optional reserved output and attempt-specific staging revision. Current dependencies, blockers, capability and handoff authority must be checked; immutable request prestate remains historical. D42/D66/D72 govern the coordinated implementation. Legacy singleton restrictions remain explicit until owning-child migration is qualified.
 
-## Integration review — measured closure costs and recurring effects
+## measured closure costs and recurring effects
 
 Indexed Forget must preserve the exact returned list and RemoveManaged order, including HOL remdups last-occurrence semantics and unchanged seeds for empty values. Require the native equality/refinement theorem, selected generated code and composed cleanup checks; sorted test oracles cannot establish order.
 

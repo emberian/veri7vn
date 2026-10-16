@@ -38,6 +38,26 @@ end
     }
     var failed=BigInt(0);var successful=BigInt(0);var candidate=BigInt(0)
     var originalRevision="";var repairedRevision=""
+    scala.util.Using.resource(RuntimeService.open(root.resolve("routing-workspace"),images,directories)){service=>
+      def sequence():Long=service.client.durableSequence
+      val beforeInspection=sequence()
+      val question="the sum of -2 and 3"
+      val routing=service.client.inspectRoutingDetails(question.getBytes(UTF_8))
+      assert(routing.status=="readings" && routing.alternatives.size==1)
+      val reading=routing.alternatives.head
+      assert(reading.index==0 && reading.operation==0 &&
+        reading.literals.map(span=>question.substring(span.start,span.stop))==Vector("-2","3"))
+      assert(service.client.inspectRoutingDetails("hello".getBytes(UTF_8)).status=="unrecognized")
+      val proposal=service.client.suggestGrowth("double then square")
+      assert(proposal.operations==Vector("double","square") && proposal.source.contains("proposed_recipe") && proposal.unsupported.isEmpty)
+      val blocked=service.client.suggestGrowth("sort then double")
+      assert(blocked.source.isEmpty && blocked.unsupported.contains("sort"))
+      assert(sequence()==beforeInspection,"Read-only routing or suggestion changed the authority journal")
+      println("WORKSHOP_ROUTING_GROWTH_PASS native readings original spans ordered tentative source unsupported refusal no authority mutation")
+      val author=new Authoring(service.managedSources)
+      veri7vn.authoring.assistance.RoutingCommandsChecks.run(service.client)
+      veri7vn.authoring.assistance.GrowthCommandsChecks.run(service.client,author)
+    }
     scala.util.Using.resource(RuntimeService.open(workspace,images,directories)){service=>
       val author=new Authoring(service.managedSources)
       val builds=new ResidentBuildWorkspace(service,author)

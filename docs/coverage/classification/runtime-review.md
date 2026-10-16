@@ -1,46 +1,23 @@
-# Runtime dispatch and migration review
+# Runtime dispatch
 
-The source C3 resolver (`tools/audit/reachability/dispatch.py`) follows actual
-imports/classes under oracle7.py's admitted-before-wander path order. It resolves
-**361 classes across 360 modules**, including w530's private mixin, three
-multiple-inheritance joins (w66,w46,w31), the evidential serving branch and 40
-pre-AO ancestor modules. All 317 HEAD-listed modules are present, but HEAD's
-`chain_tip_to_base` is not the C3 method order. Its w110/w114/w116 and w60 diamond
-ordering differs. Python's own `type` machinery on inert source-base class shells
-independently validates the resolver's class order. No upstream app is imported.
-`dispatch.json` pins inspected source hashes and records 580 potentially reachable
-method bodies, lexical conditions, virtual/super/explicit-base targets, module
-helpers and self writes. The 63 unreached declared methods are **not excluded**:
-dynamic callbacks/getattr, standalone callers and helper-mediated calls can reach
-methods outside this model. Conditional branches are possible routes, not traces.
+`python3 tools/audit/reachability/dispatch.py` resolves imports under `oracle7.py`'s admitted-before-wander path order: 361 classes/360 modules, 317 HEAD modules, w530's private mixin, joins w66/w46/w31, evidential serving ancestors and 40 pre-AO modules. Inert Python class shells independently validate C3. HEAD's list differs from actual w110/w114/w116 and w60 diamond order.
 
-| Actual route | Source-owned semantics and state | Migration / failure boundary |
-|---|---|---|
-| w540.chat → cooperative chain | Final question-direction, number-readback and private-question guards run **after** inner chat | G04 arbitration before answer-derived state. Scoped test confirms w529 numeric state survives N2 rejection |
-| w533.chat / _c533_part | Whole pipeline then 2–3 subquestions; `_Base.chat(self,part,#part)` explicitly bypasses w533 chat, but virtual self helpers still dispatch at tip | Keep explicit-base semantics, sub-session lineage and per-part blockers. Partial-display scope differs from whole answered |
-| w530 private _C528Parts | Bodies preflight can answer before deeper chat; resolved standalone body check; body decline replaces physics-only answer. `_c528_precedence` calls super from **mixin**, not exported class | Preserve named-body gravity and supported recognition before Earth-default math; source/reader assumptions remain conditional |
-| w530 relation precedence | Only designated WEAK paths may be replaced by differing verified-family answer; no decline/per-part substitute there | Reader model/quote assurance remains scoped; not global source truth. Missing families preserve parent reply |
-| w525.chat | Parent first; narrowing can invalidate ocean/astronomy result, then family then typed network; deliberate suffixes protected | Local mock reproduces broad exception restoring narrowed parent; retain blocker across dependency failure |
-| w480.chat | Calls virtual self._c480_dispatch after base response, logs resulting dialogue before outer guards | Actual dispatch target w503, not w480 alone; logging is transcript observation, adoption must await final arbitration |
-| w503→502→500→498→496→494→492→490→488→486→482→480 _c480_dispatch | Each super call runs deeper dispatcher first; unwind adds corrections/social/self/conversation/relation/math/code behavior | Preserve useful speech acts, safety replies and scoped refusal. These are distinct outcomes, not every reply a theorem |
-| w480 dispatcher base | Dialogue for unanswered/session-vessel; math directive may outrank nonmath parent; relation outranks designated weak paths | Guard inputs and scope arbitration; source-derived relation computation remains owned; failure/timeout not absence |
-| w482/w486 code | V482 examples/prose check and bounded composition; V486 _Recorder and persistent library with persist=False for loop-*; wraps unconfident programs as tentative | Candidate/test artifact retained, not admitted universal program. Persistent versus in-memory exposure separate; synthesis-growth |
-| w490 math | Virtual _c480_math chooses V3 then V482/V480 fallback; path pluralization only after underlying result | Preserve exact requested mathematical domain and partiality; false equivalence fixtures apply to actual chosen V3 component |
-| w492 relations | Form helper or pronoun rewritten from response string; uses relation source and bounded helper timeout | Typed interpretation/adoption should replace rendering reparse; original literal and source/model premises retained |
-| w494/w496/w498/w500 acts | Converse safety can survive withheld result; self-only exceptions explicit; hollow reply recognition; social response uses recent turn context | Claim scope separate from speech act, no indiscriminate fallback; operational-model/interpretation-model |
-| w503/w502 corrections | Parent-first corrections reject context-only topic substitution and formula-as-wordproblem | Preserve these existing repairs while replacing heuristic guard with scoped interpretation evidence |
-| w480 _receive/_register | SQLite BEGIN IMMEDIATE vessel update/weight/session counts; COMMIT then event/request JSONL; fallback to older _receive if DB not ready. Register orders top 3 and mutates session path queue | Native owned state transitions and conditional source/host persistence; postcommit journal/event failure does not prove absent update |
-| w468 remember | Answered inner result updates thread/reply memory before outer transformations | Separate adopted answer state from attempted/transcript state; cancellation/outer refusal cannot silently retain authority |
-| w31 serving merge | SiblingEvidentialV3→V2→SiblingEvidential extends actual core ancestor AO | These inherited source files are core runtime, not the six sibling product investigation scope |
+`dispatch.json` pins hashes, 580 potentially reachable bodies, lexical conditions, helper targets and writes. Its 63 unreached methods are retained: callbacks/getattr/helper paths can exceed the model. Potential routes are not activation traces.
 
-Three synthesis mechanisms remain separate migrations: w32 catalogue/toolchain
-execution, w37 ordered pipeline/differential sample search, and w482/w486 bounded
-typed enumeration/library. This review follows dispatcher ownership, not a claim
-that the mechanisms have been proved or subsumed by one enumerator.
+| Route | Semantics and migration obligation |
+|---|---|
+| w540 → inner chat | Direction/number/private guards run last; w529 state can survive N2 rejection. Arbitrate before adoption. |
+| w533 `_c533_part` | Whole pipeline then 2–3 parts; explicit `_Base.chat` bypasses w533, virtual helpers still resolve at tip. Preserve lineage, blockers and partial scope. |
+| w530 `_C528Parts` | Named-body preflight/decline precedes Earth-default math; `_c528_precedence` super starts at mixin. Retain model conditions. |
+| w530 relations | Only designated WEAK paths permit differing family replacement. |
+| w525 | Parent/narrowing/family/network order; exceptions must not restore suppressed answers. |
+| w480 → virtual `_c480_dispatch` | Actual target w503; transcript logging precedes outer guards, unlike authoritative adoption. |
+| w503→502→500→498→496→494→492→490→488→486→482→480 | Parent-first unwind adds corrections, speech acts, dialogue, relations, math and code. Preserve refusal scopes and useful existing repairs. |
+| w490 math | V3 then V482/V480 fallback; test the selected component's domain/partiality. |
+| w492 relations | Response-string pronoun rewriting needs typed bindings and original source/model evidence. |
+| w482/w486 code | Tentative artifacts, visible-case enumeration and library learning; disk-off does not isolate memory. |
+| w480 `_receive/_register` | SQLite BEGIN IMMEDIATE/COMMIT precedes JSONL; postcommit logging failure does not undo state. Register mutates top-three/session queue. |
+| w468 remember | Inner answered result mutates memory before outer transformations; separate attempted/transcript and adopted state. |
+| w31 serving merge | SiblingEvidentialV3/V2 ancestors are core runtime, distinct from D18 sibling products. |
 
-Every other source route remains retained in dispatch.json and pinned inventory.
-Unreviewed helper body/imported engine/background-worker semantics remain owned
-work, not absence or exclusion. Read matrices together with the independent
-workbench workflow dispositions. Root should dispatch source-semantic families
-from `domain-profiles.json`, and use this matrix for routing/state/synthesis
-integration. Full runtime activation and complete source-role closure remain open.
+w32 catalogue/toolchain, w37 ordered sample pipeline and w482/w486 enumeration/library are separate synthesis migrations. Family owners consume `domain-profiles.json`; routing/state owners consume this matrix. Dynamic/helper/background closure and complete runtime activation remain open, with every route retained in the pinned inventory.

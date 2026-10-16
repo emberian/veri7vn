@@ -24,7 +24,7 @@ D44 polls/retries owned aggregate cleanup before erasure. Resident attempt `6c02
 
 ## Protected native build ingress (D43)
 
-`NativeBuildInputs.Owned` captures same-store descriptor/theory from one revision. Inspection grants no build/adoption permission. `build_input_begin` carries UTF-8 YXML<=16384bytes, root `build-input` version1: revision/manifest, original paths, lengths/SHA256, fresh lowercase32hex `upload_nonce`. Descriptor is `package.json`; theory is a distinct portable `.thy`. Each original<=1000000bytes; ordered parents<=64; two upload permits remain occupied through unresolved cleanup. Profile/setup are installed constants. Contiguous chunks<=65536bytes precede finish; `propose_build` separately charges the workflow.
+`NativeBuildInputs.Owned` captures descriptor/theory from one revision. Inspection grants no build/adoption permission. `build_input_begin` carries UTF-8 YXML<=16384bytes, root `build-input` version1: revision/manifest, original paths, lengths/SHA256, fresh lowercase32hex `upload_nonce`. Descriptor is `package.json`; theory is a distinct portable `.thy`. Each original<=1000000bytes; ordered parents<=64; two upload permits remain occupied through unresolved cleanup. Profile/setup are installed constants. Contiguous chunks<=65536bytes precede finish; `propose_build` separately charges the workflow.
 
 Worker offer→`build_input_accept(nonce,ID)` publishes an accepted handle. Discard disposes unaccepted ownership; accepted roots need ID release. Lost replies preserve capacity/owner. After worker join and control completion, `build_input_settle(nonce)` removes bounded terminal correlation. D45 completion, not reader arrival/timeout, governs cleanup.
 
@@ -36,7 +36,7 @@ The fixed `veri7vn.package_descriptor_v1` Scala function parses retained origina
 
 A same-resident private issuer confirms once under lifecycle serialization; checkpoint changes/teardown invalidate it. Reading rechecks source access and grants no execution authority.
 
-`local-mcp/1` / `effect-request` persists original control/config/packet ownership with empty nonassertional sequent and fixed executable pin before start. `effect-source-observation` retains actual response association separately. Neither reconstructs permits, sessions, executors, or automatic retry. Native producer/connector retrieval and current schema composition need actual consumers.
+`local-mcp/1` / `effect-request` persists original control/config/packet ownership with empty nonassertional sequent and fixed executable pin before start. `effect-source-observation` retains actual response association separately. Neither reconstructs permits, sessions, executors, or automatic retry. Native producer/connector retrieval and schema composition needs consumers.
 
 ## Reproduction evidence
 

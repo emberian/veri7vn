@@ -12,6 +12,18 @@ object ResidentWorkbenchTests {
   def main(args:Array[String]):Unit={
     val root=Files.createTempDirectory("v7-resident-workbench-")
     scala.util.Using.resource(RuntimeService.open(root.resolve("workspace"),root.resolve("images"),args.toList.map(Path.of(_)))) {service=>
+      val cliOutput=new java.io.ByteArrayOutputStream()
+      Console.withOut(new java.io.PrintStream(cliOutput,true,"UTF-8")) {
+        veri7vn.cli.ResidentWorkbench.run(service,Array("specialists"))
+        veri7vn.cli.ResidentWorkbench.run(service,Array("route","the sum of 8 and 9"))
+        veri7vn.cli.ResidentWorkbench.run(service,Array("run","the sum of 8 and 9"))
+      }
+      val cli=cliOutput.toString("UTF-8")
+      assert(cli.contains("Route: readings") && cli.contains("Sum") && cli.contains("literal bytes"))
+      val routedRequest=BigInt("(?m)^Request ([0-9]+)$".r.findFirstMatchIn(cli).get.group(1))
+      veri7vn.authoring.assistance.RoutingCommandsChecks.run(service.client,Some(routedRequest))
+      veri7vn.authoring.assistance.GrowthCommandsChecks.run(service.client,new Authoring(service.managedSources))
+      println("RESIDENT_ROUTING_CLI_PASS specialists_route_native_operation_spans_run_explain_forget_and_reviewed_suggestion")
       val execution=new ResidentExecution(service)
       val browser=new Browser(new Authoring(service.managedSources),Some(execution));browser.start()
       try {
@@ -61,13 +73,6 @@ object ResidentWorkbenchTests {
         page=post("Refresh result",Seq("request"->id))
         while(!page.contains("<p role=status>cancelled</p>") && System.nanoTime()<forgottenDeadline){Thread.sleep(25);page=post("Refresh result",Seq("request"->id))}
         assert(page.contains("<p role=status>cancelled</p>") && !page.contains("The exact product of 6 and 7 is 42."))
-        val routingOutput=new java.io.ByteArrayOutputStream()
-        Console.withOut(new java.io.PrintStream(routingOutput,true,"UTF-8")) {
-          veri7vn.cli.ResidentWorkbench.run(service,Array("route","the product of 6 and 7"))
-          veri7vn.cli.ResidentWorkbench.run(service,Array("specialists"))
-        }
-        assert(routingOutput.toString("UTF-8").contains("Route: readings"))
-        veri7vn.authoring.assistance.RoutingCommandsChecks.run(service.client)
         println("RESIDENT_WORKBENCH_PASS actual browser request native licensed HTML confirmed Forget")
       }finally {browser.close();execution.close()}
     }

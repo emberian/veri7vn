@@ -22,7 +22,7 @@ refinement theorem; formalizing a computation does not establish world accuracy.
 
 ## Quantification and concrete consumers
 
-### Reviewed post-transition licensing component (PO-04/10; integration still open)
+### Post-transition licensing (PO-04/10; integration open)
 
 Veri7vn_Authority_Proofs.publication_authorized licenses newly visible bindings in
 the resulting state. acknowledged_output_contract connects durable acknowledgement
@@ -37,7 +37,7 @@ separate runtime leaves failed. The native-evidence locale assumes faithful
 attachment under TB-01. Current D42/later consumers and dependent statements need
 requalification; no arbitrary algorithm, compiler or rendered-byte result follows.
 
-### Reviewed finite-list Forget component (PO-09/10; integration still open)
+### Finite-list Forget (PO-09/10; integration open)
 
 Effects_Closure_Totality.forget_closure_total proves existence for arbitrary finite
 lists, without distinct-ID, acyclicity or complete-membership premises. With

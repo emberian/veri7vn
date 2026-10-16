@@ -20,7 +20,11 @@ ML \<open>
 structure Veri7vn_Native_Build_Image =
 struct
   val executable=Veri7vn_Executable_Identity.pin @{theory}
-    {artifact="veri7vn-native-controlled-source-builder-v1",
+    (* The operation-ticket ABI carries a 64-hex artifact identifier. This
+       domain-separated identifier names the fixed producer; it is not a
+       checksum assertion about compiled bytes. The opaque pin remains authority. *)
+    {artifact=Message_Digest.rep(SHA256.digest
+       "veri7vn:executable-identity:controlled-source-builder:v1"),
      compiler="Isabelle/PolyML",target="bounded-native-development-replay",
      serializers=["protected-source-slice-v1","ordered-managed-parent-v1"],
      foreign_primitives=["Scala.function1_bytes:veri7vn.package_descriptor_v1"],settings=["source-bytes<=1000000","parents<=64",

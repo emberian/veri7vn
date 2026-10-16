@@ -16,6 +16,7 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
     available();ServiceCapabilities.read(supervisor.exchange("service_capabilities"))
   }
   def supportsNativeBuild:Boolean=installedFamilies().exists(_.exists(_._1=="native-build"))
+  def durableSequence:Long={available();coordinator.readCurrent(_.sequence)}
   coordinator.requireReady()
   private val stopped=new AtomicBoolean(false)
   @volatile private var failure:Option[Throwable]=None
@@ -46,6 +47,22 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
     require(!stopped.get(),"resident service stopped")
   }
   final case class RoutingInspection(status:String,alternatives:List[Int])
+  def inspectRoutingDetails(original:Array[Byte]):RoutingDetails={
+    available();require(original.length<=256,"routing inspection byte bound")
+    val owned=original.clone()
+    try RoutingDetailsProtocol.read(supervisor.exchange("inspect_routing_details","math/1",List(Bytes(owned))),owned)
+    finally java.util.Arrays.fill(owned,0.toByte)
+  }
+  def suggestGrowth(text:String):GrowthSuggestion={
+    available()
+    val encoding=java.nio.charset.StandardCharsets.UTF_8
+    require(encoding.newEncoder().canEncode(text),"growth request UTF8")
+    val owned=text.getBytes(encoding)
+    try {
+      require(owned.length<=8192,"growth request byte bound")
+      GrowthSuggestionProtocol.read(supervisor.exchange("growth_suggest","numeric/1",List(Bytes(owned))))
+    } finally java.util.Arrays.fill(owned,0.toByte)
+  }
   def inspectRouting(original:Array[Byte]):RoutingInspection={
     available();require(original.length<=256,"routing inspection byte bound")
     val owned=original.clone()

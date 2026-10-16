@@ -7,7 +7,7 @@ import veri7vn.runtime.service.ResidentAuthorityService
 /** Invoked by the actual resident workbench rehearsal, with no transport or
   * result substitution. Tests inspection separately from native execution. */
 object RoutingCommandsChecks {
-  def run(client:ResidentAuthorityService):Unit={
+  def run(client:ResidentAuthorityService,existingRequest:Option[BigInt]=None):Unit={
     def command(args:String*):String={
       val out=new java.io.ByteArrayOutputStream()
       Console.withOut(new java.io.PrintStream(out,true,"UTF-8")){RoutingCommands.run(client,args.toArray)}
@@ -20,6 +20,7 @@ object RoutingCommandsChecks {
       val routed=command("route",question)
       require(routed.contains("Route: "+actual.status),"Command changed actual native route status")
       actual.alternatives.foreach(index=>require(routed.contains(index.toString),"Command dropped native alternative"))
+      require(routed.contains("Sum") && routed.contains("literal bytes"),"Command omitted actual native operation/spans")
       require(routed.contains("Inspection only"),"Command failed to distinguish inspection from execution")
       val unavailable=command("route","tell me which impossible specialist knows this")
       require(unavailable.contains("unrecognized by math/1") && !unavailable.contains("Selected reading:"),
@@ -31,7 +32,7 @@ object RoutingCommandsChecks {
         case Some(values)=>values.foreach((name,version,_,_)=>require(listed.contains(name+"\t"+version),"Declared family lost"))
       }
       require(actual.status=="readings" && actual.alternatives.size==1,"Actual fixed arithmetic fixture interpretation")
-      val request=client.proposeMathematics(bytes,Some(actual.alternatives.head))
+      val request=existingRequest.getOrElse(client.proposeMathematics(bytes,Some(actual.alternatives.head)))
       val deadline=System.nanoTime()+60L*1000*1000*1000
       var result=client.mathematicsResult(request)
       while(result.status=="pending" && System.nanoTime()<deadline){Thread.sleep(20);result=client.mathematicsResult(request)}

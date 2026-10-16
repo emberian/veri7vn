@@ -10,8 +10,8 @@ import veri7vn.packages.intake.Intake
 /** Actual native suggestion and existing managed editor, reused in the resident
   * workbench trial. Source recording is deliberately not capability admission. */
 object GrowthCommandsChecks {
-  def run(client:ResidentAuthorityService,author:Authoring):Unit={
-    val root=Files.createTempDirectory("veri7vn-growth-review-")
+  def run(client:ResidentAuthorityService,author:Authoring,entry:Option[Array[String]=>Unit]=None):Unit={
+    val root=Files.createTempDirectory("veri7vn-growth-review-").toRealPath()
     val draft="growth-review-"+java.util.UUID.randomUUID().toString
     val marker="(* editable recipe *)"
     val text="theory Recipe imports Mathematics_Exact begin\n"+marker+"\nend\n"
@@ -27,8 +27,11 @@ object GrowthCommandsChecks {
       val out=new java.io.ByteArrayOutputStream()
       val input=new java.io.ByteArrayInputStream((reply+"\n").getBytes(UTF_8))
       Console.withOut(new java.io.PrintStream(out,true,"UTF-8")){
-        Console.withIn(input){GrowthCommands.run(client,author,Array("suggest",draft,"Recipe.thy",start.toString,
-          stop.toString,request,"ChangeSpecification","Author chooses this ordered numeric recipe",operation))}
+        Console.withIn(input){
+          val args=Array("suggest",draft,"Recipe.thy",start.toString,stop.toString,request,
+            "ChangeSpecification","Author chooses this ordered numeric recipe",operation)
+          entry match {case Some(run)=>run(args);case None=>GrowthCommands.run(client,author,args)}
+        }
       }
       out.toString("UTF-8")
     }

@@ -20,7 +20,8 @@ import java.nio.file.{Files,Paths}
   val sources="\"(src/[^\"]+\\.scala)\"".r.findAllMatchIn(producer.substring(begin,end)).map(_.group(1)).toList
   require(sources.nonEmpty && sources.distinct==sources && sources.forall(p=>Files.isRegularFile(Paths.get(p))),"Invalid resident source inventory")
   val classes=Files.createTempDirectory("v7-workshop-check-")
-  require(!dotty.tools.dotc.Main.process((List("-classpath",System.getProperty("java.class.path"),"-d",classes.toString)++sources:+"tests/integration/workshop/WorkshopLifecycleTests.scala").toArray).hasErrors,"Workshop compilation failed")
+  require(!dotty.tools.dotc.Main.process((List("-classpath",System.getProperty("java.class.path"),"-d",classes.toString)++sources++List("tests/integration/workshop/WorkshopLifecycleTests.scala",
+    "tests/workbench/assistance/RoutingCommandsChecks.scala","tests/workbench/assistance/GrowthCommandsChecks.scala")).toArray).hasErrors,"Workshop compilation failed")
   // Use exactly the native graph built by the guarded invocation. Scanning
   // unrelated source ROOTs can introduce conflicting experimental sessions.
   val closurePath=Paths.get(Option(System.getenv("VERI7VN_WORKSHOP_NATIVE_CLOSURE"))

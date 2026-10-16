@@ -11,8 +11,9 @@ object ResidentWorkbench {
     val author=new Authoring(service.managedSources)
     val execution=new ResidentExecution(service)
     try {
-    require(args.nonEmpty,"Workbench command required: serve, specialists, route, run, explain, result, cancel, forget, list, import-original, import-native, inspect, source, migration, edit")
+    require(args.nonEmpty,"Workbench command required: serve, specialists, route, run, explain, suggest, result, cancel, forget, list, import-original, import-native, inspect, source, migration, edit")
     args(0) match {
+      case "suggest"=>veri7vn.authoring.assistance.GrowthCommands.run(service.client,author,args)
       case "specialists"|"route"|"explain"=>veri7vn.authoring.assistance.RoutingCommands.run(service.client,args)
       case "serve"=>
         require(args.length==1,"serve takes no arguments")

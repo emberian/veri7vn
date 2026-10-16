@@ -1749,6 +1749,20 @@ fun inspect_routing id payload bytes =
     val artifacts=if status="readings" then
       [Bytes.string(space_implode "," (map_index(fn(index,_)=>Int.toString index)alternatives))] else []
   in emit id "routing" status artifacts end;
+fun inspect_routing_details id payload bytes =
+  let
+    val _=F.guard(payload="math/1" andalso size bytes<=256) "Routing profile/input bound";
+    val {status,alternatives,blocked_literals}=Veri7vn_Native_Math_Routing.inspect_bytes bytes;
+    fun literal(start,stop)=XML.Elem(("literal",
+      [("start",Int.toString start),("stop",Int.toString stop)]),[]);
+    fun alternative(index,operation,literals)=XML.Elem(("alternative",
+      [("index",Int.toString index),("operation",Int.toString operation)]),map literal literals);
+    val body=YXML.string_of_body[XML.Elem(("routing-details",
+      [("version","1"),("status",status)]),
+      map alternative alternatives @ map(fn spans=>XML.Elem(("blocked",[]),map literal spans))blocked_literals)];
+    val _=F.guard(size body<=8192) "Routing inspection frame bound";
+  in emit id "routing_details" "math/1" [Bytes.string body]end;
+
 fun growth_suggest id payload bytes =
   let val _=F.guard(payload="numeric/1" andalso size bytes<=8192)
       "Growth proposal profile/input bound";
@@ -2219,6 +2233,7 @@ fun handle_command args =
     | ("growth_suggest",[bytes])=>growth_suggest id payload (Bytes.content bytes)
     | ("inspect_request",[])=>inspect_request id payload
     | ("inspect_routing",[bytes])=>inspect_routing id payload (Bytes.content bytes)
+    | ("inspect_routing_details",[bytes])=>inspect_routing_details id payload (Bytes.content bytes)
     | ("cancel",[])=>lifecycle id operation payload
     | ("forget",[])=>lifecycle id operation payload
     | ("revoke",[])=>lifecycle id operation payload
@@ -2261,7 +2276,7 @@ type rpc_state={pending:rpc_message list,active:rpc_message option,bytes:int,
 val rpc_empty={pending=[],active=NONE,bytes=0,generation=NONE,worker=NONE}:rpc_state;
 val rpc_queue=Synchronized.var "veri7vn_owned_native_rpc_queue"
   rpc_empty;
-val rpc_operations=["growth_suggest","propose_build","poll_build","build_current_binding","search_contexts","propose_search","poll_search","search_requests","install_boot","install_ids","status","service_capabilities","initial","propose_math","poll_result","poll_math_goal","inspect_request","inspect_routing",
+val rpc_operations=["growth_suggest","propose_build","poll_build","build_current_binding","search_contexts","propose_search","poll_search","search_requests","install_boot","install_ids","status","service_capabilities","initial","propose_math","poll_result","poll_math_goal","inspect_request","inspect_routing","inspect_routing_details",
   "build_input_begin","build_input_write","build_input_finish","build_input_abort",
   "build_input_release","build_input_discard","build_input_accept","build_input_settle",
   "cancel","forget","revoke","retire_capability","prepare","command_info","recovery_info",

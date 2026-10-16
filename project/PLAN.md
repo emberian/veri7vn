@@ -41,13 +41,12 @@ and selective retirement, performance evidence, supported-platform installation,
 license closure and independent recipient use. See [REVIEW.md](REVIEW.md) for
 coverage and [VALIDATION.md](VALIDATION.md) for scoped evidence.
 
-## Completed foundation ownership
+## Foundation
 
-Foundation contracts and scaffolding establish implementation boundaries. Their
-completion does not close product acceptance or the mandatory metatheory.
-Historical ownership lists are superseded by [tasks.json](tasks.json).
+Foundation contracts define implementation boundaries. Product acceptance and
+mandatory metatheory require the concrete consumers and evidence below.
 
-## Implementation ownership after design agreement
+## Ownership
 
 Root integrates and maintains decisions/status; scoped owners implement complete
 consumers. [DISPATCH.md](DISPATCH.md) gives the current organization. Shared-file
