@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Draft a caller-reviewed source closure from Isabelle's saved build inventory.
+
+No build, source execution, or automatic completeness claim. Undeclared runtime
+reads and newly introduced imports must be reviewed and added before use.
+"""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import sqlite3
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def inventory(receipt):
+    user_home = Path(receipt["user_home"])
+    inputs = set()
+    witnesses = []
+    for session in receipt["sessions"]:
+        databases = list(user_home.rglob(session + ".db"))
+        if len(databases) != 1:
+            raise ValueError(f"Expected one saved build database for {session}")
+        database = databases[0]
+        with sqlite3.connect(database.as_uri() + "?mode=ro", uri=True) as connection:
+            row = connection.execute(
+                "SELECT sources,return_code,uuid FROM isabelle_session_info WHERE session_name=?",
+                (session,)).fetchone()
+            if row is None or not row[0]:
+                raise ValueError(f"No saved source inventory for {session}")
+            # This is Isabelle's transitive source shasum, including loaded
+            # theory and ML_file inputs, not just the proper-session subset.
+            source_names = [line.split(" ", 1)[1] for line in row[0].splitlines()
+                            if " " in line]
+            source_names += [r[0] for r in connection.execute(
+                "SELECT name FROM isabelle_sources WHERE session_name=?", (session,))]
+        local = []
+        for name in source_names:
+            path = Path(name)
+            if path.is_absolute() and path.is_relative_to(ROOT):
+                if not path.is_file():
+                    raise ValueError(f"Saved source unavailable: {path}")
+                local.append(str(path.relative_to(ROOT)))
+        if not local:
+            raise ValueError(f"No checkout sources in saved inventory for {session}")
+        inputs.update(local)
+        witnesses.append({"session": session, "database": str(database.relative_to(ROOT)),
+                          "database_sha256": hashlib.sha256(database.read_bytes()).hexdigest(),
+                          "build_return_code": row[1], "build_uuid": row[2],
+                          "source_inventory_sha256": hashlib.sha256(row[0].encode()).hexdigest()})
+    controls = sorted({*inputs, *(str(Path(p) / "ROOT") for p in receipt["session_roots"])})
+    controls = {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest()
+                for p in controls if p.endswith(".thy") or Path(p).name in ("ROOT", "ROOTS")}
+    return {"inventory_controls_sha256": controls, "format": "veri7vn.native-source-closure/1", "sessions": receipt["sessions"],
+            "session_roots": receipt["session_roots"], "inputs": sorted(inputs),
+            "basis": "Isabelle saved transitive sources plus proper-session source table",
+            "review_required": "Check current ROOT/import/ML_file inventory and add all auxiliary reads; saved metadata may predate edits",
+            "saved_builds": witnesses}
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--receipt", required=True, type=Path)
+    parser.add_argument("--output", required=True, type=Path)
+    args = parser.parse_args()
+    result = inventory(json.loads(args.receipt.read_text()))
+    args.output.write_text(json.dumps(result, indent=2) + "\n")
+    print(f"Draft closure: {len(result['inputs'])} checkout sources; review required: {args.output}")
