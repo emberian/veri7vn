@@ -1108,3 +1108,73 @@ cleanup through the protected lifecycle. Independent native leases must not keep
 permission alive. Inert durable bindings may survive a closed snapshot; active
 process/worker owners still prevent it. The actual build, host persistence,
 source-diagnostic and recovery consumers must check this association together.
+
+D64 continuation clarification: an unpaid prepared/deferred request can remain
+inspectable and bindable after restoration. Execution still needs an explicit
+current-authorized transition checking actual parents, source head, permissions
+and unspent budget/ticket. The first implementation may create a new request;
+a future explicit continuation must reuse a proved modeled transition, never
+treat historical source access as a dispatch grant.
+
+## D65 — Session inputs retain independent source ownership
+
+A session utterance must not depend on the survival of an unrelated child request
+lease. A native SessionEntry retains the actual original input and observation
+view under its own governed lifetime. Restoration uses a distinct typed
+`required_session_inputs` inventory: exact original SessionLocal managed row,
+input identity and recorded/pending phase. There is no inferred semantic generation
+or fabricated zero generation in this requirement.
+
+The closed nonassertional `native-session-input/1` / `session-input` envelope records
+the actual positive captured native context, original source encoding/bytes,
+observation, fixed executable pin and full development dependencies. The fixed
+native verifier reconstructs and checks the whole expected source row before
+acquiring the shared recovery pool owner. Host inventory supplies exactly one
+protected current association per input; its manifest tag only selects a decoder.
+
+Pending source registration can restore inertly before RecordUtterance. Transcript
+access additionally needs actual recorded membership and current read authority.
+Forget of session, input or required context prevents reconstruction, including
+attempts to recover from dead child material. Restoration performs no dispatch,
+adoption or theorem admission. Conversation, Frame/Owner, host inventory and native
+recovery migrate together, with pending-crash, no-child and context-Forget consumers.
+
+## D66 — Persist immediate effect transitions before actual handoff
+
+The existing model's ClaimAndStart is an immediate transition: it changes Prepared
+to Running, charges the actual intent and emits ClaimStart. It is not a modeled
+Persist event. The existing native Frame/Owner transport nevertheless prepares
+and journals immediate transition candidates as well as modeled Persist batches.
+For immediate candidates its acknowledgement field is None; do not manufacture a
+model DurableAck or add a parallel permission mechanism.
+
+Use that actual path: protected native gate selects the exact ClaimAndStart
+candidate; host commits its predicted charged/Running checkpoint and the existing
+`native_dispatch` unknown record atomically; native acknowledgement validates and
+installs that same candidate; the fixed executor consumes the one-use permit and
+performs the handoff under the coordinator/current-source guard. Parsed command
+fields are inspection data, never the permit. Target, attempt, source/configuration,
+registration and epoch must agree with the actual retained objects.
+
+Before commit there is no handoff. A crash after commit, including before native
+acknowledgement or before external invocation, conservatively leaves Unknown.
+Recovery never replays it. Reconciliation needs the actual matching attempt/protocol
+observation and generated transition. Cancellation or retirement before permit
+consumption prevents dispatch; it does not invent an external failure receipt.
+The first real consumer is the controlled MCP fixture workflow. All crash windows,
+changed configuration and late-publication refusal require actual bridge tests.
+
+## D67 — Source-qualified quantities retain their own recovery association
+
+Use the closed pairs `source-quantities/1` + `source-domain-request` (empty,
+nonassertional) and `source-quantities-runtime-refinement/1` +
+`source-domain-output` (nonempty actual source-qualified runtime refinement).
+They preserve existing slot/evidence association meanings and do not confer a
+per-answer kernel theorem. The protected material retains the Q wrapper,
+Common/Cell acquisition ancestry, original source/Scope owners and all conditions.
+
+A bare DomainRequest/Output fallback would discard source guards and is forbidden.
+The fixed factory reconstructs the actual source and domain associations before
+publication; missing original producer/recovery support remains an explicit
+refusal. Registry/host closed-role decoding, native matching and resident recovery
+migrate together after their active capture windows.

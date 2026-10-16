@@ -920,9 +920,10 @@
       ],
       "evidence": [
         "benchmarks/envelope/closure-pilot.json",
-        "benchmarks/envelope/launch-verification-40ac-pilot.json"
+        "benchmarks/envelope/launch-verification-40ac-pilot.json",
+        "benchmarks/envelope/standalone-b4ce-phase-baseline.json"
       ],
-      "notes": " Root reviewed actual generated closure pilot f4d1f562: stable47.117s, 24 samples, 21 sorted-ID/multiplicity passes and3 five-second timeouts at1024 chain/dense/duplicate. Missing-seed linked1024 took4.172s. Single observations do not establish application/p95/RSS. Actual data archived closure-pilot.json; exact-order refinement assigned effects61.\nCurrent product consumer: performance_product61 owns actual installed launcher harness with pinned generation, startup-inclusive/warm/restart attribution, RSS and durable footprint. Root review found mutable-pointer and exited-leader pipe cleanup gaps; repairs underway before native benchmark slot. No new end-user measurements claimed.\nRoot reviewed fixed immutable facade and guardian cleanup; reran synthetic check_public_runtime.py successfully. Actual installed benchmark still held for scheduled resource slot; does not count as application timing.\nActual pinned installed pilot slot2 passed: fresh first response 22.823s, restarted first response 14.792s, two warm arithmetic requests 241.649ms and 152.812ms. Historical immutable generation40ac; not current draft qualification, tail-latency evidence, or a broad speedup claim. Detailed evidence checkpoint pending root commit.\nRoot committed actual pinned installed pilot, standalone reproduction/limits document and tested early-exit harness fix0329553. Result/four log hashes independently matched and synthetic checks rerun PASS. Attribution instrumentation awaits coordinated host window.\nActual full40ac verifier profile root-reviewed:8.649843s,3.727105s digest open/read/hash/close,4.922738s remaining validation,2.669GB/25106artifacts. Same-run launcher partition instrumentation added; root reran profile/public harness regressions PASS. Do not subtract from historical first-response timings. New headless inventory retains full hashing; installed paired comparison pending.\nActual standalone source import56.442s/reopen34.227s startup-inclusive, native101a failed sysctl. Source audit identified per-artifact1MiB scratch allocation (~24GiB cumulative over24kfiles) and double manifest tokenization as hypotheses. Same-invocation JVM phases/observer-clock collection planned after corrected launcher trial; no unsafe validation cache or inferred speedup.",
+      "notes": " Root reviewed actual generated closure pilot f4d1f562: stable47.117s, 24 samples, 21 sorted-ID/multiplicity passes and3 five-second timeouts at1024 chain/dense/duplicate. Missing-seed linked1024 took4.172s. Single observations do not establish application/p95/RSS. Actual data archived closure-pilot.json; exact-order refinement assigned effects61.\nCurrent product consumer: performance_product61 owns actual installed launcher harness with pinned generation, startup-inclusive/warm/restart attribution, RSS and durable footprint. Root review found mutable-pointer and exited-leader pipe cleanup gaps; repairs underway before native benchmark slot. No new end-user measurements claimed.\nRoot reviewed fixed immutable facade and guardian cleanup; reran synthetic check_public_runtime.py successfully. Actual installed benchmark still held for scheduled resource slot; does not count as application timing.\nActual pinned installed pilot slot2 passed: fresh first response 22.823s, restarted first response 14.792s, two warm arithmetic requests 241.649ms and 152.812ms. Historical immutable generation40ac; not current draft qualification, tail-latency evidence, or a broad speedup claim. Detailed evidence checkpoint pending root commit.\nRoot committed actual pinned installed pilot, standalone reproduction/limits document and tested early-exit harness fix0329553. Result/four log hashes independently matched and synthetic checks rerun PASS. Attribution instrumentation awaits coordinated host window.\nActual full40ac verifier profile root-reviewed:8.649843s,3.727105s digest open/read/hash/close,4.922738s remaining validation,2.669GB/25106artifacts. Same-run launcher partition instrumentation added; root reran profile/public harness regressions PASS. Do not subtract from historical first-response timings. New headless inventory retains full hashing; installed paired comparison pending.\nActual standalone source import56.442s/reopen34.227s startup-inclusive, native101a failed sysctl. Source audit identified per-artifact1MiB scratch allocation (~24GiB cumulative over24kfiles) and double manifest tokenization as hypotheses. Same-invocation JVM phases/observer-clock collection planned after corrected launcher trial; no unsafe validation cache or inferred speedup.\nActual instrumented standalone source pair41cafd passed; root verified originalrecord/summary/log hashes and exactstdoutoracle. Reopen22.005s includes20.059s verification/14.371s nestedhashaggregate versus0.215s appdispatch. Local bufferreuse/HexFormat repair nowselected, no improvementclaimed before matched consumer. Evidence benchmarks/envelope/standalone-b4ce-phase-baseline.json.",
       "contracts": [
         "C04",
         "C05"
@@ -1236,7 +1237,9 @@
         "src/isabelle/effects/**",
         "tests/effects/**",
         "docs/formal/effects.md",
-        "src/runtime/effects/**"
+        "src/runtime/effects/**",
+        "src/runtime/service/effects/**",
+        "tests/runtime/service/effects/**"
       ],
       "deliverables": [
         "State/session model and authoritative propose-check-stage-commit executor",
@@ -1282,7 +1285,7 @@
         "var/runtime-host/managed-effects-20261015T153144Z/receipt.json",
         "var/native-scaffold/sessions/752964f45b43867e/attempts/ceb68e69059f4b22a1d926481149bf52/receipt.json"
       ],
-      "notes": "Dispatched to effects61. Pure shared signed-clock freshness, exact binding session adoption, positive fuel, dependency closure and owned isolated learning implemented; current checks and actual authority/host integration remain open. D36 is the generated reducer integration contract, not an independent permission machine. Pure effects and isolated learning stable PASS 43.796s (1d956133573d9775), conditional closure/minimality checked; totality child and indexed execution remain open. Actual opaque operation profile/input lease under integration; selected-head membership fix required in host. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Root reviewed actual Effects_Closure_Totality source/current-hash/log: total finite-list closure theorem plus existing least-closure laws checked; ticket/operation child sessions7/8s and closure8s passed in overall failed Admission batch. Canonical runtime WorkerResources tests passed c0b87 with actual partial-write cleanup/capture-vs-Forget/join-outside-lock/zeroed-byte-view/late-handoff cases. Full native composed dispatch, erasure and performance remain open. First MathTicket compiler run found two unqualified uninterruptible calls; namespace repairs ready. External effects additionally require reviewed goal ownership/blocker/dependency and multistep revision model repair before dispatch. Measured closure requires algorithmic refinement: preserve exact list/RemoveManaged order, including last-occurrence remdups and empty-values seed duplicates. Effects owner drafted a separate native order-characterization proof; finite search is exploratory only, no optimized implementation selected yet. D42 recurring job lifecycle migration has explicit parent-template and per-poll child requests, cumulative budget and stale incarnation rejection.\nRoot reviewed and committed core d6fe Indexed proof/export success separately from failing later exact-order eval test. Actual service uses checked ancestor/history core; first native service consumer capture running. Optional forward reconstruction remains unqualified.\nCorrection from actualgeneratedBOTH diagnostic: earlier manualmodel omitted self-ID in directly_dependent. All-reached reconstruction was not refuted; optional fired-only candidate returns wrongorder. Owner repairs exact orderedwrapper without changing checked ancestor/historycore.",
+      "notes": "Dispatched to effects61. Pure shared signed-clock freshness, exact binding session adoption, positive fuel, dependency closure and owned isolated learning implemented; current checks and actual authority/host integration remain open. D36 is the generated reducer integration contract, not an independent permission machine. Pure effects and isolated learning stable PASS 43.796s (1d956133573d9775), conditional closure/minimality checked; totality child and indexed execution remain open. Actual opaque operation profile/input lease under integration; selected-head membership fix required in host. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Root reviewed actual Effects_Closure_Totality source/current-hash/log: total finite-list closure theorem plus existing least-closure laws checked; ticket/operation child sessions7/8s and closure8s passed in overall failed Admission batch. Canonical runtime WorkerResources tests passed c0b87 with actual partial-write cleanup/capture-vs-Forget/join-outside-lock/zeroed-byte-view/late-handoff cases. Full native composed dispatch, erasure and performance remain open. First MathTicket compiler run found two unqualified uninterruptible calls; namespace repairs ready. External effects additionally require reviewed goal ownership/blocker/dependency and multistep revision model repair before dispatch. Measured closure requires algorithmic refinement: preserve exact list/RemoveManaged order, including last-occurrence remdups and empty-values seed duplicates. Effects owner drafted a separate native order-characterization proof; finite search is exploratory only, no optimized implementation selected yet. D42 recurring job lifecycle migration has explicit parent-template and per-poll child requests, cumulative budget and stale incarnation rejection.\nRoot reviewed and committed core d6fe Indexed proof/export success separately from failing later exact-order eval test. Actual service uses checked ancestor/history core; first native service consumer capture running. Optional forward reconstruction remains unqualified.\nCorrection from actualgeneratedBOTH diagnostic: earlier manualmodel omitted self-ID in directly_dependent. All-reached reconstruction was not refuted; optional fired-only candidate returns wrongorder. Owner repairs exact orderedwrapper without changing checked ancestor/historycore.\nRoot resumed production ClaimStart leaf D66 through exact immediate candidate journal/ack/opaque handoff, actual MCP consumer. No modeledPersist invention or parsed-command permission.",
       "contracts": [
         "C04",
         "C05"
@@ -1858,7 +1861,7 @@
         "Proposed gap-loop case: inspect a decline, seed a draft, add intended expectations and requalify without bypassing the blocker or silently adopting private journal material."
       ],
       "evidence": [],
-      "notes": "\nCurrent wide product dispatch: Typed status, bounded actual-owner inspection parser and managed-source repair implemented. Scala compiled; secure temp-root fixture repaired after actual failure, retry pending. Native inspection producer and complete repair/revalidation consumer remain required.\nRoot committed decoder/repair/parser checkpoint e11d462. Stable012b checkpoint passes closed build failure phases/native associations/UTF8 byte bounds and actual source patch/stale/Forget checks. Native failure producer-to-captured-source join, repair/revalidation UI, and actual resident inspection remain open.\nReal source-descriptor PackageImpact projection now joins existing consumer closure and workbench. SourceDiagnostic checks governed borrowed original bytes/hash and physical UTF8 span for native failure; actual D43 original-source association remains host/assembly prerequisite. No invented current-source diagnostic binding.\nSourceDiagnostic actualba9d tests pass for exact captured SHA/size, UTF8 physical span/codepoint positions and historical/current distinction without retaining source buffers. Host496ca compiles governed callback; actual native Build failure producer still required. PackageImpact expanded edge<=65536 and aggregate path-output<=65536 preflight + one reverse BFS added after root review, queued follow-up.",
+      "notes": "\nCurrent wide product dispatch: Typed status, bounded actual-owner inspection parser and managed-source repair implemented. Scala compiled; secure temp-root fixture repaired after actual failure, retry pending. Native inspection producer and complete repair/revalidation consumer remain required.\nRoot committed decoder/repair/parser checkpoint e11d462. Stable012b checkpoint passes closed build failure phases/native associations/UTF8 byte bounds and actual source patch/stale/Forget checks. Native failure producer-to-captured-source join, repair/revalidation UI, and actual resident inspection remain open.\nReal source-descriptor PackageImpact projection now joins existing consumer closure and workbench. SourceDiagnostic checks governed borrowed original bytes/hash and physical UTF8 span for native failure; actual D43 original-source association remains host/assembly prerequisite. No invented current-source diagnostic binding.\nSourceDiagnostic actualba9d tests pass for exact captured SHA/size, UTF8 physical span/codepoint positions and historical/current distinction without retaining source buffers. Host496ca compiles governed callback; actual native Build failure producer still required. PackageImpact expanded edge<=65536 and aggregate path-output<=65536 preflight + one reverse BFS added after root review, queued follow-up.\nRoot reviewed actual aefb authoring/diagnostics exit0 plus separate8b947 retained source PASS, all13 source/test hashes; committed1ee2aad. CurrenthostD64 changes require fresh composition.",
       "contracts": [
         "C01",
         "C02",
@@ -2093,7 +2096,7 @@
         "Proposed model/profile cases: continuous EOQ optimum versus integer policy, temperature point/delta, dB references, relative-angle frame, normative rounding and incomplete cooling-rule conditions."
       ],
       "evidence": [],
-      "notes": "Broad parent gate; split by actual operation families, preserving the denominator and gate ID.\n2026-10-15 breadth restart: First finite batch: source-backed units-affine-exact profile (units/v2/v3/v3-r2) and springs Hooke-law composition; separate linear units, affine temperature points and differences; typed_plan_bundle consumer and actual generated kernel/refinement. Resident family registration is the explicit next shared consumer, not waived.\nRoot reviewed exact quantity/spring/plan theorems and example tests, matching all seven core/example source hashes in failed-overall bundle attempt6d3373be. Domains and Domain_Checks explicitly finished successfully. Core checkpoint excludes unqualified bundle/service; actual model ownership and resident consumer remain open.\nSource-quantity bridge subdirectory transferred to capability_integration61; domain owner resumed conditional service/display and actual fixed-family integration. RefinedExecution evidence must not be described as a per-answer kernel theorem.\n2026-10-16 integration review: DomainBundle actual81fe pass reported; source/service/display/recovery and source-quantity resident integration still pending. Explicit breadth children now enumerate formerly hidden untouched requirements.",
+      "notes": "Broad parent gate; split by actual operation families, preserving the denominator and gate ID.\n2026-10-15 breadth restart: First finite batch: source-backed units-affine-exact profile (units/v2/v3/v3-r2) and springs Hooke-law composition; separate linear units, affine temperature points and differences; typed_plan_bundle consumer and actual generated kernel/refinement. Resident family registration is the explicit next shared consumer, not waived.\nRoot reviewed exact quantity/spring/plan theorems and example tests, matching all seven core/example source hashes in failed-overall bundle attempt6d3373be. Domains and Domain_Checks explicitly finished successfully. Core checkpoint excludes unqualified bundle/service; actual model ownership and resident consumer remain open.\nSource-quantity bridge subdirectory transferred to capability_integration61; domain owner resumed conditional service/display and actual fixed-family integration. RefinedExecution evidence must not be described as a per-answer kernel theorem.\n2026-10-16 integration review: DomainBundle actual81fe pass reported; source/service/display/recovery and source-quantity resident integration still pending. Explicit breadth children now enumerate formerly hidden untouched requirements.\nRoot reviewed/committed exact five Bundle files1e2507e against81fe actualpass, including universal execution refinement and retained condition scope. Current numeric migration reopens consumer check; shared rational child assigned Domainowner with math/finite/policy consumers.",
       "contracts": [
         "C01",
         "C02",
@@ -2350,7 +2353,7 @@
         "Proposed dialogue cases: only some multipart questions succeed, dependent second question uses the accepted first result, expired follow-up, tentative code response and help with no fabricated fact claim."
       ],
       "evidence": [],
-      "notes": "\nCurrent wide product dispatch: Native same-carrier routing/adoption guards, DialogueClient and actual resident consumer written. Fixed math inspection producer in assembly; source/domain alternatives, meaningful reading descriptions, durable adoption and full conversation lifecycle remain open.\nD46 multipart requires same native request identity/goals/slots; independent Math requests grouped in UI do not supply licensed same-request adoption. Actual composite producer remains assembly/plan integration work.\nD60 distinguishes route proposals from actual required goals and None unaddressed policy from Some [] addressed-unavailable/no fallback. Native comparator and policy regressions are drafts pending checks. Actual resident requests currently lack session/adoption linkage; new conversation consumer task owns this through the same authority, not separate conversation storage.",
+      "notes": "\nCurrent wide product dispatch: Native same-carrier routing/adoption guards, DialogueClient and actual resident consumer written. Fixed math inspection producer in assembly; source/domain alternatives, meaningful reading descriptions, durable adoption and full conversation lifecycle remain open.\nD46 multipart requires same native request identity/goals/slots; independent Math requests grouped in UI do not supply licensed same-request adoption. Actual composite producer remains assembly/plan integration work.\nD60 distinguishes route proposals from actual required goals and None unaddressed policy from Some [] addressed-unavailable/no fallback. Native comparator and policy regressions are drafts pending checks. Actual resident requests currently lack session/adoption linkage; new conversation consumer task owns this through the same authority, not separate conversation storage.\nMultipart coverage requirement reaffirmed: physical slice/order ownership does not prove full-question decomposition. Fixed whole-question reader or explicit typed plan must preserve unparsed/declined parts and per-part addressed context; current whole-input singleton does not license arbitrary slice-only compound answers.",
       "contracts": [
         "C02",
         "C03",
@@ -3652,14 +3655,17 @@
       "title": "Implement exact finite probability and descriptive statistics",
       "area": "capability breadth",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "coverage-disposition",
         "native-admission"
       ],
-      "owner": null,
+      "owner": "finite_probability61",
       "paths": [
-        "src/families/domains/finite/**"
+        "src/families/domains/finite/**",
+        "tests/families/domains/finite/**",
+        "examples/specialists/domains/finite/**",
+        "docs/families/finite-probability.md"
       ],
       "deliverables": [
         "Shared finite populations, weighted rational distributions, counting/genetics cases and statistics through the typed plan and licensed result consumers."
@@ -3672,7 +3678,7 @@
         "Target evidence: Replacement changes card probability; impossible die face is zero; allele case survives; sample/population variance differ; tied modes remain a collection; incomplete populations cannot support completeness claims."
       ],
       "evidence": [],
-      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.\n2026-10-16 dispatched scoped implementation with actual consumer ownership. Shared interface dependencies remain active, so independent laws/source cases may proceed but no integrated qualification is inferred. Sole native/Scala executor remains build_reconnected61.",
       "contracts": [
         "C01",
         "C02",
@@ -3799,14 +3805,17 @@
       "title": "Execute versioned rule tables with complete policy conditions",
       "area": "capability breadth",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "coverage-disposition",
         "source-semantics"
       ],
-      "owner": null,
+      "owner": "versioned_policy61",
       "paths": [
-        "src/families/domains/policies/**"
+        "src/families/domains/policies/**",
+        "tests/families/domains/policies/**",
+        "examples/specialists/domains/policies/**",
+        "docs/families/versioned-policies.md"
       ],
       "deliverables": [
         "Canonical versioned table/rule recipes and native evaluation connected to source provenance and conditional rendered results, initially AQI/coldchain/occupancy."
@@ -3819,7 +3828,7 @@
         "Target evidence: Breakpoint/truncation and ceiling match the declared policy; cooling cannot pass with a missing or failed first-stage condition; absent rule version cannot silently select a default."
       ],
       "evidence": [],
-      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.\n2026-10-16 dispatched scoped implementation with actual consumer ownership. Shared interface dependencies remain active, so independent laws/source cases may proceed but no integrated qualification is inferred. Sole native/Scala executor remains build_reconnected61.",
       "contracts": [
         "C01",
         "C02",
@@ -3947,14 +3956,17 @@
       "title": "Deliver controlled MCP onboarding, qualification and invocation",
       "area": "capability breadth",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "workbench-audit",
         "state-effects"
       ],
-      "owner": null,
+      "owner": "stateful_product61",
       "paths": [
-        "src/connectors/mcp/**"
+        "src/connectors/mcp/**",
+        "tests/connectors/mcp/**",
+        "examples/specialists/stateful/mcp/**",
+        "docs/families/mcp-connector.md"
       ],
       "deliverables": [
         "Configure/discover/select/preview/qualify/invoke/reconcile/retire via existing executor, credential references and client; use a fixed local mock service for qualification."
@@ -3967,7 +3979,7 @@
         "Target evidence: Discovery grants no call authority; effectful probe needs chosen authority; schema/config change invalidates preparation; handoff timeout remains unknown; retirement prevents late publication."
       ],
       "evidence": [],
-      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.\n2026-10-16 dispatched scoped implementation with actual consumer ownership. Shared interface dependencies remain active, so independent laws/source cases may proceed but no integrated qualification is inferred. Sole native/Scala executor remains build_reconnected61.",
       "contracts": [
         "C01",
         "C02",

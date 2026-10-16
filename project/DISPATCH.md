@@ -361,3 +361,33 @@ The numerical reflection repair is a coordinated shared-Codegen change after the
 current model child capture, with one foundational nat/int representation and no
 casts or competing carrier. Source_Window_Coverage transfer has ended after its
 code-equation prefix passed; optional source producers remain unqualified.
+
+### Breadth dispatch after review
+
+- `finite_probability61`: finite-probability-statistics; exclusive finite domain,
+  test/example subtrees and `docs/families/finite-probability.md`.
+- `versioned_policy61`: versioned-policy-evaluation; exclusive policy domain,
+  test/example subtrees and `docs/families/versioned-policies.md`.
+- `stateful_product61`: mcp-connector-workflow; exclusive MCP connector/test/example
+  subtrees and `docs/families/mcp-connector.md`. Actual controlled mock acquisition,
+  qualification and invocation must meet the production authority boundary.
+- `effects_reconnected61`: fixed production effect producer/handoff leaf under
+  `src/runtime/service/effects/` and matching tests. Assembly retains Frame/service
+  registration; host retains coordinator/store. D66 uses the existing journal for
+  immediate modeled transitions. This is the MCP consumer prerequisite, not an
+  independent permission framework.
+
+Domain parent ownership excludes the newly dispatched finite/policy subtrees.
+Their local native carriers reuse the generic `typed_plan_bundle` locale in
+`src/isabelle/plans/Veri7vn_Plans.thy`; quantity values are not a universal carrier.
+Domain owner also owns the shared bounded certified rational-input child under
+`src/isabelle/projection/rational/` and `tests/isabelle/projection/rational/`, with
+mathematics and both new families as actual consumers. Factor normalization first;
+a generic callback-plus-theorem-name execution registry is not approved.
+
+Canonical numeral migration is owned by each current source owner: authority's
+Codegen/model, Source row/acquisition, assembly Frame/Scope, Domain bundle/display,
+mathematics bundles/tests, Search, graph/ConceptNet, effects tests/benchmarks and
+capability-composition fixtures. Immutable historical evidence snapshots are
+excluded. The shared foundation passed its actual huge-number witness; each
+consumer still needs its appropriate refreshed composition check.

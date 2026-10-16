@@ -1054,3 +1054,48 @@ First actual D51 candidate probe is failed: old clone restored, but new package
 lacked declared navigation theories before native restoration. It cannot support
 a compatibility diagnosis or completed failed-upgrade preservation. Exact
 packaged navigation closure is being repaired; old selection remains intact.
+
+## 2026-10-16 scoped authoring and domain checkpoints
+
+Root reviewed actual receipts/logs and source hashes before scoped commits:
+
+- `1ee2aad`: source workspace links/review preservation, CLI/browser declaration
+  impact, bounded graph expansion/explanations and captured-source diagnostics.
+  Attempt `95fcfdd61e543422/attempts/aefbaca838584a09a36b41303bc8275a`
+  had stable inputs and actual authoring/diagnostics scripts exit0; the aggregate
+  correctly failed its separate retained-source fixture's resource reservation.
+  Corrected narrow attempt `8b947c73207e4f01b2180e8fadab34f9` passed in23.331s,
+  exercising actual Owned source callback, historical Unicode location after edit
+  and Forget denial. Thirteen committed source/test files matched these captures.
+  Host dependency files have since entered D64 migration and need new qualification.
+  No native Build failure-ID/source association or runtime invalidation claim.
+- `1e2507e`: five quantity Bundle source/test files exactly matched passing
+  `06c735c6fe8317f8/attempts/81feaa2f44f44819aa79a3e1114a5e83`.
+  Root read `domain_execution_refinement`, condition retention, fixed computation,
+  certified rational input equality, opaque request/output ownership and actual
+  tests. Marker `VERI7VN_DOMAINS admitted_bundle PASS`;15.057s whole check,
+ 11s Isabelle build. Cases include exact linear units, point versus delta,
+  below-absolute-zero/mismatched dimensions, spring conditions, reflected Frct,
+  instance/executable mismatch, cancellation cleanup and materialization bounds.
+  This is an admitted implementation-refinement bundle, not per-answer kernel
+  proof or service/display/recovery qualification. Shared parent source changes,
+  including the canonical numeric reflection, require fresh consumer checks.
+
+The whole-project review/README/tutorials and standalone workshop evidence were
+committed/pushed as `0801865` and `6fd0ed5`. Root verified canonical recorded
+installed/workshop file hashes, documentation link existence and harness syntax;
+those checks do not replace the actual installed executions they reference.
+
+### Installed source attribution baseline
+
+Root read actual `var/performance-standalone-b4ce-slot1/pair-result.json`, source
+reopen observation and summary, and verified every result/summary/stdout/stderr
+hash in `benchmarks/envelope/standalone-b4ce-phase-baseline.json`. Both fresh-state
+source-only calls exited0; reopen matched the independently fixed50-byte stdout
+hash. Generation41cafd was instrumented only; this is not an optimization result.
+Reopen22.005s whole invocation included20.059s JVM verification,16.504s inventory,
+14.371s nested aggregate hashing of24,561 files/2.715GB and0.215s application
+reflective dispatch. Durations overlap; JVM and observer clocks remain separate.
+Used heap includes unreclaimed objects. The measured result selects local buffer
+reuse/hex-formatting for the next repair while retaining full integrity checks;
+it does not justify bypassing startup settings or inventing cache validation.

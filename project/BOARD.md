@@ -66,13 +66,13 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | deployed-search-consumer | Connect native proof search to the deployed specialist workspace | deployed reasoning | active | search_consumer61 | strategy-engine, runtime-service, native-resident-assembly |
 | conversation-workspace | Restore conversations, attributed recall and expiry through native adoption | conversation lifecycle | active | conversation_product61 | routing-dialogue, runtime-service, native-resident-assembly |
 | behavioral-candidate-evaluation | Compare actual specialist candidates with the baseline before publication | candidate evaluation | active | behavioral_evaluation61 | dependency-updates, synthesis-growth, routing-dialogue, runtime-service |
-| finite-probability-statistics | Implement exact finite probability and descriptive statistics | capability breadth | planned | — | native-admission |
+| finite-probability-statistics | Implement exact finite probability and descriptive statistics | capability breadth | active | finite_probability61 | native-admission |
 | literal-format-calendar-operations | Preserve literal bytes through format and calendar operations | capability breadth | planned | — | interpretation-model |
 | bounded-transcendental-models | Provide error-bounded transcendental operations and model consumers | capability breadth | planned | — | native-admission |
-| versioned-policy-evaluation | Execute versioned rule tables with complete policy conditions | capability breadth | planned (dispatchable) | — | — |
+| versioned-policy-evaluation | Execute versioned rule tables with complete policy conditions | capability breadth | active | versioned_policy61 | — |
 | sqlite-execution-observer | Integrate governed SQL execution and typed bounded observations | capability breadth | planned | — | state-effects |
 | warehouse-site-workflow | Deliver warehouse queries, reorder proposals and confirmation | capability breadth | planned | — | conversation-workspace |
-| mcp-connector-workflow | Deliver controlled MCP onboarding, qualification and invocation | capability breadth | planned | — | state-effects |
+| mcp-connector-workflow | Deliver controlled MCP onboarding, qualification and invocation | capability breadth | active | stateful_product61 | state-effects |
 | catalogue-toolchain-artifacts | Restore catalogue synthesis and editable code/test artifacts | capability breadth | planned | — | state-effects |
 | ordered-pipeline-synthesis | Restore ordered typed pipeline synthesis and emitted programs | capability breadth | planned | — | plan-composition |
 | retained-typed-program-library | Complete bounded typed enumeration and durable program reuse | capability breadth | planned | — | dependency-updates |
@@ -81,7 +81,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 
 ## Ready to dispatch
 
-- **versioned-policy-evaluation** — Execute versioned rule tables with complete policy conditions
+None.
 
 ## Coordination warnings
 
@@ -94,8 +94,17 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 - possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/inspection.scala)
 - possible active edit overlap: runtime-service (src/runtime/service/*.scala) / deployed-search-consumer (src/runtime/service/SearchIngress.scala)
 - possible active edit overlap: domain-families (src/families/domains/**) / family-integration (src/families/domains/source_bridge/**)
+- possible active edit overlap: domain-families (src/families/domains/**) / finite-probability-statistics (src/families/domains/finite/**)
+- possible active edit overlap: domain-families (tests/families/domains/**) / finite-probability-statistics (tests/families/domains/finite/**)
+- possible active edit overlap: domain-families (examples/specialists/domains/**) / finite-probability-statistics (examples/specialists/domains/finite/**)
+- possible active edit overlap: domain-families (src/families/domains/**) / versioned-policy-evaluation (src/families/domains/policies/**)
+- possible active edit overlap: domain-families (tests/families/domains/**) / versioned-policy-evaluation (tests/families/domains/policies/**)
+- possible active edit overlap: domain-families (examples/specialists/domains/**) / versioned-policy-evaluation (examples/specialists/domains/policies/**)
 - possible active edit overlap: graph-family (src/families/graphs/**) / graph-mst-optimality (src/families/graphs/soundness/Graph_MST_Optimality.thy)
 - possible active edit overlap: graph-family (tests/families/graphs/**) / graph-mst-optimality (tests/families/graphs/mst/**)
+- possible active edit overlap: stateful-connectors (src/connectors/**) / mcp-connector-workflow (src/connectors/mcp/**)
+- possible active edit overlap: stateful-connectors (tests/connectors/**) / mcp-connector-workflow (tests/connectors/mcp/**)
+- possible active edit overlap: stateful-connectors (examples/specialists/stateful/**) / mcp-connector-workflow (examples/specialists/stateful/mcp/**)
 - possible active edit overlap: deployment-builder (tests/deployment/**) / installed-recipient-launcher (tests/deployment/launcher/**)
 - possible active edit overlap: deployment-builder (tools/deploy/**) / headless-runtime-closure (tools/deploy/runtime_closure.py)
 - possible active edit overlap: deployment-builder (tests/deployment/**) / headless-runtime-closure (tests/deployment/runtime_closure/**)
@@ -134,3 +143,5 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 - deployed-search-consumer: status active with unresolved dependencies: strategy-engine, runtime-service, native-resident-assembly
 - conversation-workspace: status active with unresolved dependencies: routing-dialogue, runtime-service, native-resident-assembly
 - behavioral-candidate-evaluation: status active with unresolved dependencies: dependency-updates, synthesis-growth, routing-dialogue, runtime-service
+- finite-probability-statistics: status active with unresolved dependencies: native-admission
+- mcp-connector-workflow: status active with unresolved dependencies: state-effects

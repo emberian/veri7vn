@@ -1,0 +1,370 @@
+{
+  "format": "veri7vn.standalone-phase-baseline/1",
+  "status": "passed",
+  "generation": "41cafd89949d1d323fb6ece4368986d80659edc5effa64760aedb2fbc1655898",
+  "manifest_sha256": "41cafd89949d1d323fb6ece4368986d80659edc5effa64760aedb2fbc1655898",
+  "launcher": {
+    "jar_sha256": "5f27a60bc4a5fe9dc943a424cf14cd164fee1172ea77f1afaec1ca53f479f55e",
+    "producer": "b4ce3560487f4834871f5d628acad046",
+    "qualification": "producer artifacts captured; installed standalone consumer separate",
+    "shell_sha256": "75484c2196bf15064bf97fe9062383dbf684c639009b1688180b2bd00d30911b"
+  },
+  "profile_producer_steward_attempt": "ad44ee43ac3041a2aa6836f438c3dd28",
+  "parity_steward_attempt": "68771143623b4334bc40ecc9fe943139",
+  "slot": "standalone-b4ce-phase-slot1",
+  "pair_record_sha256": "30a275bfd6a0d20ec0a579f276b10687584926aaa5f2838b89bc456672c60fd6",
+  "pair_elapsed_seconds": 39.46609479098697,
+  "isolation": "fresh private source-only state; setup import followed by exact source reopen; no native checkpoint copied",
+  "resources": "exclusive nonblocking shared build.lock throughout pair; steward paused native/Scala, deployment staging I/O clear",
+  "workload": {
+    "source": "existing artificial launcher fixture",
+    "source_bytes": 50,
+    "expected_reopen_stdout_sha256": "5423fb2f7b6e4a312f2c4611c7aacf41e53eee3fe7668331f7cddf035d92d915"
+  },
+  "observations": [
+    {
+      "case": "setup-import",
+      "result_sha256": "ef6bd976da6bf111fb2edfe688f80bccb44cd99aca3681b4618e716b92524252",
+      "summary_sha256": "326910d4e3f631739d12e7c8b81a734e7f455fba961744c51f23e14621b8c750",
+      "harness_sha256": "c7ffea9bda27084fd5220795d9c1e0f6895a8f88fc874de2511048ad1360d6a3",
+      "guardian_source_sha256": "a9393ee60e0116f4c9a55848bbff8a3d6ef9e7666c18de347d8077b23eae727a",
+      "logs": [
+        {
+          "name": "stdout.log",
+          "sha256": "78e541391842f20800d7be14c020f0c928c50fd9cef1c2ab6569e2ea155adee1",
+          "bytes": 57
+        },
+        {
+          "name": "stderr.log",
+          "sha256": "62c8c3031c2e27b10387f48cea719a39067f6c4905705927b78e7e406da36402",
+          "bytes": 3960
+        }
+      ],
+      "summary": {
+        "format": "veri7vn.installed-launch-summary/1",
+        "generation": "41cafd89949d1d323fb6ece4368986d80659edc5effa64760aedb2fbc1655898",
+        "record_status": "completed",
+        "oracle": {
+          "passed": null,
+          "scope": "exact stdout digest or complete line when supplied; otherwise process exit only"
+        },
+        "observer_total_wall_ms": 16502.326916,
+        "jvm_spans": [
+          {
+            "phase": "verify-manifest-read",
+            "wall_ms": 4.667375,
+            "status": "ok",
+            "gc_count_delta": 0,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 0,
+            "heap_used_bytes_before": 56623104,
+            "heap_used_bytes_after": 67108864
+          },
+          {
+            "phase": "verify-manifest-identity",
+            "wall_ms": 29.857792,
+            "status": "ok",
+            "gc_count_delta": 0,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 0,
+            "heap_used_bytes_before": 67108864,
+            "heap_used_bytes_after": 67108864
+          },
+          {
+            "phase": "verify-manifest-decode",
+            "wall_ms": 18.451,
+            "status": "ok",
+            "gc_count_delta": 0,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 0,
+            "heap_used_bytes_before": 67108864,
+            "heap_used_bytes_after": 98566144
+          },
+          {
+            "phase": "verify-manifest-lexer",
+            "wall_ms": 1300.488542,
+            "status": "ok",
+            "gc_count_delta": 6,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 30,
+            "heap_used_bytes_before": 98566144,
+            "heap_used_bytes_after": 2248146944
+          },
+          {
+            "phase": "verify-manifest-parse",
+            "wall_ms": 1311.698708,
+            "status": "ok",
+            "gc_count_delta": 6,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 81,
+            "heap_used_bytes_before": 2248146944,
+            "heap_used_bytes_after": 3015704576
+          },
+          {
+            "phase": "verify-inventory",
+            "wall_ms": 11919.551458,
+            "status": "ok",
+            "gc_count_delta": 10,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 163,
+            "heap_used_bytes_before": 3057647616,
+            "heap_used_bytes_after": 1719664640
+          },
+          {
+            "phase": "verify-total",
+            "wall_ms": 14650.017666,
+            "status": "ok",
+            "gc_count_delta": 22,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 274,
+            "heap_used_bytes_before": 56623104,
+            "heap_used_bytes_after": 1719664640
+          },
+          {
+            "phase": "launch-plan-resolution",
+            "wall_ms": 13.804375,
+            "status": "ok",
+            "gc_count_delta": 0,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 0,
+            "heap_used_bytes_before": 1719664640,
+            "heap_used_bytes_after": 1725956096
+          },
+          {
+            "phase": "dispatch-returned",
+            "wall_ms": 489.575375,
+            "status": "ok",
+            "gc_count_delta": 0,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 0,
+            "heap_used_bytes_before": 1738539008,
+            "heap_used_bytes_after": 1769996288
+          }
+        ],
+        "hash_aggregate": {
+          "event": "aggregate",
+          "phase": "verify-artifact-hash-aggregate",
+          "files": 24561,
+          "bytes": 2714883473,
+          "clock": "jvm-nano-local",
+          "elapsed_ns": 10492063286
+        },
+        "inventory_nonhash_wall_ms": 1427.488172,
+        "same_jvm_instant_gaps_ms": {
+          "main_to_shutdown": 15298.359417,
+          "main_to_dispatch": 14805.30725,
+          "dispatch_to_shutdown": 493.052167
+        },
+        "observed_marker_receipt_gaps_ms": {
+          "shell_entry_to_before_java": 30.263416,
+          "shell_before_java_to_main_entry": 576.956875
+        },
+        "limitations": [
+          "JVM local spans and observer receipt gaps use distinct clocks; raw epochs never mixed",
+          "nested spans and GC deltas overlap; do not sum all rows",
+          "used heap includes unreclaimed objects; not true live memory",
+          "receipt gaps include marker generation, pipe delivery and scheduling",
+          "dispatch-to-shutdown is not proof of completed app close; native main may call System.exit",
+          "hash wall includes read/SHA/format/open/close; not pure disk I/O",
+          "absence of a phase is unavailable, not zero; GC availability follows producer flags"
+        ],
+        "source_record_sha256": "ef6bd976da6bf111fb2edfe688f80bccb44cd99aca3681b4618e716b92524252"
+      }
+    },
+    {
+      "case": "source-reopen",
+      "result_sha256": "142c542c1edb1474af772c1a40c496f3f34963d1884a26670ea22eb688c258ee",
+      "summary_sha256": "f6c4d4367ffb60ab838fc3e4818e342ce5dcffc36c4a76670c94759d7ea1ed8a",
+      "harness_sha256": "c7ffea9bda27084fd5220795d9c1e0f6895a8f88fc874de2511048ad1360d6a3",
+      "guardian_source_sha256": "a9393ee60e0116f4c9a55848bbff8a3d6ef9e7666c18de347d8077b23eae727a",
+      "logs": [
+        {
+          "name": "stdout.log",
+          "sha256": "5423fb2f7b6e4a312f2c4611c7aacf41e53eee3fe7668331f7cddf035d92d915",
+          "bytes": 50
+        },
+        {
+          "name": "stderr.log",
+          "sha256": "ce9ead12f524431f776dd8283b7c0ad4a8341d1d1edb455881d3a2b78fdbb560",
+          "bytes": 3962
+        }
+      ],
+      "summary": {
+        "format": "veri7vn.installed-launch-summary/1",
+        "generation": "41cafd89949d1d323fb6ece4368986d80659edc5effa64760aedb2fbc1655898",
+        "record_status": "completed",
+        "oracle": {
+          "passed": true,
+          "scope": "exact stdout digest or complete line when supplied; otherwise process exit only"
+        },
+        "observer_total_wall_ms": 22004.566166,
+        "jvm_spans": [
+          {
+            "phase": "verify-manifest-read",
+            "wall_ms": 8.103458,
+            "status": "ok",
+            "gc_count_delta": 0,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 0,
+            "heap_used_bytes_before": 56623104,
+            "heap_used_bytes_after": 67108864
+          },
+          {
+            "phase": "verify-manifest-identity",
+            "wall_ms": 71.161792,
+            "status": "ok",
+            "gc_count_delta": 0,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 0,
+            "heap_used_bytes_before": 67108864,
+            "heap_used_bytes_after": 67108864
+          },
+          {
+            "phase": "verify-manifest-decode",
+            "wall_ms": 41.347709,
+            "status": "ok",
+            "gc_count_delta": 0,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 0,
+            "heap_used_bytes_before": 67108864,
+            "heap_used_bytes_after": 98566144
+          },
+          {
+            "phase": "verify-manifest-lexer",
+            "wall_ms": 1595.03325,
+            "status": "ok",
+            "gc_count_delta": 6,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 122,
+            "heap_used_bytes_before": 98566144,
+            "heap_used_bytes_after": 2258632704
+          },
+          {
+            "phase": "verify-manifest-parse",
+            "wall_ms": 1744.095334,
+            "status": "ok",
+            "gc_count_delta": 6,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 149,
+            "heap_used_bytes_before": 2258632704,
+            "heap_used_bytes_after": 3074424832
+          },
+          {
+            "phase": "verify-inventory",
+            "wall_ms": 16504.28075,
+            "status": "ok",
+            "gc_count_delta": 10,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 165,
+            "heap_used_bytes_before": 3118465024,
+            "heap_used_bytes_after": 1719664640
+          },
+          {
+            "phase": "verify-total",
+            "wall_ms": 20059.300833,
+            "status": "ok",
+            "gc_count_delta": 22,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 436,
+            "heap_used_bytes_before": 56623104,
+            "heap_used_bytes_after": 1719664640
+          },
+          {
+            "phase": "launch-plan-resolution",
+            "wall_ms": 9.068459,
+            "status": "ok",
+            "gc_count_delta": 0,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 0,
+            "heap_used_bytes_before": 1719664640,
+            "heap_used_bytes_after": 1725956096
+          },
+          {
+            "phase": "dispatch-returned",
+            "wall_ms": 214.8615,
+            "status": "ok",
+            "gc_count_delta": 0,
+            "gc_count_supported": true,
+            "gc_time_supported": true,
+            "gc_support_scope": "all-reported-beans",
+            "gc_time_ms_delta": 0,
+            "heap_used_bytes_before": 1740636160,
+            "heap_used_bytes_after": 1763704832
+          }
+        ],
+        "hash_aggregate": {
+          "event": "aggregate",
+          "phase": "verify-artifact-hash-aggregate",
+          "files": 24561,
+          "bytes": 2714883473,
+          "clock": "jvm-nano-local",
+          "elapsed_ns": 14371028917
+        },
+        "inventory_nonhash_wall_ms": 2133.251833,
+        "same_jvm_instant_gaps_ms": {
+          "main_to_shutdown": 20544.558958,
+          "main_to_dispatch": 20325.591542,
+          "dispatch_to_shutdown": 218.967416
+        },
+        "observed_marker_receipt_gaps_ms": {
+          "shell_entry_to_before_java": 59.937958,
+          "shell_before_java_to_main_entry": 1140.159709
+        },
+        "limitations": [
+          "JVM local spans and observer receipt gaps use distinct clocks; raw epochs never mixed",
+          "nested spans and GC deltas overlap; do not sum all rows",
+          "used heap includes unreclaimed objects; not true live memory",
+          "receipt gaps include marker generation, pipe delivery and scheduling",
+          "dispatch-to-shutdown is not proof of completed app close; native main may call System.exit",
+          "hash wall includes read/SHA/format/open/close; not pure disk I/O",
+          "absence of a phase is unavailable, not zero; GC availability follows producer flags"
+        ],
+        "source_record_sha256": "142c542c1edb1474af772c1a40c496f3f34963d1884a26670ea22eb688c258ee"
+      }
+    }
+  ],
+  "limitations": [
+    "one setup and one reopen, distinct operations; no p95/noise estimate",
+    "filesystem cache and unrelated OS scheduling uncontrolled",
+    "observer and JVM clocks separate; only sameclock durations computed",
+    "usedheap occupancy not liveness; GC counters aggregate all reported beans and overlap in nested spans",
+    "logical file bytes read include pagecache hits; no physical disk I/O attribution",
+    "instrumentation/guardian overhead not isolated",
+    "source-only artifact workload, not native or all-family performance",
+    "no optimized code in this baseline"
+  ]
+}
