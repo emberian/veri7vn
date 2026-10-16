@@ -1174,6 +1174,15 @@ consumption prevents dispatch; it does not invent an external failure receipt.
 The first real consumer is the controlled MCP fixture workflow. All crash windows,
 changed configuration and late-publication refusal require actual bridge tests.
 
+D66 cost-identity clarification: the installed host OperationIdentity must carry
+the actual numeric native operation ID separately from its human-readable name.
+The fixed effect consumer compares cost profile, code generation, native operation,
+step and units against the charged native descriptor. Build ticket consumption
+likewise checks the fixed installation step. Operation names and profile IDs are
+not substitutes for missing cost fields. Effects owns the host identity/test
+migration; connector, Build, updates and behavioral fixtures migrate with their
+actual consumers. Swapped operation/step cases must refuse before handoff.
+
 ## D67 — Source-qualified quantities retain their own recovery association
 
 Use the closed pairs `source-quantities/1` + `source-domain-request` (empty,
