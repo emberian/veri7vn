@@ -21,6 +21,12 @@ loader.exec_module(driver)
 
 
 class DriverTests(unittest.TestCase):
+    def test_process_inventory_preserves_failure_reason(self):
+        failure = subprocess.CalledProcessError(1, ['ps'], stderr='inspection denied\n')
+        with patch.object(driver.subprocess, 'run', side_effect=failure):
+            with self.assertRaisesRegex(RuntimeError, 'inspection denied'):
+                driver.process_inventory()
+
     def test_cleanup_does_not_signal_reused_pid_or_its_children(self):
         old = {100: {'pid': 100, 'parent': 1, 'group': 100,
                      'started': 'old kernel start', 'state': 'S'}}

@@ -30,7 +30,9 @@ def process_inventory():
         result = subprocess.run(["ps", "-axo", "pid=,ppid=,pgid=,stat=,lstart="],
                                 text=True, capture_output=True, timeout=5, check=True)
     except (OSError, subprocess.SubprocessError) as failure:
-        raise RuntimeError("Kernel process inspection unavailable") from failure
+        detail = (failure.stderr.strip() if isinstance(failure, subprocess.CalledProcessError)
+                  and failure.stderr else str(failure))
+        raise RuntimeError(f"Kernel process inspection unavailable: {detail}") from failure
     records = {}
     for line in result.stdout.splitlines():
         fields = line.split(None, 4)
@@ -394,8 +396,9 @@ def check(executable, state, timeout, session=None, roots=(), inputs=None, expec
                         "survivors": "unknown; inspection failed"}
                 process.wait(timeout=5)
                 entry.update(returncode=process.returncode, seconds=time.monotonic() - begin,
-                             status="interrupted", interrupted=type(failure).__name__)
-                raise RuntimeError(f"{arguments[0]} interrupted: {type(failure).__name__}") from failure
+                             status="interrupted", interrupted=type(failure).__name__,
+                             interruption_detail=str(failure))
+                raise RuntimeError(f"{arguments[0]} interrupted: {failure}") from failure
             entry["process_cleanup"] = tracker.cleanup()
             if entry["process_cleanup"]["survivors"]:
                 raise RuntimeError(f"Owned processes survived cleanup: {entry['process_cleanup']['survivors']}")
