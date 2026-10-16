@@ -34,8 +34,13 @@ retains revisions; it does not activate the edited specialist.
 
 Whole standalone invocations observed roughly 10–16 seconds in the four-call
 trial. These are a useful baseline, not satisfactory interactive targets or a
-speedup claim. Startup/inventory/VM/service attribution is underway. There is no
-representative whole-system performance envelope yet.
+speedup claim. A subsequent instrumented source-only comparison measured reopen
+at22.005s before and8.027s after invocation-local hash-buffer reuse and standard
+hex formatting, retaining every integrity check. The
+[comparison](../benchmarks/envelope/standalone-hash-repair-comparison.json) records
+the exact artifacts and limits: one observation per version, uncontrolled cache
+and load, no native speedup or live-memory claim. There is no representative
+whole-system performance envelope yet.
 
 ## Capability review
 
@@ -96,8 +101,10 @@ Other remaining parent requirements stay explicit: gap journaling, feedback,
 explanation/Film export, further connector adapters, the remaining domain profiles,
 richer native constructor packages, full routing/context behavior and performance
 lowerings. The twelve children are the next useful partition, not an exhaustive
-replacement for the parent acceptance lists. They are planned work; this review
-does not imply that twelve new agents or implementations have started.
+replacement for the parent acceptance lists. Three now have active implementation
+owners: finite probability/statistics, versioned policies, and the MCP workflow.
+Their native/runtime integration remains unqualified. The other nine children
+remain planned; the table does not imply twelve completed implementations.
 
 ## How to keep broad progress coherent
 
