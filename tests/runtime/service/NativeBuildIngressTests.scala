@@ -21,6 +21,7 @@ object NativeBuildIngressTests {
     @volatile var releaseUnavailable=mode=="release_unavailable"
     @volatile var releases=0
     @volatile var discarded=0
+    @volatile var consumerLeases=0
     val finishEntered=new CountDownLatch(1)
     val finishReturn=new CountDownLatch(1)
     private var nonce=""
@@ -32,7 +33,7 @@ object NativeBuildIngressTests {
           case _=>throw new AssertionError("unexpected ingress packet")
         }
         nonce=attributes("upload_nonce");assert(nonce.matches("[0-9a-f]{32}"))
-        staged=true
+        staged=true;accepted=false
         if(mode=="lost_begin")throw new java.io.IOException("begin committed, reply lost")
         reply("build_input_ready","1")
       case "build_input_write"=>assert(staged);reply("build_input_written","1")
@@ -59,6 +60,8 @@ object NativeBuildIngressTests {
       case "build_input_settle"=>assert(payload==nonce);reply("build_input_settled",payload)
       case other=>throw new AssertionError("unexpected ingress command: "+other)
     }
+    def retainConsumer():Unit={assert(nativePrepared && accepted);consumerLeases+=1}
+    def releaseConsumer():Unit={assert(consumerLeases>0);consumerLeases-=1}
   }
   def main(args:Array[String]):Unit={
     for(mode<-List("normal","lost_begin","lost_finish","lost_accept","late_finish","release_unavailable","foreign_store")){
@@ -88,6 +91,30 @@ object NativeBuildIngressTests {
         if(mode=="normal"){
           assert(result.nonEmpty && failure.isEmpty && ingress.preparedCount==1 && transport.accepted)
           assert(input.isLive,"accepted input lost its owner")
+          transport.retainConsumer()
+          transport.releaseUnavailable=true
+          var retained=false
+          try ingress.releaseProducer(result.get) catch {case _:java.io.IOException=>retained=true}
+          assert(retained && ingress.retirementCount==1 && input.isLive && transport.consumerLeases==1 && transport.nativePrepared,
+            "failed producer release dropped its owner or independent consumer")
+          transport.releaseUnavailable=false
+          ingress.releaseProducer(result.get)
+          val released=transport.releases
+          ingress.releaseProducer(result.get)
+          assert(transport.releases==released && transport.consumerLeases==1 && !input.isLive && ingress.preparedCount==0,
+            "producer release changed consumer lease or was not idempotent")
+          transport.releaseConsumer()
+          // More authored builds than the native pool size must reuse capacity
+          // after each independently owned result takes over its producer.
+          for(index<-0 until 70){
+            val next=captured("repeat_"+index)
+            val prepared=ingress.prepare(next,"Input.thy")
+            transport.retainConsumer()
+            ingress.releaseProducer(prepared)
+            assert(ingress.preparedCount==0 && ingress.retirementCount==0 && !next.isLive && transport.consumerLeases==1,
+              "repeated producer release retained pool capacity")
+            transport.releaseConsumer()
+          }
         }else if(mode=="foreign_store"){
           assert(failure.nonEmpty && result.isEmpty && input.isLive && ingress.retirementCount==0 &&
             !transport.staged && !transport.nativePrepared,"foreign source owner crossed native ingress")

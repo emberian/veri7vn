@@ -839,3 +839,82 @@ lexical authority to generic graph calls. Exact-label repair and any original
 plural/sense proposals remain explicit; source IsA edges do not become world
 axioms. Truncated traversal cannot justify absence. Source, ConceptNet, graph and
 rendering owners migrate actual consumers together; no parallel authority store.
+
+## D51 — Qualify workspace compatibility before selecting an upgrade
+
+D44 changes the exact shared-input dependency record. Old40ac checkpoints do not
+match the new restoration contract; a same-generation restart pass does not prove
+upgrade compatibility. Failed restoration may still allocate identities or update
+resident bookkeeping even when it commits no native authority checkpoint.
+
+New generations may be staged as inert candidates. Fresh installation and exact
+same-generation staging remain allowed; replacing an existing selection requires
+the guarded compatibility/promotion path. Artifact completeness alone cannot
+select a replacement. Preserve the previous pinned generation and original state.
+
+The host supplies a protected consistent snapshot under the actual exclusive
+workspace writer lock, without opening the original database through a mutating
+runtime. Reject unsafe live resource ownership rather than copying a process's
+authority. Keep that lease through bounded old/new pinned-runtime probes. A failed
+probe must leave original state and selection intact. Promotion needs its own
+recoverable state/installation transaction; filesystem copying is not that proof.
+
+Any D44 row normalization must be a checked, guarded migration using exact
+authenticated request/source material. Do not rewrite dependencies by numeric ID,
+clear old denials or recreate forgotten source payloads. Legacy codec meanings
+remain explicit. Deployment, host, authority and recovery own the actual migration
+and failure-preservation consumer; it is not yet qualified.
+
+## D52 — Separate source acquisition from observer qualification
+
+Common source ownership and acquisition must not require count-plan fields or
+import graph/MST/search implementations. Fixed observer leaves own their settings,
+meaning, executable and refinement; the installed aggregate statically connects
+their closed request/result variants to the same authority and tickets.
+
+The private input witness binds a qualified typed source association to the exact
+versioned acquisition predicate, original manifest/bytes, actual carrier and
+observation. Leaf entrypoints consume that same association through fixed native
+specialization. An unrelated list of accepted theorems, private ML signature or
+copied batch is not a correspondence proof. No runtime evaluator/proof callbacks
+or recipient raw-carrier API are introduced.
+
+The first row association supports count/relation/graph/ConceptNet. Documents
+retain their own original-byte association; do not reconstruct document truth
+from row text or introduce a universal payload type. Common lifetime/occurrence
+mechanisms can be shared by these statically typed associations.
+
+Acquire and cache authenticated scalar dimensions during charged decoding.
+Observer precharge uses a cheap conservative bound before projection, sorting or
+search; the charged worker rechecks actual bounds. These work models are not CPU
+or memory theorems. Preserve the actual D48 base evidence before migrating it,
+then qualify common acquisition, independent leaves and real aggregate consumers.
+
+## D53 — Native multi-goal requests preserve per-child authority
+
+One opaque parent scope owns original input, policy, observation and request ID.
+Typed children own minted goal/slot/interpretation IDs, exact requirements,
+semantic/executable pins and source leases. Sealing checks a common parent,
+unique goals/slots and ordered typed predecessor references before one composite
+reservation. Reuse the existing plan calculus for per-node partial outcomes.
+
+Native equality/recovery must distinguish workspace/request/goal and exact slot;
+the old single-entry request map cannot represent composite children. Parent
+cancellation drains all children, scoped blockers preserve unrelated siblings,
+and final arbitration precedes conversation adoption. A source-owned construction
+rollback scope is not a semantic request parent.
+
+Admission, execution/charge, qualification, output licensing and recovery consume
+the owning child's pins. D43 qualification explicitly identifies its goal. Legacy
+single-pin effect/job paths reject composite requests until their explicit goal
+migration; that restriction does not complete heterogeneous effect acceptance.
+Inventory and migrate every consumer and version the codec explicitly, preserving
+authenticated old meanings rather than reinterpreting record fields. Authority,
+assembly, plans, language, recovery and family owners coordinate this change after
+the captured D44 baseline; independent interfaces are not a completed migration.
+
+D43/D53 artifact composition retains typed `KnownInput` or `ReservedOutput`
+parent references in the immutable requirement. The current unified ledger resolves
+these to exact ordered candidate identities for execution; callers cannot guess
+future IDs or rewrite the original requirement after its predecessor completes.
+Builder, qualifier, recovery and native service consumers migrate together.

@@ -42,7 +42,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | relation-family | Migrate relation readers, linking and guarded query behavior | relation specialists | active | facts_relations_product61 | source-import, interpretation-model, plan-composition, native-admission, staged-execution |
 | facts-document-family | Migrate fact rules and source-grounded document retrieval | facts and documents | active | facts_relations_product61 | source-import, interpretation-model, native-admission, staged-execution |
 | domain-families | Implement classified domain families with genuine semantic bridges | domain specialists | active | domains_reconnected61 | plan-composition, native-admission, staged-execution |
-| mathematics-family | Implement mathematical capabilities with branch and precision contracts | mathematical specialists | active | math61 | known-regressions, plan-composition, native-admission, staged-execution |
+| mathematics-family | Implement mathematical capabilities with branch and precision contracts | mathematical specialists | active | mathematics_product61 | known-regressions, plan-composition, native-admission, staged-execution |
 | graph-family | Implement source-dependent graph reasoning with explicit bounds | graph specialists | active | graphs_product61 | source-import, plan-composition, strategy-engine, graph-mst-optimality |
 | stateful-connectors | Migrate site/session specialists and controlled local connectors | stateful specialists | active | stateful_product61 | state-effects, source-import, runtime-service |
 | routing-dialogue | Implement contextual routing, ambiguity resolution and answer rendering | dialogue | active | dialogue_product61 | interpretation-model, plan-composition, runtime-service, diagnostics-repair |
@@ -52,7 +52,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | deployment-builder | Build pinned native deployments with clean install and recovery | deployment | active | deployment_product61 | package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope |
 | family-integration | Close behavioral coverage and cross-family execution | integration | active | capability_integration61 | relation-family, facts-document-family, domain-families, mathematics-family, graph-family, stateful-connectors, routing-dialogue, synthesis-growth, dependency-updates, known-regressions |
 | workspace-integration | Integrate complete authoring, change and deployment workflows | integration | planned | — | workspace-client, authoring-assistance, diagnostics-repair, dependency-updates, deployment-builder, stateful-connectors |
-| proof-implementation-closure | Establish mandatory metatheory obligations and their runtime connections | assurance integration | planned | — | family-integration, workspace-integration, refinement-backends |
+| proof-implementation-closure | Establish mandatory metatheory obligations and their runtime connections | assurance integration | active | assurance_consumers61 | family-integration, workspace-integration, refinement-backends |
 | performance-hardening | Meet measured whole-system performance and resource budgets | performance integration | planned | — | family-integration, workspace-integration, refinement-backends, performance-envelope |
 | release-integration | Validate the complete deployable product and release contents | release integration | planned | — | proof-implementation-closure, performance-hardening, deployment-builder, family-integration, workspace-integration |
 | recipient-handoff | Prepare maintainable documentation and rehearse independent authorship | handoff | active | recipient_product61 | release-integration |
@@ -73,6 +73,7 @@ None.
 - possible active edit overlap: source-import (docs/sources/**) / conceptnet-source-consumer (docs/sources/conceptnet.md)
 - possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/RequestInspectionTests.scala)
 - possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/inspection.scala)
+- possible active edit overlap: domain-families (src/families/domains/**) / family-integration (src/families/domains/source_bridge/**)
 - possible active edit overlap: graph-family (src/families/graphs/**) / graph-mst-optimality (src/families/graphs/Graph_MST_Optimality.thy)
 - possible active edit overlap: graph-family (tests/families/graphs/**) / graph-mst-optimality (tests/families/graphs/mst/**)
 - native-admission: status active with unresolved dependencies: native-registry, operational-model
@@ -98,6 +99,7 @@ None.
 - refinement-backends: status active with unresolved dependencies: staged-execution, plan-composition, performance-envelope
 - deployment-builder: status active with unresolved dependencies: package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope
 - family-integration: status active with unresolved dependencies: relation-family, facts-document-family, domain-families, mathematics-family, graph-family, stateful-connectors, routing-dialogue, synthesis-growth, dependency-updates, known-regressions
+- proof-implementation-closure: status active with unresolved dependencies: family-integration, workspace-integration, refinement-backends
 - recipient-handoff: status active with unresolved dependencies: release-integration
 - native-recovery: status active with unresolved dependencies: native-registry, native-admission, operational-model
 - native-development: status active with unresolved dependencies: native-admission, native-registry

@@ -1003,3 +1003,30 @@ The independent source-JAR producer `90c8b77b61b34cbf974d3d33db8ad0cd` compiled
 and pinned its source/class closure. Its installed four-process source workflow
 remains a separate check: the first attempt correctly rejected an invalid test
 package lacking manifest.json; the fixture is corrected without relaxing intake.
+
+## Recovery and installed authoring consumer checkpoint
+
+Root read stable passed recovery71bb0b1b3ac14f32bbb8b386b59677ee and matched
+current Expert fixture/ROOT hashes. All eight expected markers were collected;
+17s build includes actual managed proof full-sequent reconstruction, named proof
+descendant, multi-parent source ownership, rollback and shared-DAG retirement.
+This is native recovery evidence, not D43 build-role or deployment upgrade coverage.
+
+Root read host b93cd9a7497241e0a4ebff09536111ee: all twelve groups passed,
+including producer release/retry and70 cycles with retained independent consumers.
+The fixed native artifact-ack consumer is still being integrated. Root found the
+snapshot file limit was checked after complete traversal allocation; its bounded
+iterator repair requires its own focused result before treating that revision as
+checked.
+
+Full UI JAR producer42a50a609b0246c2afe3e7e6eb6157d5 passed with stable inputs;
+RuntimeMain and package producer hashes matched root review. Native heap launch
+was explicitly unchecked. Its immutable archive supports the next combined
+installed workbench check against captured db6.
+
+Installed source-only result var/deployment-source-check-0006b59c-slot2/result.json
+passes import, inspection, edit and exact reopen in four fresh JVMs. Browser result
+var/deployment-source-browser-0006b59c-slot1/result.json passes actual HTTP home,
+CSRF Open of exact source and normal shutdown. Root read both results. These do
+not qualify native admission, alternating state with the old native host, visual
+usability, or an independent recipient trial.

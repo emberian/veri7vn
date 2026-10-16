@@ -9,8 +9,13 @@ object RuntimeMain {
     var workspace:Option[java.nio.file.Path]=None
     var images:Option[java.nio.file.Path]=None
     var roots=List.empty[java.nio.file.Path]
+    var workbench:Option[Array[String]]=None
     var index=0
     while(index<args.length){
+      if(args(index)=="--workbench"){
+        require(index+1<args.length,"--workbench requires a command")
+        workbench=Some(args.drop(index+1));index=args.length
+      } else {
       require(index+1<args.length,"expected --workspace PATH --images PATH [--session-root PATH ...]")
       val value=Paths.get(args(index+1))
       args(index) match {
@@ -20,9 +25,12 @@ object RuntimeMain {
         case other=>throw new IllegalArgumentException("unknown argument: "+other)
       }
       index+=2
+      }
     }
     scala.util.Using.resource(RuntimeService.open(workspace.getOrElse(throw new IllegalArgumentException("--workspace required")),
       images.getOrElse(throw new IllegalArgumentException("--images required")),roots)){service=>
+      if(workbench.nonEmpty)veri7vn.cli.ResidentWorkbench.run(service,workbench.get)
+      else {
       def nextProposal():Option[Array[Byte]]={
         val buffer=new Array[Byte](256)
         try {
@@ -46,6 +54,7 @@ object RuntimeMain {
         while(result.status=="pending" && System.nanoTime()<deadline){Thread.sleep(25);result=service.client.mathematicsResult(request)}
         println(result.html.getOrElse(result.status))
         proposal=nextProposal()
+      }
       }
     }
   }

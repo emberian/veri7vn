@@ -266,3 +266,28 @@ Runtime_Foundation parent session for the stable dependency prefix, coordinated
 with the steward's actual input closure. The public Runtime_Service remains the
 consumer session. Volatile service code stays outside the cached prefix. This
 changes build iteration costs, not the runtime authority or admission boundary.
+
+## Current consumer expansion after D44 capture
+
+D44 native, actual resident restart/Forget and browser/shared-source consumers
+passed and were checkpointed. D43/D53 schema and service migration is now open;
+older hold instructions above are historical. Preserve the immutable D44 native
+image before building changed authority dependencies. build_reconnected61 remains
+the sole native/Scala/runtime execution steward.
+
+- capability_integration61 owns new src/families/domains/source_bridge/** and
+  tests/integration/quantities/**, with source-owned protected SourceCell producer
+  and domain-owned conditional calculation/display. This explicitly transfers
+  only that new domain subdirectory.
+- assurance_consumers61 owns tests/integration/assurance/** and
+  docs/formal/consumer-closure.md: actual conditional theorem consumer checks,
+  not another detached metatheory inventory.
+- recipient_product61 resumes installed specialist workshop; deployment owns
+  pinned example assets and workbench owns actual author controls.
+- recovery_reconnected61, native_build_product61 and updates_product61 resume
+  actual build/admit/update/restart consumers through the shared typed artifact
+  and per-goal authority migration.
+
+Root owns tracking and scoped commits. The installed source-only workflow is
+qualified separately from native admission; combining historical native and
+current source hosts does not establish workspace compatibility.

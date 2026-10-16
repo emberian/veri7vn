@@ -1,3 +1,3 @@
 session Veri7vn_Native_Recovery_Tests = Veri7vn_Admission +
-  options [document = false]
+  options [document = false, record_proofs = 2]
   theories Native_Recovery_Tests Expert_Recovery_Tests

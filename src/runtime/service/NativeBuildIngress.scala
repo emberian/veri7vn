@@ -32,7 +32,11 @@ final class NativeBuildIngress private[service](transport:NativeBuildIngress.Tra
   final class PreparedInput private[NativeBuildIngress](private[service] val nativeHandle:BigInt,
     private[service] val input:NativeBuildInputs.Owned,
     val original:NativeBuildInputs.CapturedSource,
-    private[service] val sourceGuard:WorkspaceStore.NativeSourceGuard)
+    private[service] val sourceGuard:WorkspaceStore.NativeSourceGuard) {
+    private[NativeBuildIngress] val ingress=NativeBuildIngress.this
+    private[NativeBuildIngress] val releaseLock=new Object
+    private[NativeBuildIngress] var released=false
+  }
   private enum Handoff { case Waiting,Offered,Accepting,Accepted,Canceled }
   private val slots=new Semaphore(2)
   // Native exchanges and source callbacks never run under this monitor.
@@ -164,6 +168,7 @@ final class NativeBuildIngress private[service](transport:NativeBuildIngress.Tra
       ownership.synchronized {owned-=this}
     }
     def isRetiring:Boolean=ownership.synchronized {state==Handoff.Canceled}
+    def owns(value:PreparedInput):Boolean=ownership.synchronized {known.exists(_ eq value)}
   }
 
   /** Failed cleanup retains the registered input and consumes capacity until
@@ -198,6 +203,22 @@ final class NativeBuildIngress private[service](transport:NativeBuildIngress.Tra
   }
   private[service] def retirementCount:Int=ownership.synchronized {owned.count(_.isRetiring)}
   private[service] def preparedCount:Int=ownership.synchronized {prepared.size}
+  /** Called by the fixed artifact-ack consumer only after native request/candidate
+    * owners retain independent source and intent leases. This releases the
+    * upload producer, never semantic authority or those consumer leases. */
+  private[service] def releaseProducer(value:PreparedInput):Unit=value.releaseLock.synchronized {
+    require(value.ingress eq this,"prepared input belongs to another ingress")
+    if(!value.released){
+      val job=ownership.synchronized {owned.find(_.owns(value))}
+      job match {
+        case Some(owner)=>owner.retire()
+        case None=>require(!value.input.isLive,"prepared input owner unavailable")
+      }
+      // Failed native release or resource teardown leaves this false and keeps
+      // the retirement registered for an exact retry.
+      value.released=true
+    }
+  }
   /** At most one owned cleanup per maintenance call. */
   private[service] def retryCleanup():Unit=ownership.synchronized {owned.find(_.isRetiring)}.foreach(_.retire())
   def close():Unit={

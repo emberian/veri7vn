@@ -1,10 +1,18 @@
 import scala.language.unsafeNulls
 import java.nio.file.{Files,Paths}
 @main def packageRuntime():Unit=isabelle.Command_Line.tool {
-  val sources=List("src/runtime/host/WorkspaceStore.scala","src/runtime/service/AuthorityCoordinator.scala",
+  val sources=List("src/authoring/assistance/Assistance.scala","src/diagnostics/Repair.scala","src/workbench/ReviewTickets.scala","src/cli/Workbench.scala","src/diagnostics/Diagnostics.scala","src/diagnostics/RequestInspection.scala","src/runtime/host/WorkspaceStore.scala","src/runtime/service/AuthorityCoordinator.scala",
     "src/runtime/service/ResidentSupervisor.scala","src/runtime/service/DeploymentImages.scala",
     "src/runtime/service/ResidentNativeBridge.scala","src/runtime/service/ResidentAuthorityService.scala",
-    "src/runtime/service/RuntimeService.scala","src/runtime/service/RuntimeMain.scala")
+    "src/runtime/service/RuntimeService.scala","src/runtime/service/RuntimeMain.scala",
+    "src/runtime/host/ManagedSources.scala",
+    "src/packages/intake/Intake.scala","src/packages/intake/SourceObjects.scala",
+    "src/packages/lifecycle/OperationIdentity.scala","src/packages/lifecycle/ManagedDrafts.scala",
+    "src/packages/lifecycle/InertJSON.scala","src/packages/lifecycle/LegacyPanel.scala",
+    "src/packages/lifecycle/LegacyMapping.scala","src/packages/lifecycle/PackageModel.scala",
+    "src/packages/lifecycle/PackageUpdates.scala",
+    "src/workbench/Authoring.scala","src/workbench/Browser.scala","src/workbench/SourceLocation.scala",
+    "src/workbench/Execution.scala","src/workbench/ResidentExecution.scala","src/cli/ResidentWorkbench.scala","src/isabelle/language/runtime/DialogueClient.scala")
   val classes=Files.createTempDirectory("veri7vn-runtime-package-")
   val args=(List("-classpath",System.getProperty("java.class.path"),"-d",classes.toString)++sources).toArray
   require(!dotty.tools.dotc.Main.process(args).hasErrors,"runtime launcher compilation failed")
