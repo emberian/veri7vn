@@ -40,8 +40,14 @@ from the recorded replies without asking again.
 - `answerers/oracle7.py --specialist <folder>`: the core first, and the specialist only where the core declined for
   lack of a reading. This is how `exam.py` combines them.
 - `answerers/oracle7.py --compose front --specialist <folder>`: the specialist first, and the core only where the
-  specialist takes nothing. This is how the release itself combined them when it admitted its specialists (the
-  release's own file `_gate/combo_runtime_v1.py` does the combining).
+  specialist takes nothing. This is how the release itself combined one specialist with the core when it admitted
+  it. The specialist is loaded and asked through the release's own file `_gate/combo_runtime_v1.py`, one reply per
+  question.
+- `--compose combo` is the same through that file's full combiner, which also splits a question with two parts and
+  answers each part. The release added that splitting after most exams were taken; with it, 8 `astronomy-v3`
+  questions such as "Taking Mars as 1, how many times as massive is Mercury? (mass of Mercury relative to Mars)" are
+  answered twice, the first number is the wrong way round, and the count drops from the shipped 137 to 129. Without
+  it the count is 137, as shipped.
 - `--tip <name>` builds the core from an earlier version kept in the release (for example
   `oracle_release_runtime_w363`) instead of the current one (`w540`).
 - `answerers/oracle7.py --specialist <folder> --alone`: the specialist by itself. The board uses it for the three
@@ -134,3 +140,7 @@ What this shows:
 - The packaged veri7vn takes about 40 seconds a question and recognises none of the exam questions tried
   (`Native interpretation requires attention: unrecognized`), so its count is 0 right, 0 false yes, 0 wrong on the
   sample.
+- The release admitted its specialists under somewhat different rules from `exam.py`'s. In particular `exam.py`
+  allows at most max(1, 2% of n) wrong answers, and the release's exam did not have that rule: `astronomy` was
+  admitted with 68 right and 13 wrong, and under `exam.py`'s rules it fails. The board reports `exam.py`'s decision
+  next to the shipped one.

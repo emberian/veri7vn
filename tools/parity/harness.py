@@ -241,7 +241,9 @@ def run_one(sid, split, args, out, shared):
          "panel_sha": panels.panel_sha(items), "answerer": args.answerer, "lane_answerer": args.lane_answerer,
          "core_head": tips, "limit": args.limit, "wall_s": round(wall, 1),
          "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "shipped": panels.shipped_verdict(d)}
-    vpath.write_text(json.dumps(v, indent=1, ensure_ascii=False), encoding="utf-8")
+    tmp = vpath.with_name(vpath.name + ".tmp")
+    tmp.write_text(json.dumps(v, indent=1, ensure_ascii=False), encoding="utf-8")
+    os.replace(tmp, vpath)                                 # a reader never sees half a verdict
     log.close()
     return v
 

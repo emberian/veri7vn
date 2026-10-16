@@ -28,7 +28,10 @@ def load_run(path):
     for f in sorted(path.glob("*.json")):
         if f.name == "run.json":
             continue
-        vs.append(json.loads(f.read_text(encoding="utf-8")))
+        try:
+            vs.append(json.loads(f.read_text(encoding="utf-8")))
+        except ValueError:
+            continue                                   # a verdict being written by a live run
     return meta, vs
 
 
@@ -65,8 +68,8 @@ def render(runs):
            "the columns and the control." % time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()), "",
            "## Summary", "",
            "| Run | Answerer | Head | Specialists | Items | Answerer right / false yes / wrong | Head alone | "
-           "Shipped composed (same specialists) | Decisions |",
-           "|---|---|---|---|---|---|---|---|---|"]
+           "Shipped composed (same specialists) | Same right and false yes as shipped | Decisions |",
+           "|---|---|---|---|---|---|---|---|---|---|"]
     details = []
     for label, path in runs:
         meta, vs = load_run(path)
@@ -79,11 +82,19 @@ def render(runs):
         shipped = [v["shipped"] for v in scored if v.get("shipped") and not v.get("limit")]
         sh = total(shipped, "with_specialist") if shipped else None
         sh_n = sum(s.get("n") or 0 for s in shipped)
+        same = cmp = 0
+        for v in scored:
+            sv = v.get("shipped") or {}
+            if v.get("limit") or not sv.get("with_specialist"):
+                continue
+            g = (v.get("gate_aligned") or {}).get("with_specialist") or v["with_specialist"]
+            cmp += 1
+            same += int(g["ok"] == sv["with_specialist"].get("ok") and g["fy"] == sv["with_specialist"].get("fy"))
         lim = " (first %d items each)" % meta["limit"] if meta.get("limit") else ""
-        out.append("| %s | `%s` | %s | %d | %d%s | %s | %s | %s | %s |" % (
+        out.append("| %s | `%s` | %s | %d | %d%s | %s | %s | %s | %s | %s |" % (
             label, short_answerer(meta), ", ".join(h.replace("oracle_release_runtime_", "") for h in heads), len(scored), items, lim,
             t3(total(scored, "with_specialist")), t3(total(scored, "head")),
-            ("%s on %d items" % (t3(sh), sh_n)) if sh else "-", ", ".join("%s %d" % (k, c) for k, c in sorted(dec.items(), key=str))))
+            ("%s on %d items" % (t3(sh), sh_n)) if sh else "-", ("%d of %d" % (same, cmp)) if cmp else "-", ", ".join("%s %d" % (k, c) for k, c in sorted(dec.items(), key=str))))
         details += ["", "## %s" % label, "", "Run directory `%s`; command `%s`." % (
             str(Path(path).resolve()).replace(str(REPO) + "/", ""), short_answerer(meta)), "",
             "| Specialist | n | Errors | Head alone | With specialist | Lane taken / cap | Self | p50 / budget ms | Decision | "

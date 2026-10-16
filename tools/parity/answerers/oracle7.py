@@ -50,10 +50,12 @@ def _jsonable(x):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--specialist", help="specialist folder (composed with the head, or alone with --alone)")
-    ap.add_argument("--compose", choices=["exam", "front"], default="exam",
+    ap.add_argument("--compose", choices=["exam", "front", "combo"], default="exam",
                     help="exam: head first, specialist only on a fillable decline (workbench/exam.py). front: the "
-                         "release's own composition, the specialist in front of the head and the head only where it "
-                         "takes nothing (_gate/combo_runtime_v1.Combo with this one organ, as spec_runtime_v1)")
+                         "release's single-specialist composition (spec_runtime): the organ in front of the head, the "
+                         "head only where the organ takes nothing; organ loading, accept rule and reading rule are "
+                         "_gate/combo_runtime_v1's _Organ, one reply per turn. combo: the same through "
+                         "combo_runtime_v1.Combo.reply, which also splits multi-question turns into parts")
     ap.add_argument("--alone", action="store_true", help="the specialist alone, no engine")
     ap.add_argument("--tip", help="build the head from this admitted fold instead of HEAD_MANIFEST's tip "
                                   "(e.g. oracle_release_runtime_w363, the head a shipped verdict names)")
@@ -88,11 +90,11 @@ def main():
         exam = _load("parity_upstream_exam", UPSTREAM / "workbench" / "exam.py")
         sp = loaded_class(exam)(Path(a.specialist).resolve())
         fillable = exam.fillable
-        if a.compose == "front" and not a.alone:
+        if a.compose in ("front", "combo") and not a.alone:
             gate = UPSTREAM / "root" / "specialists" / "_gate" / "combo_runtime_v1.py"
             combo_mod = _load("parity_upstream_combo_runtime_v1", gate)
             d = Path(a.specialist).resolve()
-            sp = FrontComposed(sp, combo_mod.Combo([str(d / "manifest.json")], [str(d)]))
+            sp = FrontComposed(sp, combo_mod.Combo([str(d / "manifest.json")], [str(d)]), parts=a.compose == "combo")
     if eng is not None:
         print("[oracle7 answerer] head %s%s" % (eng.tip, (" + " + sp.id) if sp else ""), file=sys.stderr, flush=True)
 
@@ -153,8 +155,19 @@ class FrontComposed:
     """the release's composition: the specialist (via combo_runtime_v1.Combo) in front, the head behind it. The head
     still answers every item so the head-alone counts come from the same pass."""
 
-    def __init__(self, loaded, combo):
-        self.loaded, self.combo, self.id = loaded, combo, loaded.id
+    def __init__(self, loaded, combo, parts):
+        self.loaded, self.combo, self.id, self.parts = loaded, combo, loaded.id, parts
+
+    def reply(self, text, session_id):
+        if self.parts:
+            return self.combo.reply(text, session_id)
+        chosen, trace = self.combo._one(text, session_id)   # one organ: arbitration returns its reply ("only")
+        if chosen is None:
+            return None
+        r = self.combo._wrap(chosen["response"], "specialist:%s>%s" % (chosen["id"], chosen["kind"]), status=chosen["status"],
+                             spec=chosen["id"], move=chosen["kind"], trace=trace)
+        r["provenance"]["declined"] = chosen["declined"]
+        return r
 
 
 class TipEngine:
@@ -221,10 +234,10 @@ def answer(eng, sp, fillable, q, sess, alone):
     prov = {"tip": eng.tip, "head": head, "consulted": False, "specialist_ms": None}
     out["provenance"] = prov
     if isinstance(sp, FrontComposed):
-        prov["compose"] = "front"
+        prov["compose"] = "combo" if sp.parts else "front"
         prov["consulted"] = True
         t0 = time.perf_counter()
-        c = sp.combo.reply(q, sess)
+        c = sp.reply(q, sess)
         prov["specialist_ms"] = 1000 * (time.perf_counter() - t0)
         if c is not None:
             return {"status": c.get("status", "answered"), "response": c.get("response", ""), "path": c.get("path", ""),

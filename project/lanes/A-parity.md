@@ -16,8 +16,10 @@ Board: `docs/parity/BOARD.md`.
   consecutive exits; resumable per-item `.items.jsonl` / `.lane.jsonl`; verdict `<id>.<split>.json` written last;
   `--rescore`; `{dir}` `{id}` `{shipped_head}` placeholders. Head counts come from `provenance.head`.
 - `tools/parity/answerers/oracle7.py`: head; `--specialist` (exam.py composition, `exam.fillable` +
-  `exam.Loaded.reply` imported from upstream); `--compose front` (release composition through upstream's
-  `_gate/combo_runtime_v1.Combo`); `--tip <fold>` (head built from an older admitted fold); `--alone`.
+  `exam.Loaded.reply` imported from upstream); `--compose front` (release single-specialist composition: the organ
+  in front, asked through upstream's `_gate/combo_runtime_v1` `_Organ`/`Combo._one`, one reply per turn);
+  `--compose combo` (same through `Combo.reply`, which adds multi-part splitting); `--tip <fold>` (head built from an
+  older admitted fold); `--alone`.
 - `tools/parity/answerers/veri7vn_packaged.py`: wraps `bin/veri7vn launch --state ... --surface workbench -- run`.
 - `tools/parity/board.py`: renders `docs/parity/BOARD.md`.
 - `tests/parity/test_score.py`, `tests/parity/test_panels.py`: 19 tests, inline fixtures, no engine; one test reads
@@ -98,11 +100,32 @@ Control wall time: about 1-2 minutes per specialist warm (engine load about 5 s,
 
 ## Full run
 
-`var/parity/run-full.sh` (not committed; var/ is ignored): pass 1 = release composition with each verdict's head over
-all 305 specialists' held-out splits into `var/parity/full-front-shipped-head/`; pass 2 = exam.py composition with
-w540 into `var/parity/full-exam-w540/`. Resumable (rerun the script). Stop with `kill $(cat var/parity/full.pid)`;
-its trap stops the current harness by `var/parity/full-harness.pid`. Progress: `var/parity/full.log`.
-Status at this checkpoint: running (pass 1, 10 of 305 specialists done; PID in `var/parity/full.pid`).
+`var/parity/run-full.sh` (var/ is ignored, so not committed; its two commands are below): pass 1 = release
+composition (`--compose front`) with each verdict's head over all 305 specialists' held-out splits into
+`var/parity/full-front-shipped-head/`; pass 2 = exam.py composition with w540 into `var/parity/full-exam-w540/`.
+Resumable (rerun the script). Stop with `kill $(cat var/parity/full.pid)`; its trap stops the current harness by
+`var/parity/full-harness.pid`, and the answerer exits on EOF. Progress: `var/parity/full.log`.
+
+```sh
+P=$PWD/.venv/bin/python; LANE="$P tools/parity/answerers/oracle7.py --specialist {dir} --alone"
+python3 tools/parity/harness.py --answerer "$P tools/parity/answerers/oracle7.py --compose front --tip {shipped_head} --specialist {dir}" --lane-answerer "$LANE" --specialist all --split heldout --out var/parity/full-front-shipped-head
+python3 tools/parity/harness.py --answerer "$P tools/parity/answerers/oracle7.py --specialist {dir}" --lane-answerer "$LANE" --specialist all --split heldout --out var/parity/full-exam-w540
+python3 tools/parity/board.py --run "Oracle7 release composition, shipped head=var/parity/full-front-shipped-head" --run "Oracle7 exam.py composition, w540=var/parity/full-exam-w540" --run "veri7vn packaged, acoustics sample=var/parity/veri7vn-sample"
+```
+
+Status when this lane stopped: **running**, pass 1 at 15 of 305 (started 18:57 EDT; the machine's load average was
+30-60 from other lanes, so expect about 3 h per pass; the 161 `rel-*` panels are 9,510 of the 17,436 held-out items,
+about 0.8-1.3 s each). PID file `var/parity/full.pid`. The committed BOARD.md includes pass 1 as far as it had got.
+
+Findings so far from pass 1:
+- Every specialist finished with a shipped verdict has matched the shipped composed right and false yes exactly
+  (14 of 14 at the commit; 24 of 25 in an earlier start that used `Combo.reply`).
+- The one miss in that earlier start was `astronomy-v3` (129 vs 137): `Combo.reply` splits "Taking Mars as 1, how
+  many times as massive is Mercury? (mass of Mercury relative to Mars)" into two parts and answers both, the first
+  the wrong way round. The shipped exam predates that splitting; without it (`--compose front`) the count is 137,
+  as shipped. That start was stopped and its outputs from the old mode deleted before restarting.
+- exam.py's WRONG cap (max(1, 2% of n)) is not one of the gate v2 criteria: `astronomy` is shipped ADMIT with
+  68 / 0 and 13 answered wrong; under exam.py's rules it is NEGATIVE ("WRONG: 13 answered wrong, cap 1").
 
 ## Unverified / remaining
 
