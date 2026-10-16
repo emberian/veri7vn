@@ -1,5 +1,34 @@
 # Active implementation wave — 2026-10-15
 
+## Renewed holistic capability swarm
+
+The user renewed wide gpt-6.1-sol work and asked what forms the usable whole.
+The workshop and resident runtime must share package/source identities, native
+admission, typed outcomes and lifecycle; family components alone do not meet that
+goal. Current actual installed math execution/restart and source-authoring checks
+are evidence for those paths, not for every pending family.
+
+New current ownership supersedes stale names in the historical tables below:
+
+| Owner | Exact edit area | Required consumer |
+|---|---|---|
+| deployment_product61 | deployment/**, tools/deploy/**, tests/deployment/**, docs/deployment/** | Packaged shared authoring/resident client, real launch/update preservation |
+| assistance_product61 | src/authoring/assistance/**, tests/workbench/assistance/**, examples/authoring/** | Revision-owned obligations and reviewable help through real managed edits and client |
+| capability_integration61 | tests/integration/families/**, docs/coverage/integration.md; tests/regressions/**, docs/coverage/known-defects.md | Actual cross-family joins and original-behavior regression consumers |
+| refinement_product61 | src/backends/**, tests/backends/**, benchmarks/backends/**, docs/performance/backends.md | Exact efficient indexes consumed by graph operations, then measured portfolio |
+| conceptnet_product61 | src/sources/conceptnet/**, tests/sources/conceptnet/**, docs/sources/conceptnet.md, examples/specialists/conceptnet/** | Original labels, ranking/filter policy and row provenance through acquired-source graph requests |
+
+Workbench, dialogue and recovery owners resume to support these consumers.
+Root retains tracker, design and scoped commits. Shared UI/native files require
+explicit owner coordination. build_reconnected61 remains the sole native/Scala/
+runtime execution steward. Preserve the saved Runtime_Foundation prefix; do not
+move its RBT parent merely to tidy module names during current qualification.
+
+ConceptNet confidence weights rank/filter source edges; they are not shortest-path
+costs. Its lexical normalization, bounded retrieval and category filters need
+explicit preserved/repaired semantics. A numeric graph kernel is not by itself a
+lift of the shipped ConceptNet specialist.
+
 The user agreed to proceed with architecture revision 2, asked for gpt-6.1-sol as
 much as practical, and explicitly requested an active goal for the full project.
 Root owns synthesis, task statuses, shared contracts, integration and commits.

@@ -25,7 +25,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | interpretation-model | Specify typed interpretation and licensed rendering | language | active | language61 | — |
 | workbench-audit | Audit upstream authoring, local integrations and transfer workflows | authoring discovery | done | authoring61 | — |
 | performance-envelope | Establish representative workloads and deployment budgets | performance | active | performance_product61 | — |
-| known-regressions | Turn reproduced Oracle7 defects into independent regression obligations | behavioral correctness | active | coverage61 | — |
+| known-regressions | Turn reproduced Oracle7 defects into independent regression obligations | behavioral correctness | active | capability_integration61 | — |
 | workspace-interaction | Design the specialist authoring and diagnosis workflows | authoring design | done | authoring61 | — |
 | native-admission | Implement the authoritative native admission boundary | admission | active | admission61 | native-registry, operational-model |
 | plan-composition | Implement typed composition and justified finite-search quotients | composition | active | plans_reconnected61 | operational-model, interpretation-model, native-registry |
@@ -47,10 +47,10 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | stateful-connectors | Migrate site/session specialists and controlled local connectors | stateful specialists | active | stateful_product61 | state-effects, source-import, runtime-service |
 | routing-dialogue | Implement contextual routing, ambiguity resolution and answer rendering | dialogue | active | dialogue_product61 | interpretation-model, plan-composition, runtime-service, diagnostics-repair |
 | synthesis-growth | Implement retained synthesis, abstractions and admitted growth | growth | active | growth_product61 | strategy-engine, package-lifecycle, dependency-updates |
-| authoring-assistance | Integrate assisted obligations, search and repair into authoring | authoring assistance | planned | — | workspace-client, diagnostics-repair, strategy-engine, synthesis-growth |
-| refinement-backends | Deliver the justified efficient backend portfolio | refinement | planned | — | staged-execution, plan-composition, performance-envelope |
-| deployment-builder | Build pinned native deployments with clean install and recovery | deployment | active | deployment61 | package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope |
-| family-integration | Close behavioral coverage and cross-family execution | integration | planned | — | relation-family, facts-document-family, domain-families, mathematics-family, graph-family, stateful-connectors, routing-dialogue, synthesis-growth, dependency-updates, known-regressions |
+| authoring-assistance | Integrate assisted obligations, search and repair into authoring | authoring assistance | active | assistance_product61 | workspace-client, diagnostics-repair, strategy-engine, synthesis-growth |
+| refinement-backends | Deliver the justified efficient backend portfolio | refinement | active | refinement_product61 | staged-execution, plan-composition, performance-envelope |
+| deployment-builder | Build pinned native deployments with clean install and recovery | deployment | active | deployment_product61 | package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope |
+| family-integration | Close behavioral coverage and cross-family execution | integration | active | capability_integration61 | relation-family, facts-document-family, domain-families, mathematics-family, graph-family, stateful-connectors, routing-dialogue, synthesis-growth, dependency-updates, known-regressions |
 | workspace-integration | Integrate complete authoring, change and deployment workflows | integration | planned | — | workspace-client, authoring-assistance, diagnostics-repair, dependency-updates, deployment-builder, stateful-connectors |
 | proof-implementation-closure | Establish mandatory metatheory obligations and their runtime connections | assurance integration | planned | — | family-integration, workspace-integration, refinement-backends |
 | performance-hardening | Meet measured whole-system performance and resource budgets | performance integration | planned | — | family-integration, workspace-integration, refinement-backends, performance-envelope |
@@ -60,6 +60,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | native-development | Build and admit original expert Isabelle developments through controlled native reconstruction | native development | active | native_build_product61 | native-admission, native-registry |
 | native-resident-assembly | Connect resident authority, typed operation dispatch and native lifecycle | native runtime integration | active | assembly_reconnected61 | operational-model, native-admission, state-effects, staged-execution, native-recovery |
 | graph-mst-optimality | Prove an efficient native MST optimality certificate checker | graph specialists | active | mst_proof61 | — |
+| conceptnet-source-consumer | Connect shipped ConceptNet labels, retrieval policy and provenance to checked graph queries | source-backed graph specialists | active | conceptnet_product61 | source-import, graph-family |
 
 ## Ready to dispatch
 
@@ -69,6 +70,7 @@ None.
 
 - possible active edit overlap: operational-model (src/isabelle/language/model/rendering/Veri7vn_Rendering.thy) / interpretation-model (src/isabelle/language/model/**)
 - possible active edit overlap: operational-model (tests/language/model/rendering/Interpretation_Tests.thy) / interpretation-model (tests/language/model/**)
+- possible active edit overlap: source-import (docs/sources/**) / conceptnet-source-consumer (docs/sources/conceptnet.md)
 - possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/RequestInspectionTests.scala)
 - possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/inspection.scala)
 - possible active edit overlap: graph-family (src/families/graphs/**) / graph-mst-optimality (src/families/graphs/Graph_MST_Optimality.thy)
@@ -92,8 +94,12 @@ None.
 - stateful-connectors: status active with unresolved dependencies: state-effects, source-import, runtime-service
 - routing-dialogue: status active with unresolved dependencies: interpretation-model, plan-composition, runtime-service, diagnostics-repair
 - synthesis-growth: status active with unresolved dependencies: strategy-engine, package-lifecycle, dependency-updates
+- authoring-assistance: status active with unresolved dependencies: workspace-client, diagnostics-repair, strategy-engine, synthesis-growth
+- refinement-backends: status active with unresolved dependencies: staged-execution, plan-composition, performance-envelope
 - deployment-builder: status active with unresolved dependencies: package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope
+- family-integration: status active with unresolved dependencies: relation-family, facts-document-family, domain-families, mathematics-family, graph-family, stateful-connectors, routing-dialogue, synthesis-growth, dependency-updates, known-regressions
 - recipient-handoff: status active with unresolved dependencies: release-integration
 - native-recovery: status active with unresolved dependencies: native-registry, native-admission, operational-model
 - native-development: status active with unresolved dependencies: native-admission, native-registry
 - native-resident-assembly: status active with unresolved dependencies: operational-model, native-admission, state-effects, staged-execution, native-recovery
+- conceptnet-source-consumer: status active with unresolved dependencies: source-import, graph-family

@@ -800,3 +800,42 @@ commands to have drained in protocol order, not merely a timed-out future.
 Unresolved teardown is reported and retained; hard quiescence does not follow
 from an unbounded thread join. Transport failure may require explicit resident
 fail-stop, while ordinary upload timeouts use the fixed reconciliation protocol.
+
+D46 composition clarification: independent resident requests cannot be grouped
+in the client and presented as one dependent multipart request. Composition needs
+one native request identity with its typed goals/slots and licensed intermediate
+bindings, or an admitted same-request composition adapter. Final arbitration and
+conversation adoption consume that request's actual outcomes; partial/refused
+parts remain structured. Assembly owns the shared request/dispatch change with
+dialogue and plan consumers. Existing single-goal behavior remains supported.
+
+## D49 — Resolve installed imports through explicit exact public roots
+
+Native builder and recovery share an immutable configured registry of approved
+installed public roots. Each entry binds its actual native theory and admission
+policy under the pinned image. A stronger boot/service context cannot stand in
+for a lower imported theory merely because it includes that theory. Include only
+configured roots, not every reachable ancestor by default.
+
+Recovery introduces an explicit Installed_Public locator and includes its exact
+identity in reconstruction keys. Preserve legacy Public/v1 meanings and reject
+unsupported profiles rather than silently reinterpreting them. Builder import
+resolution and replay consume the same registry; tests distinguish lower core and
+boot contexts and reject mismatches. Assembly and recovery coordinate mutation
+after the current capture; this is an implementation decision, not checked coverage.
+
+## D50 — Preserve ConceptNet source semantics separately from graph costs
+
+The shipped ConceptNet reader has lexical normalization, ranking, category and
+confidence filters, bounded expansion and source metadata. Its source profile
+retains all original cells and row identity, exact labels and explicit retrieval
+coverage. Confidence/ranking weight is not shortest-path cost. A numeric graph
+kernel alone does not preserve this source reader's behavior.
+
+Use a fixed ConceptNet sibling request in the existing closed source family sum,
+sharing acquired-source ownership, operation tickets and generic graph algorithms.
+Keep corpus-specific label/coverage semantics in that profile rather than adding
+lexical authority to generic graph calls. Exact-label repair and any original
+plural/sense proposals remain explicit; source IsA edges do not become world
+axioms. Truncated traversal cannot justify absence. Source, ConceptNet, graph and
+rendering owners migrate actual consumers together; no parallel authority store.

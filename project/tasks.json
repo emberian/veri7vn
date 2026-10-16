@@ -281,7 +281,7 @@
         "Reconciled implementation work graph and explicit design agreement before fan-out"
       ],
       "acceptance": [
-        "Architecture accounts for actual shipped behavior and G01–G08 through concrete representations and authoritative execution paths.",
+        "Architecture accounts for actual shipped behavior and G01\u2013G08 through concrete representations and authoritative execution paths.",
         "Hard-to-reverse choices are explicit, remaining parametric choices have bounds and owners, and implementation fan-out follows user design agreement.",
         "Revision 2 common choices fix the executed HOL authority machine, finite typed executable linkage, canonical theory recipes, native gate, durable host/effect seam and growth-cost tiers; independent lanes do not reopen them implicitly.",
         "Cross-review the native gate/linker and durable commit seam, reconcile the assigned early feasibility tasks and obtain design agreement before implementation fan-out."
@@ -945,7 +945,7 @@
       "depends_on": [
         "design-convergence"
       ],
-      "owner": "coverage61",
+      "owner": "capability_integration61",
       "paths": [
         "tests/regressions/**",
         "docs/coverage/known-defects.md"
@@ -977,7 +977,7 @@
         "audit/workbench/transfer-regression.json",
         "tests/regressions/test_background_learning.py"
       ],
-      "notes": "Root independently reran25 upstream characterization/preservation tests (all pass,1.947s), reviewed local late-poll removal and CodeChat in-memory learning fixtures. They reproduce original defects, not native repairs; repaired-consumer gate and selected new-policy fixtures remain open. Coverage61 resumed independent native mathematical consumer review: compiled core/runtime tests are distinct from uncompiled curated bundle and missing deployed root/interval requests. No repair completion inferred from theorem-only cases.",
+      "notes": "Root independently reran25 upstream characterization/preservation tests (all pass,1.947s), reviewed local late-poll removal and CodeChat in-memory learning fixtures. They reproduce original defects, not native repairs; repaired-consumer gate and selected new-policy fixtures remain open. Coverage61 resumed independent native mathematical consumer review: compiled core/runtime tests are distinct from uncompiled curated bundle and missing deployed root/interval requests. No repair completion inferred from theorem-only cases.\n2026-10-15 renewed holistic capability swarm: Recovered stale coverage61 ownership. Reconcile source-backed original regressions with actual native consumers and keep missing deployed fixes explicit; no theorem-only or source-inspection parity claims.",
       "contracts": [
         "C02",
         "C03",
@@ -1123,7 +1123,7 @@
         "var/native-scaffold/sessions/3ba4d7ea1d544f79/receipt.json",
         "var/native-scaffold/sessions/a6f87ab8d4ebe987/attempts/e843016747534eb191f6c2c01fd591ee/receipt.json"
       ],
-      "notes": "Production gate development begins while registry object/profile and operational interfaces mature. Dependencies remain explicit completion gates. Co-review actual immutable object store, finite generated bundle association and authenticated event origin with registry/linkage/model/host owners; do not substitute caller metadata or callbacks for native evidence. Generic Admission/Metadata/Checks actual stable PASS 43.493s (3ba4d7ea1d544f79): theorem/scope/hypothesis/premise/sort/oracle/unused-axiom rejection, real certificate/proofterm and controlled definitions. A.join compiled; concrete two-parent tests pending. Source family, D34 slots, D35 managed dependency closure and full nonempty native restore remain required. Dedicated recovery61 now owns actual export/recheck/ID restore under admission/recovery with coordinated N/D interfaces; this does not complete native admission or remove its bridge obligations. D38 map now requires whole resulting workspace reverse uniqueness, atomic generations/staged state, context-owner-only detach. Transient fragment factory inside trusted image captured by fixed top-level functor then immediately shadowed is an explicit nativeML construction boundary, not arbitrary-Check verification. D40 shared numeric source identity authority across R/P plus cross-profile restoration owner sharing is required; no alias registry shortcut. Fixed row declaration parses exact protected configuration slice into public constructor parameters and binds actual owner; original NL input remains separate. Authored source declaration supplies semantic source/query settings only. Fixed native K instantiation binds actual gate-allocated request/attempt/binding/rawslot and current context pins, with preservation theorem for original source/schema/version/query/scope/window intent; arbitrary numeric fields parsed from config never mint runtime authority. Current e843 Core_Checks executes the same complete generic ML test body and passes (11 s), including map atomicity/reverse uniqueness and idempotent managed-provenance teardown. Interrupt-masked bounded cleanup is checked by normal-path tests, not an interrupt-injection proof. D40 shared input leases and D41 atomic complete ID-bundle reservation/replenishment remain open. New D40 lease ownership reveals U.create→P development publication cancellation/ID-exhaustion gap; approved short masked ownership transfer and rollback after current frozen snapshot, with proof construction kept interruptible. Current D40 tests predate repair.\nCurrent resumed finite batch: managed NativeDevelopment/P producer through descriptor/service gate with native_build61. Root transferred src/isabelle/admission/source/** to linkage61 for closed relation operation; admission excludes those paths during this migration.",
+      "notes": "Production gate development begins while registry object/profile and operational interfaces mature. Dependencies remain explicit completion gates. Co-review actual immutable object store, finite generated bundle association and authenticated event origin with registry/linkage/model/host owners; do not substitute caller metadata or callbacks for native evidence. Generic Admission/Metadata/Checks actual stable PASS 43.493s (3ba4d7ea1d544f79): theorem/scope/hypothesis/premise/sort/oracle/unused-axiom rejection, real certificate/proofterm and controlled definitions. A.join compiled; concrete two-parent tests pending. Source family, D34 slots, D35 managed dependency closure and full nonempty native restore remain required. Dedicated recovery61 now owns actual export/recheck/ID restore under admission/recovery with coordinated N/D interfaces; this does not complete native admission or remove its bridge obligations. D38 map now requires whole resulting workspace reverse uniqueness, atomic generations/staged state, context-owner-only detach. Transient fragment factory inside trusted image captured by fixed top-level functor then immediately shadowed is an explicit nativeML construction boundary, not arbitrary-Check verification. D40 shared numeric source identity authority across R/P plus cross-profile restoration owner sharing is required; no alias registry shortcut. Fixed row declaration parses exact protected configuration slice into public constructor parameters and binds actual owner; original NL input remains separate. Authored source declaration supplies semantic source/query settings only. Fixed native K instantiation binds actual gate-allocated request/attempt/binding/rawslot and current context pins, with preservation theorem for original source/schema/version/query/scope/window intent; arbitrary numeric fields parsed from config never mint runtime authority. Current e843 Core_Checks executes the same complete generic ML test body and passes (11 s), including map atomicity/reverse uniqueness and idempotent managed-provenance teardown. Interrupt-masked bounded cleanup is checked by normal-path tests, not an interrupt-injection proof. D40 shared input leases and D41 atomic complete ID-bundle reservation/replenishment remain open. New D40 lease ownership reveals U.create\u2192P development publication cancellation/ID-exhaustion gap; approved short masked ownership transfer and rollback after current frozen snapshot, with proof construction kept interruptible. Current D40 tests predate repair.\nCurrent resumed finite batch: managed NativeDevelopment/P producer through descriptor/service gate with native_build61. Root transferred src/isabelle/admission/source/** to linkage61 for closed relation operation; admission excludes those paths during this migration.",
       "contracts": [
         "C02",
         "C04"
@@ -1333,7 +1333,7 @@
         "var/native-scaffold/sessions/a45e137bfff0ed36/attempts/fb181df175fe4e1aa69f4313feefdbb7/receipt.json",
         "var/native-scaffold/sessions/95fcfdd61e543422/attempts/8f8f446241be47a1b7a2821da5637529/receipt.json"
       ],
-      "notes": "Start concrete bounded reproducible local import and observation manifests against checked native source semantics while registry/gate integration matures. Preserve actual corpus availability/provenance limits; full authorized snapshot publication/native correspondence remain required gates. D37 actual storage audit refutes four-cell/tiny-codec completion: shipped REAL fields, 64,353-byte UTF8 text, >=257 rows, duplicate rows, NULL, JSONL/FTS types. Explicit observed binary64 carrier and streaming semantic import required; raw chunks alone insufficient. Independent Scala acquisition/chunk/manifest runtime checks passed, with long values/4096 duplicate rows/partial/error/release and strict UTF8 fixture preservation. Native importer now reaches code_reflect after HOL proofs but fails compact-nat pattern equation; metadata child cancelled, not qualified. Raw decoded batch validity is not per-reading scientific validity. Root reviewed native Source_Import parent passed23s, including actual codec code_reflect, observation acquisition soundness and profile. Import leaf reductions and metadata binder typing still fail; full importer/row dispatch not complete. Scala acquisition/chunk/metadata adapter separately passed immutable169b7c36e58f4cb19d2920e40ffd4736. Actual SourceImport rebuilt28s against first D40 Registry; Metadata now only explicit prefixcertificate witness proof fails. New real JDBC fixture passed with all4Scalaadaptergroups30.010s (8f8f snapshot); mixed-value payload assertions and actual native stream correspondence remain open.\nOwnership recovered from inactive sources61. New owner carries actual native stream/Scala snapshot/import consumers; source_reconnected61 retains K/RI/gate and coordinates codec2 acquisition. Original /1 preservation theorem does not automatically establish /2 stream preservation.\nD48 now records required versioned acquisition theorem/runtime/recipe migration; real /2 original data cannot inherit /1 encoding equality. Import native/Scala checks pending.",
+      "notes": "Start concrete bounded reproducible local import and observation manifests against checked native source semantics while registry/gate integration matures. Preserve actual corpus availability/provenance limits; full authorized snapshot publication/native correspondence remain required gates. D37 actual storage audit refutes four-cell/tiny-codec completion: shipped REAL fields, 64,353-byte UTF8 text, >=257 rows, duplicate rows, NULL, JSONL/FTS types. Explicit observed binary64 carrier and streaming semantic import required; raw chunks alone insufficient. Independent Scala acquisition/chunk/manifest runtime checks passed, with long values/4096 duplicate rows/partial/error/release and strict UTF8 fixture preservation. Native importer now reaches code_reflect after HOL proofs but fails compact-nat pattern equation; metadata child cancelled, not qualified. Raw decoded batch validity is not per-reading scientific validity. Root reviewed native Source_Import parent passed23s, including actual codec code_reflect, observation acquisition soundness and profile. Import leaf reductions and metadata binder typing still fail; full importer/row dispatch not complete. Scala acquisition/chunk/metadata adapter separately passed immutable169b7c36e58f4cb19d2920e40ffd4736. Actual SourceImport rebuilt28s against first D40 Registry; Metadata now only explicit prefixcertificate witness proof fails. New real JDBC fixture passed with all4Scalaadaptergroups30.010s (8f8f snapshot); mixed-value payload assertions and actual native stream correspondence remain open.\nOwnership recovered from inactive sources61. New owner carries actual native stream/Scala snapshot/import consumers; source_reconnected61 retains K/RI/gate and coordinates codec2 acquisition. Original /1 preservation theorem does not automatically establish /2 stream preservation.\nD48 now records required versioned acquisition theorem/runtime/recipe migration; real /2 original data cannot inherit /1 encoding equality. Import native/Scala checks pending.\nExplicit docs/sources/conceptnet.md ownership transferred to conceptnet_product61; importer retains other source docs.",
       "contracts": [
         "C01",
         "C04"
@@ -2287,7 +2287,7 @@
         "Proposed dialogue cases: only some multipart questions succeed, dependent second question uses the accepted first result, expired follow-up, tentative code response and help with no fabricated fact claim."
       ],
       "evidence": [],
-      "notes": "\nCurrent wide product dispatch: Native same-carrier routing/adoption guards, DialogueClient and actual resident consumer written. Fixed math inspection producer in assembly; source/domain alternatives, meaningful reading descriptions, durable adoption and full conversation lifecycle remain open.",
+      "notes": "\nCurrent wide product dispatch: Native same-carrier routing/adoption guards, DialogueClient and actual resident consumer written. Fixed math inspection producer in assembly; source/domain alternatives, meaningful reading descriptions, durable adoption and full conversation lifecycle remain open.\nD46 multipart requires same native request identity/goals/slots; independent Math requests grouped in UI do not supply licensed same-request adoption. Actual composite producer remains assembly/plan integration work.",
       "contracts": [
         "C02",
         "C03",
@@ -2392,14 +2392,14 @@
       "title": "Integrate assisted obligations, search and repair into authoring",
       "area": "authoring assistance",
       "milestone": "W",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "workspace-client",
         "diagnostics-repair",
         "strategy-engine",
         "synthesis-growth"
       ],
-      "owner": null,
+      "owner": "assistance_product61",
       "paths": [
         "src/authoring/assistance/**",
         "tests/workbench/assistance/**",
@@ -2425,7 +2425,7 @@
         "Proposed artifact check: explanation/Film output retains result provenance, conditions and historical state; generated decoration remains labeled and optional remote calls use explicit authority."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "\n2026-10-15 renewed holistic capability swarm: Activated against current real managed edits and search/build/growth APIs: exact source revision/obligation -> reviewable choices -> conflict-checked edits and actual client consumption. Shared UI changes coordinated with workbench owner. No alternative candidate registry or mock successful help controls.",
       "contracts": [
         "C01",
         "C02",
@@ -2452,13 +2452,13 @@
       "title": "Deliver the justified efficient backend portfolio",
       "area": "refinement",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "staged-execution",
         "plan-composition",
         "performance-envelope"
       ],
-      "owner": null,
+      "owner": "refinement_product61",
       "paths": [
         "src/backends/**",
         "tests/backends/**",
@@ -2481,7 +2481,7 @@
         "Proposed refinement counterexamples include exact rational loss, prohibited affine arithmetic, normative-rounding changes and a truncated result promoted to complete."
       ],
       "evidence": [],
-      "notes": "Required outcome is a defensible performant portfolio, not a mandate to use every researched backend.",
+      "notes": "Required outcome is a defensible performant portfolio, not a mandate to use every researched backend.\n2026-10-15 renewed holistic capability swarm: Activated with concrete graph adjacency/index consumer: exact ordered/multiplicity-preserving RBT buckets and independent lookup/path correspondence. No changes to the newly saved stable service Foundation or RBT parent during current capture; optional backend child first. NativeML/other backend disposition must follow actual toolchain compatibility and costs.",
       "contracts": [
         "C02",
         "C04"
@@ -2516,7 +2516,7 @@
         "dependency-updates",
         "performance-envelope"
       ],
-      "owner": "deployment61",
+      "owner": "deployment_product61",
       "paths": [
         "deployment/**",
         "tools/deploy/**",
@@ -2548,7 +2548,7 @@
         "Target evidence: clean packaged launch and interrupted update restore real native associations and generated code identity; no revoked payload replay, per-answer theory generation or ordinary-data bundle rebuild."
       ],
       "evidence": [],
-      "notes": "2026-10-15 breadth restart: First finite batch: stage actual artifacts with dependency/license manifest, pinned prebuilt heaps, real launcher integration and interrupted-update preservation. Public host launcher/jar packaging absent; host61 owns concrete seam after current compile. MacARM64 evidence first, Linuxx86_64 remains required and unqualified. No end-user deployment success claim from placeholder runtime.",
+      "notes": "2026-10-15 breadth restart: First finite batch: stage actual artifacts with dependency/license manifest, pinned prebuilt heaps, real launcher integration and interrupted-update preservation. Public host launcher/jar packaging absent; host61 owns concrete seam after current compile. MacARM64 evidence first, Linuxx86_64 remains required and unqualified. No end-user deployment success claim from placeholder runtime.\n2026-10-15 renewed holistic capability swarm: Reassigned from stale deployment61 after renewed wide swarm. Existing40ac installed PublicMain launch/restart passes; new owner carries actual shared authoring/resident workbench into packaging, offline assets/dependency closure and finite installed workflow checks. No complete authoring/search/Linux/redistribution claim.",
       "contracts": [
         "C01",
         "C02",
@@ -2580,7 +2580,7 @@
       "title": "Close behavioral coverage and cross-family execution",
       "area": "integration",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "relation-family",
         "facts-document-family",
@@ -2593,7 +2593,7 @@
         "dependency-updates",
         "known-regressions"
       ],
-      "owner": null,
+      "owner": "capability_integration61",
       "paths": [
         "tests/integration/families/**",
         "docs/coverage/integration.md"
@@ -2606,7 +2606,7 @@
         "Compatible family interfaces compose with conditions, sources, disagreement and state preserved; incompatibilities are justified against the agreed product scope.",
         "Required opaque adapters, partial lifts and unresolved implementation failures block this gate. Exclusions require an explicit agreed scope decision and evidence, not convenience or an unimplemented label.",
         "Original unavailable upstream data is recorded separately with its precise effect and explicit replacement/unavailability disposition. Available replacement/test sources exercise the required platform behavior; the limitation cannot be used to waive implementation obligations or claim original-data parity.",
-        "Cross-family closure exercises the shared codec/profile boundary, scoped claims, partial/multipart/optimality semantics, scoped routing and operational qualification—not merely per-family output equality.",
+        "Cross-family closure exercises the shared codec/profile boundary, scoped claims, partial/multipart/optimality semantics, scoped routing and operational qualification\u2014not merely per-family output equality.",
         "Required source-review cases retain their source/proposed/executed distinction and become passing regressions before affected migration claims close; optional Film/publication decisions remain explicit rather than unowned omissions.",
         "Real migrated family instances exercise the generated authority reducer, finite typed linkage and canonical recipe/tool path early; collection/profile richness cannot be satisfied by callbacks with unrelated theorem names.",
         "Owned algorithms require actual native semantic/refinement/checker bridges. External-engine observations, external actions and candidate workflows use their separate declared service boundaries without relabeling owned mathematics as opaque observation."
@@ -2618,7 +2618,7 @@
         "Review G01-G08 traceability across family packages and all proposed regression cases, including literal spaces, partial rows, scoped refusal, MQTT repoll time, expiry follow-up, imported held-out log and state-before-guard."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "\n2026-10-15 renewed holistic capability swarm: Activated during family implementation to own executable cross-family consumers and installed/native/draft/missing capability map. Source-to-quantity/graph joins, scoped refusal and partial outcomes remain actual integration gaps; component-level private ticket fixtures cannot close resident acceptance.",
       "contracts": [
         "C01",
         "C02",
@@ -3050,7 +3050,7 @@
         "var/native-scaffold/sessions/4e608a90e6793ebe/attempts/26b48f0431ea49acb177a02240ab4104/receipt.json",
         "var/native-scaffold/sessions/a6f87ab8d4ebe987/attempts/e843016747534eb191f6c2c01fd591ee/receipt.json"
       ],
-      "notes": "Root reviewed immutable e843016747534eb191f6c2c01fd591ee and matching current fixture/implementation hashes: Recovery passed 8 s, Admission_Core_Checks 11 s within an overall failed batch. Actual Thm.transitive composes reconstructed ancestor/child contexts; same saved IDs share native wrappers, distinct historical aliases preserve IDs while sharing actual theories. Source pruning and typed retained-context lifetime execute. Exact composed proposition assertion requested. Unit boot/checkpoint fixtures do not establish real host restart. D35 all-accessible latest-checkpoint closure, actual Math consumer lifetime, full proof/development profiles and D40 cross-role source pool remain open. Recovery owns shared restored input leases with admission/assembly; reject same-ID bytes/encoding conflicts and preserve equal-byte distinct origins. D40 joint migration approved: actual L base+consumer leases, explicit invalidation, fixed-role pool, one tagged source/context numeric fragment installation. Exact y=42 composition assertion now written but not yet executed.\nCurrent finite consumer: recovery61 resumed for full-source managed P.replay_recipe export/recheck and canonical named consequences, actual parent/source identity closure. Source written; composed native and host persistence checks pending.\nRoot approved D43 checked_development graph-only witness and narrow shared role migration in registry/recovery_manifest.ML, admission/native_committed_recovery.ML, admission/Veri7vn_Admission.thy with assembly/host. Only BuildCandidate allows empty sequent; actual builder pin and source/export/ordered ancestry checked, charged execution lineage differs native context identity. Mutation follows D44 capture.\nPer-call tri-state DAG liveness memo and unique-owner final revalidation drafted in granted window, with actual 22-layer diamond47-context fixture and shared-source revocation negative; no global cache. Runtime check pending, source frozen for Foundation capture.",
+      "notes": "Root reviewed immutable e843016747534eb191f6c2c01fd591ee and matching current fixture/implementation hashes: Recovery passed 8 s, Admission_Core_Checks 11 s within an overall failed batch. Actual Thm.transitive composes reconstructed ancestor/child contexts; same saved IDs share native wrappers, distinct historical aliases preserve IDs while sharing actual theories. Source pruning and typed retained-context lifetime execute. Exact composed proposition assertion requested. Unit boot/checkpoint fixtures do not establish real host restart. D35 all-accessible latest-checkpoint closure, actual Math consumer lifetime, full proof/development profiles and D40 cross-role source pool remain open. Recovery owns shared restored input leases with admission/assembly; reject same-ID bytes/encoding conflicts and preserve equal-byte distinct origins. D40 joint migration approved: actual L base+consumer leases, explicit invalidation, fixed-role pool, one tagged source/context numeric fragment installation. Exact y=42 composition assertion now written but not yet executed.\nCurrent finite consumer: recovery61 resumed for full-source managed P.replay_recipe export/recheck and canonical named consequences, actual parent/source identity closure. Source written; composed native and host persistence checks pending.\nRoot approved D43 checked_development graph-only witness and narrow shared role migration in registry/recovery_manifest.ML, admission/native_committed_recovery.ML, admission/Veri7vn_Admission.thy with assembly/host. Only BuildCandidate allows empty sequent; actual builder pin and source/export/ordered ancestry checked, charged execution lineage differs native context identity. Mutation follows D44 capture.\nPer-call tri-state DAG liveness memo and unique-owner final revalidation drafted in granted window, with actual 22-layer diamond47-context fixture and shared-source revocation negative; no global cache. Runtime check pending, source frozen for Foundation capture.\nD49 approves exact configured immutable installed roots shared with builder, preserving legacy Public/v1; new locator migration and actual lower-core/boot mismatch consumers pending.",
       "contracts": [
         "C02",
         "C04"
@@ -3244,6 +3244,57 @@
         "src/families/graphs/Graph_Certificates.thy",
         "src/families/graphs/Graph_MST.thy"
       ]
+    },
+    {
+      "id": "conceptnet-source-consumer",
+      "title": "Connect shipped ConceptNet labels, retrieval policy and provenance to checked graph queries",
+      "area": "source-backed graph specialists",
+      "milestone": "P",
+      "status": "active",
+      "depends_on": [
+        "coverage-disposition",
+        "source-import",
+        "graph-family"
+      ],
+      "owner": "conceptnet_product61",
+      "paths": [
+        "src/sources/conceptnet/**",
+        "tests/sources/conceptnet/**",
+        "docs/sources/conceptnet.md",
+        "examples/specialists/conceptnet/**"
+      ],
+      "deliverables": [
+        "Lossless original-label/row adapter and actual acquired-source graph consumer with explicit retrieval coverage"
+      ],
+      "acceptance": [
+        "Retain exact concept/relation labels, raw row metadata, dataset, surface text, confidence and original row identity through native projection and rendering.",
+        "Confidence is a ranking/filter attribute, not optimization cost; preserve or explicitly repair original retrieval and sense-normalization policy.",
+        "Bounds, LIMIT, degree filters and missing original snapshots remain explicit; incomplete search does not imply absence and source IsA is not an unconditional world theorem.",
+        "Use the shared versioned acquired-source and typed graph request/worker/checker, with lifecycle/recovery and real consumer evidence."
+      ],
+      "checks": [
+        "Compare actual shipped lexical and transitive source behavior with original available source subset, typed projection, original-label path rendering and truncated/reordered/conflicting fixtures.",
+        "Serialized native consumer tests and resident integration when fixed family producer is available."
+      ],
+      "evidence": [],
+      "notes": "New independent exact-path lane from graph owner discovery. Generic numeric graph algorithms alone do not migrate shipped ConceptNet specialists. Coordinate source/import and graph owners; no copied generic source registry.",
+      "contracts": [
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-04",
+        "ACC-05",
+        "ACC-06",
+        "ACC-09",
+        "ACC-15"
+      ],
+      "design_inputs": [
+        "docs/coverage/README.md",
+        "project/DECISIONS.md"
+      ]
     }
   ],
   "design_review": "G01-G08 in docs/review/PREIMPLEMENTATION.md and referenced source reports are design inputs/proposed acceptance cases, not completed implementation or executed regression evidence.",
@@ -3300,7 +3351,7 @@
     },
     {
       "id": "deployment-staging",
-      "owner": "deployment61",
+      "owner": "deployment_product61",
       "state": "repaired-immutable-public-main-launch-restart-passed",
       "target": "Actual artifact staging and launcher integration with update preservation",
       "first_failure": "Immutable generation6a8c11ef fully copied/verified from final jar8486c19b and fresh closure db75fb3e. Actual launcher7af9670c fails missing Veri7vn_Codegen heap: staging used arm64_32-darwin rather than polyml-5.9.2_arm64_32-darwin. Root read actual stderr; native execution not reached.",
@@ -3335,9 +3386,9 @@
       "members": [
         "relations_facts61"
       ],
-      "state": "row-slots-proof-repair-awaits-next-base-check",
+      "state": "row-plans-narrow-pass-d48-acquisition-consumer-pending",
       "target": "Actual acquired source snapshot -> closed typed shared relation query -> family consumer; preserve source leases and explicit coverage premises",
-      "next": "Latest relocated base check reached unchanged Row_Slots exact-result statement but generic locale execute_plan remained opaque. Plans added explicit locale recursion/definition equations. K/RI consumer still not reached; no source-qualified claim."
+      "next": "Root read receipt/log3da9fd3f22c9411f98e2467491589505: passed, inputs_stable true,98.771s elapsed; RowSlots exact result5.290s after explicit numeral2/Suc conversion. Full D48 K/RI acquired-source and original v1 consumer not yet reached."
     },
     {
       "id": "atomic-native-support-forget",
@@ -3346,9 +3397,9 @@
         "authority61",
         "host61"
       ],
-      "state": "selector-cleanup-and-host-consumers-written-indexed-proof-check-pending",
+      "state": "foundation-saved-service-local-proof-repairs",
       "target": "D44 single durable list-root Forget closes request and now-unowned bridge/code rows, preserves durable survivors, cancels uncommitted aliases, strict restart",
-      "next": "Current-state exact two-row groups, one backward summary/full closure guard, generic request/evidence/slot references, category deltas, overlapping cleanup roots and bounded retry implemented in drafts. Shared indexed proof and actual service/host qualification remain. Fixed Domain family follows D44 through same pipeline (D46)."
+      "next": "Root read1dc017 Foundation save5m08 and1d481 warm service failure17s: stable prefix reused. RequestLocal indexed predicate equivalence repair ready; native ownership fixtures have not run. Actual D44 host consumer remains required before D43 schema window."
     },
     {
       "id": "typed-native-build-candidates",
@@ -3434,9 +3485,24 @@
     {
       "id": "installed-performance-consumer",
       "owner": "performance_product61",
-      "state": "exact-installed-preflight-checked-awaiting-serialized-slot",
+      "state": "installed-pilot-reviewed-committed",
       "target": "Pinned installed public runtime startup-inclusive/warm/restart measurements; then opt-in real host phase attribution without changing licensed output",
-      "next": "Owner checked selected40ac artifact existence, all235 source hashes and jar pin. Steward grants slot after Indexed terminal; two fixed requests in each of fresh/restored processes. No application benchmark result yet."
+      "next": "Root reviewed actual two-process raw record/output hashes. Freshfirst22.823s/restartfirst14.792s; warm requests241.649ms/152.812ms. Pilot only, no percentile or broader family speedup. Phase attribution after host ingress window.",
+      "evidence": "benchmarks/envelope/public-runtime-40ac-pilot.json"
+    },
+    {
+      "id": "holistic-capability-expansion",
+      "owner": "root",
+      "state": "scoped-parallel-consumer-work",
+      "members": [
+        "deployment_product61",
+        "assistance_product61",
+        "capability_integration61",
+        "refinement_product61",
+        "conceptnet_product61"
+      ],
+      "target": "Actual packaged workshop plus cross-family reasoning, source fidelity and efficient deployed consumers",
+      "next": "New lanes own separate paths, shared native schema remains controlled by assembly, sole steward schedules checks. Existing workbench/dialogue/recovery owners resumed for real consumer joins. No implementation completion implied by dispatch."
     }
   ]
 }
