@@ -1,0 +1,4 @@
+session Veri7vn_ConceptNet_Acquisition = Veri7vn_Source_Acquisition +
+ options [document = false]
+ sessions Veri7vn_ConceptNet_Source
+ theories ConceptNet_Acquisition

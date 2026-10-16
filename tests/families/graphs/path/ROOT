@@ -1,0 +1,3 @@
+session Veri7vn_Graph_Path_Tests = Veri7vn_Graph_Core +
+  options [document = false]
+  theories Graph_Path_Checks

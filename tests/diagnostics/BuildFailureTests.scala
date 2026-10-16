@@ -13,6 +13,8 @@ object BuildFailureTests {
     val parsed=BuildFailure.parse(frame(text),BigInt(101),BigInt(102))
     assert(parsed.phase==BuildFailure.Phase.Replay && parsed.span.contains(BuildFailure.Span(3,7)))
     assert(parsed.message==BuildFailure.Message.Text("Unknown fact λ"))
+    assert(parsed.code=="build.replay_failed" && Diagnostics.explain(parsed.code).outcome==Diagnostics.Outcome.Failed)
+    assert(parsed.copy(phase=BuildFailure.Phase.Export).code=="build.export_failed")
     rejects(BuildFailure.parse(frame(text),BigInt(100),BigInt(102)))
     rejects(BuildFailure.parse(frame(text).replace("phase=replay","phase=timeout"),BigInt(101),BigInt(102)))
     rejects(BuildFailure.parse(frame(element("message",Nil,List(element("b",Nil)))),BigInt(101),BigInt(102)))

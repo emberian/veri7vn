@@ -1,0 +1,173 @@
+{
+  "format": "veri7vn.phase-cost-collection/1",
+  "receipt_path": "var/runtime-host/combined-20261015T145302Z/receipt.json",
+  "marker_log_override": null,
+  "command_logs_omitted": false,
+  "log_directory_override": "var/runtime-host/combined-20261015T145302Z",
+  "current_sources_sha256": {
+    "experiments/runtime-host/Host_Protocol.thy": "c0be8cd14d6819debf71c1a394bb50e327f4e84ea36c5399ce2ca05e76e53d5d",
+    "experiments/runtime-host/ROOT": "803dffbff4825ef7c43de9daa7b74eb0a61b43c2b1375beaf4e9e6c6de6047ae",
+    "experiments/runtime-host/durable.scala": "29faded29e7486ed830ea4fc80f1534d6f1b69a9c854b2a48511cb9e6c1c30f1",
+    "experiments/runtime-host/probe.scala": "a39f81a97dd226b166c064706611581b15a8b52df7aa7718d0cd4f16dafe2df7",
+    "src/packages/intake/HostDraftJournal.scala": "f3cdca4125170c8346093ccf48a9654f48ac031ef0377d2d05b7635f6771d4a1",
+    "src/packages/intake/Intake.scala": "302df9eaf458a9bf5dcfb91595ed0df5899daa21e319f34c4d76b119f22dc04f",
+    "src/packages/intake/SourceObjects.scala": "8070c74005008df75f5a5e3206d9bf8c626c7ffd3e1b54d21d5d4f0440b1082f",
+    "src/runtime/host/WorkspaceStore.scala": "b7be41afb9cf964c3e36f841f5b47d317dbe63375f4080e42b3a042c8d69e73c",
+    "src/runtime/service/AuthorityCoordinator.scala": "b57d98fcdc9972e6280d7bea165f7160dd813734f6a54f54d646e8b8677a7f1d",
+    "src/runtime/service/MetadataFrame.scala": "936b1cc01f854f97b1cb669688952a2ed5b1069dc6d9c4c6f981a8a6dcb92aae",
+    "src/runtime/service/Native_Service.thy": "ef48f99b85a5abcecf0e886e63b5c889eec35bf6b31b779b9f25c08883a6aaf5",
+    "src/runtime/service/ROOT": "c3d9036d114acec9d6f44c59fbf2022b88b7eb0318c7c3e497dc29dacd20edce",
+    "src/runtime/service/ResidentNativeBridge.scala": "a5f842e540307917a6fd879b879d12d28cd9e989685197e62d2d588136626c26",
+    "src/runtime/service/ResidentSupervisor.scala": "496a00154cb975b62eca22af48e6ac91d8d4a616ddf9b14375baa239071d0976",
+    "src/runtime/service/metadata_frame.ML": "e7138de998d525327796b95b26cc3db0169b2bec73485f6dec5a41dd7a0b3a4d",
+    "src/runtime/service/native_service.ML": "1526427760b1538e8c9dbdb56d3f9354fbb5659b413557297baf29becef84f3c",
+    "tests/packages/intake/IntakeTests.scala": "4f9dcfc89bf797c1bb67e8c00d27725851240127a066d4c9dd4d0eccf00a428c",
+    "tests/runtime/host/WorkspaceStoreTests.scala": "be6caea9a25a6777d4ffdf6373041f0f910ab27790a52388d38c365bd08534a7",
+    "tests/runtime/host/check.scala": "bda6b55a7d011305a2f0ddaeefd8062ac271d068f958b89f461814bd37a51fa3",
+    "tests/runtime/service/CoordinatorTests.scala": "d5435be09efc8134e5f45659a07b9bc4e383fee21211f4f8fa6304f661d8e4c3",
+    "tools/dev/check-native": "404b8dc2d1005f6820c32e753d61498f21cadb04dd3f6ca9d87e1816bbb4aa8b"
+  },
+  "current_source_comparison": {
+    "experiments/runtime-host/Host_Protocol.thy": "matches",
+    "experiments/runtime-host/ROOT": "matches",
+    "experiments/runtime-host/durable.scala": "matches",
+    "experiments/runtime-host/probe.scala": "matches",
+    "src/packages/intake/HostDraftJournal.scala": "matches",
+    "src/packages/intake/Intake.scala": "changed",
+    "src/packages/intake/SourceObjects.scala": "changed",
+    "src/runtime/host/WorkspaceStore.scala": "changed",
+    "src/runtime/service/AuthorityCoordinator.scala": "changed",
+    "src/runtime/service/MetadataFrame.scala": "matches",
+    "src/runtime/service/Native_Service.thy": "changed",
+    "src/runtime/service/ROOT": "changed",
+    "src/runtime/service/ResidentNativeBridge.scala": "changed",
+    "src/runtime/service/ResidentSupervisor.scala": "changed",
+    "src/runtime/service/metadata_frame.ML": "changed",
+    "src/runtime/service/native_service.ML": "changed",
+    "tests/packages/intake/IntakeTests.scala": "matches",
+    "tests/runtime/host/WorkspaceStoreTests.scala": "changed",
+    "tests/runtime/host/check.scala": "changed",
+    "tests/runtime/service/CoordinatorTests.scala": "matches",
+    "tools/dev/check-native": "changed"
+  },
+  "receipt_sha256": "69f35976f65cfb4494e2de6315d33662cfd6396c980ea6469ae9f45fc95b940f",
+  "run_identity": {
+    "started_utc": "2026-10-15T14:53:02Z",
+    "elapsed_seconds": 22.038868292002007,
+    "scope": "native integration smoke; not admission",
+    "host": {
+      "system": "Darwin",
+      "machine": "arm64"
+    },
+    "resources": {
+      "build_jobs": 1,
+      "threads": 2,
+      "command_timeout_seconds": 180
+    },
+    "session": "Veri7vn_Runtime_Host",
+    "isabelle_version": "Isabelle2026-RC1",
+    "isabelle_settings": "ISABELLE_IDENTIFIER=Isabelle2026-RC1\nML_SYSTEM=polyml-5.9.2\nML_PLATFORM=\nISABELLE_HOME_USER=/Users/ember/dev/o7vn/var/native-scaffold/user-state/.isabelle/Isabelle2026-RC1",
+    "sources_sha256": {
+      "experiments/runtime-host/Host_Protocol.thy": "c0be8cd14d6819debf71c1a394bb50e327f4e84ea36c5399ce2ca05e76e53d5d",
+      "experiments/runtime-host/ROOT": "803dffbff4825ef7c43de9daa7b74eb0a61b43c2b1375beaf4e9e6c6de6047ae",
+      "experiments/runtime-host/durable.scala": "29faded29e7486ed830ea4fc80f1534d6f1b69a9c854b2a48511cb9e6c1c30f1",
+      "experiments/runtime-host/probe.scala": "a39f81a97dd226b166c064706611581b15a8b52df7aa7718d0cd4f16dafe2df7",
+      "src/packages/intake/HostDraftJournal.scala": "f3cdca4125170c8346093ccf48a9654f48ac031ef0377d2d05b7635f6771d4a1",
+      "src/packages/intake/Intake.scala": "fe55eabdd133ef0db0bb06082ab8bb872de8429ff5ee39cb79c291d5692954d1",
+      "src/packages/intake/SourceObjects.scala": "aa6f541be90c23c22d0f00c1430dc0fac564ef37012d78d919921bd38ae62240",
+      "src/runtime/host/WorkspaceStore.scala": "fdc28110158ee1b470e692a6f42551e04da072faf4765380d20a7c9a9e7e0d7c",
+      "src/runtime/service/AuthorityCoordinator.scala": "81c89568c79474360643db629c121f31a9818820d6032f3d9f03c4a063cc7983",
+      "src/runtime/service/MetadataFrame.scala": "936b1cc01f854f97b1cb669688952a2ed5b1069dc6d9c4c6f981a8a6dcb92aae",
+      "src/runtime/service/Native_Service.thy": "bd1ceb66a5caa0c620d270218307544c6c8521e7931655812cc64ab3c9f9e87e",
+      "src/runtime/service/ROOT": "23a9b246eb1d5cfe80bf5b55cbc39bedf085c26fecac4e30a49d8414d043d136",
+      "src/runtime/service/ResidentNativeBridge.scala": "53585d2a2594b2361cd0209ff7f3a40257e08bf88782d3176a5f4360a303909b",
+      "src/runtime/service/ResidentSupervisor.scala": "8e7f2ea06e3f808279d2a212723b0bdb77e7073ba0a9d9219930734a40ee0b9e",
+      "src/runtime/service/metadata_frame.ML": "17a2e458a28b723dd3bc6371acf6bb15d9e9ea54490f7b898cba302e0d0008ff",
+      "src/runtime/service/native_service.ML": "8dd84a68ad5f80c1bdf6837ae0d03ba8a44b6bf1201b0289af5f3cb91ccbc1c7",
+      "tests/packages/intake/IntakeTests.scala": "4f9dcfc89bf797c1bb67e8c00d27725851240127a066d4c9dd4d0eccf00a428c",
+      "tests/runtime/host/WorkspaceStoreTests.scala": "435c101560df4b460a5f91ceae3090af698e498bcf4ba2e0d61dbc1ac57c1559",
+      "tests/runtime/host/check.scala": "628ef550c2ddf51eb4e0e4caa1e55401c853dc81c7d8031dedd14528acadb33a",
+      "tests/runtime/service/CoordinatorTests.scala": "d5435be09efc8134e5f45659a07b9bc4e383fee21211f4f8fa6304f661d8e4c3",
+      "tools/dev/check-native": "0fa7303cbd074826ae8301680556e35f407adc504c7dc026ffe859cdf010614e"
+    },
+    "checks": []
+  },
+  "cache_state": "not inferred: producer must document process/heap/filesystem/index warmth",
+  "logs": [
+    {
+      "path": "/Users/ember/dev/o7vn/var/runtime-host/combined-20261015T145302Z/version.log",
+      "sha256": "f3059e16a774c587aff02666795a3b192c3735473148b794b590bfbece0b0d67"
+    },
+    {
+      "path": "/Users/ember/dev/o7vn/var/runtime-host/combined-20261015T145302Z/settings.log",
+      "sha256": "47e1e686d7fd8ba99e1e4c5a5830875efb4d140edf334a7d3682ee39e7a3f23b"
+    },
+    {
+      "path": "/Users/ember/dev/o7vn/var/runtime-host/combined-20261015T145302Z/build.log",
+      "sha256": "4c6ce9b71df04239b3e4f67e6c34f0d938141a975fdf306d25eddbf56af41b04"
+    },
+    {
+      "path": "/Users/ember/dev/o7vn/var/runtime-host/combined-20261015T145302Z/scala.log",
+      "sha256": "fe270ffdfba5c3b84687193a0e8b568619a94d3fba84f7f2644398b2ba475bb9"
+    }
+  ],
+  "observations": [
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "version"
+      ],
+      "wall_ms": 648.292208003113,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    },
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "getenv",
+        "ISABELLE_IDENTIFIER",
+        "ML_SYSTEM",
+        "ML_PLATFORM",
+        "ISABELLE_HOME_USER"
+      ],
+      "wall_ms": 538.8828750001267,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    },
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "build",
+        "-v",
+        "-b",
+        "-d",
+        "experiments/runtime-host",
+        "-j",
+        "1",
+        "-o",
+        "threads=2",
+        "Veri7vn_Runtime_Host"
+      ],
+      "wall_ms": 7342.818958015414,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    },
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "scala",
+        "/Users/ember/dev/o7vn/tests/runtime/host/check.scala"
+      ],
+      "wall_ms": 13497.38850002177,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    }
+  ],
+  "base_heap_replay_epochs": [],
+  "unavailable": {
+    "allocations": "not instrumented",
+    "peak_live_memory": "not instrumented",
+    "durable_commit_throughput_and_tail": "one first-commit sample is insufficient",
+    "representative_application": "not implemented by these feasibility probes"
+  }
+}

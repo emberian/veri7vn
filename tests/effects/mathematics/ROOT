@@ -1,0 +1,3 @@
+session Veri7vn_Mathematics_Ticket_Tests = Veri7vn_Mathematics_Ticket_Execution +
+  options [document = false, threads = 2]
+  theories Mathematics_Ticket_Tests

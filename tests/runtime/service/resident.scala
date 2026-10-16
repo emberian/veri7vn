@@ -2,7 +2,7 @@ import scala.language.unsafeNulls
 import scala.jdk.CollectionConverters.*
 import java.nio.file.{Files,Paths}
 @main def residentRuntimeCheck():Unit=isabelle.Command_Line.tool {
-  val sources=List("src/runtime/host/WorkspaceStore.scala","src/runtime/service/AuthorityCoordinator.scala",
+  val sources=List("src/diagnostics/Diagnostics.scala","src/diagnostics/RequestInspection.scala","src/runtime/host/WorkspaceStore.scala","src/runtime/service/AuthorityCoordinator.scala",
     "src/runtime/service/ResidentSupervisor.scala","src/runtime/service/DeploymentImages.scala",
     "src/runtime/service/ResidentNativeBridge.scala","src/runtime/service/ResidentAuthorityService.scala",
     "tests/runtime/service/ResidentServiceTests.scala")

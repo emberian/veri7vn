@@ -1,0 +1,3 @@
+session Veri7vn_Performance_Effects = Veri7vn_Effects +
+  options [document = false, threads = 2]
+  theories Effects_Envelope Effects_Envelope_Run

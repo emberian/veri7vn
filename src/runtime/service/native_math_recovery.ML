@@ -30,13 +30,20 @@ sig
   val verify_request: batch -> Veri7vn_Native_Identity_Allocator.allocator ->
     Veri7vn_Native_Admission.policy -> Veri7vn_Native_Recovery_Check.image ->
     string -> material -> verified_request
+  val verify_output_request: batch -> Veri7vn_Native_Identity_Allocator.allocator ->
+    Veri7vn_Native_Admission.policy -> Veri7vn_Native_Recovery_Check.image ->
+    string -> string -> material -> verified_request
+  val has_embedded_request: material -> bool
+  val verified_identity: verified_request -> IntInf.int * IntInf.int * IntInf.int
+  val same_verified_request: verified_request -> verified_request -> bool
   val fragment: verified_request -> Veri7vn_Native_Identity_Allocator.fragment
   val restore_request: Veri7vn_Native_Identity_Allocator.allocator -> verified_request ->
     {request:Veri7vn_Interpreted_Request.request,bridge:Veri7vn_Refined_Math_Display.bridge}
   val restore_output: Veri7vn_Native_Identity_Allocator.allocator ->
     Veri7vn_Native_Recovery_Check.image -> string -> Veri7vn_Refined_Math_Display.bridge ->
     Veri7vn_Interpreted_Request.request -> material -> Veri7vn_Native_Math_Gate.witness
-  val output_request: material -> IntInf.int
+  datatype output_owner = LegacyRequest of IntInf.int | ScopedChild of IntInf.int
+  val output_owner: material -> output_owner
 end;
 structure Veri7vn_Native_Math_Recovery :> VERI7VN_NATIVE_MATH_RECOVERY =
 struct
@@ -229,19 +236,28 @@ struct
   fun display_contract bridge=Thm.prop_of(A.theorem(Display.bridge_contract bridge));
   fun request_projection(saved:R.saved)(bridge:Display.bridge_projection)=
     YXML.string_of_body[XML.Elem(("veri7vn-math-request",
-      [("version","2"),("workspace",#workspace saved),("selection",Int.toString(#selected_index saved)),
+      [("version","3"),("workspace",#workspace saved),("selection",Int.toString(#selected_index saved)),
+       ("source_start",Int.toString(#source_start saved)),("source_stop",Int.toString(#source_stop saved)),
        ("encoding",#encoding saved),("bridge",IntInf.toString(#bridge_id bridge)),
        ("statement_code",IntInf.toString(#statement_code_id bridge))] @
        (request_keys ~~ map IntInf.toString(projection_values(#projection saved)))),[])];
   fun request_saved projection sequent bytes =
-    let val field=attrs "veri7vn-math-request"
-        (["version","workspace","selection","encoding","bridge","statement_code"]@request_keys) projection;
-      val _=require(field "version"="2" andalso field "encoding"="UTF-8" andalso size bytes<=256)
-        "Math request saved version/encoding/bytes";
+    let val version=(case YXML.parse_body projection of
+          [XML.Elem(("veri7vn-math-request",fields),[])]=>the_default "" (AList.lookup(op =)fields "version")
+        | _=>error "Math request projection shape");
+      val _=require(version="2" orelse version="3") "Math request saved version";
+      val field=attrs "veri7vn-math-request"
+        (["version","workspace","selection","encoding","bridge","statement_code"] @
+          (if version="3" then ["source_start","source_stop"] else []) @request_keys) projection;
+      val start=if version="3" then IntInf.toInt(number(field "source_start")) else 0;
+      val stop=if version="3" then IntInf.toInt(number(field "source_stop")) else size bytes;
+      val _=require(field "encoding"="UTF-8" andalso size bytes<=1000000 andalso
+        0<=start andalso start<=stop andalso stop<=size bytes andalso stop-start<=256)
+        "Math request saved encoding/original slice bounds";
       val p=projection_of(map(number o field)request_keys);
       val native=terms_decode 5 sequent;
       val selected=IntInf.toInt(number(field "selection"));
-      val saved={workspace=field "workspace",projection=p,selected_index=selected,
+      val saved={workspace=field "workspace",projection=p,selected_index=selected,source_start=start,source_stop=stop,
         encoding=field "encoding",bytes=bytes,native_input=nth native 0,native_requirement=nth native 1,
         registered_input=nth native 2}:R.saved;
       val bridge={bridge_id=number(field "bridge"),statement_code_id=number(field "statement_code"),
@@ -250,12 +266,14 @@ struct
       val _=require(forall(fn n=>n>0 andalso not(member(op =)(projection_values p)n))pair andalso
         length(distinct(op =)pair)=2) "Saved bridge collides with original request identities";
     in (saved,nth native 2,nth native 3,nth native 4,bridge) end;
+  datatype output_owner=LegacyRequest of IntInf.int | ScopedChild of IntInf.int;
   val output_keys=["version","workspace","semantic","request","input","claim","target","evidence",
     "output","execution","batch","bridge","statement_code"];
   fun output_projection(request:R.request)(saved:G.saved)=
     let val names= #names saved;val bridge= #bridge saved
     in YXML.string_of_body[XML.Elem(("veri7vn-math-output",
-      [("version","2"),("workspace",#workspace(R.snapshot request)),
+      [("version","4"),("workspace",#workspace(R.snapshot request)),
+       ("goal",IntInf.toString(#goal saved)),("slot",IntInf.toString(#slot saved)),
        ("semantic",IntInf.toString(#semantic_generation(R.project request))),
        ("request",IntInf.toString(#request saved)),("input",IntInf.toString(#input saved)),
        ("claim",IntInf.toString(#claim names)),("target",IntInf.toString(#target names)),
@@ -264,18 +282,24 @@ struct
        ("bridge",IntInf.toString(#bridge_id bridge)),
        ("statement_code",IntInf.toString(#statement_code_id bridge))]),[])] end;
   fun output_saved projection sequent =
-    let val field=attrs "veri7vn-math-output" output_keys projection;
-      val _=require(field "version"="2") "Math output snapshot version";
+    let val version=(case YXML.parse_body projection of
+          [XML.Elem(("veri7vn-math-output",fields),[])]=>the_default "" (AList.lookup(op =)fields "version")
+        | _=>error "Math output projection shape");
+      val _=require(version="2" orelse version="3" orelse version="4") "Math output snapshot version";
+      val field=attrs "veri7vn-math-output" (output_keys @
+        (if version="3" then ["goal","slot"] else [])) projection;
       val native=terms_decode 4 sequent;
       fun n key=number(field key);
-      val saved={request=n "request",input=n "input",names={claim=n "claim",target=n "target",
+      val saved={version=if version<>"2" then 3 else 2,request=n "request",
+        goal=if version<>"2" then n "goal" else 0,slot=if version<>"2" then n "slot" else 0,
+        input=n "input",names={claim=n "claim",target=n "target",
         evidence=n "evidence",output=n "output",execution=n "execution",batch=n "batch"},
         bridge={bridge_id=n "bridge",statement_code_id=n "statement_code",semantic_generation=n "semantic"},
         output=nth native 0,target=nth native 1}:G.saved;
     in (field "workspace",n "semantic",saved,nth native 2,nth native 3) end;
-  fun output_request(material:material)=
-    let val field=attrs "veri7vn-math-output" output_keys (#projection material)
-    in number(field "request") end;
+  fun output_owner(material:material)=
+    let val (_,_,saved,_,_)=output_saved (#projection material)(#sequent material)
+    in if #version saved=3 then ScopedChild(#slot saved) else LegacyRequest(#request saved)end;
   fun make profile workspace association semantic projection sequent context reconstruction executable =
     let val manifest=Manifest.encode {profile=profile,workspace=workspace,association=association,
       semantic_generation=semantic,projection=digest projection,sequent=digest sequent,
@@ -292,16 +316,55 @@ struct
           [#bridge_id pair,#statement_code_id pair])) "Request bridge identity differs";
       val sequent=terms_encode[#native_input saved,#native_requirement saved,
         #registered_input saved,contract(R.instance request),display_contract bridge]
-    in make Manifest.MathRequest (#workspace saved) (#request_id p) (#semantic_generation p)
+    in make Manifest.MathRequest (#workspace saved) (#output_slot_id p) (#semantic_generation p)
       (request_projection saved pair) sequent (V.context_closure image) (#bytes saved) executable end;
+  val output_capsule_magic="V7MATHOUTPUT1\n";
+  val output_capsule_limits=[1048576,8192,8192,1048576,1000000];
+  fun capsule_pack fields=
+    let fun u32 n=String.implode(map(fn divisor=>Char.chr((n div divisor)mod 256))
+          [16777216,65536,256,1]);
+      val _=require(length fields=5 andalso ListPair.allEq(fn(bytes,limit)=>size bytes<=limit)
+        (fields,output_capsule_limits)) "Math historical capsule field bound"
+    in output_capsule_magic ^ String.concat(map(u32 o size)fields) ^ String.concat fields end;
+  fun capsule_unpack bytes=
+    let val prefix=size output_capsule_magic;val position=Unsynchronized.ref prefix;
+      val _=require(size bytes<=4194304 andalso String.isPrefix output_capsule_magic bytes andalso
+        size bytes>=prefix+20) "Math historical capsule framing";
+      fun take n=(require(n>=0 andalso n<=size bytes- !position) "Truncated Math historical capsule";
+        let val part=String.substring(bytes,!position,n)in position:= !position+n;part end);
+      fun u32()=IntInf.toInt(fold(fn c=>fn n=>n*256+IntInf.fromInt(Char.ord c))
+        (String.explode(take 4))(0:IntInf.int));
+      val lengths=map(fn _=>u32())output_capsule_limits;
+      val _=require(ListPair.allEq(fn(n,limit)=>n<=limit)(lengths,output_capsule_limits))
+        "Math historical capsule field limit";
+      val fields=map take lengths;
+      val _=require(!position=size bytes andalso capsule_pack fields=bytes)
+        "Math historical capsule trailing/noncanonical bytes"
+    in fields end;
+  fun output_version(material:material)=case YXML.parse_body(#projection material)of
+    [XML.Elem(("veri7vn-math-output",fields),[])]=>the_default ""(AList.lookup(op =)fields "version")
+    |_=>error "Math output projection shape";
+  fun has_embedded_request material=output_version material="4";
+  fun embedded_request executable(material:material):material=
+    let val _=require(has_embedded_request material) "Legacy Math output requires its original request role";
+      val fields=capsule_unpack(#context_closure material);
+      val manifest=Manifest.decode{max_bytes=8192}(nth fields 1);
+      val _=Manifest.require_profile Manifest.MathRequest manifest
+    in {association= #association manifest,semantic_generation= #semantic_generation manifest,
+      manifest=nth fields 1,projection=nth fields 2,sequent=nth fields 3,
+      context_closure=nth fields 0,reconstruction=nth fields 4,executable=executable}end;
   fun output_recipe request input="verify-fixed-mathematics/2," ^ IntInf.toString request ^ "," ^ IntInf.toString input;
+  fun historical_recipe request input="verify-fixed-mathematics/3," ^ IntInf.toString request ^ "," ^ IntInf.toString input;
   fun export_output image executable witness =
     let val request=G.request witness; val p=R.project request;val saved=G.snapshot witness;
+      val original=export_request image executable(G.rendering_bridge witness)request;
+      val context=capsule_pack[V.context_closure image,#manifest original,#projection original,
+        #sequent original,#reconstruction original];
       val sequent=terms_encode[#output saved,#target saved,contract(R.instance request),
         display_contract(G.rendering_bridge witness)]
     in make Manifest.MathOutput (#workspace(R.snapshot request)) (#evidence(#names saved))
-      (#semantic_generation p) (output_projection request saved) sequent (V.context_closure image)
-      (output_recipe (#request saved)(#input saved)) executable end;
+      (#semantic_generation p) (output_projection request saved) sequent context
+      (historical_recipe (#request saved)(#input saved)) executable end;
   fun check_material profile ids image executable (material:material)=
     let val envelope=Manifest.decode {max_bytes=8192}(#manifest material);
       val _=Manifest.require_profile profile envelope;
@@ -309,7 +372,9 @@ struct
         #association envelope= #association material andalso
         #semantic_generation envelope= #semantic_generation material andalso
         #executable envelope=SOME(digest executable) andalso #executable material=executable andalso
-        #context_closure material=V.context_closure image) "Math recovery image/identity differs";
+        (if profile=Manifest.MathOutput andalso has_embedded_request material
+          then hd(capsule_unpack(#context_closure material))=V.context_closure image
+          else #context_closure material=V.context_closure image)) "Math recovery image/identity differs";
       val _=require(#projection envelope=digest(#projection material) andalso
         #sequent envelope=digest(#sequent material) andalso
         #context_closure envelope=digest(#context_closure material) andalso
@@ -356,7 +421,10 @@ struct
       val (saved,carrier,saved_contract,saved_display,bridge)=
         request_saved (#projection material)(#sequent material)(#reconstruction material);
       val p= #projection saved;
-      val _=require(#workspace saved=I.workspace ids andalso #request_id p= #association material andalso
+      val legacy=case YXML.parse_body(#projection material)of
+        [XML.Elem((_,fields),[])]=>AList.lookup(op =)fields "version"=SOME "2" | _=>false;
+      val _=require(#workspace saved=I.workspace ids andalso
+        (if legacy then #request_id p else #output_slot_id p)= #association material andalso
         #semantic_generation p= #semantic_generation material andalso
         saved_display aconv @{prop fixed_math_display_contract}) "Math request snapshot identity/bridge differs";
       val checked=R.install_committed_math_host saved;
@@ -364,7 +432,8 @@ struct
         let val owned=instance_for batch ids policy p bridge;val instance= #instance owned;
           val input=L.input {bytes= #bytes saved,encoding= #encoding saved};
           val replay=Exn.capture(fn()=>
-            let val reading=Lang.select input (#selected_index saved);
+            let val reading=Lang.select_slice (L.slice input {start= #source_start saved,stop= #source_stop saved,
+                expected=String.substring(#bytes saved,#source_start saved,#source_stop saved- #source_start saved)}) (#selected_index saved);
               val expression=Lang.native_expression reading;
               val ctxt=N.context(A.generation(M.contract instance));
               val bound=HOLogic.mk_number @{typ nat} 512;
@@ -391,6 +460,30 @@ struct
         in Exn.release replay end)();
       val _=R.release_committed checked;
     in Exn.release result end;
+  fun verify_output_request batch ids policy image executable checkpoint material=
+    let val _=check_material Manifest.MathOutput ids image executable material;
+      val original=embedded_request executable material;
+      val (saved,_,_,_,bridge)=request_saved(#projection original)(#sequent original)(#reconstruction original);
+      val (_,semantic,result,_,_)=output_saved(#projection material)(#sequent material);
+      val p= #projection saved;
+      val _=require(#request result= #request_id p andalso #goal result= #goal_id p andalso
+        #slot result= #output_slot_id p andalso #input result= #input_identity p andalso
+        semantic= #semantic_generation p) "Math historical capsule original child differs";
+      val state=case Veri7vn_Metadata_Frame.decode_state_checked checkpoint of SOME state=>state
+        |NONE=>error "Math historical capsule checkpoint decode";
+      val _=require(Veri7vn_Metadata_Frame.math_historical_source_matches state p bridge (#names result))
+        "Math historical capsule differs from exact retained evidence/original paid request"
+    in verify_request batch ids policy image executable original end;
+  fun verified_identity verified=
+    let val p= #projection(#saved(verified_payload verified))
+    in (#request_id p,#goal_id p,#output_slot_id p)end;
+  fun same_verified_request left right=
+    let val a= #saved(verified_payload left);val b= #saved(verified_payload right)
+    in #workspace a= #workspace b andalso #projection a= #projection b andalso
+      #selected_index a= #selected_index b andalso #source_start a= #source_start b andalso
+      #source_stop a= #source_stop b andalso #encoding a= #encoding b andalso #bytes a= #bytes b andalso
+      #native_input a aconv #native_input b andalso #native_requirement a aconv #native_requirement b andalso
+      #registered_input a aconv #registered_input b end;
   structure Reassociation=Veri7vn_Checked_Generation_Reassociation(struct
     type verified=verified_request;
     fun bindings verified=
@@ -424,7 +517,9 @@ struct
         #request saved= #request_id p andalso #input saved= #input_identity p andalso
         Display.project_bridge bridge= #bridge saved andalso Display.bridge_matches bridge(R.instance request) andalso
         contract(R.instance request) aconv saved_contract andalso display_contract bridge aconv saved_display andalso
-        #reconstruction material=output_recipe(#request saved)(#input saved)) "Math output recipe/contract differs";
+        #reconstruction material=(if has_embedded_request material then
+          historical_recipe(#request saved)(#input saved)else output_recipe(#request saved)(#input saved)))
+        "Math output recipe/contract differs";
       (* Deliberate bounded verification recomputation, never a replay of the old
          charged execution command and never a minted operation ticket. *)
       val output=ready(M.execute(R.executable request)(R.instance request)(R.family_request request));

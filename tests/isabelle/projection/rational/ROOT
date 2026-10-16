@@ -1,0 +1,3 @@
+session Veri7vn_Rational_Input_Checks = Veri7vn_Rational_Input +
+  options [document = false, threads = 2]
+  theories Rational_Input_Checks

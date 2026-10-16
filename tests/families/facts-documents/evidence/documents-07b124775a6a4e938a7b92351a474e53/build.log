@@ -1,0 +1,97 @@
+Started at Thu Oct 15 19:13:57 GMT-4 2026 (polyml-5.9.2_arm64_32-darwin on Mac)
+ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
+ISABELLE_BUILD_OPTIONS=""
+
+ML_PLATFORM="arm64_32-darwin"
+ML_HOME="/Applications/Isabelle2026-RC1.app/Contents/Resources/contrib/polyml-5.9.2-4/arm64_32-darwin"
+ML_SYSTEM="polyml-5.9.2"
+ML_OPTIONS="--minheap 500 --enablegcsharing"
+
+Session Pure/Pure
+Session Misc/Tools
+Session HOL/HOL (main)
+Session Unsorted/Veri7vn_Codegen
+Session Unsorted/Veri7vn_Plans
+Session Unsorted/Veri7vn_Domains
+Session Unsorted/Veri7vn_Domain_Checks
+Session Unsorted/Veri7vn_Strategies
+Session Unsorted/Veri7vn_Registry
+Session Unsorted/Veri7vn_Admission
+Session Unsorted/Veri7vn_Source_Semantics
+Session Unsorted/Veri7vn_Documents
+Session Unsorted/Veri7vn_Effects
+Session Unsorted/Veri7vn_Effect_Tickets
+Session Unsorted/Veri7vn_Native_Search
+Session Unsorted/Veri7vn_Search_Tests
+Session Unsorted/Veri7vn_Effects_Closure
+Session Unsorted/Veri7vn_Effects_Order
+Session Unsorted/Veri7vn_Facts
+Session Unsorted/Veri7vn_Relations
+Building Veri7vn_Documents ...
+Veri7vn_Documents: theory Veri7vn_Documents.Document_Quotation
+Veri7vn_Documents: theory Veri7vn_Documents.Quotation_Examples
+Veri7vn_Documents: theory Veri7vn_Documents.Document_Quotation 100% (1.537s cumulated time)
+Veri7vn_Documents: theory Veri7vn_Documents.Quotation_Examples 100% (0.378s cumulated time)
+Timing Veri7vn_Documents (2 threads, 1.689s elapsed time, 1.448s cpu time, 0.086s GC time, factor 0.86)
+Finished Veri7vn_Documents (0:00:08 elapsed time, 0:00:06 cpu time, factor 0.81)
+Building Veri7vn_Domains ...
+Veri7vn_Domains: theory Veri7vn_Plans.Veri7vn_Plan_Search
+Veri7vn_Domains: theory Veri7vn_Domains.Domain_Quantities
+Veri7vn_Domains: theory Veri7vn_Plans.Veri7vn_Plans
+Veri7vn_Domains: theory Veri7vn_Plans.Veri7vn_Plan_Search 100% (1.379s cumulated time)
+Veri7vn_Domains: theory Veri7vn_Plans.Veri7vn_Plans 100% (3.510s cumulated time)
+Veri7vn_Domains: theory Veri7vn_Domains.Domain_Springs
+Veri7vn_Domains: theory Veri7vn_Domains.Domain_Plans
+Veri7vn_Domains: theory Veri7vn_Domains.Domain_Quantities 100% (38.770s cumulated time)
+Veri7vn_Domains: theory Veri7vn_Domains.Domain_Springs 100% (1.316s cumulated time)
+Veri7vn_Domains FAILED (see also "isabelle build_log -H Error Veri7vn_Domains")
+*** No code equations for typed_plan_bundle.run_checked,
+*** requested by dependencies
+*** "run_quantity_plan" -> "typed_plan_bundle.run_checked"
+*** At command "export_code" (line 97 of "/Users/ember/dev/o7vn/src/families/domains/Domain_Plans.thy")
+Veri7vn_Domain_Checks CANCELLED
+Building Veri7vn_Effects_Order ...
+Veri7vn_Effects_Order: theory Veri7vn_Effects_Order.Effects_Order_Reconstruction
+Veri7vn_Effects_Order: command "by" running for 21.608s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 23.614s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 25.619s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 27.624s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 29.632s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 31.648s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 33.664s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 35.671s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 37.678s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 39.699s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 41.702s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 43.712s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 45.724s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 47.765s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 49.804s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 51.807s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 53.814s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 55.821s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 57.834s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 59.847s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 61.862s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 63.870s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 65.879s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 67.912s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 69.918s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 71.926s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 73.948s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 75.967s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 77.991s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 80.000s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 82.006s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 84.014s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 86.017s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 88.024s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 90.030s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 92.034s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 94.041s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 96.045s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 98.059s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 100.067s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 102.104s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 104.111s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")
+Veri7vn_Effects_Order: command "by" running for 106.113s (line 131 of theory "Veri7vn_Effects_Order.Effects_Order_Reconstruction")

@@ -1,0 +1,3 @@
+session Veri7vn_Policy_Checks = Veri7vn_Policy_Checked_Display +
+  options [document = false, threads = 2]
+  theories Policy_Runtime_Checks Policy_Scoped_Checks Policy_Association_Checks

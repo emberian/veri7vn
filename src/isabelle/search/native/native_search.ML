@@ -9,6 +9,7 @@ sig
   datatype outcome = ProofProposal of string | Exhausted | BudgetStop | Cancelled | Deadline
   type report = {outcome:outcome, trace:event list, remaining:term list list, expansions:int}
   val qualify: limits -> instance
+  val limits: instance -> limits
   val executable: instance -> Veri7vn_Executable_Identity.pin
   val operation: instance -> operation
   val same_instance: instance * instance -> bool
@@ -68,6 +69,7 @@ struct
   fun same_operation (Operation a,Operation b)=a=b;
   fun executable instance=(live instance;code_pin);
   fun operation instance=(live instance;fixed_operation);
+  fun limits (instance as Instance{limits,...})=(live instance;limits);
   fun request_instance (Prepared{owner,...})=owner;
   fun same_request (Prepared{id=a,...},Prepared{id=b,...})=a=b;
   fun is_live (Prepared{owner=Instance{live,...},payload,...})=
@@ -89,8 +91,8 @@ struct
   fun generation request= #generation(view request);
   fun receiver_generation request= #receiver(view request);
   fun cost request=let val {actions,facts,limits={expansions,frontier,successors,...},...}=view request
-      fun natural n= @{code nat_of_integer} (IntInf.fromInt n)
-    in @{code integer_of_nat} (@{code search_work_cost} (natural expansions)
+      fun natural n= Veri7vn_Numerals.nat_of_integer (IntInf.fromInt n)
+    in Veri7vn_Numerals.integer_of_nat (@{code search_work_cost} (natural expansions)
       (natural frontier) (natural(length actions)) (natural successors) (natural(length facts))) end;
   fun reserve (request as Prepared{owned,...})=
     (ignore(view request);Synchronized.change owned (fn previous=>

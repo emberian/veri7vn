@@ -45,6 +45,12 @@ struct
           in(nodes'@[n],own@owners')end end
       val(nodes,owners)=walk 0 development([],[])
     in({graph={head=identity development,nodes=nodes},name=selection}:recipe,owners)end;
+  fun collect_with_roots roots allocator development name=
+    let val(graph,owners)=Veri7vn_Native_Construction_Codec.collect_with_roots roots allocator development
+    in({graph=graph,name=name}:recipe,owners)end;
+  fun collect_for_image roots policy allocator development name=
+    let val(graph,owners)=Veri7vn_Native_Construction_Codec.collect_for_image roots policy allocator development
+    in({graph=graph,name=name}:recipe,owners)end;
   fun collect allocator development name=collect_selected allocator development(Named name);
   fun collect_produced allocator development=collect_selected allocator development Produced;
   fun node graph id=the(find_first(fn(n:G.construction_node)=> #context_id n=id)(#nodes(graph:G.graph_description)));
@@ -54,7 +60,7 @@ struct
     in map(node graph)(visit(#head graph)[])end;
   fun context_ids graph=map #context_id(ordered_nodes graph);
   fun source_ids graph=distinct(op =)(map_filter(fn(n:G.construction_node)=>case #construction n of
-    G.Public=>NONE|G.Proof{source_id,...}=>SOME source_id|G.Definition{source_id,...}=>SOME source_id|G.Replay{source_id,...}=>SOME source_id)(ordered_nodes graph));
+    G.Public=>NONE|G.Installed_Public _=>NONE|G.Proof{source_id,...}=>SOME source_id|G.Definition{source_id,...}=>SOME source_id|G.Replay{source_id,...}=>SOME source_id)(ordered_nodes graph));
   fun attrs name fields=XML.Elem((name,fields),[]);
   fun hex bytes=String.translate(fn c=>let val n=Char.ord c val alphabet="0123456789abcdef"
     in str(String.sub(alphabet,n div 16))^str(String.sub(alphabet,n mod 16))end)bytes;
@@ -69,12 +75,13 @@ struct
       val estimate=512+fold(fn(n:G.construction_node)=>fn total=>total+640+160*length(#parents n)+
         (case #construction n of G.Proof{wire,sequent,...}=>2*(size wire+size sequent)
           | G.Replay{imports,...}=>fold(fn name=>fn count=>count+size name+32)imports 0
-          | G.Definition{name,...}=>size name|G.Public=>0))nodes 0
+          | G.Definition{name,...}=>size name|G.Public=>0|G.Installed_Public locator=>size locator))nodes 0
       val _=if decoded<=45000 andalso estimate<=100000 then()else error "Proof aggregate decoded/encoded byte bound"
     in
 
     let fun row({context_id,parents,construction}:G.construction_node)=
         let val(kind,fields,imports)=case construction of G.Public=>("public",[],[])
+          | G.Installed_Public locator=>("installed-public",[("root",locator)],[])
           | G.Definition{source_id,start,stop,name,embedded}=>("definition",
               [("source",IntInf.toString source_id),("start",Int.toString start),("stop",Int.toString stop),
                ("name",name),("embedded",Bool.toString embedded)],[])
@@ -86,10 +93,11 @@ struct
         in XML.Elem(("node",[("context",IntInf.toString context_id),("kind",kind)]@fields),
           map(fn id=>attrs "parent"[("id",IntInf.toString id)])parents @
           map(fn name=>attrs "import"[("name",name)])imports)end
+      val installed=exists(fn(n:G.construction_node)=>case #construction n of G.Installed_Public _=>true|_=>false)nodes
       val has_proof=exists(fn(n:G.construction_node)=>case #construction n of G.Proof _=>true|_=>false)nodes
       val fields=case selection of Named(theorem,index)=>
-          [("version",if has_proof then "2" else "1"),("head",IntInf.toString head),("theorem",theorem),("index",Int.toString index)]
-        | Produced=>[("version","2"),("head",IntInf.toString head),("result","produced")]
+          [("version",if installed then "3" else if has_proof then "2" else "1"),("head",IntInf.toString head),("theorem",theorem),("index",Int.toString index)]
+        | Produced=>[("version",if installed then "3" else "2"),("head",IntInf.toString head),("result","produced")]
       val encoded=YXML.string_of_body[XML.Elem(("veri7vn-managed-expert-replay",fields),map row nodes)]
       val _=if size encoded<=100000 then()else error "Proof aggregate encoded byte bound"
     in encoded end end;
@@ -119,6 +127,7 @@ struct
           val imports=map_filter(fn XML.Elem(("import",[("name",name)]),[])=>SOME name|_=>NONE)body
           fun source ctor=ctor{source_id=number(field fields "source"),start=integer(field fields "start"),stop=integer(field fields "stop")}
           val construction=case field fields "kind"of "public"=>G.Public
+            | "installed-public"=>G.Installed_Public(field fields "root")
             | "proof"=>source(fn{source_id,start,stop}=>G.Proof{source_id=source_id,start=start,stop=stop,
                 wire=unhex(field fields "wire"),sequent=unhex(field fields "sequent")})
             | "replay"=>source(fn{source_id,start,stop}=>G.Replay{source_id=source_id,start=start,stop=stop,imports=imports})
@@ -134,6 +143,10 @@ struct
           {graph={head=number head,nodes=map row body},name=Named(name,integer index)}:recipe
       | [XML.Elem(("veri7vn-managed-expert-replay",[("version","2"),("head",head),("result","produced")]),body)]=>
           {graph={head=number head,nodes=map row body},name=Produced}:recipe
+      | [XML.Elem(("veri7vn-managed-expert-replay",[("version","3"),("head",head),("theorem",name),("index",index)]),body)]=>
+          {graph={head=number head,nodes=map row body},name=Named(name,integer index)}:recipe
+      | [XML.Elem(("veri7vn-managed-expert-replay",[("version","3"),("head",head),("result","produced")]),body)]=>
+          {graph={head=number head,nodes=map row body},name=Produced}:recipe
       | _=>error "Managed expert replay schema"
       val graph= #graph recipe val ids=map #context_id(#nodes graph)
       val legacy=case body of[XML.Elem((_,("version","1")::_),_)]=>true|_=>false
@@ -148,7 +161,7 @@ struct
     in recipe end;
   fun is_recipe bytes=(framing bytes;case YXML.parse_body bytes of
     [XML.Elem(("veri7vn-managed-expert-replay",_),_)]=>true|_=>false);
-  fun ordinary scope allocator policy obtain({graph,name}:recipe)=Thread_Attributes.with_attributes Thread_Attributes.no_interrupts(fn original=>
+  fun ordinary_internal roots scope allocator policy obtain({graph,name}:recipe)=Thread_Attributes.with_attributes Thread_Attributes.no_interrupts(fn original=>
     let fun next(n:G.construction_node)entries=
         let val parents=map(fn id=> #1(the(AList.lookup(op =)entries id)))(#parents n)
           fun slice source_id start stop=
@@ -157,6 +170,11 @@ struct
             in(source,L.slice input{start=start,stop=stop,expected=String.substring(bytes,start,stop-start)})end
           val(d,fact)=Thread_Attributes.with_attributes original(fn _=>case #construction n of G.Public=>
               if null parents then(P.public_image_owned scope allocator policy,NONE)else error "Replay public parent arity"
+            | G.Installed_Public locator=>if null parents then
+                (case roots of SOME registry=>(P.public_image_owned scope allocator
+                    (Veri7vn_Native_Installed_Roots.policy registry locator),NONE)
+                  | NONE=>error "Ordinary reconstruction needs fixed installed-root registry")
+                else error "Installed public parent arity"
             | G.Definition{source_id,start,stop,name,embedded}=>
               let val(source,span)=slice source_id start stop
                 val parent=case parents of[d]=>d|_=>error "Replay definition parent arity"
@@ -169,6 +187,11 @@ struct
               in(d,SOME c)end
             | G.Replay{source_id,start,stop,imports}=>let val(source,span)=slice source_id start stop
                 val _=if length imports=length parents then()else error "Replay import arity"
+                val _=List.app(fn(import,parent_id)=>case #construction(node graph parent_id)of
+                    G.Installed_Public locator=>(case roots of SOME registry=>if
+                      Veri7vn_Native_Installed_Roots.resolve_import registry import=locator then()
+                      else error "Ordinary source import selects a different installed root"
+                    |NONE=>error "Ordinary import has no installed-root registry")|_=>())(imports~~ #parents n)
               in(P.replay_source_owned scope(imports~~parents)source span,NONE)end)
         in AList.update(op =)(#context_id n,(d,fact))entries end
       val result=Exn.capture(fn()=>let val entries=fold next(#nodes graph)[]
@@ -176,4 +199,6 @@ struct
         in Thread_Attributes.with_attributes original(fn _=>case name of Named n=>P.named_theorem d n
           | Produced=>case fact of SOME c=>c|NONE=>error "Produced replay result has no checked consequence")end)()
     in Exn.release result end);
+  val ordinary=ordinary_internal NONE;
+  fun ordinary_with_roots roots=ordinary_internal(SOME roots);
 end;

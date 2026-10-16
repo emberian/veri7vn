@@ -1,0 +1,3 @@
+session Veri7vn_Operation_Tickets = Veri7vn_Effect_Tickets +
+  options [document = false, threads = 2]
+  theories Operation_Tickets

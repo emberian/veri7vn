@@ -1,0 +1,3 @@
+session Veri7vn_Search_Protocol_Tests = Veri7vn_Search_Service_Metadata +
+  options [document = false, record_proofs = 2]
+  theories Search_Protocol_Tests Search_Gate_Tests Search_Request_Codec_Tests Search_Source_Tests Search_Output_Tests

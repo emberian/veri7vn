@@ -1,0 +1,8 @@
+session Veri7vn_Native_Scope_Data in data = Pure +
+  options [document = false]
+  theories Native_Scope_Data
+
+session Veri7vn_Native_Request_Scope = Veri7vn_Authority_Codec +
+  options [document = false]
+  sessions Veri7vn_Admission
+  theories Native_Request_Scope

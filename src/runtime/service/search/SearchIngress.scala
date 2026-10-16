@@ -34,6 +34,9 @@ object SearchIngress {
   case object Pending extends Result
   final case class Proved(proposition:String,evidence:BigInt,semantic:BigInt,proofSemantic:BigInt,
     dependencies:Vector[BigInt],progress:Progress) extends Result
+  /** A retained native theorem under current source/history access. It grants
+    * no active request, execution ticket, or current result binding. */
+  final case class Historical(proof:Proved) extends Result
   enum Stop { case Exhausted,Budget,Deadline,Cancelled,Failed,Unavailable }
   final case class Unresolved(reason:Stop,diagnostic:String,progress:Progress) extends Result
 
@@ -144,7 +147,7 @@ object SearchIngress {
             Progress(number(p("expansions"),10000),trace,total,remaining,remainingTotal,p("details_truncated")=="true")
           case _=>throw new IllegalArgumentException("Search progress")
         }
-        if(a("status")=="proved")body.head match {
+        if(a("status")=="proved" || a("status")=="historical_proved")body.head match {
           case XML.Elem(Markup("proof",raw),List(XML.Elem(Markup("proposition",Nil),proposition),XML.Elem(Markup("dependencies",Nil),deps)))=>
             val p=attrs(raw,Set("evidence","semantic","proof_semantic","route"))
             require(p("route")=="kernel_consequence" && deps.size<=1024,"Search proof projection route/dependency bound")
@@ -156,7 +159,8 @@ object SearchIngress {
             val semantic=id(p("semantic"));val proofSemantic=id(p("proof_semantic"))
             require(semantic==request.semantic && semantic!=proofSemantic && dependencies.contains(semantic) && dependencies.contains(proofSemantic),
               "Search original receiver/proof provenance missing or merged")
-            Proved(plain(proposition,65536),id(p("evidence")),semantic,proofSemantic,dependencies,progress)
+            val proof=Proved(plain(proposition,65536),id(p("evidence")),semantic,proofSemantic,dependencies,progress)
+            if(a("status")=="historical_proved")Historical(proof) else proof
           case _=>throw new IllegalArgumentException("Search proof projection")
         } else {
           val reason=a("status") match {

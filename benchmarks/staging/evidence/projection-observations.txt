@@ -1,0 +1,36 @@
+
+Theory "Veri7vn_Projection_Tests.Projection_Tests" (in Veri7vn_Projection_Tests):
+
+Output (line 4 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+consts
+  projection_fixture_term :: "bool list list \<Rightarrow> term"
+
+Output (line 6 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+EXECUTION projection_case rows=16 copies=1 accepted=true
+
+Output (line 6 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+EXECUTION projection_case rows=16 copies=8 accepted=true
+
+Output (line 6 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+EXECUTION projection_case rows=16 copies=32 accepted=false
+
+Output (line 6 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+EXECUTION projection_case rows=128 copies=1 accepted=true
+
+Output (line 6 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+EXECUTION projection_case rows=128 copies=8 accepted=false
+
+Output (line 6 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+EXECUTION projection_case rows=128 copies=32 accepted=false
+
+Output (line 6 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+EXECUTION projection_case rows=512 copies=1 accepted=false
+
+Output (line 6 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+EXECUTION projection_case rows=512 copies=8 accepted=false
+
+Output (line 6 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+EXECUTION projection_case rows=512 copies=32 accepted=false
+
+Output (line 6 of "/Users/ember/dev/o7vn/tests/execution/projection/Projection_Tests.thy"):
+EXECUTION bounded_projection PASS

@@ -1466,3 +1466,38 @@ Required composition checks cover cancellation before and after charging,
 retained output, restart, historical retrieval and subsequent Forget. Keep the
 current fail-closed behavior until the complete migration is available; this
 decision records required work, not a passing cancellation workflow.
+
+Cancellation without a result also preserves accessible original source bytes.
+Retain an explicit inert original-source support requirement using the exact
+original request role, child/context and authenticated recipe. Reconstruction
+provides source ownership only, without an active request scope, prepared worker
+or ticket. Authority derives this from the actual retained source/read association
+and original request metadata; dependency intersection alone cannot reconstruct
+attribution. Math and Search migrate their producers and the aggregate inventory
+together. Unnecessary control-ID rows may be removed, but accessible source rows
+cannot be dismissed as inert numeric metadata to make restoration pass.
+
+## D75 — Effect attempts retain their original recipe before execution
+
+The fixed MCP profile uses `local-mcp/1` + `effect-request`, a nonassertional
+Controlled_Recipe role with an empty sequent and exact executable pin. Persist
+its original request/control recipe, configuration and packet source owners,
+immutable configuration epoch and actual context at Reserve, before support
+registration or ClaimAndStart. Response delivery is a later separate association;
+its absence cannot remove the ownership needed to inspect an Unknown attempt.
+
+Use an actual managed public-image development for the effect context, sharing
+the existing authenticated graph export/reconstruction machinery. Do not invent
+a context from numeric dependencies or retain an unowned raw generation.
+Restoration produces inert original ownership and history only; it never restores
+an invocation permit, executor, external session or automatic retry. This is
+resource reconstruction through the existing checkpoint journal, not a new WAL.
+Effects, authority, assembly and host coordinate the closed inventory and version
+migration with the ongoing source-role work.
+
+Credential revision changes invalidate execution configuration. Historical
+response retention separately follows continuing source/access permissions and
+retains the original provenance. Any policy requiring credential-dependent access
+denial must map that dependency to an actual managed owner; neither caller IDs nor
+an epoch label supplies it. The concrete credential lifecycle mapping remains a
+required co-review before claiming connector lifecycle completion.

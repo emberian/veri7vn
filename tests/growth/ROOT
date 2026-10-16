@@ -1,0 +1,3 @@
+session Veri7vn_Retained_Mathematics_Tests = Veri7vn_Retained_Mathematics +
+  options [document = false]
+  theories Retained_Mathematics_Tests

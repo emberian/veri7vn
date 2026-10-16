@@ -1,0 +1,3 @@
+session Veri7vn_Assurance_Consumer_Tests = Veri7vn_Admission +
+  options [document = false, record_proofs = 2]
+  theories Assurance_Consumer_Tests

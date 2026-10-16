@@ -161,8 +161,8 @@ struct
           val (computation_input,input_conversion)=computation_input limits native;
           (* A conservative fixed-operation charge scales with exact input syntax.
              It is a declared charge, not an empirical latency claim. *)
-          val cost= @{code integer_of_nat} (@{code domain_modeled_cost}
-            (@{code nat_of_integer} (IntInf.fromInt(Term.size_of_term(Thm.term_of computation_input)))));
+          val cost= Veri7vn_Numerals.integer_of_nat (@{code domain_modeled_cost}
+            (Veri7vn_Numerals.nat_of_integer (IntInf.fromInt(Term.size_of_term(Thm.term_of computation_input)))));
         in Ready(native,computation_input,input_conversion,cost)end end)();
         val result=case validated of Refused reason=>Refused reason
         | Ready(native,computation_input,input_conversion,cost)=>

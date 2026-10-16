@@ -12,6 +12,8 @@ final class RuntimeService private(private val store:WorkspaceStore,
   def retryProducerCleanup():Unit=bridge.retryProducerCleanup()
   def sourceCleanupFailures:Vector[(BigInt,Int,String)]=bridge.sourceCleanupFailures
   def retrySourceCleanup():Unit=bridge.retrySourceCleanup()
+  def effectSourceCleanupFailures:Vector[(String,Int,String)]=store.nativeEffectStageFailures
+  def retryEffectSourceCleanup():Unit=store.retryNativeEffectStages()
   def close():Unit={
     var failure:Throwable=null
     try buildIngress.close() catch {case problem:Throwable=>failure=problem}
@@ -38,7 +40,7 @@ object RuntimeService {
       coordinator=new AuthorityCoordinator(store,bridge)
       val result=if(store.latestNative.isEmpty)coordinator.initialize() else coordinator.restore()
       require(result.isInstanceOf[AuthorityCoordinator.Committed],"native startup unavailable: "+result)
-      new RuntimeService(store,new ResidentAuthorityService(supervisor,coordinator,Some(ingress),Some(sources),Some(history)),ingress,bridge,sources)
+      new RuntimeService(store,new ResidentAuthorityService(supervisor,coordinator,Some(ingress),Some(sources),Some(history),Some(bridge)),ingress,bridge,sources)
     } catch {case problem:Throwable=>
       def cleanup(action: => Unit):Unit=try action catch {case failure:Throwable=>problem.addSuppressed(failure)}
       if(history!=null)cleanup(history.close())

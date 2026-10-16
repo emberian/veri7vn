@@ -1,0 +1,4722 @@
+{
+  "scope": "Read-only schemas and first257 rows/table only. No full scans, no fresh payload hashes, no source text copied. Sample limits do not establish population coverage.",
+  "stores": [
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13a_wordnet_build_a_v4/wordnet_specialist.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "alias",
+          "schema": "CREATE TABLE alias (\n            normalized_alias TEXT NOT NULL,\n            alias_surface TEXT NOT NULL,\n            synset_id TEXT NOT NULL,\n            tag_count INTEGER NOT NULL,\n            PRIMARY KEY (normalized_alias, synset_id)\n        ) WITHOUT ROWID",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 34,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "normalized_alias",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 34,
+              "max_utf8_bytes": 34,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "alias_surface",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 34,
+              "max_utf8_bytes": 34,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "synset_id",
+              "declared_type": "TEXT",
+              "pk_position": 2,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 18,
+              "max_utf8_bytes": 18,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "tag_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "metadata",
+          "schema": "CREATE TABLE metadata (\n            key TEXT PRIMARY KEY,\n            value TEXT NOT NULL\n        ) WITHOUT ROWID",
+          "bounded_sample_rows": 13,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 13
+              },
+              "max_text_characters": 20,
+              "max_utf8_bytes": 20,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 13
+              },
+              "max_text_characters": 257,
+              "max_utf8_bytes": 257,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "relation",
+          "schema": "CREATE TABLE relation (\n            subject_id TEXT NOT NULL,\n            predicate TEXT NOT NULL,\n            object_id TEXT NOT NULL,\n            claim_id TEXT NOT NULL UNIQUE,\n            PRIMARY KEY (subject_id, predicate, object_id)\n        ) WITHOUT ROWID",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 179,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "subject_id",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 18,
+              "max_utf8_bytes": 18,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "predicate",
+              "declared_type": "TEXT",
+              "pk_position": 2,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 13,
+              "max_utf8_bytes": 13,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "object_id",
+              "declared_type": "TEXT",
+              "pk_position": 3,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 18,
+              "max_utf8_bytes": 18,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "claim_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 32,
+              "max_utf8_bytes": 32,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "synset",
+          "schema": "CREATE TABLE synset (\n            synset_id TEXT PRIMARY KEY,\n            pos TEXT NOT NULL,\n            offset INTEGER NOT NULL,\n            canonical_label TEXT NOT NULL,\n            definition TEXT NOT NULL,\n            lexname TEXT NOT NULL,\n            definition_claim_id TEXT NOT NULL UNIQUE\n        ) WITHOUT ROWID",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "synset_id",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 18,
+              "max_utf8_bytes": 18,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "pos",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 1,
+              "max_utf8_bytes": 1,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "offset",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "canonical_label",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 15,
+              "max_utf8_bytes": 15,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "definition",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 199,
+              "max_utf8_bytes": 199,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "lexname",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 7,
+              "max_utf8_bytes": 7,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "definition_claim_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 32,
+              "max_utf8_bytes": 32,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e5_conceptnet_build_a_v1/conceptnet_specialist.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "edge",
+          "schema": "CREATE TABLE edge (rel TEXT, start TEXT, start_pos TEXT, end TEXT, end_pos TEXT,\n        weight REAL, surface_text TEXT, dataset TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 256,
+          "duplicate_whole_rows_in_sample": 1,
+          "columns": [
+            {
+              "column": "rel",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 7,
+              "max_utf8_bytes": 7,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "start",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 31,
+              "max_utf8_bytes": 31,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "start_pos",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 1,
+              "max_utf8_bytes": 1,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "end",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 30,
+              "max_utf8_bytes": 30,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "end_pos",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "weight",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            {
+              "column": "surface_text",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 48,
+              "max_utf8_bytes": 48,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "dataset",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 16,
+              "max_utf8_bytes": 16,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "metadata",
+          "schema": "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 4,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 4
+              },
+              "max_text_characters": 18,
+              "max_utf8_bytes": 18,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 4
+              },
+              "max_text_characters": 36,
+              "max_utf8_bytes": 36,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_build_a_v1/wikipedia_specialist.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "article",
+          "schema": "CREATE TABLE article (page_id TEXT PRIMARY KEY, title TEXT, normalized_title TEXT,\n        canonical_url TEXT, raw_record_sha256 TEXT, abstract_sha256 TEXT,\n        categories_json TEXT, sentence_count INTEGER, admitted_sentence_count INTEGER)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "normalized_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "canonical_url",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 69,
+              "max_utf8_bytes": 69,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "raw_record_sha256",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 64,
+              "max_utf8_bytes": 64,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "abstract_sha256",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 64,
+              "max_utf8_bytes": 64,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "categories_json",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 2,
+              "max_utf8_bytes": 2,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sentence_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "admitted_sentence_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "metadata",
+          "schema": "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 7,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 7
+              },
+              "max_text_characters": 23,
+              "max_utf8_bytes": 23,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 7
+              },
+              "max_text_characters": 66,
+              "max_utf8_bytes": 66,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "page_sentence",
+          "schema": "CREATE TABLE page_sentence (page_id TEXT, sentence_ordinal INTEGER, source_rowid INTEGER)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 233,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sentence_ordinal",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "source_rowid",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "title_alias",
+          "schema": "CREATE TABLE title_alias (normalized_title TEXT, page_id TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "normalized_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_full_build_a_v1/wikipedia_specialist.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "article",
+          "schema": "CREATE TABLE article (page_id TEXT PRIMARY KEY, title TEXT, normalized_title TEXT,\n        canonical_url TEXT, raw_record_sha256 TEXT, abstract_sha256 TEXT,\n        categories_json TEXT, sentence_count INTEGER, admitted_sentence_count INTEGER)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "normalized_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "canonical_url",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 69,
+              "max_utf8_bytes": 69,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "raw_record_sha256",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 64,
+              "max_utf8_bytes": 64,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "abstract_sha256",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 64,
+              "max_utf8_bytes": 64,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "categories_json",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 2,
+              "max_utf8_bytes": 2,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sentence_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "admitted_sentence_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "metadata",
+          "schema": "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 7,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 7
+              },
+              "max_text_characters": 23,
+              "max_utf8_bytes": 23,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 7
+              },
+              "max_text_characters": 66,
+              "max_utf8_bytes": 66,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "page_sentence",
+          "schema": "CREATE TABLE page_sentence (page_id TEXT, sentence_ordinal INTEGER, source_rowid INTEGER)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 250,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sentence_ordinal",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "source_rowid",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "title_alias",
+          "schema": "CREATE TABLE title_alias (normalized_title TEXT, page_id TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "normalized_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e5_wiktionary_build_a_v1/wiktionary_specialist.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "entry",
+          "schema": "CREATE TABLE entry (word TEXT, pos TEXT, glosses_json TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 136,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "word",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 45,
+              "max_utf8_bytes": 45,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "pos",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 9,
+              "max_utf8_bytes": 9,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "glosses_json",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 877,
+              "max_utf8_bytes": 877,
+              "nonascii_text_cells": 15,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "forms",
+          "schema": "CREATE TABLE forms (form TEXT, lemma TEXT, pos TEXT, tags_json TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 104,
+          "duplicate_whole_rows_in_sample": 42,
+          "columns": [
+            {
+              "column": "form",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 30,
+              "max_utf8_bytes": 30,
+              "nonascii_text_cells": 4,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "lemma",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 29,
+              "max_utf8_bytes": 29,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "pos",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 9,
+              "max_utf8_bytes": 9,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "tags_json",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 41,
+              "max_utf8_bytes": 41,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "metadata",
+          "schema": "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 4,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 4
+              },
+              "max_text_characters": 7,
+              "max_utf8_bytes": 7,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 4
+              },
+              "max_text_characters": 38,
+              "max_utf8_bytes": 38,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e7_dbpedia_openstax_full_fable_bench_a_v1/edges.sqlite",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "edge",
+          "schema": "CREATE TABLE edge (src text, dst text, claim_id text, term text, primary key (src, dst, claim_id))",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 224,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "src",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "dst",
+              "declared_type": "TEXT",
+              "pk_position": 2,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 9,
+              "max_utf8_bytes": 9,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "claim_id",
+              "declared_type": "TEXT",
+              "pk_position": 3,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "term",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 20,
+              "max_utf8_bytes": 20,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "progress",
+          "schema": "CREATE TABLE progress (k text primary key, v text)",
+          "bounded_sample_rows": 1,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "k",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 1
+              },
+              "max_text_characters": 10,
+              "max_utf8_bytes": 10,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "v",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 1
+              },
+              "max_text_characters": 6,
+              "max_utf8_bytes": 6,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e7_dbpedia_openstax_full_fable_bench_a_v1/wikipedia_specialist.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "article",
+          "schema": "CREATE TABLE article (page_id TEXT PRIMARY KEY, title TEXT, normalized_title TEXT,\n        canonical_url TEXT, raw_record_sha256 TEXT, abstract_sha256 TEXT,\n        categories_json TEXT, sentence_count INTEGER, admitted_sentence_count INTEGER)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "normalized_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "canonical_url",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 69,
+              "max_utf8_bytes": 69,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "raw_record_sha256",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 64,
+              "max_utf8_bytes": 64,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "abstract_sha256",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 64,
+              "max_utf8_bytes": 64,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "categories_json",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 2,
+              "max_utf8_bytes": 2,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sentence_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "admitted_sentence_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "metadata",
+          "schema": "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 7,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 7
+              },
+              "max_text_characters": 23,
+              "max_utf8_bytes": 23,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 7
+              },
+              "max_text_characters": 66,
+              "max_utf8_bytes": 66,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "page_sentence",
+          "schema": "CREATE TABLE page_sentence (page_id TEXT, sentence_ordinal INTEGER, source_rowid INTEGER)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 250,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sentence_ordinal",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "source_rowid",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "title_alias",
+          "schema": "CREATE TABLE title_alias (normalized_title TEXT, page_id TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "normalized_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e7_wiki_openstax_full_fable_build_a_v1/edges.sqlite",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "edge",
+          "schema": "CREATE TABLE edge (src text, dst text, claim_id text, term text, primary key (src, dst, claim_id))",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 224,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "src",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "dst",
+              "declared_type": "TEXT",
+              "pk_position": 2,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 9,
+              "max_utf8_bytes": 9,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "claim_id",
+              "declared_type": "TEXT",
+              "pk_position": 3,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "term",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 20,
+              "max_utf8_bytes": 20,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "progress",
+          "schema": "CREATE TABLE progress (k text primary key, v text)",
+          "bounded_sample_rows": 1,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "k",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 1
+              },
+              "max_text_characters": 10,
+              "max_utf8_bytes": 10,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "v",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 1
+              },
+              "max_text_characters": 6,
+              "max_utf8_bytes": 6,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e7_wiki_openstax_full_fable_build_a_v1/wikipedia_specialist.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "article",
+          "schema": "CREATE TABLE article (page_id TEXT PRIMARY KEY, title TEXT, normalized_title TEXT,\n        canonical_url TEXT, raw_record_sha256 TEXT, abstract_sha256 TEXT,\n        categories_json TEXT, sentence_count INTEGER, admitted_sentence_count INTEGER)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "normalized_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "canonical_url",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 69,
+              "max_utf8_bytes": 69,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "raw_record_sha256",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 64,
+              "max_utf8_bytes": 64,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "abstract_sha256",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 64,
+              "max_utf8_bytes": 64,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "categories_json",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 2,
+              "max_utf8_bytes": 2,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sentence_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "admitted_sentence_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "metadata",
+          "schema": "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 7,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 7
+              },
+              "max_text_characters": 23,
+              "max_utf8_bytes": 23,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 7
+              },
+              "max_text_characters": 66,
+              "max_utf8_bytes": 66,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "page_sentence",
+          "schema": "CREATE TABLE page_sentence (page_id TEXT, sentence_ordinal INTEGER, source_rowid INTEGER)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 233,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sentence_ordinal",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "source_rowid",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "title_alias",
+          "schema": "CREATE TABLE title_alias (normalized_title TEXT, page_id TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "normalized_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e8_dbpedia_enslot_openstax_full_fable_bench_a_v1/edges.sqlite",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "edge",
+          "schema": "CREATE TABLE edge (src text, dst text, claim_id text, term text, rel text, primary key (src, dst, claim_id))",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 216,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "src",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "dst",
+              "declared_type": "TEXT",
+              "pk_position": 2,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 9,
+              "max_utf8_bytes": 9,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "claim_id",
+              "declared_type": "TEXT",
+              "pk_position": 3,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "term",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 32,
+              "max_utf8_bytes": 32,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "rel",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 9,
+              "max_utf8_bytes": 9,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "progress",
+          "schema": "CREATE TABLE progress (k text primary key, v text)",
+          "bounded_sample_rows": 2,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "k",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 2
+              },
+              "max_text_characters": 10,
+              "max_utf8_bytes": 10,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "v",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 2
+              },
+              "max_text_characters": 8,
+              "max_utf8_bytes": 8,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e8_dbpedia_enslot_openstax_full_fable_bench_a_v1/wikipedia_specialist.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "article",
+          "schema": "CREATE TABLE article (page_id TEXT PRIMARY KEY, title TEXT, normalized_title TEXT,\n        canonical_url TEXT, raw_record_sha256 TEXT, abstract_sha256 TEXT,\n        categories_json TEXT, sentence_count INTEGER, admitted_sentence_count INTEGER)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "normalized_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "canonical_url",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 69,
+              "max_utf8_bytes": 69,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "raw_record_sha256",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 64,
+              "max_utf8_bytes": 64,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "abstract_sha256",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 64,
+              "max_utf8_bytes": 64,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "categories_json",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 2,
+              "max_utf8_bytes": 2,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sentence_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "admitted_sentence_count",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "metadata",
+          "schema": "CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 7,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 7
+              },
+              "max_text_characters": 23,
+              "max_utf8_bytes": 23,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 7
+              },
+              "max_text_characters": 66,
+              "max_utf8_bytes": 66,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "page_sentence",
+          "schema": "CREATE TABLE page_sentence (page_id TEXT, sentence_ordinal INTEGER, source_rowid INTEGER)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 250,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sentence_ordinal",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "source_rowid",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "title_alias",
+          "schema": "CREATE TABLE title_alias (normalized_title TEXT, page_id TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "normalized_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "page_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 9,
+              "max_utf8_bytes": 9,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m30_admitted_closure_v1.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "admitted_fact",
+          "schema": "CREATE TABLE admitted_fact (\n    subject   TEXT NOT NULL,\n    object    TEXT NOT NULL,\n    relation  TEXT NOT NULL,\n    score     REAL NOT NULL,\n    channels  TEXT NOT NULL,\n    premises  TEXT NOT NULL,\n    PRIMARY KEY (subject, object, relation)\n)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 25,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "subject",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 39,
+              "max_utf8_bytes": 39,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "object",
+              "declared_type": "TEXT",
+              "pk_position": 2,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 28,
+              "max_utf8_bytes": 28,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "relation",
+              "declared_type": "TEXT",
+              "pk_position": 3,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 3,
+              "max_utf8_bytes": 3,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "score",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                0.885157,
+                1.157536,
+                0.929036
+              ]
+            },
+            {
+              "column": "channels",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 75,
+              "max_utf8_bytes": 75,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "premises",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 357,
+              "max_utf8_bytes": 357,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "gate_calibration",
+          "schema": "CREATE TABLE gate_calibration (blob TEXT NOT NULL)",
+          "bounded_sample_rows": 1,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "blob",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 1
+              },
+              "max_text_characters": 64353,
+              "max_utf8_bytes": 64353,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m31_wordnet_corpus_v3.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "lemma_closure",
+          "schema": "CREATE TABLE lemma_closure (\n    lemma    TEXT NOT NULL,\n    hypernym TEXT NOT NULL,\n    depth    INTEGER NOT NULL,\n    sense     TEXT NOT NULL,\n    PRIMARY KEY (lemma, hypernym)\n)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 233,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "lemma",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "hypernym",
+              "declared_type": "TEXT",
+              "pk_position": 2,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 17,
+              "max_utf8_bytes": 17,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "depth",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sense",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 17,
+              "max_utf8_bytes": 17,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "lemma_present",
+          "schema": "CREATE TABLE lemma_present (lemma TEXT PRIMARY KEY)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "lemma",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 17,
+              "max_utf8_bytes": 17,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/relstore/relations_v1.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "entity",
+          "schema": "CREATE TABLE entity(qid INTEGER PRIMARY KEY, label TEXT, enwiki TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "qid",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "label",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 183,
+              "max_utf8_bytes": 183,
+              "nonascii_text_cells": 6,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "enwiki",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 183,
+              "max_utf8_bytes": 183,
+              "nonascii_text_cells": 6,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "fact",
+          "schema": "CREATE TABLE fact(s INTEGER, p INTEGER, o INTEGER, lit TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 34,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "s",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "p",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "o",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "lit",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "NoneType": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/specialists/cooking-v3-r2/nutrition_v1.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "foods",
+          "schema": "CREATE TABLE foods(fdc_id INTEGER PRIMARY KEY, description TEXT, category TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "fdc_id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "description",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 107,
+              "max_utf8_bytes": 107,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "category",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "meta",
+          "schema": "CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 1,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 1
+              },
+              "max_text_characters": 6,
+              "max_utf8_bytes": 6,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 1
+              },
+              "max_text_characters": 55,
+              "max_utf8_bytes": 55,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "nut",
+          "schema": "CREATE TABLE nut(fdc_id INTEGER, key TEXT, unit TEXT, amount REAL, PRIMARY KEY(fdc_id, key))",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 234,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "fdc_id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 2,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 13,
+              "max_utf8_bytes": 13,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "unit",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "amount",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                5.88,
+                1.2,
+                2.12
+              ]
+            }
+          ]
+        },
+        {
+          "table": "portions",
+          "schema": "CREATE TABLE portions(fdc_id INTEGER, label TEXT, grams REAL)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 102,
+          "duplicate_whole_rows_in_sample": 1,
+          "columns": [
+            {
+              "column": "fdc_id",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "label",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 54,
+              "max_utf8_bytes": 54,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "grams",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                34.0,
+                44.0,
+                28.0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/specialists/cooking/nutrition_v1.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "foods",
+          "schema": "CREATE TABLE foods(fdc_id INTEGER PRIMARY KEY, description TEXT, category TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "fdc_id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "description",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 107,
+              "max_utf8_bytes": 107,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "category",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 35,
+              "max_utf8_bytes": 35,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "meta",
+          "schema": "CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 1,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 1
+              },
+              "max_text_characters": 6,
+              "max_utf8_bytes": 6,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 1
+              },
+              "max_text_characters": 55,
+              "max_utf8_bytes": 55,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "nut",
+          "schema": "CREATE TABLE nut(fdc_id INTEGER, key TEXT, unit TEXT, amount REAL, PRIMARY KEY(fdc_id, key))",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 234,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "fdc_id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 2,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 13,
+              "max_utf8_bytes": 13,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "unit",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 4,
+              "max_utf8_bytes": 4,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "amount",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                5.88,
+                1.2,
+                2.12
+              ]
+            }
+          ]
+        },
+        {
+          "table": "portions",
+          "schema": "CREATE TABLE portions(fdc_id INTEGER, label TEXT, grams REAL)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 102,
+          "duplicate_whole_rows_in_sample": 1,
+          "columns": [
+            {
+              "column": "fdc_id",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "label",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 54,
+              "max_utf8_bytes": 54,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "grams",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                34.0,
+                44.0,
+                28.0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/specialists/warehouse-r2/site_fresh.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "bins",
+          "schema": "CREATE TABLE bins(id INTEGER PRIMARY KEY, zone_id INT, label TEXT UNIQUE, position INT)",
+          "bounded_sample_rows": 84,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 84
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "zone_id",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 84
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "label",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 84
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "position",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 84
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "items",
+          "schema": "CREATE TABLE items(sku TEXT PRIMARY KEY, name TEXT UNIQUE, bin_id INT, reorder_level INT, unit TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "sku",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 8,
+              "max_utf8_bytes": 8,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "name",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 24,
+              "max_utf8_bytes": 24,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "bin_id",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "reorder_level",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "unit",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "meta",
+          "schema": "CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 2,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 2
+              },
+              "max_text_characters": 13,
+              "max_utf8_bytes": 13,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 2
+              },
+              "max_text_characters": 19,
+              "max_utf8_bytes": 19,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "orders",
+          "schema": "CREATE TABLE orders(ts TEXT, sku TEXT, qty INT, status TEXT)",
+          "bounded_sample_rows": 0,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "ts",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {},
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sku",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {},
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "qty",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {},
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "status",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {},
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "readings",
+          "schema": "CREATE TABLE readings(ts TEXT, sensor_id TEXT, value REAL)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "ts",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 19,
+              "max_utf8_bytes": 19,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sensor_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 19,
+              "max_utf8_bytes": 19,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                19.7,
+                20.7,
+                22.8
+              ]
+            }
+          ]
+        },
+        {
+          "table": "sensors",
+          "schema": "CREATE TABLE sensors(id TEXT PRIMARY KEY, zone_id INT, kind TEXT, unit TEXT, lo REAL, hi REAL)",
+          "bounded_sample_rows": 42,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "id",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 42
+              },
+              "max_text_characters": 24,
+              "max_utf8_bytes": 24,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "zone_id",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 42
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "kind",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 42
+              },
+              "max_text_characters": 11,
+              "max_utf8_bytes": 11,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "unit",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 42
+              },
+              "max_text_characters": 6,
+              "max_utf8_bytes": 6,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "lo",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 42
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                15.0,
+                30.0,
+                200.0
+              ]
+            },
+            {
+              "column": "hi",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 42
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                26.0,
+                60.0,
+                800.0
+              ]
+            }
+          ]
+        },
+        {
+          "table": "stock_events",
+          "schema": "CREATE TABLE stock_events(ts TEXT, sku TEXT, delta INT, reason TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 135,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "ts",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 19,
+              "max_utf8_bytes": 19,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sku",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 8,
+              "max_utf8_bytes": 8,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "delta",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "reason",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 13,
+              "max_utf8_bytes": 13,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "zones",
+          "schema": "CREATE TABLE zones(id INTEGER PRIMARY KEY, name TEXT UNIQUE, kind TEXT)",
+          "bounded_sample_rows": 10,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 10
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "name",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 10
+              },
+              "max_text_characters": 12,
+              "max_utf8_bytes": 12,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "kind",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 10
+              },
+              "max_text_characters": 7,
+              "max_utf8_bytes": 7,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/specialists/warehouse/site_fresh.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "bins",
+          "schema": "CREATE TABLE bins(id INTEGER PRIMARY KEY, zone_id INT, label TEXT UNIQUE, position INT)",
+          "bounded_sample_rows": 84,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 84
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "zone_id",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 84
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "label",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 84
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "position",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 84
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "items",
+          "schema": "CREATE TABLE items(sku TEXT PRIMARY KEY, name TEXT UNIQUE, bin_id INT, reorder_level INT, unit TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "sku",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 8,
+              "max_utf8_bytes": 8,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "name",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 24,
+              "max_utf8_bytes": 24,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "bin_id",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "reorder_level",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "unit",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 5,
+              "max_utf8_bytes": 5,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "meta",
+          "schema": "CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT)",
+          "bounded_sample_rows": 2,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "key",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 2
+              },
+              "max_text_characters": 13,
+              "max_utf8_bytes": 13,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 2
+              },
+              "max_text_characters": 19,
+              "max_utf8_bytes": 19,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "orders",
+          "schema": "CREATE TABLE orders(ts TEXT, sku TEXT, qty INT, status TEXT)",
+          "bounded_sample_rows": 0,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "ts",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {},
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sku",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {},
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "qty",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {},
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "status",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {},
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "readings",
+          "schema": "CREATE TABLE readings(ts TEXT, sensor_id TEXT, value REAL)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "ts",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 19,
+              "max_utf8_bytes": 19,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sensor_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 19,
+              "max_utf8_bytes": 19,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "value",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                19.7,
+                20.7,
+                22.8
+              ]
+            }
+          ]
+        },
+        {
+          "table": "sensors",
+          "schema": "CREATE TABLE sensors(id TEXT PRIMARY KEY, zone_id INT, kind TEXT, unit TEXT, lo REAL, hi REAL)",
+          "bounded_sample_rows": 42,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "id",
+              "declared_type": "TEXT",
+              "pk_position": 1,
+              "sample_python_types": {
+                "str": 42
+              },
+              "max_text_characters": 24,
+              "max_utf8_bytes": 24,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "zone_id",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 42
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "kind",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 42
+              },
+              "max_text_characters": 11,
+              "max_utf8_bytes": 11,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "unit",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 42
+              },
+              "max_text_characters": 6,
+              "max_utf8_bytes": 6,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "lo",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 42
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                15.0,
+                30.0,
+                200.0
+              ]
+            },
+            {
+              "column": "hi",
+              "declared_type": "REAL",
+              "pk_position": 0,
+              "sample_python_types": {
+                "float": 42
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": [
+                26.0,
+                60.0,
+                800.0
+              ]
+            }
+          ]
+        },
+        {
+          "table": "stock_events",
+          "schema": "CREATE TABLE stock_events(ts TEXT, sku TEXT, delta INT, reason TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 135,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "ts",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 19,
+              "max_utf8_bytes": 19,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "sku",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 8,
+              "max_utf8_bytes": 8,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "delta",
+              "declared_type": "INT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "reason",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 13,
+              "max_utf8_bytes": 13,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        },
+        {
+          "table": "zones",
+          "schema": "CREATE TABLE zones(id INTEGER PRIMARY KEY, name TEXT UNIQUE, kind TEXT)",
+          "bounded_sample_rows": 10,
+          "sample_limit": 257,
+          "sample_complete": true,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 10
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "name",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 10
+              },
+              "max_text_characters": 12,
+              "max_utf8_bytes": 12,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "kind",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 10
+              },
+              "max_text_characters": 7,
+              "max_utf8_bytes": 7,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/textbooks/gutenberg/jokes_store_v1.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "joke",
+          "schema": "CREATE TABLE joke (id INTEGER PRIMARY KEY, gid INTEGER, book TEXT, topic TEXT, text TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "gid",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "book",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 30,
+              "max_utf8_bytes": 30,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "topic",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 23,
+              "max_utf8_bytes": 23,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "text",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 645,
+              "max_utf8_bytes": 645,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/textbooks/gutenberg/recipes_store_v1.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "recipe",
+          "schema": "CREATE TABLE recipe (id INTEGER PRIMARY KEY, gid INTEGER, book TEXT, title TEXT, text TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "gid",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "book",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 30,
+              "max_utf8_bytes": 30,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 47,
+              "max_utf8_bytes": 47,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "text",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 2484,
+              "max_utf8_bytes": 2484,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/textbooks/textbook_store_v1.sqlite3",
+      "encoding": "UTF-8",
+      "tables": [
+        {
+          "table": "item",
+          "schema": "CREATE TABLE item (id INTEGER PRIMARY KEY, module TEXT, book TEXT, book_title TEXT, licence TEXT, chapter TEXT,\n        chapter_no INTEGER, section TEXT, seq INTEGER, kind TEXT, title TEXT, text TEXT, problem TEXT, solution TEXT,\n        maths TEXT, cnx_id TEXT, instruction TEXT)",
+          "bounded_sample_rows": 257,
+          "sample_limit": 257,
+          "sample_complete": false,
+          "duplicate_first_column_in_sample": 0,
+          "duplicate_whole_rows_in_sample": 0,
+          "columns": [
+            {
+              "column": "id",
+              "declared_type": "INTEGER",
+              "pk_position": 1,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "module",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 6,
+              "max_utf8_bytes": 6,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "book",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 17,
+              "max_utf8_bytes": 17,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "book_title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 17,
+              "max_utf8_bytes": 17,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "licence",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 49,
+              "max_utf8_bytes": 49,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "chapter",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 20,
+              "max_utf8_bytes": 20,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "chapter_no",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "section",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 26,
+              "max_utf8_bytes": 26,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "seq",
+              "declared_type": "INTEGER",
+              "pk_position": 0,
+              "sample_python_types": {
+                "int": 257
+              },
+              "max_text_characters": 0,
+              "max_utf8_bytes": 0,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "kind",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 8,
+              "max_utf8_bytes": 8,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "title",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 54,
+              "max_utf8_bytes": 54,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "text",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 2349,
+              "max_utf8_bytes": 2349,
+              "nonascii_text_cells": 31,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "problem",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "NoneType": 135,
+                "str": 122
+              },
+              "max_text_characters": 744,
+              "max_utf8_bytes": 744,
+              "nonascii_text_cells": 12,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "solution",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "NoneType": 175,
+                "str": 82
+              },
+              "max_text_characters": 2194,
+              "max_utf8_bytes": 2194,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "maths",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 1038,
+              "max_utf8_bytes": 1038,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "cnx_id",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "str": 257
+              },
+              "max_text_characters": 18,
+              "max_utf8_bytes": 18,
+              "nonascii_text_cells": 0,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            },
+            {
+              "column": "instruction",
+              "declared_type": "TEXT",
+              "pk_position": 0,
+              "sample_python_types": {
+                "NoneType": 158,
+                "str": 99
+              },
+              "max_text_characters": 330,
+              "max_utf8_bytes": 330,
+              "nonascii_text_cells": 5,
+              "max_blob_bytes": 0,
+              "real_examples": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "virtual_source_rows_samples": [
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_build_a_v1/wikipedia_specialist.sqlite3",
+      "schema": "CREATE VIRTUAL TABLE source_rows USING fts5(claim_id, fact, fact_sha256, page_id, sentence_ordinal, tokenize='unicode61')",
+      "sample_rows": 257,
+      "columns": [
+        {
+          "column": "rowid",
+          "types": {
+            "int": 257
+          },
+          "max_characters": 0,
+          "max_utf8_bytes": 0,
+          "nonascii_cells": 0
+        },
+        {
+          "column": "claim_id",
+          "types": {
+            "str": 257
+          },
+          "max_characters": 35,
+          "max_utf8_bytes": 35,
+          "nonascii_cells": 0
+        },
+        {
+          "column": "fact",
+          "types": {
+            "str": 257
+          },
+          "max_characters": 258,
+          "max_utf8_bytes": 258,
+          "nonascii_cells": 4
+        },
+        {
+          "column": "fact_sha256",
+          "types": {
+            "str": 257
+          },
+          "max_characters": 64,
+          "max_utf8_bytes": 64,
+          "nonascii_cells": 0
+        },
+        {
+          "column": "page_id",
+          "types": {
+            "str": 257
+          },
+          "max_characters": 4,
+          "max_utf8_bytes": 4,
+          "nonascii_cells": 0
+        },
+        {
+          "column": "sentence_ordinal",
+          "types": {
+            "str": 257
+          },
+          "max_characters": 2,
+          "max_utf8_bytes": 2,
+          "nonascii_cells": 0
+        }
+      ]
+    },
+    {
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e8_dbpedia_enslot_openstax_full_fable_bench_a_v1/wikipedia_specialist.sqlite3",
+      "schema": "CREATE VIRTUAL TABLE source_rows USING fts5(claim_id, fact, fact_sha256, page_id, sentence_ordinal, tokenize='unicode61')",
+      "sample_rows": 257,
+      "columns": [
+        {
+          "column": "rowid",
+          "types": {
+            "int": 257
+          },
+          "max_characters": 0,
+          "max_utf8_bytes": 0,
+          "nonascii_cells": 0
+        },
+        {
+          "column": "claim_id",
+          "types": {
+            "str": 257
+          },
+          "max_characters": 35,
+          "max_utf8_bytes": 35,
+          "nonascii_cells": 0
+        },
+        {
+          "column": "fact",
+          "types": {
+            "str": 257
+          },
+          "max_characters": 315,
+          "max_utf8_bytes": 315,
+          "nonascii_cells": 5
+        },
+        {
+          "column": "fact_sha256",
+          "types": {
+            "str": 257
+          },
+          "max_characters": 64,
+          "max_utf8_bytes": 64,
+          "nonascii_cells": 0
+        },
+        {
+          "column": "page_id",
+          "types": {
+            "str": 257
+          },
+          "max_characters": 4,
+          "max_utf8_bytes": 4,
+          "nonascii_cells": 0
+        },
+        {
+          "column": "sentence_ordinal",
+          "types": {
+            "str": 257
+          },
+          "max_characters": 2,
+          "max_utf8_bytes": 2,
+          "nonascii_cells": 0
+        }
+      ]
+    }
+  ],
+  "jsonl_samples": [
+    {
+      "path": "upstream/root/wander-train/oracle_relational_v3/data/m10/typed_records.jsonl",
+      "sample_records": 215,
+      "nested_list_visit_limit": 64,
+      "field_types": {
+        "": {
+          "dict": 215
+        },
+        ".citation": {
+          "str": 215
+        },
+        ".claim_type": {
+          "str": 215
+        },
+        ".competencies": {
+          "list": 215
+        },
+        ".competencies[]": {
+          "str": 776
+        },
+        ".conditions": {
+          "list": 215
+        },
+        ".domain": {
+          "str": 215
+        },
+        ".evidence": {
+          "str": 215
+        },
+        ".object": {
+          "str": 215
+        },
+        ".polarity": {
+          "str": 215
+        },
+        ".predicate": {
+          "str": 215
+        },
+        ".quantity": {
+          "dict": 215
+        },
+        ".quantity.unit": {
+          "str": 29
+        },
+        ".quantity.value": {
+          "float": 29
+        },
+        ".record_id": {
+          "str": 215
+        },
+        ".source_document_id": {
+          "str": 215
+        },
+        ".source_document_sha256": {
+          "str": 215
+        },
+        ".source_id": {
+          "str": 215
+        },
+        ".source_url": {
+          "str": 215
+        },
+        ".subject": {
+          "str": 215
+        },
+        ".temporal": {
+          "dict": 215
+        },
+        ".temporal.event_time_epoch_ms": {
+          "int": 39
+        },
+        ".temporal.year": {
+          "int": 3
+        }
+      },
+      "max_sample_lengths": {
+        ".citation UTF8": 37,
+        ".claim_type UTF8": 10,
+        ".competencies": 4,
+        ".competencies[] UTF8": 43,
+        ".conditions": 0,
+        ".domain UTF8": 21,
+        ".evidence UTF8": 181,
+        ".object UTF8": 116,
+        ".polarity UTF8": 8,
+        ".predicate UTF8": 14,
+        ".quantity.unit UTF8": 15,
+        ".record_id UTF8": 64,
+        ".source_document_id UTF8": 40,
+        ".source_document_sha256 UTF8": 64,
+        ".source_id UTF8": 40,
+        ".source_url UTF8": 106,
+        ".subject UTF8": 22
+      },
+      "float_examples": {
+        ".quantity.value": 10.0
+      }
+    },
+    {
+      "path": "upstream/root/wander-train/oracle_relational_v3/data/m10/source_derivations.jsonl",
+      "sample_records": 215,
+      "nested_list_visit_limit": 64,
+      "field_types": {
+        "": {
+          "dict": 215
+        },
+        ".adapter": {
+          "str": 215
+        },
+        ".domain": {
+          "str": 215
+        },
+        ".event_id": {
+          "str": 39
+        },
+        ".field": {
+          "str": 39
+        },
+        ".predicate": {
+          "str": 215
+        },
+        ".raw_record_sha256": {
+          "str": 42
+        },
+        ".raw_snapshot_sha256": {
+          "str": 215
+        },
+        ".record_id": {
+          "str": 215
+        },
+        ".source_id": {
+          "str": 215
+        },
+        ".subject": {
+          "str": 215
+        },
+        ".json_pointer": {
+          "str": 173
+        },
+        ".mapping_entry_sha256": {
+          "str": 173
+        },
+        ".predecessor_claim_id": {
+          "str": 173
+        },
+        ".qid": {
+          "str": 173
+        },
+        ".revision": {
+          "int": 173
+        },
+        ".target_qid": {
+          "str": 130,
+          "NoneType": 43
+        },
+        ".observation_id": {
+          "str": 3
+        }
+      },
+      "max_sample_lengths": {
+        ".adapter UTF8": 36,
+        ".domain UTF8": 21,
+        ".event_id UTF8": 10,
+        ".field UTF8": 13,
+        ".predicate UTF8": 14,
+        ".raw_record_sha256 UTF8": 64,
+        ".raw_snapshot_sha256 UTF8": 64,
+        ".record_id UTF8": 64,
+        ".source_id UTF8": 40,
+        ".subject UTF8": 22,
+        ".json_pointer UTF8": 40,
+        ".mapping_entry_sha256 UTF8": 64,
+        ".predecessor_claim_id UTF8": 49,
+        ".qid UTF8": 8,
+        ".target_qid UTF8": 10,
+        ".observation_id UTF8": 8
+      },
+      "float_examples": {}
+    }
+  ],
+  "integer_samples": [
+    {
+      "path": "upstream/root/specialists/warehouse/site_fresh.sqlite3",
+      "table": "stock_events",
+      "column": "delta",
+      "sample_rows": 257,
+      "min": -15,
+      "max": 281,
+      "negative_count": 189,
+      "above255_count": 2
+    },
+    {
+      "path": "upstream/root/relstore/relations_v1.sqlite3",
+      "table": "entity",
+      "column": "qid",
+      "sample_rows": 257,
+      "min": 358,
+      "max": 23982,
+      "negative_count": 0,
+      "above255_count": 257
+    },
+    {
+      "path": "upstream/root/specialists/cooking/nutrition_v1.sqlite3",
+      "table": "foods",
+      "column": "fdc_id",
+      "sample_rows": 257,
+      "min": 167512,
+      "max": 167768,
+      "negative_count": 0,
+      "above255_count": 257
+    }
+  ]
+}

@@ -12,7 +12,7 @@ datatype (plugins del: size) event =
   StageAdoption nat nat "binding adopted_delta" |
   StageRetention nat nat nat retention_scope |
   ExecutePure pure_execution |
-  StageOutput nat output_assignment "source_publication option" |
+  StageOutput nat slot_assignment "source_publication option" |
   RegisterManaged retained_value |
   InstallRetentionGrant retention_grant |
   InstallJob acquisition_job |
@@ -30,6 +30,7 @@ datatype (plugins del: size) event =
   AddBlocker nat blocker |
   StageClaim nat nat nat nat |
   StageIntent nat effect_intent |
+  StageEffectObservation nat effect_observation |
   StageObservation nat source_publication |
   StageMigration nat nat nat "binding list" |
   DurableAck nat nat nat |

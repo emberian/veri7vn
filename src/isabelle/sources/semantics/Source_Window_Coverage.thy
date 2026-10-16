@@ -18,6 +18,17 @@ fun classify_window where
 definition window_classified where
   "window_classified cb observations \<longleftrightarrow>
     list_all (\<lambda>obs. \<exists>c. event_clock obs = Some c \<and> basis c = cb) observations"
+
+text \<open>Classified-window execution inspects the recorded optional clock. The
+existential specification remains unchanged; execution does not enumerate the
+unbounded clock-reading type.\<close>
+declare [[code drop: window_classified]]
+lemma window_classified_code[code]:
+  "window_classified cb observations =
+    list_all (\<lambda>obs. case event_clock obs of None \<Rightarrow> False
+      | Some observed_clock \<Rightarrow> basis observed_clock = cb) observations"
+  by (auto simp: window_classified_def list_all_iff split: option.splits)
+
 definition unclassified_population where
   "unclassified_population cb lo hi observations =
     filter (\<lambda>obs. classify_window cb lo hi obs = Unclassified_Window) observations"

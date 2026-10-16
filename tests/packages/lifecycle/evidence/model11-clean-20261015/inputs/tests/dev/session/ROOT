@@ -1,0 +1,3 @@
+session Veri7vn_Dev_Driver_Test = HOL +
+  options [document = false]
+  theories Driver_Test

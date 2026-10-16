@@ -34,7 +34,8 @@ local
   fun acquire (pool as Pool{allocator,state}) {workspace,identity,bytes,encoding} =
     Thread_Attributes.uninterruptible_body(fn _=>
     let val _=if workspace=I.workspace allocator andalso identity>0 andalso
-        size(IntInf.toString identity)<=128 andalso encoding="UTF-8" andalso size bytes<=1048576
+        size(IntInf.toString identity)<=128 andalso size bytes<=1048576 andalso
+        Veri7vn_Native_Recovery_Encoding.valid encoding bytes
       then () else error "Checked recovery input bounds/workspace"
       val (input,owner)=Synchronized.change_result state
         (fn {open_pool,aborted,entries,retired}=>

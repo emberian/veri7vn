@@ -1,0 +1,3 @@
+session Veri7vn_Runtime_Build_Tests = Veri7vn_Runtime_Build +
+  options [document = false]
+  theories Native_Build_Service_Test

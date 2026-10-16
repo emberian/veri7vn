@@ -1,0 +1,19 @@
+session Veri7vn_Execution_Core = Veri7vn_Source_Semantics +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Codegen
+  theories Veri7vn_Source_Execution
+
+session Veri7vn_Execution in bundle = Veri7vn_Source_Admission +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Source_Plans Veri7vn_Projection Veri7vn_Effect_Tickets
+  theories Veri7vn_Execution_Bundle
+
+
+session Veri7vn_Row_Kernel in row_kernel = Veri7vn_Row_Plans +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Codegen Veri7vn_Projection Veri7vn_Source_Metadata Veri7vn_Relation_Import Veri7vn_Source_Stream
+  theories Veri7vn_Row_Kernel
+
+session Veri7vn_Source_Authoring in authoring = Veri7vn_Execution +
+  options [document = false, threads = 2]
+  theories Veri7vn_Source_Authoring

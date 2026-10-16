@@ -2,12 +2,12 @@ package veri7vn.cli
 
 import scala.language.unsafeNulls
 import veri7vn.runtime.service.RuntimeService
-import veri7vn.workbench.{Authoring,Browser,ResidentExecution}
+import veri7vn.workbench.{Authoring,Browser,ResidentExecution,BuildWorkspace}
 import java.nio.charset.StandardCharsets.UTF_8
 
 /** Commands over the same managed source store and resident native authority. */
 object ResidentWorkbench {
-  def run(service:RuntimeService,args:Array[String]):Unit={
+  def run(service:RuntimeService,args:Array[String],builds:Option[BuildWorkspace]=None):Unit={
     val author=new Authoring(service.managedSources)
     val execution=new ResidentExecution(service)
     try {
@@ -15,9 +15,11 @@ object ResidentWorkbench {
     args(0) match {
       case "serve"=>
         require(args.length==1,"serve takes no arguments")
-        val browser=new Browser(author,Some(execution));browser.start();println(browser.url)
+        val browser=new Browser(author,Some(execution),builds);browser.start();println(browser.url)
         println("Press Enter to close the workspace.")
         try scala.io.StdIn.readLine() finally browser.close()
+      case "build"|"build-status"|"build-cancel"|"build-forget"=>
+        BuildCommands.run(author,builds.getOrElse(throw new IllegalArgumentException("The installed resident does not expose native Build support")),args)
       case "run"=>
         require(args.length==2 || args.length==3,"run requires a question and optional interpretation choice")
         val bytes=args(1).getBytes(UTF_8)

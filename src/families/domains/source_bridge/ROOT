@@ -1,0 +1,13 @@
+session Veri7vn_Source_Quantity_Bridge = Veri7vn_Domain_Service_Objects +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Source_Cell_Selection
+  theories Source_Quantity_Bridge
+
+session Veri7vn_Source_Domain_Gate in native_gate = Veri7vn_Source_Quantity_Bridge +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Domain_Checked_Display
+  theories Source_Domain_Gate
+
+session Veri7vn_Source_Quantity_Consumer in native = Veri7vn_Source_Domain_Gate +
+  options [document = false, threads = 2]
+  theories Source_Quantity_Consumer

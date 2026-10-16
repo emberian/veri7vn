@@ -27,6 +27,23 @@ lemma malformed_ack_rejected:
 lemma wrong_schema_rejected:
   "decode_checkpoint (WireNode 3 [WireNat (Suc metadata_schema_identity), body]) = None"
   by (simp add: decode_checkpoint_def open_metadata_def)
+lemma d44_schema_is_not_reinterpreted:
+  "decode_checkpoint (WireNode 3 [WireNat
+    27384149758948970507784834613512596235422084450260257675860293507180162239081,body])=None"
+  by (simp add: decode_checkpoint_def open_metadata_def metadata_schema_identity_def)
+lemma d43_schema_is_not_reinterpreted:
+  "decode_checkpoint (WireNode 3 [WireNat
+    113393905036830793482281116222121299097453681486860587336201013267035088517886,body])=None"
+  by (simp add: decode_checkpoint_def open_metadata_def metadata_schema_identity_def)
+lemma effect_observation_event_roundtrip:
+  "decode_event (encode_event (StageEffectObservation batch observation))=Some (StageEffectObservation batch observation)"
+  by (rule decode_encode_event)
+lemma artifact_output_roundtrip:
+  "decode_slot_assignment (encode_slot_assignment (ArtifactOutput a))=Some (ArtifactOutput a)"
+  by (rule decode_encode_slot_assignment)
+lemma artifact_requirement_roundtrip:
+  "decode_goal_requirement (encode_goal_requirement (ArtifactRequirement a))=Some (ArtifactRequirement a)"
+  by (rule decode_encode_goal_requirement)
 lemma malformed_boolean_rejected:
   "decode_bool (WireNat 2) = None"
   by simp
@@ -51,7 +68,7 @@ ML \<open>
   val checkpoint = @{code encode_checkpoint} base;
   val _ = (case @{code decode_checkpoint} checkpoint of
     NONE => error "checkpoint roundtrip failed" | SOME _ => ());
-  val n = @{code nat_of_integer} 17;
+  val n = Veri7vn_Numerals.nat_of_integer 17;
   val e = @{code RetireCapability} n;
   val wire = @{code encode_event_frame} e;
   val restored = (case @{code decode_event_frame} wire of
@@ -63,7 +80,7 @@ ML \<open>
   val malformed = @{code truncate_metadata} ack_wire;
   val _ = (case @{code decode_event} malformed of NONE => ()
     | SOME _ => error "truncated acknowledgement accepted");
-  val large_negative = @{code int_of_integer} (~ (IntInf.pow (10, 40)));
+  val large_negative = Veri7vn_Numerals.int_of_integer (~ (IntInf.pow (10, 40)));
   val negative_wire = @{code encode_int} large_negative;
   val _ = (case @{code decode_int} negative_wire of SOME z =>
       if z = large_negative then () else error "signed integer changed"
@@ -79,13 +96,13 @@ lemma malformed_forget_roots_rejected:
   by (simp add: decode_event_def)
 
 ML \<open>
-  val roots = [@{code nat_of_integer} 17, @{code nat_of_integer} 18];
+  val roots = [Veri7vn_Numerals.nat_of_integer 17, Veri7vn_Numerals.nat_of_integer 18];
   val original = @{code ForgetRoots} roots;
   val restored = (case @{code decode_event_frame} (@{code encode_event_frame} original) of
     SOME event => event | NONE => error "List-root forget codec rejected exact event");
   val (forgotten, commands) = @{code step} @{code initial_state} restored;
   val _ = if forall (fn root => member (op =) (@{code forgotten_objects} forgotten) root) roots
-    andalso @{code authority_epoch} forgotten = @{code nat_of_integer} 1
+    andalso @{code authority_epoch} forgotten = Veri7vn_Numerals.nat_of_integer 1
     andalso length commands = 3 then () else error "List-root forget was not one transition";
   val (empty, rejected) = @{code step} @{code initial_state} (@{code ForgetRoots} []);
   val _ = if empty = @{code initial_state} andalso length rejected = 1 then ()

@@ -1,0 +1,3 @@
+session Veri7vn_Native_Slice_Reader_Tests = Veri7vn_Runtime_Service +
+  options [threads = 2, document = false]
+  theories Native_Slice_Reader_Tests

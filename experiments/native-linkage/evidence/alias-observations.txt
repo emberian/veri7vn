@@ -1,0 +1,41 @@
+Feasibility check: private reflexivity-alias expansion UNSUPPORTED.
+TRANSPORT bytes/time refer to the rejected MinProof payload, not a successful proof.
+LINKAGE BASE_HEAP_REPLAY measured_at_epoch=1792073085.854
+LINKAGE generated_dispatch PASS
+LINKAGE generation_guard PASS
+LINKAGE wrong_implementation_refuted PASS
+LINKAGE native_association PASS
+LINKAGE admitted_consumer PASS
+LINKAGE swapped_representation_rejected PASS
+LINKAGE swapped_theorem_rejected PASS
+LINKAGE assumed_link_rejected PASS
+LINKAGE changed_code_setup_rejected PASS
+LINKAGE changed_serializer_rejected PASS
+LINKAGE MEASURE fixed_attachment repeats=10 elapsed_ms=320.921 cpu_ms=165.158 gc_ms=16.117
+LINKAGE MEASURE generated_count_100_flags repeats=10000 elapsed_ms=48.538 cpu_ms=18.1 gc_ms=0.0
+LINKAGE closed_refinements PASS
+LINKAGE registered_reconstruction PASS
+LINKAGE controlled_definition PASS
+LINKAGE proof_recording PASS
+LINKAGE SHAPE source 
+LINKAGE EXPAND unavailable_reference=Native_Linkage_Probe.worker_export
+LINKAGE EXPAND unavailable_reference=
+LINKAGE EXPAND unavailable_reference=Native_Linkage_Probe.worker_private
+LINKAGE EXPAND unavailable_reference=
+LINKAGE EXPAND unavailable_reference=
+LINKAGE SHAPE expanded MinProof=1
+LINKAGE SHAPE decoded MinProof=1
+LINKAGE PRIVATE_TRANSPORT UNSUPPORTED thm_of_proof: partial proof term
+LINKAGE SHAPE decoded 
+LINKAGE approved_reference_transport PASS
+LINKAGE SHAPE decoded 
+LINKAGE unexpanded_private_rejected PASS
+LINKAGE SHAPE decoded 
+LINKAGE wrong_target_rejected PASS
+LINKAGE oversize_rejected PASS
+LINKAGE SHAPE decoded Oracle=1
+LINKAGE oracle_node_rejected PASS
+LINKAGE SHAPE decoded Hyp=1
+LINKAGE hypothesis_rejected PASS
+LINKAGE TRANSPORT bytes=7 expansion_ms=0.311 receiver_ms=169.489
+LINKAGE feasibility_complete PASS

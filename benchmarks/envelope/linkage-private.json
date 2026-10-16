@@ -1,0 +1,164 @@
+{
+  "format": "veri7vn.phase-cost-collection/1",
+  "receipt_path": "experiments/native-linkage/evidence/private-derivation-receipt.json",
+  "marker_log_override": "experiments/native-linkage/evidence/private-derivation-observations.txt",
+  "command_logs_omitted": true,
+  "log_directory_override": null,
+  "current_sources_sha256": {
+    "experiments/native-linkage/README.md": "628878757d06b3158f66ae7f2a496f3108f34034716c8bb70ef5650fcf423ef6",
+    "experiments/native-linkage/ROOT": "3c37e817adace0a20cde948324791064417274dc5b79dcdded3a36cb56e4f907",
+    "experiments/native-linkage/base/Native_Linkage_Base.thy": "d72c1dbc6f410c6495d35af53fd5c456ac933a5422a8728aef9f611458bc0955",
+    "experiments/native-linkage/evidence/alias-observations.txt": "6d5d09da9721d5346bde99d722785996df0424d7a0ca5d1e6a26fcc19df023d6",
+    "experiments/native-linkage/evidence/alias-receipt.json": "04086c283da118364d4e6ce94f9d588b624da59a1d831c04dd091f6598dbdc5c",
+    "experiments/native-linkage/transport/Native_Linkage_Probe.thy": "5f20eacad631120d05eef2e7b65631b9a9f75fdc35ba9a8c22cccefd24f7c7a5",
+    "tools/dev/check-native": "0fa7303cbd074826ae8301680556e35f407adc504c7dc026ffe859cdf010614e"
+  },
+  "current_source_comparison": {
+    "experiments/native-linkage/README.md": "changed",
+    "experiments/native-linkage/ROOT": "matches",
+    "experiments/native-linkage/base/Native_Linkage_Base.thy": "matches",
+    "experiments/native-linkage/evidence/alias-observations.txt": "matches",
+    "experiments/native-linkage/evidence/alias-receipt.json": "matches",
+    "experiments/native-linkage/transport/Native_Linkage_Probe.thy": "changed",
+    "tools/dev/check-native": "matches"
+  },
+  "receipt_sha256": "8bd093292899aac5280b0c5f3bc1874f517f1e4303780ad91e84b1088db237c7",
+  "run_identity": {
+    "started_utc": "2026-10-15T14:22:17Z",
+    "elapsed_seconds": 21.37507574999472,
+    "scope": "native integration smoke; not admission",
+    "host": {
+      "system": "Darwin",
+      "machine": "arm64"
+    },
+    "resources": {
+      "build_jobs": 1,
+      "threads": 2,
+      "command_timeout_seconds": 90
+    },
+    "session": "Native_Linkage_Probe",
+    "isabelle_version": "Isabelle2026-RC1",
+    "isabelle_settings": "ISABELLE_IDENTIFIER=Isabelle2026-RC1\nML_SYSTEM=polyml-5.9.2\nML_PLATFORM=\nISABELLE_HOME_USER=/Users/ember/dev/o7vn/var/native-scaffold/user-state/.isabelle/Isabelle2026-RC1",
+    "sources_sha256": {
+      "experiments/native-linkage/README.md": "a52aaf3fe04900902a203308410729b3cabb2d6c281fb25cd8c48f70f7cea9ab",
+      "experiments/native-linkage/ROOT": "3c37e817adace0a20cde948324791064417274dc5b79dcdded3a36cb56e4f907",
+      "experiments/native-linkage/base/Native_Linkage_Base.thy": "d72c1dbc6f410c6495d35af53fd5c456ac933a5422a8728aef9f611458bc0955",
+      "experiments/native-linkage/evidence/alias-observations.txt": "6d5d09da9721d5346bde99d722785996df0424d7a0ca5d1e6a26fcc19df023d6",
+      "experiments/native-linkage/evidence/alias-receipt.json": "04086c283da118364d4e6ce94f9d588b624da59a1d831c04dd091f6598dbdc5c",
+      "experiments/native-linkage/transport/Native_Linkage_Probe.thy": "e75236a446811044ef15f512df4876cdf535417fda23993690fe650505083d30",
+      "tools/dev/check-native": "0fa7303cbd074826ae8301680556e35f407adc504c7dc026ffe859cdf010614e"
+    },
+    "checks": [
+      "LINKAGE private_implication_transport PASS"
+    ]
+  },
+  "cache_state": "not inferred: producer must document process/heap/filesystem/index warmth",
+  "logs": [
+    {
+      "path": "experiments/native-linkage/evidence/private-derivation-observations.txt",
+      "sha256": "ec4d28ed24f08dcda9175e400361b7557c372fae5e77a888f1a2be640ba92c86"
+    }
+  ],
+  "observations": [
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "version"
+      ],
+      "wall_ms": 525.4220410133712,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    },
+    {
+      "phase": "linkage",
+      "identity": "fixed_attachment",
+      "repeats": 10,
+      "wall_ms": 320.921,
+      "cpu_ms": 165.158,
+      "gc_ms": 16.117,
+      "measurement_origin": "base-heap-replay",
+      "measured_at_epoch": "1792073085.854",
+      "scope": "aggregate repeated feasibility operations; not independent latency samples"
+    },
+    {
+      "phase": "linkage",
+      "identity": "generated_count_100_flags",
+      "repeats": 10000,
+      "wall_ms": 48.538,
+      "cpu_ms": 18.1,
+      "gc_ms": 0.0,
+      "measurement_origin": "base-heap-replay",
+      "measured_at_epoch": "1792073085.854",
+      "scope": "aggregate repeated feasibility operations; not independent latency samples"
+    },
+    {
+      "phase": "checking",
+      "identity": "private-pure-implication",
+      "certificate_bytes": 94,
+      "wall_ms": 154.382,
+      "samples": 1,
+      "outcome": "successful-reconstruction",
+      "scope": "one tiny private Pure proof, not general HOL transport"
+    },
+    {
+      "phase": "checking",
+      "identity": "linkage-proof-transport",
+      "certificate_bytes": 7,
+      "expansion_ms": 0.399,
+      "receiver_ms": 125.226,
+      "outcome": "rejected-MinProof",
+      "scope": "attempt only; success is never inferred from timing marker"
+    },
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "getenv",
+        "ISABELLE_IDENTIFIER",
+        "ML_SYSTEM",
+        "ML_PLATFORM",
+        "ISABELLE_HOME_USER"
+      ],
+      "wall_ms": 573.374416999286,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    },
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "build",
+        "-v",
+        "-b",
+        "-d",
+        "experiments/native-linkage",
+        "-j",
+        "1",
+        "-o",
+        "threads=2",
+        "Native_Linkage_Probe"
+      ],
+      "wall_ms": 16208.889708010247,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    },
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "build_log",
+        "-v",
+        "Native_Linkage_Probe"
+      ],
+      "wall_ms": 4059.50508400565,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    }
+  ],
+  "base_heap_replay_epochs": [
+    "1792073085.854"
+  ],
+  "unavailable": {
+    "allocations": "not instrumented",
+    "peak_live_memory": "not instrumented",
+    "durable_commit_throughput_and_tail": "one first-commit sample is insufficient",
+    "representative_application": "not implemented by these feasibility probes"
+  }
+}

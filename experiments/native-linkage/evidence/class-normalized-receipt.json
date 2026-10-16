@@ -1,0 +1,126 @@
+{
+  "format": "veri7vn.native-scaffold-receipt/0",
+  "status": "passed",
+  "driver_pid": 83835,
+  "scope": "native integration smoke; not admission",
+  "started_utc": "2026-10-15T15:25:58Z",
+  "executable": "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+  "user_home": "/Users/ember/dev/o7vn/var/native-scaffold/user-state",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "resources": {
+    "build_jobs": 1,
+    "threads": 2,
+    "command_timeout_seconds": 90
+  },
+  "sources_sha256": {
+    "experiments/native-linkage/README.md": "628878757d06b3158f66ae7f2a496f3108f34034716c8bb70ef5650fcf423ef6",
+    "experiments/native-linkage/ROOT": "3c37e817adace0a20cde948324791064417274dc5b79dcdded3a36cb56e4f907",
+    "experiments/native-linkage/base/Native_Linkage_Base.thy": "d72c1dbc6f410c6495d35af53fd5c456ac933a5422a8728aef9f611458bc0955",
+    "experiments/native-linkage/evidence/alias-observations.txt": "6d5d09da9721d5346bde99d722785996df0424d7a0ca5d1e6a26fcc19df023d6",
+    "experiments/native-linkage/evidence/alias-receipt.json": "04086c283da118364d4e6ce94f9d588b624da59a1d831c04dd091f6598dbdc5c",
+    "experiments/native-linkage/evidence/private-derivation-observations.txt": "ec4d28ed24f08dcda9175e400361b7557c372fae5e77a888f1a2be640ba92c86",
+    "experiments/native-linkage/evidence/private-derivation-receipt.json": "8bd093292899aac5280b0c5f3bc1874f517f1e4303780ad91e84b1088db237c7",
+    "experiments/native-linkage/transport/Native_Linkage_Probe.thy": "5f20eacad631120d05eef2e7b65631b9a9f75fdc35ba9a8c22cccefd24f7c7a5",
+    "tools/dev/check-native": "404b8dc2d1005f6820c32e753d61498f21cadb04dd3f6ca9d87e1816bbb4aa8b"
+  },
+  "session": "Native_Linkage_Probe",
+  "sessions": [
+    "Native_Linkage_Probe"
+  ],
+  "session_roots": [
+    "experiments/native-linkage"
+  ],
+  "expected_markers": [
+    "LINKAGE class_normalized_private_transport PASS"
+  ],
+  "session_logs": {
+    "Native_Linkage_Probe": "var/native-scaffold/sessions/13c285ea6dca5285/smoke.log"
+  },
+  "commands": [
+    {
+      "argv": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "version"
+      ],
+      "log": "var/native-scaffold/sessions/13c285ea6dca5285/version.log",
+      "pid": 83840,
+      "status": "finished",
+      "returncode": 0,
+      "seconds": 0.5786120419797953
+    },
+    {
+      "argv": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "getenv",
+        "ISABELLE_IDENTIFIER",
+        "ML_SYSTEM",
+        "ML_PLATFORM",
+        "ISABELLE_HOME_USER"
+      ],
+      "log": "var/native-scaffold/sessions/13c285ea6dca5285/settings.log",
+      "pid": 83870,
+      "status": "finished",
+      "returncode": 0,
+      "seconds": 0.5132814999960829
+    },
+    {
+      "argv": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "build",
+        "-v",
+        "-b",
+        "-d",
+        "experiments/native-linkage",
+        "-j",
+        "1",
+        "-o",
+        "threads=2",
+        "Native_Linkage_Probe"
+      ],
+      "log": "var/native-scaffold/sessions/13c285ea6dca5285/build.log",
+      "pid": 83900,
+      "status": "finished",
+      "returncode": 0,
+      "seconds": 18.178969750006218
+    },
+    {
+      "argv": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "build_log",
+        "-v",
+        "Native_Linkage_Probe"
+      ],
+      "log": "var/native-scaffold/sessions/13c285ea6dca5285/smoke.log",
+      "pid": 84060,
+      "status": "finished",
+      "returncode": 0,
+      "seconds": 4.2201222910080105
+    }
+  ],
+  "checks": [
+    "LINKAGE class_normalized_private_transport PASS"
+  ],
+  "isabelle_version": "Isabelle2026-RC1",
+  "isabelle_settings": "ISABELLE_IDENTIFIER=Isabelle2026-RC1\nML_SYSTEM=polyml-5.9.2\nML_PLATFORM=\nISABELLE_HOME_USER=/Users/ember/dev/o7vn/var/native-scaffold/user-state/.isabelle/Isabelle2026-RC1",
+  "marker_sessions": {
+    "LINKAGE class_normalized_private_transport PASS": [
+      "Native_Linkage_Probe"
+    ]
+  },
+  "sources_sha256_after": {
+    "experiments/native-linkage/README.md": "628878757d06b3158f66ae7f2a496f3108f34034716c8bb70ef5650fcf423ef6",
+    "experiments/native-linkage/ROOT": "3c37e817adace0a20cde948324791064417274dc5b79dcdded3a36cb56e4f907",
+    "experiments/native-linkage/base/Native_Linkage_Base.thy": "d72c1dbc6f410c6495d35af53fd5c456ac933a5422a8728aef9f611458bc0955",
+    "experiments/native-linkage/evidence/alias-observations.txt": "6d5d09da9721d5346bde99d722785996df0424d7a0ca5d1e6a26fcc19df023d6",
+    "experiments/native-linkage/evidence/alias-receipt.json": "04086c283da118364d4e6ce94f9d588b624da59a1d831c04dd091f6598dbdc5c",
+    "experiments/native-linkage/evidence/private-derivation-observations.txt": "ec4d28ed24f08dcda9175e400361b7557c372fae5e77a888f1a2be640ba92c86",
+    "experiments/native-linkage/evidence/private-derivation-receipt.json": "8bd093292899aac5280b0c5f3bc1874f517f1e4303780ad91e84b1088db237c7",
+    "experiments/native-linkage/transport/Native_Linkage_Probe.thy": "5f20eacad631120d05eef2e7b65631b9a9f75fdc35ba9a8c22cccefd24f7c7a5",
+    "tools/dev/check-native": "404b8dc2d1005f6820c32e753d61498f21cadb04dd3f6ca9d87e1816bbb4aa8b"
+  },
+  "inputs_stable": true,
+  "elapsed_seconds": 23.50145287500345
+}

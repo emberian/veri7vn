@@ -1,3 +1,10 @@
 session Veri7vn_Native_Development = Veri7vn_Admission +
   options [document = false]
-  theories Expert_Source Provenance_Specialist Native_Development_Test Managed_Development_Test
+  sessions Veri7vn_Native_Build_Candidate Veri7vn_Native_Build_Metadata
+  theories Expert_Source Provenance_Specialist Native_Development_Test Managed_Development_Test Native_Build_Candidate_Test Native_Package_Input_Test
+
+(* Requires the newly packaged descriptor Scala.Functions service on the fresh
+   JVM classpath. Run explicitly after the matching host package is qualified. *)
+session Veri7vn_Native_Build_Restart in restart = Veri7vn_Native_Build_Candidate +
+  options [document = false]
+  theories Native_Build_Restart_Test

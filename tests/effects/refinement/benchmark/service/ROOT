@@ -1,0 +1,3 @@
+session Veri7vn_Effects_Service_Benchmark = Veri7vn_Runtime_Service +
+  options [document = false, threads = 2]
+  theories Effects_Service_Benchmark

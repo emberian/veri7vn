@@ -1,7 +1,7 @@
 # Defect evidence and repair obligations
 
 Run `.venv/bin/python -m unittest discover -s tests/regressions -v`.
-On 2026-10-15 all **25 tests passed** with SymPy 1.14.0.
+On 2026-10-15 the original **25 tests passed** with SymPy 1.14.0.
 These are upstream characterizations and independent counterexamples, not passing
 native repair acceptance tests. Standard `python3` lacks SymPy and explicitly
 skips five math checks; use the project environment for complete evidence.
@@ -94,10 +94,42 @@ proofs cannot be smuggled into this path by testing an unrelated arithmetic
 expression. Similarly, a generated tolerance helper is not evidence that planner
 agreement calls it.
 
-Verification receipt `var/native-scaffold/sessions/f6f61c21e18caa0d/receipt.json`
+Historical verification receipt `var/native-scaffold/sessions/f6f61c21e18caa0d/receipt.json`
 is **overall failed** in `Veri7vn_Natural_Mathematics`; it is not a green combined
 qualification. The mathematics owner reports the mathematics test session passed
 in an earlier attempt under that directory, whose build log was overwritten by a
 retry. Independent cached marker extraction is requested before treating that
 reported execution as durable regression evidence. Bundle tests have not yet
 been independently built in this review; frozen native inputs remain unchanged.
+
+
+## Integration-pass lifecycle regressions
+
+`tests/regressions/test_workbench_lifecycle.py` now executes three additional
+original-body characterizations without importing/launching the server or MQTT
+client. `selected` compiles the original named AST bodies; dependencies are local
+clock/store/client fixtures, explicitly not native repaired implementations.
+
+| Test | Executed evidence | Required actual repair consumer |
+|---|---|---|
+| `test_same_cached_mqtt_event_gets_new_poll_timestamp` | Actual `read_source` MQTT branch consumes one cached `(event_time=50,payload)` twice; actual `poll_once` stores `t=100` then `t=200` with identical source description/value. No socket/client is instantiated. | Source acquisition must retain event time50 while receipt times advance. `Source_Semantics.repoll` already states this pure property; it does not install an MQTT connector. Actual acquired metadata, freshness query and returned result must consume the separated clocks. |
+| `test_expired_reader_pronoun_bypasses_live_filter` | Actual `Workbench.chat` invokes expired reader after pronoun substitution before constructing the live-reader filter; result is `answered` with a followup path. Local reader returns a fixed answer; full server routing is not claimed. | Check current source binding/lease/expiry before dispatch and before final answer adoption, including restored referents. Dialogue/workbench owner retains this requirement; no source resident followup constructor yet. |
+| `test_mqtt_configuration_change_reuses_old_cached_connection` | Actual `read_source` returns identical cached data for changed user/password because `_MQTT` is keyed only by address. There is no new network connection. | Source/stateful-connectors owner: versioned configuration/binding epoch and adapter requalification; old cached observations retain their original config. Raw secret credentials must not appear in public IDs/receipts. |
+
+Verification: `.venv/bin/python -m unittest discover -s tests/regressions -v`
+passed all **28 tests** in 2.323s after the final configuration case. These
+executions are counterexamples to upstream, not repair qualification. No native/Scala/runtime build was launched by this
+lane. Native composition and scoped partial/refusal acceptance are queued separately
+in [integration.md](integration.md), with their real consumer boundaries.
+
+
+The older failed mathematics receipt above is not the current whole-runtime
+status. A later [frozen resident baseline](../../tests/runtime/service/native/evidence/resident-baseline-20261016/README.md)
+records native attempt `6c1269b0971d4e5cb7f5074b6d0bd883` and host attempt
+`e8efa7e5fae14a66a647e8c7be3becf6` passing the actual mathematical execution,
+publication, recovery and ownership path. This establishes that such a resident
+path runs; it does not establish every negative regression in this document.
+The new zero-denominator dialogue scenario is in
+`tests/language/runtime/DialogueClientChecks.scala` and still needs its own
+post-change runtime receipt. Square-root, interval and dispatch-level tolerance
+operations remain absent, as identified in the consumer review.

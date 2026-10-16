@@ -1,0 +1,4 @@
+session Veri7vn_Growth_Native = Veri7vn_Mathematics_Bundle +
+  options [document = false]
+  sessions Veri7vn_Retained_Mathematics Veri7vn_Native_Build_Candidate
+  theories Growth_Native

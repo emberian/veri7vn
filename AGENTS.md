@@ -76,6 +76,11 @@ limitations, and remaining consumers. Root marks work done after evidence review
 and dependency completion. Record actual open work rather than an unspecified
 later lane.
 
-Ordinary local commits are authorized. During a shared-tree fan-out root makes
-scoped commits; do not commit another lane's unfinished work. This does not
-authorize publication, author contact, or uploading artifacts.
+Ordinary commits and pushes are authorized. Root checkpoints shared implementation
+frequently, including unfinished or currently failing work, so collaborators can
+coordinate through GitHub. This was explicitly requested on 2026-10-16. Mark such
+checkpoints as in progress, record known failures, and converge subsequent commits
+toward green; a checkpoint is not an acceptance claim. Use explicit project paths,
+exclude credentials/corpora/runtime artifacts and unrelated files, and preserve
+concurrent edits. Lanes do not independently stage one another's work. This does
+not authorize releases, author contact or unrelated artifact publication.

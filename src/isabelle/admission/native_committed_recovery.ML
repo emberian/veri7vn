@@ -37,8 +37,23 @@ struct
         #association envelope = #association m andalso
         #semantic_generation envelope = #semantic_generation m
         then () else error "Committed native artifact identity mismatch";
-      val _ = if is_none (#executable envelope) then ()
-        else error "Executable recovery requires its typed family bridge";
+      val nonassertional=case #profile envelope of
+          Veri7vn_Recovery_Manifest.BuildRequest=>true
+        | Veri7vn_Recovery_Manifest.BuildCandidate=>true
+        | Veri7vn_Recovery_Manifest.InitialQualification=>true
+        | Veri7vn_Recovery_Manifest.UpdateQualification=>true
+        | Veri7vn_Recovery_Manifest.InitialQualificationRequest=>true
+        | Veri7vn_Recovery_Manifest.UpdateQualificationRequest=>true
+        | Veri7vn_Recovery_Manifest.DomainRequest=>true
+        | Veri7vn_Recovery_Manifest.SearchRequest=>true
+        | Veri7vn_Recovery_Manifest.SourceDomainRequest=>true
+        | Veri7vn_Recovery_Manifest.SessionInput=>true
+        | _=>false;
+      val _=if nonassertional = (#sequent m="") then()
+        else error "Committed native role/sequent shape mismatch";
+      (* The envelope admits only closed typed executable roles. Its actual
+         installed pin and checkpoint membership are checked by their fixed
+         native factory before this inert capability becomes a live owner. *)
     in Committed {payload=Synchronized.var "veri7vn_committed_native_recovery" (SOME m),
       reconstruction= #reconstruction envelope} end;
   fun materials (Committed {payload,...}) =

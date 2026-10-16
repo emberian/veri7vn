@@ -1,0 +1,3 @@
+session Veri7vn_Effects_Order = Veri7vn_Effects_Closure +
+  options [document = false]
+  theories Effects_Order_Reconstruction

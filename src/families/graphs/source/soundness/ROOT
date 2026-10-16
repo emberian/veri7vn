@@ -1,0 +1,4 @@
+session Veri7vn_Graph_Source_Soundness = Veri7vn_Graph_Source +
+  options [document = false]
+  sessions Veri7vn_Graphs
+  theories Graph_Source_Soundness Graph_Acquisition_Soundness

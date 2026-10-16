@@ -1,0 +1,3 @@
+session Veri7vn_Mathematics_Proposals = Veri7vn_Mathematics +
+  options [document = false]
+  theories Mathematics_Proposals

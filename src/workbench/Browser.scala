@@ -10,7 +10,7 @@ import veri7vn.diagnostics.{Diagnostics,Repair}
 import veri7vn.authoring.assistance.Assistance
 
 /** Loopback-only authoring surface sharing the CLI's actual managed operations. */
-final class Browser(author:Authoring,execution:Option[Execution]=None) extends AutoCloseable {
+final class Browser(author:Authoring,execution:Option[Execution]=None,builds:Option[BuildWorkspace]=None) extends AutoCloseable {
   private val reviews=new ReviewTickets
   private val reviewFields=Set("draft","file","manifest","revision","obligation","context","start","stop","choice","meaning","reason","replacement")
   private val token=UUID.randomUUID().toString
@@ -32,14 +32,15 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
     packageLink(draft)+"<h2>"+escape(file)+"</h2><p>Source revision "+escape(snapshot.revision.id)+"</p>"+
       editor(snapshot.draft,file,snapshot.manifest,snapshot.revision.id,java.util.Base64.getEncoder.encodeToString(source.entry.content.bytes),source.text)
   }
-  private def assistanceForm(draft:String,file:String,manifest:String,revision:String,text:String):String=
-    "<details><summary>Review a source change</summary><p>Choose an obligation, condition or proposed example, then review its effect on meaning. This is author-selected context, not a native check result.</p>"+
+  private def assistanceForm(draft:String,file:String,manifest:String,revision:String,text:String,
+    start:Int=0,stop:Option[Int]=None,context:String="unreviewed",proposal:Option[String]=None):String=
+    "<details><summary>Review a source change</summary><p>Choose an obligation, condition or proposed example, then review its effect on meaning. "+(if(context=="unreviewed")"This is author-selected context, not a native check result."else "This review starts from a native diagnostic at the matching current source revision; an edit is not a proof or admission result.")+"</p>"+
     form("Preview source change",hidden("draft",draft)+hidden("file",file)+hidden("manifest",manifest)+hidden("revision",revision)+
-      "<label>Work item "+input("obligation")+"</label>"+hidden("context","unreviewed")+
+      "<label>Work item "+input("obligation")+"</label>"+hidden("context",context)+
       "<label>Change kind <select name=choice><option>Obligation</option><option>Condition</option><option>Example</option></select></label>"+
       "<label>Effect on meaning <select required name=meaning><option value=''>Choose an effect</option><option value=PreserveMeaning>Preserve meaning</option><option value=RestrictDomain>Restrict the domain</option><option value=ChangeSpecification>Change the specification</option></select></label>"+
-      "<label>Reason "+input("reason")+"</label><details><summary>Source byte range (whole file by default)</summary>Start "+input("start","0")+" End "+input("stop",text.getBytes(UTF_8).length.toString)+"</details>"+
-      "<label>Proposed replacement<textarea name=replacement rows=12>"+escape(text)+"</textarea></label>")+"</details>"
+      "<label>Reason "+input("reason")+"</label><details><summary>Source byte range</summary>Start "+input("start",start.toString)+" End "+input("stop",stop.getOrElse(text.getBytes(UTF_8).length).toString)+"</details>"+
+      "<label>Proposed replacement<textarea name=replacement rows=12>"+escape(proposal.getOrElse(text))+"</textarea></label>")+"</details>"
   private def editor(draft:String,file:String,manifest:String,revision:String,original:String,replacement:String):String=
     form("Save",hidden("draft",draft)+hidden("file",file)+hidden("manifest",manifest)+hidden("revision",revision)+
       hidden("original",original)+"<textarea name=replacement rows=24 cols=100>"+escape(replacement)+"</textarea>")+
@@ -70,7 +71,16 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
         "<h3>Declared capabilities</h3><ul>"+d.exports.map(e=>"<li>"+escape(e.title+" ("+e.id+") — "+e.specification.theory+"."+e.specification.name)+"</li>").mkString+"</ul>"+
         "<p>These are source declarations; inspection does not establish native admission.</p>"
     } catch {case e:IllegalArgumentException=>"<p role=alert>Package descriptor needs attention: "+escape(e.getMessage)+". Source files remain available below.</p>"}
+    val buildPaths=if(builds.isEmpty)Vector.empty[String]else try {
+      val descriptor=veri7vn.packages.lifecycle.PackageUpdates.describe(snapshot.revision).descriptor
+      if(descriptor.dependencies.nonEmpty || descriptor.native.isEmpty)Vector.empty[String]
+      else descriptor.files.filter(file=>file.role==veri7vn.packages.lifecycle.PackageModel.FileRole.Source && file.path.endsWith(".thy")).map(_.path)
+    }catch {case _:IllegalArgumentException=>Vector.empty[String]}
     "<h2>"+escape(snapshot.draft)+" package workspace</h2><p>Source revision "+escape(snapshot.revision.id)+"</p><p>Manifest "+escape(snapshot.manifest)+"</p>"+description+
+      builds.map(_=>buildPaths.map(path=>
+        form("Build native source",hidden("draft",draft)+hidden("manifest",snapshot.manifest)+hidden("file",path)+
+          "<p>Check "+escape(path)+" from this captured revision. A build artifact does not activate or admit the package.</p>")).mkString).getOrElse("")+
+      (if(builds.nonEmpty && buildPaths.isEmpty)"<p>Building here requires a native descriptor with declared theory source. Packages with dependencies also need admitted parent selection.</p>"else "")+
       "<p><a href=\""+escape(workspaceURL(draft,view=Some("impact")))+"\">Inspect affected package declarations</a></p>"+
       execution.map(_=>"<section><h3>Inspect a retained run</h3><p>Enter a request ID to inspect its actual native provenance beside this package. Opening a package does not associate that request with its edited source.</p><form method=get>"+hidden("package",draft)+"<label>Request ID "+input("request")+"</label><button>Inspect retained run</button></form></section>").getOrElse("")+
       "<p><a href=\""+escape(workspaceURL(draft,view=Some("migration")))+"\">Inspect original-source mapping and obligations</a></p><h3>Package source files</h3><ul>"+snapshot.revision.entries.map(e=>"<li><a href=\""+escape(workspaceURL(draft,Some(e.path)))+"\">"+escape(e.path)+"</a>"+" — "+e.content.size+" bytes"+form("Open",hidden("draft",snapshot.draft)+hidden("file",e.path))+"</li>").mkString+"</ul>"
@@ -93,6 +103,32 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
                 c.remainingObligations.map(v=>"<li>"+escape(v)+"</li>").mkString+"</ul><h4>Intentional repairs</h4><ul>"+
                 c.intentionalRepairs.map(v=>"<li>"+escape(v)+"</li>").mkString+"</ul></section>").mkString
   }
+  private def buildActions(id:BigInt):String=
+    form("Refresh build",hidden("build",id.toString))+form("Cancel build",hidden("build",id.toString))+
+      form("Forget build",hidden("build",id.toString)+"<label><input type=checkbox required name=confirm value=yes> Remove this build and its dependent retained results</label>")
+  private def buildView(id:BigInt):String={
+    val native=builds.getOrElse(throw new IllegalArgumentException("Resident native build support is unavailable"))
+    val inspected=try native.inspect(id) catch {case _:Exception=>None}
+    inspected match {
+      case None=>"<h2>Build "+id+"</h2><p role=alert>This build cannot currently be opened. No retained source or result is displayed. Cancellation and Forget are checked separately by the native service.</p>"+buildActions(id)
+      case Some(view)=>
+        "<section><h2>Build "+view.request+"</h2><p role=status>"+escape(view.state)+"</p>"+
+          view.source.map(source=>packageLink(source.draft)+"<p>Captured source: "+escape(source.path)+"; revision "+escape(source.revision)+".</p>"+
+            "<p><a href=\""+escape(workspaceURL(source.draft,Some(source.path)))+"\">Open current source</a></p>").getOrElse("<p>Captured source is unavailable.</p>")+
+          view.candidate.map(candidate=>"<p>Native artifact "+candidate+" is available. This does not establish package admission or activation.</p>").getOrElse("")+
+          view.diagnostic.map(d=>"<h3>Native build diagnostic</h3><p>"+escape(d.description)+"</p><pre>"+escape(d.message)+"</pre>"+
+            view.source.toVector.flatMap(source=>d.currentSpan.filter((start,stop)=>start>=0 && stop>start).toVector.flatMap {case(start,stop)=>
+              val current=try Some(author.source(source.draft,source.path)) catch {case _:IllegalArgumentException=>None}
+              current.filter(s=>s.snapshot.manifest==source.manifest && s.snapshot.revision.id==source.revision).map {s=>
+                val original=s.entry.content.bytes
+                val selected=try {require(stop<=original.length,"Native diagnostic span differs from current source");Authoring.decode(Intake.Content(java.util.Arrays.copyOfRange(original,start,stop)))} finally java.util.Arrays.fill(original,0.toByte)
+                assistanceForm(source.draft,source.path,source.manifest,source.revision,s.text,start,Some(stop),d.code,Some(selected))
+              }
+            }).mkString).getOrElse("")+
+          "<p>Refreshing this page never starts another attempt. Edit the current package and explicitly build again to revalidate.</p>"+
+          buildActions(id)+"</section>"
+    }
+  }
   private def requestView(id:BigInt):String={
     val result=execution.get.result(id)
     val diagnosis=Diagnostics.explain(result.status)
@@ -109,7 +145,7 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
   }
   server.createContext("/",(exchange:HttpExchange)=>{
     var body=""
-    var redirect:Option[BigInt]=None
+    var redirect:Option[String]=None
     try {
       require(exchange.getRequestURI.getPath=="/","Unknown page")
       if(exchange.getRequestMethod=="GET") {
@@ -125,30 +161,40 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
           }
         }
         parameters.get("request").foreach(id=>body=body+requestView(BigInt(id)))
+        parameters.get("build").foreach(id=>body=body+buildView(BigInt(id)))
       }
       if(exchange.getRequestMethod=="POST") {
         require(exchange.getRequestHeaders.getFirst("Origin")==null || exchange.getRequestHeaders.getFirst("Origin")==url.stripSuffix("/"),"Foreign browser origin")
         val bytes=exchange.getRequestBody.readNBytes(2*1024*1024+1);require(bytes.length<=2*1024*1024,"Form too large")
         val p=fields(new String(bytes,UTF_8));require(p.get("token").contains(token),"Expired form")
         p("action") match {
+          case "Build native source"=>
+            val native=builds.getOrElse(throw new IllegalArgumentException("Resident native build support is unavailable"))
+            redirect=Some("/?build="+native.start(p("draft"),p("manifest"),p("file")))
+          case "Refresh build"=>redirect=Some("/?build="+BigInt(p("build")))
+          case "Cancel build"=>
+            builds.get.cancel(BigInt(p("build")));redirect=Some("/?build="+BigInt(p("build")))
+          case "Forget build"=>
+            require(p.get("confirm").contains("yes"),"Confirm removal before forgetting a build")
+            builds.get.forget(BigInt(p("build")));redirect=Some("/?build="+BigInt(p("build")))
           case "Run mathematics"=>
             val native=execution.getOrElse(throw new IllegalArgumentException("Resident execution is unavailable in this source-only workspace"))
             val original=p("question").getBytes(UTF_8)
             val route=try native.route(original) finally java.util.Arrays.fill(original,0.toByte)
             body=route.status match {
-              case "ready"=>require(route.alternatives.size==1,"Native reading shape");redirect=Some(native.select(route.handle,route.alternatives.head));""
+              case "ready"=>require(route.alternatives.size==1,"Native reading shape");redirect=Some("/?request="+native.select(route.handle,route.alternatives.head));""
               case "clarification"=>"<h2>Choose a native interpretation</h2><p>The installed reader found multiple alternatives. Choose its index to run the retained original input.</p>"+
                 form("Select interpretation",hidden("handle",route.handle.toString)+route.alternatives.map(index=>
                   "<label><input type=radio required name=selection value=\""+index+"\"> Native interpretation "+index+"</label>").mkString)
               case other=>"<p role=alert>The installed reader could not prepare this input: "+escape(other)+". Review the question before starting a new request.</p>"
             }
-          case "Select interpretation"=>redirect=Some(execution.get.select(p("handle").toLong,p("selection").toInt))
-          case "Refresh result"=>redirect=Some(BigInt(p("request")))
-          case "Cancel request"=>execution.get.cancel(BigInt(p("request")));redirect=Some(BigInt(p("request")))
+          case "Select interpretation"=>redirect=Some("/?request="+execution.get.select(p("handle").toLong,p("selection").toInt))
+          case "Refresh result"=>redirect=Some("/?request="+BigInt(p("request")))
+          case "Cancel request"=>execution.get.cancel(BigInt(p("request")));redirect=Some("/?request="+BigInt(p("request")))
           case "Forget request"=>
             require(p.get("confirm").contains("yes"),"Confirm removal before forgetting a request")
             execution.get.forget(BigInt(p("request")))
-            redirect=Some(BigInt(p("request")))
+            redirect=Some("/?request="+BigInt(p("request")))
           case "Preview source change"=>
             val captured=reviewFields.toVector.map(key=>key->p(key)).toMap
             val session=currentReview(captured)
@@ -207,12 +253,13 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
     val running=execution.map(_=>"<section><h2>Ask the installed mathematics specialist</h2><p>Requests use the installed native capability. Editing a package does not change this specialist. Retained result HTML is supplied only by the native service.</p>"+
       form("Run mathematics","<label>Question "+input("question")+"</label>")+
       form("Refresh result","<label>Retained request ID "+input("request")+"</label>")+"</section>").getOrElse("<p>Source-only workspace. Start the runtime with --workbench serve to run the installed native specialist.</p>")
-    val html="<!doctype html><html><meta charset=utf-8><meta name=viewport content='width=device-width'><title>Specialist workspace</title><style>body{max-width:960px;margin:32px auto;padding:16px;font:16px system-ui}input,button,textarea{font:inherit;margin:5px;max-width:100%}textarea{box-sizing:border-box;width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;background:#eef2f5}iframe{width:100%;min-height:140px;border:1px solid #bac6cf}section{padding:16px;border:1px solid #bac6cf;margin:20px 0}form{margin:20px 0;padding:12px;background:#eef2f5}li{margin:8px}</style><h1>Specialist workspace</h1><p>Import and edit local package source. Imported programs remain unchecked until native construction and admission are available.</p>"+running+body+listing+
+    val introduction=if(builds.nonEmpty)"Import and edit package source, build native artifacts, and review diagnostics. Package admission and activation remain separate."else "Import and edit local package source. Imported programs remain unchecked until native construction and admission are available."
+    val html="<!doctype html><html><meta charset=utf-8><meta name=viewport content='width=device-width'><title>Specialist workspace</title><style>body{max-width:960px;margin:32px auto;padding:16px;font:16px system-ui}input,button,textarea{font:inherit;margin:5px;max-width:100%}textarea{box-sizing:border-box;width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;background:#eef2f5}iframe{width:100%;min-height:140px;border:1px solid #bac6cf}section{padding:16px;border:1px solid #bac6cf;margin:20px 0}form{margin:20px 0;padding:12px;background:#eef2f5}li{margin:8px}</style><h1>Specialist workspace</h1><p>"+introduction+"</p>"+running+body+listing+
       form("Import","Package name "+input("draft")+" Local directory or ZIP "+input("path")+"<select name=format><option value=native>Native package</option><option value=original>Original specialist</option></select>")+
       form("Inspect","Package name "+input("draft"))+form("Open","Package name "+input("draft")+" File "+input("file"))+
       form("Migration","Original package name "+input("draft"))+"</html>"
     if(redirect.nonEmpty) {
-      exchange.getResponseHeaders.set("Location","/?request="+redirect.get)
+      exchange.getResponseHeaders.set("Location",redirect.get)
       exchange.getResponseHeaders.set("Cache-Control","no-store")
       exchange.sendResponseHeaders(303,-1);exchange.close()
     } else {

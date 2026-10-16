@@ -111,6 +111,7 @@ object WorkspaceStore {
       "quantities/1"->"domain-request",
       "source-quantities/1"->"source-domain-request",
       "native-session-input/1"->"session-input",
+      "local-mcp/1"->"effect-source-observation",
       "literal-native-proof/1"->"search-request",
       "native-export-admission/1"->"initial-qualification",
       "native-export-admission/1"->"initial-qualification-request",
@@ -121,6 +122,7 @@ object WorkspaceStore {
     val m=recoveryEnvelope(bytes)
     (m("profile"),m("role")) match {
       case ("native-kernel/1","kernel-evidence")=>"kernel"
+      case ("local-mcp/1","effect-source-observation") if nonassertionalRecovery(bytes)=>"acquired-source"
       case ("native-session-input/1","session-input") if nonassertionalRecovery(bytes)=>"source-input"
       case ("source-quantities/1","source-domain-request") if nonassertionalRecovery(bytes)=>"request-child"
       case ("source-quantities-runtime-refinement/1","source-domain-output")=>"refined-output"
@@ -148,6 +150,7 @@ object WorkspaceStore {
       case "request-child"=>concrete=="request-child"
       case "artifact"=>concrete=="artifact"
       case "source-input"=>concrete=="source-input"
+      case "acquired-source"=>concrete=="acquired-source"
       case "evidence"=>
         val m=recoveryEnvelope(bytes)
         Set("native-kernel/1"->"kernel-evidence","exact-arithmetic/1"->"math-output",
@@ -206,6 +209,25 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
   private val database = try SQLite.open_database(IPath.explode(root.resolve("journal.db").toString))
     catch {case e: Throwable => writerLock.release(); lockChannel.close(); throw e}
   private val connection = database.connection
+  private var effectSourceIndex:Option[NativeEffectSources]=None
+  private[runtime] def nativeEffectSources:NativeEffectSources=synchronized {
+    live();effectSourceIndex.getOrElse {val value=new NativeEffectSources(this);effectSourceIndex=Some(value);value}
+  }
+  private[runtime] def acknowledgeNativeEffectSource(value:NativeEffectSources.Material):Unit=nativeEffectSources.acknowledged(value)
+  private def existingEffectSources:Option[NativeEffectSources]=synchronized {live();effectSourceIndex}
+  private[runtime] def maintainNativeEffectStages():Unit=existingEffectSources.foreach(_.retryCleanup())
+  private[runtime] def nativeEffectStageFailures:Vector[(String,Int,String)]=existingEffectSources.toVector.flatMap(_.cleanupFailures)
+  private[runtime] def retryNativeEffectStages():Unit={existingEffectSources.foreach(_.retryExhausted());maintainNativeEffectStages()}
+  private[host] def nativeGuardDraft(guard:NativeSourceGuard):String=withNativeSourceGuard(guard) {
+    managedResources(guard.resource).draft
+  }
+  private[host] def nativeGuardCapture(guard:NativeSourceGuard):(String,String)=withNativeSourceGuard(guard) {
+    val resource=managedResources(guard.resource);(resource.draft,resource.head)
+  }
+  private[runtime] def withNativeEffectSource[A](value:NativeEffectSources.Material)(action: => A):A=synchronized {
+    live();require(value.stage.owner eq nativeEffectSources,"foreign effect source material")
+    value.stage.guards.foreach(g=>withNativeSourceGuard(g)(()));action
+  }
   private var nativeSourceCapabilities=Set.empty[NativeBuildSourceLease]
   private var closed = false
   private var authorityOwner=false
@@ -275,7 +297,7 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
     live();require(head(draft).contains(selected),"managed source changed before resource registration")
     registerCapturedResource(draft,selected,owner)
   }
-  private def registerCapturedResource(draft:String,selected:String,owner:ManagedResourceOwner):ManagedResourceRegistration={
+  private[host] def registerCapturedResource(draft:String,selected:String,owner:ManagedResourceOwner):ManagedResourceRegistration={
     val id=java.util.UUID.randomUUID().toString
     managedWrite {db=>
       val count=db.prepareStatement("SELECT COUNT(*) FROM managed_resource_regions WHERE draft=?")
@@ -286,7 +308,7 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
     managedResources+=id->ManagedResource(draft,selected,owner,true)
     new ManagedResourceRegistration(this,id)
   }
-  private def sourcePermitted(draft:String):Boolean={
+  private[host] def sourcePermitted(draft:String):Boolean={
     val q=connection.prepareStatement("SELECT 1 FROM managed_source_drafts d JOIN source_heads h ON h.draft=d.draft WHERE d.draft=? AND d.forgotten=0 AND h.revoked=0 AND h.locator<>''")
     try {q.setString(1,draft);q.executeQuery().next()} finally q.close()
   }
@@ -311,7 +333,7 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
     val q=connection.prepareStatement("SELECT request,goal,slot,draft,manifest,revision,path,sha256,size,state FROM native_source_bindings WHERE association=?")
     try {q.setString(1,association.toString);val r=q.executeQuery();if(!r.next())None else Some((NativeBuildSource(association,BigInt(r.getString(1)),BigInt(r.getString(2)),BigInt(r.getString(3)),r.getString(4),r.getString(5),r.getString(6),r.getString(7),r.getString(8),r.getLong(9)),r.getString(10)))} finally q.close()
   }
-  private def sourceAssociationAllowed(association:BigInt):Boolean={
+  private[host] def sourceAssociationAllowed(association:BigInt):Boolean={
     val q=connection.prepareStatement("SELECT 1 FROM native_recovery_edges e JOIN native_access_denials d ON d.object_id=e.dependency WHERE e.association=? LIMIT 1")
     try {q.setString(1,association.toString); !q.executeQuery().next()} finally q.close()
   }
@@ -347,9 +369,12 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
     require(!connection.getAutoCommit,"source retirement requires enclosing transaction")
     val update=connection.prepareStatement("UPDATE native_source_bindings SET state='retiring' WHERE draft=? AND state IN('live','revoked')")
     try {update.setString(1,draft);update.executeUpdate()} finally update.close()
+    val acquired=connection.prepareStatement("UPDATE native_acquired_sources SET state='retiring' WHERE state IN('pending_ack','live','revoked') AND (draft1=? OR draft2=?)")
+    try {acquired.setString(1,draft);acquired.setString(2,draft);acquired.executeUpdate()} finally acquired.close()
     queueRetiringNativeSources()
   }
   private def queueRetiringNativeSources():Unit={
+    execute("INSERT OR IGNORE INTO native_source_cleanup SELECT source,'ready','','',0,'',0 FROM native_acquired_sources WHERE state='retiring'")
     execute("INSERT OR IGNORE INTO native_source_cleanup SELECT association,'ready','','',0,'',0 FROM native_source_bindings WHERE state='retiring'")
   }
   private[host] def nativeSourcePinned(hash:String):Boolean=synchronized {
@@ -396,6 +421,7 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
     execute("INSERT OR IGNORE INTO native_source_erase_queue SELECT p.hash,p.size FROM native_source_pins p JOIN native_source_cleanup c ON c.association=p.association WHERE c.state='acknowledged'")
     execute("DELETE FROM native_source_pins WHERE association IN(SELECT association FROM native_source_cleanup WHERE state='acknowledged')")
     execute("UPDATE native_source_bindings SET state='retired',draft='',manifest='',revision='',path='',sha256='',size=0 WHERE association IN(SELECT association FROM native_source_cleanup WHERE state='acknowledged')")
+    execute("DELETE FROM native_acquired_sources WHERE source IN(SELECT association FROM native_source_cleanup WHERE state='acknowledged')")
     execute("DELETE FROM native_source_cleanup WHERE state='acknowledged'")
   }}
   private[host] def nativeSourceErasureBatch:Vector[(String,Long)]=synchronized {
@@ -534,6 +560,7 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
   execute("CREATE TABLE IF NOT EXISTS managed_resource_regions(id TEXT PRIMARY KEY,draft TEXT NOT NULL,head TEXT NOT NULL,state TEXT NOT NULL)")
   execute("CREATE TABLE IF NOT EXISTS managed_resource_paths(region TEXT NOT NULL REFERENCES managed_resource_regions(id),path TEXT NOT NULL,kind TEXT NOT NULL,size INTEGER NOT NULL,PRIMARY KEY(region,path))")
   execute("CREATE TABLE IF NOT EXISTS native_residents(incarnation TEXT PRIMARY KEY,pid INTEGER NOT NULL,started TEXT NOT NULL,owner_pid INTEGER NOT NULL,owner_started TEXT NOT NULL)")
+  execute("CREATE TABLE IF NOT EXISTS native_acquired_sources(source TEXT PRIMARY KEY,attempt TEXT NOT NULL UNIQUE,request TEXT NOT NULL,configuration TEXT NOT NULL,packet TEXT NOT NULL,projection TEXT NOT NULL,payload TEXT NOT NULL,size INTEGER NOT NULL,draft1 TEXT NOT NULL,draft2 TEXT NOT NULL,origin_sequence INTEGER NOT NULL,state TEXT NOT NULL)")
   execute("CREATE TABLE IF NOT EXISTS native_source_bindings(association TEXT PRIMARY KEY,request TEXT NOT NULL,goal TEXT NOT NULL,slot TEXT NOT NULL,draft TEXT NOT NULL,manifest TEXT NOT NULL,revision TEXT NOT NULL,path TEXT NOT NULL,sha256 TEXT NOT NULL,size INTEGER NOT NULL,origin_sequence INTEGER NOT NULL,state TEXT NOT NULL)")
   execute("CREATE TABLE IF NOT EXISTS native_source_pins(association TEXT NOT NULL,hash TEXT NOT NULL,size INTEGER NOT NULL,PRIMARY KEY(association,hash))")
   execute("CREATE TABLE IF NOT EXISTS native_source_cleanup(association TEXT PRIMARY KEY,state TEXT NOT NULL,token TEXT NOT NULL,incarnation TEXT NOT NULL,attempts INTEGER NOT NULL,error TEXT NOT NULL,next_millis INTEGER NOT NULL)")
@@ -762,7 +789,7 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
     }
   }
   private[runtime] def commitNative(id: String, expected: Long, revision: Long, epoch: Long,
-    event: Array[Byte], checkpoint: Array[Byte], recovery: Option[NativeRecoveryMaterial] = None, dispatch:Option[NativeDispatchMaterial]=None,invalidations:Option[NativeInvalidations]=None,source:Option[NativeBuildSourceMaterial]=None): Option[NativeRecord] = synchronized {
+    event: Array[Byte], checkpoint: Array[Byte], recovery: Option[NativeRecoveryMaterial] = None, dispatch:Option[NativeDispatchMaterial]=None,invalidations:Option[NativeInvalidations]=None,source:Option[NativeBuildSourceMaterial]=None,effectSource:Option[NativeEffectSources.Material]=None): Option[NativeRecord] = synchronized {
     live(); identifier(id); require(expected>=0 && expected<Long.MaxValue && revision>=0 && epoch>=0)
     require(event.length<=1024*1024 && checkpoint.length<=1024*1024,"native record limit")
     if(nativeSequence!=expected) return None
@@ -783,6 +810,8 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
         require(readNativeSource(binding.source.association).forall((prior,state)=>prior==binding.source && state=="live"),"native source ownership cannot rebind")
       }
     }
+    effectSource.foreach(value=>nativeEffectSources.precommit(value,recovery.getOrElse(
+      throw new IllegalArgumentException("effect source adoption requires protected native recovery"))))
     cleanupNativeArtifactStages()
     val stage=recovery.map(planNativeArtifacts)
     val protectedRefs=recovery.toVector.flatMap {m=>
@@ -805,6 +834,7 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
         val pin=connection.prepareStatement("INSERT OR IGNORE INTO native_source_pins VALUES(?,?,?)")
         try binding.pins.foreach {(hash,size)=>pin.setString(1,data.association.toString);pin.setString(2,hash);pin.setLong(3,size);pin.executeUpdate()} finally pin.close()
       }
+      effectSource.foreach(value=>nativeEffectSources.adopt(connection,value,record.sequence))
       dispatch.foreach {intent=>
         val q=connection.prepareStatement("INSERT INTO native_dispatch VALUES(?,?,?,?,?,?,'unknown')")
         try {q.setLong(1,record.sequence);q.setString(2,intent.kind);q.setString(3,intent.id.toString)
@@ -826,6 +856,8 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
       }
       execute("UPDATE native_source_bindings SET state='revoked' WHERE state='live' AND EXISTS(SELECT 1 FROM native_recovery_edges e JOIN native_access_denials d ON d.object_id=e.dependency WHERE e.association=native_source_bindings.association AND d.mode='revoke')")
       execute("UPDATE native_source_bindings SET state='retiring' WHERE state IN('live','revoked') AND EXISTS(SELECT 1 FROM native_recovery_edges e JOIN native_access_denials d ON d.object_id=e.dependency WHERE e.association=native_source_bindings.association AND d.mode='forget')")
+      execute("UPDATE native_acquired_sources SET state='revoked' WHERE state IN('pending_ack','live') AND EXISTS(SELECT 1 FROM native_recovery_edges e JOIN native_access_denials d ON d.object_id=e.dependency WHERE e.association=native_acquired_sources.source AND d.mode='revoke')")
+      execute("UPDATE native_acquired_sources SET state='retiring' WHERE state IN('pending_ack','live','revoked') AND EXISTS(SELECT 1 FROM native_recovery_edges e JOIN native_access_denials d ON d.object_id=e.dependency WHERE e.association=native_acquired_sources.source AND d.mode='forget')")
       queueRetiringNativeSources()
       stage.foreach {case(id,_)=>
         for(table<-List("native_artifact_members","native_artifact_stage_edges")){
@@ -982,6 +1014,250 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
   def close(): Unit = synchronized {
     if(!closed) {require(!authorityOwner,"close authority coordinator before workspace store"); require(managedResources.isEmpty,"release managed source resources before workspace store");
       val residents=connection.createStatement();try {val r=residents.executeQuery("SELECT COUNT(*) FROM native_residents");require(r.next() && r.getInt(1)==0,"stop native resident before workspace store")} finally residents.close()
-      require(nativeSourceCapabilities.isEmpty,"close native source lease views before workspace store");nativeCapabilities.toVector.foreach(_.close()); closed=true; try database.close() finally {writerLock.release(); lockChannel.close()}}
+      effectSourceIndex.foreach(_.requireClosed());require(nativeSourceCapabilities.isEmpty,"close native source lease views before workspace store");nativeCapabilities.toVector.foreach(_.close()); closed=true; try database.close() finally {writerLock.release(); lockChannel.close()}}
+  }
+}
+
+
+import java.nio.ByteBuffer
+import java.sql.Connection
+import WorkspaceStore.{NativeSourceGuard,NativeRecoveryMaterial,NativeRecord}
+
+private[runtime] object NativeEffectSources {
+  /** Metadata from the actual protected observation gate. The projection pin
+    * binds its full cost, target, capability, status and source provenance. */
+  final case class Identity(source:BigInt,attempt:BigInt,request:BigInt,configuration:BigInt,
+      packet:BigInt,projection:String,payload:String,size:Int) {
+    require(Vector(source,attempt,request,configuration,packet).forall(n=>n>0 && n.toString.length<=128))
+    require(projection.matches("[0-9a-f]{64}") && payload.matches("[0-9a-f]{64}") && size>0 && size<=65536)
+    val protocol="local-mcp/1"
+    val representation="decoded-json/1"
+  }
+  final class OwnerConfirmation private[NativeEffectSources](private[host] val issuer:OwnerIssuer,
+      private[host] val identity:Identity,private[host] val sequence:Long,
+      private[host] val semantic:BigInt,private[host] val ownerIncarnation:BigInt,
+      private[host] val stateVersion:BigInt,private[host] val status:String) {
+    private[host] var consumed=false
+  }
+  /** The real bridge retains this lexical issuer privately. Parsing a reply or
+    * copying Identity fields does not provide this capability. */
+  final class OwnerIssuer private[host](private[host] val owner:NativeEffectSources,
+      private[host] val resident:AnyRef) {
+    private[host] var live=true
+    private[runtime] def confirm(actualResident:AnyRef,identity:Identity,sequence:Long,
+        semantic:BigInt,incarnation:BigInt,version:BigInt,status:String):OwnerConfirmation=
+      owner.confirm(this,actualResident,identity,sequence,semantic,incarnation,version,status)
+    private[runtime] def retire():Unit=owner.retire(this)
+  }
+  final class Stage private[host](private[host] val owner:NativeEffectSources,
+      private[host] val guards:Vector[NativeSourceGuard],private[host] val bytes:Array[Byte])
+      extends AutoCloseable with WorkspaceStore.ManagedResourceOwner {
+    val hash:String=WorkspaceStore.digest(bytes)
+    val size:Int=bytes.length
+    private[host] var live=true
+    private[host] var registrations=Vector.empty[WorkspaceStore.ManagedResourceRegistration]
+    private[host] var releasing=false
+    private[host] var cleanupAttempts=0
+    private[host] var cleanupAfter=0L
+    private[host] var cleanupError=""
+    val id:String=java.util.UUID.randomUUID().toString
+    def invalidate():Unit=owner.invalidate(this)
+    def stopAndRelease():Unit=close()
+    def close():Unit=owner.release(this)
+  }
+  final class Material private[host](private[host] val stage:Stage,val identity:Identity,
+      private[host] val drafts:Vector[String]) extends AutoCloseable {
+    def close():Unit=stage.close()
+  }
+  final class Lease private[host](private[host] val owner:NativeEffectSources,
+      private[host] val confirmation:OwnerConfirmation) extends AutoCloseable {
+    val identity:Identity=confirmation.identity
+    val status:String=confirmation.status
+    private[host] var live=true
+    /** Only canonical decoded-response bytes, never an executor or a new input. */
+    def inspect[A](consume:ByteBuffer=>A):A=owner.inspect(this)(consume)
+    def close():Unit=owner.release(this)
+  }
+}
+
+/** One small ownership index over the existing native recovery blobs. There is
+  * no response draft, second payload store, status reducer or replay scheduler. */
+private[runtime] final class NativeEffectSources(store:WorkspaceStore) {
+  import NativeEffectSources.*
+  private var currentIssuer:Option[OwnerIssuer]=None
+  private[runtime] def newOwnerIssuer(actualResident:AnyRef):OwnerIssuer=store.managedRead {_=>
+    require(actualResident!=null,"native source resident identity")
+    currentIssuer.foreach(_.live=false)
+    val value=new OwnerIssuer(this,actualResident);currentIssuer=Some(value);value
+  }
+  private[host] def retire(issuer:OwnerIssuer):Unit=store.managedRead {_=>
+    require(issuer.owner eq this,"foreign source confirmation issuer");issuer.live=false
+  }
+  private[host] def confirm(issuer:OwnerIssuer,actualResident:AnyRef,identity:Identity,
+      sequence:Long,semantic:BigInt,incarnation:BigInt,version:BigInt,status:String):OwnerConfirmation=store.managedRead {_=>
+    require(currentIssuer.contains(issuer) && issuer.live && (issuer.resident eq actualResident),"native source resident changed")
+    require(sequence>0 && semantic>0 && incarnation>0 && version>=0 &&
+      Vector(semantic,incarnation,version).forall(_.toString.length<=128) && Set("confirmed","failed").contains(status),"native source owner reply bounds")
+    new OwnerConfirmation(issuer,identity,sequence,semantic,incarnation,version,status)
+  }
+  private def confirmationLive(value:OwnerConfirmation):Boolean=
+    (value.issuer.owner eq this) && currentIssuer.contains(value.issuer) && value.issuer.live
+  private val pending=scala.collection.mutable.Set.empty[Stage]
+  private val opened=scala.collection.mutable.Set.empty[Lease]
+  private def execute(c:Connection,sql:String):Unit={val q=c.createStatement();try q.execute(sql) finally q.close()}
+
+
+  /** The parent supplies guards from the SAME actual staged MCP owner. The
+    * bounded clone remains private and is never a ManagedSources draft. */
+  def stage(guards:Vector[NativeSourceGuard],bytes:ByteBuffer):Stage={
+    var created:Option[Stage]=None
+    try store.managedRead {_=>
+      require(guards.size==2 && bytes.remaining()>0 && bytes.remaining()<=65536,"effect source stage bound")
+      require(pending.size<2,"effect source stage capacity")
+      guards.foreach(g=>store.withNativeSourceGuard(g)(()))
+      val copy=new Array[Byte](bytes.remaining());bytes.duplicate().get(copy)
+      val value=new Stage(this,guards,copy);pending+=value;created=Some(value)
+      guards.map(store.nativeGuardCapture).distinct.foreach {(draft,head)=>
+        value.registrations=value.registrations:+store.registerCapturedResource(draft,head,value)
+      }
+      value
+    } catch {case problem:Throwable=>created.foreach(_.close());throw problem}
+  }
+  private[host] def invalidate(stage:Stage):Unit=store.managedRead {_=>
+    require(stage.owner eq this,"foreign effect response stage")
+    stage.live=false;java.util.Arrays.fill(stage.bytes,0.toByte)
+  }
+  private[host] def release(stage:Stage):Unit={
+    val selected=store.managedRead {_=>
+      invalidate(stage)
+      if(stage.releasing)None else {stage.releasing=true;Some(stage.registrations)}
+    }
+    selected.foreach {registrations=>
+      // Resource teardown uses its join monitor. Never acquire that monitor
+      // under the source/store monitor. Reentrant stop callbacks do no work.
+      var completed=0
+      try registrations.foreach {registration=>registration.release();completed+=1}
+      catch {case problem:Throwable=>
+        store.managedRead {_=>
+          stage.cleanupAttempts=math.min(8,stage.cleanupAttempts+1)
+          stage.cleanupAfter=System.nanoTime()+math.min(30000L,250L*(1L<<(stage.cleanupAttempts-1)))*1000000L
+          stage.cleanupError=problem.getClass.getSimpleName.take(128)
+        }
+        throw problem
+      }
+      finally store.managedRead {_=>
+        stage.registrations=registrations.drop(completed);stage.releasing=false
+        if(stage.registrations.isEmpty)pending-=stage
+      }
+    }
+  }
+  /** A failed teardown remains owned; the existing parent maintenance pump may
+    * retry one such stage, without evicting its resource registrations. */
+  def retryCleanup():Unit={
+    val selected=store.managedRead(_=>pending.find(stage=> !stage.live && !stage.releasing &&
+      stage.cleanupAttempts<8 && System.nanoTime()>=stage.cleanupAfter))
+    selected.foreach {stage=>try stage.close() catch {case scala.util.control.NonFatal(_)=>()}}
+  }
+  def cleanupFailures:Vector[(String,Int,String)]=store.managedRead {_=>
+    pending.toVector.filter(_.cleanupAttempts>0).map(stage=>(stage.id,stage.cleanupAttempts,stage.cleanupError))
+  }
+  def retryExhausted():Unit=store.managedRead {_=>pending.filterNot(_.live).foreach {stage=>
+    stage.cleanupAttempts=0;stage.cleanupAfter=0L;stage.cleanupError=""
+  }}
+  private def check(stage:Stage,identity:Identity,material:NativeRecoveryMaterial):Unit={
+    require((stage.owner eq this) && stage.live && pending.contains(stage),"effect response stage released")
+    stage.guards.foreach(g=>store.withNativeSourceGuard(g)(()))
+    require(identity.source==material.association && identity.payload==stage.hash && identity.size==stage.size,
+      "effect response stage association mismatch")
+    val slots=material.slots.toMap
+    require(WorkspaceStore.recoveryCategory(slots("manifest"))=="acquired-source" &&
+      WorkspaceStore.digest(slots("projection"))==identity.projection &&
+      WorkspaceStore.digest(slots("reconstruction"))==identity.payload &&
+      java.util.Arrays.equals(slots("reconstruction"),stage.bytes),"effect response protected representation mismatch")
+    require(Vector(identity.source,identity.request,identity.configuration,identity.packet)
+      .forall(material.dependencies.contains),"effect response protected source closure mismatch")
+  }
+  def prepare(stage:Stage,identity:Identity,material:NativeRecoveryMaterial):Material=store.managedRead {_=>
+    check(stage,identity,material)
+    val drafts=stage.guards.map(store.nativeGuardDraft).distinct
+    new Material(stage,identity,drafts)
+  }
+  private[host] def precommit(value:Material,material:NativeRecoveryMaterial):Unit={
+    require(value.stage.owner eq this,"foreign effect response material")
+    check(value.stage,value.identity,material)
+  }
+  /** Called only inside commitNative's journal transaction. Blob publication is
+    * already handled by native_recovery; this inserts no second payload copy. */
+  private[host] def adopt(c:Connection,value:Material,sequence:Long):Unit={
+    require(!c.getAutoCommit,"effect source adoption requires native transaction")
+    val count=c.createStatement()
+    try {val r=count.executeQuery("SELECT COUNT(*) FROM native_acquired_sources");require(r.next() && r.getLong(1)<4096,"effect source association capacity")} finally count.close()
+    val q=c.prepareStatement("INSERT INTO native_acquired_sources VALUES(?,?,?,?,?,?,?,?,?,?,?,'pending_ack')")
+    val x=value.identity
+    try {Vector(x.source.toString,x.attempt.toString,x.request.toString,x.configuration.toString,x.packet.toString,x.projection,x.payload)
+      .zipWithIndex.foreach((s,i)=>q.setString(i+1,s));q.setInt(8,x.size)
+      q.setString(9,value.drafts.head);q.setString(10,value.drafts.last);q.setLong(11,sequence);q.executeUpdate()}
+    finally q.close()
+  }
+  private def row(c:Connection,source:BigInt):Option[(Identity,Vector[String],String)]={
+    val q=c.prepareStatement("SELECT attempt,request,configuration,packet,projection,payload,size,draft1,draft2,state FROM native_acquired_sources WHERE source=?")
+    try {q.setString(1,source.toString);val r=q.executeQuery();if(!r.next())None else Some((
+      Identity(source,BigInt(r.getString(1)),BigInt(r.getString(2)),BigInt(r.getString(3)),BigInt(r.getString(4)),r.getString(5),r.getString(6),r.getInt(7)),
+      Vector(r.getString(8),r.getString(9)).distinct,r.getString(10)))} finally q.close()
+  }
+  private[host] def acknowledged(value:Material):Unit=store.managedWrite {c=>
+    require(row(c,value.identity.source).exists(r=>r._1==value.identity && r._3=="pending_ack"),"effect source acknowledgement association")
+    val q=c.prepareStatement("UPDATE native_acquired_sources SET state='live' WHERE source=? AND state='pending_ack'")
+    try {q.setString(1,value.identity.source.toString);q.executeUpdate()} finally q.close()
+  }
+  /** Call only after the fixed native query has confirmed this SAME current
+    * reconstructed source owner and complete identity; saved bytes cannot do so. */
+  def openConfirmed(record:NativeRecord,confirmation:OwnerConfirmation):Option[Lease]=store.managedWrite {c=>
+    require(confirmationLive(confirmation) && !confirmation.consumed,"native source confirmation stale or already consumed")
+    confirmation.consumed=true
+    require(confirmation.sequence==record.sequence && store.latestNative.exists(_.sequence==record.sequence),"native source confirmation checkpoint changed")
+    val identity=confirmation.identity
+    require(opened.size<64,"effect source lease capacity")
+    row(c,identity.source).filter(r=>r._1==identity && Set("live","pending_ack").contains(r._3) &&
+      r._2.forall(store.sourcePermitted) && store.sourceAssociationAllowed(identity.source)).flatMap {_=>
+      store.committedNativeRecovery(record,identity.source).flatMap {capability=>
+        try capability.withMaterial {material=>
+          val slots=material.slots.toMap
+          require(material.semanticGeneration==confirmation.semantic &&
+            WorkspaceStore.recoveryCategory(slots("manifest"))=="acquired-source" &&
+            WorkspaceStore.digest(slots("projection"))==identity.projection &&
+            slots("reconstruction").length==identity.size && WorkspaceStore.digest(slots("reconstruction"))==identity.payload,
+            "effect source retained protected identity")
+          // A crash after commit/before ack is reconciled ONLY by the actual
+          // native owner confirmation above, never by journal presence alone.
+          if(row(c,identity.source).exists(_._3=="pending_ack")){
+            val q=c.prepareStatement("UPDATE native_acquired_sources SET state='live' WHERE source=? AND state='pending_ack'")
+            try {q.setString(1,identity.source.toString);q.executeUpdate()} finally q.close()
+          }
+          val lease=new Lease(this,confirmation);opened+=lease;Some(lease)
+        } finally capability.close()
+      }
+    }
+  }
+  private[host] def inspect[A](lease:Lease)(consume:ByteBuffer=>A):A=store.managedRead {c=>
+    require((lease.owner eq this) && lease.live && opened.contains(lease) && confirmationLive(lease.confirmation),"effect source lease released or resident changed")
+    require(row(c,lease.identity.source).exists(r=>r._1==lease.identity && r._3=="live" &&
+      r._2.forall(store.sourcePermitted)) && store.sourceAssociationAllowed(lease.identity.source),"effect source access denied")
+    val record=store.latestNative.getOrElse(throw new IllegalStateException("effect source journal unavailable"))
+    val cap=store.committedNativeRecovery(record,lease.identity.source).getOrElse(throw new IllegalStateException("effect source payload unavailable"))
+    try cap.withMaterial {material=>
+      val slots=material.slots.toMap;val bytes=slots("reconstruction")
+      require(WorkspaceStore.recoveryCategory(slots("manifest"))=="acquired-source" &&
+        WorkspaceStore.digest(slots("projection"))==lease.identity.projection && bytes.length==lease.identity.size &&
+        WorkspaceStore.digest(bytes)==lease.identity.payload,"effect source borrowed representation mismatch")
+      consume(ByteBuffer.wrap(bytes).asReadOnlyBuffer())
+    } finally cap.close()
+  }
+  private[host] def release(lease:Lease):Unit=store.managedRead {_=>
+    require(lease.owner eq this,"foreign effect source lease");lease.live=false;opened-=lease
+  }
+  private[host] def requireClosed():Unit={
+    require(pending.isEmpty && opened.isEmpty,"close effect source stages and leases before store")
+    currentIssuer.foreach(_.live=false)
   }
 }

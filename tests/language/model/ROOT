@@ -1,0 +1,6 @@
+session Veri7vn_Interpretation_Core_Tests = Veri7vn_Interpretation_Core +
+  theories Literal_Grammar_Tests
+
+session Veri7vn_Interpretation_Tests in rendering = Veri7vn_Interpretation +
+  sessions Veri7vn_Interpretation_Core_Tests
+  theories Interpretation_Tests

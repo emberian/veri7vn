@@ -1,0 +1,3 @@
+session Veri7vn_Domain_Service_Checks = Veri7vn_Domain_Service_Objects +
+  options [document = false, threads = 2]
+  theories Domain_Service_Tests

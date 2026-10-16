@@ -1,0 +1,3 @@
+session Veri7vn_Facts = Veri7vn_Source_Semantics +
+  options [document = false]
+  theories Ordered_Facts Literature_Facts

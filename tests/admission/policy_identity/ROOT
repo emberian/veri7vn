@@ -1,0 +1,3 @@
+session Veri7vn_Native_Policy_Identity_Tests = Veri7vn_Admission +
+  options [document = false]
+  theories Native_Policy_Identity_Tests

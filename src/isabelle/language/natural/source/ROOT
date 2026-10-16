@@ -1,0 +1,11 @@
+session Veri7vn_Natural_Source_Rows = Veri7vn_Row_Plans +
+  sessions Veri7vn_Interpretation_Core
+  theories Natural_Source_Rows
+
+session Veri7vn_Natural_Relation_Questions in relations = Veri7vn_Relation_Import +
+  sessions Veri7vn_Interpretation_Core
+  theories Natural_Relation_Questions
+
+session Veri7vn_Natural_Relation_Gate in "relations/gate" = Veri7vn_Execution +
+  sessions Veri7vn_Natural_Relation_Questions
+  theories Natural_Relation_Gate

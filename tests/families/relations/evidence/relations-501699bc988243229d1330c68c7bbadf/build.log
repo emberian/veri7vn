@@ -1,0 +1,24 @@
+Started at Thu Oct 15 20:02:07 GMT-4 2026 (polyml-5.9.2_arm64_32-darwin on Mac)
+ISABELLE_TOOL_JAVA_OPTIONS="-Djava.awt.headless=true -Xms512m -Xmx4g -Xss16m"
+ISABELLE_BUILD_OPTIONS=""
+
+ML_PLATFORM="arm64_32-darwin"
+ML_HOME="/Applications/Isabelle2026-RC1.app/Contents/Resources/contrib/polyml-5.9.2-4/arm64_32-darwin"
+ML_SYSTEM="polyml-5.9.2"
+ML_OPTIONS="--minheap 500 --enablegcsharing"
+
+Session Pure/Pure
+Session Misc/Tools
+Session HOL/HOL (main)
+Session Unsorted/Veri7vn_Source_Semantics
+Session Unsorted/Veri7vn_Relations
+Building Veri7vn_Relations ...
+Veri7vn_Relations: theory Veri7vn_Relations.Relation_Query
+Veri7vn_Relations: theory Veri7vn_Relations.Novel_Relations
+Veri7vn_Relations: theory Veri7vn_Relations.Relation_Query 100% (2.296s cumulated time)
+Veri7vn_Relations: theory Veri7vn_Relations.Novel_Relations 100% (0.077s cumulated time)
+Timing Veri7vn_Relations (2 threads, 2.349s elapsed time, 2.740s cpu time, 0.236s GC time, factor 1.17)
+Finished Veri7vn_Relations (0:00:09 elapsed time, 0:00:07 cpu time, factor 0.88)
+
+Finished at Thu Oct 15 20:02:22 GMT-4 2026
+0:00:14 elapsed time, 0:00:07 cpu time, factor 0.53

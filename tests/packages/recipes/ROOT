@@ -1,0 +1,3 @@
+session Veri7vn_Package_Recipe_Tests = Veri7vn_Package_Recipes +
+  options [document = false]
+  theories Recipe_Tests

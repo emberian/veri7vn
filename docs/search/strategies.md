@@ -144,3 +144,86 @@ Installed `Timeout.apply` ignores durations below one millisecond. The producer'
 wrapper explicitly refuses such a remaining duration instead of accidentally
 starting an unbounded late action or proof export. Total-time, per-action-time and
 proof-transport bounds still do not establish an OS memory/process guarantee.
+
+## Managed literal proof requests
+
+The new `search/service` child provides `Veri7vn_Search_Request_Fn` over the
+assembly's existing `W.Search` structure. It parses an exact UTF-8 source slice
+as an Isabelle proposition in the declared managed receiver context. This is a
+literal Isabelle interpretation. The request retains its physical source owner,
+byte offsets and independent input lease; its managed receiver and worker must
+remain live in that same workspace. Catalogue facts are live managed named
+consequences, checked against the exact resolved native theorem in the worker
+context. A copied name or numeric dependency list cannot create that association.
+
+The actual proposed consumer starts the private-ticket worker, receives its inert
+proof bytes, and calls managed provenance's fixed `prove_from_slice_owned`
+producer. That producer reparses the original source target, reconstructs and
+audits the full proof, and creates a source-owned native consequence under the
+caller's construction scope. External hypotheses, meta-premises and sort
+assumptions are empty in this initial literal request profile; object implication
+remains part of the original target. Scope abort releases the fresh consequence.
+
+This child and its source-span/lifetime and managed-proof consumer tests await
+native compilation. The snapshot is inert data containing original bytes and
+physical spans, target, canonical catalogue names and actual limits/actions.
+Protected reconstruction must recover real P/L owners before preparing a new
+request. Closed service projections, private-ticket association, durable output
+publication and restart remain assembly/recovery integration work.
+
+Request construction uses a fixed request-only construction scope. Public
+`prepare_owned` and `restore_owned` register the fresh opaque request in that
+scope in the same short masked handoff that retains its input lease and prepared
+native roots. Parsing and proof search remain outside that handoff. Scope abort
+releases those requests; commit transfers ownership only after the final owner
+has registered them. The proof consequence has its separate P construction scope.
+
+`restore_owned` requires actual protected reconstructed and published P/L owners.
+It compares their original bytes, encoding and physical span, reconstructs the
+literal target and managed catalogue, and checks the original limits and target.
+It supplies no staged-context liveness bypass. Assembly must establish the
+checked identity installation/rollback order before using it during restart.
+
+## Next strategy consumer
+
+The fixed tactic producer is the first checked strategy component. The next
+consumer should reuse `Veri7vn_Strategies` worklist, `record_reply`, charges and
+scoped trace, with a closed native family dispatcher. Its specification `run`
+parameter is not a public callback interface. Service adapters must statically
+select family operations and use their existing private-ticket and result gates.
+
+The first expansion is bounded cross-package retrieval of actual managed
+consequences and profiles, retaining their exact generations and source owners.
+Ranking selects work; it does not establish a theorem. Mathematical finite-sample
+candidates and concrete counterexamples reuse `Mathematics_Proposals` closure laws
+and the existing mathematics interpreter/charged worker, including undefined
+arithmetic. Relation witnesses and finite absence retain their native coverage
+conditions. A failed proof route cannot become a counterexample or refutation.
+
+Conjecture and refinement proposals remain typed nonassertional candidates with
+original source, dependencies and outstanding obligations. Adaptive orchestration
+can schedule retrieval, alternate proof routes and sample-driven refinements from
+those retained replies, under cumulative charge, cancellation and bounded trace
+retention. The actual consumer must demonstrate a failed proof route, an explicit
+counterexample, a retained conjecture, a refinement and a subsequent independently
+checked result. This is subsequent work; the current BFS producer does not satisfy
+those broader growth/adaptation gates.
+
+The scoped service adapter now also has `prepare_child_owned`, which derives the
+literal slice from the actual native request child, checks its source/workspace
+and receiver lineage, and claims it during the same fixed ownership handoff.
+`native_scope` and `project_scope` expose that retained association. Cost and
+instance/pin projections remain available after join; `prepared` explicitly
+refuses the joined/released input. Releasing the Q request releases its child.
+
+Scoped snapshots additionally retain the native child identity. Their restore
+path requires an actual protected unclaimed restored child with that identity;
+it never recreates one from the saved numbers. The shared authenticated scope
+restore factory is still an assembly/recovery prerequisite. Restoring a native
+child for construction must not replay permission, charge or execution.
+
+The subsequent shared Codegen migration changes the ML numerical bridge to
+`Veri7vn_Numerals.nat_of_integer` and `integer_of_nat`; generated
+`search_work_cost` still consumes the same canonical reflected carrier. The older
+six-marker receipts above certify their captured inputs. The current producer
+and service consumer require a fresh check with this canonical bridge.

@@ -1,7 +1,7 @@
 import scala.language.unsafeNulls
 import java.nio.file.{Files,Paths}
 @main def packageRuntime():Unit=isabelle.Command_Line.tool {
-  val sources=List("src/authoring/assistance/Assistance.scala","src/diagnostics/Repair.scala","src/workbench/ReviewTickets.scala","src/cli/Workbench.scala","src/diagnostics/Diagnostics.scala","src/diagnostics/RequestInspection.scala","src/runtime/host/WorkspaceStore.scala","src/runtime/service/AuthorityCoordinator.scala",
+  val sources=List("src/runtime/service/EffectSourceProtocol.scala","src/runtime/service/effects/NativeEffectCommand.scala","src/workbench/BuildWorkspace.scala","src/workbench/ResidentBuildWorkspace.scala","src/cli/BuildCommands.scala","src/runtime/service/build/BuildHistory.scala","src/diagnostics/PackageImpact.scala","src/runtime/service/search/SearchIngress.scala","src/runtime/conversation/ConversationClient.scala","src/runtime/conversation/ConversationProtocol.scala","src/runtime/service/ProducerReleaseQueue.scala","src/diagnostics/BuildFailure.scala","src/diagnostics/SourceDiagnostic.scala","src/runtime/service/NativeBuildIngress.scala","src/runtime/service/PackageDescriptorFunction.scala","src/packages/native_build/NativeBuildInputs.scala","src/packages/lifecycle/SessionInventory.scala","src/packages/intake/HostDraftJournal.scala","src/runtime/effects/WorkerResources.scala","src/authoring/assistance/Assistance.scala","src/diagnostics/Repair.scala","src/workbench/ReviewTickets.scala","src/cli/Workbench.scala","src/diagnostics/Diagnostics.scala","src/diagnostics/RequestInspection.scala","src/runtime/host/WorkspaceStore.scala","src/runtime/service/AuthorityCoordinator.scala",
     "src/runtime/service/ResidentSupervisor.scala","src/runtime/service/DeploymentImages.scala",
     "src/runtime/service/ResidentNativeBridge.scala","src/runtime/service/ResidentAuthorityService.scala",
     "src/runtime/service/RuntimeService.scala","src/runtime/service/RuntimeMain.scala",
@@ -24,6 +24,10 @@ import java.nio.file.{Files,Paths}
   manifest.getMainAttributes.putValue("Main-Class","veri7vn.runtime.service.RuntimeMain")
   val jar=new java.util.jar.JarOutputStream(Files.newOutputStream(temporary),manifest)
   try {
+    val service=new java.util.jar.JarEntry("META-INF/isabelle/services");service.setTime(0)
+    jar.putNextEntry(service)
+    jar.write("veri7vn.runtime.service.PackageDescriptorFunctions\n".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+    jar.closeEntry()
     val walk=Files.walk(classes)
     try {
       val files=walk.filter(p=>Files.isRegularFile(p)).sorted().toList

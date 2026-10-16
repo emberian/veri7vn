@@ -5,7 +5,7 @@ signature VERI7VN_NATIVE_RECOVERY_GRAPH =
 sig
   type step={context_id:IntInf.int,source_id:IntInf.int,start:int,stop:int,name:string,embedded:bool}
   type description={base_id:IntInf.int,steps:step list}
-  datatype construction=Public | Definition of {source_id:IntInf.int,start:int,stop:int,name:string,embedded:bool}
+  datatype construction=Public | Installed_Public of string | Definition of {source_id:IntInf.int,start:int,stop:int,name:string,embedded:bool}
     | Replay of {source_id:IntInf.int,start:int,stop:int,imports:string list}
     | Proof of {source_id:IntInf.int,start:int,stop:int,wire:string,sequent:string}
   type construction_node={context_id:IntInf.int,parents:IntInf.int list,construction:construction}
@@ -13,10 +13,13 @@ sig
   type batch
   type lease
   type verified_batch
+  val uses_roots:batch->Veri7vn_Native_Installed_Roots.registry->bool
   val is_open:batch->bool
   val active_replays:batch->int
   val create:unit->batch
+  val create_roots:Veri7vn_Native_Installed_Roots.registry->batch
   val create_with:Veri7vn_Native_Recovery_Inputs.pool->batch
+  val create_with_roots:Veri7vn_Native_Recovery_Inputs.pool->Veri7vn_Native_Installed_Roots.registry->batch
   val input_fragment:verified_batch->Veri7vn_Native_Identity_Allocator.fragment
   val acquire:batch->Veri7vn_Native_Identity_Allocator.allocator->
     Veri7vn_Native_Admission.policy->string->Veri7vn_Committed_Native_Recovery.committed->description->lease
@@ -45,7 +48,7 @@ struct
   structure R=Veri7vn_Native_Registry;
   type step={context_id:IntInf.int,source_id:IntInf.int,start:int,stop:int,name:string,embedded:bool};
   type description={base_id:IntInf.int,steps:step list};
-  datatype construction=Public | Definition of {source_id:IntInf.int,start:int,stop:int,name:string,embedded:bool}
+  datatype construction=Public | Installed_Public of string | Definition of {source_id:IntInf.int,start:int,stop:int,name:string,embedded:bool}
     | Replay of {source_id:IntInf.int,start:int,stop:int,imports:string list}
     | Proof of {source_id:IntInf.int,start:int,stop:int,wire:string,sequent:string}
   type construction_node={context_id:IntInf.int,parents:IntInf.int list,construction:construction}
@@ -55,14 +58,19 @@ struct
   type logical={id:IntInf.int,node:int,parents:IntInf.int list,development:P.development,refs:int};
   type state={stamp:int,workspace:string option,image:string option,theory:theory option,
     nodes:node list,logical:logical list,pending:int,open_batch:bool};
-  datatype batch=Batch of {state:state option Synchronized.var,sources:Q.batch,replays:int Synchronized.var};
+  datatype batch=Batch of {state:state option Synchronized.var,sources:Q.batch,replays:int Synchronized.var,
+    roots:Veri7vn_Native_Installed_Roots.registry option};
   datatype lease=Lease of {batch:batch,id:IntInf.int,status:int Synchronized.var};
   datatype verified_batch=Verified_Batch of batch;
-  fun make sources=Batch{sources=sources,replays=Synchronized.var "veri7vn_active_restore_replays" 0,state=Synchronized.var "veri7vn_recovery_graph"
+  fun make roots sources=Batch{sources=sources,roots=roots,replays=Synchronized.var "veri7vn_active_restore_replays" 0,state=Synchronized.var "veri7vn_recovery_graph"
     (SOME{stamp=serial(),workspace=NONE,image=NONE,theory=NONE,nodes=[],logical=[],pending=0,open_batch=true})};
   fun active_replays(Batch{replays,...})=Synchronized.value replays;
-  fun create()=make(Q.batch());
-  fun create_with pool=make(Q.batch_with pool);
+  fun create()=make NONE(Q.batch());
+  fun create_roots roots=make(SOME roots)(Q.batch());
+  fun create_with pool=make NONE(Q.batch_with pool);
+  fun create_with_roots pool roots=make(SOME roots)(Q.batch_with pool);
+  fun uses_roots(Batch{roots,...}) expected=case roots of SOME actual=>
+    Veri7vn_Native_Installed_Roots.same(actual,expected)|NONE=>false;
   fun is_open(Batch{state,...})=(case Synchronized.value state of
     SOME{open_batch=true,...}=>true|_=>false);
   fun node nodes id=the(find_first(fn(n:node)=> #id n=id)nodes);
@@ -134,19 +142,20 @@ struct
     let fun source_key tag source_id start stop extra=space_implode ":"
           ([tag,IntInf.toString source_id,Int.toString start,Int.toString stop]@extra)
       val suffix=case construction of Public=>"public"
+        | Installed_Public locator=>"installed-public:"^Int.toString(size locator)^":"^locator
         | Definition{source_id,start,stop,name,embedded}=>source_key "definition" source_id start stop[name,Bool.toString embedded]
         | Proof{source_id,start,stop,wire,sequent}=>source_key "proof" source_id start stop[
             Int.toString(size wire)^":"^wire,Int.toString(size sequent)^":"^sequent]
         | Replay{source_id,start,stop,imports}=>source_key "replay" source_id start stop(map(fn n=>Int.toString(size n)^":"^n)imports)
     in space_implode ":"(map Int.toString parent_ids)^"/"^suffix end;
-  fun acquire_graph (batch as Batch{state,sources,replays}) allocator policy image committed (desc:graph_description)=
+  fun acquire_graph (batch as Batch{state,sources,replays,roots}) allocator policy image committed (desc:graph_description)=
     Thread_Attributes.with_attributes Thread_Attributes.no_interrupts(fn original=>
     let val scope=P.construction_scope()
       val workspace=I.workspace allocator
       val _=if #workspace(C.materials committed)=workspace then()else error "Recovery graph workspace mismatch"
       val _=if positive(#head desc) andalso not(null(#nodes desc)) andalso length(#nodes desc)<=128
         then()else error "Recovery construction graph bounds"
-      val restored=if forall(fn(n:construction_node)=>case #construction n of Public=>true|_=>false)(#nodes desc)
+      val restored=if forall(fn(n:construction_node)=>case #construction n of Public=>true|Installed_Public _=>true|_=>false)(#nodes desc)
         then[]else Thread_Attributes.with_attributes original(fn _=>Q.recover_all allocator sources committed)
       val input_holds=Unsynchronized.ref([]:L.lease list)
       val graph_holds=Unsynchronized.ref([]:lease list)
@@ -175,6 +184,12 @@ struct
                 | NONE=>let val(dev,fact,source)=Thread_Attributes.with_attributes original(fn _=>case construction of
                     Public=>if null parents then(P.staged_public_image_owned scope allocator policy committed,NONE,NONE)
                       else error "Public native construction has private parents"
+                  | Installed_Public locator=>if null parents then
+                      let val registry=case roots of SOME registry=>registry
+                            | NONE=>error "Recovery batch has no fixed installed-root registry"
+                        val installed=Veri7vn_Native_Installed_Roots.policy registry locator
+                      in(P.staged_public_image_owned scope allocator installed committed,NONE,NONE)end
+                    else error "Installed public native construction has private parents"
                   | Definition{source_id,start,stop,name,embedded}=>
                     let val parent=case parent_devs of [d]=>d|_=>error "Definition parent arity"
                       val(source,slice)=source_slice source_id start stop
@@ -189,6 +204,14 @@ struct
                     in(d,SOME c,SOME source_id)end
                   | Replay{source_id,start,stop,imports}=>
                     let val _=if not(null imports) andalso length imports=length parent_devs then()else error "Replay parent arity"
+                      val _=List.app(fn(import,parent_id)=>
+                        case #construction(the(find_first(fn(n:construction_node)=> #context_id n=parent_id)(#nodes desc)))of
+                          Installed_Public locator=>
+                            (case roots of SOME registry=>if
+                              Veri7vn_Native_Installed_Roots.resolve_import registry import=locator then()
+                              else error "Restored source import selects a different installed root"
+                            |NONE=>error "Restored import has no installed-root registry")
+                        |_=>())(imports~~parents)
                       val(source,slice)=source_slice source_id start stop
                     in Thread_Attributes.uninterruptible(fn restore_replay=>fn()=>
                       let val _=Synchronized.change replays(fn n=>n+1)

@@ -1,0 +1,4 @@
+session Veri7vn_Graph_Source = Veri7vn_Relation_Import +
+  options [document = false]
+  sessions Veri7vn_Graph_Core Veri7vn_Source_Acquisition
+  theories Graph_Weighted_Profile Graph_Source Graph_Source_Resources Graph_Acquisition

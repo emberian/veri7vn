@@ -1,0 +1,3 @@
+session Veri7vn_Associated_Graph_Rendering = Veri7vn_Graph_Rendering +
+  options [document = false, threads = 2]
+  theories Associated_Graph_Rendering

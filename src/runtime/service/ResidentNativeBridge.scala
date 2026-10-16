@@ -8,6 +8,36 @@ import veri7vn.runtime.host.WorkspaceStore
   * permit was consumed for the exact acknowledged retained entry. It is not a
   * decoder for caller data and cannot be reused to issue two local handoffs. */
 object ResidentNativeBridge {
+  private[service] final case class RequiredMaterial(category:String,association:BigInt,semantic:Option[BigInt])
+  private[service] def restoreInventory(version:String,normal:String,sources:String):Vector[RequiredMaterial]={
+    require(version=="4","native restore inventory version")
+    def rows(text:String):Vector[String]={
+      require(text.length<=1048576 && text.forall(_<=127),"native restore inventory framing")
+      val result=if(text.isEmpty)Vector.empty else text.split("\n",-1).toVector
+      require(result.size<=8192,"native restore inventory bound");result
+    }
+    def positive(s:String):Boolean=s.matches("[1-9][0-9]{0,127}")
+    val ordinary=rows(normal).map {line=>
+      val fields=line.split(",",-1)
+      require(fields.length==3 && Set("request-child","artifact","evidence").contains(fields(0)) &&
+        fields.tail.forall(positive),"native restore required identity")
+      RequiredMaterial(fields(0),BigInt(fields(1)),Some(BigInt(fields(2))))
+    }
+    val originals=rows(sources).map {line=>
+      val fields=line.split(",",-1)
+      require(fields.length==3 && positive(fields(1)),"native restore source identity")
+      val valid=fields(0) match {
+        case "source-input"=>Set("pending","recorded").contains(fields(2))
+        case "acquired-source"=>Set("confirmed","failed").contains(fields(2))
+        case _=>false
+      }
+      require(valid,"native restore source kind/phase")
+      RequiredMaterial(fields(0),BigInt(fields(1)),None)
+    }
+    val all=ordinary++originals
+    require(all.size<=8192 && all.map(_.association).distinct.size==all.size,"native restore duplicate/aggregate bound")
+    all
+  }
   private[service] final class AcknowledgedEffect private[ResidentNativeBridge](
       val command:effects.NativeEffectCommand,val gateToken:String,
       val entryIncarnation:BigInt,val permitIdentity:BigInt,
@@ -30,6 +60,18 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
   private def initializing[A](action: => A):A=try action catch {case failure:Throwable=>
     try supervisor.close() catch {case cleanup:Throwable=>failure.addSuppressed(cleanup)}
     throw failure
+  }
+  private val effectSourceIssuer=store.nativeEffectSources.newOwnerIssuer(supervisor)
+  private[service] def retireSourceReads():Unit=effectSourceIssuer.retire()
+  private[service] def openEffectSource(source:BigInt,record:WorkspaceStore.NativeRecord):
+      Option[veri7vn.runtime.host.NativeEffectSources.Lease]={
+    val reply=supervisor.exchange("effect_source_open",source.toString)
+    EffectSourceProtocol.read(reply,store.nativeWorkspace,source).flatMap {owner=>
+      require(owner.sequence==record.sequence,"native source query checkpoint changed")
+      val confirmation=effectSourceIssuer.confirm(supervisor,owner.identity,owner.sequence,
+        owner.semantic,owner.ownerIncarnation,owner.stateVersion,owner.status)
+      store.nativeEffectSources.openConfirmed(record,confirmation)
+    }
   }
   private val previousResidents=initializing(store.reconcileNativeResidents())
   initializing(store.resetNativeSourceCleanup(supervisor.incarnation))
@@ -71,7 +113,7 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
     }
   }
   private var pending: Option[Prepared]=None
-  private[service] override def invalidate():Unit={pending.foreach(_.release());pending=None;pendingBuild=None;supervisor.close()}
+  private[service] override def invalidate():Unit={retireSourceReads();pending.foreach(_.release());pending=None;pendingBuild=None;supervisor.close()}
   private def currentSequence: Long=store.latestNative.map(_.sequence).getOrElse(0L)
   private def token(p: Prepared): String=p.id.substring(p.id.lastIndexOf('_')+1)
   private var cleanupPollAt=0L
@@ -81,6 +123,7 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
     val now=System.nanoTime()
     // Source teardown and native producer release run outside coordinator/source locks.
     releaseQueue.pump(now)
+    store.maintainNativeEffectStages()
     if(now>=cleanupPollAt){
       cleanupPollAt=now+1000000000L
       val wall=System.currentTimeMillis()
@@ -255,28 +298,11 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
     var primary:Throwable=null
     try {
       val begin=supervisor.exchange("restore_begin",s"${store.nativeWorkspace},${record.sequence},${record.revision},${record.epoch}",List(Bytes(record.checkpoint)))
-      require(begin.tag=="restore_required" && begin.payload=="3" && begin.artifacts.size==2 && begin.artifacts.forall(_.size<=1048576),"native restore closure unavailable")
-      val text=begin.artifacts.head.text
-      val required=if(text.isEmpty)Vector.empty else text.split("\n",-1).toVector
-      require(required.size<=8192,"native restore association bound")
-      var seen=Set.empty[BigInt]
-      val sourceText=begin.artifacts(1).text
-      val sources=if(sourceText.isEmpty)Vector.empty else sourceText.split("\n",-1).toVector
-      require(sources.size<=8192,"native restore source association bound")
-      val requests=required.map {line=>
-        val fields=line.split(",",-1)
-        require(fields.length==3 && Set("request-child","artifact","evidence").contains(fields(0)) && fields.tail.forall(_.matches("[1-9][0-9]{0,127}")),"native restore required identity")
-        (fields(0),BigInt(fields(1)),Some(BigInt(fields(2))))
-      }
-      val sourceRequests=sources.map {line=>
-        val fields=line.split(",",-1)
-        require(fields.length==3 && fields(0)=="source-input" && fields(1).matches("[1-9][0-9]{0,127}") &&
-          Set("pending","recorded").contains(fields(2)),"native restore source identity")
-        // Phase is a native expectation, never a host semantic generation.
-        (fields(0),BigInt(fields(1)),Option.empty[BigInt])
-      }
-      (requests++sourceRequests).foreach {case(category,association,expectedGeneration)=>
-        require(!seen.contains(association),"duplicate native restore association");seen+=association
+      require(begin.tag=="restore_required" && begin.payload=="4" && begin.artifacts.size==2 && begin.artifacts.forall(_.size<=1048576),"native restore closure unavailable")
+      val required=ResidentNativeBridge.restoreInventory(begin.payload,begin.artifacts.head.text,begin.artifacts(1).text)
+      required.foreach {requirement=>
+        val category=requirement.category;val association=requirement.association
+        val expectedGeneration=requirement.semantic
         val capability=store.committedNativeRecovery(record,association).getOrElse(throw new IllegalStateException("required native origin unavailable"))
         try capability.withMaterial {material=>
           val generation=material.semanticGeneration

@@ -44,6 +44,17 @@ whole-system performance envelope yet.
 
 ## Current integration checkpoint
 
+The 2026-10-16 exploration checkpoint includes the broad in-flight source, tests,
+examples and documentation, including known-red work. It is intended for shared
+coordination, not release qualification. The latest Build candidate module compiled;
+RuntimeBuild first checks exposed metadata record ordering, event/delta confusion
+and a bound-variable name collision. Repairs and subsequent checks are ongoing.
+The first policy-family check reached semantics and exposed ceiling-proof
+normalization and a bound-variable collision; those repairs await their next
+check. D72 effect response and D74 historical ownership migrations remain partial
+across the native service, recovery and host. The pinned installed baseline below
+is separate from this development checkpoint.
+
 The committed host checkpoint exercised 14 test groups, including real
 managed Build-source capture, rollback, reopening original revisions after head
 edits, and Revoke/Forget ownership behavior. Its

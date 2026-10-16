@@ -1,0 +1,63 @@
+Private Pure implication transport PASSES.
+Nat reflexivity alias still UNSUPPORTED: anonymous header serial=36216 theory=HOL.Nat name="" prop=OFCLASS(nat,type_class), body MinProof.
+TRANSPORT bytes/time are the rejected MinProof attempt; PRIVATE_IMPLICATION is successful.
+LINKAGE BASE_HEAP_REPLAY measured_at_epoch=1792073085.854
+LINKAGE generated_dispatch PASS
+LINKAGE generation_guard PASS
+LINKAGE wrong_implementation_refuted PASS
+LINKAGE native_association PASS
+LINKAGE admitted_consumer PASS
+LINKAGE swapped_representation_rejected PASS
+LINKAGE swapped_theorem_rejected PASS
+LINKAGE assumed_link_rejected PASS
+LINKAGE changed_code_setup_rejected PASS
+LINKAGE changed_serializer_rejected PASS
+LINKAGE MEASURE fixed_attachment repeats=10 elapsed_ms=320.921 cpu_ms=165.158 gc_ms=16.117
+LINKAGE MEASURE generated_count_100_flags repeats=10000 elapsed_ms=48.538 cpu_ms=18.1 gc_ms=0.0
+LINKAGE closed_refinements PASS
+LINKAGE registered_reconstruction PASS
+LINKAGE controlled_definition PASS
+LINKAGE proof_recording PASS
+LINKAGE SHAPE source 
+LINKAGE MISSING_BODY serial=469840 theory=Native_Linkage_Probe.Native_Linkage_Probe name=Native_Linkage_Probe.worker_export prop=?n =
+LINKAGE SHAPE body_serial=469840 anonymous_reference=1, theorem_missing_types=2
+LINKAGE MISSING_BODY serial=469838 theory=Native_Linkage_Probe.Native_Linkage_Probe name= prop=n =
+LINKAGE SHAPE body_serial=469838 application_missing_term=1, theorem_missing_types=2
+LINKAGE MISSING_BODY serial=469836 theory=Native_Linkage_Probe.Native_Linkage_Probe name=Native_Linkage_Probe.worker_private prop=?n =
+LINKAGE SHAPE body_serial=469836 anonymous_reference=1, theorem_missing_types=2
+LINKAGE MISSING_BODY serial=469834 theory=Native_Linkage_Probe.Native_Linkage_Probe name= prop=n =
+LINKAGE SHAPE body_serial=469834 anonymous_reference=1, application_missing_term=1, theorem_missing_types=3
+LINKAGE MISSING_BODY serial=36216 theory=HOL.Nat name= prop=OFCLASS
+LINKAGE SHAPE body_serial=36216 MinProof=1
+LINKAGE EXPAND serial=469840 theory=Native_Linkage_Probe.Native_Linkage_Probe name=Native_Linkage_Probe.worker_export prop=?n =
+LINKAGE EXPAND serial=469838 theory=Native_Linkage_Probe.Native_Linkage_Probe name= prop=n =
+LINKAGE EXPAND serial=469836 theory=Native_Linkage_Probe.Native_Linkage_Probe name=Native_Linkage_Probe.worker_private prop=?n =
+LINKAGE EXPAND serial=469834 theory=Native_Linkage_Probe.Native_Linkage_Probe name= prop=n =
+LINKAGE EXPAND serial=36216 theory=HOL.Nat name= prop=OFCLASS
+LINKAGE SHAPE expanded MinProof=1
+LINKAGE SHAPE decoded MinProof=1
+LINKAGE PRIVATE_TRANSPORT UNSUPPORTED thm_of_proof: partial proof term
+LINKAGE SHAPE implication_source 
+LINKAGE MISSING_BODY serial=469844 theory=Native_Linkage_Probe.Native_Linkage_Probe name=Native_Linkage_Probe.worker_imp_export prop=\<And>P.
+LINKAGE SHAPE body_serial=469844 theorem_missing_types=1
+LINKAGE MISSING_BODY serial=469842 theory=Native_Linkage_Probe.Native_Linkage_Probe name=Native_Linkage_Probe.worker_imp_private prop=\<And>P.
+LINKAGE SHAPE body_serial=469842 AbsP_missing_term=1, Abst_missing_type=1
+LINKAGE EXPAND serial=469844 theory=Native_Linkage_Probe.Native_Linkage_Probe name=Native_Linkage_Probe.worker_imp_export prop=\<And>P.
+LINKAGE EXPAND serial=469842 theory=Native_Linkage_Probe.Native_Linkage_Probe name=Native_Linkage_Probe.worker_imp_private prop=\<And>P.
+LINKAGE SHAPE implication_expanded 
+LINKAGE SHAPE decoded 
+LINKAGE private_implication_transport PASS
+LINKAGE PRIVATE_IMPLICATION bytes=94 total_ms=154.382
+LINKAGE SHAPE decoded 
+LINKAGE approved_reference_transport PASS
+LINKAGE SHAPE decoded 
+LINKAGE unexpanded_private_rejected PASS
+LINKAGE SHAPE decoded 
+LINKAGE wrong_target_rejected PASS
+LINKAGE oversize_rejected PASS
+LINKAGE SHAPE decoded Oracle=1
+LINKAGE oracle_node_rejected PASS
+LINKAGE SHAPE decoded Hyp=1
+LINKAGE hypothesis_rejected PASS
+LINKAGE TRANSPORT bytes=7 expansion_ms=0.399 receiver_ms=125.226
+LINKAGE feasibility_complete PASS

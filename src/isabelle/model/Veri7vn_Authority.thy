@@ -6,7 +6,7 @@ ML \<open>Veri7vn_Authority_Compile.reset "core_started"\<close>
 
 definition initial_state :: authority_state where
   "initial_state = \<lparr>revision = 0, authority_epoch = 0, requests = [],
-    evidence_table = [], visible_bindings = [], attempts = [], source_publications = [], pending_batch = None, issued_batches = [],
+    evidence_table = [], visible_bindings = [], attempts = [], effect_observations = [], source_publications = [], pending_batch = None, issued_batches = [],
     retired_capabilities = [], retired_sources = [], revoked_objects = [],
     forgotten_objects = [], session_generation = 0,
     current_observations = [], session_views = [], output_slots = [], output_assignments = [],
@@ -20,6 +20,9 @@ fun accepted :: "outcome \<Rightarrow> bool" where
 definition accessible :: "authority_state \<Rightarrow> nat list \<Rightarrow> bool" where
   "accessible s ds \<longleftrightarrow> list_all (\<lambda>d. d \<notin> set (revoked_objects s)) ds"
 
+definition parent_accessible :: "authority_state \<Rightarrow> request \<Rightarrow> bool" where
+  "parent_accessible s r \<longleftrightarrow> accessible s (request_id r # request_dependencies r)"
+
 definition new_revoked_objects :: "authority_state \<Rightarrow> authority_state \<Rightarrow> nat list" where
   "new_revoked_objects previous next = filter (\<lambda>objid. objid \<notin> set (revoked_objects previous))
     (remdups (revoked_objects next))"
@@ -27,14 +30,115 @@ definition new_forgotten_objects :: "authority_state \<Rightarrow> authority_sta
   "new_forgotten_objects previous next = filter (\<lambda>objid. objid \<notin> set (forgotten_objects previous))
     (remdups (forgotten_objects next))"
 
+fun same_requirement :: "goal_requirement \<Rightarrow> goal_requirement \<Rightarrow> bool" where
+  "same_requirement (ClaimRequirement a) (ClaimRequirement b) = same_target a b" |
+  "same_requirement (ArtifactRequirement a) (ArtifactRequirement b) = (a=b)" |
+  "same_requirement _ _ = False"
+fun requirement_claim :: "goal_requirement \<Rightarrow> claim option" where
+  "requirement_claim (ClaimRequirement c) = Some c" |
+  "requirement_claim (ArtifactRequirement a) = None"
+definition claim_references :: "claim \<Rightarrow> nat list" where
+  "claim_references c = claim_id c # target_id c # interpretation_id c # semantic_generation c #
+    premises c @ dependencies c @ (case executable_generation c of NoExecution \<Rightarrow> [] | ExecutableGeneration n \<Rightarrow> [n])"
+definition artifact_requirement_references :: "artifact_requirement \<Rightarrow> nat list" where
+  "artifact_requirement_references a = [artifact_template a,artifact_source a,artifact_revision a,
+    artifact_manifest a,artifact_profile a,artifact_setup a,artifact_exports a] @ map (\<lambda>input. case input of KnownInput n \<Rightarrow> n | ReservedOutput n \<Rightarrow> n) (artifact_parents a)"
+fun requirement_references :: "goal_requirement \<Rightarrow> nat list" where
+  "requirement_references (ClaimRequirement c) = claim_references c" |
+  "requirement_references (ArtifactRequirement a) = artifact_requirement_references a"
+fun requirement_premises :: "goal_requirement \<Rightarrow> nat list" where
+  "requirement_premises (ClaimRequirement c) = premises c" |
+  "requirement_premises (ArtifactRequirement a) = []"
+definition goal_references :: "subgoal \<Rightarrow> nat list" where
+  "goal_references g = goal_id g # goal_generation g # goal_code_generation g # goal_capability g # goal_interpretation g #
+    requirement_references (goal_required g) @ (case goal_output_slot g of None \<Rightarrow> [] | Some slot \<Rightarrow> [slot])"
+definition child_accessible :: "authority_state \<Rightarrow> subgoal \<Rightarrow> bool" where
+  "child_accessible s g \<longleftrightarrow> accessible s (goal_references g)"
+fun dependency_goal :: "goal_dependency \<Rightarrow> nat" where
+  "dependency_goal (LogicalDependency n) = n" |
+  "dependency_goal (ArtifactDependency n) = n"
+fun goal_reference :: "subgoal \<Rightarrow> goal_dependency" where
+  "goal_reference g = (case goal_required g of ClaimRequirement c \<Rightarrow> LogicalDependency (goal_id g) |
+    ArtifactRequirement a \<Rightarrow> ArtifactDependency (goal_id g))"
+fun assignment_slot :: "slot_assignment \<Rightarrow> nat" where
+  "assignment_slot (ClaimOutput a) = assigned_slot a" |
+  "assignment_slot (ArtifactOutput a) = artifact_assigned_slot a"
+fun assignment_output :: "slot_assignment \<Rightarrow> nat" where
+  "assignment_output (ClaimOutput a) = assigned_output a" |
+  "assignment_output (ArtifactOutput a) = artifact_assigned_output a"
+fun assignment_dependencies :: "slot_assignment \<Rightarrow> nat list" where
+  "assignment_dependencies (ClaimOutput a) = assigned_dependencies a" |
+  "assignment_dependencies (ArtifactOutput a) = artifact_assigned_dependencies a"
+fun assignment_retained :: "slot_assignment \<Rightarrow> retained_value list" where
+  "assignment_retained (ClaimOutput a) = assigned_retained a" |
+  "assignment_retained (ArtifactOutput a) = artifact_assigned_retained a"
+fun assignment_claim :: "slot_assignment \<Rightarrow> output_assignment option" where
+  "assignment_claim (ClaimOutput a) = Some a" |
+  "assignment_claim (ArtifactOutput a) = None"
+fun assignment_artifact :: "slot_assignment \<Rightarrow> artifact_assignment option" where
+  "assignment_artifact (ClaimOutput a) = None" |
+  "assignment_artifact (ArtifactOutput a) = Some a"
+definition claim_assignments :: "authority_state \<Rightarrow> output_assignment list" where
+  "claim_assignments s = List.map_filter assignment_claim (output_assignments s)"
+definition artifact_assignments :: "authority_state \<Rightarrow> artifact_assignment list" where
+  "artifact_assignments s = List.map_filter assignment_artifact (output_assignments s)"
+fun assignment_references :: "slot_assignment \<Rightarrow> nat list" where
+  "assignment_references (ClaimOutput a) = binding_request (assigned_binding a) # binding_goal (assigned_binding a) # assigned_slot a # assigned_output a # assigned_dependencies a @
+    claim_references (assigned_requirement a) @
+    concat (map (\<lambda>v. retained_id v # retained_dependencies v) (assigned_retained a))" |
+  "assignment_references (ArtifactOutput a) = artifact_assigned_request a # artifact_assigned_goal a # artifact_assigned_slot a # artifact_assigned_output a # artifact_assigned_generation a # artifact_assigned_dependencies a @
+    artifact_requirement_references (artifact_assigned_requirement a) @
+    concat (map (\<lambda>v. retained_id v # retained_dependencies v) (artifact_assigned_retained a))"
+
+definition close_retained_dependencies :: "nat list \<Rightarrow> retained_value \<Rightarrow> retained_value" where
+  "close_retained_dependencies refs value = value\<lparr>retained_dependencies :=
+    retained_dependencies value @ filter (\<lambda>d. d\<notin>set (retained_dependencies value)) (remdups refs)\<rparr>"
+
+definition artifact_owner_references :: "authority_state \<Rightarrow> artifact_assignment \<Rightarrow> nat list option" where
+  "artifact_owner_references s a =
+    (if artifact_assigned_generation a=0 then None else
+      (case filter (\<lambda>r. request_id r=artifact_assigned_request a) (requests s) of [r] \<Rightarrow>
+        (case filter (\<lambda>g. goal_id g=artifact_assigned_goal a) (request_goals r) of [g] \<Rightarrow>
+          (if goal_output_slot g\<noteq>Some (artifact_assigned_slot a) then None else
+            (case goal_required g of ClaimRequirement c \<Rightarrow> None | ArtifactRequirement required \<Rightarrow>
+              (case filter (\<lambda>x. output_slot_id x=artifact_assigned_slot a) (output_slots s) of [x] \<Rightarrow>
+                (if output_owner x=request_id r \<and> output_goal x=goal_id g then
+                  Some ([artifact_assigned_request a,artifact_assigned_goal a,
+                    artifact_assigned_slot a,artifact_assigned_generation a] @
+                    goal_references g @ request_dependencies r)
+                 else None) | _ \<Rightarrow> None)))
+         | _ \<Rightarrow> None)
+       | _ \<Rightarrow> None))"
+
+definition artifact_expected_retained :: "authority_state \<Rightarrow> artifact_assignment \<Rightarrow> retained_value list option" where
+  "artifact_expected_retained s a = map_option
+    (\<lambda>refs. map (close_retained_dependencies refs) (artifact_assigned_retained a)) (artifact_owner_references s a)"
+
+fun goal_satisfied :: "subgoal \<Rightarrow> goal_dependency option" where
+  "goal_satisfied g = (case (goal_required g,goal_outcome g) of
+    (ClaimRequirement c,Accepted actual e) \<Rightarrow> Some (LogicalDependency (goal_id g)) |
+    (ArtifactRequirement a,ArtifactReady objid) \<Rightarrow> Some (ArtifactDependency (goal_id g)) | _ \<Rightarrow> None)"
+fun resolved_inputs :: "authority_state \<Rightarrow> slot_input list \<Rightarrow> nat list option" where
+  "resolved_inputs s [] = Some []" |
+  "resolved_inputs s (input # rest) = (case (input, resolved_inputs s rest) of
+    (KnownInput n, Some ns) \<Rightarrow> Some (n # ns) |
+    (ReservedOutput slot, Some ns) \<Rightarrow>
+      map_option (\<lambda>a. assignment_output a # ns) (find (\<lambda>a. assignment_slot a = slot) (output_assignments s)) |
+    _ \<Rightarrow> None)"
+
+
+definition resolved_artifact_requirement :: "authority_state \<Rightarrow> artifact_requirement \<Rightarrow> artifact_requirement option" where
+  "resolved_artifact_requirement s a = map_option (\<lambda>parents. a\<lparr>artifact_parents:=map KnownInput parents\<rparr>)
+    (resolved_inputs s (artifact_parents a))"
+
 definition goal_ready :: "request \<Rightarrow> subgoal \<Rightarrow> bool" where
   "goal_ready r g \<longleftrightarrow> list_all (\<lambda>d. \<exists>h \<in> set (request_goals r).
-    goal_id h = d \<and> accepted (goal_outcome h)) (goal_dependencies g)"
+    goal_satisfied h = Some d) (goal_dependencies g)"
 
 fun blocks :: "nat \<Rightarrow> subgoal \<Rightarrow> blocker_scope \<Rightarrow> bool" where
   "blocks r g (RequestScope n) = (r = n)" |
   "blocks r g (InterpretationScope n) = (goal_interpretation g = n)" |
-  "blocks r g (PremiseScope n) = (n \<in> set (premises (goal_required g)))" |
+  "blocks r g (PremiseScope n) = (n \<in> set (requirement_premises (goal_required g)))" |
   "blocks r g (CapabilityScope n) = (goal_capability g = n)"
 
 definition unblocked :: "request \<Rightarrow> subgoal \<Rightarrow> bool" where
@@ -45,14 +149,14 @@ text \<open>Actual NoExecution means no executable dependency; NoExecution in th
 requested target means no required executable provenance. It does not assert that
 execution did not occur. Exact actual provenance is retained in the accepted claim.
 Real request pins are authenticated native-registry inputs, never a fake zero ID.\<close>
-definition execution_fits :: "request \<Rightarrow> claim \<Rightarrow> claim \<Rightarrow> assurance_route \<Rightarrow> bool" where
-  "execution_fits r required actual route \<longleftrightarrow>
+definition execution_fits :: "subgoal \<Rightarrow> claim \<Rightarrow> claim \<Rightarrow> assurance_route \<Rightarrow> bool" where
+  "execution_fits goal required actual route \<longleftrightarrow>
     (case executable_generation required of NoExecution \<Rightarrow> True |
       ExecutableGeneration g \<Rightarrow> executable_generation actual = ExecutableGeneration g) \<and>
     (case route of KernelConsequence \<Rightarrow>
       (case executable_generation actual of NoExecution \<Rightarrow> True |
-        ExecutableGeneration g \<Rightarrow> g = request_code_generation r) |
-      _ \<Rightarrow> executable_generation actual = ExecutableGeneration (request_code_generation r))"
+        ExecutableGeneration g \<Rightarrow> g = goal_code_generation goal) |
+      _ \<Rightarrow> executable_generation actual = ExecutableGeneration (goal_code_generation goal))"
 
 definition observation_fresh :: "authority_state \<Rightarrow> observation_requirement \<Rightarrow> bool" where
   "observation_fresh s required \<longleftrightarrow> (case required of StateTimeUnused \<Rightarrow> True |
@@ -65,11 +169,12 @@ definition request_fresh :: "authority_state \<Rightarrow> request \<Rightarrow>
       _ \<Rightarrow> observation_fresh s (request_observation r))"
 
 definition required_for :: "authority_state \<Rightarrow> request \<Rightarrow> subgoal \<Rightarrow> claim option" where
-  "required_for s r g = (case goal_output_slot g of None \<Rightarrow> Some (goal_required g) |
-    Some slot \<Rightarrow> (case find (\<lambda>x. output_slot_id x = slot \<and>
-      output_owner x = request_id r \<and> output_goal x = goal_id g) (output_slots s) of
-      None \<Rightarrow> None | Some reserved \<Rightarrow>
-        map_option assigned_requirement (find (\<lambda>a. assigned_slot a = slot) (output_assignments s))))"
+  "required_for s r g = (case goal_required g of ArtifactRequirement a \<Rightarrow> None |
+    ClaimRequirement original \<Rightarrow> (case goal_output_slot g of None \<Rightarrow> Some original |
+      Some slot \<Rightarrow> (case find (\<lambda>x. output_slot_id x=slot \<and>
+        output_owner x=request_id r \<and> output_goal x=goal_id g) (output_slots s) of
+        None \<Rightarrow> None | Some reserved \<Rightarrow>
+          map_option assigned_requirement (find (\<lambda>a. assigned_slot a=slot) (claim_assignments s)))))"
 
 text \<open>The complete managed closure is supplied by native admission, including
 actual target, hypotheses, private inputs and authoritative generation edges.
@@ -77,10 +182,9 @@ Neither the recovery query nor a caller can infer that closure from labels.\<clo
 definition evidence_accessible :: "authority_state \<Rightarrow> evidence \<Rightarrow> bool" where
   "evidence_accessible s e \<longleftrightarrow>
     list_all (\<lambda>d. d \<in> set (evidence_managed_dependencies e))
-      (evidence_id e # claim_id (evidence_claim e) # target_id (evidence_claim e) #
-       interpretation_id (evidence_claim e) # semantic_generation (evidence_claim e) #
-       premises (evidence_claim e) @ dependencies (evidence_claim e)) \<and>
+      (evidence_id e # claim_references (evidence_claim e)) \<and>
     accessible s (evidence_managed_dependencies e)"
+
 definition required_native_evidence :: "authority_state \<Rightarrow> evidence list" where
   "required_native_evidence s = filter (evidence_accessible s) (evidence_table s)"
 
@@ -107,8 +211,12 @@ definition reservations_match :: "request \<Rightarrow> output_slot list \<Right
       KnownInput (output_input_identity x) \<in> set (output_inputs x) \<and>
       (\<exists>g \<in> set (request_goals r). goal_id g = output_goal x \<and>
         goal_output_slot g = Some (output_slot_id x) \<and>
+        (case goal_required g of ClaimRequirement c \<Rightarrow> True | ArtifactRequirement a \<Rightarrow>
+          output_origin x=PureOrigin \<and> output_template x=artifact_template a \<and>
+          output_profile x=artifact_profile a \<and>
+          list_all (\<lambda>parent. parent\<in>set (output_inputs x)) (artifact_parents a)) \<and>
         list_all (\<lambda>input. case input of KnownInput n \<Rightarrow> True | ReservedOutput parent \<Rightarrow>
-          (\<exists>p \<in> set xs. output_slot_id p = parent \<and> output_goal p \<in> set (goal_dependencies g)))
+          (\<exists>p \<in> set xs. output_slot_id p = parent \<and> (\<exists>h\<in>set (request_goals r). goal_id h=output_goal p \<and> goal_reference h \<in> set (goal_dependencies g))))
           (output_inputs x))) xs \<and>
     list_all (\<lambda>g. case goal_output_slot g of None \<Rightarrow> True | Some n \<Rightarrow>
       (\<exists>x \<in> set xs. output_slot_id x = n \<and> output_goal x = goal_id g)) (request_goals r)"
@@ -116,43 +224,78 @@ definition reservations_match :: "request \<Rightarrow> output_slot list \<Right
 definition operation_chargeable :: "request \<Rightarrow> operation_cost \<Rightarrow> bool" where
   "operation_chargeable r cost \<longleftrightarrow> cost_units cost > 0 \<and>
     cost_units cost \<le> request_fuel r \<and> cost_code_generation cost = request_code_generation r"
+definition goal_chargeable :: "request \<Rightarrow> subgoal \<Rightarrow> operation_cost \<Rightarrow> bool" where
+  "goal_chargeable r g cost \<longleftrightarrow> cost_units cost > 0 \<and>
+    cost_units cost \<le> request_fuel r \<and> cost_code_generation cost = goal_code_generation g"
+definition legacy_single_goal :: "request \<Rightarrow> bool" where
+  "legacy_single_goal r \<longleftrightarrow> (case request_goals r of [g] \<Rightarrow>
+    goal_generation g = request_generation r \<and> goal_code_generation g = request_code_generation r | _ \<Rightarrow> False)"
 definition charge_request :: "nat \<Rightarrow> operation_cost \<Rightarrow> authority_state \<Rightarrow> authority_state" where
   "charge_request rid cost s = s\<lparr>requests := map (\<lambda>r. if request_id r = rid then
     r\<lparr>request_fuel := request_fuel r - cost_units cost\<rparr> else r) (requests s)\<rparr>"
 
 definition licensed :: "authority_state \<Rightarrow> request \<Rightarrow> subgoal \<Rightarrow> claim \<Rightarrow> nat \<Rightarrow> bool" where
   "licensed s r g c eid \<longleftrightarrow>
-    request_fresh s r \<and> interpretation_id c = goal_interpretation g \<and>
-    semantic_generation c = request_generation r \<and>
+    (case goal_required g of ClaimRequirement original \<Rightarrow> True | ArtifactRequirement required \<Rightarrow> False) \<and>
+    request_fresh s r \<and> parent_accessible s r \<and> interpretation_id c = goal_interpretation g \<and>
+    semantic_generation c = goal_generation g \<and>
     goal_capability g \<in> set (dependencies c) \<and>
     list_all (\<lambda>d. d \<in> set (dependencies c)) (request_dependencies r) \<and>
-    accessible s (request_dependencies r @ dependencies c) \<and>
+    accessible s (request_dependencies r @ dependencies c) \<and> child_accessible s g \<and>
     (case required_for s r g of None \<Rightarrow> False | Some required \<Rightarrow>
       same_target c required \<and> (\<exists>e \<in> set (evidence_table s). evidence_id e = eid \<and>
         evidence_claim e = c \<and> evidence_route e \<in> set (allowed_routes r) \<and>
-        evidence_accessible s e \<and> execution_fits r required c (evidence_route e)))"
+        evidence_accessible s e \<and> execution_fits g required c (evidence_route e)))"
 
 text \<open>Request goals are supplied in topological order. The executable check
 rejects dangling references and cycles rather than trusting an elaborator flag.\<close>
 fun ordered_goals :: "nat list \<Rightarrow> subgoal list \<Rightarrow> bool" where
   "ordered_goals seen [] = True" |
   "ordered_goals seen (g # gs) = (goal_id g \<notin> set seen \<and>
-    list_all (\<lambda>d. d \<in> set seen) (goal_dependencies g) \<and>
+    list_all (\<lambda>d. dependency_goal d \<in> set seen) (goal_dependencies g) \<and>
     ordered_goals (goal_id g # seen) gs)"
 
-fun live_goals :: "authority_state \<Rightarrow> request \<Rightarrow> nat list \<Rightarrow>
-    subgoal list \<Rightarrow> nat list" where
+definition artifact_accessible :: "authority_state \<Rightarrow> artifact_assignment \<Rightarrow> bool" where
+  "artifact_accessible s a \<longleftrightarrow>
+    artifact_expected_retained s a=Some (artifact_assigned_retained a) \<and>
+    accessible s (assignment_references (ArtifactOutput a)) \<and>
+    (\<exists>v\<in>set (retained_values s). retained_id v = artifact_assigned_output a \<and>
+      list_all (\<lambda>d. d \<in> set (retained_dependencies v))
+        (artifact_assigned_generation a # filter (\<lambda>d. d \<noteq> artifact_assigned_output a) (artifact_assigned_dependencies a)) \<and>
+      list_all (observation_fresh s) (retained_access_requirements v))"
+definition required_native_artifacts :: "authority_state \<Rightarrow> artifact_assignment list" where
+  "required_native_artifacts s = filter (artifact_accessible s) (artifact_assignments s)"
+definition required_native_build_requests :: "authority_state \<Rightarrow> request list" where
+  "required_native_build_requests s = filter (\<lambda>r. accessible s (request_id r # request_dependencies r) \<and>
+    (\<exists>g\<in>set (request_goals r). goal_output_slot g\<noteq>None \<and> child_accessible s g \<and>
+      (case goal_required g of ArtifactRequirement a \<Rightarrow> True | ClaimRequirement c \<Rightarrow> False))) (requests s)"
+definition required_native_children :: "authority_state \<Rightarrow> (request \<times> subgoal) list" where
+  "required_native_children s = concat (map (\<lambda>r. map (Pair r)
+      (filter (\<lambda>g. goal_output_slot g\<noteq>None \<and> child_accessible s g) (request_goals r)))
+    (filter (\<lambda>r. accessible s (request_id r # request_dependencies r)) (requests s)))"
+definition artifact_licensed :: "authority_state \<Rightarrow> request \<Rightarrow> subgoal \<Rightarrow> nat \<Rightarrow> bool" where
+  "artifact_licensed s r g objid \<longleftrightarrow> \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and> child_accessible s g \<and>
+    (case goal_required g of ClaimRequirement c \<Rightarrow> False | ArtifactRequirement required \<Rightarrow>
+      (\<exists>a\<in>set (artifact_assignments s). artifact_assigned_request a=request_id r \<and>
+      artifact_assigned_goal a=goal_id g \<and> goal_output_slot g=Some (artifact_assigned_slot a) \<and>
+      artifact_assigned_output a=objid \<and> resolved_artifact_requirement s required=Some (artifact_assigned_requirement a) \<and>
+      artifact_accessible s a))"
+fun current_goal :: "authority_state \<Rightarrow> request \<Rightarrow> subgoal \<Rightarrow> goal_dependency option" where
+  "current_goal s r g = (case (goal_required g,goal_outcome g) of
+    (ClaimRequirement required,Accepted c e) \<Rightarrow>
+      (if licensed s r g c e then Some (LogicalDependency (goal_id g)) else None) |
+    (ArtifactRequirement required,ArtifactReady objid) \<Rightarrow>
+      (if artifact_licensed s r g objid then Some (ArtifactDependency (goal_id g)) else None) | _ \<Rightarrow> None)"
+fun live_goals :: "authority_state \<Rightarrow> request \<Rightarrow> goal_dependency list \<Rightarrow>
+    subgoal list \<Rightarrow> goal_dependency list" where
   "live_goals s r available [] = available" |
   "live_goals s r available (g # gs) = live_goals s r
-    (if list_all (\<lambda>d. d \<in> set available) (goal_dependencies g) \<and>
-        unblocked r g \<and>
-        (case goal_outcome g of Accepted c e \<Rightarrow> licensed s r g c e | _ \<Rightarrow> False)
-     then goal_id g # available else available) gs"
-
+    (if list_all (\<lambda>d. d \<in> set available) (goal_dependencies g) \<and> unblocked r g
+     then (case current_goal s r g of None \<Rightarrow> available | Some d \<Rightarrow> d # available)
+     else available) gs"
 definition goal_ready_live :: "authority_state \<Rightarrow> request \<Rightarrow> subgoal \<Rightarrow> bool" where
   "goal_ready_live s r g \<longleftrightarrow> ordered_goals [] (request_goals r) \<and>
-    list_all (\<lambda>d. d \<in> set (live_goals s r [] (request_goals r)))
-      (goal_dependencies g)"
+    list_all (\<lambda>d. d \<in> set (live_goals s r [] (request_goals r))) (goal_dependencies g)"
 
 definition binding_licensed :: "authority_state \<Rightarrow> binding \<Rightarrow> bool" where
   "binding_licensed s b \<longleftrightarrow> (\<exists>r \<in> set (requests s). \<exists>g \<in> set (request_goals r).
@@ -182,10 +325,32 @@ definition observation_permitted :: "authority_state \<Rightarrow> source_public
 text \<open>Retirement prevents NEW invocation/start. It does not revoke retained pins of
 already running pure computations. Source retirement additionally blocks acquisition-store updates; source-relative
 claims about retained snapshots remain usable.\<close>
+definition effect_current_context :: "authority_state \<Rightarrow> effect_intent \<Rightarrow> bool" where
+  "effect_current_context s i \<longleftrightarrow>
+    (case filter (\<lambda>r. request_id r=attempt_request i) (requests s) of [r] \<Rightarrow>
+      \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and>
+      legacy_single_goal r \<and>
+      (case request_goals r of [g] \<Rightarrow> goal_outcome g=NeedsInput [] \<and>
+        goal_ready_live s r g \<and> unblocked r g \<and> child_accessible s g \<and>
+        goal_capability g=attempt_capability i \<and>
+        cost_code_generation (attempt_cost i)=goal_code_generation g | _ \<Rightarrow> False) \<and>
+      attempt_target i\<in>set (permitted_effects r) \<and>
+      attempt_capability i\<notin>set (retired_capabilities s) \<and>
+      list_all (\<lambda>d. d\<notin>set (retired_sources s)) (attempt_sources i) \<and>
+      accessible s (attempt_dependencies i @ attempt_sources i @
+        [attempt_target i,attempt_capability i,cost_profile (attempt_cost i),
+         cost_operation (attempt_cost i),cost_code_generation (attempt_cost i),cost_step (attempt_cost i)]) \<and>
+      (case attempt_job i of None \<Rightarrow> True | Some (objid,incarnation) \<Rightarrow>
+        (case filter (\<lambda>j. job_id j=objid) (acquisition_jobs s) of [j] \<Rightarrow>
+          job_owner j=request_id r \<and> job_completion_current incarnation j \<and>
+          job_source j\<in>set (attempt_sources i) \<and> job_capability j=attempt_capability i
+         | _ \<Rightarrow> False))
+     | _ \<Rightarrow> False)"
+
 definition intent_permitted :: "authority_state \<Rightarrow> effect_intent \<Rightarrow> bool" where
-  "intent_permitted s i \<longleftrightarrow> (\<exists>r \<in> set (requests s).
+  "intent_permitted s i \<longleftrightarrow> effect_current_context s i \<and> (\<exists>r \<in> set (requests s).
     request_id r = attempt_request i \<and> \<not> request_cancelled r \<and>
-    request_fresh s r \<and> operation_chargeable r (attempt_cost i) \<and>
+    request_fresh s r \<and> parent_accessible s r \<and> legacy_single_goal r \<and> operation_chargeable r (attempt_cost i) \<and>
     (case attempt_job i of None \<Rightarrow> True | Some (objid, incarnation) \<Rightarrow>
       (\<exists>j \<in> set (acquisition_jobs s). job_id j = objid \<and> job_owner j = request_id r \<and>
         job_completion_current incarnation j \<and> job_source j \<in> set (attempt_sources i) \<and>
@@ -207,12 +372,20 @@ definition charge_intent :: "effect_intent \<Rightarrow> authority_state \<Right
 
 definition output_preview :: "authority_state \<Rightarrow> output_assignment \<Rightarrow> authority_state" where
   "output_preview s a = (let b = assigned_binding a in
-    s\<lparr>output_assignments := output_assignments s @ [a],
+    s\<lparr>output_assignments := output_assignments s @ [ClaimOutput a],
       retained_values := retained_values s @ assigned_retained a,
       requests := map (\<lambda>r. if request_id r = binding_request b then
         r\<lparr>request_goals := map (\<lambda>g. if goal_id g = binding_goal b then
           g\<lparr>goal_outcome := Accepted (binding_claim b) (binding_evidence b)\<rparr> else g)
           (request_goals r)\<rparr> else r) (requests s)\<rparr>)"
+
+definition artifact_preview :: "authority_state \<Rightarrow> artifact_assignment \<Rightarrow> authority_state" where
+  "artifact_preview s a = (if artifact_expected_retained s a=Some (artifact_assigned_retained a) then
+    s\<lparr>output_assignments:=output_assignments s @ [ArtifactOutput a],
+    retained_values:=retained_values s @ artifact_assigned_retained a,
+    requests:=map (\<lambda>r. if request_id r=artifact_assigned_request a then
+      r\<lparr>request_goals:=map (\<lambda>g. if goal_id g=artifact_assigned_goal a then
+        g\<lparr>goal_outcome:=ArtifactReady (artifact_assigned_output a)\<rparr> else g) (request_goals r)\<rparr> else r) (requests s)\<rparr> else s)"
 
 definition retention_flows :: "authority_state \<Rightarrow> retention_scope \<Rightarrow> retention_scope \<Rightarrow> bool" where
   "retention_flows s source destination \<longleftrightarrow> source = WorkspaceShared \<or> source = destination \<or>
@@ -232,6 +405,69 @@ fun registrations_permitted :: "authority_state \<Rightarrow> retained_value lis
   "registrations_permitted s [] = True" |
   "registrations_permitted s (v # vs) = (managed_registration s v \<and>
     registrations_permitted (s\<lparr>retained_values := retained_values s @ [v]\<rparr>) vs)"
+text \<open>Effect responses are retained source material, not propositions. The fixed
+native producer supplies the response identifier after checking the actual receipt,
+protocol, source encoding and ownership. This function derives the only permitted
+retained row from the original attempt and its unique owning child.\<close>
+definition effect_observation_retained :: "authority_state \<Rightarrow> effect_observation \<Rightarrow> retained_value option" where
+  "effect_observation_retained s observation =
+    (case filter (\<lambda>a. attempt_id (attempt_intent a)=effect_observation_attempt observation) (attempts s) of [a] \<Rightarrow>
+      (let i=attempt_intent a in
+       case filter (\<lambda>r. request_id r=attempt_request i) (requests s) of [r] \<Rightarrow>
+        (case request_goals r of [g] \<Rightarrow>
+          (let inputs=remdups (attempt_sources i @ attempt_dependencies i);
+               reads=filter (\<lambda>d. \<exists>v\<in>set (retained_values s). retained_id v=d) inputs;
+               values=filter (\<lambda>v. retained_id v\<in>set reads) (retained_values s);
+               refs=attempt_id i # request_id r # goal_references g @ request_dependencies r @ inputs @
+                 [attempt_target i,attempt_capability i,cost_profile (attempt_cost i),
+                  cost_operation (attempt_cost i),cost_code_generation (attempt_cost i),cost_step (attempt_cost i)]
+           in if effect_observation_source observation\<in>set refs then None else
+             Some \<lparr>retained_id=effect_observation_source observation,
+             retained_owner=RequestLocal (request_id r),
+             retained_dependencies=remdups (effect_observation_source observation # refs),
+             retained_read_dependencies=reads,
+             retained_access_requirements=remdups (request_observation r # concat (map retained_access_requirements values)),
+             retained_payload=effect_observation_source observation\<rparr>)
+         | _ \<Rightarrow> None)
+        | _ \<Rightarrow> None)
+     | _ \<Rightarrow> None)"
+
+definition effect_observation_permitted :: "authority_state \<Rightarrow> effect_observation \<Rightarrow> bool" where
+  "effect_observation_permitted s observation \<longleftrightarrow>
+    effect_observation_source observation>0 \<and>
+    (effect_observation_status observation=Confirmed \<or> effect_observation_status observation=EffectFailed) \<and>
+    (\<forall>old\<in>set (effect_observations s).
+      effect_observation_attempt old\<noteq>effect_observation_attempt observation \<and>
+      effect_observation_source old\<noteq>effect_observation_source observation) \<and>
+    (case filter (\<lambda>a. attempt_id (attempt_intent a)=effect_observation_attempt observation) (attempts s) of [a] \<Rightarrow>
+      (attempt_state a=Running \<or> attempt_state a=Unknown) \<and>
+      effect_current_context s (attempt_intent a) \<and>
+      (case effect_observation_retained s observation of None \<Rightarrow> False | Some value \<Rightarrow>
+        managed_registration s value)
+     | _ \<Rightarrow> False)"
+
+definition effect_observation_preview :: "authority_state \<Rightarrow> effect_observation \<Rightarrow> authority_state" where
+  "effect_observation_preview s observation =
+    (if effect_observation_permitted s observation then
+      (case effect_observation_retained s observation of None \<Rightarrow> s | Some value \<Rightarrow>
+        s\<lparr>effect_observations:=effect_observations s @ [observation],
+          retained_values:=retained_values s @ [value],
+          attempts:=map (\<lambda>a. if attempt_id (attempt_intent a)=effect_observation_attempt observation
+            then a\<lparr>attempt_state:=effect_observation_status observation\<rparr> else a) (attempts s)\<rparr>)
+     else s)"
+
+definition effect_observation_accessible :: "authority_state \<Rightarrow> effect_observation \<Rightarrow> bool" where
+  "effect_observation_accessible s observation \<longleftrightarrow>
+    (effect_observation_status observation=Confirmed \<or> effect_observation_status observation=EffectFailed) \<and>
+    (case filter (\<lambda>a. attempt_id (attempt_intent a)=effect_observation_attempt observation) (attempts s) of [a] \<Rightarrow>
+      attempt_state a=effect_observation_status observation \<and>
+      (case effect_observation_retained s observation of None \<Rightarrow> False | Some value \<Rightarrow>
+        value\<in>set (retained_values s) \<and> accessible s (retained_id value # retained_dependencies value))
+     | _ \<Rightarrow> False)"
+
+definition required_native_effect_observations :: "authority_state \<Rightarrow> effect_observation list" where
+  "required_native_effect_observations s = filter (effect_observation_accessible s) (effect_observations s)"
+
 definition binding_managed_dependencies :: "authority_state \<Rightarrow> binding \<Rightarrow> nat list" where
   "binding_managed_dependencies s b = dependencies (binding_claim b) @
     (case find (\<lambda>e. evidence_id e = binding_evidence b \<and> evidence_claim e = binding_claim b)
@@ -249,9 +485,31 @@ definition output_retention_permitted :: "authority_state \<Rightarrow> request 
       list_all (\<lambda>d. d \<in> set (retained_dependencies v)) (filter (\<lambda>d. d \<notin> set (map retained_id (assigned_retained a))) (assigned_dependencies a)))
       (assigned_retained a)"
 
-definition output_permitted :: "authority_state \<Rightarrow> output_assignment \<Rightarrow> source_publication option \<Rightarrow> bool" where
-  "output_permitted s a publication \<longleftrightarrow>
-    (\<forall>old \<in> set (output_assignments s). assigned_slot old \<noteq> assigned_slot a) \<and>
+definition qualification_child_current :: "authority_state \<Rightarrow> qualification_reservation \<Rightarrow> bool" where
+  "qualification_child_current s q \<longleftrightarrow>
+    accessible s (reservation_candidate q # reservation_run_spec q # reservation_domain q #
+      reservation_policy q # reservation_dependencies q @
+      (case reservation_baseline q of None \<Rightarrow> [] | Some baseline_id \<Rightarrow> [baseline_id])) \<and>
+    (\<exists>r\<in>set (requests s).
+    request_id r=reservation_owner q \<and> \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and>
+    (\<exists>g\<in>set (request_goals r). goal_id g=reservation_goal q \<and>
+      unblocked r g \<and> goal_ready_live s r g \<and> child_accessible s g \<and>
+      goal_capability g \<notin>set (retired_capabilities s) \<and>
+      cost_code_generation (reservation_cost q)=goal_code_generation g \<and>
+      (case goal_required g of ClaimRequirement c \<Rightarrow> claim_kind c=TestObservation | ArtifactRequirement a \<Rightarrow> False) \<and>
+      (\<exists>x\<in>set (output_slots s). output_owner x=request_id r \<and> output_goal x=goal_id g \<and>
+        goal_output_slot g=Some (output_slot_id x) \<and>
+        output_origin x=QualificationOrigin (reservation_attempt q) \<and>
+        output_profile x=cost_profile (reservation_cost q))))"
+definition qualification_slot_open :: "authority_state \<Rightarrow> qualification_reservation \<Rightarrow> bool" where
+  "qualification_slot_open s q \<longleftrightarrow> (\<exists>x\<in>set (output_slots s).
+    output_owner x=reservation_owner q \<and> output_goal x=reservation_goal q \<and>
+    output_origin x=QualificationOrigin (reservation_attempt q) \<and>
+    (\<forall>a\<in>set (output_assignments s). assignment_slot a \<noteq> output_slot_id x))"
+
+definition claim_output_permitted :: "authority_state \<Rightarrow> output_assignment \<Rightarrow> source_publication option \<Rightarrow> bool" where
+  "claim_output_permitted s a publication \<longleftrightarrow>
+    (\<forall>old \<in> set (output_assignments s). assignment_slot old \<noteq> assigned_slot a) \<and>
     (\<exists>x \<in> set (output_slots s). output_slot_id x = assigned_slot a \<and>
       binding_request (assigned_binding a) = output_owner x \<and>
       binding_goal (assigned_binding a) = output_goal x \<and>
@@ -262,9 +520,9 @@ definition output_permitted :: "authority_state \<Rightarrow> output_assignment 
             retention_flows s (retained_owner v) (RequestLocal (output_owner x)) \<and>
             accessible s (retained_dependencies v) \<and>
             list_all (observation_fresh s) (retained_access_requirements v)) |
-        ReservedOutput d \<Rightarrow> (\<exists>bound \<in> set (output_assignments s). assigned_slot bound = d \<and>
-          list_all (\<lambda>dep. dep \<in> set (assigned_dependencies a)) (assigned_dependencies bound) \<and>
-          (\<exists>v \<in> set (retained_values s). retained_id v = assigned_output bound \<and>
+        ReservedOutput d \<Rightarrow> (\<exists>bound \<in> set (output_assignments s). assignment_slot bound = d \<and>
+          list_all (\<lambda>dep. dep \<in> set (assigned_dependencies a)) (assignment_dependencies bound) \<and>
+          (\<exists>v \<in> set (retained_values s). retained_id v = assignment_output bound \<and>
             retention_flows s (retained_owner v) (RequestLocal (output_owner x)) \<and>
             accessible s (retained_dependencies v) \<and>
             list_all (observation_fresh s) (retained_access_requirements v)))) (output_inputs x) \<and>
@@ -272,17 +530,17 @@ definition output_permitted :: "authority_state \<Rightarrow> output_assignment 
       list_all (\<lambda>d. d \<in> set (assigned_dependencies a)) (output_reserved_dependencies x) \<and>
       list_all (\<lambda>d. d \<in> set (dependencies (assigned_requirement a))) (assigned_dependencies a) \<and>
       (\<exists>r \<in> set (requests s). request_id r = output_owner x \<and>
-        \<not> request_cancelled r \<and> request_fresh s r \<and>
+        \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and>
         output_retention_permitted s r a \<and>
         list_all (\<lambda>v. retained_id v = assigned_output a \<longrightarrow>
           list_all (\<lambda>input. case input of KnownInput n \<Rightarrow> n \<in> set (retained_read_dependencies v) |
             ReservedOutput parent \<Rightarrow> (\<exists>bound \<in> set (output_assignments s).
-              assigned_slot bound = parent \<and> assigned_output bound \<in> set (retained_read_dependencies v)))
+              assignment_slot bound = parent \<and> assignment_output bound \<in> set (retained_read_dependencies v)))
             (output_inputs x)) (assigned_retained a) \<and>
         (\<exists>g \<in> set (request_goals r). goal_id g = output_goal x \<and>
           goal_output_slot g = Some (output_slot_id x) \<and>
-          scope_preserved (goal_required g) (assigned_requirement a) (assigned_premise_correspondence a) \<and>
-          list_all (\<lambda>d. d \<in> set (assigned_dependencies a)) (premises (goal_required g)))) \<and>
+          (case goal_required g of ClaimRequirement original \<Rightarrow> scope_preserved original (assigned_requirement a) (assigned_premise_correspondence a) | ArtifactRequirement required \<Rightarrow> False) \<and>
+          list_all (\<lambda>d. d \<in> set (assigned_dependencies a)) (requirement_premises (goal_required g)))) \<and>
       (case output_origin x of PureOrigin \<Rightarrow> publication = None \<and>
         (\<exists>run \<in> set (pure_executions s). execution_id run = assigned_lineage a \<and>
           execution_request run = output_owner x \<and> execution_slot run = output_slot_id x \<and>
@@ -297,14 +555,74 @@ definition output_permitted :: "authority_state \<Rightarrow> output_assignment 
           (case publication of None \<Rightarrow> False | Some p \<Rightarrow>
             source_binding_id p = binding \<and> snapshot_id p = assigned_output a \<and>
             observation_attempt p = attempt \<and> observed_binding p = assigned_binding a \<and>
-            observation_permitted (output_preview s a) p)))) \<and>
+            observation_permitted (output_preview s a) p)) |
+       QualificationOrigin attempt \<Rightarrow> publication=None \<and> assigned_lineage a=attempt \<and>
+        attempt\<in>set (qualification_started s) \<and>
+        (\<exists>q\<in>set (qualification_reservations s). reservation_attempt q=attempt \<and>
+          reservation_owner q=output_owner x \<and> reservation_goal q=output_goal x \<and>
+          qualification_child_current s q \<and> cost_profile (reservation_cost q)=output_profile x))) \<and>
     binding_licensed (output_preview s a) (assigned_binding a)"
 
 ML \<open>Veri7vn_Authority_Compile.phase "output_guards_ready"\<close>
 
+definition inputs_accessible_to :: "authority_state \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> bool" where
+  "inputs_accessible_to s rid inputs \<longleftrightarrow> list_all (\<lambda>objid.
+    \<exists>v \<in> set (retained_values s). retained_id v = objid \<and>
+      accessible s (objid # retained_dependencies v) \<and>
+      list_all (observation_fresh s) (retained_access_requirements v) \<and>
+      retention_flows s (retained_owner v) (RequestLocal rid)) inputs"
+definition inputs_available :: "authority_state \<Rightarrow> nat \<Rightarrow> output_slot \<Rightarrow> bool" where
+  "inputs_available s rid x \<longleftrightarrow> (case resolved_inputs s (output_inputs x) of None \<Rightarrow> False | Some inputs \<Rightarrow>
+    inputs_accessible_to s rid inputs)"
+
+definition artifact_output_permitted :: "authority_state \<Rightarrow> artifact_assignment \<Rightarrow> bool" where
+  "artifact_output_permitted s a \<longleftrightarrow>
+    (\<forall>old\<in>set (output_assignments s). assignment_slot old \<noteq> artifact_assigned_slot a) \<and>
+    distinct (map retained_id (artifact_assigned_retained a)) \<and>
+    artifact_assigned_output a \<in> set (map retained_id (artifact_assigned_retained a)) \<and>
+    artifact_assigned_output a \<in> set (artifact_assigned_dependencies a) \<and>
+    artifact_assigned_generation a > 0 \<and>
+    artifact_expected_retained s a=Some (artifact_assigned_retained a) \<and>
+    artifact_assigned_generation a \<in> set (artifact_assigned_dependencies a) \<and>
+    registrations_permitted s (artifact_assigned_retained a) \<and>
+    accessible s (assignment_references (ArtifactOutput a)) \<and>
+    (\<exists>r\<in>set (requests s). request_id r=artifact_assigned_request a \<and>
+      \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and>
+      (\<exists>g\<in>set (request_goals r). goal_id g=artifact_assigned_goal a \<and>
+        goal_output_slot g=Some (artifact_assigned_slot a) \<and> unblocked r g \<and>
+        goal_ready_live s r g \<and> child_accessible s g \<and>
+        (case goal_required g of ArtifactRequirement required \<Rightarrow>
+          resolved_artifact_requirement s required=Some (artifact_assigned_requirement a) | ClaimRequirement c \<Rightarrow> False) \<and>
+        (case resolved_inputs s (artifact_parents (artifact_assigned_requirement a)) of None \<Rightarrow> False | Some parents \<Rightarrow>
+          list_all (\<lambda>parent. \<exists>bound\<in>set (artifact_assignments s).
+            artifact_assigned_output bound=parent \<and> artifact_accessible s bound) parents) \<and>
+        (\<exists>x\<in>set (output_slots s). output_slot_id x=artifact_assigned_slot a \<and>
+          output_owner x=request_id r \<and> output_goal x=goal_id g \<and> output_origin x=PureOrigin \<and>
+          output_template x=artifact_template (artifact_assigned_requirement a) \<and>
+          output_profile x=artifact_profile (artifact_assigned_requirement a) \<and>
+          inputs_available s (request_id r) x \<and>
+          list_all (\<lambda>d. d\<in>set (artifact_assigned_dependencies a))
+            (output_reserved_dependencies x @ artifact_requirement_references (artifact_assigned_requirement a) @
+              [goal_generation g,goal_code_generation g]) \<and>
+          (\<exists>run\<in>set (pure_executions s). execution_id run=artifact_assigned_lineage a \<and>
+            execution_request run=request_id r \<and> execution_slot run=output_slot_id x \<and>
+            cost_profile (execution_cost run)=output_profile x \<and>
+            cost_code_generation (execution_cost run)=goal_code_generation g \<and>
+            resolved_inputs s (output_inputs x)=Some (execution_inputs run) \<and>
+            list_all (\<lambda>v. retained_id v=artifact_assigned_output a \<longrightarrow>
+              list_all (\<lambda>input. input\<in>set (retained_read_dependencies v)) (execution_inputs run))
+              (artifact_assigned_retained a))) \<and>
+        list_all (\<lambda>v. retained_owner v\<in>set (request_retention_scopes r) \<and>
+          list_all (\<lambda>d. d\<in>set (retained_dependencies v))
+            (artifact_assigned_generation a # filter (\<lambda>d. d\<notin>set (map retained_id (artifact_assigned_retained a))) (artifact_assigned_dependencies a)))
+          (artifact_assigned_retained a)))"
+fun output_permitted :: "authority_state \<Rightarrow> slot_assignment \<Rightarrow> source_publication option \<Rightarrow> bool" where
+  "output_permitted s (ClaimOutput a) publication = claim_output_permitted s a publication" |
+  "output_permitted s (ArtifactOutput a) publication = (publication=None \<and> artifact_output_permitted s a)"
+
 definition adoption_permitted :: "authority_state \<Rightarrow> nat \<Rightarrow> binding adopted_delta \<Rightarrow> bool" where
   "adoption_permitted s rid d \<longleftrightarrow> (\<exists>r \<in> set (requests s).
-    request_id r = rid \<and> \<not> request_cancelled r \<and> request_fresh s r \<and>
+    request_id r = rid \<and> \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and>
     request_session r = Some (adoption_session d) \<and>
     list_all (\<lambda>b. binding_request b = rid \<and> b \<in> set (visible_bindings s) \<and>
       binding_licensed s b) (adoption_bindings d) \<and>
@@ -328,7 +646,7 @@ definition retention_permitted :: "authority_state \<Rightarrow> nat \<Rightarro
   "retention_permitted s rid objid destination \<longleftrightarrow> accessible s [objid] \<and>
     find_retention_grant s rid objid destination \<noteq> None \<and>
     (\<exists>r \<in> set (requests s). request_id r = rid \<and> \<not> request_cancelled r \<and>
-      request_fresh s r \<and> destination \<in> set (request_retention_scopes r) \<and>
+      request_fresh s r \<and> parent_accessible s r \<and> destination \<in> set (request_retention_scopes r) \<and>
       (\<exists>v \<in> set (retained_values s). retained_id v = objid \<and>
         (retained_owner v = RequestLocal rid \<and>
           (destination = WorkspaceShared \<or> (case request_session r of None \<Rightarrow> False |
@@ -336,12 +654,19 @@ definition retention_permitted :: "authority_state \<Rightarrow> nat \<Rightarro
          (case retained_owner v of SessionLocal sid \<Rightarrow> request_session r = Some sid \<and>
             destination = WorkspaceShared | _ \<Rightarrow> False))))"
 
+
 definition qualification_reserved :: "authority_state \<Rightarrow> qualification_reservation \<Rightarrow> bool" where
   "qualification_reserved s q \<longleftrightarrow>
     (\<forall>old \<in> set (qualification_reservations s). reservation_attempt old \<noteq> reservation_attempt q) \<and>
+    qualification_child_current s q \<and> qualification_slot_open s q \<and>
     accessible s (reservation_candidate q # reservation_run_spec q # reservation_domain q # reservation_policy q # reservation_dependencies q) \<and>
     (\<exists>r \<in> set (requests s). request_id r = reservation_owner q \<and>
-      \<not> request_cancelled r \<and> request_fresh s r \<and> operation_chargeable r (reservation_cost q)) \<and>
+      \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and>
+      (\<exists>g\<in>set (request_goals r). goal_id g=reservation_goal q \<and>
+        unblocked r g \<and> goal_ready_live s r g \<and>
+        goal_capability g \<notin> set (retired_capabilities s) \<and>
+        accessible s (requirement_references (goal_required g)) \<and>
+        goal_chargeable r g (reservation_cost q))) \<and>
     (\<exists>history \<in> set (exposure_history s). exposure_id history = reservation_exposure q) \<and>
     (reservation_mode q = FreshHoldout \<longrightarrow> reservation_domain q \<notin> set (spent_domains s) \<and>
       (\<exists>e \<in> set (qualification_eligibility s). reservation_eligibility q = Some (eligibility_id e) \<and>
@@ -381,7 +706,7 @@ definition qualification_permitted :: "authority_state \<Rightarrow> qualificati
     accessible s (candidate_artifact q # spent_observation q # qualification_run_spec q #
       qualification_domain q # qualification_policy_ref q # map metric_observation (qualification_metrics q) @ qualification_pins q) \<and>
     (\<exists>reserved \<in> set (qualification_reservations s).
-      reservation_attempt reserved = qualification_attempt q \<and>
+      reservation_attempt reserved = qualification_attempt q \<and> qualification_child_current s reserved \<and>
       reservation_candidate reserved = candidate_artifact q \<and>
       reservation_baseline reserved = baseline_artifact q \<and>
       reservation_run_spec reserved = qualification_run_spec q \<and>
@@ -392,7 +717,12 @@ definition qualification_permitted :: "authority_state \<Rightarrow> qualificati
       (\<exists>after \<in> set (exposure_history s). exposure_id after = exposure_after q \<and>
         (exposure_id after = exposure_before q \<or> exposure_parent after = Some (exposure_before q))) \<and>
       (case measured_binding q of None \<Rightarrow> qualification_failure q \<noteq> None | Some b \<Rightarrow>
-        binding_request b = reservation_owner reserved \<and>
+        binding_request b = reservation_owner reserved \<and> binding_goal b = reservation_goal reserved \<and>
+        (\<exists>a\<in>set (claim_assignments s). assigned_binding a=b \<and>
+          assigned_lineage a=reservation_attempt reserved \<and>
+          (\<exists>x\<in>set (output_slots s). output_slot_id x=assigned_slot a \<and>
+            output_owner x=reservation_owner reserved \<and> output_goal x=reservation_goal reserved \<and>
+            output_origin x=QualificationOrigin (reservation_attempt reserved))) \<and>
         claim_kind (binding_claim b) = TestObservation \<and>
         binding_licensed s b \<and>
         list_all (\<lambda>d. d \<in> set (dependencies (binding_claim b)))
@@ -437,12 +767,14 @@ fun apply_delta :: "delta \<Rightarrow> authority_state \<Rightarrow> authority_
   "apply_delta (Publish b) s = s\<lparr>visible_bindings := visible_bindings s @ [b]\<rparr>" |
   "apply_delta (RecordIntent i) s = s\<lparr>attempts := attempts s @
     [\<lparr>attempt_intent = i, attempt_state = Prepared\<rparr>]\<rparr>" |
+  "apply_delta (RecordEffectObservation observation) s = effect_observation_preview s observation" |
   "apply_delta (RecordObservation p) s =
     s\<lparr>source_publications := source_publications s @ [p]\<rparr>" |
-  "apply_delta (RecordOutput a publication) s =
+  "apply_delta (RecordOutput (ClaimOutput a) publication) s =
     (let next = output_preview s a in next\<lparr>
       visible_bindings := visible_bindings next @ [assigned_binding a],
       source_publications := source_publications next @ (case publication of None \<Rightarrow> [] | Some p \<Rightarrow> [p])\<rparr>)" |
+  "apply_delta (RecordOutput (ArtifactOutput a) publication) s = artifact_preview s a" |
   "apply_delta (AdoptSession rid d) s = s\<lparr>session_views := map (\<lambda>view.
     case adopt_answer rid (filter (binding_licensed s) (visible_bindings s)) d view of
       None \<Rightarrow> view | Some next \<Rightarrow> next) (session_views s),
@@ -469,50 +801,42 @@ definition request_openable :: "authority_state \<Rightarrow> request \<Rightarr
   "request_openable s r \<longleftrightarrow>
     (\<forall>q \<in> set (requests s). request_id q \<noteq> request_id r) \<and>
     \<not> request_cancelled r \<and> request_prestate r = revision s \<and>
-    ordered_goals [] (request_goals r) \<and> request_fresh s r \<and>
+    ordered_goals [] (request_goals r) \<and> request_fresh s r \<and> parent_accessible s r \<and>
     accessible s (request_dependencies r) \<and>
-    list_all (\<lambda>g. \<not> accepted (goal_outcome g) \<and>
+    list_all (\<lambda>g. (case goal_outcome g of Accepted c e \<Rightarrow> False | ArtifactReady objid \<Rightarrow> False | _ \<Rightarrow> True) \<and>
       goal_capability g \<notin> set (retired_capabilities s)) (request_goals r)"
 
-fun resolved_inputs :: "authority_state \<Rightarrow> slot_input list \<Rightarrow> nat list option" where
-  "resolved_inputs s [] = Some []" |
-  "resolved_inputs s (input # rest) = (case (input, resolved_inputs s rest) of
-    (KnownInput n, Some ns) \<Rightarrow> Some (n # ns) |
-    (ReservedOutput slot, Some ns) \<Rightarrow>
-      map_option (\<lambda>a. assigned_output a # ns) (find (\<lambda>a. assigned_slot a = slot) (output_assignments s)) |
-    _ \<Rightarrow> None)"
 
-definition inputs_accessible_to :: "authority_state \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> bool" where
-  "inputs_accessible_to s rid inputs \<longleftrightarrow> list_all (\<lambda>objid.
-    \<exists>v \<in> set (retained_values s). retained_id v = objid \<and>
-      accessible s (objid # retained_dependencies v) \<and>
-      list_all (observation_fresh s) (retained_access_requirements v) \<and>
-      retention_flows s (retained_owner v) (RequestLocal rid)) inputs"
-definition inputs_available :: "authority_state \<Rightarrow> nat \<Rightarrow> output_slot \<Rightarrow> bool" where
-  "inputs_available s rid x \<longleftrightarrow> (case resolved_inputs s (output_inputs x) of None \<Rightarrow> False | Some inputs \<Rightarrow>
-    inputs_accessible_to s rid inputs)"
 
 definition pure_permitted :: "authority_state \<Rightarrow> pure_execution \<Rightarrow> bool" where
   "pure_permitted s run \<longleftrightarrow>
     (\<forall>old \<in> set (pure_executions s). execution_id old \<noteq> execution_id run) \<and>
     (\<exists>r \<in> set (requests s). request_id r = execution_request run \<and>
-      \<not> request_cancelled r \<and> request_fresh s r \<and>
-      operation_chargeable r (execution_cost run) \<and>
+      \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and>
       (\<exists>x \<in> set (output_slots s). output_slot_id x = execution_slot run \<and>
         output_owner x = request_id r \<and> output_origin x = PureOrigin \<and>
         cost_profile (execution_cost run) = output_profile x \<and>
         resolved_inputs s (output_inputs x) = Some (execution_inputs run) \<and> inputs_available s (request_id r) x \<and>
         accessible s (output_template x # output_profile x # output_input_identity x # output_reserved_dependencies x) \<and>
-        (\<forall>a \<in> set (output_assignments s). assigned_slot a \<noteq> output_slot_id x) \<and>
+        (\<forall>a \<in> set (output_assignments s). assignment_slot a \<noteq> output_slot_id x) \<and>
         (\<exists>g \<in> set (request_goals r). goal_id g = output_goal x \<and>
           goal_ready_live s r g \<and> unblocked r g \<and>
+          goal_chargeable r g (execution_cost run) \<and>
+          goal_output_slot g=Some (output_slot_id x) \<and>
+          child_accessible s g \<and>
           goal_capability g \<notin> set (retired_capabilities s))))"
 
 definition qualification_startable :: "authority_state \<Rightarrow> qualification_reservation \<Rightarrow> bool" where
   "qualification_startable s q \<longleftrightarrow> reservation_attempt q \<notin> set (qualification_started s) \<and>
+    qualification_child_current s q \<and> qualification_slot_open s q \<and>
     accessible s (reservation_candidate q # reservation_run_spec q # reservation_domain q # reservation_policy q # reservation_dependencies q) \<and>
     (\<exists>r \<in> set (requests s). request_id r = reservation_owner q \<and>
-      \<not> request_cancelled r \<and> request_fresh s r \<and> operation_chargeable r (reservation_cost q))"
+      \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and>
+      (\<exists>g\<in>set (request_goals r). goal_id g=reservation_goal q \<and>
+        unblocked r g \<and> goal_ready_live s r g \<and>
+        goal_capability g \<notin> set (retired_capabilities s) \<and>
+        accessible s (requirement_references (goal_required g)) \<and>
+        goal_chargeable r g (reservation_cost q)))"
 
 definition job_permitted :: "authority_state \<Rightarrow> acquisition_job \<Rightarrow> operation_cost \<Rightarrow> bool" where
   "job_permitted s j cost \<longleftrightarrow>
@@ -522,12 +846,14 @@ definition job_permitted :: "authority_state \<Rightarrow> acquisition_job \<Rig
     cost_units cost > 0 \<and> cost_units cost \<le> fuel_remaining (job_budget j) \<and>
     fuel_owner (job_budget j) = job_owner j \<and>
     (\<exists>r \<in> set (requests s). request_id r = job_owner j \<and>
-      \<not> request_cancelled r \<and> request_fresh s r \<and> operation_chargeable r cost \<and>
+      \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and> legacy_single_goal r \<and> operation_chargeable r cost \<and>
       job_source j \<in> set (request_dependencies r))"
 
 fun delta_permitted :: "authority_state \<Rightarrow> delta \<Rightarrow> bool" where
   "delta_permitted s (Publish b) = binding_licensed s b" |
-  "delta_permitted s (RecordIntent i) = intent_permitted s i" |
+  "delta_permitted s (RecordIntent i) = (intent_permitted s i \<and>
+    (\<forall>a\<in>set (attempts s). attempt_id (attempt_intent a)\<noteq>attempt_id i))" |
+  "delta_permitted s (RecordEffectObservation observation) = effect_observation_permitted s observation" |
   "delta_permitted s (RecordObservation p) = observation_permitted s p" |
   "delta_permitted s (RecordOutput a p) = output_permitted s a p" |
   "delta_permitted s (AdoptSession rid d) = adoption_permitted s rid d" |
@@ -540,13 +866,13 @@ fun delta_permitted :: "authority_state \<Rightarrow> delta \<Rightarrow> bool" 
 fun affected_goals :: "authority_state \<Rightarrow> request \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> subgoal list \<Rightarrow> nat list" where
   "affected_goals s r n affected [] = affected" |
   "affected_goals s r n affected (g # gs) = affected_goals s r n
-    (if goal_capability g = n \<or> n \<in> set (dependencies (goal_required g)) \<or>
+    (if goal_capability g = n \<or> n \<in> set (goal_references g) \<or>
       (case required_for s r g of None \<Rightarrow> False | Some required \<Rightarrow> n \<in> set (dependencies required)) \<or>
-      (\<exists>d \<in> set (goal_dependencies g). d \<in> set affected)
+      (\<exists>d \<in> set (goal_dependencies g). dependency_goal d \<in> set affected)
      then goal_id g # affected else affected) gs"
 
 definition cancel_dependent :: "authority_state \<Rightarrow> nat \<Rightarrow> request \<Rightarrow> request" where
-  "cancel_dependent s n r = (if n \<in> set (request_dependencies r)
+  "cancel_dependent s n r = (if n=request_id r \<or> n \<in> set (request_dependencies r)
     then r\<lparr>request_cancelled := True\<rparr> else
     r\<lparr>request_goals := map (\<lambda>g. if goal_id g \<in>
       set (affected_goals s r n [] (request_goals r)) then g\<lparr>goal_outcome := Cancelled\<rparr>
@@ -567,6 +893,9 @@ definition forget_state :: "nat list \<Rightarrow> authority_state \<Rightarrow>
     forgotten_objects := remdups (removed @ forgotten_objects s),
     retained_values := filter (\<lambda>v. retained_id v \<notin> set removed) (retained_values s),
     visible_bindings := filter (\<lambda>b. disjoint_ids removed (binding_managed_dependencies s b)) (visible_bindings s),
+    effect_observations := filter (\<lambda>observation. case effect_observation_retained s observation of
+      None \<Rightarrow> False | Some value \<Rightarrow> disjoint_ids removed
+        (retained_id value # retained_dependencies value)) (effect_observations s),
     source_publications := filter (\<lambda>p. disjoint_ids removed
       (source_binding_id p # snapshot_id p # binding_managed_dependencies s (observed_binding p))) (source_publications s),
     session_views := map (\<lambda>v. v\<lparr>adopted_bindings := filter (\<lambda>b.
@@ -578,7 +907,8 @@ definition forget_state :: "nat list \<Rightarrow> authority_state \<Rightarrow>
     output_slots := filter (\<lambda>x. disjoint_ids removed (output_template x # output_profile x #
       output_input_identity x # output_reserved_dependencies x)) (output_slots s),
     output_assignments := filter (\<lambda>a. disjoint_ids removed
-      (assigned_dependencies a @ binding_managed_dependencies s (assigned_binding a))) (output_assignments s)\<rparr>"
+      (assignment_references a @ (case a of ClaimOutput c \<Rightarrow> binding_managed_dependencies s (assigned_binding c) |
+        ArtifactOutput c \<Rightarrow> []))) (output_assignments s)\<rparr>"
 
 text \<open>AttachEvidence is privileged native gate input, not a public proposal API.
 Its non-rebinding check prevents an old identifier being silently reassociated.
@@ -718,6 +1048,9 @@ primrec step :: "authority_state \<Rightarrow> event \<Rightarrow> authority_sta
            if e = eid \<and> can_stage s \<and> binding_licensed s b
            then stage n (Publish b) s else (s, [Rejected 3]))
          | _ \<Rightarrow> (s, [Rejected 3]))))" |
+  "step s (StageEffectObservation n observation) =
+    (if can_stage s \<and> effect_observation_permitted s observation
+     then stage n (RecordEffectObservation observation) s else (s,[Rejected 44]))" |
   "step s (StageIntent n i) =
     (if can_stage s \<and> intent_permitted s i \<and>
       (\<forall>a \<in> set (attempts s). attempt_id (attempt_intent a) \<noteq> attempt_id i)
@@ -765,8 +1098,8 @@ primrec step :: "authority_state \<Rightarrow> event \<Rightarrow> authority_sta
         Some removed \<Rightarrow> (lifecycle (forget_state removed s),
           map RemoveManaged removed @ [AuthorityChanged (Suc (authority_epoch s))])))" |
   "step s (ClaimAndStart n) =
-    (case find (\<lambda>a. attempt_id (attempt_intent a) = n) (attempts s) of
-      None \<Rightarrow> (s, [Rejected 8]) | Some a \<Rightarrow>
+    (case filter (\<lambda>a. attempt_id (attempt_intent a) = n) (attempts s) of
+      [a] \<Rightarrow>
         if attempt_state a = Prepared \<and>
           revision s = Suc (attempt_prestate (attempt_intent a)) \<and>
           intent_permitted (s\<lparr>revision := attempt_prestate (attempt_intent a)\<rparr>)
@@ -774,7 +1107,7 @@ primrec step :: "authority_state \<Rightarrow> event \<Rightarrow> authority_sta
         then ((charge_intent (attempt_intent a) s)\<lparr>attempts := map (\<lambda>x. if attempt_id (attempt_intent x) = n
           then x\<lparr>attempt_state := Running\<rparr> else x) (attempts s)\<rparr>,
           [ClaimStart (attempt_intent a) (authority_epoch s)])
-        else (s, [Rejected 8]))" |
+        else (s, [Rejected 8]) | _ \<Rightarrow> (s,[Rejected 8]))" |
   "step s (Reconcile n status) =
     (if status = Prepared \<or> status = Running \<or>
        (\<exists>a \<in> set (attempts s). attempt_id (attempt_intent a) = n \<and>
@@ -787,7 +1120,7 @@ primrec step :: "authority_state \<Rightarrow> event \<Rightarrow> authority_sta
 
 ML \<open>Veri7vn_Authority_Compile.phase "step_equations_ready"\<close>
 
-export_code step initial_state new_revoked_objects new_forgotten_objects required_native_evidence required_for in SML module_name Veri7vn_Authority file "../../../var/authority-generated.ML"
+export_code step initial_state new_revoked_objects new_forgotten_objects required_native_evidence required_native_artifacts required_native_build_requests required_native_children required_native_effect_observations effect_observation_retained effect_observation_permitted artifact_expected_retained required_for in SML module_name Veri7vn_Authority file "../../../var/authority-generated.ML"
 
 ML \<open>Veri7vn_Authority_Compile.phase "export_ready"\<close>
 

@@ -1,0 +1,4 @@
+session Veri7vn_Scoped_Domain = Veri7vn_Domain_Service_Objects +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Native_Request_Scope
+  theories Scoped_Domain_Request

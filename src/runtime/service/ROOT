@@ -6,4 +6,6 @@ session Veri7vn_Runtime_Foundation in foundation = Veri7vn_Authority_Codec +
 
 session Veri7vn_Runtime_Service = Veri7vn_Runtime_Foundation +
   options [threads = 2, document = false]
+  sessions Veri7vn_Native_Request_Scope Veri7vn_Runtime_Build
+    Veri7vn_Conversation_Metadata Veri7vn_Session_Source Veri7vn_Search_Service_Metadata
   theories Native_Service

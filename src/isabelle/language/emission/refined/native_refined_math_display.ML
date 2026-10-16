@@ -108,7 +108,7 @@ struct
   fun restore_bridge_host arguments=build_bridge arguments;
   fun request (Display (_,r,_))=r;
   fun output (Display (_,_,o'))=o';
-  fun associated r out = R.live r andalso M.belongs_to (R.family_request r) out;
+  fun associated r out = R.retained_live r andalso M.belongs_to (R.family_request r) out;
   fun decimal n =
     let val text=if n<0 then "-" ^ IntInf.toString (~n) else IntInf.toString n;
     in guard (size text<=513) "Controlled result digit bound"; text end;

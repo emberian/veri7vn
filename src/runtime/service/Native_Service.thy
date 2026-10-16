@@ -1,6 +1,16 @@
 theory Native_Service
   imports Veri7vn_Runtime_Foundation.Runtime_Foundation
+    Veri7vn_Native_Request_Scope.Native_Request_Scope
+    Veri7vn_Runtime_Build.Native_Build_Service
+    Veri7vn_Conversation_Metadata.Conversation_Metadata
+    Veri7vn_Session_Source.Session_Source
+    Veri7vn_Search_Service_Metadata.Search_Service_Metadata
 begin
+definition service_exact_observation_current :: "authority_state \<Rightarrow> observation_context \<Rightarrow> bool" where
+  "service_exact_observation_current s original =
+    (filter (\<lambda>current. observed_session current=observed_session original)
+      (current_observations s)=[original] \<and>
+      observation_fresh s (RequireObservation original None))"
 definition service_attach_native_evidence :: "nat \<Rightarrow> claim \<Rightarrow> nat list \<Rightarrow> event" where
   "service_attach_native_evidence eid c deps = AttachEvidence
     \<lparr>evidence_id=eid, evidence_claim=c, evidence_route=KernelConsequence,
@@ -100,14 +110,38 @@ lemma service_recorded_support_groups_exact:
     map (List.map_filter (\<lambda>ev. case ev of RegisterManaged value \<Rightarrow>
       (if value \<in> set (retained_values s) then Some (retained_id value) else None) | _ \<Rightarrow> None)) groups"
   by (simp add: service_recorded_support_groups_def Let_def)
+definition service_build_reserve :: "build_service_plan \<Rightarrow> artifact_requirement \<Rightarrow>
+    nat \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> event" where
+  "service_build_reserve plan required prestate fuel deps =
+    (let n=bsp_control plan in ReserveRequest
+      \<lparr>request_id=bsc_request n,request_generation=bsc_generation n,
+        request_code_generation=bsc_code n,request_prestate=prestate,
+        request_dependencies=deps,allowed_routes=[],permitted_effects=[],
+        request_goals=[build_service_child plan required []],request_blockers=[],
+        request_cancelled=False,request_fuel=fuel,request_session=None,
+        request_observation=StateTimeUnused,
+        request_retention_scopes=[RequestLocal (bsc_request n)]\<rparr>
+      [build_service_slot plan required deps])"
+
+definition service_build_original_matches :: "authority_state \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow>
+    nat \<Rightarrow> artifact_requirement \<Rightarrow> bool" where
+  "service_build_original_matches s rid gid slot original =
+    (\<exists>rg\<in>set (required_native_children s). request_id (fst rg)=rid \<and>
+      goal_id (snd rg)=gid \<and> goal_output_slot (snd rg)=Some slot \<and>
+      goal_required (snd rg)=ArtifactRequirement original)"
+
+definition service_artifact_retention_matches :: "authority_state \<Rightarrow> artifact_assignment \<Rightarrow> bool" where
+  "service_artifact_retention_matches s output =
+    (artifact_expected_retained s output=Some (artifact_assigned_retained output))"
+
 definition service_math_reserve :: "service_math_names \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> event" where
   "service_math_reserve n prestate fuel deps = ReserveRequest
     \<lparr>request_id=sm_request n,request_generation=sm_semantic n,
       request_code_generation=sm_code n,request_prestate=prestate,
       request_dependencies=deps,allowed_routes=[RefinedExecution],permitted_effects=[],
       request_goals=[\<lparr>goal_id=sm_goal n,goal_interpretation=sm_interpretation n,
-        goal_capability=sm_capability n,goal_dependencies=[],
-        goal_required=service_math_requirement n deps,goal_output_slot=Some (sm_slot n),
+        goal_capability=sm_capability n,goal_generation=sm_semantic n,goal_code_generation=sm_code n,goal_dependencies=[],
+        goal_required=ClaimRequirement (service_math_requirement n deps),goal_output_slot=Some (sm_slot n),
         goal_outcome=AwaitingOutput (sm_slot n)\<rparr>],request_blockers=[],
       request_cancelled=False,request_fuel=fuel,request_session=None,
       request_observation=StateTimeUnused,request_retention_scopes=[RequestLocal (sm_request n)]\<rparr>
@@ -130,14 +164,14 @@ definition service_math_evidence :: "service_math_names \<Rightarrow> nat list \
       evidence_route=RefinedExecution,evidence_managed_dependencies=eid#cid#target#sm_interpretation n#(managed@deps)\<rparr>"
 definition service_math_publish :: "service_math_names \<Rightarrow> nat list \<Rightarrow> nat list \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> event" where
   "service_math_publish n deps managed cid target eid output execution batch = StageOutput batch
-    \<lparr>assigned_slot=sm_slot n,assigned_requirement=service_math_specialized n deps cid target,
+    (ClaimOutput \<lparr>assigned_slot=sm_slot n,assigned_requirement=service_math_specialized n deps cid target,
       assigned_premise_correspondence=[],assigned_output=output,assigned_lineage=execution,
       assigned_binding=\<lparr>binding_request=sm_request n,binding_goal=sm_goal n,
         binding_claim=service_math_specialized n deps cid target,binding_evidence=eid\<rparr>,
       assigned_dependencies=deps,
       assigned_retained=[\<lparr>retained_id=output,retained_owner=RequestLocal (sm_request n),
         retained_dependencies=managed@deps,
-        retained_read_dependencies=[sm_parameter n],retained_access_requirements=[],retained_payload=output\<rparr>]\<rparr> None"
+        retained_read_dependencies=[sm_parameter n],retained_access_requirements=[],retained_payload=output\<rparr>]\<rparr>) None"
 definition service_binding_live :: "authority_state \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
   "service_binding_live s rid eid = (\<exists>b\<in>set (visible_bindings s).
     binding_request b=rid \<and> binding_evidence b=eid \<and> binding_licensed s b)"
@@ -166,14 +200,13 @@ definition service_slot_references :: "output_slot \<Rightarrow> nat list" where
     map (\<lambda>input. case input of KnownInput n \<Rightarrow> n | ReservedOutput n \<Rightarrow> n) (output_inputs slot)"
 definition service_request_references :: "authority_state \<Rightarrow> request \<Rightarrow> nat list" where
   "service_request_references s r = request_id r # request_generation r # request_code_generation r #
-    request_dependencies r @ concat (map (\<lambda>g. goal_capability g # goal_interpretation g #
-      goal_dependencies g @ service_claim_references (goal_required g) @
+    request_dependencies r @ concat (map (\<lambda>g. goal_references g @
+      map dependency_goal (goal_dependencies g) @
       (case required_for s r g of None \<Rightarrow> [] | Some c \<Rightarrow> service_claim_references c)) (request_goals r)) @
     concat (map service_slot_references (filter (\<lambda>slot. output_owner slot=request_id r) (output_slots s))) @
-    concat (map (\<lambda>a. assigned_output a # assigned_dependencies a @
-      service_claim_references (assigned_requirement a) @
-      concat (map (\<lambda>v. retained_id v # retained_dependencies v) (assigned_retained a)))
-      (filter (\<lambda>a. binding_request (assigned_binding a)=request_id r) (output_assignments s)))"
+    concat (map assignment_references
+      (filter (\<lambda>a. case a of ClaimOutput c \<Rightarrow> binding_request (assigned_binding c)=request_id r
+        | ArtifactOutput b \<Rightarrow> artifact_assigned_request b=request_id r) (output_assignments s)))"
 definition service_forget_protected :: "authority_state \<Rightarrow> nat list \<Rightarrow> nat list \<Rightarrow> nat list" where
   "service_forget_protected s removed support =
     concat (map (\<lambda>r. filter (\<lambda>n. n \<notin> set removed) (service_request_references s r))
@@ -202,9 +235,7 @@ lemma service_index_accessible_exact [simp]:
 definition service_index_evidence_accessible :: "effect_seen \<Rightarrow> evidence \<Rightarrow> bool" where
   "service_index_evidence_accessible denied e = (
     list_all (\<lambda>d. d \<in> set (evidence_managed_dependencies e))
-      (evidence_id e # claim_id (evidence_claim e) # target_id (evidence_claim e) #
-       interpretation_id (evidence_claim e) # semantic_generation (evidence_claim e) #
-       premises (evidence_claim e) @ dependencies (evidence_claim e)) \<and>
+      (evidence_id e # claim_references (evidence_claim e)) \<and>
     service_index_accessible denied (evidence_managed_dependencies e))"
 lemma service_index_evidence_accessible_exact [simp]:
   "service_index_evidence_accessible (service_membership_index (revoked_objects s)) e = evidence_accessible s e"
@@ -282,6 +313,21 @@ proof -
   then show ?thesis using protected_ancestors_hit_exact[OF summary] by blast
 qed
 
+text \<open>Progress normalization removes only mutable execution outcomes and
+remaining fuel. Every original child requirement, pin, typed dependency, source
+observation and parent policy field remains in the comparison. Native consumers
+must additionally check the exact charged ledger against their admitted budget.\<close>
+definition service_request_static :: "request \<Rightarrow> request" where
+  "service_request_static r = r\<lparr>request_prestate:=0,request_fuel:=0,request_cancelled:=False,
+    request_goals:=map (\<lambda>g. g\<lparr>goal_outcome:=AwaitingOutput 0\<rparr>) (request_goals r)\<rparr>"
+definition service_reserved_request_matches :: "authority_state \<Rightarrow> event \<Rightarrow> bool" where
+  "service_reserved_request_matches s ev = (case ev of ReserveRequest original slots \<Rightarrow>
+    (\<exists>r\<in>set (requests s). request_id r=request_id original \<and>
+      service_request_static r=service_request_static original \<and>
+      request_prestate r\<le>revision s \<and> request_fuel r\<le>request_fuel original \<and>
+      filter (\<lambda>slot. output_owner slot=request_id original) (output_slots s)=slots)
+    | _ \<Rightarrow> False)"
+
 definition service_math_request_matches ::
   "authority_state \<Rightarrow> service_math_names \<Rightarrow> nat list \<Rightarrow> nat \<Rightarrow> bool" where
   "service_math_request_matches s n deps cost =
@@ -295,16 +341,16 @@ definition service_math_request_matches ::
       (request_fuel r=0 \<or> request_fuel r=cost) \<and>
       map (\<lambda>g. g\<lparr>goal_outcome:=AwaitingOutput (sm_slot n)\<rparr>) (request_goals r) =
         [\<lparr>goal_id=sm_goal n,goal_interpretation=sm_interpretation n,
-          goal_capability=sm_capability n,goal_dependencies=[],
-          goal_required=service_math_requirement n deps,goal_output_slot=Some (sm_slot n),
+          goal_capability=sm_capability n,goal_generation=sm_semantic n,goal_code_generation=sm_code n,goal_dependencies=[],
+          goal_required=ClaimRequirement (service_math_requirement n deps),goal_output_slot=Some (sm_slot n),
           goal_outcome=AwaitingOutput (sm_slot n)\<rparr>] \<and>
       \<lparr>output_slot_id=sm_slot n,output_owner=sm_request n,output_goal=sm_goal n,
         output_template=sm_template n,output_profile=sm_profile n,
         output_inputs=[KnownInput (sm_parameter n)],output_input_identity=sm_parameter n,
         output_reserved_dependencies=deps,output_origin=PureOrigin\<rparr>\<in>set (output_slots s))"
 definition service_math_output_matches :: "authority_state \<Rightarrow> event \<Rightarrow> bool" where
-  "service_math_output_matches s ev = (case ev of StageOutput batch a None \<Rightarrow>
-    (\<forall>old\<in>set (output_assignments s). assigned_slot old=assigned_slot a \<longrightarrow> old=a) \<and>
+  "service_math_output_matches s ev = (case ev of StageOutput batch (ClaimOutput a) None \<Rightarrow>
+    (\<forall>old\<in>set (claim_assignments s). assigned_slot old=assigned_slot a \<longrightarrow> old=a) \<and>
     (\<forall>b\<in>set (visible_bindings s). binding_evidence b=binding_evidence (assigned_binding a)
       \<longrightarrow> b=assigned_binding a) | _ \<Rightarrow> False)"
 definition service_execution_for :: "authority_state \<Rightarrow> nat \<Rightarrow> pure_execution list" where
@@ -320,12 +366,20 @@ definition service_restore_supported :: "authority_state \<Rightarrow> bool" whe
 
 ML_file \<open>metadata_frame.ML\<close>
 ML_file \<open>../../isabelle/language/natural/native_language_input.ML\<close>
+ML_file \<open>../../isabelle/language/runtime/native_math_routing.ML\<close>
 ML_file \<open>../../isabelle/language/request/native_interpreted_request.ML\<close>
 ML_file \<open>../../isabelle/language/emission/refined/native_refined_math_display.ML\<close>
 ML_file \<open>../../isabelle/admission/native_authority_descriptor.ML\<close>
 ML_file \<open>../../isabelle/admission/recovery/native_recovery_export.ML\<close>
 ML_file \<open>native_math_gate.ML\<close>
+ML_file \<open>../conversation/native_math_final.ML\<close>
 ML_file \<open>native_math_recovery.ML\<close>
 ML_file \<open>native_state_owner.ML\<close>
+ML_file \<open>search/native_search_protocol.ML\<close>
+ML_file \<open>search/native_search_gate.ML\<close>
+ML_file \<open>search/native_search_request_codec.ML\<close>
+ML_file \<open>search/native_search_source.ML\<close>
+ML_file \<open>search/native_search_output_codec.ML\<close>
+ML_file \<open>search/native_search_request_recovery.ML\<close>
 ML_file \<open>native_service.ML\<close>
 end

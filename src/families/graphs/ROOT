@@ -1,0 +1,7 @@
+session Veri7vn_Graph_Core = Veri7vn_Codegen +
+  options [document = false]
+  theories Graph_Certificates Graph_Search Graph_Shortest_Proposal Graph_MST Graph_MST_Checker Graph_Dispatch
+
+session Veri7vn_Graphs in soundness = Veri7vn_Graph_Core +
+  options [document = false]
+  theories Graph_MST_Optimality Graph_Dispatch_Soundness

@@ -9,6 +9,7 @@ local
   structure M=Veri7vn_Mathematics_Execution;
   structure R=Veri7vn_Interpreted_Request;
   structure L=Veri7vn_Native_Literals;
+  structure Scope=Veri7vn_Native_Request_Scope;
   structure G=Veri7vn_Native_Math_Gate;
   structure V=Veri7vn_Native_Recovery_Check;
   structure Recovery=Veri7vn_Native_Math_Recovery;
@@ -31,8 +32,14 @@ local
   val bridge=Display.attach {allocator=ids,policy=policy,generation=generation,
     instance=instance,statement_pin=F.statement_executable()};
   val input=L.input {bytes="the sum of -2 and 3",encoding="UTF-8"};
-  val request=(case R.elaborate_math local_policy input NONE of R.Ready value=>value
+  val original_scope=Scope.new_parent{allocator=ids,policy=policy,observation=Scope.StateTimeUnused,inputs=[input]};
+  val original_child=Scope.new_child original_scope{source=L.slice input
+    {start=0,stop=size(L.bytes input),expected=L.bytes input},predecessors=[]};
+  val request=(case R.elaborate_math_child local_policy original_child NONE of R.Ready value=>value
     | _=>error "Fixed original request did not elaborate");
+  val _=Scope.seal original_scope[original_child];
+  val _=Scope.release_child original_child;
+  val _=Scope.release_parent original_scope;
   val peer_request=(case R.elaborate_math local_policy input NONE of R.Ready value=>value
     | _=>error "Second request for shared bridge did not elaborate");
   val _=ignore(L.drop_base input);
@@ -171,6 +178,7 @@ local
   structure UnusedOwner=Veri7vn_Native_State_Owner(struct
     type event=unused_owner_event
     fun is_live _=R.live request andalso G.live witness
+    fun current_expectation _=F.NoCurrentExpectation
     fun event_frame event revision=(case event of
         UReserve=>F.math_reserve_frame names revision cost prerequisites
       | UPeer=>F.math_reserve_frame(R.project peer_request)revision cost
@@ -214,13 +222,27 @@ local
   val peer_material=Recovery.export_request image executable bridge peer_request;
   val output_material=Recovery.export_output image executable witness;
   val saved_output=G.snapshot witness;
+  val (_,cancelled_model,cancel_commands,_)=F.prepare(!model)
+    (the(F.decode_event(F.lifecycle_frame(F.Cancel(#request_id names)))));
+  val _=require(not(F.rejected cancel_commands) andalso
+    not(F.binding_live cancelled_model(#request_id names)(G.evidence witness)) andalso
+    F.historical_output_access cancelled_model{evidence=G.evidence_frame witness,publication=G.publication_frame witness})
+    "Cancellation lost exact retained output access or preserved current license";
+  val _=Scope.deny original_scope;
+  val _=require(not(R.execution_allowed request) andalso G.live witness andalso
+    R.retained_live(G.request witness) andalso not(R.execution_allowed(G.request witness)))
+    "Retained witness depends on active execution scope or grants a ticket path";
+  val _=R.release request;
+  val _=require(G.live witness andalso Recovery.export_output image executable witness=output_material)
+    "Producer release destroyed retained native proof or original durable capsule";
   val _=G.release witness;
   val _=R.release_workspace(I.workspace ids);
   val _=Display.release_bridge bridge;
   val _=M.release_instance instance;
   val _=I.release_generation ids generation;
   val batch=Recovery.begin_batch();
-  val verified=Recovery.verify_request batch ids policy image executable request_material;
+  val verified=Recovery.verify_output_request batch ids policy image executable
+    (F.encode_state cancelled_model) output_material;
   val peer_verified=Recovery.verify_request batch ids policy image executable peer_material;
   val [XML.Elem((projection_name,projection_fields),[])]=YXML.parse_body(#projection peer_material);
   val conflicting_projection=YXML.string_of_body[XML.Elem((projection_name,
@@ -242,6 +264,8 @@ local
   val _=I.install_fragments ids [Recovery.fragment verified,Recovery.fragment peer_verified,
     Recovery.fragment distinct_verified];
   val {request=restored,bridge=restored_bridge}=Recovery.restore_request ids verified;
+  val _=require(R.retained_live restored andalso not(R.execution_allowed restored))
+    "Historical capsule restored an execution-eligible request";
   val {request=restored_peer,bridge=restored_peer_bridge}=Recovery.restore_request ids peer_verified;
   val {request=restored_distinct,bridge=restored_distinct_bridge}=Recovery.restore_request ids distinct_verified;
   val _=require(not(M.same_instance(R.instance restored,R.instance restored_distinct)) andalso
@@ -251,8 +275,9 @@ local
     Display.project_bridge restored_bridge=Display.project_bridge restored_peer_bridge andalso
     L.same_input(R.input_owner restored,R.input_owner restored_peer))
     "Requests sharing saved bridge/input did not share actual restored native owners";
-  val _=require(#request_id(R.project restored)= #association request_material)
-    "Original request identity was not restored";
+  val _=require(#request_id(R.project restored)= #request_id names andalso
+    #output_slot_id(R.project restored)= #association request_material)
+    "Original request/goal slot identity was not restored";
   val bad_sequent=YXML.string_of_body(XML.Encode.list Term_XML.Encode.term_raw
     [#output saved_output,@{prop False},Thm.prop_of(A.theorem(M.contract(R.instance restored))),
       Thm.prop_of(A.theorem(Display.bridge_contract restored_bridge))]);
@@ -273,6 +298,14 @@ local
   val _=(case G.display recovered of Veri7vn_Refined_Math_Display.Exact {statement_html,...}=>
       require(statement_html="<p>The exact sum of -2 and 3 is 1.</p>") "Recovered controlled output changed"
     | _=>error "Recovered exact result was not exact");
+  val _=require(F.historical_output_access cancelled_model
+    {evidence=G.evidence_frame recovered,publication=G.publication_frame recovered})
+    "Restored cancelled proof lost exact historical output association";
+  val (_,forgotten_model,forgot_commands,_)=F.prepare cancelled_model
+    (the(F.decode_event(F.lifecycle_frame(F.Forget(#request_id names)))));
+  val _=require(not(F.rejected forgot_commands) andalso not(F.historical_output_access forgotten_model
+    {evidence=G.evidence_frame recovered,publication=G.publication_frame recovered}))
+    "Forget kept historical output access";
   val _=G.release recovered;
   val owner=Recovery.close_batch batch;
   val shared_generation=A.generation(M.contract(R.instance restored));
@@ -382,6 +415,7 @@ local
   structure KernelOwner=Veri7vn_Native_State_Owner(struct
     type event=D.descriptor
     val is_live=D.is_live
+    fun current_expectation _=F.NoCurrentExpectation
     fun event_frame descriptor _=D.event_frame descriptor
     fun retirement_registrations _=[]
     fun supports _ commands=null commands

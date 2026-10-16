@@ -1,0 +1,4 @@
+session Veri7vn_Finite = Veri7vn_Codegen +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Plans
+  theories Finite_Probability Finite_Plans Finite_Regression

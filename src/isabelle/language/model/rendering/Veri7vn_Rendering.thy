@@ -63,10 +63,12 @@ qed
 
 datatype rendered_outcome =
     ShownAccepted "clause list" nat
+  | ShownArtifactReady nat
   | ShownNeedsInput "nat list" | ShownAwaitingOutput nat | ShownDeclined nat | ShownInconclusive nat
   | ShownFailed nat | ShownCancelled
 primrec render_outcome where
   "render_outcome (Accepted c e) = ShownAccepted (render_claim c) e" |
+  "render_outcome (ArtifactReady objid) = ShownArtifactReady objid" |
   "render_outcome (NeedsInput ns) = ShownNeedsInput ns" |
   "render_outcome (AwaitingOutput slot) = ShownAwaitingOutput slot" |
   "render_outcome (Declined n) = ShownDeclined n" |
@@ -75,6 +77,7 @@ primrec render_outcome where
   "render_outcome Cancelled = ShownCancelled"
 primrec read_outcome where
   "read_outcome (ShownAccepted cs e) = map_option (\<lambda>c. Accepted c e) (read_claim cs)" |
+  "read_outcome (ShownArtifactReady objid) = Some (ArtifactReady objid)" |
   "read_outcome (ShownNeedsInput ns) = Some (NeedsInput ns)" |
   "read_outcome (ShownAwaitingOutput slot) = Some (AwaitingOutput slot)" |
   "read_outcome (ShownDeclined n) = Some (Declined n)" |
@@ -84,6 +87,12 @@ primrec read_outcome where
 lemma outcome_rendering_correspondence:
   "read_outcome (render_outcome out) = Some out"
   by (cases out) (simp_all add: claim_rendering_correspondence)
+
+lemma artifact_outcome_nonassertional:
+  "render_outcome (ArtifactReady objid)=ShownArtifactReady objid"
+  "render_outcome (ArtifactReady objid) \<noteq> ShownAccepted cs evidence"
+  "\<not> accepted (ArtifactReady objid)"
+  by simp_all
 
 text \<open>Speech acts and candidate/reference artifacts contain separately structured
 assertions. Merely delivering code or help neither creates an accepted claim nor
@@ -155,17 +164,33 @@ lemma commentary_not_emitted:
   "render_act (a\<lparr>proposed_commentary := text\<rparr>) = render_act a"
   by (simp add: render_act_def)
 
+datatype rendered_requirement = ShownClaimRequirement "clause list" |
+  ShownArtifactRequirement artifact_requirement
+
+primrec render_requirement :: "goal_requirement \<Rightarrow> rendered_requirement" where
+  "render_requirement (ClaimRequirement c)=ShownClaimRequirement (render_claim c)" |
+  "render_requirement (ArtifactRequirement a)=ShownArtifactRequirement a"
+primrec read_requirement :: "rendered_requirement \<Rightarrow> goal_requirement option" where
+  "read_requirement (ShownClaimRequirement cs)=map_option ClaimRequirement (read_claim cs)" |
+  "read_requirement (ShownArtifactRequirement a)=Some (ArtifactRequirement a)"
+lemma requirement_rendering_correspondence:
+  "read_requirement (render_requirement required)=Some required"
+  by (cases required) (simp_all add: claim_rendering_correspondence)
+lemma artifact_requirement_not_rendered_as_claim:
+  "render_requirement (ArtifactRequirement a) \<noteq> ShownClaimRequirement cs"
+  by simp
+
 definition render_parts where
   "render_parts gs = map (\<lambda>g. (goal_id g, goal_interpretation g,
-    goal_dependencies g, goal_output_slot g, render_claim (goal_required g),
+    goal_dependencies g, goal_output_slot g, render_requirement (goal_required g),
     render_outcome (goal_outcome g))) gs"
 lemma per_part_outcome_preserved:
   "(i,r,ds,slot,required,ro) \<in> set (render_parts gs) \<Longrightarrow>
     \<exists>g\<in>set gs. i = goal_id g \<and> r = goal_interpretation g \<and>
       ds = goal_dependencies g \<and> slot = goal_output_slot g \<and>
-      read_claim required = Some (goal_required g) \<and>
+      read_requirement required = Some (goal_required g) \<and>
       read_outcome ro = Some (goal_outcome g)"
-  by (auto simp: render_parts_def outcome_rendering_correspondence claim_rendering_correspondence)
+  by (auto simp: render_parts_def outcome_rendering_correspondence requirement_rendering_correspondence)
 definition all_parts_accepted where
   "all_parts_accepted gs \<longleftrightarrow> gs \<noteq> [] \<and> list_all (\<lambda>g. accepted (goal_outcome g)) gs"
 lemma failed_part_prevents_complete:
@@ -185,7 +210,7 @@ lemma unrelated_reading_remains_available:
   shows "unblocked r g"
   using assms by (simp add: unblocked_def)
 
-export_code specialist_request render_claim read_claim render_outcome render_parts
+export_code specialist_request render_claim read_claim render_requirement read_requirement render_outcome render_parts
   render_act authoritative_render in SML module_name Veri7vn_Language
 
 end

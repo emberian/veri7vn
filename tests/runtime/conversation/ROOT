@@ -1,0 +1,3 @@
+session Veri7vn_Conversation_Metadata_Tests = Veri7vn_Conversation_Metadata +
+  options [document = false]
+  theories Conversation_Metadata_Tests

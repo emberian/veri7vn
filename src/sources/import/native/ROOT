@@ -1,0 +1,4 @@
+session Veri7vn_Source_Import = Veri7vn_Source_Semantics +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Registry Veri7vn_Codegen
+  theories Source_Row_Import Source_Row_Observation Source_Import_Profile

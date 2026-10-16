@@ -53,8 +53,12 @@ struct
           else error "Recovery source framing bounds"
         else scan(i+1)depth nodes
     in if n<=16777216 then scan 0 0 0 else error "Recovery source bytes" end;
-  fun decode bytes=
-    let val _=framing bytes
+  fun decode original=
+    let (* The explicit common wrapper authenticates Scope separately. This
+           decoder still checks only its exact nested code-source closure. *)
+      val bytes=if Veri7vn_Native_Scope_Envelope.is_envelope original
+        then Veri7vn_Native_Scope_Envelope.family original else original
+      val _=framing bytes
       val (image,rows)=case YXML.parse_body bytes of
         [XML.Elem (("veri7vn-controlled-source-closure",[("version","1")]),body)]=>dec body
       | _=>error "Recovery source closure schema"
@@ -88,7 +92,16 @@ struct
   fun recover_all allocator (batch as Batch{sources,...}) committed =
     let val m=C.materials committed
       val manifest=Veri7vn_Recovery_Manifest.decode {max_bytes=8192} (#manifest m)
-      val _=Veri7vn_Recovery_Manifest.require_profile Veri7vn_Recovery_Manifest.KernelEvidence manifest
+      val _=case #profile manifest of Veri7vn_Recovery_Manifest.KernelEvidence=>()
+        | Veri7vn_Recovery_Manifest.BuildRequest=>()
+        | Veri7vn_Recovery_Manifest.BuildCandidate=>()
+        | Veri7vn_Recovery_Manifest.DomainRequest=>()
+        | Veri7vn_Recovery_Manifest.DomainOutput=>()
+        | Veri7vn_Recovery_Manifest.SourceDomainRequest=>()
+        | Veri7vn_Recovery_Manifest.SourceDomainOutput=>()
+        | Veri7vn_Recovery_Manifest.SessionInput=>()
+        | Veri7vn_Recovery_Manifest.SearchRequest=>()
+        | _=>error "Recovery source role requires a native construction graph"
       val _=if Message_Digest.rep(SHA256.digest(#context_closure m))= #context_closure manifest
         then () else error "Committed recovery source slot integrity"
       val closure=decode(#context_closure m)

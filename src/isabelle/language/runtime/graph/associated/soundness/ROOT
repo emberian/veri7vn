@@ -1,0 +1,3 @@
+session Veri7vn_Associated_Graph_Rendering_Soundness = Veri7vn_Associated_Graph_Rendering +
+  sessions Veri7vn_Graph_Rendering_Soundness Veri7vn_Graph_Source_Soundness
+  theories Associated_Graph_Rendering_Soundness

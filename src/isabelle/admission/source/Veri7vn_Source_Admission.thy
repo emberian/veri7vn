@@ -12,8 +12,7 @@ consume that actual host boundary and the immutable owned output reservation.\<c
 definition source_output_judgment where
   "source_output_judgment acquisition manifest bytes context query batch observation trace \<longleftrightarrow>
     manifest_matches acquisition manifest \<and>
-    snapshot_wellformed (batch_snapshot batch) \<and>
-    encode_wire batch = bytes \<and>
+    versioned_source_represents acquisition bytes batch \<and>
     observation = attach_batch (source_assertion_metadata manifest)
       (source_observation_metadata manifest) batch \<and>
     trace = requested_acquired_meaning context query [observation]"
@@ -26,14 +25,14 @@ lemma fixed_pipeline_output_judgment:
 definition source_relation_snapshot_judgment where
   "source_relation_snapshot_judgment acquisition manifest bytes request observation result \<longleftrightarrow>
     (\<exists>batch. manifest_matches acquisition manifest \<and>
-      snapshot_wellformed (batch_snapshot batch) \<and> encode_wire batch = bytes \<and>
+      versioned_source_represents acquisition bytes batch \<and>
       observation = attach_batch (source_assertion_metadata manifest)
         (source_observation_metadata manifest) batch \<and>
       structured_relation_snapshot_meaning request batch result)"
 lemma fixed_relation_snapshot_judgment:
-  "acquire_and_query_structured_relation acquisition manifest bytes request = Some (observation,result)
+  "acquire_and_query_versioned_relation acquisition manifest bytes request = Some (observation,result)
     \<Longrightarrow> source_relation_snapshot_judgment acquisition manifest bytes request observation result"
-  by (auto simp: source_relation_snapshot_judgment_def dest: acquired_structured_relation_refinement)
+  by (auto simp: source_relation_snapshot_judgment_def dest: acquired_versioned_relation_refinement)
 
 text \<open>This judgment is exact decoded-snapshot observation. Neither the
 source-declared materialization flag nor a Unique constructor licenses an NL

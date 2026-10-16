@@ -1,0 +1,3 @@
+session Veri7vn_Rational_Input = Veri7vn_Codegen +
+  options [document = false, threads = 2]
+  theories Veri7vn_Rational_Input

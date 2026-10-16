@@ -1,0 +1,11 @@
+session Veri7vn_Source_Cell_Selection = Veri7vn_Source_Import +
+  options [document = false]
+  sessions Veri7vn_Admission Veri7vn_Native_Request_Scope
+  theories
+    Source_Cell_Selection
+    Source_Cell_Interface
+
+session Veri7vn_Source_Cell_Producer in producer = Veri7vn_Source_Acquisition_Kernel +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Source_Cell_Selection
+  theories Source_Cell_Producer

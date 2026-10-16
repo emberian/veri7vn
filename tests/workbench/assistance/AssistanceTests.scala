@@ -28,6 +28,18 @@ object AssistanceTests {
       val plan=Assistance.plan(snapshot,"branch","budget","Example.thy",start,stop)
       assert(plan.diagnosis.outcome==veri7vn.diagnostics.Diagnostics.Outcome.Inconclusive)
       assert(plan.choices.contains(Assistance.Choice.Condition))
+      val search=LiteralSearch.prepare(plan,LiteralSearch.Budget(32,16,4,1000),
+        Vector(LiteralSearch.Action.Introduce,LiteralSearch.Action.Simplify(Vector.empty)),0)
+      assert(search.sourceCurrent(client))
+      var badFact=false
+      try LiteralSearch.prepare(plan,search.budget,Vector(LiteralSearch.Action.Apply(0)),0)
+      catch {case _:IllegalArgumentException=>badFact=true}
+      assert(badFact)
+      var badBudget=false
+      try LiteralSearch.Budget(10001,16,4,1000)
+      catch {case _:IllegalArgumentException=>badBudget=true}
+      assert(badBudget)
+      assert(LiteralSearch.inconclusiveMessage("exhausted").contains("remains unresolved"))
       def proposal()=Assistance.review(plan,Assistance.Choice.Obligation,Repair.Meaning.PreserveMeaning,
         "Rename the bound variable explicitly",Intake.Content("(y::int) = y".getBytes(UTF_8)))
       val cancelled=proposal();assert(cancelled.cancel())
@@ -39,6 +51,7 @@ object AssistanceTests {
       assert(!applied.cancel() && applied.applyTo("again",client)==Assistance.AlreadyApplied)
       assert(client.source("example","Example.thy").text==original.replace("(x::int) = x","(y::int) = y"))
       assert(proposal().applyTo("stale",client)==Assistance.StaleSource)
+      assert(!search.sourceCurrent(client))
       var unresolved=false
       try Assistance.review(plan,Assistance.Choice.Condition,Repair.Meaning.Unresolved,"unknown",Intake.Content(bytes))
       catch {case _:IllegalArgumentException=>unresolved=true}

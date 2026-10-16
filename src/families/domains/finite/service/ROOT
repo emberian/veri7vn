@@ -1,0 +1,4 @@
+session Veri7vn_Finite_Service = Veri7vn_Finite_Runtime +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Domain_Service_Objects
+  theories Finite_Ticket_Execution

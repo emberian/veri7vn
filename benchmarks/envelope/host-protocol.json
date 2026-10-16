@@ -1,0 +1,161 @@
+{
+  "format": "veri7vn.phase-cost-collection/1",
+  "receipt_path": "var/runtime-host/protocol-20261015T133500Z/receipt.json",
+  "log_directory_override": "var/runtime-host/protocol-20261015T133500Z",
+  "current_sources_sha256": {
+    "experiments/runtime-host/Host_Protocol.thy": "c0be8cd14d6819debf71c1a394bb50e327f4e84ea36c5399ce2ca05e76e53d5d",
+    "experiments/runtime-host/ROOT": "803dffbff4825ef7c43de9daa7b74eb0a61b43c2b1375beaf4e9e6c6de6047ae",
+    "experiments/runtime-host/durable.scala": "347c6f0ac3199d22579aee0e6a8bb02ad1b7927d9e7599caaa742521cceb7432",
+    "experiments/runtime-host/probe.scala": "a39f81a97dd226b166c064706611581b15a8b52df7aa7718d0cd4f16dafe2df7",
+    "tools/dev/check-native": "3909ee72a87df240a0989f8544f4bbb9c5fb153e25785eee199c35256052f085"
+  },
+  "current_source_comparison": {
+    "experiments/runtime-host/Host_Protocol.thy": "matches",
+    "experiments/runtime-host/ROOT": "matches",
+    "experiments/runtime-host/durable.scala": "changed",
+    "experiments/runtime-host/probe.scala": "matches",
+    "tools/dev/check-native": "matches"
+  },
+  "receipt_sha256": "8d4089591dd7849ad8534cf7021f19d1238b80d077e7dd4ced183165d5c1c987",
+  "run_identity": {
+    "started_utc": "2026-10-15T13:35:00Z",
+    "host": {
+      "system": "Darwin",
+      "machine": "arm64"
+    },
+    "resources": {
+      "build_jobs": 1,
+      "threads": 2,
+      "command_timeout_seconds": 240
+    },
+    "session": "Veri7vn_Runtime_Host",
+    "isabelle_version": "Isabelle2026-RC1",
+    "isabelle_settings": "ISABELLE_IDENTIFIER=Isabelle2026-RC1\nML_SYSTEM=polyml-5.9.2\nML_PLATFORM=\nISABELLE_HOME_USER=/Users/ember/dev/o7vn/var/native-scaffold/user-state/.isabelle/Isabelle2026-RC1",
+    "sources_sha256": {
+      "experiments/runtime-host/Host_Protocol.thy": "c0be8cd14d6819debf71c1a394bb50e327f4e84ea36c5399ce2ca05e76e53d5d",
+      "experiments/runtime-host/ROOT": "803dffbff4825ef7c43de9daa7b74eb0a61b43c2b1375beaf4e9e6c6de6047ae",
+      "experiments/runtime-host/durable.scala": "73d5ab01b6f534017778b35cbc37ae7e18ce529f6e05161418f6467d9ba846ff",
+      "experiments/runtime-host/probe.scala": "a39f81a97dd226b166c064706611581b15a8b52df7aa7718d0cd4f16dafe2df7",
+      "tools/dev/check-native": "3909ee72a87df240a0989f8544f4bbb9c5fb153e25785eee199c35256052f085"
+    },
+    "checks": []
+  },
+  "cache_state": "not inferred: producer must document process/heap/filesystem/index warmth",
+  "logs": [
+    {
+      "path": "/Users/ember/dev/o7vn/var/runtime-host/protocol-20261015T133500Z/version.log",
+      "sha256": "f3059e16a774c587aff02666795a3b192c3735473148b794b590bfbece0b0d67"
+    },
+    {
+      "path": "/Users/ember/dev/o7vn/var/runtime-host/protocol-20261015T133500Z/settings.log",
+      "sha256": "47e1e686d7fd8ba99e1e4c5a5830875efb4d140edf334a7d3682ee39e7a3f23b"
+    },
+    {
+      "path": "/Users/ember/dev/o7vn/var/runtime-host/protocol-20261015T133500Z/build.log",
+      "sha256": "5ad28d088eec901be402cbc13e394d0a16511f17ad8f6b261ec465460bf969e2"
+    },
+    {
+      "path": "/Users/ember/dev/o7vn/var/runtime-host/protocol-20261015T133500Z/scala.log",
+      "sha256": "29911b34a4aad24e42f93a94b1e1dd2ce633a68ac3da1712d673c32a3db5ec97"
+    }
+  ],
+  "observations": [
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "version"
+      ],
+      "wall_ms": 561.3245829881635,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    },
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "getenv",
+        "ISABELLE_IDENTIFIER",
+        "ML_SYSTEM",
+        "ML_PLATFORM",
+        "ISABELLE_HOME_USER"
+      ],
+      "wall_ms": 462.45504199760035,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    },
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "build",
+        "-b",
+        "-d",
+        "experiments/runtime-host",
+        "-j",
+        "1",
+        "-o",
+        "threads=2",
+        "Veri7vn_Runtime_Host"
+      ],
+      "wall_ms": 7434.793374995934,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    },
+    {
+      "phase": "driver-command",
+      "identity": [
+        "/Applications/Isabelle2026-RC1.app/Contents/Resources/bin/isabelle",
+        "scala",
+        "/Users/ember/dev/o7vn/experiments/runtime-host/probe.scala"
+      ],
+      "wall_ms": 13172.844541986706,
+      "scope": "includes launcher; build command may reuse warm artifacts"
+    },
+    {
+      "phase": "startup",
+      "identity": "host-probe/startup",
+      "wall_ms": 3372.0,
+      "scope": "probe only; cancellation includes both protocol events, not general effect quiescence"
+    },
+    {
+      "phase": "protocol",
+      "identity": "host-probe/warm",
+      "wall_ms": 16.47325,
+      "scope": "probe only; cancellation includes both protocol events, not general effect quiescence"
+    },
+    {
+      "phase": "protocol",
+      "identity": "host-probe/warm",
+      "wall_ms": 1.7075,
+      "scope": "probe only; cancellation includes both protocol events, not general effect quiescence"
+    },
+    {
+      "phase": "protocol",
+      "identity": "host-probe/warm",
+      "wall_ms": 1.6355,
+      "scope": "probe only; cancellation includes both protocol events, not general effect quiescence"
+    },
+    {
+      "phase": "protocol",
+      "identity": "host-probe/warm",
+      "wall_ms": 0.983292,
+      "scope": "probe only; cancellation includes both protocol events, not general effect quiescence"
+    },
+    {
+      "phase": "protocol",
+      "identity": "host-probe/warm",
+      "wall_ms": 0.887292,
+      "scope": "probe only; cancellation includes both protocol events, not general effect quiescence"
+    },
+    {
+      "phase": "cancellation",
+      "identity": "host-probe/cancel",
+      "wall_ms": 1000.617,
+      "scope": "probe only; cancellation includes both protocol events, not general effect quiescence"
+    }
+  ],
+  "unavailable": {
+    "allocations": "not instrumented",
+    "peak_live_memory": "not instrumented",
+    "durable_commit": "requires timed host transaction instrumentation",
+    "representative_application": "not implemented by these feasibility probes"
+  }
+}

@@ -1,0 +1,4 @@
+session Veri7vn_Search_Service = Veri7vn_Native_Search +
+  options [document = false, record_proofs = 2]
+  sessions Veri7vn_Native_Request_Scope
+  theories Search_Service

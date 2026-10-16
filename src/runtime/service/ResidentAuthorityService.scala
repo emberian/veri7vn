@@ -9,7 +9,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 final class ResidentAuthorityService private[service](supervisor:ResidentSupervisor,
   coordinator:AuthorityCoordinator,buildIngress:Option[NativeBuildIngress]=None,
   managedSources:Option[veri7vn.runtime.host.ManagedSources]=None,
-  buildHistory:Option[veri7vn.runtime.service.build.BuildHistory]=None) extends AutoCloseable {
+  buildHistory:Option[veri7vn.runtime.service.build.BuildHistory]=None,
+  sourceReader:Option[ResidentNativeBridge]=None) extends AutoCloseable {
   lazy val search=new veri7vn.runtime.service.search.SearchIngress(supervisor,this)
   coordinator.requireReady()
   private val stopped=new AtomicBoolean(false)
@@ -221,6 +222,20 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
       case None=>diagnostic.request.historical.get.inspect(inspect)
     }
   }
+  final case class AcquiredSource(source:BigInt,attempt:BigInt,request:BigInt,configuration:BigInt,
+    packet:BigInt,status:String,protocol:String="local-mcp/1",representation:String="decoded-json/1")
+  /** A historical observed source, not a new invocation or a licensed theorem.
+    * The callback borrows exact protected bytes; it must not perform native I/O. */
+  def withEffectSource[A](source:BigInt)(consume:(AcquiredSource,java.nio.ByteBuffer)=>A):Option[A]={
+    available();require(source>0 && source.toString.length<=128)
+    val reader=sourceReader.getOrElse(throw new IllegalStateException("effect source reader unavailable"))
+    val lease=coordinator.readCurrent(record=>reader.openEffectSource(source,record))
+    lease.map {owner=>try {
+      available()
+      val x=owner.identity
+      owner.inspect(bytes=>consume(AcquiredSource(x.source,x.attempt,x.request,x.configuration,x.packet,owner.status),bytes))
+    } finally owner.close()}
+  }
   def cancel(request:BigInt):Unit=lifecycle("cancel",request)
   def revoke(objectId:BigInt):Unit=lifecycle("revoke",objectId)
   def forget(objectId:BigInt):Unit=lifecycle("forget",objectId)
@@ -279,6 +294,7 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
     BigInt(reply.payload)
   }
   def close():Unit={
+    sourceReader.foreach(_.retireSourceReads())
     buildHistory.foreach(_.close())
     if(stopped.compareAndSet(false,true)) supervisor.close()
     if(Thread.currentThread()!=pump) pump.join(1000)

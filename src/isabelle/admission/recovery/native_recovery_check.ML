@@ -13,19 +13,23 @@ sig
   val retain_context_for:verified->IntInf.int->retained_context option
   val retained_generation:retained_context->Veri7vn_Native_Registry.generation
   val release_context:retained_context->unit
-  type batch
+  type batch = Veri7vn_Native_Recovery_Graph.batch
   type verified_batch
   val active_replays:batch->int
   val restore_batch:unit->batch
   val restore_batch_with:Veri7vn_Native_Recovery_Inputs.pool->batch
+  val restore_batch_with_roots:Veri7vn_Native_Recovery_Inputs.pool->Veri7vn_Native_Installed_Roots.registry->batch
   val recheck_in:batch->Veri7vn_Native_Identity_Allocator.allocator->image->
     Veri7vn_Committed_Native_Recovery.committed->verified
   val seal_batch:batch->verified_batch
   val fragment:verified_batch->Veri7vn_Native_Identity_Allocator.fragment
   val abort_batch:batch->unit
   val install_host_image: Veri7vn_Native_Admission.policy -> string -> image
+  val install_host_image_with_roots: Veri7vn_Native_Installed_Roots.registry ->
+    Veri7vn_Native_Admission.policy -> string -> image
   val encode_projection: saved -> string
   val decode_projection: string -> saved
+  val image_policy: image -> Veri7vn_Native_Admission.policy
   val context_closure: image -> string
   val public_recipe: Veri7vn_Managed_Provenance.consequence -> string
   type artifacts = {projection:string,sequent:string,context_closure:string,reconstruction:string}
@@ -60,6 +64,7 @@ struct
   val active_replays=G.active_replays;
   val restore_batch=G.create;
   val restore_batch_with=G.create_with;
+  val restore_batch_with_roots=G.create_with_roots;
   val seal_batch=G.seal;
   val abort_batch=G.abort;
   structure Bind=Veri7vn_Checked_Generation_Reassociation
@@ -69,10 +74,18 @@ struct
     claimed:bool Synchronized.var,lease:G.lease};
   (* Privileged startup boundary: manifest must come from the actual selected
      session build database/heaps, never a client-provided label or current files. *)
-  datatype image=Image of {policy:A.policy,manifest:string};
+  datatype image=Image of {policy:A.policy,manifest:string,roots:Veri7vn_Native_Installed_Roots.registry option};
+  fun image_policy(Image{policy,...})=policy;
   fun install_host_image policy manifest =
-    if size manifest>0 andalso size manifest<=1048576 then Image {policy=policy,manifest=manifest}
+    if size manifest>0 andalso size manifest<=1048576 then Image {policy=policy,manifest=manifest,roots=NONE}
     else error "Native recovery boot image manifest bound";
+  fun install_host_image_with_roots roots policy manifest=
+    let val _=ignore(install_host_image policy manifest)
+      val _=if forall(fn locator=>Context.subthy(A.policy_theory
+        (Veri7vn_Native_Installed_Roots.policy roots locator),A.policy_theory policy))
+        (Veri7vn_Native_Installed_Roots.locators roots)then()
+        else error "Configured native root is outside installed boot image"
+    in Image{policy=policy,manifest=manifest,roots=SOME roots}end;
   fun positive n = n>0 andalso size (IntInf.toString n)<=128;
   fun number s = (if size s>128 then error "Recovery ID digit bound" else
     case IntInf.fromString s of SOME n =>
@@ -125,9 +138,13 @@ struct
         | _=>error "Recovery projection schema")
       val _=if encode_projection s=bytes then () else error "Recovery noncanonical projection"
     in s end;
-  fun context_closure (Image {policy,manifest}) =
+  fun context_closure (Image {policy,manifest,roots}) =
     let val thy=A.policy_theory policy
-    in YXML.string_of_body [XML.Elem (("veri7vn-canonical-public-image",[("version","1")]),
+    in case roots of SOME registry=>YXML.string_of_body[XML.Elem(("veri7vn-canonical-public-image",[("version","2")]),
+      XML.Encode.pair XML.Encode.string(XML.Encode.pair(XML.Encode.list XML.Encode.string)XML.Encode.string)
+        (manifest,(map(Context.theory_name{long=true})(thy::Context.ancestors_of thy),
+          Veri7vn_Native_Installed_Roots.material registry)))]
+    | NONE=>YXML.string_of_body [XML.Elem (("veri7vn-canonical-public-image",[("version","1")]),
       XML.Encode.pair XML.Encode.string (XML.Encode.list XML.Encode.string)
         (manifest,map (Context.theory_name {long=true}) (thy :: Context.ancestors_of thy)))] end;
   fun public_recipe consequence =
@@ -264,15 +281,18 @@ struct
           (fn _=>qualify_basic_owned scope allocator image consequence saved))()
         val _=P.abort_scope scope
       in Exn.release result end);
-  fun qualify allocator(image as Image{policy,...}) consequence saved =
-    if not(X.has_replay(P.consequence_development consequence))then qualify_basic allocator image consequence saved
+  fun qualify allocator(image as Image{policy,roots,...}) consequence saved =
+    if is_none roots andalso not(X.has_replay(P.consequence_development consequence))then qualify_basic allocator image consequence saved
     else let val _=if I.workspace allocator=P.workspace consequence andalso #workspace saved=P.workspace consequence
           andalso P.is_live consequence then()else error "Expert replay export producer/workspace unavailable"
-      val(recipe,owners)=case P.public_name consequence of
+      val selection=case P.public_name consequence of SOME name=>X.Named name|NONE=>X.Produced
+      val(recipe,owners)=case roots of SOME registry=>
+        X.collect_for_image registry policy allocator(P.consequence_development consequence)selection
+      | NONE=>(case P.public_name consequence of
         SOME n=>X.collect allocator(P.consequence_development consequence)n
       | NONE=>if is_some(P.proof_recipe(X.physical(P.consequence_development consequence)))
           then X.collect_produced allocator(P.consequence_development consequence)
-          else error "Expert replay requires exact named or produced consequence"
+          else error "Expert replay requires exact named or produced consequence")
       val graph= #graph recipe val contexts=X.context_ids graph val sources=X.source_ids graph
       val _=if #semantic_generation(#projection saved)=hd contexts andalso
         #dependencies(#projection saved)=contexts@sources andalso P.dependencies consequence=contexts@sources
@@ -293,7 +313,8 @@ struct
     in Thread_Attributes.with_attributes Thread_Attributes.no_interrupts(fn original=>
       let val scope=P.construction_scope()
       val checked=Exn.capture(fn()=>Thread_Attributes.with_attributes original(fn _=>
-        let val fresh=X.ordinary scope allocator policy owner recipe
+        let val fresh=(case roots of NONE=>X.ordinary|SOME registry=>X.ordinary_with_roots registry)
+          scope allocator policy owner recipe
           val a=P.accepted fresh val th=A.theorem a
         val _=if S.matches decoded(A.target a)th andalso
           length(#assumption_ids saved)=length(Thm.hyps_of th@Thm.prems_of th)andalso
@@ -303,8 +324,10 @@ struct
         in{projection=projection,sequent=sequent,context_closure=closure,reconstruction=wire}:artifacts end))()
       val _=P.abort_scope scope
       in Exn.release checked end)end;
-  fun recheck_in batch allocator(image as Image{policy,...}) committed =
+  fun recheck_in batch allocator(image as Image{policy,roots,...}) committed =
     let val _=if G.is_open batch then()else error "Recovery batch is sealed/aborted"
+      val _=case roots of NONE=>()|SOME registry=>if G.uses_roots batch registry then()
+        else error "Recovery image/batch installed roots differ"
       fun run()=
       let val m=C.materials committed
         val manifest=Veri7vn_Recovery_Manifest.decode{max_bytes=8192}(#manifest m)
@@ -365,7 +388,8 @@ struct
       val result=Exn.capture run()
     in case result of Exn.Res v=>v|Exn.Exn exn=>(G.abort batch;Exn.reraise exn)end;
   fun recheck allocator image committed =
-    let val batch=restore_batch()
+    let val batch=case image of Image{roots=NONE,...}=>restore_batch()
+          |Image{roots=SOME registry,...}=>G.create_roots registry
       fun run()=let val v=recheck_in batch allocator image committed
           val witness=seal_batch batch val _=I.install_fragments allocator[fragment witness]
         in v end

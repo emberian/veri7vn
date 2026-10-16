@@ -1,0 +1,45 @@
+{
+  "format": "veri7vn.paired-service-plan/1",
+  "status": "design-awaiting-actual-service-interface",
+  "execution_enabled": false,
+  "reason": "No generated authoritative service entrypoint and structured phase/evidence export contract is integrated yet. Do not benchmark a handwritten surrogate.",
+  "required_consumers": ["generated authority reducer", "native executable linkage", "resident host", "scoped result renderer"],
+  "pair_identity": ["baseline revision and source hashes", "candidate revision and source hashes", "same hardware/toolchain/code setup", "same source observations and evaluation time", "same request sequence and initial authority state", "same effect permissions and cancellation schedule", "isolated request/session/persistent learned state", "same semantic oracle and declared refinement relation"],
+  "size_axes": {
+    "retained_requests": [1, 100, 1000, 10000],
+    "retained_evidence": [1, 100, 1000, 10000],
+    "retained_history_revisions": [1, 100, 1000, 10000],
+    "visible_bindings": [1, 100, 1000],
+    "goal_dag_depth": [1, 8, 32, 128],
+    "goal_dag_width": [1, 8, 32, 128],
+    "source_rows": [0, 1, 20, 21, 1000, 100000],
+    "payload_bytes": [64, 4096, 1048576]
+  },
+  "matrix_policy": "One axis at a time plus reviewed worst-case combinations; never Cartesian-expand all axes. Respect bounded worker time/memory and record stopped/incomplete cases.",
+  "cases": [
+    "old evidence irrelevant to current request",
+    "live and revoked evidence intermixed across retained history",
+    "shared prerequisites in wide/deep goal DAG",
+    "binding checks reuse same subgoal dependencies",
+    "out-of-order completion with changed authority epoch",
+    "retirement/revocation and cancellation during pending work",
+    "partial route and complete/negative source query",
+    "same-name learned forms isolated in two sessions"
+  ],
+  "correctness_gate": [
+    "Compare structured scoped outcomes/blockers, evidence dependencies, revisions and effect-attempt states under declared representation relation.",
+    "Resolve theorem/evidence identities through pinned native context; matching display text or JSON alone is insufficient.",
+    "Candidate must pass negative/refusal/late-event cases before latency comparison is eligible.",
+    "No dropped requests, truncated evidence, suppressed diagnostics or changed completeness may be counted as optimization."
+  ],
+  "measurement_schedule": [
+    "Root schedules isolated service slot through build steward.",
+    "Compile/admit bundles outside warm request spans; preserve build/qualification costs separately.",
+    "Fresh isolated state for every pair, discarded explicit warmup, alternating baseline/candidate order.",
+    "Record individual repetitions, quantile method, cold/first/warm identities and interference; choose repetition count after pilot variance.",
+    "Record steps, live_goals invocations, evidence/table traversals and binding checks alongside CPU/wall/allocations/GC/peak live memory.",
+    "Report correctness and performance together, including timeout/memory/refusal outcomes and amortization over retained session length."
+  ],
+  "refinement_hypothesis": "Indexed request/evidence maps, dependency snapshots or cached live-goal calculations may improve list-scan scaling, but require invalidation/epoch correctness and generated representation refinement. No measured hotspot or speedup is claimed.",
+  "remaining_interface": ["actual generated service invocation", "native semantic comparison/export", "phase/counter instrumentation", "isolated state setup/teardown", "bounded source and goal-DAG fixture constructor"]
+}

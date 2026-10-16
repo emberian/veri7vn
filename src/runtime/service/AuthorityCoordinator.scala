@@ -18,11 +18,21 @@ object AuthorityCoordinator {
     private[service] val dispatch:Option[WorkspaceStore.NativeDispatchMaterial]=None,
     private[service] val invalidations:Option[WorkspaceStore.NativeInvalidations]=None,
     private[service] val sourceGuard:Option[WorkspaceStore.NativeSourceGuard]=None,
-    private[service] val sourceBinding:Option[WorkspaceStore.NativeBuildSourceMaterial]=None) {
+    private[service] val sourceBinding:Option[WorkspaceStore.NativeBuildSourceMaterial]=None,
+    private[service] val effectSource:Option[veri7vn.runtime.host.NativeEffectSources.Material]=None) {
     require(event.length<=1024*1024 && checkpoint.length<=1024*1024,"native prepared materialization bound")
     private[service] val eventBytes=event.clone()
     private[service] val checkpointBytes=checkpoint.clone()
-    private[service] def release():Unit={recovery.foreach(_.release());java.util.Arrays.fill(eventBytes,0.toByte);java.util.Arrays.fill(checkpointBytes,0.toByte)}
+    private[service] def release():Unit={
+      var failure:Option[Throwable]=None
+      def clear(action: => Unit):Unit=try action catch {case problem:Throwable=>failure match {
+        case None=>failure=Some(problem)
+        case Some(first)=>first.addSuppressed(problem)
+      }}
+      clear(effectSource.foreach(_.close()));clear(recovery.foreach(_.release()))
+      java.util.Arrays.fill(eventBytes,0.toByte);java.util.Arrays.fill(checkpointBytes,0.toByte)
+      failure.foreach(problem=>throw problem)
+    }
   }
   sealed trait Outcome
   final case class Committed(sequence: Long, eventId: String) extends Outcome
@@ -79,20 +89,24 @@ final class AuthorityCoordinator(store: WorkspaceStore, bridge: AuthorityCoordin
     def commit():Outcome={
     require(p.eventBytes.length<=limits.maxEventBytes && p.checkpointBytes.length<=limits.maxCheckpointBytes,"native materialization limit")
     if(!bridge.validatePrecommit(p)) return Rejected("native staged transition no longer valid")
-    store.commitNative(p.id,p.expectedSequence,p.nativeRevision,p.epoch,p.eventBytes,p.checkpointBytes,p.recovery,p.dispatch,p.invalidations,p.sourceBinding) match {
+    store.commitNative(p.id,p.expectedSequence,p.nativeRevision,p.epoch,p.eventBytes,p.checkpointBytes,p.recovery,p.dispatch,p.invalidations,p.sourceBinding,p.effectSource) match {
       case None => ready=false; Unavailable("durable sequence conflict; restore required")
       case Some(record) =>
         if(!bridge.acknowledge(p)) {ready=false; Unavailable("committed; native acknowledgement unavailable; restore required")}
-        else {ready=true; Committed(record.sequence,record.id)}
+        else {p.effectSource.foreach(store.acknowledgeNativeEffectSource);ready=true; Committed(record.sequence,record.id)}
     }
     }
     // Lock order: coordinator -> store/source monitor -> bounded native
     // validate/ack. Resolve native build bindings and transfer/parser work before
     // entering persist; acknowledgement may fork work but must not call Scala
     // source/store callbacks or perform replay synchronously.
-    val outcome=p.sourceGuard match {
+    def currentCommit():Outcome=p.sourceGuard match {
       case Some(guard)=>store.withNativeSourceGuard(guard)(commit())
       case None=>commit()
+    }
+    val outcome=p.effectSource match {
+      case Some(source)=>store.withNativeEffectSource(source)(currentCommit())
+      case None=>currentCommit()
     }
     // Teardown can join native work and must run after releasing the source lock.
     if(outcome.isInstanceOf[Unavailable])bridge.invalidate()
@@ -112,6 +126,12 @@ final class AuthorityCoordinator(store: WorkspaceStore, bridge: AuthorityCoordin
       case Left(reason)=>Rejected(reason)
       case Right(p)=>persist(p)
     }}
+  }
+  /** Query metadata and mint/open its one-use source confirmation in the SAME
+    * interval as lifecycle persistence. Native I/O precedes the source monitor. */
+  private[service] def readCurrent[A](consume:WorkspaceStore.NativeRecord=>A):A=synchronized {
+    requireReady()
+    consume(store.latestNative.getOrElse(throw new IllegalStateException("native source checkpoint unavailable")))
   }
   /** Teardown/file cleanup must not retain the all-event coordinator monitor. */
   private[service] def maintenance():Unit=bridge.maintenance()

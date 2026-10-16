@@ -470,7 +470,7 @@ a stale token cannot reinsert a forgotten utterance into a surviving session.
 `RequireAccess` still intentionally omits conversation CAS for retained access;
 this does not weaken the CAS required to update the authoritative session view.
 
-### D43: owned native development candidates (approved design, not implemented)
+### D43: owned native development candidates (consumer migration under checking)
 
 A build creates a nonassertional candidate environment. It does not require a
 measurement or claim that the entire package is mathematically correct. Selected
@@ -479,7 +479,7 @@ may export none. Qualified activation remains `StageQualifiedPublication` and
 requires its independently scoped observation and policy; constructing or
 retaining a candidate does not activate it.
 
-The finite algebra will replace the mandatory claim on every goal:
+The current source replaces the mandatory claim on every goal with this finite algebra; native checks and actual producer integration remain required:
 
 ```
 goal_requirement = ClaimRequirement claim
@@ -489,6 +489,21 @@ slot_assignment = ClaimOutput output_assignment
                 | ArtifactOutput artifact_assignment
 outcome += ArtifactReady candidate_id
 ```
+
+The concrete shared fields are `goal_required :: goal_requirement`, typed
+`goal_dependencies`, and per-child `goal_generation` / `goal_code_generation`.
+`same_requirement` compares claim requirements with `same_target`, artifact
+requirements exactly, and rejects mixed kinds. `claim_assignments` is a projection
+of the single typed ledger for claim-specific consumers; lifecycle and recovery
+traverse all assignments through `assignment_references`.
+
+Artifact parent references use the existing `slot_input` sum: `KnownInput` names
+an actual retained candidate, and `ReservedOutput` names an earlier declared slot.
+The immutable original requirement retains those references.
+`resolved_artifact_requirement` resolves them in order against the current ledger;
+the assigned requirement contains the resulting `KnownInput` candidate IDs. Native
+replay separately retains the exact combined installed-root / candidate import
+order under its pinned setup. An installed theory has no dummy candidate output.
 
 `artifact_requirement` names the protected original build template, exact source
 revision and manifest associations, ordered parent candidates, fixed build profile
@@ -538,6 +553,54 @@ against the latest checkpoint and publishes opaque objects only after agreement.
 Reconstruction is resource bounded and commands suppressed: a charged interrupted
 build does not automatically receive a new execution ticket or callback. Native
 reconstruction cannot infer provenance from labels or hashes alone.
+
+D53 gives each child its own semantic and executable pins. `child_accessible`
+checks those pins and the complete requirement references; pure dispatch resolves
+its exact owning child through the reserved slot. `required_native_children`
+selects individually accessible children of original accessible parents, so a
+child-specific denial need not deny unrelated siblings. Qualification reservations
+carry `reservation_goal`; both dispatch and result adoption check that exact
+current child. Result adoption does not repeat the already consumed fuel charge.
+The legacy effect/job paths require `legacy_single_goal` until their D42
+owned-goal migration; this restriction is not heterogeneous effect acceptance.
+
+Native child reconstruction uses a generic `RequestChildRole` with a fixed closed
+material decoder. The manifest selects a decoder; it cannot establish acceptance.
+Exactly one native child must match the actual operation family, full original
+requirement, per-child pins and request/goal/slot identity. Missing, duplicate or
+wrong-family matches reject. `claim_kind` and numeric profile IDs do not choose a
+native implementation, and there is no callback registry or second request table.
+
+D56 gives paid qualification measurement its own `QualificationOrigin attempt`
+slot. It consumes the already started exact reservation, not a second pure charge.
+The result must match the owning goal, slot, pins, profile and lineage; successful
+`StageQualification` names that same assigned binding. Parent accessibility includes
+the request ID and shared dependencies. Denying a parent stops all its children;
+denying a child goal or slot stops that child and its dependent goals.
+
+D58 records `artifact_assigned_generation` as the actual native replay result
+context, supplied by the fixed candidate producer. The builder's input/operation
+context remains `goal_generation`. The output context must occur in complete
+managed and retained dependencies and agree with checked reconstruction; neither
+an unordered dependency list nor a future candidate ID supplies that distinction.
+
+D70 derives artifact retention from the exact owning request, child and output
+slot. `artifact_expected_retained` fails on missing or ambiguous ownership and
+preserves proposed row order while deriving all intrinsic child/shared/context
+references. Preflight, installation and native artifact queries require those
+expected rows to equal the proposed rows; missing ownership edges are rejected,
+never completed into native evidence. The fixed native producer and recovery
+matcher consume this same helper while separately checking actual native source,
+parents and result context. Assignment references also derive request, goal and
+slot identities structurally, so malformed dependency lists cannot hide those
+identities from erasure or current artifact visibility. The reference owner lookup
+uses finite lists; it is not an indexed performance claim.
+
+The D43 codec source was explicitly `veri7vn.authority-metadata/2`, with a new sealed
+signature. The D44 schema is rejected rather than interpreted as the changed
+records. D51 retains the separate obligation to migrate authenticated old
+workspaces through the guarded compatibility path; a fresh current-schema build
+or roundtrip does not establish that upgrade path.
 
 Migration consumers are the metadata/event/core theories, unified codec and
 fingerprint, post-ack and typed dependency proofs, central service Frame and sole
@@ -599,3 +662,42 @@ not reach any protected surviving reference in the opposite, forward Forget
 direction. The two directions require an explicit equivalence proof. Repeated
 quadratic closure scans per support group are not an acceptable deployment path;
 indexed traversal and actual cost checks remain part of this migration.
+
+D72 adds `effect_observation` as nonassertional retained response material. The
+fixed native producer associates an actual `local-mcp/1` response source with its
+original attempt. The model derives its sole RequestLocal row from the unique
+original attempt, parent and singleton child, including structural identities,
+source reads, executable pins and retained access requirements. A response identifier
+that aliases any original structural, source or executable reference is rejected.
+Neither a source
+identifier nor a decoded event establishes native ownership or response truth.
+`StageEffectObservation` and `RecordEffectObservation` use the existing
+Persist/DurableAck boundary; source association, retained row and terminal attempt
+status become visible together. Current authorization is checked again at ack.
+Delivery consumes no second execution charge and does not require the original
+prestate revision or unspent execution fuel.
+
+The legacy effect context requires the owning child to remain `NeedsInput []`,
+ready, accessible and unblocked. It is shared by effect start and response
+delivery. Only a unique Running or Unknown attempt can deliver a Confirmed or
+EffectFailed response. A status-only terminal reconciliation deliberately closes
+response delivery. Forget removes response material and association while
+preserving terminal attempt history, preventing attachment with a fresh batch or
+source identifier. Replaying an old acknowledgement cannot reconstruct forgotten
+material. Intact native response inventory is separate from current live admission;
+restart reconstructs retained source ownership without invoking the connector.
+Broader per-child effect execution remains the separate D42 migration.
+
+The D72 codec source is `veri7vn.authority-metadata/3`. Its sealed signature
+rejects both the D43 `/2` and D44 layouts; they are not reinterpreted and there is
+no empty-state fallback. Authenticated upgrades of existing stores remain a
+separate required deployment/recovery path. Current-version rejection alone does
+not implement that upgrade.
+
+Native request-child material inventory requires an actual `Some output_slot`.
+Legacy effect requests retain their original slotless singleton goal and use
+attempt/response-source recovery associations instead. The Frame never invents
+an output slot merely to route those checkpoints. This correction does not filter
+cancelled or terminal native children yet: cancellation inventory changes remain
+coupled to the D74 historical recipe migration, and accepted-but-unpublished
+qualification/publication continuations must retain their required material.

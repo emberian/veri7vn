@@ -35,6 +35,7 @@ sig
   val query_outcome: query_result -> Veri7vn_Row_Kernel.query_outcome
   val association_id: association -> IntInf.int
   val output_id: association -> IntInf.int
+  val execution_inputs: association -> {workspace:string,inputs:IntInf.int list,semantic_generation:IntInf.int}
   val managed_dependencies: association -> IntInf.int list
   val retention_private: association -> bool option
   val instance: association -> Veri7vn_Row_Instance.instance
@@ -87,17 +88,24 @@ struct
     source_owner:P.source_owner,manifest_owner:P.source_owner};
   fun require true _=() | require false text=error text;
   fun available message (SOME value)=value | available message NONE=error message;
+  fun reservation_payload_live ({recipe,relation,...}:reservation_payload)=
+    RI.recipe_is_live recipe andalso (case relation of NONE=>true
+      | SOME r=>is_some(try RI.relation_metadata r));
   fun reservation_view (Reservation {payload,...}) =
-    (case Synchronized.value payload of SOME p=>if RI.recipe_is_live (#recipe p) then p
+    (case Synchronized.value payload of SOME p=>if reservation_payload_live p then p
       else error "Source recipe released" | NONE=>error "Source reservation released");
   fun reservation_live (Reservation {payload,...})=
-    (case Synchronized.value payload of NONE=>false | SOME {recipe,...}=>RI.recipe_is_live recipe);
+    (case Synchronized.value payload of NONE=>false | SOME p=>reservation_payload_live p);
   fun association_view (Association {payload,...}) =
     (case Synchronized.value payload of SOME p=>p | NONE=>error "Source association released");
   fun is_live (Association {payload,...}) =
-    (case Synchronized.value payload of NONE=>false | SOME {reservation,input,manifest_input,source_owner,manifest_owner,...}=>
+    (case Synchronized.value payload of NONE=>false | SOME {reservation,input,manifest_input,source_owner,manifest_owner,receipt,...}=>
       reservation_live reservation andalso L.retained input andalso L.retained manifest_input andalso
-      P.owns_input source_owner input andalso P.owns_input manifest_owner manifest_input);
+      P.owns_input source_owner input andalso P.owns_input manifest_owner manifest_input andalso
+      (case #relation(reservation_view reservation) of NONE=>true | SOME r=>
+        let val operation= #operation receipt
+        in List.all(fn owner=>P.source_workspace owner= #workspace operation andalso
+          member(op =) (#inputs operation) (P.source_identity owner)) (RI.relation_input_owners r) end));
   fun same_association (Association {id=a,...},Association {id=b,...})=a=b;
   fun prepare {allocator,recipe} =
     let val generation=RI.recipe_generation recipe
@@ -158,6 +166,10 @@ struct
     let val (identity,{reservation,input,manifest_input,source_owner,manifest_owner}:acquisition_payload)=Tickets.consume_acquisition ticket
       val saved=reservation_view reservation
       val operation= #operation identity
+      val language_owners=(case #relation saved of NONE=>[] | SOME r=>RI.relation_input_owners r)
+      val _=require(List.all(fn owner=>P.source_workspace owner= #workspace operation andalso
+        member(op =) (#inputs operation) (P.source_identity owner)) language_owners)
+        "Relation language dependencies missing from confirmed acquisition"
       val _=require (I.workspace (#allocator saved)= #workspace operation andalso
         P.source_workspace source_owner= #workspace operation andalso
         P.source_workspace manifest_owner= #workspace operation andalso
@@ -239,6 +251,12 @@ struct
     (require (is_live owner) "Source query released";the (Synchronized.value payload));
   fun association_id (Association {association_id,...})=association_id;
   fun output_id (Association {output_id,...})=output_id;
+  fun execution_inputs association =
+    let val _=require(is_live association) "Source association released";
+      val {receipt,...}=association_view association;
+      val operation= #operation receipt
+    in {workspace= #workspace operation,inputs= #inputs operation,
+      semantic_generation= #semantic_generation operation} end;
   fun managed_dependencies association =
     let val {reservation,source_owner,manifest_owner,receipt,...}=association_view association
       val saved=reservation_view reservation

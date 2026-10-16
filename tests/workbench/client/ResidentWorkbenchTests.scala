@@ -50,6 +50,10 @@ object ResidentWorkbenchTests {
         while(!page.contains("accepted_exact") && System.nanoTime()<deadline){Thread.sleep(25);page=post("Refresh result",Seq("request"->id))}
         assert(page.contains("accepted_exact") && page.contains("The exact product of 6 and 7 is 42.") && page.contains("iframe sandbox"))
         assert(page.contains("Literal 1 byte range") && page.contains("Semantic generation") && page.contains("Mathematics operation"))
+        val combined=http.send(HttpRequest.newBuilder(URI.create(browser.url+"?package=editable&request="+id)).GET().build(),HttpResponse.BodyHandlers.ofString()).body()
+        assert(combined.contains("editable package workspace") && combined.contains("Editable.thy") && combined.contains("Inspect retained run"))
+        assert(combined.contains("The exact product of 6 and 7 is 42.") && combined.contains("Semantic generation"))
+        assert(combined.contains("does not associate that request with its edited source"))
         val denied=post("Forget request",Seq("request"->id))
         assert(denied.contains("Confirm removal"))
         post("Forget request",Seq("request"->id,"confirm"->"yes"))

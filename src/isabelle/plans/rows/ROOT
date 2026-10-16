@@ -1,0 +1,4 @@
+session Veri7vn_Row_Plans = Veri7vn_Source_Plans +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Source_Import
+  theories Veri7vn_Row_Population Veri7vn_Row_Plans Veri7vn_Row_Slots

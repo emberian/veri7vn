@@ -1,0 +1,4 @@
+session Veri7vn_Search_Service_Metadata = Veri7vn_Search_Service +
+  options [document = false, record_proofs = 2]
+  sessions Veri7vn_Authority
+  theories Search_Service_Metadata

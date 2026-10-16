@@ -1,0 +1,3 @@
+session Veri7vn_Effects_Indexed_Tests = Veri7vn_Effects_Indexed +
+  options [document = false]
+  theories Effects_Indexed_Tests

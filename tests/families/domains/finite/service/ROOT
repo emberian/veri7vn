@@ -1,0 +1,3 @@
+session Veri7vn_Finite_Service_Tests = Veri7vn_Finite_Service +
+  options [document = false, threads = 2]
+  theories Finite_Ticket_Checks

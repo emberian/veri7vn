@@ -1,0 +1,9 @@
+session Veri7vn_Source_Relation_Consumer_Tests = Veri7vn_Execution +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Row_Kernel_Tests
+  theories Source_Relation_Consumer_Tests
+
+session Veri7vn_Source_Relation_Language_Consumer_Tests in language = Veri7vn_Source_Relation_Consumer_Tests +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Natural_Relation_Gate
+  theories Source_Relation_Language_Consumer_Tests

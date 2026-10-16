@@ -1,0 +1,4 @@
+session Veri7vn_Source_Acquisition_Kernel = Veri7vn_Source_Acquisition +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Source_Metadata Veri7vn_Admission Veri7vn_Effect_Tickets Veri7vn_Native_Request_Scope
+  theories Source_Acquisition_Kernel

@@ -178,8 +178,8 @@ struct
             val executable_input = Thm.cterm_of code_context
               (@{term registered_math_dispatch} $ @{term QualifiedExactArithmetic} $ bound $ packet);
             val (computation_input,input_conversion) = computation_input limits executable_input;
-            val charge = @{code integer_of_nat} (@{code math_modeled_cost}
-              (@{code nat_of_integer} (IntInf.fromInt (Term.size_of_term t))));
+            val charge = Veri7vn_Numerals.integer_of_nat (@{code math_modeled_cost}
+              (Veri7vn_Numerals.nat_of_integer (IntInf.fromInt (Term.size_of_term t))));
           in Synchronized.change_result state (fn {store,owners} =>
             let val origin=serial ();
               val (h,store')=Store.put_value (Prepared {instance=id,origin=origin,native=native,
@@ -197,9 +197,9 @@ struct
   val reflect = @{code math_outcome_term};
   fun convert_view raw =
     (case raw of @{code ExactRationalView} (n,d) =>
-      Exact_Rational (@{code integer_of_int} n,@{code integer_of_int} d)
+      Exact_Rational (Veri7vn_Numerals.integer_of_int n,Veri7vn_Numerals.integer_of_int d)
     | @{code UndefinedView} => Undefined_Arithmetic
-    | @{code MissingParametersView} ns => Missing_Parameters (map @{code integer_of_nat} ns)
+    | @{code MissingParametersView} ns => Missing_Parameters (map Veri7vn_Numerals.integer_of_nat ns)
     | @{code SyntaxRejectedView} => Invalid_Syntax
     | @{code BoundExceededView} => Exhausted_Budget);
   datatype decoded = Unsupported | Result of {project: unit -> term, view: unit -> view};

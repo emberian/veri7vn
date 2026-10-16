@@ -20,7 +20,8 @@ final class ResidentExecution(service:RuntimeService) extends Execution with Aut
       "Reading"->reading.description,"Selected native reading"->reading.index.toString,"Mathematics operation"->reading.operation.toString,
       "Original input bytes"->reading.inputBytes.toString)++reading.literals.zipWithIndex.map((span,index)=>
         ("Literal "+(index+1)+" byte range",span.startByte+"–"+span.endByte)))++
-      native.readingUnavailable.toVector.map(reason=>"Reading unavailable"->reason)
+      native.readingUnavailable.toVector.map(reason=>"Reading unavailable"->reason)++
+      native.informationLimits.zipWithIndex.map((limit,index)=>("Inspection limit "+(index+1),limit))
   }
   def cancel(id:BigInt):Unit=service.client.cancel(id)
   def forget(id:BigInt):Unit=service.client.forget(id)

@@ -1,0 +1,741 @@
+package veri7vn.runtime.host
+
+import isabelle.{SQLite, Path => IPath}
+import scala.language.unsafeNulls
+import java.nio.file.{Files, Path, StandardCopyOption, StandardOpenOption}
+import java.nio.channels.FileChannel
+import java.security.MessageDigest
+
+object WorkspaceStore {
+  final case class Limits(maxBlobBytes: Int = 16 * 1024 * 1024, maxBatchBytes: Int = 32 * 1024 * 1024,
+    maxEntries: Int = 4096, maxNameBytes: Int = 1024) {
+    require(maxBlobBytes > 0 && maxBatchBytes >= maxBlobBytes && maxEntries > 0 && maxNameBytes > 0)
+  }
+  final case class DraftFile(name: String, bytes: Array[Byte])
+  final case class DraftAck(id: String, revision: Long)
+  final case class Conflict(currentRevision: Long)
+  trait ManagedResourceOwner {
+    /** Nonblocking signal only; never join a worker while the source lock is held. */
+    def invalidate(): Unit
+    def stopAndRelease(): Unit
+  }
+  final class ManagedResourceRegistration private[host](store:WorkspaceStore,private[host] val id:String) {
+    def isLive:Boolean=store.managedResourceLive(id)
+    def withCurrent[A](action: => A):A=store.withManagedResourceCurrent(id)(action)
+    def release():Unit=store.releaseManagedResource(id)
+    def createScratchRoot():Path=store.createResourceScratch(id)
+    def reserveScratchDirectory(relative:String):Path=store.reserveResourceScratch(id,relative,true,0)
+    def reserveScratchFile(relative:String,size:Long):Path=store.reserveResourceScratch(id,relative,false,size)
+  }
+  private[runtime] final class NativeResidentOwnership private[host](private val store:WorkspaceStore,val incarnation:String) {
+    private[runtime] def confirmStopped():Unit=store.confirmNativeResidentStopped(incarnation)
+  }
+  final class NativeIdLease private[host](val workspace: String, val first: BigInt, val past: BigInt)
+  /** Service-owned native export bytes; this is storage material, not proof authority. */
+  private[runtime] final class NativeRecoveryMaterial private[runtime](
+    val association: BigInt, val semanticGeneration: BigInt, input: Vector[(String,Array[Byte])],
+    private[runtime] val dependencies:Vector[BigInt]) {
+    require(dependencies.nonEmpty && dependencies.size<=8192 && dependencies.distinct.size==dependencies.size &&
+      dependencies.forall(n=>n>0 && n.toString.length<=128) && dependencies.contains(association),"native managed dependency closure")
+    private val required=Set("manifest","projection","sequent","context_closure","reconstruction")
+    require(association>0 && semanticGeneration>0 && association.toString.length<=128 && semanticGeneration.toString.length<=128)
+    require(input.size>=5 && input.size<=6 && input.map(_._1).distinct.size==input.size)
+    require(required.subsetOf(input.map(_._1).toSet) && input.forall(p=>required.contains(p._1) || p._1=="executable"))
+    input.foreach {case(name,bytes)=>require(bytes.length <= (if(name=="manifest")8192 else if(name=="context_closure")16*1024*1024 else if(name=="reconstruction")100000 else 1024*1024),"native recovery slot limit")}
+    require(input.foldLeft(0L)((n,p)=>n+p._2.length)<=32L*1024*1024,"native recovery aggregate limit")
+    private var payload:Option[Vector[(String,Array[Byte])]]=Some(input.map {case(name,bytes)=>(name,bytes.clone())})
+    private[runtime] def slots:Vector[(String,Array[Byte])]=synchronized {payload.getOrElse(throw new IllegalStateException("native recovery material released"))}
+    private[runtime] def release():Unit=synchronized {payload.foreach(_.foreach(p=>java.util.Arrays.fill(p._2,0.toByte)));payload=None}
+  }
+  private[runtime] final class CommittedNativeRecovery private[host](
+    val workspace: String, val sequence: Long, val originSequence:Long, val epoch: Long,
+    private[host] val material: NativeRecoveryMaterial,private val owner:WorkspaceStore) extends AutoCloseable {
+    private[runtime] def withMaterial[A](consume:NativeRecoveryMaterial=>A):A=owner.withNativeRecovery(this)(consume)
+    def close():Unit=owner.releaseNativeRecovery(this)
+  }
+  private[runtime] final class NativeInvalidations private[runtime](val mode:String,val objects:Vector[BigInt]) {
+    require(Set("revoke","forget").contains(mode) && objects.nonEmpty && objects.size<=8192 && objects.distinct.size==objects.size &&
+      objects.forall(n=>n>0 && n.toString.length<=128),"native invalidation closure")
+  }
+  private[runtime] final class NativeDispatchMaterial private[runtime](val kind:String,val id:BigInt,
+    val incarnation:BigInt,val deployment:String,input:Array[Byte]) {
+    require(Set("pure","effect","job").contains(kind) && id>0 && id.toString.length<=128 &&
+      incarnation>=0 && incarnation.toString.length<=128 && deployment.matches("[0-9a-f]{64}"))
+    require(input.nonEmpty && input.length<=4096,"native dispatch description bound")
+    private[runtime] val command=input.clone()
+  }
+  private[runtime] final case class NativeDispatchRecord(sequence:Long,kind:String,id:BigInt,
+    incarnation:BigInt,deployment:String,command:Array[Byte],status:String)
+  final case class NativeRecord(id: String, sequence: Long, revision: Long, epoch: Long, event: Array[Byte], checkpoint: Array[Byte])
+  final case class DraftView(id: String, revision: Long, files: Vector[(String, Array[Byte])])
+  sealed trait Access
+  final case class Available(view: DraftView) extends Access
+  case object Unavailable extends Access
+  private[host] def validateRecovery(workspace: String, material: NativeRecoveryMaterial): Unit = {
+    val slots=material.slots.toMap
+    val bytes=slots("manifest")
+    require(bytes.forall(b=>b==5 || b==6 || (b>=32 && b<=126)),"recovery envelope ASCII framing")
+    val text=new String(bytes,java.nio.charset.StandardCharsets.US_ASCII)
+    val prefix="\u0005\u0006veri7vn-native-association\u0006"
+    val suffix="\u0005\u0005\u0006\u0005"
+    require(text.startsWith(prefix) && text.endsWith(suffix),"recovery envelope shape")
+    val fields=text.substring(prefix.length,text.length-suffix.length).split("\u0006",-1).toVector.map { field=>
+      val equal=field.indexOf('='); require(equal>0 && !field.contains('\u0005'),"recovery envelope attribute")
+      (field.substring(0,equal),field.substring(equal+1))
+    }
+    val keys=Set("version","profile","role","workspace","association","semantic-generation","projection","sequent","context-closure","kind","payload","executable")
+    require(fields.size==keys.size && fields.map(_._1).toSet==keys,"recovery envelope fields")
+    val m=fields.toMap
+    require(m("version")=="2" && m("workspace")==workspace && m("association")==material.association.toString &&
+      m("semantic-generation")==material.semanticGeneration.toString,"recovery envelope identity")
+    val kernel=m("profile")=="native-kernel/1" && m("role")=="kernel-evidence"
+    val math=m("profile")=="exact-arithmetic/1" && Set("math-request","math-output").contains(m("role"))
+    require(kernel || math,"unsupported recovery profile/role")
+    require(if(kernel) Set("fixed-certificate","native-proof","controlled-recipe").contains(m("kind")) && m("executable").isEmpty
+      else m("kind")=="controlled-recipe" && m("executable").nonEmpty,"recovery profile reconstruction")
+    for((field,slot)<-Vector("projection"->"projection","sequent"->"sequent","context-closure"->"context_closure","payload"->"reconstruction"))
+      require(m(field)==digest(slots(slot)),"recovery named-slot integrity")
+    require(m("executable")==slots.get("executable").map(digest).getOrElse(""),"recovery executable integrity")
+  }
+  private[host] def digest(bytes: Array[Byte]): String =
+    MessageDigest.getInstance("SHA-256").digest(bytes).map(b => f"${b & 255}%02x").mkString
+}
+
+/** Single durable workspace writer. Source revisions confer no native acceptance;
+  * native journal entries are installed only through the service coordinator. */
+final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = WorkspaceStore.Limits())
+  extends AutoCloseable {
+  import WorkspaceStore.*
+  private val newRoot= !Files.exists(root,java.nio.file.LinkOption.NOFOLLOW_LINKS)
+  Files.createDirectories(root)
+  require(!Files.isSymbolicLink(root),"workspace root must be private directory")
+  // POSIX is the initial supported deployment profile; source material is host-private.
+  private val privatePermissions=java.nio.file.attribute.PosixFilePermissions.fromString("rwx------")
+  if(newRoot) Files.setPosixFilePermissions(root,privatePermissions)
+  else require(privatePermissions.containsAll(Files.getPosixFilePermissions(root)),"workspace root must exclude group/other access")
+  private val blobs = Files.createDirectories(root.resolve("blobs"))
+  require(!Files.isSymbolicLink(blobs),"artifact directory must not be a symlink")
+  Files.setPosixFilePermissions(blobs,java.nio.file.attribute.PosixFilePermissions.fromString("rwx------"))
+  private val lockChannel = FileChannel.open(root.resolve("writer.lock"), StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+  private val writerLock = try {
+    val l = lockChannel.tryLock()
+    if (l == null) throw new IllegalStateException("workspace writer already active")
+    l
+  } catch { case e: Throwable => lockChannel.close(); throw e }
+  private val database = try SQLite.open_database(IPath.explode(root.resolve("journal.db").toString))
+    catch {case e: Throwable => writerLock.release(); lockChannel.close(); throw e}
+  private val connection = database.connection
+  private var closed = false
+  private var authorityOwner=false
+  private var nativeCapabilities=Set.empty[CommittedNativeRecovery]
+  private[host] def releaseNativeRecovery(capability:CommittedNativeRecovery):Unit=synchronized {
+    capability.material.release();nativeCapabilities-=capability
+  }
+  private[host] def withNativeRecovery[A](capability:CommittedNativeRecovery)(consume:NativeRecoveryMaterial=>A):A=synchronized {
+    live();require(nativeCapabilities.contains(capability) && latestNative.exists(_.sequence==capability.sequence),"native recovery capability no longer current")
+    val denied=connection.prepareStatement("SELECT 1 FROM native_recovery_edges e JOIN native_access_denials d ON d.object_id=e.dependency WHERE e.association=? LIMIT 1")
+    try {denied.setString(1,capability.material.association.toString);require(!denied.executeQuery().next(),"native association access denied")} finally denied.close()
+    consume(capability.material)
+  }
+  private def exactProcess(pid:Long,started:String):Option[java.lang.ProcessHandle]={
+    val candidate=java.lang.ProcessHandle.of(pid)
+    if(!candidate.isPresent)None else {
+      val handle=candidate.get();val instant=handle.info().startInstant()
+      require(instant.isPresent,"process start identity unavailable")
+      if(instant.get().toString==started && handle.isAlive)Some(handle) else None
+    }
+  }
+  /** A prior live JVM owner is never killed. Only the exact child of a recorded,
+    * terminated owner may be stopped as part of workspace recovery. */
+  private[runtime] def reconcileNativeResidents():Unit=synchronized {
+    live();require(!authorityOwner,"workspace native owner already active")
+    val q=connection.createStatement()
+    val rows=try {val r=q.executeQuery("SELECT incarnation,pid,started,owner_pid,owner_started FROM native_residents");val b=Vector.newBuilder[(String,Long,String,Long,String)]
+      while(r.next())b+=((r.getString(1),r.getLong(2),r.getString(3),r.getLong(4),r.getString(5)));b.result()} finally q.close()
+    rows.foreach {case(incarnation,pid,started,owner,ownerStarted)=>
+      exactProcess(pid,started).foreach {process=>
+        require(exactProcess(owner,ownerStarted).isEmpty,"previous native JVM owner still running")
+        process.destroy()
+        try process.onExit().get(5,java.util.concurrent.TimeUnit.SECONDS)
+        catch {case _:java.util.concurrent.TimeoutException=>process.destroyForcibly();process.onExit().get(5,java.util.concurrent.TimeUnit.SECONDS)}
+        require(!process.isAlive,"previous resident did not stop")
+      }
+      confirmNativeResidentStopped(incarnation)
+    }
+  }
+  private[runtime] def registerNativeResident(incarnation:String,pid:Long):NativeResidentOwnership=synchronized {
+    live();require(incarnation.matches("[0-9a-f]{32}") && pid>0,"native resident identity")
+    val actual=java.lang.ProcessHandle.of(pid);require(actual.isPresent && actual.get().isAlive,"native resident missing")
+    val started=actual.get().info().startInstant();val owner=java.lang.ProcessHandle.current();val ownerStarted=owner.info().startInstant()
+    require(started.isPresent && ownerStarted.isPresent,"native resident process identity unavailable")
+    transaction {
+      val count=connection.createStatement();try {val r=count.executeQuery("SELECT COUNT(*) FROM native_residents");require(r.next() && r.getInt(1)==0,"native resident already registered")} finally count.close()
+      val q=connection.prepareStatement("INSERT INTO native_residents VALUES(?,?,?,?,?)")
+      try {q.setString(1,incarnation);q.setLong(2,pid);q.setString(3,started.get().toString);q.setLong(4,owner.pid());q.setString(5,ownerStarted.get().toString);q.executeUpdate()} finally q.close()
+    }
+    new NativeResidentOwnership(this,incarnation)
+  }
+  private[host] def confirmNativeResidentStopped(incarnation:String):Unit=synchronized {
+    val q=connection.prepareStatement("SELECT pid,started FROM native_residents WHERE incarnation=?")
+    val record=try {q.setString(1,incarnation);val r=q.executeQuery();if(r.next())Some((r.getLong(1),r.getString(2)))else None} finally q.close()
+    record.foreach {case(pid,started)=>require(exactProcess(pid,started).isEmpty,"resident still retains private roots")}
+    transaction {val remove=connection.prepareStatement("DELETE FROM native_residents WHERE incarnation=?")
+      try {remove.setString(1,incarnation);remove.executeUpdate()} finally remove.close()}
+  }
+  private[runtime] def claimAuthorityCoordinator(): Unit = synchronized {
+    require(!closed && !authorityOwner,"workspace already has an authority coordinator")
+    authorityOwner=true
+  }
+  private[runtime] def releaseAuthorityCoordinator(): Unit = synchronized {authorityOwner=false}
+  private final case class ManagedResource(draft:String,head:String,owner:ManagedResourceOwner,active:Boolean,signalFailure:Option[Throwable]=None,joinMonitor:Object=new Object())
+  private var managedResources=Map.empty[String,ManagedResource]
+  private[runtime] def registerManagedResource(draft:String,selected:String,owner:ManagedResourceOwner):ManagedResourceRegistration=synchronized {
+    live();require(head(draft).contains(selected),"managed source changed before resource registration")
+    val id=java.util.UUID.randomUUID().toString
+    managedWrite {db=>
+      val count=db.prepareStatement("SELECT COUNT(*) FROM managed_resource_regions WHERE draft=?")
+      try {count.setString(1,draft);val rows=count.executeQuery();require(rows.next() && rows.getLong(1)<128,"worker resource region limit")} finally count.close()
+      val insert=db.prepareStatement("INSERT INTO managed_resource_regions(id,draft,head,state) VALUES(?,?,?,'live')")
+      try {insert.setString(1,id);insert.setString(2,draft);insert.setString(3,selected);insert.executeUpdate()} finally insert.close()
+    }
+    managedResources+=id->ManagedResource(draft,selected,owner,true)
+    new ManagedResourceRegistration(this,id)
+  }
+  private[host] def managedResourceLive(id:String):Boolean=synchronized {
+    !closed && managedResources.get(id).exists(r=>r.active && head(r.draft).nonEmpty)
+  }
+  private[host] def withManagedResourceCurrent[A](id:String)(action: => A):A=synchronized {
+    live();val resource=managedResources.getOrElse(id,throw new IllegalStateException("managed resource released"))
+    require(resource.active && head(resource.draft).contains(resource.head),"managed source resource no longer current")
+    action
+  }
+  private[host] def releaseManagedResource(id:String):Unit={
+    val monitor=synchronized {managedResources.get(id).map(_.joinMonitor)}
+    monitor.foreach {lock=>lock.synchronized {
+    val selected=synchronized {
+      managedResources.get(id).map {resource=>
+        var signalFailure=resource.signalFailure
+        managedResources+=id->resource.copy(active=false)
+        try resource.owner.invalidate() catch {case failure:Throwable=>signalFailure match {
+          case None=>signalFailure=Some(failure);case Some(first)=>first.addSuppressed(failure)}}
+        (resource.owner,signalFailure)
+      }
+    }
+    selected.foreach {case(owner,signalFailure)=>
+      try owner.stopAndRelease() catch {case failure:Throwable=>
+        signalFailure.foreach(failure.addSuppressed);throw failure}
+      // A completed join/clear resolves a failed earlier cancellation signal.
+      synchronized {cleanupResourceScratch(id);managedResources-=id}
+    }
+    }}
+  }
+  private def resourceRoot(id:String):Path={
+    require(id.matches("[0-9a-f-]{36}"),"resource identity")
+    root.resolve("managed-workers").resolve(id)
+  }
+  private def scratchRelative(name:String):Vector[String]={
+    require(name.nonEmpty && name.length<=4096 && !name.startsWith("/") && !name.contains('\\') && !name.contains('\u0000'),"scratch path bound")
+    val parts=name.split("/",-1).toVector
+    require(parts.size<=32 && parts.forall(p=>p.nonEmpty && p!="." && p!=".."),"scratch path components")
+    parts
+  }
+  private[host] def createResourceScratch(id:String):Path=withManagedResourceCurrent(id) {
+    val parent=root.resolve("managed-workers")
+    if(!Files.exists(parent,java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+      Files.createDirectory(parent);Files.setPosixFilePermissions(parent,java.nio.file.attribute.PosixFilePermissions.fromString("rwx------"))
+    }
+    require(Files.isDirectory(parent,java.nio.file.LinkOption.NOFOLLOW_LINKS) && !Files.isSymbolicLink(parent),"scratch owner directory")
+    val target=resourceRoot(id)
+    managedWrite {db=>val q=db.prepareStatement("INSERT INTO managed_resource_paths(region,path,kind,size) VALUES(?,'','directory',0)")
+      try {q.setString(1,id);q.executeUpdate()} finally q.close()}
+    Files.createDirectory(target)
+    Files.setPosixFilePermissions(target,java.nio.file.attribute.PosixFilePermissions.fromString("rwx------"));target
+  }
+  private[host] def reserveResourceScratch(id:String,name:String,directory:Boolean,size:Long):Path=withManagedResourceCurrent(id) {
+    val parts=scratchRelative(name);require(size>=0 && size<=1024L*1024*1024,"scratch file bound")
+    val target=parts.foldLeft(resourceRoot(id))(_.resolve(_))
+    var parent=resourceRoot(id)
+    parts.dropRight(1).foreach {part=>require(Files.isDirectory(parent,java.nio.file.LinkOption.NOFOLLOW_LINKS) && !Files.isSymbolicLink(parent),"scratch parent");parent=parent.resolve(part)}
+    require(Files.isDirectory(parent,java.nio.file.LinkOption.NOFOLLOW_LINKS) && !Files.isSymbolicLink(parent),"scratch parent")
+    managedWrite {db=>
+      val usage=db.prepareStatement("SELECT COUNT(*),COALESCE(SUM(size),0) FROM managed_resource_paths WHERE region=?")
+      try {usage.setString(1,id);val rows=usage.executeQuery();require(rows.next() && rows.getLong(1)<8192 && size<=1024L*1024*1024-rows.getLong(2),"scratch inventory budget")} finally usage.close()
+      val q=db.prepareStatement("INSERT INTO managed_resource_paths(region,path,kind,size) VALUES(?,?,?,?)")
+      try {q.setString(1,id);q.setString(2,name);q.setString(3,if(directory)"directory" else "file");q.setLong(4,size);q.executeUpdate()} finally q.close()}
+    target
+  }
+  private def cleanupResourceScratch(id:String):Unit={
+    val q=connection.prepareStatement("SELECT path,kind FROM managed_resource_paths WHERE region=?")
+    val entries=try {q.setString(1,id);val r=q.executeQuery();val b=Vector.newBuilder[(String,String)]
+      while(r.next())b+=((r.getString(1),r.getString(2)));b.result()} finally q.close()
+    val base=resourceRoot(id)
+    entries.sortBy {case(name,kind)=>(if(kind=="file")0 else 1,-(if(name.isEmpty)0 else name.count(_=='/')+1))}.foreach {case(name,kind)=>
+      val parts=if(name.isEmpty)Vector.empty else scratchRelative(name)
+      val target=parts.foldLeft(base)(_.resolve(_))
+      var parent=target.getParent
+      while(parent!=null && parent.startsWith(base)) {require(!Files.isSymbolicLink(parent),"scratch cleanup parent changed");parent=parent.getParent}
+      require(!Files.isSymbolicLink(target),"scratch cleanup entry changed")
+      Files.deleteIfExists(target)
+    }
+    managedWrite {db=>
+      val paths=db.prepareStatement("DELETE FROM managed_resource_paths WHERE region=?")
+      try {paths.setString(1,id);paths.executeUpdate()} finally paths.close()
+      val region=db.prepareStatement("DELETE FROM managed_resource_regions WHERE id=?")
+      try {region.setString(1,id);region.executeUpdate()} finally region.close()
+    }
+  }
+  private[host] def requireNoOrphanResources(draft:String):Unit=synchronized {
+    val q=connection.prepareStatement("SELECT id FROM managed_resource_regions WHERE draft=?")
+    try {q.setString(1,draft);val r=q.executeQuery()
+      while(r.next())require(managedResources.contains(r.getString(1)),"retained worker resource requires confirmed recovery cleanup")
+    } finally q.close()
+  }
+  private[host] def invalidateManagedResources(draft:String):Vector[ManagedResourceRegistration]=synchronized {
+    val selected=managedResources.toVector.filter(_._2.draft==draft)
+    selected.foreach {case(id,resource)=>managedResources+=id->resource.copy(active=false)}
+    selected.foreach {case(id,resource)=>try resource.owner.invalidate() catch {case failure:Throwable=>
+      managedResources+=id->managedResources(id).copy(signalFailure=Some(failure))}}
+    selected.map {case(id,_)=>new ManagedResourceRegistration(this,id)}
+  }
+  private[runtime] var afterNativeCommit: () => Unit = () => ()
+  private[host] var afterNativeBlobPublish: () => Unit = () => ()
+  private def execute(sql: String): Unit = { val s=connection.createStatement(); try s.execute(sql) finally s.close() }
+  private val initialized: Unit = try {
+  execute("PRAGMA journal_mode=WAL")
+  execute("PRAGMA synchronous=FULL")
+  execute("PRAGMA secure_delete=ON")
+  execute("PRAGMA foreign_keys=ON")
+  execute("CREATE TABLE IF NOT EXISTS workspace (singleton INTEGER PRIMARY KEY CHECK(singleton=1), revision INTEGER NOT NULL)")
+  execute("INSERT OR IGNORE INTO workspace VALUES(1,0)")
+  execute("CREATE TABLE IF NOT EXISTS drafts (id TEXT PRIMARY KEY, revision INTEGER UNIQUE NOT NULL, revoked INTEGER NOT NULL DEFAULT 0)")
+  execute("CREATE TABLE IF NOT EXISTS files (draft TEXT NOT NULL REFERENCES drafts(id), name TEXT NOT NULL, hash TEXT NOT NULL, size INTEGER NOT NULL, PRIMARY KEY(draft,name))")
+  execute("CREATE INDEX IF NOT EXISTS files_hash ON files(hash)")
+  execute("CREATE TABLE IF NOT EXISTS native_identity (singleton INTEGER PRIMARY KEY CHECK(singleton=1), workspace TEXT NOT NULL, next_id TEXT NOT NULL)")
+  val newWorkspace=java.util.UUID.randomUUID().toString.replace("-","")
+  execute(s"INSERT OR IGNORE INTO native_identity VALUES(1,'$newWorkspace','1')")
+  execute("CREATE TABLE IF NOT EXISTS native_journal (sequence INTEGER PRIMARY KEY, id TEXT UNIQUE NOT NULL, revision INTEGER NOT NULL, epoch INTEGER NOT NULL, event BLOB NOT NULL, checkpoint BLOB NOT NULL)")
+  execute("CREATE TABLE IF NOT EXISTS managed_resource_regions(id TEXT PRIMARY KEY,draft TEXT NOT NULL,head TEXT NOT NULL,state TEXT NOT NULL)")
+  execute("CREATE TABLE IF NOT EXISTS managed_resource_paths(region TEXT NOT NULL REFERENCES managed_resource_regions(id),path TEXT NOT NULL,kind TEXT NOT NULL,size INTEGER NOT NULL,PRIMARY KEY(region,path))")
+  execute("CREATE TABLE IF NOT EXISTS native_residents(incarnation TEXT PRIMARY KEY,pid INTEGER NOT NULL,started TEXT NOT NULL,owner_pid INTEGER NOT NULL,owner_started TEXT NOT NULL)")
+  execute("CREATE TABLE IF NOT EXISTS native_dispatch(sequence INTEGER NOT NULL REFERENCES native_journal(sequence),kind TEXT NOT NULL,id TEXT NOT NULL,incarnation TEXT NOT NULL,deployment TEXT NOT NULL,command BLOB NOT NULL,status TEXT NOT NULL,PRIMARY KEY(kind,id,incarnation))")
+  execute("CREATE TABLE IF NOT EXISTS native_recovery (sequence INTEGER NOT NULL REFERENCES native_journal(sequence), association TEXT NOT NULL, semantic_generation TEXT NOT NULL, slot TEXT NOT NULL, hash TEXT NOT NULL, size INTEGER NOT NULL, PRIMARY KEY(sequence,association,slot))")
+  execute("CREATE INDEX IF NOT EXISTS native_recovery_association ON native_recovery(association,sequence)")
+  execute("CREATE TABLE IF NOT EXISTS native_gc_state(singleton INTEGER PRIMARY KEY CHECK(singleton=1),pending INTEGER NOT NULL)")
+  execute("INSERT OR IGNORE INTO native_gc_state VALUES(1,0)")
+  execute("CREATE TABLE IF NOT EXISTS native_erased_associations(association TEXT PRIMARY KEY)")
+  execute("CREATE TABLE IF NOT EXISTS native_artifact_erase_queue(hash TEXT PRIMARY KEY)")
+  execute("CREATE TABLE IF NOT EXISTS native_artifact_stages(id TEXT PRIMARY KEY,association TEXT NOT NULL)")
+  execute("CREATE TABLE IF NOT EXISTS native_artifact_members(stage TEXT NOT NULL REFERENCES native_artifact_stages(id),slot TEXT NOT NULL,hash TEXT NOT NULL,size INTEGER NOT NULL,temporary TEXT NOT NULL,PRIMARY KEY(stage,slot))")
+  execute("CREATE TABLE IF NOT EXISTS native_artifact_stage_edges(stage TEXT NOT NULL REFERENCES native_artifact_stages(id),dependency TEXT NOT NULL,PRIMARY KEY(stage,dependency))")
+  execute("CREATE TABLE IF NOT EXISTS native_access_denials(object_id TEXT PRIMARY KEY,mode TEXT NOT NULL)")
+  execute("CREATE TABLE IF NOT EXISTS native_recovery_edges(sequence INTEGER NOT NULL REFERENCES native_journal(sequence),association TEXT NOT NULL,dependency TEXT NOT NULL,PRIMARY KEY(sequence,association,dependency))")
+  execute("CREATE INDEX IF NOT EXISTS native_edges_association ON native_recovery_edges(association,sequence)")
+  execute("CREATE INDEX IF NOT EXISTS native_edges_dependency ON native_recovery_edges(dependency,association)")
+  execute("CREATE INDEX IF NOT EXISTS native_stage_hash ON native_artifact_members(hash)")
+  execute("CREATE TABLE IF NOT EXISTS source_heads (draft TEXT PRIMARY KEY, locator TEXT NOT NULL, revoked INTEGER NOT NULL DEFAULT 0)")
+  execute("CREATE TABLE IF NOT EXISTS source_history (sequence INTEGER PRIMARY KEY AUTOINCREMENT, draft TEXT NOT NULL, locator TEXT NOT NULL, mode TEXT NOT NULL)")
+  execute("CREATE TABLE IF NOT EXISTS lifecycle (sequence INTEGER PRIMARY KEY AUTOINCREMENT, draft TEXT NOT NULL REFERENCES drafts(id), mode TEXT NOT NULL)")
+  cleanupNativeArtifactStages()
+  } catch {case e: Throwable =>
+    try database.close() finally {writerLock.release(); lockChannel.close()}
+    throw e
+  }
+  private def live(): Unit = require(!closed, "workspace store closed")
+  def currentRevision: Long = synchronized { live(); val s=connection.createStatement(); try {
+    val r=s.executeQuery("SELECT revision FROM workspace WHERE singleton=1"); require(r.next()); r.getLong(1)
+  } finally s.close() }
+  private def transaction[A](f: => A): A = {
+    connection.setAutoCommit(false)
+    try {val result=f; connection.commit(); result}
+    catch {case e: Throwable => connection.rollback(); throw e}
+    finally connection.setAutoCommit(true)
+  }
+  private[host] def managedRoot: Path = root
+  private[host] def managedRead[A](f: java.sql.Connection => A): A = synchronized {live(); f(connection)}
+  private[host] def managedWrite[A](f: java.sql.Connection => A): A = synchronized {live(); transaction(f(connection))}
+  private def identifier(id: String): Unit = require(id.matches("[A-Za-z0-9_-]{1,128}"), "invalid identity")
+  private def checkedName(name: String): Unit = {
+    require(name.nonEmpty && name.length<=limits.maxNameBytes &&
+      java.nio.charset.StandardCharsets.UTF_8.newEncoder().canEncode(name) &&
+      name.getBytes(java.nio.charset.StandardCharsets.UTF_8).length<=limits.maxNameBytes, "name limit or malformed Unicode")
+    require(!name.startsWith("/") && !name.contains('\\') && !name.contains('\u0000') &&
+      name.split("/",-1).forall(p => p.nonEmpty && p!="." && p!=".."), "unsafe relative name")
+  }
+  private def readBlob(hash: String, size: Long): Array[Byte] = {
+    require(hash.matches("[0-9a-f]{64}") && size>=0 && size<=limits.maxBlobBytes,"stored artifact bound")
+    val path=blobs.resolve(hash)
+    require(Files.isRegularFile(path,java.nio.file.LinkOption.NOFOLLOW_LINKS) && Files.size(path)==size,"stored artifact shape")
+    val input=Files.newInputStream(path,java.nio.file.LinkOption.NOFOLLOW_LINKS)
+    val bytes=new Array[Byte](size.toInt)
+    var complete=false
+    try {
+      var offset=0
+      while(offset<bytes.length){val n=input.read(bytes,offset,bytes.length-offset);require(n>0,"stored artifact truncated");offset+=n}
+      require(input.read()== -1 && digest(bytes)==hash,"stored artifact integrity")
+      complete=true;bytes
+    } finally {input.close();if(!complete)java.util.Arrays.fill(bytes,0.toByte)}
+  }
+
+  private def putBlob(bytes: Array[Byte]): String = {
+    require(bytes.length<=limits.maxBlobBytes,"blob limit")
+    val hash=digest(bytes); val destination=blobs.resolve(hash)
+    if(!Files.exists(destination)) {
+      val temporary=Files.createTempFile(blobs,"publish-",".tmp")
+      val out=FileChannel.open(temporary,StandardOpenOption.WRITE)
+      try {val buffer=java.nio.ByteBuffer.wrap(bytes); while(buffer.hasRemaining) out.write(buffer); out.force(true)}
+      finally out.close()
+      Files.move(temporary,destination,StandardCopyOption.ATOMIC_MOVE)
+      val directory=FileChannel.open(blobs,StandardOpenOption.READ)
+      try directory.force(true) finally directory.close()
+    }
+    readBlob(hash,bytes.length)
+    hash
+  }
+  def commitDraft(expectedRevision: Long, commandId: String, input: Vector[DraftFile]): Either[Conflict,DraftAck] = synchronized {
+    live(); identifier(commandId); require(expectedRevision>=0)
+    require(input.nonEmpty && input.size<=limits.maxEntries,"entry limit")
+    // Preflight every bound BEFORE cloning. Array lengths cannot change under mutation.
+    input.foreach(f => {checkedName(f.name); require(f.bytes.length<=limits.maxBlobBytes,"blob limit")})
+    require(input.map(_.name).distinct.size==input.size,"duplicate path")
+    require(input.foldLeft(0L)((n,f)=>n+f.bytes.length)<=limits.maxBatchBytes,"batch byte limit")
+    val files=input.map(f => DraftFile(f.name,f.bytes.clone()))
+    val revision=currentRevision
+    if(revision!=expectedRevision) return Left(Conflict(revision))
+    val refs=files.map(f=>(f.name,putBlob(f.bytes),f.bytes.length))
+    transaction {
+      val insert=connection.prepareStatement("INSERT INTO drafts(id,revision) VALUES(?,?)")
+      try {insert.setString(1,commandId); insert.setLong(2,revision+1); insert.executeUpdate()} finally insert.close()
+      val file=connection.prepareStatement("INSERT INTO files VALUES(?,?,?,?)")
+      try refs.foreach {case(name,hash,size)=>file.setString(1,commandId); file.setString(2,name); file.setString(3,hash); file.setInt(4,size); file.executeUpdate()}
+      finally file.close()
+      execute(s"UPDATE workspace SET revision=${revision+1} WHERE singleton=1")
+      Right(DraftAck(commandId,revision+1))
+    }
+  }
+  /** Lookup uses a live draft association. A bare hash is never a read capability. */
+  def readDraft(id: String): Access = synchronized {
+    live(); identifier(id)
+    val q=connection.prepareStatement("SELECT revision,revoked FROM drafts WHERE id=?")
+    val revision=try {q.setString(1,id); val r=q.executeQuery(); if(!r.next() || r.getInt(2)!=0) return Unavailable; r.getLong(1)} finally q.close()
+    val files=connection.prepareStatement("SELECT name,hash,size FROM files WHERE draft=? ORDER BY name")
+    try {
+      files.setString(1,id); val r=files.executeQuery(); val result=Vector.newBuilder[(String,Array[Byte])]
+      var count=0; var total=0L
+      while(r.next()) {
+        count+=1; require(count<=limits.maxEntries,"stored entry limit")
+        val name=r.getString(1); checkedName(name); val hash=r.getString(2); val size=r.getLong(3)
+        require(hash.matches("[0-9a-f]{64}") && size>=0 && size<=limits.maxBlobBytes,"stored artifact bound")
+        total+=size; require(total<=limits.maxBatchBytes,"stored batch bound")
+        val body=readBlob(hash,size)
+        result += ((name,body))
+      }
+      Available(DraftView(id,revision,result.result()))
+    } finally files.close()
+  }
+  /** Retains non-content history; revoked associations remain inaccessible after restart. */
+  def revokeDraft(id: String): Boolean = synchronized {
+    live(); identifier(id)
+    transaction {
+      val q=connection.prepareStatement("UPDATE drafts SET revoked=1 WHERE id=? AND revoked=0")
+      val changed=try {q.setString(1,id); q.executeUpdate()==1} finally q.close()
+      if(changed) {
+        val event=connection.prepareStatement("INSERT INTO lifecycle(draft,mode) VALUES(?,'revoke')")
+        try {event.setString(1,id); event.executeUpdate()} finally event.close()
+        execute("UPDATE workspace SET revision=revision+1 WHERE singleton=1")
+      }
+      changed
+    }
+  }
+  private[runtime] def nativeWorkspace: String = synchronized {
+    live(); val q=connection.createStatement()
+    try {val r=q.executeQuery("SELECT workspace FROM native_identity WHERE singleton=1"); require(r.next())
+      val id=r.getString(1); require(id.matches("[0-9a-f]{32}"),"invalid durable workspace identity"); id} finally q.close()
+  }
+  /** Advance+commit before issuance. Unused identities burn on process failure. */
+  private[runtime] def reserveNativeIds(count: Int): NativeIdLease = synchronized {
+    live(); require(count>0 && count<=65536,"native ID block bound")
+    transaction {
+      val q=connection.createStatement()
+      val first=try {val r=q.executeQuery("SELECT next_id FROM native_identity WHERE singleton=1"); require(r.next())
+        val digits=r.getString(1); require(digits.matches("[1-9][0-9]{0,127}"),"native ID counter corrupt"); BigInt(digits)} finally q.close()
+      val past=first+count; require(past.toString.length<=128,"native ID space exhausted")
+      val update=connection.prepareStatement("UPDATE native_identity SET next_id=? WHERE singleton=1")
+      try {update.setString(1,past.toString); update.executeUpdate()} finally update.close()
+      new NativeIdLease(nativeWorkspace,first,past)
+    }
+  }
+  private def nativeSequence: Long = {
+    val q=connection.createStatement()
+    try {val r=q.executeQuery("SELECT COALESCE(MAX(sequence),0) FROM native_journal"); require(r.next()); r.getLong(1)} finally q.close()
+  }
+  private def referencedBlob(hash:String,exceptStage:String):Boolean={
+    val q=connection.prepareStatement("SELECT 1 FROM native_recovery WHERE hash=? UNION ALL SELECT 1 FROM files WHERE hash=? UNION ALL SELECT 1 FROM native_artifact_members WHERE hash=? AND stage<>? LIMIT 1")
+    try {q.setString(1,hash);q.setString(2,hash);q.setString(3,hash);q.setString(4,exceptStage);q.executeQuery().next()} finally q.close()
+  }
+  /** Only exact managed write intents; never a scan of legacy/private roots. */
+  private[host] def cleanupNativeArtifactStages():Unit={
+    val q=connection.createStatement()
+    val stages=try {val r=q.executeQuery("SELECT id FROM native_artifact_stages");val b=Vector.newBuilder[String];while(r.next())b+=r.getString(1);b.result()} finally q.close()
+    stages.foreach {stage=>
+      require(stage.matches("[0-9a-f-]{36}"),"native artifact stage identity")
+      val members=connection.prepareStatement("SELECT hash,temporary FROM native_artifact_members WHERE stage=?")
+      val rows=try {members.setString(1,stage);val r=members.executeQuery();val b=Vector.newBuilder[(String,String)];var n=0
+        while(r.next()){n+=1;require(n<=6,"native stage member bound");b+=((r.getString(1),r.getString(2)))};b.result()} finally members.close()
+      rows.foreach {case(hash,temp)=>
+        require(hash.matches("[0-9a-f]{64}") && temp.matches("native-"+stage+"-[a-z_]+\\.tmp"),"native artifact intent path")
+        Files.deleteIfExists(blobs.resolve(temp))
+        if(!referencedBlob(hash,stage))Files.deleteIfExists(blobs.resolve(hash))
+      }
+      val directory=FileChannel.open(blobs,StandardOpenOption.READ);try directory.force(true) finally directory.close()
+      transaction {
+        for(table<-List("native_artifact_members","native_artifact_stage_edges")){
+          val delete=connection.prepareStatement("DELETE FROM "+table+" WHERE stage=?")
+          try {delete.setString(1,stage);delete.executeUpdate()} finally delete.close()
+        }
+        val delete=connection.prepareStatement("DELETE FROM native_artifact_stages WHERE id=?")
+        try {delete.setString(1,stage);delete.executeUpdate()} finally delete.close()
+      }
+    }
+  }
+  private def planNativeArtifacts(material:NativeRecoveryMaterial):(String,Vector[(String,String,Int)])={
+    val stage=java.util.UUID.randomUUID().toString
+    val refs=material.slots.map {case(slot,bytes)=>(slot,digest(bytes),bytes.length)}
+    transaction {
+      val begin=connection.prepareStatement("INSERT INTO native_artifact_stages VALUES(?,?)")
+      try {begin.setString(1,stage);begin.setString(2,material.association.toString);begin.executeUpdate()} finally begin.close()
+      val member=connection.prepareStatement("INSERT INTO native_artifact_members VALUES(?,?,?,?,?)")
+      try refs.foreach {case(slot,hash,size)=>member.setString(1,stage);member.setString(2,slot);member.setString(3,hash);member.setInt(4,size)
+        member.setString(5,s"native-$stage-$slot.tmp");member.executeUpdate()} finally member.close()
+      val edge=connection.prepareStatement("INSERT INTO native_artifact_stage_edges VALUES(?,?)")
+      try material.dependencies.foreach {id=>edge.setString(1,stage);edge.setString(2,id.toString);edge.executeUpdate()} finally edge.close()
+    }
+    (stage,refs)
+  }
+  private def publishNativeArtifact(stage:String,slot:String,hash:String,bytes:Array[Byte]):Unit={
+    require(digest(bytes)==hash && bytes.length<=limits.maxBlobBytes,"native artifact bytes changed")
+    val destination=blobs.resolve(hash)
+    if(!Files.exists(destination,java.nio.file.LinkOption.NOFOLLOW_LINKS)){
+      val temp=blobs.resolve(s"native-$stage-$slot.tmp")
+      val out=FileChannel.open(temp,StandardOpenOption.CREATE_NEW,StandardOpenOption.WRITE)
+      try {val buffer=java.nio.ByteBuffer.wrap(bytes);while(buffer.hasRemaining)out.write(buffer);out.force(true)} finally out.close()
+      Files.move(temp,destination,StandardCopyOption.ATOMIC_MOVE)
+      val directory=FileChannel.open(blobs,StandardOpenOption.READ);try directory.force(true) finally directory.close()
+    }
+    val checked=readBlob(hash,bytes.length);try () finally java.util.Arrays.fill(checked,0.toByte)
+    afterNativeBlobPublish()
+  }
+  private def checkNativeAssociation(material:NativeRecoveryMaterial):Unit={
+    val erased=connection.prepareStatement("SELECT 1 FROM native_erased_associations WHERE association=?")
+    try {erased.setString(1,material.association.toString);require(!erased.executeQuery().next(),"erased native association cannot be rebound")} finally erased.close()
+    val q=connection.prepareStatement("SELECT semantic_generation,slot,hash,size FROM native_recovery WHERE association=? AND sequence=(SELECT MAX(sequence) FROM native_recovery WHERE association=?)")
+    val rows=try {q.setString(1,material.association.toString);q.setString(2,material.association.toString);val r=q.executeQuery();val b=Vector.newBuilder[(String,String,String,Long)]
+      var count=0;while(r.next()){count+=1;require(count<=6,"existing native association bound");b+=((r.getString(1),r.getString(2),r.getString(3),r.getLong(4)))};b.result()} finally q.close()
+    if(rows.nonEmpty){
+      val expected=material.slots.map {case(slot,bytes)=>(material.semanticGeneration.toString,slot,digest(bytes),bytes.length.toLong)}.toSet
+      require(rows.toSet==expected,"stable native association cannot rebind artifacts")
+      val edges=connection.prepareStatement("SELECT DISTINCT dependency FROM native_recovery_edges WHERE association=?")
+      val saved=try {edges.setString(1,material.association.toString);val r=edges.executeQuery();val b=Set.newBuilder[String];var count=0
+        while(r.next()){count+=1;require(count<=8192,"existing native edge bound");b+=r.getString(1)};b.result()} finally edges.close()
+      require(saved==material.dependencies.map(_.toString).toSet,"stable native association cannot rebind dependencies")
+    }
+  }
+  private[runtime] def commitNative(id: String, expected: Long, revision: Long, epoch: Long,
+    event: Array[Byte], checkpoint: Array[Byte], recovery: Option[NativeRecoveryMaterial] = None, dispatch:Option[NativeDispatchMaterial]=None,invalidations:Option[NativeInvalidations]=None): Option[NativeRecord] = synchronized {
+    live(); identifier(id); require(expected>=0 && expected<Long.MaxValue && revision>=0 && epoch>=0)
+    require(event.length<=1024*1024 && checkpoint.length<=1024*1024,"native record limit")
+    if(nativeSequence!=expected) return None
+    val record=NativeRecord(id,expected+1,revision,epoch,event.clone(),checkpoint.clone())
+    recovery.foreach {m=>
+      require(m.slots.forall(_._2.length<=limits.maxBlobBytes) && m.slots.foldLeft(0L)((total,p)=>total+p._2.length)<=limits.maxBatchBytes,"workspace native artifact budget")
+      validateRecovery(nativeWorkspace,m);checkNativeAssociation(m)
+      val denied=connection.prepareStatement("SELECT 1 FROM native_access_denials WHERE object_id=?")
+      try m.dependencies.foreach {id=>denied.setString(1,id.toString);require(!denied.executeQuery().next(),"native artifact depends on denied object")} finally denied.close()
+    }
+    cleanupNativeArtifactStages()
+    val stage=recovery.map(planNativeArtifacts)
+    val protectedRefs=recovery.toVector.flatMap {m=>
+      val (id,refs)=stage.get
+      val slots=m.slots.toMap
+      refs.map {case(slot,hash,size)=>publishNativeArtifact(id,slot,hash,slots(slot));(m,slot,hash,size)}
+    }
+    val committed=transaction {
+      val q=connection.prepareStatement("INSERT INTO native_journal VALUES(?,?,?,?,?,?)")
+      try {q.setLong(1,record.sequence); q.setString(2,id); q.setLong(3,revision); q.setLong(4,epoch);
+        q.setBytes(5,record.event); q.setBytes(6,record.checkpoint); q.executeUpdate()} finally q.close()
+      dispatch.foreach {intent=>
+        val q=connection.prepareStatement("INSERT INTO native_dispatch VALUES(?,?,?,?,?,?,'unknown')")
+        try {q.setLong(1,record.sequence);q.setString(2,intent.kind);q.setString(3,intent.id.toString)
+          q.setString(4,intent.incarnation.toString);q.setString(5,intent.deployment);q.setBytes(6,intent.command);q.executeUpdate()} finally q.close()
+      }
+      invalidations.foreach {change=>change.objects.foreach {id=>
+        val q=connection.prepareStatement("INSERT INTO native_access_denials VALUES(?,?) ON CONFLICT(object_id) DO UPDATE SET mode=CASE WHEN excluded.mode='forget' THEN 'forget' ELSE mode END")
+        try {q.setString(1,id.toString);q.setString(2,change.mode);q.executeUpdate()} finally q.close()
+      }}
+      recovery.foreach {material=>material.dependencies.foreach {dependency=>
+        val q=connection.prepareStatement("INSERT INTO native_recovery_edges VALUES(?,?,?)")
+        try {q.setLong(1,record.sequence);q.setString(2,material.association.toString);q.setString(3,dependency.toString);q.executeUpdate()} finally q.close()
+      }}
+      protectedRefs.foreach {case(material,slot,hash,size)=>
+        val insert=connection.prepareStatement("INSERT INTO native_recovery VALUES(?,?,?,?,?,?)")
+        try {insert.setLong(1,record.sequence); insert.setString(2,material.association.toString)
+          insert.setString(3,material.semanticGeneration.toString); insert.setString(4,slot)
+          insert.setString(5,hash); insert.setInt(6,size); insert.executeUpdate()} finally insert.close()
+      }
+      stage.foreach {case(id,_)=>
+        for(table<-List("native_artifact_members","native_artifact_stage_edges")){
+          val delete=connection.prepareStatement("DELETE FROM "+table+" WHERE stage=?")
+          try {delete.setString(1,id);delete.executeUpdate()} finally delete.close()
+        }
+        val delete=connection.prepareStatement("DELETE FROM native_artifact_stages WHERE id=?")
+        try {delete.setString(1,id);delete.executeUpdate()} finally delete.close()
+      }
+      Some(record)
+    }
+    nativeCapabilities.toVector.foreach(_.close())
+    afterNativeCommit() // fault seam: committed-but-unacknowledged is indeterminate
+    committed
+  }
+  private[runtime] def latestNative: Option[NativeRecord] = synchronized {
+    live()
+    val q=connection.prepareStatement("SELECT sequence,id,revision,epoch,length(event),length(checkpoint) FROM native_journal ORDER BY sequence DESC LIMIT 1")
+    val metadata=try {val r=q.executeQuery(); if(!r.next()) return None
+      require(r.getLong(5)<=1024*1024 && r.getLong(6)<=limits.maxBatchBytes,"native recovery record limit")
+      (r.getLong(1),r.getString(2),r.getLong(3),r.getLong(4))} finally q.close()
+    val bytes=connection.prepareStatement("SELECT event,checkpoint FROM native_journal WHERE sequence=?")
+    try {bytes.setLong(1,metadata._1); val r=bytes.executeQuery(); require(r.next())
+      Some(NativeRecord(metadata._2,metadata._1,metadata._3,metadata._4,r.getBytes(1),r.getBytes(2)))} finally bytes.close()
+  }
+  private[runtime] def nativeDispatch(kind:String,id:BigInt,incarnation:BigInt):Option[NativeDispatchRecord]=synchronized {
+    live();require(Set("pure","effect","job").contains(kind) && id>0 && incarnation>=0)
+    val q=connection.prepareStatement("SELECT sequence,deployment,length(command),status FROM native_dispatch WHERE kind=? AND id=? AND incarnation=?")
+    val row=try {q.setString(1,kind);q.setString(2,id.toString);q.setString(3,incarnation.toString);val r=q.executeQuery()
+      if(!r.next())return None;require(r.getLong(3)>0 && r.getLong(3)<=4096,"native dispatch recovery bound")
+      (r.getLong(1),r.getString(2),r.getString(4))} finally q.close()
+    val bytes=connection.prepareStatement("SELECT command FROM native_dispatch WHERE kind=? AND id=? AND incarnation=?")
+    try {bytes.setString(1,kind);bytes.setString(2,id.toString);bytes.setString(3,incarnation.toString);val r=bytes.executeQuery();require(r.next())
+      Some(NativeDispatchRecord(row._1,kind,id,incarnation,row._2,r.getBytes(1),row._3))} finally bytes.close()
+  }
+  private[runtime] def hasForgottenNativeArtifacts:Boolean=synchronized {
+    live();val q=connection.createStatement()
+    try q.executeQuery("SELECT 1 FROM native_recovery_edges e JOIN native_access_denials d ON d.object_id=e.dependency WHERE d.mode='forget' UNION ALL SELECT 1 FROM native_artifact_erase_queue UNION ALL SELECT 1 FROM native_gc_state WHERE pending=1 LIMIT 1").next() finally q.close()
+  }
+  /** Called only by the fixed resident adapter AFTER its real cleanup barrier.
+    * This consumes persisted native denials; no caller-selected deletion set. */
+  private[runtime] def eraseForgottenNativeArtifacts():Unit=synchronized {
+    live();cleanupNativeArtifactStages()
+    val q=connection.createStatement()
+    val associations=try {val r=q.executeQuery("SELECT DISTINCT e.association FROM native_recovery_edges e JOIN native_access_denials d ON d.object_id=e.dependency WHERE d.mode='forget' LIMIT 8193")
+      val b=Vector.newBuilder[String];while(r.next())b+=r.getString(1);b.result()} finally q.close()
+    require(associations.size<=8192,"native erasure association bound")
+    transaction {execute("UPDATE native_gc_state SET pending=1 WHERE singleton=1");associations.foreach {association=>
+      require(association.matches("[1-9][0-9]{0,127}"),"native erasure identity")
+      val queue=connection.prepareStatement("INSERT OR IGNORE INTO native_artifact_erase_queue SELECT DISTINCT hash FROM native_recovery WHERE association=?")
+      try {queue.setString(1,association);queue.executeUpdate()} finally queue.close()
+      val tombstone=connection.prepareStatement("INSERT OR IGNORE INTO native_erased_associations VALUES(?)")
+      try {tombstone.setString(1,association);tombstone.executeUpdate()} finally tombstone.close()
+      for(table<-List("native_recovery","native_recovery_edges")){
+        val remove=connection.prepareStatement("DELETE FROM "+table+" WHERE association=?")
+        try {remove.setString(1,association);remove.executeUpdate()} finally remove.close()
+      }
+    }}
+    val hashes=connection.createStatement()
+    val pending=try {val r=hashes.executeQuery("SELECT hash FROM native_artifact_erase_queue LIMIT 49153");val b=Vector.newBuilder[String]
+      while(r.next())b+=r.getString(1);b.result()} finally hashes.close()
+    require(pending.size<=49152,"native erasure blob bound")
+    pending.foreach {hash=>require(hash.matches("[0-9a-f]{64}"));if(!referencedBlob(hash,""))Files.deleteIfExists(blobs.resolve(hash))}
+    val directory=FileChannel.open(blobs,StandardOpenOption.READ);try directory.force(true) finally directory.close()
+    transaction {pending.foreach {hash=>val remove=connection.prepareStatement("DELETE FROM native_artifact_erase_queue WHERE hash=?")
+      try {remove.setString(1,hash);remove.executeUpdate()} finally remove.close()}}
+    nativeCapabilities.toVector.foreach(_.close())
+    val checkpoint=connection.createStatement()
+    try {val r=checkpoint.executeQuery("PRAGMA wal_checkpoint(TRUNCATE)");require(r.next() && r.getInt(1)==0,"native erasure checkpoint busy")} finally checkpoint.close()
+    transaction {execute("UPDATE native_gc_state SET pending=0 WHERE singleton=1")}
+  }
+  /** Latest exact commit only. Native lifecycle/semantic checks still precede restoration.
+    * A historical hash or association ID alone cannot obtain a capability. */
+  private[runtime] def committedNativeRecovery(record: NativeRecord, association: BigInt): Option[CommittedNativeRecovery] = synchronized {
+    live(); require(association>0 && association.toString.length<=128)
+    val denied=connection.prepareStatement("SELECT 1 FROM native_recovery_edges e JOIN native_access_denials d ON d.object_id=e.dependency WHERE e.association=? LIMIT 1")
+    try {denied.setString(1,association.toString);if(denied.executeQuery().next())return None} finally denied.close()
+    val current=latestNative
+    if(!current.exists(r=>r.sequence==record.sequence && r.id==record.id && r.revision==record.revision && r.epoch==record.epoch &&
+      java.util.Arrays.equals(r.checkpoint,record.checkpoint) && java.util.Arrays.equals(r.event,record.event))) return None
+    val originQuery=connection.prepareStatement("SELECT MAX(sequence) FROM native_recovery WHERE sequence<=? AND association=?")
+    val origin=try {originQuery.setLong(1,record.sequence);originQuery.setString(2,association.toString)
+      val r=originQuery.executeQuery();require(r.next());val value=r.getLong(1);if(r.wasNull())return None;value} finally originQuery.close()
+    val q=connection.prepareStatement("SELECT semantic_generation,slot,hash,size FROM native_recovery WHERE sequence=? AND association=?")
+    val rows=try {q.setLong(1,origin); q.setString(2,association.toString)
+      val r=q.executeQuery(); val result=Vector.newBuilder[(String,String,String,Long)]
+      var count=0; while(r.next()) {count+=1; require(count<=6,"native recovery row limit")
+        result+=((r.getString(1),r.getString(2),r.getString(3),r.getLong(4)))}; result.result()
+    } finally q.close()
+    if(rows.isEmpty) None else {
+      require(rows.map(_._1).distinct.size==1 && rows.head._1.matches("[1-9][0-9]{0,127}"),"native recovery generation")
+      // Materialization bounds are checked for every row before the first read.
+      rows.foreach {case(_,slot,_,size)=>require(size>=0 && size <= (if(slot=="manifest")8192L else if(slot=="context_closure")16L*1024*1024 else if(slot=="reconstruction")100000L else 1024L*1024),"native recovery row bound")}
+      require(rows.map(_._4).sum<=32L*1024*1024,"native recovery total bound")
+      val edges=connection.prepareStatement("SELECT dependency FROM native_recovery_edges WHERE sequence=? AND association=?")
+      val dependencies=try {edges.setLong(1,origin);edges.setString(2,association.toString);val r=edges.executeQuery();val b=Vector.newBuilder[BigInt]
+        var count=0;while(r.next()){count+=1;require(count<=8192,"native dependency edge bound");val text=r.getString(1)
+          require(text.matches("[1-9][0-9]{0,127}"),"native dependency identity");b+=BigInt(text)};b.result()} finally edges.close()
+      require(nativeCapabilities.size<8,"native recovery capability budget")
+      val buffers=scala.collection.mutable.ArrayBuffer.empty[Array[Byte]]
+      var material:Option[NativeRecoveryMaterial]=None
+      var transferred=false
+      try {
+        val slots=rows.map {case(_,slot,hash,size)=>val bytes=readBlob(hash,size);buffers+=bytes;(slot,bytes)}
+        val owned=new NativeRecoveryMaterial(association,BigInt(rows.head._1),slots,dependencies);material=Some(owned)
+        validateRecovery(nativeWorkspace,owned)
+        val capability=new CommittedNativeRecovery(nativeWorkspace,record.sequence,origin,record.epoch,owned,this)
+        nativeCapabilities+=capability;transferred=true;Some(capability)
+      } finally {
+        buffers.foreach(a=>java.util.Arrays.fill(a,0.toByte))
+        if(!transferred)material.foreach(_.release())
+      }
+    }
+  }
+  /** Inert package-source journal. Locators are private storage identities, never native authority. */
+  def head(draft: String): Option[String] = synchronized {
+    live(); identifier(draft)
+    val q=connection.prepareStatement("SELECT locator FROM source_heads WHERE draft=? AND revoked=0")
+    try {q.setString(1,draft); val r=q.executeQuery(); if(r.next()) Some(r.getString(1)) else None} finally q.close()
+  }
+  /** Resolve and materialize under the lifecycle lock; a cached locator never authorizes a read. */
+  def withSourceHead[A](draft: String)(materialize: String => A): Option[A] = synchronized {
+    head(draft).map(materialize)
+  }
+  def compareAndAppend(draft: String, expected: Option[String], next: String): Boolean = synchronized {
+    live(); identifier(draft); require(next.matches("[0-9a-f]{64}"),"invalid source locator")
+    expected.foreach(e=>require(e.matches("[0-9a-f]{64}"),"invalid expected locator"))
+    val q=connection.prepareStatement("SELECT locator,revoked FROM source_heads WHERE draft=?")
+    val current=try {q.setString(1,draft); val r=q.executeQuery();
+      if(r.next()) Some((r.getString(1),r.getBoolean(2))) else None} finally q.close()
+    if(current.exists(_._2) || current.map(_._1)!=expected) return false
+    transaction {
+      val update=connection.prepareStatement("INSERT INTO source_heads VALUES(?,?,0) ON CONFLICT(draft) DO UPDATE SET locator=excluded.locator")
+      try {update.setString(1,draft); update.setString(2,next); update.executeUpdate()} finally update.close()
+      val record=connection.prepareStatement("INSERT INTO source_history(draft,locator,mode) VALUES(?,?,'append')")
+      try {record.setString(1,draft); record.setString(2,next); record.executeUpdate()} finally record.close()
+      execute("UPDATE workspace SET revision=revision+1 WHERE singleton=1")
+      true
+    }
+  }
+  def revokeSource(draft: String): Boolean = synchronized {
+    live(); identifier(draft)
+    transaction {
+      val q=connection.prepareStatement("UPDATE source_heads SET revoked=1 WHERE draft=? AND revoked=0")
+      val changed=try {q.setString(1,draft); q.executeUpdate()==1} finally q.close()
+      if(changed) {
+        val record=connection.prepareStatement("INSERT INTO source_history(draft,locator,mode) SELECT draft,locator,'revoke' FROM source_heads WHERE draft=?")
+        try {record.setString(1,draft); record.executeUpdate()} finally record.close()
+        execute("UPDATE workspace SET revision=revision+1 WHERE singleton=1")
+      }
+      changed
+    }
+  }
+  def close(): Unit = synchronized {
+    if(!closed) {require(!authorityOwner,"close authority coordinator before workspace store"); require(managedResources.isEmpty,"release managed source resources before workspace store");
+      val residents=connection.createStatement();try {val r=residents.executeQuery("SELECT COUNT(*) FROM native_residents");require(r.next() && r.getInt(1)==0,"stop native resident before workspace store")} finally residents.close()
+      nativeCapabilities.toVector.foreach(_.close()); closed=true; try database.close() finally {writerLock.release(); lockChannel.close()}}
+  }
+}

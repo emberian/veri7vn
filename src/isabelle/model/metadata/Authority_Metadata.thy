@@ -49,7 +49,22 @@ definition same_target :: "claim \<Rightarrow> claim \<Rightarrow> bool" where
   "same_target a b \<longleftrightarrow> a\<lparr>claim_id := 0, executable_generation := NoExecution\<rparr> =
     b\<lparr>claim_id := 0, executable_generation := NoExecution\<rparr>"
 
-datatype outcome = Accepted claim nat | AwaitingOutput nat | NeedsInput "nat list" | Declined nat |
+datatype slot_input = KnownInput nat | ReservedOutput nat
+
+record artifact_requirement =
+  artifact_template :: nat
+  artifact_source :: nat
+  artifact_revision :: nat
+  artifact_manifest :: nat
+  artifact_parents :: "slot_input list"
+  artifact_profile :: nat
+  artifact_setup :: nat
+  artifact_exports :: nat
+
+datatype goal_requirement = ClaimRequirement claim | ArtifactRequirement artifact_requirement
+datatype goal_dependency = LogicalDependency nat | ArtifactDependency nat
+
+datatype outcome = Accepted claim nat | ArtifactReady nat | AwaitingOutput nat | NeedsInput "nat list" | Declined nat |
   Inconclusive nat | Failed nat | Cancelled
 
 datatype blocker_scope = RequestScope nat | InterpretationScope nat |
@@ -62,8 +77,10 @@ record "subgoal" =
   goal_id :: nat
   goal_interpretation :: nat
   goal_capability :: nat
-  goal_dependencies :: "nat list"
-  goal_required :: claim
+  goal_dependencies :: "goal_dependency list"
+  goal_required :: goal_requirement
+  goal_generation :: nat
+  goal_code_generation :: nat
   goal_output_slot :: "nat option"
   goal_outcome :: outcome
 record request =
@@ -120,8 +137,12 @@ record attempt =
   attempt_state :: attempt_status
 
 
-datatype slot_input = KnownInput nat | ReservedOutput nat
-datatype output_origin = PureOrigin | ExternalOrigin nat "nat option"
+record effect_observation =
+  effect_observation_attempt :: nat
+  effect_observation_source :: nat
+  effect_observation_status :: attempt_status
+
+datatype output_origin = PureOrigin | ExternalOrigin nat "nat option" | QualificationOrigin nat
 record output_slot =
   output_slot_id :: nat
   output_owner :: nat
@@ -141,6 +162,19 @@ record output_assignment =
   assigned_binding :: binding
   assigned_dependencies :: "nat list"
   assigned_retained :: "retained_value list"
+
+record artifact_assignment =
+  artifact_assigned_slot :: nat
+  artifact_assigned_request :: nat
+  artifact_assigned_goal :: nat
+  artifact_assigned_requirement :: artifact_requirement
+  artifact_assigned_output :: nat
+  artifact_assigned_generation :: nat
+  artifact_assigned_lineage :: nat
+  artifact_assigned_dependencies :: "nat list"
+  artifact_assigned_retained :: "retained_value list"
+
+datatype slot_assignment = ClaimOutput output_assignment | ArtifactOutput artifact_assignment
 
 record pure_execution =
   execution_id :: nat
@@ -201,6 +235,7 @@ record eligibility_record =
 record qualification_reservation =
   reservation_attempt :: nat
   reservation_owner :: nat
+  reservation_goal :: nat
   reservation_candidate :: nat
   reservation_baseline :: "nat option"
   reservation_run_spec :: nat
@@ -238,7 +273,8 @@ record package_publication =
 
 datatype delta = Publish binding | RecordIntent effect_intent |
   RecordObservation source_publication |
-  RecordOutput output_assignment "source_publication option" |
+  RecordEffectObservation effect_observation |
+  RecordOutput slot_assignment "source_publication option" |
   AdoptSession nat "binding adopted_delta" |
   ChangeRetention nat nat retention_scope |
   ConsumeExposure qualification_reservation |
@@ -260,6 +296,7 @@ record authority_state =
   evidence_table :: "evidence list"
   visible_bindings :: "binding list"
   attempts :: "attempt list"
+  effect_observations :: "effect_observation list"
   source_publications :: "source_publication list"
   pending_batch :: "batch option"
   issued_batches :: "nat list"
@@ -271,7 +308,7 @@ record authority_state =
   current_observations :: "observation_context list"
   session_views :: "binding session_view list"
   output_slots :: "output_slot list"
-  output_assignments :: "output_assignment list"
+  output_assignments :: "slot_assignment list"
   pure_executions :: "pure_execution list"
   acquisition_jobs :: "acquisition_job list"
   retained_values :: "retained_value list"

@@ -16,11 +16,14 @@ object SourceDiagnosticTests {
     val buffer=ByteBuffer.wrap(bytes).asReadOnlyBuffer()
     val historical=SourceDiagnostic.locate(source,buffer,failure,Some(SourceDiagnostic.Head("new-manifest","new-revision")))
     assert(historical.status==SourceDiagnostic.SourceStatus.Historical)
+    assert(!historical.hasCurrentSpan)
     assert(historical.location.get.start==SourceDiagnostic.Position(2,7))
     assert(historical.location.get.end==SourceDiagnostic.Position(2,13))
     assert(buffer.position()==0 && historical.source==source)
-    assert(SourceDiagnostic.locate(source,buffer,failure,Some(SourceDiagnostic.Head(source.manifest,source.revision))).status==SourceDiagnostic.SourceStatus.Current)
-    assert(SourceDiagnostic.locate(source,buffer,failure.copy(span=None),None).location.isEmpty)
+    val current=SourceDiagnostic.locate(source,buffer,failure,Some(SourceDiagnostic.Head(source.manifest,source.revision)))
+    assert(current.status==SourceDiagnostic.SourceStatus.Current && current.hasCurrentSpan)
+    val withoutSpan=SourceDiagnostic.locate(source,buffer,failure.copy(span=None),Some(SourceDiagnostic.Head(source.manifest,source.revision)))
+    assert(withoutSpan.location.isEmpty && !withoutSpan.hasCurrentSpan)
     def rejects(body: => Any):Unit={var rejected=false;try body catch{case _:Exception=>rejected=true};assert(rejected)}
     rejects(SourceDiagnostic.locate(source,buffer,failure.copy(span=Some(BuildFailure.Span(4,5))),None)) // inside λ
     rejects(SourceDiagnostic.locate(source,buffer,failure.copy(span=Some(BuildFailure.Span(0,bytes.length+1))),None))
