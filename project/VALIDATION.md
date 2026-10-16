@@ -840,3 +840,14 @@ premises reject or block. Generic plan premise IDs do not themselves establish
 native model ownership; the newer domain service supplies that separate boundary.
 The compiled bundle's operation refusal and actual resident Domain consumer remain
 open. Only the matching core and plan files are included in this checkpoint.
+
+## Installed-runtime measurement harness
+
+Root reviewed `tools/performance/envelope/public_runtime.py` and reran
+`python3 tools/performance/envelope/check_public_runtime.py`: synthetic pointer-pin,
+sequential exact-output, exited-parent descendant pipe-drain and timeout cleanup
+regressions pass. The harness launches through a private facade pointing to the
+captured immutable deployment generation, and a bounded process-group guardian
+preserves ownership until cleanup. These checks address measurement/cleanup
+reliability, not Isabelle performance. An actual installed benchmark remains
+scheduled through the sole build steward; no new timing or speedup is claimed.

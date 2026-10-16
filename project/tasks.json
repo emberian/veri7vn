@@ -917,7 +917,7 @@
       "evidence": [
         "benchmarks/envelope/closure-pilot.json"
       ],
-      "notes": " Root reviewed actual generated closure pilot f4d1f562: stable47.117s, 24 samples, 21 sorted-ID/multiplicity passes and3 five-second timeouts at1024 chain/dense/duplicate. Missing-seed linked1024 took4.172s. Single observations do not establish application/p95/RSS. Actual data archived closure-pilot.json; exact-order refinement assigned effects61.\nCurrent product consumer: performance_product61 owns actual installed launcher harness with pinned generation, startup-inclusive/warm/restart attribution, RSS and durable footprint. Root review found mutable-pointer and exited-leader pipe cleanup gaps; repairs underway before native benchmark slot. No new end-user measurements claimed.",
+      "notes": " Root reviewed actual generated closure pilot f4d1f562: stable47.117s, 24 samples, 21 sorted-ID/multiplicity passes and3 five-second timeouts at1024 chain/dense/duplicate. Missing-seed linked1024 took4.172s. Single observations do not establish application/p95/RSS. Actual data archived closure-pilot.json; exact-order refinement assigned effects61.\nCurrent product consumer: performance_product61 owns actual installed launcher harness with pinned generation, startup-inclusive/warm/restart attribution, RSS and durable footprint. Root review found mutable-pointer and exited-leader pipe cleanup gaps; repairs underway before native benchmark slot. No new end-user measurements claimed.\nRoot reviewed fixed immutable facade and guardian cleanup; reran synthetic check_public_runtime.py successfully. Actual installed benchmark still held for scheduled resource slot; does not count as application timing.",
       "contracts": [
         "C04",
         "C05"
@@ -3385,6 +3385,12 @@
       "owner": "growth_product61",
       "state": "active-consumer-integration",
       "target": "Owned typed candidate -> charged installed-bundle sample execution -> explicit nonassertional retention -> recovery and Forget"
+    },
+    {
+      "id": "installed-performance-consumer",
+      "owner": "performance_product61",
+      "state": "harness-regressions-passed-actual-benchmark-slot-pending",
+      "target": "Pinned installed public runtime startup-inclusive/warm/restart measurements; then opt-in real host phase attribution without changing licensed output"
     }
   ]
 }
