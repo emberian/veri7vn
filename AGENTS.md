@@ -1,54 +1,51 @@
 # Working on veri7vn
 
-Read `project/PLAN.md`, `project/DECISIONS.md`, relevant `project/tasks.json` entries
-and consumed contracts before editing. Build an Isabelle-native specialist
-engineering environment with deployed execution/search, not an arithmetic demo
-or external prover wrapper. Architecture revision 2 is authorized; use gpt-6.1-sol
-for implementation lanes.
+Read `project/PLAN.md` first. It names the lanes, the frozen areas and the
+scoreboard. The original Oracle7 lives under `upstream/` (ignored by git, 43 GB)
+and runs: `cd upstream && ../.venv/bin/python oracle7.py "Who wrote Leaves of Grass?"`.
 
-## Coordination
+## Scoreboard before anything
 
-Root owns synthesis, dispatch, integration and tracker edits during fan-out.
-`project/tasks.json` owns status/dependencies; generate the board. Update it before
-ending an integration turn. Current conversation overrides handoffs; recover
-surrounding exchanges with `cv` after compaction.
+The shipped specialist panels under `upstream/root/specialists/*/` scored by
+their own scorers under `upstream/workbench/exam.py`'s six criteria are the only
+completion metric. A lane's report states its panel numbers, or states that it
+has none yet. Compilation, a green theory and a passing fixture are not numbers.
 
-Respect dispatched edit paths; arrange ownership transfers before cross-lane edits.
-An active dependency is not a completed interface. Consumed-contract changes need
-a decision, migration note and affected-consumer checks. Report false targets,
-missing behavior, incompatible interfaces and performance obstacles early. Do not
-narrow requirements to pass. No lane subagents without dispatcher/user authority.
+## Lanes
+
+Root dispatches, integrates and commits. A lane owns the paths its brief names
+and edits nothing else; it asks root for a transfer when it needs another path.
+Frozen areas (listed in the plan) are read-only for everyone. No lane spawns
+agents without root's say-so.
+
+A handoff names: changed files, the theorem statements (not just names), what
+check ran and its exact result, what remains, and what the consumer is.
 
 ## Evidence
 
-`src/isabelle/` is native source. Research probes and upstream audit tools require
-statement/consumer review before reuse; [prototype history](docs/design/prototype-cleanup.md)
-is not production evidence. No `sorry`, `skip_proof`, arbitrary axiomatization or
-hidden oracle counts as checked coverage. Audit hypotheses and actual runtime
-connections. JSON receipts, hashes and test verdicts are not native theorems.
-Source reports remain data; absence, uniqueness, ranking and aggregates require
-coverage. Python adapters are not completed lifts: record preservation/repair,
-assumptions and implementation bridges.
+No `sorry`, `oops`, `skip_proof` or new axioms. Read theorem statements; a
+vacuous or tautological statement is not progress. A Python shim is untrusted
+by construction and says so in its docstring. Source rows are data: absence,
+uniqueness and aggregates need explicit coverage premises.
 
-Run the narrowest refuting check and composition checks after interface changes.
-Avoid expensive repeats without a new question. Compilation alone is not linkage.
+Run the narrowest check that could refute the change.
 
-## Resources and publication
+## Resources
 
-Use `python3 tools/dev/check-native`: shared lock, workspace-local Isabelle state,
-one build/two ML threads by default. Coordinate builds/benchmarks with root; never
-bypass the lock. Prefer warm bundled HOL; avoid accidental HOL-Analysis imports.
-Do not alter global settings/services, delete others' caches/files, stash/reset the
-shared tree or overwrite concurrent edits. Keep corpora, heaps, credentials,
-paper texts and transient artifacts out of commits; never print `~/.scry-key`.
-Report workload/toolchain and separate startup, admission, execution, search,
-evidence, memory and I/O costs.
+- `python3 tools/dev/check-native --session <S> --session-root <dir> --expect '<marker>'`
+  holds the single build lock; use it for every Isabelle build. One Isabelle:
+  `/Applications/Isabelle2026-RC1.app`. MLton is at
+  `/Applications/Isabelle2026-RC1.app/contrib/mlton-20241230-1/*/bin/mlton`.
+- Never write into `upstream/`. Scratch state goes under `var/<lane>/`.
+- Never kill by pattern (`pkill -f`, `killall`, `kill -u`). A process you
+  started is stopped by the PID you recorded for it, and only that.
+- Never `git stash`, `git reset` or `git add -A`; the tree is shared. Stage
+  named files. Unsigned commits are fine.
+- Disk pressure: stop writing, report, wait. Delete only what you created.
+- No unfiltered test suites. Filter to what exercises the change.
+- Keep corpora, heaps, credentials and transient artifacts out of commits.
 
-Root makes frequent scoped commits/pushes, including explicitly marked unfinished
-checkpoints and known failures. Ordinary commits/pushes are authorized; release,
-author contact and unrelated publication are not. Stage explicit paths, preserve
-concurrent work and exclude private/runtime material. Lanes do not stage peers' work.
+## Writing
 
-Handoffs name files, contracts/decisions, checks/results, theorem statements and
-consumers, limitations and remaining work. Root accepts completion after evidence
-review and dependency closure; a checkpoint is not acceptance.
+Plain words, for a reader who is not a software engineer. Say what the thing
+does, what it proves, and what it cannot do yet.

@@ -1,77 +1,73 @@
-# Project plan
+# veri7vn plan (revision 3, 2026-10-16)
 
-Build a specialist engineering environment native to Isabelle: author/import
-source, inspect meaning, diagnose and repair failures, compose capabilities,
-obtain justified results, improve execution and deploy with continued search and
-growth. The [architecture](../docs/ARCHITECTURE_PROPOSAL.md) is agreed; the
-[acceptance criteria](../docs/product/ACCEPTANCE.md) define completion.
+veri7vn is Oracle7's sibling with an Isabelle spine. Oracle7 answers from
+sourced records and 267 specialists, says "I can't verify that" otherwise, and
+shows the path every answer took. veri7vn keeps that shape and adds two things
+Oracle7 cannot have in Python: **assurance** (the kernels, the routing cascade,
+the arbitration rule and the admission gate are HOL objects with proofs about
+them) and **metareflective access** (the running system can state what its own
+admission, routing and composition mean, and check a claim against that
+statement). Components should flow both ways: a verified kernel extracted to a
+small binary can sit inside Oracle7 as an organ, and an Oracle7 specialist with
+its panel can be lifted into veri7vn and examined there.
 
-## Product completion
+Revision 3 supersedes the revision-2 plan and its 71-task tracker. That work is
+kept in the tree and in git; it is not the path forward.
 
-One source lineage connects the workshop, native developments, packages,
-capabilities and installed runtime. Open HOL meanings coexist with specialized
-typed executable families. Generated HOL authority controls requests, ownership,
-budgets, publication and lifecycle; native gates attach actual checked objects;
-the durable host journals exact authorized transitions. Source assertions remain
-attributed observations unless explicitly adopted. Logical admission, empirical
-qualification and active publication are separate.
+## The scoreboard
 
-Completion includes Oracle7 language/routing, metaprogramming and synthesis,
-mathematics/domains, relations/documents, stateful specialists, connectors,
-conversation, authoring and growth. Preserve useful partial, conditional,
-nonassertional and historical outcomes. An adapter or isolated theorem does not
-complete a user workflow.
+Nothing counts until it moves a number on the parity board. The board runs the
+specialists' own shipped panels (`upstream/root/specialists/*/`) through any
+answerer that speaks the [answerer contract](../docs/contracts/answerer.md),
+and scores them with the specialists' own scorers under the six criteria of
+`upstream/workbench/exam.py`: domain gain, no false yes, few wrong, stays in
+lane, self stays the core's, within budget.
 
-## Delivery stages and gates
+| Answerer | Specialists' panels right / wrong | Status |
+|---|---|---|
+| Oracle7 as shipped | 15,478 / 14 on the held-out exams | the control |
+| veri7vn packaged (2026-10-16) | 0 / 0, every panel item unrecognized | the starting line |
 
-The current Workshop convergence joins managed source → Build → diagnosis/repair
-→ retained candidate/admission; original proposition → charged Search → proof;
-conversation adoption/recall; and actual governed acquisition. All use the same
-source custody, native recovery graph, generated authority and cleanup barriers.
-Captured installed checkpoints remain usable while newer source is qualified.
+The harness must first reproduce Oracle7's own `verdict_heldout.json` numbers
+on a sample of specialists; until it does, it is not a scoreboard.
 
-The user's remaining-budget priority is actual Oracle7 routing/metaprogramming
-and documentation. Finish concrete existing consumer joins and useful capability
-behavior; avoid broad new schema migrations. Pending lifetime, source-root and
-admitted-context obligations stay explicit in [DECISIONS.md](DECISIONS.md).
-D76 permits only a narrow checked Search dependency repair after the current capture.
+## What we are building now
 
-Release gates require actual authoring/build/admission/execution, durable restart
-and selective retirement, performance evidence, supported-platform installation,
-license closure and independent recipient use. See [REVIEW.md](REVIEW.md) for
-coverage and [VALIDATION.md](VALIDATION.md) for scoped evidence.
+| Lane | Deliverable | Owner |
+|---|---|---|
+| A. Parity harness | `tools/parity/`: runs any answerer over any panel, read-only against `upstream/`, reports per-specialist verdicts in `exam.py`'s terms; reference answerers for Oracle7 head, Oracle7 plus one specialist, packaged veri7vn | lane |
+| B. Routing cascade | `audit/folds/`: a machine-readable catalogue of all 346 folds (guard, kind, what it reads, what it changes). `src/isabelle/routing/`: the cascade as a HOL object with its ordered semantics and the theorem that narrowing folds never add an answer | lane |
+| C. Specialist contract and gate | `src/isabelle/specialists/`: manifest acceptance, `combo_runtime` arbitration (five ordered criteria; disagreement is refusal, never a pick) and the six exam criteria as HOL decision functions; exported and checked against the shipped verdict files | lane |
+| D. One specialist end to end | `src/extract/acoustics/`: the acoustics organ lifted to HOL with its formulas proved, exported to SML, compiled with the MLton that ships inside Isabelle, speaking the answerer contract; scored on the acoustics panel through lane A | lane |
+| F. Verified relation reader | `src/isabelle/reader/`: Oracle7's exact relation router (admitted patterns, up to three linked candidates, unique agreement or refusal) as a HOL decision over fetched candidate rows, with coverage of the fetch as an explicit premise; thin untrusted fetch over `upstream/root/relstore/relations_v1.sqlite3` | lane |
+| E. Plain documents | README and this plan written for a reader who is not a software engineer | root |
 
-## Foundation
+Lanes own their paths. A lane that needs something from a frozen area asks root.
 
-Foundation contracts define implementation boundaries. Product acceptance and
-mandatory metatheory require the concrete consumers and evidence below.
+## Frozen
 
-## Ownership
+The revision-2 operating system is frozen, not deleted: the Scala host, the
+authority machine, durable journals, recovery, Forget, search service, package
+lifecycle, deployment generations and the browser workbench. Paths:
+`src/runtime/`, `src/isabelle/{admission,effects,updates,registry,execution,growth,search,plans,codegen,projection}/`,
+`src/{packages,workbench,cli,deployment,connectors,authoring,diagnostics,backends}/`.
+Nothing is added there until a specialist on the board needs it. The
+mathematics, domain, graph, relation, facts and document families under
+`src/families/` stay live; lanes reuse their proved kernels where they fit.
 
-Root integrates and maintains decisions/status; scoped owners implement complete
-consumers. [DISPATCH.md](DISPATCH.md) gives the current organization. Shared-file
-changes require coordination with the active owner. Ordinary scoped commits and
-pushes preserve reviewable checkpoints.
+Deployment target is an extracted binary plus the SQLite stores, not a resident
+Isabelle process. One Isabelle distribution exists on this machine; packages
+never embed another.
 
-## Contract-first integration
+## Rules
 
-Reuse one authority machine, canonical numeric representation and identity/source
-maps. Typed closed family sums retain actual native meanings and executable pins;
-no universal untyped value or arbitrary callback supplies authority. Changes to
-consumed contracts carry a rationale, explicit old-version behavior and checks of
-affected producers, recovery, host and client. Active drafts are not completed APIs.
+- A claim about behavior comes with a panel number or it is not made.
+- `python3 tools/dev/check-native` holds the only build lock. Scoped sessions
+  only; no full-tree builds without root.
+- Documents say what the system does in plain words. A sentence a careful
+  non-engineer cannot follow is rewritten, not compressed.
+- Root commits named files often, including red checkpoints marked as such.
 
-## Evidence and completion
-
-Run the narrowest check able to refute a change, then test composition at changed
-boundaries. Use the sole build steward and tools/dev/check-native resource controls.
-Separate kernel consequence, refined execution and explicit oracle routes.
-[PO-01–10 and TB-01–05](PROOF_OBLIGATIONS.md) remain global closure requirements.
-Current source, current receipt and actual runtime linkage must agree.
-
-## Tracker operation
-
-[tasks.json](tasks.json) is authoritative for status, dependencies and ownership.
-Root updates it during fan-out and generates [BOARD.md](BOARD.md); never edit the
-board independently. Record concrete remaining consumers rather than declaring
-broad tasks complete from leaf passes.
+[DECISIONS.md](DECISIONS.md) keeps the revision-2 decisions for reference.
+[VALIDATION.md](VALIDATION.md) and [REVIEW.md](REVIEW.md) describe the
+revision-2 state as of 2026-10-16 and are not updated further.
