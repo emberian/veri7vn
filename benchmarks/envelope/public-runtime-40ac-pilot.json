@@ -1,0 +1,224 @@
+{
+  "format": "veri7vn.public-runtime-envelope/1",
+  "status": "passed",
+  "generation": "40ac45e74c0be18732a81bff246817cfb2cbe9de91abfc7c8a7ccfc234ec98bd",
+  "manifest_sha256": "40ac45e74c0be18732a81bff246817cfb2cbe9de91abfc7c8a7ccfc234ec98bd",
+  "harness_sha256": "1b35d125d2615a6b049588eabec88fdeff05e0020f9fe1968dbad45c5f39afa8",
+  "launcher_sha256": "7eace80deffb488f3419f664d1a17c88ca5a579d4be4d954d9a9a714df178aa9",
+  "steward_slot": "immutable40ac-baseline-slot2",
+  "host": {
+    "system": "macOS-27.0.1-arm64-arm-64bit",
+    "architecture": "arm64",
+    "cpu_count": 12
+  },
+  "cache_state": {
+    "process": "fresh then reused; second process restores nonempty workspace",
+    "filesystem": "uncontrolled, no eviction",
+    "heap": "installed prebuilt generation",
+    "indexes": "not exercised"
+  },
+  "scope": "two fixed arithmetic cases through actual installed public client; no family-wide acceptance",
+  "unavailable": [
+    "separate startup readiness",
+    "interpretation/admission/execution/evidence/render/commit spans",
+    "CPU/allocations/GC",
+    "physical durable I/O",
+    "Linux evidence",
+    "representative source/search/growth cases"
+  ],
+  "runs": [
+    {
+      "index": 0,
+      "returncode": 0,
+      "samples": [
+        {
+          "case": "sum",
+          "ordinal": 0,
+          "input_bytes": 19,
+          "output_bytes": 38,
+          "send_ns": 175650610545666,
+          "observed_ns": 175673433872541,
+          "wall_ms": 22823.326875,
+          "oracle": "exact fixed licensed HTML",
+          "scope": "startup-inclusive-first-response",
+          "includes": "native authority/evidence/durable commit/render/protocol; internal attribution unavailable"
+        },
+        {
+          "case": "product",
+          "ordinal": 1,
+          "input_bytes": 22,
+          "output_bytes": 42,
+          "send_ns": 175673433991250,
+          "observed_ns": 175673675640000,
+          "wall_ms": 241.64875,
+          "oracle": "exact fixed licensed HTML",
+          "scope": "warm-process-request",
+          "includes": "native authority/evidence/durable commit/render/protocol; internal attribution unavailable"
+        }
+      ],
+      "elapsed_ms": 23604.303667,
+      "shutdown_after_eof_ms": 477.775709,
+      "sampled_tree_peak_rss_bytes": 1576206336,
+      "rss_sample_count": 78,
+      "rss_sampling_errors": [],
+      "rss_scope": "250ms process-tree sum; includes shared pages repeatedly; transient peaks may be missed",
+      "workspace_after": {
+        "files": 33,
+        "logical_bytes": 512382650,
+        "scope": "workspace logical file sizes; not physical writes, fsync latency or allocated blocks"
+      }
+    },
+    {
+      "index": 1,
+      "returncode": 0,
+      "samples": [
+        {
+          "case": "sum",
+          "ordinal": 0,
+          "input_bytes": 19,
+          "output_bytes": 38,
+          "send_ns": 175674414651083,
+          "observed_ns": 175689206170750,
+          "wall_ms": 14791.519667,
+          "oracle": "exact fixed licensed HTML",
+          "scope": "startup-inclusive-first-response",
+          "includes": "native authority/evidence/durable commit/render/protocol; internal attribution unavailable"
+        },
+        {
+          "case": "product",
+          "ordinal": 1,
+          "input_bytes": 22,
+          "output_bytes": 42,
+          "send_ns": 175689206241375,
+          "observed_ns": 175689359053666,
+          "wall_ms": 152.812291,
+          "oracle": "exact fixed licensed HTML",
+          "scope": "warm-process-request",
+          "includes": "native authority/evidence/durable commit/render/protocol; internal attribution unavailable"
+        }
+      ],
+      "elapsed_ms": 15577.679375,
+      "shutdown_after_eof_ms": 588.000125,
+      "sampled_tree_peak_rss_bytes": 1574420480,
+      "rss_sample_count": 53,
+      "rss_sampling_errors": [],
+      "rss_scope": "250ms process-tree sum; includes shared pages repeatedly; transient peaks may be missed",
+      "workspace_after": {
+        "files": 43,
+        "logical_bytes": 512554134,
+        "scope": "workspace logical file sizes; not physical writes, fsync latency or allocated blocks"
+      }
+    }
+  ],
+  "source_record": "var/performance-public-40ac-20261015-slot2/result.json",
+  "source_record_sha256": "5cb7b7298d17372f26c3116ff713a95d2da4376ff13aa3523a07c8ecf64ec553",
+  "wrapper_elapsed_seconds": 39.792583000002196,
+  "source_artifacts_verified": 235,
+  "source_artifact_set_sha256": "2c544b9b4f9be4e9e22702f2a89bc6fec92013b3b0172245ccc4da1da2bb09c0",
+  "toolchain": {
+    "isabelle": "Isabelle2026-RC1",
+    "heap_platform": "polyml-5.9.2_arm64_32-darwin",
+    "host_jar_sha256": "8486c19bca61025ac0f15f5ca3aa9dcf68f0652fba33c388405fa4eb379785f0",
+    "ml_threads": 2,
+    "native_builds": [
+      {
+        "session": "Pure",
+        "uuid": "8b6e0160-bcab-4d18-868e-2c95b656db1e",
+        "input_heaps": "5c9304dc4b305d1a5cbd6efb2909ce3fc3f0dcaf <meta_info>\n",
+        "output_heap": "d160969f2680b0cd7d264796840a46a0c0b1c819 Pure\n"
+      },
+      {
+        "session": "HOL",
+        "uuid": "8b6e0160-bcab-4d18-868e-2c95b656db1e",
+        "input_heaps": "d160969f2680b0cd7d264796840a46a0c0b1c819 Pure\n",
+        "output_heap": "65702968c0d9daf4a19ce72562c2eb4e277117bd HOL\n"
+      },
+      {
+        "session": "Veri7vn_Codegen",
+        "uuid": "0777e3dc-35f0-419d-9a84-2aabbd01205b",
+        "input_heaps": "d160969f2680b0cd7d264796840a46a0c0b1c819 Pure\n65702968c0d9daf4a19ce72562c2eb4e277117bd HOL\n",
+        "output_heap": "0867bcfeb7ef724172db344d23c35ff8d077e71e Veri7vn_Codegen\n"
+      },
+      {
+        "session": "Veri7vn_Effects",
+        "uuid": "527ef81e-5b75-4660-a0c6-79313b54895a",
+        "input_heaps": "d160969f2680b0cd7d264796840a46a0c0b1c819 Pure\n65702968c0d9daf4a19ce72562c2eb4e277117bd HOL\n0867bcfeb7ef724172db344d23c35ff8d077e71e Veri7vn_Codegen\n",
+        "output_heap": "03ae311582006e484c9230a69f51036b1cd02b34 Veri7vn_Effects\n"
+      },
+      {
+        "session": "Veri7vn_Authority_Metadata",
+        "uuid": "a29b581e-7b83-497a-8b45-ec8d3a37e1d1",
+        "input_heaps": "d160969f2680b0cd7d264796840a46a0c0b1c819 Pure\n65702968c0d9daf4a19ce72562c2eb4e277117bd HOL\n0867bcfeb7ef724172db344d23c35ff8d077e71e Veri7vn_Codegen\n03ae311582006e484c9230a69f51036b1cd02b34 Veri7vn_Effects\n",
+        "output_heap": "730c597fb118509c5c6e542a5079589c2a7a5460 Veri7vn_Authority_Metadata\n"
+      },
+      {
+        "session": "Veri7vn_Authority_Events",
+        "uuid": "06b77376-db75-4b33-8c3f-8e5b4d3daced",
+        "input_heaps": "d160969f2680b0cd7d264796840a46a0c0b1c819 Pure\n65702968c0d9daf4a19ce72562c2eb4e277117bd HOL\n0867bcfeb7ef724172db344d23c35ff8d077e71e Veri7vn_Codegen\n03ae311582006e484c9230a69f51036b1cd02b34 Veri7vn_Effects\n730c597fb118509c5c6e542a5079589c2a7a5460 Veri7vn_Authority_Metadata\n",
+        "output_heap": "457fd64e7872a2cdae4198efa8b3e8a9adc3f35a Veri7vn_Authority_Events\n"
+      },
+      {
+        "session": "Veri7vn_Authority",
+        "uuid": "30e47b71-81e9-4e4b-9918-2d0624784225",
+        "input_heaps": "d160969f2680b0cd7d264796840a46a0c0b1c819 Pure\n65702968c0d9daf4a19ce72562c2eb4e277117bd HOL\n0867bcfeb7ef724172db344d23c35ff8d077e71e Veri7vn_Codegen\n03ae311582006e484c9230a69f51036b1cd02b34 Veri7vn_Effects\n730c597fb118509c5c6e542a5079589c2a7a5460 Veri7vn_Authority_Metadata\n457fd64e7872a2cdae4198efa8b3e8a9adc3f35a Veri7vn_Authority_Events\n",
+        "output_heap": "c9fd92e42cae177ca893b709eeeb90fc6858cc71 Veri7vn_Authority\n"
+      },
+      {
+        "session": "Veri7vn_Authority_Codec",
+        "uuid": "30e47b71-81e9-4e4b-9918-2d0624784225",
+        "input_heaps": "d160969f2680b0cd7d264796840a46a0c0b1c819 Pure\n65702968c0d9daf4a19ce72562c2eb4e277117bd HOL\n0867bcfeb7ef724172db344d23c35ff8d077e71e Veri7vn_Codegen\n03ae311582006e484c9230a69f51036b1cd02b34 Veri7vn_Effects\n730c597fb118509c5c6e542a5079589c2a7a5460 Veri7vn_Authority_Metadata\n457fd64e7872a2cdae4198efa8b3e8a9adc3f35a Veri7vn_Authority_Events\nc9fd92e42cae177ca893b709eeeb90fc6858cc71 Veri7vn_Authority\n",
+        "output_heap": "53aa4cda09dd695b7def2c97d3266fcca12ea463 Veri7vn_Authority_Codec\n"
+      },
+      {
+        "session": "Veri7vn_Runtime_Service",
+        "uuid": "9a8cf6a3-8d30-45ed-9c91-b20428b5276c",
+        "input_heaps": "d160969f2680b0cd7d264796840a46a0c0b1c819 Pure\n65702968c0d9daf4a19ce72562c2eb4e277117bd HOL\n0867bcfeb7ef724172db344d23c35ff8d077e71e Veri7vn_Codegen\n03ae311582006e484c9230a69f51036b1cd02b34 Veri7vn_Effects\n730c597fb118509c5c6e542a5079589c2a7a5460 Veri7vn_Authority_Metadata\n457fd64e7872a2cdae4198efa8b3e8a9adc3f35a Veri7vn_Authority_Events\nc9fd92e42cae177ca893b709eeeb90fc6858cc71 Veri7vn_Authority\n53aa4cda09dd695b7def2c97d3266fcca12ea463 Veri7vn_Authority_Codec\n",
+        "output_heap": "a94655fdc3cf968f17dc27dc685b63268a6b77c0 Veri7vn_Runtime_Service\n"
+      }
+    ]
+  },
+  "logs": [
+    {
+      "path": "var/performance-public-40ac-20261015-slot2/process-0.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "var/performance-public-40ac-20261015-slot2/process-0.stdout",
+      "sha256": "288fe937af18b5429c020c9c6182abb80132c79b2e0ad42856566157128d8ab5",
+      "bytes": 82
+    },
+    {
+      "path": "var/performance-public-40ac-20261015-slot2/process-1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "var/performance-public-40ac-20261015-slot2/process-1.stdout",
+      "sha256": "288fe937af18b5429c020c9c6182abb80132c79b2e0ad42856566157128d8ab5",
+      "bytes": 82
+    }
+  ],
+  "slot_context": {
+    "shared_build_lock": "exclusive nonblocking across whole measurement",
+    "steward_prior_terminal": "Scala d4eb383 stable clean zero children",
+    "memory_pressure_free_percent_before": 81,
+    "unrelated_native_or_scala_runs": "steward paused until terminal",
+    "execution": "authorized require_escalated after restricted sandbox denial",
+    "filesystem_cache": "uncontrolled; prior source-hash inspection warms some metadata/files"
+  },
+  "final_logical_storage_breakdown": {
+    "deployment_images_bytes": 511074906,
+    "authority_workspace_bytes": 1479228,
+    "scope": "postshutdown logical files; neither physical writes nor image-copy time"
+  },
+  "limitations": [
+    "one first and one warm request per process; no tail budget",
+    "two fixed arithmetic cases, no broad family claim",
+    "first response contains launcherverification/JVM/heapacquire/nativeinitialize-or-restore/request/output; internal costs unavailable",
+    "guardian Python overhead and RSS sampling observer cost not isolated",
+    "same process ordinal/product repeated across processes; no independently controlled fresh-state warm distribution",
+    "old immutable generation predates D44/D47; no qualification of current source",
+    "RSS sum may doublecount shared pages and miss short peaks"
+  ]
+}

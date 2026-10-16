@@ -864,3 +864,25 @@ confirmed the four wrapper/worker PIDs were gone. Their reported RSS summed to
 about 21 GiB before cleanup; the system's memory-free reading rose from 53% to 75%
 and swap usage fell. These are resource observations, not a measured application
 speedup. New warm native checks and the installed benchmark follow separately.
+
+## Installed application pilot and source client checkpoint
+
+The installed public pilot now passed in the steward's exclusive slot2. Root
+matched the result and four stdout/stderr hashes against the non-content record
+`benchmarks/envelope/public-runtime-40ac-pilot.json`, inspected the exact answers,
+and reran `python3 tools/performance/envelope/check_public_runtime.py` successfully.
+The harness now detects a nonzero exited child promptly even while its guardian
+keeps output pipes open. The installed artifact is the older immutable generation
+40ac45e7, not the current working runtime. Fresh and restarted first responses
+took 22.823s and 14.792s; the two warm requests took 241.649ms and 152.812ms.
+These are individual arithmetic observations, not tail budgets or a speedup claim.
+The standalone `docs/performance/installed-runtime-pilot.md` records reproduction,
+resource and attribution limits. Both processes exited zero with empty stderr.
+
+The source-client checkpoint d4eb383ddd55481d96d92cbbeecb0f31 passed authoring,
+diagnostics, package update/model tests and combined runtime package compilation.
+Root reviewed the checks and source hashes. It covers actual managed import/edit,
+repair/conflict and transfer behavior; runtime compilation does not establish
+native service execution. Subsequent browser reload/migration-display and build
+diagnostic changes require the newly scheduled finite Scala check. They are not
+retroactively covered by this receipt.

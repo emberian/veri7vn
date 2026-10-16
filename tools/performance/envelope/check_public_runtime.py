@@ -52,6 +52,14 @@ for line in sys.stdin:
     assert (state/'descendant.pid').read_text().isdigit()
     started = time.monotonic()
     try:
+        harness.run([sys.executable, '-c', 'raise SystemExit(7)'], state, root, 2, 2, 30)
+    except RuntimeError as problem:
+        assert 'exited before licensed output' in str(problem), str(problem)
+    else:
+        raise AssertionError('nonzero child accepted')
+    assert time.monotonic()-started < 5, 'exited child waited full response timeout'
+    started = time.monotonic()
+    try:
         harness.run([sys.executable, '-c', 'import time;time.sleep(60)'], state, root, 1, 2, .1)
     except TimeoutError:
         pass

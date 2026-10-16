@@ -747,3 +747,16 @@ preservation claim. Empty-export candidates remain durable development artifacts
 not active logical capabilities. Structural replacement comparison remains a
 separate baseline-backed profile. Host/native intent registration must connect
 the protected original descriptor to the request, not copy names from its result.
+
+D43/D46 shared implementation clarification: factor repeated mechanical identity,
+handoff and lifetime bookkeeping across actual Math and Build/Qualification
+consumers first, extending the closed family sum as other consumers become ready.
+Each branch retains its own opaque native request, meanings, worker and checker;
+there is no universal untyped value or caller-provided authority callback. A shared
+resource-control cell does not replace the generated Owner permission machine.
+The common durable handoff issues the same restricted tickets/permits and checks
+current source and incarnation. Recovery retains distinct fixed request, candidate
+and qualification roles, with shared source/context ownership and no replay of
+charges or external effects. Central cleanup includes pending roots and preserves
+the existing bounded cancellation, drain and retry semantics. This factoring must
+not make every future family a prerequisite for running the current consumers.

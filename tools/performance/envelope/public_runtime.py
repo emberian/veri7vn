@@ -94,6 +94,7 @@ def run(command, state, output, index, repeats, timeout):
         os.close(status_write)
     statuses = queue.Queue()
     guardian_ready = threading.Event()
+    child_exit = []
 
     def child_status():
         with os.fdopen(status_read, 'rb') as stream:
@@ -101,7 +102,9 @@ def run(command, state, output, index, repeats, timeout):
                 statuses.put(b'')
                 return
             guardian_ready.set()
-            statuses.put(stream.readline())
+            status = stream.readline()
+            child_exit.append(status)
+            statuses.put(status)
     rss = []
     errors = []
     stop = threading.Event()
@@ -133,10 +136,14 @@ def run(command, state, output, index, repeats, timeout):
                 process.stdin.flush()
                 deadline = time.monotonic() + timeout
                 while True:
+                    if child_exit and (not child_exit[0] or int(child_exit[0]) != 0):
+                        raise RuntimeError('public client exited before licensed output: ' + repr(child_exit[0]))
                     try:
-                        received, line = events.get(timeout=max(.001, deadline-time.monotonic()))
+                        received, line = events.get(timeout=min(.1, max(.001, deadline-time.monotonic())))
                     except queue.Empty as problem:
-                        raise TimeoutError('expected licensed output deadline') from problem
+                        if time.monotonic() >= deadline:
+                            raise TimeoutError('expected licensed output deadline') from problem
+                        continue
                     if line is None:
                         raise RuntimeError('public client closed before expected licensed output')
                     if line.rstrip(b'\r\n') == expected.encode():
