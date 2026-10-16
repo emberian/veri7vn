@@ -1203,3 +1203,25 @@ needed by the runtime. This is preferable to duplicating Scope or Inputs identit
 The builder, deferred codec, recovery factory and actual reconstruction tests
 migrate together. Type extraction and codec round trips do not establish restored
 execution authority or close the deferred Build consumer.
+
+## D69 — MCP operations reuse one installed configuration owner
+
+Capture and upload the actual managed configuration once, obtaining a protected
+native configuration owner and its actual input identity. Only the private host
+installer may bind that returned identity to the retained MCP installation.
+Discovery, qualification and invocation each create a fresh bounded packet source
+linked to this same owner. Configuration capture precedes packet creation when
+the canonical packet label contains the native configuration identity.
+
+Do not accept a caller-supplied sourceBinding as authority, allocate a new config
+identity on every operation, or equate identical configuration bytes with the same
+installed owner. The host transfers exact captured bytes and continuing managed
+source pins; the native service retains their actual literal/source associations.
+Current-head, epoch, credentials, registration and lifecycle checks still govern
+handoff and publication. A digest or packet label is not an ownership witness.
+
+Effects owns the fixed native configuration/packet transfer and retained owner;
+the connector owns private managed capture and packet construction; assembly/host
+own dispatch and the D66 durable acknowledgement. Their tests must exercise the
+actual Discover → Qualify → Invoke sequence, changed configuration, cancellation,
+unknown outcome and retirement. The sensor label contract remains unchanged.
