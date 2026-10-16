@@ -21,7 +21,7 @@ def main():
         runtime=package/'runtime/bin/isabelle'
         runtime.write_text('#!/bin/sh\n{ printf "%s\\n" "$USER_HOME" "$CLASSPATH" "${JAVA_TOOL_OPTIONS-unset}" "$@"; } > '+shlex.quote(str(record))+'\nprintf "%s\\n" "$USER" "$LOGNAME" "$PATH" > '+shlex.quote(str(base/'identity'))+'\n')
         runtime.chmod(0o555)
-        env=dict(os.environ, USER='spoofed-user',LOGNAME='spoofed-logname',PATH='/nonexistent-veri7vn-startup-path',JAVA_TOOL_OPTIONS='malicious-jvm-option',ISABELLE_HOME='unrelated',BASH_ENV='/nonexistent',CLASSPATH='unrelated')
+        env=dict(os.environ, VERI7VN_LAUNCH_PROFILE='0',USER='spoofed-user',LOGNAME='spoofed-logname',PATH='/nonexistent-veri7vn-startup-path',JAVA_TOOL_OPTIONS='malicious-jvm-option',ISABELLE_HOME='unrelated',BASH_ENV='/nonexistent',CLASSPATH='unrelated')
         checks=0
         def run(arguments,success):
             nonlocal checks
@@ -29,6 +29,7 @@ def main():
             r=subprocess.run([str(shell),*map(str,arguments)],cwd=base,env=env,text=True,capture_output=True)
             assert (r.returncode==0)==success,(arguments,r.stdout,r.stderr)
             checks+=1
+            return r
         run(['launch','--state',package/'mutable'],False)
         assert not record.exists() and not (package/'mutable').exists()
         state=base/'state';state.mkdir();(state/'user-home').symlink_to(package)
@@ -58,6 +59,13 @@ def main():
         run(['launch','--state',generations],False)
         assert not record.exists()
         run(['launch','--state',base/'accepted-outside'],True)
+        env['VERI7VN_LAUNCH_PROFILE']='1'
+        observed=run(['locate'],True)
+        events=[json.loads(line.removeprefix('VERI7VN_LAUNCH_PHASE ')) for line in observed.stderr.splitlines()]
+        assert [e['phase'] for e in events]==['shell-entry','shell-before-java']
+        assert all(e['clock']=='observer-receipt-only' and 'start_ns' not in e for e in events)
+        env['VERI7VN_LAUNCH_PROFILE']='unrecognized'
+        assert not run(['locate'],True).stderr
     print(json.dumps({'checks':checks,'result':'passed','scope':'shell recording runtime; no JVM'}))
 
 if __name__=='__main__': main()

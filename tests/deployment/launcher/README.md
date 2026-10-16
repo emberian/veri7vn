@@ -17,6 +17,10 @@ That checks inventory and launch-plan parity against `tools/deploy/stage.py`,
 including changed/missing files, mode and link tampering, generation identity,
 unknown tutorials/surfaces, state containment through symlinks, literal extra
 arguments, paths with spaces, and pinning after a selection-pointer switch.
+It includes a binary file larger than the read buffer, a partial final block,
+tail-byte corruption, and an empty file following it. Verification reuses one
+invocation-local buffer and formats SHA256 with the JDK's lowercase `HexFormat`;
+it still streams and hashes every inventoried regular file on every invocation.
 It is a developer test; recipient execution requires no Python or compiler.
 
 The actual recipient commands, invoked from outside the checkout, are:
@@ -55,3 +59,25 @@ Plans retain that allocation token; launch binds it to the owned temporary home.
 The JVM checks the policy and matching shell environment before dispatch. Durable
 workspace and image paths remain explicit arguments. Packaged Isabelle settings
 execute before inventory verification, which is part of the bootstrap trust.
+
+Optional attribution is enabled only with `VERI7VN_LAUNCH_PROFILE=1`. It emits at
+most 32 JVM lines plus two shell events on stderr, prefixed
+`VERI7VN_LAUNCH_PHASE ` and followed by JSON. Stdout and verification policy are
+unchanged. Markers contain phase names/counts/timing, never artifact paths,
+workspace paths or source text. The shell has no producer clock; an observer may
+timestamp receipt with pipe/scheduling delay. JVM spans use only that JVM's
+`System.nanoTime` clock. Never subtract raw timestamps from different processes.
+
+Read/decode/lexer/parser, inventory, summed file hashing, and dispatch are separate
+observations. Hashing totals count actual bytes read; their disjoint elapsed sum
+is nested within inventory, not another additive process span. GC collection
+counts/times are summed only when all reported beans support them; otherwise the
+delta is null and its supported flag is false. Heap-used snapshots include
+unreclaimed dead objects and are neither live-set nor allocation measurements.
+Nested span/GC values overlap and must not be added together.
+
+The native main may call `System.exit` inside Isabelle's command-line wrapper.
+Thus `dispatch-returned` can be absent even for success; `jvm-shutdown-observed`
+is a process event, not an application close or success assertion. The external
+observer must independently retain the exit status and stdout oracle. Actual
+application open/operation/close hooks require their owning implementations.

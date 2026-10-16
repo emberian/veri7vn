@@ -1,0 +1,77 @@
+{
+  "format": "veri7vn.standalone-phase-comparison/1",
+  "status": "observed-source-only-improvement",
+  "baseline_evidence": {
+    "path": "benchmarks/envelope/standalone-b4ce-phase-baseline.json",
+    "sha256": "a928425cff42393bcca50865d1397ad9b267542f53c751e23bf98718dc861eac",
+    "generation": "41cafd89949d1d323fb6ece4368986d80659edc5effa64760aedb2fbc1655898"
+  },
+  "candidate_evidence": {
+    "path": "benchmarks/envelope/standalone-15c85-phase-candidate.json",
+    "sha256": "50fb03cde36549ea2ff972a80e97b74644a7b94c7e21982769a6bcb40d02c60b",
+    "generation": "333074ee7d73901b1d5023eb3c4bce06ec8490370f2cef782f9fabe40ec62aaf"
+  },
+  "content_changed_paths": [
+    "bootstrap/source-snapshot/src/deployment/DeploymentMain.scala",
+    "bootstrap/source-snapshot/tests/deployment/launcher/parity.py",
+    "bootstrap/veri7vn-launcher.jar"
+  ],
+  "nonbootstrap_content_changes": [],
+  "comparability": {
+    "same_collector_sha256": true,
+    "same_source_fixture_and_reopen_sha256": true,
+    "same_profile_optin": true,
+    "fresh_source_only_state_each_pair": true,
+    "same_nonbootstrap_inventory": true,
+    "logical_bytes_before": 2714883473,
+    "logical_bytes_after": 2714883602,
+    "regular_files_each": 24561,
+    "controlled_cache_or_randomized_order": false,
+    "repetitions_per_case_per_version": 1
+  },
+  "observations": [
+    {
+      "case": "setup-import",
+      "before": {
+        "observer_total_ms": 16502.326916,
+        "verify_ms": 14650.017666,
+        "hash_ms": 10492.063286,
+        "application_dispatch_ms": 489.575375
+      },
+      "after": {
+        "observer_total_ms": 10021.607084,
+        "verify_ms": 8825.36725,
+        "hash_ms": 5381.822309,
+        "application_dispatch_ms": 279.351791
+      }
+    },
+    {
+      "case": "source-reopen",
+      "before": {
+        "observer_total_ms": 22004.566166,
+        "verify_ms": 20059.300833,
+        "hash_ms": 14371.028917,
+        "application_dispatch_ms": 214.8615
+      },
+      "after": {
+        "observer_total_ms": 8027.299583,
+        "verify_ms": 7245.5095,
+        "hash_ms": 3775.587222,
+        "application_dispatch_ms": 158.946958
+      }
+    }
+  ],
+  "limits": [
+    "no p95/regression gate or precise causal speedup ratio",
+    "single fixed-order before/after with uncontrolled cache/load",
+    "nested phase timings and GC increments overlap",
+    "source-only results do not qualify native execution/search/domain families",
+    "all full verification checks preserved; no metadata cache or skipped bytes",
+    "heap occupancy after verify increased with fewer collections; no live/peak memory claim"
+  ],
+  "remaining": [
+    "optional smaller qualified headless closure comparison",
+    "manifest depth scan/parse still about2seconds; preserve depth guard before redesign",
+    "same actual source or native phase samples repeated under controlled slot before enforced budgets"
+  ]
+}

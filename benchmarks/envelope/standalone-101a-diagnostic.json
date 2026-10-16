@@ -1,0 +1,73 @@
+{
+  "format": "veri7vn.standalone-launch-diagnostic/1",
+  "source_result": "var/standalone-launcher-trial-101a005f-slot1/result.json",
+  "source_result_sha256": "9f6f57c723ef75f8b39cadcf28c2df2bca43c726be020359e0dc22149e65fa13",
+  "generation": "dea4b0326b84e774fd35213fd9919b365f7d38675e2b1e86d9ea8e6ef8da6018",
+  "slot": "standalone-101a005f-slot1",
+  "checks": [
+    {
+      "label": "source-import",
+      "returncode": 0,
+      "passed": true,
+      "seconds": 56.44222245799028
+    },
+    {
+      "label": "source-reopen",
+      "returncode": 0,
+      "passed": true,
+      "seconds": 34.22712633301853
+    },
+    {
+      "label": "native-run",
+      "returncode": 2,
+      "passed": false,
+      "seconds": 53.59118716602097
+    }
+  ],
+  "logs": [
+    {
+      "path": "var/standalone-launcher-trial-101a005f-slot1/native-run.stderr",
+      "sha256": "54929e2fe29cedc932c8b951076fcd51b62a56f199adee193bbf9f30b27f969b",
+      "bytes": 285
+    },
+    {
+      "path": "var/standalone-launcher-trial-101a005f-slot1/native-run.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "var/standalone-launcher-trial-101a005f-slot1/source-import.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "var/standalone-launcher-trial-101a005f-slot1/source-import.stdout",
+      "sha256": "f86a06aafd61782e6fdcbae909be02a589221e13efc6a213187704c64a8f32e8",
+      "bytes": 58
+    },
+    {
+      "path": "var/standalone-launcher-trial-101a005f-slot1/source-reopen.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "var/standalone-launcher-trial-101a005f-slot1/source-reopen.stdout",
+      "sha256": "5423fb2f7b6e4a312f2c4611c7aacf41e53eee3fe7668331f7cddf035d92d915",
+      "bytes": 50
+    }
+  ],
+  "outcome": "source import and reopen successful; native operation failed, not performance-qualified",
+  "unavailable": [
+    "shell/Isabelle/Java bootstrap spans",
+    "JVM lexer/parse/hash/metadata spans",
+    "GC/allocations",
+    "actual app startup/operation/close spans"
+  ],
+  "limitations": [
+    "single observations using fullpackage and fresh bootstrap home",
+    "wholeinvocation includes verify/bootstrap/app/close",
+    "do not subtract old Pythonverifier8.65s from these JVM invocations",
+    "missing sysctl under old PATH caused native failure; correctedlauncher is a separate producer"
+  ],
+  "next": "correctednative standalone first, then coordinated optin instrumentation capture and sameinvocation collector"
+}

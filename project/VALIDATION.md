@@ -1099,3 +1099,25 @@ reflective dispatch. Durations overlap; JVM and observer clocks remain separate.
 Used heap includes unreclaimed objects. The measured result selects local buffer
 reuse/hex-formatting for the next repair while retaining full integrity checks;
 it does not justify bypassing startup settings or inventing cache validation.
+
+### Full-verification launcher repair
+
+Root reviewed the current invocation-local hash buffer and lowercase HexFormat
+implementation, and matched Main/shell/parity source to installed generation
+333074 / archive15c85. Actual parity attempt d0af715b passed29 cases, including a
+binary file larger than the buffer, partial tail, following empty file and tail
+tampering. Root additionally ran10 shell recording-runtime checks successfully.
+
+The actual fresh-state source pair exited0 and returned the same exact50-byte
+reopen output. Root verified candidate/comparison evidence hashes, manifest,
+pair record, both result/summary files and all stdout/stderr logs. Reopen changed
+from22.005s to8.027s; verification20.059s to7.246s; nested hash aggregate14.371s
+to3.776s. Both versions hash24,561 regular files; nonbootstrap inventory is
+unchanged. This is one fixed-order comparison with uncontrolled cache/load, not
+a native performance result, p95 budget or live-memory improvement. The candidate
+has not been promoted. Compact evidence lives in
+`benchmarks/envelope/standalone-hash-repair-comparison.json` and its pinned records.
+
+The historical standalone101a failure and AAE four-call performance summaries
+were also checked against their original result and all log hashes before being
+retained alongside the performance narrative. Their separate scopes remain intact.

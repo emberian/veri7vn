@@ -11,6 +11,52 @@ import isabelle.JSON
 /** Recipient-side inventory verification and dispatch. The bootstrap itself is trusted
   * installation code: hashing its inventoried bytes is not a proof of this verifier. */
 object DeploymentMain {
+  /** Bounded opt-in observations; elapsed spans use this JVM's clock only. */
+  private object Profile {
+    val enabled = sys.env.get("VERI7VN_LAUNCH_PROFILE").contains("1")
+    private val events = new java.util.concurrent.atomic.AtomicInteger()
+    private case class Snapshot(gcCount: Option[Long],gcMillis: Option[Long],heapUsedBytes: Long)
+    private def snapshot(): Snapshot = {
+      val beans = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans.asScala
+      val runtime = Runtime.getRuntime
+      def supported(values: Seq[Long]): Option[Long] =
+        if(values.nonEmpty && values.forall(_ >= 0)) Some(values.sum) else None
+      Snapshot(supported(beans.map(_.getCollectionCount).toVector),supported(beans.map(_.getCollectionTime).toVector),
+        runtime.totalMemory-runtime.freeMemory)
+    }
+    def emit(fields: Map[String,Any]): Unit = if(enabled && events.getAndIncrement() < 32) {
+      try System.err.println("VERI7VN_LAUNCH_PHASE "+JSON.Format(fields))
+      catch {case _: Exception => ()}
+    }
+    def instant(phase: String): Unit = if(enabled)
+      emit(Map("phase" -> phase,"event" -> "instant","at_ns" -> System.nanoTime(),"clock" -> "jvm-nano-local"))
+    def span[A](phase: String)(body: => A): A = if(!enabled) body else {
+      val before = snapshot();val start = System.nanoTime();var ok = false
+      try {val value = body;ok = true;value}
+      finally {
+        val end = System.nanoTime();val after = snapshot()
+        def delta(a: Option[Long],b: Option[Long]): Any = a.zip(b).map[Any]((x,y) => y-x).getOrElse(null)
+        emit(Map("phase" -> phase,"event" -> "span","start_ns" -> start,"end_ns" -> end,
+          "clock" -> "jvm-nano-local","status" -> (if(ok) "ok" else "error"),
+          "gc_count_delta" -> delta(before.gcCount,after.gcCount),"gc_time_ms_delta" -> delta(before.gcMillis,after.gcMillis),
+          "gc_count_supported" -> (before.gcCount.nonEmpty && after.gcCount.nonEmpty),
+          "gc_time_supported" -> (before.gcMillis.nonEmpty && after.gcMillis.nonEmpty),
+          "gc_support_scope" -> "all-reported-beans",
+          "heap_used_bytes_before" -> before.heapUsedBytes,"heap_used_bytes_after" -> after.heapUsedBytes))
+      }
+    }
+    def begin(): Unit = if(enabled) {
+      instant("jvm-main-entry")
+      // Command_Line.tool may sys.exit inside the native main. This is a process
+      // observation, never an inferred successful application close/operation.
+      Runtime.getRuntime.addShutdownHook(new Thread(() => instant("jvm-shutdown-observed"),"veri7vn-launch-profile"))
+    }
+  }
+  private final class HashStats {
+    var nanos = 0L;var files = 0L;var bytes = 0L
+    def emit(): Unit = Profile.emit(Map("phase" -> "verify-artifact-hash-aggregate","event" -> "aggregate",
+      "clock" -> "jvm-nano-local","elapsed_ns" -> nanos,"files" -> files,"bytes" -> bytes))
+  }
   private type Obj = Map[String, Any]
   private def obj(x: Any): Obj = x match {
     case m: Map[?, ?] if m.keys.forall(_.isInstanceOf[String]) => m.asInstanceOf[Obj]
@@ -35,17 +81,22 @@ object DeploymentMain {
         entries.toMap
       }
   }
+  private val hexadecimal = java.util.HexFormat.of()
   private def sha(bytes: Array[Byte]): String =
-    MessageDigest.getInstance("SHA-256").digest(bytes).map(b => f"${b & 255}%02x").mkString
-  private def digest(path: Path): String = {
+    hexadecimal.formatHex(MessageDigest.getInstance("SHA-256").digest(bytes))
+  private def digest(path: Path,stats: HashStats,bytes: Array[Byte]): String = {
+    val started = if(Profile.enabled) System.nanoTime() else 0L
+    var readBytes = 0L
     val md = MessageDigest.getInstance("SHA-256")
     val in = Files.newInputStream(path)
     try {
-      val bytes = new Array[Byte](1024*1024)
       var n = in.read(bytes)
-      while(n != -1) {md.update(bytes,0,n); n = in.read(bytes)}
-      md.digest().map(b => f"${b & 255}%02x").mkString
-    } finally in.close()
+      while(n != -1) {md.update(bytes,0,n);if(Profile.enabled) readBytes += n;n = in.read(bytes)}
+      hexadecimal.formatHex(md.digest())
+    } finally {
+      in.close()
+      if(Profile.enabled) {stats.nanos += System.nanoTime()-started;stats.files += 1;stats.bytes += readBytes}
+    }
   }
   private def relative(s: String): Path = {
     val p = Path.of(s)
@@ -71,14 +122,21 @@ object DeploymentMain {
       d.toInt
     case _ => throw new IllegalArgumentException("invalid artifact mode")
   }
-  def verify(root: Path): Obj = {
-    val input = Files.newInputStream(root.resolve("manifest.json"))
-    val raw = try input.readNBytes(32*1024*1024+1) finally input.close()
+  def verify(root: Path): Obj = Profile.span("verify-total") {
+    val raw = Profile.span("verify-manifest-read") {
+      val input = Files.newInputStream(root.resolve("manifest.json"))
+      try input.readNBytes(32*1024*1024+1) finally input.close()
+    }
     require(raw.length <= 32*1024*1024,"manifest size limit")
-    if(root.getFileName.toString.length == 64)
-      require(sha(raw) == root.getFileName.toString,"generation manifest identity mismatch")
-    val decoder = UTF_8.newDecoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
-    val json = decoder.decode(java.nio.ByteBuffer.wrap(raw)).toString
+    Profile.span("verify-manifest-identity") {
+      if(root.getFileName.toString.length == 64)
+        require(sha(raw) == root.getFileName.toString,"generation manifest identity mismatch")
+    }
+    val json = Profile.span("verify-manifest-decode") {
+      val decoder = UTF_8.newDecoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+      decoder.decode(java.nio.ByteBuffer.wrap(raw)).toString
+    }
+    Profile.span("verify-manifest-lexer") {
     val scanner = new JSON.Lexer.Scanner(isabelle.Scan.char_reader(json))
     var tokens: scala.util.parsing.input.Reader[JSON.Token] = scanner
     var depth = 0
@@ -89,12 +147,18 @@ object DeploymentMain {
       require(depth <= 64 && depth >= 0,"manifest JSON nesting limit")
       tokens = tokens.rest
     }
-    val m = obj(StrictJSON.parse(json,true))
+    }
+    val m = Profile.span("verify-manifest-parse") {obj(StrictJSON.parse(json,true))}
     require(m("schema") == "veri7vn-local-deployment/1","unsupported deployment schema")
     val entries = artifacts(m)
     val paths = entries.map(e => text(e("path")))
     require(paths.distinct.size == paths.size,"duplicate artifact path")
-    entries.foreach { e =>
+    val stats = new HashStats
+    Profile.span("verify-inventory") {
+    // Invocation-local: bounded scratch space without sharing mutable bytes
+    // between concurrent callers or allocating a megabyte for every file.
+    val hashBuffer = new Array[Byte](1024*1024)
+    try entries.foreach { e =>
       val name = text(e("path")); val p = root.resolve(relative(name))
       require(name != "manifest.json" && !name.startsWith("manifest.json/"),"reserved artifact path")
       var parent = p.getParent
@@ -110,11 +174,11 @@ object DeploymentMain {
             "changed or escaping link: "+name)
         case None =>
           require(!Files.isSymbolicLink(p) && Files.isRegularFile(p,LinkOption.NOFOLLOW_LINKS) &&
-            digest(p) == text(e("sha256")),"missing or changed artifact: "+name)
+            digest(p,stats,hashBuffer) == text(e("sha256")),"missing or changed artifact: "+name)
           val actualMode = Files.getAttribute(p,"unix:mode").asInstanceOf[Number].intValue & 511
           require(actualMode == mode(e("mode")),"changed artifact mode: "+name)
       }
-    }
+    } finally stats.emit()}
     m
   }
   private case class Plan(command: List[String], environment: Map[String,String], state: Path)
@@ -165,16 +229,21 @@ object DeploymentMain {
     val userHome = canonical(Path.of(sys.env.getOrElse("VERI7VN_BOOTSTRAP_HOME",throw new IllegalArgumentException("missing bootstrap home"))))
     require(!userHome.startsWith(root),"mutable user home must be outside immutable generation")
     require(sys.env.get("USER_HOME").exists(s => canonical(Path.of(s)) == userHome),"bootstrap USER_HOME differs from owned temporary home")
+    Profile.instant("dispatch-start")
     Files.createDirectories(p.state)
     val loader = new URLClassLoader(jars.map(_.toUri.toURL).toArray,getClass.getClassLoader)
     val thread = Thread.currentThread(); val previous = thread.getContextClassLoader
     try {
       thread.setContextClassLoader(loader)
-      loader.loadClass(main).getMethod("main",classOf[Array[String]])
-        .invoke(null,p.command.drop(3).toArray.asInstanceOf[Object])
+      Profile.span("dispatch-returned") {
+        loader.loadClass(main).getMethod("main",classOf[Array[String]])
+          .invoke(null,p.command.drop(3).toArray.asInstanceOf[Object])
+      }
     } finally {thread.setContextClassLoader(previous);loader.close()}
   }
-  def main(args: Array[String]): Unit = try {
+  def main(args: Array[String]): Unit = {
+    Profile.begin()
+    try {
     require(args.length >= 3 && args(0) == "--package","expected --package PINNED-GENERATION command")
     val root = Path.of(args(1)).toRealPath()
     val command = args(2)
@@ -206,7 +275,9 @@ object DeploymentMain {
         println(path)
       case _ =>
         require(tutorial.isEmpty,"--tutorial is only valid for locate")
-        val p = plan(root,m,state.getOrElse(throw new IllegalArgumentException("--state required")),surface,extra)
+        val p = Profile.span("launch-plan-resolution") {
+          plan(root,m,state.getOrElse(throw new IllegalArgumentException("--state required")),surface,extra)
+        }
         if(command == "plan") println(JSON.Format(Map("command" -> p.command,"environment" -> p.environment,
           "missing" -> m.getOrElse("missing",Nil),"qualification_notes" -> m.getOrElse("qualification_notes",Nil))))
         else dispatch(root,m,p)
@@ -215,5 +286,6 @@ object DeploymentMain {
     case e: java.lang.reflect.InvocationTargetException =>
       System.err.println("deployment: "+Option(e.getCause).getOrElse(e).toString);System.exit(1)
     case e: Exception => System.err.println("deployment: "+e.getMessage);System.exit(1)
+  }
   }
 }

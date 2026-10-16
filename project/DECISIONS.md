@@ -1139,6 +1139,16 @@ attempts to recover from dead child material. Restoration performs no dispatch,
 adoption or theorem admission. Conversation, Frame/Owner, host inventory and native
 recovery migrate together, with pending-crash, no-child and context-Forget consumers.
 
+D65 wire migration: `restore_required` payload version 3 distinguishes artifact
+requirements (`request-child`, artifact/evidence identity and known semantic
+generation) from `source-input` requirements (input identity and pending/recorded
+phase, with no semantic-generation field). The host supplies exactly one protected
+source capability with the actual positive native context. The native factory
+checks the complete original SessionLocal row before acquiring its owner.
+Unsupported versions refuse explicitly; archived version 1/2 meanings remain
+unchanged. Frame, inventory, host decoder and conversation recovery must migrate
+together; a version tag alone does not qualify this path.
+
 ## D66 — Persist immediate effect transitions before actual handoff
 
 The existing model's ClaimAndStart is an immediate transition: it changes Prepared
@@ -1178,3 +1188,18 @@ The fixed factory reconstructs the actual source and domain associations before
 publication; missing original producer/recovery support remains an explicit
 refusal. Registry/host closed-role decoding, native matching and resident recovery
 migrate together after their active capture windows.
+
+## D68 — Deferred Build recovery shares the original input constructor
+
+Extract only inert exact metadata record types and their canonical validator/codec
+before the Inputs module. Keep the authenticated deferred reconstruction factory
+inside the lexical boundary of the actual private prepared-input constructor.
+Recovery must check original metadata, input identity and ordered parent ownership;
+it cannot reupload source or expose a setter for saved IDs.
+
+The Build child may import the same Native_Request_Scope session/theory used by
+recovery. Its dependency on Admission and Authority_Codec is acyclic and already
+needed by the runtime. This is preferable to duplicating Scope or Inputs identity.
+The builder, deferred codec, recovery factory and actual reconstruction tests
+migrate together. Type extraction and codec round trips do not establish restored
+execution authority or close the deferred Build consumer.

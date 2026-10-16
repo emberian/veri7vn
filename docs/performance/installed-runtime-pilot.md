@@ -200,3 +200,205 @@ verification remain mandatory after staging, in a steward slot. A profiled paire
 launch will distinguish full verification from exec-handoff through first output
 in the same run. Host spans remain necessary to separate Java/PIDE/image
 acquisition/native restore within the latter interval.
+
+## Standalone JVM launcher diagnosis
+
+The later recipient shell uses a JVM verifier and dispatches the selected
+application in its own process. The old standalone producer101a trial over
+package `dea4b0326b84e774fd35213fd9919b365f7d38675e2b1e86d9ea8e6ef8da6018`
+recorded source import in 56.442222s and source reopen in 34.227126s. The native
+operation failed because the shell PATH omitted macOS `sysctl`; its 53.591187s
+is a failed invocation, not native performance acceptance. The preserved
+[diagnostic record](../../benchmarks/envelope/standalone-101a-diagnostic.json)
+pins the original result and logs. These are single whole-invocation timings,
+including shell, Isabelle/Java bootstrap, JVM inventory verification, application
+operation and shutdown. The old Python verification sample cannot be subtracted
+from them to identify a JVM startup remainder.
+
+The corrected standalone producer passed the recipient trial recorded below. In
+the subsequent coordinated source window, the launcher owner implemented optional
+stderr phase markers covering shell entry/pre-Java events, Java main entry,
+manifest decoding/lexing/parsing, full inventory verification, summed hash-stream
+wall time and dispatch. The host owner has agreed to add open/image-acquire/native
+initialize-or-restore/operation/close spans after its captured composition check.
+A 1MiB buffer allocated per regular artifact could create about 24GiB of cumulative
+scratch allocation; repeated SHA formatting and two manifest parsing passes are
+additional inspected cost leads. These are hypotheses until same-invocation
+phase and GC measurements establish their contribution. A reusable buffer and
+standard hex conversion preserve byte hashing, but require measured before/after
+qualification rather than an inferred speedup.
+
+`observe_installed.py` runs a fixed content-addressed generation's actual shell
+outside the checkout, records complete stdout/stderr, actual client exit and
+first observed stdout, and requests `VERI7VN_LAUNCH_PROFILE=1`. It preserves the
+shell's fresh settings-home and full verification policies. Optional exact stdout
+SHA256 and complete-line oracles can check source output or licensed HTML.
+It reports absent instrumentation explicitly. Phase-line receipt timestamps use
+the observer's monotonic clock; producer JVM `System.nanoTime` values remain in
+the JVM's own clock domain. Raw epochs must not be subtracted across these clocks.
+Receipt times include pipe and scheduling delay. The collector's own session
+guardian adds small unisolated overhead and performs bounded group cleanup after
+the client exits. Synthetic output, clock separation, early-exit, timeout and
+child-outlives-parent checks passed. The installed source-only phase baseline
+below used this collector; no native operation has used its new phase path.
+Only the sole steward may schedule actual invocations, holding the shared lock
+throughout.
+
+A direct bundled-JVM entrypoint must preserve more than a classpath. The shipped
+`bin/isabelle` sources `getsettings`, initializes component settings and runs
+`isabelle.setup.Setup classpath` in a preliminary Java process. `lib/Tools/java`
+then applies the exact Java system options and cumulative classpath. Isabelle's
+Java `Environment.init` later invokes `isabelle getenv`; with inherited settings,
+this need not rerun the complete component initialization. Calling bundled Java
+with only pinned JARs would cause the later environment initialization to rebuild
+those settings, while risking missing component tools, platform data and native
+backend paths. A proposed direct entry therefore needs a manifest-pinned,
+relocatable settings/classpath/options recipe, fresh invocation-local user-home
+bindings, equivalent `Isabelle_System` initialization, and source/native/solver
+consumer qualification. It is not currently justified as a fix for the observed
+34s reopen path. The subsequent same-invocation source measurements below identify
+JVM verification as dominant, giving the hash repair priority over a direct-Java
+entry change. No metadata-only validation cache is introduced.
+
+
+The corrected AAE producer subsequently passed the actual four-operation recipient
+trial over generation
+`2fd159a898d0b7648dfce893f35a9a61f7ac0df05f7fa25314a29e001750cf45`.
+The [preserved pilot](../../benchmarks/envelope/standalone-aae0-pilot.json) records
+source import 10.765452s, exact source reopen 10.100189s, licensed native sum
+15.711428s and nonempty restored result 12.994597s, each exit zero. These are
+uninstrumented whole-invocation samples. OS identity/PATH/environment, cache
+conditions and host load differ from the earlier producer, so the difference
+is not attributed to one repair or advertised as a performance speedup. The
+corrected recipient trial releases the producer freeze for a new, coordinated
+phase-attribution capture; no unchanged-question rerun is required.
+
+The launcher owner has now implemented that optional protocol without changing
+verification or adding an optimization. JVM markers include local spans for
+manifest read/identity/decode/lex/parse, inventory/total verification, aggregate
+actual hashed bytes/files, plan resolution and reflective dispatch. A bounded
+shutdown hook records a process instant because native `Command_Line.tool` may
+exit before reflective dispatch returns. Shell events are observer-receipt-only
+instants. No source paths or request payloads are logged. Used-heap occupancy is
+named as such; unsupported GC counters are null with explicit supported flags.
+Nested span GC deltas overlap and must not be added together. The owner's shell
+spy tests and marker producer compilation passed (archive
+`b4ce3560487f4834871f5d628acad046`). The installed source-only phase profile
+subsequently passed staging/parity and the actual consumer recorded below;
+native operations remain separate from that source-only measurement.
+
+`summarize_installed.py` consumes an observer result, retaining JVM-local durations
+and GC support flags, and computes only same-JVM instant differences and separate
+observer receipt gaps. It can subtract aggregate hash duration from its owning
+inventory span because those digest calls are sequential inside that span; it
+does not sum arbitrary nested spans. Missing phases remain unavailable. Synthetic
+clock separation, nested aggregate, invalid span and missing-phase checks passed.
+This instrumentation introduces timing overhead and is intended to locate a
+bottleneck before selecting and qualifying a repair.
+
+## Measured standalone bottleneck and scoped repair
+
+The instrumented baseline passed its producer and parity checks, then the steward
+ran two source-only shell operations under the shared lock. A fresh private state
+was seeded from the existing artificial fixture and its 50 source bytes were
+reopened with the exact predeclared SHA256 oracle. Both clients exited zero and
+owned guardians/output readers drained. No native process was started. The
+[phase baseline](../../benchmarks/envelope/standalone-b4ce-phase-baseline.json)
+pins generation `41cafd89949d1d323fb6ece4368986d80659edc5effa64760aedb2fbc1655898`,
+producer/parity attempts, original result/log hashes and the independent clock
+summaries. The pair record reports 39.466095s across the two operations; the
+surrounding wrapper reported 39.466756s after writing its final record.
+
+| Same-invocation observation | Setup import | Exact source reopen |
+|---|---:|---:|
+| Observer whole invocation | 16,502.326916 ms | 22,004.566166 ms |
+| JVM full verification | 14,650.017666 ms | 20,059.300833 ms |
+| JVM inventory check | 11,919.551458 ms | 16,504.280750 ms |
+| Hash open/read/update/hex/close aggregate within inventory | 10,492.063286 ms | 14,371.028917 ms |
+| Manifest lexical depth pass | 1,300.488542 ms | 1,595.033250 ms |
+| Strict manifest parse | 1,311.698708 ms | 1,744.095334 ms |
+| Reflective application dispatch through normal return | 489.575375 ms | 214.861500 ms |
+| Observed pre-Java to Java-main marker receipt gap | 576.956875 ms | 1,140.159709 ms |
+
+Each column is one operation, not a repeatable latency budget. Inventory contains
+the hash aggregate; verification contains inventory and manifest passes. These
+rows overlap and must not be added. The receipt gap uses only observer timestamps
+and includes pipe delivery/scheduling; JVM rows use only the JVM clock. The actual
+hash path read 2,714,883,473 logical bytes across 24,561 regular files in each
+operation, with link-specific checks still enforced. This includes page-cache
+hits and does not measure physical disk traffic.
+
+These observations identify full verification, chiefly the hash path, as the
+first repair target for this source-only workload. They do not support prioritizing
+a direct-JVM bootstrap bypass: its observed receipt interval is much smaller than
+verification, and it still carries the settings/backend obligations above. Source
+application dispatch itself was 215–490ms. The full verification span reported
+22 all-bean GC-count increments and 274/436ms GC-time increments; these are not
+independent pause-cost attribution. Used heap after parsing was about 3.0GB and
+includes unreclaimed objects. No allocation profiler or peak live-heap claim is
+made.
+
+The launcher owner has implemented and frozen the already authorized finite
+repair for a new capture: one local 1MiB buffer per verification instead of one
+per file, and standard lowercase `HexFormat` output. The buffer is local to each call, preserving concurrent-call
+independence. Every file is still read and SHA256 checked; modes, links, manifest
+identity and startup policy remain enforced. There is no metadata validation
+cache. The baseline artifact stays immutable. The repaired producer subsequently
+passed tamper/profile parity and the same fresh-state source setup/reopen consumer
+as recorded below. Further duplicate-parse redesign or direct Java changes remain
+separate decisions after these results.
+
+
+## Actual hash repair comparison
+
+The repaired producer8175/archive15c85 and its 29-case parity check passed,
+including a file larger than the reusable buffer with a partial tail, an empty
+file following it, and tail-tamper rejection. Deployment staged a separate
+immutable candidate
+`333074ee7d73901b1d5023eb3c4bce06ec8490370f2cef782f9fabe40ec62aaf`.
+An independent manifest comparison found content/mode/link/size changes only in
+the bootstrap JAR and its two corresponding source/test snapshots. Every
+nonbootstrap entry and the shell were unchanged. The repaired inventory read the
+same 24,561 regular files; its logical volume was 129 bytes larger because of
+those bootstrap edits. No validation work or application source was omitted.
+
+The steward granted the identical two-operation source-only consumer, with the
+same observer, profile flag, fixture, exact 50-byte reopen oracle and a fresh
+private state. Both clients exited zero, the reopen oracle passed, and bounded
+owned cleanup completed before the lock returned. The pair record reports
+18.571015s; the surrounding wrapper reported 18.571538s after its final record
+write. The [candidate evidence](../../benchmarks/envelope/standalone-15c85-phase-candidate.json)
+and [comparison](../../benchmarks/envelope/standalone-hash-repair-comparison.json)
+pin results, logs, producer/parity attempts and the baseline evidence.
+
+| Interval | Baseline reopen | Repaired reopen |
+|---|---:|---:|
+| Observer whole invocation | 22,004.566166 ms | 8,027.299583 ms |
+| JVM full verification | 20,059.300833 ms | 7,245.509500 ms |
+| Inventory check | 16,504.280750 ms | 5,002.724958 ms |
+| Hash open/read/update/hex/close aggregate | 14,371.028917 ms | 3,775.587222 ms |
+| Application dispatch | 214.861500 ms | 158.946958 ms |
+
+Setup import also passed: observed whole invocation changed from 16,502.326916ms
+to 10,021.607084ms, with the hash aggregate changing from 10,492.063286ms to
+5,381.822309ms. These are single fixed-order before/after observations with
+uncontrolled filesystem cache and OS load. They support the observed source-only
+improvement and the selected repair, but do not establish a precise causal
+speedup ratio, p95, enforced regression gate or native/all-family improvement.
+Instrumentation overhead remained enabled in both versions.
+
+Inventory GC count increments fell from 10 to zero across all reported beans in
+both repaired operations. Total verification increments fell from 22 to 12; the
+remaining increments occurred during lexical and strict manifest parsing. These
+are overlapping aggregate counters, not allocation or pause attribution. Used
+heap after repaired verification was about 3.3GB versus about 1.7GB before: fewer
+collections can leave more unreclaimed objects. No lower live/peak memory claim
+is justified.
+
+The repaired reopen still spent roughly 0.960s in lexical depth checking and
+1.174s in strict parsing, and read/hash work remained about 3.776s. A smaller
+separately qualified headless inventory and a depth-preserving manifest scan
+remain concrete future experiments. Skipping integrity checks, dropping the
+nesting guard, or replacing initialized Isabelle settings with a JAR-only Java
+entry is not required by this repair. No further runtime variant was launched
+in this comparison slot.

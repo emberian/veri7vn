@@ -40,8 +40,10 @@ def main():
             p.write_bytes(data)
             p.chmod(mode)
             return dict(path=name, sha256=hashlib.sha256(data).hexdigest(), mode=mode,role=role)
+        binary_payload=bytes(range(256))*4096+b'partial final block'
         records = [artifact('runtime/bin/isabelle', b'not executed\n', 0o555,'runtime'),
-                   artifact('tutorials/example/package.json', b'{}\n')]
+                   artifact('tutorials/example/package.json', b'{}\n'),
+                   artifact('binary/payload',binary_payload),artifact('binary/empty',b'')]
         manifest = dict(schema='veri7vn-local-deployment/1',target={('Darwin','arm64'):'macOS-ARM64',('Linux','x86_64'):'Linux-x86_64'}[(platform.system(),platform.machine())],
           session='fixture', launch=['{package}/runtime/bin/isabelle','java','veri7vn.runtime.service.RuntimeMain','--workspace','{state}/workspace'],
           environment={'CLASSPATH':'{package}/host/veri7vn-runtime.jar','USER_HOME':'{bootstrap_home}'}, artifacts=records,
@@ -49,11 +51,27 @@ def main():
           associations={'bootstrap_user_home':'fresh-owned-temporary/1','tutorial_sources':{'example':{'root':'tutorials/example','files':['tutorials/example/package.json']}}})
         def save(): (root/'manifest.json').write_bytes(stage.encoded(manifest))
         save()
-        def jvm(command, options=(), package=None, success=True, error=None):
+        def jvm(command, options=(), package=None, success=True, error=None, profile=False):
             nonlocal checks
-            result = subprocess.run([str(runtime/'bin/isabelle'),'java','veri7vn.deployment.DeploymentMain','--package',str(package or root),command,*map(str,options)],env=env,text=True,capture_output=True)
+            profile_env=env | {'VERI7VN_LAUNCH_PROFILE':'1' if profile else '0'}
+            result = subprocess.run([str(runtime/'bin/isabelle'),'java','veri7vn.deployment.DeploymentMain','--package',str(package or root),command,*map(str,options)],env=profile_env,text=True,capture_output=True)
             assert (result.returncode == 0) == success, (command,options,result.stdout,result.stderr)
             if error is not None: assert error in result.stderr,(error,result.stderr)
+            phase_lines=[line.removeprefix('VERI7VN_LAUNCH_PHASE ') for line in result.stderr.splitlines() if line.startswith('VERI7VN_LAUNCH_PHASE ')]
+            if profile:
+                events=[json.loads(line) for line in phase_lines]
+                assert 1 <= len(events) <= 32
+                names={event['phase'] for event in events}
+                assert {'jvm-main-entry','verify-manifest-read','verify-manifest-lexer','verify-manifest-parse','verify-inventory','verify-total','verify-artifact-hash-aggregate','jvm-shutdown-observed'} <= names,names
+                assert all(event['clock']=='jvm-nano-local' for event in events)
+                assert all(str(root) not in line and str(base) not in line for line in phase_lines)
+                spans=[event for event in events if event['event']=='span']
+                assert all(event['end_ns'] >= event['start_ns'] and event['status']=='ok' for event in spans)
+                assert all('heap_used_bytes_before' in event and 'heap_used_bytes_after' in event for event in spans)
+                for event in spans:
+                    for metric,supported in [('gc_count_delta','gc_count_supported'),('gc_time_ms_delta','gc_time_supported')]:
+                        assert (isinstance(event[metric],int) and event[metric]>=0) if event[supported] else event[metric] is None
+            else: assert not phase_lines
             checks += 1
             return result.stdout
         def reject_both():
@@ -62,6 +80,11 @@ def main():
             else: raise AssertionError('Python unexpectedly accepted fixture')
             jvm('verify',success=False)
         assert json.loads(jvm('verify')) == stage.verify(root)
+        assert json.loads(jvm('verify',profile=True)) == stage.verify(root)
+        binary=root/'binary/payload'
+        binary.chmod(0o644);binary.write_bytes(binary_payload[:-1]+b'!');binary.chmod(0o444)
+        reject_both()
+        binary.chmod(0o644);binary.write_bytes(binary_payload);binary.chmod(0o444)
         installation=base/'installation'; installation.mkdir(); (installation/'current').symlink_to(root)
         assert Path(jvm('locate',['--tutorial','example']).strip()) == stage.locate(installation,'example')
         state=base/'state with spaces'
