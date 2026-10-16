@@ -281,7 +281,7 @@
         "Reconciled implementation work graph and explicit design agreement before fan-out"
       ],
       "acceptance": [
-        "Architecture accounts for actual shipped behavior and G01\u2013G08 through concrete representations and authoritative execution paths.",
+        "Architecture accounts for actual shipped behavior and G01–G08 through concrete representations and authoritative execution paths.",
         "Hard-to-reverse choices are explicit, remaining parametric choices have bounds and owners, and implementation fan-out follows user design agreement.",
         "Revision 2 common choices fix the executed HOL authority machine, finite typed executable linkage, canonical theory recipes, native gate, durable host/effect seam and growth-cost tiers; independent lanes do not reopen them implicitly.",
         "Cross-review the native gate/linker and durable commit seam, reconcile the assigned early feasibility tasks and obtain design agreement before implementation fan-out."
@@ -917,7 +917,7 @@
       "evidence": [
         "benchmarks/envelope/closure-pilot.json"
       ],
-      "notes": " Root reviewed actual generated closure pilot f4d1f562: stable47.117s, 24 samples, 21 sorted-ID/multiplicity passes and3 five-second timeouts at1024 chain/dense/duplicate. Missing-seed linked1024 took4.172s. Single observations do not establish application/p95/RSS. Actual data archived closure-pilot.json; exact-order refinement assigned effects61.\nCurrent product consumer: performance_product61 owns actual installed launcher harness with pinned generation, startup-inclusive/warm/restart attribution, RSS and durable footprint. Root review found mutable-pointer and exited-leader pipe cleanup gaps; repairs underway before native benchmark slot. No new end-user measurements claimed.\nRoot reviewed fixed immutable facade and guardian cleanup; reran synthetic check_public_runtime.py successfully. Actual installed benchmark still held for scheduled resource slot; does not count as application timing.",
+      "notes": " Root reviewed actual generated closure pilot f4d1f562: stable47.117s, 24 samples, 21 sorted-ID/multiplicity passes and3 five-second timeouts at1024 chain/dense/duplicate. Missing-seed linked1024 took4.172s. Single observations do not establish application/p95/RSS. Actual data archived closure-pilot.json; exact-order refinement assigned effects61.\nCurrent product consumer: performance_product61 owns actual installed launcher harness with pinned generation, startup-inclusive/warm/restart attribution, RSS and durable footprint. Root review found mutable-pointer and exited-leader pipe cleanup gaps; repairs underway before native benchmark slot. No new end-user measurements claimed.\nRoot reviewed fixed immutable facade and guardian cleanup; reran synthetic check_public_runtime.py successfully. Actual installed benchmark still held for scheduled resource slot; does not count as application timing.\nActual pinned installed pilot slot2 passed: fresh first response 22.823s, restarted first response 14.792s, two warm arithmetic requests 241.649ms and 152.812ms. Historical immutable generation40ac; not current draft qualification, tail-latency evidence, or a broad speedup claim. Detailed evidence checkpoint pending root commit.",
       "contracts": [
         "C04",
         "C05"
@@ -1123,7 +1123,7 @@
         "var/native-scaffold/sessions/3ba4d7ea1d544f79/receipt.json",
         "var/native-scaffold/sessions/a6f87ab8d4ebe987/attempts/e843016747534eb191f6c2c01fd591ee/receipt.json"
       ],
-      "notes": "Production gate development begins while registry object/profile and operational interfaces mature. Dependencies remain explicit completion gates. Co-review actual immutable object store, finite generated bundle association and authenticated event origin with registry/linkage/model/host owners; do not substitute caller metadata or callbacks for native evidence. Generic Admission/Metadata/Checks actual stable PASS 43.493s (3ba4d7ea1d544f79): theorem/scope/hypothesis/premise/sort/oracle/unused-axiom rejection, real certificate/proofterm and controlled definitions. A.join compiled; concrete two-parent tests pending. Source family, D34 slots, D35 managed dependency closure and full nonempty native restore remain required. Dedicated recovery61 now owns actual export/recheck/ID restore under admission/recovery with coordinated N/D interfaces; this does not complete native admission or remove its bridge obligations. D38 map now requires whole resulting workspace reverse uniqueness, atomic generations/staged state, context-owner-only detach. Transient fragment factory inside trusted image captured by fixed top-level functor then immediately shadowed is an explicit nativeML construction boundary, not arbitrary-Check verification. D40 shared numeric source identity authority across R/P plus cross-profile restoration owner sharing is required; no alias registry shortcut. Fixed row declaration parses exact protected configuration slice into public constructor parameters and binds actual owner; original NL input remains separate. Authored source declaration supplies semantic source/query settings only. Fixed native K instantiation binds actual gate-allocated request/attempt/binding/rawslot and current context pins, with preservation theorem for original source/schema/version/query/scope/window intent; arbitrary numeric fields parsed from config never mint runtime authority. Current e843 Core_Checks executes the same complete generic ML test body and passes (11 s), including map atomicity/reverse uniqueness and idempotent managed-provenance teardown. Interrupt-masked bounded cleanup is checked by normal-path tests, not an interrupt-injection proof. D40 shared input leases and D41 atomic complete ID-bundle reservation/replenishment remain open. New D40 lease ownership reveals U.create\u2192P development publication cancellation/ID-exhaustion gap; approved short masked ownership transfer and rollback after current frozen snapshot, with proof construction kept interruptible. Current D40 tests predate repair.\nCurrent resumed finite batch: managed NativeDevelopment/P producer through descriptor/service gate with native_build61. Root transferred src/isabelle/admission/source/** to linkage61 for closed relation operation; admission excludes those paths during this migration.",
+      "notes": "Production gate development begins while registry object/profile and operational interfaces mature. Dependencies remain explicit completion gates. Co-review actual immutable object store, finite generated bundle association and authenticated event origin with registry/linkage/model/host owners; do not substitute caller metadata or callbacks for native evidence. Generic Admission/Metadata/Checks actual stable PASS 43.493s (3ba4d7ea1d544f79): theorem/scope/hypothesis/premise/sort/oracle/unused-axiom rejection, real certificate/proofterm and controlled definitions. A.join compiled; concrete two-parent tests pending. Source family, D34 slots, D35 managed dependency closure and full nonempty native restore remain required. Dedicated recovery61 now owns actual export/recheck/ID restore under admission/recovery with coordinated N/D interfaces; this does not complete native admission or remove its bridge obligations. D38 map now requires whole resulting workspace reverse uniqueness, atomic generations/staged state, context-owner-only detach. Transient fragment factory inside trusted image captured by fixed top-level functor then immediately shadowed is an explicit nativeML construction boundary, not arbitrary-Check verification. D40 shared numeric source identity authority across R/P plus cross-profile restoration owner sharing is required; no alias registry shortcut. Fixed row declaration parses exact protected configuration slice into public constructor parameters and binds actual owner; original NL input remains separate. Authored source declaration supplies semantic source/query settings only. Fixed native K instantiation binds actual gate-allocated request/attempt/binding/rawslot and current context pins, with preservation theorem for original source/schema/version/query/scope/window intent; arbitrary numeric fields parsed from config never mint runtime authority. Current e843 Core_Checks executes the same complete generic ML test body and passes (11 s), including map atomicity/reverse uniqueness and idempotent managed-provenance teardown. Interrupt-masked bounded cleanup is checked by normal-path tests, not an interrupt-injection proof. D40 shared input leases and D41 atomic complete ID-bundle reservation/replenishment remain open. New D40 lease ownership reveals U.create→P development publication cancellation/ID-exhaustion gap; approved short masked ownership transfer and rollback after current frozen snapshot, with proof construction kept interruptible. Current D40 tests predate repair.\nCurrent resumed finite batch: managed NativeDevelopment/P producer through descriptor/service gate with native_build61. Root transferred src/isabelle/admission/source/** to linkage61 for closed relation operation; admission excludes those paths during this migration.",
       "contracts": [
         "C02",
         "C04"
@@ -2129,14 +2129,14 @@
       "title": "Implement source-dependent graph reasoning with explicit bounds",
       "area": "graph specialists",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "coverage-disposition",
         "source-import",
         "plan-composition",
         "strategy-engine"
       ],
-      "owner": null,
+      "owner": "graphs_product61",
       "paths": [
         "src/families/graphs/**",
         "tests/families/graphs/**",
@@ -2158,7 +2158,7 @@
         "Proposed graph cases: valid but nonoptimal path, directed input to an MST contract, unreachable target, equal optima, negative-edge parsing and witness retention through registered codecs."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "User renewed wide 6.1-sol swarm. Own source-backed graph implementation and concrete callers; coordinate actual acquired source projection with source owner and fixed family dispatch with assembly. No raw numeric edge/source IDs as authority. Full graph acceptance remains open; active dependency warnings are intentional.",
       "contracts": [
         "C02",
         "C03",
@@ -2184,7 +2184,7 @@
       "title": "Migrate site/session specialists and controlled local connectors",
       "area": "stateful specialists",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "coverage-disposition",
         "workbench-audit",
@@ -2192,7 +2192,7 @@
         "source-import",
         "runtime-service"
       ],
-      "owner": null,
+      "owner": "stateful_product61",
       "paths": [
         "src/families/stateful/**",
         "src/connectors/**",
@@ -2221,7 +2221,7 @@
         "Target evidence: interrupt a mock connector before/after coupled claim-and-start handoff and external completion, then reconcile without duplicate blind execution or revived canceled requests."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "User renewed wide 6.1-sol swarm. Own recovered site/session and acquisition behavior through local connector fixtures and shared executor/source consumer. Preserve original event freshness, config/unit/origin partitions and unknown action outcomes. No remote real-service actions. Shared runtime dependencies remain open.",
       "contracts": [
         "C01",
         "C03",
@@ -2605,7 +2605,7 @@
         "Compatible family interfaces compose with conditions, sources, disagreement and state preserved; incompatibilities are justified against the agreed product scope.",
         "Required opaque adapters, partial lifts and unresolved implementation failures block this gate. Exclusions require an explicit agreed scope decision and evidence, not convenience or an unimplemented label.",
         "Original unavailable upstream data is recorded separately with its precise effect and explicit replacement/unavailability disposition. Available replacement/test sources exercise the required platform behavior; the limitation cannot be used to waive implementation obligations or claim original-data parity.",
-        "Cross-family closure exercises the shared codec/profile boundary, scoped claims, partial/multipart/optimality semantics, scoped routing and operational qualification\u2014not merely per-family output equality.",
+        "Cross-family closure exercises the shared codec/profile boundary, scoped claims, partial/multipart/optimality semantics, scoped routing and operational qualification—not merely per-family output equality.",
         "Required source-review cases retain their source/proposed/executed distinction and become passing regressions before affected migration claims close; optional Film/publication decisions remain explicit rather than unowned omissions.",
         "Real migrated family instances exercise the generated authority reducer, finite typed linkage and canonical recipe/tool path early; collection/profile richness cannot be satisfied by callbacks with unrelated theorem names.",
         "Owned algorithms require actual native semantic/refinement/checker bridges. External-engine observations, external actions and candidate workflows use their separate declared service boundaries without relabeling owned mathematics as opaque observation."
@@ -2954,11 +2954,11 @@
       "title": "Prepare maintainable documentation and rehearse independent authorship",
       "area": "handoff",
       "milestone": "H",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "release-integration"
       ],
-      "owner": null,
+      "owner": "recipient_product61",
       "paths": [
         "docs/tutorials/**",
         "docs/reference/**",
@@ -2983,7 +2983,7 @@
         "Rehearse starting from an actual Oracle7-original specialist package and its evaluation/source material, not only a hand-written veri7vn tutorial package."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "Begin early developer rehearsal/tutorial work against actual authoring and installed interfaces while release dependencies remain open. Trace original package import through edit, diagnostics, admission, execution, restart and transfer; report absent joins to their owners. This is not recipient usability or clean-install completion.",
       "contracts": [
         "C01",
         "C02",

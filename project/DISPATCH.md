@@ -199,3 +199,19 @@ retaining an expression does not itself require a new executable generation.
 
 Git signing is working again. The previous signer failure above is historical;
 root is making scoped signed commits and pushing the authorized branch.
+
+## Renewed breadth: graphs, stateful use and recipient experience
+
+The user's renewed 6.1-sol swarm request activates three existing scope items,
+without treating their active dependencies as complete:
+
+| Owner | Owned paths and actual consumer obligation |
+|---|---|
+| graphs_product61 | src/families/graphs/**, tests/families/graphs/**, examples/specialists/graphs/**; source-owned graph projection, checked graph operations and fixed family caller |
+| stateful_product61 | src/families/stateful/**, src/connectors/**, tests/connectors/**, examples/specialists/stateful/**; event-time acquisition and session behavior through shared source/executor authority |
+| recipient_product61 | docs/tutorials/**, docs/reference/**, docs/handoff/**, examples/tutorial/**; actual developer rehearsal and usable recipient instructions, routing missing joins back to owners |
+
+These lanes arrange shared interface edits with existing owners; they do not create
+parallel source ownership, execution tickets or registries. Native and Scala checks
+remain serialized by build_reconnected61. Recipient rehearsal is developer evidence,
+not an independent user's success. Root retains tracker and commit ownership.

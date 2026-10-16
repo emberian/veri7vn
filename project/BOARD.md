@@ -43,8 +43,8 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | facts-document-family | Migrate fact rules and source-grounded document retrieval | facts and documents | active | relations_facts61 | source-import, interpretation-model, native-admission, staged-execution |
 | domain-families | Implement classified domain families with genuine semantic bridges | domain specialists | active | domains_reconnected61 | plan-composition, native-admission, staged-execution |
 | mathematics-family | Implement mathematical capabilities with branch and precision contracts | mathematical specialists | active | math61 | known-regressions, plan-composition, native-admission, staged-execution |
-| graph-family | Implement source-dependent graph reasoning with explicit bounds | graph specialists | planned | — | source-import, plan-composition, strategy-engine |
-| stateful-connectors | Migrate site/session specialists and controlled local connectors | stateful specialists | planned | — | state-effects, source-import, runtime-service |
+| graph-family | Implement source-dependent graph reasoning with explicit bounds | graph specialists | active | graphs_product61 | source-import, plan-composition, strategy-engine |
+| stateful-connectors | Migrate site/session specialists and controlled local connectors | stateful specialists | active | stateful_product61 | state-effects, source-import, runtime-service |
 | routing-dialogue | Implement contextual routing, ambiguity resolution and answer rendering | dialogue | active | dialogue_product61 | interpretation-model, plan-composition, runtime-service, diagnostics-repair |
 | synthesis-growth | Implement retained synthesis, abstractions and admitted growth | growth | active | growth_product61 | strategy-engine, package-lifecycle, dependency-updates |
 | authoring-assistance | Integrate assisted obligations, search and repair into authoring | authoring assistance | planned | — | workspace-client, diagnostics-repair, strategy-engine, synthesis-growth |
@@ -55,7 +55,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | proof-implementation-closure | Establish mandatory metatheory obligations and their runtime connections | assurance integration | planned | — | family-integration, workspace-integration, refinement-backends |
 | performance-hardening | Meet measured whole-system performance and resource budgets | performance integration | planned | — | family-integration, workspace-integration, refinement-backends, performance-envelope |
 | release-integration | Validate the complete deployable product and release contents | release integration | planned | — | proof-implementation-closure, performance-hardening, deployment-builder, family-integration, workspace-integration |
-| recipient-handoff | Prepare maintainable documentation and rehearse independent authorship | handoff | planned | — | release-integration |
+| recipient-handoff | Prepare maintainable documentation and rehearse independent authorship | handoff | active | recipient_product61 | release-integration |
 | native-recovery | Reconstruct committed native evidence and restore actual resident authority | native recovery | active | recovery_reconnected61 | native-registry, native-admission, operational-model |
 | native-development | Build and admit original expert Isabelle developments through controlled native reconstruction | native development | active | native_build_product61 | native-admission, native-registry |
 | native-resident-assembly | Connect resident authority, typed operation dispatch and native lifecycle | native runtime integration | active | assembly_reconnected61 | operational-model, native-admission, state-effects, staged-execution, native-recovery |
@@ -85,9 +85,12 @@ None.
 - facts-document-family: status active with unresolved dependencies: source-import, interpretation-model, native-admission, staged-execution
 - domain-families: status active with unresolved dependencies: plan-composition, native-admission, staged-execution
 - mathematics-family: status active with unresolved dependencies: known-regressions, plan-composition, native-admission, staged-execution
+- graph-family: status active with unresolved dependencies: source-import, plan-composition, strategy-engine
+- stateful-connectors: status active with unresolved dependencies: state-effects, source-import, runtime-service
 - routing-dialogue: status active with unresolved dependencies: interpretation-model, plan-composition, runtime-service, diagnostics-repair
 - synthesis-growth: status active with unresolved dependencies: strategy-engine, package-lifecycle, dependency-updates
 - deployment-builder: status active with unresolved dependencies: package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope
+- recipient-handoff: status active with unresolved dependencies: release-integration
 - native-recovery: status active with unresolved dependencies: native-registry, native-admission, operational-model
 - native-development: status active with unresolved dependencies: native-admission, native-registry
 - native-resident-assembly: status active with unresolved dependencies: operational-model, native-admission, state-effects, staged-execution, native-recovery
