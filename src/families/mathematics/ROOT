@@ -1,0 +1,3 @@
+session Veri7vn_Mathematics = Veri7vn_Codegen +
+  options [document = false]
+  theories Mathematics_Exact Mathematics_Representation Mathematics_Real_Guards Mathematics_Syntax Mathematics_ASCII Mathematics_Solutions Mathematics_Display Mathematics_Polynomial Mathematics_Parameters

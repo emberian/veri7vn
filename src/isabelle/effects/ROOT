@@ -1,0 +1,5 @@
+session Veri7vn_Effects = Veri7vn_Codegen +
+  options [document = false, threads = 2]
+  sessions Veri7vn_Source_Semantics
+  theories
+    Veri7vn_Effects
