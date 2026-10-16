@@ -11,16 +11,25 @@ from workbench_check import run
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('installation',type=Path)
+    parser.add_argument('--standalone',action='store_true',help='exercise only shipped application entrypoints outside checkout')
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
     generation=(args.installation/'current').resolve(strict=True)
     output=args.output.resolve();output.mkdir(mode=0o700,parents=True,exist_ok=False)
     facade=output/'installation';facade.mkdir();(facade/'current').symlink_to(generation)
-    tutorial=locate(facade,'retained-identity')
+    if args.standalone:
+        code,located,error=run([str(generation/'bin/veri7vn'),'locate','--tutorial','retained-identity'],output,60)
+        (output/'locate.stdout').write_bytes(located);(output/'locate.stderr').write_bytes(error)
+        if code!=0:raise RuntimeError('standalone bundled tutorial locate failed')
+        tutorial=Path(located.decode().strip()).resolve(strict=True)
+        if tutorial!=generation/'tutorials/retained-identity':raise RuntimeError('standalone locate selected unexpected source path')
+    else:
+        tutorial=locate(facade,'retained-identity')
     state=output/'state';launcher=Path(__file__).with_name('stage.py').resolve()
-    command=[sys.executable,str(launcher),'launch','--state',str(state),'--surface','source',str(facade),'--',
+    prefix=[str(generation/'bin/veri7vn'),'launch'] if args.standalone else [sys.executable,str(launcher),'launch']
+    command=prefix+['--state',str(state),'--surface','source']+([] if args.standalone else [str(facade)])+['--',
         'import-native','identity',str(tutorial),'installed-identity-import']
-    result=dict(generation=generation.name,tutorial=str(tutorial),passed=False,
+    result=dict(generation=generation.name,standalone=args.standalone,tutorial=str(tutorial),passed=False,
         assurance='installed bundled editable identity source import, two browser saves and fresh CLI source read; no build/admission/native execution or recipient trial')
     try:
         code,stdout,stderr=run(command,output,60)
@@ -30,7 +39,7 @@ def main():
         browser=Path(__file__).with_name('source_browser_check.py').resolve()
         code,stdout,stderr=run([sys.executable,str(browser),str(facade),'--state',str(state),
             '--draft','identity','--file','Retained_Identity.thy','--expected-file',str(tutorial/'Retained_Identity.thy'),
-            '--save-twice','--output',str(output/'browser')],output,150)
+            '--save-twice','--output',str(output/'browser')]+(['--standalone'] if args.standalone else []),output,150)
         (output/'browser-driver.stdout').write_bytes(stdout);(output/'browser-driver.stderr').write_bytes(stderr)
         result['browser']=json.loads((output/'browser/result.json').read_text())
         if code!=0 or not result['browser']['passed']:raise RuntimeError('installed two-save source workflow failed')

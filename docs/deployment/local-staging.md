@@ -370,9 +370,9 @@ file and preserved the old selected generation. Current native captures do not
 sweep those mutable drafts into the package. Actual current installed native/UI
 and protected failed-upgrade consumers remain separately recorded results.
 
-These integration harnesses currently invoke the checkout's Python staging driver;
-they are not checkout-independent recipient launch evidence. A separate pinned
-bootstrap JAR and packaged `bin/veri7vn` are being qualified for standalone dispatch.
+The earlier integration harnesses invoke the checkout's Python staging driver.
+The corrected standalone consumer recorded below separately uses the pinned
+bootstrap JAR and packaged `bin/veri7vn` outside the checkout.
 Its shell/JVM/Isabelle startup executes before manifest verification. Its own JAR
 hash is not an independent trust root, and the package must remain immutable while
 executing. Full manifest checks establish the stated integrity boundary, not a
@@ -434,3 +434,36 @@ establishes preservation for a controlled nonempty local mathematics workspace,
 not successful migration, candidate promotion, general external-action replay
 safety, or all private-data lifecycle cases. A positive fresh candidate consumer
 remains a separate requirement.
+
+
+Corrected standalone generation
+`2fd159a898d0b7648dfce893f35a9a61f7ac0df05f7fa25314a29e001750cf45`
+at `var/deployment-ui-d44-standalone-aae0d7dd/current` passed all four installed
+consumer calls: original source import, exact fresh-process source reopen, licensed
+native sum result and fresh-process retained result. Launcher producer
+`aae0d7dd917843c189c134d7df57bab5` includes the full controlled system PATH, OS
+user identity and protection of the entire recognized generations directory from
+state writes. Corrected launcher parity passed 27 cases. Hostile inherited JVM
+options, shell startup variables and persistent state settings did not execute.
+The [standalone evidence](../../tests/deployment/evidence/standalone-aae0d7dd.json)
+pins the artifacts, result and logs. The earlier 101a source calls passed but its
+native call failed because `sysctl` was absent from PATH; that evidence is retained.
+
+Use the shipped entrypoint directly, with private state outside the installation:
+
+```sh
+V7=var/deployment-ui-d44-standalone-aae0d7dd/current/bin/veri7vn
+"$V7" locate --tutorial retained-identity
+"$V7" launch --state /absolute/private/state --surface source -- serve
+"$V7" launch --state /absolute/private/native-state --surface workbench -- serve
+```
+
+Product invocations require neither checkout scripts nor a system Python/compiler.
+The source surface edits source without starting native authority. The workbench
+surface starts the pinned resident authority and shared authoring interface. The actual standalone bundled identity workshop also passed at
+`var/standalone-workshop-2fd159-slot1/result.json`: shipped locate/import, browser
+Open, two saves with new revisions, normal shutdown and fresh CLI exact source
+reopen all succeeded on this unchanged generation. These are automated source
+editing checks; they do not establish visual recipient or native admission acceptance.
+The old 40ac installation remains selected; no cross-generation promotion or
+migration was performed. Linux execution and D19 redistribution remain unresolved.

@@ -57,7 +57,75 @@
           "seconds": 12.994597417011391
         }
       ],
-      "forbidden_settings_marker_absent": true
+      "forbidden_settings_marker_absent": true,
+      "files_sha256": {
+        "native-restart.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "native-restart.stdout": "8ba1573caf1eea2686201a1abda9634ce0b854182c8a2356e4d2bf988983658d",
+        "native-run.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "native-run.stdout": "d316a1f37a5ecbedb8a8b3cadf4b2da6d57ba62cc9323c48e28b6b6c662ea930",
+        "result.json": "f9812209e5711c31b996c5e666091e8363837138fbd9bf6ceca12790626e9652",
+        "source-import.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source-import.stdout": "f86a06aafd61782e6fdcbae909be02a589221e13efc6a213187704c64a8f32e8",
+        "source-reopen.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source-reopen.stdout": "5423fb2f7b6e4a312f2c4611c7aacf41e53eee3fe7668331f7cddf035d92d915"
+      },
+      "passed": true
+    },
+    "standalone_workshop": {
+      "result": "var/standalone-workshop-2fd159-slot1/result.json",
+      "passed": true,
+      "standalone": true,
+      "import": {
+        "returncode": 0,
+        "passed": true
+      },
+      "browser_checks": [
+        {
+          "label": "source-browser-home",
+          "passed": true
+        },
+        {
+          "label": "csrf-open-exact-source",
+          "passed": true
+        },
+        {
+          "label": "save-1-new-revision",
+          "passed": true
+        },
+        {
+          "label": "save-2-new-revision",
+          "passed": true
+        },
+        {
+          "label": "normal-enter-close",
+          "returncode": 0,
+          "passed": true
+        },
+        {
+          "label": "fresh-cli-reopen-two-saves",
+          "returncode": 0,
+          "passed": true
+        }
+      ],
+      "files_sha256": {
+        "browser/browser.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "browser/browser.stdout": "4d1854f1ddc7d524749d928e3b4e2b559631f0461d8bd10207417c764a39149b",
+        "browser/home.html": "6eff233e04d6b79e75142a6b8851b4009106b914414ad100e678fba1770de014",
+        "browser/opened.html": "a76966bf587b30c8c2e38648a8f2bdc0584d5234bd42e9f08f9e115cb2ef03cf",
+        "browser/reopened.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "browser/reopened.stdout": "c723cd01c231cdf3ed13cdcbcb45462d7d66501f740a88af3eefc33e9d815902",
+        "browser/result.json": "458f4f30480adc2c8010cecf6f440022740c7fb26bbd300c27c9c1a9758ce08c",
+        "browser/save-1.html": "8c896a101fdde8692692865082b7ec8d48a94bf5e926512d284239e8267e12bf",
+        "browser/save-2.html": "ab00ca083568ce767ab12f60e8e48dd5a44cebc59086edfbbf3782474de72991",
+        "browser-driver.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "browser-driver.stdout": "3c429f1712ff0fb6a3e0b7c9e7d1af75ee004acdfc6f02061ca68744f999b55e",
+        "import.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "import.stdout": "3e6423427100b37fe0b065ca157a1f0e60c76e0eeff18ac9b53e3752c5bdafa4",
+        "locate.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "locate.stdout": "f7b0afb2ab3370d16225bf459d0d273ab16a0cadc30cba29e7154b78e381d397",
+        "result.json": "f15efe6ad89cf868b993edad7a85b7cd910312ab4b69dc5f83dcd0e6eb2d17d2"
+      },
+      "assurance": "installed bundled editable identity source import, two browser saves and fresh CLI source read; no build/admission/native execution or recipient trial"
     }
   },
   "installation": "var/deployment-ui-d44-standalone-aae0d7dd",
@@ -72,9 +140,12 @@
   "limitations": [
     "D19 redistribution unresolved; local-only",
     "Linux execution untested",
-    "browser/full workshop/search/edit/admission acceptance separate",
+    "Automated source browser/two-save workflow passed; visual/independent recipient, search and admission acceptance separate",
     "timings are whole invocation observations, not attributed or performance envelope",
     "no promotion of existing installation/state",
     "old101a source pass/native sysctl failure preserved independently"
-  ]
+  ],
+  "native_runtime_capture": "db6edb9e17021542dd1f0617f44630e194c952dd315b5124ccab4a72e8fd3cac",
+  "native_host_jar_sha256": "a6f836eed91e5769170bf0fa00f34fe0d37a26fe9695a8a4d6f9b10caef83c56",
+  "launch_surface": "Shipped bin/veri7vn outside checkout; no system Python/source compiler in product invocation"
 }

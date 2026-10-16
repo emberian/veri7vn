@@ -55,6 +55,7 @@ def main():
     parser.add_argument('installation',type=Path)
     parser.add_argument('--state',type=Path,required=True)
     parser.add_argument('--expected-file',type=Path,required=True)
+    parser.add_argument('--standalone',action='store_true',help='invoke shipped bin/veri7vn instead of developer staging driver')
     parser.add_argument('--save-twice',action='store_true',help='append two Isabelle comments via actual browser saves and CLI reopen')
     parser.add_argument('--draft',default='packaged-source')
     parser.add_argument('--file',default='specialist.py')
@@ -64,9 +65,10 @@ def main():
     output=args.output.resolve();output.mkdir(mode=0o700,parents=True,exist_ok=False)
     facade=output/'installation';facade.mkdir();(facade/'current').symlink_to(generation)
     launcher=Path(__file__).with_name('stage.py').resolve()
-    command=[sys.executable,str(launcher),'launch','--state',str(args.state.resolve(strict=True)),
-             '--surface','source',str(facade),'--','serve']
-    result=dict(generation=generation.name,checks=[],passed=False,
+    prefix=[str(generation/'bin/veri7vn'),'launch'] if args.standalone else [sys.executable,str(launcher),'launch']
+    options=['--state',str(args.state.resolve(strict=True)),'--surface','source']+([] if args.standalone else [str(facade)])
+    command=prefix+options+['--','serve']
+    result=dict(generation=generation.name,standalone=args.standalone,checks=[],passed=False,
         assurance='actual installed source-only browser startup, HTTP source view, clean close; no native execution or visual/recipient qualification')
     process=None;initial=b''
     try:
@@ -109,8 +111,7 @@ def main():
             if process.returncode!=0:raise RuntimeError('browser did not close cleanly')
             result['checks'].append(dict(label='normal-enter-close',returncode=process.returncode,passed=True))
             if args.save_twice:
-                inspect=[sys.executable,str(launcher),'launch','--state',str(args.state.resolve(strict=True)),
-                    '--surface','source',str(facade),'--','source',args.draft,args.file]
+                inspect=prefix+options+['--','source',args.draft,args.file]
                 code,reopened,errors=run(inspect,output,45)
                 (output/'reopened.stdout').write_bytes(reopened);(output/'reopened.stderr').write_bytes(errors)
                 if code!=0 or reopened!=final_bytes:raise RuntimeError('fresh CLI reopen differs from browser second save')
