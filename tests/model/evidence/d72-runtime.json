@@ -1,0 +1,46 @@
+{
+  "format": "veri7vn.scoped-integration-evidence/1",
+  "status": "passed",
+  "receipt": "var/native-scaffold/sessions/15979935b3c180d7/attempts/70e8328ec2df4762b76b13fac2b0c73d/receipt.json",
+  "receipt_sha256": "7099cc72d0de77bf9847dc66c79dc6b0b808889407b612095658b446d232bb02",
+  "markers": [
+    "VERI7VN_MODEL generated_step PASS",
+    "VERI7VN_MODEL slot_retention_private_closure PASS",
+    "VERI7VN_MODEL forget_roots_closure PASS",
+    "VERI7VN_MODEL artifact_owned_nonassertional PASS",
+    "VERI7VN_MODEL artifact_child_revocation_races PASS",
+    "VERI7VN_MODEL artifact_intrinsic_owner_closure PASS",
+    "VERI7VN_MODEL artifact_composite_perchild PASS",
+    "VERI7VN_MODEL unused_evidence_execution_pin PASS",
+    "VERI7VN_MODEL effect_observation_atomic_nonassertional PASS"
+  ],
+  "sources_sha256": {
+    "src/isabelle/codegen/ROOT": "50c82edf51404e179130586d76f70efb05cdee157fd93d4ab15b22e555306d7f",
+    "src/isabelle/codegen/Veri7vn_Codegen.thy": "e282b323bcdfa5e822662ea0cd0e8bd9131bea4c5148a182042e01dbd56f32b2",
+    "src/isabelle/codegen/installed/Code_Abstract_Nat.thy": "515d9fd3e507b63e4b8bf8bb7d9d09d8e1066fc98f0b8dd75adfde741de87158",
+    "src/isabelle/codegen/installed/Code_Target_Int.thy": "3d652b9aaa65e29d838a02cf0b12e66f95dc108d2ca699bea29c389f9b0c4c12",
+    "src/isabelle/codegen/installed/Code_Target_Nat.thy": "e455a0975c6e2891884f37887dd35ba932b1692617ffd471b4dfa7b1a5a9a9f1",
+    "src/isabelle/codegen/installed/Code_Target_Numeral.thy": "fa2bb75f5112d6590b1f781bfc8de93997d1d5ac3b12bab4338b4d3b9b804af8",
+    "src/isabelle/effects/ROOT": "2c43917ca8cfc9ef30c4004c53e91ad28a360123bdb5479548477401a1ac34c0",
+    "src/isabelle/effects/Veri7vn_Effects.thy": "286313ac1c944ed0baf931d5180f3694bca915c88cf074c0c9e833ae806a40ba",
+    "src/isabelle/model/ROOT": "853d7ba507ae39040987bf6161a2f3925fd45780ce3b26de382cf5efda6088b4",
+    "src/isabelle/model/Veri7vn_Authority.thy": "f218033d6fc4717db150f5c836774cba8d3bcbc842836acbacb7b3b8ba6cc305",
+    "src/isabelle/model/events/Authority_Events.thy": "02d6e7ebf3c59aefe75c930f03304c2f650cb08dd0cedd2c9edc71e5c1b96c42",
+    "src/isabelle/model/metadata/Authority_Metadata.thy": "a447b69c151056330b536dd319ea34d64ebd6a2a27eb02256fad9e474c1ee58e",
+    "src/isabelle/sources/semantics/ROOT": "d6e942c037e98360b6e2da777fe55ac5e9a95ad04708e69ccfa48e746ebb659f",
+    "src/isabelle/sources/semantics/Source_Provenance.thy": "77c2286bc8f52e09295a780a0cf8ee617e412668fc2bc492b4b7da34e0eb31a1",
+    "src/isabelle/sources/semantics/Source_Semantics.thy": "cf57fd33443e9aca7d6fa715e19f7abd69a279f5a5e23f6d623b138faeb46489",
+    "src/isabelle/sources/semantics/Source_Window_Coverage.thy": "a0ecf6c442fe88f2c0210302a85b68d40d3158befb7806246f2d89d0bf69820d",
+    "tests/model/fixtures/Authority_Fixtures.thy": "ecb59dbacf656b6c09f6bacb2d2224de71ba4349a7cc429251930a25ef227cbb",
+    "tests/model/fixtures/ROOT": "b730f2a658e8106ec1fa4d44f4a0c3976acd732170d27fbb61b56dc601fca82d",
+    "tests/model/runtime/Authority_Runtime_Tests.thy": "082206c52310acc649b6e27397539d0899176286f092aea7e58dd21fee1e8d98",
+    "tests/model/runtime/ROOT": "e14b47819246ca9e702b290fda61b3ed286f2ce2f41bdb0d9e966cf168c892f1",
+    "tools/dev/check-native": "3ce1c2bf0412cd9e02106ee6199d5713f3cb9e57be810e1a9d93bb65e285586e",
+    "var/native-scaffold/support/authority-runtime-closure.json": "f4c568128a07d37b483f6601efd690636f10eb24c5bdad8183867f323a7916ab"
+  },
+  "scope": "generated authority runtime; nine finite regressions, including atomic nonassertional effect-response lifecycle",
+  "limits": [
+    "No general metatheorem, native response gate, connector execution or installed workflow qualification."
+  ],
+  "review": "Root inspected executed log, relevant runtime assertions and exact live source hashes; archived matching source bytes in ignored integration checkpoint before further edits."
+}

@@ -44,33 +44,53 @@ whole-system performance envelope yet.
 
 ## Current integration checkpoint
 
-The latest committed host checkpoint exercised 14 test groups, including real
+The committed host checkpoint exercised 14 test groups, including real
 managed Build-source capture, rollback, reopening original revisions after head
 edits, and Revoke/Forget ownership behavior. Its
 [evidence record](../tests/runtime/host/evidence/host14-source-ownership.json)
 qualifies those host paths; its native envelope and cleanup barrier were controlled
 fixtures. It does not establish the complete native Build workflow.
 
-Three current joins explain much of the remaining integration work:
+The newer host checkpoint passed 16 groups, including private response storage
+and the versioned restoration inventory. Its native confirmation boundary was
+controlled. The subsequent scoped [lost-acknowledgement and cleanup-retry check](../tests/runtime/host/evidence/effect-maintenance-lost-ack.json)
+also passed. Neither qualifies the real connector-to-native workflow. The
+[generated authority runtime](../tests/model/evidence/d72-runtime.json) separately
+passed nine finite regressions, including atomic nonassertional response retention
+and rejection of late delivery after cancellation, revocation or Forget.
+
+Four current joins explain much of the remaining integration work:
 
 - **Build:** retain the exact source and diagnostics, reconstruct historical native
   ownership after restart, and deliver terminal status to the ordinary CLI/browser.
   A successful source save still does not activate changed behavior.
+  The complete native candidate module now compiles after repairing the private
+  recovery module boundary and an installed-library API mismatch. Its actual
+  descriptor, artifact lifecycle and restart workflow still require runtime checks.
 - **Conversation:** construct native descriptors without querying the authority
   owner recursively while its monitor is held. Preserve full original-observation
   equality at staging and reject stale acknowledgements. The static module split
   and synchronous reentry guard are drafted; their composed tests remain open.
+  The bounded client parser has passed separately. A shared opaque source owner
+  must carry the actual original session ownership into request scope and recovery.
 - **Effects:** an acknowledged invocation and its terminal status are insufficient
   to deliver a retained response. Actual response bytes need a nonassertional
   source association committed with their ownership and durable state. The
-  proposed staged delivery path must also support retrieval, restart without
-  reinvocation, and Forget; it is still being designed and integrated.
+  staged delivery path must also support retrieval, restart without reinvocation,
+  and Forget. Its model and codec compiled in the candidate check; native response
+  validation, source restoration and the actual parent service remain in progress.
+- **Search and cancellation:** Build and Search handlers are now connected in the
+  parent service source, but not yet qualified together. Request material must be
+  durable before later support/charge steps. Cancellation must preserve appropriate
+  history while retiring live execution resources; the current restoration
+  inventory and cancelled request scope disagree and are being repaired together.
 
 A narrow native check has now passed exact natural/integer/string exchange between
 separately reflected modules, including NUL and high-byte values. This repairs a
 shared representation obstacle. The actual source importer, row plans and row kernel
-subsequently compiled together, including the generated decoder; the protected
-source-relation consumer and request-scope factory remain separate checks. Native checks remain serialized through
+subsequently compiled together, including the generated decoder; request-scope
+factory compilation also passed. The protected source-relation consumer and
+complete resident workflows remain separate checks. Native checks remain serialized through
 one steward so parallel implementation does not create competing builds.
 
 ## Capability review

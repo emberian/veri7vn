@@ -1284,3 +1284,185 @@ cover synchronous same-owner reentry refusal without state installation, success
 subsequent intrinsic acknowledgement, stale observation refusal at staging, and
 actual observation change between staging and acknowledgement. Prefer a test-local
 assembly of real components over new production test commands or alternate grants.
+
+The original session source is carried across Scope and recovery by one early,
+sealed capsule issued only by the private Roots producer. It retains the actual
+input, pin, source owner and development, plus an independently retained Entry.
+A destructor-only closure may release that Entry; it cannot query permissions,
+compute dependencies or call Owner under its monitor. Exact native getters supply
+the full original source closure. Release is idempotent and retains retry roots
+on failure. No public saved-ID constructor, dependency setter or callback-based
+authority mirror is introduced. Conversation owns the capsule; assembly owns its
+shared Scope/recovery integration.
+
+## D72 — Effect responses are atomically retained observations
+
+Deliver an actual external response through a distinct nonassertional source
+association. It is neither an Accepted claim nor a native Build artifact. The
+model record binds the actual attempt, response source and terminal status;
+the fixed native gate and protected recovery envelope additionally bind the real
+protocol, encoding, exact response bytes, receipt and original configuration and
+operation ownership. Do not invent a numeric protocol identity absent from the
+installed operation model. Canonical decoded JSON must be described as such,
+rather than as the original wire bytes or as verified external truth.
+
+Use StageEffectObservation and a RecordEffectObservation delta through existing
+Persist/DurableAck. Only the unique actual Running or Unknown attempt may stage
+a response. Acknowledgement atomically registers the derived RequestLocal source
+row, records its association and terminalizes the attempt as Confirmed or
+EffectFailed. Derive dependencies from the original attempt/request; caller rows
+cannot substitute ownership. Recheck the actual current context at staging and
+acknowledgement, including blockers, child access, configuration and job epoch.
+Already charged delivery must neither recharge nor require a fresh attempt.
+The same current-context rule also closes the missing child/blocker checks at
+ClaimAndStart. Attempt lookup and RecordIntent acknowledgement must prevent
+duplicate identity from resetting terminal history.
+
+Unknown carries no claimed response. A valid later response may resolve Unknown,
+but never authorizes repeating the invocation. A terminal status-only Reconcile
+deliberately forecloses later source attachment: consumers with an actual response
+must commit its source and terminal status together. Terminal attempts persist
+after Forget, preventing another source identifier or batch from redelivering the
+old result. No new tombstone field is needed. Exact replay must not resurrect
+erased material. Persistence failure reports an undelivered result; it does not
+silently retry the external operation.
+
+Host response staging is private: ordinary ManagedSources.begin/commit exposes
+draft metadata and is not this primitive. Reuse content-addressed objects and
+bounded storage, but atomically adopt their private staged closure and typed
+association with the native checkpoint in the existing commitNative transaction.
+No draft list/open path may expose a response before native acknowledgement.
+Retrieval borrows the actual retained source owner under continuing permissions.
+Restart restores it without invocation; Revoke denies access and Forget removes
+the association and queues physical cleanup. Failed cleanup retains retry roots.
+
+Authority owns model/schema/codec and lifecycle laws; effects owns the private
+native response gate, source transfer and recovery association; the connector
+owns actual bounded response production; assembly owns the closed parent gate
+and recovery integration; host owns private storage and durable source leases.
+Source/recovery owners review reuse of the existing authenticated input pool.
+Required checks include actual response retrieval, nonempty restart, blocker and
+cancellation races, persistence failure, status-only reconciliation, and new-batch
+or exact-replay attempts after Forget. A serialized file or a host-only compile
+does not close this workflow. The current effect path remains the modeled legacy
+singleton until the owning-child extension is implemented; it cannot silently
+accept heterogeneous requests.
+
+The closed recovery role is `local-mcp/1` + `effect-source-observation`, with
+Controlled_Recipe reconstruction, an empty sequent and the exact executable pin.
+It is an acquired source, not an evidence/artifact/request-child role. Reuse the
+authenticated native recovery blob when its reconstruction slot is exactly the
+bounded canonical response source; do not store a second durable copy. Original
+configuration, packet and response owners still require authenticated recovery
+pool associations. Manifest, host role matching, native inventory and restoration
+must migrate together. Connector completion publishes receipt and response as one
+atomic value; temporary response unavailability cannot be downgraded to a
+status-only terminal reconciliation.
+
+The new restore protocol is `restore_required` version 4, retaining two artifacts.
+The first contains actual semantic-generation request/artifact/evidence tuples.
+The second uses closed source rows: `source-input,uid,pending|recorded` or
+`acquired-source,uid,confirmed|failed`. Source rows do not invent semantic
+generations absent from their modeled association. The authenticated material
+supplies the actual positive native context; the fixed factory checks the exact
+expected attempt/source/status before reconstructing ownership. Native inventory,
+host parser and recovery tests migrate together and reject version 3 in the new
+runtime. The pinned older installation keeps its own matching protocol.
+
+The inner authority metadata wire moves to version 3 for the new observation
+algebra. Version/schema mismatch is explicit and preserves the old checkpoint;
+there is no empty-state fallback or overwrite. Outer protocol migration and
+inner metadata migration are distinct obligations. A compatible upgrade path
+still requires implementation and qualification.
+
+For the fixed local counter response, use a bounded typed JSON-tree witness and
+independent exact encoding checks instead of trusting a new native JSON parser.
+Check the canonical sorted record and the original ordered receipt separately,
+preserving the receipt bytes/hash, then compare normalized response trees.
+Duplicate keys, invalid Unicode scalars and unsupported numeric forms reject.
+The initial representation uses explicit Unicode scalars and exact integers,
+with bounded witness bytes, depth and nodes; it does not inherit JVM Double
+formatting as a theorem. The actual producer and checker must agree on the
+versioned representation before integration. This checks representation and
+source association, not the truth of an external response. Effects owns the
+generated encoder/checker and gate, the connector owner supplies the witness,
+and assembly connects the actual parent consumer.
+
+Historical response retrieval uses the fixed `effect_source_open` query, requiring
+the actual current modeled association and the same reconstructed physical source
+owner. Its bounded reply binds original identities, status, exact hashes and
+context to the current owner incarnation/checkpoint. The bridge alone mints an
+opaque confirmation; raw host Identity data cannot open a response. Serialize
+query-to-open with lifecycle mutation or reject stale confirmation. Continuing
+lease reads still check permissions. Reopen, Revoke and Forget invalidate old
+confirmations; lookup never allocates a source or repeats the external operation.
+
+The configuration epoch is an immutable part of the actual installed native
+configuration association, supplied by the fixed protected upload producer and
+bound to its exact source. It is distinct from the execution attempt/job epoch.
+Response validation derives its configuration label from that original owner;
+it cannot infer the value from ClaimAndStart or default missing metadata. Version
+configuration upload and recovery material together and migrate packet/response
+consumers. The epoch label alone confers no invocation authority.
+
+## D73 — Temporary recall readers have leases; ordinary sessions have no default TTL
+
+Preserve the shipped saved-conversation reader policy: a derived temporary reader
+defaults to seven days, with requested days clamped to 1–365. The ordinary saved
+conversation has no default expiry. The reader has its own managed identity and
+persisted exclusive deadline; expiring it revokes its dependent capabilities and
+results without deleting the original conversation. Forgetting the conversation
+also retires dependent readers. Preserve quotation/date/route provenance.
+
+Repair the upstream dispatch ordering: expiry must guard cached/pronoun recall
+as well as ordinary selection, invocation and publication. The original pronoun
+path ran before the live-reader filter. Explicit manual Revoke alone does not
+implement this time-based policy.
+
+Use a generated static lease/source policy projection and an opaque witness from
+the fixed native wall-clock sampler, with an explicit `unix-utc-ms/1` origin.
+Require `created <= now < deadline`, fresh native samples at both staging and
+acknowledgement, and unchanged exact policy/source ownership through the authority
+version check. Missing/duplicate leases, incompatible origins and invalid earlier
+times refuse. Do not accept caller timestamps or use a client-only timer. Native
+wall time is an environmental assumption, not a proof of reboot-stable monotonic
+elapsed time. Restore the original deadline and recheck it before enabling the
+reader; never renew its duration implicitly or replay old questions.
+
+Conversation, authority and assembly co-review the concrete clock-witness and
+lease schema after D72. Existing source/adoption/CAS integration remains the first
+consumer to finish. This policy decision does not claim that automatic expiry or
+its native clock authority is already implemented.
+
+## D74 — Cancelled execution and retained historical verification are distinct
+
+Cancellation retires live request execution resources. It must not make an
+independently retained historical result impossible to reconstruct, or grant that
+result a fresh execution ticket. Current Math and Search output reconstruction
+depends on request recipes, while cancelled Scope correctly denies active use.
+Simply removing cancelled requests from the restoration inventory is insufficient.
+
+First migrate output capsules to carry or authenticate their exact original
+source and recipe support, reconstructing an inert verification context without
+active Scope, dispatch or recharge. Then restrict the active child inventory to
+the actual remaining execution and continuation obligations. A terminal outcome
+alone does not prove those obligations absent: accepted measurements can still
+need qualification/publication under the original reservation and current guards.
+Do not drop such support merely by filtering terminal goals. Evidence, artifacts and acquired-source retention
+remain governed by their own actual ownership. Never infer original ownership
+from equal targets or fabricate a consumed execution for pre-charge cancellation.
+Stopped nonproof requests can retain generated historical state without restoring
+a worker. Unpublished evidence stages also need their actual authenticated capsule.
+
+Assembly owns Math and aggregate restoration, Search owns its output capsules,
+Build owns committed artifact plan/support and parent ownership, and authority
+owns the coordinated inventory change after consumers are ready. Build's committed
+OutputOwner retains the actual existing parent CandidateOwner leases beyond
+preparation cleanup: managed provenance release recursively drains children, so
+copying parent development handles does not confer independent lifetime. Installed
+roots and restored ancestor graph ownership remain explicit. Use existing counted
+owners where sufficient rather than weakening recursive disposal.
+Required composition checks cover cancellation before and after charging,
+retained output, restart, historical retrieval and subsequent Forget. Keep the
+current fail-closed behavior until the complete migration is available; this
+decision records required work, not a passing cancellation workflow.
