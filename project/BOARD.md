@@ -43,7 +43,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | facts-document-family | Migrate fact rules and source-grounded document retrieval | facts and documents | active | facts_relations_product61 | source-import, interpretation-model, native-admission, staged-execution |
 | domain-families | Implement classified domain families with genuine semantic bridges | domain specialists | active | domains_reconnected61 | plan-composition, native-admission, staged-execution |
 | mathematics-family | Implement mathematical capabilities with branch and precision contracts | mathematical specialists | active | math61 | known-regressions, plan-composition, native-admission, staged-execution |
-| graph-family | Implement source-dependent graph reasoning with explicit bounds | graph specialists | active | graphs_product61 | source-import, plan-composition, strategy-engine |
+| graph-family | Implement source-dependent graph reasoning with explicit bounds | graph specialists | active | graphs_product61 | source-import, plan-composition, strategy-engine, graph-mst-optimality |
 | stateful-connectors | Migrate site/session specialists and controlled local connectors | stateful specialists | active | stateful_product61 | state-effects, source-import, runtime-service |
 | routing-dialogue | Implement contextual routing, ambiguity resolution and answer rendering | dialogue | active | dialogue_product61 | interpretation-model, plan-composition, runtime-service, diagnostics-repair |
 | synthesis-growth | Implement retained synthesis, abstractions and admitted growth | growth | active | growth_product61 | strategy-engine, package-lifecycle, dependency-updates |
@@ -59,6 +59,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | native-recovery | Reconstruct committed native evidence and restore actual resident authority | native recovery | active | recovery_reconnected61 | native-registry, native-admission, operational-model |
 | native-development | Build and admit original expert Isabelle developments through controlled native reconstruction | native development | active | native_build_product61 | native-admission, native-registry |
 | native-resident-assembly | Connect resident authority, typed operation dispatch and native lifecycle | native runtime integration | active | assembly_reconnected61 | operational-model, native-admission, state-effects, staged-execution, native-recovery |
+| graph-mst-optimality | Prove an efficient native MST optimality certificate checker | graph specialists | active | mst_proof61 | — |
 
 ## Ready to dispatch
 
@@ -70,6 +71,8 @@ None.
 - possible active edit overlap: operational-model (tests/language/model/rendering/Interpretation_Tests.thy) / interpretation-model (tests/language/model/**)
 - possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/RequestInspectionTests.scala)
 - possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/inspection.scala)
+- possible active edit overlap: graph-family (src/families/graphs/**) / graph-mst-optimality (src/families/graphs/Graph_MST_Optimality.thy)
+- possible active edit overlap: graph-family (tests/families/graphs/**) / graph-mst-optimality (tests/families/graphs/mst/**)
 - native-admission: status active with unresolved dependencies: native-registry, operational-model
 - plan-composition: status active with unresolved dependencies: operational-model, interpretation-model, native-registry
 - state-effects: status active with unresolved dependencies: operational-model, native-registry
@@ -85,7 +88,7 @@ None.
 - facts-document-family: status active with unresolved dependencies: source-import, interpretation-model, native-admission, staged-execution
 - domain-families: status active with unresolved dependencies: plan-composition, native-admission, staged-execution
 - mathematics-family: status active with unresolved dependencies: known-regressions, plan-composition, native-admission, staged-execution
-- graph-family: status active with unresolved dependencies: source-import, plan-composition, strategy-engine
+- graph-family: status active with unresolved dependencies: source-import, plan-composition, strategy-engine, graph-mst-optimality
 - stateful-connectors: status active with unresolved dependencies: state-effects, source-import, runtime-service
 - routing-dialogue: status active with unresolved dependencies: interpretation-model, plan-composition, runtime-service, diagnostics-repair
 - synthesis-growth: status active with unresolved dependencies: strategy-engine, package-lifecycle, dependency-updates

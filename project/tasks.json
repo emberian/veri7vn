@@ -1333,7 +1333,7 @@
         "var/native-scaffold/sessions/a45e137bfff0ed36/attempts/fb181df175fe4e1aa69f4313feefdbb7/receipt.json",
         "var/native-scaffold/sessions/95fcfdd61e543422/attempts/8f8f446241be47a1b7a2821da5637529/receipt.json"
       ],
-      "notes": "Start concrete bounded reproducible local import and observation manifests against checked native source semantics while registry/gate integration matures. Preserve actual corpus availability/provenance limits; full authorized snapshot publication/native correspondence remain required gates. D37 actual storage audit refutes four-cell/tiny-codec completion: shipped REAL fields, 64,353-byte UTF8 text, >=257 rows, duplicate rows, NULL, JSONL/FTS types. Explicit observed binary64 carrier and streaming semantic import required; raw chunks alone insufficient. Independent Scala acquisition/chunk/manifest runtime checks passed, with long values/4096 duplicate rows/partial/error/release and strict UTF8 fixture preservation. Native importer now reaches code_reflect after HOL proofs but fails compact-nat pattern equation; metadata child cancelled, not qualified. Raw decoded batch validity is not per-reading scientific validity. Root reviewed native Source_Import parent passed23s, including actual codec code_reflect, observation acquisition soundness and profile. Import leaf reductions and metadata binder typing still fail; full importer/row dispatch not complete. Scala acquisition/chunk/metadata adapter separately passed immutable169b7c36e58f4cb19d2920e40ffd4736. Actual SourceImport rebuilt28s against first D40 Registry; Metadata now only explicit prefixcertificate witness proof fails. New real JDBC fixture passed with all4Scalaadaptergroups30.010s (8f8f snapshot); mixed-value payload assertions and actual native stream correspondence remain open.\nOwnership recovered from inactive sources61. New owner carries actual native stream/Scala snapshot/import consumers; source_reconnected61 retains K/RI/gate and coordinates codec2 acquisition. Original /1 preservation theorem does not automatically establish /2 stream preservation.",
+      "notes": "Start concrete bounded reproducible local import and observation manifests against checked native source semantics while registry/gate integration matures. Preserve actual corpus availability/provenance limits; full authorized snapshot publication/native correspondence remain required gates. D37 actual storage audit refutes four-cell/tiny-codec completion: shipped REAL fields, 64,353-byte UTF8 text, >=257 rows, duplicate rows, NULL, JSONL/FTS types. Explicit observed binary64 carrier and streaming semantic import required; raw chunks alone insufficient. Independent Scala acquisition/chunk/manifest runtime checks passed, with long values/4096 duplicate rows/partial/error/release and strict UTF8 fixture preservation. Native importer now reaches code_reflect after HOL proofs but fails compact-nat pattern equation; metadata child cancelled, not qualified. Raw decoded batch validity is not per-reading scientific validity. Root reviewed native Source_Import parent passed23s, including actual codec code_reflect, observation acquisition soundness and profile. Import leaf reductions and metadata binder typing still fail; full importer/row dispatch not complete. Scala acquisition/chunk/metadata adapter separately passed immutable169b7c36e58f4cb19d2920e40ffd4736. Actual SourceImport rebuilt28s against first D40 Registry; Metadata now only explicit prefixcertificate witness proof fails. New real JDBC fixture passed with all4Scalaadaptergroups30.010s (8f8f snapshot); mixed-value payload assertions and actual native stream correspondence remain open.\nOwnership recovered from inactive sources61. New owner carries actual native stream/Scala snapshot/import consumers; source_reconnected61 retains K/RI/gate and coordinates codec2 acquisition. Original /1 preservation theorem does not automatically establish /2 stream preservation.\nD48 now records required versioned acquisition theorem/runtime/recipe migration; real /2 original data cannot inherit /1 encoding equality. Import native/Scala checks pending.",
       "contracts": [
         "C01",
         "C04"
@@ -2134,7 +2134,8 @@
         "coverage-disposition",
         "source-import",
         "plan-composition",
-        "strategy-engine"
+        "strategy-engine",
+        "graph-mst-optimality"
       ],
       "owner": "graphs_product61",
       "paths": [
@@ -3177,7 +3178,7 @@
         "var/native-scaffold/sessions/761b8d2aaa49622b/attempts/e8efa7e5fae14a66a647e8c7be3becf6/receipt.json",
         "tests/runtime/service/native/evidence/resident-baseline-20261016/snapshot.json"
       ],
-      "notes": "D45 full native service leaf and actual resident host pass: concurrent original-byte proposals, charged licensed publication, undefined quotient refusal, fresh-process nonempty restore without workflow replay, selective Forget physical erasure and survivor restart. Root reviewed exact consumer/logs. Immutable package capture released schema freeze; actual staged launcher found heap-directory layout failure before native execution. D44 atomic last-owner retirement, indexed whole-closure protection and cleanup job preservation are active; D43 artifacts and broader source/domain/search families remain required. Baseline archive explicitly excludes three authority files changed after capture; no false current full-closure claim.",
+      "notes": "D45 full native service leaf and actual resident host pass: concurrent original-byte proposals, charged licensed publication, undefined quotient refusal, fresh-process nonempty restore without workflow replay, selective Forget physical erasure and survivor restart. Root reviewed exact consumer/logs. Immutable package capture released schema freeze; actual staged launcher found heap-directory layout failure before native execution. D44 atomic last-owner retirement, indexed whole-closure protection and cleanup job preservation are active; D43 artifacts and broader source/domain/search families remain required. Baseline archive explicitly excludes three authority files changed after capture; no false current full-closure claim.\nRoot read stable0e2ecd7db95f43e1ae01334ec8ab07ee actual121.415s service failure at unqualified map_filter definition98; native ownership tests cancelled, not failed behavior. Assembly qualified List.map_filter and owns new cached Runtime_Foundation parent to avoid repeated stable RBT compilation. Actual unused-evidence-only native lifecycle case remains finite D44 consumer requirement.",
       "contracts": [
         "C02",
         "C03",
@@ -3198,6 +3199,50 @@
       "trusted_boundaries": [
         "TB-03",
         "TB-04"
+      ]
+    },
+    {
+      "id": "graph-mst-optimality",
+      "title": "Prove an efficient native MST optimality certificate checker",
+      "area": "graph specialists",
+      "milestone": "P",
+      "status": "active",
+      "depends_on": [
+        "design-convergence"
+      ],
+      "owner": "mst_proof61",
+      "paths": [
+        "src/families/graphs/Graph_MST_Optimality.thy",
+        "tests/families/graphs/mst/**"
+      ],
+      "deliverables": [
+        "Native independent optimality checker and theorem consumed by graph dispatch"
+      ],
+      "acceptance": [
+        "Checker success implies the actual minimum-tree semantics for supported undirected finite multigraphs, including exact signed weights, ties and isolated vertices.",
+        "Proof statement is independent of implementation output and requires no arbitrary axioms, sorry or opaque observation-as-optimality.",
+        "Production checking avoids exhaustive subset enumeration; connect real proposer output and bounded resource profile."
+      ],
+      "checks": [
+        "Scoped native theorem/checker compilation and generated caller regressions, including feasible nonoptimal trees and negative/tied weights."
+      ],
+      "evidence": [],
+      "notes": "Root-authorized exact-path transfer from graphs_product61. Graph owner retains other graph source/proposer/dispatch; changes to shared definitions coordinated explicitly. Investigating cycle/exchange or equivalent partition-dual certificate, not silently weakening minimum_tree.",
+      "contracts": [
+        "C02",
+        "C03",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-05",
+        "ACC-08",
+        "ACC-09",
+        "ACC-12"
+      ],
+      "design_inputs": [
+        "project/DECISIONS.md",
+        "src/families/graphs/Graph_Certificates.thy",
+        "src/families/graphs/Graph_MST.thy"
       ]
     }
   ],

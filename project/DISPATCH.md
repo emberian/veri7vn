@@ -224,3 +224,16 @@ tests and examples. They replace inactive sources61/relations_facts61 handles.
 Source documentation changes are coordinated between those owners. D48 requires
 the /2 importer, native acquisition theorem and actual family caller to migrate
 together; the base synthetic relation fixture is not whole-family qualification.
+
+`mst_proof61` owns the exact new `src/families/graphs/Graph_MST_Optimality.thy`
+and `tests/families/graphs/mst/**` paths within the graph lane's broad area.
+This is an explicit ownership transfer; graphs_product61 retains proposer and
+dispatch code and coordinates shared definitions. The proof/checker must establish
+actual minimum-tree meaning without exponential production enumeration.
+
+The first D44 service compiler capture is terminal with a source-level name error;
+it did not run native ownership fixtures. Assembly owns a cache-only
+Runtime_Foundation parent session for the stable dependency prefix, coordinated
+with the steward's actual input closure. The public Runtime_Service remains the
+consumer session. Volatile service code stays outside the cached prefix. This
+changes build iteration costs, not the runtime authority or admission boundary.
