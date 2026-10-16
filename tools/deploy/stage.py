@@ -137,6 +137,8 @@ def stage(spec, installation):
             manifest['qualification_notes'] = spec.get('qualification_notes', [])
             manifest['environment'] = spec.get('environment', {})
             manifest['associations'] = spec.get('associations', {})
+            if spec.get('surfaces'):
+                manifest['surfaces'] = spec['surfaces']
             manifest.update(artifacts=sorted(entries,key=lambda x:x['path']), redistribution='unresolved-D19-local-only', assurance='staged-artifacts; launch qualification separate')
             data = encoded(manifest)
             identity = hashlib.sha256(data).hexdigest()
@@ -167,7 +169,7 @@ def stage(spec, installation):
                 shutil.rmtree(temporary)
 
 
-def _launch_plan(root, manifest, state, extra=()):
+def _launch_plan(root, manifest, state, extra=(), surface=None):
     actual = {('Darwin','arm64'):'macOS-ARM64', ('Linux','x86_64'):'Linux-x86_64'}.get((platform.system(),platform.machine()))
     if actual != manifest['target']:
         raise ValueError('target mismatch; cross-target launch is unqualified')
@@ -176,7 +178,14 @@ def _launch_plan(root, manifest, state, extra=()):
         raise ValueError('mutable state must be outside immutable generation')
     if not manifest['launch']:
         raise ValueError('deployment has no launch command')
-    command = [s.replace('{package}',str(root)).replace('{state}',str(state)) for s in manifest['launch']]
+    suffix = []
+    if surface is not None:
+        if surface not in manifest.get('surfaces', {}):
+            raise ValueError('surface unavailable in this generation: '+surface)
+        suffix = manifest['surfaces'][surface]['arguments']
+        if not isinstance(suffix, list) or not all(isinstance(s, str) for s in suffix):
+            raise ValueError('invalid surface arguments')
+    command = [s.replace('{package}',str(root)).replace('{state}',str(state)) for s in manifest['launch']] + suffix
     executable = Path(command[0])
     if not executable.is_absolute() or root not in executable.parents:
         raise ValueError('launch executable must belong to staged package')
@@ -191,12 +200,12 @@ def _launch_plan(root, manifest, state, extra=()):
     return dict(command=command+list(extra),environment=environment,missing=manifest.get('missing', []),qualification_notes=manifest.get('qualification_notes',[]))
 
 
-def launch_plan(installation, state, extra=()):
+def launch_plan(installation, state, extra=(), surface=None):
     root=(installation/'current').resolve(strict=True)
-    return _launch_plan(root,verify(root),state,extra)
+    return _launch_plan(root,verify(root),state,extra,surface)
 
 
-def launch(installation, state, extra):
+def launch(installation, state, extra, surface=None):
     root=(installation/'current').resolve(strict=True)
     manifest=verify(root)
     if manifest.get('missing'):
@@ -204,7 +213,7 @@ def launch(installation, state, extra):
     absent={'runtime','heap','host','source','license'}-{entry['role'] for entry in manifest['artifacts']}
     if absent:
         raise ValueError('deployment lacks required artifact roles: '+', '.join(sorted(absent)))
-    plan = _launch_plan(root,manifest,state,extra)
+    plan = _launch_plan(root,manifest,state,extra) if surface is None else _launch_plan(root,manifest,state,extra,surface)
     state.resolve().mkdir(parents=True,exist_ok=True)
     # Avoid inheriting an unrelated initialized Isabelle setup or injected JVM options.
     environment = {key:value for key,value in os.environ.items()
@@ -219,14 +228,14 @@ def main():
     commands=parser.add_subparsers(dest='command',required=True)
     p=commands.add_parser('stage'); p.add_argument('spec',type=Path); p.add_argument('installation',type=Path)
     p=commands.add_parser('verify'); p.add_argument('package',type=Path)
-    p=commands.add_parser('plan'); p.add_argument('installation',type=Path); p.add_argument('--state',required=True,type=Path)
-    p=commands.add_parser('launch'); p.add_argument('installation',type=Path); p.add_argument('--state',required=True,type=Path); p.add_argument('extra',nargs='*')
+    p=commands.add_parser('plan'); p.add_argument('installation',type=Path); p.add_argument('--state',required=True,type=Path); p.add_argument('--surface'); p.add_argument('extra',nargs='*')
+    p=commands.add_parser('launch'); p.add_argument('installation',type=Path); p.add_argument('--state',required=True,type=Path); p.add_argument('--surface'); p.add_argument('extra',nargs='*')
     args=parser.parse_args()
     try:
         if args.command=='stage': print(stage(json.loads(args.spec.read_text()),args.installation))
         elif args.command=='verify': print(json.dumps(verify(args.package),indent=2))
-        elif args.command=='plan': print(json.dumps(launch_plan(args.installation,args.state),indent=2))
-        else: launch(args.installation,args.state,args.extra)
+        elif args.command=='plan': print(json.dumps(launch_plan(args.installation,args.state,args.extra,args.surface),indent=2))
+        else: launch(args.installation,args.state,args.extra[1:] if args.extra[:1]==['--'] else args.extra,args.surface)
     except (ValueError,OSError,KeyError) as error:
         parser.exit(1,'deployment: '+str(error)+'\n')
 

@@ -28,7 +28,7 @@ is a fixed `Veri7vn_Runtime_Service` session, `--workspace STATE/workspace`,
 `--images STATE/images` and repeated `--session-root PACKAGE/sessions/...`.
 The real public main jar is staged with its exact producer source bodies. Its first
 producer compiled a wrong session pin; the corrected producer remains a dependency.
-There is currently no qualified complete launch spec. Isabelle's actual bundled Scala classpath is
+The repaired immutable 40ac generation below has passed the finite public CLI launch/restart check. Isabelle's actual bundled Scala classpath is
 required; guessing plain Java invocation is not a substitute.
 
 Staging serializes installers with a local lock. It fsyncs copied files and nested
@@ -57,9 +57,7 @@ runtime. The actual incomplete inventory provides source/toolchain inspection on
 `stage.py plan INSTALLATION --state STATE` prints the actual argv and environment
 without starting a process. The manifest pins CLASSPATH to the staged host jar and
 USER_HOME to isolated mutable state. Launch strips inherited Isabelle/ML/JVM setup
-so unrelated user initialization does not choose the runtime. The staged runtime
-is explicitly only an inspection subset; a full relocatable runtime and saved
-heap/build-database/source association remain required. A historical green log
+so unrelated user initialization does not choose the runtime. The `local_inventory.py` output is only an inspection subset; `local_package.py` below assembles the captured application and full installed toolchain. A historical green log
 without a saved successful build record is insufficient. The public jar is never
 paired with later mutable Scala sources as if those were checked.
 
@@ -134,3 +132,46 @@ staged generations; native artifacts are first copied from the producer. Each
 resulting generation has its own directory entries, and content/mode verification
 still precedes selection. Removing an older generation would not remove linked
 content from a surviving generation. The tooling performs no generation deletion.
+
+
+## Packaged shared workbench
+
+New application manifests advertise `surfaces.workbench` only when the actual host
+JAR contains ResidentWorkbench, Browser, Authoring and ResidentExecution, all four
+producer sources and RuntimeMain are recorded in the producer receipt, and that
+RuntimeMain routes `--workbench` to the shared service. The inventory checks every
+producer source digest before staging. Historical public-only generations remain
+public-only; appending an option does not make their missing classes appear.
+
+```
+python3 tools/deploy/stage.py launch --state PRIVATE_STATE --surface workbench INSTALL -- serve
+python3 tools/deploy/stage.py launch --state PRIVATE_STATE --surface workbench INSTALL -- run 'the sum of -2 and 3'
+python3 tools/deploy/stage.py launch --state PRIVATE_STATE --surface workbench INSTALL -- result REQUEST_ID
+```
+
+The browser prints its loopback address and stays open until Enter. It and these
+CLI commands share the resident runtime's managed sources and authority workspace.
+Run one workspace owner at a time. The captured Browser uses embedded HTML/CSS;
+no CDN, JavaScript package manager, remote font or downloaded UI component is
+required. Packaging rejects literal HTML subresources and CSS imports/URLs until
+an explicit asset inventory is supplied. This conservative source preflight and
+class inventory are dependency inspection, not a network-disabled execution test.
+Native interpreted Run, result inspection, cancellation and confirmed Forget are
+available as implemented by the captured host. Build/admit controls remain absent
+until their actual service consumer is integrated.
+
+The exclusive native build steward can qualify a newly staged generation with:
+
+```
+python3 tools/deploy/workbench_check.py INSTALL --output var/deployment-workbench-UNIQUE --steward-slot SLOT
+```
+
+This finite actual consumer runs a sum through the packaged shared workbench,
+extracts its real request ID, closes the process, then inspects the retained result
+through a fresh process using the same nonempty state. It pins an installation
+facade to one immutable generation, writes local logs/results, applies a 150-second
+process deadline and bounded process-group termination on timeout. Obtain the
+steward slot and hold the project build lock throughout. Do not run beside a native
+build or resident check. Passing establishes that specific CLI/restart consumer;
+HTTP authoring, native build/admission, network-disabled recipient workflow,
+Linux qualification and D19 redistribution remain separate requirements.

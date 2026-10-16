@@ -99,6 +99,17 @@ class Staging(unittest.TestCase):
             stage.launch(self.install,self.root/'state',[])
         self.assertNotEqual(first,(self.install/'current').resolve())
         self.assertEqual(str(first/'runtime/artifact'),execute.call_args.args[0])
+    def test_workbench_surface_is_explicit_and_generation_pinned(self):
+        self.plan['launch']=['{package}/runtime/artifact']
+        self.plan['artifacts'][0]['executable']=True
+        self.plan['surfaces']={'workbench':{'arguments':['--workbench']}}
+        generation=stage.stage(self.plan,self.install)
+        with patch.object(stage.platform,'system',return_value='Darwin'),patch.object(stage.platform,'machine',return_value='arm64'):
+            plan=stage.launch_plan(self.install,self.root/'state',['run','the sum of -2 and 3'],'workbench')
+            self.assertEqual([str(generation.resolve()/'runtime/artifact'),'--workbench','run','the sum of -2 and 3'],plan['command'])
+            with self.assertRaisesRegex(ValueError,'surface unavailable'):
+                stage.launch_plan(self.install,self.root/'state',surface='missing')
+
     def test_no_implicit_directories_or_links(self):
         source=self.root/'link';source.symlink_to(self.root/'artifact')
         self.plan['artifacts'][0]['source']=str(source)

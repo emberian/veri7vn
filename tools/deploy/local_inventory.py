@@ -4,6 +4,7 @@ from pathlib import Path
 import argparse
 import json
 from stage import digest, stage
+from workbench_closure import inspect as inspect_workbench
 
 
 def inventory(repo, isabelle, archive):
@@ -48,6 +49,9 @@ def inventory(repo, isabelle, archive):
             'D19 project redistribution decision',
             'offline installed service/search/edit/admission rehearsal',
             'Linux-x86_64 package and launch qualification (supported target; untested)'])
+    workbench=inspect_workbench(archive,receipt)
+    if workbench is not None:
+        result['surfaces']={'workbench':workbench}
     if corrected:
         result['missing']=result['missing'][1:]
     return result
