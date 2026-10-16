@@ -41,6 +41,10 @@ introduced (`stage5m13e2_construction_kernel_k7b.py`, `stage5m13e4_migration2.py
 (`oracle_release_conceptnet.py`), and the anchored document runtime over
 DBpedia/Wikipedia/OpenStax sentences with tiered cue lists
 (`stage5m13d2_anchored_general_document.py` and the `aa` fold's mined cues).
+**That base `chat` never runs**: fold `b` replaces it without calling it, and
+nothing above `b` reaches below. The catalogue in `audit/folds/` (lane B) found
+361 classes in the resolution order, 253 of which may answer on their own,
+only 7 that purely narrow, and 121 generated folds that can never fire.
 
 ## The stores
 
@@ -132,6 +136,35 @@ classification.
 - Precision guards (`precision_guard:P…`, `G…`, `Q…` in paths) withhold
   arithmetic read from English when a sign, a unit or an English word was
   mistaken for algebra; 114 of the 924 core-panel items end there.
+
+## The growth loop and its laws
+
+Oracle7's own `ARCHITECTURE.md` (GitHub repo, a copy sits in
+`var/github-oracle7/`) describes how the w-chain came to be: a **fold worker**
+(`organs/oracle_fold_worker_v8.py`) authors candidate folds from the "residue"
+(refusals, charter gaps, world events), and a **self-loop gate**
+(`organs/oracle_self_loop_v1.py`) admits one candidate at a time against
+held-out panels, with a metric floor that only rises. Rejections are kept with
+their reasons (`docs/admission_ledger_digest.jsonl`) and repeated rejections
+become standing **laws**. A human-declared **constitution**
+(`docs/constitution/target_shape_v2.json`, `capability_charter_v1.json`) fixes
+invariants the loop may never edit: `false_support == 0`, `witness_rate >= 0.95`,
+`lm_calls == 0`, "the admission bar never falls", "a dimension without an
+instrument is a typed potential, never a guessed number".
+
+Laws worth knowing because veri7vn can state them as theorems:
+
+- **Fallback-over-intercept**: new capability may only fill declines, never
+  override an existing answer. (The shipped specialist combiner actually runs
+  specialists *in front of* the head; lane A's control shows the shipped
+  verdicts only reproduce under that intercepting composition. The law and the
+  release disagree.)
+- **Rule-folds-over-caches**: admit the rule that queries the live corpus;
+  never freeze a pair list and call it knowledge.
+- **Replay is stale-by-construction**: no cached responses inside a
+  self-improving chain.
+- **Depth needs decline discipline**: corrupted premise chains are refused.
+- **The bar rises, never falls**.
 
 ## Growth
 
