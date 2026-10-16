@@ -40,6 +40,8 @@ final class WorkerResources private (val budget:ResourceBudget)
   private def open():Unit=require(valid.get(),"worker resource invalidated")
   def isLive:Boolean=valid.get() && bound.isLive
   def withCurrent[A](action: => A):A=bound.withCurrent {open();action}
+  private[veri7vn] def currentSourceGuard:WorkspaceStore.NativeSourceGuard=bound.currentGuard
+  private def withRetained[A](action: => A):A=bound.withRetained {open();action}
   private def reserve(bytes:Long):Unit={
     require(bytes>=0 && bytes<=budget.maxPayloadBytes-payloadBytes,"worker payload reservation")
     payloadBytes+=bytes
@@ -51,6 +53,7 @@ final class WorkerResources private (val budget:ResourceBudget)
       WorkerResources.this.synchronized {open();ByteBuffer.wrap(payload.getOrElse(
         throw new IllegalStateException("owned bytes released"))).asReadOnlyBuffer()}
     }
+    private[WorkerResources] def allocatedSize:Long=payload.fold(0L)(_.length.toLong)
     private[WorkerResources] def clear():Unit={payload.foreach(a=>java.util.Arrays.fill(a,0.toByte));payload=None}
   }
   final class OwnedRoot[A] private[WorkerResources](val reservationBytes:Long) {
@@ -60,6 +63,11 @@ final class WorkerResources private (val budget:ResourceBudget)
     }}
     /** Fixed trusted parser/analyzer region; do not return the private value. */
     def withValue[B](consume:A=>B):B=withCurrent {WorkerResources.this.synchronized {
+      open();consume(value.getOrElse(throw new IllegalStateException("owned root empty")))
+    }}
+    /** Fixed inspection of this registered capture after a head edit. This
+      * retains source-access checks and does not authorize current-head use. */
+    def withRetainedValue[B](consume:A=>B):B=withRetained {WorkerResources.this.synchronized {
       open();consume(value.getOrElse(throw new IllegalStateException("owned root empty")))
     }}
     private[effects] def withLiveValue[B](consume:A=>B):B={
@@ -86,6 +94,36 @@ final class WorkerResources private (val budget:ResourceBudget)
       captured.foreach(a=>java.util.Arrays.fill(a,0.toByte));payloadBytes-=maxBytes;throw failure
     }
   }}
+  /** Fixed native transfer storage, not dispatch authority. The supplied owned
+    * worker must be attached before starting its thread, and its stop/join must
+    * cover the complete consume callback. Source/resource locks cover only the
+    * bounded clone; transport executes outside both locks. */
+  private[veri7vn] def withTransfer[A](worker:WorkerLifetime,maxBytes:Int)
+      (produce: => Array[Byte])(consume:ByteBuffer=>A):A={
+    val transfer=withCurrent {synchronized {
+      open();require(maxBytes>=0 && maxBytes<=1024*1024,"worker transfer byte bound")
+      require(workers.iterator().asScala.exists(_ eq worker),"transfer worker not attached")
+      require(arrays.size<budget.maxArrays,"worker transfer array budget")
+      reserve(maxBytes)
+      var produced:Option[Array[Byte]]=None
+      try {
+        val data=produce;require(data!=null,"transfer producer returned null");produced=Some(data)
+        require(data.length<=maxBytes,"worker transfer clone exceeded bound")
+        val owned=new OwnedBytes(Some(data));arrays :+= owned
+        payloadBytes-=maxBytes-data.length;owned
+      } catch {case failure:Throwable=>
+        produced.foreach(bytes=>java.util.Arrays.fill(bytes,0.toByte))
+        payloadBytes-=maxBytes;throw failure
+      }
+    }}
+    try consume(transfer.readOnly)
+    finally synchronized {
+      if(arrays.exists(_ eq transfer)) {
+        val released=transfer.allocatedSize
+        transfer.clear();arrays=arrays.filterNot(_ eq transfer);payloadBytes-=released
+      }
+    }
+  }
   /** Store journals the private region before mkdir; caller cannot select a parent. */
   def createDirectory():Path=withCurrent {synchronized {
     open();require(workers.isEmpty,"worker materialization already handed off")

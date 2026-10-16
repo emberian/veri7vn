@@ -22,11 +22,17 @@ object WorkspaceStore {
   final class ManagedResourceRegistration private[host](store:WorkspaceStore,private[host] val id:String) {
     def isLive:Boolean=store.managedResourceLive(id)
     def withCurrent[A](action: => A):A=store.withManagedResourceCurrent(id)(action)
+    def withRetained[A](action: => A):A=store.withManagedResourceRetained(id)(action)
+    private[veri7vn] def currentGuard:NativeSourceGuard=new NativeSourceGuard(store,id)
     def release():Unit=store.releaseManagedResource(id)
     def createScratchRoot():Path=store.createResourceScratch(id)
     def reserveScratchDirectory(relative:String):Path=store.reserveResourceScratch(id,relative,true,0)
     def reserveScratchFile(relative:String,size:Long):Path=store.reserveResourceScratch(id,relative,false,size)
   }
+  /** Opaque identity of an actual registered captured source owner. Only the
+    * owning store can check it; caller-supplied IDs cannot create it. */
+  private[veri7vn] final class NativeSourceGuard private[host](
+    private[host] val store:WorkspaceStore,private[host] val resource:String)
   private[runtime] final class NativeResidentOwnership private[host](private val store:WorkspaceStore,val incarnation:String) {
     private[runtime] def confirmStopped():Unit=store.confirmNativeResidentStopped(incarnation)
   }
@@ -208,6 +214,17 @@ final class WorkspaceStore(root: Path, val limits: WorkspaceStore.Limits = Works
     live();val resource=managedResources.getOrElse(id,throw new IllegalStateException("managed resource released"))
     require(resource.active && head(resource.draft).contains(resource.head),"managed source resource no longer current")
     action
+  }
+  /** Inspect only the captured registered owner's original bytes. Continued
+    * source access is required, but this does not establish current-head use. */
+  private[host] def withManagedResourceRetained[A](id:String)(action: => A):A=synchronized {
+    live();val resource=managedResources.getOrElse(id,throw new IllegalStateException("managed resource released"))
+    require(resource.active && head(resource.draft).nonEmpty,"retained managed source resource unavailable")
+    action
+  }
+  private[runtime] def withNativeSourceGuard[A](guard:NativeSourceGuard)(action: => A):A=synchronized {
+    require(guard.store eq this,"native source guard belongs to another workspace")
+    withManagedResourceCurrent(guard.resource)(action)
   }
   private[host] def releaseManagedResource(id:String):Unit={
     val monitor=synchronized {managedResources.get(id).map(_.joinMonitor)}

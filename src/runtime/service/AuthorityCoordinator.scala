@@ -16,7 +16,8 @@ object AuthorityCoordinator {
     val nativeRevision: Long, val epoch: Long, event: Array[Byte], checkpoint: Array[Byte],
     private[service] val recovery: Option[WorkspaceStore.NativeRecoveryMaterial] = None,
     private[service] val dispatch:Option[WorkspaceStore.NativeDispatchMaterial]=None,
-    private[service] val invalidations:Option[WorkspaceStore.NativeInvalidations]=None) {
+    private[service] val invalidations:Option[WorkspaceStore.NativeInvalidations]=None,
+    private[service] val sourceGuard:Option[WorkspaceStore.NativeSourceGuard]=None) {
     require(event.length<=1024*1024 && checkpoint.length<=1024*1024,"native prepared materialization bound")
     private[service] val eventBytes=event.clone()
     private[service] val checkpointBytes=checkpoint.clone()
@@ -74,14 +75,27 @@ final class AuthorityCoordinator(store: WorkspaceStore, bridge: AuthorityCoordin
       try bridge.invalidate() catch {case cleanup:Throwable=>failure.addSuppressed(cleanup)}
       throw failure}
   private def persist(p: Prepared): Outcome = try {
+    def commit():Outcome={
     require(p.eventBytes.length<=limits.maxEventBytes && p.checkpointBytes.length<=limits.maxCheckpointBytes,"native materialization limit")
     if(!bridge.validatePrecommit(p)) return Rejected("native staged transition no longer valid")
     store.commitNative(p.id,p.expectedSequence,p.nativeRevision,p.epoch,p.eventBytes,p.checkpointBytes,p.recovery,p.dispatch,p.invalidations) match {
-      case None => ready=false; bridge.invalidate(); Unavailable("durable sequence conflict; restore required")
+      case None => ready=false; Unavailable("durable sequence conflict; restore required")
       case Some(record) =>
-        if(!bridge.acknowledge(p)) {ready=false; bridge.invalidate(); Unavailable("committed; native acknowledgement unavailable; restore required")}
+        if(!bridge.acknowledge(p)) {ready=false; Unavailable("committed; native acknowledgement unavailable; restore required")}
         else {ready=true; Committed(record.sequence,record.id)}
     }
+    }
+    // Lock order: coordinator -> store/source monitor -> bounded native
+    // validate/ack. Resolve native build bindings and transfer/parser work before
+    // entering persist; acknowledgement may fork work but must not call Scala
+    // source/store callbacks or perform replay synchronously.
+    val outcome=p.sourceGuard match {
+      case Some(guard)=>store.withNativeSourceGuard(guard)(commit())
+      case None=>commit()
+    }
+    // Teardown can join native work and must run after releasing the source lock.
+    if(outcome.isInstanceOf[Unavailable])bridge.invalidate()
+    outcome
   } finally p.release()
   private[service] def initialize(): Outcome = synchronized { guarded {
     ready=false

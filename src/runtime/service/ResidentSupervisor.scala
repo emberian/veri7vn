@@ -88,7 +88,7 @@ final class ResidentSupervisor(sessionName: String, sessionDirs: List[Path], dep
     val id=synchronized {
       require(!closed,"worker closed")
       require(transportFailure.isEmpty,transportFailure.getOrElse("transport unavailable"))
-      require(Set("status","initial","prepare","validate","ack","restore","cancel","install_ids","install_boot","command_info","recovery_info","recovery_read","recovery_dependencies","artifact_invalidations","cleanup_barrier","restore_begin","restore_material_begin","restore_write","restore_material_end","restore_finish","restore_progress","restore_abort","propose_math","poll_result","forget").contains(operation),"operation requires an installed native gate")
+      require(Set("status","initial","prepare","validate","ack","restore","cancel","install_ids","install_boot","command_info","recovery_info","recovery_read","recovery_dependencies","artifact_invalidations","cleanup_barrier","retry_cleanup","restore_begin","restore_material_begin","restore_write","restore_material_end","restore_finish","restore_progress","restore_abort","propose_math","poll_result","forget","inspect_routing","inspect_request","build_input_begin","build_input_write","build_input_finish","build_input_abort","build_input_release","build_input_discard","build_input_accept","build_input_settle","propose_build","build_current_binding").contains(operation),"operation requires an installed native gate")
       require(pending.size()<limits.maxInFlight,"worker in-flight limit")
       val id=sequence.incrementAndGet()
       require(payload.length<=512 && java.nio.charset.StandardCharsets.UTF_8.newEncoder().canEncode(payload),"malformed or oversized payload")

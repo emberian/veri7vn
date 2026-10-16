@@ -929,3 +929,28 @@ The owner is repairing it alongside the upload timeout/finish/accept ownership
 race found in root review. Existing source-client passes do not cover this new
 ingress. Explicit nonce reconciliation and retained unresolved ownership are now
 the required consumer behavior; a timeout alone is not native cancellation.
+
+The repaired host composition `bf0cb5fe3f7f4e4d8a8ce06f3777d337` passed all eleven
+groups in 50.170s with stable inputs and clean exit. Root read the complete Scala
+log and matched all 65 before/after source hashes to current files before the
+checkpoint commit. It covers actual SQLite source/current-guard races and managed
+source owners, plus controlled-transport lost begin/finish/accept replies, late
+offers, retained failed cleanup, bounded capacity and foreign-store rejection.
+The native descriptor callback uses the actual package parser, including empty
+exports. These host tests do not establish native D43 handler registration,
+successful native build/admission or installed candidate recovery.
+
+Runtime_Foundation actually saved in `1dc017e3eca640b784cc90ffda2b1a9c`, taking
+5m08. Root read that build log and the later `1d481072...` service failure in17s
+which reused the saved prefix. This is compiler iteration evidence, not deployed
+execution performance. The service subsequently compiled, but a real native
+survivor fixture exposed shared input registration depending on the first request.
+Assembly repaired the dependency direction; full D44 native/host qualification
+still requires the remaining fixtures and actual resident consumer.
+
+The later Indexed BOTH-value diagnostic reports actual generated outputs
+`Some [0,1,2]` versus reference `Some [1,0,2]`. The earlier manual model omitted
+the self-ID disjunct in `directly_dependent`; its supposed counterexample against
+all-reached-record reconstruction was wrong. The unselected forward ordering
+candidate is being repaired against the actual definition and retained regression.
+The proved ancestor/history core consumed by the service remains unchanged.

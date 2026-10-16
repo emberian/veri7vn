@@ -31,12 +31,30 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
   private[service] override def invalidate():Unit={pending.foreach(_.release());pending=None;supervisor.close()}
   private def currentSequence: Long=store.latestNative.map(_.sequence).getOrElse(0L)
   private def token(p: Prepared): String=p.id.substring(p.id.lastIndexOf('_')+1)
+  private var cleanupPollAt=0L
+  private var cleanupRetryAt=0L
+  private var cleanupRetries=0
   private[service] override def maintenance():Unit={
-    if(store.hasForgottenNativeArtifacts){
+    val now=System.nanoTime()
+    if(now>=cleanupPollAt){
+      cleanupPollAt=now+1000000000L
       val reply=supervisor.exchange("cleanup_barrier")
       require(reply.tag=="cleanup","native cleanup barrier unavailable")
-      if(reply.payload=="complete")store.eraseForgottenNativeArtifacts()
-      else require(Set("pending","failed_retryable").contains(reply.payload),"native cleanup barrier shape")
+      if(reply.payload=="complete"){
+        cleanupRetries=0;cleanupRetryAt=0L
+        if(store.hasForgottenNativeArtifacts)store.eraseForgottenNativeArtifacts()
+      } else {
+        require(Set("pending","failed_retryable").contains(reply.payload),"native cleanup barrier shape")
+        if(reply.payload=="failed_retryable" && cleanupRetries<8 && now>=cleanupRetryAt){
+          val retried=supervisor.exchange("retry_cleanup")
+          require(retried.tag=="cleanup" && Set("complete","pending","failed_retryable").contains(retried.payload),"native cleanup retry shape")
+          cleanupRetries+=1
+          cleanupRetryAt=now+math.min(30000L,250L*(1L<<(cleanupRetries-1)))*1000000L
+        }
+        // Retain failed native roots and durable erasure intent. Exhaustion does
+        // not terminate service or spin on a permanently failing cleanup.
+        if(cleanupRetries>=8)cleanupPollAt=now+30000000000L
+      }
     }
   }
   private[service] override def initialize(): Option[Prepared] = {

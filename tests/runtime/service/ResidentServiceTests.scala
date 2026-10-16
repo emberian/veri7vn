@@ -79,7 +79,47 @@ object ResidentServiceTests {
       require(thirdCoordinator.restore().isInstanceOf[AuthorityCoordinator.Committed],"native restore after Forget")
       val third=use(new ResidentAuthorityService(thirdSupervisor,thirdCoordinator))
       require(third.mathematicsResult(ids._2).html==product.html,"surviving native result lost after Forget/restart")
-      println(s"RESIDENT_SERVICE_PASS concurrent_actual_request_charge_worker_publication_nonempty_restore_forget_survivor deployment=${supervisor.deploymentIdentity} capture_ms=${supervisor.deploymentCaptureMillis}")
+      def awaitForgotten(c:ResidentAuthorityService,id:BigInt):Unit={
+        val deadline=System.nanoTime()+60L*1000*1000*1000
+        var result=c.mathematicsResult(id)
+        while(result.status!="cancelled" && System.nanoTime()<deadline){Thread.sleep(20);result=c.mathematicsResult(id)}
+        require(result.status=="cancelled" && result.html.isEmpty,"Forget did not durably deny request")
+      }
+      // The rejected quotient also owns a retained request. Remove it first so
+      // product is genuinely the last durable consumer of shared native support.
+      third.forget(undefinedId);awaitForgotten(third,undefinedId)
+      val lostAcknowledgement=new java.util.concurrent.CountDownLatch(1)
+      store.afterNativeCommit=()=>{
+        lostAcknowledgement.countDown()
+        throw new IllegalStateException("injected last-owner commit-before-native-ack failure")
+      }
+      var lostAckObserved=false
+      try third.forget(ids._2) catch {case _:IllegalArgumentException=>lostAckObserved=true;case _:IllegalStateException=>lostAckObserved=true}
+      require(lostAckObserved,"last-owner injected failure was reported as acknowledged")
+      require(lostAcknowledgement.await(60,java.util.concurrent.TimeUnit.SECONDS),"last-owner durable commit deadline")
+      // Stop with the durable denial committed but without native acknowledgement
+      // or cleanup. Recovery must accept that exact checkpoint, not a later repair.
+      third.close()
+      store.afterNativeCommit=()=>()
+      val lastOwnerSequence=store.latestNative.get.sequence
+      require(store.committedNativeRecovery(store.latestNative.get,ids._2).isEmpty,"fault fired before last-owner denial committed")
+      println("RESIDENT_PHASE last_owner_durable_forget_lost_ack_stop")
+      val fourthSupervisor=use(new ResidentSupervisor(args.head,args.tail.toList.map(Path.explode),images))
+      val fourthCoordinator=use(new AuthorityCoordinator(store,new ResidentNativeBridge(fourthSupervisor,store)))
+      require(fourthCoordinator.restore().isInstanceOf[AuthorityCoordinator.Committed],"strict restore after last-owner Forget")
+      val fourth=use(new ResidentAuthorityService(fourthSupervisor,fourthCoordinator))
+      require(store.latestNative.get.sequence==lastOwnerSequence,"last-owner restore replayed workflow")
+      require(fourth.mathematicsResult(ids._2).html.isEmpty,"last-owner result resurrected")
+      println("RESIDENT_PHASE last_owner_restore_pass_immediate_forget")
+      val immediate=fourth.proposeMathematics("the sum of 8 and 9".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+      fourth.forget(immediate);awaitForgotten(fourth,immediate)
+      fourth.close()
+      val fifthSupervisor=use(new ResidentSupervisor(args.head,args.tail.toList.map(Path.explode),images))
+      val fifthCoordinator=use(new AuthorityCoordinator(store,new ResidentNativeBridge(fifthSupervisor,store)))
+      require(fifthCoordinator.restore().isInstanceOf[AuthorityCoordinator.Committed],"strict restore after immediate Forget")
+      val fifth=use(new ResidentAuthorityService(fifthSupervisor,fifthCoordinator))
+      require(fifth.mathematicsResult(immediate).html.isEmpty,"immediately forgotten worker published after restart")
+      println(s"RESIDENT_SERVICE_PASS concurrent_actual_request_charge_worker_publication_nonempty_restore_forget_survivor_last_owner_immediate deployment=${supervisor.deploymentIdentity} capture_ms=${supervisor.deploymentCaptureMillis}")
     }.get
   }
 }

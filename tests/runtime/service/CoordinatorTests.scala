@@ -7,7 +7,8 @@ import java.nio.file.Files
 /** Real SQLite store, controlled bridge fault seam. These are NOT generated HOL tests. */
 object CoordinatorTests {
   import AuthorityCoordinator.*
-  final class ControlledBridge(store: WorkspaceStore, phase: String) extends NativeBridge {
+  private[service] final class ControlledBridge(store: WorkspaceStore, phase: String,
+    sourceGuard:Option[WorkspaceStore.NativeSourceGuard]=None,ackHook:()=>Unit=()=>()) extends NativeBridge {
     var prepares=0
     var invalidations=0
     private[service] override def invalidate():Unit={invalidations+=1}
@@ -15,16 +16,60 @@ object CoordinatorTests {
     private[service] def prepare(token: EventToken): Either[String,Prepared] = {
       prepares+=1
       if(phase=="prepare") throw new IllegalStateException("native prepare interrupted")
-      Right(new Prepared("operation",store.latestNative.get.sequence,0,0,Array[Byte](1),Array[Byte](2)))
+      Right(new Prepared("operation",store.latestNative.get.sequence,0,0,Array[Byte](1),Array[Byte](2),sourceGuard=sourceGuard))
     }
     private[service] def validatePrecommit(p: Prepared)=true
     private[service] def acknowledge(p: Prepared): Boolean = {
+      ackHook()
       if(phase=="ack") throw new IllegalStateException("native acknowledgement interrupted")
       if(phase=="interrupt") throw new InterruptedException("native cancellation")
       true
     }
   }
   def main(args: Array[String]): Unit = {
+    for(editBefore<-Vector(true,false)){
+      val store=new WorkspaceStore(Files.createTempDirectory("veri7vn-source-commit-race-"))
+      require(store.commitNative("seed",0,0,0,Array[Byte](0),Array[Byte](0)).nonEmpty)
+      val original="a"*64;val changed="b"*64
+      require(store.compareAndAppend("draft",None,original))
+      val registration=store.registerManagedResource("draft",original,new WorkspaceStore.ManagedResourceOwner {
+        def invalidate():Unit=()
+        def stopAndRelease():Unit=()
+      })
+      val ackEntered=new java.util.concurrent.CountDownLatch(1)
+      val releaseAck=new java.util.concurrent.CountDownLatch(1)
+      val bridge=new ControlledBridge(store,"normal",Some(registration.currentGuard),()=>{
+        ackEntered.countDown();require(releaseAck.await(5,java.util.concurrent.TimeUnit.SECONDS))
+      })
+      val coordinator=new AuthorityCoordinator(store,bridge)
+      require(coordinator.restore()==Committed(1,"seed"))
+      if(editBefore){
+        require(store.compareAndAppend("draft",Some(original),changed))
+        var denied=false
+        try coordinator.submit(new EventToken("guarded",NativeAdmission("test")))
+        catch {case _:IllegalArgumentException=>denied=true}
+        require(denied && store.latestNative.get.sequence==1,"stale source committed")
+      }else{
+        val pool=java.util.concurrent.Executors.newFixedThreadPool(2)
+        try {
+          val committed=pool.submit(new java.util.concurrent.Callable[Outcome]{def call():Outcome=
+            coordinator.submit(new EventToken("guarded",NativeAdmission("test")))})
+          require(ackEntered.await(5,java.util.concurrent.TimeUnit.SECONDS))
+          val editing=new java.util.concurrent.CountDownLatch(1)
+          val edit=pool.submit(new java.util.concurrent.Callable[Boolean]{def call():Boolean={
+            editing.countDown();store.compareAndAppend("draft",Some(original),changed)}})
+          require(editing.await(5,java.util.concurrent.TimeUnit.SECONDS))
+          var blocked=false
+          try edit.get(50,java.util.concurrent.TimeUnit.MILLISECONDS)
+          catch {case _:java.util.concurrent.TimeoutException=>blocked=true}
+          require(blocked,"source edit slipped between commit and acknowledgement")
+          releaseAck.countDown()
+          require(committed.get(5,java.util.concurrent.TimeUnit.SECONDS).isInstanceOf[Committed])
+          require(edit.get(5,java.util.concurrent.TimeUnit.SECONDS))
+        }finally {releaseAck.countDown();pool.shutdownNow();pool.awaitTermination(5,java.util.concurrent.TimeUnit.SECONDS)}
+      }
+      coordinator.close();registration.release();store.close()
+    }
     for(phase<-Vector("prepare","commit_after","ack","interrupt")) {
       val root=Files.createTempDirectory("veri7vn-coordinator-fault-")
       var store=new WorkspaceStore(root)
