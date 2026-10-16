@@ -295,5 +295,42 @@
     "status": "pass",
     "marker": "ROUTING_GROWTH_PROTOCOL_PASS",
     "scope": "Canonical production Scala sources and strict malformed routing/growth protocol fixtures; no native rebuild."
+  },
+  "dialogue_model_checks": {
+    "receipt": "var/native-scaffold/sessions/a2ff61f3aae556e6/attempts/5dbb0a3d084d470a8c2f3616c62a0966/receipt.json",
+    "receipt_sha256": "db37e548f32013e7c2b762729f5d274c3671a6bdac747f07578c79a7b254ad6f",
+    "status": "passed",
+    "inputs_stable": true,
+    "elapsed_seconds": 35.34762483401573,
+    "scope": "Native interpretation/rendering/dialogue model plus24 regression lemmas including precedence, addressed sources, actual Forget and previous-goal constrained decline fallback. Does not install the original runtime specialist registry, fallback orchestration or conversation handlers.",
+    "sources_sha256": {
+      "src/isabelle/codegen/ROOT": "50c82edf51404e179130586d76f70efb05cdee157fd93d4ab15b22e555306d7f",
+      "src/isabelle/codegen/Veri7vn_Codegen.thy": "e282b323bcdfa5e822662ea0cd0e8bd9131bea4c5148a182042e01dbd56f32b2",
+      "src/isabelle/codegen/installed/Code_Abstract_Nat.thy": "515d9fd3e507b63e4b8bf8bb7d9d09d8e1066fc98f0b8dd75adfde741de87158",
+      "src/isabelle/codegen/installed/Code_Target_Int.thy": "3d652b9aaa65e29d838a02cf0b12e66f95dc108d2ca699bea29c389f9b0c4c12",
+      "src/isabelle/codegen/installed/Code_Target_Nat.thy": "e455a0975c6e2891884f37887dd35ba932b1692617ffd471b4dfa7b1a5a9a9f1",
+      "src/isabelle/codegen/installed/Code_Target_Numeral.thy": "fa2bb75f5112d6590b1f781bfc8de93997d1d5ac3b12bab4338b4d3b9b804af8",
+      "src/isabelle/effects/ROOT": "2c43917ca8cfc9ef30c4004c53e91ad28a360123bdb5479548477401a1ac34c0",
+      "src/isabelle/effects/Veri7vn_Effects.thy": "286313ac1c944ed0baf931d5180f3694bca915c88cf074c0c9e833ae806a40ba",
+      "src/isabelle/language/model/ROOT": "480101ec969beba88b4d5ad76a33bdb048c7d3561e0f0d6ad9befa485f41cf7f",
+      "src/isabelle/language/model/Veri7vn_Grammar.thy": "78e76bf458c1b536f777b4528041e14858a53c611b88261cba6855ada5773348",
+      "src/isabelle/language/model/Veri7vn_Interpretation.thy": "8ca5d8b9b48a85b80c90f33e847644e69ed4125d9db57df807fd7e3178d2791c",
+      "src/isabelle/language/model/rendering/ROOT": "6ab9d327acfb3e854896da027ed43f200948ab172e21b6aed2aa2b8269a3d2ef",
+      "src/isabelle/language/model/rendering/Veri7vn_Rendering.thy": "1f4b1ed9b4082058ae8cc7cc28aed3d9ff73966bd167139dfa1e7b88131d97c5",
+      "src/isabelle/language/runtime/ROOT": "a9dfda5a8e918d24dddd6380467f22ed33b3a695523a8752279b9024d5224ce1",
+      "src/isabelle/language/runtime/Veri7vn_Dialogue.thy": "ec6d765884fc0bab47a66ca313e033f26282918c1af734042768d1259b166c50",
+      "src/isabelle/model/ROOT": "853d7ba507ae39040987bf6161a2f3925fd45780ce3b26de382cf5efda6088b4",
+      "src/isabelle/model/Veri7vn_Authority.thy": "e33f0b930693b7f0c3c308102af7665c71944b46425340469196715d0e38c1fe",
+      "src/isabelle/model/events/Authority_Events.thy": "02d6e7ebf3c59aefe75c930f03304c2f650cb08dd0cedd2c9edc71e5c1b96c42",
+      "src/isabelle/model/metadata/Authority_Metadata.thy": "a447b69c151056330b536dd319ea34d64ebd6a2a27eb02256fad9e474c1ee58e",
+      "src/isabelle/sources/semantics/ROOT": "d6e942c037e98360b6e2da777fe55ac5e9a95ad04708e69ccfa48e746ebb659f",
+      "src/isabelle/sources/semantics/Source_Provenance.thy": "77c2286bc8f52e09295a780a0cf8ee617e412668fc2bc492b4b7da34e0eb31a1",
+      "src/isabelle/sources/semantics/Source_Semantics.thy": "cf57fd33443e9aca7d6fa715e19f7abd69a279f5a5e23f6d623b138faeb46489",
+      "src/isabelle/sources/semantics/Source_Window_Coverage.thy": "a0ecf6c442fe88f2c0210302a85b68d40d3158befb7806246f2d89d0bf69820d",
+      "tests/language/runtime/Dialogue_Tests.thy": "bcc5e50dc7f727ab766c010d74ecc528b8fe029e6245afb76d02f52d1eb44f56",
+      "tests/language/runtime/ROOT": "857297a9b636ff6aaeeb8636ca767924a13f8fcc06bbb2314cd99b3c26a4ede1",
+      "tools/dev/check-native": "3ce1c2bf0412cd9e02106ee6199d5713f3cb9e57be810e1a9d93bb65e285586e",
+      "var/native-scaffold/support/dialogue-tests-closure-20261016-final24.json": "0f973896426d87f9f779764617661a1be6e45a6bf81d4a7929c2ab19227e9393"
+    }
   }
 }

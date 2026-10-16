@@ -129,8 +129,8 @@
     "tools/dev/README.md": 1869
   },
   "current_tracked_files": 123,
-  "current_words": 68419,
-  "reduction_percent": 67.02,
+  "current_words": 68427,
+  "reduction_percent": 67.01,
   "current_per_file": {
     "AGENTS.md": 372,
     "README.md": 587,
@@ -179,7 +179,7 @@
     "docs/formal/updates.md": 550,
     "docs/growth/retained-candidates.md": 576,
     "docs/handoff/recipient-rehearsal.md": 317,
-    "docs/language/runtime.md": 637,
+    "docs/language/runtime.md": 645,
     "docs/packages/governed-resources.md": 349,
     "docs/packages/intake.md": 522,
     "docs/packages/legacy-panel.md": 258,
@@ -304,7 +304,7 @@
     "docs/formal/updates.md": "293f21301b60ad1a30025f347280d2c517009f925ae278cf712729d7c5dd575a",
     "docs/growth/retained-candidates.md": "a165e285b8254eb4919281c91059f38a70de3c26b632b2c26c73b1ba13fa8ba8",
     "docs/handoff/recipient-rehearsal.md": "d5a742bc92dde2bd61bf07b2494f456a7d1f53ca5ddffa0948d5e21f33895a01",
-    "docs/language/runtime.md": "434561c5356416b5ca24368e82d611fd8602aac5cba5a51a4cf02c9e54aa2ca5",
+    "docs/language/runtime.md": "0175e7b51674002e7e550be6f61da96499e9aceb18b5cb9d0c6b6efa8dab3ac8",
     "docs/packages/governed-resources.md": "2e00145e421af1afaf0ffdb61e06d6ff02d2b6917c679555c74eb81ad1fb4b1c",
     "docs/packages/intake.md": "e59cb6550a010d768e5b5dce735f235fe111dc1dcf0416877704cd780c52d7a1",
     "docs/packages/legacy-panel.md": "c4528d591fff33e58e59814ab6af6ab488c8c810cdf4fe6ea96459f9c8643da0",
