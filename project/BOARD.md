@@ -24,7 +24,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | source-semantics | Specify source observations, adoption and query dependencies | sources | done | sources61 | — |
 | interpretation-model | Specify typed interpretation and licensed rendering | language | active | language61 | — |
 | workbench-audit | Audit upstream authoring, local integrations and transfer workflows | authoring discovery | done | authoring61 | — |
-| performance-envelope | Establish representative workloads and deployment budgets | performance | active | performance61 | — |
+| performance-envelope | Establish representative workloads and deployment budgets | performance | active | performance_product61 | — |
 | known-regressions | Turn reproduced Oracle7 defects into independent regression obligations | behavioral correctness | active | coverage61 | — |
 | workspace-interaction | Design the specialist authoring and diagnosis workflows | authoring design | done | authoring61 | — |
 | native-admission | Implement the authoritative native admission boundary | admission | active | admission61 | native-registry, operational-model |
@@ -66,6 +66,10 @@ None.
 
 ## Coordination warnings
 
+- possible active edit overlap: operational-model (src/isabelle/language/model/rendering/Veri7vn_Rendering.thy) / interpretation-model (src/isabelle/language/model/**)
+- possible active edit overlap: operational-model (tests/language/model/rendering/Interpretation_Tests.thy) / interpretation-model (tests/language/model/**)
+- possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/RequestInspectionTests.scala)
+- possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/inspection.scala)
 - native-admission: status active with unresolved dependencies: native-registry, operational-model
 - plan-composition: status active with unresolved dependencies: operational-model, interpretation-model, native-registry
 - state-effects: status active with unresolved dependencies: operational-model, native-registry

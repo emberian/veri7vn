@@ -824,3 +824,19 @@ roots, preserves closure/minimality and distinguishes newly revoked from newly
 forgotten IDs, including Forget after Revoke. The actual generated reducer tests
 passed three markers. This establishes the model/proof batch, not the pending
 native support selector, indexed refinement, physical cleanup or host regressions.
+
+## Exact quantities and composed domain plans
+
+Root read the quantity, spring and plan refinement statements and the actual
+composed example assertions, then independently matched all seven source/test
+files against both snapshots in
+`25e59dea2c61d360/attempts/6d3373be50ed4f79ad26aff7a9c721f7`.
+The build log finishes `Veri7vn_Domains` and `Veri7vn_Domain_Checks` successfully.
+The overall attempt failed in the later bundle runtime test; these outcomes are
+separate. The checked component covers exact linear/affine conversions, distinct
+temperature points/deltas, guarded spring formulas, and a typed conversion-to-energy
+plan preserving its model/input premises. Wrong dimensions and missing model
+premises reject or block. Generic plan premise IDs do not themselves establish
+native model ownership; the newer domain service supplies that separate boundary.
+The compiled bundle's operation refusal and actual resident Domain consumer remain
+open. Only the matching core and plan files are included in this checkpoint.

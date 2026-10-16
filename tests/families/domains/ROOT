@@ -1,0 +1,4 @@
+session Veri7vn_Domain_Checks = Veri7vn_Domains +
+  options [document = false, threads = 2]
+  directories "../../../examples/specialists/domains"
+  theories Quantity_Specialists Domain_Checks

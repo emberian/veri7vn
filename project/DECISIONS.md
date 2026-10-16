@@ -721,3 +721,18 @@ publication consume separate native gates. Updating back to a retained prior
 candidate requires fresh qualification under current authority and current-slot
 comparison, never checkpoint rewind. These choices implement D43/D46 and do not
 introduce a second candidate identity or authority system.
+
+D43 fixed builder resource profile: one charged unit denotes one bounded native
+source-build attempt, with cost 1 and exact request/execution/slot, operation,
+profile, code and semantic-generation bindings. Source/import/export bounds and
+controlled replay timeout remain enforced; a failed attempt consumes its charge.
+This is an attempt budget, not a CPU-time or memory guarantee. Actual costs are
+measured separately and no resource-isolation theorem follows from the timeout.
+
+Update qualification must distinguish structural native-export comparison from
+semantic preservation. Identical full-sequent syntax in sibling theories can name
+constants with different definitions. Structural observations alone cannot justify
+semantic-generation or result-cache reuse. Preservation requires checked context
+and constant correspondence or an appropriate admitted equivalence bridge. A
+meaning-changing replacement retains its new semantic identity and must satisfy
+its own publication policy; it cannot inherit preservation by matching names.
