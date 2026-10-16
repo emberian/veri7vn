@@ -16,6 +16,7 @@ object NativeBuildIngress {
     private[service] val sourceGuard:WorkspaceStore.NativeSourceGuard) {
     private[NativeBuildIngress] val releaseLock=new Object
     private[NativeBuildIngress] var released=false
+    private[service] val proposalClaimed=new AtomicBoolean(false)
   }
   private[service] trait Transport {
     def exchange(operation:String,payload:String="",artifacts:List[Bytes]=Nil):ResidentSupervisor.Reply
@@ -44,6 +45,7 @@ final class NativeBuildIngress private[service](transport:NativeBuildIngress.Tra
   private val ownership=new Object
   private val owned=scala.collection.mutable.Set.empty[TransferJob]
   private val prepared=scala.collection.mutable.Map.empty[BigInt,PreparedInput]
+  private val requests=scala.collection.mutable.Map.empty[BigInt,(BigInt,BigInt,PreparedInput)]
   private var closed=false
 
   private def expect(reply:ResidentSupervisor.Reply,tag:String,payload:String):Unit=
@@ -117,7 +119,10 @@ final class NativeBuildIngress private[service](transport:NativeBuildIngress.Tra
     def invalidate():Unit=synchronized {
       ownership.synchronized {
         canceled.set(true);state=Handoff.Canceled
-        known.foreach(value=>prepared.remove(value.nativeHandle))
+        known.foreach {value=>
+          prepared.remove(value.nativeHandle)
+          requests.filterInPlace((_,entry)=> !(entry._3 eq value))
+        }
       }
       thread.interrupt()
     }
@@ -198,6 +203,20 @@ final class NativeBuildIngress private[service](transport:NativeBuildIngress.Tra
       throw problem
     }
   }
+  /** Associations originate only in the exact native proposal reply. Views
+    * borrow the existing ingress owner; they neither grant durable ownership
+    * nor extend it past producer retirement. No source/store call under ownership. */
+  private[service] def bindRequest(value:PreparedInput,request:BigInt,goal:BigInt,slot:BigInt):Unit=ownership.synchronized {
+    require(!closed && prepared.get(value.nativeHandle).exists(_ eq value),"native build input owner unavailable")
+    require(request>0 && goal>0 && slot>0 && !requests.contains(request),"duplicate native build request association")
+    require(!requests.values.exists(entry=>entry._3 eq value),"native build input already proposed")
+    requests(request)=(goal,slot,value)
+  }
+  private[service] def liveRequest(request:BigInt):Option[(BigInt,BigInt,PreparedInput)]={
+    val entry=ownership.synchronized {require(!closed,"build ingress closed");requests.get(request)}
+    entry.filter(_._3.input.isLive)
+  }
+  private[service] def ownsSource(input:NativeBuildInputs.Owned):Boolean=ownership.synchronized {owned.exists(_.input eq input)}
   private[service] def preparedInput(handle:BigInt):PreparedInput=ownership.synchronized {
     require(!closed,"build ingress closed")
     prepared.getOrElse(handle,throw new IllegalStateException("native build input owner unavailable"))

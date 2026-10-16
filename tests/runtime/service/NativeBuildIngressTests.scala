@@ -91,12 +91,18 @@ object NativeBuildIngressTests {
         if(mode=="normal"){
           assert(result.nonEmpty && failure.isEmpty && ingress.preparedCount==1 && transport.accepted)
           assert(input.isLive,"accepted input lost its owner")
+          ingress.bindRequest(result.get,BigInt(101),BigInt(102),BigInt(103))
+          val reopened=ingress.liveRequest(BigInt(101)).get
+          assert(reopened._1==102 && reopened._2==103 && (reopened._3 eq result.get),
+            "live request reopening did not borrow exact original source owner")
+          assert(ingress.liveRequest(BigInt(999)).isEmpty,"foreign request acquired source owner")
           transport.retainConsumer()
           transport.releaseUnavailable=true
           var retained=false
           try ingress.releaseProducer(result.get) catch {case _:java.io.IOException=>retained=true}
           assert(retained && ingress.retirementCount==1 && input.isLive && transport.consumerLeases==1 && transport.nativePrepared,
             "failed producer release dropped its owner or independent consumer")
+          assert(ingress.liveRequest(BigInt(101)).isEmpty,"retiring producer remained a live request source")
           transport.releaseUnavailable=false
           ingress.releaseProducer(result.get)
           val released=transport.releases

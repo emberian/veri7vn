@@ -1121,3 +1121,22 @@ has not been promoted. Compact evidence lives in
 The historical standalone101a failure and AAE four-call performance summaries
 were also checked against their original result and all log hashes before being
 retained alongside the performance narrative. Their separate scopes remain intact.
+
+### Durable original Build source host checkpoint
+
+Attempt `7f0f74d1eff3436b98bd85474f13c453` passed all14 host groups with stable
+inputs. Root read the actual log, checked the source pins, and reviewed the source
+lease/commit/retirement path and its production BuildHistory/RuntimeService caller.
+`tests/runtime/host/evidence/host14-source-ownership.json` records the exact changed
+files and scope. Real managed storage tests cover commit/rollback, source edits,
+cold store reopening, original-byte inspection, Revoke denial followed by Forget,
+and preventing an unrelated acknowledgement from releasing retained pins.
+Producer cleanup retry and live request tuple/owner mapping also passed.
+
+The native envelope and cleanup barrier in the new source test are controlled
+fixtures. This is host composition and lifecycle evidence, not actual native D43
+admission, source provenance proof, or a browser Build workflow. Search/conversation
+facades compiled; their native endpoints were not exercised. Historical source
+ownership is now a production consumer, but retained terminal status and source
+access after producer retirement still need their independent native association.
+The checked host restore decoder is version2; D65 version3 remains a migration.

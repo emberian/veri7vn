@@ -76,13 +76,17 @@ final class WorkerResources private (val budget:ResourceBudget)
         throw new IllegalStateException("owned root empty")))}
     }
     private[WorkerResources] def clear():Unit={value=None}
+    private[WorkerResources] def installRetained(actual:A):Unit=withRetained {WorkerResources.this.synchronized {
+      open();require(value.isEmpty,"owned root already installed");value=Some(actual)
+    }}
   }
-  def reserveRoot[A](maxPayloadBytes:Long):OwnedRoot[A]=withCurrent {synchronized {
+  private def reserveRootStorage[A](maxPayloadBytes:Long):OwnedRoot[A]=synchronized {
     open();require(roots.size<budget.maxRoots,"worker root budget");reserve(maxPayloadBytes)
     val root=new OwnedRoot[A](maxPayloadBytes);roots :+= root;root
-  }}
+  }
+  def reserveRoot[A](maxPayloadBytes:Long):OwnedRoot[A]=withCurrent {reserveRootStorage[A](maxPayloadBytes)}
   /** Registration is installed before scope.read allocates even its first copy. */
-  private[effects] def capture(scope:ManagedSources#ReadScope,hash:String,maxBytes:Int):OwnedBytes=withCurrent {synchronized {
+  private def captureStorage(scope:ManagedSources#ReadScope,hash:String,maxBytes:Int):OwnedBytes=synchronized {
     open();require(maxBytes>=0 && arrays.size<budget.maxArrays,"worker array budget")
     reserve(maxBytes)
     var captured:Option[Array[Byte]]=None
@@ -93,7 +97,9 @@ final class WorkerResources private (val budget:ResourceBudget)
     } catch {case failure:Throwable=>
       captured.foreach(a=>java.util.Arrays.fill(a,0.toByte));payloadBytes-=maxBytes;throw failure
     }
-  }}
+  }
+  private[effects] def capture(scope:ManagedSources#ReadScope,hash:String,maxBytes:Int):OwnedBytes=
+    withCurrent {captureStorage(scope,hash,maxBytes)}
   /** Fixed native transfer storage, not dispatch authority. The supplied owned
     * worker must be attached before starting its thread, and its stop/join must
     * cover the complete consume callback. Source/resource locks cover only the
@@ -210,6 +216,43 @@ final class WorkerResources private (val budget:ResourceBudget)
   def close():Unit=bound.release()
 }
 object WorkerResources {
+  /** Historical inspection only. Every operation checks the authenticated native
+    * association as well as its registered source owner. This handle has no
+    * current guard, worker attachment, transfer, or execution methods. */
+  final class RecoveryCapture private[WorkerResources](resource:WorkerResources,
+      scope:ManagedSources#ReadScope,lease:WorkspaceStore.NativeBuildSourceLease) extends AutoCloseable {
+    private def retained[A](action: => A):A=lease.withRetained {resource.withRetained {action}}
+    final class RecoveryRoot[A] private[RecoveryCapture](root:resource.OwnedRoot[A]) {
+      def install(value:A):Unit=retained {root.installRetained(value)}
+      def withValue[B](consume:A=>B):B=retained {root.withRetainedValue(consume)}
+    }
+    final class RecoveryBytes private[RecoveryCapture](bytes:resource.OwnedBytes) {
+      def withValue[A](consume:ByteBuffer=>A):A=retained {consume(bytes.readOnly)}
+    }
+    def reserveRoot[A](maxPayloadBytes:Long):RecoveryRoot[A]=retained {
+      new RecoveryRoot(resource.reserveRootStorage[A](maxPayloadBytes))
+    }
+    /** ReadScope itself expires when the factory returns; parsed roots may remain. */
+    def read(hash:String,maxBytes:Int):RecoveryBytes=retained {
+      new RecoveryBytes(resource.captureStorage(scope,hash,maxBytes))
+    }
+    def close():Unit=resource.close()
+  }
+  private[veri7vn] def withNativeRecoveryCapture[A](sources:ManagedSources,
+      lease:WorkspaceStore.NativeBuildSourceLease,budget:ResourceBudget)(consume:RecoveryCapture=>A):A={
+    var owner:Option[WorkerResources]=None
+    try sources.withNativeBuildSource(lease) {(_,scope)=>
+      val resource=new WorkerResources(budget);owner=Some(resource)
+      val registration=sources.registerNativeSourceResource(scope,resource)
+      resource.synchronized {resource.registration=Some(registration)}
+      consume(new RecoveryCapture(resource,scope,lease))
+    } catch {case failure:Throwable=>
+      owner.foreach {resource=>try {
+        if(resource.synchronized(resource.registration.nonEmpty))resource.close()
+      } catch {case cleanup:Throwable=>failure.addSuppressed(cleanup)}}
+      throw failure
+    }
+  }
   final class Capture private[effects](val resources:WorkerResources,scope:ManagedSources#ReadScope) {
     def read(hash:String,maxBytes:Int):resources.OwnedBytes=resources.capture(scope,hash,maxBytes)
 

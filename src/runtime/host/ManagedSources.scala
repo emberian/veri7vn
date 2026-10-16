@@ -222,18 +222,41 @@ final class ManagedSources(store: WorkspaceStore,val limits: ManagedSources.Limi
       try {q.setString(1,operation);q.setString(2,draft);q.executeUpdate()} finally q.close()
     }
   }
-  final class ReadScope private[ManagedSources](private[ManagedSources] val draft:String,private[ManagedSources] val manifest:String) {
+  final class ReadScope private[ManagedSources](private[ManagedSources] val draft:String,private[ManagedSources] val manifest:String,
+    private[ManagedSources] val nativeLease:Option[WorkspaceStore.NativeBuildSourceLease]=None) {
     private[ManagedSources] var active=true
-    def read(hash:String,maxBytes:Long):Array[Byte]=store.managedRead {c=>
-      require(active && permitted(c,draft) && current(c,draft).contains(manifest),"managed read scope expired")
-      locator(hash);require(maxBytes>=0)
-      val q=c.prepareStatement("SELECT m.size FROM managed_source_members m JOIN managed_source_ops o ON o.id=m.op WHERE o.draft=? AND o.state='committed' AND m.hash=? AND m.written=1 AND EXISTS (SELECT 1 FROM managed_source_closures a WHERE a.draft=o.draft AND a.manifest=? AND a.hash=m.hash) LIMIT 1")
-      try {q.setString(1,draft);q.setString(2,hash);q.setString(3,manifest);val r=q.executeQuery();require(r.next(),"unassociated current source object");readObject(hash,r.getLong(1),maxBytes)} finally q.close()
+    def read(hash:String,maxBytes:Long):Array[Byte]={
+      def access():Array[Byte]=store.managedRead {c=>
+        require(active && permitted(c,draft) && (nativeLease.nonEmpty || current(c,draft).contains(manifest)),"managed read scope expired")
+        locator(hash);require(maxBytes>=0)
+        nativeLease match {
+          case Some(lease)=>
+            val q=c.prepareStatement("SELECT size FROM native_source_pins WHERE association=? AND hash=?")
+            try {q.setString(1,lease.source.association.toString);q.setString(2,hash);val r=q.executeQuery();require(r.next(),"object outside owned native source closure");readObject(hash,r.getLong(1),maxBytes)} finally q.close()
+          case None=>
+            val q=c.prepareStatement("SELECT m.size FROM managed_source_members m JOIN managed_source_ops o ON o.id=m.op WHERE o.draft=? AND o.state='committed' AND m.hash=? AND m.written=1 AND EXISTS (SELECT 1 FROM managed_source_closures a WHERE a.draft=o.draft AND a.manifest=? AND a.hash=m.hash) LIMIT 1")
+            try {q.setString(1,draft);q.setString(2,hash);q.setString(3,manifest);val r=q.executeQuery();require(r.next(),"unassociated current source object");readObject(hash,r.getLong(1),maxBytes)} finally q.close()
+        }
+      }
+      nativeLease match {case Some(lease)=>lease.withRetained(access());case None=>access()}
     }
   }
   private[runtime] def registerCurrentResource(scope:ReadScope,owner:WorkspaceStore.ManagedResourceOwner):WorkspaceStore.ManagedResourceRegistration=store.managedRead {c=>
     require(scope.active && permitted(c,scope.draft) && current(c,scope.draft).contains(scope.manifest),"resource registration outside current source scope")
     store.registerManagedResource(scope.draft,scope.manifest,owner)
+  }
+  /** Fixed recovery consumer only: the lease was minted from an authenticated
+    * committed native association and owns these original objects, not a hash hint. */
+  private[veri7vn] def withNativeBuildSource[A](lease:WorkspaceStore.NativeBuildSourceLease)(consume:(String,ReadScope)=>A):A={
+    require(lease.store eq store,"native source lease belongs to another workspace")
+    lease.withRetained {
+      val scope=new ReadScope(lease.source.draft,lease.source.manifest,Some(lease))
+      try consume(lease.source.manifest,scope) finally scope.active=false
+    }
+  }
+  private[runtime] def registerNativeSourceResource(scope:ReadScope,owner:WorkspaceStore.ManagedResourceOwner):WorkspaceStore.ManagedResourceRegistration={
+    require(scope.active,"native source scope expired")
+    store.registerNativeSourceResource(scope.nativeLease.getOrElse(throw new IllegalArgumentException("native source lease required")),owner)
   }
   /** Current managed package names only; an overflow is never presented as a complete list. */
   def listDrafts(limit:Int):Vector[String]={
@@ -257,13 +280,35 @@ final class ManagedSources(store: WorkspaceStore,val limits: ManagedSources.Limi
       try materialize(head,scope) finally scope.active=false
     }
   }
-  /** Storage erasure only. Caller must join native release before full Forget. */
+  /** Fixed maintenance consumer after native acknowledgement and cleanup barrier.
+    * Queue rows remain until directory fsync confirms deletion or another actual
+    * source owner still protects the shared object. */
+  private[runtime] def eraseReleasedNativeSourceObjects():Unit={
+    val batch=store.nativeSourceErasureBatch
+    store.managedRead {c=>batch.foreach {(hash,size)=>
+      locator(hash);require(size>=0 && size<=limits.maxObjectBytes,"native source erasure size")
+      val q=c.prepareStatement("SELECT 1 FROM managed_source_members m JOIN managed_source_ops o ON o.id=m.op JOIN managed_source_drafts d ON d.draft=o.draft WHERE m.hash=? AND d.forgotten=0 LIMIT 1")
+      val shared=try {q.setString(1,hash);q.executeQuery().next()} finally q.close()
+      if(!shared && !store.nativeSourcePinned(hash)){
+        val path=objects.resolve(hash)
+        if(Files.exists(path,nofollow)){
+          require(Files.isRegularFile(path,nofollow) && Files.size(path)==size,"native source erasure object shape")
+          Files.delete(path)
+        }
+      }
+    };if(batch.nonEmpty)forceDirectory(objects)}
+    batch.foreach((hash,_)=>store.nativeSourceObjectErased(hash))
+  }
+  /** Source-association erasure only. Native-owned pinned objects remain denied
+    * and queued until their real native cleanup barrier; caller must join native
+    * release before claiming full deletion. */
   def forget(draft:String):StorageErased={
     identity(draft)
     // Keep ownership rows until physical cleanup finishes so interruption is retryable.
     val owned=store.managedWrite {c=>
       val draftRow=c.prepareStatement("INSERT INTO managed_source_drafts VALUES(?,1) ON CONFLICT(draft) DO UPDATE SET forgotten=1")
       try {draftRow.setString(1,draft);draftRow.executeUpdate()} finally draftRow.close()
+      store.retireNativeBuildSources(draft)
       val q=c.prepareStatement("SELECT DISTINCT m.hash FROM managed_source_members m JOIN managed_source_ops o ON o.id=m.op WHERE o.draft=?")
       val hashes=try {q.setString(1,draft);val r=q.executeQuery();val b=Vector.newBuilder[String];while(r.next())b+=r.getString(1);b.result()} finally q.close()
       val stageQuery=c.prepareStatement("SELECT stage FROM managed_source_ops WHERE draft=?")
@@ -288,7 +333,7 @@ final class ManagedSources(store: WorkspaceStore,val limits: ManagedSources.Limi
         locator(hash)
         val q=c.prepareStatement("SELECT COUNT(*) FROM managed_source_members m JOIN managed_source_ops o ON o.id=m.op JOIN managed_source_drafts d ON d.draft=o.draft WHERE m.hash=? AND d.forgotten=0")
         val shared=try {q.setString(1,hash);val r=q.executeQuery();require(r.next());r.getLong(1)>0} finally q.close()
-        if(!shared) Files.deleteIfExists(objects.resolve(hash))
+        if(!shared && !store.nativeSourcePinned(hash)) Files.deleteIfExists(objects.resolve(hash))
       }
       owned._2.foreach {name=>
         require(name.matches("[0-9a-f-]{36}"),"managed stage directory identity")

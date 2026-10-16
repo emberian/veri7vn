@@ -65,19 +65,26 @@ object WorkspaceStoreTests {
       val candidate=new NativeRecoveryMaterial(material.association,BigInt(2),candidateSlots++(if(executable)Vector("executable"->code)else Vector.empty),material.dependencies)
       var allowed=true
       try {validateRecovery(store.nativeWorkspace,candidate)
-        val expected=if(role.endsWith("-request"))"request-child" else if(role=="build-candidate")"artifact" else if(role=="domain-output")"refined-output" else "observation"
+        val expected=if(role.endsWith("-request"))"request-child" else if(role=="build-candidate")"artifact" else if(role=="domain-output" || role=="search-output" || role=="math-output")"refined-output" else "observation"
         require(recoveryCategory(frame)==expected,"recovery category mismatch")
+        val abstractRequirement=if(expected=="refined-output" || expected=="observation")"evidence" else expected
+        require(matchesRecoveryRequirement(frame,abstractRequirement),"abstract recovery requirement mismatch")
+        require(!matchesRecoveryRequirement(frame,if(abstractRequirement=="evidence")"artifact" else "evidence"),"cross-role recovery accepted")
+        require(!matchesRecoveryRequirement(frame,"refined-output"),"legacy requirement category accepted")
       } catch {case _:IllegalArgumentException=>allowed=false}
       finally candidate.release()
       require(allowed==accepted,"closed role/sequent rule "+profile+"/"+role)
     }
-    for((profile,role)<-Vector("quantities/1"->"domain-request","native-development/1"->"build-request","native-development/1"->"build-candidate",
+    for((profile,role)<-Vector("literal-native-proof/1"->"search-request","quantities/1"->"domain-request","native-development/1"->"build-request","native-development/1"->"build-candidate",
       "native-export-admission/1"->"initial-qualification","native-export-admission/1"->"initial-qualification-request",
       "named-native-export-structure/1"->"update-qualification","named-native-export-structure/1"->"update-qualification-request")){
       checkRole(profile,role,true,true,true)
       checkRole(profile,role,false,true,false)
       checkRole(profile,role,true,false,false)
     }
+    checkRole("literal-native-proof/1","search-output",false,true,true)
+    checkRole("literal-native-proof/1","search-output",true,true,false)
+    checkRole("literal-native-proof/1","search-output",false,false,false)
     checkRole("quantities-runtime-refinement/1","domain-output",false,true,true)
     checkRole("quantities-runtime-refinement/1","domain-output",true,true,false)
     checkRole("quantities-runtime-refinement/1","domain-output",false,false,false)
@@ -85,6 +92,9 @@ object WorkspaceStoreTests {
     checkRole("exact-arithmetic/1","math-request",true,true,false)
     checkRole("exact-arithmetic/1","math-output",true,true,false)
     checkRole("native-development/1","math-request",true,true,false)
+    require(matchesRecoveryRequirement(manifest,"evidence") && !matchesRecoveryRequirement(manifest,"artifact"),"kernel evidence requirement")
+    checkRole("exact-arithmetic/1","math-request",false,true,true)
+    checkRole("exact-arithmetic/1","math-output",false,true,true)
     var wrongManifest=false
     val mismatched=new NativeRecoveryMaterial(material.association,BigInt(2),slots.map {case(name,bytes)=>(name,if(name=="sequent")Array[Byte](99) else bytes)},material.dependencies)
     try store.commitNative("native_wrong_slot",0,0,0,Array[Byte](1),Array[Byte](2),Some(mismatched))

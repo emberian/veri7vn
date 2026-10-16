@@ -8,10 +8,14 @@ object Diagnostics {
   }
   enum Action {
     case Wait, InspectInterpretation, EditInput, InspectDomain, ReviewAdmission,
-      RetryWithBudget, InspectDependencies, StartNewRequest, Refresh
+      RetryWithBudget, InspectDependencies, StartNewRequest, Refresh, ReviewSource, ReviewExports
   }
   final case class Explanation(code:String,outcome:Outcome,title:String,detail:String,actions:Vector[Action])
   def explain(status:String):Explanation = status match {
+    case "build.replay_failed"=>Explanation(status,Outcome.Failed,"Native source replay failed",
+      "The native builder could not replay the captured source. Review its reported error and original source position. This phase alone does not identify a false theorem or an unresolved logical obligation.",Vector(Action.ReviewSource))
+    case "build.export_failed"=>Explanation(status,Outcome.Failed,"Native export failed",
+      "The native builder could not produce the declared exports from the captured development. Review the reported export error and requirements. This phase alone does not establish a refutation or authorize a different export.",Vector(Action.ReviewExports))
     case "pending"=>Explanation("execution.pending",Outcome.Pending,"Still running",
       "No accepted result is available yet.",Vector(Action.Wait))
     case "accepted_exact"=>Explanation("result.accepted",Outcome.Accepted,"Accepted exact result",
@@ -40,6 +44,8 @@ object Diagnostics {
       "The resident returned an outcome this client does not recognize. Refresh with a compatible client; no result is inferred.",Vector(Action.Refresh))
   }
   def actionText(action:Action):String=action match {
+    case Action.ReviewSource=>"Review the captured source and native error"
+    case Action.ReviewExports=>"Review the declared exports and their requirements"
     case Action.Wait=>"Wait for the result"
     case Action.InspectInterpretation=>"Inspect the selected interpretation"
     case Action.EditInput=>"Review and edit the original input"

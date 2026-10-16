@@ -1225,3 +1225,26 @@ the connector owns private managed capture and packet construction; assembly/hos
 own dispatch and the D66 durable acknowledgement. Their tests must exercise the
 actual Discover → Qualify → Invoke sequence, changed configuration, cancellation,
 unknown outcome and retirement. The sensor label contract remains unchanged.
+
+## D70 — Artifact lifecycle closure is intrinsic and checked
+
+Artifact publication must check current child access, including late staging and
+acknowledgement after revocation. Its retained dependency closure must include the
+actual owning request, goal, output slot, shared parent dependencies, original
+goal references and result generation. These are intrinsic relationships, not
+optional dependencies a proposed output may omit.
+
+Use one canonical model helper to derive the expected closure from the uniquely
+identified current owner. Missing or ambiguous ownership returns no result.
+Preflight rejects proposed retained rows that do not already match this closure;
+it must not manufacture native source or ownership evidence by adding IDs to
+untrusted rows. Installation, visibility/recovery queries and the fixed native
+producer/reconstructor use the same rule. Structurally available request/goal/slot
+references belong in assignment references as well.
+
+This strengthens the existing artifact path without a new schema or authority
+mechanism. Authority and assembly own the migration; source ownership remains
+checked by the native gate. Required consumers cover valid producer rows, omitted
+intrinsic edges, request/goal/slot Revoke and Forget, and both staging and pending
+acknowledgement windows. The first child-access guard repair can be checked
+separately from the complete canonical retention migration.

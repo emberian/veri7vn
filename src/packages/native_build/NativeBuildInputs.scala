@@ -133,6 +133,65 @@ object NativeBuildInputs {
       }
     def close():Unit=resources.close()
   }
+  /** A recovered original-source inspection owner. It deliberately carries no
+    * materialized directory, transfer worker, current guard or execution method. */
+  final class HistoricalOwned private[NativeBuildInputs](
+      private val capture:WorkerResources.RecoveryCapture,
+      private val lease:WorkspaceStore.NativeBuildSourceLease)(
+      private val revision:capture.RecoveryRoot[Intake.Revision],private val limits:Intake.Limits)
+      extends AutoCloseable {
+    def inspectCapturedSourceRetained[A](consume:(CapturedSource,ByteBuffer)=>A):A=
+      revision.withValue {original=>
+        val saved=lease.source
+        require(original.id==saved.revision,"Recovered native source revision mismatch")
+        val entry=original.entries.find(_.path==saved.path)
+          .getOrElse(throw new IllegalArgumentException("Recovered native source path absent"))
+        require(entry.content.sha256==saved.sha256 && entry.content.size.toLong==saved.size,
+          "Recovered native source pin mismatch")
+        require(entry.content.size<=limits.maxFileBytes,"Recovered source inspection byte bound")
+        val bytes=entry.content.bytes
+        try consume(CapturedSource(saved.draft,saved.revision,saved.manifest,saved.path,
+          Pin(saved.sha256,saved.size)),ByteBuffer.wrap(bytes).asReadOnlyBuffer())
+        finally java.util.Arrays.fill(bytes,0.toByte)
+      }
+    def close():Unit={capture.close();lease.close()}
+  }
+  /** Only an authenticated committed host source lease can enter this factory.
+    * The original immutable manifest is recovered under its retained resource;
+    * edited heads remain inspectable but confer no permission to build. */
+  private[veri7vn] def recoverHistorical(sources:ManagedSources,
+      lease:WorkspaceStore.NativeBuildSourceLease,budget:ResourceBudget,
+      limits:Intake.Limits=Intake.Limits()):HistoricalOwned={
+    try WorkerResources.withNativeRecoveryCapture(sources,lease,budget) {capture=>
+      val saved=lease.source
+      require(Intake.portablePath(saved.path,limits)==saved.path,"Invalid recovered source path")
+      require(saved.size>=0 && saved.size<=limits.maxFileBytes,"Recovered source byte bound")
+      val manifestBound=limits.maxEntries.toLong*(limits.maxPathBytes+150)+1024
+      val envelope=Math.addExact(Math.multiplyExact(limits.maxTotalBytes,3L),
+        Math.addExact(Math.multiplyExact(manifestBound,2L),limits.maxFileBytes.toLong))
+      val parsed=capture.reserveRoot[Intake.Revision](envelope)
+      val temporary=scala.collection.mutable.ArrayBuffer.empty[Array[Byte]]
+      try {
+        val objects=new SourceObjects(new ByteObjects {
+          def put(bytes:Array[Byte]):String=throw new UnsupportedOperationException("Read-only historical source")
+          def read(id:String,maxBytes:Long):Array[Byte]=capture.read(id,Math.toIntExact(maxBytes)).withValue {owned=>
+            val copy=new Array[Byte](owned.remaining());temporary+=copy;owned.get(copy);copy
+          }
+        },limits)
+        val original=objects.recover(saved.manifest)
+        require(original.id==saved.revision,"Recovered native source revision mismatch")
+        val entry=original.entries.find(_.path==saved.path)
+          .getOrElse(throw new IllegalArgumentException("Recovered native source path absent"))
+        require(entry.content.sha256==saved.sha256 && entry.content.size.toLong==saved.size,
+          "Recovered native source pin mismatch")
+        parsed.install(original)
+      } finally temporary.foreach(bytes=>java.util.Arrays.fill(bytes,0.toByte))
+      new HistoricalOwned(capture,lease)(parsed,limits)
+    } catch {case failure:Throwable=>
+      try lease.close() catch {case cleanup:Throwable=>failure.addSuppressed(cleanup)}
+      throw failure
+    }
+  }
   /** Registration happens inside the source scope before the parser's first
     * byte copy. All private parser roots and derived files stay on that owner.
     * The caller must obtain the generated build/reveal grant before invoking this.

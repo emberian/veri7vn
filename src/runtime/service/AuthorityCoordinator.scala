@@ -17,7 +17,8 @@ object AuthorityCoordinator {
     private[service] val recovery: Option[WorkspaceStore.NativeRecoveryMaterial] = None,
     private[service] val dispatch:Option[WorkspaceStore.NativeDispatchMaterial]=None,
     private[service] val invalidations:Option[WorkspaceStore.NativeInvalidations]=None,
-    private[service] val sourceGuard:Option[WorkspaceStore.NativeSourceGuard]=None) {
+    private[service] val sourceGuard:Option[WorkspaceStore.NativeSourceGuard]=None,
+    private[service] val sourceBinding:Option[WorkspaceStore.NativeBuildSourceMaterial]=None) {
     require(event.length<=1024*1024 && checkpoint.length<=1024*1024,"native prepared materialization bound")
     private[service] val eventBytes=event.clone()
     private[service] val checkpointBytes=checkpoint.clone()
@@ -78,7 +79,7 @@ final class AuthorityCoordinator(store: WorkspaceStore, bridge: AuthorityCoordin
     def commit():Outcome={
     require(p.eventBytes.length<=limits.maxEventBytes && p.checkpointBytes.length<=limits.maxCheckpointBytes,"native materialization limit")
     if(!bridge.validatePrecommit(p)) return Rejected("native staged transition no longer valid")
-    store.commitNative(p.id,p.expectedSequence,p.nativeRevision,p.epoch,p.eventBytes,p.checkpointBytes,p.recovery,p.dispatch,p.invalidations) match {
+    store.commitNative(p.id,p.expectedSequence,p.nativeRevision,p.epoch,p.eventBytes,p.checkpointBytes,p.recovery,p.dispatch,p.invalidations,p.sourceBinding) match {
       case None => ready=false; Unavailable("durable sequence conflict; restore required")
       case Some(record) =>
         if(!bridge.acknowledge(p)) {ready=false; Unavailable("committed; native acknowledgement unavailable; restore required")}

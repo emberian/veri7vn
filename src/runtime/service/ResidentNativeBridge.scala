@@ -14,6 +14,7 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
     throw failure
   }
   private val previousResidents=initializing(store.reconcileNativeResidents())
+  initializing(store.resetNativeSourceCleanup(supervisor.incarnation))
   private val installedBootImage=initializing {
     val reply=supervisor.exchange("install_boot",artifacts=List(Bytes(supervisor.bootManifest)))
     require(reply.tag=="boot_installed" && reply.payload.matches("[1-9][0-9]{0,17}"),"native boot image installation failed")
@@ -29,11 +30,17 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
     require(reply.tag=="ids_installed","native durable identity lease installation failed")
     lease
   }
-  private final case class BuildBinding(phase:String,input:NativeBuildIngress.PreparedInput)
+  private final case class BuildBinding(phase:String,input:NativeBuildIngress.PreparedInput,request:BigInt,goal:BigInt,slot:BigInt)
   private var pendingBuild:Option[BuildBinding]=None
-  private val releaseQueue=new java.util.concurrent.ConcurrentLinkedQueue[NativeBuildIngress.PreparedInput]()
-  private var releaseAttempts=0
-  private var releaseAt=0L
+  private val releaseQueue=new ProducerReleaseQueue
+  private[service] def producerCleanupFailures:Vector[ProducerReleaseQueue.Failure]=releaseQueue.failures
+  private[service] def retryProducerCleanup():Unit=releaseQueue.retryExhausted()
+  private[service] def sourceCleanupFailures:Vector[(BigInt,Int,String)]=store.nativeSourceCleanupFailures
+  private[service] def retrySourceCleanup():Unit=store.retryNativeSourceCleanup()
+  // Native owns the exact token -> phase/input/rid/gid/slot relation. Host checks
+  // its closed shape and retains the opaque input guard; it does not reimplement
+  // the generated reducer. Native consumer tests must reject foreign/expired
+  // tokens and mismatched child bindings before returning this association.
   private def buildBinding(id:String):Option[BuildBinding]=buildIngress.flatMap { ingress=>
     val reply=supervisor.exchange("build_current_binding",id)
     require(reply.artifacts.isEmpty,"native build binding artifacts")
@@ -42,7 +49,7 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
       val fields=reply.payload.split(",",-1)
       require(reply.tag=="build_binding" && fields.length==6 && fields(0)==id &&
         Set("reserve","execute","artifact").contains(fields(1)) && fields.drop(2).forall(_.matches("[1-9][0-9]{0,127}")),"native build binding shape")
-      Some(BuildBinding(fields(1),ingress.preparedInput(BigInt(fields(2)))))
+      Some(BuildBinding(fields(1),ingress.preparedInput(BigInt(fields(2))),BigInt(fields(3)),BigInt(fields(4)),BigInt(fields(5))))
     }
   }
   private var pending: Option[Prepared]=None
@@ -55,19 +62,25 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
   private[service] override def maintenance():Unit={
     val now=System.nanoTime()
     // Source teardown and native producer release run outside coordinator/source locks.
-    val producer=releaseQueue.peek()
-    if(producer!=null && releaseAttempts<8 && now>=releaseAt){
-      try {buildIngress.get.releaseProducer(producer);releaseQueue.remove();releaseAttempts=0;releaseAt=0L}
-      catch {case scala.util.control.NonFatal(_)=>
-        releaseAttempts+=1;releaseAt=now+math.min(30000L,250L*(1L<<(releaseAttempts-1)))*1000000L
-      }
-    }
+    releaseQueue.pump(now)
     if(now>=cleanupPollAt){
       cleanupPollAt=now+1000000000L
+      val wall=System.currentTimeMillis()
+      store.nextNativeSourceCleanup(wall).foreach {association=>
+        try {
+          val queued=supervisor.exchange("forget",association.toString)
+          require(queued.tag=="lifecycle_queued" && queued.artifacts.isEmpty,"native source cleanup receipt")
+          store.nativeSourceCleanupQueued(association,queued.payload,supervisor.incarnation)
+        } catch {case scala.util.control.NonFatal(problem)=>
+          store.nativeSourceCleanupFailed(association,(problem.getClass.getSimpleName+": "+Option(problem.getMessage).getOrElse("")).take(256),wall)
+        }
+      }
       val reply=supervisor.exchange("cleanup_barrier")
       require(reply.tag=="cleanup","native cleanup barrier unavailable")
       if(reply.payload=="complete"){
         cleanupRetries=0;cleanupRetryAt=0L
+        store.completeNativeSourceCleanup()
+        if(store.hasNativeSourceErasure)new veri7vn.runtime.host.ManagedSources(store).eraseReleasedNativeSourceObjects()
         if(store.hasForgottenNativeArtifacts)store.eraseForgottenNativeArtifacts()
       } else {
         require(Set("pending","failed_retryable").contains(reply.payload),"native cleanup barrier shape")
@@ -96,7 +109,10 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
   }
   private[service] def prepare(event: EventToken): Either[String,Prepared] = {
     val reply=supervisor.exchange("prepare",event.nativeId)
-    if(reply.tag!="prepared") Left(reply.payload)
+    if(reply.tag!="prepared") {
+      if(reply.payload=="native_gate_expired")store.nativeSourceCleanupRejected(event.nativeId,supervisor.incarnation)
+      Left(reply.payload)
+    }
     else {
       require(reply.artifacts.length==2,"native prepared shape")
       val fields=reply.payload.split(",",-1)
@@ -108,8 +124,16 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
       try {
         val binding=buildBinding(event.nativeId)
         recovery=readRecovery(event.nativeId)
+        val sourceBinding=for {
+          bound<-binding
+          material<-recovery if WorkspaceStore.isBuildRecovery(material.slots.toMap.apply("manifest"))
+        } yield {
+          val original=bound.input.original
+          store.prepareNativeBuildSource(bound.input.sourceGuard,material.association,bound.request,bound.goal,bound.slot,
+            original.revision,original.path,original.pin.sha256,original.pin.size)
+        }
         val p=new Prepared("native_"+supervisor.incarnation+"_"+event.nativeId,currentSequence,fields(1).toLong,fields(2).toLong,
-          eventBytes,checkpointBytes,recovery=recovery,dispatch=readDispatch(event.nativeId),invalidations=readInvalidations(event.nativeId),sourceGuard=binding.map(_.input.sourceGuard))
+          eventBytes,checkpointBytes,recovery=recovery,dispatch=readDispatch(event.nativeId),invalidations=readInvalidations(event.nativeId),sourceGuard=binding.map(_.input.sourceGuard),sourceBinding=sourceBinding)
         pendingBuild=binding;pending=Some(p);transferred=true;Right(p)
       } finally {
         java.util.Arrays.fill(eventBytes,0.toByte);java.util.Arrays.fill(checkpointBytes,0.toByte)
@@ -198,7 +222,8 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
     val accepted=reply.artifacts.isEmpty && (if(p.id=="native_initial")reply.tag=="restored"
       else reply.tag=="acknowledged" && reply.payload==token(p))
     if(accepted) {
-      pendingBuild.filter(_.phase=="artifact").foreach(binding=>releaseQueue.add(binding.input))
+      if(p.id!="native_initial")store.nativeSourceCleanupAcknowledged(token(p),supervisor.incarnation)
+      pendingBuild.filter(_.phase=="artifact").foreach(binding=>releaseQueue.enqueue(binding.input))
       pendingBuild=None;pending=None
     }
     accepted
@@ -212,20 +237,20 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
     var primary:Throwable=null
     try {
       val begin=supervisor.exchange("restore_begin",s"${store.nativeWorkspace},${record.sequence},${record.revision},${record.epoch}",List(Bytes(record.checkpoint)))
-      require(begin.tag=="restore_required" && begin.artifacts.size==1 && begin.artifacts.head.size<=1048576,"native restore closure unavailable")
+      require(begin.tag=="restore_required" && begin.payload=="2" && begin.artifacts.size==1 && begin.artifacts.head.size<=1048576,"native restore closure unavailable")
       val text=begin.artifacts.head.text
       val required=if(text.isEmpty)Vector.empty else text.split("\n",-1).toVector
       require(required.size<=8192,"native restore association bound")
       var seen=Set.empty[BigInt]
       required.foreach {line=>
         val fields=line.split(",",-1)
-        require(fields.length==3 && Set("kernel","request-child","refined-output","artifact","observation").contains(fields(0)) && fields.tail.forall(_.matches("[1-9][0-9]{0,127}")),"native restore required identity")
+        require(fields.length==3 && Set("request-child","artifact","evidence").contains(fields(0)) && fields.tail.forall(_.matches("[1-9][0-9]{0,127}")),"native restore required identity")
         val association=BigInt(fields(1));val generation=BigInt(fields(2))
         require(!seen.contains(association),"duplicate native restore association");seen+=association
         val capability=store.committedNativeRecovery(record,association).getOrElse(throw new IllegalStateException("required native origin unavailable"))
         try capability.withMaterial {material=>
           require(material.semanticGeneration==generation,"native restore semantic generation mismatch")
-          require(WorkspaceStore.recoveryCategory(material.slots.toMap.apply("manifest"))==fields(0),"native restore category/profile/role mismatch")
+          require(WorkspaceStore.matchesRecoveryRequirement(material.slots.toMap.apply("manifest"),fields(0)),"native restore category/profile/role mismatch")
           val names=Vector("manifest","projection","sequent","context_closure","reconstruction")++(if(material.slots.exists(_._1=="executable"))Vector("executable")else Vector.empty)
           val slots=material.slots.toMap
           val header=(Vector(association.toString,generation.toString,capability.originSequence.toString)++names.map(name=>slots(name).length.toString)).mkString(",")
@@ -246,6 +271,7 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
       var progress=supervisor.exchange("restore_progress")
       while(progress.tag=="restore_verifying" && System.nanoTime()<deadline){Thread.sleep(25);progress=supervisor.exchange("restore_progress")}
       installed=progress.tag=="restored" && progress.payload=="complete_no_dispatch_replay"
+      if(installed)store.nativeSourceCleanupAcknowledged("",supervisor.incarnation)
       pending=None;installed
     } catch {case problem:Throwable=>primary=problem;throw problem}
     finally {

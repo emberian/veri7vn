@@ -15,6 +15,8 @@ object SourceDiagnostic {
   final case class Location(startByte:Int,endByte:Int,start:Position,end:Position)
   final case class View(source:CapturedSource,status:SourceStatus,failure:BuildFailure.Failure,
     location:Option[Location]) {
+    /** UI seeding only. Applying a proposal still checks its original draft head. */
+    def hasCurrentSpan:Boolean=status==SourceStatus.Current && location.nonEmpty
     def description:String={
       val age=status match {
         case SourceStatus.Current=>"Current captured source"

@@ -12,6 +12,10 @@ object BuildFailure {
   final case class Span(startByte:Int,endByte:Int)
   final case class Failure(sourceRevision:BigInt,manifest:BigInt,phase:Phase,
     span:Option[Span],message:Message) {
+    def code:String=phase match {
+      case Phase.Replay=>"build.replay_failed"
+      case Phase.Export=>"build.export_failed"
+    }
     def title:String=phase match {
       case Phase.Replay=>"Native source replay failed"
       case Phase.Export=>"Native export failed"

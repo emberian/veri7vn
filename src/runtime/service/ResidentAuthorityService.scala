@@ -7,7 +7,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 /** Finite resident client. Native gates mint every workflow event; the single pump
   * commits them through the coordinator before native continuation or handoff. */
 final class ResidentAuthorityService private[service](supervisor:ResidentSupervisor,
-  coordinator:AuthorityCoordinator,buildIngress:Option[NativeBuildIngress]=None) extends AutoCloseable {
+  coordinator:AuthorityCoordinator,buildIngress:Option[NativeBuildIngress]=None,
+  managedSources:Option[veri7vn.runtime.host.ManagedSources]=None,
+  buildHistory:Option[veri7vn.runtime.service.build.BuildHistory]=None) extends AutoCloseable {
+  lazy val search=new veri7vn.runtime.service.search.SearchIngress(supervisor,this)
   coordinator.requireReady()
   private val stopped=new AtomicBoolean(false)
   @volatile private var failure:Option[Throwable]=None
@@ -80,8 +83,55 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
     require(reply.artifacts.isEmpty || reply.payload=="accepted_exact","unlicensed result payload")
     Result(reply.payload,reply.artifacts.headOption.map(_.text))
   }
+  private val managedBuildCaptures=new java.util.concurrent.Semaphore(2)
   final class BuildRequest private[ResidentAuthorityService](val request:BigInt,val goal:BigInt,val slot:BigInt,
-    private[service] val input:NativeBuildIngress.PreparedInput)
+    private[service] val input:Option[NativeBuildIngress.PreparedInput],
+    private[service] val historical:Option[veri7vn.runtime.service.build.BuildHistory.HistoricalBuild]=None) extends AutoCloseable {
+    def original:veri7vn.packages.native_build.NativeBuildInputs.CapturedSource=input.map(_.original).getOrElse {
+      val source=historical.get.source
+      veri7vn.packages.native_build.NativeBuildInputs.CapturedSource(source.draft,source.revision,source.manifest,source.path,
+        veri7vn.packages.native_build.NativeBuildInputs.Pin(source.sha256,source.size))
+    }
+    def close():Unit=historical.foreach(_.close())
+  }
+  /** Fixed host storage profile, distinct from native execution permission,
+    * accounting and one-use attempt authority. The UI supplies no resource grant. */
+  def proposeManagedBuild(draft:String,expectedManifest:String,theoryPath:String,
+    parents:Vector[BigInt]=Vector.empty):BuildRequest={
+    available()
+    val sources=managedSources.getOrElse(throw new IllegalStateException("managed build source service unavailable"))
+    val ingress=buildIngress.getOrElse(throw new IllegalStateException("native build ingress unavailable"))
+    require(managedBuildCaptures.tryAcquire(),"managed build capture capacity")
+    var captured:Option[veri7vn.packages.native_build.NativeBuildInputs.Owned]=None
+    try {
+      val limits=veri7vn.packages.intake.Intake.Limits(maxArchiveBytes=8*1024*1024,maxFileBytes=1000000,
+        maxTotalBytes=8L*1024*1024,maxEntries=128,maxPathBytes=512,maxDepth=24)
+      val budget=veri7vn.runtime.effects.ResourceBudget(BigInt(0),256L*1024*1024,512,4,256,16L*1024*1024,512,24,1)
+      val owned=veri7vn.packages.native_build.NativeBuildInputs.materialize(sources,draft,expectedManifest,budget,limits)
+        .getOrElse(throw new IllegalStateException("managed build draft unavailable"))
+      captured=Some(owned)
+      owned.exportIntent.inspect {intent=>
+        require(intent.descriptor.dependencies.isEmpty || parents.nonEmpty,"declared package dependencies require actual admitted parents")
+      }
+      proposeBuild(prepareBuild(owned,theoryPath,parents))
+    } catch {case problem:Throwable=>
+      // An indeterminate transfer stays owned by ingress until exact retirement;
+      // never close its guard behind a late native finish or acknowledged owner.
+      captured.filterNot(ingress.ownsSource).foreach {owned=>try owned.close() catch {case cleanup:Throwable=>problem.addSuppressed(cleanup)}}
+      throw problem
+    } finally managedBuildCaptures.release()
+  }
+  /** A fresh historical inspection handle, never a recovered execution permit. */
+  def openBuild(request:BigInt):Option[BuildRequest]={
+    available();coordinator.requireReady()
+    buildIngress.flatMap(_.liveRequest(request)) match {
+      case Some((goal,slot,input))=>Some(new BuildRequest(request,goal,slot,Some(input)))
+      case None=>buildHistory.getOrElse(throw new IllegalStateException("historical Build service unavailable")).open(request).map {history=>
+        val source=history.source
+        new BuildRequest(source.request,source.goal,source.slot,None,Some(history))
+      }
+    }
+  }
   def prepareBuild(input:veri7vn.packages.native_build.NativeBuildInputs.Owned,theoryPath:String,
     parents:Vector[BigInt]=Vector.empty):NativeBuildIngress.PreparedInput={
     available();buildIngress.getOrElse(throw new IllegalStateException("native build ingress unavailable")).prepare(input,theoryPath,parents)
@@ -91,19 +141,29 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
     available()
     val ingress=buildIngress.getOrElse(throw new IllegalStateException("native build ingress unavailable"))
     require(ingress.preparedInput(input.nativeHandle) eq input,"native build input association mismatch")
+    require(input.proposalClaimed.compareAndSet(false,true),"native build input already proposed")
+    // An indeterminate proposal is not retried against the same one-use input.
     val reply=supervisor.exchange("propose_build",input.nativeHandle.toString)
     val fields=reply.payload.split(",",-1)
     require(reply.tag=="build_proposed" && reply.artifacts.isEmpty && fields.length==3 &&
       fields.forall(_.matches("[1-9][0-9]{0,127}")),"native build proposal refused")
-    new BuildRequest(BigInt(fields(0)),BigInt(fields(1)),BigInt(fields(2)),input)
+    val request=BigInt(fields(0));val goal=BigInt(fields(1));val slot=BigInt(fields(2))
+    ingress.bindRequest(input,request,goal,slot)
+    new BuildRequest(request,goal,slot,Some(input))
   }
-  enum BuildState { case Queued,Running,PendingPublication,ArtifactReady,Failed,Cancelled }
+  enum BuildState { case Queued,Running,PendingPublication,ArtifactReady,Failed,Cancelled,Historical }
   final class BuildDiagnostic private[ResidentAuthorityService](private[service] val request:BuildRequest,
     val failure:veri7vn.diagnostics.BuildFailure.Failure)
   final class BuildResult private[ResidentAuthorityService](val state:BuildState,val candidate:Option[BigInt],
     val diagnostic:Option[BuildDiagnostic],val sourceAvailable:Boolean)
   def buildResult(request:BuildRequest):BuildResult={
     available()
+    if(request.historical.nonEmpty){
+      // Source-only historical ownership: no old failure/candidate/status is
+      // manufactured when the native execution receipt was not retained.
+      request.historical.get.inspect((_,_)=>())
+      return new BuildResult(BuildState.Historical,None,None,true)
+    }
     val identity=s"${request.request},${request.goal},${request.slot}"
     val reply=supervisor.exchange("poll_build",identity)
     val fields=reply.payload.split(",",-1)
@@ -121,7 +181,7 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
     val source=fields.slice(4,7).map(BigInt(_))
     val unavailable=source.forall(_==0)
     require((unavailable && state==BuildState.Cancelled) ||
-      (source.forall(_>0) && source(0)==request.input.nativeHandle),"native build source association mismatch")
+      (source.forall(_>0) && source(0)==request.input.get.nativeHandle),"native build source association mismatch")
     val candidate=BigInt(fields(7))
     require(if(state==BuildState.ArtifactReady)candidate>0 else candidate==0,"native build candidate status mismatch")
     require(reply.artifacts.size<=1 && (reply.artifacts.isEmpty || (state==BuildState.Failed && !unavailable && reply.artifacts.head.size<=8192)),"native build diagnostic frame")
@@ -134,38 +194,75 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
   def withBuildFailureSource[A](diagnostic:BuildDiagnostic)(consume:(veri7vn.packages.native_build.NativeBuildInputs.CapturedSource,
     java.nio.ByteBuffer,veri7vn.diagnostics.BuildFailure.Failure)=>A):A={
     available()
-    val original=diagnostic.request.input.original
-    diagnostic.request.input.input.inspectCapturedSourceRetained(original.path){(captured,bytes)=>
+    val original=diagnostic.request.original
+    def inspect(captured:veri7vn.packages.native_build.NativeBuildInputs.CapturedSource,bytes:java.nio.ByteBuffer):A={
       require(captured==original,"native build diagnostic captured source mismatch")
       veri7vn.diagnostics.SourceDiagnostic.locate(captured,bytes,diagnostic.failure,None)
       consume(captured,bytes,diagnostic.failure)
     }
+    diagnostic.request.input match {
+      case Some(live)=>live.input.inspectCapturedSourceRetained(original.path)(inspect)
+      case None=>diagnostic.request.historical.get.inspect(inspect)
+    }
   }
   def cancel(request:BigInt):Unit=lifecycle("cancel",request)
   def forget(objectId:BigInt):Unit=lifecycle("forget",objectId)
-  private def lifecycle(operation:String,id:BigInt):Unit={
-    available();require(id>0 && id.toString.length<=128)
-    // Register before the pump can publish completion, even when native emits
-    // its token before returning the lifecycle reply. Regular commits retain no
-    // receipts and cannot evict an awaited completion.
-    val token=receipts.synchronized {
+  private def awaitMutation[A](invoke: => ResidentSupervisor.Reply)(decode:ResidentSupervisor.Reply=>(String,A)):A={
+    available()
+    val (token,value)=receipts.synchronized {
       require(receipts.size<64,"too many awaited lifecycle receipts")
-      val reply=supervisor.exchange(operation,id.toString)
-      require(reply.tag=="lifecycle_queued" && reply.payload.matches("[1-9][0-9]{0,17}") && reply.artifacts.isEmpty,"native lifecycle receipt refused")
-      require(!receipts.contains(reply.payload),"duplicate native lifecycle token")
-      receipts(reply.payload)=None
-      reply.payload
+      val decoded=decode(invoke)
+      require(decoded._1.matches("[1-9][0-9]{0,17}") && !receipts.contains(decoded._1),"native mutation token identity")
+      receipts(decoded._1)=None
+      decoded
     }
     val deadline=System.nanoTime()+60L*1000*1000*1000
     try receipts.synchronized {
-      while(receipts(token).isEmpty && System.nanoTime()<deadline){
-        available();receipts.wait(100)
-      }
-      val outcome=receipts(token)
-      require(outcome.exists(_.isInstanceOf[AuthorityCoordinator.Committed]),"native lifecycle not durably acknowledged: "+outcome)
+      while(receipts(token).isEmpty && System.nanoTime()<deadline){available();receipts.wait(100)}
+      require(receipts(token).exists(_.isInstanceOf[AuthorityCoordinator.Committed]),
+        "native mutation not durably acknowledged: "+receipts(token))
+      value
     } finally receipts.synchronized {receipts.remove(token)}
   }
+  private def lifecycle(operation:String,id:BigInt):Unit={
+    require(id>0 && id.toString.length<=128)
+    awaitMutation(supervisor.exchange(operation,id.toString)){reply=>
+      require(reply.tag=="lifecycle_queued" && reply.artifacts.isEmpty,"native lifecycle receipt refused")
+      reply.payload->()
+    }
+  }
+  def createConversation():BigInt=awaitMutation(supervisor.exchange("conversation_create")){reply=>
+    val fields=reply.payload.split(",",-1)
+    require(reply.tag=="conversation_queued" && reply.artifacts.isEmpty && fields.length==2 &&
+      fields(1).matches("[1-9][0-9]{0,127}"),"native conversation creation receipt")
+    fields(0)->BigInt(fields(1))
+  }
+  def listConversations():veri7vn.runtime.conversation.ConversationProtocol.Index={
+    available()
+    val reply=supervisor.exchange("conversation_list")
+    require(reply.tag=="conversation_list" && reply.payload=="1" && reply.artifacts.size==1 &&
+      reply.artifacts.head.size<=veri7vn.runtime.conversation.ConversationProtocol.maxFrameBytes,"native conversation list shape")
+    veri7vn.runtime.conversation.ConversationProtocol.readIndex(reply.artifacts.head.text)
+  }
+  def openConversation(id:BigInt):veri7vn.runtime.conversation.ConversationProtocol.View={
+    available();require(id>0 && id.toString.length<=128)
+    val reply=supervisor.exchange("conversation_open",id.toString)
+    require(reply.tag=="conversation_view" && reply.payload==id.toString && reply.artifacts.size==1 &&
+      reply.artifacts.head.size<=veri7vn.runtime.conversation.ConversationProtocol.maxFrameBytes,"native conversation view shape")
+    veri7vn.runtime.conversation.ConversationProtocol.readView(reply.artifacts.head.text,id)
+  }
+  def expireConversation(id:BigInt):Unit=lifecycle("conversation_expire",id)
+  def proposeConversationMathematics(id:BigInt,expectedVersion:BigInt,original:Array[Byte],selection:Option[Int]=None):BigInt={
+    available();require(id>0 && id.toString.length<=128 && expectedVersion>=0 && expectedVersion.toString.length<=128 &&
+      original.length<=256 && selection.forall(n=>n>=0 && n<=255),"conversation mathematics input bound")
+    val owned=original.clone()
+    val reply=try supervisor.exchange("propose_conversation_math",s"$id,$expectedVersion,"+selection.map(_.toString).getOrElse(""),List(Bytes(owned)))
+      finally java.util.Arrays.fill(owned,0.toByte)
+    require(reply.tag=="proposed" && reply.artifacts.isEmpty && reply.payload.matches("[1-9][0-9]{0,127}"),"native conversation mathematics refused")
+    BigInt(reply.payload)
+  }
   def close():Unit={
+    buildHistory.foreach(_.close())
     if(stopped.compareAndSet(false,true)) supervisor.close()
     if(Thread.currentThread()!=pump) pump.join(1000)
     coordinator.close()
