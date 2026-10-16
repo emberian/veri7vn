@@ -81,6 +81,9 @@ local
   val unstarted_cap=commit unstarted unstarted_material;
   val charged_cap=commit cancelled charged_material;
   val wrong_charge=commit cancelled unstarted_material;
+  val wrong_input=accept reserved(@{code search_service_intrinsic}(nat(#input p)));
+  val(wrong_input_cancelled,_)= @{code step}wrong_input(@{code CancelRequest}(nat(#request i)));
+  val wrong_source_row=commit wrong_input_cancelled unstarted_material;
   val retained_root=Unsynchronized.ref NONE;
   val retained=SearchSourceSupport.capture_into retained_root(#context p)q n(SearchCodec.Pending(SOME(#execution n)));
   val input=SearchSourceSupport.input retained;
@@ -94,6 +97,9 @@ local
   val bad=Unsynchronized.ref NONE;
   val _=assert(not(can(SearchSourceSupport.restore_into bad pool ids image pin)wrong_charge)andalso is_none(!bad))
     "Cancelled source recipe fabricated a missing consumed execution";
+  val bad_row=Unsynchronized.ref NONE;
+  val _=assert(not(can(SearchSourceSupport.restore_into bad_row pool ids image pin)wrong_source_row)andalso
+    is_none(!bad_row)) "Cancelled source accepted a wrong complete native input owner row";
   val first_root=Unsynchronized.ref NONE;val second_root=Unsynchronized.ref NONE;
   val first=SearchSourceSupport.restore_into first_root pool ids image pin unstarted_cap;
   val second=SearchSourceSupport.restore_into second_root pool ids image pin charged_cap;
@@ -113,7 +119,7 @@ local
     "Forgotten cancelled original was reacquired as source support";
   val _=Veri7vn_Native_Recovery_Inputs.abort denied_pool;
   val _=SearchSourceSupport.release first;val _=SearchSourceSupport.release second;
-  val _=List.app C.release[unstarted_cap,charged_cap,wrong_charge,forgotten_cap];
+  val _=List.app C.release[unstarted_cap,charged_cap,wrong_charge,wrong_source_row,forgotten_cap];
   val _=P.release public;
 in val _=writeln "VERI7VN_SEARCH_SOURCE_SUPPORT_TESTS_PASSED" end;
 \<close>

@@ -1,15 +1,8 @@
-# Native context/admission feasibility experiment
+# Native context and admission probe
 
-This isolated probe supports the architecture research in
-`docs/research/native-metatheory.md`. It does not install a production capability
-package or modify the existing prototype.
+Exercises locale definitions, interpretation transport, hypothesis inspection and assumption export. Zero subgoals/oracles can still conceal a hypothesis.
 
-It exercises `Local_Theory.define` within a locale, theorem transport through
-interpretation, theorem hypothesis inspection, and assumption export. Its key
-negative check is that zero subgoals and zero oracles do not imply an unconditional
-theorem: a theorem constructed by assumption retains its hypothesis.
-
-Run from the repository root:
+In a steward slot, from repository root:
 
 ```sh
 USER_HOME="$PWD/experiments/native-metatheory/state" \
@@ -17,15 +10,6 @@ USER_HOME="$PWD/experiments/native-metatheory/state" \
   -D experiments/native-metatheory -j 1 -o threads=2 Veri7vn_Native_Admission
 ```
 
-`USER_HOME` is Isabelle's supported user-state root; it leaves the user's normal
-Isabelle state untouched. Bundled HOL remains the parent heap. The desktop shell
-sandbox blocks Isabelle's `sysctl` startup probe, so the recorded successful run
-used the normal execution environment through the approval mechanism.
+Bundled HOL supplies the parent; `state/` isolates generated state. The successful run used approved execution because the sandbox blocked `sysctl`.
 
-`build.log` records completion. `probe-output.log` was obtained with
-`isabelle build_log -v -M 'INSTANTIATED|ASSUMPTION_PROBE|EXPORTED'` using the same
-workspace-local `USER_HOME`.
-
-`research/` holds Scry query evidence and primary-source reading material. No
-credential is stored in this directory. `state/` is generated local Isabelle build
-state, not source code or a required distributable artifact.
+`build.log` records completion. `probe-output.log` uses `isabelle build_log -v -M 'INSTANTIATED|ASSUMPTION_PROBE|EXPORTED'` with the same `USER_HOME`. Research inputs live in `research/`; [analysis](../../docs/research/native-metatheory.md) explains the probe. Production admission is separate.

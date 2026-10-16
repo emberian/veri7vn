@@ -61,8 +61,9 @@ local
     structure Tickets=T structure Intent=Intent structure Recovery=NoRecovery structure Request=NoRequest
     val executable=pin val cost=1 val max_source_bytes=1000000);
   structure Attachment=Veri7vn_Growth_Attachment_Fn(Builder);
+  structure Library=Veri7vn_Growth_Library_Fn(Builder);
   structure Worker=Veri7vn_Math_Ticket_Execution_Fn(structure Mathematics=M structure Tickets=T);
-  val installation=Builder.install{template=1,profile=2,setup=3,operation=24,step=2,code_generation=23,
+  val installation=Builder.install{template=1,profile=2,setup=3,operation=24,step=25,code_generation=23,
     installed_parents=[(locator,parent)]};
   val source="theory Growth_Recipe imports "^locator^" begin\n"^
     "definition recipe :: math_expr where \"recipe = Times (Parameter 0) (Rational 2)\"\n"^
@@ -85,7 +86,7 @@ local
   val issuer=T.new_issuer();
   val tickets=T.begin_scope issuer{owner_version=1,epoch=1};
   val build_ticket=T.issue_pure tickets{execution=20,slot=21,operation={workspace=I.workspace ids,
-    request=22,profile=2,code_generation=23,operation=24,step=2,cost=1,
+    request=22,profile=2,code_generation=23,operation=24,step=25,cost=1,
     inputs=Builder.prepared_inputs prepared,owner_version=1,epoch=1,journal_sequence=26,
     semantic_generation=27,implementation_artifact= #artifact(E.manifest pin)}}prepared;
   val build_scope=P.construction_scope();
@@ -93,6 +94,10 @@ local
   val instance=case M.attach{policy=A.policy @{theory Growth_Native},generation=P.generation parent,
       code_context=E.code_theory(M.executable()),limits={nodes=5000,depth=100,work=100,seconds=2}}of
     M.Ready instance=>instance | _=>error "Growth attachment mathematics instance failed";
+  val library=Library.inspect "recipe" [(candidate,[("Growth_Recipe.recipe_def",0)])];
+  val _=case library of [{candidate=14,source_revision=10,relevance,...}]=>
+      if relevance>0 then ()else error "Actual retained library ranking lost declared name"
+    | _=>error "Retained library inspection lost actual candidate provenance";
   val attachment=Attachment.attach candidate instance{definition=("Growth_Recipe.recipe_def",0)};
   val bridge=Attachment.bridge attachment;
   val _=if null(Builder.exports candidate) andalso null(Builder.declared_exports candidate) andalso

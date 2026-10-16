@@ -1,13 +1,8 @@
-# Scoped native evidence
+# Native evidence
 
-These are exact steward receipt/log copies. Neither overall attempt passed.
+Receipt-hashed sources/logs:
 
-- `facts-740b382bf49a43ff99bd0642ee8aabc9`: log records
-  `Veri7vn_Facts` finished in 8 seconds. Relations and DomainChecks failed in the
-  same job. It checks Ordered_Facts and Literature_Facts at the receipt's hashes.
-- `documents-07b124775a6a4e938a7b92351a474e53`: log records
-  `Veri7vn_Documents` finished in 8 seconds. Steward interrupted the job later
-  for the unrelated EffectsOrder simplifier. It checks Document_Quotation and
-  Quotation_Examples at the receipt's hashes. Facts/Relations had not started.
+- `facts-740b382bf49a43ff99bd0642ee8aabc9`: Facts8s passed; Relations/DomainChecks failed.
+- `documents-07b124775a6a4e938a7b92351a474e53`: Documents8s passed; later EffectsOrder interrupted; Facts/Relations unstarted.
 
-No result here establishes admitted service linkage or source/world adoption.
+Coverage: Ordered/Literature facts and quotation fixtures. Neither batch passed; admission and world adoption remain separate.

@@ -12,9 +12,10 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
   buildHistory:Option[veri7vn.runtime.service.build.BuildHistory]=None,
   sourceReader:Option[ResidentNativeBridge]=None) extends AutoCloseable {
   lazy val search=new veri7vn.runtime.service.search.SearchIngress(supervisor,this)
-  def supportsNativeBuild:Boolean={
-    available();ServiceCapabilities.nativeBuild(supervisor.exchange("service_capabilities"))
+  def installedFamilies():Option[Vector[(String,String,String,String)]]={
+    available();ServiceCapabilities.read(supervisor.exchange("service_capabilities"))
   }
+  def supportsNativeBuild:Boolean=installedFamilies().exists(_.exists(_._1=="native-build"))
   coordinator.requireReady()
   private val stopped=new AtomicBoolean(false)
   @volatile private var failure:Option[Throwable]=None

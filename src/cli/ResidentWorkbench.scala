@@ -11,8 +11,9 @@ object ResidentWorkbench {
     val author=new Authoring(service.managedSources)
     val execution=new ResidentExecution(service)
     try {
-    require(args.nonEmpty,"Workbench command required: serve, run, result, cancel, forget, list, import-original, import-native, inspect, source, migration, edit")
+    require(args.nonEmpty,"Workbench command required: serve, specialists, route, run, explain, result, cancel, forget, list, import-original, import-native, inspect, source, migration, edit")
     args(0) match {
+      case "specialists"|"route"|"explain"=>veri7vn.authoring.assistance.RoutingCommands.run(service.client,args)
       case "serve"=>
         require(args.length==1,"serve takes no arguments")
         val browser=new Browser(author,Some(execution),builds);browser.start();println(browser.url)

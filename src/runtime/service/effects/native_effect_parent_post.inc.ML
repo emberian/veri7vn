@@ -254,10 +254,10 @@ fun effect_consume id payload=
    actual consumed origin, exact generated encoding witness and current paid
    attempt before deriving the response's retained row. *)
 fun effect_observation_prepare id payload chunks=
-  let val handle=effect_serial payload
+  let val response_handle=effect_serial payload
     val witness=case chunks of [bytes]=>Bytes.content bytes|_=>error "Effect observation witness count"
     val _=F.guard(size witness<=524288) "Effect observation witness bound"
-    val response=EffectResident.response handle
+    val response=EffectResident.response response_handle
     val origin=EffectResponses.origin response
     val entries=filter(fn(_,entry)=>EffectCore.incarnation(EffectResident.native entry)= #incarnation origin)
       (Synchronized.value EffectResident.entries)
@@ -319,12 +319,16 @@ fun effect_cleanup action invalidations=
        ownership is not the executable Scope and survives cancellation. *)
     val sources=case action of F.Cancel _=>[]|_=>filter(fn(uid,_)=>member(op =)removed uid)
       (Synchronized.value EffectResident.source_entries)
+    val historical_requests=case action of F.Cancel _=>[]|_=>
+      filter(fn(rid,_)=>member(op =)removed rid)(Synchronized.value EffectResident.request_history)
     fun release()=(List.app EffectResident.release entries;
+      List.app(fn(rid,view)=>(EffectRecovery.View.release view;
+        Synchronized.change EffectResident.request_history(AList.delete(op =)rid)))historical_requests;
       List.app(fn(uid,(observation,_))=>(EffectResident.release_observation observation;
         Synchronized.change EffectResident.pending_observations(AList.delete(op =)uid)))pending;
       List.app(fn(uid,observation)=>(EffectResident.history_release observation;
         Synchronized.change EffectResident.source_entries(AList.delete(op =)uid)))sources)
-  in if null entries andalso null pending andalso null sources then()else launch_cleanup target release end;
+  in if null entries andalso null pending andalso null sources andalso null historical_requests then()else launch_cleanup target release end;
 
 fun effect_current_binding id token=
   case Synchronized.value pending of SOME(current,Effect event,candidate)=>

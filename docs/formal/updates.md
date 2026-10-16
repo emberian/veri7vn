@@ -174,3 +174,22 @@ the observation evidence ID. Both have an empty raw theorem-sequent slot because
 they are scoped observations, not kernel theorem roles. The returned artifacts are
 inert: only the existing authenticated store/current-checkpoint path can commit
 and later reconstruct them through the corresponding fixed checker.
+
+The admitted logical-context bridge retains both the actual initial qualification
+owner and the candidate owner. Fresh and checked-restored constructors expose the
+same opaque view: the actual development, its C02 export acceptance policy, exact
+logical exports, candidate semantic generation, and complete qualification/source
+dependencies. Restore consumes checked material without running qualification
+again. Independent leases survive producer cleanup; native Forget invalidates
+their use immediately. This intrinsic view is not a publication token. The parent
+must check the acknowledged current publication and licensed logical export
+bindings before exposing its published wrapper to Search. Search separately owns
+its receiver and proof roots; a borrowed candidate development is not a lifetime
+guarantee for those descendants.
+
+`src/runtime/service/qualification/Initial_Qualification_Metadata.thy` provides
+fixed adapters for the existing policy, reservation, paid start, evidence, output,
+qualification, and publication events. Its Frame fragment must be incorporated
+in the parent's existing generated-code block. Neither file is an alternate
+issuer or a decoded-event ingress. Native producer fixtures and production parent
+composition require separate build evidence before this becomes an active path.

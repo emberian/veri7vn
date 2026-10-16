@@ -10,7 +10,10 @@ object ServiceCapabilitiesTests {
       List(Bytes(YXML.string_of_body(List(XML.Elem(Markup("service-capabilities",List("version"->"1")),body))))))
     assert(!ServiceCapabilities.nativeBuild(reply(List(math))))
     assert(ServiceCapabilities.nativeBuild(reply(List(math,build))))
+    assert(ServiceCapabilities.read(reply(List(math,build))).contains(Vector(
+      ("mathematics","1","propose_math","poll_result"),("native-build","1","propose_build","poll_build"))))
     assert(!ServiceCapabilities.nativeBuild(ResidentSupervisor.Reply(1,"rejected","operation_or_frame_bound")))
+    assert(ServiceCapabilities.read(ResidentSupervisor.Reply(1,"rejected","operation_or_frame_bound")).isEmpty)
     def denied(body:List[XML.Tree]):Unit={
       var rejected=false;try ServiceCapabilities.nativeBuild(reply(body))
       catch {case _:IllegalArgumentException=>rejected=true};assert(rejected)

@@ -99,9 +99,10 @@ struct
     (Scope.deny parent;Q.release request;P.release_consequences facts;
      Q.abort_scope qscope;P.abort_scope pscope;
      S.release_instance instance;Scope.release_child child;Scope.release_parent parent;drop_base input);
-  fun release(Entry{root,lock})=Thread_Attributes.uninterruptible_body(fn _=>Synchronized.change lock(fn()=>
-    (case Synchronized.value root of NONE=>() | SOME payload=>
-      (dispose payload;Synchronized.change root(K NONE)));()));
+  fun release(Entry{root,lock})=Thread_Attributes.uninterruptible_body(fn _=>
+    Synchronized.change lock(fn()=>
+      case Synchronized.value root of NONE=>() | SOME payload=>
+        (dispose payload;Synchronized.change root(K NONE))));
   fun prepare_into target (owner as Owner{ids,policy,development,context}) wire=
     Thread_Attributes.uninterruptible(fn restore=>fn()=>
       let val _=require(is_none(!target)) "Search source cleanup target already occupied";

@@ -11,6 +11,7 @@ record dialogue_policy =
   dialogue_policy_version :: nat
   positive_precedence :: "nat list"
   addressed_capabilities :: "nat list option"
+  reading_decline_codes :: "nat list"
 
 definition dialogue_eligible where
   "dialogue_eligible p s r = filter (\<lambda>g.
@@ -52,6 +53,29 @@ definition dialogue_current_select where
   "dialogue_current_select p s rid expected_version receipt required =
     concat (map (\<lambda>r. if request_id r = rid \<and> request_fresh s r
       then dialogue_select p s r expected_version receipt required else []) (requests s))"
+
+text \<open>The original workbench admits an additional specialist only after a
+reading decline. A guard failure, unresolved input, budget stop, or an answer is
+not such a decline. The versioned installed policy supplies the closed reason
+allowlist; a proposal cannot turn its own arbitrary failure into permission.
+The selected route still passes the same question, addressing and blocker checks.\<close>
+fun dialogue_fillable :: "dialogue_policy \<Rightarrow> outcome \<Rightarrow> bool" where
+  "dialogue_fillable p (Declined reason) = (reason \<in> set (reading_decline_codes p))" |
+  "dialogue_fillable p _ = False"
+
+definition dialogue_fallback where
+  "dialogue_fallback p s r v receipt required previous =
+    (if dialogue_fillable p previous then dialogue_select p s r v receipt required else [])"
+
+lemma fallback_requires_reading_decline:
+  "g \<in> set (dialogue_fallback p s r v receipt required previous) \<Longrightarrow>
+    \<exists>reason. previous = Declined reason \<and> reason \<in> set (reading_decline_codes p)"
+  by (cases previous; auto simp: dialogue_fallback_def split: if_splits)
+
+lemma fallback_preserves_selection:
+  "g \<in> set (dialogue_fallback p s r v receipt required previous) \<Longrightarrow>
+    g \<in> set (dialogue_select p s r v receipt required)"
+  by (auto simp: dialogue_fallback_def split: if_splits)
 
 lemma current_route_has_native_request:
   "g \<in> set (dialogue_current_select p s rid v receipt required) \<Longrightarrow>
@@ -132,7 +156,7 @@ lemma dependent_route_needs_live_inputs:
   "g \<in> set (dialogue_select p s r v receipt required) \<Longrightarrow> goal_ready_live s r g"
   by (auto simp: dialogue_select_def dialogue_routes_def dialogue_eligible_def Let_def split: if_splits)
 
-export_code dialogue_clarification dialogue_select dialogue_current_select dialogue_adoption render_parts
+export_code dialogue_clarification dialogue_select dialogue_current_select dialogue_fillable dialogue_fallback dialogue_adoption render_parts
   authoritative_render in SML module_name Veri7vn_Dialogue
 
 end

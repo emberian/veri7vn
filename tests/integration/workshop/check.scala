@@ -1,5 +1,4 @@
 import scala.language.unsafeNulls
-import scala.jdk.CollectionConverters.*
 import java.nio.file.{Files,Paths}
 @main def workshopLifecycleCheck():Unit=isabelle.Command_Line.tool {
   // These fragments share private lexical state and the generated reducer's
@@ -22,11 +21,37 @@ import java.nio.file.{Files,Paths}
   require(sources.nonEmpty && sources.distinct==sources && sources.forall(p=>Files.isRegularFile(Paths.get(p))),"Invalid resident source inventory")
   val classes=Files.createTempDirectory("v7-workshop-check-")
   require(!dotty.tools.dotc.Main.process((List("-classpath",System.getProperty("java.class.path"),"-d",classes.toString)++sources:+"tests/integration/workshop/WorkshopLifecycleTests.scala").toArray).hasErrors,"Workshop compilation failed")
-  val walk=Files.walk(Paths.get("src"))
-  val roots=try walk.iterator().asScala.filter(_.getFileName.toString=="ROOT").map(_.getParent.toAbsolutePath.toString).toList.sorted finally walk.close()
+  // Use exactly the native graph built by the guarded invocation. Scanning
+  // unrelated source ROOTs can introduce conflicting experimental sessions.
+  val closurePath=Paths.get(Option(System.getenv("VERI7VN_WORKSHOP_NATIVE_CLOSURE"))
+    .getOrElse(throw new IllegalArgumentException("Workshop requires its captured native closure manifest")))
+  val closure=isabelle.JSON.parse(Files.readString(closurePath))
+  require(isabelle.JSON.string(closure,"format").contains("veri7vn.native-source-closure/1") &&
+    isabelle.JSON.strings(closure,"sessions").contains(List("Veri7vn_Runtime_Service")),
+    "Workshop native closure target")
+  val selectedRoots=isabelle.JSON.strings(closure,"session_roots").getOrElse(
+    throw new IllegalArgumentException("Workshop native closure roots"))
+  require(selectedRoots.nonEmpty && selectedRoots.distinct==selectedRoots,"Workshop native roots must be unique")
+  val roots=selectedRoots.map {root=>
+    val path=Paths.get(root).toAbsolutePath.normalize()
+    require(path.startsWith(Paths.get("src").toAbsolutePath.normalize()) &&
+      Files.isRegularFile(path.resolve("ROOT")),"Workshop native root outside captured source graph")
+    path.toString
+  }
   val loader=new java.net.URLClassLoader(Array(classes.toUri.toURL),getClass.getClassLoader)
   try {
+    val runtimeOrigin=Paths.get(loader.loadClass("veri7vn.runtime.service.RuntimeService")
+      .getProtectionDomain.getCodeSource.getLocation.toURI)
+    require(Files.isSameFile(runtimeOrigin,classes),"Workshop runtime shadowed by an older parent classloader")
+    val providerOrigin=Paths.get(loader.loadClass("veri7vn.runtime.service.PackageDescriptorFunctions")
+      .getProtectionDomain.getCodeSource.getLocation.toURI)
+    require(Files.isRegularFile(providerOrigin),"Workshop descriptor provider must be registered in the initial JVM classpath")
+    println("WORKSHOP_CODE_SOURCES runtime="+runtimeOrigin+" descriptor="+providerOrigin)
     try loader.loadClass("veri7vn.integration.workshop.WorkshopLifecycleTests").getMethod("main",classOf[Array[String]]).invoke(null,roots.toArray.asInstanceOf[Object])
-    catch {case failure:java.lang.reflect.InvocationTargetException=>throw failure.getCause}
+    catch {case failure:java.lang.reflect.InvocationTargetException=>
+      val cause=failure.getCause
+      cause.printStackTrace()
+      throw cause
+    }
   } finally loader.close()
 }

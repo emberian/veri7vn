@@ -87,3 +87,56 @@ terminate before the later restart and Forget assertions. The subprocess uses th
 current compiled production class directory, inherits the controlled Isabelle
 environment, writes its PID and log, and must exit successfully with the retained
 artifact before those subsequent assertions run.
+
+The unchanged parent3 retry, receipt
+`var/native-scaffold/sessions/acd3f09f4235bc65/attempts/6c82cd5fdf1640379faee58d559839ab/receipt.json`,
+passed those imported proofs, the service restore guard, and metadata_frame. It
+stopped at a SearchSource lock callback grouping error before the main parent ML.
+The immediately preceding attempt was interrupted when the build guardian's own
+process-list command timed out; it supplied no compiler verdict. The unchanged
+retry distinguishes that operational interruption from a source failure.
+
+## Converging user journeys
+
+The workshop joins authored native developments to retained candidates. The next
+cross-path use is logical-export admission followed by Search in that actual
+admitted context. A candidate ID alone is not a Search context, and a qualification
+observation is not the theorem evidence for the package's exports. Updates owns an
+opaque native context view over real qualified and candidate owners; Search will
+consume that view while the single parent authority checks current publication.
+
+The other complete paths are original question to retained Search proof and
+history, session source to adopted native result and historical recall, and actual
+MCP execution to retained source observation and restart without reinvocation.
+Each uses the same source custody, Scope boundary, rooted native verifier graph,
+authority transaction and cleanup barriers. Family-specific native factories keep
+their actual evidence checks. The parent integrates their typed associations and
+advertises only the joined dispatcher paths.
+
+A shared unresolved design point is typed source inventory after disposable
+request derivatives disappear. An untyped WorkspaceShared retained row cannot be
+recognized as a literal by its shape: unrelated native generation rows have that
+same shape. An authoritative source discriminator inside existing managed
+retention is under review; it must preserve shared Math input lifetime and use
+actual authenticated native material to recover bytes. No schema change or
+row-shape classifier has been installed for this proposal.
+
+The complete parent then compiled successfully: receipt
+`var/native-scaffold/sessions/acd3f09f4235bc65/attempts/5e31478680df4083a67a2c65197b5d15/receipt.json`.
+This includes the actual service ML, Build aggregate integration, generated restore
+guard and capability dispatcher. It is a compiler result, not a workflow verdict.
+Before the first workshop consumer run, the aggregate now tracks each Build
+restoration target before calling its allocator: a helper failure after publishing
+its owned target must still reach rollback, even if the helper never returns.
+That bounded delta and the real workshop workflow are the next check.
+
+The first actual workshop attempt compiled the native rollback correction but
+found a production Scala package-inventory omission: `NativeEffectCommand` depended
+on `AttemptIdentity`, whose `Executor.scala` and `OperationProfile.scala` were not
+listed. The host owner added those real dependencies. The next attempt compiled
+all 53 production Scala sources, then refused startup because the old test recipe
+scanned every repository ROOT and included unrelated conflicting backend sessions.
+The runner now reads the exact guarded native closure manifest supplied through
+`VERI7VN_WORKSHOP_NATIVE_CLOSURE`; it also asserts that RuntimeService comes from
+its fresh compiled directory and the descriptor provider from the initial JVM JAR.
+These are preparation failures, not a completed workshop workflow.

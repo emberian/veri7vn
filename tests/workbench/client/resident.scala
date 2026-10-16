@@ -11,7 +11,7 @@ import java.nio.file.{Files,Paths}
   require(begin>=0 && end>begin,"Cannot locate the canonical runtime producer source list")
   val runtimeSources="\"(src/[^\"]+\\.scala)\"".r.findAllMatchIn(text.substring(begin,end)).map(_.group(1)).toList
   require(runtimeSources.nonEmpty && runtimeSources.distinct==runtimeSources && runtimeSources.forall(path=>Files.isRegularFile(Paths.get(path))),"Invalid canonical runtime source inventory")
-  val sources=runtimeSources:+"tests/workbench/client/ResidentWorkbenchTests.scala"
+  val sources=runtimeSources++List("tests/workbench/client/ResidentWorkbenchTests.scala","tests/workbench/assistance/RoutingCommandsChecks.scala")
   val classes=Files.createTempDirectory("v7-resident-workbench-check-")
   require(!dotty.tools.dotc.Main.process((List("-classpath",System.getProperty("java.class.path"),"-d",classes.toString)++sources).toArray).hasErrors,"resident workbench compilation failed")
   val walk=Files.walk(Paths.get("src"))

@@ -1,9 +1,3 @@
-# Source token fidelity check
+# Source token fidelity
 
-The selected `Veri7vn_Source_Tokens` session passed in 5 s (theory cumulative time 0.102 s)
-under Isabelle2026-RC1, one build job/two ML threads. The overall batched receipt is
-failed because an unrelated Source_Metadata_Codec proof failed; it is not a green
-batch. The source-token session loads the production helper and executes all source
-span assertions. Exact helper/test bodies below match the immutable attempt hash
-map before shared-base relocation. This establishes source token byte fidelity for
-the covered native formats, not development admission, execution or lifecycle.
+`receipt.json`, `build.log`, `inputs/` pin helper/tests: session5s, theory0.102s; Isabelle2026-RC1, one job/two threads. Byte-span assertions passed; the batch failed separate Source_Metadata_Codec. Coverage is native source-format fidelity before relocation, not admission or lifecycle.

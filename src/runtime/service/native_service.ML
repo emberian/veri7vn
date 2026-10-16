@@ -1967,7 +1967,9 @@ fun restore_run (transaction as Restore {workspace,sequence,checkpoint,required,
        domain=NONE,source_domain=NONE,search=NONE};
     val build_scopes=Veri7vn_Native_Scope_Recovery.batch build_scope_installation
       (identity_allocator())input_pool;
-    val rebuilt_builds=Unsynchronized.ref([]:BuildResident.restored list);
+    (* Track the owned target before the helper can allocate and then fail.
+       Successful return is not the ownership publication boundary. *)
+    val rebuilt_builds=Unsynchronized.ref([]:BuildResident.restored option Unsynchronized.ref list);
     val rebuilt_descriptors=Unsynchronized.ref([]:D.descriptor list);
     val rebuilt_requests=Unsynchronized.ref([]:math_entry list);
     val rebuilt_outputs=Unsynchronized.ref([]:MathGate.witness list);
@@ -2044,8 +2046,8 @@ fun restore_run (transaction as Restore {workspace,sequence,checkpoint,required,
              map(DevelopmentRecovery.candidate_fragment o #1)build_outputs)))();
         val restored_builds=map(fn(checked,_,token)=>
           let val target=Unsynchronized.ref NONE;
-            val restored=build_restore_request_into target checked token;
-            val _=rebuilt_builds:=restored::(!rebuilt_builds)
+            val _=rebuilt_builds:=target::(!rebuilt_builds);
+            val restored=build_restore_request_into target checked token
           in(checked,restored)end)build_requests;
         val _=List.app(fn(checked,token)=>
           let val binding=DevelopmentRecovery.Candidate.binding checked;
@@ -2120,7 +2122,7 @@ fun restore_run (transaction as Restore {workspace,sequence,checkpoint,required,
     val result=Exn.capture run();
   in case result of Exn.Res()=>() | Exn.Exn failure=>
     ((if !canonical_install_attempted then Synchronized.change native_poisoned(K true) else ());
-     List.app BuildResident.release_restored(!rebuilt_builds);
+     List.app(fn root=>Option.app BuildResident.release_restored(!root))(!rebuilt_builds);
      DevelopmentRecovery.abort_batch build_batch;
      Veri7vn_Native_Scope_Recovery.close build_scopes;
      List.app MathGate.release(!rebuilt_outputs);List.app release_entry(!rebuilt_requests);

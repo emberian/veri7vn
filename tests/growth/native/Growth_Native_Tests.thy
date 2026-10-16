@@ -5,6 +5,18 @@ begin
 ML \<open>
 local
   structure G=Veri7vn_Growth_Preparation;
+  structure Policy=Veri7vn_Growth_Proposal_Policy;
+  val ordered=Policy.suggest "write a function to double then square";
+  val reversed=Policy.suggest "write a function to square then double";
+  val unsupported=Policy.suggest "sort a list and double";
+  val _=if #operations ordered=["double","square"] andalso
+      #operations reversed=["square","double"] andalso
+      not(#expression ordered aconv #expression reversed) andalso
+      member(op =)(#unsupported unsupported)"sort" andalso #source unsupported="" andalso
+      #source(Policy.suggest "write an unknown operation")="" andalso
+      fastype_of(#expression ordered)= @{typ math_expr} then ()
+    else error "Original ordered operator proposal lost order/type/unsupported scope";
+  val _=writeln "GROWTH original_ordered_numeric_proposals PASS";
   structure M=Veri7vn_Mathematics_Execution;
   structure P=Veri7vn_Managed_Provenance;
   structure L=Veri7vn_Native_Literals;

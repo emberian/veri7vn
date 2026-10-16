@@ -5,8 +5,9 @@ import isabelle.{Markup,XML,YXML}
 
 /** Installed dispatcher declarations, never inferred from module availability. */
 private[service] object ServiceCapabilities {
-  def nativeBuild(reply:ResidentSupervisor.Reply):Boolean={
-    if(reply.tag=="rejected" && Set("operation_or_shape","operation_or_frame_bound").contains(reply.payload) && reply.artifacts.isEmpty)return false
+  def nativeBuild(reply:ResidentSupervisor.Reply):Boolean=read(reply).exists(_.exists(_._1=="native-build"))
+  def read(reply:ResidentSupervisor.Reply):Option[Vector[(String,String,String,String)]]={
+    if(reply.tag=="rejected" && Set("operation_or_shape","operation_or_frame_bound").contains(reply.payload) && reply.artifacts.isEmpty)return None
     require(reply.tag=="service_capabilities" && reply.payload=="1" && reply.artifacts.size==1 &&
       reply.artifacts.head.size<=8192,"native service capabilities reply")
     val frame=reply.artifacts.head.text
@@ -27,10 +28,10 @@ private[service] object ServiceCapabilities {
           case "native-build"=>require(a("propose")=="propose_build" && a("poll")=="poll_build","native build dispatcher")
           case _=>throw new IllegalArgumentException("unsupported native service family")
         }
-        a("name")
+        (a("name"),a("version"),a("propose"),a("poll"))
       case _=>throw new IllegalArgumentException("native service family structure")
     }
-    require(families.distinct.size==families.size,"duplicate native service family")
-    families.contains("native-build")
+    require(families.map(_._1).distinct.size==families.size,"duplicate native service family")
+    Some(families.toVector)
   }
 }

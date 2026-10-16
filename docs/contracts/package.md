@@ -1,143 +1,75 @@
 # C01 — Specialist package
 
-Semantic revision 1. Descriptor format remains `veri7vn.package/0`.
-Descriptor structure is implemented by
-[`schemas/package.schema.json`](../../schemas/package.schema.json). Loading and
-native export validation remain work for the packaging and admission lanes.
+Semantic revision 1; descriptor `veri7vn.package/0`, defined by
+[package.schema.json](../../schemas/package.schema.json). Schema validity is shape,
+not native admission, execution authority or import safety.
 
 ## Authoring model
 
-A package contains ordinary editable source, examples, and explanatory material.
-Its descriptor indexes that development; it does not restate HOL types, domains,
-formulas, theorem statements or implementation relations in independently editable
-JSON. Approachable rules/formulas may be the source from which native artifacts
-are generated. The generation recipe and inputs must remain available; generated
-output is not a second authoritative authoring surface.
+Canonical editable sources own meaning. Descriptors index files, exact release
+dependencies, optional native session/theories and capability locators; they do not
+duplicate types, formulas or theorem statements as editable JSON. Generated native
+artifacts retain their recipe/inputs and are not a second semantic source.
 
-The descriptor declares:
+Exports may be empty: support theories, data and unfinished developments need no
+dummy capabilities. `native` is required for exports, optional otherwise. A locator
+`{theory,name}` selects an exported context and fully qualified native lookup name.
+Resolve/check its kind and canonical name there; imported objects retain original
+names. Session-qualified theories and logical names are different namespaces.
 
-- a package ID, release version, title and description;
-- package-relative files with source/example/documentation/data roles;
-- exact package release dependencies (the loader later resolves immutable generations);
-- an optional native Isabelle session and exported theories;
-- named capability exports, each pointing to a native specification and optional
-  contract theorem and executable-definition locators.
-
-The capability list may be empty. Theory libraries, source-data packages, support
-packages and unfinished developments do not need dummy capabilities. `native` is
-required when any capability is exported; it is optional for an empty export list.
-A package with a native theory library may declare its session without exporting
-capabilities. Data-role files can hold a source corpus. Descriptor validity grants
-none of these packages execution, import safety or proof authority.
-
-All export locators are declarations to resolve, never evidence that their referents
-exist or satisfy a contract. A partially developed package may declare no contract
-theorems or executable definition. It can be edited and inspected, but cannot claim
-an execution guarantee merely because its descriptor passes validation.
-
-A `native_locator` is `{theory, name}`. `theory` selects an exported theory context
-declared in `native.theories`; it does not assert that the referenced object was
-originally defined in that theory. `name` is the fully qualified native lookup name.
-Resolve it in the selected theory's context, preserve the native result, and verify
-the resulting canonical name rather than accepting an unrelated short-name match.
-Imported objects may be re-exported through that context with their original names.
-Session-qualified theory lookup and native logical-name qualification are distinct:
-do not generate one by blindly concatenating the other's strings.
-
-IDs are package-local capability names and dotted package names, using lowercase
-ASCII letters, digits, underscores and hyphens. A capability's portable name is
-the tuple `(package_id, package_version, capability_id)`; the resolved generation
-must additionally distinguish different contents under the same release label.
-Do not concatenate this tuple using a delimiter that an ID could contain.
+Portable capability identity is `(package_id, package_version, capability_id)`;
+resolved generations additionally distinguish exact contents. IDs use lowercase
+ASCII letters, digits, underscores/hyphens and dotted package names. Do not flatten
+the tuple using a delimiter allowed inside an ID.
 
 ## Native loading obligations
 
-1. Resolve files inside the package root after following symlinks; lexical path
-   validation alone is insufficient. Reject duplicate file paths, capability IDs
-   and dependency IDs. The schema cannot enforce these projected uniqueness rules.
-2. Verify required files exist, declared theories belong to the selected session,
-   dependency closure is resolved, and source paths have portable casing. Imports
-   and selected code setup must be recorded in the generation's build manifest.
-   The descriptor's source-role files identify editable package inputs, including
-   its session description and local theories. This list is not the complete closure
-   of transitive Isabelle imports, included ML files, runtime libraries or generated
-   inputs. Resolve and record that closure through the actual build process; a
-   smoke fixture can check its known local inputs without claiming a general loader.
-3. Resolve each export in the approved theory context and check its actual kind.
-   A specification is a native constant/term binding; a contract is a theorem;
-   an executable definition is a candidate attachment requiring C02 validation.
-4. Build through the controlled development process. An arbitrary Isabelle theory
-   can run arbitrary ML or introduce axioms; a syntactically valid package is not
-   safe to auto-admit. Ordinary declarative extensions and explicitly trusted native
-   plugins require different admission policies.
-5. Produce replayable sources and dependency/build records. Prebuilt heaps are
-   runtime artifacts, not substitutes for editable development.
+1. Resolve paths inside the root, including symlink containment; reject duplicate
+   paths/export/dependency IDs and nonportable casing.
+2. Verify files/session/theories and resolve the actual build closure: transitive
+   imports, included ML, selected code setup, libraries and generated inputs.
+   Descriptor source files alone are not that closure.
+3. Resolve specifications as native terms/constants, contracts as theorems and
+   executable locators as candidate attachments subject to C02.
+4. Build under controlled declaration policy. Arbitrary theories can execute ML
+   or introduce axioms; ordinary declarative extensions and privileged plugins
+   require different policies.
+5. Retain replayable sources/build records. Heaps are derivatives, not author source.
 
 ## Compatibility and author feedback
 
-Adding an export does not establish that old dispatch behavior is preserved.
-Interpretation overlap, default resolution, effects, dependency closure and code
-setup are observable parts of a change. Replacing an implementation must retain
-the established observation/refinement relation or explicitly publish a changed
-capability generation. Bug repairs and upstream compatibility are separate claims.
-
-Authoring diagnostics should point to the relevant source and failed obligation,
-show concrete counterexamples when available, and preserve alternatives when a
-repair changes intent. Native specifications, diagnostic source maps, tests,
-performance records and build outputs should remain navigable from the package.
+Adding an export can change routing, overlap, defaults, effects or code setup.
+Replacement preserves the established observation/refinement relation or publishes
+an explicitly changed generation. Bug repair and upstream parity are separate claims.
+Diagnostics link source, obligation, counterexample and affected consumers; distinguish
+restricting a domain from changing intended meaning.
 
 ## Qualification, activation and transfer
 
-Keep native semantic admission (C02), operational qualification and active publication
-separate. A proved kernel can have an intrusive recognizer, regress abstention or miss
-deployment requirements. Qualification records bind candidate and baseline artifacts,
-interpretation/routing policy, learned state, source/state observations, exam/scorer,
-dataset/split, runtime/resource conditions and exposure history. Preserve negative-space
-and extension-interference tests alongside successful answers and measured cost.
-Tests never substitute for proof, and proof does not waive product qualification.
+Semantic admission, empirical qualification and active publication are independent.
+Qualification binds exact candidate/baseline, routing/learned policy, source/state
+observations, scorer, dataset/split, exposure and resource environment. Include
+must-decline/interference cases. Tests do not replace proof; proof does not waive
+product qualification. Repeated regression remains useful without pretending to
+be fresh held-out evidence.
 
-Development runs, repeatable regressions and fresh held-out evaluation are distinct.
-Imported exam history remains attributable sender evidence; rerunning an exposed set
-does not become fresh recipient evidence by deleting its log. Aborted/spent runs must
-not become measured successes or failures. Exact holdout discipline, thresholds and
-activation criteria remain explicit policy decisions, not inherited accidents.
+D36 separates exposure eligibility from outcome. Reserve/consume eligibility
+durably before byte access/execution; abort, crash or log deletion never refunds
+freshness. Unknown imported exposure is not fresh. Publication atomically checks
+candidate, measured scope, separately admitted capabilities, policy and expected
+previous active version. Failed qualification leaves the previous policy active.
 
-D36 treats exposure eligibility separately from run outcome. A measured run may
-have spent its held-out allowance; an aborted run may already have exposed data.
-Reserve/consume eligibility durably before data access or execution. Neither crash
-nor deletion of a local log refunds freshness, and unknown imported exposure is not
-fresh eligibility. Active publication checks the exact candidate, scoped measured
-binding, independently admitted native capabilities, explicit policy and expected
-previous active version in one current-state transaction.
+Feedback identifies the actual request/result and whether it corrects interpretation,
+facts or routing. It proposes a versioned policy, with evaluation, undo and retention;
+a “right” mark is not a proof. Gap examples retain unknown expectations until supplied.
 
-Feedback links an attributable event to the actual request/result/invocation and
-distinguishes intended interpretation, factual correctness and route choice. It
-proposes a versioned policy change, evaluated before atomic activation; failed
-qualification leaves the previous policy active. Correction/undo and retention
-apply to feedback and derived learning. A user's "right" mark is not a proof.
-Gap-derived examples retain their original request/reason and proposal status;
-an unanswered question or blank expected value is not training ground truth.
+Export selects classified transitive contents, excluding private transcripts,
+feedback, caches, learned forms and credentials by default. Credentials remain host
+references. Preview omitted dependencies and resulting rebuild/runtime limits.
+Hashes, attribution and exam receipts are not semantic proof. Public registry scope
+is a separate decision. [C04](environment.md) governs retention and omitted material.
 
-Exports select classified contents rather than copying every local file or relying
-on a single private/source flag. Check transitive included artifacts: examples,
-feedback, recall indexes and traces may contain private material. Credentials remain
-references outside transferable packages. Integrity hashes, attribution/registration
-and exam receipts are different from semantic proof. Transfer records the chosen
-contents and recipient dependencies without promising authority or replayability for
-material deliberately omitted under retention/export policy (C04). Exact publication
-and external registry compatibility remain scoped product decisions.
-
-These obligations come from [G05/G07/G08](../review/PREIMPLEMENTATION.md) and
-[workbench findings 1–5/8](../review/workbench-gaps.md). They add no descriptor fields
-in format 0 and do not claim a qualification or transfer engine already exists.
-
-## Cross-lane acceptance
-
-- Authoring: a fresh package can be created, built, inspected, repaired and rebuilt
-  without editing generated semantics twice.
-- Admission: descriptor strings resolve to exact native objects and unresolved
-  or wrong-kind exports fail clearly.
-- Deployment: a clean end-user installation can load the produced package and its
-  pinned dependencies without an unexpected theory build.
-- Migration: opaque Python adapters remain labeled adapters; descriptor conformance
-  never counts as a completed formal lift.
+Required integration: create/build/repair without duplicate semantic edits; exact
+export resolution and useful failures; clean pinned installation; adapters visibly
+separate from formal lifts. [G05/G07/G08](../review/PREIMPLEMENTATION.md) supplies
+adversarial cases. Current implementation evidence belongs in the tracker.

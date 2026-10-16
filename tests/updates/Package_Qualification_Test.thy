@@ -17,6 +17,7 @@ ML_file "../../src/isabelle/updates/native_initial_template_codec.ML"
 ML_file "../../src/isabelle/updates/native_initial_template_check.ML"
 ML_file "../../src/isabelle/updates/native_initial_template.ML"
 ML_file "../../src/isabelle/updates/native_qualification_export.ML"
+ML_file "../../src/isabelle/updates/native_initial_admitted_context.ML"
 ML \<open>
 local
   structure P=Veri7vn_Managed_Provenance;
@@ -294,9 +295,18 @@ local
   end;
   structure InitialPendingExporter=Veri7vn_Export_Initial_Qualification_Request(
     structure Owner=InitialPendingExportOwner val snapshot=InitialOwner.pending_snapshot val executable=pin);
+  structure AdmittedContext=Veri7vn_Initial_Admitted_Context(
+    structure Intent=Intent structure Builder=B structure CandidateOwner=Lease
+    structure FreshOwner=InitialExportOwner structure Checked=CheckedInitial
+    val result=InitialOwner.result val exports=InitialOwner.exports val executable=pin
+    val observer_generation=Initial.observer_generation);
   val initial_export_lease=InitialExportOwner.create initial_qualified;
   val initial_export=InitialExporter.export image initial_export_lease;
   val initial_pending_export=InitialPendingExporter.export image initial_export_lease;
+  val admitted_context=AdmittedContext.create ids initial_export_lease candidate_lease;
+  val retained_admitted_context=AdmittedContext.retain admitted_context;
+  val _=AdmittedContext.release admitted_context;
+  val _=rejects(fn()=>AdmittedContext.create ids initial_export_lease baseline_lease);
   val _=InitialExportOwner.release initial_export_lease;
   fun commit_export checkpoint (a:Veri7vn_Qualification_Export_Types.artifacts)=
     Committed.install_committed_host{workspace= #workspace a,journal_sequence=1,association= #association a,
@@ -309,6 +319,15 @@ local
   val initial_material=commit_export "unit-started-initial" initial_artifacts;
   val checked_initial=CheckedInitial.check ids image initial_material candidate_lease;
   val retained_initial=CheckedInitial.retain checked_initial;
+  val restored_admitted_context=AdmittedContext.restore ids checked_initial candidate_lease;
+  val _=rejects(fn()=>AdmittedContext.restore ids checked_initial baseline_lease);
+  val _=if AdmittedContext.semantic_generation retained_admitted_context=
+      AdmittedContext.semantic_generation restored_admitted_context andalso
+    Context.eq_thy(Veri7vn_Native_Admission.policy_theory(AdmittedContext.policy retained_admitted_context),
+      Proof_Context.theory_of(Veri7vn_Native_Registry.context(P.generation(AdmittedContext.development retained_admitted_context)))) andalso
+    length(AdmittedContext.logical_exports restored_admitted_context)=1 andalso
+    member(op =)(AdmittedContext.dependencies restored_admitted_context)(#evidence(#names initial_projection)) then ()
+    else error "Fresh/restored admitted context lost actual policy/export/assurance connection";
   val _=CheckedInitial.release checked_initial;
   val _=if CheckedInitial.is_live retained_initial andalso
     #names(CheckedInitial.binding retained_initial)= #names initial_projection then ()
@@ -538,12 +557,19 @@ local
   val _=InitialExporter.release initial_export;
   val _=UpdateExporter.release update_export;
   val _=U.release pending;
+  val _=if AdmittedContext.is_live retained_admitted_context andalso AdmittedContext.is_live restored_admitted_context then ()
+    else error "Admitted context did not independently retain native roots after execution/export cleanup";
   val _=L.forget_input input;
   val _=if not(Q.is_live observation) then () else error "Forgotten candidate observation remained live";
   val _=rejects(fn()=>Q.count observation);
   val _=if not(CheckedInitial.is_live retained_initial) andalso
     not(CheckedUpdate.is_live checked_update) andalso B.is_live baseline then ()
     else error "Forget did not invalidate retained qualification roles or harmed baseline";
+  val _=if not(AdmittedContext.is_live retained_admitted_context) andalso
+    not(AdmittedContext.is_live restored_admitted_context) then ()
+    else error "Forgotten candidate remained live through admitted context lease";
+  val _=AdmittedContext.release retained_admitted_context;
+  val _=AdmittedContext.release restored_admitted_context;
   val _=CheckedUpdate.release checked_update;
   val _=CheckedInitial.release retained_initial;
   val _=Q.release observation;

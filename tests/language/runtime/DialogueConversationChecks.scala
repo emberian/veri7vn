@@ -55,7 +55,11 @@ object DialogueConversationChecks {
         "selected exact arithmetic quotation missing")
       rejects(dialogue.select(stale.handle,0))
       rejects(dialogue.select(stale.handle,0))
-      val survivor=inspect("the product of 6 and 7",first)
+      // The actual Run entry point may hold only the selected session identity.
+      // It must obtain the native current version, rather than replay old turns.
+      val survivorBytes="the product of 6 and 7".getBytes(UTF_8)
+      val survivor=try dialogue.inspectConversation(survivorBytes,first.id)
+        finally java.util.Arrays.fill(survivorBytes,0.toByte)
       val expired=inspect("the sum of 2 and 3",current)
       conversations.expire(second.id)
       // Deliberately omit UI erasure: native expiry must still reject this handle.

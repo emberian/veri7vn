@@ -30,6 +30,14 @@ final class DialogueClient(resident:ResidentAuthorityService) extends AutoClosea
   /** An inspection is not an execution request or an accepted answer. */
   def inspect(original:Array[Byte]):Inspection=inspectPinned(original,None)
 
+  /** Open the current native conversation before proposing readings. Opening is
+    * read-only: it neither replays old requests nor adopts their quoted claims.
+    * Selection still rechecks this exact version at the native writer. */
+  def inspectConversation(original:Array[Byte],id:BigInt):Inspection={
+    require(id>0 && id.toString.length<=128,"conversation identity")
+    inspect(original,resident.openConversation(id))
+  }
+
   /** The view is an expected native CAS version, not authority or cached history.
     * This fixed reader remains context-free; it does not resolve pronouns. */
   def inspect(original:Array[Byte],view:ConversationProtocol.View):Inspection={

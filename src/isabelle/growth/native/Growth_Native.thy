@@ -30,4 +30,6 @@ lemma growth_closed_value_bridge:
 ML_file "growth_syntax.ML"
 ML_file "growth_request.ML"
 ML_file "growth_attachment.ML"
+ML_file "ordered_numeric_policy.ML"
+ML_file "growth_proposal_policy.ML"
 end

@@ -1,105 +1,53 @@
-# Shared contracts — C03/C04 revision 2; other contracts revision 1
+# Shared contracts
 
-These are the **early integration baseline**, not claims of implemented admission
-or verified execution. Changes are expected as the first real specialist crosses
-the boundaries. Lanes may implement behind these interfaces independently; changes
-that affect another lane's producer or consumer must update this baseline and its
-fixtures together. **Current implementation baseline:** design agreement is recorded in
-`design-convergence`. [Architecture revision 2](../ARCHITECTURE_PROPOSAL.md)
-selects the concrete generated-core, native linkage and host/lifecycle mechanisms
-behind these boundaries. Descriptor format and executable interfaces are not
-silently changed by that design agreement.
+C03/C04 semantic revision 2; C01/C02/C05 revision 1. Descriptor format remains
+`veri7vn.package/0`. These contracts specify obligations, not completion claims;
+[validation](../../project/VALIDATION.md) identifies actual consumers and checks.
+The [architecture](../ARCHITECTURE_PROPOSAL.md) selects their implementation.
 
-Revision-0 integration adjustments: requests distinguish immutable build/source
-environments from mutable-state and time observations; package descriptors permit
-support/data/unfinished developments with no capability exports or native session.
-
-## Revision 1 changes and consumers
-
-This semantic revision incorporates the source-backed [preimplementation audit,
-G01–G08](../review/PREIMPLEMENTATION.md). Descriptor format `veri7vn.package/0`, its
-schema, and the existing executable probes are unchanged. The new obligations are
-requirements for future implementation, not features those probes already verify.
-
-| Clarification | Contracts | Implementing consumers |
+| ID | Boundary | Required consumer evidence |
 |---|---|---|
-| Claim scope/modality, candidate artifacts, literal-preserving views, extensible codecs, per-subgoal completeness and scoped routing blockers | C02/C03 | Interpretation, operational model, domain families, composition, synthesis and clients |
-| Semantic admission versus operational qualification/activation; feedback/exam provenance and selected private-safe exports | C01/C02 | Registry, authoring, package lifecycle, qualification, deployment |
-| Retention/retirement/current authority; state restoration; event versus receipt time and acquisition configuration | C04 | Source ingestion, dependency updates, dialogue, lifecycle, runtime |
-| Discovery/onboarding/testing/background effects; final arbitration before context commit; cached-handle retirement and uncertain external outcomes | C05 | Scheduler, state/effects, connectors, runtime and qualification |
+| C01 | [Package](package.md) | Source ownership, native export resolution, qualification and reproducible deployment |
+| C02 | [Admission](native-admission.md) | Exact native objects, adversarial checks and actual implementation association |
+| C03 | [Request/result](request-result.md) | Literal fidelity, interpretation, scope, partial outcomes and diagnostics |
+| C04 | [Environment](environment.md) | Generation isolation, observation dependencies, lifecycle and recovery |
+| C05 | [Strategy/effects](strategy.md) | Proposal isolation, budgets, dispatch, cancellation and durable commit |
 
-Exact retention periods, qualification thresholds/holdout policy, codec signatures,
-ingestion duplicate/late-sample policies and external-action retry semantics remain
-owned design decisions. They cannot be filled in independently by each consumer.
+## Vocabulary
 
-## Contract index
+A **package** is editable source with declared dependencies/exports. A **capability**
+connects native specification, contracts and implementation; it need not use a
+universal value type. A **generation** resolves immutable artifacts. A **proposal**
+may be a reading, plan, proof, program or effect; it confers no publication authority.
+An **accepted result** is the exact licensed claim with assurance and dependencies.
 
-| ID | Boundary | Owner role | Acceptance evidence |
-|---|---|---|---|
-| C01 | [Editable specialist package](package.md) | Authoring / packaging | Schema fixtures; native export resolution; clean reproducible build |
-| C02 | [Native capability and evidence admission](native-admission.md) | Admission / metatheory | Positive and adversarial native tests; implementation connection |
-| C03 | [Requests, interpretations, results, diagnostics](request-result.md) | Interpretation / execution / client | Ambiguity, timeout, conditional and source-dependent result integration tests |
-| C04 | [Environment pins and dependencies](environment.md) | Registry / source store / deployment | Generation isolation and invalidation tests, including negative observations |
-| C05 | [Strategies, execution and effects](strategy.md) | Search / scheduler / execution | Proposal/commit isolation, cancellation and resource tests |
-
-**Implemented here:** one strict JSON Schema and executable fixture suite for
-package descriptor structure. **Not implemented here:** package loading, formal
-meaning resolution, admission, a network protocol, caching, or effect enforcement.
-The baseline specifies obligations for those implementations. Schema validation
-only establishes descriptor shape.
-
-## Shared vocabulary
-
-- **Package:** editable development sources plus declared exports and dependencies.
-- **Capability:** a named native specification with contracts and implementation
-  attachments; its native types need not belong to a universal value datatype.
-- **Generation:** an immutable resolved environment for running work.
-- **Proposal:** a candidate reading, plan, result, definition, proof or effect.
-  Producing a proposal confers no authority to activate it as a capability or commit
-  an effect; it may be presented to an ordinary user as a candidate artifact.
-- **Accepted result:** a licensed claim/result with a specific assurance route and
-  dependencies, issued by the corresponding acceptance boundary.
-
-Claim scope describes what a claim concerns—a mathematical consequence, observed
-test run, finite model, source report or bounded candidate set—independently of how
-it is supported. Artifact delivery and conversational speech acts do not themselves
-assert universal correctness.
-
-Native `typ`, `term`, `cterm`, `thm`, `Proof.context` and theory identities stay
-native. A portable locator or receipt lets a runtime resolve or replay an object;
-it is **not a serialized theorem or a proof of the locator's assertions**.
+Claim scope (source report, model prediction, test observation, mathematical
+consequence) is separate from assurance, artifact delivery and activation. Native
+`typ`, `term`, `cterm`, `thm` and contexts remain native. Names, hashes and portable
+receipts locate/replay objects; they do not serialize native proof authority.
 
 ## Compatibility discipline
 
-Contract IDs are stable. The per-contract semantic revision is an integration baseline, not a promised
-public ABI. Package format `veri7vn.package/0` rejects unknown fields so a misspelled
-or invented assurance field cannot be silently ignored. Adding a field changes
-the schema and fixture suite; changing meaning also changes the contract revision.
-Future negotiation/migration must be explicit. No client may reinterpret an
-unknown result tag as success.
+Contract IDs are stable, not a public ABI guarantee. Unknown descriptor fields and
+result tags are rejected. Shape validation establishes only shape. Human package
+versions are not exact byte identities or semantic substitutability promises.
+Published identities retain meaning; current access/retention is separate.
+Authentication, integrity and proof are distinct; no global signing scheme is
+mandated here.
 
-Human package versions communicate author releases; they do not identify exact
-bytes or guarantee semantic substitutability. Published generation identities never change their meaning; retention and current
-authority are managed separately under C04.
-Digests can identify artifacts under a declared hash convention; cryptographic
-authentication and proof are separate concerns. No global signing or hashing
-scheme is mandated by this baseline.
+Changes to consumed contracts require a coordinated decision, migration and
+producer/consumer fixtures. Do not create independent copies of shared types
+without generation or conformance checks. Qualification thresholds, retention,
+codec policies, sample ingestion and retry semantics have explicit owners.
 
-The integration coordinator owns cross-contract decisions. Each implementing lane
-owns its producer and consumer obligations, while the contract lane owns these
-shared definitions and fixtures. Avoid parallel copies of these types in independent
-subsystems without a shared generated definition or conformance check.
+C03/C04 revision 2 separates `NoExecution` from `ExecutableGeneration g` and semantic
+target equality from execution requirements (D30). Operational authority, admission,
+registry, language/rendering, plans and host must migrate together, including the
+finite metadata codec/schema seal. Reject old numeric-only images or use an
+explicit admitted migration. Required cases: proof-only kernel fact in a normal
+bundle request; absent/swapped provenance rejected for executable-specific requests;
+unknown bundle rejected at registry ingress. Descriptor format is unchanged.
 
-## Revision 2 migration and consumers
-
-C03/C04 now distinguish absent execution dependency from a real executable pin,
-and semantic target equality from a requested execution requirement (D30).
-Operational model owns the shared datatype and gate; admission, registry, language
-rendering, staged execution, plans and native host consume it. Regenerate the finite
-metadata codec/schema seal and update fixtures together. Existing numeric-only wire
-images are not silently reinterpreted: reject the old schema or reconstruct through
-an explicit admitted migration. Descriptor format `veri7vn.package/0` is unchanged.
-Positive integration checks include a kernel fact in an ordinary bundle request;
-negative checks include absent/wrong execution dependency for an executable-specific
-request and an unknown bundle rejected by native registry ingress. These checks are
-required migration evidence, not claims that every consumer already passed.
+[Preimplementation G01–G08](../review/PREIMPLEMENTATION.md) supplies adversarial
+requirements across scope, qualification, lifecycle and effects; passing schema
+fixtures does not discharge them.

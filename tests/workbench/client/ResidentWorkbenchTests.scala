@@ -61,6 +61,13 @@ object ResidentWorkbenchTests {
         page=post("Refresh result",Seq("request"->id))
         while(!page.contains("<p role=status>cancelled</p>") && System.nanoTime()<forgottenDeadline){Thread.sleep(25);page=post("Refresh result",Seq("request"->id))}
         assert(page.contains("<p role=status>cancelled</p>") && !page.contains("The exact product of 6 and 7 is 42."))
+        val routingOutput=new java.io.ByteArrayOutputStream()
+        Console.withOut(new java.io.PrintStream(routingOutput,true,"UTF-8")) {
+          veri7vn.cli.ResidentWorkbench.run(service,Array("route","the product of 6 and 7"))
+          veri7vn.cli.ResidentWorkbench.run(service,Array("specialists"))
+        }
+        assert(routingOutput.toString("UTF-8").contains("Native routing status: readings"))
+        veri7vn.authoring.assistance.RoutingCommandsChecks.run(service.client)
         println("RESIDENT_WORKBENCH_PASS actual browser request native licensed HTML confirmed Forget")
       }finally {browser.close();execution.close()}
     }

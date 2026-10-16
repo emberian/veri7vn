@@ -1,15 +1,5 @@
-# Relations native evidence
+# Relations evidence
 
-`relations-501699bc988243229d1330c68c7bbadf` is the exact steward narrow
-`Veri7vn_Relations` PASS receipt/log plus the compiled parent source bodies.
-The stable hashes are in receipt.json. Session finished in 9 seconds;
-Relation_Query took 2.296 seconds and Novel_Relations 0.077 seconds.
+`relations-501699bc988243229d1330c68c7bbadf`: stable receipt/log/source hashes; Relations9s, Relation_Query2.296s, Novel_Relations0.077s.
 
-Compiled statements include subject-bucket query equality, exact singleton value
-set, incomplete-source refusal, unavailable dependency result, and source-observation
-witness extraction. Novel fixtures check the retained v1 author observation,
-ambiguous title refusal, absent property and duplicate-witness uniqueness.
-
-The receipt's broad input hashes also include the nested import adapter directory.
-That adapter session was NOT selected or compiled. This result does not establish
-source adapter, RI/kernel, admission worker or deployed service linkage.
+Tests cover bucket equality, singleton sets, incomplete/unavailable sources, observation witnesses, v1 author, ambiguous titles, absent properties and duplicate uniqueness. The nested adapter was hashed but unselected: no adapter, RI/kernel, worker or deployed-service qualification.

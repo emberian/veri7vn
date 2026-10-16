@@ -1,6 +1,6 @@
-Native executable checks currently live in
-`src/isabelle/registry/Registry_Tests.thy`, beside the standalone HOL-only ROOT.
-Run only after obtaining the project build steward's serialized slot:
+# Registry checks
+
+Obtain the steward slot:
 
 ```
 python3 tools/dev/check-native --session Veri7vn_Registry \
@@ -9,4 +9,4 @@ python3 tools/dev/check-native --session Veri7vn_Registry \
   --expect 'REGISTRY generation_guard PASS'
 ```
 
-No current-authority or acceptance claims are inferred from successful lookup.
+`Registry_Tests.thy` checks objects/generations; lookup grants no authority.

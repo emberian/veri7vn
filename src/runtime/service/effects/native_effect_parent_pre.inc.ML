@@ -81,11 +81,11 @@ struct
       "Effect entry capacity/duplicate";(key e,e)::all));
   fun lookup id=case AList.lookup(op =)(Synchronized.value entries)id of
     SOME e=>e|NONE=>error "Unknown native effect entry";
-  fun configuration handle=case AList.lookup(op =)(Synchronized.value configurations)handle of
+  fun configuration key=case AList.lookup(op =)(Synchronized.value configurations)key of
     SOME c=>c|NONE=>error "Unknown native effect configuration";
-  fun packet handle=case AList.lookup(op =)(Synchronized.value packets)handle of
+  fun packet key=case AList.lookup(op =)(Synchronized.value packets)key of
     SOME p=>p|NONE=>error "Unknown native effect packet";
-  fun response handle=case AList.lookup(op =)(Synchronized.value responses)handle of
+  fun response key=case AList.lookup(op =)(Synchronized.value responses)key of
     SOME r=>r|NONE=>error "Unknown native effect response";
   fun depends id e=member(op =)(EffectCore.managed_dependencies(native e))id;
   fun release_observation(Observation{owner,...})=EffectResponses.release owner;
@@ -109,6 +109,24 @@ struct
     |history_live(RecoveredSource view)=historical_live view andalso is_some(EffectRecovery.View.response view);
   fun history_release(FreshSource observation)=release_observation observation
     |history_release(RecoveredSource view)=EffectRecovery.View.release view;
+  (* Aggregate restore calls this only after SAME committed capability and
+     shared Pool/G validation, before closing the recovery batch. Publication
+     retains independent inert ownership, never executable entry state. *)
+  fun publish_restored view=
+    let val projection=EffectRecovery.View.projection view
+      val retained=EffectRecovery.View.retain view
+      val result=Exn.capture(fn()=>case projection of
+          Veri7vn_Native_Effect_Codec.Request original=>
+            let val rid= #request(#names original)
+            in Synchronized.change request_history(fn all=>
+              (F.guard(is_none(AList.lookup(op =)all rid)) "Duplicate restored effect request";
+               (rid,retained)::all));RestoredRequest retained end
+        |Veri7vn_Native_Effect_Codec.Observation{response,...}=>
+            (Synchronized.change source_entries(fn all=>
+              (F.guard(is_none(AList.lookup(op =)all response)) "Duplicate restored effect source";
+               (response,RecoveredSource retained)::all));RestoredSource retained))()
+    in case result of Exn.Res event=>event|Exn.Exn failure=>
+      (EffectRecovery.View.release retained;Exn.reraise failure)end;
   fun release e=(EffectCore.release(native e);
     Synchronized.change entries(AList.delete(op =)(key e)));
 end;

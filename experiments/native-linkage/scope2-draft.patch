@@ -1,0 +1,415 @@
+# Nonloaded ScopeSession2 source draft. No compiler or runtime qualification.
+# Apply only in the coordinated Scope/recovery/parent migration window.
+# Requires matching recovery envelope/checked-view/factory and R/Math recovery migrations.
+# Baseline SHA-256 (workspace bytes; source path follows):
+# 33a6b56c00ed00a26eeec389cdfaf544075e22bdd426df1f8433ef64da0eabf9 src/isabelle/admission/request_scope/ROOT
+# fb6d879da48f18193a7eba1660dffcf42809c6874c5af27e2a8f4de74e4e03a6 src/isabelle/admission/request_scope/data/Native_Scope_Data.thy
+# e57907f81fbbeab3dfaebb0f0a96858f0ef05cf584e342cda694dba5c65ee4db src/isabelle/admission/request_scope/native_scope_saved.ML
+# 1c004a4c5b9ed5467659a2ced8c592377a5d52335afae45d9bd33f19290e87db src/isabelle/admission/request_scope/Native_Request_Scope.thy
+# 1172fa8686825dd99e171786a4fc2dbfe4df33bc78cba7e04880e3027cd10ee7 src/isabelle/admission/request_scope/native_scope_checkpoint.ML
+# f537d54e1ce3dfbc77e2cdc77b51fb343855d79664df372e474f48ba2ca079d9 src/isabelle/admission/request_scope/native_request_scope.ML
+
+--- a/src/isabelle/admission/request_scope/ROOT
++++ b/src/isabelle/admission/request_scope/ROOT
+@@ -1,8 +1,9 @@
+ session Veri7vn_Native_Scope_Data in data = Pure +
+   options [document = false]
++  sessions Veri7vn_Observation_Pin
+   theories Native_Scope_Data
+ 
+ session Veri7vn_Native_Request_Scope = Veri7vn_Authority_Codec +
+   options [document = false]
+-  sessions Veri7vn_Admission Veri7vn_Native_Lifetime
++  sessions Veri7vn_Admission Veri7vn_Native_Lifetime Veri7vn_Original_Session_Source Veri7vn_Conversation_Metadata
+   theories Native_Request_Scope
+--- a/src/isabelle/admission/request_scope/data/Native_Scope_Data.thy
++++ b/src/isabelle/admission/request_scope/data/Native_Scope_Data.thy
+@@ -1,5 +1,5 @@
+ theory Native_Scope_Data
+-  imports Pure
++  imports Pure Veri7vn_Observation_Pin.Observation_Pin
+ begin
+ ML_file \<open>../../recovery/native_authority_wire.ML\<close>
+ ML_file \<open>../native_scope_saved.ML\<close>
+--- a/src/isabelle/admission/request_scope/native_scope_saved.ML
++++ b/src/isabelle/admission/request_scope/native_scope_saved.ML
+@@ -7,7 +7,7 @@
+   type source={identity:IntInf.int,encoding:string,bytes:string};
+   type span={source:IntInf.int,start:int,stop:int};
+   type child={identity:identity,source:span,predecessors:(IntInf.int*IntInf.int)list};
+-  datatype observation=StateTimeUnused;
++  datatype observation=StateTimeUnused | SessionObservation of Veri7vn_Native_Observation_Pin.snapshot;
+   type parent={version:int,workspace:string,request:IntInf.int,
+     observation:observation,sources:source list,children:child list};
+   (* The full immutable plan remains in parent.children. This list identifies
+--- a/src/isabelle/admission/request_scope/Native_Request_Scope.thy
++++ b/src/isabelle/admission/request_scope/Native_Request_Scope.thy
+@@ -2,6 +2,8 @@
+   imports Veri7vn_Admission.Veri7vn_Admission
+     Veri7vn_Authority_Codec.Authority_Codec
+     Veri7vn_Native_Lifetime.Native_Lifetime
++    Veri7vn_Original_Session_Source.Original_Session_Source
++    Veri7vn_Conversation_Metadata.Conversation_Metadata
+ begin
+ definition scope_checkpoint_plan_matches :: "authority_state \<Rightarrow> nat \<Rightarrow>
+     (nat \<times> nat \<times> nat \<times> nat list) list \<Rightarrow> (nat \<times> nat) list \<Rightarrow> bool" where
+@@ -13,6 +15,34 @@
+         map dependency_goal (goal_dependencies g))) (request_goals r)=original \<and>
+       map (\<lambda>rg. (goal_id (snd rg),the (goal_output_slot (snd rg))))
+         (filter (\<lambda>rg. request_id (fst rg)=rid) (required_native_children s))=required)"
++text \<open>Session recovery authenticates the original construction, not its
++current execution permission. The separately protected source row supplies the
++complete source closure; no generation is guessed from those dependencies.\<close>
++definition scope_checkpoint_session_plan_matches :: "authority_state \<Rightarrow> nat \<Rightarrow>
++    observation_context \<Rightarrow> (nat \<times> nat \<times> nat \<times> nat list) list \<Rightarrow>
++    (nat \<times> nat) list \<Rightarrow> bool" where
++  "scope_checkpoint_session_plan_matches s rid original plan required =
++    (\<exists>r\<in>set (requests s). request_id r=rid \<and>
++      request_observation r=RequireObservation original None \<and>
++      request_session r=Some (observed_session original) \<and>
++      list_all (\<lambda>g. goal_output_slot g\<noteq>None) (request_goals r) \<and>
++      map (\<lambda>g. (goal_id g,the (goal_output_slot g),goal_interpretation g,
++        map dependency_goal (goal_dependencies g))) (request_goals r)=plan \<and>
++      map (\<lambda>rg. (goal_id (snd rg),the (goal_output_slot (snd rg))))
++        (filter (\<lambda>rg. request_id (fst rg)=rid) (required_native_children s))=required)"
++definition scope_checkpoint_original_source :: "authority_state \<Rightarrow> nat \<Rightarrow>
++    observation_context \<Rightarrow> nat \<Rightarrow> nat list option" where
++  "scope_checkpoint_original_source s rid original input =
++    (case filter (\<lambda>r. request_id r=rid) (requests s) of [r] \<Rightarrow>
++      (if request_session r=Some (observed_session original) \<and>
++          request_observation r=RequireObservation original None then
++        (case filter (\<lambda>value. retained_id value=input) (retained_values s) of [value] \<Rightarrow>
++          (if conversation_input_context s value=Some original \<and>
++            list_all (\<lambda>n. n\<in>set (request_dependencies r)) (input # retained_dependencies value)
++           then Some (remdups (input # retained_dependencies value)) else None)
++        | _ \<Rightarrow> None)
++       else None)
++     | _ \<Rightarrow> None)"
+ definition scope_checkpoint_parent_active :: "authority_state \<Rightarrow> nat \<Rightarrow> bool" where
+   "scope_checkpoint_parent_active s rid = (\<exists>r\<in>set (requests s).
+     request_id r=rid \<and> \<not>request_cancelled r \<and> parent_accessible s r)"
+--- a/src/isabelle/admission/request_scope/native_scope_checkpoint.ML
++++ b/src/isabelle/admission/request_scope/native_scope_checkpoint.ML
+@@ -11,6 +11,31 @@
+           | convert(W.Node(tag,children))=
+               @{code WireNode}(nat(IntInf.fromInt tag),map convert children)
+     in @{code decode_checkpoint}(convert(W.read checkpoint))end;
++  structure P=Veri7vn_Native_Observation_Pin;
++  fun require true _=()|require false message=error message;
++  fun native_observation(original:P.snapshot)=
++    let
++      fun chars raw=map(Veri7vn_Characters.char_of_integer o IntInf.fromInt o Char.ord)(String.explode raw);
++      fun basis(P.Wall text)= @{code Wall}(chars text)
++        |basis(P.Monotonic text)= @{code Monotonic}(chars text)
++        |basis(P.SourceEvent text)= @{code Source_Event}(chars text);
++      val evaluated=Option.map(fn{basis=origin,ticks}=> @{code conversation_clock}(basis origin)
++        (Veri7vn_Numerals.int_of_integer ticks))(#evaluation_time original)
++    in @{code conversation_observation}(nat(#session original))(nat(#version original)) evaluated
++      (map(fn(id,version)=>(nat id,nat version))(#reads original))end;
++  type source_requirement={utterance:IntInf.int,dependencies:IntInf.int list};
++  fun original_source_requirement checkpoint(saved:S.parent):source_requirement option=
++    case (#observation saved,#sources saved,#children saved)of
++      (S.SessionObservation original,[source],[child])=>
++        if #version saved<>2 orelse #workspace original<> #workspace saved orelse
++          #identity source<> #source(#source child) orelse #start(#source child)<>0 orelse
++          #stop(#source child)<>size(#bytes source) orelse size(#bytes source)>256 then NONE
++        else(case decoded checkpoint of NONE=>NONE |SOME state=>
++          Option.map(fn deps=>{utterance= #identity source,
++            dependencies=map Veri7vn_Numerals.integer_of_nat deps}:source_requirement)
++            (@{code scope_checkpoint_original_source}state(nat(#request saved))
++              (native_observation original)(nat(#identity source))))
++    |_=>NONE;
+   fun parent_active checkpoint (saved:S.parent)=(case decoded checkpoint of NONE=>false
+     | SOME state=> @{code scope_checkpoint_parent_active} state (nat(#request saved)));
+   fun matches checkpoint (saved:S.parent) (required:S.required)=
+@@ -28,13 +53,19 @@
+             length(distinct(op =)(#predecessors c))=length(#predecessors c) andalso
+             predecessors_ok((#goal(#identity c),#slot(#identity c))::seen)rest;
+       val keys=map(fn(c:S.child)=>(#goal(#identity c),#slot(#identity c)))children;
+-      val shape= #version saved=1 andalso not(null children) andalso length children<=256 andalso
++      val version_shape=(case #observation saved of S.StateTimeUnused=> #version saved=1
++        |S.SessionObservation _=> #version saved=2 andalso is_some(original_source_requirement checkpoint saved));
++      val shape=version_shape andalso not(null children) andalso length children<=256 andalso
+         forall identity_ok children andalso length(distinct(op =)keys)=length keys andalso
+         predecessors_ok [] children andalso length(distinct(op =)required)=length required andalso
+         forall(fn key=>member(op =)keys key)required;
+     in shape andalso (case decoded checkpoint of
+       NONE=>false
+-    | SOME state=> @{code scope_checkpoint_plan_matches} state (nat(#request saved))
+-        (map child children) (map(fn(gid,slot)=>(nat gid,nat slot))required))
++    | SOME state=>let val plan=map child children;
++        val needed=map(fn(gid,slot)=>(nat gid,nat slot))required
++      in case #observation saved of S.StateTimeUnused=>
++          @{code scope_checkpoint_plan_matches} state (nat(#request saved)) plan needed
++        |S.SessionObservation original=> @{code scope_checkpoint_session_plan_matches}state
++            (nat(#request saved))(native_observation original)plan needed end)
+     end;
+ end;
+--- a/src/isabelle/admission/request_scope/native_request_scope.ML
++++ b/src/isabelle/admission/request_scope/native_request_scope.ML
+@@ -9,14 +9,20 @@
+   val restore_batch: Veri7vn_Native_Identity_Allocator.allocator -> restore_batch
+   (* The caller's checked factory batch remains rooted through this call. *)
+   val restore: restore_batch -> Veri7vn_Native_Scope_Recovery.View.checked -> parent * child list
++  val restore_session: restore_batch -> Veri7vn_Native_Scope_Recovery.View.checked ->
++    Veri7vn_Original_Session_Source.association -> parent * child list
+   val close_restore_batch: restore_batch -> unit
+   val abort_restore_batch: restore_batch -> unit
+-  datatype observation = StateTimeUnused
++  datatype observation = StateTimeUnused | SessionObservation of Veri7vn_Native_Observation_Pin.pin
+   type identity = {request:IntInf.int,goal:IntInf.int,slot:IntInf.int,
+     interpretation:IntInf.int,decision:IntInf.int}
+   val new_parent: {allocator:Veri7vn_Native_Identity_Allocator.allocator,
+     policy:Veri7vn_Native_Admission.policy,observation:observation,
+     inputs:Veri7vn_Native_Literals.input list} -> parent
++  val new_session_parent:{allocator:Veri7vn_Native_Identity_Allocator.allocator,
++    policy:Veri7vn_Native_Admission.policy,source:Veri7vn_Original_Session_Source.association} -> parent
++  (* Borrowed while any original parent/child view remains retained. *)
++  val original_source:parent -> Veri7vn_Original_Session_Source.association option
+   val new_child: parent -> {source:Veri7vn_Native_Literals.slice,
+     predecessors:child list} -> child
+   val unclaimed: child -> bool
+@@ -50,22 +56,36 @@
+   structure L=Veri7vn_Native_Literals;
+   structure Recovery=Veri7vn_Native_Scope_Recovery.View;
+   structure Saved=Veri7vn_Native_Scope_Saved;
+-  datatype observation=StateTimeUnused;
++  structure Original=Veri7vn_Original_Session_Source;
++  structure Pin=Veri7vn_Native_Observation_Pin;
++  structure Release=Veri7vn_Native_Release_Claim;
++  datatype observation=StateTimeUnused | SessionObservation of Pin.pin;
+   type identity={request:IntInf.int,goal:IntInf.int,slot:IntInf.int,
+     interpretation:IntInf.int,decision:IntInf.int};
+   datatype parent=Parent of {key:serial,id:IntInf.int,allocator:I.allocator,
+     policy:Veri7vn_Native_Admission.policy,observation:observation,
+     active:bool Synchronized.var,inputs:L.lease list option Synchronized.var,
+-    views:int Synchronized.var,
++    views:int Synchronized.var,producer:Release.owner,producer_counted:bool Synchronized.var,
++    original:Original.association option,source_finalizer:Release.owner,
+     plan:Saved.child list option Synchronized.var,
+     construction:{sealed:bool,children:child list} Synchronized.var}
+   and child=Child of {key:serial,parent:parent,identity:identity,source:L.slice option,
+-    predecessors:child list,lease:L.lease option Synchronized.var,claimed:bool Synchronized.var};
++    predecessors:child list,lease:L.lease option Synchronized.var,claimed:bool Synchronized.var,
++    release:Release.owner,counted:bool Synchronized.var};
+   datatype sealed=Sealed of parent * child list;
+   fun require true _=() | require false text=error text;
+   fun same_parent(Parent{key=a,...},Parent{key=b,...})=a=b;
+   fun same_child(Child{key=a,...},Child{key=b,...})=a=b;
+   fun observation(Parent{observation,...})=observation;
++  fun original_source(Parent{original,...})=original;
++  fun finish_release owner action=case Release.try_claim owner of NONE=>
++      require(Release.is_done owner) "Native Scope cleanup already in progress; retry"
++    |SOME claim=>let val result=Exn.capture action()
++      in case result of Exn.Res()=>Release.finish claim
++        |Exn.Exn failure=>(Release.retry claim;Exn.reraise failure)end;
++  fun drain_source(Parent{views,original,source_finalizer,...})=
++    if Synchronized.value views<>0 then()else
++      finish_release source_finalizer(fn()=>Option.app Original.release original);
+   fun request_id(Parent{id,...})=id;
+   fun allocator(Parent{allocator,...})=allocator;
+   fun policy(Parent{policy,...})=policy;
+@@ -75,7 +95,7 @@
+     | source _=error "Inactive restored child has no retained original source";
+   fun predecessors(Child{predecessors,...})=predecessors;
+   fun release_lease lease=Option.app I.release_disposed_input(L.release lease);
+-  fun new_parent {allocator,policy,observation,inputs}=Thread_Attributes.uninterruptible_body(fn _=>
++  fun construct_parent {allocator,policy,observation,inputs,original}=Thread_Attributes.uninterruptible_body(fn _=>
+     let val _=require(not(null inputs) andalso length inputs<=64 andalso
+           length(distinct(op =)(map L.input_locator inputs))=length inputs andalso
+           fold(fn input=>fn total=>total+size(L.bytes input))inputs 0<=2000000)
+@@ -87,20 +107,37 @@
+            observation=observation,active=Synchronized.var "request_scope_active" true,
+            inputs=Synchronized.var "request_scope_inputs" (SOME(rev(!leases))),
+            views=Synchronized.var "request_scope_views" 1,
++           producer=Release.create(),producer_counted=Synchronized.var "scope_producer_counted" true,
++           original=original,source_finalizer=Release.create(),
+            plan=Synchronized.var "request_scope_original_plan" NONE,
+            construction=Synchronized.var "request_scope_construction" {sealed=false,children=[]}}))()
+     in case result of Exn.Res p=>p | Exn.Exn failure=>
+       (List.app release_lease(!leases);Exn.reraise failure)end);
+-  fun child_live(Child{parent=Parent{active,...},lease,source,...})=
+-    Synchronized.value active andalso is_some(Synchronized.value lease) andalso
++  fun new_parent{allocator,policy,observation=StateTimeUnused,inputs}=
++      construct_parent{allocator=allocator,policy=policy,observation=StateTimeUnused,inputs=inputs,original=NONE}
++    |new_parent _=error "Session Scope requires the original source capsule";
++  fun new_session_parent{allocator,policy,source}=Thread_Attributes.uninterruptible_body(fn _=>
++    let val original=Original.retain source;
++      val result=Exn.capture(fn()=>
++        let val pin=Original.pin original;
++          val _=require(#workspace(Pin.snapshot pin)=I.workspace allocator andalso
++            size(L.bytes(Original.input original))<=256) "Session Scope original workspace/input bound"
++        in construct_parent{allocator=allocator,policy=policy,observation=SessionObservation pin,
++          inputs=[Original.input original],original=SOME original}end)()
++    in case result of Exn.Res value=>value
++      |Exn.Exn failure=>(Original.release original;Exn.reraise failure)end);
++  fun child_live(Child{parent=Parent{active,original,...},lease,source,release,...})=
++    Release.is_live release andalso Synchronized.value active andalso
++    (case original of NONE=>true|SOME value=>Original.live value) andalso
++    is_some(Synchronized.value lease) andalso
+     (case source of SOME slice=>L.retained(L.owner slice)|NONE=>false);
+   fun retain_parent_view(Parent{views,...})=Synchronized.change views(fn count=>
+     (require(count>0) "Native parent owner drained";count+1));
+   fun release_parent_view(Parent{views,...})=Synchronized.change views(fn count=>
+     (require(count>0) "Native parent owner underflow";count-1));
+-  fun new_child (p as Parent{id,allocator,active,inputs,construction,...}) {source,predecessors}=
++  fun new_child (p as Parent{id,allocator,active,inputs,construction,producer,...}) {source,predecessors}=
+     Thread_Attributes.uninterruptible_body(fn _=>Synchronized.change_result construction(fn {sealed,children}=>
+-      let val _=require(not sealed andalso Synchronized.value active andalso length children<256) "Native parent sealed/denied or child bound";
++      let val _=require(not sealed andalso Release.is_live producer andalso Synchronized.value active andalso length children<256) "Native parent sealed/denied or child bound";
+         val originals=(case Synchronized.value inputs of SOME leases=>map L.lease_input leases
+           | NONE=>error "Native parent producer released");
+         val _=require(exists(fn input=>L.same_input(input,L.owner source))originals)
+@@ -113,6 +150,7 @@
+         val result=Exn.capture(fn()=>Child{key=serial(),parent=p,source=SOME source,
+           predecessors=predecessors,lease=Synchronized.var "request_child_source" (SOME lease),
+           claimed=Synchronized.var "request_child_claimed" false,
++          release=Release.create(),counted=Synchronized.var "scope_child_counted" true,
+           identity={request=id,goal=I.allocate allocator,slot=I.allocate allocator,
+             interpretation=I.allocate allocator,decision=I.allocate allocator}})()
+       in case result of Exn.Res child=>
+@@ -138,8 +176,8 @@
+       in (Sealed(p,ordered),{sealed=true,children=children})end);
+   fun sealed_children(Sealed(_,children))=children;
+   fun deny(Parent{active,...})=Synchronized.change active(K false);
+-  fun retain_child(child as Child{key,parent,identity,source,predecessors,claimed,lease=original,...})=
+-    Thread_Attributes.uninterruptible_body(fn _=>
++  fun retain_child(child as Child{key,parent,identity,source,predecessors,claimed,lease=original,release,...})=
++    Thread_Attributes.uninterruptible_body(fn _=>Release.with_live release(fn()=>
+       let fun retained()=is_some(Synchronized.value original) andalso
+             (case source of SOME slice=>L.retained(L.owner slice)|NONE=>false);
+         val _=require(retained()) "Native child view/source released";
+@@ -149,20 +187,28 @@
+           (require(retained()) "Native child released during retain";
+            Child{key=key,parent=parent,identity=identity,source=source,
+              predecessors=predecessors,claimed=claimed,
+-             lease=Synchronized.var "request_child_retained_source" (SOME lease)}))()
++             lease=Synchronized.var "request_child_retained_source" (SOME lease),
++             release=Release.create(),counted=Synchronized.var "retained_scope_child_counted" true}))()
+       in case result of Exn.Res retained=>
+           (case Exn.capture(fn()=>(retain_parent_view parent;retained))()of
+             Exn.Res value=>value
+           | Exn.Exn failure=>(release_lease lease;Exn.reraise failure))
+-        | Exn.Exn failure=>(release_lease lease;Exn.reraise failure)end);
+-  fun release_child(Child{parent,lease,...})=Thread_Attributes.uninterruptible_body(fn _=>
+-    case Synchronized.change_result lease(fn old=>(old,NONE))of NONE=>()
+-    |SOME owned=>(release_lease owned;release_parent_view parent));
+-  fun release_parent(parent as Parent{inputs,...})=Thread_Attributes.uninterruptible_body(fn _=>
+-    case Synchronized.change_result inputs(fn old=>(old,NONE))of NONE=>()
+-    |SOME leases=>(List.app release_lease leases;release_parent_view parent));
++        | Exn.Exn failure=>(release_lease lease;Exn.reraise failure)end));
++  fun release_count counted parent=Synchronized.change counted(fn first=>
++    (if first then release_parent_view parent else();false));
++  fun release_child(Child{parent,lease,release,counted,...})=Thread_Attributes.uninterruptible_body(fn _=>
++    (finish_release release(fn()=>
++      (case Synchronized.value lease of NONE=>()|SOME owned=>
++        (release_lease owned;Synchronized.change lease(K NONE));
++       release_count counted parent));
++     drain_source parent));
++  fun release_parent(parent as Parent{inputs,producer,producer_counted,...})=Thread_Attributes.uninterruptible_body(fn _=>
++    let fun drain_inputs()=case Synchronized.value inputs of NONE=>()|SOME []=>Synchronized.change inputs(K NONE)
++          |SOME(lease::rest)=>(release_lease lease;Synchronized.change inputs(K(SOME rest));drain_inputs())
++    in finish_release producer(fn()=>(drain_inputs();release_count producer_counted parent));
++      drain_source parent end);
+ 
+-  fun snapshot(p as Parent{id,allocator,plan,construction,...}) required=
++  fun snapshot(p as Parent{id,allocator,plan,construction,observation,...}) required=
+     let val {sealed,children}=Synchronized.value construction;
+       val _=require sealed "Native scope snapshot requires sealed original plan";
+       fun key child=(#goal(identity child),#slot(identity child));
+@@ -188,15 +234,18 @@
+         in case find_first(fn previous=> #identity previous= #identity record)seen of
+           NONE=>seen@[record] |SOME previous=>(require(previous=record) "Conflicting native original source";seen)end)
+         children ([]:Saved.source list)
+-    in {version=1,workspace=I.workspace allocator,request=id,observation=Saved.StateTimeUnused,
++      val saved_observation=case observation of StateTimeUnused=>Saved.StateTimeUnused
++        |SessionObservation pin=>Saved.SessionObservation(Pin.snapshot pin)
++      val version=case saved_observation of Saved.StateTimeUnused=>1|Saved.SessionObservation _=>2
++    in {version=version,workspace=I.workspace allocator,request=id,observation=saved_observation,
+       sources=sources,children=original}:Saved.parent end;
+ 
+   datatype restore_batch=RestoreBatch of {allocator:I.allocator,
+     members:(Saved.parent * Saved.required * parent * child list) list Synchronized.var,
+-    active:bool Synchronized.var};
++    active:bool Synchronized.var,cleanup:Release.owner};
+   fun restore_batch allocator=RestoreBatch{allocator=allocator,
+-    members=Synchronized.var "scope_restored_parents" [],active=Synchronized.var "scope_restore_active" true};
+-  fun restore(RestoreBatch{allocator,members,active}) checked=
++    members=Synchronized.var "scope_restored_parents" [],active=Synchronized.var "scope_restore_active" true,cleanup=Release.create()};
++  fun restore_original(RestoreBatch{allocator,members,active,...}) checked original=
+     Thread_Attributes.uninterruptible_body(fn _=>Synchronized.change_result members(fn old=>
+       let val _=require(Synchronized.value active andalso Recovery.live checked) "Native scope restore batch/guard closed";
+         val decoded=Recovery.saved checked;
+@@ -220,14 +269,20 @@
+         let val owned=Unsynchronized.ref([]:L.lease list);
+           val built=Unsynchronized.ref([]:child list);
+           val created=Unsynchronized.ref(NONE:parent option);
++          val retained_original=Unsynchronized.ref(NONE:Original.association option);
+           val result=Exn.capture(fn()=>
+-            let val leases=map(fn(_,input)=>let val lease=L.retain input
++            let val original=Option.map Original.retain original;
++              val _=retained_original:=original;
++              val leases=map(fn(_,input)=>let val lease=L.retain input
+                   in owned:=lease:: !owned;lease end)sources;
+               val p=Parent{key=serial(),id= #request saved,allocator=allocator,
+-                policy=Recovery.policy checked,observation=StateTimeUnused,
++                policy=Recovery.policy checked,observation=(case original of NONE=>StateTimeUnused
++                  |SOME source=>SessionObservation(Original.pin source)),
+                 active=Synchronized.var "restored_scope_active" (Recovery.parent_active checked),
+                 inputs=Synchronized.var "restored_scope_inputs" (SOME leases),
+                 views=Synchronized.var "restored_scope_views" 1,
++                producer=Release.create(),producer_counted=Synchronized.var "restored_scope_producer_counted" true,
++                original=original,source_finalizer=Release.create(),
+                 plan=Synchronized.var "restored_scope_original_plan" (SOME(#children saved)),
+                 construction=Synchronized.var "restored_scope_construction" {sealed=true,children=[]}};
+               val _=created:=SOME p;
+@@ -246,7 +301,8 @@
+                     predecessors=predecessors,lease=Synchronized.var "restored_child_source" lease,
+                     (* The authenticated family reconstruction binds this child
+                        once. This flag grants no durable permission or charge. *)
+-                    claimed=Synchronized.var "restored_child_claimed" (not wanted)};
++                    claimed=Synchronized.var "restored_child_claimed" (not wanted),
++                    release=Release.create(),counted=Synchronized.var "restored_child_counted" wanted};
+                   val _=if is_some lease then retain_parent_view p else();
+                   val _=built:= !built@[child]
+                 in child end;
+@@ -261,13 +317,34 @@
+               Exn.Res value=>value
+             | Exn.Exn failure=>(List.app release_child children;release_parent p;Exn.reraise failure))
+           |Exn.Exn failure=>
+-            (case !created of NONE=>(List.app release_lease(!owned);Exn.reraise failure)
++            (case !created of NONE=>(List.app release_lease(!owned);Option.app Original.release(!retained_original);Exn.reraise failure)
+              |SOME p=>(List.app release_child(!built);release_parent p;Exn.reraise failure))end
+       end));
+-  fun close_restore_batch(RestoreBatch{members,active,...})=Thread_Attributes.uninterruptible_body(fn _=>
+-    if not(Synchronized.change_result active(fn previous=>(previous,false)))then()else
+-      let val previous=Synchronized.change_result members(fn old=>(old,[]))
+-      in List.app(fn(_,_,p,children)=>(List.app release_child children;release_parent p))previous end);
++  fun restore batch checked=(case #observation(Recovery.saved checked)of
++      Saved.StateTimeUnused=>restore_original batch checked NONE
++    |Saved.SessionObservation _=>error "Session restoration requires its authenticated original source");
++  fun restore_session batch checked source=
++    let val saved=Recovery.saved checked;
++      val expected=case Recovery.original_source_requirement checked of SOME value=>value
++        |NONE=>error "Session Scope has no authenticated original source requirement";
++      val original=case #observation saved of Saved.SessionObservation value=>value
++        |_=>error "Stateless Scope cannot acquire a session source";
++      val identity=Original.identity source;
++      val input=Original.input source;
++      val _=require(#version saved=2 andalso Original.live source andalso
++        #workspace saved= #workspace identity andalso #session original= #session identity andalso
++        Pin.snapshot(Original.pin source)=original andalso #utterance expected= #utterance identity andalso
++        #dependencies expected=Original.dependencies source andalso
++        (case Recovery.sources checked of [(uid,present)]=>uid= #utterance identity andalso L.same_input(input,present)|_=>false) andalso
++        (case #sources saved of [present]=> #identity present= #utterance identity andalso
++          #bytes present=L.bytes input andalso #encoding present=L.encoding input|_=>false))
++        "Session Scope source differs from the same authenticated original row/input"
++    in restore_original batch checked(SOME source)end;
++  fun close_restore_batch(RestoreBatch{members,active,cleanup,...})=Thread_Attributes.uninterruptible_body(fn _=>
++    finish_release cleanup(fn()=>
++      (Synchronized.change active(K false);
++       List.app(fn(_,_,p,children)=>(List.app release_child children;release_parent p))(Synchronized.value members);
++       Synchronized.change members(K []))));
+   fun abort_restore_batch(batch as RestoreBatch{members,...})=
+     (List.app(fn(_,_,p,_)=>deny p)(Synchronized.value members);close_restore_batch batch);
+ end;

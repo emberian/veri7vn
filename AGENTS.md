@@ -1,86 +1,54 @@
 # Working on veri7vn
 
-Read `project/PLAN.md`, `project/DECISIONS.md`, relevant entries in
-`project/tasks.json`, and the contracts your task consumes before editing.
-The user-approved direction is a robust specialist engineering environment native
-to Isabelle, with efficient deployed execution and search. Do not substitute an
-arithmetic demo or an external prover wrapper for that objective.
-
-Architecture revision 2 was agreed on 2026-10-15; scoped implementation is
-authorized. Use gpt-6.1-sol for implementation lanes as requested. Root owns
-integration; see project/tasks.json and project/DISPATCH.md for current ownership.
+Read `project/PLAN.md`, `project/DECISIONS.md`, relevant `project/tasks.json` entries
+and consumed contracts before editing. Build an Isabelle-native specialist
+engineering environment with deployed execution/search, not an arithmetic demo
+or external prover wrapper. Architecture revision 2 is authorized; use gpt-6.1-sol
+for implementation lanes.
 
 ## Coordination
 
-- Root owns design synthesis, dispatch, and integration. Implementation belongs
-  to scoped agents. User corrections and current conversation override stale
-  plans; recover the actual exchange with `cv` after compaction when needed.
-- `project/tasks.json` is the status/dependency source. Root owns edits during
-  a fan-out unless explicitly delegated; peers report status/evidence instead
-  of racing to rewrite it. Update it before ending an integration turn. The board
-  is generated, never independently edited.
-- Each dispatched task has an owner and concrete edit paths. Read across lanes,
-  but arrange an ownership transfer before editing another active lane's files.
-  Shared working-tree edits are immediately visible to all agents.
-- An active dependency is not a completed interface. Exploration against a draft
-  is useful, but do not claim integration or introduce a competing interface.
-  Changes to consumed contracts need a decision entry, migration note, and checks
-  of the affected consumers.
-- Improve your approach within scope. Send consequential findings early: false
-  theorem targets, missing behavior, incompatible interfaces, or performance
-  obstacles. Do not quietly narrow a contract to get a green build.
-- No further subagents from a lane unless dispatcher/user authorizes them. Keep
-  resource and ownership coordination visible.
+Root owns synthesis, dispatch, integration and tracker edits during fan-out.
+`project/tasks.json` owns status/dependencies; generate the board. Update it before
+ending an integration turn. Current conversation overrides handoffs; recover
+surrounding exchanges with `cv` after compaction.
 
-## Evidence and implementation
+Respect dispatched edit paths; arrange ownership transfers before cross-lane edits.
+An active dependency is not a completed interface. Consumed-contract changes need
+a decision, migration note and affected-consumer checks. Report false targets,
+missing behavior, incompatible interfaces and performance obstacles early. Do not
+narrow requirements to pass. No lane subagents without dispatcher/user authority.
 
-- `src/isabelle/` is native platform source. The old `isabelle/`, `o7ir/`, and
-  `generated/` prototype files were removed; see the
-  [cleanup and Git recovery record](docs/design/prototype-cleanup.md).
-  Native probes in `experiments/` and upstream audit tools remain research
-  evidence. Reuse requires checking statements and their connection to the
-  actual implementation; do not promote by renaming.
-- No `sorry`, `skip_proof`, arbitrary axiomatization, or hidden oracle counts as
-  checked coverage. A native theorem can retain hypotheses or rely on an
-  unacceptable extension. Follow the full admission contract.
-- JSON receipts, hashes, test verdicts, and generated Booleans are not serialized
-  native theorems. Identify the actual evidence/assurance path.
-- Source assertions are data. Absence, uniqueness, ranking, and aggregates need
-  coverage; one positive witness is insufficient.
-- A Python wrapper is an adapter, not a completed lift. Track source behavior,
-  preservation versus repair, assumptions, and runtime bridges in coverage.
-- Run the narrowest check capable of refuting a substantial change. Check
-  composition after interface changes. Do not repeatedly run expensive suites
-  without a new question. Building a theory is not proof of production linkage.
+## Evidence
 
-## Build and resource discipline
+`src/isabelle/` is native source. Research probes and upstream audit tools require
+statement/consumer review before reuse; [prototype history](docs/design/prototype-cleanup.md)
+is not production evidence. No `sorry`, `skip_proof`, arbitrary axiomatization or
+hidden oracle counts as checked coverage. Audit hypotheses and actual runtime
+connections. JSON receipts, hashes and test verdicts are not native theorems.
+Source reports remain data; absence, uniqueness, ranking and aggregates require
+coverage. Python adapters are not completed lifts: record preservation/repair,
+assumptions and implementation bridges.
 
-- Use `python3 tools/dev/check-native`: shared build lock, workspace-local
-  Isabelle state, one build and two ML threads by default.
-- Do not launch other Isabelle builds around the lock. Coordinate dependency
-  builds/benchmarks with root. Avoid accidental HOL-Analysis dependencies; use
-  warm bundled heaps where possible.
-- Do not alter global Isabelle settings, services, or other sessions' files to
-  pass local checks. Never delete caches to free disk, stash/reset the shared
-  tree, or overwrite concurrent edits.
-- Keep corpora, heaps, credentials, retrieved paper texts and transient artifacts
-  out of commits. Never print `~/.scry-key`; use the protecting research client.
-- Performance reports distinguish startup, admission, execution, search, evidence,
-  memory and I/O, naming workload/toolchain. Toy probes are not app speedups.
+Run the narrowest refuting check and composition checks after interface changes.
+Avoid expensive repeats without a new question. Compilation alone is not linkage.
 
-## Completion and handoff
+## Resources and publication
 
-A lane handoff includes changed files, affected contract/decision IDs, exact
-checks/results, theorem statements and runtime connections where relevant,
-limitations, and remaining consumers. Root marks work done after evidence review
-and dependency completion. Record actual open work rather than an unspecified
-later lane.
+Use `python3 tools/dev/check-native`: shared lock, workspace-local Isabelle state,
+one build/two ML threads by default. Coordinate builds/benchmarks with root; never
+bypass the lock. Prefer warm bundled HOL; avoid accidental HOL-Analysis imports.
+Do not alter global settings/services, delete others' caches/files, stash/reset the
+shared tree or overwrite concurrent edits. Keep corpora, heaps, credentials,
+paper texts and transient artifacts out of commits; never print `~/.scry-key`.
+Report workload/toolchain and separate startup, admission, execution, search,
+evidence, memory and I/O costs.
 
-Ordinary commits and pushes are authorized. Root checkpoints shared implementation
-frequently, including unfinished or currently failing work, so collaborators can
-coordinate through GitHub. This was explicitly requested on 2026-10-16. Mark such
-checkpoints as in progress, record known failures, and converge subsequent commits
-toward green; a checkpoint is not an acceptance claim. Use explicit project paths,
-exclude credentials/corpora/runtime artifacts and unrelated files, and preserve
-concurrent edits. Lanes do not independently stage one another's work. This does
-not authorize releases, author contact or unrelated artifact publication.
+Root makes frequent scoped commits/pushes, including explicitly marked unfinished
+checkpoints and known failures. Ordinary commits/pushes are authorized; release,
+author contact and unrelated publication are not. Stage explicit paths, preserve
+concurrent work and exclude private/runtime material. Lanes do not stage peers' work.
+
+Handoffs name files, contracts/decisions, checks/results, theorem statements and
+consumers, limitations and remaining work. Root accepts completion after evidence
+review and dependency closure; a checkpoint is not acceptance.
