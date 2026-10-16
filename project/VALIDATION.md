@@ -982,3 +982,24 @@ Old40ac input registrations have different dependency rows and currently fail
 the new exact restore matcher. Cross-generation migration, guarded deployment
 promotion, additional families and performance scaling remain open. No old
 checkpoint bytes were rewritten or old installed generation deleted.
+
+## Shared authoring and resident browser
+
+Root read source-authoring `3980963f1e114f49bc6968a0bcf63a83` (17.317s) and
+assistance `770bfffd9ee643f789a46f7f9be7751a` (12.990s), both stable/passed.
+The actual managed-edit consumers exercise explicit review choices, captured
+source revisions, apply/cancel/replay/tampering, UTF-8 boundaries and stale/forgotten
+source rejection. Their source hashes match the checkpoint; editable source
+approval is not native theorem admission or automatic proof assistance.
+
+Resident browser `ccf79120fc7744b196fd268d69548f32` passed in32.121s with stable
+inputs against the captured D44 heap. Root read the successful real managed source
+import/edit receipts, final browser marker, and matched changed source hashes.
+The active resident and source CLI share one store; the browser sees the edited
+source and then exercises actual routing, licensed result/provenance, readonly
+reload and confirmed Forget. It does not build/admit the edited specialist.
+
+The independent source-JAR producer `90c8b77b61b34cbf974d3d33db8ad0cd` compiled
+and pinned its source/class closure. Its installed four-process source workflow
+remains a separate check: the first attempt correctly rejected an invalid test
+package lacking manifest.json; the fixture is corrected without relaxing intake.

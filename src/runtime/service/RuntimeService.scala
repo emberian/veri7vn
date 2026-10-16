@@ -7,6 +7,7 @@ import veri7vn.runtime.host.WorkspaceStore
 /** Owns one workspace writer and one fixed resident native service. */
 final class RuntimeService private(private val store:WorkspaceStore,
   val client:ResidentAuthorityService) extends AutoCloseable {
+  val managedSources=new veri7vn.runtime.host.ManagedSources(store)
   def close():Unit={
     var failure:Throwable=null
     try client.close() catch {case problem:Throwable=>failure=problem}

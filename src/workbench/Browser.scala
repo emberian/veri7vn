@@ -6,10 +6,13 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import java.util.UUID
 import veri7vn.packages.intake.Intake
-import veri7vn.diagnostics.Diagnostics
+import veri7vn.diagnostics.{Diagnostics,Repair}
+import veri7vn.authoring.assistance.Assistance
 
 /** Loopback-only authoring surface sharing the CLI's actual managed operations. */
 final class Browser(author:Authoring,execution:Option[Execution]=None) extends AutoCloseable {
+  private val reviews=new ReviewTickets
+  private val reviewFields=Set("draft","file","manifest","revision","obligation","context","start","stop","choice","meaning","reason","replacement")
   private val token=UUID.randomUUID().toString
   private val server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0)
   private def escape(s:String)=s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;")
@@ -19,9 +22,28 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
   private def input(name:String,value:String="")="<input name=\""+name+"\" value=\""+escape(value)+"\">"
   private def hidden(name:String,value:String)="<input type=hidden name=\""+name+"\" value=\""+escape(value)+"\">"
   private def form(action:String,body:String)="<form method=post>"+hidden("token",token)+hidden("action",action)+body+"<button>"+action+"</button></form>"
+  private def assistanceForm(draft:String,file:String,manifest:String,revision:String,text:String):String=
+    "<details><summary>Review a source change</summary><p>Choose an obligation, condition or proposed example, then review its effect on meaning. This is author-selected context, not a native check result.</p>"+
+    form("Preview source change",hidden("draft",draft)+hidden("file",file)+hidden("manifest",manifest)+hidden("revision",revision)+
+      "<label>Work item "+input("obligation")+"</label>"+hidden("context","unreviewed")+
+      "<label>Change kind <select name=choice><option>Obligation</option><option>Condition</option><option>Example</option></select></label>"+
+      "<label>Effect on meaning <select required name=meaning><option value=''>Choose an effect</option><option value=PreserveMeaning>Preserve meaning</option><option value=RestrictDomain>Restrict the domain</option><option value=ChangeSpecification>Change the specification</option></select></label>"+
+      "<label>Reason "+input("reason")+"</label><details><summary>Source byte range (whole file by default)</summary>Start "+input("start","0")+" End "+input("stop",text.getBytes(UTF_8).length.toString)+"</details>"+
+      "<label>Proposed replacement<textarea name=replacement rows=12>"+escape(text)+"</textarea></label>")+"</details>"
   private def editor(draft:String,file:String,manifest:String,revision:String,original:String,replacement:String):String=
     form("Save",hidden("draft",draft)+hidden("file",file)+hidden("manifest",manifest)+hidden("revision",revision)+
-      hidden("original",original)+"<textarea name=replacement rows=24 cols=100>"+escape(replacement)+"</textarea>")
+      hidden("original",original)+"<textarea name=replacement rows=24 cols=100>"+escape(replacement)+"</textarea>")+
+      assistanceForm(draft,file,manifest,revision,replacement)
+  private def currentReview(p:Map[String,String]):Assistance.Session={
+    val snapshot=author.inspect(p("draft"))
+    require(snapshot.manifest==p("manifest") && snapshot.revision.id==p("revision"),"Source changed since this review. Reopen the file and review the current source.")
+    require(Assistance.Choice.values.exists(_.toString==p("choice")),"Choose an obligation, condition or example")
+    require(Repair.Meaning.values.exists(_.toString==p("meaning")),"Choose the effect on meaning")
+    require(p("reason").trim.nonEmpty,"Give a reason for this source change")
+    require(p("start").matches("[0-9]{1,9}") && p("stop").matches("[0-9]{1,9}"),"Source byte bounds must be whole numbers")
+    val plan=Assistance.plan(snapshot,p("obligation"),p("context"),p("file"),p("start").toInt,p("stop").toInt)
+    Assistance.review(plan,Assistance.Choice.valueOf(p("choice")),Repair.Meaning.valueOf(p("meaning")),p("reason"),Intake.Content(p("replacement").getBytes(UTF_8)))
+  }
   private def packageView(draft:String):String={
     val snapshot=author.inspect(draft)
     val description=try {
@@ -82,6 +104,25 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
             require(p.get("confirm").contains("yes"),"Confirm removal before forgetting a request")
             execution.get.forget(BigInt(p("request")))
             redirect=Some(BigInt(p("request")))
+          case "Preview source change"=>
+            val captured=reviewFields.toVector.map(key=>key->p(key)).toMap
+            val session=currentReview(captured)
+            val id=reviews.issue(captured)
+            val target=session.review.plan.target
+            val location=SourceLocation.locate(target.snapshot,target.path,target.start,target.stop,target.snapshot.revision.id)
+            body="<h2>Review source change</h2><p>Work item: "+escape(target.obligation)+"</p><p>"+escape(captured("choice")+" — "+captured("meaning"))+"</p><p>"+escape(captured("reason"))+"</p>"+
+              "<p>"+escape(target.path)+", line "+location.line+", column "+location.column+".</p><details><summary>Captured source identity</summary>Revision "+escape(captured("revision"))+", bytes "+target.start+"–"+target.stop+".</details><h3>Original</h3><pre>"+escape(Authoring.decode(target.original))+"</pre><h3>Replacement</h3><pre>"+escape(captured("replacement"))+"</pre>"+
+              "<p>Applying records editable source only. Native revalidation remains a separate operation.</p>"+
+              form("Apply reviewed change",hidden("review",id)+captured.toVector.sortBy(_._1).map((key,value)=>hidden(key,value)).mkString)+
+              form("Cancel reviewed change",hidden("review",id))
+          case "Apply reviewed change"=>
+            val captured=reviewFields.toVector.map(key=>key->p(key)).toMap
+            require(reviews.consume(p("review"),captured),"Review expired, changed or already used. Preview the change again.")
+            val result=currentReview(captured).applyTo("review-"+p("review"),author)
+            body="<p role=status>"+escape(Assistance.resultMessage(result))+"</p>"+packageView(captured("draft"))
+          case "Cancel reviewed change"=>
+            require(reviews.cancel(p("review")),"Review expired or already used")
+            body="<p role=status>Review cancelled. No source change was applied.</p>"
           case "Import"=>
             val result=author.importSource(UUID.randomUUID().toString,p("draft"),Path.of(p("path")),
               if(p.get("format").contains("original"))Intake.Format.Oracle7Original else Intake.Format.NativeDevelopment)
@@ -136,5 +177,5 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
   })
   def url:String="http://127.0.0.1:"+server.getAddress.getPort+"/"
   def start():Unit=server.start()
-  def close():Unit=server.stop(0)
+  def close():Unit={server.stop(0);reviews.clear()}
 }

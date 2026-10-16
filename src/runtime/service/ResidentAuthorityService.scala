@@ -75,7 +75,8 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
   def mathematicsResult(request:BigInt):Result={
     available();require(request>0 && request.toString.length<=128)
     val reply=supervisor.exchange("poll_result",request.toString)
-    require(reply.tag=="result" && reply.artifacts.size<=1,"native result shape")
+    require(reply.tag=="result" && reply.artifacts.size<=1,
+      s"native result shape request=$request tag=${reply.tag} payload=${reply.payload.take(256)} artifacts=${reply.artifacts.size}")
     require(reply.artifacts.isEmpty || reply.payload=="accepted_exact","unlicensed result payload")
     Result(reply.payload,reply.artifacts.headOption.map(_.text))
   }

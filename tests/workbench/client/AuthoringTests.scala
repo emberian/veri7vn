@@ -79,20 +79,78 @@ object AuthoringTests {
         assert(firstSave.contains("Saved."))
         val secondSave=savePage(firstSave,next.text+"(* second browser save *)\n")
         assert(secondSave.contains("Saved.") && client.source("custom","Custom.thy").text.contains("second browser save"))
+        def submit(values:Map[String,String]):String={
+          val encoded=(values+("token"->token)).toVector.map((key,value)=>java.net.URLEncoder.encode(key,UTF_8)+"="+java.net.URLEncoder.encode(value,UTF_8)).mkString("&")
+          http.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(browser.url))
+            .POST(java.net.http.HttpRequest.BodyPublishers.ofString(encoded)).build(),java.net.http.HttpResponse.BodyHandlers.ofString()).body()
+        }
+        def reviewedPayload(marker:String,draft:String="custom"):Map[String,String]={
+          val source=client.source(draft,"Custom.thy")
+          Map("draft"->draft,"file"->"Custom.thy","manifest"->source.snapshot.manifest,"revision"->source.snapshot.revision.id,
+            "obligation"->"Document the example","context"->"unreviewed","start"->"0","stop"->source.entry.content.size.toString,
+            "choice"->"Example","meaning"->"PreserveMeaning","reason"->"Add an explanatory source comment","replacement"->(source.text+marker+"\n"))
+        }
+        def preview(payload:Map[String,String]):String={
+          val page=submit(payload+("action"->"Preview source change"))
+          assert(page.contains("Review source change") && page.contains("Native revalidation remains a separate operation"))
+          "name=\"review\" value=\"([^\"]+)".r.findFirstMatchIn(page).get.group(1)
+        }
+        val reviewed=reviewedPayload("(* reviewed example *)")
+        val reviewedId=preview(reviewed)
+        val applied=submit(reviewed++Map("action"->"Apply reviewed change","review"->reviewedId))
+        assert(applied.contains("Saved.") && client.source("custom","Custom.thy").text.contains("reviewed example"))
+        assert(submit(reviewed++Map("action"->"Apply reviewed change","review"->reviewedId)).contains("already used"))
+        val cancelled=reviewedPayload("(* must not be applied *)")
+        val cancelledId=preview(cancelled)
+        assert(submit(Map("action"->"Cancel reviewed change","review"->cancelledId)).contains("No source change was applied"))
+        assert(submit(cancelled++Map("action"->"Apply reviewed change","review"->cancelledId)).contains("already used"))
+        assert(!client.source("custom","Custom.thy").text.contains("must not be applied"))
+        val tamper=reviewedPayload("(* consented text *)")
+        val tamperId=preview(tamper)
+        assert(submit(tamper++Map("action"->"Apply reviewed change","review"->tamperId,"replacement"->"unreviewed text")).contains("Review expired, changed or already used"))
+        assert(!client.source("custom","Custom.thy").text.contains("unreviewed text"))
+        val staleProposal=reviewedPayload("(* stale proposal *)")
+        val staleReviewId=preview(staleProposal)
+        val concurrent=client.source("custom","Custom.thy")
+        client.edit("concurrentReview", "custom",concurrent.snapshot.manifest,concurrent.snapshot.revision.id,"Custom.thy",0,
+          concurrent.entry.content.size,concurrent.entry.content.bytes,(concurrent.text+"(* newer source *)\n").getBytes(UTF_8))
+        assert(submit(staleProposal++Map("action"->"Apply reviewed change","review"->staleReviewId)).contains("Source changed"))
+        assert(client.source("custom","Custom.thy").text.contains("newer source") && !client.source("custom","Custom.thy").text.contains("stale proposal"))
+        client.importSource("reviewForgetImport","review-forget",source,Intake.Format.NativeDevelopment)
+        val forgottenReview=reviewedPayload("(* forgotten review *)","review-forget")
+        val forgottenReviewId=preview(forgottenReview)
+        managed.forget("review-forget")
+        assert(submit(forgottenReview++Map("action"->"Apply reviewed change","review"->forgottenReviewId)).contains("Package unavailable"))
+        assert(!client.list().contains("review-forget"))
         val denied=http.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(browser.url))
           .POST(java.net.http.HttpRequest.BodyPublishers.ofString("action=Open&draft=custom&file=Custom.thy")).build(),java.net.http.HttpResponse.BodyHandlers.ofString())
         assert(denied.body().contains("Expired form") && !denied.body().contains("lemma preserved"))
       }finally browser.close()
     } finally store.close()
     val reopened=new WorkspaceStore(root)
-    try assert(new Authoring(new ManagedSources(reopened)).source("custom","Custom.thy").text.contains("lemma preserved"))
-    finally reopened.close()
+    val persisted=try new Authoring(new ManagedSources(reopened)).source("custom","Custom.thy") finally reopened.close()
+    assert(persisted.text.contains("lemma preserved"))
     val stdout=new java.io.ByteArrayOutputStream()
     Console.withOut(new java.io.PrintStream(stdout,true,"UTF-8")) {
       veri7vn.cli.Workbench.run(Array(root.toString,"list"))
       veri7vn.cli.Workbench.run(Array(root.toString,"inspect","custom"))
+      val proposal=Files.createTempFile("v7-reviewed-comment-",".txt")
+      Files.write(proposal,"(* CLI reviewed source *)".getBytes(UTF_8))
+      Console.withIn(new java.io.ByteArrayInputStream("cancel\n".getBytes(UTF_8))) {
+        veri7vn.cli.Workbench.run(Array(root.toString,"review","custom","Custom.thy","0","1","CLI note","Example","PreserveMeaning","Review source",proposal.toString,"cliReviewCancel"))
+      }
+      Files.delete(proposal)
+      val expected=Files.createTempFile("v7-cli-expected-",".thy")
+      val replacement=Files.createTempFile("v7-cli-replacement-",".thy")
+      try {
+        Files.write(expected,persisted.entry.content.bytes)
+        Files.write(replacement,(persisted.text+"(* actual CLI edit *)\n").getBytes(UTF_8))
+        veri7vn.cli.Workbench.run(Array(root.toString,"edit","custom",persisted.snapshot.manifest,persisted.snapshot.revision.id,"Custom.thy","0",persisted.entry.content.size.toString,expected.toString,replacement.toString,"cliActualEdit"))
+      } finally {Files.delete(expected);Files.delete(replacement)}
     }
     assert(stdout.toString("UTF-8").contains("custom") && stdout.toString("UTF-8").contains("Custom.thy"))
+    val finalStore=new WorkspaceStore(root)
+    try assert(new Authoring(new ManagedSources(finalStore)).source("custom","Custom.thy").text.contains("actual CLI edit")) finally finalStore.close()
     println("AUTHORING_CLIENT_PASS actual native edit stale conflict original paint18 listing forget overflow browser CLI restart")
   }
 }
