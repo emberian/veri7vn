@@ -3178,7 +3178,7 @@
         "var/native-scaffold/sessions/761b8d2aaa49622b/attempts/e8efa7e5fae14a66a647e8c7be3becf6/receipt.json",
         "tests/runtime/service/native/evidence/resident-baseline-20261016/snapshot.json"
       ],
-      "notes": "D45 full native service leaf and actual resident host pass: concurrent original-byte proposals, charged licensed publication, undefined quotient refusal, fresh-process nonempty restore without workflow replay, selective Forget physical erasure and survivor restart. Root reviewed exact consumer/logs. Immutable package capture released schema freeze; actual staged launcher found heap-directory layout failure before native execution. D44 atomic last-owner retirement, indexed whole-closure protection and cleanup job preservation are active; D43 artifacts and broader source/domain/search families remain required. Baseline archive explicitly excludes three authority files changed after capture; no false current full-closure claim.\nRoot read stable0e2ecd7db95f43e1ae01334ec8ab07ee actual121.415s service failure at unqualified map_filter definition98; native ownership tests cancelled, not failed behavior. Assembly qualified List.map_filter and owns new cached Runtime_Foundation parent to avoid repeated stable RBT compilation. Actual unused-evidence-only native lifecycle case remains finite D44 consumer requirement.",
+      "notes": "D45 full native service leaf and actual resident host pass: concurrent original-byte proposals, charged licensed publication, undefined quotient refusal, fresh-process nonempty restore without workflow replay, selective Forget physical erasure and survivor restart. Root reviewed exact consumer/logs. Immutable package capture released schema freeze; actual staged launcher found heap-directory layout failure before native execution. D44 atomic last-owner retirement, indexed whole-closure protection and cleanup job preservation are active; D43 artifacts and broader source/domain/search families remain required. Baseline archive explicitly excludes three authority files changed after capture; no false current full-closure claim.\nRoot read stable0e2ecd7db95f43e1ae01334ec8ab07ee actual121.415s service failure at unqualified map_filter definition98; native ownership tests cancelled, not failed behavior. Assembly qualified List.map_filter and owns new cached Runtime_Foundation parent to avoid repeated stable RBT compilation. Actual unused-evidence-only native lifecycle case remains finite D44 consumer requirement.\nLatest actual service compiles/saves; native survivor fixture reveals shared input authority incorrectly depends on first request identity. Assembly owns source-owned input dependency repair, peer survival and genuine source-Forget both-consumer regression; D44 not complete.",
       "contracts": [
         "C02",
         "C03",
@@ -3397,9 +3397,9 @@
         "authority61",
         "host61"
       ],
-      "state": "foundation-saved-service-local-proof-repairs",
+      "state": "service-saved-native-survivor-fixture-failed-under-repair",
       "target": "D44 single durable list-root Forget closes request and now-unowned bridge/code rows, preserves durable survivors, cancels uncommitted aliases, strict restart",
-      "next": "Root read1dc017 Foundation save5m08 and1d481 warm service failure17s: stable prefix reused. RequestLocal indexed predicate equivalence repair ready; native ownership fixtures have not run. Actual D44 host consumer remains required before D43 schema window."
+      "next": "Steward reports actual e9af4fab service savedPASS55s, then native ownership fixture failed: Atomic Forget retired a durable survivor support. Assembly diagnosed shared L.input row depended on first request IDs, causing request-only Forget to deny peer shared input. Repair actual dependency direction and retain reverse source-Forget invalidation; assertion not weakened. Actual host D44 remains unqualified."
     },
     {
       "id": "typed-native-build-candidates",
