@@ -36,11 +36,28 @@ result/provenance. [Standalone evidence](tests/deployment/evidence/standalone-aa
 identifies the exact package. Linux and redistribution remain open; this is a
 local development preview, not a general release.
 
-Editing source does not yet activate changed specialist behavior. Build/repair,
-admission, qualification and activation are distinct integration gates. Search,
-dialogue and source-backed operations have component implementations; the
-[review](project/REVIEW.md) distinguishes drafts, qualified paths and untouched
-scope. A working arithmetic example is not whole-system completion.
+Current source also provides these [workbench commands](docs/reference/recipient-operations.md#routing-and-numeric-proposals-in-current-source):
+
+| Command | Purpose |
+|---|---|
+| `specialists` | List the service's declared operation families. |
+| `route QUESTION` | Inspect candidate operations and their original input spans. |
+| `run QUESTION [INDEX]` / `explain REQUEST_ID` | Select a reading, execute it and inspect the justified result and provenance. |
+| `suggest …` | Turn ordered numeric instructions into editable specialist source, with preview and explicit review. |
+
+The shared handlers pass against the real native service, including result Forget
+and proposal cancel/apply. Strict protocol checks and 24 native routing-model
+regressions also pass. [Evidence](tests/workbench/assistance/evidence/routing-growth.json)
+records the boundaries: new CLI dispatch compiles, but standalone execution of
+these additions and their inclusion in a new packaged installation remain unchecked.
+
+Routing currently uses the fixed math reader. Suggestions compose double, square,
+increment, absolute and negate; they do not prove the intended English meaning.
+The full Oracle7 registry and runtime fallback orchestration remain incomplete.
+Editing source does not activate a capability. Build currently fails when persisting
+a changed recovery envelope under an immutable association; its repair/restart
+workflow remains incomplete. Search, conversation and source-backed families have
+further integration work listed in the [project review](project/REVIEW.md).
 
 ## System map
 
@@ -69,10 +86,10 @@ defines the joins; the tracker records their implementation state.
 | Area | Documentation |
 |---|---|
 | Packages and authoring | [Package contract](docs/contracts/package.md), [workflows](docs/workbench/interaction/README.md) |
-| Language/composition | [Request contract](docs/contracts/request-result.md) |
+| Language/composition | [Routing](docs/language/runtime.md), [request contract](docs/contracts/request-result.md) |
 | Sources and migration | [Coverage](docs/coverage/README.md), [residual matrix](docs/coverage/classification/residual-matrix.md) |
 | Mathematics/domains | [Mathematics](src/families/mathematics/), [domain profiles](docs/coverage/classification/domain-profiles.json) |
-| Search/growth | [Strategies](docs/search/strategies.md), [candidate example](examples/growth/retained-identity/OBLIGATIONS.md) |
+| Search/growth | [Strategies](docs/search/strategies.md), [proposals and retained candidates](docs/growth/retained-candidates.md) |
 | State/effects | [Operational model](docs/formal/operational.md), [environment](docs/contracts/environment.md) |
 | Native extension | [Development](docs/formal/native-development.md), [recovery](docs/formal/native-recovery.md) |
 | Deployment/performance | [Staging](docs/deployment/local-staging.md), [measurements](docs/performance/installed-runtime-pilot.md) |

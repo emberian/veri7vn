@@ -129,11 +129,11 @@
     "tools/dev/README.md": 1869
   },
   "current_tracked_files": 123,
-  "current_words": 68427,
-  "reduction_percent": 67.01,
+  "current_words": 68583,
+  "reduction_percent": 66.94,
   "current_per_file": {
     "AGENTS.md": 372,
-    "README.md": 587,
+    "README.md": 743,
     "benchmarks/staging/README.md": 243,
     "deployment/README.md": 84,
     "docs/ARCHITECTURE_PROPOSAL.md": 1375,
@@ -258,7 +258,7 @@
   },
   "current_sha256": {
     "AGENTS.md": "4e9198c7e23c9b9c7f38e7b54386bc24add4ac185743dee493ea300ced06d7fd",
-    "README.md": "9913b8e202ce28976c8793cc728df5a09d2915ea9ea68cf1023130922c0aa4c9",
+    "README.md": "08f364fc70b08c0ee0baf5c232283b776ce4913731f04c602c707bd8b85a70d7",
     "benchmarks/staging/README.md": "db89d7cef1d178a96094d8094e3d03eb00e51fdb24217c244e378869767ffb79",
     "deployment/README.md": "df605d6f13e1af762446608687ba53cc802afb7cc37352ff2f999b2d8f868bc2",
     "docs/ARCHITECTURE_PROPOSAL.md": "e924835e8ce551c587544f8b7955402548ff4292d506212d80054dfcefc7f5aa",
