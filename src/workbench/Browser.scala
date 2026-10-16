@@ -22,6 +22,16 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
   private def input(name:String,value:String="")="<input name=\""+name+"\" value=\""+escape(value)+"\">"
   private def hidden(name:String,value:String)="<input type=hidden name=\""+name+"\" value=\""+escape(value)+"\">"
   private def form(action:String,body:String)="<form method=post>"+hidden("token",token)+hidden("action",action)+body+"<button>"+action+"</button></form>"
+  private def workspaceURL(draft:String,file:Option[String]=None,view:Option[String]=None):String={
+    def encoded(value:String)=java.net.URLEncoder.encode(value,UTF_8)
+    "/?package="+encoded(draft)+file.map(path=>"&file="+encoded(path)).getOrElse("")+view.map(name=>"&view="+encoded(name)).getOrElse("")
+  }
+  private def packageLink(draft:String):String="<p><a href=\""+escape(workspaceURL(draft))+"\">Back to "+escape(draft)+" package workspace</a></p>"
+  private def sourceView(draft:String,file:String):String={
+    val source=author.source(draft,file);val snapshot=source.snapshot
+    packageLink(draft)+"<h2>"+escape(file)+"</h2><p>Source revision "+escape(snapshot.revision.id)+"</p>"+
+      editor(snapshot.draft,file,snapshot.manifest,snapshot.revision.id,java.util.Base64.getEncoder.encodeToString(source.entry.content.bytes),source.text)
+  }
   private def assistanceForm(draft:String,file:String,manifest:String,revision:String,text:String):String=
     "<details><summary>Review a source change</summary><p>Choose an obligation, condition or proposed example, then review its effect on meaning. This is author-selected context, not a native check result.</p>"+
     form("Preview source change",hidden("draft",draft)+hidden("file",file)+hidden("manifest",manifest)+hidden("revision",revision)+
@@ -44,6 +54,12 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
     val plan=Assistance.plan(snapshot,p("obligation"),p("context"),p("file"),p("start").toInt,p("stop").toInt)
     Assistance.review(plan,Assistance.Choice.valueOf(p("choice")),Repair.Meaning.valueOf(p("meaning")),p("reason"),Intake.Content(p("replacement").getBytes(UTF_8)))
   }
+  private def submittedChange(p:Map[String,String],message:String):String=
+    packageLink(p("draft"))+"<p role=alert>"+escape(message)+"</p><h2>Your submitted replacement</h2><p>Review the current file before starting another review. This replacement is not merged automatically.</p>"+
+      "<p>Submitted work item: "+escape(p("obligation"))+"</p><p>"+escape(p("choice")+" — "+p("meaning"))+"</p><p>"+escape(p("reason"))+"</p>"+
+      "<p>Submitted target: "+escape(p("file"))+", revision "+escape(p("revision"))+".</p>"+
+      "<textarea readonly rows=12 aria-label='Unapplied submitted replacement'>"+escape(p("replacement"))+"</textarea>"+
+      form("Open current source",hidden("draft",p("draft"))+hidden("file",p("file")))
   private def packageView(draft:String):String={
     val snapshot=author.inspect(draft)
     val description=try {
@@ -54,8 +70,28 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
         "<h3>Declared capabilities</h3><ul>"+d.exports.map(e=>"<li>"+escape(e.title+" ("+e.id+") — "+e.specification.theory+"."+e.specification.name)+"</li>").mkString+"</ul>"+
         "<p>These are source declarations; inspection does not establish native admission.</p>"
     } catch {case e:IllegalArgumentException=>"<p role=alert>Package descriptor needs attention: "+escape(e.getMessage)+". Source files remain available below.</p>"}
-    "<h2>"+escape(snapshot.draft)+"</h2><p>Source revision "+escape(snapshot.revision.id)+"</p><p>Manifest "+escape(snapshot.manifest)+"</p>"+description+
-      "<ul>"+snapshot.revision.entries.map(e=>"<li>"+escape(e.path)+" — "+e.content.size+" bytes"+form("Open",hidden("draft",snapshot.draft)+hidden("file",e.path))+"</li>").mkString+"</ul>"
+    "<h2>"+escape(snapshot.draft)+" package workspace</h2><p>Source revision "+escape(snapshot.revision.id)+"</p><p>Manifest "+escape(snapshot.manifest)+"</p>"+description+
+      "<p><a href=\""+escape(workspaceURL(draft,view=Some("impact")))+"\">Inspect affected package declarations</a></p>"+
+      execution.map(_=>"<section><h3>Inspect a retained run</h3><p>Enter a request ID to inspect its actual native provenance beside this package. Opening a package does not associate that request with its edited source.</p><form method=get>"+hidden("package",draft)+"<label>Request ID "+input("request")+"</label><button>Inspect retained run</button></form></section>").getOrElse("")+
+      "<p><a href=\""+escape(workspaceURL(draft,view=Some("migration")))+"\">Inspect original-source mapping and obligations</a></p><h3>Package source files</h3><ul>"+snapshot.revision.entries.map(e=>"<li><a href=\""+escape(workspaceURL(draft,Some(e.path)))+"\">"+escape(e.path)+"</a>"+" — "+e.content.size+" bytes"+form("Open",hidden("draft",snapshot.draft)+hidden("file",e.path))+"</li>").mkString+"</ul>"
+  }
+  private def impactView(draft:String):String={
+    val view=author.impact(draft)
+    packageLink(draft)+"<h2>Change impact for "+escape(draft)+"</h2><p>"+escape(view.scope)+"</p><p role=status>"+escape(view.qualification)+"</p>"+
+      view.target.map(target=>"<p>Selected source revision "+escape(target.revision)+".</p>").getOrElse("")+
+      "<h3>Inspected dependency paths</h3><ul>"+view.affected.map(row=>"<li><a href=\""+escape(workspaceURL(row.consumer.draft))+"\">"+escape(row.consumer.draft)+"</a>: "+escape(row.pathToTarget.mkString(" → "))+"; inspected revision "+escape(row.consumer.revision)+"</li>").mkString+"</ul>"+
+      (if(view.computed && view.affected.isEmpty)"<p>No dependent package was found in the inspected declaration graph. Unavailable descriptors and missing providers are listed below.</p>"else "")+
+      "<h3>Inspection limits</h3><ul>"+view.issues.map(issue=>"<li>"+escape(veri7vn.diagnostics.PackageImpact.issueText(issue))+"</li>").mkString+"</ul>"+
+      "<details><summary>Inspected source revisions</summary><ul>"+view.inspected.map(pkg=>"<li>"+escape(pkg.draft+" — "+pkg.key.id+" @ "+pkg.key.version+" — "+pkg.revision)+"</li>").mkString+"</ul></details>"
+  }
+  private def migrationView(draft:String):String={
+    val report=author.migration(draft)
+    packageLink(draft)+"<h2>Original specialist</h2>"+report.diagnostics.map(d=>"<p>"+escape(d.path.getOrElse("Package")+": "+d.message)+"</p>").mkString+
+              report.candidates.map(c=>"<section><h3>Proposed native formula</h3><p>This is a source mapping proposal; its obligations remain open.</p><p>Original source: "+
+                escape(c.originalPath)+"</p><details><summary>Original byte identity</summary><code>"+escape(c.originalSHA256)+"</code></details><pre>"+escape(c.command)+"</pre>"+
+                "<h4>Parameter meanings</h4><ul>"+c.parameterMeanings.map(v=>"<li>"+escape(v)+"</li>").mkString+"</ul><h4>Remaining obligations</h4><ul>"+
+                c.remainingObligations.map(v=>"<li>"+escape(v)+"</li>").mkString+"</ul><h4>Intentional repairs</h4><ul>"+
+                c.intentionalRepairs.map(v=>"<li>"+escape(v)+"</li>").mkString+"</ul></section>").mkString
   }
   private def requestView(id:BigInt):String={
     val result=execution.get.result(id)
@@ -79,7 +115,16 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
       if(exchange.getRequestMethod=="GET") {
         val query=Option(exchange.getRequestURI.getRawQuery).getOrElse("")
         require(query.length<=1024,"Query too large")
-        fields(query).get("request").foreach(id=>body=requestView(BigInt(id)))
+        val parameters=fields(query)
+        parameters.get("package").foreach {draft=>
+          body=parameters.get("file") match {
+            case Some(file)=>sourceView(draft,file)
+            case None if parameters.get("view").contains("migration")=>migrationView(draft)
+            case None if parameters.get("view").contains("impact")=>impactView(draft)
+            case None=>packageView(draft)
+          }
+        }
+        parameters.get("request").foreach(id=>body=body+requestView(BigInt(id)))
       }
       if(exchange.getRequestMethod=="POST") {
         require(exchange.getRequestHeaders.getFirst("Origin")==null || exchange.getRequestHeaders.getFirst("Origin")==url.stripSuffix("/"),"Foreign browser origin")
@@ -110,27 +155,34 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
             val id=reviews.issue(captured)
             val target=session.review.plan.target
             val location=SourceLocation.locate(target.snapshot,target.path,target.start,target.stop,target.snapshot.revision.id)
-            body="<h2>Review source change</h2><p>Work item: "+escape(target.obligation)+"</p><p>"+escape(captured("choice")+" — "+captured("meaning"))+"</p><p>"+escape(captured("reason"))+"</p>"+
+            body=packageLink(captured("draft"))+"<h2>Review source change</h2><p>Work item: "+escape(target.obligation)+"</p><p>"+escape(captured("choice")+" — "+captured("meaning"))+"</p><p>"+escape(captured("reason"))+"</p>"+
               "<p>"+escape(target.path)+", line "+location.line+", column "+location.column+".</p><details><summary>Captured source identity</summary>Revision "+escape(captured("revision"))+", bytes "+target.start+"–"+target.stop+".</details><h3>Original</h3><pre>"+escape(Authoring.decode(target.original))+"</pre><h3>Replacement</h3><pre>"+escape(captured("replacement"))+"</pre>"+
               "<p>Applying records editable source only. Native revalidation remains a separate operation.</p>"+
               form("Apply reviewed change",hidden("review",id)+captured.toVector.sortBy(_._1).map((key,value)=>hidden(key,value)).mkString)+
               form("Cancel reviewed change",hidden("review",id))
           case "Apply reviewed change"=>
             val captured=reviewFields.toVector.map(key=>key->p(key)).toMap
-            require(reviews.consume(p("review"),captured),"Review expired, changed or already used. Preview the change again.")
-            val result=currentReview(captured).applyTo("review-"+p("review"),author)
-            body="<p role=status>"+escape(Assistance.resultMessage(result))+"</p>"+packageView(captured("draft"))
+            if(!reviews.consume(p("review"),captured))
+              body=submittedChange(captured,"Review expired, changed or already used. Preview the change again.")
+            else {
+              val attempted=try Right(currentReview(captured).applyTo("review-"+p("review"),author))
+                catch {case problem:Exception=>Left(Option(problem.getMessage).getOrElse("The source change could not be confirmed. Inspect the current source before retrying."))}
+              body=attempted match {
+                case Right(result @ Assistance.Saved(veri7vn.packages.lifecycle.ManagedDrafts.Recorded(receipt,_))) if receipt.status.toString=="Committed"=>
+                  packageLink(captured("draft"))+"<p role=status>"+escape(Assistance.resultMessage(result))+"</p>"+form("Open current source",hidden("draft",captured("draft"))+hidden("file",captured("file")))
+                case Right(result)=>submittedChange(captured,Assistance.resultMessage(result))
+                case Left(message)=>submittedChange(captured,message)
+              }
+            }
           case "Cancel reviewed change"=>
             require(reviews.cancel(p("review")),"Review expired or already used")
             body="<p role=status>Review cancelled. No source change was applied.</p>"
           case "Import"=>
             val result=author.importSource(UUID.randomUUID().toString,p("draft"),Path.of(p("path")),
               if(p.get("format").contains("original"))Intake.Format.Oracle7Original else Intake.Format.NativeDevelopment)
-            body="<p>Import result: "+escape(Authoring.resultMessage(result))+"</p>"
-          case "Open"=>
-            val source=author.source(p("draft"),p("file"));val s=source.snapshot
-            body="<h2>"+escape(p("file"))+"</h2><p>Source revision "+escape(s.revision.id)+"</p>"+
-              editor(s.draft,p("file"),s.manifest,s.revision.id,java.util.Base64.getEncoder.encodeToString(source.entry.content.bytes),source.text)
+            body="<p>Import result: "+escape(Authoring.resultMessage(result))+"</p>"+packageLink(p("draft"))
+          case "Open"|"Open current source"=>
+            body=sourceView(p("draft"),p("file"))
           case "Save"=>
             val original=java.util.Base64.getDecoder.decode(p("original"))
             val result=author.edit(UUID.randomUUID().toString,p("draft"),p("manifest"),p("revision"),p("file"),0,original.length,original,p("replacement").getBytes(UTF_8))
@@ -139,24 +191,18 @@ final class Browser(author:Authoring,execution:Option[Execution]=None) extends A
               case veri7vn.packages.lifecycle.ManagedDrafts.Recorded(receipt,_)=>receipt.status.toString=="Committed"
               case _=>false
             }
-            body="<p role=status>"+escape(Authoring.resultMessage(result))+"</p>"+
+            body=packageLink(p("draft"))+"<p role=status>"+escape(Authoring.resultMessage(result))+"</p>"+
               (if(committed)editor(latest.snapshot.draft,p("file"),latest.snapshot.manifest,latest.snapshot.revision.id,
                 java.util.Base64.getEncoder.encodeToString(latest.entry.content.bytes),latest.text)
                else editor(p("draft"),p("file"),p("manifest"),p("revision"),p("original"),p("replacement")))
           case "Inspect"=>body=packageView(p("draft"))
           case "Migration"=>
-            val report=author.migration(p("draft"))
-            body="<h2>Original specialist</h2>"+report.diagnostics.map(d=>"<p>"+escape(d.path.getOrElse("Package")+": "+d.message)+"</p>").mkString+
-              report.candidates.map(c=>"<section><h3>Proposed native formula</h3><p>This is a source mapping proposal; its obligations remain open.</p><p>Original source: "+
-                escape(c.originalPath)+"</p><details><summary>Original byte identity</summary><code>"+escape(c.originalSHA256)+"</code></details><pre>"+escape(c.command)+"</pre>"+
-                "<h4>Parameter meanings</h4><ul>"+c.parameterMeanings.map(v=>"<li>"+escape(v)+"</li>").mkString+"</ul><h4>Remaining obligations</h4><ul>"+
-                c.remainingObligations.map(v=>"<li>"+escape(v)+"</li>").mkString+"</ul><h4>Intentional repairs</h4><ul>"+
-                c.intentionalRepairs.map(v=>"<li>"+escape(v)+"</li>").mkString+"</ul></section>").mkString
+            body=migrationView(p("draft"))
           case _=>throw new IllegalArgumentException("Unknown action")
         }
       }
     } catch {case e:Exception=>body="<p role=alert>"+escape(Option(e.getMessage).getOrElse(e.getClass.getSimpleName))+"</p>"}
-    val listing=try "<h2>Packages</h2><ul>"+author.list().map(id=>"<li>"+escape(id)+form("Inspect",hidden("draft",id))+"</li>").mkString+"</ul>"
+    val listing=try "<h2>Packages</h2><ul>"+author.list().map(id=>"<li><a href=\""+escape(workspaceURL(id))+"\">"+escape(id)+"</a>"+form("Inspect",hidden("draft",id))+"</li>").mkString+"</ul>"
       catch {case e:IllegalArgumentException=>"<p>"+escape(e.getMessage)+"</p>"}
     val running=execution.map(_=>"<section><h2>Ask the installed mathematics specialist</h2><p>Requests use the installed native capability. Editing a package does not change this specialist. Retained result HTML is supplied only by the native service.</p>"+
       form("Run mathematics","<label>Question "+input("question")+"</label>")+

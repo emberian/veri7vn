@@ -8,7 +8,9 @@ import java.nio.file.Files
       "src/packages/lifecycle/OperationIdentity.scala","src/packages/lifecycle/ManagedDrafts.scala",
       "src/packages/lifecycle/InertJSON.scala","src/packages/lifecycle/PackageModel.scala","src/packages/lifecycle/PackageUpdates.scala","src/packages/lifecycle/LegacyPanel.scala","src/packages/lifecycle/LegacyMapping.scala",
       "src/workbench/Authoring.scala","src/diagnostics/Diagnostics.scala","src/diagnostics/RequestInspection.scala",
-      "src/diagnostics/Repair.scala","src/diagnostics/BuildFailure.scala","tests/diagnostics/BuildFailureTests.scala","tests/diagnostics/DiagnosticsTests.scala")
+      "src/diagnostics/Repair.scala","src/diagnostics/BuildFailure.scala","src/diagnostics/SourceDiagnostic.scala","src/diagnostics/PackageImpact.scala",
+      "src/runtime/effects/WorkerResources.scala","src/packages/native_build/NativeBuildInputs.scala","src/packages/lifecycle/SessionInventory.scala",
+      "tests/diagnostics/BuildFailureTests.scala","tests/diagnostics/SourceDiagnosticTests.scala","tests/diagnostics/PackageImpactTests.scala","tests/diagnostics/DiagnosticsTests.scala")
     require(!dotty.tools.dotc.Main.process((List("-classpath",System.getProperty("java.class.path"),"-d",output.toString)++sources).toArray).hasErrors,"Diagnostics compilation failed")
     val loader=new java.net.URLClassLoader(Array(output.toUri.toURL),Thread.currentThread().getContextClassLoader)
     try {

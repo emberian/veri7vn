@@ -10,7 +10,7 @@ import veri7vn.diagnostics.Repair
 /** Local source authoring CLI; the workspace lock prevents competing writers. */
 object Workbench {
   def run(args:Array[String]):Unit={
-    require(args.length>=2,"Usage: workspace command [draft arguments]; commands: list, serve, import-original, import-native, inspect, source, migration, edit, review")
+    require(args.length>=2,"Usage: workspace command [draft arguments]; commands: list, serve, import-original, import-native, inspect, impact, source, migration, edit, review")
     val store=new WorkspaceStore(Path.of(args(0)))
     val managed=new ManagedSources(store)
     try {
@@ -44,6 +44,14 @@ object Workbench {
             descriptor.exports.foreach(e=>println("Declared capability: "+e.id+" — "+e.specification.theory+"."+e.specification.name))
             println("Source inspection does not establish native admission.")
           } catch {case problem:IllegalArgumentException=>println("Package descriptor needs attention: "+problem.getMessage)}
+        case "impact"=>
+          require(args.length==2,"impact requires a package name")
+          val view=author.impact(draft)
+          println(view.scope+"\n"+view.qualification)
+          view.target.foreach(target=>println("Selected source revision: "+target.revision))
+          view.affected.foreach(row=>println("Inspected dependency path: "+row.consumer.draft+"; "+row.pathToTarget.mkString(" -> ")+"; revision "+row.consumer.revision))
+          view.issues.foreach(issue=>println("Inspection limit: "+veri7vn.diagnostics.PackageImpact.issueText(issue)))
+          view.inspected.foreach(pkg=>println("Inspected: "+pkg.draft+"; "+pkg.key.id+" @ "+pkg.key.version+"; revision "+pkg.revision))
         case "source"=>require(args.length==3);print(author.source(draft,args(2)).text)
         case "migration"=>
           val report=author.migration(draft)

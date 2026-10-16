@@ -21,6 +21,9 @@ object RequestInspection {
   final case class Inspection(identity:Identity,status:String,reading:Option[Reading],
     readingUnavailable:Option[String]) {
     def explanation:Diagnostics.Explanation=Diagnostics.explain(status)
+    def informationLimits:Vector[String]=Vector(
+      "This inspection reports the selected reading and native request associations.",
+      "Assumption audits, source coverage, and runtime dependency impact are not projected here; their absence does not mean an empty premise set or complete coverage.")
     def provenance:Vector[(String,String)]=Vector("Request"->identity.request.toString,
       "Goal"->identity.goal.toString,"Interpretation"->identity.interpretation.toString,
       "Selection decision"->identity.decision.toString,"Capability"->identity.capability.toString,

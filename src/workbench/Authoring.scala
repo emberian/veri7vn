@@ -23,6 +23,16 @@ final class Authoring(managed:ManagedSources) {
   }.getOrElse(throw new IllegalArgumentException("Package unavailable: "+draft))
   def describe(draft:String):veri7vn.packages.lifecycle.PackageUpdates.SourceDescription=
     veri7vn.packages.lifecycle.PackageUpdates.describe(inspect(draft).revision)
+  /** Reads heads individually; the impact view reports those exact observed pins. */
+  def impact(draft:String):veri7vn.diagnostics.PackageImpact.View={
+    val descriptions=Vector.newBuilder[(String,veri7vn.packages.lifecycle.PackageUpdates.SourceDescription)]
+    val unavailable=Vector.newBuilder[veri7vn.diagnostics.PackageImpact.Unavailable]
+    list().foreach {name=>
+      try descriptions+=((name,describe(name)))
+      catch {case problem:IllegalArgumentException=>unavailable+=veri7vn.diagnostics.PackageImpact.Unavailable(name,Option(problem.getMessage).getOrElse("Descriptor unavailable"))}
+    }
+    veri7vn.diagnostics.PackageImpact.inspect(descriptions.result(),unavailable.result(),draft)
+  }
   def importSource(operation:String,draft:String,path:Path,format:Intake.Format):ManagedDrafts.Result={
     val source=if(Files.isDirectory(path))Intake.directory(path,format)else Intake.zip(path,format)
     drafts.create(operation,draft,source)

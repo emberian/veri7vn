@@ -15,6 +15,8 @@ object DiagnosticsTests {
   }
   def main(args:Array[String]):Unit={
     BuildFailureTests.run()
+    SourceDiagnosticTests.run()
+    PackageImpactTests.run()
     assert(Diagnostics.explain("budget").outcome==Diagnostics.Outcome.Inconclusive)
     assert(Diagnostics.explain("timeout").outcome==Diagnostics.Outcome.Inconclusive)
     assert(Diagnostics.explain("cancelled").outcome==Diagnostics.Outcome.Cancelled)
