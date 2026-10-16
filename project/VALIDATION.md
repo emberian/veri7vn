@@ -886,3 +886,14 @@ repair/conflict and transfer behavior; runtime compilation does not establish
 native service execution. Subsequent browser reload/migration-display and build
 diagnostic changes require the newly scheduled finite Scala check. They are not
 retroactively covered by this receipt.
+
+The subsequent finite checkpoint `012b2a2987b94f449337a51985bd130d` passed in
+21.979s with stable inputs. Root read both script logs and matched all 36 files
+in the source-client checkpoint against the before/after hashes of this receipt
+or the unchanged d4eb receipt. Actual HTTP authoring tests include migration
+formula/obligation presentation and consecutive edits. The new build-failure
+decoder checks closed phases, exact native associations, UTF-8 byte limits and
+text-only diagnostics. Repair applies a real captured source patch and rejects
+stale/forgotten sources. Browser Post/Redirect/Get compiles in this checkpoint;
+its native execution/reload test remains separate. The native build diagnostic
+producer, admission and resident inspection consumers also remain open.

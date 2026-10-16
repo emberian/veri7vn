@@ -1,0 +1,41 @@
+{
+  "status": "fixture-expectations-not-executed-observations",
+  "candidate": "Retained_Identity.identity_candidate",
+  "mechanism": "typed-bounded-enumeration-retained-library",
+  "samples": [
+    {
+      "bindings": [
+        [
+          0,
+          "0"
+        ]
+      ],
+      "expected": "0"
+    },
+    {
+      "bindings": [
+        [
+          0,
+          "1"
+        ]
+      ],
+      "expected": "1"
+    }
+  ],
+  "rejected_alternative": "Rational 0 agrees at zero but fails at one",
+  "activation": "none",
+  "native_sample_source": {
+    "path": "samples.native",
+    "encoding": "UTF-8",
+    "slices": [
+      {
+        "start": 0,
+        "stop": 29
+      },
+      {
+        "start": 30,
+        "stop": 59
+      }
+    ]
+  }
+}
