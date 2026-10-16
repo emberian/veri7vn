@@ -69,7 +69,8 @@ struct
   fun get(Witness{view,root})=
     (require(Claim.is_live view) "Search native proof view released or releasing";
      case #2(Synchronized.value root)of SOME p=>p|NONE=>error "Search native proof association released");
-  fun live witness=(let val {receiver,development,consequence,accepted,...}=get witness
+  fun payload_live({receiver,development,consequence,accepted,...}:payload)=
+    (let
       val proof=P.generation development;
       val generation=P.generation receiver;
     in P.development_live receiver andalso
@@ -77,6 +78,7 @@ struct
       R.same_generation(A.generation accepted,generation) andalso
       Context.eq_thy(Proof_Context.theory_of(R.context proof),Proof_Context.theory_of(R.context generation))
     end)handle ERROR _=>false;
+  fun live witness=payload_live(get witness)handle ERROR _=>false;
   fun active_live witness=live witness andalso
     (let val{request,child,...}=get witness in Q.live request andalso Scope.child_live child end)
       handle ERROR _=>false;
@@ -88,7 +90,9 @@ struct
   fun project witness= #projection(checked witness);
   fun retain(witness as Witness{root,view})=Thread_Attributes.uninterruptible_body(fn _=>
     Claim.with_live view(fn()=>
-    let val _=require(live witness) "Search native proof root unavailable";
+    let val payload=case #2(Synchronized.value root)of SOME p=>p|
+        NONE=>error "Search native proof root released";
+      val _=require(payload_live payload) "Search native proof root unavailable";
       val next=Claim.create();
       val _=Synchronized.change root(fn(n,SOME p)=>
           (require(n>0 andalso n<1024) "Search retained proof view bound";(n+1,SOME p))|
@@ -190,20 +194,27 @@ struct
   fun reconstruct_into target scope request wire=
     Thread_Attributes.uninterruptible(fn restore=>fn()=>
       let val _=require(is_none(!target)) "Search proof cleanup target already occupied";
-        val (development,consequence)=restore(fn()=>Q.prove_owned scope request wire)();
-        val result=Exn.capture(restore(fn()=>bind request development consequence(SOME wire)
-          (fn()=>P.release development)))();
-      in case result of Exn.Res witness=>(target:=SOME witness;witness)
-        | Exn.Exn failure=>(P.release development;Exn.reraise failure)end)();
+        (* restore is monomorphic in Isabelle/ML. Both interruptible operations
+           return unit; their distinct native products remain scope/ref owned. *)
+        val produced=Unsynchronized.ref(NONE:(P.development*P.consequence)option);
+        val owned=Unsynchronized.ref(NONE:witness option);
+        val _=restore(fn()=>produced:=SOME(Q.prove_owned scope request wire))();
+        val (development,consequence)=the(!produced);
+        val result=Exn.capture(restore(fn()=>owned:=SOME(bind request development consequence(SOME wire)
+          (fn()=>P.release development))))();
+      in case result of Exn.Res()=>
+          let val witness=the(!owned);val _=target:=SOME witness;val _=owned:=NONE in witness end
+        | Exn.Exn failure=>
+          ((case !owned of SOME witness=>release witness|NONE=>P.release development);Exn.reraise failure)end)();
   fun restore_into target request (saved:saved) verified=
     Thread_Attributes.uninterruptible(fn restore=>fn()=>
       let val owned=Unsynchronized.ref(NONE:witness option);
         val result=Exn.capture(fn()=>
           let val _=require(is_none(!target)) "Search restored cleanup target already occupied";
             val consequence=V.consequence verified;
-            val witness=restore(fn()=>bind request(P.consequence_development consequence)consequence NONE
-              (fn()=>V.release verified))();
-            val _=owned:=SOME witness;
+            val _=restore(fn()=>owned:=SOME(bind request(P.consequence_development consequence)consequence NONE
+              (fn()=>V.release verified)))();
+            val witness=the(!owned);
             val actual=snapshot witness;
             val _=require(#identity actual= #identity saved andalso
               #receiver_semantic actual= #receiver_semantic saved andalso #proof_semantic actual= #proof_semantic saved andalso

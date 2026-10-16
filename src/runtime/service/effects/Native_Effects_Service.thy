@@ -75,6 +75,46 @@ definition service_effect_stage ::
 definition service_effect_start :: "service_effect_names \<Rightarrow> event" where
   "service_effect_start n = ClaimAndStart (se_attempt n)"
 
+definition service_effect_request_origin :: "service_effect_names \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> request option" where
+  "service_effect_request_origin n prestate deps=(case service_effect_reserve n prestate deps of
+    ReserveRequest r slots \<Rightarrow> Some r | _\<Rightarrow>None)"
+definition service_effect_request_immutable :: "request \<Rightarrow> request" where
+  "service_effect_request_immutable r=r\<lparr>request_blockers:=[],request_cancelled:=False,request_fuel:=1,
+    request_goals:=map (\<lambda>g. g\<lparr>goal_outcome:=NeedsInput []\<rparr>)(request_goals r)\<rparr>"
+definition service_effect_request_matches ::
+  "authority_state \<Rightarrow> service_effect_names \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> nat list \<Rightarrow> bool" where
+  "service_effect_request_matches s n prestate sources deps \<longleftrightarrow>
+    (case filter (\<lambda>r. request_id r=se_request n) (required_native_effect_requests s) of [r] \<Rightarrow>
+      request_fuel r\<le>1 \<and> service_effect_request_origin n prestate deps=Some(service_effect_request_immutable r) \<and>
+      (case filter (\<lambda>a. attempt_request(attempt_intent a)=se_request n) (attempts s) of []\<Rightarrow>True
+        |[a]\<Rightarrow>attempt_intent a=service_effect_intent n prestate sources deps \<and>
+          length(filter (\<lambda>b. attempt_id(attempt_intent b)=se_attempt n)(attempts s))=1
+        |_\<Rightarrow>False)
+     |_\<Rightarrow>False)"
+definition service_effect_handoff_current :: "authority_state \<Rightarrow> nat \<Rightarrow> bool" where
+  "service_effect_handoff_current s identity \<longleftrightarrow>
+    (case filter (\<lambda>a. attempt_id(attempt_intent a)=identity)(attempts s) of [a]\<Rightarrow>
+      attempt_state a=Running \<and> effect_current_context s (attempt_intent a) |_\<Rightarrow>False)"
+definition service_effect_observation :: "nat \<Rightarrow> nat \<Rightarrow> bool \<Rightarrow> effect_observation" where
+  "service_effect_observation identity source rejected=\<lparr>effect_observation_attempt=identity,
+    effect_observation_source=source,effect_observation_status=(if rejected then EffectFailed else Confirmed)\<rparr>"
+definition service_effect_observation_stage :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool \<Rightarrow> event" where
+  "service_effect_observation_stage batch identity source rejected=
+    StageEffectObservation batch (service_effect_observation identity source rejected)"
+definition service_effect_observation_matches ::
+  "authority_state \<Rightarrow> service_effect_names \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> nat list \<Rightarrow> nat \<Rightarrow> bool \<Rightarrow> bool" where
+  "service_effect_observation_matches s n prestate sources deps source rejected \<longleftrightarrow>
+    service_effect_request_matches s n prestate sources deps \<and>
+    filter (\<lambda>observation. effect_observation_source observation=source)
+      (required_native_effect_observations s)=[service_effect_observation (se_attempt n) source rejected]"
+
+definition service_effect_source_visible :: "authority_state \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool \<Rightarrow> bool" where
+  "service_effect_source_visible s source identity owner rejected \<longleftrightarrow>
+    filter (\<lambda>observation. effect_observation_source observation=source)
+      (required_native_effect_observations s)=[service_effect_observation identity source rejected] \<and>
+    (case filter (\<lambda>a. attempt_id(attempt_intent a)=identity)(attempts s) of [a]\<Rightarrow>
+      attempt_request(attempt_intent a)=owner |_\<Rightarrow>False)"
+
 lemma service_effect_intent_exact:
   "attempt_cost (service_effect_intent n prestate sources deps)=service_effect_cost n \<and>
     attempt_sources (service_effect_intent n prestate sources deps)=sources \<and>
@@ -83,8 +123,11 @@ lemma service_effect_intent_exact:
 
 ML_file "native_effect_inputs.ML"
 ML_file "native_effect_responses.ML"
+ML_file "native_effect_codec.ML"
 ML_file "native_effect_service.ML"
 ML_file "native_effect_observation.ML"
+ML_file "native_effect_export.ML"
+ML_file "native_effect_recovery.ML"
 ML \<open>
 structure Veri7vn_Native_Effect_Image =
 struct

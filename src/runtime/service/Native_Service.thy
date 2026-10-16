@@ -140,8 +140,9 @@ definition service_math_reserve :: "service_math_names \<Rightarrow> nat \<Right
       request_code_generation=sm_code n,request_prestate=prestate,
       request_dependencies=deps,allowed_routes=[RefinedExecution],permitted_effects=[],
       request_goals=[\<lparr>goal_id=sm_goal n,goal_interpretation=sm_interpretation n,
-        goal_capability=sm_capability n,goal_generation=sm_semantic n,goal_code_generation=sm_code n,goal_dependencies=[],
-        goal_required=ClaimRequirement (service_math_requirement n deps),goal_output_slot=Some (sm_slot n),
+        goal_capability=sm_capability n,goal_dependencies=[],
+        goal_required=ClaimRequirement (service_math_requirement n deps),
+          goal_generation=sm_semantic n,goal_code_generation=sm_code n,goal_output_slot=Some (sm_slot n),
         goal_outcome=AwaitingOutput (sm_slot n)\<rparr>],request_blockers=[],
       request_cancelled=False,request_fuel=fuel,request_session=None,
       request_observation=StateTimeUnused,request_retention_scopes=[RequestLocal (sm_request n)]\<rparr>
@@ -341,8 +342,9 @@ definition service_math_request_matches ::
       (request_fuel r=0 \<or> request_fuel r=cost) \<and>
       map (\<lambda>g. g\<lparr>goal_outcome:=AwaitingOutput (sm_slot n)\<rparr>) (request_goals r) =
         [\<lparr>goal_id=sm_goal n,goal_interpretation=sm_interpretation n,
-          goal_capability=sm_capability n,goal_generation=sm_semantic n,goal_code_generation=sm_code n,goal_dependencies=[],
-          goal_required=ClaimRequirement (service_math_requirement n deps),goal_output_slot=Some (sm_slot n),
+          goal_capability=sm_capability n,goal_dependencies=[],
+          goal_required=ClaimRequirement (service_math_requirement n deps),
+          goal_generation=sm_semantic n,goal_code_generation=sm_code n,goal_output_slot=Some (sm_slot n),
           goal_outcome=AwaitingOutput (sm_slot n)\<rparr>] \<and>
       \<lparr>output_slot_id=sm_slot n,output_owner=sm_request n,output_goal=sm_goal n,
         output_template=sm_template n,output_profile=sm_profile n,
@@ -357,12 +359,40 @@ definition service_execution_for :: "authority_state \<Rightarrow> nat \<Rightar
   "service_execution_for s rid = filter (\<lambda>run. execution_request run=rid) (pure_executions s)"
 definition service_restore_supported :: "authority_state \<Rightarrow> bool" where
   "service_restore_supported s = (pending_batch s=None \<and> attempts s=[] \<and>
+    effect_observations s=[] \<and> required_native_effect_requests s=[] \<and>
+    (\<forall>v\<in>set (retained_values s). case retained_owner v of SessionLocal _ \<Rightarrow> False | _ \<Rightarrow> True) \<and>
     source_publications s=[] \<and> acquisition_jobs s=[] \<and> session_views s=[] \<and>
     current_observations s=[] \<and> retention_grants s=[] \<and> consumed_retention_grants s=[] \<and>
     exposure_history s=[] \<and> qualification_eligibility s=[] \<and> spent_domains s=[] \<and>
     qualification_reservations s=[] \<and> qualification_started s=[] \<and>
     qualification_policies s=[] \<and> qualifications s=[] \<and> package_publications s=[] \<and>
     (\<forall>e\<in>set (required_native_evidence s). evidence_route e\<noteq>EvaluationOracle))"
+
+text \<open>The current resident reconstruction profile has no session-input or
+external-response consumer. Reject those obligations before requesting any recovery
+material. In particular a registered-but-unrecorded session source cannot disappear
+behind an empty session-view list. Wire 4 still carries both inventories; its source
+inventory is empty only for states accepted by this explicit profile.\<close>
+lemma service_restore_rejects_retained_session_source:
+  assumes "value \<in> set (retained_values s)" "retained_owner value = SessionLocal sid"
+  shows "\<not> service_restore_supported s"
+proof
+  assume "service_restore_supported s"
+  then have owners: "\<forall>v\<in>set (retained_values s).
+    case retained_owner v of SessionLocal _ \<Rightarrow> False | _ \<Rightarrow> True"
+    by (simp only: service_restore_supported_def; blast)
+  from owners assms(1) have "case retained_owner value of
+    SessionLocal _ \<Rightarrow> False | _ \<Rightarrow> True" by blast
+  with assms(2) show False by simp
+qed
+lemma service_restore_rejects_effect_observation:
+  assumes "effect_observations s \<noteq> []"
+  shows "\<not> service_restore_supported s"
+  using assms by (simp add: service_restore_supported_def)
+lemma service_restore_rejects_original_effect_request:
+  assumes "required_native_effect_requests s \<noteq> []"
+  shows "\<not> service_restore_supported s"
+  using assms by (simp add: service_restore_supported_def)
 
 ML_file \<open>metadata_frame.ML\<close>
 ML_file \<open>../../isabelle/language/natural/native_language_input.ML\<close>

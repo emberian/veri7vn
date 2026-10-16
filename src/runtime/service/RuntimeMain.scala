@@ -29,7 +29,13 @@ object RuntimeMain {
     }
     scala.util.Using.resource(RuntimeService.open(workspace.getOrElse(throw new IllegalArgumentException("--workspace required")),
       images.getOrElse(throw new IllegalArgumentException("--images required")),roots)){service=>
-      if(workbench.nonEmpty)veri7vn.cli.ResidentWorkbench.run(service,workbench.get)
+      if(workbench.nonEmpty){
+        val builds=if(service.client.supportsNativeBuild) {
+          val author=new veri7vn.workbench.Authoring(service.managedSources)
+          Some(new veri7vn.workbench.ResidentBuildWorkspace(service,author))
+        } else None
+        veri7vn.cli.ResidentWorkbench.run(service,workbench.get,builds)
+      }
       else {
       def nextProposal():Option[Array[Byte]]={
         val buffer=new Array[Byte](256)

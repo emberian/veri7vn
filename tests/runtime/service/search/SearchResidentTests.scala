@@ -51,6 +51,13 @@ object SearchResidentTests {
       val budget=await(search,budgetRequest)
       require(budget.isInstanceOf[SearchIngress.Unresolved] &&
         budget.asInstanceOf[SearchIngress.Unresolved].reason==SearchIngress.Stop.Budget,"native budget stop became proof/refutation")
+      val stoppedRequest=search.propose(context,literal.getBytes(UTF_8),SearchIngress.Budget(1,100,2,5000),actions)
+      val stopped=await(search,stoppedRequest).asInstanceOf[SearchIngress.Unresolved]
+      require(stopped.reason==SearchIngress.Stop.Budget,"cancelled stopped-source fixture did not actually exhaust its budget")
+      search.cancel(stoppedRequest)
+      val cancelledStopped=search.poll(stoppedRequest).asInstanceOf[SearchIngress.Unresolved]
+      require(cancelledStopped.reason==SearchIngress.Stop.Cancelled && cancelledStopped.progress==stopped.progress,
+        "cancellation erased actual stopped progress or retained active execution status")
       val cancelledRequest=search.propose(context,("P --> ("+Vector.fill(80)("P").mkString(" & ")+")").getBytes(UTF_8),
         SearchIngress.Budget(10000,1000,2,30000),actions)
       search.cancel(cancelledRequest)
@@ -70,6 +77,12 @@ object SearchResidentTests {
       require(store.latestNative.get.sequence==committedSequence,"search restore replayed native charge/event workflow")
       val restoredBudget=restoredRequests.find(r=>r.request==budgetRequest.request && r.goal==budgetRequest.goal && r.slot==budgetRequest.slot).get
       require(restarted.search.poll(restoredBudget)==budget,"budget restore replayed search or changed actual terminal outcome")
+      val restoredStopped=restoredRequests.find(_.request==stoppedRequest.request).get
+      require(restarted.search.poll(restoredStopped)==cancelledStopped,
+        "cancelled stopped-source restore lost exact progress or recreated active search")
+      val restoredCancelled=restoredRequests.find(_.request==cancelledRequest.request).get
+      require(restarted.search.poll(restoredCancelled).asInstanceOf[SearchIngress.Unresolved].reason==SearchIngress.Stop.Cancelled,
+        "cancelled no-proof original source was not restored as inert history")
       restarted.forget(restoredRequest.request)
       require(!restarted.search.requests().exists(_.request==restoredRequest.request),"Forget retained recoverable search child")
       val forgotten=restarted.search.poll(restoredRequest)

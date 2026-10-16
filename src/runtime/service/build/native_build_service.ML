@@ -227,6 +227,8 @@ struct
       val kept=Unsynchronized.ref([]:candidate_lease list)
       val kept_child=Unsynchronized.ref([]:Scope.child list)
       val pending_outputs=Unsynchronized.ref([]:output_lease list)
+      val header_root=Unsynchronized.ref(NONE:Thy_Header.header option)
+      val prepared_root=Unsynchronized.ref(NONE:B.prepared option)
       val _=Synchronized.change pending_constructions(fn old=>
         (require(length old<512) "Build pending construction bound";
          (construction_key,{scope=scope,parents=kept,children=kept_child,outputs=pending_outputs})::old))
@@ -248,7 +250,8 @@ struct
             in require(#request p= #request identity andalso
               exists(fn predecessor=> #slot(Scope.identity predecessor)= #slot p)(Scope.predecessors child))
               "Build parent is not an owned same-request predecessor"end)authored
-          val header=restore(fn()=>Thy_Header.read Position.none(L.original source))()
+          val _=restore(fn()=>header_root:=SOME(Thy_Header.read Position.none(L.original source)))()
+          val header=the(!header_root)
           val imports=map #1(#imports header)
           val _=require(forall(fn(raw,_)=>member(op =)imports raw)authored) "Unused authored build parent"
           val parents=map(fn raw=>case AList.lookup(op =)authored raw of
@@ -273,11 +276,12 @@ struct
           val child_root=Scope.retain_child child
           val _=kept_child:=[child_root]
           val input_bindings=parameter::map_filter(fn B.Installed _=>NONE|B.Candidate(id,_,_)=>SOME id)parents
-          val p=restore(fn()=>B.prepare builder{source= #theory_source data,slice= #theory_slice data,
+          val _=restore(fn()=>prepared_root:=SOME(B.prepare builder{source= #theory_source data,slice= #theory_slice data,
             original_intent=intent,source_revision= #source_revision data,manifest= #manifest data,
             parents=parents,exports=(case selection of DevelopmentOnly=>[]|DeclaredTheorems=>Intent.theorem_names intent),export_intent= #export_intent data,candidate=candidate_id,
             request= #request identity,goal= #goal identity,execution=execution,slot= #slot identity,
-            semantic_generation=semantic_generation,input_bindings=input_bindings})()
+            semantic_generation=semantic_generation,input_bindings=input_bindings}))()
+          val p=the(!prepared_root)
           val n={request= #request identity,goal= #goal identity,slot= #slot identity,
             interpretation= #interpretation identity,decision= #decision identity,
             parameter=parameter,candidate=candidate_id,execution=execution,capability=capability,

@@ -19,7 +19,7 @@ object ResidentNativeBridge {
     def positive(s:String):Boolean=s.matches("[1-9][0-9]{0,127}")
     val ordinary=rows(normal).map {line=>
       val fields=line.split(",",-1)
-      require(fields.length==3 && Set("request-child","artifact","evidence").contains(fields(0)) &&
+      require(fields.length==3 && Set("request-child","artifact","evidence","effect-request").contains(fields(0)) &&
         fields.tail.forall(positive),"native restore required identity")
       RequiredMaterial(fields(0),BigInt(fields(1)),Some(BigInt(fields(2))))
     }

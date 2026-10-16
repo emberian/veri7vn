@@ -28,20 +28,22 @@ struct
     in case result of Exn.Res value=>value
       | Exn.Exn failure=>(P.release development;Exn.reraise failure)end);
   fun with_view(Lease{root=Root root,owned})action=Synchronized.change_result owned(fn active=>
-    (require active "Session native context view released";
-     Synchronized.change_result root(fn NONE=>error "Session native context root released"
-       | SOME value=>(require(P.development_live(#development value)) "Session native context invalidated";
-           (action value,SOME value))),active));
+    let val _=require active "Session native context view released";
+      val result=Synchronized.change_result root(fn NONE=>error "Session native context root released"
+        | SOME value=>(require(P.development_live(#development value)) "Session native context invalidated";
+            (action value,SOME value)))
+    in (result,active) end);
   fun development lease=with_view lease #development;
   fun is_live lease=can development lease;
   fun retain(Lease{root=root as Root cell,owned})=Thread_Attributes.uninterruptible_body(fn _=>
     Synchronized.change_result owned(fn active=>
-      (require active "Session native context view released";
-       Synchronized.change_result cell(fn NONE=>error "Session native context root released"
-       | SOME{development,count}=>
-           (require(P.development_live development andalso count<8192) "Session native context retention bound";
-            (Lease{root=root,owned=Synchronized.var "session_context_retained_view" true},
-             SOME{development=development,count=count+1}))),active)));
+      let val _=require active "Session native context view released";
+        val result=Synchronized.change_result cell(fn NONE=>error "Session native context root released"
+          | SOME{development,count}=>
+              (require(P.development_live development andalso count<8192) "Session native context retention bound";
+               (Lease{root=root,owned=Synchronized.var "session_context_retained_view" true},
+                SOME{development=development,count=count+1})))
+      in (result,active) end));
   fun release(Lease{root=Root root,owned})=Thread_Attributes.uninterruptible_body(fn _=>
     let val final=Synchronized.change_result owned(fn false=>(NONE,false)
       | true=>(Synchronized.change_result root(fn NONE=>(NONE,NONE)

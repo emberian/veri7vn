@@ -105,7 +105,9 @@ struct
   fun prepare_into target (owner as Owner{ids,policy,development,context}) wire=
     Thread_Attributes.uninterruptible(fn restore=>fn()=>
       let val _=require(is_none(!target)) "Search source cleanup target already occupied";
-        val spec=restore(fn()=>Wire.parse wire)();
+        val spec_root=Unsynchronized.ref(NONE:Wire.proposal option);
+        val _=restore(fn()=>spec_root:=SOME(Wire.parse wire))();
+        val spec=the(!spec_root);
         val _=require(owner_live owner andalso #context spec=context) "Search selected native context is unavailable or differs";
         val qscope=Q.construction_scope();
         val pscope=P.construction_scope();
@@ -114,6 +116,8 @@ struct
         val child_root=Unsynchronized.ref(NONE:Scope.child option);
         val instance_root=Unsynchronized.ref(NONE:S.instance option);
         val entry_root=Unsynchronized.ref(NONE:entry option);
+        val facts_root=Unsynchronized.ref(NONE:P.consequence list option);
+        val request_root=Unsynchronized.ref(NONE:Q.request option);
         fun cleanup()=case !entry_root of SOME entry=>release entry | NONE=>
           (Q.abort_scope qscope;P.abort_scope pscope;
            Option.app S.release_instance(!instance_root);Option.app Scope.release_child(!child_root);
@@ -129,12 +133,14 @@ struct
             val child=Scope.new_child parent{source=L.slice input
               {start=0,stop=size(#original spec),expected= #original spec},predecessors=[]};
             val _=child_root:=SOME child;
-            val facts=restore(fn()=>map(fn text=>
+            val _=restore(fn()=>facts_root:=SOME(map(fn text=>
               let val name=Thm_Name.parse text;
                 val _=require(Thm_Name.print name=text) "Search catalogue requires exact native theorem names"
-              in P.public_theorem_owned pscope development name end)(#catalogue spec))();
-            val request=restore(fn()=>Q.prepare_child_owned qscope instance child
-              {receiver=development,worker=development,source=source,facts=facts,actions= #actions spec})();
+              in P.public_theorem_owned pscope development name end)(#catalogue spec)))();
+            val facts=the(!facts_root);
+            val _=restore(fn()=>request_root:=SOME(Q.prepare_child_owned qscope instance child
+              {receiver=development,worker=development,source=source,facts=facts,actions= #actions spec}))();
+            val request=the(!request_root);
             val _=Scope.seal parent[child];
             (* These are producer-owned control associations, never caller IDs.
                The serialized owner binds code to this exact S.executable and

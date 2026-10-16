@@ -1,6 +1,7 @@
 theory Native_Request_Scope
   imports Veri7vn_Admission.Veri7vn_Admission
     Veri7vn_Authority_Codec.Authority_Codec
+    Veri7vn_Native_Lifetime.Native_Lifetime
 begin
 definition scope_checkpoint_plan_matches :: "authority_state \<Rightarrow> nat \<Rightarrow>
     (nat \<times> nat \<times> nat \<times> nat list) list \<Rightarrow> (nat \<times> nat) list \<Rightarrow> bool" where

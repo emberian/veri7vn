@@ -396,3 +396,23 @@ and ClaimAndStart. The protected input/request recipe at Reserve remains an open
 integration requirement: a slotless effect request is not covered by generic
 RequestChild recovery. No complete prestart or Unknown restart closure is claimed
 from source IDs or an absent recovery material slot.
+
+The approved request recipe role is `local-mcp/1` + `effect-request`, with the
+actual request ID as its version-4 inventory association. It has an empty sequent
+and Controlled_Recipe reconstruction; it is not a fabricated output slot. The
+producer now owns an actual `P.public_image` development. Its request/code
+identity is the allocator association of that same native generation, allowing
+construction-graph export and the shared recovery interner rather than a numeric
+context lookup. The codec/exporter are drafted in `native_effect_codec.ML` and
+`native_effect_export.ML`; manifest, inventory and restore consumers remain in
+integration.
+
+The request recipe preserves immutable original controls and configuration and
+packet sources. Its model checkpoint remains the sole authority for current
+attempt status. Canceled or terminal requests can retain inert original history
+while their dependencies remain accessible. Restoration must not recreate an
+executor, session, permit, retry or resource charge. Source inventory is separate
+from active request-context checks. Execution credential revision changes stop
+new work through configuration lifecycle; they do not automatically erase
+historical observations. Historical access continues to require original source
+permissions, including any explicit owner denial required by host policy.

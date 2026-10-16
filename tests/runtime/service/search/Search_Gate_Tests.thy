@@ -83,6 +83,8 @@ local
     G.live retained andalso #bytes(G.snapshot retained)="  P --> (P & P)  \n")
     "Inactive child either retained execution permission or destroyed independent proof provenance";
   val _=G.release second;
+  val _=assert(not(can G.retain second)andalso G.live retained)
+    "Released proof view was re-retained through a live sibling root";
   val _=P.abort_scope denied_scope;
   val _=Q.abort_scope qscope;
   val _=assert(G.live retained andalso

@@ -39,6 +39,10 @@ local
   val image=V.install_host_image_with_roots plain_roots kernel "policy-identity-unit-image";
   val changed=V.install_host_image_with_roots first_roots first "policy-identity-unit-image";
   val _=assert(V.context_closure image<>V.context_closure changed) "Image closure omitted actual policy configuration";
+  val standalone_kernel=V.install_host_image kernel "policy-identity-unit-image";
+  val standalone_changed=V.install_host_image first "policy-identity-unit-image";
+  val _=assert(V.context_closure standalone_kernel<>V.context_closure standalone_changed)
+    "Boot-only image closure omitted actual policy configuration";
   val _=rejects(fn()=>V.install_host_image_with_roots plain_roots first "conflicting-policy-unit-image");
   val allocator=I.install_host_block{workspace="d123456789abcdef0123456789abcdef",first=100,past=10000};
   val dev=P.public_image allocator first;

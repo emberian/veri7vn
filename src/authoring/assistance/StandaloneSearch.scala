@@ -17,6 +17,8 @@ object StandaloneSearch {
       case SearchIngress.Pending=>"Search is still running."
       case _:SearchIngress.Proved=>
         "The resident admitted a consequence for the selected proposition. Inspect its exact proposition, dependencies and search trace."
+      case _:SearchIngress.Historical=>
+        "A retained historical consequence is accessible under current history permissions. Inspect its original proposition, semantic generations, dependencies and search trace. This does not establish a current search binding or permission to execute."
       case SearchIngress.Unresolved(reason,_,_)=>reason match {
         case SearchIngress.Stop.Exhausted=>LiteralSearch.inconclusiveMessage("exhausted")
         case SearchIngress.Stop.Budget=>LiteralSearch.inconclusiveMessage("budget")

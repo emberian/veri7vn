@@ -12,6 +12,9 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
   buildHistory:Option[veri7vn.runtime.service.build.BuildHistory]=None,
   sourceReader:Option[ResidentNativeBridge]=None) extends AutoCloseable {
   lazy val search=new veri7vn.runtime.service.search.SearchIngress(supervisor,this)
+  def supportsNativeBuild:Boolean={
+    available();ServiceCapabilities.nativeBuild(supervisor.exchange("service_capabilities"))
+  }
   coordinator.requireReady()
   private val stopped=new AtomicBoolean(false)
   @volatile private var failure:Option[Throwable]=None
@@ -154,7 +157,7 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
   }
   enum BuildState { case Queued,Running,PendingPublication,ArtifactReady,Failed,Cancelled,Historical }
   final class BuildDiagnostic private[ResidentAuthorityService](private[service] val request:BuildRequest,
-    val failure:veri7vn.diagnostics.BuildFailure.Failure)
+    private[ResidentAuthorityService] val failure:veri7vn.diagnostics.BuildFailure.Failure)
   final class BuildResult private[ResidentAuthorityService](val state:BuildState,val candidate:Option[BigInt],
     val diagnostic:Option[BuildDiagnostic],val sourceAvailable:Boolean)
   def buildResult(request:BuildRequest):BuildResult={

@@ -143,6 +143,16 @@ execution, dispatch or new result license. The native producer and actual MCP
 retrieval consumer remain unqualified; host storage tests use an explicit
 controlled native-owner boundary.
 
+The new runtime's restore inventory is version 4 with two artifacts. Ordinary
+rows carry `request-child|artifact|evidence|effect-request,id,semantic`; the
+semantic is an actual positive protected context identity. Source rows carry
+`source-input,uid,pending|recorded` or `acquired-source,uid,confirmed|failed`,
+with no inferred generation. The dedicated `effect-request` category uses role
+`local-mcp/1` / `effect-request`, an empty nonassertional sequent and an actual
+fixed executable pin. It preserves original control/configuration/packet
+ownership for inspection, never an executor or handoff permit. This migration
+does not make an older native producer compatible with the new host.
+
 - Actual resident baseline: `var/runtime-host/resident-pass-e8efa7e5`, attempt
   `e8efa7e5fae14a66a647e8c7be3becf6`, paired native baseline
   `6c1269b0971d4e5cb7f5074b6d0bd883`. Concurrent original questions reached charged

@@ -8,7 +8,10 @@ sig
     operation:string,configuration:IntInf.int,configuration_epoch:IntInf.int,
     configuration_source:Veri7vn_Native_Effect_Inputs.source_data,
     packet_source:Veri7vn_Native_Effect_Inputs.source_data}
-  type checked
+  type checked type representation
+  val check_record:expected->string->string->representation
+  val representation_status:representation->status
+  val representation_receipt:representation->string val representation_schema:representation->string
   val check:expected->Veri7vn_Native_Effect_Responses.response->string->checked
   val response:checked->Veri7vn_Native_Effect_Responses.response
   val status:checked->status val receipt_digest:checked->string val schema:checked->string
@@ -25,6 +28,7 @@ struct
     configuration_source:Inputs.source_data,packet_source:Inputs.source_data};
   datatype tree=Null|Boolean of bool|Integer of IntInf.int|Text of IntInf.int list|
     Array of tree list|Object of (string*tree)list;
+  datatype representation=Representation of {status:status,receipt_digest:string,schema:string};
   datatype checked=Checked of {response:Responses.response,status:status,receipt_digest:string,schema:string};
   fun require true _=()|require false message=error message;
   val natural=Veri7vn_Numerals.nat_of_integer;
@@ -92,16 +96,8 @@ struct
         andalso value entries "member"= #member expected andalso value entries "sha256"= #sha256 expected
         andalso field entries "size"=Integer(IntInf.fromInt(#size expected))) "Observation original source differs"
     in()end;
-  fun check(expected:expected) response witness=
-    let val raw=L.bytes(P.source_input(Responses.source response))
-      val originals=Responses.originals response
-      val original_metadata= #metadata originals
-      val _=require(P.source_workspace(Responses.source response)= #workspace expected andalso
-        P.source_identity(#configuration originals)= #configuration expected andalso
-        #configuration original_metadata= #configuration_source expected andalso
-        #packet original_metadata= #packet_source expected andalso
-        Inputs.configuration_epoch(#configuration_owner originals)= #configuration_epoch expected)
-        "Observation expected context differs from retained source owners"
+  fun check_record(expected:expected) raw witness=
+    let val _=require(size raw>0 andalso size raw<=65536) "Observation retained record byte bound"
       val(record,receipt)=parse witness
       val entries=fields record
       val _=exact_keys entries ["format","label","representation","protocol","server","origin","operation","status",
@@ -141,7 +137,23 @@ struct
           (require(not rejected) "Observation rejection mislabeled confirmed";ConfirmedResponse)
         |"RejectedResponse"=>(require rejected "Observation failure lacks structured rejection";RejectedResponse)
         |_=>error "Observation unsupported terminal status"
-    in Checked{response=response,status=status,receipt_digest=receipt_sha,schema=schema}end;
+    in Representation{status=status,receipt_digest=receipt_sha,schema=schema}end;
+  fun representation_status(Representation{status,...})=status;
+  fun representation_receipt(Representation{receipt_digest,...})=receipt_digest;
+  fun representation_schema(Representation{schema,...})=schema;
+  fun check(expected:expected) response witness=
+    let val raw=L.bytes(P.source_input(Responses.source response))
+      val originals=Responses.originals response
+      val original_metadata= #metadata originals
+      val _=require(P.source_workspace(Responses.source response)= #workspace expected andalso
+        P.source_identity(#configuration originals)= #configuration expected andalso
+        #configuration original_metadata= #configuration_source expected andalso
+        #packet original_metadata= #packet_source expected andalso
+        Inputs.configuration_epoch(#configuration_owner originals)= #configuration_epoch expected)
+        "Observation expected context differs from retained source owners"
+      val representation=check_record expected raw witness
+    in Checked{response=response,status=representation_status representation,
+      receipt_digest=representation_receipt representation,schema=representation_schema representation}end;
   fun response(Checked{response,...})=response;
   fun status(Checked{status,...})=status;
   fun receipt_digest(Checked{receipt_digest,...})=receipt_digest;

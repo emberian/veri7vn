@@ -168,14 +168,14 @@ owners: finite probability/statistics, versioned policies, and the MCP workflow.
 Their native/runtime integration remains unqualified. The other nine children
 remain planned; the table does not imply twelve completed implementations.
 
-The three final integration packages—`workspace-integration`,
-`performance-hardening`, and `release-integration`—also remain planned. They are
-whole-product acceptance work, separate from the nine unstarted capability
-packages. Their prerequisites have active work; those statuses do not establish
-that complete integrated acceptance has begun or passed. Independent recipient
+`workspace-integration` is now active under the Astra integration fairy, with an
+actual production workshop lifecycle regression and shared-parent ownership.
+`performance-hardening` and `release-integration` remain planned. These are
+whole-product acceptance packages, separate from the nine unstarted capability
+packages; active implementation does not establish passing integrated acceptance. Independent recipient
 use, Linux qualification and redistribution/license closure remain open too.
 
-The ledger currently records 15 done, 43 active and 12 planned packages. These
+The ledger currently records 15 done, 44 active and 11 planned packages. These
 counts describe work organization, **not percentage completion**: the active
 parents still contain substantial unimplemented behavior, and the completed
 foundation tasks are much smaller than several remaining product obligations.

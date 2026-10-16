@@ -309,6 +309,23 @@ ML \<open>
       null (@{code required_native_build_requests} running) andalso
       @{code goal_output_slot} (hd (@{code request_goals} (hd (@{code requests} running))))=NONE)
     "Slotless legacy effect invented a native request-child association";
+  val prefix = @{code effect_request_prefix_fixture};
+  val _ = require (length (@{code required_native_effect_requests} prefix)=1 andalso
+      null (@{code attempts} prefix) andalso null (@{code retained_values} prefix) andalso
+      null (@{code required_native_children} prefix))
+    "Original slotless effect recipe missing before intent and supports";
+  val (cancelled_prefix,_) = step prefix (@{code CancelRequest} (n 8));
+  val _ = require (length (@{code required_native_effect_requests} cancelled_prefix)=1)
+    "Cancellation erased inert original effect request material";
+  val (forgotten_prefix,_) = step prefix (@{code Forget} (n 8));
+  val (denied_source_prefix,_) = step prefix (@{code Revoke} (n 300));
+  val (denied_code_prefix,_) = step prefix (@{code Revoke} (n 5));
+  val _ = require (null (@{code required_native_effect_requests} forgotten_prefix) andalso
+      null (@{code required_native_effect_requests} denied_source_prefix) andalso
+      null (@{code required_native_effect_requests} denied_code_prefix))
+    "Denied original request/source/code remained in native effect recipe inventory";
+  val _ = require (length (@{code required_native_effect_requests} running)=1)
+    "Running effect original recipe disappeared";
   val (staged,_) = step running (@{code StageEffectObservation} (n 821,observation));
   val _ = require (is_some (@{code pending_batch} staged) andalso
       null (@{code required_native_effect_observations} staged)) "Response visible before durable ack";
@@ -335,7 +352,13 @@ ML \<open>
   val (terminal,_) = step running (@{code Reconcile} (n 810,@{code Confirmed}));
   val _ = require (not (@{code effect_observation_permitted} terminal observation))
     "Status-only terminal reconciliation allowed later response attachment";
+  val _ = require (length (@{code required_native_effect_requests} unknown)=1 andalso
+      length (@{code required_native_effect_requests} terminal)=1 andalso
+      length (@{code required_native_effect_requests} delivered)=1)
+    "Unknown or terminal effect original recipe disappeared";
   val (forgotten,_) = step delivered (@{code Forget} (n 820));
+  val _ = require (length (@{code required_native_effect_requests} forgotten)=1)
+    "Forgetting response data erased independent original request history";
   val fresh_source = @{code effect_observation_source_update} (K (n 822)) observation;
   val (reattached,_) = step forgotten (@{code StageEffectObservation} (n 823,fresh_source));
   val (replayed,_) = step forgotten (@{code DurableAck} (n 821,n 2,n 0));

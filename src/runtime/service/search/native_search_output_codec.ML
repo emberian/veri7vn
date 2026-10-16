@@ -386,7 +386,9 @@ struct
   fun verify_source_into target batch ids image pin committed=
     Thread_Attributes.uninterruptible(fn restore=>fn()=>
     let val _=require(is_none(!target)) "Search verified output cleanup target occupied";
-      val decoded=restore(fn()=>decode image pin committed)();
+      val decoded_root=Unsynchronized.ref(NONE:decoded option);
+      val _=restore(fn()=>decoded_root:=SOME(decode image pin committed))();
+      val decoded=the(!decoded_root);
       val {certificate,artifacts,...}=decoded;
       val p= #projection decoded;
       val original={identity= #identity p,context= #context p,receiver= #receiver p,worker= #receiver p,
@@ -402,9 +404,11 @@ struct
         association= #evidence_id certificate,semantic_generation= #semantic_generation(#projection certificate),
         checkpoint= #checkpoint outer,manifest=inner_manifest,projection= #projection artifacts,sequent= #sequent artifacts,
         context_closure= #context_closure artifacts,reconstruction= #reconstruction artifacts};
-      val checked=Exn.capture(restore(fn()=>V.recheck_in batch ids image inner))();
-    in case checked of Exn.Exn failure=>(C.release inner;Exn.reraise failure) | Exn.Res source=>
-      let val verified=Verified{decoded=decoded,source=source,inner=inner,active=Synchronized.var "search_verified_output" true};
+      val source_root=Unsynchronized.ref(NONE:V.verified option);
+      val checked=Exn.capture(restore(fn()=>source_root:=SOME(V.recheck_in batch ids image inner)))();
+    in case checked of Exn.Exn failure=>(Option.app V.release(!source_root);C.release inner;Exn.reraise failure) | Exn.Res()=>
+      let val source=the(!source_root);
+        val verified=Verified{decoded=decoded,source=source,inner=inner,active=Synchronized.var "search_verified_output" true};
         val result=Exn.capture(fn()=>
           let val accepted=P.accepted(V.consequence source);
             val saved= #saved decoded;

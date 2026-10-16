@@ -82,6 +82,7 @@ struct
   structure Scope=Veri7vn_Native_Request_Scope;
   structure OriginalSource=Veri7vn_Original_Session_Source;
   structure Final=Veri7vn_Conversation_Math_Final;
+  structure Release=Veri7vn_Native_Release_Claim;
   val issuer=P.new_issuer();
   val source_issuer=OriginalSource.new_issuer();
   datatype frontdoor_authority=FrontdoorAuthority of serial;
@@ -89,7 +90,8 @@ struct
   val frontdoor_authority=FrontdoorAuthority authority_key;
   type source=Entry.entry;
   type restored=Entry.restored;
-  datatype source_root=SourceRoot of {entry:Entry.entry,pin:P.pin option};
+  datatype source_root=SourceRoot of {entry:Entry.entry,pin:P.pin option,release:Release.owner,
+    entry_released:bool Synchronized.var,pin_released:bool Synchronized.var};
   val sources=Synchronized.var "conversation_physical_source_roots"([]:source_root list);
   datatype prepared=Prepared of {request:R.request,source:Entry.entry,pin:P.pin,
     bridge:Veri7vn_Refined_Math_Display.bridge,owned:bool Synchronized.var,
@@ -99,21 +101,49 @@ struct
     | Record of {request:R.request,entry:Entry.entry,pin:P.pin}
     | Adopt of {exacts:Final.exact list,entry:Entry.entry,pin:P.pin,nonce:IntInf.int}
     | Expire of IntInf.int;
-  datatype event=Event of payload option Synchronized.var;
+  datatype event=Event of {payload:payload option Synchronized.var,release:Release.owner,
+    entry_released:bool Synchronized.var,pin_released:bool Synchronized.var};
   fun require true _=() | require false message=error message;
   fun require_authority(FrontdoorAuthority actual)=require(actual=authority_key) "Foreign conversation frontdoor";
-  fun wrap value=Event(Synchronized.var "closed_native_conversation_event"(SOME value));
+  fun complete flag action=Synchronized.change flag(fn done=>if done then true else(action();true));
+  fun finish_release owner action=case Release.try_claim owner of NONE=>
+      require(Release.is_done owner) "Conversation cleanup is already in progress; retry"
+    |SOME claim=>let val result=Exn.capture action()
+      in case result of Exn.Res()=>Release.finish claim
+        |Exn.Exn failure=>(Release.retry claim;Exn.reraise failure)end;
+  fun wrap value=Event{payload=Synchronized.var "closed_native_conversation_event"(SOME value),
+    release=Release.create(),entry_released=Synchronized.var "conversation_event_entry_released" false,
+    pin_released=Synchronized.var "conversation_event_pin_released" false};
   fun source_identity(SourceRoot{entry,...})=Entry.identity entry;
-  fun release_root(SourceRoot{entry,pin})=(Option.app P.release pin;Entry.release entry);
+  fun source_live(SourceRoot{release,...})=Release.is_live release;
+  fun source_done(SourceRoot{release,...})=Release.is_done release;
+  fun make_root entry pin=SourceRoot{entry=entry,pin=pin,release=Release.create(),
+    entry_released=Synchronized.var "conversation_root_entry_released" false,
+    pin_released=Synchronized.var "conversation_root_pin_released" false};
+  fun release_root(SourceRoot{entry,pin,release,entry_released,pin_released})=
+    Thread_Attributes.uninterruptible_body(fn _=>finish_release release(fn()=>
+      (complete entry_released(fn()=>Entry.release entry);
+       complete pin_released(fn()=>Option.app P.release pin))));
   fun retain_root entry pin=Thread_Attributes.uninterruptible_body(fn _=>
     let val owned=Entry.retain entry;
-      val result=Exn.capture(fn()=>SourceRoot{entry=owned,pin=Option.map P.retain pin})()
+      val result=Exn.capture(fn()=>make_root owned(Option.map P.retain pin))()
     in case result of Exn.Res root=>root
       | Exn.Exn failure=>(Entry.release owned;Exn.reraise failure)end);
-  fun install root=Synchronized.change sources(fn old=>
-    (require(length old<8192 andalso not(exists(fn previous=>
+  fun install root=Synchronized.change sources(fn previous=>
+    let val old=filter_out source_done previous
+    in require(length old<8192 andalso not(exists(fn previous=>source_live previous andalso
        #utterance(source_identity previous)= #utterance(source_identity root))old))
-       "Session source ownership duplicate/bound";root::old));
+       "Session source ownership duplicate/bound";root::old end);
+  (* Denied roots stay in this same physical lifetime table until cleanup really
+     succeeds. They are never transcript entries or a second authority state. *)
+  fun release_roots roots=
+    let val result=Exn.capture(fn()=>List.app release_root roots)();
+      val _=Synchronized.change sources(filter_out source_done)
+    in Exn.release result end;
+  fun retry_pending()=release_roots(filter_out source_live(Synchronized.value sources));
+  fun failed_install root failure=Thread_Attributes.uninterruptible_body(fn _=>
+    case Exn.capture release_root root of Exn.Res()=>Exn.reraise failure
+    |Exn.Exn cleanup=>(Synchronized.change sources(fn old=>root::old);Exn.reraise cleanup));
   fun pin_owned pin=P.live pin andalso P.belongs issuer pin;
   fun request_pin request=(case R.scope_child request of NONE=>NONE | SOME child=>
     (case Scope.observation(Scope.parent child)of Scope.SessionObservation pin=>SOME pin|_=>NONE));
@@ -195,8 +225,7 @@ struct
   fun bridge(Prepared{bridge,owned,...})=(require(Synchronized.value owned) "Prepared turn released";bridge);
   fun release_prepared(Prepared{request,source,pin,owned,request_released,source_released,pin_released,...})=
     Thread_Attributes.uninterruptible_body(fn _=>
-      let fun complete flag action=Synchronized.change flag(fn done=>if done then true else(action();true));
-        val _=Synchronized.change owned(K false);
+      let val _=Synchronized.change owned(K false);
         val _=complete request_released(fn()=>R.release request);
         val _=complete source_released(fn()=>Entry.release source);
       in complete pin_released(fn()=>P.release pin)end);
@@ -295,8 +324,9 @@ struct
         "Native exact adoption differs from the original owned conversation turn";
       val nonce=I.allocate(allocator())
     in own_event entry pin(fn owned=>fn observed=>Adopt{exacts=exacts,entry=owned,pin=observed,nonce=nonce})end;
-  fun payload(Event cell)=case Synchronized.value cell of SOME value=>value
-    | NONE=>error "Conversation event released";
+  fun payload(Event{payload,release,...})=
+    (require(Release.is_live release) "Conversation event released or releasing";
+     case Synchronized.value payload of SOME value=>value |NONE=>error "Conversation event released");
   fun request_id event=(case payload event of Record{request,...}=>SOME(#request_id(R.project request))
     | Adopt{exacts,...}=>SOME(#request(Final.identity(hd exacts)))|_=>NONE);
   fun dependencies event=(case payload event of Create sid=>[sid] | Expire sid=>[sid]
@@ -330,33 +360,33 @@ struct
       | Adopt{exacts,nonce,pin,...}=>Frame.adoption_frame
           {request= #request(Final.identity(hd exacts)),nonce=nonce,observation=P.snapshot pin,
             selected=map(fn exact=>{identity=Final.identity exact,publication=Final.publication_frame exact})exacts}end;
-  fun acknowledged event=(case payload event of Source{entry,pin}=>
-      let val root=retain_root entry(SOME pin)
-      in install root handle failure=>(release_root root;Exn.reraise failure)end
+  fun acknowledged event=Thread_Attributes.uninterruptible_body(fn _=>case payload event of Source{entry,pin}=>
+      let val _=retry_pending();val root=retain_root entry(SOME pin)
+      in install root handle failure=>failed_install root failure end
     | _=>());
-  fun release_event(Event cell)=Thread_Attributes.uninterruptible_body(fn _=>
-    case Synchronized.change_result cell(fn before=>(before,NONE))of
-      SOME(Source{entry,pin})=>(Entry.release entry;P.release pin)
-    | SOME(Record{entry,pin,...})=>(Entry.release entry;P.release pin)
-    | SOME(Adopt{entry,pin,...})=>(Entry.release entry;P.release pin)|_=>());
-  fun install_restored checked=
-    let val owned=Entry.restore checked;val root=SourceRoot{entry=owned,pin=NONE}
-    in install root handle failure=>(release_root root;Exn.reraise failure)end;
+  fun release_event(Event{payload,release,entry_released,pin_released})=
+    Thread_Attributes.uninterruptible_body(fn _=>finish_release release(fn()=>
+      let fun dispose entry pin=(complete entry_released(fn()=>Entry.release entry);
+            complete pin_released(fn()=>P.release pin));
+        val _=case Synchronized.value payload of SOME(Source{entry,pin})=>dispose entry pin
+          |SOME(Record{entry,pin,...})=>dispose entry pin
+          |SOME(Adopt{entry,pin,...})=>dispose entry pin|_=>()
+      in Synchronized.change payload(K NONE)end));
+  fun install_restored checked=Thread_Attributes.uninterruptible_body(fn _=>
+    let val _=retry_pending();val owned=Entry.restore checked;val root=make_root owned NONE
+    in install root handle failure=>failed_install root failure end);
   fun read_source authority(sid,uid)=(require_authority authority;
     Synchronized.change_result sources(fn current=>
-      (case find_first(fn root=> #utterance(source_identity root)=uid andalso
+      (case find_first(fn root=>source_live root andalso #utterance(source_identity root)=uid andalso
           #session(source_identity root)=sid)current of NONE=>(NONE,current)
       | SOME(SourceRoot{entry,...})=>
           (if Entry.retained entry then SOME(Entry.snapshot entry)else NONE,current))));
   fun release_dependencies removed=
-    let val doomed=Synchronized.change_result sources(fn current=>
-      let val(doomed,kept)=List.partition(fn SourceRoot{entry,...}=>
-        exists(fn id=>member(op =)removed id)(Entry.dependencies entry))current
-      in(doomed,kept)end);
+    let val doomed=filter(fn SourceRoot{entry,...}=>
+        exists(fn id=>member(op =)removed id)(Entry.dependencies entry))(Synchronized.value sources);
       val _=List.app(fn SourceRoot{pin,...}=>Option.app(P.invalidate issuer)pin)doomed
-    in List.app release_root doomed end;
-  fun close()=let val roots=Synchronized.change_result sources(fn old=>(old,[]))
-    in List.app release_root roots end;
+    in release_roots doomed end;
+  fun close()=release_roots(Synchronized.value sources);
 end;
 
 (* Instantiate only after the SAME private Roots event type has entered the

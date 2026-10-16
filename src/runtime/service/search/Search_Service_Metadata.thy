@@ -1,5 +1,6 @@
 theory Search_Service_Metadata
   imports Veri7vn_Search_Service.Search_Service Veri7vn_Authority.Veri7vn_Authority
+    Veri7vn_Native_Lifetime.Native_Lifetime
 begin
 text \<open>Closed metadata for the first native literal-proposition profile.
 Mathematical denotes a kernel-checked HOL proposition, with no numerical-result
@@ -64,8 +65,8 @@ definition search_service_parameter :: "search_service_control \<Rightarrow> nat
 definition search_service_child :: "search_service_control \<Rightarrow> nat list \<Rightarrow> subgoal" where
   "search_service_child n deps =
     \<lparr>goal_id=ssc_goal n,goal_interpretation=ssc_interpretation n,goal_capability=ssc_capability n,
-      goal_generation=ssc_semantic n,goal_code_generation=ssc_code n,goal_dependencies=[],
-      goal_required=ClaimRequirement (search_service_requirement n deps),goal_output_slot=Some (ssc_slot n),
+      goal_dependencies=[],goal_required=ClaimRequirement (search_service_requirement n deps),
+      goal_generation=ssc_semantic n,goal_code_generation=ssc_code n,goal_output_slot=Some (ssc_slot n),
       goal_outcome=AwaitingOutput (ssc_slot n)\<rparr>"
 
 definition search_service_slot :: "search_service_control \<Rightarrow> nat list \<Rightarrow> output_slot" where
@@ -173,6 +174,6 @@ lemma search_service_output_preserves_scope:
   "scope_preserved (search_service_requirement n deps)
     (search_service_requirement n (search_service_output_dependencies n deps native)) []"
   by (auto simp: scope_preserved_def same_target_def search_service_requirement_def
-      search_service_output_dependencies_def)
+      search_service_output_dependencies_def list_all_iff)
 ML_file "native_search_request_checkpoint.ML"
 end

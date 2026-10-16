@@ -9,7 +9,7 @@ constructor. A context is read from the current authority before a native parent
 is prepared; its complete read and clock fields remain part of that parent.\<close>
 
 definition conversation_clock :: "clock_basis \<Rightarrow> int \<Rightarrow> clock_reading" where
-  "conversation_clock origin value = \<lparr>basis=origin,ticks=value\<rparr>"
+  "conversation_clock clock_origin tick_value = \<lparr>basis=clock_origin,ticks=tick_value\<rparr>"
 definition conversation_observation :: "nat \<Rightarrow> nat \<Rightarrow> clock_reading option \<Rightarrow>
     (nat \<times> nat) list \<Rightarrow> observation_context" where
   "conversation_observation sid version evaluated reads =
@@ -249,8 +249,14 @@ lemma conversation_adoption_only_final_licensed:
   assumes "conversation_adoption s rid nonce selected = Some (StageAdoption n owner d)"
     "b\<in>set (adoption_bindings d)"
   shows "owner=rid \<and> binding_request b=rid \<and> b\<in>set (visible_bindings s) \<and> binding_licensed s b"
-  using assms by (auto simp: conversation_adoption_def conversation_final_bindings_def
-    Let_def split: option.splits if_splits)
+proof -
+  have shape: "owner=rid \<and> adoption_bindings d =
+      filter (\<lambda>value. value\<in>set selected) (conversation_final_bindings s rid)"
+    using assms(1) by (auto simp: conversation_adoption_def Let_def split: option.splits if_splits)
+  have member: "b\<in>set (conversation_final_bindings s rid)"
+    using assms(2) shape by auto
+  show ?thesis using shape member by (auto simp: conversation_final_bindings_def)
+qed
 
 lemma conversation_quote_requires_adoption:
   "conversation_quotable s sid b \<Longrightarrow>

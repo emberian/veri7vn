@@ -41,8 +41,20 @@ local
     end
     val executable=executable);
   structure SourceContext=Veri7vn_Private_Session_Context();
-  structure Entry=Veri7vn_Private_Session_Entry(
+  structure ActualEntry=Veri7vn_Private_Session_Entry(
     structure Restored=Recovery.View structure Context=SourceContext);
+  (* Exercise retry ownership with the actual native Entry underneath. This
+     test-local destructor fault grants no source or authority capability. *)
+  val fail_entry_release=Unsynchronized.ref false;
+  val entry_release_attempts=Unsynchronized.ref 0;
+  structure Entry=
+  struct
+    open ActualEntry;
+    fun release entry=
+      (entry_release_attempts:= !entry_release_attempts+1;
+       if !fail_entry_release then(fail_entry_release:=false;error "Retry actual Entry teardown")
+       else ActualEntry.release entry);
+  end;
   structure Frames=
   struct
     val create_frame=F.conversation_create_frame;
@@ -147,7 +159,17 @@ local
      equality must nevertheless refuse the old descriptor before the reducer. *)
   val _=rejects "Old source observation was accepted again at staging"
     (fn()=>Owner.prepare(Conversation source));
+  val event_attempts= !entry_release_attempts;
+  val _=fail_entry_release:=true;
+  val _=rejects "Event teardown did not exercise its actual Entry failure"
+    (fn()=>Roots.release_event source);
+  val _=ensure(not(Roots.live source) andalso Entry.retained(Roots.source turn) andalso
+    !entry_release_attempts=event_attempts+1)
+    "Failed event cleanup revived authority or lost the independent original source";
   val _=Roots.release_event source;
+  val _=Roots.release_event source;
+  val _=ensure(!entry_release_attempts=event_attempts+2)
+    "Event teardown lost retry ownership or repeated completed Entry cleanup";
   val _=Roots.release_prepared turn;
   val fresh=case Frontdoor.prepare_math{session=sid,version=0,bytes="the product of 6 and 7",
       selection=NONE,local_policy=local_policy,bridge=bridge}of
@@ -239,10 +261,19 @@ local
     String.isSubstring "42"(Final.html exact))
     "Producer release destroyed retained historical native evidence or revived dispatch";
   val _=MathGate.release witness;
+  val root_attempts= !entry_release_attempts;
+  val _=fail_entry_release:=true;
+  val _=rejects "Source-root teardown did not exercise its actual Entry failure" Roots.close;
+  val _=ensure(is_none(Frontdoor.read_source(sid,uid)) andalso L.retained shadow_input andalso
+    !entry_release_attempts=root_attempts+1)
+    "Failed source-root cleanup exposed a denied source or dropped its retry root";
   val _=Roots.close();
+  val _=Roots.close();
+  val _=ensure(!entry_release_attempts=root_attempts+2 andalso L.disposed shadow_input)
+    "Source-root cleanup lost its retry entry or repeated completed disposal";
   val _=R.release_workspace workspace;
   val _=Display.release_bridge bridge;
   val _=M.release_instance instance;
-in val _=writeln "CONVERSATION_NATIVE_CAS_PASS actual_source same_version_clock stage_ack_supersession intrinsic_live fresh_pending_registration actual_refined_execution typed_exact_adoption historical_not_current retained_not_dispatch foreign_capsule_issuer request_scope_cleanup_retry" end
+in val _=writeln "CONVERSATION_NATIVE_CAS_PASS actual_source same_version_clock stage_ack_supersession intrinsic_live fresh_pending_registration actual_refined_execution typed_exact_adoption historical_not_current retained_not_dispatch foreign_capsule_issuer request_scope_cleanup_retry event_cleanup_retry source_root_cleanup_retry" end
 \<close>
 end

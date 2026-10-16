@@ -24,13 +24,15 @@ struct
     observed:IntInf.int list Synchronized.var,
     job:SearchWorker.job option Synchronized.var,monitor:unit Future.future option Synchronized.var,
     witness:SearchGate.witness option Synchronized.var,proof_scope:P.construction_scope,
+    original_source:SearchSourceSupport.owner option Synchronized.var,
     history:SearchOutput.historical option Synchronized.var,
     packet:string option Synchronized.var};
   datatype event=Support of entry*IntInf.int*IntInf.int list*bool |
     Parameter of entry | Reserve of entry | Execute of entry |
     Evidence of entry*SearchGate.witness | Publish of entry*SearchGate.witness |
     Stopped of entry*SearchCodec.phase | RestoredRequest of entry |
-    RestoredOutput of entry*SearchGate.witness | RestoredHistory of entry*SearchOutput.historical;
+    RestoredOutput of entry*SearchGate.witness | RestoredHistory of entry*SearchOutput.historical |
+    RestoredSource of entry*SearchSourceSupport.owner;
   val entries=Synchronized.var "veri7vn_search_native_roots" ([]:(key*entry)list);
   fun projection(Entry{projection,...})=projection;
   fun names(Entry{names,...})=names;
@@ -52,10 +54,12 @@ struct
   fun event_entry(Support(e,_,_,_))=e|event_entry(Parameter e)=e|
     event_entry(Reserve e)=e|event_entry(Execute e)=e|event_entry(Evidence(e,_))=e|
     event_entry(Publish(e,_))=e|event_entry(Stopped(e,_))=e|
-    event_entry(RestoredRequest e)=e|event_entry(RestoredOutput(e,_))=e|event_entry(RestoredHistory(e,_))=e;
+    event_entry(RestoredRequest e)=e|event_entry(RestoredOutput(e,_))=e|event_entry(RestoredHistory(e,_))=e|
+    event_entry(RestoredSource(e,_))=e;
   fun live event=(case event of RestoredRequest e=>native_live e|
       RestoredOutput(e,w)=>native_live e andalso SearchGate.live w|
       RestoredHistory(_,h)=>SearchOutput.history_live h|
+      RestoredSource(_,source)=>SearchSourceSupport.live source|
       _=>entry_live(event_entry event) andalso
         (case event of Evidence(_,w)=>SearchGate.live w|Publish(_,w)=>SearchGate.live w|
           Support(Entry{witness,...},_,_,true)=>
@@ -65,7 +69,8 @@ struct
     |stop_name _=error "Pending search has no terminal outcome";
   fun frame event revision=
     let val e=event_entry event;val p=projection e;val n=names e;val deps=dependencies e
-    in case event of Support(_,id,_,_)=>F.search_intrinsic_frame id|
+    in case event of Support(_,id,_,_)=>
+      (if id= #input p then F.search_input_frame p n else F.search_intrinsic_frame id)|
       Parameter _=>F.search_parameter_frame p n deps|
       Reserve _=>F.search_reserve_frame p n revision(#cost p)deps|
       Execute _=>F.search_execute_frame p n(#cost p)|
@@ -90,6 +95,15 @@ struct
         Execute _=>SearchCodec.Pending(SOME(#execution(names e)))|
         Stopped(_,stopped)=>stopped|_=>Synchronized.value phase
     in {names=projection e,control=names e,dependencies=dependencies e,phase=phase_view actual}end;
+  fun expected_source(RestoredSource(e,source))=
+    let val material=SearchSourceSupport.material source;
+      val actual=SearchSourceSupport.projection material;
+      val {names=n,...}=SearchCodec.inspect material;
+      val _=F.guard(actual=projection e andalso n=names e)
+        "Search retained source differs from original native association"
+    in {names=actual,control=n,dependencies=dependencies e,
+      phase=SearchSourceSupport.phase material}end
+    |expected_source _=error "No Search retained source association";
   fun expected_output event=
     let val e=event_entry event;val native=case event of Evidence(_,w)=> #dependencies(SearchGate.project w)|
       Publish(_,w)=> #dependencies(SearchGate.project w)|RestoredOutput(_,w)=> #dependencies(SearchGate.project w)|
@@ -117,11 +131,14 @@ struct
          (SearchRequest.abort_scope qscope;P.abort_scope pscope;SearchCore.release_instance instance;
           SearchReceiver.release receiver));
      Synchronized.change packet(K NONE);Control.mark_released control);
-  fun release(e as Entry{history,...})=
+  fun release(e as Entry{history,original_source,...})=
     (release_execution e;Option.app SearchOutput.history_release(Synchronized.value history);
-     Synchronized.change history(K NONE));
-  fun remove_released()=Synchronized.change entries(filter(fn(_,Entry{control,history,...})=>
-    not(Control.released control)orelse is_some(Synchronized.value history)));
+     Synchronized.change history(K NONE);
+     Option.app SearchSourceSupport.release(Synchronized.value original_source);
+     Synchronized.change original_source(K NONE));
+  fun remove_released()=Synchronized.change entries(filter(fn(_,Entry{control,history,original_source,...})=>
+    not(Control.released control)orelse is_some(Synchronized.value history)orelse
+      is_some(Synchronized.value original_source)));
   fun retirement_registrations()=
     let fun owned(_,e as Entry{observed,...})=
       let val p=projection e;val n=names e;
@@ -131,6 +148,7 @@ struct
         val original=filter(fn id=>id<> #receiver p andalso id<> #parameter n andalso id<> #output n)
           (F.search_control_values p n);
         val proof=filter(fn id=>not(member(op =)(dependencies e)id))(Synchronized.value observed)
-      in map(fn id=>[F.search_intrinsic_frame id])(original@proof)end
+      in map(fn id=>[if id= #input p then F.search_input_frame p n else F.search_intrinsic_frame id])
+        (original@proof)end
     in distinct(op =)(maps owned(Synchronized.value entries))end;
 end;

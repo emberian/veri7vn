@@ -323,6 +323,8 @@ definition effect_intent_fixture :: effect_intent where
     attempt_capability=7,attempt_sources=[300],attempt_dependencies=[7,300],attempt_prestate=0,
     attempt_cost=\<lparr>cost_profile=30,cost_code_generation=5,cost_operation=31,cost_step=32,cost_units=1\<rparr>,
     attempt_job=None\<rparr>"
+definition effect_request_prefix_fixture :: authority_state where
+  "effect_request_prefix_fixture = fst (step initial_state (ReserveRequest effect_request_fixture []))"
 definition effect_prepared_fixture :: authority_state where
   "effect_prepared_fixture = fst (step (fst (step (fst (step (fst (step initial_state
     (RegisterManaged public_input_fixture))) (OpenRequest effect_request_fixture)))

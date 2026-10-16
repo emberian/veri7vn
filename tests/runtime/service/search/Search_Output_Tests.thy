@@ -68,9 +68,13 @@ local
     (case @{code search_service_execute}control(nat(Q.cost q)) of @{code ExecutePure}run=>run | _=>error "Search execute shape")))
     "Search same execution could be charged twice";
   val(cancelled,_)= @{code step}charged(@{code CancelRequest}(nat(#request i)));
-  val _=assert(@{code search_service_stopped_matches}cancelled control @{code SearchCancelled} andalso
+  val _=assert(exists(fn request=> @{code request_id}request=nat(#request i)andalso
+      @{code request_cancelled}request)(@{code requests}cancelled)andalso
+    @{code search_service_request_matches}cancelled control(map nat deps)(nat(Q.cost q))andalso
+    @{code search_service_execution_matches}cancelled control(nat(Q.cost q))true andalso
+    not(@{code search_service_stopped_matches}cancelled control @{code SearchCancelled})andalso
     not(@{code search_service_stopped_matches}cancelled control @{code SearchBudget}))
-    "Search parent cancellation became another stored terminal reason";
+    "Search parent cancellation changed its original requirement/charge or fabricated another terminal reason";
   val issuer=T.new_issuer();
   val tscope=T.begin_scope issuer{owner_version=1,epoch=1};
   val identity={execution= #execution n,slot= #slot i,operation={workspace=I.workspace ids,

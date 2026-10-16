@@ -91,11 +91,17 @@ type recovery_material={association:IntInf.int,semantic_generation:IntInf.int,ma
   executable:string option,dependencies:IntInf.int list};
 type math_history={witness:MathGate.witness,material:recovery_material,
   request:IntInf.int,goal:IntInf.int,slot:IntInf.int,semantic:IntInf.int,bridge:IntInf.int,
-  dependencies:IntInf.int list};
+  dependencies:IntInf.int list,names:Request.projection,bridge_names:Display.bridge_projection};
 val math_history=Synchronized.var "veri7vn_retained_math_evidence_roots" ([]:(IntInf.int*math_history)list);
 val math_output_materials=Synchronized.var "veri7vn_prepared_math_evidence_capsules"
   ([]:(IntInf.int*recovery_material)list);
 fun math_history_owns witness=is_some(AList.lookup(op =)(Synchronized.value math_history)(MathGate.evidence witness));
+fun captured_math_history witness material:math_history=
+  let val p=Request.project(MathGate.request witness);
+    val bridge=Display.project_bridge(MathGate.rendering_bridge witness)
+  in {witness=witness,material=material,request= #request_id p,goal= #goal_id p,slot= #output_slot_id p,
+    semantic= #semantic_generation p,bridge= #bridge_id bridge,dependencies=MathGate.managed_dependencies witness,
+    names=p,bridge_names=bridge}end;
 datatype math_entry=MathEntry of {request:Request.request,input:Literals.input,bridge:Display.bridge,
   execution:IntInf.int,cost:IntInf.int,dependencies:IntInf.int list,
   observed:IntInf.int list Synchronized.var,control:Control.cell,
@@ -303,21 +309,26 @@ struct
   fun projection entry=B.prepared_projection(prepared entry);
   fun required entry=F.build_requirement(projection entry);
   fun inputs entry=B.prepared_inputs(prepared entry);
+  fun source_reads entry=let val p=projection entry
+    in distinct(op =)(#source_owner p:: #parents p)end;
   fun plan entry=NativeBuild.request_plan(native entry);
   fun candidate(Entry{candidate,...})=case Synchronized.value candidate of
     SOME lease=>NativeBuild.CandidateOwner.candidate lease
     | NONE=>error "Native build has no owned completed candidate";
+  fun acknowledged(Entry{output,...})=case Synchronized.value output of
+    SOME lease=>NativeBuild.OutputOwner.is_live lease|NONE=>false;
   fun live(RestoredRequest r)=restored_live r
-    |live(RestoredArtifact(r as Restored{output,...}))=restored_live r andalso
+    |live(RestoredArtifact(Restored{output,...}))=
       (case Synchronized.value output of SOME lease=>NativeBuild.OutputOwner.is_live lease|NONE=>false)
-    |live event=NativeBuild.live(native(event_entry event)) andalso
-    (case event of Artifact e=>B.is_live(candidate e) | _=>true);
+    |live(Artifact e)=B.is_live(candidate e) andalso
+      (acknowledged e orelse NativeBuild.live(native e))
+    |live event=NativeBuild.live(native(event_entry event));
   fun frame(Intrinsic(_,id,_)) _=F.build_intrinsic_frame id
     | frame(Reserve(e as Entry{prestate,dependencies,...})) _=
         F.build_reserve_frame(names e)(required e)prestate 1 dependencies
     | frame(Parameter(e as Entry{prestate,dependencies,...})) _=
         F.build_singleton_parameter_frame(names e)(required e)prestate dependencies
-          (B.prepared_parent_dependencies(prepared e))(inputs e)[]
+          (B.prepared_parent_dependencies(prepared e))(source_reads e)[]
     | frame(Execute e) _=F.build_execute_frame(names e)(required e)(inputs e)
     | frame(Artifact(e as Entry{prestate,dependencies,...})) _=
         let val output=candidate e
@@ -346,9 +357,11 @@ struct
     (F.guard(length all<8192 andalso is_none(AList.lookup(op =)all(key entry)))
        "Native Build request ownership bound or duplicate";
      (key entry,entry)::all));
-  fun depends id(e as Entry{dependencies,reason,registrations,...})=
+  fun depends id(e as Entry{dependencies,registrations,output_view,...})=
     let val n=names e
-    in member(op =)(reason::dependencies @ registrations @
+      val completed=case Synchronized.value output_view of NONE=>[]
+        |SOME{metadata,...}=> #semantic_generation metadata:: #candidate metadata:: #dependencies metadata
+    in member(op =)(completed @ dependencies @ registrations @
       [#request n,#goal n,#slot n,#interpretation n,#decision n,#parameter n,
        #candidate n,#execution n,#capability n,#step n,#operation n,
        #code_generation n,#semantic_generation n])id end;
@@ -362,6 +375,8 @@ struct
        #execution p,#template p,#profile p,#setup p,#capability p,#operation p,
        #code_generation p,#operation_generation p,#step p])id end;
   fun deny_restored(Restored{active,...})=Synchronized.change active(K false);
+  fun restored_acknowledged(Restored{output,...})=case Synchronized.value output of
+    SOME lease=>NativeBuild.OutputOwner.is_live lease|NONE=>false;
   fun expected_request(RestoredRequest(Restored{request_view,...}))=request_view
     |expected_request(RestoredArtifact(Restored{request_view,...}))=request_view
     |expected_request event=
@@ -386,6 +401,10 @@ struct
       val _=Synchronized.change candidate(K NONE)
       val _=NativeBuild.release_entry native
     in Synchronized.change entries(AList.delete(op =)(key entry))end;
+  fun retire_prepared(Entry{native,monitor,...})=
+    (NativeBuild.cancel native;
+     Option.app(fn task=>ignore(Future.join_result task))(Synchronized.value monitor);
+     NativeBuild.release_entry native);
   fun release_restored(r as Restored{request,output,...})=
     let val _=deny_restored r
       val _=Option.app NativeBuild.OutputOwner.release(Synchronized.value output)
@@ -398,7 +417,7 @@ datatype gate=Admitted of D.descriptor | MathInput of math_entry | MathParameter
   MathStatement of math_entry | MathBridge of math_entry |
   MathExecute of math_entry | MathEvidence of math_entry* MathGate.witness |
   MathPublish of math_entry* MathGate.witness | RestoredMath of math_entry |
-  RestoredOutput of math_entry*MathGate.witness | Build of BuildResident.event | Search of SearchResident.event | Lifecycle of F.lifecycle;
+  RestoredOutput of math_entry*MathGate.witness | RestoredMathHistory of MathGate.witness | Build of BuildResident.event | Search of SearchResident.event | Lifecycle of F.lifecycle;
 fun gate_live (Admitted d)=D.is_live d
   | gate_live (MathInput e)=entry_live e
   | gate_live (MathParameter e)=entry_live e
@@ -410,6 +429,7 @@ fun gate_live (Admitted d)=D.is_live d
   | gate_live (MathPublish(e,w))=entry_live e andalso MathGate.live w
   | gate_live (RestoredMath e)=entry_native_live e
   | gate_live (RestoredOutput(_,w))=MathGate.live w
+  | gate_live (RestoredMathHistory w)=MathGate.live w
   | gate_live (Build event)=BuildResident.live event
   | gate_live (Search event)=SearchResident.live event
   | gate_live (Lifecycle _)=true;
@@ -430,6 +450,7 @@ fun gate_frame (Admitted d) _=D.event_frame d
   | gate_frame (MathPublish(_,w)) _=MathGate.publication_frame w
   | gate_frame (RestoredMath _) _=error "Restoration association is not an event"
   | gate_frame (RestoredOutput _) _=error "Restoration association is not an event"
+  | gate_frame (RestoredMathHistory _) _=error "Historical verification is not an event"
   | gate_frame (Build event) revision=BuildResident.frame event revision
   | gate_frame (Search event) revision=SearchResident.frame event revision
   | gate_frame (Lifecycle action) _=F.lifecycle_frame action;
@@ -458,6 +479,14 @@ fun recovery_view (Admitted descriptor)=F.KernelAssociation(D.event_frame descri
         managed=Request.managed_dependencies request,bridge=Display.project_bridge bridge,cost=cost}
   | recovery_view(RestoredOutput(_,witness))=F.MathOutputAssociation
       {evidence=MathGate.evidence_frame witness,publication=MathGate.publication_frame witness}
+  | recovery_view(RestoredMathHistory witness)=
+      let val request=MathGate.request witness;val bridge=MathGate.rendering_bridge witness;
+        val cost=case Mathematics.modeled_cost(Request.family_request request)of Mathematics.Ready cost=>cost
+          |_=>error "Historical fixed mathematics cost unavailable"
+      in F.MathHistoricalOutputAssociation{request={names=Request.project request,
+          dependencies=distinct(op =)(Request.native_prerequisites request @ Display.managed_dependencies bridge),
+          managed=Request.managed_dependencies request,bridge=Display.project_bridge bridge,cost=cost},
+        evidence=MathGate.evidence_frame witness,publication=MathGate.publication_frame witness}end
   | recovery_view(Build event)=(case event of
       BuildResident.Reserve _=>F.BuildRequestAssociation(BuildResident.expected_request event)
     | BuildResident.Execute _=>F.BuildRequestAssociation(BuildResident.expected_request event)
@@ -487,7 +516,13 @@ fun retirement_registrations (Lifecycle (F.Forget _)) =
         in state |> add (#bridge_id bridge,#statement_code_id bridge)
             [F.math_statement_frame names bridge,F.math_bridge_frame names bridge]
           |> add (#input_identity names,0) [F.math_input_frame names] end;
-      val (_,groups)=fold collect (Synchronized.value math_requests)(SupportGroups.empty,[])
+      fun historical(_,history:math_history) state=
+        let val names= #names history;val bridge= #bridge_names history
+        in state |> add (#bridge_id bridge,#statement_code_id bridge)
+          [F.math_statement_frame names bridge,F.math_bridge_frame names bridge]
+          |> add (#input_identity names,0)[F.math_input_frame names]end;
+      val (_,groups)=fold historical(Synchronized.value math_history)
+        (fold collect (Synchronized.value math_requests)(SupportGroups.empty,[]))
     in rev groups @ SearchResident.retirement_registrations() end
   | retirement_registrations _=[];
 structure Owner=Veri7vn_Native_State_Owner (struct
@@ -780,14 +815,17 @@ fun start_search e sequence=
          fun current()=SearchResident.entry_live e andalso SearchWorker.identity running=identity andalso
            not(Owner.child_unavailable(SearchResident.key e));
          fun complete()=
-           let val output=restore(fn()=>SearchWorker.join running)();
-             val _=output_root:=SOME output;
+           let val _=restore(fn()=>output_root:=SOME(SearchWorker.join running))();
+             val output=the(!output_root);
              val report=SearchWorker.report output;
              val _=F.guard(SearchWorker.identity running=identity) "Search charged worker association changed";
            in case #outcome report of SearchCore.ProofProposal wire=>
-             let val w=restore(fn()=>SearchGate.reconstruct_into gate_root proof_scope request wire)();
+             let val _=restore(fn()=>ignore(SearchGate.reconstruct_into gate_root proof_scope request wire))();
+               val w=the(!gate_root);
                val native= #dependencies(SearchGate.project w);
-               val exported=restore(fn()=>SearchOutput.export(boot_image())n w report)();
+               val export_root=Unsynchronized.ref NONE;
+               val _=restore(fn()=>export_root:=SOME(SearchOutput.export(boot_image())n w report))();
+               val exported=the(!export_root);
                val material=search_material(SearchResident.dependencies e@native)exported;
                val rendered=SearchWire.proved(SearchResident.wire_identity e)
                  (Veri7vn_Native_Registry.context(P.generation(SearchRequest.receiver request)))
@@ -938,14 +976,18 @@ fun search_restore_request_into target receiver child=
         val _=F.guard(#scope_identity saved=SOME(RequestScope.identity child))
           "Search restored child differs from authenticated original requirement";
         val instance=SearchCore.qualify(#limits saved);val _=instance_root:=SOME instance;
-        val facts=restore(fn()=>SearchReceiver.catalogue pscope actual)();
+        val facts_root=Unsynchronized.ref NONE;
+        val _=restore(fn()=>facts_root:=SOME(SearchReceiver.catalogue pscope actual))();
+        val facts=the(!facts_root);
         val development=SearchReceiver.development actual;
         val original=Literals.owner(RequestScope.source child);
         val _=F.guard(I.lookup_input_identity(identity_allocator())original=SOME(#source links))
           "Search original source identity fragments are missing or differ";
         val source=P.install_host_source(identity_allocator())original;
-        val request=restore(fn()=>SearchRequest.restore_child_owned qscope instance child saved
-          {receiver=development,worker=development,source=source,facts=facts})();
+        val request_root=Unsynchronized.ref NONE;
+        val _=restore(fn()=>request_root:=SOME(SearchRequest.restore_child_owned qscope instance child saved
+          {receiver=development,worker=development,source=source,facts=facts}))();
+        val request=the(!request_root);
         val p={identity=RequestScope.identity child,context= #context links,receiver= #receiver links,
           worker= #worker links,input= #source links,cost=SearchRequest.cost request}:F.search_projection;
         val _=F.guard(#cost p= #cost links andalso #receiver p= #worker p)
@@ -1053,13 +1095,15 @@ fun build_request_material entry phase=
 
 fun build_command_info event=case event of BuildResident.Execute entry=>
     let val n=BuildResident.names entry;val p=BuildResident.projection entry
-    in SOME(commas("pure"::map IntInf.toString
+    in SOME((space_implode ",")("pure"::map IntInf.toString
       [#execution n,#request n,#slot n,#profile p,#code_generation n,#operation n,#step n,1]))end
   | _=>NONE;
 fun build_known_request rid=exists(fn((actual,_,_),_)=>actual=rid)
-  (Synchronized.value BuildResident.entries);
+  (Synchronized.value BuildResident.entries) orelse
+  exists(fn((actual,_,_),_)=>actual=rid)(Synchronized.value BuildResident.restored_entries);
 fun build_known_managed id=exists(fn(_,entry)=>BuildResident.depends id entry)
-  (Synchronized.value BuildResident.entries);
+  (Synchronized.value BuildResident.entries) orelse
+  exists(fn(_,entry)=>BuildResident.restored_depends id entry)(Synchronized.value BuildResident.restored_entries);
 fun build_known_capability id=exists(fn(_,entry)=> #capability(BuildResident.names entry)=id)
   (Synchronized.value BuildResident.entries);
 
@@ -1070,19 +1114,26 @@ fun build_cleanup action invalidations=
       |F.RetireCapability id=>(id,[id])|F.RetireSource id=>(id,[id]);
     val owned=map snd(filter(fn(_,entry)=>exists(fn id=>BuildResident.depends id entry)removed)
       (Synchronized.value BuildResident.entries));
+    val restored=map snd(filter(fn(_,entry)=>exists(fn id=>BuildResident.restored_depends id entry)removed)
+      (Synchronized.value BuildResident.restored_entries));
     (* Monotone native denial precedes joining or destructing workers. Parent
        denial affects siblings only when the actual shared Owner says so. *)
     val _=List.app(fn entry=>
       (NativeBuild.cancel(BuildResident.native entry);
        if Owner.request_unavailable(#request(BuildResident.names entry))then
          RequestScope.deny(RequestScope.parent(NativeBuild.child(BuildResident.native entry)))else()))owned;
-    val _=case Synchronized.value build_workspace of NONE=>()
-      |SOME{owner,...}=>ignore(NativeBuild.invalidate owner removed);
+    val cancelled=case action of F.Cancel _=>true|_=>false;
+    val _=if cancelled then()else(case Synchronized.value build_workspace of NONE=>()
+      |SOME{owner,...}=>ignore(NativeBuild.invalidate owner removed));
+    val _=List.app BuildResident.deny_restored restored;
     fun release()=
-      (List.app BuildResident.release owned;
+      (List.app(fn entry=>if cancelled andalso BuildResident.acknowledged entry then
+          BuildResident.retire_prepared entry else BuildResident.release entry)owned;
+       List.app(fn entry=>if cancelled andalso BuildResident.restored_acknowledged entry then()
+          else BuildResident.release_restored entry)restored;
        case(action,Synchronized.value build_workspace)of
          (F.Forget _,SOME{owner,...})=>NativeBuild.forget_sources owner removed|_=>());
-  in if null owned andalso is_none(Synchronized.value build_workspace)then()
+  in if null owned andalso null restored andalso is_none(Synchronized.value build_workspace)then()
      else launch_cleanup target release end;
 
 fun build_supports entry remaining=
@@ -1101,7 +1152,7 @@ fun build_current_binding id token=
       | _=>let val _=F.guard(BuildResident.live event) "Native Build gate unavailable"
         val(phase,prepared,rid,gid,slot)=BuildResident.binding event
         val _=F.guard(prepared>0) "Native Build current source producer unavailable"
-      in emit id "build_binding"(commas[token,phase,IntInf.toString prepared,
+      in emit id "build_binding"((space_implode ",")[token,phase,IntInf.toString prepared,
           IntInf.toString rid,IntInf.toString gid,IntInf.toString slot])[]end)
   | _=>emit id "build_binding_none" token []);
 
@@ -1162,7 +1213,77 @@ fun build_after_ack event commands sequence=
       let val lease=NativeBuild.acknowledge_output(BuildResident.native e)
       in Synchronized.change output(K(SOME lease))end
   | BuildResident.Outcome(BuildResident.Entry{failure,...},observed)=>
-      Synchronized.change failure(K(SOME observed)));
+      Synchronized.change failure(K(SOME observed))
+  | BuildResident.RestoredRequest _=>error "Restored Build cannot acknowledge an event"
+  | BuildResident.RestoredArtifact _=>error "Restored Build cannot acknowledge an event");
+
+(* The aggregate calls these only after all factories checked the SAME latest
+   checkpoint and all I fragments were installed. They retain actual checked
+   witnesses before temporary factory roots are drained. Neither starts work. *)
+fun build_restore_request_into target checked committed=
+  Thread_Attributes.uninterruptible_body(fn _=>
+    let
+      val _=F.guard(is_none(!target)) "Build restored request target occupied";
+      val raw=Veri7vn_Committed_Native_Recovery.materials committed;
+      val m=BuildWire.decode_projection(#projection raw);
+      val packet=Veri7vn_Native_Build_Request_Envelope.decode(#reconstruction raw);
+      val payload=BuildWire.decode_payload(#body packet);
+      val binding=DevelopmentRecovery.Request.binding checked;
+      val saved=case DevelopmentRecovery.Request.control_plan checked of SOME p=>p
+        |NONE=>error "Legacy Build request has no retained original control plan";
+      val _=F.guard(Veri7vn_Native_Deferred_Build_Codec.encode saved=
+          Veri7vn_Native_Deferred_Build_Codec.encode(#plan packet) andalso
+        #request binding= #request m andalso #goal binding= #goal m andalso #slot binding= #slot m andalso
+        #source_revision binding= #source_revision m andalso #manifest binding= #manifest m andalso
+        P.source_identity(#source binding)= #source_owner m andalso
+        F.build_checkpoint_matches(#checkpoint raw)false m payload(SOME packet))
+        "Build committed request differs from checked native witness";
+      val _=F.guard(case(DevelopmentRecovery.Request.phase checked,#phase packet)of
+          (DevelopmentRecovery.Request.Plan,Veri7vn_Native_Build_Request_Envelope.Prepared)=>true
+        |(DevelopmentRecovery.Request.ObservedFailure actual,
+            Veri7vn_Native_Build_Request_Envelope.ObservedFailure expected)=>
+          Veri7vn_Native_Build_Terminal.encode actual=Veri7vn_Native_Build_Terminal.encode expected
+        |_=>false) "Build restored terminal phase differs";
+      val {owner,...}=local_build_workspace();
+      val retained=BuildResident.Requests.restore(NativeBuild.restored_installation owner checked)checked;
+      val key=(#request binding,#goal binding,#slot binding);
+      val result=BuildResident.Restored{request=retained,key=key,
+        request_view={metadata=m,payload=payload,request=packet},
+        output=Synchronized.var "restored_build_output" NONE,
+        output_view=Synchronized.var "restored_build_output_view" NONE,
+        active=Synchronized.var "restored_build_available" true};
+      val _=target:=SOME result;
+      val _=Synchronized.change BuildResident.restored_entries(fn entries=>
+        (F.guard(length entries<8192 andalso is_none(AList.lookup(op =)entries key) andalso
+          is_none(BuildResident.lookup key)) "Build duplicate restored child or bound";
+         (key,result)::entries));
+    in result end);
+
+fun build_restore_output_into restored checked_request checked_candidate committed=
+  Thread_Attributes.uninterruptible_body(fn _=>
+    let val BuildResident.Restored{request,output,output_view,...}=restored;
+      val _=F.guard(is_none(Synchronized.value output)) "Build restored output already owned";
+      val current=BuildResident.Requests.binding request;
+      val expected=DevelopmentRecovery.Request.binding checked_request;
+      val _=F.guard((#request current,#goal current,#slot current)=
+        (#request expected,#goal expected,#slot expected) andalso
+        Literals.same_input(P.source_input(#source current),P.source_input(#source expected)))
+        "Build artifact restoration has a different original request";
+      val raw=Veri7vn_Committed_Native_Recovery.materials committed;
+      val m=BuildWire.decode_projection(#projection raw);
+      val payload=BuildWire.decode_payload(#reconstruction raw);
+      val binding=DevelopmentRecovery.Candidate.binding checked_candidate;
+      val _=F.guard(#candidate m= #candidate binding andalso
+        (#request m,#goal m,#slot m)=BuildResident.restored_key restored andalso
+        F.build_checkpoint_matches(#checkpoint raw)true m payload NONE)
+        "Build artifact material differs from checked native candidate";
+      val {owner,...}=local_build_workspace();
+      val root=Unsynchronized.ref NONE;
+      val lease=NativeBuild.restore_output_into root owner checked_request checked_candidate;
+      (* Publish the independent owning lease before exposing ArtifactReady. *)
+      val _=Synchronized.change output(K(SOME lease));
+      val _=Synchronized.change output_view(K(SOME{metadata=m,payload=payload}));
+    in ()end);
 
 fun propose_build id payload=
   let
@@ -1210,7 +1331,7 @@ fun propose_build id payload=
         val _=issue_gate(Build(BuildResident.Reserve entry))(SOME material);
         val _=RequestScope.release_child child;
         val _=RequestScope.release_parent parent;
-      in emit id "build_proposed"(commas(map IntInf.toString
+      in emit id "build_proposed"((space_implode ",")(map IntInf.toString
         [#request names,#goal names,#slot names]))[]end;
     val result=Exn.capture construct();
   in case result of Exn.Res()=>() | Exn.Exn failure=>
@@ -1222,11 +1343,15 @@ fun propose_build id payload=
 fun poll_build id payload=
   let val key=case space_explode "," payload of [rid,gid,slot]=>
         (decimal rid,decimal gid,decimal slot)|_=>error "Build poll requires exact child tuple"
-    val entry=case BuildResident.lookup key of SOME e=>e|NONE=>error "Unknown native Build child";
-    val native=BuildResident.native entry;
-    val BuildResident.Entry{output,failure,...}=entry;
-    val(status,prepared,revision,manifest,candidate,diagnostic)=
-      case NativeBuild.inspect native of NativeBuild.Unavailable=>("cancelled",0,0,0,0,NONE)
+    fun fresh entry=
+      let val native=BuildResident.native entry
+        val BuildResident.Entry{output,failure,...}=entry
+      in if BuildResident.acknowledged entry then
+        let val {metadata,...}=BuildResident.expected_output(BuildResident.Artifact entry)
+          val producer=case NativeBuild.inspect native of NativeBuild.Status view=> #prepared_input view
+            |NativeBuild.Unavailable=>0
+        in("artifact_ready",producer,#source_revision metadata,#manifest metadata,#candidate metadata,NONE)end
+      else case NativeBuild.inspect native of NativeBuild.Unavailable=>("cancelled",0,0,0,0,NONE)
       | NativeBuild.Status view=>
         let val acknowledged=case Synchronized.value output of
             SOME lease=>NativeBuild.OutputOwner.is_live lease|NONE=>false
@@ -1240,8 +1365,27 @@ fun poll_build id payload=
             (Synchronized.value failure)else NONE
           val candidate=if acknowledged then the_default 0(#candidate view)else 0
         in(state,#prepared_input view,#source_revision view,#manifest view,candidate,diagnostic)end
+      end;
+    fun historical(r as BuildResident.Restored{request,output,...})=
+      if not(BuildResident.restored_live r) andalso not(BuildResident.restored_acknowledged r)
+      then("cancelled",0,0,0,0,NONE)else
+      let val BuildResident.Restored{request_view={metadata,...},...}=r
+        val candidate=case Synchronized.value output of SOME lease=>
+            if NativeBuild.OutputOwner.is_live lease then
+              SOME(#candidate(NativeBuild.Builder.projection(NativeBuild.OutputOwner.candidate lease)))else NONE
+          |NONE=>NONE
+        val(state,diagnostic)=case candidate of SOME _=>("artifact_ready",NONE)
+          |NONE=>(case BuildResident.Requests.phase request of
+              DevelopmentRecovery.Request.Plan=>("historical",NONE)
+            |DevelopmentRecovery.Request.ObservedFailure failure=>
+              ("failed",SOME(NativeBuild.terminal_failure_packet failure)))
+      in(state,0,#source_revision metadata,#manifest metadata,the_default 0 candidate,diagnostic)end;
+    val(status,prepared,revision,manifest,candidate,diagnostic)=
+      case BuildResident.lookup key of SOME entry=>fresh entry
+      |NONE=>(case AList.lookup(op =)(Synchronized.value BuildResident.restored_entries)key of
+          SOME restored=>historical restored|NONE=>error "Unknown native Build child");
     val(rid,gid,slot)=key
-  in emit id "build_result"(commas(map IntInf.toString[rid,gid,slot] @ [status] @
+  in emit id "build_result"((space_implode ",")(map IntInf.toString[rid,gid,slot] @ [status] @
     map IntInf.toString[prepared,revision,manifest,candidate]))
     (case diagnostic of NONE=>[]|SOME bytes=>[Bytes.string bytes])end;
 
@@ -1394,16 +1538,14 @@ fun after_ack gate commands sequence invalidations =
       let val evidence=MathGate.evidence w;
         val material=case AList.lookup(op =)(Synchronized.value math_output_materials)evidence of
           SOME material=>material|NONE=>error "Acknowledged Math evidence lost its original capsule";
-        val p=Request.project(MathGate.request w);
-        val history={witness=w,material=material,request= #request_id p,goal= #goal_id p,slot= #output_slot_id p,
-          semantic= #semantic_generation p,bridge= #bridge_id(Display.project_bridge(MathGate.rendering_bridge w)),
-          dependencies=MathGate.managed_dependencies w}:math_history;
+        val history=captured_math_history w material;
         val _=Synchronized.change math_history(AList.update(op =)(evidence,history));
         val _=Synchronized.change math_output_materials(AList.delete(op =)evidence)
       in issue_gate (MathPublish(e,w)) NONE end
   | MathPublish _=>()
   | RestoredMath _=>error "Restored association cannot acknowledge an event"
   | RestoredOutput _=>error "Restored association cannot acknowledge an event"
+  | RestoredMathHistory _=>error "Historical verification cannot acknowledge an event"
   | Lifecycle action=>cleanup_action action invalidations);
 fun acknowledge_internal id payload =
   (case space_explode "," payload of [token,sequence_text]=>
@@ -1614,7 +1756,9 @@ fun service_capabilities id payload =
        uninstalled family producers never advertise a service operation. *)
     val body=YXML.string_of_body[XML.Elem(("service-capabilities",[("version","1")]),
       [XML.Elem(("family",[("name","mathematics"),("version","1"),
-        ("propose","propose_math"),("poll","poll_result")]),[])])]
+        ("propose","propose_math"),("poll","poll_result")]),[]),
+       XML.Elem(("family",[("name","native-build"),("version","1"),
+        ("propose","propose_build"),("poll","poll_build")]),[])])]
   in emit id "service_capabilities" "1" [Bytes.string body]end;
 fun lifecycle id operation payload =
   let val target=decimal payload;
@@ -1729,12 +1873,17 @@ fun restore_begin id payload checkpoint =
     let val _=F.guard(is_none(Synchronized.value restoring) andalso
         null(Synchronized.value tokens) andalso is_none(Synchronized.value pending) andalso
         null(Synchronized.value math_requests) andalso null(Synchronized.value associations) andalso
+        null(Synchronized.value math_history) andalso null(Synchronized.value math_output_materials) andalso
         null(Synchronized.value SearchResident.entries) andalso null(Synchronized.value BuildResident.entries) andalso
         null(Synchronized.value BuildResident.restored_entries) andalso
         is_none(Synchronized.value search_context_owner) andalso is_none(Synchronized.value build_workspace))
         "Native restore requires fresh unassociated process";
       val sequence=decimal sequence_text;
       val state=the(F.decode_state_checked checkpoint);
+      (* A wire-shape upgrade does not implement missing source consumers. This
+         generated profile rejects their actual obligations before any restore
+         transaction, input pool or committed native material is created. *)
+      val _=F.guard(F.restore_supported state) "Unsupported native restoration source profile";
       val _=F.guard(workspace=I.workspace(identity_allocator()) andalso sequence>0 andalso
         F.revision state=decimal revision_text andalso F.epoch state=decimal epoch_text andalso
         F.encode_state state=checkpoint) "Native restore latest checkpoint identity mismatch";
@@ -1749,7 +1898,7 @@ fun restore_begin id payload checkpoint =
       val _=Synchronized.change restoring(K(SOME transaction));
       val bytes=space_implode "\n"(map(fn {association,semantic_generation,role}=>space_implode ","
         [role_name role,IntInf.toString association,IntInf.toString semantic_generation])required);
-    in emit id "restore_required" "2" [Bytes.string bytes] end
+    in emit id "restore_required" "4" [Bytes.string bytes,Bytes.string ""] end
   | _=>emit id "rejected" "restore_begin_shape" []);
 fun restore_material_begin id payload =
   let val Restore {required,materials,upload,total,sequence,...}=staging_transaction();
@@ -1807,7 +1956,18 @@ fun restore_run (transaction as Restore {workspace,sequence,checkpoint,required,
       "Incomplete native restore transaction";
     val metadata=the(F.decode_state checkpoint);
     val input_pool=RecoveryInputs.create(identity_allocator());
-    val kernel_batch=V.restore_batch_with input_pool;val math_batch=MathRecovery.begin_batch_with input_pool;
+    (* All native families share the physical input pool and the same graph
+       interner. Installed Main/Admission roots are fixed native policies. *)
+    val {roots,recovery,...}=local_build_workspace();
+    val kernel_batch=V.restore_batch_with_roots input_pool roots;
+    val math_batch=MathRecovery.begin_batch_with input_pool;
+    val build_batch=DevelopmentRecovery.batch recovery kernel_batch input_pool;
+    val build_scope_installation=Veri7vn_Native_Scope_Recovery.install(boot_image())roots
+      {math=NONE,build=SOME NativeBuild.Builder.executable,initial=NONE,update=NONE,
+       domain=NONE,source_domain=NONE,search=NONE};
+    val build_scopes=Veri7vn_Native_Scope_Recovery.batch build_scope_installation
+      (identity_allocator())input_pool;
+    val rebuilt_builds=Unsynchronized.ref([]:BuildResident.restored list);
     val rebuilt_descriptors=Unsynchronized.ref([]:D.descriptor list);
     val rebuilt_requests=Unsynchronized.ref([]:math_entry list);
     val rebuilt_outputs=Unsynchronized.ref([]:MathGate.witness list);
@@ -1836,18 +1996,64 @@ fun restore_run (transaction as Restore {workspace,sequence,checkpoint,required,
           (Veri7vn_Recovery_Manifest.decode{max_bytes=8192}(#manifest(#2(material_for association))));
         val child_materials=select F.RequestChildRole;
         val math_children=filter(fn item=>family_of item=MathematicsRequest)child_materials;
-        val _=F.guard(length math_children=length child_materials)
-          "Native build/qualification request restore adapter not installed";
-        val math_ids=map #semantic_generation math_children;
+        val build_children=filter(fn item=>family_of item=NativeBuildRequest)child_materials;
+        val _=F.guard(length math_children+length build_children=length child_materials)
+          "Native qualification request restore adapter not installed";
+        fun committed_material association=
+          let val (origin,m)=material_for association;
+            val token=Veri7vn_Committed_Native_Recovery.install_committed_host
+              {workspace=workspace,journal_sequence=origin,association=association,
+               semantic_generation= #semantic_generation m,checkpoint=checkpoint,manifest= #manifest m,
+               projection= #projection m,sequent= #sequent m,context_closure= #context_closure m,
+               reconstruction= #reconstruction m};
+            val _=committed:=token::(!committed)
+          in token end;
+        val build_requests=map(fn{association,...}=>
+          let val token=committed_material association;
+            val checked=DevelopmentRecovery.recheck_request_in build_batch(identity_allocator())token;
+            val scope=Veri7vn_Native_Scope_Recovery.check build_scopes token
+          in(checked,scope,token)end)build_children;
+        val build_outputs=map(fn{association,...}=>
+          let val token=committed_material association;
+            val checked=DevelopmentRecovery.recheck_candidate_in build_batch(identity_allocator())token
+          in(checked,token)end)(select F.ArtifactRole);
+        val math_ids=distinct(op =)(map #semantic_generation math_children @
+          map #semantic_generation(select_evidence MathematicsOutput));
         val _=List.app(fn semantic=>ignore(exists(fn verified=>
           MathRecovery.supply_generation_for math_batch boot_policy verified semantic)kernel))math_ids;
-        val requests=map(fn {association,...}=>MathRecovery.verify_request math_batch (identity_allocator())
+        val active_requests=map(fn {association,...}=>MathRecovery.verify_request math_batch (identity_allocator())
           boot_policy (boot_image()) (boot_bytes()) (as_math_material(#2(material_for association))))
           math_children;
+        val historical_requests=map_filter(fn{association,...}=>
+          let val material=as_math_material(#2(material_for association))
+          in if MathRecovery.has_embedded_request material then SOME(MathRecovery.verify_output_request math_batch
+              (identity_allocator())boot_policy(boot_image())(boot_bytes())checkpoint material)
+            else NONE end)(select_evidence MathematicsOutput);
+        fun merge_request value originals=case find_first(fn old=>
+            MathRecovery.verified_identity old=MathRecovery.verified_identity value)originals of
+          NONE=>value::originals|SOME old=>
+            (F.guard(MathRecovery.same_verified_request old value) "Conflicting original Math capsule source";originals);
+        val requests=fold merge_request(active_requests @ historical_requests)[];
+        val active_keys=map MathRecovery.verified_identity active_requests;
         val sealed=V.seal_batch kernel_batch;
         val _=Thread_Attributes.uninterruptible(fn _=>fn()=>
           (canonical_install_attempted:=true;
-           I.install_fragments(identity_allocator())(V.fragment sealed::map MathRecovery.fragment requests)))();
+           I.install_fragments(identity_allocator())(V.fragment sealed::map MathRecovery.fragment requests @
+             maps(fn(checked,scope,_)=>[DevelopmentRecovery.request_fragment checked,
+               Veri7vn_Native_Scope_Recovery.fragment scope])build_requests @
+             map(DevelopmentRecovery.candidate_fragment o #1)build_outputs)))();
+        val restored_builds=map(fn(checked,_,token)=>
+          let val target=Unsynchronized.ref NONE;
+            val restored=build_restore_request_into target checked token;
+            val _=rebuilt_builds:=restored::(!rebuilt_builds)
+          in(checked,restored)end)build_requests;
+        val _=List.app(fn(checked,token)=>
+          let val binding=DevelopmentRecovery.Candidate.binding checked;
+            val key=(#request binding,#goal binding,#slot binding);
+            val paired=filter(fn(_,restored)=>BuildResident.restored_key restored=key)restored_builds;
+            val (request,restored)=case paired of [entry]=>entry
+              |_=>error "Build artifact has no unique authenticated original request";
+          in build_restore_output_into restored request checked token end)build_outputs;
         val descriptors=map(fn verified=>let val descriptor=D.restore(identity_allocator())verified;
           val _=rebuilt_descriptors:=descriptor::(!rebuilt_descriptors) in descriptor end)kernel;
         val entries=map(fn verified=>
@@ -1881,7 +2087,16 @@ fun restore_run (transaction as Restore {workspace,sequence,checkpoint,required,
             val _=Synchronized.change observed(K(MathGate.managed_dependencies witness));
             val _=Synchronized.change failure(K NONE)
           in (entry,witness) end)(select_evidence MathematicsOutput);
-        val gates=map Admitted descriptors @ map RestoredMath entries @ map RestoredOutput outputs;
+        val active_entries=filter(fn entry=>member(op =)active_keys(entry_key entry))entries;
+        val gates=map Admitted descriptors @ map RestoredMath active_entries @
+          map (RestoredMathHistory o #2)outputs @
+          maps(fn(_,restored)=>Build(BuildResident.RestoredRequest restored)::
+            (if BuildResident.restored_acknowledged restored then
+              [Build(BuildResident.RestoredArtifact restored)]else[]))restored_builds;
+        (* Native restored owners retained their checked witnesses before the
+           construction batches release their temporary roots. *)
+        val _=DevelopmentRecovery.close_batch build_batch;
+        val _=Veri7vn_Native_Scope_Recovery.close build_scopes;
         val workspace_owner=MathRecovery.close_batch math_batch;
         val _=retained_workspace:=SOME workspace_owner;
         val _=RecoveryInputs.close input_pool;
@@ -1889,7 +2104,14 @@ fun restore_run (transaction as Restore {workspace,sequence,checkpoint,required,
           (F.guard(Synchronized.value active) "Native restore was cancelled";
            F.guard(Owner.restore_complete checkpoint gates) "Native complete association restore refused";
            Synchronized.change associations(K(map(fn d=>(D.evidence_id d,d))descriptors));
-           Synchronized.change math_requests(K(map(fn e=>(entry_key e,e))entries));
+           Synchronized.change math_requests(K(map(fn e=>(entry_key e,e))active_entries));
+           Synchronized.change math_history(K(map(fn(_,witness)=>
+             let val id=MathGate.evidence witness;
+               val material= #2(material_for id)
+             in (id,captured_math_history witness material)end)outputs));
+           List.app(fn entry=>if member(op =)active_keys(entry_key entry)then()
+             else (Request.release(entry_request entry);Control.mark_released
+               (case entry of MathEntry{control,...}=>control)))entries;
            Synchronized.change durable_sequence(K sequence);
            Synchronized.change math_workspace_owners(cons workspace_owner);
            List.app Veri7vn_Committed_Native_Recovery.release (!committed);
@@ -1898,6 +2120,9 @@ fun restore_run (transaction as Restore {workspace,sequence,checkpoint,required,
     val result=Exn.capture run();
   in case result of Exn.Res()=>() | Exn.Exn failure=>
     ((if !canonical_install_attempted then Synchronized.change native_poisoned(K true) else ());
+     List.app BuildResident.release_restored(!rebuilt_builds);
+     DevelopmentRecovery.abort_batch build_batch;
+     Veri7vn_Native_Scope_Recovery.close build_scopes;
      List.app MathGate.release(!rebuilt_outputs);List.app release_entry(!rebuilt_requests);
      MathRecovery.abort_batch math_batch;
      (case !retained_workspace of NONE=>() | SOME owner=>MathRecovery.release_workspace owner);

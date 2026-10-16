@@ -192,13 +192,15 @@ struct
     (case scope of NONE=>true|SOME child=>Scope.child_live child);
   val live=execution_allowed;
   fun release_payload(Request{view,counted,references,finalizer,payload,lease,scope,...})=
-    Thread_Attributes.uninterruptible_body(fn _=>case Release.try_claim view of NONE=>false|SOME claim=>
+    Thread_Attributes.uninterruptible_body(fn _=>case Release.try_claim view of NONE=>
+      (if Release.is_done view then false else error "Request provenance cleanup already in progress")|SOME claim=>
       let val result=Exn.capture(fn()=>
         let val first=Synchronized.change_result counted(fn active=>(active,false));
           val remaining=if first then Synchronized.change_result references(fn n=>
             (if n>0 then(n-1,n-1)else error "Request provenance reference underflow"))
             else Synchronized.value references;
-          val _=if remaining<>0 then()else(case Release.try_claim finalizer of NONE=>()|SOME cleanup=>
+          val _=if remaining<>0 then()else(case Release.try_claim finalizer of NONE=>
+              (if Release.is_done finalizer then()else error "Final request cleanup already in progress")|SOME cleanup=>
             let val released=Exn.capture(fn()=>
               (case Synchronized.value payload of NONE=>()|SOME{family_request,...}=>
                 (M.release_request family_request;Option.app Scope.release_child scope;

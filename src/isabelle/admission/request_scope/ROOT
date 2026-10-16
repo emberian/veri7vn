@@ -4,5 +4,5 @@ session Veri7vn_Native_Scope_Data in data = Pure +
 
 session Veri7vn_Native_Request_Scope = Veri7vn_Authority_Codec +
   options [document = false]
-  sessions Veri7vn_Admission
+  sessions Veri7vn_Admission Veri7vn_Native_Lifetime
   theories Native_Request_Scope

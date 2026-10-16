@@ -79,11 +79,12 @@ struct
         Option.app I.release_disposed_input(L.release owner);Exn.reraise failure)end);
   fun with_view(Association{root=Root{state,...},owned})action=
     Synchronized.change_result owned(fn held=>
-      (require held "Original source capsule view released";
-       Synchronized.change_result state(fn current as {owners,payload,...}=>
-         case payload of NONE=>error "Original source capsule root released"
-         |SOME value=>(require(owners>0 andalso native_live value) "Original source capsule native roots unavailable";
-           (action value,current))),held));
+      let val _=require held "Original source capsule view released";
+        val result=Synchronized.change_result state(fn current as {owners,payload,...}=>
+          case payload of NONE=>error "Original source capsule root released"
+          |SOME value=>(require(owners>0 andalso native_live value) "Original source capsule native roots unavailable";
+            (action value,current)))
+      in (result,held) end);
   fun live association=(ignore(with_view association(fn _=>()));true)handle ERROR _=>false;
   fun identity association=with_view association #identity;
   fun input association=with_view association #input;
@@ -94,12 +95,13 @@ struct
   fun dependencies association=with_view association #dependencies;
   fun retain(association as Association{root=root as Root{state,...},owned})=
     Thread_Attributes.uninterruptible_body(fn _=>Synchronized.change_result owned(fn held=>
-      (require held "Original source capsule view released";
-       Synchronized.change_result state(fn current as {owners,payload,tasks,busy}=>
-         (require(owners>0 andalso owners<8192 andalso
-           (case payload of SOME value=>native_live value|NONE=>false)) "Original source capsule retention unavailable";
-          (Association{root=root,owned=Synchronized.var "original_session_source_retained_view" true},
-           {owners=owners+1,payload=payload,tasks=tasks,busy=busy}))),held)));
+      let val _=require held "Original source capsule view released";
+        val result=Synchronized.change_result state(fn current as {owners,payload,tasks,busy}=>
+          (require(owners>0 andalso owners<8192 andalso
+            (case payload of SOME value=>native_live value|NONE=>false)) "Original source capsule retention unavailable";
+           (Association{root=root,owned=Synchronized.var "original_session_source_retained_view" true},
+            {owners=owners+1,payload=payload,tasks=tasks,busy=busy})))
+      in (result,held) end));
   fun drain(root as Root{state,...})=
     let val next=Synchronized.change_result state(fn current as {owners,payload,tasks,busy}=>
         if owners<>0 orelse null tasks then(NONE,current)

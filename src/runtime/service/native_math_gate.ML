@@ -44,8 +44,10 @@ struct
     original:cterm,implementation:A.accepted,bridge:Display.bridge,display:Display.display};
   datatype witness=Witness of {release:Release.owner,names:names,deps:IntInf.int list,managed:IntInf.int list,
     payload:payload option Synchronized.var};
-  fun get (Witness {payload,...})=(case Synchronized.value payload of
-    SOME p=>p | NONE=>error "Refined native result was released");
+  fun get (Witness {release,payload,...})=
+    if Release.is_live release then (case Synchronized.value payload of
+      SOME p=>p | NONE=>error "Refined native result was released")
+    else error "Refined native result was released";
   fun ready (M.Ready value)=value | ready (M.Refused _)=error "Refined native object unavailable";
   fun live witness=(let val {request,output,bridge,...}=get witness
     in R.retained_live request andalso Display.bridge_matches bridge (R.instance request) andalso M.belongs_to (R.family_request request) output end)
@@ -151,7 +153,8 @@ struct
         ((case old of NONE=>() | SOME {output,request,...}=>(M.release_output output;R.release request));NONE));
        Exn.reraise failure) end;
   fun release(Witness{payload,release,...})=Thread_Attributes.uninterruptible_body(fn _=>
-    case Release.try_claim release of NONE=>()|SOME claim=>
+    case Release.try_claim release of NONE=>
+      (if Release.is_done release then()else error "Math witness cleanup already in progress")|SOME claim=>
       let val result=Exn.capture(fn()=>case Synchronized.value payload of NONE=>()
         |SOME{output,request,...}=>(M.release_output output;R.release request;
           Synchronized.change payload(K NONE)))()

@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.CountDownLatch
 import scala.util.control.NonFatal
 import veri7vn.runtime.connectors.mcp.{McpIngress,McpWorkflow,McpObservationRecord}
-import veri7vn.runtime.effects.{OperationIdentity,OperationProfile,WorkerLimits,ExecutorReceipt}
+import veri7vn.runtime.effects.{OperationProfile,WorkerLimits,ExecutorReceipt}
 
 /** Fixed local producer. Preparation captures an installed MCP executor and
   * packet association; it performs no external operation and grants no start.
@@ -23,9 +23,10 @@ private[service] final class PreparedMcpOperation private (
     * checking the retained executable/profile pins. IDs are not permission.
     * Only the separately consumed acknowledged permit can initiate handoff. */
   private[service] def bindNativeRegistration(workspace:String,command:NativeEffectCommand,
-      registration:OperationIdentity):Bound={
+      association:NativeMcpRegistration):Bound={
+    val registration=association.claim(PreparedMcpOperation.this.association,command)
     require(registration.operation==packet.operation.toString &&
-      registration.capability==command.capability,"MCP native operation registration mismatch")
+      registration.capability==command.capability && registration.profile==command.cost.profile,"MCP native operation registration mismatch")
     require(packet.configurationLabel==installation.configurationLabel,"MCP prepared configuration mismatch")
     val profile=installation.withCurrent {
       OperationProfile.installApproved(registration,executor,1,WorkerLimits(5000,1048576,65536),16384)

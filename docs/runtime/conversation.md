@@ -237,8 +237,12 @@ actual refined witness and adopts its typed Exact outcome. It requires historica
 quotation after the original binding's CAS license becomes stale. The witness's
 retained request view cannot dispatch work. It also exercises a failing final
 source destructor through Scope and request release, with retry and no repeated
-destruction. This fixture remains unqualified until the shared SessionObservation
-Scope path loads; it adds no production test opcode.
+destruction. Separate actual Entry faults check that event release and final
+source-root cleanup deny access immediately, retain failed cleanup for retry, and
+never repeat a completed destructor. Failed roots stay only in the existing
+physical lifetime table until disposal succeeds. This fixture remains unqualified
+until the shared SessionObservation Scope path loads; it adds no production test
+opcode.
 
 History joins a recorded source to the actual native request's original input
 identity and issuer-checked observation. A dependency edge can denote an observed

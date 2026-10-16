@@ -735,7 +735,8 @@ fun build_restore_retained state (requests:build_request_expectation list)
         val _=guard(@{code request_dependencies}parent=map nat dependencies)
           "Build original shared dependencies differ from native producer"
         val supports=distinct(op =)(#interpretation control:: #capability control::dependencies)
-        val parameter=registered(build_parameter_frame names parent child native(#input_bindings m)[])
+        val parameter=registered(build_parameter_frame names parent child native
+          (distinct(op =)(#source_owner m:: #parents m))[])
         val has_parameter=exists(fn row=> @{code retained_id}row=nat(#parameter control))
           (@{code retained_values}state)
       in map(registered o build_intrinsic_frame)supports @
@@ -752,7 +753,7 @@ fun build_restore_retained state (requests:build_request_expectation list)
         val frame=build_artifact_frame names parent child required(#semantic_generation m)
           closure(#input_bindings m)(@{code RequestLocal}(nat(#request m)))[]
         val assignment=case decode_event frame of
-          SOME(@{code RecordOutput}(@{code ArtifactOutput}a,NONE))=>a
+          SOME(@{code StageOutput}(_, @{code ArtifactOutput}a,NONE))=>a
           |_=>error "Build expected artifact profile"
         val matches=filter(fn actual=> @{code artifact_assigned_output}actual=nat(#candidate m))
           (@{code required_native_artifacts}state)
@@ -766,9 +767,10 @@ fun build_restore_retained state (requests:build_request_expectation list)
       "Build native artifact coverage differs"
   in maps request_rows requests @ maps output_rows outputs end;
 
+fun restore_supported state = @{code service_restore_supported} state;
 fun restore_matches state views =
   let
-    val _=guard (@{code service_restore_supported} state) "Unsupported native checkpoint profile";
+    val _=guard (restore_supported state) "Unsupported native checkpoint profile";
     val active_request_views=map_filter(fn MathRequestAssociation value=>SOME value | _=>NONE)views;
     val historical_request_views=map_filter(fn MathHistoricalOutputAssociation{request,...}=>SOME request|_=>NONE)views;
     fun original_key({names,...}:math_request_expectation)=(#request_id names,#goal_id names,#output_slot_id names);

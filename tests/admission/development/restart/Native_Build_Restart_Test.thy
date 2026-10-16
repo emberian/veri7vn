@@ -175,12 +175,16 @@ local
   val release_start=Synchronized.var "same_handle_release_start" false;
   fun release_concurrently()=
     (Synchronized.guarded_access release_start(fn false=>NONE|true=>SOME((),true));
-     Recovery.Candidate.release concurrent_candidate);
+     Exn.capture Recovery.Candidate.release concurrent_candidate);
   val first_release=Future.fork release_concurrently;
   val second_release=Future.fork release_concurrently;
   val _=Synchronized.change release_start(K true);
-  val _=Future.join first_release;
-  val _=Future.join second_release;
+  fun release_result(Exn.Res())=()
+    |release_result(Exn.Exn(ERROR message))=
+        assert(message="Build cleanup is already in progress; retry disposal") "Unexpected concurrent cleanup error"
+    |release_result(Exn.Exn failure)=Exn.reraise failure;
+  val _=release_result(Future.join first_release);
+  val _=release_result(Future.join second_release);
   val _=assert(Recovery.Candidate.is_live held_candidate andalso
     Recovery.retains_candidate_payload held_candidate)
     "Concurrent same-handle release disposed a separately retained sibling";

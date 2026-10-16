@@ -65,17 +65,19 @@ object WorkspaceStoreTests {
       val candidate=new NativeRecoveryMaterial(material.association,BigInt(2),candidateSlots++(if(executable)Vector("executable"->code)else Vector.empty),material.dependencies)
       var allowed=true
       try {validateRecovery(store.nativeWorkspace,candidate)
-        val expected=if(role=="effect-source-observation")"acquired-source" else if(role=="session-input")"source-input" else if(role.endsWith("-request"))"request-child" else if(role=="build-candidate")"artifact" else if(role=="domain-output" || role=="source-domain-output" || role=="search-output" || role=="math-output")"refined-output" else "observation"
+        val expected=if(role=="effect-source-observation")"acquired-source" else if(role=="effect-request")"effect-request" else if(role=="session-input")"source-input" else if(role.endsWith("-request"))"request-child" else if(role=="build-candidate")"artifact" else if(role=="domain-output" || role=="source-domain-output" || role=="search-output" || role=="math-output")"refined-output" else "observation"
         require(recoveryCategory(frame)==expected,"recovery category mismatch")
         val abstractRequirement=if(expected=="refined-output" || expected=="observation")"evidence" else expected
         require(matchesRecoveryRequirement(frame,abstractRequirement),"abstract recovery requirement mismatch")
         require(!matchesRecoveryRequirement(frame,if(abstractRequirement=="evidence")"artifact" else "evidence"),"cross-role recovery accepted")
         require(!matchesRecoveryRequirement(frame,"refined-output"),"legacy requirement category accepted")
+        if(role=="effect-request")require(!matchesRecoveryRequirement(frame,"request-child") &&
+          !matchesRecoveryRequirement(frame,"acquired-source"),"effect request category conflated")
       } catch {case _:IllegalArgumentException=>allowed=false}
       finally candidate.release()
       require(allowed==accepted,"closed role/sequent rule "+profile+"/"+role)
     }
-    for((profile,role)<-Vector("local-mcp/1"->"effect-source-observation","native-session-input/1"->"session-input","source-quantities/1"->"source-domain-request","literal-native-proof/1"->"search-request","quantities/1"->"domain-request","native-development/1"->"build-request","native-development/1"->"build-candidate",
+    for((profile,role)<-Vector("local-mcp/1"->"effect-request","local-mcp/1"->"effect-source-observation","native-session-input/1"->"session-input","source-quantities/1"->"source-domain-request","literal-native-proof/1"->"search-request","quantities/1"->"domain-request","native-development/1"->"build-request","native-development/1"->"build-candidate",
       "native-export-admission/1"->"initial-qualification","native-export-admission/1"->"initial-qualification-request",
       "named-native-export-structure/1"->"update-qualification","named-native-export-structure/1"->"update-qualification-request")){
       checkRole(profile,role,true,true,true)

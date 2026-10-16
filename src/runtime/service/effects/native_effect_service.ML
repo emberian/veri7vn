@@ -18,6 +18,8 @@ sig
   val prepare:owner->operation->Veri7vn_Native_Effect_Inputs.prepared->entry
   val names:entry->names val live:entry->bool val incarnation:entry->serial
   val context:entry->Veri7vn_Managed_Provenance.development
+  val original_metadata:entry->IntInf.int->Veri7vn_Native_Effect_Codec.original
+  val response_state:entry->Veri7vn_Native_Effect_Responses.response->{prestate:IntInf.int,epoch:IntInf.int}
   val generation:entry->Veri7vn_Native_Registry.generation
   val operation:entry->operation
   val input_binding:entry->Veri7vn_Native_Effect_Inputs.binding
@@ -81,6 +83,14 @@ struct
     andalso L.retained configuration andalso L.retained packet;
   fun input_binding(entry as Entry{binding,...})=
     (require(live entry) "Native effect input binding unavailable";binding);
+  fun original_metadata(entry as Entry{binding,names,sources,dependencies,...}) prestate=
+    let val original= #metadata binding
+      val operation_name=case operation entry of Discover=>"Discover"|QualifyCounter=>"QualifyCounter"|InvokeCounter=>"InvokeCounter"
+    in {workspace=P.source_workspace(#configuration binding),names=names,prestate=prestate,
+      sources=sources,dependencies=dependencies,operation=operation_name,
+      configuration=P.source_identity(#configuration binding),packet=P.source_identity(#packet binding),
+      configuration_epoch=Veri7vn_Native_Effect_Inputs.configuration_epoch(#configuration_owner binding),
+      configuration_source= #configuration original,packet_source= #packet original}:Veri7vn_Native_Effect_Codec.original end;
   fun expected(entry as Entry{names=n,sources,dependencies,...}) prestate epoch=
     (require(live entry) "Native effect entry denied";
      {attempt= #attempt n,request= #request n,target= #target n,capability= #capability n,
@@ -168,6 +178,9 @@ struct
         "Native effect observation differs from actual consumed original"
     in{command= #command receipt,source=Veri7vn_Native_Effect_Responses.source response,
       originals=originals}end;
+  fun response_state entry response=
+    let val {command,...}=observation_binding entry response
+    in {prestate= #prestate command,epoch= #epoch command}end;
   fun cancel(Entry{control,phase,...})=
     (Control.deny control;Synchronized.change phase(K Denied));
   fun release(entry as Entry{control,child,parent,config_lease,...})=

@@ -3,6 +3,7 @@ theory Native_Effects_Tests
 begin
 ML \<open>
 local
+  structure Codec=Veri7vn_Native_Effect_Codec;
   structure Responses=Veri7vn_Native_Effect_Responses;
   structure Inputs=Veri7vn_Native_Effect_Inputs;
   structure Effects=Veri7vn_Native_Effect_Service(structure Scope=Veri7vn_Native_Request_Scope);
@@ -20,6 +21,8 @@ local
   val packet="fixed discovery request";
   val config_nonce="effectFixture0001";
   val config_transfer=Inputs.begin_configuration pool config_nonce(source "config" config)7;
+  val _=check(denied(fn()=>ignore(Inputs.begin_configuration pool config_nonce(source "config" config)8)))
+    "Configuration nonce rebound immutable epoch";
   val _=Inputs.write config_transfer 0(Bytes.string config);
   val _=Inputs.finish config_transfer;
   val configuration=case Inputs.accept_nonce pool config_nonce of
@@ -39,6 +42,17 @@ local
   val accepted=case Inputs.accept_nonce pool packet_nonce of Inputs.PreparedPacket value=>value
     |_=>error "Packet acceptance shape";
   val entry=Effects.prepare owner Effects.Discover accepted;
+  val original_metadata=Effects.original_metadata entry 0;
+  val projection=Codec.encode(Codec.Request original_metadata);
+  val decoded_projection=Codec.decode projection;
+  val _=check(Codec.original decoded_projection=original_metadata) "Effect request projection roundtrip changed originals";
+  val(graph,code_sources)=Veri7vn_Native_Construction_Codec.collect ids(Effects.context entry);
+  val _=check(null code_sources andalso #head graph= #generation(#names original_metadata))
+    "Effect request context is not its actual public native generation";
+  val context=Codec.encode_context original_metadata {image="inert-codec-fixture-only",graph=graph,
+    originals={configuration=config,packet=packet},witness=NONE};
+  val _=check(#originals(Codec.decode_context original_metadata context)={configuration=config,packet=packet})
+    "Effect request context lost actual original source bytes";
   val natural=Veri7vn_Numerals.nat_of_integer;
   val integer=Veri7vn_Numerals.integer_of_nat;
   val n=Effects.names entry;
@@ -53,6 +67,18 @@ local
   val (reserved,reserve_commands)=step @{code initial_state}
     (@{code service_effect_reserve} generated_names(natural 0)(map natural deps));
   val _=check(null reserve_commands) "Generated effect reservation rejected";
+  val _=check(null(@{code required_native_children}reserved) andalso
+      @{code required_native_effect_requests}reserved= @{code requests}reserved)
+    "Actual slotless effect Reserve prefix missing from protected request inventory";
+  val(cancelled,_)=step reserved(@{code CancelRequest}(natural(#request n)));
+  val _=check(map (integer o @{code request_id})(@{code required_native_effect_requests}cancelled)=[#request n])
+    "Cancellation erased inert original effect request inventory";
+  val(revoked,_)=step reserved(@{code Revoke}(natural(hd deps)));
+  val(forgotten,_)=step reserved(@{code Forget}(natural(hd deps)));
+  val _=check(null(@{code required_native_effect_requests}revoked) andalso
+      null(@{code required_native_effect_requests}forgotten))
+    "Denied original source left effect request recoverable";
+
   val registered=fold(fn event=>fn state=>
     let val (next,commands)=step state event
     in check(null commands) "Generated source registration rejected";next end)

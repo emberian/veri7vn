@@ -61,6 +61,16 @@ fun search_history_frames e h=
   in {evidence=F.search_evidence_frame p n deps native,publication=F.search_publish_frame p n deps native}end;
 fun search_history_access e h=SearchOutput.history_live h andalso
   Owner.historical_output_access(search_history_frames e h);
+fun search_source_access e source=SearchSourceSupport.live source andalso
+  Owner.search_source_access(SearchResident.expected_source(SearchResident.RestoredSource(e,source)));
+fun search_cancelled_source_packet e source=
+  let val {phase,...}=SearchCodec.inspect(SearchSourceSupport.material source)
+  in case phase of SearchCodec.Pending _=>SearchWire.failure(SearchResident.identity e)
+      "cancelled" "search.cancelled_original_retained"|
+    SearchCodec.Stopped{progress,...}=>
+      (SearchWire.validate_progress progress;
+       SearchWire.root(SearchResident.identity e)"cancelled"
+         [SearchWire.node "diagnostic"[][XML.Text "search.cancelled_original_and_progress_retained"],progress])end;
 fun search_history_packet e h status=
   let val _=F.guard(member(op =)["proved","historical_proved"]status) "Search proof display status";
     val hp=SearchOutput.history_projection h;val saved=SearchOutput.history_saved h;
@@ -108,14 +118,16 @@ fun start_search e sequence=
          fun current()=SearchResident.entry_live e andalso SearchWorker.identity running=identity andalso
            not(Owner.child_unavailable(SearchResident.key e));
          fun complete()=
-           let val output=restore(fn()=>SearchWorker.join running)();
-             val _=output_root:=SOME output;
+           let val _=restore(fn()=>output_root:=SOME(SearchWorker.join running))();
+             val output=the(!output_root);
              val report=SearchWorker.report output;
              val _=F.guard(SearchWorker.identity running=identity) "Search charged worker association changed";
            in case #outcome report of SearchCore.ProofProposal wire=>
-             let val w=restore(fn()=>SearchGate.reconstruct_into gate_root proof_scope request wire)();
+             let val _=restore(fn()=>ignore(SearchGate.reconstruct_into gate_root proof_scope request wire))();
+               val w=the(!gate_root);
                val native= #dependencies(SearchGate.project w);
-               val retained=restore(fn()=>SearchOutput.retain_into history_root(boot_image())n w report)();
+               val _=restore(fn()=>ignore(SearchOutput.retain_into history_root(boot_image())n w report))();
+               val retained=the(!history_root);
                val exported=SearchOutput.history_material retained;
                val material=search_material(SearchResident.dependencies e@native)exported;
                val rendered=SearchWire.proved(SearchResident.wire_identity e)
@@ -193,6 +205,7 @@ fun propose_search id payload bytes=
           observed=Synchronized.var "search_observed_native_dependencies" [],
           job=Synchronized.var "search_job" NONE,monitor=Synchronized.var "search_monitor" NONE,
           witness=Synchronized.var "search_proof_root" NONE,proof_scope=P.construction_scope(),
+          original_source=Synchronized.var "search_original_source_owner" NONE,
           history=Synchronized.var "search_independent_output" NONE,
           packet=Synchronized.var "search_bounded_result" NONE};
         val _=owned:=SOME e;
@@ -220,7 +233,7 @@ fun poll_search id payload=
     val result=case SearchResident.lookup key of NONE=>
         if Owner.child_unavailable key then absent "cancelled" "search.child_unavailable"
         else absent "unavailable" "search.native_owner_unavailable"|
-        SOME(e as SearchResident.Entry{phase,packet,witness,history,...})=>
+        SOME(e as SearchResident.Entry{phase,packet,witness,history,original_source,...})=>
           let val ids=SearchResident.identity e
             val retained=Synchronized.value history;
             val historical=case retained of SOME h=>search_history_access e h|NONE=>false
@@ -228,6 +241,8 @@ fun poll_search id payload=
             let val h=the retained;
               val active=SearchResident.entry_live e andalso Owner.binding_live rid(#evidence(SearchResident.names e))
             in search_history_packet e h(if active then "proved"else "historical_proved")end
+          else if (case Synchronized.value original_source of SOME source=>search_source_access e source|NONE=>false)
+            then search_cancelled_source_packet e(the(Synchronized.value original_source))
           else if Owner.child_unavailable key then SearchWire.failure ids "cancelled" "search.child_unavailable"
           else if not(SearchResident.entry_live e)then SearchWire.failure ids "unavailable" "search.native_owner_unavailable"
           else case Synchronized.value witness of SOME w=>
@@ -242,9 +257,10 @@ fun poll_search id payload=
   in emit id "search_result" payload[Bytes.string result]end;
 fun search_requests id payload=
   let val _=F.guard(payload="") "Search retained child query payload";
-    val entries=filter(fn(key,e as SearchResident.Entry{history,...})=>
+    val entries=filter(fn(key,e as SearchResident.Entry{history,original_source,...})=>
       (SearchResident.entry_live e andalso Owner.search_child_required key)orelse
-      (case Synchronized.value history of SOME h=>search_history_access e h|NONE=>false))
+      (case Synchronized.value history of SOME h=>search_history_access e h|NONE=>false)orelse
+      (case Synchronized.value original_source of SOME source=>search_source_access e source|NONE=>false))
       (Synchronized.value SearchResident.entries);
     val values=map(fn(_,e)=>let val p=SearchResident.projection e
       in {identity= #identity p,context= #context p,semantic= #receiver p}end)entries
@@ -261,9 +277,21 @@ fun search_cleanup action invalidations=
       F.RetireCapability id=>(id,[id])|F.RetireSource id=>(id,[id]);
     val entries=map snd(filter(fn(_,e)=>exists(fn id=>SearchResident.depends id e)removed)
       (Synchronized.value SearchResident.entries));
+    val cancel=case action of F.Cancel _=>true|_=>false;
+    (* The exact last acknowledged request recipe is captured while Q still
+       owns its original native source. Cancellation then tears down execution
+       only; Forget/revocation drains this independent input owner as well. *)
+    fun capture(e as SearchResident.Entry{request,phase,original_source,...})=
+      Thread_Attributes.uninterruptible_body(fn _=>
+      if not cancel orelse is_some(Synchronized.value original_source)then()else
+      (case request of NONE=>()|SOME q=>
+        let val target=Unsynchronized.ref NONE;
+          val source=SearchSourceSupport.capture_into target(#context(SearchResident.projection e))q
+            (SearchResident.names e)(Synchronized.value phase)
+        in Synchronized.change original_source(K(SOME source))end));
+    val _=List.app capture entries;
     val _=List.app SearchResident.deny entries;
     val _=Synchronized.change search_output_materials(filter(fn(key,_)=>not(exists(fn e=>SearchResident.key e=key)entries)));
-    val cancel=case action of F.Cancel _=>true|_=>false;
     fun release()=(List.app(if cancel then SearchResident.release_execution else SearchResident.release)entries;
       serialized SearchResident.remove_released)
   in if null entries then ()else launch_cleanup target release end;
@@ -281,6 +309,8 @@ fun search_restore_request_into target receiver child=
     val qscope=SearchRequest.construction_scope();val pscope=P.construction_scope();
     val proof_scope=P.construction_scope();val instance_root=Unsynchronized.ref NONE;
     val entry_root=Unsynchronized.ref NONE;
+    val facts_root=Unsynchronized.ref(NONE:P.consequence list option);
+    val request_root=Unsynchronized.ref(NONE:SearchRequest.request option);
     fun cleanup()=case !entry_root of SOME e=>SearchResident.release e|NONE=>
       (SearchRequest.abort_scope qscope;P.abort_scope pscope;P.abort_scope proof_scope;
        Option.app SearchCore.release_instance(!instance_root);Option.app SearchReceiver.release(!retained));
@@ -291,14 +321,16 @@ fun search_restore_request_into target receiver child=
         val _=F.guard(#scope_identity saved=SOME(RequestScope.identity child))
           "Search restored child differs from authenticated original requirement";
         val instance=SearchCore.qualify(#limits saved);val _=instance_root:=SOME instance;
-        val facts=restore(fn()=>SearchReceiver.catalogue pscope actual)();
+        val _=restore(fn()=>facts_root:=SOME(SearchReceiver.catalogue pscope actual))();
+        val facts=the(!facts_root);
         val development=SearchReceiver.development actual;
         val original=Literals.owner(RequestScope.source child);
         val _=F.guard(I.lookup_input_identity(identity_allocator())original=SOME(#source links))
           "Search original source identity fragments are missing or differ";
         val source=P.install_host_source(identity_allocator())original;
-        val request=restore(fn()=>SearchRequest.restore_child_owned qscope instance child saved
-          {receiver=development,worker=development,source=source,facts=facts})();
+        val _=restore(fn()=>request_root:=SOME(SearchRequest.restore_child_owned qscope instance child saved
+          {receiver=development,worker=development,source=source,facts=facts}))();
+        val request=the(!request_root);
         val p={identity=RequestScope.identity child,context= #context links,receiver= #receiver links,
           worker= #worker links,input= #source links,cost=SearchRequest.cost request}:F.search_projection;
         val _=F.guard(#cost p= #cost links andalso #receiver p= #worker p)
@@ -314,6 +346,7 @@ fun search_restore_request_into target receiver child=
           observed=Synchronized.var "search_restored_native_dependencies" [],
           job=Synchronized.var "search_restored_job" NONE,monitor=Synchronized.var "search_restored_monitor" NONE,
           witness=Synchronized.var "search_restored_proof" NONE,proof_scope=proof_scope,
+          original_source=Synchronized.var "search_restored_original_source_owner" NONE,
           history=Synchronized.var "search_restored_independent_output" NONE,
           packet=Synchronized.var "search_restored_packet" NONE};
         val _=entry_root:=SOME e;
@@ -352,8 +385,9 @@ fun search_restore_output_into target (e as SearchResident.Entry{names,witness,p
      Option.app SearchGate.release(!owned);Exn.reraise failure)end);
 fun search_install_restored e=
   (F.guard(SearchResident.native_live e orelse
-    (case e of SearchResident.Entry{history,...}=>
-      case Synchronized.value history of SOME h=>SearchOutput.history_live h|NONE=>false))
+    (case e of SearchResident.Entry{history,original_source,...}=>
+      (case Synchronized.value history of SOME h=>SearchOutput.history_live h|NONE=>false)orelse
+      (case Synchronized.value original_source of SOME source=>SearchSourceSupport.live source|NONE=>false)))
     "Restored search native roots unavailable";SearchResident.insert e);
 (* A retained proof can exist without an execution request or active Scope.
    The exact original control projection comes only from this native capsule. *)
@@ -378,6 +412,7 @@ fun search_restore_history_into target existing verified=
                 (SearchCodec.Pending(SOME(#execution n))),observed=Synchronized.var "historical_search_native_dependencies"(#native hp),
               job=Synchronized.var "historical_search_no_job" NONE,monitor=Synchronized.var "historical_search_no_monitor" NONE,
               witness=Synchronized.var "historical_search_no_active_witness" NONE,proof_scope=P.construction_scope(),
+              original_source=Synchronized.var "historical_search_original_source_owner" NONE,
               history=Synchronized.var "historical_search_output_owner" NONE,packet=Synchronized.var "historical_search_no_active_packet" NONE}end;
         val SearchResident.Entry{history,observed,...}=e;
         val _=Synchronized.change observed(K(#native hp));
@@ -386,4 +421,32 @@ fun search_restore_history_into target existing verified=
       in e end)()
   in case result of Exn.Res e=>e|Exn.Exn failure=>
     (Option.app SearchOutput.history_release(!owned);Exn.reraise failure)end)();
+(* Inert original-source restoration for cancelled requests, including those
+   that never consumed a charge or produced a proof. The shared pool fragment
+   has already been installed; no Scope or receiver exists on this route. *)
+fun search_restore_source_into target existing source=
+  Thread_Attributes.uninterruptible_body(fn _=>
+  let val _=F.guard(is_none(!target)andalso SearchSourceSupport.live source)
+      "Restored Search original-source target occupied or unavailable";
+    val material=SearchSourceSupport.material source;
+    val {names=n,phase,...}=SearchCodec.inspect material;
+    val p=SearchSourceSupport.projection material;
+    val deps=F.search_prerequisites p n[#input p,#receiver p];
+    val _=F.guard(I.lookup_input_identity(identity_allocator())(SearchSourceSupport.input source)=SOME(#input p))
+      "Restored Search original-source fragment is missing or differs";
+    val e=case existing of SOME(e as SearchResident.Entry{original_source,...})=>
+        (F.guard(SearchResident.projection e=p andalso SearchResident.names e=n andalso
+          SearchResident.dependencies e=deps andalso is_none(Synchronized.value original_source))
+          "Restored Search source conflicts with actual original association";e)
+      |NONE=>let val control=Control.create false;val _=Control.mark_released control
+        in SearchResident.Entry{roots=SearchResident.HistoricalOnly,request=NONE,projection=p,names=n,
+          dependencies=deps,control=control,phase=Synchronized.var "inert_search_original_phase" phase,
+          observed=Synchronized.var "inert_search_original_dependencies" [],
+          job=Synchronized.var "inert_search_no_job" NONE,monitor=Synchronized.var "inert_search_no_monitor" NONE,
+          witness=Synchronized.var "inert_search_no_witness" NONE,proof_scope=P.construction_scope(),
+          original_source=Synchronized.var "inert_search_original_source" NONE,
+          history=Synchronized.var "inert_search_no_proof" NONE,packet=Synchronized.var "inert_search_no_packet" NONE}end;
+    val SearchResident.Entry{original_source,...}=e;
+    val _=Synchronized.change original_source(K(SOME source));val _=target:=SOME e
+  in e end);
 val search_retirement_registrations=SearchResident.retirement_registrations;

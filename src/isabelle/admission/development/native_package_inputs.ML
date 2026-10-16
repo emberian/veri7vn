@@ -432,7 +432,9 @@ struct
   fun drop_scope(p:payload)=Synchronized.change(#scope p)
     (fn NONE=>NONE|SOME checked=>(Scope.View.release checked;NONE));
   fun release(Checked{group=Group cell,active})=Thread_Attributes.uninterruptible_body(fn _=>
-    case Claim.try_claim active of NONE=>()|SOME claim=>
+    case Claim.try_claim active of NONE=>
+      require(Claim.is_done active) "Deferred cleanup is already in progress; retry disposal"
+    |SOME claim=>
       let fun run()=
         let val action=Synchronized.change_result cell
           (fn Open(n,p)=>if n>1 then(NONE,Open(n-1,p))else(SOME p,Closing p)

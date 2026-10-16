@@ -112,6 +112,7 @@ object WorkspaceStore {
       "source-quantities/1"->"source-domain-request",
       "native-session-input/1"->"session-input",
       "local-mcp/1"->"effect-source-observation",
+      "local-mcp/1"->"effect-request",
       "literal-native-proof/1"->"search-request",
       "native-export-admission/1"->"initial-qualification",
       "native-export-admission/1"->"initial-qualification-request",
@@ -123,6 +124,7 @@ object WorkspaceStore {
     (m("profile"),m("role")) match {
       case ("native-kernel/1","kernel-evidence")=>"kernel"
       case ("local-mcp/1","effect-source-observation") if nonassertionalRecovery(bytes)=>"acquired-source"
+      case ("local-mcp/1","effect-request") if nonassertionalRecovery(bytes)=>"effect-request"
       case ("native-session-input/1","session-input") if nonassertionalRecovery(bytes)=>"source-input"
       case ("source-quantities/1","source-domain-request") if nonassertionalRecovery(bytes)=>"request-child"
       case ("source-quantities-runtime-refinement/1","source-domain-output")=>"refined-output"
@@ -151,6 +153,7 @@ object WorkspaceStore {
       case "artifact"=>concrete=="artifact"
       case "source-input"=>concrete=="source-input"
       case "acquired-source"=>concrete=="acquired-source"
+      case "effect-request"=>concrete=="effect-request"
       case "evidence"=>
         val m=recoveryEnvelope(bytes)
         Set("native-kernel/1"->"kernel-evidence","exact-arithmetic/1"->"math-output",

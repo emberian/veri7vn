@@ -273,6 +273,19 @@ definition required_native_children :: "authority_state \<Rightarrow> (request \
   "required_native_children s = concat (map (\<lambda>r. map (Pair r)
       (filter (\<lambda>g. goal_output_slot g\<noteq>None \<and> child_accessible s g) (request_goals r)))
     (filter (\<lambda>r. accessible s (request_id r # request_dependencies r)) (requests s)))"
+text \<open>This is an inventory of original effect request material, not permission
+to invoke a connector. Prefix checkpoints may precede intent/support registration.
+Cancelled, stale and terminal originals remain reconstructible while their managed
+references are accessible; the fixed native decoder restores no execution ticket.\<close>
+definition effect_request_material_required :: "authority_state \<Rightarrow> request \<Rightarrow> bool" where
+  "effect_request_material_required s r \<longleftrightarrow>
+    length (filter (\<lambda>other. request_id other=request_id r) (requests s))=1 \<and>
+    legacy_single_goal r \<and> permitted_effects r\<noteq>[] \<and> parent_accessible s r \<and>
+    (case request_goals r of [g] \<Rightarrow> goal_output_slot g=None \<and> child_accessible s g
+     | _ \<Rightarrow> False)"
+definition required_native_effect_requests :: "authority_state \<Rightarrow> request list" where
+  "required_native_effect_requests s = filter (effect_request_material_required s) (requests s)"
+
 definition artifact_licensed :: "authority_state \<Rightarrow> request \<Rightarrow> subgoal \<Rightarrow> nat \<Rightarrow> bool" where
   "artifact_licensed s r g objid \<longleftrightarrow> \<not> request_cancelled r \<and> request_fresh s r \<and> parent_accessible s r \<and> child_accessible s g \<and>
     (case goal_required g of ClaimRequirement c \<Rightarrow> False | ArtifactRequirement required \<Rightarrow>
@@ -1120,7 +1133,7 @@ primrec step :: "authority_state \<Rightarrow> event \<Rightarrow> authority_sta
 
 ML \<open>Veri7vn_Authority_Compile.phase "step_equations_ready"\<close>
 
-export_code step initial_state new_revoked_objects new_forgotten_objects required_native_evidence required_native_artifacts required_native_build_requests required_native_children required_native_effect_observations effect_observation_retained effect_observation_permitted artifact_expected_retained required_for in SML module_name Veri7vn_Authority file "../../../var/authority-generated.ML"
+export_code step initial_state new_revoked_objects new_forgotten_objects required_native_evidence required_native_artifacts required_native_build_requests required_native_children required_native_effect_requests required_native_effect_observations effect_observation_retained effect_observation_permitted artifact_expected_retained required_for in SML module_name Veri7vn_Authority file "../../../var/authority-generated.ML"
 
 ML \<open>Veri7vn_Authority_Compile.phase "export_ready"\<close>
 

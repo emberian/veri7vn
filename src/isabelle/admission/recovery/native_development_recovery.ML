@@ -111,7 +111,9 @@ struct
           |_=>error "Checked build owner releasing")
       in Handle{group=group,active=Claim.create()}end));
   fun release(Handle{group=Group cell,active})=Thread_Attributes.uninterruptible_body(fn _=>
-    case Claim.try_claim active of NONE=>()|SOME claim=>
+    case Claim.try_claim active of NONE=>
+      require(Claim.is_done active) "Build cleanup is already in progress; retry disposal"
+    |SOME claim=>
       let fun run()=
         let val action=Synchronized.change_result cell
           (fn Available(n,p)=>if n>1 then(NONE,Available(n-1,p))else(SOME p,Releasing p)
@@ -365,6 +367,21 @@ struct
               val _=leases:=lease::(!leases)
             in lease end
           val held=map acquire(#graphs p)
+          (* A prepared request's imported source parents need not include its
+             charged operation context. Reconstruct that authenticated original
+             context in the SAME graph, rather than borrowing a fresh resident
+             generation or confusing an imported lower theory with boot. *)
+          val _=if candidate then()else(case request of NONE=>()
+            |SOME{plan,...}=>
+              let val thy=Veri7vn_Native_Admission.policy_theory policy
+                val locator=Context.theory_name{long=true}thy
+                val construction=if member(op =)(Veri7vn_Native_Installed_Roots.locators roots)locator
+                  then(require(Veri7vn_Native_Installed_Roots.matches roots locator thy)
+                    "Build operation installed boot root differs";G.Installed_Public locator)
+                  else G.Public
+                val operation=acquire{head= #operation_generation plan,
+                  nodes=[{context_id= #operation_generation plan,parents=[],construction=construction}]}
+              in G.checked operation end)
           val development=if candidate then SOME(G.development(hd held))else NONE
           fun parent(context:IntInf.int)=
             let val held_parent=case get_first(fn lease=>G.retain_for lease context)held of

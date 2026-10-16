@@ -1,5 +1,50 @@
 # Active implementation wave — 2026-10-15
 
+## Astra integration fairy — 2026-10-16
+
+At Ember's explicit request, `integration_fairy_astra` (gpt-6-astra, high) owns
+cross-capability integration synthesis and implementation through actual user
+workflows. Initial exclusive paths are `tests/integration/workshop/**` and
+`docs/design/integration-fairy.md`. Production changes require a concrete ownership
+transfer with the existing file owner; this is ordinary agent coordination, not
+a user approval gate. Root retains decisions, task status and frequent WIP pushes.
+
+The agent can challenge and simplify the shared design, take finite integration
+work off the central assembler, and implement missing consumers before all leaves
+finish. Its target is usable managed-source authoring/build/admission/execution
+and durable lifecycle, carrying the existing broader capability scope. Another
+integration plan, mock endpoint or component handoff is insufficient. The same
+native authority, actual source owners and recovery contracts remain required.
+`build_reconnected61` remains the sole native/Scala/runtime executor.
+
+The fairy now owns `src/runtime/service/{Native_Service.thy,ROOT,metadata_frame.ML,
+native_state_owner.ML,native_service.ML}` exclusively, transferred from assembly.
+The launcher connection in `RuntimeMain.scala` is coordinated with host. Assembly
+retains Math provenance/history and shared Scope/capsule work. This is an actual
+ownership transfer to remove the central assembly bottleneck.
+
+### River-delta integration paths
+
+Each branch owns a complete user journey and rejoins the same source custody,
+Scope, native recovery graph/input pool, generated authority, durable coordinator,
+capability announcement and cleanup barrier. These are concurrent implementations,
+not claims of passing workflows.
+
+| Branch | Owners | Complete consumer and cross-branch connection |
+|---|---|---|
+| Author and repair | integration_fairy_astra + native_build_product61 + recovery/workbench | Failed native proof → original diagnostic → explicit source repair → candidate → real CLI/restart → selective Forget; then named-export admission and actual dependent context use. Executable activation remains a distinct required gate. |
+| Ask and search | search_consumer61 + assistance_product61 | Original proposition/context → charged search → native proof → historical source/result → restart/Forget; consume genuinely admitted authored contexts. |
+| Converse and adopt | conversation_product61 + assembly_reconnected61 + dialogue | Original input → scoped interpretation/result → adoption → follow-up → historical quotation → restart/Forget; adopt justified results through the existing result contract. |
+| Acquire and use | effects_reconnected61 + stateful_product61 + host | Configuration/packet → durable original request → actual permitted invocation → checked response representation → protected source read → restart without reinvocation → Forget; later source-query use preserves nonassertional observation meaning. |
+
+The fairy owns finite shared-parent convergence, rather than four independent
+parent forks. Missing typed source associations must be solved once across these
+paths; an untyped retained row cannot distinguish a literal source from an image
+marker. Exact capability gates expose only integrated profiles while the full
+remaining obligations stay in the task ledger. Source fragments may eventually
+be replaced by static functors over the same interfaces after actual behavior
+runs; no separate dynamic registry is authorized by this organization.
+
 ## Renewed holistic capability swarm
 
 Current consumer expansion assigns complete native/host/client joins, not just

@@ -155,7 +155,7 @@ managed full-source producer/native descriptor consumer and its tested rollback 
 lifetime behavior. The D43 charged artifact service, persistent candidate/restart
 consumer and full dependency build graph remain open.
 
-## Charged candidate producer (pending native check)
+## Charged candidate producer
 
 `native_build_candidate.ML` provides the opaque `Veri7vn_Native_Build_Candidate`
 functor for the private service assembly. Its prepared input captures the exact
@@ -342,7 +342,7 @@ content explicitly. The aggregate role remains within the existing 100,000-byte
 reconstruction limit. Inert decoding grants no observation or execution authority:
 the fixed committed-role checker must match the exact paid run and failed outcome.
 The new runtime fixture exercises actual failed replay and producer retirement;
-its native compilation remains pending.
+its behavior check remains pending.
 
 The candidate module load passed native attempt
 `11e4c8fe75104641ade809a68d422b84`, including the fixed deferred checker,
@@ -369,4 +369,14 @@ development before draining those ancestors. Installed parents remain owned by
 the fixed workspace installation; restored candidates retain their checked graph
 ancestry. The runtime regression drops every external parent owner while keeping
 the child output, then separately tests invalidation through the parent identity.
-These runtime changes are queued for their first compiler and behavior checks.
+The complete runtime leaf and metadata theory compiled in native attempt
+`3f5404f23f724e2bab37a50033c04b01`. The descriptor-backed worker and ancestor
+retention regression remain separate, queued behavior checks. This compiler
+result does not establish the parent service's dispatch or restart path.
+
+Cancelled-request restoration still requires the original request alongside the
+candidate in the current consumer. D74 requires each committed candidate capsule
+to authenticate its own original inert control and source plan before active
+request material can be removed. That migration must preserve charged-operation
+and installed-parent native aliases through the shared reconstruction graph;
+historical source ownership supplies no ticket or permission to replay a build.

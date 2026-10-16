@@ -701,4 +701,9 @@ lemma required_native_child_has_output_slot:
   shows "goal_output_slot g\<noteq>None"
   using assms by (auto simp: required_native_children_def)
 
+lemma required_native_effect_request_is_slotless:
+  assumes "r\<in>set (required_native_effect_requests s)"
+  shows "\<exists>g. request_goals r=[g] \<and> goal_output_slot g=None"
+  using assms by (auto simp: required_native_effect_requests_def effect_request_material_required_def split: list.splits)
+
 end

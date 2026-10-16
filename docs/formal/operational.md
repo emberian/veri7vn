@@ -701,3 +701,21 @@ an output slot merely to route those checkpoints. This correction does not filte
 cancelled or terminal native children yet: cancellation inventory changes remain
 coupled to the D74 historical recipe migration, and accepted-but-unpublished
 qualification/publication continuations must retain their required material.
+
+`required_native_effect_requests` separately inventories exact original legacy
+slotless effect requests, including the Reserve prefix before any intent or
+support rows. It requires a unique request identity, accessible original parent
+and child references, and the original nonempty permitted-effect declaration.
+It deliberately does not require present execution freshness, fuel or an active
+outcome: cancelled, Unknown and terminal originals can be restored as inert
+history while their references remain accessible. Revoke/Forget of those
+references removes the requirement. The closed native effect-request decoder
+matches the actual original source, operation/profile/control identities and any
+original attempt ledger; the inventory does not issue a ticket, create a new
+attempt, recharge or resume an invocation. Its request-ID association is distinct
+from output-slot child roles and response-source associations.
+The reference effect-request query explicitly scans request identities for
+uniqueness. The deployed service must refine this with one shared RBT count index
+and one denial index, preserving original request order and duplicate-ID behavior.
+Compiling the finite reference query is not a scaling qualification for retained
+request history.
