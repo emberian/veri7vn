@@ -193,11 +193,32 @@ def run(command, state, output, index, repeats, timeout):
 
 
 
+def launch_partition(stderr_path, first_sample, generation):
+    """Partition one response using serial cross-process monotonic boundaries."""
+    prefix = 'VERI7VN_LAUNCH_PHASE '
+    phases = [json.loads(line[len(prefix):]) for line in stderr_path.read_text().splitlines() if line.startswith(prefix)]
+    verifies = [phase for phase in phases if phase.get('phase') == 'full-artifact-verification']
+    handoffs = [phase for phase in phases if phase.get('phase') == 'runtime-exec-handoff']
+    if len(verifies) != 1 or len(handoffs) != 1:
+        raise ValueError('profiled launch needs one full verifier and one exec handoff')
+    verify, handoff = verifies[0], handoffs[0]
+    if verify.get('status') != 'passed' or verify.get('generation') != generation:
+        raise ValueError('profiled verifier did not accept captured generation')
+    boundaries = [first_sample['send_ns'], verify['start_ns'], verify['end_ns'], handoff['at_ns'], first_sample['observed_ns']]
+    if boundaries != sorted(boundaries):
+        raise ValueError('nonmonotonic launch profile')
+    return {'phases': phases, 'serial_wall_ms': dict(zip(
+        ('send_to_verify_start', 'full_verification', 'verify_end_to_exec', 'exec_to_first_output'),
+        ((b-a)/1e6 for a, b in zip(boundaries, boundaries[1:])))),
+        'scope': 'same-run disjoint send-to-first-output partition; exec_to_first_output is not isolated Java or native startup'}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('installation', type=Path)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--steward-slot', required=True, help='Recorded slot identity; obtain before execution')
+    parser.add_argument('--profile-launch', action='store_true', help='Time real stage verification and exec handoff on stderr without bypassing checks')
     parser.add_argument('--repeats', type=int, default=4)
     parser.add_argument('--timeout', type=float, default=150)
     args = parser.parse_args()
@@ -210,12 +231,14 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     state = output/'workspace'
     state.mkdir()
-    launcher = Path(__file__).resolve().parents[2]/'deploy'/'stage.py'
+    stage_launcher = Path(__file__).resolve().parents[2]/'deploy'/'stage.py'
+    launcher = Path(__file__).with_name('profile_launch.py').resolve() if args.profile_launch else stage_launcher
     facade = pin_installation(output, generation)
     command = [sys.executable, str(launcher), 'launch', str(facade), '--state', str(state)]
     report = {'format': 'veri7vn.public-runtime-envelope/1', 'status': 'running',
               'generation': generation.name, 'manifest_sha256': digest(manifest),
-              'harness_sha256': digest(Path(__file__)), 'launcher_sha256': digest(launcher),
+              'harness_sha256': digest(Path(__file__)), 'launcher_sha256': digest(launcher), 'stage_source_sha256': digest(stage_launcher),
+              'launch_profile': args.profile_launch,
               'command': command, 'steward_slot': args.steward_slot,
               'host': {'system': platform.platform(), 'architecture': platform.machine(), 'cpu_count': os.cpu_count()},
               'cache_state': {'process': 'fresh then reused; second process restores nonempty workspace',
@@ -228,7 +251,10 @@ def main():
         for index in range(2):
             if (facade/'current').resolve() != generation:
                 raise RuntimeError('selected generation changed')
-            report['runs'].append(run(command, state, output, index, args.repeats, args.timeout))
+            measured = run(command, state, output, index, args.repeats, args.timeout)
+            if args.profile_launch:
+                measured['launch_partition'] = launch_partition(output/f'process-{index}.stderr', measured['samples'][0], generation.name)
+            report['runs'].append(measured)
             if (facade/'current').resolve() != generation or digest(manifest) != report['manifest_sha256']:
                 raise RuntimeError('generation changed during run')
             (output/'result.json').write_text(json.dumps(report, indent=2)+'\n')

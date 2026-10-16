@@ -675,7 +675,7 @@
         "var/native-scaffold/sessions/0e9d8d9756b80da2/attempts/f3b1d3d826ae42af9d91d3c3db2deb59/receipt.json",
         "var/native-scaffold/sessions/7030361853f97f4c/attempts/38f6a3f89f1c4fb486ac52cdba19f122/receipt.json"
       ],
-      "notes": "Core compiled/exported before D30; invariant child still being repaired. D30 NoExecution/ExecutableGeneration migration now applied and reopens dependent compilation/tests. Codecs/rendering/admission/host/staging must migrate together; no old fake0 wire reinterpretation. Root reviewed migrated invariant statements and stable passed proof-child receipt (20.024 s full driver, 15 s build). Metadata codec HOL laws/export completed but actual ML roundtrip timed out on proven unary 256-bit schema allocation. D31 shared efficient numeric foundation and all generated consumers are now being qualified. One-shot native output specialization for acquired snapshots is a concrete next model obligation; no arbitrary goal replacement. Actual D31 authority/codec/invariant/regression and bounded projection integration passed stable 68.816s (20c25fcf2e1ccc9f), one build/three selected targets; codec ML 3.426s. Exact baseline archived before approved D34/D35/D36 slot/recovery/session/qualification metadata migration. New migration remains unqualified. Root reviewed current-hash Authority_Metadata parent: passed 29.715s theory, 42s session, 53.319s driver. Metadata/events/reducer partition retains one shared carrier and caches declaration cost. Events reached theory completion but its first90s session attempt timed out at finalization; no event heap or full reducer/export pass yet. Required managed-provenance correction: retained output closure includes matched evidence managed dependencies; Forget filters assignments using semantic and managed dependencies separately. Root reviewed expanded Core log: theory11.340s/session24s, actual generated SML export. Successful Events cache immutable109249b81431494e986418237c936be1 now supersedes earlier timeout. Native runtime,56typecodec and postAck/template/privateclosure proofs remain open; stale prestate licensing targets must be replaced with exact original-template + poststate licensing statements. After frozen proof/codec baseline, repair inaccessible-session UpdateObservation and remove forgotten observations/session views/recorded utterance refs; keep audit/exposure tombstones distinct. Regress stale tokens after Forget/Revoke with surviving-session positive control. Root reviewed actual intent_permitted: no goal-scoped blocker/dependency check; immutable request_prestate equality prevents later external attempts after Ack. Authority owns explicit attempt-goal association and staging/handoff revision design including jobs/replay; no source-slot-only generalization. Codec parent finished33s in qualified historical 8c4b snapshot; codec test binder and live_goals proof still fail. D42 approved explicit attempt_goal/optional output slot plus recurring job parent goal and per-iteration child request lineage. Preserve immutable original request, cumulative job budget and current staging/handoff checks; two polls and restart/old completion required. No-field read-ID freshness, surviving-view CAS and utterance resurrection guards landed before focused baseline; checks pending. Root reviewed stable f3b1 snapshot: revised Core28s, Codec32s and complete Proofs15s passed; full statements and hashes checked. Publication_authorized is POST-step licensing; native faithful_attachment remains TB01 assumption. Authority/Codec runtime leaves still fail fixture record/ML/reduction, not model proof statements. D42 effect/job schema migration remains next coordinated semantic change.\nD44 root reviewed stable 38f6a3f89f1c4fb486ac52cdba19f122, current proof/test hashes and exact singleton/closure/denial-category statements plus generated tests. Model/proof pass does not qualify service cleanup. D43 complete typed artifact migration is owned but holds shared schema until D44 resident capture.\nD43 ownership extends exact rendering theory/fixture during coordinated schema migration; dialogue owns its own consumer. Shared schema remains unchanged until D44 capture.",
+      "notes": "Core compiled/exported before D30; invariant child still being repaired. D30 NoExecution/ExecutableGeneration migration now applied and reopens dependent compilation/tests. Codecs/rendering/admission/host/staging must migrate together; no old fake0 wire reinterpretation. Root reviewed migrated invariant statements and stable passed proof-child receipt (20.024 s full driver, 15 s build). Metadata codec HOL laws/export completed but actual ML roundtrip timed out on proven unary 256-bit schema allocation. D31 shared efficient numeric foundation and all generated consumers are now being qualified. One-shot native output specialization for acquired snapshots is a concrete next model obligation; no arbitrary goal replacement. Actual D31 authority/codec/invariant/regression and bounded projection integration passed stable 68.816s (20c25fcf2e1ccc9f), one build/three selected targets; codec ML 3.426s. Exact baseline archived before approved D34/D35/D36 slot/recovery/session/qualification metadata migration. New migration remains unqualified. Root reviewed current-hash Authority_Metadata parent: passed 29.715s theory, 42s session, 53.319s driver. Metadata/events/reducer partition retains one shared carrier and caches declaration cost. Events reached theory completion but its first90s session attempt timed out at finalization; no event heap or full reducer/export pass yet. Required managed-provenance correction: retained output closure includes matched evidence managed dependencies; Forget filters assignments using semantic and managed dependencies separately. Root reviewed expanded Core log: theory11.340s/session24s, actual generated SML export. Successful Events cache immutable109249b81431494e986418237c936be1 now supersedes earlier timeout. Native runtime,56typecodec and postAck/template/privateclosure proofs remain open; stale prestate licensing targets must be replaced with exact original-template + poststate licensing statements. After frozen proof/codec baseline, repair inaccessible-session UpdateObservation and remove forgotten observations/session views/recorded utterance refs; keep audit/exposure tombstones distinct. Regress stale tokens after Forget/Revoke with surviving-session positive control. Root reviewed actual intent_permitted: no goal-scoped blocker/dependency check; immutable request_prestate equality prevents later external attempts after Ack. Authority owns explicit attempt-goal association and staging/handoff revision design including jobs/replay; no source-slot-only generalization. Codec parent finished33s in qualified historical 8c4b snapshot; codec test binder and live_goals proof still fail. D42 approved explicit attempt_goal/optional output slot plus recurring job parent goal and per-iteration child request lineage. Preserve immutable original request, cumulative job budget and current staging/handoff checks; two polls and restart/old completion required. No-field read-ID freshness, surviving-view CAS and utterance resurrection guards landed before focused baseline; checks pending. Root reviewed stable f3b1 snapshot: revised Core28s, Codec32s and complete Proofs15s passed; full statements and hashes checked. Publication_authorized is POST-step licensing; native faithful_attachment remains TB01 assumption. Authority/Codec runtime leaves still fail fixture record/ML/reduction, not model proof statements. D42 effect/job schema migration remains next coordinated semantic change.\nD44 root reviewed stable 38f6a3f89f1c4fb486ac52cdba19f122, current proof/test hashes and exact singleton/closure/denial-category statements plus generated tests. Model/proof pass does not qualify service cleanup. D43 complete typed artifact migration is owned but holds shared schema until D44 resident capture.\nD43 ownership extends exact rendering theory/fixture during coordinated schema migration; dialogue owns its own consumer. Shared schema remains unchanged until D44 capture.\nFirst D43 capture7e902895 passes Metadata/Events/Registry/Admission; Core failed binder id, repair submitted. D55 generic exact child recovery; D56 QualificationOrigin+parent accessibility, D57 fixed qualifier observer semantics and D58 explicit artifact output generation approved as one next coordinated codec/consumer change. No full migrated runtime pass yet.",
       "contracts": [
         "C02",
         "C03",
@@ -915,9 +915,10 @@
         "Measure changes across all growth tiers; ordinary observation and interpreted-plan costs must not hide an application rebuild. Toy linkage/host probes do not establish final product budgets."
       ],
       "evidence": [
-        "benchmarks/envelope/closure-pilot.json"
+        "benchmarks/envelope/closure-pilot.json",
+        "benchmarks/envelope/launch-verification-40ac-pilot.json"
       ],
-      "notes": " Root reviewed actual generated closure pilot f4d1f562: stable47.117s, 24 samples, 21 sorted-ID/multiplicity passes and3 five-second timeouts at1024 chain/dense/duplicate. Missing-seed linked1024 took4.172s. Single observations do not establish application/p95/RSS. Actual data archived closure-pilot.json; exact-order refinement assigned effects61.\nCurrent product consumer: performance_product61 owns actual installed launcher harness with pinned generation, startup-inclusive/warm/restart attribution, RSS and durable footprint. Root review found mutable-pointer and exited-leader pipe cleanup gaps; repairs underway before native benchmark slot. No new end-user measurements claimed.\nRoot reviewed fixed immutable facade and guardian cleanup; reran synthetic check_public_runtime.py successfully. Actual installed benchmark still held for scheduled resource slot; does not count as application timing.\nActual pinned installed pilot slot2 passed: fresh first response 22.823s, restarted first response 14.792s, two warm arithmetic requests 241.649ms and 152.812ms. Historical immutable generation40ac; not current draft qualification, tail-latency evidence, or a broad speedup claim. Detailed evidence checkpoint pending root commit.\nRoot committed actual pinned installed pilot, standalone reproduction/limits document and tested early-exit harness fix0329553. Result/four log hashes independently matched and synthetic checks rerun PASS. Attribution instrumentation awaits coordinated host window.",
+      "notes": " Root reviewed actual generated closure pilot f4d1f562: stable47.117s, 24 samples, 21 sorted-ID/multiplicity passes and3 five-second timeouts at1024 chain/dense/duplicate. Missing-seed linked1024 took4.172s. Single observations do not establish application/p95/RSS. Actual data archived closure-pilot.json; exact-order refinement assigned effects61.\nCurrent product consumer: performance_product61 owns actual installed launcher harness with pinned generation, startup-inclusive/warm/restart attribution, RSS and durable footprint. Root review found mutable-pointer and exited-leader pipe cleanup gaps; repairs underway before native benchmark slot. No new end-user measurements claimed.\nRoot reviewed fixed immutable facade and guardian cleanup; reran synthetic check_public_runtime.py successfully. Actual installed benchmark still held for scheduled resource slot; does not count as application timing.\nActual pinned installed pilot slot2 passed: fresh first response 22.823s, restarted first response 14.792s, two warm arithmetic requests 241.649ms and 152.812ms. Historical immutable generation40ac; not current draft qualification, tail-latency evidence, or a broad speedup claim. Detailed evidence checkpoint pending root commit.\nRoot committed actual pinned installed pilot, standalone reproduction/limits document and tested early-exit harness fix0329553. Result/four log hashes independently matched and synthetic checks rerun PASS. Attribution instrumentation awaits coordinated host window.\nActual full40ac verifier profile root-reviewed:8.649843s,3.727105s digest open/read/hash/close,4.922738s remaining validation,2.669GB/25106artifacts. Same-run launcher partition instrumentation added; root reran profile/public harness regressions PASS. Do not subtract from historical first-response timings. New headless inventory retains full hashing; installed paired comparison pending.",
       "contracts": [
         "C04",
         "C05"
@@ -1540,9 +1541,10 @@
         "var/native-scaffold/sessions/761b8d2aaa49622b/attempts/54bfc14290434ac9bc0617db1bace8a7/receipt.json",
         "var/native-scaffold/sessions/761b8d2aaa49622b/attempts/c0b87f51a8ef41dc9712b22edee4dd38/receipt.json",
         "var/native-scaffold/sessions/761b8d2aaa49622b/attempts/5e53843b82304745982bf8ee56bf33df/receipt.json",
-        "var/native-scaffold/sessions/95fcfdd61e543422/attempts/b93cd9a7497241e0a4ebff09536111ee/receipt.json"
+        "var/native-scaffold/sessions/95fcfdd61e543422/attempts/b93cd9a7497241e0a4ebff09536111ee/receipt.json",
+        "var/native-scaffold/sessions/95fcfdd61e543422/attempts/c34771bb270946cf9cd8ef02c668f2dc/receipt.json"
       ],
-      "notes": "Begin production host/store/protocol components from reviewed feasibility while registry/admission/state-effects interfaces mature. Unresolved dependencies intentionally remain visible: no completed integration or frozen competing interface is implied. Coordinate generated reducer/event serialization and native gate with their owners; exact batch critical section includes all state events, not revision/epoch alone. First consumer is package-intake inert source storage. Full task acceptance still requires all dependencies and native/lifecycle/deployment connections. Root current ManagedSources review found aggregate request budget TOCTOU and current-head scope allowing historical members; owner implementing transactional recheck and persisted exact manifest closure with negative tests. New managed consumer initial green is not full native Forget/recovery completion. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Managed worker resources co-owned: host registers resource under exact source read scope before copying and integrates monotone invalidation/Forget; effects owns bounded memory/scratch/worker release, native-development owns capture/verification inside registered lifetime. Add capture-vs-Forget interleaving and cleanup tests. Native assembly ownership transferred to assembly61 with explicit native files and test subtree, including metadata_frame.ML as the single generated carrier universe; host retains Scala protocol/store/resources. Current tokens-only/initial-only restore is not runtime-service completion. Canonical29 Scala sources compile; runtime stopped behind reflection wrapper, not a test pass. Host identified expected Unknown versus stored unknown fixture mismatch and added named root-cause output. Root found private artifact writes before recovery index transaction can orphan blobs: durable write intents before first write, transactional adoption and failure/restart cleanup required. Recovery arrays/Prepared/committed material require managed release; denial rows alone do not establish StorageErased. Full nonempty native restart remains open. Root read actual8 runtimegroups passed including intake26/ManagedDraft6/resources; overallfailed at NativeBuildInputs cleanup. Later durable artifact staging/owned recovery buffers are new untested source. Restored private context leases shared across kernel/math consumers must survive descriptor release; poisoned post-identity-install restore requires fresh resident process. Latest new ownership snapshot f46454f1b2b24fe8a7c38ba3bb8cb6fd failed Scala compilation at recovery payload Some/Option inference; no runtime tests ran. D41 durable disjoint-range replenishment on the same allocator and atomic per-registration ID bundles are required for sustained growth beyond initial lease. Restore transport/commit limits need correspondence (native executable1MiB versus host16MiB; checkpointframe versus32MiB store cap). Root requested explicit startup-exclusive contract or bounded governed outside-lock transfer; withMaterial currently holds store monitor over synchronous chunk exchanges.\n2026-10-15 restart: canonical29 compile after written 1MiB cap/startup-exclusive restore/buffer fixes. Host owns bounded draft-list producer for authoring61 and actual public launcher/jar packaging for deployment61 after current compile; these missing producers are implementation, not optional future qualification.\nRoot read 5e53843b82304745982bf8ee56bf33df stable passed25.532s receipt and all9 Scala group markers. Current host baseline accepted at scoped component level. Actual resident/nonempty restart/Forget remains open. Bounded managed draft listing now written for authoring; launcher producer pending finite snapshot release.\nRoot review found lost begin/finish/accept reply ownership races in new NativeBuildIngress; host implementing exact inert upload nonce, offer/accept/cancel arbitration, idempotent discard/accept and retained unresolved cleanup with assembly/builder. Shared host e2e5 compilation failed Thread lambda before tests; no new host pass. Root D43 decision records required protocol. Foundation/service ca7 capture now running with unique session directories.\nRoot reviewed stable b93cd9a7497241e0a4ebff09536111ee twelve host groups including producer release/retry and70 capacity cycles; native artifact-ack consumer remains under migration. Snapshot helper passed but root found file-count guard after full traversal allocation; owner fixed bounded iterator and queued focused recheck. Full UI producer42a50a609b0246c2afe3e7e6eb6157d5 passed, immutable archive preserved before D43 edits; this alone does not qualify installed native launch.",
+      "notes": "Begin production host/store/protocol components from reviewed feasibility while registry/admission/state-effects interfaces mature. Unresolved dependencies intentionally remain visible: no completed integration or frozen competing interface is implied. Coordinate generated reducer/event serialization and native gate with their owners; exact batch critical section includes all state events, not revision/epoch alone. First consumer is package-intake inert source storage. Full task acceptance still requires all dependencies and native/lifecycle/deployment connections. Root current ManagedSources review found aggregate request budget TOCTOU and current-head scope allowing historical members; owner implementing transactional recheck and persisted exact manifest closure with negative tests. New managed consumer initial green is not full native Forget/recovery completion. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Managed worker resources co-owned: host registers resource under exact source read scope before copying and integrates monotone invalidation/Forget; effects owns bounded memory/scratch/worker release, native-development owns capture/verification inside registered lifetime. Add capture-vs-Forget interleaving and cleanup tests. Native assembly ownership transferred to assembly61 with explicit native files and test subtree, including metadata_frame.ML as the single generated carrier universe; host retains Scala protocol/store/resources. Current tokens-only/initial-only restore is not runtime-service completion. Canonical29 Scala sources compile; runtime stopped behind reflection wrapper, not a test pass. Host identified expected Unknown versus stored unknown fixture mismatch and added named root-cause output. Root found private artifact writes before recovery index transaction can orphan blobs: durable write intents before first write, transactional adoption and failure/restart cleanup required. Recovery arrays/Prepared/committed material require managed release; denial rows alone do not establish StorageErased. Full nonempty native restart remains open. Root read actual8 runtimegroups passed including intake26/ManagedDraft6/resources; overallfailed at NativeBuildInputs cleanup. Later durable artifact staging/owned recovery buffers are new untested source. Restored private context leases shared across kernel/math consumers must survive descriptor release; poisoned post-identity-install restore requires fresh resident process. Latest new ownership snapshot f46454f1b2b24fe8a7c38ba3bb8cb6fd failed Scala compilation at recovery payload Some/Option inference; no runtime tests ran. D41 durable disjoint-range replenishment on the same allocator and atomic per-registration ID bundles are required for sustained growth beyond initial lease. Restore transport/commit limits need correspondence (native executable1MiB versus host16MiB; checkpointframe versus32MiB store cap). Root requested explicit startup-exclusive contract or bounded governed outside-lock transfer; withMaterial currently holds store monitor over synchronous chunk exchanges.\n2026-10-15 restart: canonical29 compile after written 1MiB cap/startup-exclusive restore/buffer fixes. Host owns bounded draft-list producer for authoring61 and actual public launcher/jar packaging for deployment61 after current compile; these missing producers are implementation, not optional future qualification.\nRoot read 5e53843b82304745982bf8ee56bf33df stable passed25.532s receipt and all9 Scala group markers. Current host baseline accepted at scoped component level. Actual resident/nonempty restart/Forget remains open. Bounded managed draft listing now written for authoring; launcher producer pending finite snapshot release.\nRoot review found lost begin/finish/accept reply ownership races in new NativeBuildIngress; host implementing exact inert upload nonce, offer/accept/cancel arbitration, idempotent discard/accept and retained unresolved cleanup with assembly/builder. Shared host e2e5 compilation failed Thread lambda before tests; no new host pass. Root D43 decision records required protocol. Foundation/service ca7 capture now running with unique session directories.\nRoot reviewed stable b93cd9a7497241e0a4ebff09536111ee twelve host groups including producer release/retry and70 capacity cycles; native artifact-ack consumer remains under migration. Snapshot helper passed but root found file-count guard after full traversal allocation; owner fixed bounded iterator and queued focused recheck. Full UI producer42a50a609b0246c2afe3e7e6eb6157d5 passed, immutable archive preserved before D43 edits; this alone does not qualify installed native launch.\nRoot reviewed c34771bb270946cf9cd8ef02c668f2dc bounded snapshot helper PASS and current3sourcehashes. File-count check now bounds traversal before materialization; oversized tree, invalid limits, active writer, links/orphan owners and original preservation checked. Actual protected cross-generation consumer is separate.",
       "contracts": [
         "C01",
         "C02",
@@ -2550,9 +2552,10 @@
       ],
       "evidence": [
         "var/deployment-source-check-0006b59c-slot2/result.json",
-        "var/deployment-source-browser-0006b59c-slot1/result.json"
+        "var/deployment-source-browser-0006b59c-slot1/result.json",
+        "var/deployment-workshop-check-5945df-slot1/result.json"
       ],
-      "notes": "2026-10-15 breadth restart: First finite batch: stage actual artifacts with dependency/license manifest, pinned prebuilt heaps, real launcher integration and interrupted-update preservation. Public host launcher/jar packaging absent; host61 owns concrete seam after current compile. MacARM64 evidence first, Linuxx86_64 remains required and unqualified. No end-user deployment success claim from placeholder runtime.\n2026-10-15 renewed holistic capability swarm: Reassigned from stale deployment61 after renewed wide swarm. Existing40ac installed PublicMain launch/restart passes; new owner carries actual shared authoring/resident workbench into packaging, offline assets/dependency closure and finite installed workflow checks. No complete authoring/search/Linux/redistribution claim.\nD51 old40ac→D44 exactinputrow checkpoint incompatibility requires protected compatibilityprobe; newcandidateonly staging and failclosed replacement guard under tests. Source-only producer/package surface is separate actualworkflow; fullnative/Linux acceptance unchanged.\nActual source-only generation8cb385 passed4 fresh CLI JVM operations and HTTP browser source view/clean close. Current source host and historical native host must not be assumed workspace-compatible. Protected failed-upgrade preservation can run with explicitly unclassified native rejection; specific cause and successful migration remain separate. Current combined UI producer will pair exact immutable db6 native capture before installed test.",
+      "notes": "2026-10-15 breadth restart: First finite batch: stage actual artifacts with dependency/license manifest, pinned prebuilt heaps, real launcher integration and interrupted-update preservation. Public host launcher/jar packaging absent; host61 owns concrete seam after current compile. MacARM64 evidence first, Linuxx86_64 remains required and unqualified. No end-user deployment success claim from placeholder runtime.\n2026-10-15 renewed holistic capability swarm: Reassigned from stale deployment61 after renewed wide swarm. Existing40ac installed PublicMain launch/restart passes; new owner carries actual shared authoring/resident workbench into packaging, offline assets/dependency closure and finite installed workflow checks. No complete authoring/search/Linux/redistribution claim.\nD51 old40ac→D44 exactinputrow checkpoint incompatibility requires protected compatibilityprobe; newcandidateonly staging and failclosed replacement guard under tests. Source-only producer/package surface is separate actualworkflow; fullnative/Linux acceptance unchanged.\nActual source-only generation8cb385 passed4 fresh CLI JVM operations and HTTP browser source view/clean close. Current source host and historical native host must not be assumed workspace-compatible. Protected failed-upgrade preservation can run with explicitly unclassified native rejection; specific cause and successful migration remain separate. Current combined UI producer will pair exact immutable db6 native capture before installed test.\nRoot independently ran21deploymenttests PASS. Canonical bundled identity workshop5945df passed actual import/two browser Saves/freshCLI reopen. Current db6/UI candidate0e524 staged inert; first D51 probe oldclone passed but candidate failed missing navigation-only theories before native restore, so no compatibility or full failure-preservation claim. Repair exact navigation closure; old40ac selection preserved. Standalone launcher and smaller headless distribution now separate scoped child work.",
       "contracts": [
         "C01",
         "C02",
@@ -2989,8 +2992,10 @@
         "Rehearse gap -> draft -> revise -> qualify/admit -> deploy -> feedback using the documented runtime; inspect resulting exposure/retention and export records without silently executing optional remote services.",
         "Rehearse starting from an actual Oracle7-original specialist package and its evaluation/source material, not only a hand-written veri7vn tutorial package."
       ],
-      "evidence": [],
-      "notes": "Begin early developer rehearsal/tutorial work against actual authoring and installed interfaces while release dependencies remain open. Trace original package import through edit, diagnostics, admission, execution, restart and transfer; report absent joins to their owners. This is not recipient usability or clean-install completion.\nResumed actual installed specialist workshop using retained-identity/branch-review sources. Installed source CLI import/inspect/edit/reopen and browser Open pass; identity two-Save/reopen rehearsal still pending. Deployment will pin example assets so recipient does not need source checkout. Native build/admission remains required extension.",
+      "evidence": [
+        "var/deployment-workshop-check-5945df-slot1/result.json"
+      ],
+      "notes": "Begin early developer rehearsal/tutorial work against actual authoring and installed interfaces while release dependencies remain open. Trace original package import through edit, diagnostics, admission, execution, restart and transfer; report absent joins to their owners. This is not recipient usability or clean-install completion.\nResumed actual installed specialist workshop using retained-identity/branch-review sources. Installed source CLI import/inspect/edit/reopen and browser Open pass; identity two-Save/reopen rehearsal still pending. Deployment will pin example assets so recipient does not need source checkout. Native build/admission remains required extension.\nCanonical installed identity import, two actual browser Saves and fresh CLI exact reopen passed5945df workshop result. This is developer source-workflow evidence; native build/admission and checkout-independent launcher remain required. Bundled examples now exist; no external recipient contacted.",
       "contracts": [
         "C01",
         "C02",
@@ -3302,6 +3307,96 @@
         "docs/coverage/README.md",
         "project/DECISIONS.md"
       ]
+    },
+    {
+      "id": "installed-recipient-launcher",
+      "title": "Ship a checkout-independent verified-inventory launcher",
+      "area": "deployment",
+      "milestone": "H",
+      "status": "active",
+      "depends_on": [
+        "runtime-host-bootstrap",
+        "workspace-client",
+        "deployment-builder"
+      ],
+      "owner": "installed_launcher61",
+      "paths": [
+        "src/deployment/**",
+        "tests/deployment/launcher/**"
+      ],
+      "deliverables": [
+        "Pinned shell/JVM bootstrap and actual standalone source/native/workbench dispatch"
+      ],
+      "acceptance": [
+        "Recipient launch and tutorial lookup require neither checkout nor system Python/compiler.",
+        "Actual packaged source/native operations consume same manifest, application JARs, durable workspace and pinned image.",
+        "Reject malformed/tampered inventory and unsafe startup-state redirects; bootstrap trust and controlled settings are explicit."
+      ],
+      "checks": [
+        "Independent Python/JVM verifier and launch-plan parity.",
+        "Actual shipped shell from outside checkout: source workshop and native restart."
+      ],
+      "evidence": [],
+      "notes": "Root assigned after actual workshop still required checkout tools/deploy/stage.py. Separate bootstrap JAR preserves application producer identities. Fresh invocation-owned settings home is being coordinated to avoid arbitrary existing state-home startup scripts. No standalone runtime acceptance yet.",
+      "contracts": [
+        "C01",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-12",
+        "ACC-13",
+        "ACC-14"
+      ],
+      "trusted_boundaries": [
+        "TB-04",
+        "TB-05"
+      ]
+    },
+    {
+      "id": "headless-runtime-closure",
+      "title": "Qualify a smaller complete headless runtime distribution",
+      "area": "deployment performance",
+      "milestone": "P",
+      "status": "active",
+      "depends_on": [
+        "runtime-host-bootstrap",
+        "performance-envelope"
+      ],
+      "owner": "runtime_distribution61",
+      "paths": [
+        "tools/deploy/runtime_closure.py",
+        "tests/deployment/runtime_closure/**",
+        "docs/deployment/runtime-closure.md"
+      ],
+      "deliverables": [
+        "Explicit dependency inventory, pinned component configuration and measured installed candidate"
+      ],
+      "acceptance": [
+        "Retain source/build/admission, proof search and intended runtime dependencies; omitted optional tools remain explicitly unavailable rather than silently dropping scope.",
+        "Existing packages, source distribution and caches are unchanged; new candidate retains full integrity verification.",
+        "Actual source/native/search/tool consumers and paired workloads qualify the candidate."
+      ],
+      "checks": [
+        "Changed catalogue, external/omitted symlink, unknown root, generated catalogue and original-byte preservation fixtures.",
+        "Installed runtime/tool checks and same-workload verification/startup comparison."
+      ],
+      "evidence": [],
+      "notes": "Seven root-rerun inventory tests pass. Actual read-only inventory selects19845entries/1382939742regular bytes; omission counts are not disk usage or measured speedup. Current25k full launch verifier took8.650s in one measured run. Candidate packaging and actual runtime qualification remain open.",
+      "contracts": [
+        "C02",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-05",
+        "ACC-12",
+        "ACC-13"
+      ],
+      "trusted_boundaries": [
+        "TB-04",
+        "TB-05"
+      ]
     }
   ],
   "design_review": "G01-G08 in docs/review/PREIMPLEMENTATION.md and referenced source reports are design inputs/proposed acceptance cases, not completed implementation or executed regression evidence.",
@@ -3523,6 +3618,19 @@
       "state": "protected-clone-and-candidate-staging-implementation",
       "target": "Old pinned installation succeeds; incompatible new candidate probe cannot change original workspace or selection; guarded row/codec migration and recoverable promotion",
       "next": "Host supplies actualclosed-writer-lock snapshot lease; deployment orchestrates exactold/new pinnedlaunchers and comparesstate. No directcheckpointrewrite or artifact-onlyupgrade selection."
+    },
+    {
+      "id": "standalone-efficient-runtime",
+      "owner": "root",
+      "members": [
+        "installed_launcher61",
+        "runtime_distribution61",
+        "deployment_product61",
+        "performance_product61"
+      ],
+      "state": "actual-consumer-integration",
+      "target": "Checkout-independent installed specialist workshop/runtime with full integrity and smaller qualified dependencies",
+      "next": "Preserve existing captured artifacts; launcher own startup/JAR qualification, headless candidate tool/runtime tests and paired actual phase measurements."
     }
   ]
 }

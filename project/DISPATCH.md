@@ -291,3 +291,18 @@ the sole native/Scala/runtime execution steward.
 Root owns tracking and scoped commits. The installed source-only workflow is
 qualified separately from native admission; combining historical native and
 current source hosts does not establish workspace compatibility.
+
+## Standalone installation and measured runtime work
+
+- installed_launcher61 owns src/deployment/** and tests/deployment/launcher/**:
+  shipped shell/JVM launcher, same inventory and application consumers, no checkout
+  or system Python. This transfers only the new launcher test subdirectory out
+  of deployment's broad test ownership.
+- runtime_distribution61 owns tools/deploy/runtime_closure.py,
+  tests/deployment/runtime_closure/** and docs/deployment/runtime-closure.md.
+  Explicitly transferred from deployment's broad paths; deployment integrates
+  the candidate, performance_product61 measures real launch/workload costs.
+
+The sole steward remains build_reconnected61. Full integrity verification remains;
+optional compiler/editor components are explicit profile availability, not removal
+of the project's backend ambitions. No existing distribution/cache is modified.

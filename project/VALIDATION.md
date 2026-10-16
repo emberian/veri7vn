@@ -1030,3 +1030,27 @@ var/deployment-source-browser-0006b59c-slot1/result.json passes actual HTTP home
 CSRF Open of exact source and normal shutdown. Root read both results. These do
 not qualify native admission, alternating state with the old native host, visual
 usability, or an independent recipient trial.
+
+## Bounded snapshots, installed workshop and launcher measurements
+
+Root reviewed c34771bb270946cf9cd8ef02c668f2dc: stable passed snapshot helper,
+current three source hashes match. Traversal now enforces its file limit before
+building the vector; tests exercise oversized input, invalid limits, active
+writer exclusion, original bytes, symlink and orphan ownership refusal. This
+qualifies the helper revision, not successful upgrade/migration.
+
+Root read var/deployment-workshop-check-5945df-slot1/result.json: actual bundled
+identity import, two browser Saves with new revisions, clean close and exact
+fresh-CLI reopen pass. The consumer still uses checkout deployment tooling; it
+does not establish standalone bootstrap, native build/admission or user trial.
+
+Root matched the public launch-verification evidence source record hash, read its
+actual result and reran profile/public-harness synthetic checks. Full40ac verifier
+took8.649843s, split3.727105s digest operations and4.922738s other validation;
+this is one run, not historical startup attribution. Root also reran21deployment
+tests and7headless inventory tests. Smaller inventory is not measured speedup.
+
+First actual D51 candidate probe is failed: old clone restored, but new package
+lacked declared navigation theories before native restoration. It cannot support
+a compatibility diagnosis or completed failed-upgrade preservation. Exact
+packaged navigation closure is being repaired; old selection remains intact.

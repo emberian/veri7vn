@@ -1,0 +1,46 @@
+{
+  "format": "veri7vn.launch-verification-pilot/1",
+  "status": "passed",
+  "generation": "40ac45e74c0be18732a81bff246817cfb2cbe9de91abfc7c8a7ccfc234ec98bd",
+  "source_record": "var/performance-verify-40ac-slot1/result.json",
+  "source_record_sha256": "7542f041fb6806312509167e153435974f1a4435ee160236aabc5f1ba5d0c0db",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "5a8976a0e23d14c923f237155f38435984c3248599cc4f47522113e87b531b7a",
+  "profile_sha256": "9208f54e9f161ce51288cee3baa001ddbb14d5863c03b3d2f5933f7ce8616647",
+  "wrapper_elapsed_seconds": 8.696485958003905,
+  "shared_lock": "exclusive nonblocking entire subprocess",
+  "observations": [
+    {
+      "artifact_count": 25106,
+      "declared_regular_bytes": 2669028920,
+      "digest_calls": 24640,
+      "end_ns": 181088386002083,
+      "format": "veri7vn.launch-phase/1",
+      "generation": "40ac45e74c0be18732a81bff246817cfb2cbe9de91abfc7c8a7ccfc234ec98bd",
+      "hash_read_wall_ms": 3727.104936,
+      "other_verify_wall_ms": 4922.737731,
+      "phase": "full-artifact-verification",
+      "scope": "digest wall includes open/read/SHA256/close; residual includes JSON/path/link/mode/metadata checks, not isolated disk I/O",
+      "stage_source_sha256": "b6b0b806fad9e36070a8d7ccfd8f1d5cbe55751f995857f8b58cbcf8b1b52b11",
+      "start_ns": 181079736159416,
+      "status": "passed",
+      "wall_ms": 8649.842667
+    }
+  ],
+  "context": {
+    "steward_slot": "immutable40ac-fullverify-slot1",
+    "native_or_jvm_processes_launched": false,
+    "filesystem_cache": "uncontrolled existing installed generation; no eviction",
+    "other_work": "steward held native/Scala between D43nativephase terminal and workshop slot",
+    "timing_scope": "one actual full verifier; metadata is residual not syscall-only time",
+    "source_implementation": "currentstage; verification path owner confirms unchanged from40ac pilot launcher, but sourcehash differs due other deployment command changes"
+  },
+  "limitations": [
+    "one sample; no p95 or variance estimate",
+    "hash duration includes reads and SHA, cannot separate I/O from CPU",
+    "other verification includes manifest parsing, path/link checks, modes and overhead",
+    "cannot subtract from separately observed22.8s/14.8s historical firstresponses to infer startup time",
+    "no validation bypass or cache introduced",
+    "profile wrapper calls original verify and digest; wrapper timer overhead unisolated"
+  ]
+}

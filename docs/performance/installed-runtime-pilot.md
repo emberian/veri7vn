@@ -130,3 +130,73 @@ attributed repeated workloads for sources, search, domains, authoring and growth
 cancellation through quiescence, physical durable I/O, controlled interference
 and Linux deployment. The old immutable pilot cannot qualify newer source by
 association.
+
+## Launcher attribution work
+
+Manifest inspection of the same old generation found 2,669,028,920 declared
+regular-file bytes hashed by each full launch verification. Its 25,106 artifacts
+include 24,652 runtime entries containing 2,465,786,053 logical bytes. The current
+per-entry ancestor checks repeat 210,192 symlink tests across all artifact paths.
+These counts are structural workload dimensions, not elapsed measurements.
+Examples of large runtime entries are Find Facts' 191,942,656-byte database,
+176,164,864-byte browser-info database, 172,326,336-byte Electron framework,
+100,297,696-byte Stack executable and 67,633,627-byte editor extension. Their
+necessity for a headless launch needs an explicit dependency-closure review;
+removing files without qualification is not an optimization result.
+
+`tools/performance/envelope/profile_launch.py` wraps the actual staged verifier
+and digest function. It preserves full verification and tamper rejection, emitting
+stderr-only `VERI7VN_LAUNCH_PHASE` JSON records for verification wall time, summed
+digest wall time, remaining verification wall time, and the real exec handoff.
+Digest wall includes file open/read/SHA256/close, not isolated disk I/O. Residual
+verification includes manifest parsing, path/link checks and metadata/modes, not
+pure computation. These nested sequential durations can be subtracted within one
+verifier invocation; they must not be subtracted from historical runs to invent
+startup attribution. A `verify GENERATION` command profiles without starting a
+runtime. The existing public harness's optional `--profile-launch` connects the
+same wrapper to actual launch and records both implementation hashes. Monotonic
+exec handoff through first output still includes shell/Java/PIDE, image acquisition
+and the native workflow; it is not a separate Java-start measurement.
+
+`check_profile_launch.py` passed a small synthetic verified-file case, timing
+decomposition checks and actual tampered-byte rejection. It launches no runtime.
+The actual full-verifier profile passed in the sole steward's exclusive slot,
+as recorded below. Production launch/package files are unchanged by this
+performance work.
+
+A cache keyed only by manifest ID plus file size/mtime is not a substitute for
+the current byte verification. Content addressing names expected bytes; the local
+owner can still chmod and modify read-only files, and hardlinks can share mutable
+inodes. A cached validation result needs a lifetime in which the verified bytes
+cannot change, supported by the actual platform, or explicit revalidation of every
+possible mutation. Neither an mtime receipt nor a private manifest supplies that
+property. A smaller, separately qualified headless closure that retains full
+hashing is the practical next candidate if measurements justify it. An immutable
+launch-image cache would need an explicit OS-backed immutability and ownership
+argument before implementation. The present full verifier also reopens paths at
+runtime and does not itself establish protection against hostile concurrent writes
+by the same local principal; a performance change must not claim such protection.
+
+
+The [actual verification profile](../../benchmarks/envelope/launch-verification-40ac-pilot.json)
+records a successful full check of exact generation40ac in
+`var/performance-verify-40ac-slot1`. Wrapper wall was 8.696486s and actual verifier
+wall 8,649.842667ms. File-open/read/SHA256/close spans totaled 3,727.104936ms
+(43.1%); remaining verification was 4,922.737731ms (56.9%). There were 24,640
+regular-file digest calls across the 25,106 artifacts; link entries use their
+existing link-specific checks instead of file reads. The shared build lock covered
+the whole command, with no JVM, ML or application request launched. The slot was
+released after terminal exit zero. This is one cache-uncontrolled observation,
+not a tail budget. It demonstrates substantial multi-second launcher work and
+makes reducing repeated path work and package closure concrete priorities.
+
+The runtime-distribution owner has prepared an opt-in headless inventory with
+19,845 files and 1,382,939,742 declared regular bytes, retaining native sources,
+heaps, solver/model-finder and Java/Scala dependencies while excluding selected
+optional components and precomputed browser/search databases. Deployment is
+integrating it as a separate candidate. Those inventory reductions are not a
+measured speedup or dependency acceptance: the same installed workload and
+verification remain mandatory after staging, in a steward slot. A profiled paired
+launch will distinguish full verification from exec-handoff through first output
+in the same run. Host spans remain necessary to separate Java/PIDE/image
+acquisition/native restore within the latter interval.

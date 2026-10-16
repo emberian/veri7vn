@@ -66,4 +66,16 @@ for line in sys.stdin:
     else:
         raise AssertionError('timeout accepted')
     assert time.monotonic()-started < 8
+    profile_log = root/'partition.log'
+    import json
+    phases = [{'phase': 'full-artifact-verification', 'status': 'passed', 'generation': 'pinned', 'start_ns': 20, 'end_ns': 50}, {'phase': 'runtime-exec-handoff', 'at_ns': 60}]
+    profile_log.write_text(''.join('VERI7VN_LAUNCH_PHASE '+json.dumps(phase)+'\n' for phase in phases))
+    partition = harness.launch_partition(profile_log, {'send_ns': 10, 'observed_ns': 100}, 'pinned')
+    assert abs(sum(partition['serial_wall_ms'].values())-90/1e6) < 1e-12
+    try:
+        harness.launch_partition(profile_log, {'send_ns': 10, 'observed_ns': 40}, 'pinned')
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('nonmonotonic profile accepted')
 print('PUBLIC_HARNESS_REGRESSIONS_PASS pointer pin, sequential exact output, exited-parent descendant drain, owned timeout cleanup; synthetic only')

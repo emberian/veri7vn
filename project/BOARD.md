@@ -61,6 +61,8 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | native-resident-assembly | Connect resident authority, typed operation dispatch and native lifecycle | native runtime integration | active | assembly_reconnected61 | operational-model, native-admission, state-effects, staged-execution, native-recovery |
 | graph-mst-optimality | Prove an efficient native MST optimality certificate checker | graph specialists | active | mst_proof61 | — |
 | conceptnet-source-consumer | Connect shipped ConceptNet labels, retrieval policy and provenance to checked graph queries | source-backed graph specialists | active | conceptnet_product61 | source-import, graph-family |
+| installed-recipient-launcher | Ship a checkout-independent verified-inventory launcher | deployment | active | installed_launcher61 | workspace-client, deployment-builder |
+| headless-runtime-closure | Qualify a smaller complete headless runtime distribution | deployment performance | active | runtime_distribution61 | performance-envelope |
 
 ## Ready to dispatch
 
@@ -76,6 +78,10 @@ None.
 - possible active edit overlap: domain-families (src/families/domains/**) / family-integration (src/families/domains/source_bridge/**)
 - possible active edit overlap: graph-family (src/families/graphs/**) / graph-mst-optimality (src/families/graphs/Graph_MST_Optimality.thy)
 - possible active edit overlap: graph-family (tests/families/graphs/**) / graph-mst-optimality (tests/families/graphs/mst/**)
+- possible active edit overlap: deployment-builder (tests/deployment/**) / installed-recipient-launcher (tests/deployment/launcher/**)
+- possible active edit overlap: deployment-builder (tools/deploy/**) / headless-runtime-closure (tools/deploy/runtime_closure.py)
+- possible active edit overlap: deployment-builder (tests/deployment/**) / headless-runtime-closure (tests/deployment/runtime_closure/**)
+- possible active edit overlap: deployment-builder (docs/deployment/**) / headless-runtime-closure (docs/deployment/runtime-closure.md)
 - native-admission: status active with unresolved dependencies: native-registry, operational-model
 - plan-composition: status active with unresolved dependencies: operational-model, interpretation-model, native-registry
 - state-effects: status active with unresolved dependencies: operational-model, native-registry
@@ -105,3 +111,5 @@ None.
 - native-development: status active with unresolved dependencies: native-admission, native-registry
 - native-resident-assembly: status active with unresolved dependencies: operational-model, native-admission, state-effects, staged-execution, native-recovery
 - conceptnet-source-consumer: status active with unresolved dependencies: source-import, graph-family
+- installed-recipient-launcher: status active with unresolved dependencies: workspace-client, deployment-builder
+- headless-runtime-closure: status active with unresolved dependencies: performance-envelope

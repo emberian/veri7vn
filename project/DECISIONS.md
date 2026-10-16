@@ -932,3 +932,54 @@ Recovery reconstructs both associations and their checked relation; serialized
 wrapper fields do not confer authority. The source, domain, integration and native
 service owners migrate the closed ingress variant together. This is an approved
 consumer design, not a claim of implemented or checked source/domain composition.
+
+## D55 — Recover every typed child, including pending qualifications
+
+Frame uses a generic RequestChildRole to require exactly one native material for
+each retained child. A closed decoder selects Math/Source/Domain/Build/qualification
+material; acceptance compares the actual operation family, full immutable
+requirement, request/goal/slot and semantic/executable pins. Manifest tags only
+select decoding. Missing, duplicate or mismatched material rejects. Historical
+whole-request Math meanings retain explicit version handling.
+
+InitialQualificationRequest and UpdateQualificationRequest are distinct from
+measured qualification result roles. Pending reconstruction preserves exact
+Prepared/Reserved/Started state and candidate/intent/baseline ownership without
+replaying measurement, start, effects or tickets. A restored Started attempt with
+no result is interrupted; retry needs a fresh eligible attempt and charge.
+
+## D56 — Qualification output consumes its paid attempt
+
+QualificationOrigin identifies the exact started reservation that pays for its
+measurement output. StageOutput checks the same owner, goal, slot, pins, profile
+and lineage; StageQualification consumes that output. It cannot substitute a
+second ExecutePure charge or publish an unrelated universal assertion. Codec and
+all typed consumers migrate together after the current compiler capture.
+
+Execution, qualification and publication directly check shared parent identity
+and dependencies for accessibility. Parent cancellation/revocation stops all
+children; child-specific denial still preserves unrelated siblings.
+
+## D57 — Qualifier observations have their own fixed semantic context
+
+A TestObservation uses the actual fixed shipped qualifier observer context and
+executable/profile pin. Candidate and baseline native generations remain explicit
+protected subjects/dependencies of the observation and publication. A Build-to-Q
+plan can therefore seal its observer goal before the new candidate exists; it
+does not guess a future native generation.
+
+The native observer meaning and producer must actually inhabit that context.
+Relabelling a theorem in a candidate context is not this construction. Recovery
+authenticates the observer against the actual installed image/code and rechecks
+the exact candidate/baseline association. Candidate theorem exports retain their
+own native contexts. Existing-candidate qualification alone is not Build-to-Q
+composition acceptance.
+
+## D58 — Artifact output context differs from builder context
+
+artifact_assigned_generation records the actual new candidate native context.
+The goal generation remains the fixed builder or observer context. The native
+candidate gate supplies this correspondence; a metadata number cannot confer it.
+The resulting generation participates in registration, managed dependencies and
+exact reconstruction checks. Do not infer it from an unordered dependency list.
+Batch this codec/consumer migration with D56 after the current capture.
