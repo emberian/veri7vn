@@ -10,6 +10,13 @@ import veri7vn.runtime.effects.WorkerLifetime
 import veri7vn.runtime.host.WorkspaceStore
 
 object NativeBuildIngress {
+  final class PreparedInput private[NativeBuildIngress](private[service] val ingress:NativeBuildIngress,private[service] val nativeHandle:BigInt,
+    private[service] val input:NativeBuildInputs.Owned,
+    val original:NativeBuildInputs.CapturedSource,
+    private[service] val sourceGuard:WorkspaceStore.NativeSourceGuard) {
+    private[NativeBuildIngress] val releaseLock=new Object
+    private[NativeBuildIngress] var released=false
+  }
   private[service] trait Transport {
     def exchange(operation:String,payload:String="",artifacts:List[Bytes]=Nil):ResidentSupervisor.Reply
   }
@@ -25,18 +32,12 @@ object NativeBuildIngress {
 final class NativeBuildIngress private[service](transport:NativeBuildIngress.Transport,
   store:WorkspaceStore,limits:NativeBuildIngress.Limits=NativeBuildIngress.Limits()) extends AutoCloseable {
   import NativeBuildIngress.*
+  private val thisIngress=this
   private[service] def this(supervisor:ResidentSupervisor,store:WorkspaceStore)=this(new NativeBuildIngress.Transport {
     def exchange(operation:String,payload:String,artifacts:List[Bytes]):ResidentSupervisor.Reply=
       supervisor.exchange(operation,payload,artifacts)
   },store,NativeBuildIngress.Limits())
-  final class PreparedInput private[NativeBuildIngress](private[service] val nativeHandle:BigInt,
-    private[service] val input:NativeBuildInputs.Owned,
-    val original:NativeBuildInputs.CapturedSource,
-    private[service] val sourceGuard:WorkspaceStore.NativeSourceGuard) {
-    private[NativeBuildIngress] val ingress=NativeBuildIngress.this
-    private[NativeBuildIngress] val releaseLock=new Object
-    private[NativeBuildIngress] var released=false
-  }
+  type PreparedInput=NativeBuildIngress.PreparedInput
   private enum Handoff { case Waiting,Offered,Accepting,Accepted,Canceled }
   private val slots=new Semaphore(2)
   // Native exchanges and source callbacks never run under this monitor.
@@ -99,7 +100,7 @@ final class NativeBuildIngress private[service](transport:NativeBuildIngress.Tra
         live()
         val finish=transport.exchange("build_input_finish",id.toString)
         require(finish.tag=="build_input_prepared" && finish.payload.matches("[1-9][0-9]{0,127}") && finish.artifacts.isEmpty,"native build input finish refused")
-        val value=new PreparedInput(BigInt(finish.payload),input,source,input.currentSourceGuard)
+        val value=new PreparedInput(thisIngress,BigInt(finish.payload),input,source,input.currentSourceGuard)
         ownership.synchronized {
           // Remember a canceled late finish for release by known handle too.
           known=Some(value)
@@ -196,6 +197,10 @@ final class NativeBuildIngress private[service](transport:NativeBuildIngress.Tra
       if(registered)try job.retire() catch {case cleanup:Throwable=>problem.addSuppressed(cleanup)}
       throw problem
     }
+  }
+  private[service] def preparedInput(handle:BigInt):PreparedInput=ownership.synchronized {
+    require(!closed,"build ingress closed")
+    prepared.getOrElse(handle,throw new IllegalStateException("native build input owner unavailable"))
   }
   private[service] def currentGuard(handle:BigInt):WorkspaceStore.NativeSourceGuard=ownership.synchronized {
     require(!closed,"build ingress closed")

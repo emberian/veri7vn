@@ -77,9 +77,7 @@ object WorkspaceStore {
   sealed trait Access
   final case class Available(view: DraftView) extends Access
   case object Unavailable extends Access
-  private[host] def validateRecovery(workspace: String, material: NativeRecoveryMaterial): Unit = {
-    val slots=material.slots.toMap
-    val bytes=slots("manifest")
+  private def recoveryEnvelope(bytes:Array[Byte]):Map[String,String]={
     require(bytes.forall(b=>b==5 || b==6 || (b>=32 && b<=126)),"recovery envelope ASCII framing")
     val text=new String(bytes,java.nio.charset.StandardCharsets.US_ASCII)
     val prefix="\u0005\u0006veri7vn-native-association\u0006"
@@ -91,12 +89,47 @@ object WorkspaceStore {
     }
     val keys=Set("version","profile","role","workspace","association","semantic-generation","projection","sequent","context-closure","kind","payload","executable")
     require(fields.size==keys.size && fields.map(_._1).toSet==keys,"recovery envelope fields")
-    val m=fields.toMap
+    fields.toMap
+  }
+  private[runtime] def nonassertionalRecovery(bytes:Array[Byte]):Boolean={
+    val m=recoveryEnvelope(bytes)
+    m("version")=="2" && m("kind")=="controlled-recipe" && m("executable").matches("[0-9a-f]{64}") && Set(
+      "native-development/1"->"build-request","native-development/1"->"build-candidate",
+      "quantities/1"->"domain-request",
+      "native-export-admission/1"->"initial-qualification",
+      "native-export-admission/1"->"initial-qualification-request",
+      "named-native-export-structure/1"->"update-qualification",
+      "named-native-export-structure/1"->"update-qualification-request").contains(m("profile")->m("role"))
+  }
+  private[runtime] def recoveryCategory(bytes:Array[Byte]):String={
+    val m=recoveryEnvelope(bytes)
+    (m("profile"),m("role")) match {
+      case ("native-kernel/1","kernel-evidence")=>"kernel"
+      case ("exact-arithmetic/1","math-request")=>"request-child"
+      case ("exact-arithmetic/1","math-output")=>"refined-output"
+      case ("quantities/1","domain-request") if nonassertionalRecovery(bytes)=>"request-child"
+      case ("quantities-runtime-refinement/1","domain-output")=>"refined-output"
+      case ("native-development/1","build-request") if nonassertionalRecovery(bytes)=>"request-child"
+      case ("native-development/1","build-candidate") if nonassertionalRecovery(bytes)=>"artifact"
+      case ("native-export-admission/1","initial-qualification-request") if nonassertionalRecovery(bytes)=>"request-child"
+      case ("named-native-export-structure/1","update-qualification-request") if nonassertionalRecovery(bytes)=>"request-child"
+      case ("native-export-admission/1","initial-qualification") if nonassertionalRecovery(bytes)=>"observation"
+      case ("named-native-export-structure/1","update-qualification") if nonassertionalRecovery(bytes)=>"observation"
+      case _=>throw new IllegalArgumentException("unsupported recovery category/profile/role")
+    }
+  }
+  private[host] def validateRecovery(workspace: String, material: NativeRecoveryMaterial): Unit = {
+    val slots=material.slots.toMap
+    val m=recoveryEnvelope(slots("manifest"))
     require(m("version")=="2" && m("workspace")==workspace && m("association")==material.association.toString &&
       m("semantic-generation")==material.semanticGeneration.toString,"recovery envelope identity")
     val kernel=m("profile")=="native-kernel/1" && m("role")=="kernel-evidence"
     val math=m("profile")=="exact-arithmetic/1" && Set("math-request","math-output").contains(m("role"))
-    require(kernel || math,"unsupported recovery profile/role")
+    val nonassertional=nonassertionalRecovery(slots("manifest"))
+    val domainOutput=m("profile")=="quantities-runtime-refinement/1" && m("role")=="domain-output"
+    require(kernel || math || nonassertional || domainOutput,"unsupported recovery profile/role")
+    require(slots.forall {case(name,data)=>name=="sequent" || data.nonEmpty},"empty nonassertion recovery slot")
+    require(if(nonassertional) slots("sequent").isEmpty else slots("sequent").nonEmpty,"recovery assertion slot role")
     require(if(kernel) Set("fixed-certificate","native-proof","controlled-recipe").contains(m("kind")) && m("executable").isEmpty
       else m("kind")=="controlled-recipe" && m("executable").nonEmpty,"recovery profile reconstruction")
     for((field,slot)<-Vector("projection"->"projection","sequent"->"sequent","context-closure"->"context_closure","payload"->"reconstruction"))

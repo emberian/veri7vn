@@ -49,6 +49,42 @@ object WorkspaceStoreTests {
     val manifest=("\u0005\u0006veri7vn-native-association\u0006"+attributes.map((k,v)=>k+"="+v).mkString("\u0006")+"\u0005\u0005\u0006\u0005").getBytes(java.nio.charset.StandardCharsets.US_ASCII)
     val slots=("manifest"->manifest)+:payloadSlots
     val material=new NativeRecoveryMaterial(BigInt("1000000000000000000000000000001"),BigInt(2),slots,Vector(BigInt("1000000000000000000000000000001"),BigInt(2)))
+    def checkRole(profile:String,role:String,empty:Boolean,executable:Boolean,accepted:Boolean):Unit={
+      val sequent=if(empty)Array.emptyByteArray else Array[Byte](1)
+      val code=Array[Byte](7)
+      val attrs=attributes.map {case(k,v)=>k->(k match {
+        case "profile"=>profile
+        case "role"=>role
+        case "kind"=>"controlled-recipe"
+        case "sequent"=>digest(sequent)
+        case "executable"=>if(executable)digest(code)else ""
+        case _=>v
+      })}
+      val frame=("\u0005\u0006veri7vn-native-association\u0006"+attrs.map((k,v)=>k+"="+v).mkString("\u0006")+"\u0005\u0005\u0006\u0005").getBytes(java.nio.charset.StandardCharsets.US_ASCII)
+      val candidateSlots=("manifest"->frame)+:payloadSlots.map {case(n,b)=>n->(if(n=="sequent")sequent else b)}
+      val candidate=new NativeRecoveryMaterial(material.association,BigInt(2),candidateSlots++(if(executable)Vector("executable"->code)else Vector.empty),material.dependencies)
+      var allowed=true
+      try {validateRecovery(store.nativeWorkspace,candidate)
+        val expected=if(role.endsWith("-request"))"request-child" else if(role=="build-candidate")"artifact" else if(role=="domain-output")"refined-output" else "observation"
+        require(recoveryCategory(frame)==expected,"recovery category mismatch")
+      } catch {case _:IllegalArgumentException=>allowed=false}
+      finally candidate.release()
+      require(allowed==accepted,"closed role/sequent rule "+profile+"/"+role)
+    }
+    for((profile,role)<-Vector("quantities/1"->"domain-request","native-development/1"->"build-request","native-development/1"->"build-candidate",
+      "native-export-admission/1"->"initial-qualification","native-export-admission/1"->"initial-qualification-request",
+      "named-native-export-structure/1"->"update-qualification","named-native-export-structure/1"->"update-qualification-request")){
+      checkRole(profile,role,true,true,true)
+      checkRole(profile,role,false,true,false)
+      checkRole(profile,role,true,false,false)
+    }
+    checkRole("quantities-runtime-refinement/1","domain-output",false,true,true)
+    checkRole("quantities-runtime-refinement/1","domain-output",true,true,false)
+    checkRole("quantities-runtime-refinement/1","domain-output",false,false,false)
+    checkRole("native-kernel/1","kernel-evidence",true,false,false)
+    checkRole("exact-arithmetic/1","math-request",true,true,false)
+    checkRole("exact-arithmetic/1","math-output",true,true,false)
+    checkRole("native-development/1","math-request",true,true,false)
     var wrongManifest=false
     val mismatched=new NativeRecoveryMaterial(material.association,BigInt(2),slots.map {case(name,bytes)=>(name,if(name=="sequent")Array[Byte](99) else bytes)},material.dependencies)
     try store.commitNative("native_wrong_slot",0,0,0,Array[Byte](1),Array[Byte](2),Some(mismatched))

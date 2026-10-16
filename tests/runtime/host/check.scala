@@ -2,7 +2,7 @@ import scala.language.unsafeNulls
 import java.nio.file.Files
 @main def runtimeHostCheck(): Unit = isabelle.Command_Line.tool {
   val out=Files.createTempDirectory("veri7vn-host-classes-")
-  val paths=List("src/runtime/host/WorkspaceSnapshot.scala","tests/runtime/host/WorkspaceSnapshotTests.scala","src/runtime/service/NativeBuildIngress.scala","src/runtime/service/PackageDescriptorFunction.scala","tests/runtime/service/PackageDescriptorFunctionTests.scala","tests/runtime/service/NativeBuildIngressTests.scala","src/diagnostics/Diagnostics.scala","src/diagnostics/RequestInspection.scala",
+  val paths=List("src/diagnostics/SourceDiagnostic.scala","src/diagnostics/BuildFailure.scala","src/runtime/host/WorkspaceSnapshot.scala","tests/runtime/host/WorkspaceSnapshotTests.scala","src/runtime/service/NativeBuildIngress.scala","src/runtime/service/PackageDescriptorFunction.scala","tests/runtime/service/PackageDescriptorFunctionTests.scala","tests/runtime/service/NativeBuildIngressTests.scala","src/diagnostics/Diagnostics.scala","src/diagnostics/RequestInspection.scala",
     "src/packages/lifecycle/PackageModel.scala","src/packages/lifecycle/InertJSON.scala",
     "src/runtime/host/WorkspaceStore.scala", "src/runtime/host/ManagedSources.scala", "tests/runtime/host/ManagedSourcesTests.scala", "src/runtime/service/AuthorityCoordinator.scala",
     "src/runtime/service/ResidentSupervisor.scala", "src/runtime/service/DeploymentImages.scala", "src/runtime/service/ResidentNativeBridge.scala", "src/runtime/service/ResidentAuthorityService.scala", "src/runtime/service/MetadataFrame.scala", "tests/runtime/host/WorkspaceStoreTests.scala", "tests/runtime/service/CoordinatorTests.scala", "tests/runtime/service/ResidentServiceTests.scala",

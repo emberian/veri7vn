@@ -1053,3 +1053,27 @@ reinterpreted. Update requests remain bound-only under their existing version.
 Tests distinguish restart before Build, after Build before qualification, and
 interrupted measurement; the production acknowledgement/recovery consumer is
 required beyond a scoped fixture.
+
+## D63 — Search results retain proof provenance and original goal identity
+
+Literal native search has closed `literal-native-proof/1` roles `search-request`
+(nonassertional, empty sequent) and `search-output` (actual native acceptance,
+nonempty full sequent), with the fixed executable pin. The outer output binds the
+original request/goal/slot/evidence and receiver requirement to the protected
+inner source-proof reconstruction. The proof development may have a fresh native
+generation; it is provenance, not a replacement for the original goal's pins or
+a second user-visible claim.
+
+The fixed gate checks actual native context identity, exact target/full sequent,
+source recipe and policy, then genuinely re-admits the checked theorem into the
+original receiver generation. Copying IDs, calling contexts equal by name, or
+restating into an unrelated alias is not this operation. Recovery checks the same
+association and owns the inner verified reconstruction; releasing it must not
+release another consumer's shared source owner.
+
+The first public-image profile requires exact original receiver policy before
+claim/charge. Arbitrary admitted package contexts need their own captured approved
+receiver policy; this remains required scope beyond the initial fixed profile.
+Host/registry roles, native gates, authenticated Scope recovery and actual resident
+dispatch migrate together. A compiled protocol or isolated proof does not close
+the deployed-search gate.

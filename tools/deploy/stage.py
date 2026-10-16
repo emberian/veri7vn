@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import platform
+import pwd
 import shutil
 import subprocess
 import tempfile
@@ -198,8 +199,9 @@ def _launch_plan(root, manifest, state, extra=(), surface=None):
     if actual != manifest['target']:
         raise ValueError('target mismatch; cross-target launch is unqualified')
     state = state.resolve()
-    if state == root or root in state.parents:
-        raise ValueError('mutable state must be outside immutable generation')
+    immutable_boundary=root.parent if root.parent.name=='generations' else root
+    if state == immutable_boundary or immutable_boundary in state.parents:
+        raise ValueError('mutable state must be outside immutable generation tree')
     if not manifest['launch']:
         raise ValueError('deployment has no launch command')
     suffix = []
@@ -275,7 +277,8 @@ def launch(installation, state, extra, surface=None):
         # Product startup never reads a mutable workspace's etc/settings.
         environment={key:value for key,value in os.environ.items() if key in ('TERM','LANG')} | {'PATH':'/usr/bin:/bin:/usr/sbin:/sbin'} | plan['environment']
         with tempfile.TemporaryDirectory(prefix='veri7vn-bootstrap-',dir='/tmp') as home:
-            environment.update(USER_HOME=home,HOME=home,VERI7VN_BOOTSTRAP_HOME=home)
+            identity=pwd.getpwuid(os.getuid()).pw_name
+            environment.update(USER_HOME=home,HOME=home,VERI7VN_BOOTSTRAP_HOME=home,USER=identity,LOGNAME=identity)
             raise SystemExit(subprocess.run(plan['command'],env=environment).returncode)
     if '{bootstrap_home}' in environment.get('USER_HOME',''):
         raise ValueError('bootstrap home placeholder requires an explicit startup policy')

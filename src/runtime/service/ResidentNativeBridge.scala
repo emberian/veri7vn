@@ -1,10 +1,12 @@
 package veri7vn.runtime.service
 
+import scala.language.unsafeNulls
 import isabelle.Bytes
 import veri7vn.runtime.host.WorkspaceStore
 
 /** Actual resident transport. No client may supply Prepared/event/checkpoint bytes. */
-final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: WorkspaceStore)
+final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: WorkspaceStore,
+  buildIngress:Option[NativeBuildIngress]=None)
   extends AuthorityCoordinator.NativeBridge {
   import AuthorityCoordinator.*
   private def initializing[A](action: => A):A=try action catch {case failure:Throwable=>
@@ -27,8 +29,24 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
     require(reply.tag=="ids_installed","native durable identity lease installation failed")
     lease
   }
+  private final case class BuildBinding(phase:String,input:NativeBuildIngress.PreparedInput)
+  private var pendingBuild:Option[BuildBinding]=None
+  private val releaseQueue=new java.util.concurrent.ConcurrentLinkedQueue[NativeBuildIngress.PreparedInput]()
+  private var releaseAttempts=0
+  private var releaseAt=0L
+  private def buildBinding(id:String):Option[BuildBinding]=buildIngress.flatMap { ingress=>
+    val reply=supervisor.exchange("build_current_binding",id)
+    require(reply.artifacts.isEmpty,"native build binding artifacts")
+    if(reply.tag=="build_binding_none"){require(reply.payload==id,"native build binding token");None}
+    else {
+      val fields=reply.payload.split(",",-1)
+      require(reply.tag=="build_binding" && fields.length==6 && fields(0)==id &&
+        Set("reserve","execute","artifact").contains(fields(1)) && fields.drop(2).forall(_.matches("[1-9][0-9]{0,127}")),"native build binding shape")
+      Some(BuildBinding(fields(1),ingress.preparedInput(BigInt(fields(2)))))
+    }
+  }
   private var pending: Option[Prepared]=None
-  private[service] override def invalidate():Unit={pending.foreach(_.release());pending=None;supervisor.close()}
+  private[service] override def invalidate():Unit={pending.foreach(_.release());pending=None;pendingBuild=None;supervisor.close()}
   private def currentSequence: Long=store.latestNative.map(_.sequence).getOrElse(0L)
   private def token(p: Prepared): String=p.id.substring(p.id.lastIndexOf('_')+1)
   private var cleanupPollAt=0L
@@ -36,6 +54,14 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
   private var cleanupRetries=0
   private[service] override def maintenance():Unit={
     val now=System.nanoTime()
+    // Source teardown and native producer release run outside coordinator/source locks.
+    val producer=releaseQueue.peek()
+    if(producer!=null && releaseAttempts<8 && now>=releaseAt){
+      try {buildIngress.get.releaseProducer(producer);releaseQueue.remove();releaseAttempts=0;releaseAt=0L}
+      catch {case scala.util.control.NonFatal(_)=>
+        releaseAttempts+=1;releaseAt=now+math.min(30000L,250L*(1L<<(releaseAttempts-1)))*1000000L
+      }
+    }
     if(now>=cleanupPollAt){
       cleanupPollAt=now+1000000000L
       val reply=supervisor.exchange("cleanup_barrier")
@@ -80,10 +106,11 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
       var recovery:Option[WorkspaceStore.NativeRecoveryMaterial]=None
       var transferred=false
       try {
+        val binding=buildBinding(event.nativeId)
         recovery=readRecovery(event.nativeId)
         val p=new Prepared("native_"+supervisor.incarnation+"_"+event.nativeId,currentSequence,fields(1).toLong,fields(2).toLong,
-          eventBytes,checkpointBytes,recovery=recovery,dispatch=readDispatch(event.nativeId),invalidations=readInvalidations(event.nativeId))
-        pending=Some(p);transferred=true;Right(p)
+          eventBytes,checkpointBytes,recovery=recovery,dispatch=readDispatch(event.nativeId),invalidations=readInvalidations(event.nativeId),sourceGuard=binding.map(_.input.sourceGuard))
+        pendingBuild=binding;pending=Some(p);transferred=true;Right(p)
       } finally {
         java.util.Arrays.fill(eventBytes,0.toByte);java.util.Arrays.fill(checkpointBytes,0.toByte)
         if(!transferred)recovery.foreach(_.release())
@@ -131,7 +158,7 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
       val slots=(0 until (fields.length-3)).map { slot=>
         require(fields(slot+3).matches("[0-9]{1,8}"),"native recovery length")
         val length=fields(slot+3).toInt
-        require(length>0 && length<=caps(slot),"native recovery bound")
+        require(length<=caps(slot) && (length>0 || (slot==2 && buffers.nonEmpty && WorkspaceStore.nonassertionalRecovery(buffers.head))),"native recovery bound")
         val bytes=new Array[Byte](length);buffers+=bytes
         var offset=0
         while(offset<length){
@@ -168,8 +195,12 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
       java.util.Arrays.equals(committed.event,p.eventBytes) && java.util.Arrays.equals(committed.checkpoint,p.checkpointBytes),"native acknowledgement commit mismatch")
     val reply=if(p.id=="native_initial") supervisor.exchange("restore",committed.sequence.toString,List(Bytes(p.checkpointBytes)))
       else supervisor.exchange("ack",s"${token(p)},${committed.sequence}")
-    val accepted=reply.tag==(if(p.id=="native_initial")"restored" else "acknowledged")
-    if(accepted) pending=None
+    val accepted=reply.artifacts.isEmpty && (if(p.id=="native_initial")reply.tag=="restored"
+      else reply.tag=="acknowledged" && reply.payload==token(p))
+    if(accepted) {
+      pendingBuild.filter(_.phase=="artifact").foreach(binding=>releaseQueue.add(binding.input))
+      pendingBuild=None;pending=None
+    }
     accepted
   }
   private[service] def recover(record: WorkspaceStore.NativeRecord): Boolean = {
@@ -188,12 +219,13 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
       var seen=Set.empty[BigInt]
       required.foreach {line=>
         val fields=line.split(",",-1)
-        require(fields.length==3 && Set("kernel","request","output").contains(fields(0)) && fields.tail.forall(_.matches("[1-9][0-9]{0,127}")),"native restore required identity")
+        require(fields.length==3 && Set("kernel","request-child","refined-output","artifact","observation").contains(fields(0)) && fields.tail.forall(_.matches("[1-9][0-9]{0,127}")),"native restore required identity")
         val association=BigInt(fields(1));val generation=BigInt(fields(2))
         require(!seen.contains(association),"duplicate native restore association");seen+=association
         val capability=store.committedNativeRecovery(record,association).getOrElse(throw new IllegalStateException("required native origin unavailable"))
         try capability.withMaterial {material=>
           require(material.semanticGeneration==generation,"native restore semantic generation mismatch")
+          require(WorkspaceStore.recoveryCategory(material.slots.toMap.apply("manifest"))==fields(0),"native restore category/profile/role mismatch")
           val names=Vector("manifest","projection","sequent","context_closure","reconstruction")++(if(material.slots.exists(_._1=="executable"))Vector("executable")else Vector.empty)
           val slots=material.slots.toMap
           val header=(Vector(association.toString,generation.toString,capability.originSequence.toString)++names.map(name=>slots(name).length.toString)).mkString(",")

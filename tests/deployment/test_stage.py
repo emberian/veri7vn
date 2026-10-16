@@ -153,14 +153,30 @@ class Staging(unittest.TestCase):
             self.assertNotIn('LD_PRELOAD',env)
             self.assertNotIn('_JAVA_OPTIONS',env)
             self.assertNotIn('BASH_ENV',env)
+            self.assertEqual(stage.pwd.getpwuid(stage.os.getuid()).pw_name,env['USER'])
+            self.assertEqual(env['USER'],env['LOGNAME'])
             self.assertEqual(env['VERI7VN_BOOTSTRAP_HOME'],str(home))
             self.assertNotEqual(home,(self.root/'state/user-home').resolve())
             (home/'owned-test').write_text('private temporary setup')
             return SimpleNamespace(returncode=0)
-        with patch.dict(stage.os.environ,{'LD_PRELOAD':'untrusted','_JAVA_OPTIONS':'untrusted','BASH_ENV':'untrusted'}),patch.object(stage.subprocess,'run',side_effect=child),patch.object(stage.platform,'system',return_value='Darwin'),patch.object(stage.platform,'machine',return_value='arm64'):
+        with patch.dict(stage.os.environ,{'LD_PRELOAD':'untrusted','_JAVA_OPTIONS':'untrusted','BASH_ENV':'untrusted','USER':'spoofed','LOGNAME':'spoofed'}),patch.object(stage.subprocess,'run',side_effect=child),patch.object(stage.platform,'system',return_value='Darwin'),patch.object(stage.platform,'machine',return_value='arm64'):
             with self.assertRaises(SystemExit) as exit_result:stage.launch(self.install,self.root/'state',[])
         self.assertEqual(0,exit_result.exception.code)
         self.assertEqual(1,len(observed));self.assertFalse(observed[0].exists())
+
+    def test_state_cannot_mutate_any_installed_generation(self):
+        self.plan['launch']=['{package}/runtime/artifact']
+        self.plan['artifacts'][0]['executable']=True
+        generation=stage.stage(self.plan,self.install)
+        sibling=self.install/'generations'/'older-retained'/'new-state'
+        candidates=[generation/'state',sibling,self.install/'generations']
+        with patch.object(stage.os,'execve') as execute,patch.object(stage.platform,'system',return_value='Darwin'),patch.object(stage.platform,'machine',return_value='arm64'):
+            for state in candidates:
+                with self.assertRaisesRegex(ValueError,'outside immutable generation tree'):
+                    stage.launch(self.install,state,[])
+            execute.assert_not_called()
+        self.assertFalse(sibling.exists())
+        self.assertFalse((generation/'state').exists())
 
     def test_no_implicit_directories_or_links(self):
         source=self.root/'link';source.symlink_to(self.root/'artifact')
