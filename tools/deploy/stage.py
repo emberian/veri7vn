@@ -8,6 +8,7 @@ import os
 from pathlib import Path, PurePosixPath
 import platform
 import shutil
+import subprocess
 import tempfile
 
 
@@ -51,6 +52,20 @@ def verify(root):
     return manifest
 
 
+def spec_from_generation(generation):
+    """Reuse exact verified immutable bytes as a fresh explicit artifact spec."""
+    root=generation.resolve(strict=True)
+    manifest=verify(root)
+    spec={k:v for k,v in manifest.items() if k not in ('artifacts','redistribution','assurance')}
+    spec['artifacts']=[]
+    for entry in manifest['artifacts']:
+        item={k:v for k,v in entry.items() if k not in ('bytes','mode')}
+        if 'link' not in item:
+            item.update(source=str(root/entry['path']),executable=bool(entry['mode']&0o111),link_from_immutable_cache=True)
+        spec['artifacts'].append(item)
+    return spec
+
+
 def force_directory(path):
     fd=os.open(path,os.O_RDONLY)
     try:os.fsync(fd)
@@ -63,7 +78,7 @@ def force_tree(root):
         force_directory(Path(directory))
 
 
-def stage(spec, installation):
+def stage(spec, installation, select=True):
     if spec['schema'] != 'veri7vn-local-deployment/1':
         raise ValueError('unsupported deployment schema')
     if spec['target'] not in ('macOS-ARM64', 'Linux-x86_64'):
@@ -157,6 +172,15 @@ def stage(spec, installation):
                 os.rename(temporary, destination)
             force_directory(generations)
             force_directory(installation)
+            # Artifact closure alone cannot qualify existing-state compatibility.
+            # D51: fresh installs and exact idempotent reruns may select; upgrades
+            # remain inert until the host's guarded promotion transaction exists.
+            selected=installation/'current'
+            if select and (selected.exists() or selected.is_symlink()) and selected.resolve(strict=True)!=destination.resolve():
+                raise ValueError('existing installation replacement requires guarded state compatibility; candidate retained at '+str(destination)+'; use --candidate-only')
+            # A candidate remains inert until state compatibility is qualified.
+            if not select:
+                return destination
             # Only the final pointer replacement changes the selected package.
             pointer = installation/('.select-'+identity)
             pointer.unlink(missing_ok=True)
@@ -179,13 +203,20 @@ def _launch_plan(root, manifest, state, extra=(), surface=None):
     if not manifest['launch']:
         raise ValueError('deployment has no launch command')
     suffix = []
+    template = manifest['launch']
+    overrides = {}
     if surface is not None:
         if surface not in manifest.get('surfaces', {}):
             raise ValueError('surface unavailable in this generation: '+surface)
-        suffix = manifest['surfaces'][surface]['arguments']
+        selected = manifest['surfaces'][surface]
+        overrides = selected.get('environment', {})
+        suffix = selected.get('arguments', [])
+        template = selected.get('launch', template)
+        if not isinstance(template, list) or not template or not all(isinstance(s, str) for s in template):
+            raise ValueError('invalid surface launch')
         if not isinstance(suffix, list) or not all(isinstance(s, str) for s in suffix):
             raise ValueError('invalid surface arguments')
-    command = [s.replace('{package}',str(root)).replace('{state}',str(state)) for s in manifest['launch']] + suffix
+    command = [s.replace('{package}',str(root)).replace('{state}',str(state)) for s in template] + suffix
     executable = Path(command[0])
     if not executable.is_absolute() or root not in executable.parents:
         raise ValueError('launch executable must belong to staged package')
@@ -194,10 +225,26 @@ def _launch_plan(root, manifest, state, extra=(), surface=None):
     if not any(e['path'] == relative_executable and e.get('mode') == 0o555 for e in manifest['artifacts']):
         raise ValueError('launch executable is not an inventoried executable artifact')
     environment = {key: value.replace('{package}',str(root)).replace('{state}',str(state))
-                   for key,value in manifest.get('environment', {}).items()}
+                   for key,value in (manifest.get('environment', {}) | overrides).items()}
     if set(environment) - {'CLASSPATH', 'USER_HOME'}:
         raise ValueError('unsupported launch environment override')
     return dict(command=command+list(extra),environment=environment,missing=manifest.get('missing', []),qualification_notes=manifest.get('qualification_notes',[]))
+
+
+def locate(installation, tutorial=None):
+    root=(installation/'current').resolve(strict=True)
+    manifest=verify(root)
+    if tutorial is None:
+        return root
+    assets=manifest.get('associations',{}).get('tutorial_sources',{})
+    if tutorial not in assets:
+        raise ValueError('tutorial unavailable in this generation: '+tutorial)
+    entry=assets[tutorial]
+    directory=root/relative(entry['root'])
+    paths={artifact['path'] for artifact in manifest['artifacts'] if artifact['role']=='source'}
+    if not entry['files'] or any(path not in paths or not (root/relative(path)).is_relative_to(directory) for path in entry['files']):
+        raise ValueError('tutorial source closure is not inventoried')
+    return directory
 
 
 def launch_plan(installation, state, extra=(), surface=None):
@@ -218,21 +265,35 @@ def launch(installation, state, extra, surface=None):
     # Avoid inheriting an unrelated initialized Isabelle setup or injected JVM options.
     environment = {key:value for key,value in os.environ.items()
                    if not key.startswith(('ISABELLE_', 'ML_', 'JAVA_', 'JDK_'))
-                   and key not in ('CLASSPATH','BASH_ENV','ENV','USER_HOME','POLYML_EXE')}
+                   and key not in ('CLASSPATH','BASH_ENV','ENV','USER_HOME','POLYML_EXE','_JAVA_OPTIONS')}
     environment.update(plan['environment'])
+    policy=manifest.get('associations',{}).get('bootstrap_user_home')
+    if policy is not None:
+        if policy!='fresh-owned-temporary/1' or environment.get('USER_HOME')!='{bootstrap_home}':
+            raise ValueError('unsupported standalone bootstrap home policy')
+        # Keep the parent alive to clean only this invocation's private home.
+        # Product startup never reads a mutable workspace's etc/settings.
+        environment={key:value for key,value in os.environ.items() if key in ('TERM','LANG')} | {'PATH':'/usr/bin:/bin:/usr/sbin:/sbin'} | plan['environment']
+        with tempfile.TemporaryDirectory(prefix='veri7vn-bootstrap-',dir='/tmp') as home:
+            environment.update(USER_HOME=home,HOME=home,VERI7VN_BOOTSTRAP_HOME=home)
+            raise SystemExit(subprocess.run(plan['command'],env=environment).returncode)
+    if '{bootstrap_home}' in environment.get('USER_HOME',''):
+        raise ValueError('bootstrap home placeholder requires an explicit startup policy')
     os.execve(plan['command'][0],plan['command'],environment)
 
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     commands=parser.add_subparsers(dest='command',required=True)
-    p=commands.add_parser('stage'); p.add_argument('spec',type=Path); p.add_argument('installation',type=Path)
+    p=commands.add_parser('stage'); p.add_argument('spec',type=Path); p.add_argument('installation',type=Path); p.add_argument('--candidate-only',action='store_true')
+    p=commands.add_parser('locate'); p.add_argument('installation',type=Path); p.add_argument('--tutorial')
     p=commands.add_parser('verify'); p.add_argument('package',type=Path)
     p=commands.add_parser('plan'); p.add_argument('installation',type=Path); p.add_argument('--state',required=True,type=Path); p.add_argument('--surface'); p.add_argument('extra',nargs='*')
     p=commands.add_parser('launch'); p.add_argument('installation',type=Path); p.add_argument('--state',required=True,type=Path); p.add_argument('--surface'); p.add_argument('extra',nargs='*')
     args=parser.parse_args()
     try:
-        if args.command=='stage': print(stage(json.loads(args.spec.read_text()),args.installation))
+        if args.command=='stage': print(stage(json.loads(args.spec.read_text()),args.installation,select=not args.candidate_only))
+        elif args.command=='locate': print(locate(args.installation,args.tutorial))
         elif args.command=='verify': print(json.dumps(verify(args.package),indent=2))
         elif args.command=='plan': print(json.dumps(launch_plan(args.installation,args.state,args.extra,args.surface),indent=2))
         else: launch(args.installation,args.state,args.extra[1:] if args.extra[:1]==['--'] else args.extra,args.surface)

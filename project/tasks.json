@@ -281,7 +281,7 @@
         "Reconciled implementation work graph and explicit design agreement before fan-out"
       ],
       "acceptance": [
-        "Architecture accounts for actual shipped behavior and G01–G08 through concrete representations and authoritative execution paths.",
+        "Architecture accounts for actual shipped behavior and G01\u2013G08 through concrete representations and authoritative execution paths.",
         "Hard-to-reverse choices are explicit, remaining parametric choices have bounds and owners, and implementation fan-out follows user design agreement.",
         "Revision 2 common choices fix the executed HOL authority machine, finite typed executable linkage, canonical theory recipes, native gate, durable host/effect seam and growth-cost tiers; independent lanes do not reopen them implicitly.",
         "Cross-review the native gate/linker and durable commit seam, reconcile the assigned early feasibility tasks and obtain design agreement before implementation fan-out."
@@ -1124,7 +1124,7 @@
         "var/native-scaffold/sessions/3ba4d7ea1d544f79/receipt.json",
         "var/native-scaffold/sessions/a6f87ab8d4ebe987/attempts/e843016747534eb191f6c2c01fd591ee/receipt.json"
       ],
-      "notes": "Production gate development begins while registry object/profile and operational interfaces mature. Dependencies remain explicit completion gates. Co-review actual immutable object store, finite generated bundle association and authenticated event origin with registry/linkage/model/host owners; do not substitute caller metadata or callbacks for native evidence. Generic Admission/Metadata/Checks actual stable PASS 43.493s (3ba4d7ea1d544f79): theorem/scope/hypothesis/premise/sort/oracle/unused-axiom rejection, real certificate/proofterm and controlled definitions. A.join compiled; concrete two-parent tests pending. Source family, D34 slots, D35 managed dependency closure and full nonempty native restore remain required. Dedicated recovery61 now owns actual export/recheck/ID restore under admission/recovery with coordinated N/D interfaces; this does not complete native admission or remove its bridge obligations. D38 map now requires whole resulting workspace reverse uniqueness, atomic generations/staged state, context-owner-only detach. Transient fragment factory inside trusted image captured by fixed top-level functor then immediately shadowed is an explicit nativeML construction boundary, not arbitrary-Check verification. D40 shared numeric source identity authority across R/P plus cross-profile restoration owner sharing is required; no alias registry shortcut. Fixed row declaration parses exact protected configuration slice into public constructor parameters and binds actual owner; original NL input remains separate. Authored source declaration supplies semantic source/query settings only. Fixed native K instantiation binds actual gate-allocated request/attempt/binding/rawslot and current context pins, with preservation theorem for original source/schema/version/query/scope/window intent; arbitrary numeric fields parsed from config never mint runtime authority. Current e843 Core_Checks executes the same complete generic ML test body and passes (11 s), including map atomicity/reverse uniqueness and idempotent managed-provenance teardown. Interrupt-masked bounded cleanup is checked by normal-path tests, not an interrupt-injection proof. D40 shared input leases and D41 atomic complete ID-bundle reservation/replenishment remain open. New D40 lease ownership reveals U.create→P development publication cancellation/ID-exhaustion gap; approved short masked ownership transfer and rollback after current frozen snapshot, with proof construction kept interruptible. Current D40 tests predate repair.\nCurrent resumed finite batch: managed NativeDevelopment/P producer through descriptor/service gate with native_build61. Root transferred src/isabelle/admission/source/** to linkage61 for closed relation operation; admission excludes those paths during this migration.",
+      "notes": "Production gate development begins while registry object/profile and operational interfaces mature. Dependencies remain explicit completion gates. Co-review actual immutable object store, finite generated bundle association and authenticated event origin with registry/linkage/model/host owners; do not substitute caller metadata or callbacks for native evidence. Generic Admission/Metadata/Checks actual stable PASS 43.493s (3ba4d7ea1d544f79): theorem/scope/hypothesis/premise/sort/oracle/unused-axiom rejection, real certificate/proofterm and controlled definitions. A.join compiled; concrete two-parent tests pending. Source family, D34 slots, D35 managed dependency closure and full nonempty native restore remain required. Dedicated recovery61 now owns actual export/recheck/ID restore under admission/recovery with coordinated N/D interfaces; this does not complete native admission or remove its bridge obligations. D38 map now requires whole resulting workspace reverse uniqueness, atomic generations/staged state, context-owner-only detach. Transient fragment factory inside trusted image captured by fixed top-level functor then immediately shadowed is an explicit nativeML construction boundary, not arbitrary-Check verification. D40 shared numeric source identity authority across R/P plus cross-profile restoration owner sharing is required; no alias registry shortcut. Fixed row declaration parses exact protected configuration slice into public constructor parameters and binds actual owner; original NL input remains separate. Authored source declaration supplies semantic source/query settings only. Fixed native K instantiation binds actual gate-allocated request/attempt/binding/rawslot and current context pins, with preservation theorem for original source/schema/version/query/scope/window intent; arbitrary numeric fields parsed from config never mint runtime authority. Current e843 Core_Checks executes the same complete generic ML test body and passes (11 s), including map atomicity/reverse uniqueness and idempotent managed-provenance teardown. Interrupt-masked bounded cleanup is checked by normal-path tests, not an interrupt-injection proof. D40 shared input leases and D41 atomic complete ID-bundle reservation/replenishment remain open. New D40 lease ownership reveals U.create\u2192P development publication cancellation/ID-exhaustion gap; approved short masked ownership transfer and rollback after current frozen snapshot, with proof construction kept interruptible. Current D40 tests predate repair.\nCurrent resumed finite batch: managed NativeDevelopment/P producer through descriptor/service gate with native_build61. Root transferred src/isabelle/admission/source/** to linkage61 for closed relation operation; admission excludes those paths during this migration.",
       "contracts": [
         "C02",
         "C04"
@@ -1398,7 +1398,7 @@
         "Target evidence: retain a typed value/continuation across bundle replacement; reject cross-generation handle reuse, accept only an admitted atomic migration, and preserve historical/unresolved state when migration fails."
       ],
       "evidence": [],
-      "notes": "\nCurrent wide product dispatch: Exact-source revision/impact/reuse planning consumed by workbench. Owner continues through actual fixed native qualification and protected publication gate, coordinated with D43 candidate producer; atomic update/restart consumers remain open.\nApproved separate initial native-export-admission/1 profile (no baseline, source-owned manifest intent precedes build, C02 evidence, new semantics) and structural replacement-only profile (no semantic/cache reuse). Actual source-intent producer and fixed gate/host publication consumers remain open.",
+      "notes": "\nCurrent wide product dispatch: Exact-source revision/impact/reuse planning consumed by workbench. Owner continues through actual fixed native qualification and protected publication gate, coordinated with D43 candidate producer; atomic update/restart consumers remain open.\nApproved separate initial native-export-admission/1 profile (no baseline, source-owned manifest intent precedes build, C02 evidence, new semantics) and structural replacement-only profile (no semantic/cache reuse). Actual source-intent producer and fixed gate/host publication consumers remain open.\nD62 initial-request v2 Template|Bound approved; no guessed future candidate. New behavioral_evaluation61 exclusively owns updates/behavioral subtrees, using existing qualification/attempt/exposure lifecycle. Structural export qualification is not a behavioral exam; exact typed recipe execution attachment is under growth/native admission development.",
       "contracts": [
         "C02",
         "C04",
@@ -1544,7 +1544,7 @@
         "var/native-scaffold/sessions/95fcfdd61e543422/attempts/b93cd9a7497241e0a4ebff09536111ee/receipt.json",
         "var/native-scaffold/sessions/95fcfdd61e543422/attempts/c34771bb270946cf9cd8ef02c668f2dc/receipt.json"
       ],
-      "notes": "Begin production host/store/protocol components from reviewed feasibility while registry/admission/state-effects interfaces mature. Unresolved dependencies intentionally remain visible: no completed integration or frozen competing interface is implied. Coordinate generated reducer/event serialization and native gate with their owners; exact batch critical section includes all state events, not revision/epoch alone. First consumer is package-intake inert source storage. Full task acceptance still requires all dependencies and native/lifecycle/deployment connections. Root current ManagedSources review found aggregate request budget TOCTOU and current-head scope allowing historical members; owner implementing transactional recheck and persisted exact manifest closure with negative tests. New managed consumer initial green is not full native Forget/recovery completion. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Managed worker resources co-owned: host registers resource under exact source read scope before copying and integrates monotone invalidation/Forget; effects owns bounded memory/scratch/worker release, native-development owns capture/verification inside registered lifetime. Add capture-vs-Forget interleaving and cleanup tests. Native assembly ownership transferred to assembly61 with explicit native files and test subtree, including metadata_frame.ML as the single generated carrier universe; host retains Scala protocol/store/resources. Current tokens-only/initial-only restore is not runtime-service completion. Canonical29 Scala sources compile; runtime stopped behind reflection wrapper, not a test pass. Host identified expected Unknown versus stored unknown fixture mismatch and added named root-cause output. Root found private artifact writes before recovery index transaction can orphan blobs: durable write intents before first write, transactional adoption and failure/restart cleanup required. Recovery arrays/Prepared/committed material require managed release; denial rows alone do not establish StorageErased. Full nonempty native restart remains open. Root read actual8 runtimegroups passed including intake26/ManagedDraft6/resources; overallfailed at NativeBuildInputs cleanup. Later durable artifact staging/owned recovery buffers are new untested source. Restored private context leases shared across kernel/math consumers must survive descriptor release; poisoned post-identity-install restore requires fresh resident process. Latest new ownership snapshot f46454f1b2b24fe8a7c38ba3bb8cb6fd failed Scala compilation at recovery payload Some/Option inference; no runtime tests ran. D41 durable disjoint-range replenishment on the same allocator and atomic per-registration ID bundles are required for sustained growth beyond initial lease. Restore transport/commit limits need correspondence (native executable1MiB versus host16MiB; checkpointframe versus32MiB store cap). Root requested explicit startup-exclusive contract or bounded governed outside-lock transfer; withMaterial currently holds store monitor over synchronous chunk exchanges.\n2026-10-15 restart: canonical29 compile after written 1MiB cap/startup-exclusive restore/buffer fixes. Host owns bounded draft-list producer for authoring61 and actual public launcher/jar packaging for deployment61 after current compile; these missing producers are implementation, not optional future qualification.\nRoot read 5e53843b82304745982bf8ee56bf33df stable passed25.532s receipt and all9 Scala group markers. Current host baseline accepted at scoped component level. Actual resident/nonempty restart/Forget remains open. Bounded managed draft listing now written for authoring; launcher producer pending finite snapshot release.\nRoot review found lost begin/finish/accept reply ownership races in new NativeBuildIngress; host implementing exact inert upload nonce, offer/accept/cancel arbitration, idempotent discard/accept and retained unresolved cleanup with assembly/builder. Shared host e2e5 compilation failed Thread lambda before tests; no new host pass. Root D43 decision records required protocol. Foundation/service ca7 capture now running with unique session directories.\nRoot reviewed stable b93cd9a7497241e0a4ebff09536111ee twelve host groups including producer release/retry and70 capacity cycles; native artifact-ack consumer remains under migration. Snapshot helper passed but root found file-count guard after full traversal allocation; owner fixed bounded iterator and queued focused recheck. Full UI producer42a50a609b0246c2afe3e7e6eb6157d5 passed, immutable archive preserved before D43 edits; this alone does not qualify installed native launch.\nRoot reviewed c34771bb270946cf9cd8ef02c668f2dc bounded snapshot helper PASS and current3sourcehashes. File-count check now bounds traversal before materialization; oversized tree, invalid limits, active writer, links/orphan owners and original preservation checked. Actual protected cross-generation consumer is separate.",
+      "notes": "Begin production host/store/protocol components from reviewed feasibility while registry/admission/state-effects interfaces mature. Unresolved dependencies intentionally remain visible: no completed integration or frozen competing interface is implied. Coordinate generated reducer/event serialization and native gate with their owners; exact batch critical section includes all state events, not revision/epoch alone. First consumer is package-intake inert source storage. Full task acceptance still requires all dependencies and native/lifecycle/deployment connections. Root current ManagedSources review found aggregate request budget TOCTOU and current-head scope allowing historical members; owner implementing transactional recheck and persisted exact manifest closure with negative tests. New managed consumer initial green is not full native Forget/recovery completion. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Managed worker resources co-owned: host registers resource under exact source read scope before copying and integrates monotone invalidation/Forget; effects owns bounded memory/scratch/worker release, native-development owns capture/verification inside registered lifetime. Add capture-vs-Forget interleaving and cleanup tests. Native assembly ownership transferred to assembly61 with explicit native files and test subtree, including metadata_frame.ML as the single generated carrier universe; host retains Scala protocol/store/resources. Current tokens-only/initial-only restore is not runtime-service completion. Canonical29 Scala sources compile; runtime stopped behind reflection wrapper, not a test pass. Host identified expected Unknown versus stored unknown fixture mismatch and added named root-cause output. Root found private artifact writes before recovery index transaction can orphan blobs: durable write intents before first write, transactional adoption and failure/restart cleanup required. Recovery arrays/Prepared/committed material require managed release; denial rows alone do not establish StorageErased. Full nonempty native restart remains open. Root read actual8 runtimegroups passed including intake26/ManagedDraft6/resources; overallfailed at NativeBuildInputs cleanup. Later durable artifact staging/owned recovery buffers are new untested source. Restored private context leases shared across kernel/math consumers must survive descriptor release; poisoned post-identity-install restore requires fresh resident process. Latest new ownership snapshot f46454f1b2b24fe8a7c38ba3bb8cb6fd failed Scala compilation at recovery payload Some/Option inference; no runtime tests ran. D41 durable disjoint-range replenishment on the same allocator and atomic per-registration ID bundles are required for sustained growth beyond initial lease. Restore transport/commit limits need correspondence (native executable1MiB versus host16MiB; checkpointframe versus32MiB store cap). Root requested explicit startup-exclusive contract or bounded governed outside-lock transfer; withMaterial currently holds store monitor over synchronous chunk exchanges.\n2026-10-15 restart: canonical29 compile after written 1MiB cap/startup-exclusive restore/buffer fixes. Host owns bounded draft-list producer for authoring61 and actual public launcher/jar packaging for deployment61 after current compile; these missing producers are implementation, not optional future qualification.\nRoot read 5e53843b82304745982bf8ee56bf33df stable passed25.532s receipt and all9 Scala group markers. Current host baseline accepted at scoped component level. Actual resident/nonempty restart/Forget remains open. Bounded managed draft listing now written for authoring; launcher producer pending finite snapshot release.\nRoot review found lost begin/finish/accept reply ownership races in new NativeBuildIngress; host implementing exact inert upload nonce, offer/accept/cancel arbitration, idempotent discard/accept and retained unresolved cleanup with assembly/builder. Shared host e2e5 compilation failed Thread lambda before tests; no new host pass. Root D43 decision records required protocol. Foundation/service ca7 capture now running with unique session directories.\nRoot reviewed stable b93cd9a7497241e0a4ebff09536111ee twelve host groups including producer release/retry and70 capacity cycles; native artifact-ack consumer remains under migration. Snapshot helper passed but root found file-count guard after full traversal allocation; owner fixed bounded iterator and queued focused recheck. Full UI producer42a50a609b0246c2afe3e7e6eb6157d5 passed, immutable archive preserved before D43 edits; this alone does not qualify installed native launch.\nRoot reviewed c34771bb270946cf9cd8ef02c668f2dc bounded snapshot helper PASS and current3sourcehashes. File-count check now bounds traversal before materialization; oversized tree, invalid limits, active writer, links/orphan owners and original preservation checked. Actual protected cross-generation consumer is separate.\nMinimal descriptor producer6b8c compiled; actual fresh initial-CLASSPATH function registration15440246 passed per steward, unblocking native Build restart fixture. Full current D43 host remains unqualified. SearchIngress.scala exact ownership transferred to search_consumer61; shared protocol/writer remains host-owned.\nD59 exact closed DomainRequest/RuntimeRefinement output role pairs agreed; host source pending compile. D43 BuildDiagnostic source association/status source implemented but native producer remains required.",
       "contracts": [
         "C01",
         "C02",
@@ -1749,7 +1749,7 @@
         "Target evidence: form/native edit conflict, generated-declaration inspection, interrupted durable save and data-only update show the same canonical source/state through UI and CLI."
       ],
       "evidence": [],
-      "notes": "2026-10-15 breadth restart: First finite batch: shared Scala Workbench service/CLI/local browser over actual WorkspaceStore, ManagedSources, ManagedDrafts and Intake. Real package list/import/inspect/edit with original-byte diagnostics and conflicts. Host bounded draft-list API/launch ownership are actual missing producers; host61 owns them after current compile. No seeded package state or fake run controls.\nRoot reviewed authoring14 actual HTTP/CLI source fixture and 23 matching archived inputs. Storage/edit workflow passes; authoring61 resumed for actual immutable NativeBuildInputs -> D43 candidate build -> diagnostics/restart inspect consumer, not fake activation.\nCurrent wide product dispatch: Actual shared-store RuntimeMain --workbench, Browser/CLI execution and exact durable lifecycle receipts implemented; source-only authoring passed cf63d500. New native routing/inspection consumer awaits actual rebuilt producer and resident HTTP check.\nReviewable native-build repair remains required: actual Build_Failure phase and original source span when available, protected captured revision/path mapping, explicit Repair.Proposal and normal revalidation. Numeric source IDs cannot substitute managed revision hashes. Current routing alternatives lack descriptive previews for future multi-family ambiguity.\nRoot committed tested managed source client e11d462. Current finite Scala checkpoint012b2a2987b94f449337a51985bd130d passes actual HTTP migration formula/obligations, consecutive edits, CLI source/reopen and compiled redirect behavior. Actual native browser run/redirect/inspection/Forget remains pending new service heap.",
+      "notes": "2026-10-15 breadth restart: First finite batch: shared Scala Workbench service/CLI/local browser over actual WorkspaceStore, ManagedSources, ManagedDrafts and Intake. Real package list/import/inspect/edit with original-byte diagnostics and conflicts. Host bounded draft-list API/launch ownership are actual missing producers; host61 owns them after current compile. No seeded package state or fake run controls.\nRoot reviewed authoring14 actual HTTP/CLI source fixture and 23 matching archived inputs. Storage/edit workflow passes; authoring61 resumed for actual immutable NativeBuildInputs -> D43 candidate build -> diagnostics/restart inspect consumer, not fake activation.\nCurrent wide product dispatch: Actual shared-store RuntimeMain --workbench, Browser/CLI execution and exact durable lifecycle receipts implemented; source-only authoring passed cf63d500. New native routing/inspection consumer awaits actual rebuilt producer and resident HTTP check.\nReviewable native-build repair remains required: actual Build_Failure phase and original source span when available, protected captured revision/path mapping, explicit Repair.Proposal and normal revalidation. Numeric source IDs cannot substitute managed revision hashes. Current routing alternatives lack descriptive previews for future multi-family ambiguity.\nRoot committed tested managed source client e11d462. Current finite Scala checkpoint012b2a2987b94f449337a51985bd130d passes actual HTTP migration formula/obligations, consecutive edits, CLI source/reopen and compiled redirect behavior. Actual native browser run/redirect/inspection/Forget remains pending new service heap.\nRenewed product consumer: bookmarkable package workspace and actual PackageUpdates.Consumers.affected projection through managed source descriptors to Browser/CLI. Package declaration impact is distinct from protected runtime artifact closure; new HTTP tests await steward. No dead Build controls while status/source binding absent.",
       "contracts": [
         "C01",
         "C03",
@@ -1817,7 +1817,7 @@
         "Proposed gap-loop case: inspect a decline, seed a draft, add intended expectations and requalify without bypassing the blocker or silently adopting private journal material."
       ],
       "evidence": [],
-      "notes": "\nCurrent wide product dispatch: Typed status, bounded actual-owner inspection parser and managed-source repair implemented. Scala compiled; secure temp-root fixture repaired after actual failure, retry pending. Native inspection producer and complete repair/revalidation consumer remain required.\nRoot committed decoder/repair/parser checkpoint e11d462. Stable012b checkpoint passes closed build failure phases/native associations/UTF8 byte bounds and actual source patch/stale/Forget checks. Native failure producer-to-captured-source join, repair/revalidation UI, and actual resident inspection remain open.",
+      "notes": "\nCurrent wide product dispatch: Typed status, bounded actual-owner inspection parser and managed-source repair implemented. Scala compiled; secure temp-root fixture repaired after actual failure, retry pending. Native inspection producer and complete repair/revalidation consumer remain required.\nRoot committed decoder/repair/parser checkpoint e11d462. Stable012b checkpoint passes closed build failure phases/native associations/UTF8 byte bounds and actual source patch/stale/Forget checks. Native failure producer-to-captured-source join, repair/revalidation UI, and actual resident inspection remain open.\nReal source-descriptor PackageImpact projection now joins existing consumer closure and workbench. SourceDiagnostic checks governed borrowed original bytes/hash and physical UTF8 span for native failure; actual D43 original-source association remains host/assembly prerequisite. No invented current-source diagnostic binding.",
       "contracts": [
         "C01",
         "C02",
@@ -2290,7 +2290,7 @@
         "Proposed dialogue cases: only some multipart questions succeed, dependent second question uses the accepted first result, expired follow-up, tentative code response and help with no fabricated fact claim."
       ],
       "evidence": [],
-      "notes": "\nCurrent wide product dispatch: Native same-carrier routing/adoption guards, DialogueClient and actual resident consumer written. Fixed math inspection producer in assembly; source/domain alternatives, meaningful reading descriptions, durable adoption and full conversation lifecycle remain open.\nD46 multipart requires same native request identity/goals/slots; independent Math requests grouped in UI do not supply licensed same-request adoption. Actual composite producer remains assembly/plan integration work.",
+      "notes": "\nCurrent wide product dispatch: Native same-carrier routing/adoption guards, DialogueClient and actual resident consumer written. Fixed math inspection producer in assembly; source/domain alternatives, meaningful reading descriptions, durable adoption and full conversation lifecycle remain open.\nD46 multipart requires same native request identity/goals/slots; independent Math requests grouped in UI do not supply licensed same-request adoption. Actual composite producer remains assembly/plan integration work.\nD60 distinguishes route proposals from actual required goals and None unaddressed policy from Some [] addressed-unavailable/no fallback. Native comparator and policy regressions are drafts pending checks. Actual resident requests currently lack session/adoption linkage; new conversation consumer task owns this through the same authority, not separate conversation storage.",
       "contracts": [
         "C02",
         "C03",
@@ -2365,7 +2365,7 @@
         "Target evidence: learning/observation/plan/declaration/hot-specialization/new-kernel scenarios record actual native-lineage, data/policy and executable-generation changes plus compilation counts."
       ],
       "evidence": [],
-      "notes": "\nCurrent wide product dispatch: Retained mathematical candidate policy and sample observations written; native check pending. Root approved source-owned typed preparation through existing installed math interpreter and charged samples; actual D43 candidate/artifact retention and workbench consumer required. Three shipped growth mechanisms remain distinct migration obligations.",
+      "notes": "\nCurrent wide product dispatch: Retained mathematical candidate policy and sample observations written; native check pending. Root approved source-owned typed preparation through existing installed math interpreter and charged samples; actual D43 candidate/artifact retention and workbench consumer required. Three shipped growth mechanisms remain distinct migration obligations.\nConcrete executable attachment approved: actual candidate-owned math_expr definition linked by universal native theorem to existing admitted fixed interpreter, preserving bindings/undefinedness. Extra intended/NL specification needs its own theorem. Samples do not prove refinement. First typed recipe path feeds behavioral observer; arbitrary new carriers/kernels remain separate required compilation/qualification route.",
       "contracts": [
         "C01",
         "C02",
@@ -2428,7 +2428,7 @@
         "Proposed artifact check: explanation/Film output retains result provenance, conditions and historical state; generated decoration remains labeled and optional remote calls use explicit authority."
       ],
       "evidence": [],
-      "notes": "\n2026-10-15 renewed holistic capability swarm: Activated against current real managed edits and search/build/growth APIs: exact source revision/obligation -> reviewable choices -> conflict-checked edits and actual client consumption. Shared UI changes coordinated with workbench owner. No alternative candidate registry or mock successful help controls.",
+      "notes": "\n2026-10-15 renewed holistic capability swarm: Activated against current real managed edits and search/build/growth APIs: exact source revision/obligation -> reviewable choices -> conflict-checked edits and actual client consumption. Shared UI changes coordinated with workbench owner. No alternative candidate registry or mock successful help controls.\nRenewed standalone search consumer uses actual fixed SearchIngress and exact immutable literal proposition in selected admitted context. Failed declaration diagnostics alone do not supply valid prior-declaration context/proposition ownership. Opt-in decline-to-example growth remains required: current inspection has no governed original input bytes, and unknown expected answers must not become truth.",
       "contracts": [
         "C01",
         "C02",
@@ -2553,9 +2553,11 @@
       "evidence": [
         "var/deployment-source-check-0006b59c-slot2/result.json",
         "var/deployment-source-browser-0006b59c-slot1/result.json",
-        "var/deployment-workshop-check-5945df-slot1/result.json"
+        "var/deployment-workshop-check-5945df-slot1/result.json",
+        "tests/deployment/evidence/workshop-install-5945df.json",
+        "tests/deployment/evidence/failed-upgrade-cb4e8d.json"
       ],
-      "notes": "2026-10-15 breadth restart: First finite batch: stage actual artifacts with dependency/license manifest, pinned prebuilt heaps, real launcher integration and interrupted-update preservation. Public host launcher/jar packaging absent; host61 owns concrete seam after current compile. MacARM64 evidence first, Linuxx86_64 remains required and unqualified. No end-user deployment success claim from placeholder runtime.\n2026-10-15 renewed holistic capability swarm: Reassigned from stale deployment61 after renewed wide swarm. Existing40ac installed PublicMain launch/restart passes; new owner carries actual shared authoring/resident workbench into packaging, offline assets/dependency closure and finite installed workflow checks. No complete authoring/search/Linux/redistribution claim.\nD51 old40ac→D44 exactinputrow checkpoint incompatibility requires protected compatibilityprobe; newcandidateonly staging and failclosed replacement guard under tests. Source-only producer/package surface is separate actualworkflow; fullnative/Linux acceptance unchanged.\nActual source-only generation8cb385 passed4 fresh CLI JVM operations and HTTP browser source view/clean close. Current source host and historical native host must not be assumed workspace-compatible. Protected failed-upgrade preservation can run with explicitly unclassified native rejection; specific cause and successful migration remain separate. Current combined UI producer will pair exact immutable db6 native capture before installed test.\nRoot independently ran21deploymenttests PASS. Canonical bundled identity workshop5945df passed actual import/two browser Saves/freshCLI reopen. Current db6/UI candidate0e524 staged inert; first D51 probe oldclone passed but candidate failed missing navigation-only theories before native restore, so no compatibility or full failure-preservation claim. Repair exact navigation closure; old40ac selection preserved. Standalone launcher and smaller headless distribution now separate scoped child work.",
+      "notes": "2026-10-15 breadth restart: First finite batch: stage actual artifacts with dependency/license manifest, pinned prebuilt heaps, real launcher integration and interrupted-update preservation. Public host launcher/jar packaging absent; host61 owns concrete seam after current compile. MacARM64 evidence first, Linuxx86_64 remains required and unqualified. No end-user deployment success claim from placeholder runtime.\n2026-10-15 renewed holistic capability swarm: Reassigned from stale deployment61 after renewed wide swarm. Existing40ac installed PublicMain launch/restart passes; new owner carries actual shared authoring/resident workbench into packaging, offline assets/dependency closure and finite installed workflow checks. No complete authoring/search/Linux/redistribution claim.\nD51 old40ac\u2192D44 exactinputrow checkpoint incompatibility requires protected compatibilityprobe; newcandidateonly staging and failclosed replacement guard under tests. Source-only producer/package surface is separate actualworkflow; fullnative/Linux acceptance unchanged.\nActual source-only generation8cb385 passed4 fresh CLI JVM operations and HTTP browser source view/clean close. Current source host and historical native host must not be assumed workspace-compatible. Protected failed-upgrade preservation can run with explicitly unclassified native rejection; specific cause and successful migration remain separate. Current combined UI producer will pair exact immutable db6 native capture before installed test.\nRoot independently ran21deploymenttests PASS. Canonical bundled identity workshop5945df passed actual import/two browser Saves/freshCLI reopen. Current db6/UI candidate0e524 staged inert; first D51 probe oldclone passed but candidate failed missing navigation-only theories before native restore, so no compatibility or full failure-preservation claim. Repair exact navigation closure; old40ac selection preserved. Standalone launcher and smaller headless distribution now separate scoped child work.\nRoot read actual protected D51 cb4 slot3 PASS: old clone restores, new clone rejects exact observed native restore closure unavailable, original bytes/selection preserved, old original restores. Cause unclassified; no successful migration/promotion. Workshop5945df compact evidence records actual import/two Saves/fresh exact reopen. Current standalonedea4 candidate positive execution remains independent.",
       "contracts": [
         "C01",
         "C02",
@@ -2615,7 +2617,7 @@
         "Compatible family interfaces compose with conditions, sources, disagreement and state preserved; incompatibilities are justified against the agreed product scope.",
         "Required opaque adapters, partial lifts and unresolved implementation failures block this gate. Exclusions require an explicit agreed scope decision and evidence, not convenience or an unimplemented label.",
         "Original unavailable upstream data is recorded separately with its precise effect and explicit replacement/unavailability disposition. Available replacement/test sources exercise the required platform behavior; the limitation cannot be used to waive implementation obligations or claim original-data parity.",
-        "Cross-family closure exercises the shared codec/profile boundary, scoped claims, partial/multipart/optimality semantics, scoped routing and operational qualification—not merely per-family output equality.",
+        "Cross-family closure exercises the shared codec/profile boundary, scoped claims, partial/multipart/optimality semantics, scoped routing and operational qualification\u2014not merely per-family output equality.",
         "Required source-review cases retain their source/proposed/executed distinction and become passing regressions before affected migration claims close; optional Film/publication decisions remain explicit rather than unowned omissions.",
         "Real migrated family instances exercise the generated authority reducer, finite typed linkage and canonical recipe/tool path early; collection/profile richness cannot be satisfied by callbacks with unrelated theorem names.",
         "Owned algorithms require actual native semantic/refinement/checker bridges. External-engine observations, external actions and candidate workflows use their separate declared service boundaries without relabeling owned mathematics as opaque observation."
@@ -2627,7 +2629,7 @@
         "Review G01-G08 traceability across family packages and all proposed regression cases, including literal spaces, partial rows, scoped refusal, MQTT repoll time, expiry follow-up, imported held-out log and state-before-guard."
       ],
       "evidence": [],
-      "notes": "\n2026-10-15 renewed holistic capability swarm: Activated during family implementation to own executable cross-family consumers and installed/native/draft/missing capability map. Source-to-quantity/graph joins, scoped refusal and partial outcomes remain actual integration gaps; component-level private ticket fixtures cannot close resident acceptance.\nRenewed swarm: capability_integration61 implements actual qualified source-cell to exact quantity/domain conditional result, owning new src/families/domains/source_bridge/** and tests/integration/quantities/**. Source owner supplies fixed charged opaque SourceCell observer; domain owner retains other domain paths. Pure bridge tests do not close protected producer or resident consumer.",
+      "notes": "\n2026-10-15 renewed holistic capability swarm: Activated during family implementation to own executable cross-family consumers and installed/native/draft/missing capability map. Source-to-quantity/graph joins, scoped refusal and partial outcomes remain actual integration gaps; component-level private ticket fixtures cannot close resident acceptance.\nRenewed swarm: capability_integration61 implements actual qualified source-cell to exact quantity/domain conditional result, owning new src/families/domains/source_bridge/** and tests/integration/quantities/**. Source owner supplies fixed charged opaque SourceCell observer; domain owner retains other domain paths. Pure bridge tests do not close protected producer or resident consumer.\nActual Common/Cell producer drafts now available; integrate real protected acquisition\u2192Cell\u2192SourceDomain with same Scope child/predecessor association. Fresh same-owner reconstruction is not crash recovery: authenticated restored Scope/common-source association remains needed, never replay acquisition ticket.",
       "contracts": [
         "C01",
         "C02",
@@ -2671,7 +2673,10 @@
         "diagnostics-repair",
         "dependency-updates",
         "deployment-builder",
-        "stateful-connectors"
+        "stateful-connectors",
+        "deployed-search-consumer",
+        "conversation-workspace",
+        "behavioral-candidate-evaluation"
       ],
       "owner": null,
       "paths": [
@@ -3097,7 +3102,9 @@
         "src/isabelle/admission/development/**",
         "tests/packages/native_build/**",
         "tests/admission/development/**",
-        "docs/formal/native-development.md"
+        "docs/formal/native-development.md",
+        "src/runtime/service/build/**",
+        "tests/runtime/service/build/**"
       ],
       "deliverables": [
         "Original full-source expert theory build/reconstruction and exact source/import/code closure",
@@ -3123,7 +3130,7 @@
       "evidence": [
         "var/native-scaffold/sessions/31b313bf77664a30/attempts/7b26d14a86d8426bb28246a3691a9f34/receipt.json"
       ],
-      "notes": "Dispatched 6.1-sol after actual C01 expert-edit gap: A.advance accepts unchanged axioms while ordinary definitions require authorized conservative transitions. First full-source definition/lemma replay is scoped starting consumer; full expert/deployment obligations remain. Native_build coordinates authoring package build inventory, admission A/P, recovery private replay and host worker/build seams. Consume immutable bounded host source revision before SessionInventory; verify exact source closure and separately pinned installed roots/options/toolchain. First native source reconstruction awaits own compiler feedback. Full transitive private package source dependencies must be materialized under one governed joint source/worker lifetime (or approved immutable deployed dependencies), with exact package/build relation; one draft revision is not full build closure. Actual Specification.definition_cmd reconstruction must preserve ordinary definition theorem form and code/spec registration, tested against ordinary source. Latest e843 runtime reached actual replay and refuted Token.source_of byte fidelity (compact DEL padding). Owner repair maps native symbol positions into original bytes; recipe producer must share corrected helper. No full development pass yet. Actual SourceTokens leaf passed5s (0.102 body) in stable7b26d snapshot; root read exact original-byte/delimiter fixtures. Helper promotion into common Admission parent and full ordinary source/recipe replay remain consumers, not implied by utility pass.\nOrdinary-source NativeDevelopment evidence now exists at tests/admission/development/evidence/native-development-20261015 (root archive review, full log review pending). Managed P/service-gate producer remains missing; admission61 and native_build61 explicitly resumed together for actual consumer.\nCurrent wide product dispatch: New explicit producer owner carries actual source replay/build into opaque zero-export-capable nonassertional candidate, D43 charged artifact ledger, protected recovery/Forget and workbench. Existing P development is reused; it alone is not durable candidate admission.",
+      "notes": "Dispatched 6.1-sol after actual C01 expert-edit gap: A.advance accepts unchanged axioms while ordinary definitions require authorized conservative transitions. First full-source definition/lemma replay is scoped starting consumer; full expert/deployment obligations remain. Native_build coordinates authoring package build inventory, admission A/P, recovery private replay and host worker/build seams. Consume immutable bounded host source revision before SessionInventory; verify exact source closure and separately pinned installed roots/options/toolchain. First native source reconstruction awaits own compiler feedback. Full transitive private package source dependencies must be materialized under one governed joint source/worker lifetime (or approved immutable deployed dependencies), with exact package/build relation; one draft revision is not full build closure. Actual Specification.definition_cmd reconstruction must preserve ordinary definition theorem form and code/spec registration, tested against ordinary source. Latest e843 runtime reached actual replay and refuted Token.source_of byte fidelity (compact DEL padding). Owner repair maps native symbol positions into original bytes; recipe producer must share corrected helper. No full development pass yet. Actual SourceTokens leaf passed5s (0.102 body) in stable7b26d snapshot; root read exact original-byte/delimiter fixtures. Helper promotion into common Admission parent and full ordinary source/recipe replay remain consumers, not implied by utility pass.\nOrdinary-source NativeDevelopment evidence now exists at tests/admission/development/evidence/native-development-20261015 (root archive review, full log review pending). Managed P/service-gate producer remains missing; admission61 and native_build61 explicitly resumed together for actual consumer.\nCurrent wide product dispatch: New explicit producer owner carries actual source replay/build into opaque zero-export-capable nonassertional candidate, D43 charged artifact ledger, protected recovery/Forget and workbench. Existing P development is reused; it alone is not durable candidate admission.\nRoot transferred actual Build service adapter to native_build_product61 at assembly request: private instantiated B/Inputs, prepared/candidate lease tables, fixed worker/status/transfer API. Parent generated authority/durable dispatch/Frame remains assembly-owned. Actual retention helper derives artifact/source parameter edges beyond native theorem dependencies; fixture queued.",
       "contracts": [
         "C01",
         "C02",
@@ -3166,7 +3173,8 @@
         "src/runtime/service/ROOT",
         "tests/runtime/service/native/**",
         "src/runtime/service/native_math_gate.ML",
-        "src/runtime/service/native_math_recovery.ML"
+        "src/runtime/service/native_math_recovery.ML",
+        "src/isabelle/admission/request_scope/**"
       ],
       "deliverables": [
         "One statically assembled resident generated state owner, protected native request/completion ingress, typed ticket dispatch and lifecycle/recovery handlers"
@@ -3190,7 +3198,7 @@
         "var/native-scaffold/sessions/761b8d2aaa49622b/attempts/e8efa7e5fae14a66a647e8c7be3becf6/receipt.json",
         "tests/runtime/service/native/evidence/resident-baseline-20261016/snapshot.json"
       ],
-      "notes": "D45 full native service leaf and actual resident host pass: concurrent original-byte proposals, charged licensed publication, undefined quotient refusal, fresh-process nonempty restore without workflow replay, selective Forget physical erasure and survivor restart. Root reviewed exact consumer/logs. Immutable package capture released schema freeze; actual staged launcher found heap-directory layout failure before native execution. D44 atomic last-owner retirement, indexed whole-closure protection and cleanup job preservation are active; D43 artifacts and broader source/domain/search families remain required. Baseline archive explicitly excludes three authority files changed after capture; no false current full-closure claim.\nRoot read stable0e2ecd7db95f43e1ae01334ec8ab07ee actual121.415s service failure at unqualified map_filter definition98; native ownership tests cancelled, not failed behavior. Assembly qualified List.map_filter and owns new cached Runtime_Foundation parent to avoid repeated stable RBT compilation. Actual unused-evidence-only native lifecycle case remains finite D44 consumer requirement.\nLatest actual service compiles/saves; native survivor fixture reveals shared input authority incorrectly depends on first request identity. Assembly owns source-owned input dependency repair, peer survival and genuine source-Forget both-consumer regression; D44 not complete.\nRoot reviewed native368d5a9e all8markers and actual resident6c02e53b stablePASS37.034s, same9checkedhostfiles, concurrent/publication/nonemptyrestore/survivor/lastowner lostack+immediateForget. D44 finitebatch closes; sourcecommit5b56516. Crossgeneration D51, futurefamilies and scaling remain open.\nD44 resident/browser captured and committed; D43/D53 mutation window open. Artifact requirement parents retain KnownInput/ReservedOutput refs, resolved against current unified ledger; original requirement immutable. Native parent scope/child source slice/per-goal pins migrate together with authority, reader, recovery and fixed-family consumers.",
+      "notes": "D45 full native service leaf and actual resident host pass: concurrent original-byte proposals, charged licensed publication, undefined quotient refusal, fresh-process nonempty restore without workflow replay, selective Forget physical erasure and survivor restart. Root reviewed exact consumer/logs. Immutable package capture released schema freeze; actual staged launcher found heap-directory layout failure before native execution. D44 atomic last-owner retirement, indexed whole-closure protection and cleanup job preservation are active; D43 artifacts and broader source/domain/search families remain required. Baseline archive explicitly excludes three authority files changed after capture; no false current full-closure claim.\nRoot read stable0e2ecd7db95f43e1ae01334ec8ab07ee actual121.415s service failure at unqualified map_filter definition98; native ownership tests cancelled, not failed behavior. Assembly qualified List.map_filter and owns new cached Runtime_Foundation parent to avoid repeated stable RBT compilation. Actual unused-evidence-only native lifecycle case remains finite D44 consumer requirement.\nLatest actual service compiles/saves; native survivor fixture reveals shared input authority incorrectly depends on first request identity. Assembly owns source-owned input dependency repair, peer survival and genuine source-Forget both-consumer regression; D44 not complete.\nRoot reviewed native368d5a9e all8markers and actual resident6c02e53b stablePASS37.034s, same9checkedhostfiles, concurrent/publication/nonemptyrestore/survivor/lastowner lostack+immediateForget. D44 finitebatch closes; sourcecommit5b56516. Crossgeneration D51, futurefamilies and scaling remain open.\nD44 resident/browser captured and committed; D43/D53 mutation window open. Artifact requirement parents retain KnownInput/ReservedOutput refs, resolved against current unified ledger; original requirement immutable. Native parent scope/child source slice/per-goal pins migrate together with authority, reader, recovery and fixed-family consumers.\nCurrent renewed consumer dispatch: shared native request scope moved to admission/request_scope under assembly ownership, consumed once by service/source (no duplicate ML type). D59 domain reconstruction, D60 preselection, D62 template qualification and actual per-goal source/Build retention are coordinated consumer migrations. New search/conversation owners implement native+host leaf consumers; assembly retains parent integration. Do not count draft endpoint code as installed capability.",
       "contracts": [
         "C02",
         "C03",
@@ -3337,7 +3345,7 @@
         "Actual shipped shell from outside checkout: source workshop and native restart."
       ],
       "evidence": [],
-      "notes": "Root assigned after actual workshop still required checkout tools/deploy/stage.py. Separate bootstrap JAR preserves application producer identities. Fresh invocation-owned settings home is being coordinated to avoid arbitrary existing state-home startup scripts. No standalone runtime acceptance yet.",
+      "notes": "Root assigned after actual workshop still required checkout tools/deploy/stage.py. Separate bootstrap JAR preserves application producer identities. Fresh invocation-owned settings home is being coordinated to avoid arbitrary existing state-home startup scripts. No standalone runtime acceptance yet.\nProducer6b8c and classload-origin passed, archive101a005f; actual verifier parityd0132b passed per steward. Candidate dea4b032 staged with exact D44 native/UI and owned temporary-home policy. Outside-checkout source/native restart trial running; not yet claimed passed.\nActual standalone101a trial: source import56.44s and exact reopen34.23s passed; native startup failed before authority because sanitized PATH omitted macOS sysctl directory. Native restart not reached. Owner repaired shell PATH; new archive/trial required. Costs are startup-inclusive observations, not performance qualification. Whole generation-container state guard also queued as shared startup-policy fix.",
       "contracts": [
         "C01",
         "C04",
@@ -3396,6 +3404,151 @@
       "trusted_boundaries": [
         "TB-04",
         "TB-05"
+      ]
+    },
+    {
+      "id": "deployed-search-consumer",
+      "title": "Connect native proof search to the deployed specialist workspace",
+      "area": "deployed reasoning",
+      "milestone": "W",
+      "owner": "search_consumer61",
+      "depends_on": [
+        "strategy-engine",
+        "runtime-service",
+        "native-resident-assembly"
+      ],
+      "paths": [
+        "src/runtime/service/search/**",
+        "src/runtime/service/SearchIngress.scala",
+        "tests/runtime/service/search/**"
+      ],
+      "deliverables": [
+        "Actual protected literal-search request, durable worker/result/recovery and authoring consumer"
+      ],
+      "acceptance": [
+        "An original literal proposition in an existing admitted native context reaches the actual budgeted search worker through shared authority and host/workbench.",
+        "Proved, unresolved, budget and cancellation outcomes remain distinct; restart does not replay charged search; Forget retires owned source/results.",
+        "Failed-declaration automatic repair requires a checked prior context and parser-owned proposition, not guessed error-text spans."
+      ],
+      "checks": [
+        "Actual multi-step proof and unresolved/budget/cancel cases through deployed endpoint; nonempty restart and Forget."
+      ],
+      "notes": "User renewed wide6.1-sol swarm. New owner implements native and host leaf plus end-to-end coordination; assembly owns shared parent hooks, plans owns Q/worker. Existing fixed math service does not establish search deployment.",
+      "status": "active",
+      "evidence": [],
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-10",
+        "ACC-11"
+      ],
+      "design_inputs": [
+        "project/DECISIONS.md",
+        "docs/product/ACCEPTANCE.md",
+        "docs/coverage/integration.md"
+      ]
+    },
+    {
+      "id": "conversation-workspace",
+      "title": "Restore conversations, attributed recall and expiry through native adoption",
+      "area": "conversation lifecycle",
+      "milestone": "W",
+      "owner": "conversation_product61",
+      "depends_on": [
+        "routing-dialogue",
+        "runtime-service",
+        "native-resident-assembly"
+      ],
+      "paths": [
+        "src/runtime/conversation/**",
+        "tests/runtime/conversation/**",
+        "docs/runtime/conversation.md"
+      ],
+      "deliverables": [
+        "Real session/adoption native consumer, durable list/open/recall and workbench history"
+      ],
+      "acceptance": [
+        "Same authoritative session state drives create/open/list, final arbitration/adoption and pinned request context.",
+        "Restart restores conversation without replay; historical recall preserves source/time/conditions; expiry and Forget invalidate dependent views.",
+        "No independent conversation authority store or result-ID list relabeled as restored conversation."
+      ],
+      "checks": [
+        "Two actual turns, nonempty restart, historical recall and expiry/Forget follow-up through host/workbench."
+      ],
+      "notes": "Audit of actual Native_Service found request_session=None/session_views=[]; shared Scope currently only StateTimeUnused. New native leaf owner coordinates finite session/clock observation migration with assembly/authority and real recovery.",
+      "status": "active",
+      "evidence": [],
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-10",
+        "ACC-11"
+      ],
+      "design_inputs": [
+        "project/DECISIONS.md",
+        "docs/product/ACCEPTANCE.md",
+        "docs/coverage/integration.md"
+      ]
+    },
+    {
+      "id": "behavioral-candidate-evaluation",
+      "title": "Compare actual specialist candidates with the baseline before publication",
+      "area": "candidate evaluation",
+      "milestone": "W",
+      "owner": "behavioral_evaluation61",
+      "depends_on": [
+        "dependency-updates",
+        "synthesis-growth",
+        "routing-dialogue",
+        "runtime-service"
+      ],
+      "paths": [
+        "src/isabelle/updates/behavioral/**",
+        "tests/updates/behavioral/**",
+        "docs/formal/behavioral-evaluation.md"
+      ],
+      "deliverables": [
+        "Distinct fixed behavioral observer and real workbench baseline/candidate comparison"
+      ],
+      "acceptance": [
+        "Actual admitted candidate execution is compared on retained source-owned examples with Expected, MustDecline and Unknown expectations; no invented ground truth.",
+        "Routing gain, false assertions, unrelated interception and latency are distinct measured dimensions; unsupported dimensions are not passing zeros.",
+        "Existing paid-attempt/exposure/recovery/publication lifecycle owns observations; structural export checks remain a separate profile."
+      ],
+      "checks": [
+        "Actual candidate-vs-baseline execution, unknown-unscored/refusal cases, interrupted measurement and workbench result; routing interference as its real attachment becomes available."
+      ],
+      "notes": "Initial concrete typed recipe fragment uses growth universal candidate-definition\u2192fixed interpreter bridge, not arbitrary dynamic Code_Evaluation or sample-only refinement. Full operational exam remains acceptance, not reduced to arithmetic.",
+      "status": "active",
+      "evidence": [],
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-10",
+        "ACC-11"
+      ],
+      "design_inputs": [
+        "project/DECISIONS.md",
+        "docs/product/ACCEPTANCE.md",
+        "docs/coverage/integration.md"
       ]
     }
   ],

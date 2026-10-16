@@ -2,6 +2,37 @@
 
 ## Renewed holistic capability swarm
 
+Current consumer expansion assigns complete native/host/client joins, not just
+client adapters. These exact new areas supersede broader historical ownership:
+
+| Owner | Exact new area | Real consuming workflow |
+|---|---|---|
+| native_build_product61 | src/runtime/service/build/**, tests/runtime/service/build/** | Prepared Build/candidate leases, fixed worker/status API; assembly retains authoritative parent pipeline |
+| search_consumer61 | src/runtime/service/search/**, src/runtime/service/SearchIngress.scala, tests/runtime/service/search/** | Original literal proposition in an admitted context through budgeted search to authoring client |
+| conversation_product61 | src/runtime/conversation/**, tests/runtime/conversation/**, docs/runtime/conversation.md | Native session/adoption, history/recall, restart and expiry through the existing durable writer |
+| behavioral_evaluation61 | src/isabelle/updates/behavioral/**, tests/updates/behavioral/**, docs/formal/behavioral-evaluation.md | Actual baseline/candidate measurements and workbench comparison using existing qualification lifecycle |
+| assembly_reconnected61 | src/isabelle/admission/request_scope/** | One shared opaque native parent/child association consumed by service and source leaves |
+
+Host and assembly retain their existing parent files and integrate these fixed
+leaf APIs jointly with their owners. Recovery supplies one authenticated Scope
+restoration boundary; Search/Source/Cell must not invent independent ID setters.
+The behavioral observer's first concrete fragment uses the candidate-owned typed
+recipe and universal interpreter bridge being implemented by growth. Arbitrary
+logical exports are not automatically executable specialists. Full routing and
+interference measurement remains required beyond that fragment.
+
+Workbench and diagnostics now join the existing package consumer planner to
+actual managed source descriptors. This declaration-level impact is explicitly
+separate from native artifact closure. Assistance consumes the fixed search API;
+failed-theory repair still needs an actual prior-declaration context and owned
+proposition span. An error message cannot manufacture either.
+
+The read-only holistic audit also recovered unclosed opt-in decline-to-example
+growth and explanation/code-experiment artifact workflows from original Oracle7.
+Their existing authoring/growth/recipient tasks retain these requirements. Original
+input access must be governed and forgotten derivatives retired; declined requests
+must never be converted into asserted correct expected answers.
+
 The user renewed wide gpt-6.1-sol work and asked what forms the usable whole.
 The workshop and resident runtime must share package/source identities, native
 admission, typed outcomes and lifecycle; family components alone do not meet that

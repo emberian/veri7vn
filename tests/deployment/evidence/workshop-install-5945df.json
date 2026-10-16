@@ -1,0 +1,61 @@
+{
+  "schema": "veri7vn-installed-workshop-consumer/1",
+  "generation": "5945df55e408ddaf0847b63bcc3d4ebeb9ebefe360ae122351d89840530f90d5",
+  "passed": true,
+  "import_result": {
+    "returncode": 0,
+    "passed": true
+  },
+  "browser_checks": [
+    {
+      "label": "source-browser-home",
+      "passed": true
+    },
+    {
+      "label": "csrf-open-exact-source",
+      "passed": true
+    },
+    {
+      "label": "save-1-new-revision",
+      "passed": true
+    },
+    {
+      "label": "save-2-new-revision",
+      "passed": true
+    },
+    {
+      "label": "normal-enter-close",
+      "returncode": 0,
+      "passed": true
+    },
+    {
+      "label": "fresh-cli-reopen-two-saves",
+      "returncode": 0,
+      "passed": true
+    }
+  ],
+  "local_result": "var/deployment-workshop-check-5945df-slot1/result.json",
+  "files_sha256": {
+    "browser/browser.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "browser/browser.stdout": "a623074f91929196a41df03bb38a84860674c6c3cc58b2bc135700232c95a86b",
+    "browser/home.html": "e7b3ca2c7d160843bdca779195cd19628586212a01b41b59475af778017018c5",
+    "browser/opened.html": "520fcd5cd4d20b91e93248207e108a803514a95f41fc9d306bbc186c7e5a1f5f",
+    "browser/reopened.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "browser/reopened.stdout": "c723cd01c231cdf3ed13cdcbcb45462d7d66501f740a88af3eefc33e9d815902",
+    "browser/result.json": "1ab6ab2e01294dd4fd72aa153508fb5c741f001386efb20b19c913673f9a402a",
+    "browser/save-1.html": "5fd9f239889eeed830294d244034e11bb78e9c0a6da936d4bb9b8c578b4d6c41",
+    "browser/save-2.html": "8df77b0af2b3453468fa01605fb415ca65be2679e5c4411000bafc522d108f56",
+    "browser-driver.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "browser-driver.stdout": "d90e184a340cc3473e80e62a9d61eb553f33e4a8f5ee9b9c7e5a575973cab291",
+    "import.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "import.stdout": "3e6423427100b37fe0b065ca157a1f0e60c76e0eeff18ac9b53e3752c5bdafa4",
+    "result.json": "f5ee0221c26418d52647db1ead0d4d0396815f65aa49b30e0effb207d3c57e94"
+  },
+  "qualification": "installed bundled editable identity source import, two browser saves and fresh CLI source read; no build/admission/native execution or recipient trial",
+  "limitations": [
+    "Checkout Python launcher is still the developer harness; not standalone recipient launch",
+    "No native build/admission/execution from edited tutorial",
+    "Visual/independent recipient trial and Linux untested",
+    "Native host/source client generation alternating compatibility separate"
+  ]
+}

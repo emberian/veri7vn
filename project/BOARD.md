@@ -51,7 +51,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | refinement-backends | Deliver the justified efficient backend portfolio | refinement | active | refinement_product61 | staged-execution, plan-composition, performance-envelope |
 | deployment-builder | Build pinned native deployments with clean install and recovery | deployment | active | deployment_product61 | package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope |
 | family-integration | Close behavioral coverage and cross-family execution | integration | active | capability_integration61 | relation-family, facts-document-family, domain-families, mathematics-family, graph-family, stateful-connectors, routing-dialogue, synthesis-growth, dependency-updates, known-regressions |
-| workspace-integration | Integrate complete authoring, change and deployment workflows | integration | planned | — | workspace-client, authoring-assistance, diagnostics-repair, dependency-updates, deployment-builder, stateful-connectors |
+| workspace-integration | Integrate complete authoring, change and deployment workflows | integration | planned | — | workspace-client, authoring-assistance, diagnostics-repair, dependency-updates, deployment-builder, stateful-connectors, deployed-search-consumer, conversation-workspace, behavioral-candidate-evaluation |
 | proof-implementation-closure | Establish mandatory metatheory obligations and their runtime connections | assurance integration | active | assurance_consumers61 | family-integration, workspace-integration, refinement-backends |
 | performance-hardening | Meet measured whole-system performance and resource budgets | performance integration | planned | — | family-integration, workspace-integration, refinement-backends, performance-envelope |
 | release-integration | Validate the complete deployable product and release contents | release integration | planned | — | proof-implementation-closure, performance-hardening, deployment-builder, family-integration, workspace-integration |
@@ -63,6 +63,9 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | conceptnet-source-consumer | Connect shipped ConceptNet labels, retrieval policy and provenance to checked graph queries | source-backed graph specialists | active | conceptnet_product61 | source-import, graph-family |
 | installed-recipient-launcher | Ship a checkout-independent verified-inventory launcher | deployment | active | installed_launcher61 | workspace-client, deployment-builder |
 | headless-runtime-closure | Qualify a smaller complete headless runtime distribution | deployment performance | active | runtime_distribution61 | performance-envelope |
+| deployed-search-consumer | Connect native proof search to the deployed specialist workspace | deployed reasoning | active | search_consumer61 | strategy-engine, runtime-service, native-resident-assembly |
+| conversation-workspace | Restore conversations, attributed recall and expiry through native adoption | conversation lifecycle | active | conversation_product61 | routing-dialogue, runtime-service, native-resident-assembly |
+| behavioral-candidate-evaluation | Compare actual specialist candidates with the baseline before publication | candidate evaluation | active | behavioral_evaluation61 | dependency-updates, synthesis-growth, routing-dialogue, runtime-service |
 
 ## Ready to dispatch
 
@@ -73,8 +76,11 @@ None.
 - possible active edit overlap: operational-model (src/isabelle/language/model/rendering/Veri7vn_Rendering.thy) / interpretation-model (src/isabelle/language/model/**)
 - possible active edit overlap: operational-model (tests/language/model/rendering/Interpretation_Tests.thy) / interpretation-model (tests/language/model/**)
 - possible active edit overlap: source-import (docs/sources/**) / conceptnet-source-consumer (docs/sources/conceptnet.md)
+- possible active edit overlap: dependency-updates (src/isabelle/updates/**) / behavioral-candidate-evaluation (src/isabelle/updates/behavioral/**)
+- possible active edit overlap: dependency-updates (tests/updates/**) / behavioral-candidate-evaluation (tests/updates/behavioral/**)
 - possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/RequestInspectionTests.scala)
 - possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/inspection.scala)
+- possible active edit overlap: runtime-service (src/runtime/service/*.scala) / deployed-search-consumer (src/runtime/service/SearchIngress.scala)
 - possible active edit overlap: domain-families (src/families/domains/**) / family-integration (src/families/domains/source_bridge/**)
 - possible active edit overlap: graph-family (src/families/graphs/**) / graph-mst-optimality (src/families/graphs/Graph_MST_Optimality.thy)
 - possible active edit overlap: graph-family (tests/families/graphs/**) / graph-mst-optimality (tests/families/graphs/mst/**)
@@ -113,3 +119,6 @@ None.
 - conceptnet-source-consumer: status active with unresolved dependencies: source-import, graph-family
 - installed-recipient-launcher: status active with unresolved dependencies: workspace-client, deployment-builder
 - headless-runtime-closure: status active with unresolved dependencies: performance-envelope
+- deployed-search-consumer: status active with unresolved dependencies: strategy-engine, runtime-service, native-resident-assembly
+- conversation-workspace: status active with unresolved dependencies: routing-dialogue, runtime-service, native-resident-assembly
+- behavioral-candidate-evaluation: status active with unresolved dependencies: dependency-updates, synthesis-growth, routing-dialogue, runtime-service

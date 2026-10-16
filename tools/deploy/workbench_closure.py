@@ -40,3 +40,22 @@ def inspect(archive, receipt):
     return dict(arguments=['--workbench'], implementation='embedded-host-jar',
                 assets='embedded HTML/CSS; no required remote subresources',
                 qualification='producer closure inspected; installed UI/CLI trial separate')
+
+
+def inspect_source(archive, receipt, jar_name="veri7vn-runtime.jar"):
+    """Inspect the explicit native-free main in the same producer JAR."""
+    snapshot=archive/'source-snapshot'
+    source='src/cli/Workbench.scala'
+    with zipfile.ZipFile(archive/jar_name) as jar:
+        classes=set(jar.namelist())
+    if 'veri7vn/cli/Workbench.class' not in classes:
+        return None
+    required=('veri7vn/workbench/Browser.class','veri7vn/workbench/Authoring.class',
+              'veri7vn/runtime/host/WorkspaceStore.class','veri7vn/runtime/host/ManagedSources.class')
+    if not all(name in classes for name in required):
+        raise ValueError('incomplete source authoring class closure')
+    if source not in receipt['sources_sha256'] or not (snapshot/source).is_file():
+        raise ValueError('source main missing from producer receipt')
+    return dict(launch=['{package}/runtime/bin/isabelle','java','veri7vn.cli.Workbench','{state}/workspace'],
+                implementation='same-host-jar-native-free-source-authoring',
+                qualification='producer closure inspected; installed import/edit/reopen trial separate')

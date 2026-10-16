@@ -37,6 +37,16 @@ class Staging(unittest.TestCase):
                 stage.stage(self.plan,self.install)
         self.assertEqual(first.resolve(),(self.install/'current').resolve())
         stage.verify(first)
+    def test_candidate_does_not_replace_working_selection(self):
+        selected=stage.stage(self.plan,self.install)
+        candidate_spec=dict(self.plan,qualification_notes=['new incompatible native checkpoint interpretation'])
+        candidate=stage.stage(candidate_spec,self.install,select=False)
+        self.assertNotEqual(selected,candidate)
+        self.assertEqual(selected.resolve(),(self.install/'current').resolve())
+        stage.verify(candidate);stage.verify(selected)
+        self.assertEqual(candidate,stage.stage(candidate_spec,self.install,select=False))
+        self.assertEqual(selected.resolve(),(self.install/'current').resolve())
+
     def test_manifest_change_is_detected(self):
         first=stage.stage(self.plan,self.install)
         (first/'manifest.json').write_text('{}')
@@ -91,24 +101,66 @@ class Staging(unittest.TestCase):
         self.plan['artifacts'][0]['executable']=True
         first=stage.stage(self.plan,self.install).resolve()
         incomplete=dict(self.plan,missing=['required heap unavailable'])
+        second=stage.stage(incomplete,self.install,select=False)
         planner=stage._launch_plan
         def switch_current(root,manifest,state,extra):
-            stage.stage(incomplete,self.install)
+            # Simulate an independently selected generation after pinning. This
+            # bypasses staging only to exercise the launch TOCTOU boundary.
+            (self.install/'current').unlink()
+            (self.install/'current').symlink_to(second)
             return planner(root,manifest,state,extra)
         with patch.object(stage,'_launch_plan',side_effect=switch_current),patch.object(stage.os,'execve') as execute,patch.object(stage.platform,'system',return_value='Darwin'),patch.object(stage.platform,'machine',return_value='arm64'):
             stage.launch(self.install,self.root/'state',[])
         self.assertNotEqual(first,(self.install/'current').resolve())
         self.assertEqual(str(first/'runtime/artifact'),execute.call_args.args[0])
+    def test_unqualified_update_cannot_select_existing_installation(self):
+        first=stage.stage(self.plan,self.install)
+        new=dict(self.plan,qualification_notes=['D44 rejects old40ac checkpoint'])
+        with self.assertRaisesRegex(ValueError,'guarded state compatibility'):
+            stage.stage(new,self.install)
+        self.assertEqual(first.resolve(),(self.install/'current').resolve())
+        stage.verify(first)
+        candidate=stage.stage(new,self.install,select=False)
+        self.assertNotEqual(first,candidate)
+        stage.verify(candidate)
     def test_workbench_surface_is_explicit_and_generation_pinned(self):
         self.plan['launch']=['{package}/runtime/artifact']
         self.plan['artifacts'][0]['executable']=True
-        self.plan['surfaces']={'workbench':{'arguments':['--workbench']}}
+        self.plan['surfaces']={'workbench':{'arguments':['--workbench']},'source':{'launch':['{package}/runtime/artifact','java','Workbench','{state}/workspace'],'environment':{'CLASSPATH':'{package}/host/artifact'}}}
         generation=stage.stage(self.plan,self.install)
         with patch.object(stage.platform,'system',return_value='Darwin'),patch.object(stage.platform,'machine',return_value='arm64'):
             plan=stage.launch_plan(self.install,self.root/'state',['run','the sum of -2 and 3'],'workbench')
             self.assertEqual([str(generation.resolve()/'runtime/artifact'),'--workbench','run','the sum of -2 and 3'],plan['command'])
+            source=stage.launch_plan(self.install,self.root/'state',['list'],'source')
+            self.assertEqual(['java','Workbench',str((self.root/'state').resolve()/'workspace'),'list'],source['command'][1:])
+            self.assertNotIn('--workbench',source['command'])
+            self.assertEqual(str(generation.resolve()/'host/artifact'),source['environment']['CLASSPATH'])
             with self.assertRaisesRegex(ValueError,'surface unavailable'):
                 stage.launch_plan(self.install,self.root/'state',surface='missing')
+
+    def test_fresh_bootstrap_home_is_private_and_cleaned(self):
+        from types import SimpleNamespace
+        self.plan['launch']=['{package}/runtime/artifact']
+        self.plan['artifacts'][0]['executable']=True
+        self.plan['environment']={'USER_HOME':'{bootstrap_home}'}
+        self.plan['associations']={'bootstrap_user_home':'fresh-owned-temporary/1'}
+        stage.stage(self.plan,self.install)
+        observed=[]
+        def child(command,env):
+            home=Path(env['USER_HOME']);observed.append(home)
+            self.assertTrue(home.is_dir())
+            self.assertEqual(env['HOME'],str(home))
+            self.assertNotIn('LD_PRELOAD',env)
+            self.assertNotIn('_JAVA_OPTIONS',env)
+            self.assertNotIn('BASH_ENV',env)
+            self.assertEqual(env['VERI7VN_BOOTSTRAP_HOME'],str(home))
+            self.assertNotEqual(home,(self.root/'state/user-home').resolve())
+            (home/'owned-test').write_text('private temporary setup')
+            return SimpleNamespace(returncode=0)
+        with patch.dict(stage.os.environ,{'LD_PRELOAD':'untrusted','_JAVA_OPTIONS':'untrusted','BASH_ENV':'untrusted'}),patch.object(stage.subprocess,'run',side_effect=child),patch.object(stage.platform,'system',return_value='Darwin'),patch.object(stage.platform,'machine',return_value='arm64'):
+            with self.assertRaises(SystemExit) as exit_result:stage.launch(self.install,self.root/'state',[])
+        self.assertEqual(0,exit_result.exception.code)
+        self.assertEqual(1,len(observed));self.assertFalse(observed[0].exists())
 
     def test_no_implicit_directories_or_links(self):
         source=self.root/'link';source.symlink_to(self.root/'artifact')

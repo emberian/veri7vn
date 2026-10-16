@@ -1,0 +1,84 @@
+{
+  "schema": "veri7vn-installed-source-consumer/1",
+  "generation": "8cb3859a898e4a20df58d8a9ad5b183dbf3600a17a08c0c5a2de3ebef3c7f41c",
+  "source_producer": "0006b59c6f6840e28ba1affe763f48cd",
+  "source_jar_sha256": "b8a1388bebb2528aa4dcd69442e7019515f8f4e1716c881e3a5b834d825be72a",
+  "native_host_jar_sha256": "8486c19bca61025ac0f15f5ca3aa9dcf68f0652fba33c388405fa4eb379785f0",
+  "checks": [
+    {
+      "label": "import",
+      "returncode": 0,
+      "passed": true
+    },
+    {
+      "label": "inspect",
+      "returncode": 0,
+      "passed": true
+    },
+    {
+      "label": "edit",
+      "returncode": 0,
+      "passed": true
+    },
+    {
+      "label": "reopened-source",
+      "returncode": 0,
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "platform": {
+    "system": "Darwin",
+    "machine": "arm64"
+  },
+  "local_result": "var/deployment-source-check-0006b59c-slot2/result.json",
+  "files_sha256": {
+    "edit.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "edit.stdout": "bd7a852b8b83b3b2839f7b72b075c62099b2a53a837c2bf1fd15be12560b409f",
+    "import.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "import.stdout": "fec1d6b1511a94b32c6a8442f1efc3be2cd9b873912ed8acf17b7895ec759038",
+    "inspect.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "inspect.stdout": "64ce32e4eea2e942629464dcbd1458135d7bcc24424b6d6095fbe9f8206a4b58",
+    "reopened-source.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "reopened-source.stdout": "acfe985d9bbc42903ac2aa58cc1af3144c966234f44d0f35473aa73e91867f7e",
+    "result.json": "e8a514a98745368206e8459c348f238adee424af6fe0a86f60e6752607ed1325"
+  },
+  "qualification": "Actual separate-process installed source import/inspection/exact edit/reopen; no native authority started",
+  "limitations": [
+    "Original Python source remains UnresolvedExecutable; native package.json absent",
+    "Visual browser review and independent recipient rehearsal untested",
+    "Alternating source-edited state into older40ac resident host unqualified",
+    "D51 native cross-generation migration, Linux and D19 redistribution remain open"
+  ],
+  "failed_prior_attempt": {
+    "local_result": "var/deployment-source-check-0006b59c-slot1/result.json",
+    "reason": "Fixture omitted required manifest.json; actual intake correctly rejected; corrected fixture obeys unchanged intake"
+  },
+  "installed_browser": {
+    "checks": [
+      {
+        "label": "source-browser-home",
+        "passed": true
+      },
+      {
+        "label": "csrf-open-exact-source",
+        "passed": true
+      },
+      {
+        "label": "normal-enter-close",
+        "returncode": 0,
+        "passed": true
+      }
+    ],
+    "passed": true,
+    "local_result": "var/deployment-source-browser-0006b59c-slot1/result.json",
+    "files_sha256": {
+      "browser.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "browser.stdout": "b1eb7ad1b5aa0234ae3a7571dc3d500c5e7909cf23507d6634efb921e6ff1a71",
+      "home.html": "50362b4f4bfe5ad0276767b5dbae9ac380decd2c57c93e0f28c4547b6a322245",
+      "opened.html": "3757348ba7a25f272b35f56b645cdcaeb57063364be7f0831ab2e13dc17bd556",
+      "result.json": "b21ec934e6ca76f1b10e8a43104fb6cf48bd20e853a1abe2622175da244434cd"
+    },
+    "qualification": "actual installed source-only browser startup, HTTP source view, clean close; no native execution or visual/recipient qualification"
+  }
+}

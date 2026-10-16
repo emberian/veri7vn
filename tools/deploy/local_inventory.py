@@ -4,7 +4,7 @@ from pathlib import Path
 import argparse
 import json
 from stage import digest, stage
-from workbench_closure import inspect as inspect_workbench
+from workbench_closure import inspect as inspect_workbench, inspect_source
 
 
 def inventory(repo, isabelle, archive):
@@ -20,7 +20,7 @@ def inventory(repo, isabelle, archive):
     receipt=json.loads((archive/'receipt.json').read_text())
     # Sources are the producer's immutable snapshot, never a later workspace body.
     snapshot=archive/'source-snapshot'
-    sources=sorted((snapshot/'src/runtime').rglob('*.scala'))
+    sources=sorted((snapshot/'src').rglob('*.scala'))
     for path in sources:
         relative=str(path.relative_to(snapshot))
         expected=receipt['sources_sha256'].get(relative)
@@ -52,6 +52,9 @@ def inventory(repo, isabelle, archive):
     workbench=inspect_workbench(archive,receipt)
     if workbench is not None:
         result['surfaces']={'workbench':workbench}
+    source_surface=inspect_source(archive,receipt)
+    if source_surface is not None:
+        result.setdefault('surfaces',{})['source']=source_surface
     if corrected:
         result['missing']=result['missing'][1:]
     return result

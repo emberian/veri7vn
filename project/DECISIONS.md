@@ -983,3 +983,73 @@ candidate gate supplies this correspondence; a metadata number cannot confer it.
 The resulting generation participates in registration, managed dependencies and
 exact reconstruction checks. Do not infer it from an unordered dependency list.
 Batch this codec/consumer migration with D56 after the current capture.
+
+## D59 — Restore domain conditions through their actual native association
+
+Domain recovery uses distinct fixed pairs: `quantities/1` + `domain-request`
+and `quantities-runtime-refinement/1` + `domain-output`, both controlled recipes
+with their actual executable pin. Request material is nonassertional. Output
+material retains the full conditional target, condition propositions, actual
+owned request/output and admitted implementation/model/display contracts. It is
+a runtime-refinement association, not a kernel theorem asserting each answer.
+
+Restoration checks the fixed execution and native correspondence. A serialized
+condition ID or target cterm cannot recreate authority. The fixed factory consumes
+the real committed recovery object and reconstructs the exact receiver/source
+pool declaration; only after full correspondence may it preserve authenticated
+identities. The source-domain variant retains both reconstructed associations.
+It never escapes as a bare domain request.
+
+Inert snapshot types may move before the condition module, with explicit aliases
+and consumer checks. Keep the private condition constructor and fixed restoration
+factory in one lexical scope. A caller-supplied checking functor or raw-ID setter
+is not an acceptable substitute. Generated checkpoint membership is a narrow
+additional check, not the native correspondence proof. Service, recovery, host
+and source-domain consumers migrate together; restart/Forget remain actual checks.
+
+## D60 — Select interpretations before reserving required goals
+
+Route alternatives are proposals, not independent required parts of a request.
+Compare/select before constructing or claiming a child for each actual requested
+goal; losing alternatives must not leave permanent NeedsInput children. The first
+native comparison uses the same protected unclaimed input child, exact original
+span, actual executable/native context and certified mathematical predicate.
+Cross-family equality requires an admitted interpretation/conversion witness
+retaining all conditions and dependencies. Metadata or display equality is not
+that witness; without it, present distinct interpretations.
+
+Routing policy distinguishes unaddressed input (`None`) from an explicitly
+addressed but unavailable source (`Some []`). The latter permits no fallback.
+An explicit allowed set restricts candidates. This is a language-policy change,
+not a reinterpretation of the authority carrier. Actual native routing and
+resident arbitration consumers require their own checks.
+
+## D61 — Installed bootstrap uses an invocation-owned settings home
+
+The standalone shell/JVM bootstrap needs neither checkout nor system Python or
+compiler. It validates the same pinned inventory and invokes the fixed packaged
+application entrypoints. Each invocation creates and owns a fresh temporary
+settings home, including HOME/USER_HOME, under a controlled environment; durable
+workspace and image locations remain explicit. Existing user-home startup files
+must not execute before verification. Cleanup removes only its own temporary home.
+
+The inventory records `bootstrap_user_home=fresh-owned-temporary/1` and the
+`{bootstrap_home}` placeholder. Bootstrap code, runtime and OS remain explicit
+trust assumptions; hashing the bootstrap is not a proof of its implementation.
+Python/JVM verifier parity and actual outside-checkout source/native restart
+consumers are separate gates. Earlier packages retain their historical policy.
+
+## D62 — Pending initial qualification may precede its candidate
+
+InitialQualificationRequest version 2 explicitly distinguishes Template and
+Bound. A Template owns the actual prepared Build request, original intent, exact
+reserved Build edge and fixed observer/qualification identities. It cannot invent
+the candidate or its generation. Bind only the same durably acknowledged native
+output lease, preserving those identities. Recovery restores the Build request
+before the template; it does not execute the build or measurement.
+
+The undeployed initial-request v1 format is explicitly refused, not silently
+reinterpreted. Update requests remain bound-only under their existing version.
+Tests distinguish restart before Build, after Build before qualification, and
+interrupted measurement; the production acknowledgement/recovery consumer is
+required beyond a scoped fixture.

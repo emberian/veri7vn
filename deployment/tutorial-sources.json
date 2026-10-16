@@ -1,0 +1,14 @@
+{
+  "schema": "veri7vn-tutorial-source-assets/1",
+  "tutorials": {
+    "retained-identity": {
+      "root": "examples/growth/retained-identity",
+      "files": ["ROOT", "package.json", "Retained_Identity.thy", "OBLIGATIONS.md", "observations.json", "samples.native"]
+    },
+    "branch-review": {
+      "root": "examples/authoring/branch-review",
+      "files": ["ROOT", "package.json", "Branch_Review.thy", "OBLIGATIONS.md"]
+    }
+  },
+  "qualification": "Editable source examples; bundling establishes neither build nor native admission"
+}
