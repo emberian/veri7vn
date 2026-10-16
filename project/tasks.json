@@ -1397,7 +1397,7 @@
         "Target evidence: retain a typed value/continuation across bundle replacement; reject cross-generation handle reuse, accept only an admitted atomic migration, and preserve historical/unresolved state when migration fails."
       ],
       "evidence": [],
-      "notes": "\nCurrent wide product dispatch: Exact-source revision/impact/reuse planning consumed by workbench. Owner continues through actual fixed native qualification and protected publication gate, coordinated with D43 candidate producer; atomic update/restart consumers remain open.",
+      "notes": "\nCurrent wide product dispatch: Exact-source revision/impact/reuse planning consumed by workbench. Owner continues through actual fixed native qualification and protected publication gate, coordinated with D43 candidate producer; atomic update/restart consumers remain open.\nApproved separate initial native-export-admission/1 profile (no baseline, source-owned manifest intent precedes build, C02 evidence, new semantics) and structural replacement-only profile (no semantic/cache reuse). Actual source-intent producer and fixed gate/host publication consumers remain open.",
       "contracts": [
         "C02",
         "C04",
@@ -3281,7 +3281,7 @@
       ],
       "state": "d47-initial-recovery-passed-schema-extension-and-candidate-consumers-open",
       "target": "Checked ordinary source reconstruction -> managed P object -> descriptor/service gate -> authoring admission",
-      "next": "Steward reports stable initial D47 full-sequent certificate + multiparent PASS faeb1f08ec684f31a787fc144de45f93 (4 expert +4 native markers). Subsequent v2 Named descendants of Proof nodes and explicit v1 rejection await new check. Actual D43 zero-export candidate producer assigned native_build_product61; no component pass substitutes for durable candidate/workbench integration.",
+      "next": "Steward reports stable initial D47 full-sequent certificate + multiparent PASS faeb1f08ec684f31a787fc144de45f93 (4 expert +4 native markers). Subsequent v2 Named descendants of Proof nodes and explicit v1 rejection await new check. Actual D43 zero-export candidate producer assigned native_build_product61; no component pass substitutes for durable candidate/workbench integration. Latest combined Domains/Recovery attempt timed out240s under memory pressure, with internal recovery wait failure; diagnostic labels and negative-timeout discrimination added. Subsequent witness/consequence scope rollback fixes remain unqualified.",
       "evidence": "var/native-scaffold/sessions/29d7efc9254bbf93/attempts/9941b8172c1449b3afe020f5f8e0a583/receipt.json"
     },
     {
@@ -3290,9 +3290,9 @@
       "members": [
         "relations_facts61"
       ],
-      "state": "row-plan-repairs-passed-row-slot-proof-blocks-consumer",
+      "state": "row-slots-proof-repair-awaits-next-base-check",
       "target": "Actual acquired source snapshot -> closed typed shared relation query -> family consumer; preserve source leases and explicit coverage premises",
-      "next": "Latest ff20af5219eb4274bfe9c261e92a4de1 reaches Row_Slots line78 proof after repaired Row_Plans. K/RI consumer remains unexecuted; plans owner repairs and source owner retains actual consumer responsibility."
+      "next": "Latest relocated base check reached unchanged Row_Slots exact-result statement but generic locale execute_plan remained opaque. Plans added explicit locale recursion/definition equations. K/RI consumer still not reached; no source-qualified claim."
     },
     {
       "id": "atomic-native-support-forget",
@@ -3323,11 +3323,11 @@
     {
       "id": "native-build-resource-cleanup",
       "owner": "build_reconnected61",
-      "state": "cleanup-checked-exact-scope-reviewed",
+      "state": "owned-historical-source-orphans-attributed-and-cleaned",
       "target": "Identity-tracked cleanup of actual owned native descendants including detached process groups",
-      "evidence": "var/driver-cleanup-tests.log",
+      "evidence": "var/native-scaffold/superseded-source-orphans-20261015.json",
       "limitations": "Twelve tests pass and actual native command cleanup observed; polling is not universal OS containment. Unattributed old processes untouched.",
-      "next": "Opt-in explicit loaded-source snapshot defaults remain conservative. Root reviewed73-file current service draft against actual theory/ML imports and auxiliary reads; unrelated source-child/Scala changes can proceed during exact-scope runs. Historical saved-image diagnostic mode distinguishes saved heap evidence from current-source builds."
+      "next": "Root reviewed exact attribution/identity/group checks and independently confirmed four old wrapper/worker PIDs gone. No cache/source deletion. Reported21GiB RSS released; fresh warm checks and installed baseline measure separately."
     },
     {
       "id": "source-relation-language-consumer",
@@ -3389,8 +3389,9 @@
     {
       "id": "installed-performance-consumer",
       "owner": "performance_product61",
-      "state": "harness-regressions-passed-actual-benchmark-slot-pending",
-      "target": "Pinned installed public runtime startup-inclusive/warm/restart measurements; then opt-in real host phase attribution without changing licensed output"
+      "state": "exact-installed-preflight-checked-awaiting-serialized-slot",
+      "target": "Pinned installed public runtime startup-inclusive/warm/restart measurements; then opt-in real host phase attribution without changing licensed output",
+      "next": "Owner checked selected40ac artifact existence, all235 source hashes and jar pin. Steward grants slot after Indexed terminal; two fixed requests in each of fresh/restored processes. No application benchmark result yet."
     }
   ]
 }

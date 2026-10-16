@@ -851,3 +851,16 @@ captured immutable deployment generation, and a bounded process-group guardian
 preserves ownership until cleanup. These checks address measurement/cleanup
 reliability, not Isabelle performance. An actual installed benchmark remains
 scheduled through the sole build steward; no new timing or speedup is claimed.
+
+## Superseded source-test process cleanup
+
+The steward attributed two long-running project source-test workers to earlier
+interrupted/timed-out source-lane invocations using their historical commands,
+start times and process observations. Before signaling, it rechecked exact PID,
+start identity, argv, target and all process-group members. Only the two verified
+orphaned groups were terminated; no cache or source files were deleted. Root read
+`var/native-scaffold/superseded-source-orphans-20261015.json` and independently
+confirmed the four wrapper/worker PIDs were gone. Their reported RSS summed to
+about 21 GiB before cleanup; the system's memory-free reading rose from 53% to 75%
+and swap usage fell. These are resource observations, not a measured application
+speedup. New warm native checks and the installed benchmark follow separately.

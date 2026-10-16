@@ -736,3 +736,14 @@ semantic-generation or result-cache reuse. Preservation requires checked context
 and constant correspondence or an appropriate admitted equivalence bridge. A
 meaning-changing replacement retains its new semantic identity and must satisfy
 its own publication policy; it cannot inherit preservation by matching names.
+
+Initial logical-export publication has a distinct native-export-admission/1
+criterion with no regression baseline. An independently captured, source-owned
+manifest/export intent precedes the build and binds exact canonical exports and
+source closure. C02 admission supplies their actual propositions, assumptions,
+extension policy and provenance. The qualification observation records only this
+checklist, with a new semantic generation; it makes no behavioral-quality or
+preservation claim. Empty-export candidates remain durable development artifacts,
+not active logical capabilities. Structural replacement comparison remains a
+separate baseline-backed profile. Host/native intent registration must connect
+the protected original descriptor to the request, not copy names from its result.
