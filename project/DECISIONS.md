@@ -918,3 +918,17 @@ parent references in the immutable requirement. The current unified ledger resol
 these to exact ordered candidate identities for execution; callers cannot guess
 future IDs or rewrite the original requirement after its predecessor completes.
 Builder, qualifier, recovery and native service consumers migrate together.
+
+## D54 — Source-derived quantities retain a fixed composite association
+
+A source-derived domain request uses an opaque fixed SourceDomain wrapper owning
+the same qualified SourceCell and exact domain request, with checked unit/value/
+model correspondence. Its lifetime and managed dependencies include both owners
+through charging, publication, rendering, recovery and Forget. A bare domain
+request cannot authorize the source-derived answer. Do not add caller-provided
+dependencies to native proof construction merely to emulate this association.
+
+Recovery reconstructs both associations and their checked relation; serialized
+wrapper fields do not confer authority. The source, domain, integration and native
+service owners migrate the closed ingress variant together. This is an approved
+consumer design, not a claim of implemented or checked source/domain composition.
