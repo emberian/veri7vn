@@ -1,0 +1,3 @@
+session Veri7vn_Plans = HOL +
+  options [document = false, threads = 2]
+  theories Veri7vn_Plan_Search Veri7vn_Plans
