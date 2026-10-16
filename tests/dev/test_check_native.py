@@ -11,6 +11,7 @@ from unittest.mock import patch
 import json
 import sqlite3
 import time
+import io
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'tools/dev'))
@@ -21,6 +22,39 @@ loader.exec_module(driver)
 
 
 class DriverTests(unittest.TestCase):
+    def test_duplicate_scala_scripts_are_rejected_before_execution(self):
+        with patch.object(sys, 'argv', ['check-native', '--session', 'Test',
+                '--scala-script', 'first.scala', '--scala-script', 'second.scala']), \
+                patch.object(sys, 'stderr', new_callable=io.StringIO) as errors, \
+                patch.object(driver, 'check') as check:
+            with self.assertRaises(SystemExit) as failure:
+                driver.main()
+            self.assertEqual(failure.exception.code, 2)
+            self.assertIn('may be specified only once', errors.getvalue())
+            check.assert_not_called()
+
+    def test_native_assertion_exports_are_scoped_and_hashed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            assertion = root / 'Session.Theory/veri7vn/assertions/owner'
+            assertion.parent.mkdir(parents=True)
+            assertion.write_text('Native owner checks passed\n')
+            text, inventory = driver.assertion_exports(root)
+            self.assertIn('Native owner checks passed', text)
+            self.assertEqual(list(inventory), ['Session.Theory/veri7vn/assertions/owner'])
+            (root / 'unrelated').write_text('forged marker')
+            with self.assertRaisesRegex(RuntimeError, 'Unexpected assertion export path'):
+                driver.assertion_exports(root)
+
+    def test_native_assertion_export_size_is_bounded(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            assertion = root / 'Session.Theory/veri7vn/assertions/owner'
+            assertion.parent.mkdir(parents=True)
+            assertion.write_bytes(b'x' * 65537)
+            with self.assertRaisesRegex(RuntimeError, 'Invalid assertion export'):
+                driver.assertion_exports(root)
+
     def test_process_inventory_preserves_failure_reason(self):
         failure = subprocess.CalledProcessError(1, ['ps'], stderr='inspection denied\n')
         with patch.object(driver.subprocess, 'run', side_effect=failure):

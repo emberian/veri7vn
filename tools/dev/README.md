@@ -84,11 +84,15 @@ ROOT. All files recursively below those directories are snapshotted. Repeat
 ML files, data, or ROOTS files). Paths must exist inside the checkout. The caller
 must identify the full transitive source/data input scope: the driver does not
 parse Isabelle imports. Avoid overly broad roots under concurrent development.
-Repeat `--expect 'literal marker'` for required build-log text. With no markers,
+Repeat `--expect 'literal marker'` for required build-log text. If RC1 omits
+successful PIDE messages, the driver also reads explicit native exports under
+`veri7vn/assertions/`, records their hashes, and applies the same marker checks.
+Fixtures must export these only after their assertions finish. With no markers,
 a custom invocation checks successful session build only, not semantic coverage.
 Markers may come from cached successful session logs, as with the default check.
 
-`--scala-script PATH` runs `isabelle scala PATH` after the scoped build while
+`--scala-script PATH` accepts exactly one script; duplicates are rejected. Use a
+sequential Scala wrapper for several checks. It runs `isabelle scala PATH` after the scoped build while
 holding the same lock, using the same workspace USER_HOME and per-command timeout.
 The script is automatically snapshotted and must fail with nonzero exit status
 when its checks fail; output is saved as `scala.log`. Extra files read by a script

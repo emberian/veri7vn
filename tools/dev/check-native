@@ -24,6 +24,23 @@ EXPECTED = (
 )
 
 
+def assertion_exports(directory):
+    """Read only explicit native assertion exports, never arbitrary exports."""
+    texts, inventory = [], {}
+    for path in sorted(directory.rglob("*")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(directory)
+        if len(relative.parts) != 4 or relative.parts[1:3] != ("veri7vn", "assertions"):
+            raise RuntimeError(f"Unexpected assertion export path: {relative}")
+        if path.is_symlink() or path.stat().st_size > 65536:
+            raise RuntimeError(f"Invalid assertion export: {relative}")
+        body = path.read_bytes()
+        texts.append(body.decode("utf-8"))
+        inventory[str(relative)] = hashlib.sha256(body).hexdigest()
+    return "\n".join(texts), inventory
+
+
 def process_inventory():
     """Kernel identities only: never collect process arguments or environment."""
     try:
@@ -231,11 +248,14 @@ def main():
                         help="Declare the manifest plus --input covers every transitive source and auxiliary input")
     parser.add_argument("--expect", action="append", default=[],
                         help="literal required build-log marker, repeat as needed")
-    parser.add_argument("--scala-script", help="Scala script run after scoped session build under the same lock")
+    parser.add_argument("--scala-script", action="append", help="One Scala script run after scoped session build under the same lock")
     parser.add_argument("--diagnostic-theory", help="Saved theory ML environment used for historical diagnostic")
     parser.add_argument("--saved-image-diagnostic", help="Run ML file in an existing named heap without building current sources (historical diagnostic only)")
     parser.add_argument("--status", action="store_true", help="show shared lock state and latest command log tail")
     args = parser.parse_args()
+    if args.scala_script and len(args.scala_script) != 1:
+        parser.error("--scala-script may be specified only once; use a sequential wrapper for multiple scripts")
+    args.scala_script = args.scala_script[0] if args.scala_script else None
     if args.status:
         return show_status()
     if not args.session and (args.session_root or args.expect or args.scala_script or args.also_session):
@@ -472,6 +492,18 @@ def check(executable, state, timeout, session=None, roots=(), inputs=None, expec
                     name = "smoke.log" if len(targets) == 1 else f"smoke-{index}.log"
                     receipt["session_logs"][selected] = str((state / name).relative_to(ROOT))
                     logs[selected] = run(["build_log", "-v", selected], name)
+            # RC1 may omit successful PIDE snapshots. Explicit exports are
+            # produced by fixture ML only after its native assertions finish.
+            if markers and any(not any(marker in output for output in logs.values())
+                               for marker in markers):
+                receipt["native_assertion_exports"] = {}
+                for index, selected in enumerate(targets):
+                    destination = state / ("assertion-exports-" + receipt["attempt_id"]) / str(index)
+                    run(["export", "-n", *directory_args, "-O", str(destination),
+                         "-x", "*:veri7vn/assertions/*", selected], f"assertions-{index}.log")
+                    text, inventory = assertion_exports(destination)
+                    receipt["native_assertion_exports"][selected] = inventory
+                    logs[selected] += "\n" + text
             observations = "\n".join(logs.values())
             receipt["marker_sessions"] = {
                 marker: [selected for selected, output in logs.items() if marker in output]
