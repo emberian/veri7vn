@@ -1,0 +1,8 @@
+session Veri7vn_Specialists = HOL +
+  options [document = false, threads = 2]
+  theories
+    Specialist_Contract
+    Arbitration
+    Exam_Gate
+    Gate_Export
+    Specialists_Tests
