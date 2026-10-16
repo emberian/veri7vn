@@ -337,3 +337,27 @@ current source hosts does not establish workspace compatibility.
 The sole steward remains build_reconnected61. Full integrity verification remains;
 optional compiler/editor components are explicit profile availability, not removal
 of the project's backend ambitions. No existing distribution/cache is modified.
+
+## 2026-10-16 review and shared-scope clarification
+
+Root owns README/project review and the twelve explicit capability-breadth child
+entries. They are planned work, not a claim of new implementation or twelve new
+agents. Required parent scope is retained; family-integration gates their completion.
+Recipient owner updated the four tutorial/reference/rehearsal documents for the
+actual standalone2fd source workshop. No implementation ownership moved to root.
+
+Assembly may factor one Pure `Native_Scope_Data` child under a distinct
+`request_scope/data/` session directory, containing only bounded inert Saved/Wire/
+Envelope parsing and the shared types. Admission imports that same identity;
+the actual Scope factory remains later with Authority_Codec as parent and Admission
+as sibling dependency. This breaks the observed import cycle and repeated Codec
+load without duplicating types, lowering permission checks or introducing a runtime
+foundation dependency. Changes wait for the steward's active input freeze; refresh
+all consuming manifests and run the narrow actual native check.
+
+D64 approves the host's durable source-binding implementation after its host13
+checkpoint; source inspection/recovery/publication consumers remain required.
+The numerical reflection repair is a coordinated shared-Codegen change after the
+current model child capture, with one foundational nat/int representation and no
+casts or competing carrier. Source_Window_Coverage transfer has ended after its
+code-equation prefix passed; optional source producers remain unqualified.

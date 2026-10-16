@@ -1,5 +1,8 @@
 # Import, inspect and revise your first specialist
 
+For the packaged source interface, start with the [installed workshop](installed-source-workshop.md).
+This companion imports original Oracle7 source through that same installed launcher.
+
 This tutorial starts with the original Oracle7 paint specialist, then opens an
 editable native candidate. The current result is a retained source revision;
 turning that revision into an admitted deployed capability still needs the native
@@ -24,19 +27,17 @@ The recognized `organ_paint_coverage.py` SHA256 is
 If acquisition is unavailable, the native identity steps remain usable, but they
 do not satisfy the original-specialist rehearsal requirement.
 
-Run from the repository root. Use a private, physical directory for your workspace;
-imports reject symbolic links in source paths and their ancestors. The commands
-below use the pinned development toolchain on macOS ARM64. Each invocation compiles
-the source client; this is a development launcher, not an installed application.
-The development team serializes Scala/native checks through its build steward.
+Use `V7_COMMAND` and `V7_STATE` from the installed workshop. Set `V7_ORIGINAL`
+to the physical absolute path of the downloaded paint example directory. Source
+imports reject symbolic links in that path or its ancestors.
 
 ```sh
-export V7_WORKSPACE="$PWD/var/tutorial-workspace"
-/Applications/Isabelle2026-RC1.app/bin/isabelle scala src/cli/launch.scala "$V7_WORKSPACE" import-original paint upstream/workbench/examples/paint-coverage tutorial-paint-import-1
-/Applications/Isabelle2026-RC1.app/bin/isabelle scala src/cli/launch.scala "$V7_WORKSPACE" list
-/Applications/Isabelle2026-RC1.app/bin/isabelle scala src/cli/launch.scala "$V7_WORKSPACE" inspect paint
-/Applications/Isabelle2026-RC1.app/bin/isabelle scala src/cli/launch.scala "$V7_WORKSPACE" migration paint
-/Applications/Isabelle2026-RC1.app/bin/isabelle scala src/cli/launch.scala "$V7_WORKSPACE" source paint organ_paint_coverage.py
+V7_ORIGINAL=/absolute/path/to/upstream/workbench/examples/paint-coverage
+"$V7_COMMAND" launch --state "$V7_STATE" --surface source -- import-original paint "$V7_ORIGINAL" tutorial-paint-import-1
+"$V7_COMMAND" launch --state "$V7_STATE" --surface source -- list
+"$V7_COMMAND" launch --state "$V7_STATE" --surface source -- inspect paint
+"$V7_COMMAND" launch --state "$V7_STATE" --surface source -- migration paint
+"$V7_COMMAND" launch --state "$V7_STATE" --surface source -- source paint organ_paint_coverage.py
 ```
 
 Keep the source revision and edit token printed by `inspect`. These identify the
@@ -47,12 +48,14 @@ evaluation obligations. The historical eighteen panel cases remain attributed
 examples; they do not become fresh private tests by being imported. Importing
 Python source does not execute it.
 
-Now import the existing zero-export native identity candidate:
+Now locate and import the bundled zero-export native identity candidate. If you
+already imported `identity` in this workspace, inspect it rather than importing again:
 
 ```sh
-/Applications/Isabelle2026-RC1.app/bin/isabelle scala src/cli/launch.scala "$V7_WORKSPACE" import-native identity examples/growth/retained-identity tutorial-identity-import-1
-/Applications/Isabelle2026-RC1.app/bin/isabelle scala src/cli/launch.scala "$V7_WORKSPACE" inspect identity
-/Applications/Isabelle2026-RC1.app/bin/isabelle scala src/cli/launch.scala "$V7_WORKSPACE" serve
+V7_IDENTITY=$("$V7_COMMAND" locate --tutorial retained-identity)
+"$V7_COMMAND" launch --state "$V7_STATE" --surface source -- import-native identity "$V7_IDENTITY" tutorial-identity-import-1
+"$V7_COMMAND" launch --state "$V7_STATE" --surface source -- inspect identity
+"$V7_COMMAND" launch --state "$V7_STATE" --surface source -- serve
 ```
 
 Open the printed loopback URL. Inspect `identity`, open `Retained_Identity.thy`,

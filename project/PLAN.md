@@ -11,6 +11,10 @@ The user agreed to proceed on 2026-10-15 and requested gpt-6.1-sol for implement
 lanes. `design-convergence` is complete; scoped implementation is active. The obsolete Python/IR/C prototype was removed
 at the user's request, with [Git recovery](../docs/design/prototype-cleanup.md).
 
+The [2026-10-16 whole-project review](REVIEW.md) separates the installed baseline,
+current integration, untouched capability breadth and compatibility horizon. The
+README is the product introduction and documentation index.
+
 ## Product completion
 
 An author can create/import a specialist, inspect interpretations and sources,

@@ -1,23 +1,32 @@
 # Current recipient operations
 
-Version: revision-2 development, 2026-10-15. The source client and resident client
-share managed source objects; their command surfaces currently differ.
+Version: revision-2 development, 2026-10-16. The source client and resident client
+share managed source objects; their command surfaces currently differ. Set
+`V7_COMMAND=/absolute/path/to/installation/current/bin/veri7vn` and use an absolute
+private state path. The qualified local installation is described in the
+[installed workshop](../tutorials/installed-source-workshop.md).
+
+```sh
+"$V7_COMMAND" verify
+"$V7_COMMAND" launch --state /absolute/private/source-state --surface source -- list
+"$V7_COMMAND" launch --state /absolute/private/runtime-state --surface workbench -- run 'the sum of -2 and 3'
+```
 
 | Goal | Actual operation | Boundary |
 |---|---|---|
-| Import original/native source | Source launcher: `WORKSPACE import-original/import-native NAME PATH OPERATION_ID`; browser Import | Retains source, does not run or admit it |
-| Inspect/edit | Source launcher `list`, `inspect NAME`, `source NAME PATH`, `migration NAME`, `edit`; browser Inspect/Open/Save | Revision/token and expected bytes protect concurrent edits |
-| Run installed mathematics | Resident `--workbench run 'the product of 6 and 7' [INTERPRETATION_INDEX]`; browser Run mathematics | Uses installed capability, not the edited draft |
-| Inspect a durable request | Resident `--workbench result REQUEST_ID`; browser Refresh result | Reports native status, licensed HTML and available provenance |
-| Cancel | Resident `--workbench cancel REQUEST_ID`; browser Cancel request | Waits for durable native acknowledgement |
-| Forget request | Resident `--workbench forget REQUEST_ID --confirm`; confirmed browser action | Withdraws dependent results; physical erasure follows cleanup barrier |
+| Import original/native source | Source surface: `import-original/import-native NAME PATH OPERATION_ID`; browser Import | Retains source, does not run or admit it |
+| Inspect/edit | Source surface `list`, `inspect NAME`, `source NAME PATH`, `migration NAME`, `edit`; browser Inspect/Open/Save | Revision/token and expected bytes protect concurrent edits |
+| Run installed mathematics | Workbench surface `run 'the product of 6 and 7' [INTERPRETATION_INDEX]`; browser Run mathematics | Uses installed capability, not the edited draft |
+| Inspect a durable request | Workbench surface `result REQUEST_ID`; browser Refresh result | Reports native status, licensed HTML and available provenance |
+| Cancel | Workbench surface `cancel REQUEST_ID`; browser Cancel request | Waits for durable native acknowledgement |
+| Forget request | Workbench surface `forget REQUEST_ID --confirm`; confirmed browser action | Withdraws dependent results; physical erasure follows cleanup barrier |
 | Build/admit draft | Pending real host/client construction join | Source storage/materialization is insufficient |
 | Profile/refine/export/activate specialist | No complete recipient workflow yet | Required for handoff acceptance |
 
 The full source edit signature is:
 
 ```text
-WORKSPACE edit DRAFT MANIFEST REVISION PATH START_BYTE END_BYTE EXPECTED_FILE REPLACEMENT_FILE OPERATION_ID
+edit DRAFT MANIFEST REVISION PATH START_BYTE END_BYTE EXPECTED_FILE REPLACEMENT_FILE OPERATION_ID
 ```
 
 Spans are half-open UTF-8 byte offsets. Expected-file contents must exactly equal
@@ -25,13 +34,18 @@ the selected original bytes. Use the current `inspect` values; after a successfu
 edit inspect again. An operation ID identifies that operation, so use a new ID for
 a different edit. Prefer the browser for ordinary whole-file text editing.
 
-Resident commands belong after all runtime options: `--workbench` consumes the
-remaining arguments. The runtime requires its matching packaged Isabelle classpath,
-workspace, images and session roots. Follow the actual package's launch plan in
-[deployment staging](../deployment/local-staging.md); there is no stable complete
-installed authoring launcher to substitute here. A local successful sum/product
-launch and restart does not establish clean recipient installation or deployment
-of edited packages.
+Pass source commands after `launch --state STATE --surface source --` and resident
+commands after `launch --state STATE --surface workbench --`. The launcher selects
+the corresponding packaged JAR and runtime dependencies. `plan` accepts the same
+arguments and prints the launch plan without dispatching the application. Tutorial
+paths come from `locate --tutorial NAME`.
+
+The shipped launcher has passed source import/reopen, installed mathematics and
+fresh-process result inspection outside the checkout. Its bundled identity workshop
+has passed two browser Saves and exact source reopening. See the
+[standalone evidence](../../tests/deployment/evidence/standalone-aae0d7dd.json).
+This finite macOS ARM64 result does not establish deployment of edited specialists,
+Linux execution or independent recipient usability.
 
 `run` prints a request ID, observes for up to one minute and succeeds only for
 `accepted_exact`. If observation expires, keep the ID and inspect the same durable

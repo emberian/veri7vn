@@ -1077,3 +1077,34 @@ receiver policy; this remains required scope beyond the initial fixed profile.
 Host/registry roles, native gates, authenticated Scope recovery and actual resident
 dispatch migrate together. A compiled protocol or isolated proof does not close
 the deployed-search gate.
+
+D63 clarification (2026-10-16): restoration requirements identify abstract evidence
+by `(evidence ID, semantic generation)`, alongside request-child and artifact
+requirements. Authenticated stored material selects the closed family decoder;
+metadata must not relabel every kernel consequence as a generic KernelRole.
+The fixed native factory verifies the concrete role, claim, target, pins, route,
+dependencies and full requirement. Require exactly one accessible association;
+reject absent, duplicate and cross-role matches. `restore_required` payload
+version 2 carries this change; earlier captured deployments retain their original
+wire meaning. This introduces no new persistent producer registry.
+
+## D64 — Durable Build source bindings own the actual captured revision
+
+Create a durable source binding from the actual managed source guard and exact
+native BuildRequest slot in the same authorized commit. It pins original managed
+source objects across head edits; a path/hash row alone is insufficient. Binding
+identity is immutable after commit. Failed commits must not leave an authoritative
+source owner behind.
+
+Recovery restores historical read ownership only from authenticated committed
+native capability material and continuing draft permission. Historical diagnosis
+may inspect the captured source after a head edit. Resumption or publication
+additionally requires the exact current head and a new explicit authorized
+request/attempt under current permissions and budget. Restore never redispatches
+or spends again; an interrupted/unknown old attempt remains historical.
+
+Forget retires the durable binding and queues dependent native child/source
+cleanup through the protected lifecycle. Independent native leases must not keep
+permission alive. Inert durable bindings may survive a closed snapshot; active
+process/worker owners still prevent it. The actual build, host persistence,
+source-diagnostic and recovery consumers must check this association together.

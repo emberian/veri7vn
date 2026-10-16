@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-10-15",
+  "updated": "2026-10-16",
   "scope": "Complete Isabelle-native specialist engineering environment; see project/PLAN.md and docs/product/ACCEPTANCE.md.",
   "evidence_policy": "Checks on planned tasks are target evidence to implement and review, not claims of existing scripts or executed verification. Root reviews completion. Evidence paths are references, not certificates.",
   "ownership_policy": "Planned paths are tentative partitions to refine at dispatch. Shared contracts and integration files require coordinated changes. Root owns ledger/status updates after initial delegated population.",
@@ -675,7 +675,7 @@
         "var/native-scaffold/sessions/0e9d8d9756b80da2/attempts/f3b1d3d826ae42af9d91d3c3db2deb59/receipt.json",
         "var/native-scaffold/sessions/7030361853f97f4c/attempts/38f6a3f89f1c4fb486ac52cdba19f122/receipt.json"
       ],
-      "notes": "Core compiled/exported before D30; invariant child still being repaired. D30 NoExecution/ExecutableGeneration migration now applied and reopens dependent compilation/tests. Codecs/rendering/admission/host/staging must migrate together; no old fake0 wire reinterpretation. Root reviewed migrated invariant statements and stable passed proof-child receipt (20.024 s full driver, 15 s build). Metadata codec HOL laws/export completed but actual ML roundtrip timed out on proven unary 256-bit schema allocation. D31 shared efficient numeric foundation and all generated consumers are now being qualified. One-shot native output specialization for acquired snapshots is a concrete next model obligation; no arbitrary goal replacement. Actual D31 authority/codec/invariant/regression and bounded projection integration passed stable 68.816s (20c25fcf2e1ccc9f), one build/three selected targets; codec ML 3.426s. Exact baseline archived before approved D34/D35/D36 slot/recovery/session/qualification metadata migration. New migration remains unqualified. Root reviewed current-hash Authority_Metadata parent: passed 29.715s theory, 42s session, 53.319s driver. Metadata/events/reducer partition retains one shared carrier and caches declaration cost. Events reached theory completion but its first90s session attempt timed out at finalization; no event heap or full reducer/export pass yet. Required managed-provenance correction: retained output closure includes matched evidence managed dependencies; Forget filters assignments using semantic and managed dependencies separately. Root reviewed expanded Core log: theory11.340s/session24s, actual generated SML export. Successful Events cache immutable109249b81431494e986418237c936be1 now supersedes earlier timeout. Native runtime,56typecodec and postAck/template/privateclosure proofs remain open; stale prestate licensing targets must be replaced with exact original-template + poststate licensing statements. After frozen proof/codec baseline, repair inaccessible-session UpdateObservation and remove forgotten observations/session views/recorded utterance refs; keep audit/exposure tombstones distinct. Regress stale tokens after Forget/Revoke with surviving-session positive control. Root reviewed actual intent_permitted: no goal-scoped blocker/dependency check; immutable request_prestate equality prevents later external attempts after Ack. Authority owns explicit attempt-goal association and staging/handoff revision design including jobs/replay; no source-slot-only generalization. Codec parent finished33s in qualified historical 8c4b snapshot; codec test binder and live_goals proof still fail. D42 approved explicit attempt_goal/optional output slot plus recurring job parent goal and per-iteration child request lineage. Preserve immutable original request, cumulative job budget and current staging/handoff checks; two polls and restart/old completion required. No-field read-ID freshness, surviving-view CAS and utterance resurrection guards landed before focused baseline; checks pending. Root reviewed stable f3b1 snapshot: revised Core28s, Codec32s and complete Proofs15s passed; full statements and hashes checked. Publication_authorized is POST-step licensing; native faithful_attachment remains TB01 assumption. Authority/Codec runtime leaves still fail fixture record/ML/reduction, not model proof statements. D42 effect/job schema migration remains next coordinated semantic change.\nD44 root reviewed stable 38f6a3f89f1c4fb486ac52cdba19f122, current proof/test hashes and exact singleton/closure/denial-category statements plus generated tests. Model/proof pass does not qualify service cleanup. D43 complete typed artifact migration is owned but holds shared schema until D44 resident capture.\nD43 ownership extends exact rendering theory/fixture during coordinated schema migration; dialogue owns its own consumer. Shared schema remains unchanged until D44 capture.\nFirst D43 capture7e902895 passes Metadata/Events/Registry/Admission; Core failed binder id, repair submitted. D55 generic exact child recovery; D56 QualificationOrigin+parent accessibility, D57 fixed qualifier observer semantics and D58 explicit artifact output generation approved as one next coordinated codec/consumer change. No full migrated runtime pass yet.",
+      "notes": "Core compiled/exported before D30; invariant child still being repaired. D30 NoExecution/ExecutableGeneration migration now applied and reopens dependent compilation/tests. Codecs/rendering/admission/host/staging must migrate together; no old fake0 wire reinterpretation. Root reviewed migrated invariant statements and stable passed proof-child receipt (20.024 s full driver, 15 s build). Metadata codec HOL laws/export completed but actual ML roundtrip timed out on proven unary 256-bit schema allocation. D31 shared efficient numeric foundation and all generated consumers are now being qualified. One-shot native output specialization for acquired snapshots is a concrete next model obligation; no arbitrary goal replacement. Actual D31 authority/codec/invariant/regression and bounded projection integration passed stable 68.816s (20c25fcf2e1ccc9f), one build/three selected targets; codec ML 3.426s. Exact baseline archived before approved D34/D35/D36 slot/recovery/session/qualification metadata migration. New migration remains unqualified. Root reviewed current-hash Authority_Metadata parent: passed 29.715s theory, 42s session, 53.319s driver. Metadata/events/reducer partition retains one shared carrier and caches declaration cost. Events reached theory completion but its first90s session attempt timed out at finalization; no event heap or full reducer/export pass yet. Required managed-provenance correction: retained output closure includes matched evidence managed dependencies; Forget filters assignments using semantic and managed dependencies separately. Root reviewed expanded Core log: theory11.340s/session24s, actual generated SML export. Successful Events cache immutable109249b81431494e986418237c936be1 now supersedes earlier timeout. Native runtime,56typecodec and postAck/template/privateclosure proofs remain open; stale prestate licensing targets must be replaced with exact original-template + poststate licensing statements. After frozen proof/codec baseline, repair inaccessible-session UpdateObservation and remove forgotten observations/session views/recorded utterance refs; keep audit/exposure tombstones distinct. Regress stale tokens after Forget/Revoke with surviving-session positive control. Root reviewed actual intent_permitted: no goal-scoped blocker/dependency check; immutable request_prestate equality prevents later external attempts after Ack. Authority owns explicit attempt-goal association and staging/handoff revision design including jobs/replay; no source-slot-only generalization. Codec parent finished33s in qualified historical 8c4b snapshot; codec test binder and live_goals proof still fail. D42 approved explicit attempt_goal/optional output slot plus recurring job parent goal and per-iteration child request lineage. Preserve immutable original request, cumulative job budget and current staging/handoff checks; two polls and restart/old completion required. No-field read-ID freshness, surviving-view CAS and utterance resurrection guards landed before focused baseline; checks pending. Root reviewed stable f3b1 snapshot: revised Core28s, Codec32s and complete Proofs15s passed; full statements and hashes checked. Publication_authorized is POST-step licensing; native faithful_attachment remains TB01 assumption. Authority/Codec runtime leaves still fail fixture record/ML/reduction, not model proof statements. D42 effect/job schema migration remains next coordinated semantic change.\nD44 root reviewed stable 38f6a3f89f1c4fb486ac52cdba19f122, current proof/test hashes and exact singleton/closure/denial-category statements plus generated tests. Model/proof pass does not qualify service cleanup. D43 complete typed artifact migration is owned but holds shared schema until D44 resident capture.\nD43 ownership extends exact rendering theory/fixture during coordinated schema migration; dialogue owns its own consumer. Shared schema remains unchanged until D44 capture.\nFirst D43 capture7e902895 passes Metadata/Events/Registry/Admission; Core failed binder id, repair submitted. D55 generic exact child recovery; D56 QualificationOrigin+parent accessibility, D57 fixed qualifier observer semantics and D58 explicit artifact output generation approved as one next coordinated codec/consumer change. No full migrated runtime pass yet.\n2026-10-16 integration review: Core+Codec producer pass0bfcb2a reported with code-export repair; actual Proofs/AuthorityTests/CodecTests capture now underway. Shared numeric reflection identity issue from native source consumer remains under coordinated investigation.",
       "contracts": [
         "C02",
         "C03",
@@ -784,7 +784,8 @@
         "Preserve immutable original text/bytes, declared literal boundaries and source maps alongside separately normalized language views; quoted code/strings, case-sensitive genotypes and encoded payloads cannot be silently rewritten.",
         "Co-review native-registry profiles/codecs and carry complete/partial/multipart result structure into licensed rendering rather than flattening it to answer prose.",
         "Represent applicable candidates, unresolved readings and scoped blockers with discharge conditions. A veto constrains its interpretation/premise/capability/request scope rather than becoming either universal refusal or permission for unchecked fallback.",
-        "C03 distinguishes help, questions, acknowledgements, instructions and reference/code artifacts from world-claim speech acts. Substantive assertions within those acts still retain their claim scope and applicable evidence; no fabricated theorem is needed merely to offer help."
+        "C03 distinguishes help, questions, acknowledgements, instructions and reference/code artifacts from world-claim speech acts. Substantive assertions within those acts still retain their claim scope and applicable evidence; no fabricated theorem is needed merely to offer help.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: interpretation/renderer correspondence checks on ambiguous entities, quantities, conditions, paraphrases and follow-ups.",
@@ -818,6 +819,9 @@
         "docs/review/domain-gaps.md",
         "docs/review/workbench-gaps.md",
         "docs/review/runtime-gaps.md"
+      ],
+      "required_children": [
+        "literal-format-calendar-operations"
       ]
     },
     {
@@ -1108,7 +1112,8 @@
         "Jointly own the actual native gate/code association with registry and staged-execution: admission binds specification, executable definition, representation/refinement, failures/effects and selected code setup, not callback plus proof_name.",
         "Transport worker evidence as inert family certificates or bounded registered reconstruction recipes; expert proof fallback uses bounded Proof_Checker.thm_of_proof under approved receiver references, with private-lemma expansion and controlled definition elaboration.",
         "Audit reconstructed target, hypotheses, sorts, lineage and transitive dependencies after transport. Serialized theorem handles and arbitrary Isar/method/ML text are never accepted proof transport.",
-        "Keep faithful extraction/attachment of native objects to machine IDs explicit as a trusted bridge; generated-machine structural checks alone do not establish native domain truth."
+        "Keep faithful extraction/attachment of native objects to machine IDs explicit as a trusted bridge; generated-machine structural checks alone do not establish native domain truth.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: assumed false theorem, hidden hypothesis/oracle, forbidden ancestor, skipped proof, wrong target and unrelated artifact negative probes.",
@@ -1144,6 +1149,9 @@
       ],
       "trusted_boundaries": [
         "TB-01"
+      ],
+      "required_children": [
+        "conservative-type-development"
       ]
     },
     {
@@ -1177,7 +1185,8 @@
         "Execute plans through the compiled interpreter of the actual finite typed signature; effects suspend to generated authority commands, and cross-profile edges require registered representation/conversion bridges.",
         "Discharge domain conditions from established premises or admitted decidable guards; arbitrary HOL side conditions may remain conditional/unresolved and cannot be treated as decidable by generic ID checking.",
         "New plans over current operations reuse the installed bundle; hot pure regions may later specialize/fuse with an observation-preservation theorem that retains failures/effects/cancellation boundaries.",
-        "Runtime execution-safety/applicability guards must hold before primitive dispatch; unresolved guards suspend or decline the invocation. Explicit source/model premises may remain in a safely computed conditional result, but cannot excuse an unsafe call."
+        "Runtime execution-safety/applicability guards must hold before primitive dispatch; unresolved guards suspend or decline the invocation. Explicit source/model premises may remain in a safely computed conditional result, but cannot excuse an unsafe call.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: plan refinement/composition proofs connected to execution and multi-family typed composition cases.",
@@ -1206,6 +1215,10 @@
         "docs/review/domain-gaps.md",
         "docs/review/runtime-gaps.md",
         "docs/ARCHITECTURE_PROPOSAL.md (revision 2)"
+      ],
+      "required_children": [
+        "ordered-pipeline-synthesis",
+        "adaptive-cross-capability-search"
       ]
     },
     {
@@ -1246,7 +1259,8 @@
         "A durable attempt interrupted around the coupled claim-and-start handoff can have unknown launch/outcome. Preserve that uncertainty and use executor-specific idempotency/reconciliation; neither lease consumption alone nor a generic exactly-once claim licenses blind retry.",
         "Late events may reconcile an existing attempt without reactivating its canceled/retired request or licensing further work/publication.",
         "Conservative managed dependencies propagate through examples, summaries, learned parameters and caches; restrict worker inputs or account for all accessible inputs. Forget revokes handles/cancels dependent pending work and blocks late resurrection; curated copies require explicit impact-preview treatment.",
-        "Model retirement modes separately: capability retirement blocks new invocation/unconsumed dispatch while already running permitted computation may finish; source-binding retirement stops acquisition/late observation publication but permits retained snapshots/history; access revocation cancels dependent pending work and claim/state publication; forget additionally removes managed payloads/derivatives."
+        "Model retirement modes separately: capability retirement blocks new invocation/unconsumed dispatch while already running permitted computation may finish; source-binding retirement stops acquisition/late observation publication but permits retained snapshots/history; access revocation cancels dependent pending work and claim/state publication; forget additionally removes managed payloads/derivatives.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: transition invariants connected to the actual commit path.",
@@ -1290,6 +1304,11 @@
       "trusted_boundaries": [
         "TB-03",
         "TB-04"
+      ],
+      "required_children": [
+        "sqlite-execution-observer",
+        "mcp-connector-workflow",
+        "catalogue-toolchain-artifacts"
       ]
     },
     {
@@ -1319,7 +1338,8 @@
         "Sensor ingestion records event/receipt/poll clocks, deduplication identity, raw payload reference, per-observation units/calibration/quality versions and measured/simulated origin; specify duplicate/late/rejected events and window populations.",
         "Discovery/qualification/import preview uses recorded/mock sources unless live execution is authorized; credentials are references outside transferable packages and connector/schema identities are versioned.",
         "Source and derived-payload retention classes are carried into the managed store, including limits on replay after forgetting.",
-        "Acquisition and source-snapshot publication use native-authorized host commands and explicit observation versions; no poll reexecutes the application build, refreshes old event time or bypasses current retirement authority."
+        "Acquisition and source-snapshot publication use native-authorized host commands and explicit observation versions; no poll reexecutes the application build, refreshes old event time or bypasses current retirement authority.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: reproducible fixture import and source-schema compatibility/loss tests, including v1 versus v2 distinctions.",
@@ -1352,6 +1372,10 @@
         "docs/review/domain-gaps.md",
         "docs/review/workbench-gaps.md",
         "docs/ARCHITECTURE_PROPOSAL.md (revision 2)"
+      ],
+      "required_children": [
+        "versioned-policy-evaluation",
+        "sqlite-execution-observer"
       ]
     },
     {
@@ -1386,7 +1410,8 @@
         "Publish updates through generated authority events and the single durable writer; retirement/current authority remains effective for old context/code pins and late worker results.",
         "Track managed derivatives conservatively and make forget/retain decisions visible for curated copies; restart does not recover revoked payloads from journals or artifacts.",
         "Packed runtime values and continuations are executable-generation-bound. Session-binding migration requires an admitted codec/representation bridge and atomic session revision; unmigratable bindings stay historical/unresolved, and matching native type names do not authorize casting old handles into a new bundle.",
-        "Replacement/retirement is not blanket revocation: preserve already running computations or historical retained-snapshot use when current permissions allow, while stopping new retired invocations/acquisition. Revocation and forgetting carry their stronger cancellation/removal policies explicitly."
+        "Replacement/retirement is not blanket revocation: preserve already running computations or historical retained-snapshot use when current permissions allow, while stopping new retired invocations/acquisition. Revocation and forgetting carry their stronger cancellation/removal policies explicitly.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: insert a competing row/add an absent row/change ranking/remove evidence/change assumptions and observe correct invalidation.",
@@ -1416,6 +1441,9 @@
         "docs/review/workbench-gaps.md",
         "docs/review/runtime-gaps.md",
         "docs/ARCHITECTURE_PROPOSAL.md (revision 2)"
+      ],
+      "required_children": [
+        "retained-typed-program-library"
       ]
     },
     {
@@ -1446,7 +1474,8 @@
         "Search may return inspectable tentative artifacts and empirical observations with exact obligations; a budget stop is not impossibility and successful samples do not license universal equivalence.",
         "External validation/observation workers and background activity remain under the same executor/resource authority as explicit actions.",
         "Search workers emit inert family certificates or bounded registered reconstruction recipes for receiver admission; arbitrary worker-source execution and serialized theorem handles are not proof transport.",
-        "Actions and typed plans use the resident compiled interpreter and generated authority transitions; candidate policy cannot directly modify the durable writer or non-rebinding native gate."
+        "Actions and typed plans use the resident compiled interpreter and generated authority transitions; candidate policy cannot directly modify the durable writer or non-rebinding native gate.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: soundness policy-independence/transition results connected to the scheduler acceptance path.",
@@ -1475,6 +1504,9 @@
         "docs/review/domain-gaps.md",
         "docs/review/runtime-gaps.md",
         "docs/ARCHITECTURE_PROPOSAL.md (revision 2)"
+      ],
+      "required_children": [
+        "adaptive-cross-capability-search"
       ]
     },
     {
@@ -1545,7 +1577,7 @@
         "var/native-scaffold/sessions/95fcfdd61e543422/attempts/c34771bb270946cf9cd8ef02c668f2dc/receipt.json",
         "var/native-scaffold/sessions/95fcfdd61e543422/attempts/496ca619cc5b46438c34c5cad9d794c1/receipt.json"
       ],
-      "notes": "Begin production host/store/protocol components from reviewed feasibility while registry/admission/state-effects interfaces mature. Unresolved dependencies intentionally remain visible: no completed integration or frozen competing interface is implied. Coordinate generated reducer/event serialization and native gate with their owners; exact batch critical section includes all state events, not revision/epoch alone. First consumer is package-intake inert source storage. Full task acceptance still requires all dependencies and native/lifecycle/deployment connections. Root current ManagedSources review found aggregate request budget TOCTOU and current-head scope allowing historical members; owner implementing transactional recheck and persisted exact manifest closure with negative tests. New managed consumer initial green is not full native Forget/recovery completion. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Managed worker resources co-owned: host registers resource under exact source read scope before copying and integrates monotone invalidation/Forget; effects owns bounded memory/scratch/worker release, native-development owns capture/verification inside registered lifetime. Add capture-vs-Forget interleaving and cleanup tests. Native assembly ownership transferred to assembly61 with explicit native files and test subtree, including metadata_frame.ML as the single generated carrier universe; host retains Scala protocol/store/resources. Current tokens-only/initial-only restore is not runtime-service completion. Canonical29 Scala sources compile; runtime stopped behind reflection wrapper, not a test pass. Host identified expected Unknown versus stored unknown fixture mismatch and added named root-cause output. Root found private artifact writes before recovery index transaction can orphan blobs: durable write intents before first write, transactional adoption and failure/restart cleanup required. Recovery arrays/Prepared/committed material require managed release; denial rows alone do not establish StorageErased. Full nonempty native restart remains open. Root read actual8 runtimegroups passed including intake26/ManagedDraft6/resources; overallfailed at NativeBuildInputs cleanup. Later durable artifact staging/owned recovery buffers are new untested source. Restored private context leases shared across kernel/math consumers must survive descriptor release; poisoned post-identity-install restore requires fresh resident process. Latest new ownership snapshot f46454f1b2b24fe8a7c38ba3bb8cb6fd failed Scala compilation at recovery payload Some/Option inference; no runtime tests ran. D41 durable disjoint-range replenishment on the same allocator and atomic per-registration ID bundles are required for sustained growth beyond initial lease. Restore transport/commit limits need correspondence (native executable1MiB versus host16MiB; checkpointframe versus32MiB store cap). Root requested explicit startup-exclusive contract or bounded governed outside-lock transfer; withMaterial currently holds store monitor over synchronous chunk exchanges.\n2026-10-15 restart: canonical29 compile after written 1MiB cap/startup-exclusive restore/buffer fixes. Host owns bounded draft-list producer for authoring61 and actual public launcher/jar packaging for deployment61 after current compile; these missing producers are implementation, not optional future qualification.\nRoot read 5e53843b82304745982bf8ee56bf33df stable passed25.532s receipt and all9 Scala group markers. Current host baseline accepted at scoped component level. Actual resident/nonempty restart/Forget remains open. Bounded managed draft listing now written for authoring; launcher producer pending finite snapshot release.\nRoot review found lost begin/finish/accept reply ownership races in new NativeBuildIngress; host implementing exact inert upload nonce, offer/accept/cancel arbitration, idempotent discard/accept and retained unresolved cleanup with assembly/builder. Shared host e2e5 compilation failed Thread lambda before tests; no new host pass. Root D43 decision records required protocol. Foundation/service ca7 capture now running with unique session directories.\nRoot reviewed stable b93cd9a7497241e0a4ebff09536111ee twelve host groups including producer release/retry and70 capacity cycles; native artifact-ack consumer remains under migration. Snapshot helper passed but root found file-count guard after full traversal allocation; owner fixed bounded iterator and queued focused recheck. Full UI producer42a50a609b0246c2afe3e7e6eb6157d5 passed, immutable archive preserved before D43 edits; this alone does not qualify installed native launch.\nRoot reviewed c34771bb270946cf9cd8ef02c668f2dc bounded snapshot helper PASS and current3sourcehashes. File-count check now bounds traversal before materialization; oversized tree, invalid limits, active writer, links/orphan owners and original preservation checked. Actual protected cross-generation consumer is separate.\nMinimal descriptor producer6b8c compiled; actual fresh initial-CLASSPATH function registration15440246 passed per steward, unblocking native Build restart fixture. Full current D43 host remains unqualified. SearchIngress.scala exact ownership transferred to search_consumer61; shared protocol/writer remains host-owned.\nD59 exact closed DomainRequest/RuntimeRefinement output role pairs agreed; host source pending compile. D43 BuildDiagnostic source association/status source implemented but native producer remains required.\nRoot reviewed stable496ca619cc5b46438c34c5cad9d794c1 (23.429s), all12 actual host groups passed; current captured hashes match after owner held subsequent Conversation draft outside shared source. D43 roles/guarded ingress/ack producer release/Build status and governed diagnostic source callback compile; native D43 producer and actual resident composition remain required. Release retry exhaustion currently stalls queue; scoped per-owner visible retry/sibling-progress repair assigned after commit.",
+      "notes": "Begin production host/store/protocol components from reviewed feasibility while registry/admission/state-effects interfaces mature. Unresolved dependencies intentionally remain visible: no completed integration or frozen competing interface is implied. Coordinate generated reducer/event serialization and native gate with their owners; exact batch critical section includes all state events, not revision/epoch alone. First consumer is package-intake inert source storage. Full task acceptance still requires all dependencies and native/lifecycle/deployment connections. Root current ManagedSources review found aggregate request budget TOCTOU and current-head scope allowing historical members; owner implementing transactional recheck and persisted exact manifest closure with negative tests. New managed consumer initial green is not full native Forget/recovery completion. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Managed worker resources co-owned: host registers resource under exact source read scope before copying and integrates monotone invalidation/Forget; effects owns bounded memory/scratch/worker release, native-development owns capture/verification inside registered lifetime. Add capture-vs-Forget interleaving and cleanup tests. Native assembly ownership transferred to assembly61 with explicit native files and test subtree, including metadata_frame.ML as the single generated carrier universe; host retains Scala protocol/store/resources. Current tokens-only/initial-only restore is not runtime-service completion. Canonical29 Scala sources compile; runtime stopped behind reflection wrapper, not a test pass. Host identified expected Unknown versus stored unknown fixture mismatch and added named root-cause output. Root found private artifact writes before recovery index transaction can orphan blobs: durable write intents before first write, transactional adoption and failure/restart cleanup required. Recovery arrays/Prepared/committed material require managed release; denial rows alone do not establish StorageErased. Full nonempty native restart remains open. Root read actual8 runtimegroups passed including intake26/ManagedDraft6/resources; overallfailed at NativeBuildInputs cleanup. Later durable artifact staging/owned recovery buffers are new untested source. Restored private context leases shared across kernel/math consumers must survive descriptor release; poisoned post-identity-install restore requires fresh resident process. Latest new ownership snapshot f46454f1b2b24fe8a7c38ba3bb8cb6fd failed Scala compilation at recovery payload Some/Option inference; no runtime tests ran. D41 durable disjoint-range replenishment on the same allocator and atomic per-registration ID bundles are required for sustained growth beyond initial lease. Restore transport/commit limits need correspondence (native executable1MiB versus host16MiB; checkpointframe versus32MiB store cap). Root requested explicit startup-exclusive contract or bounded governed outside-lock transfer; withMaterial currently holds store monitor over synchronous chunk exchanges.\n2026-10-15 restart: canonical29 compile after written 1MiB cap/startup-exclusive restore/buffer fixes. Host owns bounded draft-list producer for authoring61 and actual public launcher/jar packaging for deployment61 after current compile; these missing producers are implementation, not optional future qualification.\nRoot read 5e53843b82304745982bf8ee56bf33df stable passed25.532s receipt and all9 Scala group markers. Current host baseline accepted at scoped component level. Actual resident/nonempty restart/Forget remains open. Bounded managed draft listing now written for authoring; launcher producer pending finite snapshot release.\nRoot review found lost begin/finish/accept reply ownership races in new NativeBuildIngress; host implementing exact inert upload nonce, offer/accept/cancel arbitration, idempotent discard/accept and retained unresolved cleanup with assembly/builder. Shared host e2e5 compilation failed Thread lambda before tests; no new host pass. Root D43 decision records required protocol. Foundation/service ca7 capture now running with unique session directories.\nRoot reviewed stable b93cd9a7497241e0a4ebff09536111ee twelve host groups including producer release/retry and70 capacity cycles; native artifact-ack consumer remains under migration. Snapshot helper passed but root found file-count guard after full traversal allocation; owner fixed bounded iterator and queued focused recheck. Full UI producer42a50a609b0246c2afe3e7e6eb6157d5 passed, immutable archive preserved before D43 edits; this alone does not qualify installed native launch.\nRoot reviewed c34771bb270946cf9cd8ef02c668f2dc bounded snapshot helper PASS and current3sourcehashes. File-count check now bounds traversal before materialization; oversized tree, invalid limits, active writer, links/orphan owners and original preservation checked. Actual protected cross-generation consumer is separate.\nMinimal descriptor producer6b8c compiled; actual fresh initial-CLASSPATH function registration15440246 passed per steward, unblocking native Build restart fixture. Full current D43 host remains unqualified. SearchIngress.scala exact ownership transferred to search_consumer61; shared protocol/writer remains host-owned.\nD59 exact closed DomainRequest/RuntimeRefinement output role pairs agreed; host source pending compile. D43 BuildDiagnostic source association/status source implemented but native producer remains required.\nRoot reviewed stable496ca619cc5b46438c34c5cad9d794c1 (23.429s), all12 actual host groups passed; current captured hashes match after owner held subsequent Conversation draft outside shared source. D43 roles/guarded ingress/ack producer release/Build status and governed diagnostic source callback compile; native D43 producer and actual resident composition remain required. Release retry exhaustion currently stalls queue; scoped per-owner visible retry/sibling-progress repair assigned after commit.\n2026-10-16 integration review: Owner/steward report host13 passed35da1f including bounded per-entry release queue, abstract recovery requirements and facade compilation; root full receipt review remains pending. Approved durable Build source binding is a new subsequent migration, not covered by that result.",
       "contracts": [
         "C01",
         "C02",
@@ -1670,7 +1702,8 @@
         "Canonical editable semantics are .thy sources containing family recipe commands plus preserved expert HOL blocks; forms apply source-preserving patches against a known revision. Generated declarations are inspectable derivatives, not a second editable truth.",
         "Represent development package, immutable release, selected deployment and private workspace separately; descriptors index native objects without manufacturing proof authority.",
         "Oracle7 intake translates known patterns into parameterized recipe instances while preserving original materials/provenance; arbitrary expert HOL remains intact even where approachable forms cannot round-trip it.",
-        "Classify package changes by growth cost tier so reader/example/ranking updates and plans over existing operations do not trigger an executable rebuild; new kernel/carrier/code setup does."
+        "Classify package changes by growth cost tier so reader/example/ranking updates and plans over existing operations do not trigger an executable rebuild; new kernel/carrier/code setup does.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: native/approachable-authoring round trips, dependency conflicts, generated-file ownership and reproducible build checks.",
@@ -1706,6 +1739,9 @@
         "docs/review/workbench-gaps.md",
         "docs/review/runtime-gaps.md",
         "docs/ARCHITECTURE_PROPOSAL.md (revision 2)"
+      ],
+      "required_children": [
+        "conservative-type-development"
       ]
     },
     {
@@ -1740,7 +1776,8 @@
         "Expose the initial gap-journal, retention/expiry and explanation/export workflow operations selected by the interaction design, with Film/code-experimentation scope decisions visible rather than silently omitted.",
         "Expose the runtime legacy-intake operations and migration diagnostics for Oracle7 manifests/cards/panels/scorers/source references, including preserved originals and explicitly unresolved custom code.",
         "Client and CLI use shared native-backed canonical-source operations; form edits patch .thy recipes at a known revision while expert blocks remain intact. No browser-side alternate acceptance policy or deployed Python semantic server supplies meaning.",
-        "Display actual versioned protocol outcomes only after the appropriate native/durable acknowledgement; private workspace changes, immutable releases and deployments are not conflated."
+        "Display actual versioned protocol outcomes only after the appropriate native/durable acknowledgement; private workspace changes, immutable releases and deployments are not conflated.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: UI/CLI conformance against real package/runtime editing, inspection, basic run and cancellation handlers.",
@@ -1750,7 +1787,7 @@
         "Target evidence: form/native edit conflict, generated-declaration inspection, interrupted durable save and data-only update show the same canonical source/state through UI and CLI."
       ],
       "evidence": [],
-      "notes": "2026-10-15 breadth restart: First finite batch: shared Scala Workbench service/CLI/local browser over actual WorkspaceStore, ManagedSources, ManagedDrafts and Intake. Real package list/import/inspect/edit with original-byte diagnostics and conflicts. Host bounded draft-list API/launch ownership are actual missing producers; host61 owns them after current compile. No seeded package state or fake run controls.\nRoot reviewed authoring14 actual HTTP/CLI source fixture and 23 matching archived inputs. Storage/edit workflow passes; authoring61 resumed for actual immutable NativeBuildInputs -> D43 candidate build -> diagnostics/restart inspect consumer, not fake activation.\nCurrent wide product dispatch: Actual shared-store RuntimeMain --workbench, Browser/CLI execution and exact durable lifecycle receipts implemented; source-only authoring passed cf63d500. New native routing/inspection consumer awaits actual rebuilt producer and resident HTTP check.\nReviewable native-build repair remains required: actual Build_Failure phase and original source span when available, protected captured revision/path mapping, explicit Repair.Proposal and normal revalidation. Numeric source IDs cannot substitute managed revision hashes. Current routing alternatives lack descriptive previews for future multi-family ambiguity.\nRoot committed tested managed source client e11d462. Current finite Scala checkpoint012b2a2987b94f449337a51985bd130d passes actual HTTP migration formula/obligations, consecutive edits, CLI source/reopen and compiled redirect behavior. Actual native browser run/redirect/inspection/Forget remains pending new service heap.\nRenewed product consumer: bookmarkable package workspace and actual PackageUpdates.Consumers.affected projection through managed source descriptors to Browser/CLI. Package declaration impact is distinct from protected runtime artifact closure; new HTTP tests await steward. No dead Build controls while status/source binding absent.\nRoot reviewed ba9d4813388f4a43a9a7467c3c7907f0 stablePASS21.288s actual HTTP/bookmarks/source review/impact/edit/reinspect/CLI and diagnostics. Captured PackageImpact subsequently repaired expanded ambiguous-provider edge allocation and repeated path traversal; follow-up composition check required before current-source qualification.",
+      "notes": "2026-10-15 breadth restart: First finite batch: shared Scala Workbench service/CLI/local browser over actual WorkspaceStore, ManagedSources, ManagedDrafts and Intake. Real package list/import/inspect/edit with original-byte diagnostics and conflicts. Host bounded draft-list API/launch ownership are actual missing producers; host61 owns them after current compile. No seeded package state or fake run controls.\nRoot reviewed authoring14 actual HTTP/CLI source fixture and 23 matching archived inputs. Storage/edit workflow passes; authoring61 resumed for actual immutable NativeBuildInputs -> D43 candidate build -> diagnostics/restart inspect consumer, not fake activation.\nCurrent wide product dispatch: Actual shared-store RuntimeMain --workbench, Browser/CLI execution and exact durable lifecycle receipts implemented; source-only authoring passed cf63d500. New native routing/inspection consumer awaits actual rebuilt producer and resident HTTP check.\nReviewable native-build repair remains required: actual Build_Failure phase and original source span when available, protected captured revision/path mapping, explicit Repair.Proposal and normal revalidation. Numeric source IDs cannot substitute managed revision hashes. Current routing alternatives lack descriptive previews for future multi-family ambiguity.\nRoot committed tested managed source client e11d462. Current finite Scala checkpoint012b2a2987b94f449337a51985bd130d passes actual HTTP migration formula/obligations, consecutive edits, CLI source/reopen and compiled redirect behavior. Actual native browser run/redirect/inspection/Forget remains pending new service heap.\nRenewed product consumer: bookmarkable package workspace and actual PackageUpdates.Consumers.affected projection through managed source descriptors to Browser/CLI. Package declaration impact is distinct from protected runtime artifact closure; new HTTP tests await steward. No dead Build controls while status/source binding absent.\nRoot reviewed ba9d4813388f4a43a9a7467c3c7907f0 stablePASS21.288s actual HTTP/bookmarks/source review/impact/edit/reinspect/CLI and diagnostics. Captured PackageImpact subsequently repaired expanded ambiguous-provider edge allocation and repeated path traversal; follow-up composition check required before current-source qualification.\n2026-10-16 integration review: Source declaration impact actual CLI/browser and guarded diagnostic scripts passed in aefbaca; aggregate remained failed at separate retained fixture. Corrected bounded fixture separately passed8b947. This does not qualify runtime artifact/negative/ranking dependency impact or native Build-source association.",
       "contracts": [
         "C01",
         "C03",
@@ -1777,6 +1814,9 @@
       ],
       "trusted_boundaries": [
         "TB-05"
+      ],
+      "required_children": [
+        "mcp-connector-workflow"
       ]
     },
     {
@@ -1880,7 +1920,7 @@
         "Target evidence: retain a typed value/continuation across bundle replacement; reject cross-generation handle reuse, accept only an admitted atomic migration, and preserve historical/unresolved state when migration fails."
       ],
       "evidence": [],
-      "notes": "Production finite-bundle owner assigned after passing finite-linkage Base and approved-reference transport probe. Start real generated bundle/consumer association alongside registry/admission co-review; their incomplete gates and representative performance obligations remain explicit. Preserve optional generic proof transport investigation separately; no hardcoded probe packet as final platform universe.\nCurrent resumed finite batch: linkage61 owns closed typed relation operation through source admission/RI/kernel and actual relations_facts61 adapter, including coordinated src/isabelle/admission/source/**. No raw batch getter or caller completeness assertion as world proof.",
+      "notes": "Production finite-bundle owner assigned after passing finite-linkage Base and approved-reference transport probe. Start real generated bundle/consumer association alongside registry/admission co-review; their incomplete gates and representative performance obligations remain explicit. Preserve optional generic proof transport investigation separately; no hardcoded probe packet as final platform universe.\nCurrent resumed finite batch: linkage61 owns closed typed relation operation through source admission/RI/kernel and actual relations_facts61 adapter, including coordinated src/isabelle/admission/source/**. No raw batch getter or caller completeness assertion as world proof.\n2026-10-16 integration review: Source_Window classification code equation and SourceSemantics/ExecutionCore/SourcePlans/RowPlans passed as prefixes of e21f18; actual source row code reflection fails distinct generated nat carriers. Shared foundational reflection is the repair, no casts or duplicate semantic carrier.",
       "contracts": [
         "C02",
         "C04"
@@ -2043,7 +2083,8 @@
         "Own concrete semantic-profile subfamilies for affine/logarithmic/framed/calendar quantities, encodings and executable syntax, exact finite probability/counting/statistics, and scoped policy/physical-model evaluation as supported by classified source behavior.",
         "For external-language behavior, distinguish formally supported fragments from version/configuration-pinned observations of an actual engine invocation; its observer implementation still needs a genuine bridge and controlled executor.",
         "Preserve structured collections/NULL/blob, multimodes, symbolic parameters, rational probabilities, vectors and checked/unresolved policy conditions through shared codecs.",
-        "Finite-model probabilities, empirical estimates, heuristic scores and world assertions are distinct; no obligation to implement general Bayesian inference or all external-language semantics is inferred."
+        "Finite-model probabilities, empirical estimates, heuristic scores and world assertions are distinct; no obligation to implement general Bayesian inference or all external-language semantics is inferred.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: per-family intended-contract/negative cases, executable bridge checks and cross-capability compositions.",
@@ -2052,7 +2093,7 @@
         "Proposed model/profile cases: continuous EOQ optimum versus integer policy, temperature point/delta, dB references, relative-angle frame, normative rounding and incomplete cooling-rule conditions."
       ],
       "evidence": [],
-      "notes": "Broad parent gate; split by actual operation families, preserving the denominator and gate ID.\n2026-10-15 breadth restart: First finite batch: source-backed units-affine-exact profile (units/v2/v3/v3-r2) and springs Hooke-law composition; separate linear units, affine temperature points and differences; typed_plan_bundle consumer and actual generated kernel/refinement. Resident family registration is the explicit next shared consumer, not waived.\nRoot reviewed exact quantity/spring/plan theorems and example tests, matching all seven core/example source hashes in failed-overall bundle attempt6d3373be. Domains and Domain_Checks explicitly finished successfully. Core checkpoint excludes unqualified bundle/service; actual model ownership and resident consumer remain open.\nSource-quantity bridge subdirectory transferred to capability_integration61; domain owner resumed conditional service/display and actual fixed-family integration. RefinedExecution evidence must not be described as a per-answer kernel theorem.",
+      "notes": "Broad parent gate; split by actual operation families, preserving the denominator and gate ID.\n2026-10-15 breadth restart: First finite batch: source-backed units-affine-exact profile (units/v2/v3/v3-r2) and springs Hooke-law composition; separate linear units, affine temperature points and differences; typed_plan_bundle consumer and actual generated kernel/refinement. Resident family registration is the explicit next shared consumer, not waived.\nRoot reviewed exact quantity/spring/plan theorems and example tests, matching all seven core/example source hashes in failed-overall bundle attempt6d3373be. Domains and Domain_Checks explicitly finished successfully. Core checkpoint excludes unqualified bundle/service; actual model ownership and resident consumer remain open.\nSource-quantity bridge subdirectory transferred to capability_integration61; domain owner resumed conditional service/display and actual fixed-family integration. RefinedExecution evidence must not be described as a per-answer kernel theorem.\n2026-10-16 integration review: DomainBundle actual81fe pass reported; source/service/display/recovery and source-quantity resident integration still pending. Explicit breadth children now enumerate formerly hidden untouched requirements.",
       "contracts": [
         "C01",
         "C02",
@@ -2071,6 +2112,13 @@
         "G03: docs/review/PREIMPLEMENTATION.md",
         "G06: docs/review/PREIMPLEMENTATION.md",
         "docs/review/domain-gaps.md"
+      ],
+      "required_children": [
+        "finite-probability-statistics",
+        "literal-format-calendar-operations",
+        "bounded-transcendental-models",
+        "versioned-policy-evaluation",
+        "sqlite-execution-observer"
       ]
     },
     {
@@ -2100,7 +2148,8 @@
         "Safe structured parsing replaces unchecked evaluation; solver answers carry adequate witnesses/conditions.",
         "Repair reproduced defects against intended contracts while preserving valid capability coverage.",
         "Connect exact rational, symbolic expression/parameter and approximate-display profiles to their native codecs; antiderivative constants and branch/domain conditions cannot exist only in prose.",
-        "Preserve witness, complete-solution/finite-search and optimum/impossibility scope in solver results rather than promoting a returned candidate into a stronger claim."
+        "Preserve witness, complete-solution/finite-search and optimum/impossibility scope in solver results rather than promoting a returned candidate into a stronger claim.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: sqrt-negative, NaN, division, high-precision equivalence, interval completeness and parser-side-effect regressions.",
@@ -2126,6 +2175,10 @@
         "G02: docs/review/PREIMPLEMENTATION.md",
         "G03: docs/review/PREIMPLEMENTATION.md",
         "docs/review/domain-gaps.md"
+      ],
+      "required_children": [
+        "finite-probability-statistics",
+        "bounded-transcendental-models"
       ]
     },
     {
@@ -2216,7 +2269,8 @@
         "Background jobs have resource owners and restart/removal semantics; feedback proposes versioned routing changes and requalification without publishing unmeasured behavior early.",
         "Retired/expired readers and deleted private data remain unavailable through follow-ups, cached objects and restored sessions.",
         "Connector adapters implement actual intent/attempt/lease/outcome/reconciliation contracts at the host executor boundary, including acquisition/qualification/export; source observations and external effects remain distinct.",
-        "A remote side effect may remain unknown after a crash; retries follow that executor real idempotency/reconciliation semantics rather than a platform-wide exactly-once fiction."
+        "A remote side effect may remain unknown after a crash; retries follow that executor real idempotency/reconciliation semantics rather than a platform-wide exactly-once fiction.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: local mock connector conformance, stale readings, session isolation, idempotent retries and interrupted actions.",
@@ -2250,6 +2304,10 @@
       ],
       "trusted_boundaries": [
         "TB-04"
+      ],
+      "required_children": [
+        "warehouse-site-workflow",
+        "mcp-connector-workflow"
       ]
     },
     {
@@ -2282,7 +2340,8 @@
         "Implement versioned positive precedence, addressed personal-source routes, unresolved readings and scoped veto/discharge policy; neither universal core-first routing nor indiscriminate fallback matches the required semantics.",
         "Dependent multipart requests share explicit intermediate state and retain per-part outcome/dependencies; final answer arbitration precedes committing adopted conversation deltas.",
         "Preserve original literals/source maps, exact claim kind/scope, collection completeness and tentative artifact lifecycle during rendering; help/instruction/reference speech acts remain distinct from world claims.",
-        "Recall/restoration obey retirement/private-data rules and preserve historical status without re-executing questions or adopting an outer-guard-withheld answer."
+        "Recall/restoration obey retirement/private-data rules and preserve historical status without re-executing questions or adopting an outer-guard-withheld answer.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: negative-square-root misrouting, numeric-document fallback, ambiguous aliases, context changes and contradictory candidates.",
@@ -2319,6 +2378,9 @@
       ],
       "trusted_boundaries": [
         "TB-05"
+      ],
+      "required_children": [
+        "warehouse-site-workflow"
       ]
     },
     {
@@ -2354,7 +2416,8 @@
         "Nonpublishing evaluation/benchmark runs isolate both in-memory and persistent learned state. Retained objects declare request/session/global owner scope, exact identity/dependencies and activation authority; disabling disk writes alone is not isolation.",
         "Restore retained candidates with recorded evidence and scope rather than admitting them by name/import. Language/toolchain choice, emitted-artifact delivery and missing-toolchain/timeout/mismatch distinctions remain covered for the three original mechanisms.",
         "Implement the five growth tiers concretely: data/observations/configuration reuse family kernels; reifiable declarations reuse bundle under controlled native lineage; plans use the compiled interpreter; hot plans optionally specialize; new carrier/kernel/foreign binding/code setup rebuilds/qualifies an affected bundle.",
-        "Ordinary learning, source observations and retained plans do not rebuild the application or mutate code setup invisibly. Accepted developments use canonical .thy recipes/source with explicit private workspace and publication state."
+        "Ordinary learning, source observations and retained plans do not rebuild the application or mutate code setup invisibly. Accepted developments use canonical .thy recipes/source with explicit private workspace and publication state.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: persist/reload/reuse each product category and admit a useful abstraction or implementation improvement.",
@@ -2389,6 +2452,12 @@
         "docs/review/workbench-gaps.md",
         "docs/review/runtime-gaps.md",
         "docs/ARCHITECTURE_PROPOSAL.md (revision 2)"
+      ],
+      "required_children": [
+        "catalogue-toolchain-artifacts",
+        "ordered-pipeline-synthesis",
+        "retained-typed-program-library",
+        "adaptive-cross-capability-search"
       ]
     },
     {
@@ -2419,7 +2488,8 @@
         "Substantive multi-step proof/search, retained growth and repair are usable through the actual client and engine; placeholder controls or fixed proof replay do not satisfy this gate.",
         "Implement the closed improvement loop from opt-in gap discovery and scoped decline diagnosis to editable examples/specification, candidate generation, qualification/admission, deployment and versioned feedback.",
         "Keep exact test observations and tentative ordinary-user code usable while showing unmet obligations; journal-derived blank answers never become ground truth.",
-        "Include author code experimentation and structured explanation/Film export in the explicit workflow disposition, preserving claim conditions and private-data boundaries; final open scope choices require a recorded decision."
+        "Include author code experimentation and structured explanation/Film export in the explicit workflow disposition, preserving claim conditions and private-data boundaries; final open scope choices require a recorded decision.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Target evidence: author workflows spanning failed contract, explanation, assisted repair, new abstraction and deployed reuse.",
@@ -2449,6 +2519,9 @@
         "G07: docs/review/PREIMPLEMENTATION.md",
         "G08: docs/review/PREIMPLEMENTATION.md",
         "docs/review/workbench-gaps.md"
+      ],
+      "required_children": [
+        "catalogue-toolchain-artifacts"
       ]
     },
     {
@@ -2602,7 +2675,19 @@
         "routing-dialogue",
         "synthesis-growth",
         "dependency-updates",
-        "known-regressions"
+        "known-regressions",
+        "finite-probability-statistics",
+        "literal-format-calendar-operations",
+        "bounded-transcendental-models",
+        "versioned-policy-evaluation",
+        "sqlite-execution-observer",
+        "warehouse-site-workflow",
+        "mcp-connector-workflow",
+        "catalogue-toolchain-artifacts",
+        "ordered-pipeline-synthesis",
+        "retained-typed-program-library",
+        "conservative-type-development",
+        "adaptive-cross-capability-search"
       ],
       "owner": "capability_integration61",
       "paths": [
@@ -3003,7 +3088,7 @@
         "var/deployment-workshop-check-5945df-slot1/result.json",
         "tests/deployment/evidence/standalone-aae0d7dd.json"
       ],
-      "notes": "Begin early developer rehearsal/tutorial work against actual authoring and installed interfaces while release dependencies remain open. Trace original package import through edit, diagnostics, admission, execution, restart and transfer; report absent joins to their owners. This is not recipient usability or clean-install completion.\nResumed actual installed specialist workshop using retained-identity/branch-review sources. Installed source CLI import/inspect/edit/reopen and browser Open pass; identity two-Save/reopen rehearsal still pending. Deployment will pin example assets so recipient does not need source checkout. Native build/admission remains required extension.\nCanonical installed identity import, two actual browser Saves and fresh CLI exact reopen passed5945df workshop result. This is developer source-workflow evidence; native build/admission and checkout-independent launcher remain required. Bundled examples now exist; no external recipient contacted.\nRoot reviewed corrected standalone actual2fd159 four-call PASS: installed shell outside checkout imported/reopened exact original source, executed licensed native sum and recovered same request8/provenance in fresh process. Native stderr clean, settings marker absent.27 verifier-parity cases passedf76c; root independently8shell spy cases passed and current5producer source pins match AAE archive. Source10.765/10.100s,native15.711/restart12.995s are invocation observations, not speedup. D43/new families/search/browser qualification remains separate; old installation not promoted. Compact evidence tests/deployment/evidence/standalone-aae0d7dd.json.",
+      "notes": "Begin early developer rehearsal/tutorial work against actual authoring and installed interfaces while release dependencies remain open. Trace original package import through edit, diagnostics, admission, execution, restart and transfer; report absent joins to their owners. This is not recipient usability or clean-install completion.\nResumed actual installed specialist workshop using retained-identity/branch-review sources. Installed source CLI import/inspect/edit/reopen and browser Open pass; identity two-Save/reopen rehearsal still pending. Deployment will pin example assets so recipient does not need source checkout. Native build/admission remains required extension.\nCanonical installed identity import, two actual browser Saves and fresh CLI exact reopen passed5945df workshop result. This is developer source-workflow evidence; native build/admission and checkout-independent launcher remain required. Bundled examples now exist; no external recipient contacted.\nRoot reviewed corrected standalone actual2fd159 four-call PASS: installed shell outside checkout imported/reopened exact original source, executed licensed native sum and recovered same request8/provenance in fresh process. Native stderr clean, settings marker absent.27 verifier-parity cases passedf76c; root independently8shell spy cases passed and current5producer source pins match AAE archive. Source10.765/10.100s,native15.711/restart12.995s are invocation observations, not speedup. D43/new families/search/browser qualification remains separate; old installation not promoted. Compact evidence tests/deployment/evidence/standalone-aae0d7dd.json.\n2026-10-16 integration review: Primary tutorial/reference updated to shipped standalone launcher and actual2fd159 source workshop. Independent recipient trial and complete edited-source admission/profile/export remain open.",
       "contracts": [
         "C01",
         "C02",
@@ -3120,7 +3205,8 @@
         "Actual declared definitions and proved theorems survive native receiver reconstruction/admission and connect to authoring, managed lifecycle, recovery and deployment build records.",
         "Conservative type/datatype/package developments require actual native witness and side-condition construction; unsupported cases remain explicit tracked work, never silently marked migrated.",
         "Arbitrary expert ML/plugins and new axioms remain separate explicit trust policies; process separation is not represented as filesystem/network isolation.",
-        "Immutable source/build/setup identities and native construction closure distinguish same-name different meanings and reject changed imports/sources/code; private context roots follow managed ownership and Forget."
+        "Immutable source/build/setup identities and native construction closure distinguish same-name different meanings and reject changed imports/sources/code; private context roots follow managed ownership and Forget.",
+        "Close the required_children named in this ledger as well as the remaining parent scope; splitting work does not narrow this gate."
       ],
       "checks": [
         "Actual complete .thy fixture with parameterized/nullary definitions and lemmas builds through controlled receiver and yields real accepted native evidence.",
@@ -3152,6 +3238,9 @@
         "TB-01",
         "TB-03",
         "TB-04"
+      ],
+      "required_children": [
+        "conservative-type-development"
       ]
     },
     {
@@ -3235,7 +3324,7 @@
       ],
       "owner": "mst_proof61",
       "paths": [
-        "src/families/graphs/Graph_MST_Optimality.thy",
+        "src/families/graphs/soundness/Graph_MST_Optimality.thy",
         "tests/families/graphs/mst/**"
       ],
       "deliverables": [
@@ -3352,7 +3441,7 @@
       "evidence": [
         "tests/deployment/evidence/standalone-aae0d7dd.json"
       ],
-      "notes": "Root assigned after actual workshop still required checkout tools/deploy/stage.py. Separate bootstrap JAR preserves application producer identities. Fresh invocation-owned settings home is being coordinated to avoid arbitrary existing state-home startup scripts. No standalone runtime acceptance yet.\nProducer6b8c and classload-origin passed, archive101a005f; actual verifier parityd0132b passed per steward. Candidate dea4b032 staged with exact D44 native/UI and owned temporary-home policy. Outside-checkout source/native restart trial running; not yet claimed passed.\nActual standalone101a trial: source import56.44s and exact reopen34.23s passed; native startup failed before authority because sanitized PATH omitted macOS sysctl directory. Native restart not reached. Owner repaired shell PATH; new archive/trial required. Costs are startup-inclusive observations, not performance qualification. Whole generation-container state guard also queued as shared startup-policy fix.\nCorrected producer add98cd qualified archiveaae0d7dd, staged candidate2fd159 with same native/UI bytes. Whole generation-container state guard and OS-derived USER/LOGNAME added; root independently25Pythondeploymenttests pass. Corrected native trial still pending. Optional attribution instrumentation scheduled after this trial, not a claimed speedup.\nRoot reviewed corrected standalone actual2fd159 four-call PASS: installed shell outside checkout imported/reopened exact original source, executed licensed native sum and recovered same request8/provenance in fresh process. Native stderr clean, settings marker absent.27 verifier-parity cases passedf76c; root independently8shell spy cases passed and current5producer source pins match AAE archive. Source10.765/10.100s,native15.711/restart12.995s are invocation observations, not speedup. D43/new families/search/browser qualification remains separate; old installation not promoted. Compact evidence tests/deployment/evidence/standalone-aae0d7dd.json.",
+      "notes": "Root assigned after actual workshop still required checkout tools/deploy/stage.py. Separate bootstrap JAR preserves application producer identities. Fresh invocation-owned settings home is being coordinated to avoid arbitrary existing state-home startup scripts. No standalone runtime acceptance yet.\nProducer6b8c and classload-origin passed, archive101a005f; actual verifier parityd0132b passed per steward. Candidate dea4b032 staged with exact D44 native/UI and owned temporary-home policy. Outside-checkout source/native restart trial running; not yet claimed passed.\nActual standalone101a trial: source import56.44s and exact reopen34.23s passed; native startup failed before authority because sanitized PATH omitted macOS sysctl directory. Native restart not reached. Owner repaired shell PATH; new archive/trial required. Costs are startup-inclusive observations, not performance qualification. Whole generation-container state guard also queued as shared startup-policy fix.\nCorrected producer add98cd qualified archiveaae0d7dd, staged candidate2fd159 with same native/UI bytes. Whole generation-container state guard and OS-derived USER/LOGNAME added; root independently25Pythondeploymenttests pass. Corrected native trial still pending. Optional attribution instrumentation scheduled after this trial, not a claimed speedup.\nRoot reviewed corrected standalone actual2fd159 four-call PASS: installed shell outside checkout imported/reopened exact original source, executed licensed native sum and recovered same request8/provenance in fresh process. Native stderr clean, settings marker absent.27 verifier-parity cases passedf76c; root independently8shell spy cases passed and current5producer source pins match AAE archive. Source10.765/10.100s,native15.711/restart12.995s are invocation observations, not speedup. D43/new families/search/browser qualification remains separate; old installation not promoted. Compact evidence tests/deployment/evidence/standalone-aae0d7dd.json.\n2026-10-16 integration review: Standalone 2fd159/AAE browser source workshop passed actual locate/import/Open/two revision Saves/normalclose/fresh CLI exact source reopen. Root read result and canonical evidence; source editing still does not admit native changes. Prior standalone code/evidence commit01cf979 confirmed pushed.",
       "contracts": [
         "C01",
         "C04",
@@ -3488,7 +3577,7 @@
       "checks": [
         "Two actual turns, nonempty restart, historical recall and expiry/Forget follow-up through host/workbench."
       ],
-      "notes": "Audit of actual Native_Service found request_session=None/session_views=[]; shared Scope currently only StateTimeUnused. New native leaf owner coordinates finite session/clock observation migration with assembly/authority and real recovery.",
+      "notes": "Audit of actual Native_Service found request_session=None/session_views=[]; shared Scope currently only StateTimeUnused. New native leaf owner coordinates finite session/clock observation migration with assembly/authority and real recovery.\n2026-10-16 integration review: Pure Observation_Pin and isolated protocol check7b8ef passed per steward; native session/adoption and deployed consumer remain unqualified.",
       "status": "active",
       "evidence": [],
       "contracts": [
@@ -3556,6 +3645,597 @@
         "project/DECISIONS.md",
         "docs/product/ACCEPTANCE.md",
         "docs/coverage/integration.md"
+      ]
+    },
+    {
+      "id": "finite-probability-statistics",
+      "title": "Implement exact finite probability and descriptive statistics",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "native-admission"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/domains/finite/**"
+      ],
+      "deliverables": [
+        "Shared finite populations, weighted rational distributions, counting/genetics cases and statistics through the typed plan and licensed result consumers."
+      ],
+      "acceptance": [
+        "Shared finite populations, weighted rational distributions, counting/genetics cases and statistics through the typed plan and licensed result consumers.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Replacement changes card probability; impossible die face is zero; allele case survives; sample/population variance differ; tied modes remain a collection; incomplete populations cannot support completeness claims."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "domain-families",
+        "mathematics-family"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "literal-format-calendar-operations",
+      "title": "Preserve literal bytes through format and calendar operations",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "interpretation-model"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/domains/formats/**"
+      ],
+      "deliverables": [
+        "Encoding, hashing, radix, JSON diagnostics and ISO date operations consume original literal owners and source maps, with explicit algorithm or engine-observation assurance."
+      ],
+      "acceptance": [
+        "Encoding, hashing, radix, JSON diagnostics and ISO date operations consume original literal owners and source maps, with explicit algorithm or engine-observation assurance.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Two spaces versus one change the hash; multiline JSON locations refer to original bytes; malformed UTF-8 and impossible dates remain distinct errors; code-looking payload is never executed."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "domain-families",
+        "interpretation-model"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "bounded-transcendental-models",
+      "title": "Provide error-bounded transcendental operations and model consumers",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "native-admission"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/mathematics/approximation/**"
+      ],
+      "deliverables": [
+        "Domain-checked exp/log/root computations with explicit approximation relations, reference-level quantities and conditional acoustics/decay/spring consumers."
+      ],
+      "acceptance": [
+        "Domain-checked exp/log/root computations with explicit approximation relations, reference-level quantities and conditional acoustics/decay/spring consumers.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Two 60 dB sources enclose approximately 63.0103 dB rather than 120; invalid log domains reject; spring period retains positive mass/stiffness and model premises; display never calls an enclosure exact."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "mathematics-family",
+        "domain-families"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "versioned-policy-evaluation",
+      "title": "Execute versioned rule tables with complete policy conditions",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "source-semantics"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/domains/policies/**"
+      ],
+      "deliverables": [
+        "Canonical versioned table/rule recipes and native evaluation connected to source provenance and conditional rendered results, initially AQI/coldchain/occupancy."
+      ],
+      "acceptance": [
+        "Canonical versioned table/rule recipes and native evaluation connected to source provenance and conditional rendered results, initially AQI/coldchain/occupancy.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Breakpoint/truncation and ceiling match the declared policy; cooling cannot pass with a missing or failed first-stage condition; absent rule version cannot silently select a default."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "domain-families",
+        "source-import"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "sqlite-execution-observer",
+      "title": "Integrate governed SQL execution and typed bounded observations",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "state-effects"
+      ],
+      "owner": null,
+      "paths": [
+        "src/connectors/sqlite/**"
+      ],
+      "deliverables": [
+        "Actual controlled SQLite setup/query invocation with exact bytes, engine/config pins, schema, cell types, ordering, bounded prefix and durable observation association."
+      ],
+      "acceptance": [
+        "Actual controlled SQLite setup/query invocation with exact bytes, engine/config pins, schema, cell types, ordering, bounded prefix and durable observation association.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: 21 rows under display limit20 yield explicit prefix; NULL/blob/REAL remain distinct; syntax/runtime/denied/budget failures differ; restart never reruns historical query."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "domain-families",
+        "state-effects",
+        "source-import"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "warehouse-site-workflow",
+      "title": "Deliver warehouse queries, reorder proposals and confirmation",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "conversation-workspace"
+      ],
+      "owner": null,
+      "paths": [
+        "src/families/stateful/warehouse/**"
+      ],
+      "deliverables": [
+        "Both original warehouse manifests through typed snapshot queries, freshness/context, session-owned proposal and confirmation artifact using shared authority."
+      ],
+      "acceptance": [
+        "Both original warehouse manifests through typed snapshot queries, freshness/context, session-owned proposal and confirmation artifact using shared authority.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Stale stock cannot authorize a current recommendation; cross-session confirmation rejects; restart retains proposal without replay; confirmation claims neither delivery nor inventory mutation."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "stateful-connectors",
+        "routing-dialogue"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "mcp-connector-workflow",
+      "title": "Deliver controlled MCP onboarding, qualification and invocation",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "workbench-audit",
+        "state-effects"
+      ],
+      "owner": null,
+      "paths": [
+        "src/connectors/mcp/**"
+      ],
+      "deliverables": [
+        "Configure/discover/select/preview/qualify/invoke/reconcile/retire via existing executor, credential references and client; use a fixed local mock service for qualification."
+      ],
+      "acceptance": [
+        "Configure/discover/select/preview/qualify/invoke/reconcile/retire via existing executor, credential references and client; use a fixed local mock service for qualification.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Discovery grants no call authority; effectful probe needs chosen authority; schema/config change invalidates preparation; handoff timeout remains unknown; retirement prevents late publication."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "stateful-connectors",
+        "state-effects",
+        "workspace-client"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "catalogue-toolchain-artifacts",
+      "title": "Restore catalogue synthesis and editable code/test artifacts",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "state-effects"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/growth/catalogue/**"
+      ],
+      "deliverables": [
+        "Original catalogue/task/language selection plus ordinary scratch code/test workflow through governed worker and retained exact artifact bytes."
+      ],
+      "acceptance": [
+        "Original catalogue/task/language selection plus ordinary scratch code/test workflow through governed worker and retained exact artifact bytes.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Missing compiler, compile/exit failure, timeout and output mismatch differ; delivered bytes equal checked bytes; examples do not discharge universal obligations or activate native capabilities."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "synthesis-growth",
+        "authoring-assistance",
+        "state-effects"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "ordered-pipeline-synthesis",
+      "title": "Restore ordered typed pipeline synthesis and emitted programs",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "plan-composition"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/growth/pipelines/**"
+      ],
+      "deliverables": [
+        "Original ordered operations/domain-selection proposal policy through typed plans, Python/JS emitters and governed differential observations."
+      ],
+      "acceptance": [
+        "Original ordered operations/domain-selection proposal policy through typed plans, Python/JS emitters and governed differential observations.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Descending-sort then take differs from reverse order; incompatible domains block; empty sample remains represented; emitter mismatch cannot pass; samples do not prove universal equivalence."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "synthesis-growth",
+        "plan-composition"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "retained-typed-program-library",
+      "title": "Complete bounded typed enumeration and durable program reuse",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "coverage-disposition",
+        "dependency-updates"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/growth/library/**"
+      ],
+      "deliverables": [
+        "Extend existing mathematical fragment into source-owned examples, bounded typed enumeration, artifact checks, separate candidate/library revisions and dependency-correct reuse."
+      ],
+      "acceptance": [
+        "Extend existing mathematical fragment into source-owned examples, bounded typed enumeration, artifact checks, separate candidate/library revisions and dependency-correct reuse.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Later sample separates constant and identity; session-local same names do not collide; nonpublishing evaluation changes no libraries; primitive change invalidates stale candidates."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "synthesis-growth",
+        "dependency-updates"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "conservative-type-development",
+      "title": "Admit conservative type developments through native construction",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "native-development"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/admission/development/types/**"
+      ],
+      "deliverables": [
+        "Controlled typedef begins the richer constructor portfolio: original source, actual nonempty witness, native candidate, admission and reconstruction; executable carriers require separate bundle qualification."
+      ],
+      "acceptance": [
+        "Controlled typedef begins the richer constructor portfolio: original source, actual nonempty witness, native candidate, admission and reconstruction; executable carriers require separate bundle qualification.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Wrapped type survives restart; empty representation/missing witness rejects; matching names cannot substitute different representation/evidence/code; worker axiom tables grant no extension authority."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "native-development",
+        "native-admission",
+        "package-lifecycle"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
+      ]
+    },
+    {
+      "id": "adaptive-cross-capability-search",
+      "title": "Connect adaptive cross-capability search to the modeled scheduler",
+      "area": "capability breadth",
+      "milestone": "P",
+      "status": "planned",
+      "depends_on": [
+        "deployed-search-consumer"
+      ],
+      "owner": null,
+      "paths": [
+        "src/isabelle/search/adaptive/**"
+      ],
+      "deliverables": [
+        "Managed cross-package retrieval, proof routes, concrete counterexamples and retained conjecture/refinement proposals using the existing worklist, charging and receiver admission."
+      ],
+      "acceptance": [
+        "Managed cross-package retrieval, proof routes, concrete counterexamples and retained conjecture/refinement proposals using the existing worklist, charging and receiver admission.",
+        "Carry the operation through existing admission/execution, structured result, lifecycle and author-facing consumers; a standalone component does not close this task."
+      ],
+      "checks": [
+        "Target evidence: Failed proof then actual counterexample then revised independently checked candidate; failure never becomes refutation; blockers survive routing; budget/cancel prevents late publication; actual scheduler links to modeled trace invariants."
+      ],
+      "evidence": [],
+      "notes": "Exposed by the 2026-10-16 whole-project review. Untouched breadth, except retained enumeration extends an existing partial fragment. Paths are tentative until scoped dispatch; source/semantics exploration may proceed against draft shared interfaces without claiming integration. Parent gates remain responsible for their additional scope.",
+      "contracts": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-02",
+        "ACC-05",
+        "ACC-08",
+        "ACC-15"
+      ],
+      "parent_gates": [
+        "strategy-engine",
+        "plan-composition",
+        "synthesis-growth"
+      ],
+      "design_inputs": [
+        "project/REVIEW.md",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/workbench/audit/README.md"
       ]
     }
   ],
@@ -3792,5 +4472,6 @@
       "target": "Checkout-independent installed specialist workshop/runtime with full integrity and smaller qualified dependencies",
       "next": "Preserve existing captured artifacts; launcher own startup/JAR qualification, headless candidate tool/runtime tests and paired actual phase measurements."
     }
-  ]
+  ],
+  "review": "project/REVIEW.md"
 }

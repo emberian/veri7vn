@@ -1,6 +1,6 @@
 # Project board
 
-Ledger updated: 2026-10-15.
+Ledger updated: 2026-10-16.
 
 Generated from the task ledger. Edit the ledger, then regenerate this view.
 
@@ -50,7 +50,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | authoring-assistance | Integrate assisted obligations, search and repair into authoring | authoring assistance | active | assistance_product61 | workspace-client, diagnostics-repair, strategy-engine, synthesis-growth |
 | refinement-backends | Deliver the justified efficient backend portfolio | refinement | active | refinement_product61 | staged-execution, plan-composition, performance-envelope |
 | deployment-builder | Build pinned native deployments with clean install and recovery | deployment | active | deployment_product61 | package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope |
-| family-integration | Close behavioral coverage and cross-family execution | integration | active | capability_integration61 | relation-family, facts-document-family, domain-families, mathematics-family, graph-family, stateful-connectors, routing-dialogue, synthesis-growth, dependency-updates, known-regressions |
+| family-integration | Close behavioral coverage and cross-family execution | integration | active | capability_integration61 | relation-family, facts-document-family, domain-families, mathematics-family, graph-family, stateful-connectors, routing-dialogue, synthesis-growth, dependency-updates, known-regressions, finite-probability-statistics, literal-format-calendar-operations, bounded-transcendental-models, versioned-policy-evaluation, sqlite-execution-observer, warehouse-site-workflow, mcp-connector-workflow, catalogue-toolchain-artifacts, ordered-pipeline-synthesis, retained-typed-program-library, conservative-type-development, adaptive-cross-capability-search |
 | workspace-integration | Integrate complete authoring, change and deployment workflows | integration | planned | — | workspace-client, authoring-assistance, diagnostics-repair, dependency-updates, deployment-builder, stateful-connectors, deployed-search-consumer, conversation-workspace, behavioral-candidate-evaluation |
 | proof-implementation-closure | Establish mandatory metatheory obligations and their runtime connections | assurance integration | active | assurance_consumers61 | family-integration, workspace-integration, refinement-backends |
 | performance-hardening | Meet measured whole-system performance and resource budgets | performance integration | planned | — | family-integration, workspace-integration, refinement-backends, performance-envelope |
@@ -66,10 +66,22 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | deployed-search-consumer | Connect native proof search to the deployed specialist workspace | deployed reasoning | active | search_consumer61 | strategy-engine, runtime-service, native-resident-assembly |
 | conversation-workspace | Restore conversations, attributed recall and expiry through native adoption | conversation lifecycle | active | conversation_product61 | routing-dialogue, runtime-service, native-resident-assembly |
 | behavioral-candidate-evaluation | Compare actual specialist candidates with the baseline before publication | candidate evaluation | active | behavioral_evaluation61 | dependency-updates, synthesis-growth, routing-dialogue, runtime-service |
+| finite-probability-statistics | Implement exact finite probability and descriptive statistics | capability breadth | planned | — | native-admission |
+| literal-format-calendar-operations | Preserve literal bytes through format and calendar operations | capability breadth | planned | — | interpretation-model |
+| bounded-transcendental-models | Provide error-bounded transcendental operations and model consumers | capability breadth | planned | — | native-admission |
+| versioned-policy-evaluation | Execute versioned rule tables with complete policy conditions | capability breadth | planned (dispatchable) | — | — |
+| sqlite-execution-observer | Integrate governed SQL execution and typed bounded observations | capability breadth | planned | — | state-effects |
+| warehouse-site-workflow | Deliver warehouse queries, reorder proposals and confirmation | capability breadth | planned | — | conversation-workspace |
+| mcp-connector-workflow | Deliver controlled MCP onboarding, qualification and invocation | capability breadth | planned | — | state-effects |
+| catalogue-toolchain-artifacts | Restore catalogue synthesis and editable code/test artifacts | capability breadth | planned | — | state-effects |
+| ordered-pipeline-synthesis | Restore ordered typed pipeline synthesis and emitted programs | capability breadth | planned | — | plan-composition |
+| retained-typed-program-library | Complete bounded typed enumeration and durable program reuse | capability breadth | planned | — | dependency-updates |
+| conservative-type-development | Admit conservative type developments through native construction | capability breadth | planned | — | native-development |
+| adaptive-cross-capability-search | Connect adaptive cross-capability search to the modeled scheduler | capability breadth | planned | — | deployed-search-consumer |
 
 ## Ready to dispatch
 
-None.
+- **versioned-policy-evaluation** — Execute versioned rule tables with complete policy conditions
 
 ## Coordination warnings
 
@@ -82,7 +94,7 @@ None.
 - possible active edit overlap: runtime-service (tests/runtime/service/*.scala) / diagnostics-repair (tests/runtime/service/inspection.scala)
 - possible active edit overlap: runtime-service (src/runtime/service/*.scala) / deployed-search-consumer (src/runtime/service/SearchIngress.scala)
 - possible active edit overlap: domain-families (src/families/domains/**) / family-integration (src/families/domains/source_bridge/**)
-- possible active edit overlap: graph-family (src/families/graphs/**) / graph-mst-optimality (src/families/graphs/Graph_MST_Optimality.thy)
+- possible active edit overlap: graph-family (src/families/graphs/**) / graph-mst-optimality (src/families/graphs/soundness/Graph_MST_Optimality.thy)
 - possible active edit overlap: graph-family (tests/families/graphs/**) / graph-mst-optimality (tests/families/graphs/mst/**)
 - possible active edit overlap: deployment-builder (tests/deployment/**) / installed-recipient-launcher (tests/deployment/launcher/**)
 - possible active edit overlap: deployment-builder (tools/deploy/**) / headless-runtime-closure (tools/deploy/runtime_closure.py)
@@ -110,7 +122,7 @@ None.
 - authoring-assistance: status active with unresolved dependencies: workspace-client, diagnostics-repair, strategy-engine, synthesis-growth
 - refinement-backends: status active with unresolved dependencies: staged-execution, plan-composition, performance-envelope
 - deployment-builder: status active with unresolved dependencies: package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope
-- family-integration: status active with unresolved dependencies: relation-family, facts-document-family, domain-families, mathematics-family, graph-family, stateful-connectors, routing-dialogue, synthesis-growth, dependency-updates, known-regressions
+- family-integration: status active with unresolved dependencies: relation-family, facts-document-family, domain-families, mathematics-family, graph-family, stateful-connectors, routing-dialogue, synthesis-growth, dependency-updates, known-regressions, finite-probability-statistics, literal-format-calendar-operations, bounded-transcendental-models, versioned-policy-evaluation, sqlite-execution-observer, warehouse-site-workflow, mcp-connector-workflow, catalogue-toolchain-artifacts, ordered-pipeline-synthesis, retained-typed-program-library, conservative-type-development, adaptive-cross-capability-search
 - proof-implementation-closure: status active with unresolved dependencies: family-integration, workspace-integration, refinement-backends
 - recipient-handoff: status active with unresolved dependencies: release-integration
 - native-recovery: status active with unresolved dependencies: native-registry, native-admission, operational-model
