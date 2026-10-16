@@ -239,8 +239,8 @@ fun math_names (p:math_names) =
     (n (#profile_id p)) (n (#step_id p)) (n (#requirement_id p))
     (n (#requirement_claim_id p)) (n (#parameter_id p)) (n (#input_identity p))
     (n (#output_slot_id p)) (n (#executable_generation p)) (n (#semantic_generation p)) end;
-fun math_input_frame names deps=encode_event
-  (@{code service_math_input} (math_names names) (map nat deps));
+fun math_input_frame names=encode_event
+  (@{code service_math_input} (math_names names));
 fun math_parameter_frame names deps=encode_event
   (@{code service_math_parameter} (math_names names) (map nat deps));
 fun math_reserve_frame names prestate fuel deps=encode_event
@@ -270,6 +270,18 @@ fun lifecycle_frame action=encode_event (case action of
   | RetireSource id=> @{code RetireSource} (nat id)
   | Revoke id=> @{code Revoke} (nat id)
   | Forget id=> @{code Forget} (nat id));
+(* Supplied only by the fixed native gate. Each root is recovered from an
+   exact current registered row, never from a caller's root list. *)
+fun current_event_frame state frame registration_groups =
+  (case decode_event frame of SOME (@{code Forget} primary)=>
+    let fun registration bytes=(case decode_event bytes of
+          SOME (event as @{code RegisterManaged} _)=>event
+        | _=>error "Native support tuple is not a managed registration");
+      val groups=map (map registration) registration_groups;
+      val event=(case @{code service_forget_registered_support_event} state primary groups of
+        SOME value=>value | NONE=>error "Native support retirement closure unavailable")
+    in encode_event event end
+  | _=>frame);
 datatype recovery_view=KernelAssociation of string |
   MathRequestAssociation of {names:math_names,dependencies:IntInf.int list,managed:IntInf.int list,bridge:math_bridge_names,cost:IntInf.int} |
   MathOutputAssociation of {evidence:string,publication:string} | NoAssociation;
@@ -288,6 +300,9 @@ fun required_associations state:recovery_identity list=
     (@{code required_native_evidence}state);
 fun request_cancelled state id=exists(fn request=>integer(@{code request_id}request)=id andalso
   @{code request_cancelled}request)(@{code requests}state);
+fun request_unavailable state id=exists(fn request=>integer(@{code request_id}request)=id andalso
+  (@{code request_cancelled}request orelse not(@{code accessible}state
+    (@{code request_id}request :: @{code request_dependencies}request))))(@{code requests}state);
 fun execution_ids state request=map (integer o @{code execution_id})
   (@{code service_execution_for} state (nat request));
 fun revoked_ids state=map integer (@{code revoked_objects} state);
@@ -298,11 +313,10 @@ datatype invalidations=NoInvalidations | Revoked of IntInf.int list | Forgotten 
 fun invalidation_ids NoInvalidations=[] | invalidation_ids(Revoked ids)=ids
   | invalidation_ids(Forgotten ids)=ids;
 fun invalidation_delta previous next event=
-  let fun delta before_ids after_ids=map integer(@{code indexed_new_ids} before_ids after_ids);
-    val result=(case event of
-      @{code Revoke} _=>Revoked(delta (@{code revoked_objects} previous)(@{code revoked_objects} next))
-    | @{code Forget} _=>Forgotten(delta (@{code forgotten_objects} previous)(@{code forgotten_objects} next))
-    | @{code ForgetRoots} _=>Forgotten(delta (@{code forgotten_objects} previous)(@{code forgotten_objects} next))
+  let val result=(case event of
+      @{code Revoke} _=>Revoked(map integer(@{code new_revoked_objects} previous next))
+    | @{code Forget} _=>Forgotten(map integer(@{code new_forgotten_objects} previous next))
+    | @{code ForgetRoots} _=>Forgotten(map integer(@{code new_forgotten_objects} previous next))
     | _=>NoInvalidations);
     val ids=invalidation_ids result;
     val _=guard(length ids<=8192 andalso size(space_implode ","(map IntInf.toString ids))<=1048576)
@@ -342,7 +356,7 @@ fun restore_matches state views =
     val _=guard(forall(fn a=>not(accessible(@{code assigned_dependencies} a)) orelse
       exists(fn reconstructed=>reconstructed=a)publications)(@{code output_assignments} state))
       "Native output assignment missing protected witness";
-    val inputs=map(fn {names,managed,...}=>case decode_event(math_input_frame names managed) of
+    val inputs=map(fn {names,managed,...}=>case decode_event(math_input_frame names) of
       SOME(@{code RegisterManaged} value)=>value | _=>error "Native input profile mismatch")request_views;
     val parameters=map(fn {names,managed,...}=>case decode_event(math_parameter_frame names managed) of
       SOME(@{code RegisterManaged} value)=>value | _=>error "Native parameter profile mismatch")request_views;

@@ -954,3 +954,31 @@ the self-ID disjunct in `directly_dependent`; its supposed counterexample agains
 all-reached-record reconstruction was wrong. The unselected forward ordering
 candidate is being repaired against the actual definition and retained regression.
 The proved ancestor/history core consumed by the service remains unchanged.
+
+## D44 native and actual resident convergence
+
+Native `368d5a9e10be434290b56da3d5b1dd5f` passed with stable inputs and all eight
+assertion markers. Root read its receipt/log and matched the thirteen changed
+native source/test files against before/after/current hashes. This includes
+shared-input survival and reverse source Forget, category-specific retirement,
+actual unused evidence retention, independent recovered C02 context ownership,
+final owner drain and pending proposal/cleanup ownership. The previously saved
+bea6 native run lacked PIDE message exports and its marker wrapper correctly
+remains failed; new fixtures export assertion records directly as well. Those
+records identify executed checks, not serialized native theorems.
+
+Actual resident `6c02e53b4e2947b6ae54159eb8f6caf2` passed in37.034s with stable
+inputs and clean process cleanup. Root read every phase and final marker, and
+found no current source-hash drift. It exercised concurrent requests, durable
+publication, nonempty restore, selective Forget, survivor restart, last-owner
+durable Forget with lost acknowledgement, strict restart and immediate Forget.
+Captured deployment identity is
+`db6edb9e17021542dd1f0617f44630e194c952dd315b5124ccab4a72e8fd3cac`.
+The host uses the same nine previously checked core files; uncompiled UI and
+family additions were not prerequisites or covered by this run.
+
+This closes the current D44 consumer batch, not all lifecycle/product acceptance.
+Old40ac input registrations have different dependency rows and currently fail
+the new exact restore matcher. Cross-generation migration, guarded deployment
+promotion, additional families and performance scaling remain open. No old
+checkpoint bytes were rewritten or old installed generation deleted.

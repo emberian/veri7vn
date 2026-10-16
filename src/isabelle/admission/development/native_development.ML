@@ -3,6 +3,7 @@
 signature VERI7VN_NATIVE_DEVELOPMENT =
 sig
   type built
+  exception Replay_Failure of {message:string,start:int,stop:int}
   val replay: Veri7vn_Native_Admission.policy ->
     {expected_source:string, source:string, imports:string list} -> built
   val replay_parents: (string * Veri7vn_Native_Admission.policy) list ->
@@ -16,6 +17,7 @@ end;
 structure Veri7vn_Native_Development :> VERI7VN_NATIVE_DEVELOPMENT =
 struct
   structure A=Veri7vn_Native_Admission;
+  exception Replay_Failure of {message:string,start:int,stop:int};
   datatype built = Built of {source:string,theory:theory,policy:A.policy,
     spans:{command:string,start:int,stop:int} list};
   fun command_spans (Built {spans,...})=spans;
@@ -86,7 +88,20 @@ struct
       val _=if Thy_Header.is_base_name name then () else error "Development requires a base theory name";
       val child=Theory.begin_theory (name,Position.none) parents;
       val initial=A.join policies child;
-      val (current,theory0)=fold reconstruct declarations (initial,child);
+      (* Declaration boundaries come from the original retained byte map. Proof
+         command tokens inside a declaration are included through its next
+         declaration/end; error strings are never parsed into guessed offsets. *)
+      val starts=map_filter(fn {command,start,...}=>
+        if member(op =) ["definition","lemma","theorem","end"] command
+        then SOME start else NONE) original_spans;
+      fun ranges (a::(rest as b::_))=(a,b)::ranges rest | ranges _=[];
+      val declaration_ranges=ranges starts;
+      val _=if length declaration_ranges=length declarations then ()
+        else error "Controlled declaration/source-span correspondence";
+      fun checked (declaration,(start,stop)) state=
+        reconstruct declaration state handle ERROR message=>
+          raise Replay_Failure{message=message,start=start,stop=stop};
+      val (current,theory0)=fold checked (declarations ~~ declaration_ranges) (initial,child);
       val theory=Theory.end_theory theory0;
       val policy=A.advance current theory;
     in Built {source=original,theory=theory,policy=policy,spans=original_spans} end) ();

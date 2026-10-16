@@ -1,5 +1,9 @@
-session Veri7vn_Runtime_Service = Veri7vn_Authority_Codec +
+session Veri7vn_Runtime_Foundation in foundation = Veri7vn_Authority_Codec +
   options [threads = 2, document = false]
   sessions Veri7vn_Admission_Metadata Veri7vn_Interpretation Veri7vn_Natural_Mathematics Veri7vn_Controlled_Templates
     Veri7vn_Mathematics_Ticket_Execution Veri7vn_Refined_Templates Veri7vn_Effects_Indexed
+  theories Runtime_Foundation
+
+session Veri7vn_Runtime_Service = Veri7vn_Runtime_Foundation +
+  options [threads = 2, document = false]
   theories Native_Service

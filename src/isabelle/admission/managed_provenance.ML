@@ -35,11 +35,18 @@ sig
   val context_alias_with_parents: development -> development list -> development
   val alias_parent: development -> development option
   val restate: development -> consequence -> consequence
+  val restate_owned: construction_scope -> development -> consequence -> consequence
+  val release_consequence: consequence -> unit
+  val release_consequences: consequence list -> unit
   val context_parents: development -> development list
   val context_lineage: development -> Veri7vn_Native_Registry.generation list
   val source_dependencies: consequence -> IntInf.int list
+  val development_workspace: development -> string
+  val development_live: development -> bool
+  val development_dependencies: development -> IntInf.int list
   val generation: development -> Veri7vn_Native_Registry.generation
   val public_theorem: development -> Thm_Name.T -> consequence
+  val public_theorem_owned: construction_scope -> development -> Thm_Name.T -> consequence
   (* RHS is parsed from the exact original source slice by this producer. *)
   val define_from_slice: development -> source_owner -> binding ->
     Veri7vn_Native_Literals.slice -> development * term * consequence
@@ -50,12 +57,21 @@ sig
   val definition_recipe: development -> definition_recipe option
   val consequence_development: consequence -> development
   val source_input: source_owner -> Veri7vn_Native_Literals.input
+  val retain_source_owned: construction_scope -> source_owner -> Veri7vn_Native_Literals.lease
   val replay_source: (string * development) list -> source_owner ->
     Veri7vn_Native_Literals.slice -> development
   type replay_recipe = {parents:(string * development) list,source:source_owner,
     slice:Veri7vn_Native_Literals.slice}
   val replay_recipe: development -> replay_recipe option
+  type proof_recipe = {parent:development,source:source_owner,
+    slice:Veri7vn_Native_Literals.slice,wire:string,sequent:string}
+  val proof_recipe: development -> proof_recipe option
+  val prove_from_slice_owned: construction_scope -> development -> source_owner ->
+    Veri7vn_Native_Literals.slice -> string -> development * consequence
+  val prove_from_slice_sequent_owned: construction_scope -> development -> source_owner ->
+    Veri7vn_Native_Literals.slice -> Veri7vn_Native_Sequent.snapshot -> string -> development * consequence
   val named_theorem: development -> Thm_Name.T -> consequence
+  val named_theorem_owned: construction_scope -> development -> Thm_Name.T -> consequence
   val public_name: consequence -> Thm_Name.T option
   val accepted: consequence -> Veri7vn_Native_Admission.accepted
   val dependencies: consequence -> IntInf.int list
@@ -77,6 +93,7 @@ struct
   withtype payload = {allocator:I.allocator,policy:A.policy,
     generation:R.generation,unit:U.token,parents:development list,sources:source_owner list,
     alias_parent:development option,staging:C.committed option Synchronized.var,
+    proof:{parent:development,source:source_owner,slice:L.slice,wire:string,sequent:string}option,
     public:bool,replay:{parents:(string*development)list,source:source_owner,slice:L.slice}option,
     recipe:{parent:development,source:source_owner,binding:binding,
       slice:L.slice,embedded:bool} option,
@@ -85,11 +102,13 @@ struct
   type definition_recipe = {parent:development,source:source_owner,binding:binding,
     slice:L.slice,embedded:bool};
   type replay_recipe={parents:(string*development)list,source:source_owner,slice:L.slice};
+  type proof_recipe={parent:development,source:source_owner,slice:L.slice,wire:string,sequent:string};
   datatype consequence = Consequence of {development:development,
     accepted:A.accepted option Synchronized.var,public_name:Thm_Name.T option};
   datatype construction_scope = ConstructionScope of
-    development list option Synchronized.var;
-  fun construction_scope ()=ConstructionScope(Synchronized.var "native_construction_scope"(SOME []));
+    {developments:development list,consequences:consequence list,input_leases:L.lease list} option Synchronized.var;
+  fun construction_scope ()=ConstructionScope(Synchronized.var "native_construction_scope"
+    (SOME{developments=[],consequences=[],input_leases=[]}));
   (* Detach only this island. Shared parents and input owners belong to the
      coordinator's refcount closure, and are never recursively forgotten here. *)
   fun release development = Thread_Attributes.uninterruptible (fn _=>fn () =>
@@ -113,9 +132,20 @@ struct
             in drain(owned @ pending) end)
     in drain[development] end) ();
 
+  fun release_consequences facts=Thread_Attributes.uninterruptible_body(fn _=>
+    let val _=List.app(fn Consequence{accepted,...}=>Synchronized.change accepted(K NONE))facts
+      val roots=fold(fn Consequence{development=(d as Development{id,...}),...}=>
+        Inttab.update(id,d))facts Inttab.empty
+      val _=List.app(fn(_,Development{payload,...})=>Synchronized.change payload(fn NONE=>NONE
+        | SOME p=>(Synchronized.change(#consequences p)
+            (filter(fn cell=>is_some(Synchronized.value cell)));SOME p)))(Inttab.dest roots)
+    in()end);
+  fun release_consequence consequence=release_consequences[consequence];
   fun abort_scope (ConstructionScope state)=Thread_Attributes.uninterruptible(fn _=>fn()=>
-    let val owned=Synchronized.change_result state(fn old=>(the_default [] old,NONE))
-    in List.app release owned end)();
+    let val{developments,consequences,input_leases}=Synchronized.change_result state(fn old=>
+      (the_default{developments=[],consequences=[],input_leases=[]}old,NONE))
+    in List.app(fn lease=>Option.app I.release_disposed_input(L.release lease))input_leases;
+      release_consequences consequences;List.app release developments end)();
   fun commit_scope (ConstructionScope state)=Thread_Attributes.uninterruptible(fn _=>fn()=>
     Synchronized.change state(fn old=>case old of NONE=>error "Native construction scope already closed"
       | SOME _=>NONE))();
@@ -123,8 +153,12 @@ struct
     | scope_register (SOME(ConstructionScope state)) development=
       Synchronized.change state(fn old=>case old of
         NONE=>error "Native construction scope closed during publication"
-      | SOME owned=>if length owned>=512 then error "Native construction scope bound"
-        else SOME(development::owned));
+      | SOME{developments,consequences,input_leases}=>if length developments>=512 then error "Native construction scope bound"
+        else SOME{developments=development::developments,consequences=consequences,input_leases=input_leases});
+  fun scope_register_consequence(ConstructionScope state) consequence=
+    Synchronized.change state(fn NONE=>error "Native construction scope closed during consequence publication"
+      | SOME{developments,consequences,input_leases}=>if length consequences>=8192 then error "Native consequence scope bound"
+        else SOME{developments=developments,consequences=consequence::consequences,input_leases=input_leases});
   fun view (Development {payload=cell,...}) = (case Synchronized.value cell of SOME p => p
     | NONE => error "Managed native development is unavailable");
   fun make_development (p:payload)=Development {id=serial(),
@@ -139,6 +173,14 @@ struct
       val _=if installed then () else
         (Synchronized.change cell (K NONE);error "Managed native development was released")
     in Consequence {development=development,accepted=cell,public_name=name} end;
+  fun make_consequence_owned scope development name accepted=
+    Thread_Attributes.uninterruptible_body(fn _=>
+      let val consequence=make_consequence development name accepted
+        val registered=Exn.capture(scope_register_consequence scope)consequence
+      in case registered of Exn.Res _=>consequence
+        | Exn.Exn exn=>(release_consequence consequence;Exn.reraise exn)end);
+  fun publish_consequence NONE=make_consequence
+    | publish_consequence(SOME scope)=make_consequence_owned scope;
   fun register_child (Development {payload=root,...}) child =
     Synchronized.change_result root (fn payload =>
       (case payload of NONE => (false,NONE)
@@ -155,13 +197,23 @@ struct
   fun source_workspace (Source {workspace,...}) = workspace;
   fun source_input (Source {input,...}) = input;
   fun owns_input (Source {input,...}) other = L.same_input (input,other);
+  fun retain_source_owned(ConstructionScope state)(Source{input,...})=
+    Thread_Attributes.uninterruptible_body(fn _=>
+      let val lease=L.retain input
+        val installed=Exn.capture(fn()=>Synchronized.change state(fn NONE=>
+          error "Native construction scope closed during source lease publication"
+        | SOME{developments,consequences,input_leases}=>
+          if length input_leases>=8192 then error "Native source lease scope bound"
+          else SOME{developments=developments,consequences=consequences,input_leases=lease::input_leases}))()
+      in case installed of Exn.Res _=>lease|Exn.Exn exn=>
+        (Option.app I.release_disposed_input(L.release lease);Exn.reraise exn)end);
   fun managed_unit (owned:U.view) registry =
     (case Exn.capture (U.create owned) registry of Exn.Res unit=>unit
     | Exn.Exn exn=>(List.app I.release_disposed_input
         (filter L.disposed (#inputs owned));Exn.reraise exn));
   type construction = {scope:construction_scope option,allocator:I.allocator,policy:A.policy,generation:R.generation,
     staging:C.committed option,parents:development list,sources:source_owner list,
-    alias_parent:development option,public:bool,recipe:definition_recipe option,replay:replay_recipe option,
+    alias_parent:development option,public:bool,proof:proof_recipe option,recipe:definition_recipe option,replay:replay_recipe option,
     inputs:L.input list,objects:R.object_handle list,registry:R.registry,
     owners:development list,consequence:(Thm_Name.T option * A.accepted) option};
   fun publish (c:construction)=Thread_Attributes.uninterruptible(fn _=>fn()=>
@@ -176,7 +228,7 @@ struct
           val d=make_development{allocator= #allocator c,policy= #policy c,
             generation= #generation c,unit=owned,parents= #parents c,sources= #sources c,
             alias_parent= #alias_parent c,staging=Synchronized.var "development_staging" (#staging c),
-            public= #public c,recipe= #recipe c,replay= #replay c,
+            public= #public c,proof= #proof c,recipe= #recipe c,replay= #replay c,
             consequences=Synchronized.var "development_consequences" [],
             children=Synchronized.var "development_children" []}
           val _=development:=SOME d
@@ -205,7 +257,7 @@ struct
          interpretation="exact-native-proposition"}
     in #1(publish{scope=scope,allocator=allocator,policy=policy,generation=generation,
       staging=staging,parents=[],sources=[],alias_parent=NONE,public=true,recipe=NONE,
-      inputs=[],objects=[],registry=R.empty,owners=[],consequence=NONE,replay=NONE})end;
+      inputs=[],objects=[],registry=R.empty,owners=[],consequence=NONE,replay=NONE,proof=NONE})end;
   val public_image=image NONE NONE;
   fun public_image_owned scope=image(SOME scope)NONE;
   fun staged_image scope allocator policy committed =
@@ -214,22 +266,42 @@ struct
   val staged_public_image=staged_image NONE;
   fun staged_public_image_owned scope=staged_image(SOME scope);
   fun generation development = #generation (view development);
-  fun available_development registered (Development {payload=cell,...}) =
-    (case Synchronized.value cell of NONE=>false
-    | SOME {unit,parents,sources,alias_parent,staging,allocator,generation,...}=>
-      let val assigned=is_some(I.lookup_generation_id allocator generation)
-        val mapped_sources=forall(fn Source{input,id,workspace}=>
-          workspace=I.workspace allocator andalso
-          I.lookup_input_identity allocator input=SOME id)sources
-        val published=assigned andalso mapped_sources
-        val material=published orelse (not registered andalso
-          (case Synchronized.value staging of SOME c=>C.is_live c | NONE=>false))
-        val _=if published then Synchronized.change staging (K NONE) else ()
-      in material andalso is_some(U.inspect unit) andalso
-        forall (available_development registered) parents andalso
-        (case alias_parent of NONE=>true | SOME p=>available_development registered p) andalso
-        forall (fn Source {input,...}=>L.retained input) sources end);
+  fun available_development registered development =
+    let
+      datatype visit=Visiting | Checked of bool
+      val visited=Unsynchronized.ref(Inttab.empty:visit Inttab.table)
+      val observed=Unsynchronized.ref([]:development list)
+      (* This is a per-call observation, not an authority lock. Disposal cannot
+         revive a payload. Recheck each unique owner once after traversal so a
+         shared ancestor retired during traversal fails closed; publication still
+         checks its serialized current authority/lifecycle state. *)
+      fun own_live(Development{payload=cell,...})=
+        case Synchronized.value cell of NONE=>false
+        | SOME{unit,sources,staging,allocator,generation,...}=>
+          let val assigned=is_some(I.lookup_generation_id allocator generation)
+            val mapped_sources=forall(fn Source{input,id,workspace}=>
+              workspace=I.workspace allocator andalso
+              I.lookup_input_identity allocator input=SOME id)sources
+            val published=assigned andalso mapped_sources
+            val material=published orelse(not registered andalso
+              (case Synchronized.value staging of SOME c=>C.is_live c|NONE=>false))
+            val _=if published then Synchronized.change staging(K NONE)else()
+          in material andalso is_some(U.inspect unit) andalso
+            forall(fn Source{input,...}=>L.retained input)sources end
+      fun walk(d as Development{id,payload=cell})=
+        case Inttab.lookup(!visited)id of SOME Visiting=>false|SOME(Checked valid)=>valid
+        | NONE=>
+          let val _=visited:=Inttab.update(id,Visiting)(!visited)
+            val valid=case Synchronized.value cell of NONE=>false
+            | SOME{parents,alias_parent,...}=>
+                (observed:=d::(!observed);own_live d andalso forall walk parents andalso
+                  (case alias_parent of NONE=>true|SOME parent=>walk parent))
+            val _=visited:=Inttab.update(id,Checked valid)(!visited)
+          in valid end
+    in walk development andalso forall own_live(!observed)end;
   val live_development=available_development true;
+  val development_live=live_development;
+  fun development_workspace development=I.workspace(#allocator(view development));
   fun check_live development=if available_development false development then ()
     else error "Managed native development is unavailable";
   fun admit policy generation theorem =
@@ -242,13 +314,15 @@ struct
        premises=Thm.prems_of th,sorts=Thm.shyps_of th} of
       A.Accepted accepted => (accepted,h,r)
     | A.Rejected reasons => error (space_implode "; " reasons) end;
-  fun public_theorem development name =
+  fun public_theorem_in scope development name =
     let val _=check_live development
       val {public,policy,generation,...}=view development
       val _=if public then () else error "Named public theorem requires a public image"
       val th=Global_Theory.get_thm_name (A.policy_theory policy) (name,Position.none)
       val (accepted,_,_)=admit policy generation th
-    in make_consequence development (SOME name) accepted end;
+    in publish_consequence scope development(SOME name)accepted end;
+  val public_theorem=public_theorem_in NONE;
+  fun public_theorem_owned scope=public_theorem_in(SOME scope);
   fun define_source scope embedded parent
       (source as Source {input,id=_,workspace}) binding slice =
     Timeout.apply (Time.fromSeconds 5) (fn () =>
@@ -279,7 +353,7 @@ struct
           staging=Synchronized.value(#staging(view parent)),parents=[parent],sources=[source],
           alias_parent=NONE,public=false,
           recipe=SOME{parent=parent,source=source,binding=binding,slice=slice,embedded=embedded},
-          inputs=[input],objects=[h],registry=r,owners=[parent],consequence=SOME(NONE,accepted),replay=NONE}
+          inputs=[input],objects=[h],registry=r,owners=[parent],consequence=SOME(NONE,accepted),replay=NONE,proof=NONE}
       in case fact of SOME consequence=>(development,constant,consequence)
         | NONE=>(release development;error "Native consequence publication invariant")end)();
   val define_from_slice=define_source NONE false;
@@ -315,13 +389,13 @@ struct
       staging=Synchronized.value(#staging old),parents=logical_parents,sources= #sources old,
       alias_parent=SOME parent,public=false,recipe=NONE,
       inputs=map source_input(#sources old),objects=[],registry=R.empty,
-      owners=[parent],consequence=NONE,replay=NONE})end;
+      owners=[parent],consequence=NONE,replay=NONE,proof=NONE})end;
   val context_alias_with_parents=alias_context NONE;
   fun context_alias parent=alias_context NONE parent (#parents(view parent));
   fun context_alias_with_parents_owned scope=alias_context(SOME scope);
   fun context_alias_owned scope parent=alias_context(SOME scope)parent(#parents(view parent));
   fun alias_parent development= #alias_parent (view development);
-  fun restate alias (Consequence {development=original,accepted=cell,public_name}) =
+  fun restate_in scope alias (Consequence {development=original,accepted=cell,public_name}) =
     let val _=check_live alias
       val _=check_live original
       val _=(case alias_parent alias of SOME parent=>
@@ -331,7 +405,9 @@ struct
         | NONE=>error "Native original consequence released")
       val {policy,generation,...}=view alias
       val (accepted,_,_)=admit policy generation original_thm
-    in make_consequence alias public_name accepted end;
+    in publish_consequence scope alias public_name accepted end;
+  val restate=restate_in NONE;
+  fun restate_owned scope=restate_in(SOME scope);
   fun replay_owned scope parents (source as Source{input,workspace,...}) slice =
     let val _=if null parents then error "Managed development requires native parents" else ()
       val parent_developments=map #2 parents
@@ -355,19 +431,78 @@ struct
       val (development,_)=publish{scope=scope,allocator=allocator,policy=policy,generation=generation,
         staging=stage,parents=parent_developments,sources=[source],alias_parent=NONE,
         public=false,recipe=NONE,replay=SOME{parents=parents,source=source,slice=slice},
-        inputs=[input],objects=[],registry=R.empty,owners=parent_developments,consequence=NONE}
+        inputs=[input],objects=[],registry=R.empty,owners=parent_developments,consequence=NONE,proof=NONE}
     in development end;
   val replay_source=replay_owned NONE;
   fun replay_source_owned scope=replay_owned(SOME scope);
   fun replay_recipe development= #replay(view development);
-  fun named_theorem development name =
+  fun proof_recipe development= #proof(view development);
+  fun prove_source_owned expected scope parent
+      (source as Source{input,workspace,...}) slice wire =
+    Thread_Attributes.with_attributes Thread_Attributes.no_interrupts(fn original=>
+    let val _=check_live parent
+      val old=view parent
+      val _=if workspace=I.workspace(#allocator old) andalso L.same_input(input,L.owner slice)
+        andalso L.encoding input="UTF-8" andalso size wire<=100000
+        then()else error "Managed proof source/parent ownership or wire bounds"
+      val hold=L.retain input
+      val gen=R.generation(R.context(#generation old))(R.dependencies(#generation old))
+      fun produce()=Timeout.apply(Time.fromSeconds 5)(fn()=>
+        let val ctxt=R.context gen
+          val bytes=L.original slice
+          val _=if size bytes<=100000 then()else error "Managed proof target source bound"
+          val proposition=Syntax.read_prop ctxt bytes
+          val _=if Term.size_of_term proposition<=20000 then()else error "Managed proof target node bound"
+          val target=Thm.cterm_of ctxt proposition
+          val conditions=case expected of NONE=>{hypotheses=[],premises=[],sorts=[]}
+            | SOME snapshot=>let val v=Veri7vn_Native_Sequent.inspect snapshot
+                val terms= #hypotheses v @ #premises v
+                val _=if length(#hypotheses v)<=128 andalso length(#premises v)<=128 andalso
+                    length(#sorts v)<=128 andalso null(#tpairs v) andalso
+                    fold(fn term=>fn count=>count+Term.size_of_term term)terms 0<=20000 andalso
+                    forall(fn sort=>length sort<=128 andalso forall(fn name=>size name<=512)sort)(#sorts v)
+                  then()else error "Managed proof expected condition bounds or unresolved constraints"
+                val _=if #target v aconv proposition andalso #proposition v aconv proposition
+                  then()else error "Managed proof source differs from expected complete target"
+              in {hypotheses= #hypotheses v,premises= #premises v,sorts= #sorts v}end
+          val received=case Veri7vn_Proof_Transport.receive(#policy old)gen
+            {claim=A.exact_claim target,hypotheses= #hypotheses conditions,
+             premises= #premises conditions,sorts= #sorts conditions}wire of
+              A.Accepted accepted=>accepted
+            | A.Rejected reasons=>error(space_implode "; " reasons)
+          val _=case expected of NONE=>()|SOME snapshot=>
+            if Veri7vn_Native_Sequent.matches snapshot target(A.theorem received)then()
+            else error "Managed proof complete expected sequent mismatch"
+          val sequent=Veri7vn_Native_Sequent.encode
+            (Veri7vn_Native_Sequent.capture target(A.theorem received))
+          val(accepted,h,r)=admit(#policy old)gen(A.theorem received)
+          val _=check_live parent
+          val _=ignore(L.bytes input)
+          val(d,fact)=publish{scope=SOME scope,allocator= #allocator old,policy= #policy old,
+            generation=gen,staging=Synchronized.value(#staging old),parents=[parent],sources=[source],
+            alias_parent=NONE,public=false,recipe=NONE,replay=NONE,
+            proof=SOME{parent=parent,source=source,slice=slice,wire=wire,sequent=sequent},
+            inputs=[input],objects=[h],registry=r,owners=[parent],consequence=SOME(NONE,accepted)}
+        in(d,the fact)end)()
+      val result=Exn.capture(fn()=>Thread_Attributes.with_attributes original(fn _=>produce()))()
+      val _=Option.app I.release_disposed_input(L.release hold)
+      val _=case result of Exn.Res _=>()|Exn.Exn _=>
+        (A.clear_cached_generation(#policy old)gen;Veri7vn_Proof_Transport.release_generation gen;
+         I.release_generation(#allocator old)gen)
+    in Exn.release result end);
+  val prove_from_slice_owned=prove_source_owned NONE;
+  fun prove_from_slice_sequent_owned scope parent source slice snapshot wire=
+    prove_source_owned(SOME snapshot)scope parent source slice wire;
+  fun named_theorem_in scope development name =
     let val _=check_live development
       val {policy,generation,...}=view development
       val theorem=Global_Theory.get_thm_name(A.policy_theory policy)(name,Position.none)
       val _=if Thm.get_name_hint theorem=name then ()
         else error "Managed theorem requires its exact canonical native name"
       val (accepted,_,_)=admit policy generation theorem
-    in make_consequence development (SOME name) accepted end;
+    in publish_consequence scope development(SOME name)accepted end;
+  val named_theorem=named_theorem_in NONE;
+  fun named_theorem_owned scope=named_theorem_in(SOME scope);
   fun definition_recipe development= #recipe (view development);
   fun consequence_development (Consequence {development,...})=development;
   fun public_name (Consequence {public_name,...}) = public_name;
@@ -379,13 +514,14 @@ struct
   fun context_lineage development=map (fn d=> #generation(view d)) (logical_nodes development);
   fun source_dependencies (Consequence {development,...}) =
     (check_live development;distinct (op =) (source_ids development));
-  fun dependencies (Consequence {development,...}) =
+  fun development_dependencies development =
     let val _=if live_development development then ()
         else error "Unregistered managed native dependency correspondence"
       val allocator= #allocator(view development)
       fun identity gen=(case I.lookup_generation_id allocator gen of SOME id=>id
         | NONE=>error "Unregistered staged native context dependency")
     in distinct (op =) (map identity (context_lineage development) @ source_ids development) end;
+  fun dependencies (Consequence{development,...})=development_dependencies development;
   fun workspace (Consequence {development,...}) = I.workspace (#allocator (view development));
   fun is_live (Consequence {development,accepted,...}) =
     live_development development andalso is_some (Synchronized.value accepted);

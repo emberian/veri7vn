@@ -12,6 +12,8 @@ sig
     datatype fault = BeforeExport | BeforeIssue
     val check_proposal_cleanup: fault -> unit
     val check_rpc_ownership: unit -> unit
+    val check_cleanup_ownership: unit -> unit
+    val check_pending_alias_cleanup: unit -> unit
   end
 end;
 structure Veri7vn_Native_Service :> VERI7VN_NATIVE_SERVICE =
@@ -51,6 +53,7 @@ val coordinator = Synchronized.var "veri7vn_native_service_coordinator" ();
 fun serialized f = Synchronized.change_result coordinator (fn () => (f (), ()));
 val native_poisoned=Synchronized.var "veri7vn_native_incarnation_poisoned" false;
 structure Request=Veri7vn_Interpreted_Request;
+structure Language=Veri7vn_Native_Language_Input;
 structure Mathematics=Veri7vn_Mathematics_Execution;
 structure MathGate=Veri7vn_Native_Math_Gate;
 structure MathRecovery=Veri7vn_Native_Math_Recovery;
@@ -107,7 +110,6 @@ fun gate_live (Admitted d)=D.is_live d
   | gate_live (Lifecycle _)=true;
 fun gate_frame (Admitted d) _=D.event_frame d
   | gate_frame (MathInput e) _=F.math_input_frame (Request.project(entry_request e))
-      (Request.managed_dependencies(entry_request e))
   | gate_frame (MathParameter e) _=F.math_parameter_frame (Request.project(entry_request e))
       (Request.managed_dependencies(entry_request e))
   | gate_frame (MathStatement e) _=F.math_statement_frame(Request.project(entry_request e))
@@ -148,11 +150,27 @@ fun recovery_view (Admitted descriptor)=F.KernelAssociation(D.event_frame descri
   | recovery_view(RestoredOutput(_,witness))=F.MathOutputAssociation
       {evidence=MathGate.evidence_frame witness,publication=MathGate.publication_frame witness}
   | recovery_view _=F.NoAssociation;
+structure SupportGroups=Table(type key=IntInf.int*IntInf.int
+  val ord=prod_ord IntInf.compare IntInf.compare);
+fun retirement_registrations (Lifecycle (F.Forget _)) =
+    let fun add key group (seen,groups)=
+          if SupportGroups.defined seen key then (seen,groups) else
+            (SupportGroups.update(key,())seen,group::groups);
+      fun collect (_,entry) state=
+        let val names=Request.project(entry_request entry);
+          val bridge=Display.project_bridge(entry_bridge entry)
+        in state |> add (#bridge_id bridge,#statement_code_id bridge)
+            [F.math_statement_frame names bridge,F.math_bridge_frame names bridge]
+          |> add (#input_identity names,0) [F.math_input_frame names] end;
+      val (_,groups)=fold collect (Synchronized.value math_requests)(SupportGroups.empty,[])
+    in rev groups end
+  | retirement_registrations _=[];
 structure Owner=Veri7vn_Native_State_Owner (struct
   type event=gate
   val is_live=gate_live
   val event_frame=gate_frame
   val supports=supports
+  val retirement_registrations=retirement_registrations
   val recovery_view=recovery_view
 end);
 type recovery_material={association:IntInf.int,semantic_generation:IntInf.int,manifest:string,
@@ -181,13 +199,14 @@ val durable_sequence=Synchronized.var "veri7vn_native_durable_sequence" (0:IntIn
 fun emit id tag payload chunks = Output.protocol_message
   [Markup.function "veri7vn_service_v1"]
   ([XML.Text ("1|" ^ id ^ "|" ^ tag ^ "|" ^ payload)] :: map Bytes.contents_blob chunks);
-fun issue_gate gate material =
+fun issue_gate_token gate material =
   let val _=F.guard(not(Synchronized.value native_poisoned)) "Native incarnation requires restart";
     val _=F.guard(gate_live gate) "Native gate association unavailable";
     val token=serial_string ();
     val _=Synchronized.change tokens (fn entries=>
       (F.guard(length entries<256) "Native gate token limit";(token,(gate,material))::entries));
-  in Output.protocol_message [Markup.function "veri7vn_service_token_v1"] [[XML.Text token]] end;
+  in Output.protocol_message [Markup.function "veri7vn_service_token_v1"] [[XML.Text token]];token end;
+fun issue_gate gate material=ignore(issue_gate_token gate material);
 fun public_development ()=(ignore(boot_image());
   Veri7vn_Managed_Provenance.public_image (identity_allocator()) boot_policy);
 val local_math=Synchronized.var "veri7vn_native_local_math_policy"
@@ -294,12 +313,13 @@ fun start_cleanup(Cleanup {release,task})=
     let val future=Future.fork(fn()=>
       (work();Synchronized.change release(K NONE)))
     in Synchronized.change task(K(SOME future))end);
+fun retain_cleanup target cleanup old=(target,cleanup)::pending_cleanups old;
 fun launch_cleanup target work =
   let val cleanup=Cleanup {release=Synchronized.var "veri7vn_cleanup_owned_roots" (SOME work),
       task=Synchronized.var "veri7vn_native_cleanup_task" NONE};
     (* Preserve every admitted intent for this target. Revoke->Forget can overlap
        while the first worker still owns descriptors no longer in associations. *)
-    val _=Synchronized.change cleanups(fn old=>(target,cleanup)::pending_cleanups old);
+    val _=Synchronized.change cleanups(retain_cleanup target cleanup);
   in start_cleanup cleanup end;
 fun cleanup_status id payload retry =
   let val target=decimal payload;
@@ -314,6 +334,10 @@ fun cleanup_barrier id =
     val status=if Synchronized.value native_poisoned orelse member(op =)states 2
       then "failed_retryable" else if member(op =)states 0 then "pending" else "complete"
   in emit id "cleanup" status [] end;
+fun retry_all_cleanups id =
+  (List.app(fn (_,job)=>if cleanup_state job=2 then start_cleanup job else ())
+    (Synchronized.value cleanups);
+   cleanup_barrier id);
 fun cleanup_action action invalidations =
   let
     val (target,removed)=(case action of F.Cancel rid=>(rid,[rid])
@@ -325,9 +349,17 @@ fun cleanup_action action invalidations =
     val _=(case action of F.Forget _=>List.app(fn MathEntry {request,input,...}=>
       if member(op =)removed(#input_identity(Request.project request)) then Literals.invalidate input else ())entries
       | _=>());
-    val descriptors=map snd (filter(fn (_,descriptor)=>exists(fn id=>
-      member(op =)(Veri7vn_Native_Descriptor.native_object_dependencies(D.native descriptor))id)removed)
-      (Synchronized.value associations));
+    fun descriptor_removed descriptor=exists(fn id=>
+      id=D.evidence_id descriptor orelse
+      member(op =)(Veri7vn_Native_Descriptor.native_object_dependencies(D.native descriptor))id)removed;
+    val descriptors=distinct (fn (left,right)=>D.evidence_id left=D.evidence_id right)
+      (filter descriptor_removed (map snd (Synchronized.value associations) @
+        map_filter(fn (_, (Admitted descriptor,_))=>SOME descriptor | _=>NONE)
+          (Synchronized.value tokens)));
+    (* Invalid pending aliases own original bytes/recovery exports even though
+       they never reached durability. Drop their token material at this ack. *)
+    val _=Synchronized.change tokens(filter(fn (_, (gate,_))=>case gate of
+      Admitted descriptor=>not(descriptor_removed descriptor) | _=>gate_live gate));
     val _=Synchronized.change associations(filter(fn (_,descriptor)=>not(exists(fn other=>
       D.evidence_id other=D.evidence_id descriptor)descriptors)));
     fun release()=(List.app release_entry entries;List.app D.release descriptors;
@@ -541,35 +573,77 @@ struct
         "Undurable proposal failure changed committed authority";
     in () end);
 end;
-fun poll_result id payload =
-  let val entry as MathEntry {witness,failure,...}=math_entry(decimal payload)
-  in if not(entry_live entry) then emit id "result" "cancelled" [] else
+fun result_view (entry as MathEntry {witness,failure,...}) =
+  if not(entry_live entry) then ("cancelled",[]) else
     case Synchronized.value witness of
-      NONE=>emit id "result" (the_default "pending" (Synchronized.value failure)) []
+      NONE=>(the_default "pending" (Synchronized.value failure),[])
     | SOME w=>if not(Owner.binding_live (request_id entry) (MathGate.evidence w))
-      then emit id "result" "pending" [] else
+      then ("pending",[]) else
       (case MathGate.display w of
-        Veri7vn_Refined_Math_Display.Exact {statement_html,...}=>
-          emit id "result" "accepted_exact" [Bytes.string statement_html]
-      | Veri7vn_Refined_Math_Display.Undefined=>emit id "result" "undefined" []
-      | Veri7vn_Refined_Math_Display.Missing _=>emit id "result" "missing_parameters" []
-      | Veri7vn_Refined_Math_Display.Syntax=>emit id "result" "invalid_syntax" []
-      | Veri7vn_Refined_Math_Display.Budget=>emit id "result" "budget" []) end;
+        Veri7vn_Refined_Math_Display.Exact {statement_html,...}=>("accepted_exact",[statement_html])
+      | Veri7vn_Refined_Math_Display.Undefined=>("undefined",[])
+      | Veri7vn_Refined_Math_Display.Missing _=>("missing_parameters",[])
+      | Veri7vn_Refined_Math_Display.Syntax=>("invalid_syntax",[])
+      | Veri7vn_Refined_Math_Display.Budget=>("budget",[]));
+fun poll_result id payload =
+  let val request=decimal payload;
+    val (status,artifacts)=(case lookup_request request of SOME entry=>result_view entry
+      | NONE=>if Owner.request_unavailable request then ("cancelled",[])
+          else error "Unknown native request")
+  in emit id "result" status (map Bytes.string artifacts) end;
+(* Owner inspection reports actual retained readings and numeric provenance. It
+   never serializes ticket authority, private native contexts or source bytes. *)
+fun inspect_request id payload =
+  let val entry as MathEntry {request,input,execution,released,...}=math_entry(decimal payload);
+    val p=Request.project request;
+    fun n value=IntInf.toString value;
+    fun node name attributes body=XML.Elem((name,attributes),body);
+    val identity=node "identity"
+      [("request",n(#request_id p)),("goal",n(#goal_id p)),
+       ("interpretation",n(#interpretation_id p)),("decision",n(#decision_id p)),
+       ("capability",n(#capability_id p)),("operation",n(#operation_id p)),
+       ("semantic_generation",n(#semantic_generation p)),
+       ("executable_generation",n(#executable_generation p)),("execution",n execution)][];
+    val reading=if not(entry_live entry) then node "reading-unavailable"
+        [("reason",if Synchronized.value released then "released" else "invalidated")][]
+      else if not(Literals.retained input) then node "reading-unavailable" [("reason","not_retained")][]
+      else let
+        val (operation,_,_,slices)=Language.resolve(Request.reading request);
+        val operation=(case operation of Language.Sum=>"sum" | Language.Difference=>"difference"
+          | Language.Product=>"product" | Language.Quotient=>"quotient" | Language.SubtractFrom=>"subtract_from");
+        fun literal slice=let val {start,stop}=Literals.offsets slice
+          in node "literal" [("start",Int.toString start),("stop",Int.toString stop)][] end
+      in node "reading" [("index",Int.toString(Request.selected_index request)),
+        ("operation",operation),("input_bytes",Int.toString(size(Literals.bytes input)))](map literal slices)end;
+    val (status,_)=result_view entry;
+    val frame=YXML.string_of_body[node "veri7vn-request-inspection"
+      [("version","1"),("status",status),("family","mathematics")][identity,reading]];
+    val _=F.guard(size frame<=8192) "Native request inspection frame bound"
+  in emit id "request_inspection" (n(#request_id p)) [Bytes.string frame] end;
+fun inspect_routing id payload bytes =
+  let val _=F.guard(payload="math/1" andalso size bytes<=256) "Native routing policy/input bound";
+    val (applicable,budget,alternatives,blocked)=F.interpretation_packet_bytes bytes;
+    val status=if budget then "budget" else if not applicable then "unrecognized"
+      else if null alternatives then if null blocked then "structure_blocked" else "literal" else "readings";
+    val artifacts=if status="readings" then
+      [Bytes.string(space_implode "," (map_index(fn(index,_)=>Int.toString index)alternatives))] else []
+  in emit id "routing" status artifacts end;
 fun lifecycle id operation payload =
   let val target=decimal payload;
     val action=(case operation of "cancel"=>(ignore(math_entry target);F.Cancel target)
       | "retire_capability"=>(F.guard(exists(fn (_,e)=>
           #capability_id(Request.project(entry_request e))=target)(Synchronized.value math_requests))
           "Unknown native capability";F.RetireCapability target)
-      | _=>(F.guard(exists(fn (_,e)=>entry_depends target e)(Synchronized.value math_requests)
+      | _=>(F.guard(member(op =)(Owner.revoked_ids())target orelse
+          exists(fn (_,e)=>entry_depends target e)(Synchronized.value math_requests)
           orelse exists(fn (_,descriptor)=>target=D.evidence_id descriptor orelse
           member(op =)(Veri7vn_Native_Descriptor.native_object_dependencies(D.native descriptor))target)
             (Synchronized.value associations))
           "Unknown managed native association";
           if operation="forget" then F.Forget target else if operation="revoke" then F.Revoke target
           else error "Unknown lifecycle operation"));
-    val _=issue_gate (Lifecycle action) NONE;
-  in emit id "lifecycle_queued" payload [] end;
+    val token=issue_gate_token (Lifecycle action) NONE;
+  in emit id "lifecycle_queued" token [] end;
 fun command_info id token =
   (case Synchronized.value pending of SOME(current,gate,candidate)=>
     if current<>token orelse not(Owner.valid candidate) then emit id "rejected" "precommit_mismatch" [] else
@@ -855,6 +929,8 @@ fun handle_command args =
     | ("initial",[])=>emit id "initial" "0,0" [Bytes.string(Owner.initial_frame())]
     | ("propose_math",[bytes])=>propose_math id payload (Bytes.content bytes)
     | ("poll_result",[])=>poll_result id payload
+    | ("inspect_request",[])=>inspect_request id payload
+    | ("inspect_routing",[bytes])=>inspect_routing id payload (Bytes.content bytes)
     | ("cancel",[])=>lifecycle id operation payload
     | ("forget",[])=>lifecycle id operation payload
     | ("revoke",[])=>lifecycle id operation payload
@@ -867,7 +943,7 @@ fun handle_command args =
     | ("artifact_invalidations",[])=>artifact_invalidations id payload
     | ("cleanup_status",[])=>cleanup_status id payload false
     | ("cleanup_barrier",[])=>cleanup_barrier id
-    | ("retry_cleanup",[])=>cleanup_status id payload true
+    | ("retry_cleanup",[])=>if payload="" then retry_all_cleanups id else cleanup_status id payload true
     | ("restore_begin",[checkpoint])=>restore_begin id payload (Bytes.content checkpoint)
     | ("restore_material_begin",[])=>restore_material_begin id payload
     | ("restore_write",[bytes])=>restore_write id payload (Bytes.content bytes)
@@ -897,7 +973,7 @@ type rpc_state={pending:rpc_message list,active:rpc_message option,bytes:int,
 val rpc_empty={pending=[],active=NONE,bytes=0,generation=NONE,worker=NONE}:rpc_state;
 val rpc_queue=Synchronized.var "veri7vn_owned_native_rpc_queue"
   rpc_empty;
-val rpc_operations=["install_boot","install_ids","status","initial","propose_math","poll_result",
+val rpc_operations=["install_boot","install_ids","status","initial","propose_math","poll_result","inspect_request","inspect_routing",
   "cancel","forget","revoke","retire_capability","prepare","command_info","recovery_info",
   "recovery_read","recovery_dependencies","artifact_invalidations","cleanup_status","cleanup_barrier",
   "retry_cleanup","restore_begin","restore_material_begin","restore_write","restore_material_end",
@@ -987,6 +1063,59 @@ structure Test_Only =
 struct
   datatype fault=datatype Proposal_Test_Only.fault;
   val check_proposal_cleanup=Proposal_Test_Only.check_proposal_cleanup;
+  fun check_pending_alias_cleanup()=
+    let
+      val (target,entries)=serialized(fn()=>
+        let val _=F.guard(null(Synchronized.value math_requests) andalso null(Synchronized.value tokens)
+            andalso is_none(Synchronized.value pending)) "Pending alias diagnostic requires unused resident";
+          val version=Owner.current_version();
+          val _=propose_math "0" "" "the sum of -2 and 3";
+          val _=propose_math "0" "" "the sum of 4 and 5";
+          val entries=map snd(Synchronized.value math_requests);
+          val _=F.guard(length entries=2) "Pending alias diagnostic did not elaborate both originals";
+          val target=request_id(hd entries);
+          val bridge=Display.project_bridge(entry_bridge(hd entries));
+          val removed=[#bridge_id bridge,#statement_code_id bridge];
+          val _=cleanup_action (F.Forget target) (F.Forgotten removed);
+          val _=F.guard(forall(fn entry=>not(entry_live entry))entries andalso
+            null(Synchronized.value tokens) andalso Owner.current_version()=version)
+            "Invalidated undurable alias retained a usable gate or original recovery material"
+        in (target,entries)end);
+      val jobs=map snd(filter(fn(actual,_)=>actual=target)(Synchronized.value cleanups));
+      val _=List.app(fn Cleanup {task,...}=>Option.app(fn future=>
+        Exn.release(Future.join_result future))(Synchronized.value task))jobs;
+      val _=serialized(fn()=>
+        (F.guard(forall(fn MathEntry {request,input,released,...}=>
+          Synchronized.value released andalso not(Request.live request) andalso not(Literals.retained input))entries)
+          "Undurable alias retained actual request/input roots after draining";
+         Synchronized.change math_requests(filter(fn(_,entry)=>not(exists(fn removed=>
+           request_id removed=request_id entry)entries)))))
+    in writeln "Native undurable alias token/material and input cleanup checks passed" end;
+  fun check_cleanup_ownership()=
+    let
+      val attempts=Synchronized.var "cleanup_fixture_attempts" 0;
+      fun job work=Cleanup {release=Synchronized.var "cleanup_fixture_roots" (SOME work),
+        task=Synchronized.var "cleanup_fixture_task" NONE};
+      fun join(Cleanup {task,...})=Option.app(fn future=>ignore(Future.join_result future))(Synchronized.value task);
+      val first=job(fn()=>if Synchronized.change_result attempts(fn n=>(n,n+1))=0
+        then error "fixed cleanup retry fixture" else ());
+      val second=job(fn()=>());
+      val _=start_cleanup first;
+      val _=join first;
+      val _=F.guard(cleanup_state first=2) "Failed cleanup lost retry ownership";
+      val intents=retain_cleanup 1 second (retain_cleanup 1 first []);
+      val _=F.guard(length intents=2) "Later same-target cleanup replaced captured roots";
+      val _=start_cleanup second;
+      val _=join second;
+      val _=F.guard(length(pending_cleanups intents)=1 andalso cleanup_state first=2)
+        "Completed later cleanup discarded failed earlier roots";
+      val _=start_cleanup first;
+      val _=join first;
+      val _=F.guard(null(pending_cleanups intents) andalso Synchronized.value attempts=2)
+        "Cleanup retry did not discharge every retained same-target intent";
+      val _=List.app(fn(_,Cleanup {release,...})=>F.guard(is_none(Synchronized.value release))
+        "Successful cleanup retained captured work closure")intents
+    in writeln "Native same-target cleanup ownership/retry checks passed" end;
   fun check_rpc_ownership()=
     let
       val old=serial(); val fresh=serial();

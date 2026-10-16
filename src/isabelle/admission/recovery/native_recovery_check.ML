@@ -268,8 +268,11 @@ struct
     if not(X.has_replay(P.consequence_development consequence))then qualify_basic allocator image consequence saved
     else let val _=if I.workspace allocator=P.workspace consequence andalso #workspace saved=P.workspace consequence
           andalso P.is_live consequence then()else error "Expert replay export producer/workspace unavailable"
-      val name=case P.public_name consequence of SOME n=>n|NONE=>error "Expert replay requires exact named theorem"
-      val(recipe,owners)=X.collect allocator(P.consequence_development consequence)name
+      val(recipe,owners)=case P.public_name consequence of
+        SOME n=>X.collect allocator(P.consequence_development consequence)n
+      | NONE=>if is_some(P.proof_recipe(X.physical(P.consequence_development consequence)))
+          then X.collect_produced allocator(P.consequence_development consequence)
+          else error "Expert replay requires exact named or produced consequence"
       val graph= #graph recipe val contexts=X.context_ids graph val sources=X.source_ids graph
       val _=if #semantic_generation(#projection saved)=hd contexts andalso
         #dependencies(#projection saved)=contexts@sources andalso P.dependencies consequence=contexts@sources
@@ -324,7 +327,8 @@ struct
               #semantic_generation(#projection saved)=hd contexts andalso #dependencies(#projection saved)=contexts@sources
               then()else error "Expert replay image/context/source closure mismatch"
             val lease=G.acquire_graph batch allocator policy(context_closure image)committed graph
-          in(lease,(fn()=>P.named_theorem(G.canonical_development lease)(#name recipe)),contexts,sources)end
+          in(lease,(fn scope=>case #name recipe of X.Named name=>(P.named_theorem_owned scope(G.canonical_development lease)name,true)
+              | X.Produced=>(the(G.definition lease),false)),contexts,sources)end
         else let val(desc,name)=case C.reconstruction committed of
             Veri7vn_Recovery_Manifest.Fixed_Certificate=>
               (if #context_closure m=context_closure image then()else error "Recovery public image mismatch";
@@ -337,10 +341,13 @@ struct
           | _=>error "Unregistered native proof reconstruction profile"
           val _=validate_description saved desc
           val lease=G.acquire batch allocator policy(context_closure image)committed desc
-          fun original()=case name of SOME n=>P.public_theorem(G.canonical_development lease)n|NONE=>the(G.definition lease)
+          fun original scope=case name of SOME n=>(P.public_theorem_owned scope(G.canonical_development lease)n,true)
+            | NONE=>(the(G.definition lease),false)
         in(lease,original,context_ids desc,source_ids desc)end
+        val scope=P.construction_scope()
         fun verify()=
-          let val consequence=P.restate(G.development lease)(original())
+          let val(source_consequence,temporary)=original scope
+            val consequence=P.restate_owned scope(G.development lease)source_consequence
             val a=P.accepted consequence val th=A.theorem a
             val _=if S.matches snapshot(A.target a)th andalso
               length(#assumption_ids saved)=length(Thm.hyps_of th@Thm.prems_of th)andalso
@@ -349,10 +356,12 @@ struct
               length(P.context_lineage(P.consequence_development consequence))=length contexts
               then()else error "Rechecked native complete sequent/context/source correspondence mismatch"
             val _=G.checked lease
+            val _=if temporary then P.release_consequence source_consequence else()
           in Verified{saved=saved,consequence=consequence,lease=lease,
             claimed=Synchronized.var "veri7vn_recovery_claimed" false}end
         val result=Exn.capture verify()
-      in case result of Exn.Res v=>v|Exn.Exn exn=>(G.release lease;Exn.reraise exn)end
+      in case result of Exn.Res v=>(P.commit_scope scope;v)
+        |Exn.Exn exn=>(P.abort_scope scope;G.release lease;Exn.reraise exn)end
       val result=Exn.capture run()
     in case result of Exn.Res v=>v|Exn.Exn exn=>(G.abort batch;Exn.reraise exn)end;
   fun recheck allocator image committed =
@@ -371,5 +380,6 @@ struct
   fun retain_context_for(Verified{lease,...}) id=Option.map Retained_Context(G.retain_for lease id);
   fun retained_generation(Retained_Context lease)=P.generation(G.development lease);
   fun release_context(Retained_Context lease)=G.release lease;
-  fun release(Verified{lease,...})=G.release lease;
+  fun release(Verified{lease,consequence,...})=Thread_Attributes.uninterruptible_body(fn _=>
+    (P.release_consequence consequence;G.release lease));
 end;

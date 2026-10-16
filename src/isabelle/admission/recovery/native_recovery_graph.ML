@@ -7,6 +7,7 @@ sig
   type description={base_id:IntInf.int,steps:step list}
   datatype construction=Public | Definition of {source_id:IntInf.int,start:int,stop:int,name:string,embedded:bool}
     | Replay of {source_id:IntInf.int,start:int,stop:int,imports:string list}
+    | Proof of {source_id:IntInf.int,start:int,stop:int,wire:string,sequent:string}
   type construction_node={context_id:IntInf.int,parents:IntInf.int list,construction:construction}
   type graph_description={head:IntInf.int,nodes:construction_node list}
   type batch
@@ -46,6 +47,7 @@ struct
   type description={base_id:IntInf.int,steps:step list};
   datatype construction=Public | Definition of {source_id:IntInf.int,start:int,stop:int,name:string,embedded:bool}
     | Replay of {source_id:IntInf.int,start:int,stop:int,imports:string list}
+    | Proof of {source_id:IntInf.int,start:int,stop:int,wire:string,sequent:string}
   type construction_node={context_id:IntInf.int,parents:IntInf.int list,construction:construction}
   type graph_description={head:IntInf.int,nodes:construction_node list}
   type node={id:int,parents:int list,key:string,development:P.development,
@@ -133,6 +135,8 @@ struct
           ([tag,IntInf.toString source_id,Int.toString start,Int.toString stop]@extra)
       val suffix=case construction of Public=>"public"
         | Definition{source_id,start,stop,name,embedded}=>source_key "definition" source_id start stop[name,Bool.toString embedded]
+        | Proof{source_id,start,stop,wire,sequent}=>source_key "proof" source_id start stop[
+            Int.toString(size wire)^":"^wire,Int.toString(size sequent)^":"^sequent]
         | Replay{source_id,start,stop,imports}=>source_key "replay" source_id start stop(map(fn n=>Int.toString(size n)^":"^n)imports)
     in space_implode ":"(map Int.toString parent_ids)^"/"^suffix end;
   fun acquire_graph (batch as Batch{state,sources,replays}) allocator policy image committed (desc:graph_description)=
@@ -176,6 +180,12 @@ struct
                       val(source,slice)=source_slice source_id start stop
                       val(d,_,c)=(if embedded then P.define_from_embedded_slice_owned scope else P.define_from_slice_owned scope)
                         parent source(Binding.name name)slice
+                    in(d,SOME c,SOME source_id)end
+                  | Proof{source_id,start,stop,wire,sequent}=>
+                    let val parent=case parent_devs of[d]=>d|_=>error "Proof parent arity"
+                      val(source,slice)=source_slice source_id start stop
+                      val snapshot=Veri7vn_Native_Sequent.decode{max_bytes=100000,max_depth=256,max_nodes=100000}sequent
+                      val(d,c)=P.prove_from_slice_sequent_owned scope parent source slice snapshot wire
                     in(d,SOME c,SOME source_id)end
                   | Replay{source_id,start,stop,imports}=>
                     let val _=if not(null imports) andalso length imports=length parent_devs then()else error "Replay parent arity"

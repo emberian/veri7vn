@@ -1,12 +1,5 @@
 theory Native_Service
-  imports Veri7vn_Authority_Codec.Authority_Codec
-    Veri7vn_Admission_Metadata.Admission_Metadata
-    Veri7vn_Interpretation.Veri7vn_Rendering
-    Veri7vn_Natural_Mathematics.Natural_Mathematics
-    Veri7vn_Controlled_Templates.Checked_Statements
-    Veri7vn_Mathematics_Ticket_Execution.Mathematics_Ticket_Execution
-    Veri7vn_Refined_Templates.Refined_Template_Bridge
-    Veri7vn_Effects_Indexed.Effects_Indexed
+  imports Veri7vn_Runtime_Foundation.Runtime_Foundation
 begin
 definition service_attach_native_evidence :: "nat \<Rightarrow> claim \<Rightarrow> nat list \<Rightarrow> event" where
   "service_attach_native_evidence eid c deps = AttachEvidence
@@ -52,10 +45,10 @@ definition service_math_requirement :: "service_math_names \<Rightarrow> nat lis
       claim_kind=Mathematical,claim_modality=Asserted,collection_scope=Scalar,
       claim_optimality=Unspecified,premises=[],dependencies=deps,
       semantic_generation=sm_semantic n,executable_generation=ExecutableGeneration (sm_code n)\<rparr>"
-definition service_math_input :: "service_math_names \<Rightarrow> nat list \<Rightarrow> event" where
-  "service_math_input n deps = RegisterManaged
-    \<lparr>retained_id=sm_input n,retained_owner=RequestLocal (sm_request n),
-      retained_dependencies=filter (\<lambda>d. d\<noteq>sm_input n) deps,retained_read_dependencies=[],retained_access_requirements=[],
+definition service_math_input :: "service_math_names \<Rightarrow> event" where
+  "service_math_input n = RegisterManaged
+    \<lparr>retained_id=sm_input n,retained_owner=WorkspaceShared,
+      retained_dependencies=[],retained_read_dependencies=[],retained_access_requirements=[],
       retained_payload=sm_input n\<rparr>"
 definition service_math_parameter :: "service_math_names \<Rightarrow> nat list \<Rightarrow> event" where
   "service_math_parameter n deps = RegisterManaged
@@ -77,6 +70,36 @@ definition service_registration_present :: "authority_state \<Rightarrow> event 
   "service_registration_present s ev = (case ev of RegisterManaged v \<Rightarrow>
     v\<in>set (retained_values s) \<and> accessible s (retained_id v # retained_dependencies v)
     | _ \<Rightarrow> False)"
+definition service_registration_recorded :: "authority_state \<Rightarrow> event \<Rightarrow> bool" where
+  "service_registration_recorded s ev = (case ev of RegisterManaged v \<Rightarrow>
+    v \<in> set (retained_values s) | _ \<Rightarrow> False)"
+type_synonym service_record_index = "(nat, retained_value list) rbt"
+definition service_record_bucket :: "service_record_index \<Rightarrow> nat \<Rightarrow> retained_value list" where
+  "service_record_bucket index key = (case RBT.lookup index key of None \<Rightarrow> [] | Some values \<Rightarrow> values)"
+definition service_index_record :: "retained_value \<Rightarrow> service_record_index \<Rightarrow> service_record_index" where
+  "service_index_record value index = RBT.insert (retained_id value)
+    (value # service_record_bucket index (retained_id value)) index"
+lemma service_record_bucket_fold:
+  "value \<in> set (service_record_bucket (fold service_index_record values index) key) \<longleftrightarrow>
+    value \<in> set (service_record_bucket index key) \<or> (value \<in> set values \<and> retained_id value=key)"
+  by (induction "values" arbitrary: index)
+    (auto simp: service_index_record_def service_record_bucket_def split: if_splits)
+lemma service_record_bucket_empty [simp]:
+  "value \<in> set (service_record_bucket (fold service_index_record values RBT.empty) (retained_id value))
+    \<longleftrightarrow> value \<in> set values"
+  by (simp only: service_record_bucket_fold)
+    (simp add: service_record_bucket_def)
+definition service_recorded_support_groups :: "authority_state \<Rightarrow> event list list \<Rightarrow> nat list list" where
+  "service_recorded_support_groups s groups =
+    (let index = fold service_index_record (retained_values s) RBT.empty in
+      map (List.map_filter (\<lambda>ev. case ev of RegisterManaged value \<Rightarrow>
+        (if value \<in> set (service_record_bucket index (retained_id value))
+         then Some (retained_id value) else None) | _ \<Rightarrow> None)) groups)"
+lemma service_recorded_support_groups_exact:
+  "service_recorded_support_groups s groups =
+    map (List.map_filter (\<lambda>ev. case ev of RegisterManaged value \<Rightarrow>
+      (if value \<in> set (retained_values s) then Some (retained_id value) else None) | _ \<Rightarrow> None)) groups"
+  by (simp add: service_recorded_support_groups_def Let_def)
 definition service_math_reserve :: "service_math_names \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> event" where
   "service_math_reserve n prestate fuel deps = ReserveRequest
     \<lparr>request_id=sm_request n,request_generation=sm_semantic n,
@@ -123,6 +146,142 @@ definition service_binding_live :: "authority_state \<Rightarrow> nat \<Rightarr
 definition service_required_math_requests :: "authority_state \<Rightarrow> nat list" where
   "service_required_math_requests s = map request_id
     (filter (\<lambda>r. accessible s (request_id r # request_dependencies r)) (requests s))"
+declare [[code drop: new_revoked_objects new_forgotten_objects]]
+lemma service_new_revoked_objects_code [code]:
+  "new_revoked_objects previous next = indexed_new_ids (revoked_objects previous) (revoked_objects next)"
+  by (simp add: new_revoked_objects_def indexed_new_ids_exact)
+lemma service_new_forgotten_objects_code [code]:
+  "new_forgotten_objects previous next = indexed_new_ids (forgotten_objects previous) (forgotten_objects next)"
+  by (simp add: new_forgotten_objects_def indexed_new_ids_exact)
+
+text \<open>Retirement uses the original current authority, before any extra roots
+are selected. The ancestor index includes inaccessible records and unions duplicate
+IDs, so an inaccessible intermediate cannot hide a surviving consumer.\<close>
+definition service_claim_references :: "claim \<Rightarrow> nat list" where
+  "service_claim_references c = claim_id c # target_id c # interpretation_id c # semantic_generation c #
+    premises c @ dependencies c @ (case executable_generation c of NoExecution \<Rightarrow> [] | ExecutableGeneration n \<Rightarrow> [n])"
+definition service_slot_references :: "output_slot \<Rightarrow> nat list" where
+  "service_slot_references slot = output_slot_id slot # output_template slot # output_profile slot #
+    output_input_identity slot # output_reserved_dependencies slot @
+    map (\<lambda>input. case input of KnownInput n \<Rightarrow> n | ReservedOutput n \<Rightarrow> n) (output_inputs slot)"
+definition service_request_references :: "authority_state \<Rightarrow> request \<Rightarrow> nat list" where
+  "service_request_references s r = request_id r # request_generation r # request_code_generation r #
+    request_dependencies r @ concat (map (\<lambda>g. goal_capability g # goal_interpretation g #
+      goal_dependencies g @ service_claim_references (goal_required g) @
+      (case required_for s r g of None \<Rightarrow> [] | Some c \<Rightarrow> service_claim_references c)) (request_goals r)) @
+    concat (map service_slot_references (filter (\<lambda>slot. output_owner slot=request_id r) (output_slots s))) @
+    concat (map (\<lambda>a. assigned_output a # assigned_dependencies a @
+      service_claim_references (assigned_requirement a) @
+      concat (map (\<lambda>v. retained_id v # retained_dependencies v) (assigned_retained a)))
+      (filter (\<lambda>a. binding_request (assigned_binding a)=request_id r) (output_assignments s)))"
+definition service_forget_protected :: "authority_state \<Rightarrow> nat list \<Rightarrow> nat list \<Rightarrow> nat list" where
+  "service_forget_protected s removed support =
+    concat (map (\<lambda>r. filter (\<lambda>n. n \<notin> set removed) (service_request_references s r))
+      (filter (\<lambda>r. accessible s (request_id r # request_dependencies r) \<and>
+        list_all (\<lambda>n. n \<notin> set removed) (request_id r # request_dependencies r)) (requests s))) @
+    concat (map evidence_managed_dependencies
+      (filter (\<lambda>e. evidence_accessible s e \<and>
+        list_all (\<lambda>n. n \<notin> set removed) (evidence_managed_dependencies e)) (evidence_table s))) @
+    map retained_id (filter (\<lambda>v. accessible s [retained_id v] \<and>
+      retained_id v \<notin> set removed \<and> retained_id v \<notin> set support \<and>
+      (case retained_owner v of RequestLocal rid \<Rightarrow> rid \<notin> set removed \<and>
+        list_all (\<lambda>r. request_id r = rid \<longrightarrow>
+          list_all (\<lambda>n. n \<notin> set removed) (request_dependencies r)) (requests s)
+      | _ \<Rightarrow> True))
+      (retained_values s))"
+definition service_membership_index :: "nat list \<Rightarrow> effect_seen" where
+  "service_membership_index xs = fold (\<lambda>key. RBT.insert key ()) xs RBT.empty"
+lemma service_membership_index_lookup [simp]:
+  "RBT.lookup (service_membership_index xs) key = None \<longleftrightarrow> key \<notin> set xs"
+  by (simp add: service_membership_index_def fold_seen_lookup)
+definition service_index_accessible :: "effect_seen \<Rightarrow> nat list \<Rightarrow> bool" where
+  "service_index_accessible denied refs = list_all (\<lambda>key. RBT.lookup denied key = None) refs"
+lemma service_index_accessible_exact [simp]:
+  "service_index_accessible (service_membership_index (revoked_objects s)) refs = accessible s refs"
+  by (simp add: service_index_accessible_def accessible_def list_all_iff)
+definition service_index_evidence_accessible :: "effect_seen \<Rightarrow> evidence \<Rightarrow> bool" where
+  "service_index_evidence_accessible denied e = (
+    list_all (\<lambda>d. d \<in> set (evidence_managed_dependencies e))
+      (evidence_id e # claim_id (evidence_claim e) # target_id (evidence_claim e) #
+       interpretation_id (evidence_claim e) # semantic_generation (evidence_claim e) #
+       premises (evidence_claim e) @ dependencies (evidence_claim e)) \<and>
+    service_index_accessible denied (evidence_managed_dependencies e))"
+lemma service_index_evidence_accessible_exact [simp]:
+  "service_index_evidence_accessible (service_membership_index (revoked_objects s)) e = evidence_accessible s e"
+  by (simp add: service_index_evidence_accessible_def evidence_accessible_def)
+lemma service_unaffected_request_owner [simp]:
+  "rid \<notin> request_id ` {r \<in> set rs. \<not> P r} \<longleftrightarrow>
+    list_all (\<lambda>r. request_id r = rid \<longrightarrow> P r) rs"
+  by (auto simp: list_all_iff)
+lemma service_affected_request_index [simp]:
+  "RBT.lookup (service_membership_index (map request_id
+    (filter (\<lambda>r. \<not> list_all (\<lambda>n. n \<notin> set removed) (request_dependencies r)) (requests s)))) rid = None
+    \<longleftrightarrow> list_all (\<lambda>r. request_id r = rid \<longrightarrow>
+      list_all (\<lambda>n. n \<notin> set removed) (request_dependencies r)) (requests s)"
+  by (auto simp: list_all_iff)
+definition service_forget_protected_indexed :: "authority_state \<Rightarrow> nat list \<Rightarrow> nat list \<Rightarrow> nat list" where
+  "service_forget_protected_indexed s removed support =
+    (let removed_index = service_membership_index removed;
+         support_index = service_membership_index support;
+         denied = service_membership_index (revoked_objects s);
+         affected = service_membership_index (map request_id (filter (\<lambda>r.
+           \<not> list_all (\<lambda>n. RBT.lookup removed_index n = None) (request_dependencies r)) (requests s)))
+     in
+    concat (map (\<lambda>r. filter (\<lambda>n. RBT.lookup removed_index n = None) (service_request_references s r))
+      (filter (\<lambda>r. service_index_accessible denied (request_id r # request_dependencies r) \<and>
+        list_all (\<lambda>n. RBT.lookup removed_index n = None) (request_id r # request_dependencies r)) (requests s))) @
+    concat (map evidence_managed_dependencies
+      (filter (\<lambda>e. service_index_evidence_accessible denied e \<and>
+        list_all (\<lambda>n. RBT.lookup removed_index n = None) (evidence_managed_dependencies e)) (evidence_table s))) @
+    map retained_id (filter (\<lambda>v. service_index_accessible denied [retained_id v] \<and>
+      RBT.lookup removed_index (retained_id v) = None \<and> RBT.lookup support_index (retained_id v) = None \<and>
+      (case retained_owner v of RequestLocal rid \<Rightarrow> RBT.lookup removed_index rid = None \<and>
+        RBT.lookup affected rid = None
+      | _ \<Rightarrow> True))
+      (retained_values s)))"
+lemma service_forget_protected_indexed_exact:
+  "service_forget_protected_indexed s removed support = service_forget_protected s removed support"
+  by (simp add: service_forget_protected_indexed_def service_forget_protected_def Let_def
+      cong: retention_scope.case_cong)
+declare [[code drop: service_forget_protected]]
+lemma service_forget_protected_code [code]:
+  "service_forget_protected s removed support = service_forget_protected_indexed s removed support"
+  by (simp add: service_forget_protected_indexed_exact)
+
+definition service_forget_support_event :: "authority_state \<Rightarrow> nat \<Rightarrow> nat list list \<Rightarrow> event option" where
+  "service_forget_support_event s primary groups =
+    (case forget_closure (retained_values s) [primary] of None \<Rightarrow> None | Some removed \<Rightarrow>
+      (case protected_ancestor_summary (retained_values s)
+        (service_forget_protected s removed (concat groups)) of None \<Rightarrow> None | Some summary \<Rightarrow>
+          Some (ForgetRoots (primary # concat (filter (\<lambda>roots.
+            \<not> protected_ancestors_hit summary roots) groups)))))"
+
+definition service_forget_registered_support_event :: "authority_state \<Rightarrow> nat \<Rightarrow> event list list \<Rightarrow> event option" where
+  "service_forget_registered_support_event s primary groups =
+    service_forget_support_event s primary (filter (\<lambda>roots. roots\<noteq>[])
+      (service_recorded_support_groups s groups))"
+
+lemma service_forget_selected_group_safe:
+  assumes summary: "protected_ancestor_summary (retained_values s)
+      (service_forget_protected s removed (concat groups)) = Some summary"
+    and eligible: "roots \<in> set (filter (\<lambda>roots. \<not> protected_ancestors_hit summary roots) groups)"
+  shows "set (dependency_closure (length (retained_values s)) (retained_values s) roots) \<inter>
+    set (service_forget_protected s removed (concat groups)) = {}"
+  using protected_ancestors_hit_exact[OF summary, of roots] eligible by auto
+
+lemma service_forget_all_selected_groups_safe:
+  assumes summary: "protected_ancestor_summary (retained_values s)
+      (service_forget_protected s removed (concat groups)) = Some summary"
+  shows "set (dependency_closure (length (retained_values s)) (retained_values s)
+      (concat (filter (\<lambda>roots. \<not> protected_ancestors_hit summary roots) groups))) \<inter>
+    set (service_forget_protected s removed (concat groups)) = {}"
+proof -
+  have "\<not> protected_ancestors_hit summary
+    (concat (filter (\<lambda>roots. \<not> protected_ancestors_hit summary roots) groups))"
+    by (auto simp: protected_ancestors_hit_def list_ex_iff)
+  then show ?thesis using protected_ancestors_hit_exact[OF summary] by blast
+qed
+
 definition service_math_request_matches ::
   "authority_state \<Rightarrow> service_math_names \<Rightarrow> nat list \<Rightarrow> nat \<Rightarrow> bool" where
   "service_math_request_matches s n deps cost =

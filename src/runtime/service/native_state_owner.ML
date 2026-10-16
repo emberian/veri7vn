@@ -6,6 +6,7 @@ sig
   type event
   val is_live: event -> bool
   val event_frame: event -> IntInf.int -> string
+  val retirement_registrations: event -> string list list
   val supports: event -> Veri7vn_Metadata_Frame.command_view list -> bool
   val recovery_view: event -> Veri7vn_Metadata_Frame.recovery_view
 end;
@@ -19,6 +20,7 @@ sig
   val current_epoch: unit -> IntInf.int
   val binding_live: IntInf.int -> IntInf.int -> bool
   val registration_present: event -> bool
+  val request_unavailable: IntInf.int -> bool
   val revoked_ids: unit -> IntInf.int list
   val prepare: event -> candidate
   val event_frame: candidate -> string
@@ -50,6 +52,7 @@ struct
   fun binding_live request evidence=F.binding_live (#2 (Synchronized.value state)) request evidence;
   fun registration_present gate=Gate.is_live gate andalso
     F.registration_present(#2(Synchronized.value state))(Gate.event_frame gate(current_revision()));
+  fun request_unavailable id=F.request_unavailable(#2(Synchronized.value state))id;
   fun revoked_ids()=F.revoked_ids(#2(Synchronized.value state));
   fun prepare gate =
     let
@@ -58,7 +61,8 @@ struct
       val _=Synchronized.change state (fn (version,current)=>(version+1,current));
       val _=F.guard (Gate.is_live gate) "Native gate association unavailable";
       val (version,current)=Synchronized.value state;
-      val event_frame=Gate.event_frame gate (F.revision current);
+      val event_frame=F.current_event_frame current (Gate.event_frame gate (F.revision current))
+        (Gate.retirement_registrations gate);
       val event=(case F.decode_event event_frame of SOME value=>value
         | NONE=>error "Native gate event schema mismatch");
       val (_,next,commands,_)=F.prepare current event;
