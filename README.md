@@ -25,6 +25,7 @@ developing, with both approachable specialist recipes and native Isabelle work.
 | Try the installed source editor | [Installed specialist workshop](docs/tutorials/installed-source-workshop.md) |
 | Import an original Oracle7 specialist | [First specialist tutorial](docs/tutorials/first-specialist.md) |
 | Run and inspect the current installed capabilities | [Operation reference](docs/reference/recipient-operations.md) |
+| Find work that has not started | [Untouched capability packages](project/REVIEW.md#untouched-scope-now-made-explicit) and [horizon decisions](project/REVIEW.md#horizon-external-gaps-and-decisions) |
 | Understand what works and what remains | [Whole-project review and horizon](project/REVIEW.md), then the [work board](project/BOARD.md) |
 | Understand the system design | [Architecture](docs/ARCHITECTURE_PROPOSAL.md) and [interface contracts](docs/contracts/README.md) |
 | Examine the assurance story | [Admission](docs/formal/admission.md), [proof obligations and trusted boundaries](project/PROOF_OBLIGATIONS.md) |

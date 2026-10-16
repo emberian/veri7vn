@@ -1257,3 +1257,30 @@ checked by the native gate. Required consumers cover valid producer rows, omitte
 intrinsic edges, request/goal/slot Revoke and Forget, and both staging and pending
 acknowledgement windows. The first child-access guard repair can be checked
 separately from the complete canonical retention migration.
+
+## D71 — Native gate liveness cannot reenter its authority owner
+
+The owner rechecks gate liveness while holding its state monitor during candidate
+installation. Gate liveness therefore checks intrinsic native objects and their
+physical ownership only; it must not query or mutate the same authority owner.
+Enforce this callback contract synchronously, rather than allowing an accidental
+recursive query to deadlock. This adds no cached authorization or second state.
+
+Conversation construction uses a static split: an intrinsic descriptor/source-root
+module before Owner, and a fixed query-driven front door instantiated after Owner.
+No mutable callback slot or mirrored authority state connects the two. The closed
+descriptor carries its actual original observation as inert expected data; the
+owner compares that expectation to its actual current state while staging. Its
+existing version check then protects staging through acknowledgement.
+
+An ExactObservation expectation means full canonical observation equality plus
+the required access check. `observation_fresh (RequireObservation observed None)`
+alone is insufficient: it ignores clock differences and uses the selected-read
+relation. Preserve the original full-snapshot check, including valid updates that
+change clock/read metadata without changing session version.
+
+Assembly and conversation own the static module/signature migration. Checks must
+cover synchronous same-owner reentry refusal without state installation, successful
+subsequent intrinsic acknowledgement, stale observation refusal at staging, and
+actual observation change between staging and acknowledgement. Prefer a test-local
+assembly of real components over new production test commands or alternate grants.

@@ -35,12 +35,43 @@ retains revisions; it does not activate the edited specialist.
 Whole standalone invocations observed roughly 10–16 seconds in the four-call
 trial. These are a useful baseline, not satisfactory interactive targets or a
 speedup claim. A subsequent instrumented source-only comparison measured reopen
-at22.005s before and8.027s after invocation-local hash-buffer reuse and standard
+at 22.005s before and 8.027s after invocation-local hash-buffer reuse and standard
 hex formatting, retaining every integrity check. The
 [comparison](../benchmarks/envelope/standalone-hash-repair-comparison.json) records
 the exact artifacts and limits: one observation per version, uncontrolled cache
 and load, no native speedup or live-memory claim. There is no representative
 whole-system performance envelope yet.
+
+## Current integration checkpoint
+
+The latest committed host checkpoint exercised 14 test groups, including real
+managed Build-source capture, rollback, reopening original revisions after head
+edits, and Revoke/Forget ownership behavior. Its
+[evidence record](../tests/runtime/host/evidence/host14-source-ownership.json)
+qualifies those host paths; its native envelope and cleanup barrier were controlled
+fixtures. It does not establish the complete native Build workflow.
+
+Three current joins explain much of the remaining integration work:
+
+- **Build:** retain the exact source and diagnostics, reconstruct historical native
+  ownership after restart, and deliver terminal status to the ordinary CLI/browser.
+  A successful source save still does not activate changed behavior.
+- **Conversation:** construct native descriptors without querying the authority
+  owner recursively while its monitor is held. Preserve full original-observation
+  equality at staging and reject stale acknowledgements. The static module split
+  and synchronous reentry guard are drafted; their composed tests remain open.
+- **Effects:** an acknowledged invocation and its terminal status are insufficient
+  to deliver a retained response. Actual response bytes need a nonassertional
+  source association committed with their ownership and durable state. The
+  proposed staged delivery path must also support retrieval, restart without
+  reinvocation, and Forget; it is still being designed and integrated.
+
+A narrow native check has now passed exact natural/integer/string exchange between
+separately reflected modules, including NUL and high-byte values. This repairs a
+shared representation obstacle. The actual source importer, row plans and row kernel
+subsequently compiled together, including the generated decoder; the protected
+source-relation consumer and request-scope factory remain separate checks. Native checks remain serialized through
+one steward so parallel implementation does not create competing builds.
 
 ## Capability review
 
@@ -82,20 +113,20 @@ inside broad `active` parents. The following child packages expose concrete work
 without pretending the remaining parent scope is finished. Their completion
 includes existing native/runtime/workbench consumers, not another component handoff.
 
-| Task ID | Capability to carry through | Parent gates |
-|---|---|---|
-| `finite-probability-statistics` | Exact populations/distributions, counting, genetics cases and descriptive statistics with typed completeness | domain-families, mathematics-family |
-| `literal-format-calendar-operations` | Original-byte encoding/hash/JSON/date operations and located diagnostics | domain-families, interpretation-model |
-| `bounded-transcendental-models` | Error-bounded exp/log/root computations, reference levels and conditional physical models | mathematics-family, domain-families |
-| `versioned-policy-evaluation` | Source-owned tables, piecewise rules, required conditions and normative rounding | domain-families, source-import |
-| `sqlite-execution-observer` | Actual governed SQL execution with pinned engine, typed cells, errors, bounds and retained observation | domain-families, state-effects, source-import |
-| `warehouse-site-workflow` | Snapshot query, context/freshness, reorder proposal and confirmation artifact | stateful-connectors, routing-dialogue |
-| `mcp-connector-workflow` | Configure/discover/select/preview/qualify/invoke/reconcile/retire through the real executor | stateful-connectors, state-effects, workspace-client |
-| `catalogue-toolchain-artifacts` | Original catalogue synthesis and editable code/test artifacts through governed workers | synthesis-growth, authoring-assistance, state-effects |
-| `ordered-pipeline-synthesis` | Ordered typed pipelines, emitted programs and distinct checked versus observed guarantees | synthesis-growth, plan-composition |
-| `retained-typed-program-library` | Broader bounded enumeration and durable reuse beyond the initial mathematical fragment | synthesis-growth, dependency-updates |
-| `conservative-type-development` | Controlled typedef with actual witness, reconstruction and subsequent carrier qualification | native-development, native-admission, package-lifecycle |
-| `adaptive-cross-capability-search` | Managed retrieval, proof/counterexample routes and retained proposals under one search budget | strategy-engine, plan-composition, synthesis-growth |
+| Task ID | State | Capability to carry through | Parent gates |
+|---|---|---|---|
+| `finite-probability-statistics` | Active draft | Exact populations/distributions, counting, genetics cases and descriptive statistics with typed completeness | domain-families, mathematics-family |
+| `literal-format-calendar-operations` | Unstarted | Original-byte encoding/hash/JSON/date operations and located diagnostics | domain-families, interpretation-model |
+| `bounded-transcendental-models` | Unstarted | Error-bounded exp/log/root computations, reference levels and conditional physical models | mathematics-family, domain-families |
+| `versioned-policy-evaluation` | Active draft | Source-owned tables, piecewise rules, required conditions and normative rounding | domain-families, source-import |
+| `sqlite-execution-observer` | Unstarted | Actual governed SQL execution with pinned engine, typed cells, errors, bounds and retained observation | domain-families, state-effects, source-import |
+| `warehouse-site-workflow` | Unstarted | Snapshot query, context/freshness, reorder proposal and confirmation artifact | stateful-connectors, routing-dialogue |
+| `mcp-connector-workflow` | Active draft | Configure/discover/select/preview/qualify/invoke/reconcile/retire through the real executor | stateful-connectors, state-effects, workspace-client |
+| `catalogue-toolchain-artifacts` | Unstarted | Original catalogue synthesis and editable code/test artifacts through governed workers | synthesis-growth, authoring-assistance, state-effects |
+| `ordered-pipeline-synthesis` | Unstarted | Ordered typed pipelines, emitted programs and distinct checked versus observed guarantees | synthesis-growth, plan-composition |
+| `retained-typed-program-library` | Unstarted | Broader bounded enumeration and durable reuse beyond the initial mathematical fragment | synthesis-growth, dependency-updates |
+| `conservative-type-development` | Unstarted | Controlled typedef with actual witness, reconstruction and subsequent carrier qualification | native-development, native-admission, package-lifecycle |
+| `adaptive-cross-capability-search` | Unstarted | Managed retrieval, proof/counterexample routes and retained proposals under one search budget | strategy-engine, plan-composition, synthesis-growth |
 
 Other remaining parent requirements stay explicit: gap journaling, feedback,
 explanation/Film export, further connector adapters, the remaining domain profiles,
@@ -105,6 +136,18 @@ replacement for the parent acceptance lists. Three now have active implementatio
 owners: finite probability/statistics, versioned policies, and the MCP workflow.
 Their native/runtime integration remains unqualified. The other nine children
 remain planned; the table does not imply twelve completed implementations.
+
+The three final integration packages—`workspace-integration`,
+`performance-hardening`, and `release-integration`—also remain planned. They are
+whole-product acceptance work, separate from the nine unstarted capability
+packages. Their prerequisites have active work; those statuses do not establish
+that complete integrated acceptance has begun or passed. Independent recipient
+use, Linux qualification and redistribution/license closure remain open too.
+
+The ledger currently records 15 done, 43 active and 12 planned packages. These
+counts describe work organization, **not percentage completion**: the active
+parents still contain substantial unimplemented behavior, and the completed
+foundation tasks are much smaller than several remaining product obligations.
 
 ## How to keep broad progress coherent
 
