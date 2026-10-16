@@ -331,7 +331,7 @@
         "design-convergence",
         "f-native"
       ],
-      "owner": "build_support61",
+      "owner": "build_reconnected61",
       "paths": [
         "tools/dev/**",
         "tests/dev/**"
@@ -369,7 +369,7 @@
       "depends_on": [
         "design-convergence"
       ],
-      "owner": "linkage61",
+      "owner": "source_reconnected61",
       "paths": [
         "experiments/native-linkage/**",
         "docs/design/native-linkage-feasibility.md"
@@ -425,7 +425,7 @@
       "depends_on": [
         "design-convergence"
       ],
-      "owner": "host61",
+      "owner": "host_reconnected61",
       "paths": [
         "experiments/runtime-host/**",
         "docs/design/runtime-host-feasibility.md"
@@ -626,7 +626,7 @@
       "depends_on": [
         "design-convergence"
       ],
-      "owner": "authority61",
+      "owner": "authority_reconnected61",
       "paths": [
         "src/isabelle/model/**",
         "tests/model/**",
@@ -1153,7 +1153,7 @@
         "interpretation-model",
         "native-registry"
       ],
-      "owner": "plans61",
+      "owner": "plans_reconnected61",
       "paths": [
         "src/isabelle/plans/**",
         "tests/plans/**",
@@ -1214,7 +1214,7 @@
         "operational-model",
         "native-registry"
       ],
-      "owner": "effects61",
+      "owner": "effects_reconnected61",
       "paths": [
         "src/isabelle/effects/**",
         "tests/effects/**",
@@ -1425,7 +1425,7 @@
         "native-admission",
         "state-effects"
       ],
-      "owner": "plans61",
+      "owner": "plans_reconnected61",
       "paths": [
         "src/isabelle/search/**",
         "tests/search/**",
@@ -1486,7 +1486,7 @@
         "runtime-host-bootstrap",
         "native-resident-assembly"
       ],
-      "owner": "host61",
+      "owner": "host_reconnected61",
       "paths": [
         "src/runtime/service/*.scala",
         "tests/runtime/service/*.scala",
@@ -1838,7 +1838,7 @@
         "native-admission",
         "performance-envelope"
       ],
-      "owner": "linkage61",
+      "owner": "source_reconnected61",
       "paths": [
         "src/isabelle/execution/**",
         "tests/execution/**",
@@ -2016,7 +2016,7 @@
         "native-admission",
         "staged-execution"
       ],
-      "owner": "domains61",
+      "owner": "domains_reconnected61",
       "paths": [
         "src/families/domains/**",
         "tests/families/domains/**",
@@ -3009,7 +3009,7 @@
         "operational-model",
         "runtime-host-bootstrap"
       ],
-      "owner": "recovery61",
+      "owner": "recovery_reconnected61",
       "paths": [
         "src/isabelle/admission/recovery/**",
         "tests/admission/recovery/**",
@@ -3135,7 +3135,7 @@
         "staged-execution",
         "native-recovery"
       ],
-      "owner": "assembly61",
+      "owner": "assembly_reconnected61",
       "paths": [
         "src/runtime/service/native_service.ML",
         "src/runtime/service/native_state_owner.ML",
@@ -3198,7 +3198,7 @@
   "execution_batches": [
     {
       "id": "native-service-first-consumer",
-      "owner": "assembly61",
+      "owner": "assembly_reconnected61",
       "state": "d45-native-and-real-resident-passed-d44-consumers-active",
       "target": "Runtime_Service and Native_State_Owner_Tests: actual generated Reserve to StageOutput",
       "first_failure": "Protocol-reader Scala digest deadlock repaired by bounded owned off-reader FIFO. Root reviewed native6c1269 and actual resident e8efa7e5 receipts/logs/consumer; concurrent publication, nonempty restore, selective Forget and survivor restart pass.",
@@ -3212,15 +3212,15 @@
     },
     {
       "id": "host-consumers",
-      "owner": "host61",
-      "state": "real-resident-passed-packaged-launch-layout-repair",
+      "owner": "host_reconnected61",
+      "state": "resident-and-staged-main-passed-d44-regressions-written",
       "target": "Current Scala host/store checks, then real bounded draft listing and launcher producers",
       "consumers": [
         "authoring61",
         "deployment61"
       ],
       "evidence": "var/native-scaffold/sessions/761b8d2aaa49622b/attempts/e8efa7e5fae14a66a647e8c7be3becf6/receipt.json",
-      "next": "Actual concurrent original-byte requests, licensed publication, nonempty restore without event replay, selective Forget erasure and survivor restart pass. Final jar captured; packaged Main fails before native execution because custom heaps were staged under ML platform without ML system prefix. Deployment repairs immutable generation; host owns D44 last-owner/crash consumers and bounded cleanup retry."
+      "next": "Real resident baseline passes. Repaired immutable public Main processes both exit0 with expected answers across same-workspace restart; supervising receipt interrupted by harness restart, preserved. Host bounded cleanup retry and actual last-owner commit-before-ack/immediate-Forget regressions are written but await D44 native image; no new runtime claim."
     },
     {
       "id": "relation-fact-packages",
@@ -3232,7 +3232,7 @@
     },
     {
       "id": "quantity-packages",
-      "owner": "domains61",
+      "owner": "domains_reconnected61",
       "state": "implementing",
       "target": "Exact linear/affine unit kernels and springs composition via native typed plan"
     },
@@ -3247,14 +3247,15 @@
     {
       "id": "deployment-staging",
       "owner": "deployment61",
-      "state": "immutable-full-package-captured-actual-launch-layout-repair",
+      "state": "repaired-immutable-public-main-launch-restart-passed",
       "target": "Actual artifact staging and launcher integration with update preservation",
       "first_failure": "Immutable generation6a8c11ef fully copied/verified from final jar8486c19b and fresh closure db75fb3e. Actual launcher7af9670c fails missing Veri7vn_Codegen heap: staging used arm64_32-darwin rather than polyml-5.9.2_arm64_32-darwin. Root read actual stderr; native execution not reached.",
-      "next": "Repair new generation from captured immutable artifacts, preserve exact heap parent directory, normalize bundled ~~ source inventory against runtime bytes, then actual staged Main request/restart. Source/heap freeze released; queued family/recovery/search checks proceed. Thirteen staging tests root-reviewed, actual startup/Linux/full handoff remain open."
+      "next": "Root read actual subprocess result/logs for generation40ac45e7: sum then same-workspace product, both exit0. Supervising driver interrupted by harness restart; do not relabel its receipt or rerun solely to beautify it. Root reran13stagingtests. Broader authoring/search/offline/Linux acceptance and redistribution remain open.",
+      "evidence": "var/deployment-launch-check-4cc408de-8bd0-432b-8bd9-d5addb5f7e3e/result.json"
     },
     {
       "id": "native-strategy-consumer",
-      "owner": "plans61",
+      "owner": "plans_reconnected61",
       "state": "implementing",
       "target": "Actual multistep native proof search with budget/cancel/trace and admission consumer"
     },
@@ -3269,14 +3270,14 @@
         "assembly61",
         "host61"
       ],
-      "state": "actual-core-and-managed-source-descriptor-passed-expert-recovery-pending",
+      "state": "managed-source-and-expert-recovery-passed-multiparent-extension-pending",
       "target": "Checked ordinary source reconstruction -> managed P object -> descriptor/service gate -> authoring admission",
-      "next": "Root reviewed Core scope tests/archive hashes and actual managed source\u2192native descriptor test/loadedsourcehashes. NativeDevelopment passed4s; ExpertRecovery stopped at unavailable OS.Process.sleep fixture API, owner fixed using installed API. First expert runtime/cancellation/multiparent cases and D43 service/UI artifact producer remain required.",
-      "evidence": "var/native-scaffold/sessions/fe9f8d5b32b933ac/attempts/0bdc71ea70dc40e9b752245c6353eefb/receipt.json"
+      "next": "Actual managed source descriptor and ExpertRecovery replay/cancel/concurrent release leaf pass. Root read exact prior committed fixture and receipt9941b817. New multiparent ordered-import/shared-source extension awaits narrow check. D43 real source candidate persistence/service/UI still required.",
+      "evidence": "var/native-scaffold/sessions/29d7efc9254bbf93/attempts/9941b8172c1449b3afe020f5f8e0a583/receipt.json"
     },
     {
       "id": "source-relation-consumer",
-      "owner": "linkage61",
+      "owner": "source_reconnected61",
       "members": [
         "relations_facts61"
       ],
@@ -3286,17 +3287,18 @@
     },
     {
       "id": "atomic-native-support-forget",
-      "owner": "assembly61",
+      "owner": "assembly_reconnected61",
       "members": [
         "authority61",
         "host61"
       ],
-      "state": "design-approved-next-shared-migration",
-      "target": "D44 single durable list-root Forget closes request and now-unowned bridge/code rows, preserves durable survivors, cancels uncommitted aliases, strict restart"
+      "state": "selector-cleanup-and-host-consumers-written-indexed-proof-check-pending",
+      "target": "D44 single durable list-root Forget closes request and now-unowned bridge/code rows, preserves durable survivors, cancels uncommitted aliases, strict restart",
+      "next": "Current-state exact two-row groups, one backward summary/full closure guard, generic request/evidence/slot references, category deltas, overlapping cleanup roots and bounded retry implemented in drafts. Shared indexed proof and actual service/host qualification remain. Fixed Domain family follows D44 through same pipeline (D46)."
     },
     {
       "id": "typed-native-build-candidates",
-      "owner": "authority61",
+      "owner": "authority_reconnected61",
       "members": [
         "native_build61",
         "admission61",
@@ -3310,7 +3312,7 @@
     },
     {
       "id": "native-build-resource-cleanup",
-      "owner": "build_support61",
+      "owner": "build_reconnected61",
       "state": "cleanup-checked-exact-scope-reviewed",
       "target": "Identity-tracked cleanup of actual owned native descendants including detached process groups",
       "evidence": "var/driver-cleanup-tests.log",
@@ -3330,7 +3332,7 @@
     },
     {
       "id": "native-proof-search-consumer",
-      "owner": "plans61",
+      "owner": "plans_reconnected61",
       "members": [
         "admission61",
         "assembly61"
@@ -3341,14 +3343,14 @@
     },
     {
       "id": "indexed-forget-refinement",
-      "owner": "effects61",
+      "owner": "effects_reconnected61",
       "members": [
         "performance61",
         "authority61"
       ],
-      "state": "isolated-indexed-candidate-written-unchecked",
+      "state": "false-order-target-replaced-indexed-proof-draft-awaits-native-feedback",
       "target": "Proved exact-list-order indexed replacement for measured reference closure, actual generated authority consumer and matched performance",
-      "next": "RBT reverse adjacency, visited traversal, actual-edge fuel and last-occurrence reconstruction written in isolated child. Exact Order and general multiplicity/workbound/reachability/equality proofs remain open; no authority code equation selected. Preserve empty graph duplicate seeds and duplicate records/cycles; benchmark actual consumer after proof."
+      "next": "Found counterexample to reconstructing all reached records: seed-only IDs need separate preservation. Corrected characterization uses fired records and retains last-occurrence order. Ancestor summary set proofs independent; indexed denial-history diff and service protected-reference scans share foundation. Native proof feedback and scaling through actual service remain required."
     }
   ]
 }

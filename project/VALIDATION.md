@@ -784,3 +784,24 @@ heap directory, then an actual packaged Main request/restart check. The complete
 immutable capture released production source/heap freezes; this repair needs no
 mutable production inputs. Hash verification and resident-test success did not
 establish the packaged launcher's correctness.
+
+The repaired immutable generation `40ac45e74c0be18732a81bff246817cfb2cbe9de91abfc7c8a7ccfc234ec98bd`
+subsequently ran the actual public Main twice. Root read result.json under
+`var/deployment-launch-check-4cc408de-8bd0-432b-8bd9-d5addb5f7e3e`: both processes
+exited zero with expected licensed HTML, first a sum and then a product after
+opening the same nonempty workspace. Their elapsed times were 59.053 and 21.354
+seconds, including startup. The supervising driver was interrupted by the harness
+restart before writing its terminal receipt; the subprocess result and interrupted
+wrapper are retained separately. This is actual packaged launch/restart evidence,
+not comprehensive offline, authoring, search, performance or platform acceptance.
+Root reran the thirteen staging tests successfully after the repair.
+
+Expert recovery attempt `29d7efc9254bbf93/attempts/9941b8172c1449b3afe020f5f8e0a583`
+passed with stable inputs and clean process cleanup. Root matched the fixture from
+commit `6079fb3` to both receipt source hashes, read its assertions and build log.
+It reconstructs exact named propositions and original source slices, rejects wrong
+theorem names/imports, shares native ancestry and releases the final input owner.
+The cancellation and concurrent-release cases wait for actual replay entry, then
+require interruption/rejection and source cleanup. Expert theory time was 29.868
+seconds. A new two-parent extension is queued; candidate artifacts through D43
+service persistence and UI remain open. This component pass does not close them.

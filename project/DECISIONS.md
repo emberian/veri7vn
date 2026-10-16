@@ -663,3 +663,19 @@ A matched fatal abort sets incarnation poison before releasing queue ownership.
 Fork failure leaves the enqueue uncommitted and rejects its exact request ID.
 Late failure can follow an already emitted reply, so this is not an exactly-once
 reply or rollback guarantee. Durable recovery remains authoritative.
+
+## D46 — Extend the resident consumer through fixed capability families
+
+Domain execution joins the same authoritative reservation, charge, output and
+lifecycle pipeline through fixed Domain constructors in request, gate and recovery
+sums. It does not create a parallel service or accept arbitrary callbacks. The
+domain owner carries the capability through its actual caller and licensed result;
+assembly supports the shared sum changes after D44 convergence. D43 artifact
+construction does not by itself gate independent domain implementation.
+
+An adopted model ID must have an exact native proposition association, including
+the complete condition statement and its actual owner. Mere retention of an ID is
+insufficient. Domain workers consume those opaque associations and the existing
+operation-ticket boundary. Source relations and search retain their own concrete
+consumer obligations. Factor repeated ownership and recovery mechanisms where
+possible while preserving the distinct typed carriers and admission requirements.
