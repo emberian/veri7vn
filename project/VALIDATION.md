@@ -910,3 +910,22 @@ counterexample or a passing full refinement suite. The core is committed with
 that limitation. Current service source consumes the proved ancestor guards and
 exact denial differences, not the optional forward-list reconstruction. Its
 actual native service build and consumer tests remain separate qualification.
+
+## Shared host and service iteration
+
+The first D44 service attempt `0e2ecd7db95f43e1ae01334ec8ab07ee` failed at
+Native_Service's unqualified `map_filter`; root read the stable receipt and log.
+Native ownership tests were cancelled before running. Assembly fixed the qualified
+constant and split a stable Runtime_Foundation prefix to cache repeated RBT work.
+Root caught both sessions initially sharing one directory, checked the installed
+Sessions.scala rejection, and had the foundation moved to its own directory before
+the new capture. The resulting build remains pending; no iteration speedup is yet
+measured.
+
+Root read the stable host composition receipt and compiler log for
+`e2e5dce8af3748e29827430f8ae455a5`: 54.194s, failed in NativeBuildIngress's Thread
+lambda before tests because its inferred result was Boolean rather than Unit.
+The owner is repairing it alongside the upload timeout/finish/accept ownership
+race found in root review. Existing source-client passes do not cover this new
+ingress. Explicit nonce reconciliation and retained unresolved ownership are now
+the required consumer behavior; a timeout alone is not native cancellation.

@@ -781,3 +781,22 @@ family consumers and the graph projection consume that same guarded association.
 The name of the upstream dataset does not select the wire version. Native checks,
 actual acquired-source queries, restart and retirement must qualify the migration
 before any wider source-preservation claim.
+
+D43 upload timeout clarification: stopping a host wait does not cancel a queued
+native command. Generate an inert bounded upload nonce before begin; retain the
+nonce-to-stage/prepared association so lost begin or finish replies can be
+reconciled. Exact-header retries are idempotent and conflicting reuse rejects.
+Discard before acceptance monotonically abandons the upload and releases only
+its producer ownership; it must suppress a racing finish publication. Acceptance
+uses the exact nonce and known prepared handle. After acceptance, nonce discard
+cannot release independently accepted/retained consumer ownership.
+
+The host arbitrates offer, acceptance and cancellation explicitly. A lost accept
+reply retains the known handle for reconciliation or confirmed handle release;
+it cannot fall through generic cleanup that forgets unresolved native ownership.
+Retiring jobs and tombstones remain bounded without evicting unresolved owners.
+Settlement requires the original sender to have stopped and the relevant native
+commands to have drained in protocol order, not merely a timed-out future.
+Unresolved teardown is reported and retained; hard quiescence does not follow
+from an unbounded thread join. Transport failure may require explicit resident
+fail-stop, while ordinary upload timeouts use the fixed reconciliation protocol.
