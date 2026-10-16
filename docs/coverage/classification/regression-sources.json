@@ -1,0 +1,31 @@
+{
+  "note": "Pinned upstream fixture source definitions/dependencies, not theorem authority or evidence of full runtime activation. Native replacements remain separate.",
+  "sha256": {
+    "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w480.py": "b9b2a896588b517bc895484e9fb4ec5043a207324ced83368a4562de638ba5f0",
+    "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w525.py": "c3b3cca0dbd89e19100ac0930b69cef6acf8b7590e5136088e4e03c4a1956606",
+    "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w529.py": "5f1b0f2719123c62ebf4340e9ede60b394bfa946b647414528c2aa71c493540f",
+    "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w533.py": "a8ece7193af750afe0d4109742d6272512849a638cf4be16f672f991ffaab6a4",
+    "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w540.py": "ad74a20cdf9971ec3d57dfff1cd81957510f777878dc33dad972d53edc635009",
+    "upstream/root/specialists/_gate/combo_runtime_v1.py": "00d721a0f9a9950d896b02a1c556c44f7f5b573aac6e4693bd775bab1526cda7",
+    "upstream/root/specialists/_gate/network_v1.py": "dcf6224faf63f11ee887a5f361253bac2abeff782e642a0bf6681acdabe4000d",
+    "upstream/root/specialists/_gate/network_v2.py": "fb4180ec182e91f50ee8df35cf3f059323a7c58db08cdbad2103a1f2a612b526",
+    "upstream/root/specialists/_gate/network_v3.py": "a5acc362b6527b55b4969c1a393e2c12dba722703fd78ae9756a1e9f24856d1f",
+    "upstream/root/specialists/algorithms/narrow_v1.py": "7a1c66e0aecf789e1b06c4168e95e03e59c01ffea9d0be773950b22325eae91d",
+    "upstream/root/specialists/algorithms/organ_algorithms_v1.py": "d72c073a8cf6ea480d85f33584022760dea3f4a522dc9602d50ed2c16769286f",
+    "upstream/root/specialists/dataformats/organ_formats_v1.py": "32bedd7f170999e81911062a0be6d3fd15baedb0899026f6d6eaa2d579625f80",
+    "upstream/root/specialists/games-v3/narrow_v1.py": "7a1c66e0aecf789e1b06c4168e95e03e59c01ffea9d0be773950b22325eae91d",
+    "upstream/root/specialists/games-v3/organ_games_v1.py": "0cce6ab9155e39662bdc7a9ec268f72ee807b4ebba8e102e362feb69ad4eb0e2",
+    "upstream/root/specialists/games-v3/organ_games_v2.py": "ba0cac2a5ffbb788b609f5cc56ec2459a9ff1370ed47cc5f5eb8ad9a421616c6",
+    "upstream/root/specialists/games-v3/organ_games_v3.py": "57d5fe307853ef38401d609334c6c69f80cf70ed033c8375cc55e3514d542e51",
+    "upstream/root/specialists/sql/organ_sql_v1.py": "f8f1fba1caedaacbfdcc61b5f3d8413458b2a7cdab85fd2d58a9afe6efa53b84",
+    "upstream/root/specialists/statistics-v2/organ_stats_v1.py": "b959b76309ce640fc10ae4ddd4995bb8a9c10937d53f3f8063d8f46b2eefb13b",
+    "upstream/root/specialists/statistics-v2/organ_stats_v2.py": "47c932e8694e9bfa132b4b5474be60d117737358a1f165d406dd083232235724",
+    "upstream/root/wander-train/chat_context_v2.py": "271b62bf8e9c7228c30b7ac5bb00a5b2d2e0e7b9ba97a7976dd33bdeb404b514",
+    "upstream/root/wander-train/code_organ_v3.py": "568fc36e984d5a0c34083d29894895a277afea06560e072a0ec260084c277f8c",
+    "upstream/root/wander-train/math_organ_v3.py": "bc007f4552d8f05c6bb150997d57f794becfb072fc65fb45bf2bc8332620bfbf",
+    "upstream/root/wander-train/math_solver_v3.py": "20ffe227c039f13743beed7778ff4be45a01ab0e03b74d8b974697682e0678c2",
+    "upstream/root/wander-train/organ_code_chat_v2.py": "9abc6d158ce6e6a94b5f24fb62398169454adeb83c36674ea57f42f931e5a8a4",
+    "upstream/workbench/sensors.py": "5b62769c144a815ece7761639bf7775fa2dc2c6a70956ff866be3f416e0b16bb"
+  },
+  "source_revision": "c5d6a29d5bc5e2525078e5a53afa1abf659e4d69"
+}

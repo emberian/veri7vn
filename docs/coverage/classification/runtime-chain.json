@@ -1,0 +1,1274 @@
+{
+  "tip": "oracle_release_runtime_w540",
+  "chain": [
+    {
+      "module": "oracle_release_runtime_w540",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w540.py"
+    },
+    {
+      "module": "oracle_release_runtime_w411",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w411.py"
+    },
+    {
+      "module": "oracle_release_runtime_w410",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w410.py"
+    },
+    {
+      "module": "oracle_release_runtime_w539",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w539.py"
+    },
+    {
+      "module": "oracle_release_runtime_w538",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w538.py"
+    },
+    {
+      "module": "oracle_release_runtime_w409",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w409.py"
+    },
+    {
+      "module": "oracle_release_runtime_w408",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w408.py"
+    },
+    {
+      "module": "oracle_release_runtime_w407",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w407.py"
+    },
+    {
+      "module": "oracle_release_runtime_w537",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w537.py"
+    },
+    {
+      "module": "oracle_release_runtime_w536",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w536.py"
+    },
+    {
+      "module": "oracle_release_runtime_w534",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w534.py"
+    },
+    {
+      "module": "oracle_release_runtime_w533",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w533.py"
+    },
+    {
+      "module": "oracle_release_runtime_w532",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w532.py"
+    },
+    {
+      "module": "oracle_release_runtime_w406",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w406.py"
+    },
+    {
+      "module": "oracle_release_runtime_w405",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w405.py"
+    },
+    {
+      "module": "oracle_release_runtime_w404",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w404.py"
+    },
+    {
+      "module": "oracle_release_runtime_w531",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w531.py"
+    },
+    {
+      "module": "oracle_release_runtime_w530",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w530.py"
+    },
+    {
+      "module": "oracle_release_runtime_w403",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w403.py"
+    },
+    {
+      "module": "oracle_release_runtime_w402",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w402.py"
+    },
+    {
+      "module": "oracle_release_runtime_w401",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w401.py"
+    },
+    {
+      "module": "oracle_release_runtime_w529",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w529.py"
+    },
+    {
+      "module": "oracle_release_runtime_w399",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w399.py"
+    },
+    {
+      "module": "oracle_release_runtime_w398",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w398.py"
+    },
+    {
+      "module": "oracle_release_runtime_w396",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w396.py"
+    },
+    {
+      "module": "oracle_release_runtime_w395",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w395.py"
+    },
+    {
+      "module": "oracle_release_runtime_w526",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w526.py"
+    },
+    {
+      "module": "oracle_release_runtime_w525",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w525.py"
+    },
+    {
+      "module": "oracle_release_runtime_w524",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w524.py"
+    },
+    {
+      "module": "oracle_release_runtime_w393",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w393.py"
+    },
+    {
+      "module": "oracle_release_runtime_w392",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w392.py"
+    },
+    {
+      "module": "oracle_release_runtime_w391",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w391.py"
+    },
+    {
+      "module": "oracle_release_runtime_w390",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w390.py"
+    },
+    {
+      "module": "oracle_release_runtime_w389",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w389.py"
+    },
+    {
+      "module": "oracle_release_runtime_w388",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w388.py"
+    },
+    {
+      "module": "oracle_release_runtime_w387",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w387.py"
+    },
+    {
+      "module": "oracle_release_runtime_w386",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w386.py"
+    },
+    {
+      "module": "oracle_release_runtime_w385",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w385.py"
+    },
+    {
+      "module": "oracle_release_runtime_w523",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w523.py"
+    },
+    {
+      "module": "oracle_release_runtime_w384",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w384.py"
+    },
+    {
+      "module": "oracle_release_runtime_w383",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w383.py"
+    },
+    {
+      "module": "oracle_release_runtime_w382",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w382.py"
+    },
+    {
+      "module": "oracle_release_runtime_w522",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w522.py"
+    },
+    {
+      "module": "oracle_release_runtime_w521",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w521.py"
+    },
+    {
+      "module": "oracle_release_runtime_w381",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w381.py"
+    },
+    {
+      "module": "oracle_release_runtime_w380",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w380.py"
+    },
+    {
+      "module": "oracle_release_runtime_w379",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w379.py"
+    },
+    {
+      "module": "oracle_release_runtime_w378",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w378.py"
+    },
+    {
+      "module": "oracle_release_runtime_w377",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w377.py"
+    },
+    {
+      "module": "oracle_release_runtime_w376",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w376.py"
+    },
+    {
+      "module": "oracle_release_runtime_w520",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w520.py"
+    },
+    {
+      "module": "oracle_release_runtime_w519",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w519.py"
+    },
+    {
+      "module": "oracle_release_runtime_w518",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w518.py"
+    },
+    {
+      "module": "oracle_release_runtime_w517",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w517.py"
+    },
+    {
+      "module": "oracle_release_runtime_w516",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w516.py"
+    },
+    {
+      "module": "oracle_release_runtime_w515",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w515.py"
+    },
+    {
+      "module": "oracle_release_runtime_w514",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w514.py"
+    },
+    {
+      "module": "oracle_release_runtime_w513",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w513.py"
+    },
+    {
+      "module": "oracle_release_runtime_w511",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w511.py"
+    },
+    {
+      "module": "oracle_release_runtime_w375",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w375.py"
+    },
+    {
+      "module": "oracle_release_runtime_w374",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w374.py"
+    },
+    {
+      "module": "oracle_release_runtime_w373",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w373.py"
+    },
+    {
+      "module": "oracle_release_runtime_w510",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w510.py"
+    },
+    {
+      "module": "oracle_release_runtime_w508",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w508.py"
+    },
+    {
+      "module": "oracle_release_runtime_w369",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w369.py"
+    },
+    {
+      "module": "oracle_release_runtime_w368",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w368.py"
+    },
+    {
+      "module": "oracle_release_runtime_w367",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w367.py"
+    },
+    {
+      "module": "oracle_release_runtime_w504",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w504.py"
+    },
+    {
+      "module": "oracle_release_runtime_w366",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w366.py"
+    },
+    {
+      "module": "oracle_release_runtime_w365",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w365.py"
+    },
+    {
+      "module": "oracle_release_runtime_w364",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w364.py"
+    },
+    {
+      "module": "oracle_release_runtime_w503",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w503.py"
+    },
+    {
+      "module": "oracle_release_runtime_w502",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w502.py"
+    },
+    {
+      "module": "oracle_release_runtime_w363",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w363.py"
+    },
+    {
+      "module": "oracle_release_runtime_w362",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w362.py"
+    },
+    {
+      "module": "oracle_release_runtime_w361",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w361.py"
+    },
+    {
+      "module": "oracle_release_runtime_w500",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w500.py"
+    },
+    {
+      "module": "oracle_release_runtime_w498",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w498.py"
+    },
+    {
+      "module": "oracle_release_runtime_w496",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w496.py"
+    },
+    {
+      "module": "oracle_release_runtime_w494",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w494.py"
+    },
+    {
+      "module": "oracle_release_runtime_w492",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w492.py"
+    },
+    {
+      "module": "oracle_release_runtime_w490",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w490.py"
+    },
+    {
+      "module": "oracle_release_runtime_w488",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w488.py"
+    },
+    {
+      "module": "oracle_release_runtime_w486",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w486.py"
+    },
+    {
+      "module": "oracle_release_runtime_w360",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w360.py"
+    },
+    {
+      "module": "oracle_release_runtime_w359",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w359.py"
+    },
+    {
+      "module": "oracle_release_runtime_w358",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w358.py"
+    },
+    {
+      "module": "oracle_release_runtime_w357",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w357.py"
+    },
+    {
+      "module": "oracle_release_runtime_w482",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w482.py"
+    },
+    {
+      "module": "oracle_release_runtime_w356",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w356.py"
+    },
+    {
+      "module": "oracle_release_runtime_w480",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w480.py"
+    },
+    {
+      "module": "oracle_release_runtime_w354",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w354.py"
+    },
+    {
+      "module": "oracle_release_runtime_w353",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w353.py"
+    },
+    {
+      "module": "oracle_release_runtime_w352",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w352.py"
+    },
+    {
+      "module": "oracle_release_runtime_w351",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w351.py"
+    },
+    {
+      "module": "oracle_release_runtime_w350",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w350.py"
+    },
+    {
+      "module": "oracle_release_runtime_w349",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w349.py"
+    },
+    {
+      "module": "oracle_release_runtime_w476",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w476.py"
+    },
+    {
+      "module": "oracle_release_runtime_w348",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w348.py"
+    },
+    {
+      "module": "oracle_release_runtime_w347",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w347.py"
+    },
+    {
+      "module": "oracle_release_runtime_w346",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w346.py"
+    },
+    {
+      "module": "oracle_release_runtime_w474",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w474.py"
+    },
+    {
+      "module": "oracle_release_runtime_w345",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w345.py"
+    },
+    {
+      "module": "oracle_release_runtime_w344",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w344.py"
+    },
+    {
+      "module": "oracle_release_runtime_w343",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w343.py"
+    },
+    {
+      "module": "oracle_release_runtime_w342",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w342.py"
+    },
+    {
+      "module": "oracle_release_runtime_w341",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w341.py"
+    },
+    {
+      "module": "oracle_release_runtime_w340",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w340.py"
+    },
+    {
+      "module": "oracle_release_runtime_w339",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w339.py"
+    },
+    {
+      "module": "oracle_release_runtime_w338",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w338.py"
+    },
+    {
+      "module": "oracle_release_runtime_w337",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w337.py"
+    },
+    {
+      "module": "oracle_release_runtime_w336",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w336.py"
+    },
+    {
+      "module": "oracle_release_runtime_w335",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w335.py"
+    },
+    {
+      "module": "oracle_release_runtime_w334",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w334.py"
+    },
+    {
+      "module": "oracle_release_runtime_w472",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w472.py"
+    },
+    {
+      "module": "oracle_release_runtime_w333",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w333.py"
+    },
+    {
+      "module": "oracle_release_runtime_w332",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w332.py"
+    },
+    {
+      "module": "oracle_release_runtime_w331",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w331.py"
+    },
+    {
+      "module": "oracle_release_runtime_w330",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w330.py"
+    },
+    {
+      "module": "oracle_release_runtime_w329",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w329.py"
+    },
+    {
+      "module": "oracle_release_runtime_w328",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w328.py"
+    },
+    {
+      "module": "oracle_release_runtime_w327",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w327.py"
+    },
+    {
+      "module": "oracle_release_runtime_w326",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w326.py"
+    },
+    {
+      "module": "oracle_release_runtime_w325",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w325.py"
+    },
+    {
+      "module": "oracle_release_runtime_w324",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w324.py"
+    },
+    {
+      "module": "oracle_release_runtime_w323",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w323.py"
+    },
+    {
+      "module": "oracle_release_runtime_w322",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w322.py"
+    },
+    {
+      "module": "oracle_release_runtime_w321",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w321.py"
+    },
+    {
+      "module": "oracle_release_runtime_w320",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w320.py"
+    },
+    {
+      "module": "oracle_release_runtime_w319",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w319.py"
+    },
+    {
+      "module": "oracle_release_runtime_w318",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w318.py"
+    },
+    {
+      "module": "oracle_release_runtime_w317",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w317.py"
+    },
+    {
+      "module": "oracle_release_runtime_w316",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w316.py"
+    },
+    {
+      "module": "oracle_release_runtime_w315",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w315.py"
+    },
+    {
+      "module": "oracle_release_runtime_w314",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w314.py"
+    },
+    {
+      "module": "oracle_release_runtime_w468",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w468.py"
+    },
+    {
+      "module": "oracle_release_runtime_w313",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w313.py"
+    },
+    {
+      "module": "oracle_release_runtime_w312",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w312.py"
+    },
+    {
+      "module": "oracle_release_runtime_w311",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w311.py"
+    },
+    {
+      "module": "oracle_release_runtime_w310",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w310.py"
+    },
+    {
+      "module": "oracle_release_runtime_w309",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w309.py"
+    },
+    {
+      "module": "oracle_release_runtime_w308",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w308.py"
+    },
+    {
+      "module": "oracle_release_runtime_w307",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w307.py"
+    },
+    {
+      "module": "oracle_release_runtime_w305",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w305.py"
+    },
+    {
+      "module": "oracle_release_runtime_w304",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w304.py"
+    },
+    {
+      "module": "oracle_release_runtime_w303",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w303.py"
+    },
+    {
+      "module": "oracle_release_runtime_w301",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w301.py"
+    },
+    {
+      "module": "oracle_release_runtime_w300",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w300.py"
+    },
+    {
+      "module": "oracle_release_runtime_w299",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w299.py"
+    },
+    {
+      "module": "oracle_release_runtime_w298",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w298.py"
+    },
+    {
+      "module": "oracle_release_runtime_w297",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w297.py"
+    },
+    {
+      "module": "oracle_release_runtime_w296",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w296.py"
+    },
+    {
+      "module": "oracle_release_runtime_w456",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w456.py"
+    },
+    {
+      "module": "oracle_release_runtime_w458",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w458.py"
+    },
+    {
+      "module": "oracle_release_runtime_w295",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w295.py"
+    },
+    {
+      "module": "oracle_release_runtime_w294",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w294.py"
+    },
+    {
+      "module": "oracle_release_runtime_w293",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w293.py"
+    },
+    {
+      "module": "oracle_release_runtime_w292",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w292.py"
+    },
+    {
+      "module": "oracle_release_runtime_w291",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w291.py"
+    },
+    {
+      "module": "oracle_release_runtime_w290",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w290.py"
+    },
+    {
+      "module": "oracle_release_runtime_w289",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w289.py"
+    },
+    {
+      "module": "oracle_release_runtime_w288",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w288.py"
+    },
+    {
+      "module": "oracle_release_runtime_w287",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w287.py"
+    },
+    {
+      "module": "oracle_release_runtime_w286",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w286.py"
+    },
+    {
+      "module": "oracle_release_runtime_w285",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w285.py"
+    },
+    {
+      "module": "oracle_release_runtime_w284",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w284.py"
+    },
+    {
+      "module": "oracle_release_runtime_w280",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w280.py"
+    },
+    {
+      "module": "oracle_release_runtime_w442",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w442.py"
+    },
+    {
+      "module": "oracle_release_runtime_w278",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w278.py"
+    },
+    {
+      "module": "oracle_release_runtime_w276",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w276.py"
+    },
+    {
+      "module": "oracle_release_runtime_w275",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w275.py"
+    },
+    {
+      "module": "oracle_release_runtime_w274",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w274.py"
+    },
+    {
+      "module": "oracle_release_runtime_w273",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w273.py"
+    },
+    {
+      "module": "oracle_release_runtime_w272",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w272.py"
+    },
+    {
+      "module": "oracle_release_runtime_w271",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w271.py"
+    },
+    {
+      "module": "oracle_release_runtime_w270",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w270.py"
+    },
+    {
+      "module": "oracle_release_runtime_w269",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w269.py"
+    },
+    {
+      "module": "oracle_release_runtime_w268",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w268.py"
+    },
+    {
+      "module": "oracle_release_runtime_w434",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w434.py"
+    },
+    {
+      "module": "oracle_release_runtime_w432",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w432.py"
+    },
+    {
+      "module": "oracle_release_runtime_w267",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w267.py"
+    },
+    {
+      "module": "oracle_release_runtime_w266",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w266.py"
+    },
+    {
+      "module": "oracle_release_runtime_w265",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w265.py"
+    },
+    {
+      "module": "oracle_release_runtime_w430",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w430.py"
+    },
+    {
+      "module": "oracle_release_runtime_w264",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w264.py"
+    },
+    {
+      "module": "oracle_release_runtime_w263",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w263.py"
+    },
+    {
+      "module": "oracle_release_runtime_w262",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w262.py"
+    },
+    {
+      "module": "oracle_release_runtime_w428",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w428.py"
+    },
+    {
+      "module": "oracle_release_runtime_w426",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w426.py"
+    },
+    {
+      "module": "oracle_release_runtime_w259",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w259.py"
+    },
+    {
+      "module": "oracle_release_runtime_w258",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w258.py"
+    },
+    {
+      "module": "oracle_release_runtime_w257",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w257.py"
+    },
+    {
+      "module": "oracle_release_runtime_w424",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w424.py"
+    },
+    {
+      "module": "oracle_release_runtime_w422",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w422.py"
+    },
+    {
+      "module": "oracle_release_runtime_w420",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w420.py"
+    },
+    {
+      "module": "oracle_release_runtime_w412",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w412.py"
+    },
+    {
+      "module": "oracle_release_runtime_w256",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w256.py"
+    },
+    {
+      "module": "oracle_release_runtime_w255",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w255.py"
+    },
+    {
+      "module": "oracle_release_runtime_w254",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w254.py"
+    },
+    {
+      "module": "oracle_release_runtime_w400",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w400.py"
+    },
+    {
+      "module": "oracle_release_runtime_w253",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w253.py"
+    },
+    {
+      "module": "oracle_release_runtime_w252",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w252.py"
+    },
+    {
+      "module": "oracle_release_runtime_w251",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w251.py"
+    },
+    {
+      "module": "oracle_release_runtime_w212",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w212.py"
+    },
+    {
+      "module": "oracle_release_runtime_w244",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w244.py"
+    },
+    {
+      "module": "oracle_release_runtime_w242",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w242.py"
+    },
+    {
+      "module": "oracle_release_runtime_w198",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w198.py"
+    },
+    {
+      "module": "oracle_release_runtime_w197",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w197.py"
+    },
+    {
+      "module": "oracle_release_runtime_w195",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w195.py"
+    },
+    {
+      "module": "oracle_release_runtime_w193",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w193.py"
+    },
+    {
+      "module": "oracle_release_runtime_w191",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w191.py"
+    },
+    {
+      "module": "oracle_release_runtime_w184",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w184.py"
+    },
+    {
+      "module": "oracle_release_runtime_w183",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w183.py"
+    },
+    {
+      "module": "oracle_release_runtime_w181",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w181.py"
+    },
+    {
+      "module": "oracle_release_runtime_w179",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w179.py"
+    },
+    {
+      "module": "oracle_release_runtime_w175",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w175.py"
+    },
+    {
+      "module": "oracle_release_runtime_w171",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w171.py"
+    },
+    {
+      "module": "oracle_release_runtime_w170",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w170.py"
+    },
+    {
+      "module": "oracle_release_runtime_w168",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w168.py"
+    },
+    {
+      "module": "oracle_release_runtime_w167",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w167.py"
+    },
+    {
+      "module": "oracle_release_runtime_w165",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w165.py"
+    },
+    {
+      "module": "oracle_release_runtime_w164",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w164.py"
+    },
+    {
+      "module": "oracle_release_runtime_w162",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w162.py"
+    },
+    {
+      "module": "oracle_release_runtime_w161",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w161.py"
+    },
+    {
+      "module": "oracle_release_runtime_w159",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w159.py"
+    },
+    {
+      "module": "oracle_release_runtime_w158",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w158.py"
+    },
+    {
+      "module": "oracle_release_runtime_w156",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w156.py"
+    },
+    {
+      "module": "oracle_release_runtime_w155",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w155.py"
+    },
+    {
+      "module": "oracle_release_runtime_w153",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w153.py"
+    },
+    {
+      "module": "oracle_release_runtime_w151",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w151.py"
+    },
+    {
+      "module": "oracle_release_runtime_w150",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w150.py"
+    },
+    {
+      "module": "oracle_release_runtime_w148",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w148.py"
+    },
+    {
+      "module": "oracle_release_runtime_w147",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w147.py"
+    },
+    {
+      "module": "oracle_release_runtime_w145",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w145.py"
+    },
+    {
+      "module": "oracle_release_runtime_w144",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w144.py"
+    },
+    {
+      "module": "oracle_release_runtime_w142",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w142.py"
+    },
+    {
+      "module": "oracle_release_runtime_w141",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w141.py"
+    },
+    {
+      "module": "oracle_release_runtime_w139",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w139.py"
+    },
+    {
+      "module": "oracle_release_runtime_w138",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w138.py"
+    },
+    {
+      "module": "oracle_release_runtime_w136",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w136.py"
+    },
+    {
+      "module": "oracle_release_runtime_w135",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w135.py"
+    },
+    {
+      "module": "oracle_release_runtime_w133",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w133.py"
+    },
+    {
+      "module": "oracle_release_runtime_w132",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w132.py"
+    },
+    {
+      "module": "oracle_release_runtime_w129",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w129.py"
+    },
+    {
+      "module": "oracle_release_runtime_w128",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w128.py"
+    },
+    {
+      "module": "oracle_release_runtime_w123",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w123.py"
+    },
+    {
+      "module": "oracle_release_runtime_w122",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w122.py"
+    },
+    {
+      "module": "oracle_release_runtime_w117",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w117.py"
+    },
+    {
+      "module": "oracle_release_runtime_w110",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w110.py"
+    },
+    {
+      "module": "oracle_release_runtime_w114",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w114.py"
+    },
+    {
+      "module": "oracle_release_runtime_w116",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w116.py"
+    },
+    {
+      "module": "oracle_release_runtime_w106",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w106.py"
+    },
+    {
+      "module": "oracle_release_runtime_w105",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w105.py"
+    },
+    {
+      "module": "oracle_release_runtime_w103",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w103.py"
+    },
+    {
+      "module": "oracle_release_runtime_w102",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w102.py"
+    },
+    {
+      "module": "oracle_release_runtime_w100",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w100.py"
+    },
+    {
+      "module": "oracle_release_runtime_w99",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w99.py"
+    },
+    {
+      "module": "oracle_release_runtime_w97",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w97.py"
+    },
+    {
+      "module": "oracle_release_runtime_w96",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w96.py"
+    },
+    {
+      "module": "oracle_release_runtime_w94",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w94.py"
+    },
+    {
+      "module": "oracle_release_runtime_w93",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w93.py"
+    },
+    {
+      "module": "oracle_release_runtime_w91",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w91.py"
+    },
+    {
+      "module": "oracle_release_runtime_w90",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w90.py"
+    },
+    {
+      "module": "oracle_release_runtime_w88",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w88.py"
+    },
+    {
+      "module": "oracle_release_runtime_w87",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w87.py"
+    },
+    {
+      "module": "oracle_release_runtime_w85",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w85.py"
+    },
+    {
+      "module": "oracle_release_runtime_w84",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w84.py"
+    },
+    {
+      "module": "oracle_release_runtime_w82",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w82.py"
+    },
+    {
+      "module": "oracle_release_runtime_w81",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w81.py"
+    },
+    {
+      "module": "oracle_release_runtime_w75",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w75.py"
+    },
+    {
+      "module": "oracle_release_runtime_w72",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w72.py"
+    },
+    {
+      "module": "oracle_release_runtime_w71",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w71.py"
+    },
+    {
+      "module": "oracle_release_runtime_w70",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w70.py"
+    },
+    {
+      "module": "oracle_release_runtime_w66",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w66.py"
+    },
+    {
+      "module": "oracle_release_runtime_w65",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w65.py"
+    },
+    {
+      "module": "oracle_release_runtime_w60",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w60.py"
+    },
+    {
+      "module": "oracle_release_runtime_w64",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w64.py"
+    },
+    {
+      "module": "oracle_release_runtime_w59",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w59.py"
+    },
+    {
+      "module": "oracle_release_runtime_w63",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w63.py"
+    },
+    {
+      "module": "oracle_release_runtime_w58",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w58.py"
+    },
+    {
+      "module": "oracle_release_runtime_w62",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w62.py"
+    },
+    {
+      "module": "oracle_release_runtime_w57",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w57.py"
+    },
+    {
+      "module": "oracle_release_runtime_w61",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w61.py"
+    },
+    {
+      "module": "oracle_release_runtime_w56",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w56.py"
+    },
+    {
+      "module": "oracle_release_runtime_w33",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w33.py"
+    },
+    {
+      "module": "oracle_release_runtime_w55",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w55.py"
+    },
+    {
+      "module": "oracle_release_runtime_w54",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w54.py"
+    },
+    {
+      "module": "oracle_release_runtime_w32",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w32.py"
+    },
+    {
+      "module": "oracle_release_runtime_w51",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w51.py"
+    },
+    {
+      "module": "oracle_release_runtime_w31",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w31.py"
+    },
+    {
+      "module": "oracle_release_runtime_w50",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w50.py"
+    },
+    {
+      "module": "oracle_release_runtime_w29",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w29.py"
+    },
+    {
+      "module": "oracle_release_runtime_w48",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w48.py"
+    },
+    {
+      "module": "oracle_release_runtime_w24",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w24.py"
+    },
+    {
+      "module": "oracle_release_runtime_w47",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w47.py"
+    },
+    {
+      "module": "oracle_release_runtime_w23",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w23.py"
+    },
+    {
+      "module": "oracle_release_runtime_w46",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w46.py"
+    },
+    {
+      "module": "oracle_release_runtime_w22",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w22.py"
+    },
+    {
+      "module": "oracle_release_runtime_w37",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w37.py"
+    },
+    {
+      "module": "oracle_release_runtime_w45",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w45.py"
+    },
+    {
+      "module": "oracle_release_runtime_w21",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w21.py"
+    },
+    {
+      "module": "oracle_release_runtime_w36",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w36.py"
+    },
+    {
+      "module": "oracle_release_runtime_w44",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w44.py"
+    },
+    {
+      "module": "oracle_release_runtime_w20",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w20.py"
+    },
+    {
+      "module": "oracle_release_runtime_w34",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w34.py"
+    },
+    {
+      "module": "oracle_release_runtime_w42",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w42.py"
+    },
+    {
+      "module": "oracle_release_runtime_w19",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w19.py"
+    },
+    {
+      "module": "oracle_release_runtime_w41",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w41.py"
+    },
+    {
+      "module": "oracle_release_runtime_w18",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w18.py"
+    },
+    {
+      "module": "oracle_release_runtime_w16",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w16.py"
+    },
+    {
+      "module": "oracle_release_runtime_w15",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w15.py"
+    },
+    {
+      "module": "oracle_release_runtime_w12",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w12.py"
+    },
+    {
+      "module": "oracle_release_runtime_w10",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w10.py"
+    },
+    {
+      "module": "oracle_release_runtime_w6",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w6.py"
+    },
+    {
+      "module": "oracle_release_runtime_w4",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w4.py"
+    },
+    {
+      "module": "oracle_release_runtime_w1",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w1.py"
+    },
+    {
+      "module": "oracle_release_runtime_ao",
+      "path": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_ao.py"
+    }
+  ],
+  "scope": "No runtime imported. This is only the HEAD denominator; actual imported C3 class order and method resolution live in dispatch.json."
+}

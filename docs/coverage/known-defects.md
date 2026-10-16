@@ -1,0 +1,68 @@
+# Defect evidence and repair obligations
+
+Run `.venv/bin/python -m unittest discover -s tests/regressions -v`.
+On 2026-10-15 all **25 tests passed** with SymPy 1.14.0.
+These are upstream characterizations and independent counterexamples, not passing
+native repair acceptance tests. Standard `python3` lacks SymPy and explicitly
+skips five math checks; use the project environment for complete evidence.
+No full upstream app, external service, or untrusted arbitrary program runs.
+The parser probe evaluates only a fixed harmless print; timeout work is controlled
+by local Events. Safe module imports, extracted original AST bodies and mocks are
+identified below. All native repairs and actual consumer links remain open.
+
+| Case / test | Exercised old behavior and independent counterexample | Required native replacement / owner |
+|---|---|---|
+| Negative sqrt / `test_sqrt_negative_domain` | Actual MathOrgan.equiv accepts sqrt(x²)=x; answer ignores negative-x wording. Independent substitution x=-2 gives 2 versus -2 | Retain real-domain/branch conditions and original interpretation; mathematics-family/interpretation-model |
+| NaN/0÷0 / `test_nan_and_zero_over_zero` | Actual equiv accepts NaN as equal to 1; evaluation returns SymPy NaN | Explicit undefinedness, no real equality claim; mathematics-family |
+| Precision / `test_precision_losing_equivalence` | Actual solver.agree accepts 1 versus 1+10^-20 against nominal 10^-40 tolerance; exact rational difference proves discrepancy | Exact or justified error-bounded equivalence; mathematics-family |
+| Interval / `test_small_interval_is_rejected_despite_valid_solution` | Actual MathOrgan rejects x²<1/100 but accepts x²<4; independent exact inequality solver yields (-1/10,1/10), membership excludes endpoints and includes 0 | Complete interval/boundary verification, not one sample; mathematics-family |
+| Parser / `test_parser_executes_fixed_print` | Actual f_evaluate executes fixed print(731942) while parsing | Inert syntax and admitted semantics before effects; interpretation-model/mathematics-family |
+| Boolean search / `test_conflicting_boolean_plans_collapse` | Original Network.solve receives synthetic True and False completed plans; dedup leaves answered True | Equivalence retains Boolean value and arbitrates disagreeing complete plans; plan-composition |
+| Rounded cache / `test_original_rounded_cache_key_collision` | Original operation-key AST applied to 1 and 1+10^-13 collides while >1 distinguishes inputs | Cache equality implies operation/guard equivalence for profile; plan-composition. **Key collision only**, no routed bad cache answer established |
+| Negative edge / `test_negative_edge_is_silently_omitted` | Original AlgorithmsOrgan omits B-C -2 then returns shortest A-C cost4; supplied graph has A-B-C cost -1 | Reject negative/malformed parsed edge model before Dijkstra; graph-family/interpretation-model |
+| Directed MST / `test_directed_edges_accepted_as_mst` | Original Kruskal branch returns3 for A→B2,C→B1; independent reachability shows no directed root reaches all | Require declared undirected model or explicit adoption, retain tree witness/optimum; graph-family |
+| Die face / `test_impossible_die_face_receives_positive_probability` | Actual GamesOrganV3 returns positive P(at least one7 in two d6 rolls); exhaustive36-outcome sample space contains no7 | Validate event membership in finite sample space; domain-families |
+| Internal TypeError / `test_wrapper_internal_typeerror_retries_effectful_answer` | Actual _Organ.reply retries answer after internal TypeError; mock effect counter increments twice, result None | Qualify signature before invocation; failure/unknown effect cannot trigger redispatch; state-effects/operational-model |
+| Wrapper data / `test_real_wrapper_preserves_decline_but_drops_typed_value` | Real manifest/_Organ/Algorithms path preserves unsorted decline; successful sort loses structured list while direct value is [1,2,3] | Preserve domain refusal; carry typed result across dispatch, not only rendering; plan-composition |
+| Literal / `test_literal_spaces` | Actual FormatsOrgan returns same hash for quoted `a b`/`a  b`; hashlib of original bytes distinguishes them | Preserve original payload bytes through cue normalization; interpretation-model/domain-families (G02) |
+| SQL prefix / `test_sql_row_prefix_loses_completion` | Actual bounded SqlOrgan returns 20 rows of a 21-row local recursive SELECT, prose alone says at least; independent SQLite query returns 21 | Typed order/schema/NULL/blob/prefix/completeness and backend config; source-semantics/domain-families |
+| Late sensor removal / `test_removed_sensor_can_receive_late_history` | Original poll loop captures config; local mock acquisition removes temporary config/history before return; original poll_once recreates history and STATUS reports ok | Recheck binding epoch before publish; stop/release source handles separately; stateful-connectors/operational-model |
+| In-memory learning / `test_disk_persistence_off_still_learns_in_memory` | Actual CodeChat composes fixed add examples with persist=False; disk absent but prims/library_src grow | Isolate in-memory learning/exposure as well as persistent store during independent evaluation; synthesis-growth/package-lifecycle |
+| Timeout / `test_timed_out_worker_still_finishes` | Original w480 _run returns None before controlled worker finishes; release Event lets it complete | Cancellation and current authority checked before state/effect publication; runtime-service/operational-model |
+| Narrowed fallback error / `test_narrowing_error_restores_old_answer` | Original w525.chat with mock parent and narrowed-silent condition restores suppressed answer when family loading raises; corresponding no-error test withholds | Dependency failure cannot resurrect suppressed authority; routing-dialogue/operational-model (G04) |
+| Context before guard / `test_context_adopts_numeric_result_before_outer_rejection` | Actual w529.chat, chat_context_v2.update/state and w540 guard execute with mock numeric parent and inert entity readers. Final result withheld by N2 but session result=(0,'') and question already adopted | Final arbitration before adopted result/referent state; transcript may record attempted turn separately; operational-model/routing-dialogue (G04/G07) |
+| Multipart / `test_multipart_reports_answered_for_incomplete_whole` | Actual w533.chat with one answered and one withheld mocked part produces status answered, path 1-of-2; second part loses original dependency path/status | Preserve partial display, each typed outcome and blocker, license only completed-part scope; interpretation-model/routing-dialogue |
+
+Existing statistics repair: `test_statistics_v2_preserves_order_repair` exercises
+V1 returning 792 for choosing 12 from 5 and V2 correctly withholding as impossible.
+Preserve V2 argument-role/domain checking during native migration.
+
+Other preservation checks in `test_runtime_dispatch.py`: deliberate validity
+blocker prevents family/network fallback; ordinary unscoped withholding permits a
+different family answer; family disagreement permits network; parent executes
+before fallback; narrowing without error withholds. These preserve useful scoped
+behavior while repairs above close specific leaks.
+
+`test_math_components.py` imports only individual math/network components and
+supplies synthetic planner expansions; it is not an end-to-end routing benchmark.
+`test_source_components.py` imports dataformats/SQL components and evaluates one
+original AST key. `test_runtime_dispatch.py` extracts the named definitions and
+uses explicit local dependency doubles; all reported guard/update bodies really
+execute. It does not prove the full 361-class runtime activates the supplied
+mock responses or mocked store failures on a natural-language request.
+Historical `audit/results/components.json` remains unchanged and now has fresh
+independent regression checks for its mathematical, timeout and Boolean cases.
+
+Eleven separately owned workbench checks in `audit/workbench/check.py` and
+`results.json` cover WB06 reconnect reexecution, WB07 expired follow-up, WB08
+repolled event stamped with poll time, and additional author workflows. WB04
+**rejects imported exam_log.jsonl at the filename allowlist**, before extraction
+and re-exam. The earlier repeated-holdout narrative is not reached on that actual
+route. The desired native intake/exposure policy is retained separately in
+`audit/workbench/transfer-regression.json`, with its missing native consumer.
+
+Remaining distinctions: numeric adopted state has been reproduced in the scoped
+composition above; arbitrary entity referent adoption through the entire live
+chain has not. No full routed cache-error example, persistence/learning isolation
+qualification, fresh recipient evaluation, or native repaired implementation is
+claimed. Corpus replacement and external-publication scope remain D17/D16.

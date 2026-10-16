@@ -68,3 +68,72 @@ Source layout:
 The earlier root `isabelle/`, `o7ir/`, and `generated/` prototype and its runner
 were removed. See the [cleanup and Git recovery record](../../docs/design/prototype-cleanup.md).
 The native scaffold and upstream audit/research tools are retained independently.
+
+## Scoped lane sessions
+
+Use the same driver and lock for lane-local ROOT files:
+
+```sh
+python3 tools/dev/check-native --session Veri7vn_Dev_Driver_Test \
+  --session-root tests/dev/session --expect 'VERI7VN_DRIVER identity PASS'
+```
+
+Repeat `--session-root DIR` for dependency session directories; each must contain
+ROOT. All files recursively below those directories are snapshotted. Repeat
+`--input PATH` for dependencies outside those trees (including imported theories,
+ML files, data, or ROOTS files). Paths must exist inside the checkout. The caller
+must identify the full transitive source/data input scope: the driver does not
+parse Isabelle imports. Avoid overly broad roots under concurrent development.
+Repeat `--expect 'literal marker'` for required build-log text. With no markers,
+a custom invocation checks successful session build only, not semantic coverage.
+Markers may come from cached successful session logs, as with the default check.
+
+`--scala-script PATH` runs `isabelle scala PATH` after the scoped build while
+holding the same lock, using the same workspace USER_HOME and per-command timeout.
+The script is automatically snapshotted and must fail with nonzero exit status
+when its checks fail; output is saved as `scala.log`. Extra files read by a script
+still need explicit `--input` coverage. The driver is for trusted development
+scripts; it does not enforce their internal resource behavior or sandbox them.
+
+Custom receipts/logs live in `var/native-scaffold/sessions/` under a stable digest
+of the session name; every invocation still uses `var/native-scaffold/build.lock`
+and `var/native-scaffold/user-state`. Default receipt and fixture generation stay
+at their existing locations. Session ROOT options may request proof recording;
+the driver always passes one job and two ML threads. Native development evidence
+is not a product admission or refinement proof.
+
+The default input closure is the current `src/isabelle/ROOT`, top-level `.thy`
+and `.ML` files there, the scaffold tree, and the driver/fixture generator.
+Independent nested lane sessions do not invalidate its receipt. Current Core
+imports bundled Main and loads top-level `inspection.ML`; scaffold imports Core
+and the separately hashed generated fixture. If Core/scaffold gains imports or
+data outside this closure, update `default_inputs()` or explicitly add repeatable
+`--input PATH` to the default invocation. Installed bundled parent dependencies
+remain identified by toolchain settings rather than checkout source hashes.
+
+## Live build diagnosis
+
+Each tool writes stdout/stderr directly into its log file as it runs; the driver
+prints the current log path. Child-side buffering may still delay individual
+messages. The running receipt records driver and child PIDs, command state, and
+log location; final console output is bounded to a 5000-character tail. Complete
+output stays in the logs. A timeout or interrupt still terminates the launched
+process group and records its result.
+
+```sh
+python3 tools/dev/check-native --status
+```
+
+This probes the advisory lock rather than interpreting the existence of its file
+as a live build. It prints the active (or last, if idle) receipt and the latest
+command's last 5000 bytes. `active.json` intentionally retains the last run pointer;
+an idle lock with a stale `running` receipt means the driver did not finish its
+receipt, not that a native build is still authorized/running. PID metadata is
+for diagnosis, not permission to kill another session's process. A brief startup
+window may have no receipt yet. Status does not launch Isabelle or rebuild inputs.
+
+Run driver boundary tests (controlled Python child, no Isabelle startup) with:
+
+```sh
+python3 -m unittest discover -s tests/dev -v
+```

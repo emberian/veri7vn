@@ -1,5 +1,7 @@
 # Workbench omissions audit
 
+**Executed correction (2026-10-15):** [WB04](../workbench/audit/README.md#transfer-correction-and-pinned-locators) shows examined archives are rejected for `exam_log.jsonl` before extraction. The repeated-exam/imported-exposure path discussed below was a downstream source-review inference, not reached by this ordinary import. Preserving attributable exposure remains a replacement requirement.
+
 Read-only source review, 2026-10-15. Compared the shipped `upstream/workbench`
 implementation with C01–C05 revision 0, ACC-01–ACC-16 and `project/tasks.json`.
 No upstream code was imported or executed; no service was contacted. Findings below

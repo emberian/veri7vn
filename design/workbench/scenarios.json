@@ -1,0 +1,652 @@
+[
+  {
+    "id": "gap",
+    "title": "Turn a gap into a specialist",
+    "origin": "WB01 / server.scaffold",
+    "question": "How much paint covers this room?",
+    "summary": "A saved unanswered question becomes an editable example with an unknown expectation.",
+    "package": "Room coatings · draft 4",
+    "source": "Room_Coatings.thy · recipe span 18–29",
+    "axis": [
+      "Math check: not started",
+      "Example checks: expected answer needed",
+      "Use: draft only"
+    ],
+    "notice": "Expected answer is unknown. Supply a value, a permitted decline, or an explicit property before counting this example.",
+    "rows": [
+      [
+        "Question",
+        "How much paint covers this room?"
+      ],
+      [
+        "Expectation",
+        "Unknown · from private gap journal"
+      ],
+      [
+        "Origin",
+        "Saved decline: missing wall dimensions"
+      ],
+      [
+        "First useful edit",
+        "Ask for area and coverage rate; choose formula recipe"
+      ]
+    ],
+    "actions": [
+      "Choose recipe",
+      "Edit expectation",
+      "Inspect original decline"
+    ],
+    "cli": "v7 gap draft gap-17 --recipe quantity-formula",
+    "next": "formula",
+    "previews": [
+      "Choose recipe: inspect the selected Room coatings · draft 4 at Room_Coatings.thy · recipe span 18–29. Expected answer is unknown. Supply a value, a permitted decline, or an explicit property before counting this example.",
+      "Edit expectation: inspect the selected Room coatings · draft 4 at Room_Coatings.thy · recipe span 18–29. Expected answer is unknown. Supply a value, a permitted decline, or an explicit property before counting this example.",
+      "Inspect original decline: inspect the selected Room coatings · draft 4 at Room_Coatings.thy · recipe span 18–29. Expected answer is unknown. Supply a value, a permitted decline, or an explicit property before counting this example."
+    ],
+    "precise_axis": [
+      "Admission: not requested",
+      "Qualification: 1 expectation missing",
+      "Deployment: draft only"
+    ]
+  },
+  {
+    "id": "formula",
+    "title": "Edit a formula in its theory",
+    "origin": "D27 / C01",
+    "question": "coverage area / spread rate",
+    "summary": "The form edits a recognized recipe span in canonical source. Expert declarations remain in the same file.",
+    "package": "Room coatings · draft 5",
+    "source": "Room_Coatings.thy · base revision r4",
+    "axis": [
+      "Math check: conditions to resolve",
+      "Example checks: new version not tested",
+      "Use: previous version active"
+    ],
+    "notice": "Review the formula and the inputs it allows. Your custom theory edits stay in the same file.",
+    "rows": [
+      [
+        "Formula",
+        "area / spread_rate"
+      ],
+      [
+        "Runtime guard",
+        "spread_rate > 0; compatible area units"
+      ],
+      [
+        "Source patch",
+        "r4 → r5 · replaces recognized recipe command only"
+      ],
+      [
+        "Expert block",
+        "lemma coverage_nonnegative … · preserved, expert-owned"
+      ]
+    ],
+    "actions": [
+      "Preview source patch",
+      "Inspect obligations",
+      "Open full theory"
+    ],
+    "cli": "v7 source patch room-coatings --base r4 --patch patch-file",
+    "next": "sqrt",
+    "previews": [
+      "Patch proposal r4 → r5: replace only recipe source span 18–29. New expression: area / spread_rate. New obligation: spread_rate > 0. Expert lemma stays unchanged. Apply requires base r4; this preview does not apply it.",
+      "Open obligations: domain guard spread_rate > 0; representation relation for area/rate; composition result in litres. Source locators remain linked to the actual theory context.",
+      "Full source view: recipe command and expert HOL declarations share Room_Coatings.thy. An expert edit advances the same revision; forms reparse before proposing another patch."
+    ],
+    "precise_axis": [
+      "Admission: obligations open",
+      "Qualification: not run at r5",
+      "Deployment: r3 remains active"
+    ]
+  },
+  {
+    "id": "sqrt",
+    "title": "Choose the meaning of a repair",
+    "origin": "C03 / ACC-03",
+    "question": "Is sqrt(x*x) always x?",
+    "summary": "A counterexample distinguishes changing the domain from changing the result.",
+    "package": "Real identities · draft 2",
+    "source": "Real_Identities.thy · identity recipe",
+    "axis": [
+      "Math check: counterexample found",
+      "Example checks: choose a repair first",
+      "Use: previous version active"
+    ],
+    "notice": "For x = -2, the left side is 2 and the right side is -2. Choose whether to limit the inputs or change the result.",
+    "rows": [
+      [
+        "Preserve result x",
+        "Restrict domain to x ≥ 0; changes eligible inputs"
+      ],
+      [
+        "Preserve all real inputs",
+        "Use abs(x); changes the right-hand expression"
+      ],
+      [
+        "When the result applies",
+        "Check allowed inputs before calculating. Keep any assumptions visible with the answer."
+      ],
+      [
+        "What was found",
+        "A concrete counterexample. A search that ran out of time would leave the question open."
+      ]
+    ],
+    "actions": [
+      "Preview x ≥ 0 domain",
+      "Preview abs(x) result",
+      "Inspect counterexample"
+    ],
+    "cli": "v7 repair preview real-identities --diagnostic diag-12 --choice absolute-result",
+    "next": "conflict",
+    "previews": [
+      "Proposed domain repair: x ≥ 0 ⇒ sqrt(x*x) = x. Inputs x < 0 become ineligible. Review intended meaning before making a new source revision.",
+      "Proposed result repair: sqrt(x*x) = abs(x), for all real x. The right-hand expression changes; input domain stays all reals.",
+      "Counterexample observation: x=-2 gives 2 ≠ -2. This refutes the original target; it does not refute either proposed repair."
+    ],
+    "precise_axis": [
+      "Admission: target refuted",
+      "Qualification: blocked",
+      "Deployment: unchanged"
+    ]
+  },
+  {
+    "id": "conflict",
+    "title": "Inspect conflicting source rows",
+    "origin": "C03/C04 / ACC-06",
+    "question": "What shelf holds the boiler?",
+    "summary": "Two rows disagree. The workspace reports the conflict without silently choosing one.",
+    "package": "Workshop inventory · snapshot s8",
+    "source": "Inventory.thy · reader mapping",
+    "axis": [
+      "Math check: reader checked",
+      "Example checks: disagreement handled",
+      "Use: choose a source policy"
+    ],
+    "notice": "Two statements are present: A7 and B2. Neither has been adopted as the unique current location.",
+    "rows": [
+      [
+        "inventory.csv row 2",
+        "boiler → A7 · snapshot s8"
+      ],
+      [
+        "inventory.csv row 9",
+        "boiler → B2 · snapshot s8"
+      ],
+      [
+        "Claim available",
+        "These retained rows disagree about the shelf"
+      ],
+      [
+        "Required for unique answer",
+        "Resolve source selection or provide a versioned adoption rule; recheck whole snapshot"
+      ]
+    ],
+    "actions": [
+      "Inspect both rows",
+      "Propose selection rule",
+      "Keep conflict report"
+    ],
+    "cli": "v7 result inspect result-42 --part shelf --sources",
+    "next": "compose",
+    "previews": [
+      "Inspect both rows: inspect the selected Workshop inventory · snapshot s8 at Inventory.thy · reader mapping. Two statements are present: A7 and B2. Neither has been adopted as the unique current location.",
+      "Propose selection rule: inspect the selected Workshop inventory · snapshot s8 at Inventory.thy · reader mapping. Two statements are present: A7 and B2. Neither has been adopted as the unique current location.",
+      "Keep conflict report: inspect the selected Workshop inventory · snapshot s8 at Inventory.thy · reader mapping. Two statements are present: A7 and B2. Neither has been adopted as the unique current location."
+    ],
+    "precise_axis": [
+      "Admission: reader admitted",
+      "Qualification: conflict case passes",
+      "Deployment: binding needs choice"
+    ]
+  },
+  {
+    "id": "compose",
+    "title": "Keep each part's outcome",
+    "origin": "C03 / ACC-04/05",
+    "question": "Find the room area, paint quantity and cheapest supplier",
+    "summary": "Typed intermediate values compose. An unavailable supplier store does not become a claim that no supplier exists.",
+    "package": "Room coatings · candidate r6",
+    "source": "Room_Coatings.thy · plan recipe",
+    "axis": [
+      "Math check: component rules checked",
+      "Example checks: partial result observed",
+      "Use: candidate only"
+    ],
+    "notice": "Part 1 accepted: 42 m². Part 2 conditional: 6 litres under the selected coverage model. Part 3 unavailable: supplier store missing.",
+    "rows": [
+      [
+        "Area",
+        "Accepted refined computation · exact 42 m²"
+      ],
+      [
+        "Paint",
+        "6 litres · condition: spread rate 7 m²/litre; model adoption shown"
+      ],
+      [
+        "Supplier",
+        "Failed dependency · no minimum-price claim"
+      ],
+      [
+        "Search alternative",
+        "Budget exhausted after 80 states would mean inconclusive, never impossible"
+      ]
+    ],
+    "actions": [
+      "Inspect dependency graph",
+      "Bind supplier store",
+      "Run bounded search"
+    ],
+    "cli": "v7 request inspect req-29 --parts --dependencies",
+    "next": "qualify",
+    "previews": [
+      "Inspect dependency graph: inspect the selected Room coatings · candidate r6 at Room_Coatings.thy · plan recipe. Part 1 accepted: 42 m². Part 2 conditional: 6 litres under the selected coverage model. Part 3 unavailable: supplier store missing.",
+      "Bind supplier store: inspect the selected Room coatings · candidate r6 at Room_Coatings.thy · plan recipe. Part 1 accepted: 42 m². Part 2 conditional: 6 litres under the selected coverage model. Part 3 unavailable: supplier store missing.",
+      "Run bounded search: inspect the selected Room coatings · candidate r6 at Room_Coatings.thy · plan recipe. Part 1 accepted: 42 m². Part 2 conditional: 6 litres under the selected coverage model. Part 3 unavailable: supplier store missing."
+    ],
+    "precise_axis": [
+      "Admission: linked operations admitted",
+      "Qualification: partial case observed",
+      "Deployment: candidate"
+    ]
+  },
+  {
+    "id": "qualify",
+    "title": "Qualify composed behavior",
+    "origin": "WB02/05 / C01",
+    "question": "Does the new binding improve this workspace?",
+    "summary": "Regression, interference and fresh holdout are separate evaluation choices.",
+    "package": "Room coatings · candidate r6",
+    "source": "Examples + named scorer profile",
+    "axis": [
+      "Math check: required conditions met",
+      "Example checks: regression passed; panel already seen",
+      "Use: not active"
+    ],
+    "notice": "This imported panel was exposed by sender evaluation. Repeating it is regression, not a fresh recipient holdout.",
+    "rows": [
+      [
+        "Run identity",
+        "Candidate r6 · baseline r3 · binding b5 · scorer q2"
+      ],
+      [
+        "Development / regression",
+        "Expected answers + must-decline + addressed-source interference"
+      ],
+      [
+        "Fresh qualification",
+        "Select a genuinely fresh panel if claiming generalization"
+      ],
+      [
+        "Effects",
+        "Fixture probes selected · real MCP tools will not be called by this run"
+      ]
+    ],
+    "actions": [
+      "Run regression",
+      "Inspect exposure history",
+      "Preview real probe permissions"
+    ],
+    "cli": "v7 qualify start room-coatings --revision r6 --mode regression --probe-policy fixture",
+    "next": "profile",
+    "previews": [
+      "Run regression: inspect the selected Room coatings · candidate r6 at Examples + named scorer profile. This imported panel was exposed by sender evaluation. Repeating it is regression, not a fresh recipient holdout.",
+      "Inspect exposure history: inspect the selected Room coatings · candidate r6 at Examples + named scorer profile. This imported panel was exposed by sender evaluation. Repeating it is regression, not a fresh recipient holdout.",
+      "Preview real probe permissions: inspect the selected Room coatings · candidate r6 at Examples + named scorer profile. This imported panel was exposed by sender evaluation. Repeating it is regression, not a fresh recipient holdout."
+    ],
+    "precise_axis": [
+      "Admission: native obligations satisfied",
+      "Qualification: regression passed; holdout exposed",
+      "Deployment: not active"
+    ]
+  },
+  {
+    "id": "profile",
+    "title": "Understand cost before deployment",
+    "origin": "D25 / ACC-12",
+    "question": "What will this change cost?",
+    "summary": "Compare full-path costs and distinguish reusable recipe updates from new executable bundles.",
+    "package": "Room coatings · candidate r6",
+    "source": "Profile plan · workload selection",
+    "axis": [
+      "Math check: required checks complete",
+      "Example checks: selected tests passed",
+      "Use: ready to prepare release"
+    ],
+    "notice": "Illustrative design values only. Actual profiles must report workload, runtime and measured samples.",
+    "rows": [
+      [
+        "Cost breakdown",
+        "Startup · admission · interpretation · source I/O · search · execute · check · render"
+      ],
+      [
+        "Recipe/data update",
+        "Reuse linked kernel; validate recipe/data and refresh affected snapshots"
+      ],
+      [
+        "New carrier/kernel/code setup",
+        "Stage and qualify a new executable bundle; show separate compilation job"
+      ],
+      [
+        "Optimization proposal",
+        "Add an index as candidate r7, with preservation obligation before replacement"
+      ]
+    ],
+    "actions": [
+      "Select workload",
+      "Inspect cost trace",
+      "Create immutable release"
+    ],
+    "cli": "v7 profile start room-coatings --revision r6 --workload workshop-batch",
+    "next": "deploy",
+    "previews": [
+      "Select workload: inspect the selected Room coatings · candidate r6 at Profile plan · workload selection. Illustrative design values only. Actual profiles must report workload, runtime and measured samples.",
+      "Inspect cost trace: inspect the selected Room coatings · candidate r6 at Profile plan · workload selection. Illustrative design values only. Actual profiles must report workload, runtime and measured samples.",
+      "Create immutable release: inspect the selected Room coatings · candidate r6 at Profile plan · workload selection. Illustrative design values only. Actual profiles must report workload, runtime and measured samples."
+    ],
+    "precise_axis": [
+      "Admission: complete for promised route",
+      "Qualification: passed named policy",
+      "Deployment: release ready"
+    ]
+  },
+  {
+    "id": "deploy",
+    "title": "Deploy one immutable release",
+    "origin": "D24/D27 / C04",
+    "question": "Use release 0.3 in this workspace",
+    "summary": "Development source, immutable release and workspace deployment have one lineage with different operations.",
+    "package": "Room coatings · release 0.3 / generation g6",
+    "source": "Release from source r6 + dependency closure",
+    "axis": [
+      "Math check: required checks complete",
+      "Example checks: release tests passed",
+      "Use: activation preview"
+    ],
+    "notice": "New questions will use this release after activation finishes. Existing results keep the version they were calculated with.",
+    "rows": [
+      [
+        "Development package",
+        "Editable r6, parent r5; later edits create new revisions"
+      ],
+      [
+        "Release",
+        "0.3 pins r6, bundle and dependencies; label is not authority"
+      ],
+      [
+        "Deployment",
+        "Workspace private bindings + release g6 · expected epoch 8"
+      ],
+      [
+        "Recovery",
+        "Lost acknowledgement → inspect operation op-7; never blindly send activation twice"
+      ]
+    ],
+    "actions": [
+      "Preview affected consumers",
+      "Activate release",
+      "Inspect deployment history"
+    ],
+    "cli": "v7 deployment activate workshop --release room-coatings@0.3 --expected-epoch 8",
+    "next": "feedback",
+    "previews": [
+      "Preview affected consumers: inspect the selected Room coatings · release 0.3 / generation g6 at Release from source r6 + dependency closure. New requests will use g6 after durable activation. Running requests keep g3 subject to current retirement authority.",
+      "Activate release: inspect the selected Room coatings · release 0.3 / generation g6 at Release from source r6 + dependency closure. New requests will use g6 after durable activation. Running requests keep g3 subject to current retirement authority.",
+      "Inspect deployment history: inspect the selected Room coatings · release 0.3 / generation g6 at Release from source r6 + dependency closure. New requests will use g6 after durable activation. Running requests keep g3 subject to current retirement authority."
+    ],
+    "precise_axis": [
+      "Admission: selected assurance satisfied",
+      "Qualification: policy q2 passed",
+      "Deployment: preview, current g3"
+    ]
+  },
+  {
+    "id": "feedback",
+    "title": "Teach a routing change safely",
+    "origin": "WB03 / C01/C04",
+    "question": "The answer was right, but it used the wrong tool",
+    "summary": "Feedback is attributed to the exact result and proposes a policy revision.",
+    "package": "Workshop routing · policy b6 proposed",
+    "source": "Feedback event result-42 / interpretation choice",
+    "axis": [
+      "Math check: operation unchanged",
+      "Example checks: proposed change untested",
+      "Use: previous routing active"
+    ],
+    "notice": "Choose factual correction, interpretation correction or tool choice. A right mark is not proof. Requalification cannot silently invoke real tools.",
+    "rows": [
+      [
+        "Feedback kind",
+        "Tool choice · linked invocation inv-4"
+      ],
+      [
+        "Proposed change",
+        "Vocabulary/ranking policy b6 with inspectable diff"
+      ],
+      [
+        "Evaluation failed",
+        "Keep b5 active; retain diagnostics and candidate for repair"
+      ],
+      [
+        "Undo",
+        "Publish a new policy referencing the previous choice; retain attributable history under retention policy"
+      ]
+    ],
+    "actions": [
+      "Preview policy diff",
+      "Evaluate with fixtures",
+      "Inspect feedback retention"
+    ],
+    "cli": "v7 feedback propose result-42 --kind tool-choice --choice inventory-reader",
+    "next": "import",
+    "previews": [
+      "Preview policy diff: inspect the selected Workshop routing · policy b6 proposed at Feedback event result-42 / interpretation choice. Choose factual correction, interpretation correction or tool choice. A right mark is not proof. Requalification cannot silently invoke real tools.",
+      "Evaluate with fixtures: inspect the selected Workshop routing · policy b6 proposed at Feedback event result-42 / interpretation choice. Choose factual correction, interpretation correction or tool choice. A right mark is not proof. Requalification cannot silently invoke real tools.",
+      "Inspect feedback retention: inspect the selected Workshop routing · policy b6 proposed at Feedback event result-42 / interpretation choice. Choose factual correction, interpretation correction or tool choice. A right mark is not proof. Requalification cannot silently invoke real tools."
+    ],
+    "precise_axis": [
+      "Admission: operation unchanged",
+      "Qualification: candidate policy pending",
+      "Deployment: b5 remains active"
+    ]
+  },
+  {
+    "id": "import",
+    "title": "Open an Oracle7 original",
+    "origin": "WB04 / C01 / D28",
+    "question": "Import paint-coverage from Oracle7",
+    "summary": "Stage originals, map known patterns and keep custom Python visibly unresolved.",
+    "package": "Oracle7 intake · paint-coverage",
+    "source": "Original archive retained, no code executed on intake",
+    "axis": [
+      "Math check: not inherited from sender",
+      "Example checks: sender history retained",
+      "Use: imported draft only"
+    ],
+    "notice": "Manifest, card, panel, scorer, source and exposure records stay inspectable. Unknown organ behavior requires a native port and actual bridge.",
+    "rows": [
+      [
+        "Known-family mapping",
+        "Paint quantity formula → native quantity recipe candidate; units/domain reviewed"
+      ],
+      [
+        "Originals",
+        "manifest.json · README/card · organ · scorer · dev/heldout panel · exam_log.jsonl"
+      ],
+      [
+        "Custom organ",
+        "Unresolved Python semantics; trusted scratch run optional, never counted as lift"
+      ],
+      [
+        "Recipient evaluation",
+        "Sender verdict attributed; rerun exposed panel as regression or choose fresh panel"
+      ]
+    ],
+    "actions": [
+      "Inspect mapping diff",
+      "Open original and theory",
+      "Create development package"
+    ],
+    "cli": "v7 import stage original.zip --format oracle7-specialist/1",
+    "next": "source",
+    "previews": [
+      "Mapping preview: original manifest id → development package lineage; organ formula → quantity recipe candidate; scorer → versioned evaluation artifact, not theorem; panel → examples + attributed exposure; unknown Python → unresolved.",
+      "Original bytes remain retained beside the candidate theory. No import/exec of organ or scorer has occurred. Admission and implementation bridge are still open.",
+      "Creates a staged editable candidate with parent intake identity. Sender ADMIT remains sender evidence. No native release or active deployment is implied."
+    ],
+    "precise_axis": [
+      "Admission: not inherited",
+      "Qualification: sender evidence retained",
+      "Deployment: staged only"
+    ]
+  },
+  {
+    "id": "source",
+    "title": "Connect a private source",
+    "origin": "WB05/08/10/11 / C05",
+    "question": "Add files, machine/SSH, MCP or sensor",
+    "summary": "Preview acquisition and permissions before discovery, tests, polling or requalification.",
+    "package": "Workshop · private source bindings",
+    "source": "Inventory.thy declares interface; workspace stores secret reference",
+    "axis": [
+      "Math check: source rules separate",
+      "Example checks: fixture preview",
+      "Use: source stopped"
+    ],
+    "notice": "MCP discovery can contact a server. Probe calls may perform actions. Select target, exact operation and authority before a real call.",
+    "rows": [
+      [
+        "Lifecycle",
+        "Configured → running → stopped/failed → retired; forget has an impact preview"
+      ],
+      [
+        "Observations",
+        "Event time + receipt/poll time + schema/config version + origin + units + coverage"
+      ],
+      [
+        "Expiry / forget",
+        "Invalidate cached followups and managed derivatives; pending revocation blocks publication"
+      ],
+      [
+        "Restore",
+        "Recall quotes retained history; restore loads allowed state; execute again is a new request"
+      ]
+    ],
+    "actions": [
+      "Preview fixture mapping",
+      "Review real-call authority",
+      "Preview retirement or forget"
+    ],
+    "cli": "v7 source preview local-inventory --fixture fixture.csv",
+    "next": "scratch",
+    "previews": [
+      "Fixture mapping: item:string, shelf:string; key=item; duplicate-key policy=report conflict; no real acquisition selected. Snapshot and row locations retained.",
+      "Real-call preview must specify target, operation, exact arguments, authority and payload leaving this workspace. Discovery/probe/poll have separate selections; this design preview performs none.",
+      "Forget preview: source snapshot, 2 uncurated gap examples, cached reader handle and pending dependent result. Curated copy requires retain/remove choice. External exported copies cannot be erased here."
+    ],
+    "precise_axis": [
+      "Admission: interface separate",
+      "Qualification: fixture preview",
+      "Deployment: source stopped"
+    ]
+  },
+  {
+    "id": "scratch",
+    "title": "Experiment with ordinary code",
+    "origin": "WB09 / D26",
+    "question": "Try a function against my examples",
+    "summary": "An editable candidate and its exact observations are useful before proof or deployment.",
+    "package": "Scratch artifact · twice.py revision c2",
+    "source": "Artifact bytes + toolchain identity + input/test bytes",
+    "axis": [
+      "Math check: correctness not established",
+      "Example checks: one test passed",
+      "Use: experiment only"
+    ],
+    "notice": "Observed: twice(3) = 6 in the selected worker. Universal correctness and production capability linkage remain open.",
+    "rows": [
+      [
+        "Edit",
+        "def twice(x): return 2*x"
+      ],
+      [
+        "Test",
+        "assert twice(3) == 6 · observed pass; full output retained privately"
+      ],
+      [
+        "Execution policy",
+        "Trusted code profile unless a real isolation backend is selected; -I is not a sandbox"
+      ],
+      [
+        "Promote",
+        "Propose native recipe/definition and obligations; do not promote the test verdict as proof"
+      ]
+    ],
+    "actions": [
+      "Edit code and tests",
+      "Preview worker policy",
+      "Propose native development"
+    ],
+    "cli": "v7 scratch run scratch-2 --revision c2 --worker trusted-python --tests test-file",
+    "next": "export",
+    "previews": [
+      "Edit code and tests: inspect the selected Scratch artifact · twice.py revision c2 at Artifact bytes + toolchain identity + input/test bytes. Observed: twice(3) = 6 in the selected worker. Universal correctness and production capability linkage remain open.",
+      "Preview worker policy: inspect the selected Scratch artifact · twice.py revision c2 at Artifact bytes + toolchain identity + input/test bytes. Observed: twice(3) = 6 in the selected worker. Universal correctness and production capability linkage remain open.",
+      "Propose native development: inspect the selected Scratch artifact · twice.py revision c2 at Artifact bytes + toolchain identity + input/test bytes. Observed: twice(3) = 6 in the selected worker. Universal correctness and production capability linkage remain open."
+    ],
+    "precise_axis": [
+      "Admission: none claimed",
+      "Qualification: one test observed",
+      "Deployment: scratch only"
+    ]
+  },
+  {
+    "id": "export",
+    "title": "Share an explanation deliberately",
+    "origin": "Film audit / C01/C04",
+    "question": "Export this result and its route",
+    "summary": "Local explanation exports retain conditions and historical status. Private contents are selected explicitly.",
+    "package": "Explanation result-42 · historical g6",
+    "source": "Structured explanation graph, retained source references",
+    "axis": [
+      "Math check: original claim scope retained",
+      "Example checks: presentation separate",
+      "Use: historical result"
+    ],
+    "notice": "Default local HTML + optional browser WebM. A full companion explanation preserves conditions when a frame cannot display them.",
+    "rows": [
+      [
+        "Included",
+        "Selected public claim, conditions, units, source/evidence locators and historical time"
+      ],
+      [
+        "Excluded by default",
+        "Transcript, source payloads, secret refs, feedback and private gap examples; show missing recipient bindings"
+      ],
+      [
+        "Optional remote media",
+        "Separate payload preview, destination and authority; generated illustration labeled decoration"
+      ],
+      [
+        "Public registry",
+        "Separate integrity/attribution adapter under D16 scope; never proof authority or startup dependency"
+      ]
+    ],
+    "actions": [
+      "Preview export closure",
+      "Create local explanation",
+      "Review optional external adapter"
+    ],
+    "cli": "v7 explanation export result-42 --format html --closure-preview preview-9",
+    "next": "gap",
+    "previews": [
+      "Closure preview: include scoped historical result and public evidence links; exclude private transcript/source payload/feedback/secret refs; disclose omitted recipient binding. Changed classification requires a new preview.",
+      "Local HTML retains complete conditions and evidence references; optional WebM carries a companion explanation. This prototype creates no export file.",
+      "Remote preview: show narration text or illustration prompt, destination, selected secret reference, estimated cost if known, retention policy and explicit export authority. D16 handoff scope is open."
+    ],
+    "precise_axis": [
+      "Admission: exact claim scope retained",
+      "Qualification: presentation separate",
+      "Deployment: no effect on active release"
+    ]
+  }
+]

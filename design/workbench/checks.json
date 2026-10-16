@@ -1,0 +1,18 @@
+{
+  "kind": "design-reference checks only; no native parser, theorem, runtime or human usability claim",
+  "scenario_count": 13,
+  "passed": [
+    "all scenario navigation targets and readiness axes",
+    "reproducible standalone rendering",
+    "source span replacement preserves opaque expert bytes",
+    "concurrent revision refusal",
+    "stale span refusal"
+  ],
+  "native_remaining": [
+    "native source parser and offset mapping",
+    "native patch proposal validation",
+    "atomic source revision persistence",
+    "authority/host wire integration",
+    "production browser/CLI behavior"
+  ]
+}

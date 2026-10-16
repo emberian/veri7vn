@@ -5,9 +5,9 @@ Oracle7-style specialists. The intended product supports authoring, interpretati
 debugging, composition, proof search, synthesis, refinement, and continued growth
 on the end-user machine.
 
-**Current status: foundation complete; concrete design under review.** The native
-direction is accepted, while [architecture revision 2](docs/ARCHITECTURE_PROPOSAL.md)
-is proposed for agreement before implementation fan-out. The platform and
+**Current status: native implementation underway.** Foundation and
+[architecture revision 2](docs/ARCHITECTURE_PROPOSAL.md) are agreed; the first scoped
+implementation lanes are active. The platform and
 comprehensive metatheory are not yet implemented. The superseded Python
 expression/DAG/C prototype has been removed;
 the [cleanup record](docs/design/prototype-cleanup.md) identifies its recoverable

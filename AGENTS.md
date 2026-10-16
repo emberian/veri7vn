@@ -6,9 +6,9 @@ The user-approved direction is a robust specialist engineering environment nativ
 to Isabelle, with efficient deployed execution and search. Do not substitute an
 arithmetic demo or an external prover wrapper for that objective.
 
-Current gate: architecture revision 2 is proposed for agreement.
-`design-convergence` holds implementation fan-out; design review and the requested
-prototype cleanup do not themselves approve the new implementation choices.
+Architecture revision 2 was agreed on 2026-10-15; scoped implementation is
+authorized. Use gpt-6.1-sol for implementation lanes as requested. Root owns
+integration; see project/tasks.json and project/DISPATCH.md for current ownership.
 
 ## Coordination
 

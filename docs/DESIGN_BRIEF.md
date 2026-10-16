@@ -2,7 +2,7 @@
 
 Status: foundation complete, 2026-10-15. The Isabelle-native direction and
 authoring-focused product requirements are accepted. Architecture revision 2 is
-under review; implementation fan-out is held for design agreement. Descriptor
+agreed and scoped implementation is authorized. Descriptor
 schemas are not frozen executable interfaces; the complete platform remains work.
 
 Current synthesis: [ARCHITECTURE_PROPOSAL.md](ARCHITECTURE_PROPOSAL.md).

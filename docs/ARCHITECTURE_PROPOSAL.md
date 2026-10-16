@@ -1,7 +1,6 @@
 # veri7vn architecture proposal
 
-Revision 2, 2026-10-15. **Concrete recommendation for agreement; implementation
-fan-out is held.** This replaces the earlier architectural sketch. It resolves
+Revision 2, 2026-10-15. **Agreed architecture; scoped implementation authorized.** This replaces the earlier architectural sketch. It resolves
 common choices from the [shipped-behavior audit](review/PREIMPLEMENTATION.md) and
 the [semantic](design/semantic-core-review.md), [runtime](design/runtime-review.md),
 [authoring](design/authoring-review.md) and
@@ -411,8 +410,8 @@ tactics, indexes and UI components can evolve within these boundaries.
 The native gate, executable linker and durable commit seam receive joint review
 before downstream interfaces are frozen. Then work fans out by stable subsystem
 ownership with real migrated families supplying instances early. The
-[work graph](../project/tasks.json) keeps the full destination and holds on
-`design-convergence` until agreement. The ten
+[work graph](../project/tasks.json) keeps the full destination. The user agreed
+to proceed on 2026-10-15; `design-convergence` is complete. The ten
 [adversarial scenarios](design/adversarial-design-review.md#ten-design-discriminator-scenarios)
 are design checks and future integration obligations, not passing tests.
 
@@ -420,4 +419,5 @@ Cross-review on 2026-10-15 found no remaining architectural blocker after
 incorporating execution guards versus conditional premises, generation-bound
 session migration, coupled dispatch handoff, precise retirement modes and separate
 formal-proof/trusted-boundary closure. This is design review, not implementation,
-formal proof or deployment validation; user agreement remains pending.
+formal proof or deployment validation. The user subsequently agreed to proceed,
+requested gpt-6.1-sol implementation agents and set an active project goal.

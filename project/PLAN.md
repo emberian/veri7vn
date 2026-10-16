@@ -7,8 +7,8 @@ platform exists or shrink the destination to the first runnable fragment.
 Foundation integration is complete. The user's subsequent request reopened the
 architecture before implementation fan-out. [Revision 2](../docs/ARCHITECTURE_PROPOSAL.md)
 is the resulting concrete recommendation, cross-reviewed against shipped behavior.
-`design-convergence` remains the gate pending user agreement; no implementation
-lane is currently dispatchable. The obsolete Python/IR/C prototype was removed
+The user agreed to proceed on 2026-10-15 and requested gpt-6.1-sol for implementation
+lanes. `design-convergence` is complete; scoped implementation is active. The obsolete Python/IR/C prototype was removed
 at the user's request, with [Git recovery](../docs/design/prototype-cleanup.md).
 
 ## Product completion

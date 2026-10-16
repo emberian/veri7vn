@@ -1,0 +1,394 @@
+{
+  "server.py": {
+    "settings": {
+      "start": 67,
+      "end": 74
+    },
+    "conv_path": {
+      "start": 81,
+      "end": 84
+    },
+    "conv_load": {
+      "start": 87,
+      "end": 89
+    },
+    "conv_add": {
+      "start": 92,
+      "end": 98
+    },
+    "conv_list": {
+      "start": 101,
+      "end": 110
+    },
+    "save_settings": {
+      "start": 113,
+      "end": 114
+    },
+    "spec_group": {
+      "start": 130,
+      "end": 137
+    },
+    "trace": {
+      "start": 140,
+      "end": 210
+    },
+    "why_declined": {
+      "start": 213,
+      "end": 223
+    },
+    "history_reply": {
+      "start": 339,
+      "end": 371
+    },
+    "help_reply": {
+      "start": 374,
+      "end": 387
+    },
+    "Workbench": {
+      "start": 390,
+      "end": 490
+    },
+    "specialists_payload": {
+      "start": 496,
+      "end": 506
+    },
+    "gaps": {
+      "start": 509,
+      "end": 538
+    },
+    "scaffold": {
+      "start": 541,
+      "end": 558
+    },
+    "package": {
+      "start": 561,
+      "end": 579
+    },
+    "import_zip": {
+      "start": 582,
+      "end": 611
+    },
+    "slug": {
+      "start": 614,
+      "end": 615
+    },
+    "machine_probes": {
+      "start": 618,
+      "end": 635
+    },
+    "file_probes": {
+      "start": 638,
+      "end": 655
+    },
+    "run_code": {
+      "start": 658,
+      "end": 668
+    },
+    "el_key": {
+      "start": 679,
+      "end": 685
+    },
+    "el_call": {
+      "start": 688,
+      "end": 706
+    },
+    "H": {
+      "start": 709,
+      "end": 1095
+    },
+    "serve": {
+      "start": 1098,
+      "end": 1104
+    }
+  },
+  "exam.py": {
+    "read_manifest": {
+      "start": 40,
+      "end": 44
+    },
+    "files_sha": {
+      "start": 47,
+      "end": 53
+    },
+    "fillable": {
+      "start": 59,
+      "end": 64
+    },
+    "Loaded": {
+      "start": 67,
+      "end": 98
+    },
+    "load_specialist": {
+      "start": 101,
+      "end": 102
+    },
+    "status": {
+      "start": 105,
+      "end": 122
+    },
+    "progress": {
+      "start": 125,
+      "end": 127
+    },
+    "_set": {
+      "start": 130,
+      "end": 132
+    },
+    "_scorer": {
+      "start": 135,
+      "end": 141
+    },
+    "run": {
+      "start": 144,
+      "end": 230
+    },
+    "start": {
+      "start": 233,
+      "end": 247
+    },
+    "make_source": {
+      "start": 251,
+      "end": 267
+    },
+    "run_source": {
+      "start": 270,
+      "end": 319
+    },
+    "start_source": {
+      "start": 322,
+      "end": 338
+    }
+  },
+  "sources.py": {
+    "gb": {
+      "start": 34,
+      "end": 35
+    },
+    "dur": {
+      "start": 38,
+      "end": 42
+    },
+    "_run": {
+      "start": 46,
+      "end": 50
+    },
+    "scan_local": {
+      "start": 53,
+      "end": 146
+    },
+    "scan_server": {
+      "start": 166,
+      "end": 226
+    },
+    "MachineOrgan": {
+      "start": 243,
+      "end": 280
+    },
+    "_words": {
+      "start": 284,
+      "end": 285
+    },
+    "FilesOrgan": {
+      "start": 288,
+      "end": 350
+    },
+    "ConversationOrgan": {
+      "start": 363,
+      "end": 409
+    }
+  },
+  "mcp.py": {
+    "words": {
+      "start": 43,
+      "end": 49
+    },
+    "servers": {
+      "start": 52,
+      "end": 56
+    },
+    "save_server": {
+      "start": 59,
+      "end": 62
+    },
+    "Client": {
+      "start": 65,
+      "end": 148
+    },
+    "client": {
+      "start": 151,
+      "end": 159
+    },
+    "connect": {
+      "start": 162,
+      "end": 178
+    },
+    "McpOrgan": {
+      "start": 182,
+      "end": 271
+    },
+    "learn": {
+      "start": 274,
+      "end": 287
+    }
+  },
+  "sensors.py": {
+    "guess_quantity": {
+      "start": 60,
+      "end": 68
+    },
+    "flatten": {
+      "start": 72,
+      "end": 86
+    },
+    "parse_line": {
+      "start": 89,
+      "end": 109
+    },
+    "parse_prometheus": {
+      "start": 112,
+      "end": 123
+    },
+    "MqttLast": {
+      "start": 126,
+      "end": 199
+    },
+    "read_source": {
+      "start": 205,
+      "end": 276
+    },
+    "configs": {
+      "start": 280,
+      "end": 288
+    },
+    "save_config": {
+      "start": 291,
+      "end": 292
+    },
+    "check": {
+      "start": 295,
+      "end": 301
+    },
+    "poll_once": {
+      "start": 304,
+      "end": 321
+    },
+    "history": {
+      "start": 324,
+      "end": 337
+    },
+    "start_poller": {
+      "start": 344,
+      "end": 361
+    },
+    "start_all": {
+      "start": 364,
+      "end": 366
+    },
+    "ago": {
+      "start": 370,
+      "end": 372
+    },
+    "SensorOrgan": {
+      "start": 375,
+      "end": 437
+    }
+  },
+  "cli.py": {
+    "out": {
+      "start": 39,
+      "end": 40
+    },
+    "path_line": {
+      "start": 43,
+      "end": 44
+    },
+    "Session": {
+      "start": 47,
+      "end": 64
+    },
+    "show_answer": {
+      "start": 67,
+      "end": 73
+    },
+    "specialists_data": {
+      "start": 76,
+      "end": 78
+    },
+    "main": {
+      "start": 81,
+      "end": 272
+    }
+  },
+  "registry.py": {
+    "_sha_file": {
+      "start": 38,
+      "end": 40
+    },
+    "fingerprint": {
+      "start": 43,
+      "end": 55
+    },
+    "memo_for": {
+      "start": 58,
+      "end": 67
+    },
+    "relay": {
+      "start": 73,
+      "end": 89
+    },
+    "_rpc": {
+      "start": 92,
+      "end": 110
+    },
+    "read_tx": {
+      "start": 113,
+      "end": 131
+    },
+    "oracle7_balance": {
+      "start": 134,
+      "end": 139
+    },
+    "parse_memo": {
+      "start": 142,
+      "end": 150
+    },
+    "records": {
+      "start": 153,
+      "end": 157
+    },
+    "record": {
+      "start": 160,
+      "end": 172
+    },
+    "check": {
+      "start": 175,
+      "end": 195
+    }
+  },
+  "verify.py": {
+    "part_hash": {
+      "start": 24,
+      "end": 37
+    },
+    "leaf": {
+      "start": 40,
+      "end": 41
+    },
+    "merkle": {
+      "start": 44,
+      "end": 53
+    },
+    "published": {
+      "start": 56,
+      "end": 60
+    },
+    "verify_install": {
+      "start": 63,
+      "end": 87
+    },
+    "check_anchor": {
+      "start": 90,
+      "end": 109
+    }
+  }
+}

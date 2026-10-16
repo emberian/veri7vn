@@ -7,7 +7,7 @@ because the implementation makes few formal claims.
 
 The [revision 2 proposal](../docs/ARCHITECTURE_PROPOSAL.md) selects generated
 executable HOL control and family implementations, with explicitly trusted native
-and host integration. That selection is pending design agreement. The formal
+and host integration. That selection is agreed for implementation. The formal
 targets below and the trusted-boundary contracts below are different obligations;
 a passing boundary test is not a proof of an owned algorithm or invariant.
 
@@ -62,7 +62,7 @@ interrupts do not imply an exact wall-time or RSS bound.
 
 ## Enumerated trusted-boundary contracts
 
-All entries are currently **open/unqualified**. These are proposed explicit trust
+All entries are currently **open/unqualified**. These are the agreed explicit trust
 assumptions, not aliases for unfinished formal proof work. Each must record its
 real implementation, allowed behavior, negative/conformance evidence, dependency
 identity and consumers. Changing it reopens the relevant release qualification.

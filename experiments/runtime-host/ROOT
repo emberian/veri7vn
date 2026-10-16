@@ -1,0 +1,3 @@
+session Veri7vn_Runtime_Host = HOL +
+  options [threads = 2]
+  theories Host_Protocol

@@ -4,11 +4,11 @@ These are the **early integration baseline**, not claims of implemented admissio
 or verified execution. Changes are expected as the first real specialist crosses
 the boundaries. Lanes may implement behind these interfaces independently; changes
 that affect another lane's producer or consumer must update this baseline and its
-fixtures together. **Current design hold:** implementation waits on
+fixtures together. **Current implementation baseline:** design agreement is recorded in
 `design-convergence`. [Architecture revision 2](../ARCHITECTURE_PROPOSAL.md)
-proposes the concrete generated-core, native linkage and host/lifecycle mechanisms
-behind these boundaries. It is pending agreement; descriptor format and executable
-interfaces are not silently changed by the proposal.
+selects the concrete generated-core, native linkage and host/lifecycle mechanisms
+behind these boundaries. Descriptor format and executable interfaces are not
+silently changed by that design agreement.
 
 Revision-0 integration adjustments: requests distinguish immutable build/source
 environments from mutable-state and time observations; package descriptors permit

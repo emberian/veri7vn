@@ -265,7 +265,7 @@
       "title": "Converge and agree the concrete implementation architecture",
       "area": "design integration",
       "milestone": "F",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "foundation-integration"
       ],
@@ -281,7 +281,7 @@
         "Reconciled implementation work graph and explicit design agreement before fan-out"
       ],
       "acceptance": [
-        "Architecture accounts for actual shipped behavior and G01–G08 through concrete representations and authoritative execution paths.",
+        "Architecture accounts for actual shipped behavior and G01\u2013G08 through concrete representations and authoritative execution paths.",
         "Hard-to-reverse choices are explicit, remaining parametric choices have bounds and owners, and implementation fan-out follows user design agreement.",
         "Revision 2 common choices fix the executed HOL authority machine, finite typed executable linkage, canonical theory recipes, native gate, durable host/effect seam and growth-cost tiers; independent lanes do not reopen them implicitly.",
         "Cross-review the native gate/linker and durable commit seam, reconcile the assigned early feasibility tasks and obtain design agreement before implementation fan-out."
@@ -301,7 +301,7 @@
         "project/PROOF_OBLIGATIONS.md",
         "project/PLAN.md"
       ],
-      "notes": "Revision 2 synthesis and cross-review complete; no remaining architectural blocker identified. Awaiting user agreement before implementation fan-out. All technical feasibility checks, formal obligations and trusted-boundary qualification remain open; design-review documents are not implementation evidence.",
+      "notes": "User agreed to proceed on 2026-10-15 after revision 2 review, requested gpt-6.1-sol agents as much as practical, and requested an active full-project goal. Architecture agreement closes this design gate, not any implementation/proof/qualification obligation.",
       "contracts": [
         "C01",
         "C02",
@@ -322,15 +322,54 @@
       ]
     },
     {
+      "id": "native-build-support",
+      "title": "Extend serialized native checks for scoped implementation sessions",
+      "area": "native build tooling",
+      "milestone": "C",
+      "status": "done",
+      "depends_on": [
+        "design-convergence",
+        "f-native"
+      ],
+      "owner": "build_support61",
+      "paths": [
+        "tools/dev/**",
+        "tests/dev/**"
+      ],
+      "deliverables": [
+        "One shared native build lock and extensible scoped session checks with stable input/evidence receipts"
+      ],
+      "acceptance": [
+        "Independent lane sessions use the existing lock and workspace USER_HOME, with warm parent heaps, one job/two ML threads and bounded process termination.",
+        "Keep default scaffold assertions and descriptor data bridge intact; custom sessions have explicit inputs and expected checks without pretending generic build success is product proof.",
+        "Avoid global settings, cache deletion, or parallel bypass builds."
+      ],
+      "checks": [
+        "Run default scaffold check and a narrow custom-session invocation; validate lock exclusion and source snapshot handling where changed."
+      ],
+      "evidence": [
+        "tools/dev/check-native",
+        "tools/dev/README.md",
+        "tests/dev/test_check_native.py",
+        "tests/dev/session/Driver_Test.thy"
+      ],
+      "notes": "Root reviewed scoped/default driver and current passed stable receipts: default seven assertions; custom marker fixture; four boundary tests reported passed. Native implementation lanes remain independent. build_support61 continues build-queue stewardship.",
+      "contracts": [],
+      "acceptance_ids": [
+        "ACC-12",
+        "ACC-16"
+      ]
+    },
+    {
       "id": "native-linkage-feasibility",
       "title": "Resolve finite native linkage and bounded proof transport feasibility",
       "area": "native feasibility",
       "milestone": "C",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "design-convergence"
       ],
-      "owner": null,
+      "owner": "linkage61",
       "paths": [
         "experiments/native-linkage/**",
         "docs/design/native-linkage-feasibility.md"
@@ -376,11 +415,11 @@
       "title": "Probe the resident Scala/PIDE host and durable protocol seam",
       "area": "host feasibility",
       "milestone": "C",
-      "status": "planned",
+      "status": "review",
       "depends_on": [
         "design-convergence"
       ],
-      "owner": null,
+      "owner": "host61",
       "paths": [
         "experiments/runtime-host/**",
         "docs/design/runtime-host-feasibility.md"
@@ -401,8 +440,15 @@
         "Target evidence, not executed: crash before/after transaction acknowledgement, stale revision/epoch, replayed command identity and revoked payload recovery using local fixture data.",
         "Target evidence, not executed: mock dispatch versus retirement/cancellation, including the forbidden consume-then-delay-launch gap; crash around coupled handoff and observe unknown/reconciled states without an exactly-once assertion."
       ],
-      "evidence": [],
-      "notes": "Small first-wave feasibility task after design agreement. Independent of completed native admission/effect semantics; it discovers host API/commit constraints early. Production integration remains runtime-service/state-effects work.",
+      "evidence": [
+        "docs/design/runtime-host-feasibility.md",
+        "experiments/runtime-host/Host_Protocol.thy",
+        "experiments/runtime-host/probe.scala",
+        "experiments/runtime-host/durable.scala",
+        "var/runtime-host/protocol-20261015T133500Z/receipt.json",
+        "var/runtime-host/durable-20261015T135235Z/receipt.json"
+      ],
+      "notes": "Root reviewed stable native protocol and actual child-JVM crash receipts plus Scala fixture implementation. Resident startup/cancel/restart and bounded durable transaction/handoff mechanisms work. Final probe gate review retains revoked-payload recovery check; production generated-authority/lifecycle integration is not inferred from fixture success.",
       "contracts": [
         "C03",
         "C04",
@@ -426,11 +472,11 @@
       "title": "Classify reachable core behavior and sibling interface pressures",
       "area": "coverage",
       "milestone": "C",
-      "status": "planned",
+      "status": "done",
       "depends_on": [
         "design-convergence"
       ],
-      "owner": null,
+      "owner": "coverage61",
       "paths": [
         "audit/coverage/decisions.json",
         "docs/coverage/classification/**",
@@ -454,8 +500,16 @@
         "Design-review evidence to produce: map each G01-G08 source case to a concrete owner, supported fragment and proof/behavior obligation before calling the relevant family classified.",
         "Source-backed matrix review spans user front doors, inherited helpers, workbench operations, persistent/in-memory learning and background workers, including lifecycle/error paths; distinguish source reachability from exercised activation."
       ],
-      "evidence": [],
-      "notes": "Does not block known interface work; family tasks may be split after classification while retaining closure gates.",
+      "evidence": [
+        "docs/coverage/classification/README.md",
+        "docs/coverage/classification/dispatch.json",
+        "docs/coverage/classification/domain-profiles.json",
+        "docs/coverage/classification/runtime-review.md",
+        "docs/coverage/classification/residual-matrix.md",
+        "docs/coverage/classification/source-roles.json",
+        "docs/review/sibling-gaps.md"
+      ],
+      "notes": "Root reviewed semantic profiles, actual C3/runtime and lifecycle/synthesis residual matrices, full source role partition generator/checker, and scoped original-source counterexamples. All1757Python/3608tracked entries accounted for without dead exclusions;119 domain profiles and305 manifests retained. All14 materialized packs size/schema evidence attributed, four missing original sources explicit. Arbitrary plugin/dynamic activation, original corpus parity and all native repairs/refinements remain named downstream obligations. This closes classification, not migration.",
       "contracts": [
         "C01",
         "C03",
@@ -480,12 +534,12 @@
       "title": "Implement native capabilities and immutable environment registry",
       "area": "registry",
       "milestone": "C",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "design-convergence",
         "native-linkage-feasibility"
       ],
-      "owner": null,
+      "owner": "registry61",
       "paths": [
         "src/isabelle/registry/**",
         "tests/registry/**"
@@ -519,7 +573,7 @@
         "Target evidence: retain a typed value/continuation across bundle replacement; reject cross-generation handle reuse, accept only an admitted atomic migration, and preserve historical/unresolved state when migration fails."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "Early production work on native object ownership and shared profile/codec signatures can proceed against actual RC1 objects while finite-linkage feasibility finishes. Outstanding dependency remains explicit; no production signature freeze/admission/linkage claim until joint review. Preserve actual theory/code identity and open HOL meanings; do not elevate probe packet into global value universe.",
       "contracts": [
         "C01",
         "C02",
@@ -553,11 +607,11 @@
       "title": "Implement and prove the executable HOL authority machine",
       "area": "metatheory",
       "milestone": "C",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "design-convergence"
       ],
-      "owner": null,
+      "owner": "authority61",
       "paths": [
         "src/isabelle/model/**",
         "tests/model/**",
@@ -565,7 +619,8 @@
       ],
       "deliverables": [
         "Executable HOL step(state,event) authority reducer, invariants and generated ML artifact used by the resident native service",
-        "Typed/scoped operational interfaces and exact native-gate/host bridge assumptions"
+        "Typed/scoped operational interfaces and exact native-gate/host bridge assumptions",
+        "Generated deterministic finite authority-metadata/checkpoint codec with encode/decode roundtrip and bounded-framing/native event-origin integration seam"
       ],
       "acceptance": [
         "Plans, queries, strategies and effects retain domain conditions, failures and contextual dependencies.",
@@ -585,7 +640,8 @@
         "Proposed claim-scope case: certified computation of a classifier/finite model does not establish world correctness or worst-case behavior outside the declared model.",
         "Pre-signature design-contract review: jointly exercise concrete G01-G08 cases with registry, operational, interpretation and source owners before downstream signatures are consumed; record adopted profiles/outcomes/authority boundaries and unresolved decisions, not a generic claim of extensibility.",
         "Target evidence: deployment resolves and invokes the generated step artifact, with code identity linked to the proved equations; compare transition traces and expose a deliberately substituted handwritten reducer.",
-        "Target evidence: adversarial events cannot mutate authoritative state outside generated transitions, and gate/host assumptions are enumerated at each imported fact or durable acknowledgement."
+        "Target evidence: adversarial events cannot mutate authoritative state outside generated transitions, and gate/host assumptions are enumerated at each imported fact or durable acknowledgement.",
+        "Actual generated metadata wire roundtrip preserves exact state/event fields; malformed tags/fields reject. Decoded privileged event data alone cannot create gate authority; restart reconstruction suppresses effects and requires native association reconstruction."
       ],
       "evidence": [],
       "notes": "",
@@ -616,11 +672,11 @@
       "title": "Specify source observations, adoption and query dependencies",
       "area": "sources",
       "milestone": "C",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "design-convergence"
       ],
-      "owner": null,
+      "owner": "sources61",
       "paths": [
         "src/isabelle/sources/semantics/**",
         "tests/sources/semantics/**",
@@ -669,11 +725,11 @@
       "title": "Specify typed interpretation and licensed rendering",
       "area": "language",
       "milestone": "C",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "design-convergence"
       ],
-      "owner": null,
+      "owner": "language61",
       "paths": [
         "src/isabelle/language/model/**",
         "tests/language/model/**",
@@ -725,11 +781,11 @@
       "title": "Audit upstream authoring, local integrations and transfer workflows",
       "area": "authoring discovery",
       "milestone": "W",
-      "status": "planned",
+      "status": "done",
       "depends_on": [
         "design-convergence"
       ],
-      "owner": null,
+      "owner": "authoring61",
       "paths": [
         "docs/workbench/audit/**",
         "audit/workbench/**"
@@ -752,8 +808,14 @@
         "Source-backed workflow review: Film export must preserve conditions/historical status; optional remote media generation is a separate export/effect choice, not implied by local playback.",
         "Proposed transfer case: imported exam_log history remains attributable exposure rather than being erased or mistaken for a fresh recipient held-out evaluation."
       ],
-      "evidence": [],
-      "notes": "",
+      "evidence": [
+        "docs/workbench/audit/README.md",
+        "audit/workbench/check.py",
+        "audit/workbench/results.json",
+        "audit/workbench/source-locations.json",
+        "audit/workbench/transfer-regression.json"
+      ],
+      "notes": "Root reviewed source workflow map and eleven executed local fixtures, including transfer-path correction. Audit scope complete; native/UI/browser/deployment implementations and recipient evidence remain downstream obligations.",
       "contracts": [
         "C01",
         "C03",
@@ -778,11 +840,11 @@
       "title": "Establish representative workloads and deployment budgets",
       "area": "performance",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "design-convergence"
       ],
-      "owner": null,
+      "owner": "performance61",
       "paths": [
         "benchmarks/envelope/**",
         "docs/performance/envelope.md",
@@ -833,11 +895,11 @@
       "title": "Turn reproduced Oracle7 defects into independent regression obligations",
       "area": "behavioral correctness",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "design-convergence"
       ],
-      "owner": null,
+      "owner": "coverage61",
       "paths": [
         "tests/regressions/**",
         "docs/coverage/known-defects.md"
@@ -860,8 +922,16 @@
         "Proposed state/routing fixtures: an outer rejected answer does not commit an adopted referent; a scoped blocker survives fallback while a genuinely different justified interpretation remains available.",
         "Proposed payload/result fixtures: hash two-space and one-space literals separately; preserve SQL row-prefix completeness and per-part multipart outcomes."
       ],
-      "evidence": [],
-      "notes": "",
+      "evidence": [
+        "docs/coverage/known-defects.md",
+        "tests/regressions/test_math_components.py",
+        "tests/regressions/test_domain_profiles.py",
+        "tests/regressions/test_runtime_dispatch.py",
+        "tests/regressions/test_source_components.py",
+        "audit/workbench/transfer-regression.json",
+        "tests/regressions/test_background_learning.py"
+      ],
+      "notes": "Root independently reran25 upstream characterization/preservation tests (all pass,1.947s), reviewed local late-poll removal and CodeChat in-memory learning fixtures. They reproduce original defects, not native repairs; repaired-consumer gate and selected new-policy fixtures remain open.",
       "contracts": [
         "C02",
         "C03",
@@ -891,11 +961,11 @@
       "title": "Design the specialist authoring and diagnosis workflows",
       "area": "authoring design",
       "milestone": "W",
-      "status": "planned",
+      "status": "done",
       "depends_on": [
         "workbench-audit"
       ],
-      "owner": null,
+      "owner": "authoring61",
       "paths": [
         "docs/workbench/interaction/**",
         "design/workbench/**"
@@ -922,8 +992,17 @@
         "Proposed author walkthrough: open an existing Oracle7 specialist, inspect a known-family migration and an unresolved custom organ, revise the mapped package and retain the original and exposure record.",
         "Review a formula/reader recipe edit, an expert-only block, a concurrent source edit and a data-only growth update against the single-source workflow before client implementation."
       ],
-      "evidence": [],
-      "notes": "",
+      "evidence": [
+        "docs/workbench/interaction/README.md",
+        "docs/workbench/interaction/operations.md",
+        "docs/workbench/interaction/walkthroughs.md",
+        "design/workbench/index.html",
+        "design/workbench/scenarios.json",
+        "design/workbench/checks.json",
+        "design/workbench/desktop.png",
+        "design/workbench/mobile.png"
+      ],
+      "notes": "Root inspected operations/flows and desktop/mobile previews, requested and reviewed plain-language copy/advanced-detail separation. Thirteen navigable walkthroughs and browser/reference checks are design evidence only; native parser/runtime/client/recipient gates remain downstream.",
       "contracts": [
         "C01",
         "C03",
@@ -949,12 +1028,12 @@
       "title": "Implement the authoritative native admission boundary",
       "area": "admission",
       "milestone": "C",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "native-registry",
         "operational-model"
       ],
-      "owner": null,
+      "owner": "admission61",
       "paths": [
         "src/isabelle/admission/**",
         "tests/admission/**",
@@ -986,7 +1065,7 @@
         "Target evidence: changing code equations/serializer/foreign binding/compiler setup reopens the affected implementation association instead of retaining prior admission."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "Production gate development begins while registry object/profile and operational interfaces mature. Dependencies remain explicit completion gates. Co-review actual immutable object store, finite generated bundle association and authenticated event origin with registry/linkage/model/host owners; do not substitute caller metadata or callbacks for native evidence.",
       "contracts": [
         "C02",
         "C04"
@@ -1329,14 +1408,14 @@
       "title": "Implement the Scala/PIDE host, durable writer and native protocol",
       "area": "runtime",
       "milestone": "C",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "native-registry",
         "native-admission",
         "state-effects",
         "runtime-host-bootstrap"
       ],
-      "owner": null,
+      "owner": "host61",
       "paths": [
         "src/runtime/service/**",
         "tests/runtime/service/**",
@@ -1375,10 +1454,11 @@
         "Consume runtime-host-bootstrap evidence and replace fixture transitions with the actual generated authority machine and native gate; a host-only mock does not close integration.",
         "Target evidence: crash at each native-authorize/persist/acknowledge boundary, CAS conflict, duplicate command, stale authority epoch and restoration after managed forgetting.",
         "Target evidence: warm protocol throughput, resident cancellation, restart and durable-writer latency with actual workloads and no per-request theory compilation.",
-        "Target evidence: separately exercise capability retirement, source-binding retirement, access revocation and forgetting; permitted in-flight/snapshot work survives only the modes that allow it, while late reconciliation never reactivates acquisition."
+        "Target evidence: separately exercise capability retirement, source-binding retirement, access revocation and forgetting; permitted in-flight/snapshot work survives only the modes that allow it, while late reconciliation never reactivates acquisition.",
+        "Integration counterexample: AddBlocker or SetOutcome between stage and DB commit cannot recover a published stale claim; serialize the entire native transition/persist/ack sequence with all authority state events. Persisted cancellation/revocation survive restart and prevent payload reacquisition."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "Begin production host/store/protocol components from reviewed feasibility while registry/admission/state-effects interfaces mature. Unresolved dependencies intentionally remain visible: no completed integration or frozen competing interface is implied. Coordinate generated reducer/event serialization and native gate with their owners; exact batch critical section includes all state events, not revision/epoch alone. First consumer is package-intake inert source storage. Full task acceptance still requires all dependencies and native/lifecycle/deployment connections.",
       "contracts": [
         "C01",
         "C02",
@@ -1410,6 +1490,54 @@
       ]
     },
     {
+      "id": "package-intake",
+      "title": "Implement inert original/native package intake and source revision storage",
+      "area": "packages",
+      "milestone": "W",
+      "status": "active",
+      "depends_on": [
+        "workspace-interaction",
+        "workbench-audit"
+      ],
+      "owner": "authoring61",
+      "paths": [
+        "src/packages/intake/**",
+        "tests/packages/intake/**",
+        "docs/packages/intake.md"
+      ],
+      "deliverables": [
+        "Bounded source-preserving original Oracle7/native package intake with attributed exposure and unresolved semantics",
+        "Immutable development source revisions and exact revision/span-checked draft patch storage, with shared-authority publication seam"
+      ],
+      "acceptance": [
+        "Read and stage original archives/directories without importing Python, running scorers, executing theory text or activating packages. Preserve exact originals and exposure records; classify unknown executable contents as unresolved.",
+        "Reject traversal, duplicate/ambiguous paths, unsafe links and resource amplification; do not overwrite existing workspace material or follow untrusted extraction paths.",
+        "Draft source patching uses an expected immutable revision and exact original bytes/span, preserves opaque expert blocks and rejects stale edits atomically. This does not validate native recipe meaning or authorize active publication.",
+        "Use Scala/JVM native-host-compatible code, no Python semantic server or competing package registry; exact authority/development-check adapters remain package-lifecycle integration work."
+      ],
+      "checks": [
+        "Actual bounded fixtures for original examined ZIP including JSONL, malformed/duplicate/path escape/bomb limits, deterministic preserved-original identities and no execution.",
+        "Native-host-compatible compile/run tests for source revision, stale/conflicting patch, encoding boundaries, preserved opaque text and recovery of existing revisions."
+      ],
+      "evidence": [],
+      "notes": "Early independent production component; full package-lifecycle retains native admission/qualification/activation dependency gates. Coordinate host storage/protocol ownership, do not duplicate the authority machine.",
+      "contracts": [
+        "C01",
+        "C04",
+        "C05"
+      ],
+      "acceptance_ids": [
+        "ACC-01",
+        "ACC-02",
+        "ACC-14"
+      ],
+      "design_inputs": [
+        "docs/ARCHITECTURE_PROPOSAL.md",
+        "docs/workbench/interaction/operations.md",
+        "audit/workbench/transfer-regression.json"
+      ]
+    },
+    {
       "id": "package-lifecycle",
       "title": "Implement editable packages, imports, builds and versions",
       "area": "packages",
@@ -1417,7 +1545,8 @@
       "status": "planned",
       "depends_on": [
         "native-admission",
-        "native-registry"
+        "native-registry",
+        "package-intake"
       ],
       "owner": null,
       "paths": [
@@ -2370,7 +2499,7 @@
         "Compatible family interfaces compose with conditions, sources, disagreement and state preserved; incompatibilities are justified against the agreed product scope.",
         "Required opaque adapters, partial lifts and unresolved implementation failures block this gate. Exclusions require an explicit agreed scope decision and evidence, not convenience or an unimplemented label.",
         "Original unavailable upstream data is recorded separately with its precise effect and explicit replacement/unavailability disposition. Available replacement/test sources exercise the required platform behavior; the limitation cannot be used to waive implementation obligations or claim original-data parity.",
-        "Cross-family closure exercises the shared codec/profile boundary, scoped claims, partial/multipart/optimality semantics, scoped routing and operational qualification—not merely per-family output equality.",
+        "Cross-family closure exercises the shared codec/profile boundary, scoped claims, partial/multipart/optimality semantics, scoped routing and operational qualification\u2014not merely per-family output equality.",
         "Required source-review cases retain their source/proposed/executed distinction and become passing regressions before affected migration claims close; optional Film/publication decisions remain explicit rather than unowned omissions.",
         "Real migrated family instances exercise the generated authority reducer, finite typed linkage and canonical recipe/tool path early; collection/profile richness cannot be satisfied by callbacks with unrelated theorem names.",
         "Owned algorithms require actual native semantic/refinement/checker bridges. External-engine observations, external actions and candidate workflows use their separate declared service boundaries without relabeling owned mathematics as opaque observation."

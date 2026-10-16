@@ -111,3 +111,47 @@ Design scenarios and new technical probes are explicitly unexecuted.
 Local Markdown target checks and `git diff --check` pass. No new production
 implementation, performance result, source migration, native proof, deployment
 qualification or external publication is claimed by this checkpoint.
+
+## Authorized implementation wave
+
+The user subsequently agreed to proceed, requested gpt-6.1-sol implementation
+agents and an active full-project goal. Design-convergence is complete; nine
+scoped 6.1-sol lanes were dispatched. Build support and workbench audit have
+reviewed evidence; the other implementation tasks remain active. Workbench WB04
+corrects the earlier exposure-import inference: JSONL rejection occurs first.
+The shared driver now supports scoped sessions while preserving one lock, warm
+state and stable input receipts; root inspected passed default seven-assertion
+and custom-session receipts. These are tooling/audit completions, not native
+platform or metatheory completion. See tasks.json for evolving status.
+
+## Runtime and cross-interface review
+
+Root inspected both stable host archives (protocol 20261015T133500Z, durable
+20261015T135235Z), their logs, and the actual Scala persistence/handoff fixture.
+Resident prebuilt-heap protocol/restart/cancellation and actual child-JVM crashes
+before/after commit and during handoff passed. These demonstrate bounded mechanisms;
+the generated authority/native gate and complete lifecycle recovery are still open.
+The first durable commit was one 31.722792 ms sample, not a percentile or product
+budget. `benchmarks/envelope/host-durable.json` retains exact source/log identities.
+
+Root independently reran all 23 then-present upstream regression fixtures (pass,
+1.309 seconds) and the coverage source/policy checker (305 manifests,119 domain
+profiles,361-class C3,22 regression source pins and293 local helper identities).
+Later audit additions have separate lane evidence until reviewed. These fixtures
+characterize upstream behavior and scoped compositions; none proves native repair.
+
+Cross-interface review identified stale Accepted-tag rendering and a durability
+race when blockers/outcomes change without changing revision/epoch. Rendering now
+uses the shared current binding license (proof check pending); the complete
+native staging/commit/ack serialization contract is recorded in DECISIONS and
+owned by production runtime/effect integration. Mandatory PO/TB gates remain open.
+
+The native driver now streams output to live logs and exposes actual advisory lock
+state plus driver/child handles. Root inspected its implementation and live status;
+five controlled tooling checks passed in the owning lane. Verbose theory progress
+supports narrowing slow proofs without repeatedly rerunning opaque timeouts.
+
+Workspace interaction design was accepted after desktop/mobile/operation review.
+Production inert intake, native registry, and runtime-service work are underway.
+The48-task ledger retains two deliberate unresolved-dependency warnings for early
+registry/runtime work; these dependencies remain completion gates, not waived work.
