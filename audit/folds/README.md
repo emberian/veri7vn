@@ -166,8 +166,11 @@ that travels all the way down passes through about 322 `chat` calls, each one a
 Python stack frame, before helper functions add their own. Runtime `i` splits
 "do X, then Y" and sends each part through the whole stack again from the top,
 so those turns use about twice that. Python stops at 1,000 frames by default;
-no file in the stack raises that limit. A few more folds, or one more
-re-entry, would hit it.
+no file in the stack raises that limit. The entry point `upstream/oracle7.py`
+does, to 20,000, with the comment "the admitted fold chain is >250 modules
+deep". Anything that imports the chain without going through `oracle7.py`
+(the Workbench's own exam runner, for instance) runs at the default and is a
+few folds from the limit.
 
 **Import order decides which patch wins.** `w522` and `w523` both replace
 `w521`'s maths agent when they are imported. Python imports the deeper module
