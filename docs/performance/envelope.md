@@ -63,6 +63,12 @@ Separate cached-parent checks, changed-base rebuilds, proof-worker rebuilds and 
 
 [`paired-service-plan.json`](../../benchmarks/envelope/paired-service-plan.json) specifies real generated authority/native gate/coordinator comparisons. Prepared `ResidentServiceMeasurement.scala` times native-issued authorized token consumption through durable ack; it cannot mint tokens or substitute a test bridge. Prepared `source_phases.ML` measures actual prepare/execute/project with cleanup. Their existence is not execution evidence; run only with matching built consumers.
 
+<a id="additional-archived-evidence"></a>
+<a id="green-integration-records-and-retained-graph-pressure"></a>
+<a id="deployment-cost-ranking-after-canonical-29-resource-integration"></a>
+<a id="scheduled-generated-closure-pilot-after-checked-totality"></a>
+<a id="actual-installed-public-firstwarmrestart-pilot"></a>
+
 ## Actual implementation cost review and next runnable seam
 
 | Axis | Question and required consumer |

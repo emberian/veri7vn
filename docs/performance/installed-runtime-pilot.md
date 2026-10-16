@@ -23,12 +23,12 @@ The wrapper took 39.793 s. Process-tree RSS may count shared pages; logical foot
 ```sh
 python3 tools/performance/envelope/public_runtime.py --help
 python3 tools/performance/envelope/check_public_runtime.py
-python3 tools/performance/envelope/profile_launch.py --help
+python3 tools/performance/envelope/profile_launch.py verify GENERATION
 python3 tools/performance/envelope/observe_installed.py --help
 python3 tools/performance/envelope/summarize_installed.py --help
 ```
 
-The public harness pins one immutable generation, owns bounded process-group cleanup, checks exact output and separates first/warm/restart. Synthetic tests cover malformed/early exit, timeout and child-outlives-parent; their timings are not application evidence. Actual invocations require the steward's exclusive resource slot and shared lock.
+The public harness pins one immutable generation, owns bounded process-group cleanup, checks exact output and separates first/warm/restart. Synthetic tests cover malformed/early exit, timeout and child-outlives-parent; their timings are not application evidence. Actual invocations, including verifier-only profiles, require the steward's exclusive resource slot and shared lock. Run the installed public workload with `python3 tools/performance/envelope/public_runtime.py INSTALLATION --output FRESH_OUTPUT --steward-slot SLOT --profile-launch`; choose an unused output directory.
 
 ## Next attribution boundary
 
@@ -66,4 +66,4 @@ The repair uses one local 1 MiB buffer per verification and standard lowercase h
 | Owning hash aggregate | 14,371.029 ms | 3,775.587 ms |
 | Application dispatch | 214.862 ms | 158.947 ms |
 
-Both import/reopen consumers passed exact output and bounded cleanup. Import whole time was 16,502.327→10,021.607 ms. These fixed-order single samples support the observed source-only improvement, not a precise causal ratio or native/all-family speedup. Inventory GC increments fell 10→0, but used heap grew with less collection; no reduced live-memory claim follows. Repaired reopen still spent ~0.960 s lexical depth checking, 1.174 s parsing and 3.776 s hashing. Further closure/parser experiments retain nesting/integrity guards and need new evidence.
+Both clients exited zero; the exact reopen oracle and bounded cleanup passed. Setup import had no exact-output oracle. Import whole time was 16,502.327→10,021.607 ms. These fixed-order single samples support the observed source-only improvement, not a precise causal ratio or native/all-family speedup. Inventory GC increments fell 10→0, but used heap grew with less collection; no reduced live-memory claim follows. Repaired reopen still spent ~0.960 s lexical depth checking, 1.174 s parsing and 3.776 s hashing. Further closure/parser experiments retain nesting/integrity guards and need new evidence.

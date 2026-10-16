@@ -1,5 +1,7 @@
 # Shared UI/CLI operation proposal
 
+
+
 C01/C03/C04/C05 consumer requirements; names below are proposed operations, not an installed API. Native/host stewards own codecs, constructors and authority. For runnable commands see [recipient operations](../../reference/recipient-operations.md). Authoring/search/synthesis share one publication lineage.
 
 ## Common envelope and responses

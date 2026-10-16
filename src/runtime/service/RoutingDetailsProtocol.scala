@@ -50,6 +50,7 @@ private[service] object RoutingDetailsProtocol {
         val a=attrs(properties,Set("index","operation"));val index=number(a("index"),255)
         require(index==nextIndex,"native routing candidate index");nextIndex+=1
         val literalSpans=spans(body);require(literalSpans.size==2,"native routing fixed binary arity")
+        require(literalSpans.forall(span=>span.start<span.stop),"native routing reading literal is empty")
         alternatives+=RoutingAlternative(index,number(a("operation"),4),literalSpans)
       case XML.Elem(Markup("blocked",Nil),body)=>blockedSeen=true;blocked+=spans(body)
       case _=>throw new IllegalArgumentException("native routing candidate structure")
@@ -58,6 +59,8 @@ private[service] object RoutingDetailsProtocol {
     require(result.status!="readings" || result.alternatives.nonEmpty,"native routing missing readings")
     require(result.status!="literal" || (result.alternatives.isEmpty && result.blockedLiterals.nonEmpty),"native routing missing blocked literal")
     require(result.status!="structure_blocked" || (result.alternatives.isEmpty && result.blockedLiterals.isEmpty),"native routing blocked structure")
+    require(!Set("budget","unrecognized").contains(result.status) ||
+      (result.alternatives.isEmpty && result.blockedLiterals.isEmpty),"native routing noncandidate status carried candidates")
     result
   }
 }

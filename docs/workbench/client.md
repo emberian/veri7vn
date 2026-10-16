@@ -31,6 +31,12 @@ Resident commands add `run QUESTION [INTERPRETATION_INDEX]`, `result REQUEST_ID`
 
 Result HTML comes only from the licensed native service. Run/selection/lifecycle POSTs redirect to read-only request URLs: reload inspects, never resubmits. Editing a package does not change the installed mathematics specialist.
 
+## Routing and growth command consumer
+
+Current source dispatches `specialists [--verbose]`, `route QUESTION`, `run QUESTION [INDEX]`, `explain REQUEST_ID [--verbose]` and `suggest PACKAGE THEORY START STOP "REQUEST" MEANING "REASON" OPERATION_ID` through `ResidentWorkbench`. See the [exact invocation/reference](../reference/recipient-operations.md#routing-and-numeric-proposals-in-current-source). These additions require a matching rebuilt native/host image; paired qualification is pending and old installed packages retain their original surface.
+
+Routing inspection reports actual `math/1` alternatives and literal spans without execution or fallback authority. Explain reads retained status/rendering/provenance. Suggest is the fixed `numeric/1` declaration proposer: original selected source → explicit meaning/reason → preview → `apply`/cancel → revision-checked edit. It is not general program synthesis, a proof, build success or activation. Unsupported/incomplete proposals remain visible and cannot silently become a saved complete implementation.
+
 ## Reviewed source changes
 
 **Review a source change** captures a work item and `Obligation`, `Condition` or `Example`, plus `PreserveMeaning`, `RestrictDomain` or `ChangeSpecification` and a reason. Preview compares old/replacement bytes; Apply uses the normal managed edit; Cancel abandons the proposal. Neither action proves its statement.

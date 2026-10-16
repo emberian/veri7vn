@@ -22,7 +22,8 @@ object ResidentWorkbenchTests {
       assert(cli.contains("Route: readings") && cli.contains("Sum") && cli.contains("literal bytes"))
       val routedRequest=BigInt("(?m)^Request ([0-9]+)$".r.findFirstMatchIn(cli).get.group(1))
       veri7vn.authoring.assistance.RoutingCommandsChecks.run(service.client,Some(routedRequest))
-      veri7vn.authoring.assistance.GrowthCommandsChecks.run(service.client,new Authoring(service.managedSources))
+      veri7vn.authoring.assistance.GrowthCommandsChecks.run(service.client,new Authoring(service.managedSources),
+        Some(args=>veri7vn.cli.ResidentWorkbench.run(service,args)))
       println("RESIDENT_ROUTING_CLI_PASS specialists_route_native_operation_spans_run_explain_forget_and_reviewed_suggestion")
       val execution=new ResidentExecution(service)
       val browser=new Browser(new Authoring(service.managedSources),Some(execution));browser.start()

@@ -13,7 +13,7 @@ The six siblings are compatibility/design investigations under D18, not addition
 | vision `271c1832780c25980253fd4816f8e812b064325c` | `vision/exemplar.py`, `screen.py`, declaration-level `chartqa.py`: scores/recognition |
 | artist `df155c6a96626f9d3bc4146c9d4a516a0b8a2ba8` | `artist/core.py`: placement/rendering and property-specific checks |
 
-[Distribution inventory](../../audit/results/distribution-recheck.json) binds revisions. The [coverage ledger](../coverage/README.md#related-distributions) controls scope expansion.
+[Distribution inventory](../../audit/results/distribution-recheck.json) binds revisions. The [coverage ledger](../coverage/README.md) controls scope expansion.
 
 ## Ranked findings and minimal changes
 
