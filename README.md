@@ -91,4 +91,4 @@ lock. One Isabelle distribution, at `/Applications/Isabelle2026-RC1.app`. Nothin
 writes under `upstream/`.
 
 The audited Oracle7 revision is `c5d6a29d5bc5e2525078e5a53afa1abf659e4d69`. Code
-is Apache-2.0; Oracle7's data carries its own licences (`upstream/DATA_LICENSES.md`).
+here is CC0 (`LICENSE.md`); Oracle7 itself is Apache-2.0 code with per-source data licences (`upstream/DATA_LICENSES.md`).

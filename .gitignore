@@ -3,3 +3,4 @@ upstream/
 var/
 __pycache__/
 *.pyc
+.playwright-mcp/
