@@ -1,0 +1,3 @@
+session Veri7vn_Native_Release_Claim_Tests = Pure +
+  options [document = false]
+  theories Native_Release_Claim_Tests
