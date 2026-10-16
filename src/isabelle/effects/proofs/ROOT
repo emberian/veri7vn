@@ -1,0 +1,3 @@
+session Veri7vn_Effects_Closure = Veri7vn_Effects +
+  options [document = false, threads = 2]
+  theories Effects_Closure_Totality

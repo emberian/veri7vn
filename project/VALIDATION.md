@@ -897,3 +897,16 @@ text-only diagnostics. Repair applies a real captured source patch and rejects
 stale/forgotten sources. Browser Post/Redirect/Get compiles in this checkpoint;
 its native execution/reload test remains separate. The native build diagnostic
 producer, admission and resident inspection consumers also remain open.
+
+## Indexed lifecycle guard core
+
+Attempt `d6fe39058ae34340a6991ab94f761156` finished and saved the
+`Veri7vn_Effects_Indexed` session, including proof checking and SML export. Root
+read the actual build log, reviewed totality/exact ancestor-summary/group-safety
+statements and matched all eight core/parent/RBT provenance files against both
+source snapshots. The overall attempt failed in a later exact-list-order test;
+the generated values are being diagnosed, so this is not an established semantic
+counterexample or a passing full refinement suite. The core is committed with
+that limitation. Current service source consumes the proved ancestor guards and
+exact denial differences, not the optional forward-list reconstruction. Its
+actual native service build and consumer tests remain separate qualification.

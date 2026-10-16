@@ -1,0 +1,14 @@
+{
+  "format": "veri7vn.effects-rbt-sources/0",
+  "installed_root": "/Applications/Isabelle2026-RC1.app/Contents/Resources",
+  "theory_files": [
+    {
+      "path": "src/HOL/Library/RBT.thy",
+      "sha256": "ebe89a1ddb5c2a2c0b5817ca0dcfab76b6ffdcea7ca9ad6e97f6d7f59a6b7055"
+    },
+    {
+      "path": "src/HOL/Library/RBT_Impl.thy",
+      "sha256": "616f1f0739c024bca09e6e027fadbef67ee1a4069266f5d112a486cb27fba5d3"
+    }
+  ]
+}

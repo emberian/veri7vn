@@ -1,0 +1,7 @@
+session Veri7vn_Effects_RBT in installed = Veri7vn_Effects_Closure +
+  options [document = false]
+  theories RBT
+
+session Veri7vn_Effects_Indexed = Veri7vn_Effects_RBT +
+  options [document = false]
+  theories Effects_Indexed
