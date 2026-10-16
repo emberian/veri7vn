@@ -27,7 +27,7 @@ object OperationProfileTest {
         def stop(identity:AttemptIdentity):Unit=()
         def awaitStopped(identity:AttemptIdentity):Unit={held=None}
       }
-      val profile=OperationProfile.installApproved(OperationIdentity(1,2,3,"a"*64,"local-copy",4,0),
+      val profile=OperationProfile.installApproved(OperationIdentity(1,2,3,"a"*64,"local-copy",5,4,0),
         executor,1,WorkerLimits(1000,1024,64),64)
       val attempt=AttemptIdentity(store.nativeWorkspace,5,6,2,member)
       assert(OperationProfile.withAuthorizedInput(sources,"input-draft",member,member,attempt,

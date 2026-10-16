@@ -4,6 +4,24 @@ import scala.language.unsafeNulls
 import isabelle.Bytes
 import veri7vn.runtime.host.WorkspaceStore
 
+/** This receipt is minted only by the parent after the native one-use
+  * permit was consumed for the exact acknowledged retained entry. It is not a
+  * decoder for caller data and cannot be reused to issue two local handoffs. */
+object ResidentNativeBridge {
+  private[service] final class AcknowledgedEffect private[ResidentNativeBridge](
+      val command:effects.NativeEffectCommand,val gateToken:String,
+      val entryIncarnation:BigInt,val permitIdentity:BigInt,
+      private val supervisor:ResidentSupervisor) {
+    private var consumed=false
+    private[service] def requireSupervisor(expected:ResidentSupervisor):Unit=
+      require(supervisor eq expected,"native effect receipt belongs to another resident")
+    private[service] def consumeForHandoff():effects.NativeEffectCommand=synchronized {
+      require(!consumed,"native effect acknowledgement already consumed")
+      consumed=true;command
+    }
+  }
+}
+
 /** Actual resident transport. No client may supply Prepared/event/checkpoint bytes. */
 final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: WorkspaceStore,
   buildIngress:Option[NativeBuildIngress]=None)
@@ -48,7 +66,7 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
     else {
       val fields=reply.payload.split(",",-1)
       require(reply.tag=="build_binding" && fields.length==6 && fields(0)==id &&
-        Set("reserve","execute","artifact").contains(fields(1)) && fields.drop(2).forall(_.matches("[1-9][0-9]{0,127}")),"native build binding shape")
+        Set("reserve","execute","artifact","outcome").contains(fields(1)) && fields.drop(2).forall(_.matches("[1-9][0-9]{0,127}")),"native build binding shape")
       Some(BuildBinding(fields(1),ingress.preparedInput(BigInt(fields(2))),BigInt(fields(3)),BigInt(fields(4)),BigInt(fields(5))))
     }
   }
@@ -237,20 +255,33 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
     var primary:Throwable=null
     try {
       val begin=supervisor.exchange("restore_begin",s"${store.nativeWorkspace},${record.sequence},${record.revision},${record.epoch}",List(Bytes(record.checkpoint)))
-      require(begin.tag=="restore_required" && begin.payload=="2" && begin.artifacts.size==1 && begin.artifacts.head.size<=1048576,"native restore closure unavailable")
+      require(begin.tag=="restore_required" && begin.payload=="3" && begin.artifacts.size==2 && begin.artifacts.forall(_.size<=1048576),"native restore closure unavailable")
       val text=begin.artifacts.head.text
       val required=if(text.isEmpty)Vector.empty else text.split("\n",-1).toVector
       require(required.size<=8192,"native restore association bound")
       var seen=Set.empty[BigInt]
-      required.foreach {line=>
+      val sourceText=begin.artifacts(1).text
+      val sources=if(sourceText.isEmpty)Vector.empty else sourceText.split("\n",-1).toVector
+      require(sources.size<=8192,"native restore source association bound")
+      val requests=required.map {line=>
         val fields=line.split(",",-1)
         require(fields.length==3 && Set("request-child","artifact","evidence").contains(fields(0)) && fields.tail.forall(_.matches("[1-9][0-9]{0,127}")),"native restore required identity")
-        val association=BigInt(fields(1));val generation=BigInt(fields(2))
+        (fields(0),BigInt(fields(1)),Some(BigInt(fields(2))))
+      }
+      val sourceRequests=sources.map {line=>
+        val fields=line.split(",",-1)
+        require(fields.length==3 && fields(0)=="source-input" && fields(1).matches("[1-9][0-9]{0,127}") &&
+          Set("pending","recorded").contains(fields(2)),"native restore source identity")
+        // Phase is a native expectation, never a host semantic generation.
+        (fields(0),BigInt(fields(1)),Option.empty[BigInt])
+      }
+      (requests++sourceRequests).foreach {case(category,association,expectedGeneration)=>
         require(!seen.contains(association),"duplicate native restore association");seen+=association
         val capability=store.committedNativeRecovery(record,association).getOrElse(throw new IllegalStateException("required native origin unavailable"))
         try capability.withMaterial {material=>
-          require(material.semanticGeneration==generation,"native restore semantic generation mismatch")
-          require(WorkspaceStore.matchesRecoveryRequirement(material.slots.toMap.apply("manifest"),fields(0)),"native restore category/profile/role mismatch")
+          val generation=material.semanticGeneration
+          require(generation>0 && expectedGeneration.forall(_==generation),"native restore semantic generation mismatch")
+          require(WorkspaceStore.matchesRecoveryRequirement(material.slots.toMap.apply("manifest"),category),"native restore category/profile/role mismatch")
           val names=Vector("manifest","projection","sequent","context_closure","reconstruction")++(if(material.slots.exists(_._1=="executable"))Vector("executable")else Vector.empty)
           val slots=material.slots.toMap
           val header=(Vector(association.toString,generation.toString,capability.originSequence.toString)++names.map(name=>slots(name).length.toString)).mkString(",")

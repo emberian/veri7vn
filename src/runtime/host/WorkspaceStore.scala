@@ -109,6 +109,8 @@ object WorkspaceStore {
     m("version")=="2" && m("kind")=="controlled-recipe" && m("executable").matches("[0-9a-f]{64}") && Set(
       "native-development/1"->"build-request","native-development/1"->"build-candidate",
       "quantities/1"->"domain-request",
+      "source-quantities/1"->"source-domain-request",
+      "native-session-input/1"->"session-input",
       "literal-native-proof/1"->"search-request",
       "native-export-admission/1"->"initial-qualification",
       "native-export-admission/1"->"initial-qualification-request",
@@ -119,6 +121,9 @@ object WorkspaceStore {
     val m=recoveryEnvelope(bytes)
     (m("profile"),m("role")) match {
       case ("native-kernel/1","kernel-evidence")=>"kernel"
+      case ("native-session-input/1","session-input") if nonassertionalRecovery(bytes)=>"source-input"
+      case ("source-quantities/1","source-domain-request") if nonassertionalRecovery(bytes)=>"request-child"
+      case ("source-quantities-runtime-refinement/1","source-domain-output")=>"refined-output"
       case ("exact-arithmetic/1","math-request")=>"request-child"
       case ("exact-arithmetic/1","math-output")=>"refined-output"
       case ("quantities/1","domain-request") if nonassertionalRecovery(bytes)=>"request-child"
@@ -142,11 +147,13 @@ object WorkspaceStore {
     requirement match {
       case "request-child"=>concrete=="request-child"
       case "artifact"=>concrete=="artifact"
+      case "source-input"=>concrete=="source-input"
       case "evidence"=>
         val m=recoveryEnvelope(bytes)
         Set("native-kernel/1"->"kernel-evidence","exact-arithmetic/1"->"math-output",
           "native-export-admission/1"->"initial-qualification","named-native-export-structure/1"->"update-qualification",
-          "quantities-runtime-refinement/1"->"domain-output","literal-native-proof/1"->"search-output")
+          "quantities-runtime-refinement/1"->"domain-output","literal-native-proof/1"->"search-output",
+          "source-quantities-runtime-refinement/1"->"source-domain-output")
           .contains(m("profile")->m("role"))
       case _=>false
     }
@@ -159,7 +166,8 @@ object WorkspaceStore {
     val kernel=m("profile")=="native-kernel/1" && m("role")=="kernel-evidence"
     val math=m("profile")=="exact-arithmetic/1" && Set("math-request","math-output").contains(m("role"))
     val nonassertional=nonassertionalRecovery(slots("manifest"))
-    val domainOutput=m("profile")=="quantities-runtime-refinement/1" && m("role")=="domain-output"
+    val domainOutput=(m("profile")=="quantities-runtime-refinement/1" && m("role")=="domain-output") ||
+      (m("profile")=="source-quantities-runtime-refinement/1" && m("role")=="source-domain-output")
     val searchOutput=m("profile")=="literal-native-proof/1" && m("role")=="search-output"
     require(kernel || math || nonassertional || domainOutput || searchOutput,"unsupported recovery profile/role")
     require(slots.forall {case(name,data)=>name=="sequent" || data.nonEmpty},"empty nonassertion recovery slot")

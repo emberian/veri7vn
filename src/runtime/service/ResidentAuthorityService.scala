@@ -158,12 +158,9 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
     val diagnostic:Option[BuildDiagnostic],val sourceAvailable:Boolean)
   def buildResult(request:BuildRequest):BuildResult={
     available()
-    if(request.historical.nonEmpty){
-      // Source-only historical ownership: no old failure/candidate/status is
-      // manufactured when the native execution receipt was not retained.
-      request.historical.get.inspect((_,_)=>())
-      return new BuildResult(BuildState.Historical,None,None,true)
-    }
+    // Historical source access and execution status are independent. The
+    // native retained full child tuple supplies status; source ownership does
+    // not turn an interrupted attempt into a terminal result.
     val identity=s"${request.request},${request.goal},${request.slot}"
     val reply=supervisor.exchange("poll_build",identity)
     val fields=reply.payload.split(",",-1)
@@ -176,12 +173,18 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
       case "artifact_ready"=>BuildState.ArtifactReady
       case "failed"=>BuildState.Failed
       case "cancelled"=>BuildState.Cancelled
+      case "historical"=>BuildState.Historical
       case _=>throw new IllegalArgumentException("native build result status")
     }
     val source=fields.slice(4,7).map(BigInt(_))
     val unavailable=source.forall(_==0)
     require((unavailable && state==BuildState.Cancelled) ||
-      (source.forall(_>0) && source(0)==request.input.get.nativeHandle),"native build source association mismatch")
+      (source(1)>0 && source(2)>0 && (request.historical match {
+        case Some(history)=>source(0)==0 && history.source.request==request.request &&
+          history.source.goal==request.goal && history.source.slot==request.slot
+        case None=>source(0)==0 || request.input.exists(_.nativeHandle==source(0))
+      })),"native build source association mismatch")
+    require(state!=BuildState.Historical || (source(0)==0 && !unavailable),"native historical Build status association")
     val candidate=BigInt(fields(7))
     require(if(state==BuildState.ArtifactReady)candidate>0 else candidate==0,"native build candidate status mismatch")
     require(reply.artifacts.size<=1 && (reply.artifacts.isEmpty || (state==BuildState.Failed && !unavailable && reply.artifacts.head.size<=8192)),"native build diagnostic frame")
@@ -200,12 +203,26 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
       veri7vn.diagnostics.SourceDiagnostic.locate(captured,bytes,diagnostic.failure,None)
       consume(captured,bytes,diagnostic.failure)
     }
+    def retained():A={
+      val history=buildHistory.getOrElse(throw new IllegalStateException("historical Build service unavailable"))
+        .open(diagnostic.request.request).getOrElse(throw new IllegalStateException("Build diagnostic source unavailable"))
+      try {
+        require(history.source.goal==diagnostic.request.goal && history.source.slot==diagnostic.request.slot,
+          "Build diagnostic historical child mismatch")
+        history.inspect(inspect)
+      } finally history.close()
+    }
     diagnostic.request.input match {
-      case Some(live)=>live.input.inspectCapturedSourceRetained(original.path)(inspect)
+      case Some(live)=>
+        var entered=false
+        try live.input.inspectCapturedSourceRetained(original.path) {(captured,bytes)=>
+          entered=true;inspect(captured,bytes)
+        } catch {case scala.util.control.NonFatal(problem) if !entered=>retained()}
       case None=>diagnostic.request.historical.get.inspect(inspect)
     }
   }
   def cancel(request:BigInt):Unit=lifecycle("cancel",request)
+  def revoke(objectId:BigInt):Unit=lifecycle("revoke",objectId)
   def forget(objectId:BigInt):Unit=lifecycle("forget",objectId)
   private def awaitMutation[A](invoke: => ResidentSupervisor.Reply)(decode:ResidentSupervisor.Reply=>(String,A)):A={
     available()

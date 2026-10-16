@@ -65,7 +65,7 @@ object WorkspaceStoreTests {
       val candidate=new NativeRecoveryMaterial(material.association,BigInt(2),candidateSlots++(if(executable)Vector("executable"->code)else Vector.empty),material.dependencies)
       var allowed=true
       try {validateRecovery(store.nativeWorkspace,candidate)
-        val expected=if(role.endsWith("-request"))"request-child" else if(role=="build-candidate")"artifact" else if(role=="domain-output" || role=="search-output" || role=="math-output")"refined-output" else "observation"
+        val expected=if(role=="session-input")"source-input" else if(role.endsWith("-request"))"request-child" else if(role=="build-candidate")"artifact" else if(role=="domain-output" || role=="source-domain-output" || role=="search-output" || role=="math-output")"refined-output" else "observation"
         require(recoveryCategory(frame)==expected,"recovery category mismatch")
         val abstractRequirement=if(expected=="refined-output" || expected=="observation")"evidence" else expected
         require(matchesRecoveryRequirement(frame,abstractRequirement),"abstract recovery requirement mismatch")
@@ -75,7 +75,7 @@ object WorkspaceStoreTests {
       finally candidate.release()
       require(allowed==accepted,"closed role/sequent rule "+profile+"/"+role)
     }
-    for((profile,role)<-Vector("literal-native-proof/1"->"search-request","quantities/1"->"domain-request","native-development/1"->"build-request","native-development/1"->"build-candidate",
+    for((profile,role)<-Vector("native-session-input/1"->"session-input","source-quantities/1"->"source-domain-request","literal-native-proof/1"->"search-request","quantities/1"->"domain-request","native-development/1"->"build-request","native-development/1"->"build-candidate",
       "native-export-admission/1"->"initial-qualification","native-export-admission/1"->"initial-qualification-request",
       "named-native-export-structure/1"->"update-qualification","named-native-export-structure/1"->"update-qualification-request")){
       checkRole(profile,role,true,true,true)
@@ -85,6 +85,10 @@ object WorkspaceStoreTests {
     checkRole("literal-native-proof/1","search-output",false,true,true)
     checkRole("literal-native-proof/1","search-output",true,true,false)
     checkRole("literal-native-proof/1","search-output",false,false,false)
+    checkRole("source-quantities-runtime-refinement/1","source-domain-output",false,true,true)
+    checkRole("source-quantities-runtime-refinement/1","source-domain-output",true,true,false)
+    checkRole("source-quantities-runtime-refinement/1","source-domain-output",false,false,false)
+    checkRole("native-session-input/1","domain-request",true,true,false)
     checkRole("quantities-runtime-refinement/1","domain-output",false,true,true)
     checkRole("quantities-runtime-refinement/1","domain-output",true,true,false)
     checkRole("quantities-runtime-refinement/1","domain-output",false,false,false)

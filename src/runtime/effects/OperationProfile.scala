@@ -10,9 +10,9 @@ import veri7vn.runtime.host.ManagedSources
   */
 final case class OperationIdentity(profile: BigInt, capability: BigInt,
     codeGeneration: BigInt, implementationArtifact: String, operation: String,
-    costProfile: BigInt, step: BigInt) {
-  require(profile>0 && capability>0 && codeGeneration>0 && costProfile>0 && step>=0)
-  require(Vector(profile,capability,codeGeneration,costProfile,step).forall(_.toString.length<=128),"operation identity bound")
+    nativeOperation:BigInt,costProfile: BigInt, step: BigInt) {
+  require(profile>0 && capability>0 && codeGeneration>0 && nativeOperation>0 && costProfile>0 && step>=0)
+  require(Vector(profile,capability,codeGeneration,nativeOperation,costProfile,step).forall(_.toString.length<=128),"operation identity bound")
   require(implementationArtifact.matches("[0-9a-f]{64}"))
   require(operation.nonEmpty && operation.length<=256)
 }
