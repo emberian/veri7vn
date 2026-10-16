@@ -1,0 +1,80 @@
+{
+  "format": "veri7vn.launcher-qualification-summary/1",
+  "scope": "finite macOS-ARM64 offline deployment conformance; no new native theorem/admission claim",
+  "producer": {
+    "archive": "var/deployment-launcher/archives/aae0d7dd917843c189c134d7df57bab5",
+    "attempt": "add98cd30a854957ad8d3e1a381f860f",
+    "source_pins": {
+      "src/deployment/DeploymentMain.scala": "691ef42584b4196d4be1954c91f183d5e44c1a4ca73d8fc6e90166829e54cf95",
+      "src/deployment/veri7vn": "3671a37a0de1fd75191c27317bae89ea3e7fe03a23a1aad693dbe68760453e63",
+      "tests/deployment/launcher/bootstrap.py": "6850ee11ee39cd390813de2fe154dad30bac1fbfaaba65e0a6de0b1a59aaa397",
+      "tests/deployment/launcher/package.scala": "7a12731200a5bc0aa1f1cd5b386e4acb489d8b831f11d576501d3ca9e5d09bd9",
+      "tests/deployment/launcher/parity.py": "cf96e02f0db25ad8155ba83d286645d1f4142d8f7854ab414097bc1645ae50e0"
+    },
+    "artifacts": {
+      "sha256": "124ad322e1fee6d9c189190473be82af8857b3d5b5faf13a877e1a2d723c40ee",
+      "shell_sha256": "3671a37a0de1fd75191c27317bae89ea3e7fe03a23a1aad693dbe68760453e63"
+    }
+  },
+  "checks": {
+    "shell_recording_runtime": {
+      "script": "tests/deployment/launcher/bootstrap.py",
+      "passed": 8
+    },
+    "parity": {
+      "script": "tests/deployment/launcher/parity.py",
+      "attempt": "f76cbb84e79d4a139eb6c9ff36ee8339",
+      "passed": 27
+    },
+    "installed": {
+      "script": "tests/deployment/launcher/installed.py",
+      "script_sha256": "61797c4f5c63ad2c2ad0fe5501dc8f67970c6a5bcf70c68a67a31b5b5be76b5a",
+      "result": "var/standalone-launcher-trial-aae0d7dd-slot1/result.json",
+      "result_sha256": "f9812209e5711c31b996c5e666091e8363837138fbd9bf6ceca12790626e9652",
+      "checks": [
+        {
+          "label": "source-import",
+          "returncode": 0,
+          "passed": true,
+          "seconds": 10.765451999992365
+        },
+        {
+          "label": "source-reopen",
+          "returncode": 0,
+          "passed": true,
+          "seconds": 10.100189207994845
+        },
+        {
+          "label": "native-run",
+          "returncode": 0,
+          "passed": true,
+          "seconds": 15.711427792004542
+        },
+        {
+          "label": "native-restart",
+          "returncode": 0,
+          "passed": true,
+          "seconds": 12.994597417011391
+        }
+      ],
+      "forbidden_settings_marker_absent": true
+    }
+  },
+  "installation": "var/deployment-ui-d44-standalone-aae0d7dd",
+  "generation": "2fd159a898d0b7648dfce893f35a9a61f7ac0df05f7fa25314a29e001750cf45",
+  "policy": {
+    "bootstrap_user_home": "fresh-owned-temporary/1",
+    "controlled_system_path": "/usr/bin:/bin:/usr/sbin:/sbin",
+    "os_identity": "id -un; ambient USER/LOGNAME ignored",
+    "state_boundary": "whole recognized generations directory; selected root fallback"
+  },
+  "bootstrap_trust": "packaged shell/JVM/Isabelle startup and OS execute before inventory verification; own-code hashes are not proof of verifier correctness; package immutability during execution assumed",
+  "limitations": [
+    "D19 redistribution unresolved; local-only",
+    "Linux execution untested",
+    "browser/full workshop/search/edit/admission acceptance separate",
+    "timings are whole invocation observations, not attributed or performance envelope",
+    "no promotion of existing installation/state",
+    "old101a source pass/native sysctl failure preserved independently"
+  ]
+}
