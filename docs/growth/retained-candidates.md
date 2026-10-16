@@ -14,6 +14,21 @@ Nonpublishing evaluation takes an immutable library and returns new candidates/o
 
 These remain separate products; one finite arithmetic policy does not replace their workflows.
 
+## Ordered numeric proposals
+
+The current `numeric/1` service recognizes textual order for double, square,
+increment, absolute and negate, composing existing `math_expr` constructors.
+Unsupported vocabulary or no recognized operation yields no source. Generated
+expression text must parse back to the exact typed expression before emission.
+This is a bounded w37-style proposal policy, not a proof of English intent.
+
+The shared command handler previews the captured revision and replacement, requires
+an explicit meaning choice and review reason, and applies only through the managed
+editor. Cancellation preserves the revision; saving does not activate a capability.
+[Actual service checks](../../tests/workbench/assistance/evidence/routing-growth.json)
+cover this path. Full pipeline emitters, library growth and packaged CLI execution
+remain separate work.
+
 ## Source-owned application
 
 `growth/native/growth_request.ML` consumes live source owners and actual D43 candidates. It resolves a definition in the retained native context, checks source dependencies and fixed mathematical constructors, and parses original typed sample slices. Parameter closure yields kernel equalities and actual prepared `M.request` inputs. Missing parameters refuse before execution; division by zero remains an actual `None` result.

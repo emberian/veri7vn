@@ -27,9 +27,13 @@ struct
       val operations=map #2 hits
       val expression=fold step operations @{term "Parameter 0"}
       val unsupported=filter(is_some o position low)unsupported_words
+      val expression_source=XML.content_of(YXML.parse_body(Syntax.string_of_term @{context} expression))
+      val reparsed=Syntax.read_term @{context} expression_source
+        |> Type.constraint @{typ math_expr} |> Syntax.check_term @{context}
+      val _=if reparsed aconv expression then ()else error "Growth proposal printer/parser mismatch"
       val source=if null operations orelse not(null unsupported) then "" else
         "definition proposed_recipe :: math_expr where\n  \"proposed_recipe = "^
-        XML.content_of(YXML.parse_body(Syntax.string_of_term @{context} expression))^"\"\n"
+        expression_source^"\"\n"
     in {operations=operations,expression=expression,source=source,unsupported=unsupported}end;
   fun words text=String.tokens(not o Char.isAlphaNum)(String.map Char.toLower text);
 end;

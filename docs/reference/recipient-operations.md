@@ -30,7 +30,7 @@ Offsets are half-open physical UTF-8 bytes; expected contents must match. Inspec
 
 ## Routing and numeric proposals in current source
 
-The following CLI additions are **source-available; native paired qualification is pending**. Use a matching rebuilt resident/host or newly captured installation. The pinned `2fd159…` package does not acquire them from checkout edits. Direct RuntimeMain dispatch uses `--workbench COMMAND…`; the shipped launcher's `--surface workbench --` supplies that routing.
+The shared routing/growth handlers passed against the real resident service: route selection → licensed result/provenance → Forget, and native proposal → preview/cancel → exact managed edit. CLI wiring compiled; these checks invoked handlers directly, so standalone `ResidentWorkbench` dispatch and packaged execution of the additions remain separate gates. See [handler evidence](../../tests/workbench/assistance/evidence/routing-growth.json). Use a matching rebuilt native/host image; the pinned `2fd159…` package retains its original surface. Direct RuntimeMain uses `--workbench COMMAND…`; the launcher's `--surface workbench --` supplies that routing.
 
 ```sh
 V7_NEW=/absolute/path/to/matching-new-installation/current/bin/veri7vn

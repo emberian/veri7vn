@@ -46,17 +46,21 @@ is not Search context authority; Search consumes actual owned native context vie
 
 ## Qualification boundary
 
-The parent native assembly and all 53 actual production Scala sources compile.
-The current workshop consumer starts and commits native/source state, then loses
-runtime authority readiness during Build progression. The lifecycle workflow has
-not passed. The active investigation is the readiness/pump failure, not another
-source-only compilation claim.
+The native parent and 57 production Scala sources compile. Actual shared handlers
+pass routing details, original spans, native selection, licensed explanation and
+Forget; numeric proposals pass ordering, unsupported-operation refusal, review
+cancellation and exact managed edit. Read-only inspection leaves the authority
+journal unchanged. [Scoped evidence](../../tests/workbench/assistance/evidence/routing-growth.json)
+separates these results from the later Build failure. CLI dispatch compiles; this
+capture invokes shared handlers directly and does not qualify packaged execution.
 
-Evidence: parent compiler receipt
-`var/native-scaffold/sessions/acd3f09f4235bc65/attempts/5e31478680df4083a67a2c65197b5d15/receipt.json`;
-current runtime attempt
-`var/native-scaffold/sessions/acd3f09f4235bc65/attempts/6cd75faa1a5d449e9ec39d273468d8aa/receipt.json`.
-Use the exact captured native closure, not every repository ROOT. Qualification must
-check class origins and the separate launcher, restart, diagnostics and selective
-Forget against the real production service. Root owns status/commits; the build
-steward serializes execution through `tools/dev/check-native`.
+Build reaches failure persistence, where `Prepared` and `ObservedFailure` envelopes
+change recovery bytes under the same immutable slot association. The store correctly
+rejects rebinding. A future authenticated phase transition must preserve the original
+control plan, recipe, projection, context, executable pin, dependencies and source
+guard, while binding old/new material and the pending native outcome. Stale, foreign,
+replayed or forgotten transitions must reject. Generic rebinding stays forbidden.
+Build repair/restart and standalone CLI checks remain incomplete.
+
+Use the exact captured native closure and check class origins. Root owns integration;
+the build steward serializes execution through `tools/dev/check-native`.
