@@ -1,0 +1,6 @@
+session Veri7vn_Reader = HOL +
+  options [document = false]
+  theories
+    Relation_Reader
+    Relation_Reader_Export
+    Relation_Reader_Test
