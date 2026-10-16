@@ -1749,6 +1749,19 @@ fun inspect_routing id payload bytes =
     val artifacts=if status="readings" then
       [Bytes.string(space_implode "," (map_index(fn(index,_)=>Int.toString index)alternatives))] else []
   in emit id "routing" status artifacts end;
+fun growth_suggest id payload bytes =
+  let val _=F.guard(payload="numeric/1" andalso size bytes<=8192)
+      "Growth proposal profile/input bound";
+    val {operations,source,unsupported,...}=Veri7vn_Growth_Proposal_Policy.suggest bytes;
+    val _=F.guard(size source<=8192) "Growth proposal source bound";
+    fun item name text=XML.Elem((name,[]),[XML.Text text]);
+    val body=YXML.string_of_body[XML.Elem(("growth-suggestion",
+      [("version","1"),("profile","numeric/1"),("status","tentative")]),
+      [XML.Elem(("operations",[]),map(item "operation")operations),
+       item "source" source,
+       XML.Elem(("unsupported",[]),map(item "word")unsupported)])];
+    val _=F.guard(size body<=32768) "Growth proposal response bound";
+  in emit id "growth_suggestion" "numeric/1" [Bytes.string body] end;
 fun service_capabilities id payload =
   let val _=F.guard(payload="") "Native capability query payload";
     val _=ignore(boot_image());val _=ignore(identity_allocator());
@@ -2203,6 +2216,7 @@ fun handle_command args =
     | ("build_input_settle",_)=>build_transfer id operation payload body
     | ("poll_result",[])=>poll_result id payload
     | ("poll_math_goal",[])=>poll_math_goal id payload
+    | ("growth_suggest",[bytes])=>growth_suggest id payload (Bytes.content bytes)
     | ("inspect_request",[])=>inspect_request id payload
     | ("inspect_routing",[bytes])=>inspect_routing id payload (Bytes.content bytes)
     | ("cancel",[])=>lifecycle id operation payload
@@ -2247,7 +2261,7 @@ type rpc_state={pending:rpc_message list,active:rpc_message option,bytes:int,
 val rpc_empty={pending=[],active=NONE,bytes=0,generation=NONE,worker=NONE}:rpc_state;
 val rpc_queue=Synchronized.var "veri7vn_owned_native_rpc_queue"
   rpc_empty;
-val rpc_operations=["propose_build","poll_build","build_current_binding","search_contexts","propose_search","poll_search","search_requests","install_boot","install_ids","status","service_capabilities","initial","propose_math","poll_result","poll_math_goal","inspect_request","inspect_routing",
+val rpc_operations=["growth_suggest","propose_build","poll_build","build_current_binding","search_contexts","propose_search","poll_search","search_requests","install_boot","install_ids","status","service_capabilities","initial","propose_math","poll_result","poll_math_goal","inspect_request","inspect_routing",
   "build_input_begin","build_input_write","build_input_finish","build_input_abort",
   "build_input_release","build_input_discard","build_input_accept","build_input_settle",
   "cancel","forget","revoke","retire_capability","prepare","command_info","recovery_info",

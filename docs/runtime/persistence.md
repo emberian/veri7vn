@@ -1,164 +1,35 @@
-# Runtime persistence boundary
+# Runtime persistence
 
-## Writer and authority
+`WorkspaceStore` owns one SQLite WAL/FULL writer, forced immutable blobs, source-head CAS, native event/checkpoint journal, protected artifact references, dispatch records, and managed resources. The actual native gate/reducer supplies authority. Stored bytes/hashes and Scala projections cannot substitute for native checking.
 
-`WorkspaceStore` is one SQLite WAL/FULL writer with forced immutable blobs,
-source-head CAS, native event/checkpoint journal, protected artifact references,
-dispatch records, and managed resource ownership. Native acceptance comes from
-the actual native gate/reducer and reconstructed objects, never stored bytes,
-hashes, generated Booleans, or a second Scala authority reducer.
+Distinct revisions identify workspace source, native journal/CAS, generated model, lifecycle epoch, and native allocation. A single coordinator prepares/validates an opaque candidate, commits its exact predicted post-ack checkpoint, then acknowledges natively. Indeterminate commit/ack poisons readiness; shutdown releases coordinator before storage.
 
-Revision domains remain separate:
+For guarded builds, resolve the registered native input before taking the source monitor. Its opaque current-head/workspace guard covers commit and bounded native validate/ack. Parsing, transfer, replay, and teardown stay outside locks; historical original-byte access is not current-source build authority.
 
-- Workspace revision records inert source/storage edits.
-- Native journal sequence is the CAS position of each durable native event.
-- Model revision is the generated core's revision; some events change state
-  without advancing it.
-- Authority epoch tracks generated lifecycle authority.
-- Native allocation uses its own workspace namespace and decimal counter.
+## Recovery and ownership
 
-The coordinator owns one all-event monitor and store lease. It prepares and
-validates an actual gate candidate, commits the exact predicted post-ack image,
-then acknowledges it natively. Another coordinator is rejected. Prepare,
-validation, commit or ack exceptions invalidate readiness; no blind retry follows
-an indeterminate commit. Shutdown releases the coordinator before closing storage.
+Before writes, slots record durable intents: stage, slot, exact path, digest/size, dependencies. Adoption removes them atomically; startup collects unadopted paths while preserving shared references. Locators grant no access.
 
-For guarded builds, resolve the native input binding before taking the source
-monitor. An opaque guard from the actual registered captured owner checks both
-workspace identity and current head under the same monitor as commit and bounded
-native validate/ack. Parsing, transfer, replay and teardown stay outside it.
-An edit before commit rejects; a concurrent edit cannot pass between commit and
-ack. Historical access to captured bytes does not establish current-source use.
+Recovery joins latest checkpoint/access with immutable origin material. Fixed native checkers verify role, pin, source/context closure, saved identities, and actual reconstructed objects. Startup transfers slots under the monitor before enabling the pump. Failure closes the incarnation rather than reusing partial maps. No work or effects replay.
 
-## Native artifacts and reconstruction
+Manifest v2 is closed and <=8192bytes. Named slots are projection, sequent, context closure, reconstruction, and optional executable. Event/checkpoint/projection/sequent/executable caps are1MiB, context16MiB, reconstruction100000bytes, aggregate32MiB. IDs are positive <=128 decimal digits; dependency closure <=8192 includes association. Kernel/math assertions require nonempty sequents. Closed nonassertional Build/qualification/source/request profiles permit empty raw sequents only with their exact role, fixed code pin, and native correspondence; zero-export candidates need no dummy claim. Charged execution identity differs from resulting native context. Current role/version integration is described in [protocol.md](protocol.md).
 
-Every recovery slot has a durable publication intent before file writes: stage,
-slot, exact temporary path, digest, size and native-derived dependency edges.
-Journal adoption removes intents in the same transaction. Startup collects only
-recorded unadopted paths and preserves shared live references. Blob locators are
-not public read capabilities.
+## Source storage and cleanup
 
-A protected recovery capability requires the exact latest event/checkpoint and
-current lifecycle access, while its immutable material may originate in an older
-commit. Capabilities are scoped, bounded, released explicitly and invalidated when
-the journal advances. Native reconstruction checks pinned profiles, source/context
-closure, saved semantic IDs and actual evidence before installation. Fresh native
-handles do not substitute for saved identities. Nonempty recovery works in the
-resident baseline; it reissues no workers, execution tickets, workflow events, or
-external effects.
+`ManagedSources` records exact request/head/private stage before content writes; CAS and terminal status commit together. Exact retries return historical status. Current reads require recorded selected-manifest membership; revocation/tombstones block stale-locator or reused-operation reacquisition.
 
-The current envelope is a closed version-2 manifest, at most 8192 bytes, binding
-workspace, association, semantic generation, profile/role and slot hashes. The
-checked host baseline accepts `native-kernel/1` kernel evidence and
-`exact-arithmetic/1` math request/output material. Named slots are projection,
-sequent, context closure, reconstruction, and optional executable. Event,
-checkpoint, projection, sequent and executable limits are 1 MiB; context closure
-is at most 16 MiB, reconstruction 100000 bytes, and aggregate material 32 MiB.
-Association/dependency IDs are positive, at most 128 decimal digits; dependency
-closure is bounded to 8192 IDs and includes its association.
+Defaults: 40 MiB/object, 256 MiB distinct bytes, 8192 objects, 256 MiB request bytes, 128 operations. Exhaustion preserves replay identity. Roots require owner-only POSIX permissions.
 
-D43 adds nonassertional build-request/build-candidate roles and the separately
-coordinated qualification roles. Their exact profile/role allowlist, empty raw
-sequent, required code pin, native membership/reconstruction and host transport
-are pending migration. Empty assertion slots for kernel/math must not become a
-compatibility shortcut. A candidate may have zero theorem exports without a dummy
-claim. Its charged execution lineage is distinct from its native context identity.
+Resources/path intents register before writes. Denial precedes cleanup; signaling uses the source monitor, joins run outside. Confirmed termination permits deletion; failures retain retryable roots. Startup reconciles PID/start identity, not JVM absence.
 
-Restoration is startup-exclusive. Protected slot transfer holds the store monitor;
-the client/event pump starts only after native checking succeeds. Failure closes
-that resident rather than reusing partially bound identity maps. Live reload would
-need a separate governed revocable stream lifetime.
+Head replacement denies current use but preserves owned historical reads; revocation/Forget/release deny both. Build transfer uses a budgeted worker-owned clone; cancel/join precedes clearing, and unresolved begin/finish/accept cleanup retains owner/capacity. See nonce reconciliation in [protocol.md](protocol.md).
 
-## Managed source and worker ownership
+Unknown dispatch is journaled with event/checkpoint before acknowledgement, bound to deployment and command. Duplicates cannot append another dispatch; restart never relaunches Unknown work. Forget erases after native cleanup. Queues/tombstones survive partial deletion; shared roots preserve blobs. Erasure excludes hardware copies.
 
-`ManagedSources` shares the writer. Operations record exact request bytes,
-expected head and private stage before content writes; commit records CAS and
-terminal outcome atomically. Exact retries return historical terminal receipts.
-Current reads require the selected manifest's recorded member closure, not merely
-a known hash. Revocation/Forget deny access; tombstones prevent reacquisition by
-reusing operation IDs or supplying no expected head.
+D44 maintenance polls aggregate cleanup, retries owned failures at most eight times with exponential backoff capped30s, then retains roots/intent and polls every30s. Completion resets the episode and permits erasure. Resident attempt `6c02e53b4e2947b6ae54159eb8f6caf2` covers last-owner retirement, commit-before-ack restart, and immediate Forget.
 
-Default draft limits are 40 MiB per object, 256 MiB distinct retained bytes,
-8192 objects, 256 MiB retained canonical request bytes, and 128 operations.
-Exhaustion refuses work rather than dropping replay identity. Compaction and larger
-corpus profiles remain separate work. Storage roots require owner-only POSIX
-permissions; portability and hardware erasure are separate qualification limits.
+## Closed snapshots and evidence
 
-Worker resources register before copying bytes or creating scratch paths. Exact
-path intents precede writes. Source access is denied before cleanup; signals occur
-under the source monitor, joins outside it. Only confirmed stopped owners permit
-buffer clearing, deletion of recorded paths and ownership removal. Failure keeps
-the resource registered for retry. Startup does not infer process death from a
-lost JVM: resident PID/start identity and owner termination govern reconciliation.
+`WorkspaceSnapshot.acquireClosed` holds the existing Java writer lock without opening the original database, copies a bounded regular-file inventory into a private directory, and validates absence of resident/resource registrations. Orphan-risk records cause refusal, never stripping. The lease spans probes/selection; copies cannot consume original IDs. Failed construction remains incomplete. Live snapshotting/schema migration are separate.
 
-Captured roots have distinct current and retained read paths. A changed head
-rejects current use while an active registered captured owner can still inspect
-its pinned original bytes. Revocation, Forget or release deny both. Build failure
-spans belong to that exact original source, not a reopened current draft.
-
-Native build transfer uses a separately budgeted clone attached to its actual
-worker. Only bounded capture occurs under source/resource locks; native I/O runs
-outside both. Cancel/join precedes clone clearing. Unresolved native begin/finish/
-accept cleanup remains tracked with its source owner and capacity; a finite join
-attempt is not a claim of termination. See [protocol.md](protocol.md) for nonce
-reconciliation and the current D43 implementation boundary.
-
-## Dispatch, denial and erasure
-
-Native dispatch is recorded as Unknown in the same transaction as the event and
-checkpoint, before acknowledgement can start work. It pins the deployment and
-bounded command identity. Duplicate command occurrences cannot append another
-dispatch. Unknown survives restart and never authorizes relaunch.
-
-Generated Forget denials drive native artifact erasure only after the native
-worker/root cleanup barrier completes. Erasure queues and association tombstones
-survive partial deletion; shared live references preserve their files. Secure
-deletion/WAL truncation cover owned journal storage, not hardware-level erasure.
-Storage-only source methods are not generated native lifecycle transitions; full
-Forget joins authoritative propagation and native/worker release.
-
-D44 host maintenance polls the aggregate barrier, including revoke-only cleanup,
-and retries failed owned jobs at most eight times with exponential backoff capped
-at 30 seconds. Exhaustion retains roots and erasure intent and checks the barrier
-every 30 seconds. A complete barrier resets the retry episode and permits physical
-erasure. Actual resident attempt `6c02e53b4e2947b6ae54159eb8f6caf2` passed atomic
-last-owner retirement, commit-before-ack strict restart, and immediate Forget
-with stable inputs and clean cleanup. Cross-generation compatibility remains a
-separate deployment gate.
-
-## Evidence and open coverage
-
-- `var/runtime-host/resident-pass-e8efa7e5` records the actual concurrent math,
-  licensed publication, fresh-process nonempty restore, selective physical Forget,
-  and surviving-result restart baseline. It does not cover last-owner D44, expert
-  build recovery or external-effect crash reconciliation.
-- Host attempt `bf0cb5fe3f7f4e4d8a8ce06f3777d337`, session `95fcfdd61e543422`,
-  passed eleven groups with stable inputs and clean exit in 50.1695 seconds.
-  Tests include real SQLite commit/ack/source races, retained/transfer lifetimes,
-  actual captured source owners, and controlled lost-reply/timeout cleanup. These
-  check host conformance, not generated HOL or actual native D43 replay.
-- Earlier store/intake/resource checkpoints remain historical evidence under
-  `var/runtime-host/`; they are superseded as descriptions of current behavior.
-
-SQLite/JDBC/filesystem durability and host extraction/persistence/execution remain
-declared boundaries. D43 composition, candidate/qualification recovery,
-current-work cancellation, full deployment/erasure, and production connector
-reconciliation remain explicit consumers rather than implications of these tests.
-
-## Closed deployment probe snapshots
-
-`WorkspaceSnapshot.acquireClosed` takes the existing Java writer lock without
-opening the original database. It copies a bounded, regular-file-only inventory
-to a new private directory, preserves denial/tombstone records, and validates the
-copied SQLite database has no resident or managed-resource registrations. A crash
-can leave an orphan native process even after the JVM lock disappears; such
-records cause refusal rather than being stripped from the copy. The original
-must first be reconciled by its owning runtime.
-
-The returned lease holds the original writer lock through compatibility probes
-and any selection transaction. The command-line helper prints a ready JSON record
-and releases the lock on stdin EOF. Probes use separate copies and fresh image
-caches; opening a probe may consume allocator IDs only in its copy. Snapshot
-construction failure leaves a partial owned destination without a ready record.
-This source checkpoint awaits its finite host test and actual cross-generation
-probe; it does not supply a live-store snapshot or a schema migration.
+`var/runtime-host/resident-pass-e8efa7e5` covers concurrent math, licensed publication, fresh-process nonempty restore, selective physical Forget, and survivor restart. Host attempt `bf0cb5fe3f7f4e4d8a8ce06f3777d337`/session `95fcfdd61e543422` covers eleven SQLite/source/resource/protocol-loss groups. SQLite/JDBC/filesystem behavior remains the storage trust boundary. Expanded Build/qualification/source recovery, cross-generation deployment, and external connector crash consumers require their actual composed checks; compiler passes alone do not qualify them.

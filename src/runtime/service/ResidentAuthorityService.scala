@@ -42,8 +42,8 @@ final class ResidentAuthorityService private[service](supervisor:ResidentSupervi
   pump.setDaemon(true)
   pump.start()
   private def available():Unit={
-    require(!stopped.get(),"resident service stopped")
     failure.foreach(problem=>throw new IllegalStateException("resident workflow unavailable",problem))
+    require(!stopped.get(),"resident service stopped")
   }
   final case class RoutingInspection(status:String,alternatives:List[Int])
   def inspectRouting(original:Array[Byte]):RoutingInspection={

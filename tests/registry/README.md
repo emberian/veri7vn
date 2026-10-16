@@ -9,4 +9,4 @@ python3 tools/dev/check-native --session Veri7vn_Registry \
   --expect 'REGISTRY generation_guard PASS'
 ```
 
-`Registry_Tests.thy` checks objects/generations; lookup grants no authority.
+`src/isabelle/registry/Registry_Tests.thy` checks objects/generations; lookup grants no authority.

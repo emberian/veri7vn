@@ -20,6 +20,6 @@ python3 tools/dev/check-native
 
 The false-arithmetic fixture proves only `2 + 2 = 5 ==> 2 + 2 = 5`.
 
-All seven passed on Isabelle2026-RC1/macOS arm64; Core≈4s, tests≈3s. These are build observations. Current receipts/logs: `var/native-scaffold/`; [driver](../../tools/dev/README.md).
+2026-10-15: all seven passed on Isabelle2026-RC1/macOS arm64; Core≈4s, tests≈3s. These are build observations. Current receipts/logs: `var/native-scaffold/`; [driver](../../tools/dev/README.md).
 
 The driver generates native name data from `package.json`, recording hashes and testing name/kind mutations. Its file list covers editable sources, not dependencies or deployment closure. Native resolution retains actual objects; admission and executable refinement require separate gates. Use the driver to generate prerequisite data.

@@ -65,12 +65,18 @@ fun dialogue_fillable :: "dialogue_policy \<Rightarrow> outcome \<Rightarrow> bo
 
 definition dialogue_fallback where
   "dialogue_fallback p s r v receipt required previous =
-    (if dialogue_fillable p previous then dialogue_select p s r v receipt required else [])"
+    (if previous \<in> set (request_goals r) \<and>
+      goal_interpretation previous = chosen receipt \<and>
+      same_requirement (goal_required previous) required \<and>
+      unblocked r previous \<and> child_accessible s previous \<and>
+      dialogue_fillable p (goal_outcome previous)
+     then dialogue_select p s r v receipt required else [])"
 
 lemma fallback_requires_reading_decline:
   "g \<in> set (dialogue_fallback p s r v receipt required previous) \<Longrightarrow>
-    \<exists>reason. previous = Declined reason \<and> reason \<in> set (reading_decline_codes p)"
-  by (cases previous; auto simp: dialogue_fallback_def split: if_splits)
+    previous \<in> set (request_goals r) \<and>
+    (\<exists>reason. goal_outcome previous = Declined reason \<and> reason \<in> set (reading_decline_codes p))"
+  by (cases "goal_outcome previous"; auto simp: dialogue_fallback_def split: if_splits)
 
 lemma fallback_preserves_selection:
   "g \<in> set (dialogue_fallback p s r v receipt required previous) \<Longrightarrow>

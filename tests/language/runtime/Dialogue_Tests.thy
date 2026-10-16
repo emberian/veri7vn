@@ -202,25 +202,25 @@ lemma forgotten_parent_rejects_current_and_stale_child_routes:
     Let_def same_target_def forget_closure_def lifecycle_def forget_state_def revoke_state_def
     cancel_dependent_def required_for_def)
 
-lemma reading_decline_can_fill_existing_route:
-  "dialogue_fallback test_policy initial_state test_request 7 test_receipt
-    (ClaimRequirement test_claim) (Declined 71) =
-    dialogue_select test_policy initial_state test_request 7 test_receipt
-      (ClaimRequirement test_claim)"
-  by (simp add: dialogue_fallback_def test_policy_def)
-
-lemma guard_and_unknown_declines_cannot_fill:
-  "dialogue_fallback test_policy s r v receipt required (Declined 72) = [] \<and>
-    dialogue_fallback test_policy s r v receipt required (NeedsInput [71]) = [] \<and>
-    dialogue_fallback test_policy s r v receipt required (Inconclusive 71) = [] \<and>
-    dialogue_fallback test_policy s r v receipt required (Failed 71) = [] \<and>
-    dialogue_fallback test_policy s r v receipt required Cancelled = []"
-  by (simp add: dialogue_fallback_def test_policy_def)
+lemma reading_decline_is_distinct_from_guard_failure:
+  "dialogue_fillable test_policy (Declined 71) \<and>
+    \<not> dialogue_fillable test_policy (Declined 72) \<and>
+    \<not> dialogue_fillable test_policy (NeedsInput [71]) \<and>
+    \<not> dialogue_fillable test_policy (Inconclusive 71) \<and>
+    \<not> dialogue_fillable test_policy (Failed 71) \<and>
+    \<not> dialogue_fillable test_policy Cancelled"
+  by (simp add: test_policy_def)
 
 lemma core_answer_cannot_be_intercepted:
-  "dialogue_fallback p s r v receipt required (Accepted c evidence) = [] \<and>
-    dialogue_fallback p s r v receipt required (ArtifactReady artifact) = [] \<and>
-    dialogue_fallback p s r v receipt required (AwaitingOutput slot) = []"
+  assumes "goal_outcome previous = Accepted c evidence \<or>
+    goal_outcome previous = ArtifactReady artifact \<or>
+    goal_outcome previous = AwaitingOutput slot"
+  shows "dialogue_fallback p s r v receipt required previous = []"
+  using assms by (auto simp: dialogue_fallback_def)
+
+lemma fabricated_prior_decline_cannot_open_route:
+  "previous \<notin> set (request_goals r) \<Longrightarrow>
+    dialogue_fallback p s r v receipt required previous = []"
   by (simp add: dialogue_fallback_def)
 
 lemma fallback_cannot_evade_interpretation_guard:
@@ -231,7 +231,7 @@ lemma fallback_cannot_evade_interpretation_guard:
 
 lemma unavailable_personal_reader_stays_unavailable_after_decline:
   "dialogue_fallback (test_policy\<lparr>addressed_capabilities:=Some []\<rparr>)
-    initial_state test_request 7 test_receipt (ClaimRequirement test_claim) (Declined 71) = []"
+    initial_state test_request 7 test_receipt (ClaimRequirement test_claim) previous = []"
   by (simp add: dialogue_fallback_def unavailable_address_no_route)
 
 end

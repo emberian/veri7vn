@@ -12,54 +12,70 @@ object RoutingCommands {
     require(args.nonEmpty,"A routing inspection command is required")
     args(0) match {
       case "specialists"=>
-        require(args.length==1,"specialists takes no arguments")
+        require(args.length==1 || (args.length==2 && args(1)=="--verbose"),"specialists [--verbose]")
+        val verbose=args.length==2
         client.installedFamilies() match {
-          case None=>println("This installation does not expose native family metadata. Source packages do not establish installed availability.")
+          case None=>println("Installed family metadata is unavailable. Use route QUESTION to inspect the fixed reader.")
           case Some(families)=>
-            if(families.isEmpty)println("The native service declares no operation families.")
+            println("Installed families")
+            println("Family\tVersion")
+            if(families.isEmpty)println("(none declared)")
             families.foreach((name,version,propose,poll)=>
-              println(name+" / "+version+"; propose "+propose+"; inspect "+poll))
-            println("These are native service family declarations, not a list of every specialist or proof of request applicability.")
+              println(name+"\t"+version+(if(verbose)"\tpropose="+propose+"\tpoll="+poll else "")))
+            println("Use route QUESTION to inspect applicable readings.")
         }
       case "route"=>
         require(args.length==2,"route requires the original question")
         val bytes=args(1).getBytes(UTF_8)
-        val inspected=try client.inspectRouting(bytes)
+        val inspected=try client.inspectRoutingDetails(bytes)
           finally java.util.Arrays.fill(bytes,0.toByte)
-        println("Installed reader policy: math/1")
-        println("Native routing status: "+inspected.status)
+        println("Route: "+inspected.status+" (math/1)")
         inspected.status match {
           case "readings"=>
-            println("Native candidate reading indexes: "+inspected.alternatives.mkString(", "))
-            if(inspected.alternatives.size==1)println("One native reading is available. Use run with this question to propose execution.")
-            else println("Choose an explicit native index with run QUESTION INDEX. No interpretation has been selected here.")
-          case "literal"=>println("The fixed reader needs a supported literal. Review the exact question; no execution was proposed.")
-          case "budget"=>println("Routing reached its inspection budget. No answer or refutation follows.")
-          case "unrecognized"=>println("The fixed reader did not recognize this question. This does not establish that another specialist can answer it.")
-          case "structure_blocked"=>println("The native reader blocked the question structure. This inspection does not authorize another route.")
+            inspected.alternatives.foreach {alternative=>
+              val operation=alternative.operation match {
+                case 0=>"Sum"
+                case 1=>"Difference"
+                case 2=>"Product"
+                case 3=>"Quotient"
+                case 4=>"Subtract from"
+                case _=>throw new IllegalArgumentException("Unsupported native operation")
+              }
+              println("Reading "+alternative.index+": "+operation+"; literal bytes "+
+                alternative.literals.map(span=>span.start+"–"+span.stop).mkString(", "))
+            }
+            if(inspected.alternatives.size==1)println("Run this question with: run QUESTION")
+            else println("Choose a reading with: run QUESTION INDEX")
+          case "literal"=>println("Review the question's numeric literals, then inspect it again.")
+          case "budget"=>println("Inspection budget reached; the question remains unresolved.")
+          case "unrecognized"=>println("Question unrecognized by math/1. Try a supported arithmetic phrasing.")
+          case "structure_blocked"=>println("Question structure blocked by math/1. Review the phrasing.")
           case _=>throw new IllegalArgumentException("Unsupported native routing status")
         }
-        println("This projection exposes reading indexes, not candidate meanings, a full specialist catalogue or a precedence trace.")
+        inspected.blockedLiterals.foreach(spans=>println("Blocked literal bytes: "+spans.map(span=>span.start+"–"+span.stop).mkString(", ")))
+        println("Inspection only. Use run to select and execute a reading.")
       case "explain"=>
-        require(args.length==2,"explain requires a native request ID")
+        require(args.length==2 || (args.length==3 && args(2)=="--verbose"),"explain REQUEST [--verbose]")
+        val verbose=args.length==3
         val request=BigInt(args(1))
         val inspection=client.requestInspection(request)
-        println("Request "+request+"\nObserved request status: "+inspection.status)
-        println(inspection.explanation.title+"\n"+inspection.explanation.detail)
-        inspection.provenance.foreach((name,value)=>println(name+": "+value))
+        val result=client.mathematicsResult(request)
+        println("Request "+request+": "+result.status)
+        result.html.foreach(println)
+        if(result.html.isEmpty)println(Diagnostics.explain(result.status).detail)
         inspection.reading.foreach {reading=>
           println("Selected reading: "+reading.index+"; "+reading.description)
-          println("Original input bytes: "+reading.inputBytes)
-          reading.literals.zipWithIndex.foreach((span,index)=>println("Literal "+(index+1)+" byte range: "+span.startByte+"–"+span.endByte))
+          if(verbose){
+            println("Original input bytes: "+reading.inputBytes)
+            reading.literals.zipWithIndex.foreach((span,index)=>println("Literal "+(index+1)+" byte range: "+span.startByte+"–"+span.endByte))
+          }
         }
         inspection.readingUnavailable.foreach(reason=>println("Reading unavailable: "+reason))
-        inspection.informationLimits.foreach(limit=>println("Inspection limit: "+limit))
-        // A separate actual result observation may be newer than the inspection.
-        // Only its native licensed HTML is displayed; metadata is not an answer.
-        val result=client.mathematicsResult(request)
-        println("Latest result observation: "+result.status)
-        println(Diagnostics.explain(result.status).detail)
-        result.html.foreach(println)
+        if(verbose){
+          println("Earlier inspection status: "+inspection.status)
+          inspection.provenance.foreach((name,value)=>println(name+": "+value))
+          inspection.informationLimits.foreach(limit=>println("Inspection limit: "+limit))
+        }else println("Use explain REQUEST --verbose for source spans and native provenance.")
       case other=>throw new IllegalArgumentException("Unknown routing command: "+other)
     }
   }

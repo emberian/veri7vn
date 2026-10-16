@@ -68,12 +68,17 @@ final class AuthorityCoordinator(store: WorkspaceStore, bridge: AuthorityCoordin
   store.claimAuthorityCoordinator()
   private var closed=false
   private var ready=false
-  private[service] def requireReady():Unit=synchronized {require(ready && !closed,"native authority not ready")}
+  private var readinessFailure:Option[Throwable]=None
+  private[service] def requireReady():Unit=synchronized {
+    if(!ready || closed)readinessFailure.foreach(problem=>
+      throw new IllegalStateException("native authority not ready",problem))
+    require(ready && !closed,"native authority not ready")
+  }
   def restore(): Outcome = synchronized {
     require(!ready,"restore is startup-exclusive")
     guarded {
     require(!closed,"authority coordinator closed")
-    ready=false
+    ready=false;readinessFailure=None
     store.latestNative match {
       case None => Unavailable("initial native image must be installed through native initialization gate")
       case Some(record) if bridge.recover(record) => ready=true; Committed(record.sequence,record.id)
@@ -82,7 +87,7 @@ final class AuthorityCoordinator(store: WorkspaceStore, bridge: AuthorityCoordin
   }}
   private def guarded(action: => Outcome): Outcome =
     try {require(!closed,"authority coordinator closed"); action} catch {case failure: Throwable =>
-      ready=false
+      readinessFailure=Some(failure);ready=false
       try bridge.invalidate() catch {case cleanup:Throwable=>failure.addSuppressed(cleanup)}
       throw failure}
   private def persist(p: Prepared): Outcome = try {
@@ -90,10 +95,10 @@ final class AuthorityCoordinator(store: WorkspaceStore, bridge: AuthorityCoordin
     require(p.eventBytes.length<=limits.maxEventBytes && p.checkpointBytes.length<=limits.maxCheckpointBytes,"native materialization limit")
     if(!bridge.validatePrecommit(p)) return Rejected("native staged transition no longer valid")
     store.commitNative(p.id,p.expectedSequence,p.nativeRevision,p.epoch,p.eventBytes,p.checkpointBytes,p.recovery,p.dispatch,p.invalidations,p.sourceBinding,p.effectSource) match {
-      case None => ready=false; Unavailable("durable sequence conflict; restore required")
+      case None => readinessFailure=Some(new IllegalStateException("durable sequence conflict; restore required"));ready=false; Unavailable("durable sequence conflict; restore required")
       case Some(record) =>
-        if(!bridge.acknowledge(p)) {ready=false; Unavailable("committed; native acknowledgement unavailable; restore required")}
-        else {p.effectSource.foreach(store.acknowledgeNativeEffectSource);ready=true; Committed(record.sequence,record.id)}
+        if(!bridge.acknowledge(p)) {readinessFailure=Some(new IllegalStateException("committed; native acknowledgement unavailable; restore required"));ready=false; Unavailable("committed; native acknowledgement unavailable; restore required")}
+        else {p.effectSource.foreach(store.acknowledgeNativeEffectSource);readinessFailure=None;ready=true; Committed(record.sequence,record.id)}
     }
     }
     // Lock order: coordinator -> store/source monitor -> bounded native
@@ -113,7 +118,7 @@ final class AuthorityCoordinator(store: WorkspaceStore, bridge: AuthorityCoordin
     outcome
   } finally p.release()
   private[service] def initialize(): Outcome = synchronized { guarded {
-    ready=false
+    ready=false;readinessFailure=None
     if(store.latestNative.nonEmpty) Unavailable("native journal already initialized; restore required")
     else bridge.initialize() match {
       case Some(p) => persist(p)

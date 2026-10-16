@@ -10,6 +10,6 @@ USER_HOME="$PWD/experiments/native-metatheory/state" \
   -D experiments/native-metatheory -j 1 -o threads=2 Veri7vn_Native_Admission
 ```
 
-Bundled HOL supplies the parent; `state/` isolates generated state. The successful run used approved execution because the sandbox blocked `sysctl`.
+Bundled HOL supplies the parent; `state/` isolates generated state. Execution requires `sysctl` access.
 
 `build.log` records completion. `probe-output.log` uses `isabelle build_log -v -M 'INSTANTIATED|ASSUMPTION_PROBE|EXPORTED'` with the same `USER_HOME`. Research inputs live in `research/`; [analysis](../../docs/research/native-metatheory.md) explains the probe. Production admission is separate.

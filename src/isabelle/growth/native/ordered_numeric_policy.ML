@@ -29,7 +29,7 @@ struct
       val unsupported=filter(is_some o position low)unsupported_words
       val source=if null operations orelse not(null unsupported) then "" else
         "definition proposed_recipe :: math_expr where\n  \"proposed_recipe = "^
-        Syntax.string_of_term @{context} expression^"\"\n"
+        YXML.content_of(Syntax.string_of_term @{context} expression)^"\"\n"
     in {operations=operations,expression=expression,source=source,unsupported=unsupported}end;
   fun words text=String.tokens(not o Char.isAlphaNum)(String.map Char.toLower text);
 end;

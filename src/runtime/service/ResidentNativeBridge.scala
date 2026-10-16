@@ -282,6 +282,7 @@ final class ResidentNativeBridge(supervisor: ResidentSupervisor, store: Workspac
       else supervisor.exchange("ack",s"${token(p)},${committed.sequence}")
     val accepted=reply.artifacts.isEmpty && (if(p.id=="native_initial")reply.tag=="restored"
       else reply.tag=="acknowledged" && reply.payload==token(p))
+    require(accepted,s"native acknowledgement rejected tag=${reply.tag.take(80)} payload=${reply.payload.take(160)} artifact_count=${reply.artifacts.size}")
     if(accepted) {
       if(p.id!="native_initial")store.nativeSourceCleanupAcknowledged(token(p),supervisor.incarnation)
       pendingBuild.filter(_.phase=="artifact").foreach(binding=>releaseQueue.enqueue(binding.input))

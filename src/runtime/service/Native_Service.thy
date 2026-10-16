@@ -411,5 +411,6 @@ ML_file \<open>search/native_search_request_codec.ML\<close>
 ML_file \<open>search/native_search_source.ML\<close>
 ML_file \<open>search/native_search_output_codec.ML\<close>
 ML_file \<open>search/native_search_request_recovery.ML\<close>
+ML_file \<open>../../isabelle/growth/native/ordered_numeric_policy.ML\<close>
 ML_file \<open>native_service.ML\<close>
 end

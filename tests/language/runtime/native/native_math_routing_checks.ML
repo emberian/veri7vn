@@ -11,6 +11,16 @@ local
   structure Routing=Veri7vn_Native_Math_Routing;
   fun require true _=() | require false message=error message;
   fun rejects f=(case Exn.capture f () of Exn.Exn(ERROR _)=>true | _=>false);
+  val inspected_original="the sum of -2 and 3";
+  val inspected=Routing.inspect_bytes inspected_original;
+  val _=require(#status inspected="readings" andalso
+    (case #alternatives inspected of [(0,0,spans)]=>
+       map(fn(start,stop)=>String.substring(inspected_original,start,stop-start))spans=["-2","3"]
+     | _=>false)) "Routing projection lost actual operation or original literal spans";
+  val _=require(#status(Routing.inspect_bytes "not a supported question")="unrecognized")
+    "Unrecognized original became a specialist route";
+  val _=require(rejects(fn()=>ignore(Routing.inspect_bytes(String.implode(replicate 257 #"x")))))
+    "Routing projection admitted oversized original input";
   val ctxt=Proof_Context.init_global(Veri7vn_Executable_Identity.code_theory(M.executable()));
   val ids=I.install_host_block {workspace="d6000000000000000000000000000001",first=10000,past=75000};
   val policy=A.policy(Proof_Context.theory_of ctxt);

@@ -1,183 +1,96 @@
 # C04 — Environments, observations and reuse
 
-Semantic revision 2. Descriptor format remains `veri7vn.package/0`.
-Immutable generation and whole-snapshot invalidation are the baseline.
-Selective invalidation is a later optimization with an adequacy obligation.
+Semantic revision 2; descriptor `veri7vn.package/0`. Immutable generations and
+whole-snapshot invalidation are the baseline. Selective reuse needs adequacy proofs
+and matching instrumentation.
 
 ## Pinning
 
-Every request resolves one immutable environment before semantic work starts. It
-contains native theory/context lineage; exact package/dependency closure; compiled
-runtime/code setup; source snapshots; grammar, linker and resolution policy; and
-the acceptance policy. Contextual request assumptions remain additional explicit
-inputs. A short generation identifier is a runtime-managed lookup key for this
-record, not self-authenticating evidence.
+Before semantic work, resolve native lineage, exact package closure, runtime/code
+setup, source snapshots, grammar/linker/resolution and acceptance policy. IDs are
+managed lookup keys, not authentication. Changing a relevant component creates a
+new identity; publication never mutates an in-flight context. Contextual assumptions
+remain explicit inputs.
 
-Releases may use friendly versions; a generation records the resolved artifacts.
-Changing a source, definition, implementation, normalizer, ranking/default rule,
-code setup, or acceptance policy creates a new relevant generation component.
-In-flight work retains its old pin. Publication atomically makes a completed
-generation available for new requests; it must not mutate existing proof contexts.
+Native lineage and executable identity are independent (D30). Proof-only consequences
+use `NoExecution`, never a fictitious bundle zero. Existing-bundle requests may accept
+such kernel facts unless they require executable provenance. Code equations,
+serializers, foreign bindings and compiled artifacts reopen execution associations.
+D31 pins efficient exact nat/int setup from narrow `Code_Target_Numeral`; shared
+code consumers use the same qualified carrier universe. Metadata must not use
+unary arithmetic as its deployed representation.
 
 ## Request observation context
 
-Immutable environment generations do not identify mutable conversational or external
-state. Each request separately records relevant session/state versions and a chosen
-evaluation time with its clock basis. A purely static mathematical operation can
-declare state/time unused; omission must not accidentally mean either unused or
-"read the current value." Clock basis distinguishes wall-clock timestamps (including
-time zone where relevant), monotonic elapsed-time observations, and a source's own
-event-time convention. A monotonic reading is meaningful only with its origin.
-
-Conversation follow-ups, freshness predicates, sensors, and stateful specialists
-record the actual state/read versions and time observations on which they depend.
-Multiple external reads may form an observation sequence rather than one globally
-atomic snapshot; do not claim snapshot consistency unless the source protocol
-provides it. Reuse must preserve the relevant observation semantics even when the
-immutable environment generation is unchanged.
-
-Effects check their appropriate state/precondition versions at commit (C05). A
-request pin records what reasoning observed; it does not prove the world stayed
-unchanged while that reasoning ran. Stale preconditions require revalidation or
-failure under the executor's explicit policy.
+Record session/state read versions and evaluation time with clock basis, or explicit
+stateless/timeless status. Environment identity alone cannot identify dialogue or
+freshness. Distinguish wall time, source event time and monotonic time with its
+origin. Multiple reads are an observation sequence unless the source provides
+snapshot consistency. Effects revalidate relevant preconditions at commit; request
+pins do not prove the world remained unchanged.
 
 ## Source and dependency records
 
-A source snapshot records source identity, acquisition information actually known,
-schema/selection policy, relevant import recipe, and artifact identity. Unknown
-provenance stays unknown. An imported fact retains qualifiers, rank, units and
-references where available; a proof cannot recover fields discarded by ingestion.
-Snapshots are observations, not assertions that all recorded statements are true.
+Snapshots retain known origin, acquisition, selection/schema/import recipe and
+artifact identity; unknown provenance stays unknown. Preserve qualifiers, rank,
+references, units, frames and model assumptions. Reports are data, not world axioms.
 
-Acquisition records distinguish source event time, receipt/ingestion or poll time,
-and evaluation time. Polling an old message again cannot make its event fresh.
-Record sequence/deduplication identity, raw payload reference where retained,
-source/configuration/schema version, mapping/calibration/quality policy, units and
-measured-versus-simulated origin per observation. Current configuration must not
-retroactively relabel old samples. Windows and aggregates specify their population,
-sample/rejection/missingness treatment and estimator convention; absence of a new
-valid sample is distinct from a fresh valid last-known value. Duplicate/late events,
-invalid samples and configuration changes require explicit ingestion policies, whose
-exact choices remain with the source/connector lanes rather than fixed here.
+Each observation distinguishes event, receipt/poll and evaluation time; sequence/
+deduplication identity; retained raw payload; source/configuration/schema;
+calibration, quality, units and measured/simulated origin. Repolling does not refresh
+an old event. Configuration changes cannot relabel history. Windows/aggregates
+state population, missing/rejected samples and estimator convention. Duplicate,
+late and invalid samples need explicit policies.
 
-Dependency records distinguish:
-
-- the entire pinned source snapshot;
-- accepted native theorem/implementation and their theory/runtime generations;
-- interpretation and resolution policy;
-- session/state read versions and relevant evaluation/source-time observations;
-- explicit contextual premises and source-adoption policy;
-- bounded search scope/pruning rules, when making a claim about that scope.
-
-Whole-snapshot pins are initially required for corpus-dependent accepted results.
-Future selective dependencies may include range contents, absent candidates,
-aggregates, complete alternative sets and ranking observations. Recording just
-the rows cited in an explanation is insufficient for absence, uniqueness, extrema,
-counts or top-ranked selection.
+Dependencies include source snapshot, actual native evidence/implementation,
+interpretation policy, session/time observations, premises/adoption and bounded
+search/pruning scope. Positive cited rows cannot establish absence, uniqueness,
+counts, extrema or ranking: candidate-region coverage is required.
 
 ## Reuse classes
 
-Historical results retain their original meaning and environment. A prior theorem
-can be transferred only along a permitted native context relation with conditions
-preserved. A compiled artifact needs compatible code/representation/runtime setup.
-A successful search recipe is reusable as a proposal, subject to current checks.
-A timeout is operational history, not a reusable proof of impossibility.
-
-Cache lookup must not mix these classes. Initially, differing relevant generations
-cause revalidation/recomputation. Selective reuse requires both a theorem/argument
-that observations are adequate and actual instrumentation implementing those
-observations; an attractive cache key alone proves nothing.
+Keep historical consequence, compiled artifact, search proposal and failed-search
+history distinct. Native transport preserves ancestry/conditions; compiled reuse
+requires code/representation compatibility. A timeout is not proof of impossibility.
+Initially changed relevant pins trigger revalidation/recomputation. Selectivity
+requires both adequate observations and an implementation recording them.
 
 ## Retention, retirement and current authority
 
-Immutable identity preserves what a historical object meant; it does not require
-perpetual payload retention or authorize continued use. Manage execution retirement,
-expiry/revocation, managed payload deletion, retained non-content tombstones/receipts
-and selected exports as distinct operations. Check current authority on every
-invocation/publication/commit path, including cached handles and follow-ups. An old
-pin or valid proof cannot bypass retirement of private material. In-flight work has
-an explicit revocation/retirement policy; retention limits can override further access
-without changing the mathematical meaning of an already formed theorem.
+Immutable meaning is not perpetual access. Check current authority on invocation,
+publication, commit, cached handles and follow-ups. Package retirement blocks new
+invocation/dispatch while retained computations may finish under current permission.
+Source retirement stops acquisition and late observation publication; retained
+snapshot computations/history may remain. Revocation cancels dependent pending
+work and denies late publication. Forget also deletes managed payloads/derivatives.
 
-Retention/export classes cover transcripts, source data, caches, learned state,
-feedback, summaries, gap-derived examples and other derivatives. Track dependencies
-so lifecycle operations can find those managed copies. Define what is removed,
-invalidated or retained under the chosen policy; do not promise erasure of uncontrolled
-external copies or public commitments. Forgetting may intentionally limit future
-replayability. Exact periods, retained receipt fields and revocation treatment are
-policy choices still to be settled, not implicit defaults from immutable generations.
+Track copies through transcripts, caches, summaries, feedback, learned features and
+examples. Curated copies appear in impact previews; non-content status records
+must not preserve secrets. External copies/actions and forensic SSD/RAM erasure
+are outside managed deletion. Forget may intentionally prevent later replay.
 
 ## Restore versus re-execute
 
-Read-only recall, restoration of recorded session state and a newly authorized
-execution are separate operations. Restore typed state transitions/checkpoints and
-recorded accepted bindings, subject to current access/retirement policy. Re-asking
-historical natural-language questions is not restoration: it may reinterpret them,
-change source observations or repeat actions. Action attempt/acknowledgement records
-support reconciliation, not automatic replay. If required state was intentionally
-forgotten, report the restoration limit rather than reconstructing it through effects.
+Restore committed typed checkpoints/associations under current access policy;
+never re-ask historical questions or automatically repeat actions. Attempt records
+support connector reconciliation. Missing forgotten material remains unavailable.
+D32 uses durable workspace IDs allocated before use, then reconstructs fresh native
+handles with full C02 audit and exact saved semantic comparison before atomic enable.
+Names, IDs, digests and pretty targets cannot create authority.
 
-## Cross-lane checks
+D35 requires managed literal/source, target, assumption and private-context edges
+on retained associations. A semantic-generation ID is insufficient without actual
+lifecycle closure. Private invalidation must not revoke unrelated public HOL.
+Recover all accessible retained evidence from the latest checkpoint, including
+unused evidence; origin commits remain distinct from current authorization.
+Check reconstructability before retention, repeat admission on restore, and revoke
+access durably before releasing roots. Erasure retries cannot restore access.
 
-Insert a competing relation row and invalidate uniqueness without changing the
-previous positive witness. Add a formerly absent row and invalidate absence. Change
-alias ranking and re-resolve the entity. Keep an in-flight request on its old
-generation while publishing a new one. Preserve historical results without labeling
-them current. Reject a cached artifact loaded under an incompatible runtime setup.
-Run two follow-ups or freshness checks with the same immutable environment but
-different state/time observations and prevent unsound reuse. Mutate an effect's
-precondition state before commit and require the executor to detect the mismatch.
-Expire/delete a reader during a cached follow-up and pending action; inspect managed
-derivatives and exports. Restore after one mock action without increasing its effect
-count. Poll the same old sample repeatedly, change units/configuration, and introduce
-an invalid latest sample without changing the provenance/freshness of earlier records.
+## Refuting checks
 
-These requirements follow [G06/G07](../review/PREIMPLEMENTATION.md) and [workbench
-findings 1/5–7](../review/workbench-gaps.md); the scaffold has no implemented lifecycle
-or ingestion engine yet.
-
-## Revision 2 — proof-only objects and executable pins
-
-Native lineage and executable build identity are independent. A proof-only accepted
-consequence may carry no execution dependency even inside a request using a real
-compiled application bundle. Never use a reserved numeric generation to pretend it
-was compiled. The C03 typed execution dependency and separately checked requirement
-preserve actual executable identity when execution is relevant. Ordinary theorem
-additions need no application rebuild; context transport/admission still checks their
-real ancestry, hypotheses and policy. Changing code equations, serializers, foreign
-bindings or compiled artifacts reopens the corresponding executable association.
-
-
-## Generated numeric setup and durable native identity
-
-D31 fixes the generated numeric baseline to efficient exact nat/int representations
-from the installed narrow Isabelle Code_Target_Numeral closure. That selected code
-setup and its source identity belong to executable pins; logical nat/int meanings
-are unchanged. Code-generation consumers must use the qualified shared setup and
-same compiled carrier universe where they exchange values. Unary representation
-of arbitrary metadata numbers is not an acceptable deployed implementation.
-
-D32 separates stable workspace-scoped durable metadata IDs from fresh in-process
-native handles. The existing host journal allocates IDs durably before use. On
-restart, committed artifacts are bounded, checked against the latest lifecycle
-and reconstructed under the exact approved native context/code closure. Complete
-C02 admission and exact saved semantic correspondence precede binding durable IDs
-to fresh native objects and atomically enabling the recovered state. A parsed ID,
-manifest, digest or pretty-printed target never supplies this authority. Recovery
-does not reissue requests or external effects. Missing deliberately forgotten
-payloads remain unavailable; old native/context/cache roots must not bypass access
-or managed forgetting.
-
-## Managed native dependency closure
-
-D35 requires authoritative native producers to connect managed source/literal,
-target, assumption and private-context dependencies to retained associations.
-A semantic generation ID alone is insufficient unless its complete lifecycle
-edges were actually registered. Private-generation invalidation may be conservative;
-it must not revoke unrelated public HOL context. Restoration derives all accessible
-retained evidence from the latest generated checkpoint, including unused evidence
-which could answer future requests. Artifact origin commits remain distinct from
-the latest authorization checkpoint. Reconstructability is checked before durable
-retention; restoration repeats native admission and saved-semantic comparison before
-atomic installation. Forget durably removes access before releasing managed roots;
-incomplete erasure is retryable and cannot restore access or replay external work.
+Insert a competing/previously absent row; change alias ranking; publish while an
+old request runs; vary state/time under the same immutable pin; mutate an effect
+precondition; retire during cached follow-up/poll; reopen after an action without
+increasing its count; repoll old/invalid samples across configuration changes.
+Check historical labeling, incompatible runtime rejection, derivative deletion and
+no late resurrection. These instantiate [G06/G07](../review/PREIMPLEMENTATION.md).

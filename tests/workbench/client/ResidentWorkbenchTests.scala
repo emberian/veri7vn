@@ -66,7 +66,7 @@ object ResidentWorkbenchTests {
           veri7vn.cli.ResidentWorkbench.run(service,Array("route","the product of 6 and 7"))
           veri7vn.cli.ResidentWorkbench.run(service,Array("specialists"))
         }
-        assert(routingOutput.toString("UTF-8").contains("Native routing status: readings"))
+        assert(routingOutput.toString("UTF-8").contains("Route: readings"))
         veri7vn.authoring.assistance.RoutingCommandsChecks.run(service.client)
         println("RESIDENT_WORKBENCH_PASS actual browser request native licensed HTML confirmed Forget")
       }finally {browser.close();execution.close()}
