@@ -805,3 +805,22 @@ The cancellation and concurrent-release cases wait for actual replay entry, then
 require interruption/rejection and source cleanup. Expert theory time was 29.868
 seconds. A new two-parent extension is queued; candidate artifacts through D43
 service persistence and UI remain open. This component pass does not close them.
+
+## Search and multi-root lifecycle model review
+
+Root reviewed the native search producer, fixture assertions and matched hashes
+for the six actual search checks, with stable warm confirmation
+`22e454997eddee6d/attempts/0355b13cd3134eeb8ec046482c2a4fb1`.
+The multistep result is transported as a proof certificate and independently
+received against its exact full target. Ticket reuse, wrong instance, cancellation
+and budget exhaustion reject or stop without claiming refutation. Commit c535d1b
+preserves this component. The newer SearchService and shared resident consumer
+remain separate obligations.
+
+Root read the proof statements, generated test log and stable receipt
+`7030361853f97f4c/attempts/38f6a3f89f1c4fb486ac52cdba19f122`, and matched the proof
+and fixture hashes. Multi-root Forget agrees with singleton Forget, rejects empty
+roots, preserves closure/minimality and distinguishes newly revoked from newly
+forgotten IDs, including Forget after Revoke. The actual generated reducer tests
+passed three markers. This establishes the model/proof batch, not the pending
+native support selector, indexed refinement, physical cleanup or host regressions.

@@ -31,13 +31,13 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | plan-composition | Implement typed composition and justified finite-search quotients | composition | active | plans_reconnected61 | operational-model, interpretation-model, native-registry |
 | state-effects | Implement generated state/effect transitions and linearized execution authority | state and effects | active | effects_reconnected61 | operational-model, native-registry |
 | source-import | Build reproducible snapshot import and missing-store replacement | sources | active | sources61 | native-registry |
-| dependency-updates | Implement dependency-aware generation publication and reuse | updates | planned | — | source-import, state-effects, native-registry |
+| dependency-updates | Implement dependency-aware generation publication and reuse | updates | active | updates_product61 | source-import, state-effects, native-registry |
 | strategy-engine | Implement budgeted native search strategies and replayable proposals | search | active | plans_reconnected61 | plan-composition, native-admission, state-effects |
 | runtime-service | Implement the Scala/PIDE host, durable writer and native protocol | runtime | active | host_reconnected61 | native-registry, native-admission, state-effects, native-resident-assembly |
 | package-intake | Implement inert original/native package intake and source revision storage | packages | done | authoring61 | — |
-| package-lifecycle | Implement editable packages, imports, builds and versions | packages | active | authoring61 | native-admission, native-registry |
-| workspace-client | Build the browser workbench and coherent CLI authoring surface | authoring client | active | authoring61 | package-lifecycle, runtime-service |
-| diagnostics-repair | Provide precise counterexamples and reviewable repair proposals | diagnostics | planned | — | native-admission, interpretation-model, package-lifecycle |
+| package-lifecycle | Implement editable packages, imports, builds and versions | packages | active | updates_product61 | native-admission, native-registry |
+| workspace-client | Build the browser workbench and coherent CLI authoring surface | authoring client | active | workbench_product61 | package-lifecycle, runtime-service |
+| diagnostics-repair | Provide precise counterexamples and reviewable repair proposals | diagnostics | active | diagnostics_product61 | native-admission, interpretation-model, package-lifecycle |
 | staged-execution | Compile stable operations once with explicit assurance boundaries | execution | active | source_reconnected61 | native-registry, native-admission, performance-envelope |
 | relation-family | Migrate relation readers, linking and guarded query behavior | relation specialists | active | relations_facts61 | source-import, interpretation-model, plan-composition, native-admission, staged-execution |
 | facts-document-family | Migrate fact rules and source-grounded document retrieval | facts and documents | active | relations_facts61 | source-import, interpretation-model, native-admission, staged-execution |
@@ -45,8 +45,8 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | mathematics-family | Implement mathematical capabilities with branch and precision contracts | mathematical specialists | active | math61 | known-regressions, plan-composition, native-admission, staged-execution |
 | graph-family | Implement source-dependent graph reasoning with explicit bounds | graph specialists | planned | — | source-import, plan-composition, strategy-engine |
 | stateful-connectors | Migrate site/session specialists and controlled local connectors | stateful specialists | planned | — | state-effects, source-import, runtime-service |
-| routing-dialogue | Implement contextual routing, ambiguity resolution and answer rendering | dialogue | planned | — | interpretation-model, plan-composition, runtime-service, diagnostics-repair |
-| synthesis-growth | Implement retained synthesis, abstractions and admitted growth | growth | planned | — | strategy-engine, package-lifecycle, dependency-updates |
+| routing-dialogue | Implement contextual routing, ambiguity resolution and answer rendering | dialogue | active | dialogue_product61 | interpretation-model, plan-composition, runtime-service, diagnostics-repair |
+| synthesis-growth | Implement retained synthesis, abstractions and admitted growth | growth | active | growth_product61 | strategy-engine, package-lifecycle, dependency-updates |
 | authoring-assistance | Integrate assisted obligations, search and repair into authoring | authoring assistance | planned | — | workspace-client, diagnostics-repair, strategy-engine, synthesis-growth |
 | refinement-backends | Deliver the justified efficient backend portfolio | refinement | planned | — | staged-execution, plan-composition, performance-envelope |
 | deployment-builder | Build pinned native deployments with clean install and recovery | deployment | active | deployment61 | package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope |
@@ -57,7 +57,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | release-integration | Validate the complete deployable product and release contents | release integration | planned | — | proof-implementation-closure, performance-hardening, deployment-builder, family-integration, workspace-integration |
 | recipient-handoff | Prepare maintainable documentation and rehearse independent authorship | handoff | planned | — | release-integration |
 | native-recovery | Reconstruct committed native evidence and restore actual resident authority | native recovery | active | recovery_reconnected61 | native-registry, native-admission, operational-model |
-| native-development | Build and admit original expert Isabelle developments through controlled native reconstruction | native development | active | native_build61 | native-admission, native-registry |
+| native-development | Build and admit original expert Isabelle developments through controlled native reconstruction | native development | active | native_build_product61 | native-admission, native-registry |
 | native-resident-assembly | Connect resident authority, typed operation dispatch and native lifecycle | native runtime integration | active | assembly_reconnected61 | operational-model, native-admission, state-effects, staged-execution, native-recovery |
 
 ## Ready to dispatch
@@ -70,15 +70,19 @@ None.
 - plan-composition: status active with unresolved dependencies: operational-model, interpretation-model, native-registry
 - state-effects: status active with unresolved dependencies: operational-model, native-registry
 - source-import: status active with unresolved dependencies: native-registry
+- dependency-updates: status active with unresolved dependencies: source-import, state-effects, native-registry
 - strategy-engine: status active with unresolved dependencies: plan-composition, native-admission, state-effects
 - runtime-service: status active with unresolved dependencies: native-registry, native-admission, state-effects, native-resident-assembly
 - package-lifecycle: status active with unresolved dependencies: native-admission, native-registry
 - workspace-client: status active with unresolved dependencies: package-lifecycle, runtime-service
+- diagnostics-repair: status active with unresolved dependencies: native-admission, interpretation-model, package-lifecycle
 - staged-execution: status active with unresolved dependencies: native-registry, native-admission, performance-envelope
 - relation-family: status active with unresolved dependencies: source-import, interpretation-model, plan-composition, native-admission, staged-execution
 - facts-document-family: status active with unresolved dependencies: source-import, interpretation-model, native-admission, staged-execution
 - domain-families: status active with unresolved dependencies: plan-composition, native-admission, staged-execution
 - mathematics-family: status active with unresolved dependencies: known-regressions, plan-composition, native-admission, staged-execution
+- routing-dialogue: status active with unresolved dependencies: interpretation-model, plan-composition, runtime-service, diagnostics-repair
+- synthesis-growth: status active with unresolved dependencies: strategy-engine, package-lifecycle, dependency-updates
 - deployment-builder: status active with unresolved dependencies: package-lifecycle, runtime-service, staged-execution, dependency-updates, performance-envelope
 - native-recovery: status active with unresolved dependencies: native-registry, native-admission, operational-model
 - native-development: status active with unresolved dependencies: native-admission, native-registry

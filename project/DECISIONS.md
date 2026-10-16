@@ -679,3 +679,45 @@ insufficient. Domain workers consume those opaque associations and the existing
 operation-ticket boundary. Source relations and search retain their own concrete
 consumer obligations. Factor repeated ownership and recovery mechanisms where
 possible while preserving the distinct typed carriers and admission requirements.
+
+## D47 — Recover newly produced proofs as checked certificates
+
+A search result is not necessarily a named theorem in its original specialist.
+Add a fixed managed proof producer retaining the original target source and slice,
+actual receiver development and source owners, and bounded inert proof transport.
+It reparses the target in that receiver context, admits the certificate through
+C02, and publishes an owned consequence. Numeric IDs and caller-created theorem
+metadata cannot create this association.
+
+The closed reconstruction graph gains a Proof construction and the result selector
+distinguishes Named from Produced. Preserve existing named v1 recipes and use an
+explicit v2 produced recipe; old decoders must reject unsupported new profiles.
+Encode control-bearing proof bytes canonically and enforce encoded, decoded and
+aggregate bounds before allocation/publication. Construction scopes own rollback
+across replay, proof admission and descriptor publication. Recovery checks the
+certificate against the exact reconstructed context and complete sequent; it does
+not rerun heuristic search or issue an execution ticket.
+
+The contract retains explicit hypotheses, premises and sort expectations. Empty
+lists may qualify the initial closed-goal fixture but do not define the complete
+system's expressive scope. Unsupported expectation profiles must reject explicitly
+and remain tracked. This claim-producing path is distinct from D43 artifact
+construction. Recovery owns the native producer/recipe migration; search owns its
+actual caller and assembly owns shared publication consumption.
+
+D47 recipe versioning clarification: v1 is exclusively a Named result over an
+all-legacy graph and explicitly rejects Proof constructions. v2 supports Produced
+and Named results, including a named descendant of a proof-producing development.
+Use v2 whenever the graph contains Proof. Preserve existing v1 bytes, exact full
+sequents and ordered ancestry; do not prohibit useful named descendants merely
+to simplify the codec.
+
+The approved retained-growth consumer uses an actual owned candidate development,
+exact source/sample provenance and bounded typed expression resolution. It closes
+samples and executes the existing installed mathematical bundle with charged
+tickets. Sample observations are nonassertional artifacts with separate universal
+obligations; explicit retention cannot activate a capability. Qualification and
+publication consume separate native gates. Updating back to a retained prior
+candidate requires fresh qualification under current authority and current-slot
+comparison, never checkpoint rewind. These choices implement D43/D46 and do not
+introduce a second candidate identity or authority system.

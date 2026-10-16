@@ -172,3 +172,30 @@ extends to src/isabelle/language/** including actual request ingress and emissio
 Authority additionally owns src/isabelle/codegen/** and its exact upstream mirror.
 Source D33/D37 and population/window migration retain actual storage obligations.
 Coverage61's bounded storage audit is evidence, not completed source migration.
+
+## Current wide product dispatch
+
+Current live ownership supersedes historical handles in the tables above.
+`build_reconnected61` alone schedules native and Scala checks. Source-only
+workbench checks passed; real Browser-to-native inspection, routing, licensed
+answers and durable Forget remain the consumer gate. D44 lifecycle qualification
+stays a finite batch, independent of later dialogue tests. D43 schema mutation
+waits for that consumer capture; its owned candidate producer can proceed now.
+
+| Owner | Complete consumer obligation |
+|---|---|
+| workbench_product61 | Shared-store browser/CLI authoring and actual runtime execution/inspection/lifecycle |
+| diagnostics_product61 | Actual owner diagnostics and managed-source repair, through revalidation; includes src/diagnostics/** |
+| updates_product61 | Package lifecycle and native update qualification/publication through restart/failure preservation |
+| dialogue_product61 | Native routing/selection and shared conversation authority, consumed by the workbench |
+| growth_product61 | Owned retained candidates, charged sample execution, explicit artifact retention and lifecycle |
+| native_build_product61 | Native source build to opaque candidate, including zero exports, then D43 durable artifact/recovery/workbench |
+
+`authority_reconnected61` owns the D43 algebra/codec/proofs; recovery retains P and
+native reconstruction, assembly the fixed service/gate/Owner, and host the single
+durable writer. Product owners remain responsible through these consumers. New
+native expressions reuse the installed mathematical interpreter where supported;
+retaining an expression does not itself require a new executable generation.
+
+Git signing is working again. The previous signer failure above is historical;
+root is making scoped signed commits and pushing the authorized branch.

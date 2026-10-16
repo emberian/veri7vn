@@ -670,9 +670,10 @@
         "var/authority-baseline-d31-20261015",
         "var/native-scaffold/sessions/7b09d92fca32a9e4/attempts/64da2d7077e94b1fb07a7066707dc283/receipt.json",
         "var/native-scaffold/sessions/2abd0baa167533a7/attempts/35b0c0f181614c35b5fdfb7d4c146300/receipt.json",
-        "var/native-scaffold/sessions/0e9d8d9756b80da2/attempts/f3b1d3d826ae42af9d91d3c3db2deb59/receipt.json"
+        "var/native-scaffold/sessions/0e9d8d9756b80da2/attempts/f3b1d3d826ae42af9d91d3c3db2deb59/receipt.json",
+        "var/native-scaffold/sessions/7030361853f97f4c/attempts/38f6a3f89f1c4fb486ac52cdba19f122/receipt.json"
       ],
-      "notes": "Core compiled/exported before D30; invariant child still being repaired. D30 NoExecution/ExecutableGeneration migration now applied and reopens dependent compilation/tests. Codecs/rendering/admission/host/staging must migrate together; no old fake0 wire reinterpretation. Root reviewed migrated invariant statements and stable passed proof-child receipt (20.024 s full driver, 15 s build). Metadata codec HOL laws/export completed but actual ML roundtrip timed out on proven unary 256-bit schema allocation. D31 shared efficient numeric foundation and all generated consumers are now being qualified. One-shot native output specialization for acquired snapshots is a concrete next model obligation; no arbitrary goal replacement. Actual D31 authority/codec/invariant/regression and bounded projection integration passed stable 68.816s (20c25fcf2e1ccc9f), one build/three selected targets; codec ML 3.426s. Exact baseline archived before approved D34/D35/D36 slot/recovery/session/qualification metadata migration. New migration remains unqualified. Root reviewed current-hash Authority_Metadata parent: passed 29.715s theory, 42s session, 53.319s driver. Metadata/events/reducer partition retains one shared carrier and caches declaration cost. Events reached theory completion but its first90s session attempt timed out at finalization; no event heap or full reducer/export pass yet. Required managed-provenance correction: retained output closure includes matched evidence managed dependencies; Forget filters assignments using semantic and managed dependencies separately. Root reviewed expanded Core log: theory11.340s/session24s, actual generated SML export. Successful Events cache immutable109249b81431494e986418237c936be1 now supersedes earlier timeout. Native runtime,56typecodec and postAck/template/privateclosure proofs remain open; stale prestate licensing targets must be replaced with exact original-template + poststate licensing statements. After frozen proof/codec baseline, repair inaccessible-session UpdateObservation and remove forgotten observations/session views/recorded utterance refs; keep audit/exposure tombstones distinct. Regress stale tokens after Forget/Revoke with surviving-session positive control. Root reviewed actual intent_permitted: no goal-scoped blocker/dependency check; immutable request_prestate equality prevents later external attempts after Ack. Authority owns explicit attempt-goal association and staging/handoff revision design including jobs/replay; no source-slot-only generalization. Codec parent finished33s in qualified historical 8c4b snapshot; codec test binder and live_goals proof still fail. D42 approved explicit attempt_goal/optional output slot plus recurring job parent goal and per-iteration child request lineage. Preserve immutable original request, cumulative job budget and current staging/handoff checks; two polls and restart/old completion required. No-field read-ID freshness, surviving-view CAS and utterance resurrection guards landed before focused baseline; checks pending. Root reviewed stable f3b1 snapshot: revised Core28s, Codec32s and complete Proofs15s passed; full statements and hashes checked. Publication_authorized is POST-step licensing; native faithful_attachment remains TB01 assumption. Authority/Codec runtime leaves still fail fixture record/ML/reduction, not model proof statements. D42 effect/job schema migration remains next coordinated semantic change.",
+      "notes": "Core compiled/exported before D30; invariant child still being repaired. D30 NoExecution/ExecutableGeneration migration now applied and reopens dependent compilation/tests. Codecs/rendering/admission/host/staging must migrate together; no old fake0 wire reinterpretation. Root reviewed migrated invariant statements and stable passed proof-child receipt (20.024 s full driver, 15 s build). Metadata codec HOL laws/export completed but actual ML roundtrip timed out on proven unary 256-bit schema allocation. D31 shared efficient numeric foundation and all generated consumers are now being qualified. One-shot native output specialization for acquired snapshots is a concrete next model obligation; no arbitrary goal replacement. Actual D31 authority/codec/invariant/regression and bounded projection integration passed stable 68.816s (20c25fcf2e1ccc9f), one build/three selected targets; codec ML 3.426s. Exact baseline archived before approved D34/D35/D36 slot/recovery/session/qualification metadata migration. New migration remains unqualified. Root reviewed current-hash Authority_Metadata parent: passed 29.715s theory, 42s session, 53.319s driver. Metadata/events/reducer partition retains one shared carrier and caches declaration cost. Events reached theory completion but its first90s session attempt timed out at finalization; no event heap or full reducer/export pass yet. Required managed-provenance correction: retained output closure includes matched evidence managed dependencies; Forget filters assignments using semantic and managed dependencies separately. Root reviewed expanded Core log: theory11.340s/session24s, actual generated SML export. Successful Events cache immutable109249b81431494e986418237c936be1 now supersedes earlier timeout. Native runtime,56typecodec and postAck/template/privateclosure proofs remain open; stale prestate licensing targets must be replaced with exact original-template + poststate licensing statements. After frozen proof/codec baseline, repair inaccessible-session UpdateObservation and remove forgotten observations/session views/recorded utterance refs; keep audit/exposure tombstones distinct. Regress stale tokens after Forget/Revoke with surviving-session positive control. Root reviewed actual intent_permitted: no goal-scoped blocker/dependency check; immutable request_prestate equality prevents later external attempts after Ack. Authority owns explicit attempt-goal association and staging/handoff revision design including jobs/replay; no source-slot-only generalization. Codec parent finished33s in qualified historical 8c4b snapshot; codec test binder and live_goals proof still fail. D42 approved explicit attempt_goal/optional output slot plus recurring job parent goal and per-iteration child request lineage. Preserve immutable original request, cumulative job budget and current staging/handoff checks; two polls and restart/old completion required. No-field read-ID freshness, surviving-view CAS and utterance resurrection guards landed before focused baseline; checks pending. Root reviewed stable f3b1 snapshot: revised Core28s, Codec32s and complete Proofs15s passed; full statements and hashes checked. Publication_authorized is POST-step licensing; native faithful_attachment remains TB01 assumption. Authority/Codec runtime leaves still fail fixture record/ML/reduction, not model proof statements. D42 effect/job schema migration remains next coordinated semantic change.\nD44 root reviewed stable 38f6a3f89f1c4fb486ac52cdba19f122, current proof/test hashes and exact singleton/closure/denial-category statements plus generated tests. Model/proof pass does not qualify service cleanup. D43 complete typed artifact migration is owned but holds shared schema until D44 resident capture.",
       "contracts": [
         "C02",
         "C03",
@@ -1355,13 +1356,13 @@
       "title": "Implement dependency-aware generation publication and reuse",
       "area": "updates",
       "milestone": "C",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "source-import",
         "state-effects",
         "native-registry"
       ],
-      "owner": null,
+      "owner": "updates_product61",
       "paths": [
         "src/isabelle/updates/**",
         "tests/updates/**",
@@ -1394,7 +1395,7 @@
         "Target evidence: retain a typed value/continuation across bundle replacement; reject cross-generation handle reuse, accept only an admitted atomic migration, and preserve historical/unresolved state when migration fails."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "\nCurrent wide product dispatch: Exact-source revision/impact/reuse planning consumed by workbench. Owner continues through actual fixed native qualification and protected publication gate, coordinated with D43 candidate producer; atomic update/restart consumers remain open.",
       "contracts": [
         "C02",
         "C04",
@@ -1451,7 +1452,7 @@
         "Target evidence: a useful cross-worker proof/search result reconstructs under the receiving lineage; over-budget/unauthorized/private references fail without accepting worker code."
       ],
       "evidence": [],
-      "notes": "Dispatched against existing plan calculus before dependency completion. First real consumer: bounded native multi-step proof scheduler with fixed operations, approved catalogue/context and independent receiver proof reconstruction. Full synthesis/counterexample/refinement/deployed search acceptance remains unchanged; shared generated authority, tickets and supervised worker integration are mandatory.\n2026-10-15 finite restart: plans61 owns first actual compilation/multistep proof production, trace, cancellation/budget failure and native admission consumer. Resident search registration joins next shared family dispatch batch after service baseline; no parallel candidate authority.",
+      "notes": "Dispatched against existing plan calculus before dependency completion. First real consumer: bounded native multi-step proof scheduler with fixed operations, approved catalogue/context and independent receiver proof reconstruction. Full synthesis/counterexample/refinement/deployed search acceptance remains unchanged; shared generated authority, tickets and supervised worker integration are mandatory.\n2026-10-15 finite restart: plans61 owns first actual compilation/multistep proof production, trace, cancellation/budget failure and native admission consumer. Resident search registration joins next shared family dispatch batch after service baseline; no parallel candidate authority.\nRoot reviewed six actual native search checks, bounded producer and full-target receiver admission; stable warm confirmation 0355b13cd3134eeb8ec046482c2a4fb1. Committed c535d1b. New actual source-owned SearchService request/certificate consumer remains queued; this is not yet deployed search completion.",
       "contracts": [
         "C02",
         "C03",
@@ -1637,7 +1638,7 @@
         "native-registry",
         "package-intake"
       ],
-      "owner": "authoring61",
+      "owner": "updates_product61",
       "paths": [
         "src/packages/intake/**",
         "src/packages/lifecycle/**",
@@ -1679,7 +1680,7 @@
         "var/runtime-host/managed-effects-20261015T153144Z/receipt.json",
         "tests/packages/lifecycle/evidence/model11-clean-20261015/receipt.json"
       ],
-      "notes": "Root dispatched full lifecycle to authoring61 after intake review. Early source/build/export work may progress against actual intake/host; native registry/admission dependencies remain mandatory completion gates. Canonical .thy/expert-source preservation, distinct development/release/deployment/workspace identity, recipe bindings, growth tiers, selected transfer/exposure and managed retention/replay are owned work. Coordinate actual family commands/native semantics and host authority; no parallel semantic registry. Actual first Scala/JVM lifecycle9 groups passed stable 21.2126s with 35 exact input bodies archived. D36 scoped qualification/exposure and A.join native policy composition approved; native recipes, managed replay/forget and real build/deploy remain open. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Root reviewed model11 stable PASS (29.894 s), actual declared session/ML dependency inventory without execution and clean process exit. This is per-file verified inventory, not atomic immutable build closure or native admission. Protected dataset inspect/export exposure must join authority/host access seam. Native recipe byte offsets cannot use Token.source_of compact text; share native-development original-byte range helper. New runtime snapshot failed host compilation, so prior scoped lifecycle passes are not new composed evidence.",
+      "notes": "Root dispatched full lifecycle to authoring61 after intake review. Early source/build/export work may progress against actual intake/host; native registry/admission dependencies remain mandatory completion gates. Canonical .thy/expert-source preservation, distinct development/release/deployment/workspace identity, recipe bindings, growth tiers, selected transfer/exposure and managed retention/replay are owned work. Coordinate actual family commands/native semantics and host authority; no parallel semantic registry. Actual first Scala/JVM lifecycle9 groups passed stable 21.2126s with 35 exact input bodies archived. D36 scoped qualification/exposure and A.join native policy composition approved; native recipes, managed replay/forget and real build/deploy remain open. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Root reviewed model11 stable PASS (29.894 s), actual declared session/ML dependency inventory without execution and clean process exit. This is per-file verified inventory, not atomic immutable build closure or native admission. Protected dataset inspect/export exposure must join authority/host access seam. Native recipe byte offsets cannot use Token.source_of compact text; share native-development original-byte range helper. New runtime snapshot failed host compilation, so prior scoped lifecycle passes are not new composed evidence.\nCurrent wide product dispatch: Continues current package lifecycle into dependency-aware updates and actual qualified publication; shared source storage remains host owned. New update planner is not activation authority.",
       "contracts": [
         "C01",
         "C02",
@@ -1713,11 +1714,12 @@
         "package-lifecycle",
         "runtime-service"
       ],
-      "owner": "authoring61",
+      "owner": "workbench_product61",
       "paths": [
         "src/workbench/**",
         "src/cli/**",
-        "tests/workbench/client/**"
+        "tests/workbench/client/**",
+        "docs/workbench/client.md"
       ],
       "deliverables": [
         "Package editor/inspector, runtime-backed source/evidence views, basic run/cancel operations and coherent CLI"
@@ -1742,7 +1744,7 @@
         "Target evidence: form/native edit conflict, generated-declaration inspection, interrupted durable save and data-only update show the same canonical source/state through UI and CLI."
       ],
       "evidence": [],
-      "notes": "2026-10-15 breadth restart: First finite batch: shared Scala Workbench service/CLI/local browser over actual WorkspaceStore, ManagedSources, ManagedDrafts and Intake. Real package list/import/inspect/edit with original-byte diagnostics and conflicts. Host bounded draft-list API/launch ownership are actual missing producers; host61 owns them after current compile. No seeded package state or fake run controls.\nRoot reviewed authoring14 actual HTTP/CLI source fixture and 23 matching archived inputs. Storage/edit workflow passes; authoring61 resumed for actual immutable NativeBuildInputs -> D43 candidate build -> diagnostics/restart inspect consumer, not fake activation.",
+      "notes": "2026-10-15 breadth restart: First finite batch: shared Scala Workbench service/CLI/local browser over actual WorkspaceStore, ManagedSources, ManagedDrafts and Intake. Real package list/import/inspect/edit with original-byte diagnostics and conflicts. Host bounded draft-list API/launch ownership are actual missing producers; host61 owns them after current compile. No seeded package state or fake run controls.\nRoot reviewed authoring14 actual HTTP/CLI source fixture and 23 matching archived inputs. Storage/edit workflow passes; authoring61 resumed for actual immutable NativeBuildInputs -> D43 candidate build -> diagnostics/restart inspect consumer, not fake activation.\nCurrent wide product dispatch: Actual shared-store RuntimeMain --workbench, Browser/CLI execution and exact durable lifecycle receipts implemented; source-only authoring passed cf63d500. New native routing/inspection consumer awaits actual rebuilt producer and resident HTTP check.",
       "contracts": [
         "C01",
         "C03",
@@ -1776,18 +1778,19 @@
       "title": "Provide precise counterexamples and reviewable repair proposals",
       "area": "diagnostics",
       "milestone": "W",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "native-admission",
         "interpretation-model",
         "workbench-audit",
         "package-lifecycle"
       ],
-      "owner": null,
+      "owner": "diagnostics_product61",
       "paths": [
         "src/isabelle/diagnostics/**",
         "tests/diagnostics/**",
-        "docs/workbench/diagnostics.md"
+        "docs/workbench/diagnostics.md",
+        "src/diagnostics/**"
       ],
       "deliverables": [
         "Structured diagnosis pipeline and repair proposal/revalidation operations"
@@ -1807,7 +1810,7 @@
         "Proposed gap-loop case: inspect a decline, seed a draft, add intended expectations and requalify without bypassing the blocker or silently adopting private journal material."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "\nCurrent wide product dispatch: Typed status, bounded actual-owner inspection parser and managed-source repair implemented. Scala compiled; secure temp-root fixture repaired after actual failure, retry pending. Native inspection producer and complete repair/revalidation consumer remain required.",
       "contracts": [
         "C01",
         "C02",
@@ -2245,7 +2248,7 @@
       "title": "Implement contextual routing, ambiguity resolution and answer rendering",
       "area": "dialogue",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "coverage-disposition",
         "interpretation-model",
@@ -2253,11 +2256,12 @@
         "runtime-service",
         "diagnostics-repair"
       ],
-      "owner": null,
+      "owner": "dialogue_product61",
       "paths": [
         "src/isabelle/language/runtime/**",
         "tests/language/runtime/**",
-        "examples/dialogue/**"
+        "examples/dialogue/**",
+        "docs/language/runtime.md"
       ],
       "deliverables": [
         "Priority/fallback and contextual dialogue implementation connected to interpretation/rendering semantics"
@@ -2278,7 +2282,7 @@
         "Proposed dialogue cases: only some multipart questions succeed, dependent second question uses the accepted first result, expired follow-up, tentative code response and help with no fabricated fact claim."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "\nCurrent wide product dispatch: Native same-carrier routing/adoption guards, DialogueClient and actual resident consumer written. Fixed math inspection producer in assembly; source/domain alternatives, meaningful reading descriptions, durable adoption and full conversation lifecycle remain open.",
       "contracts": [
         "C02",
         "C03",
@@ -2313,18 +2317,19 @@
       "title": "Implement retained synthesis, abstractions and admitted growth",
       "area": "growth",
       "milestone": "P",
-      "status": "planned",
+      "status": "active",
       "depends_on": [
         "coverage-disposition",
         "strategy-engine",
         "package-lifecycle",
         "dependency-updates"
       ],
-      "owner": null,
+      "owner": "growth_product61",
       "paths": [
         "src/isabelle/growth/**",
         "tests/growth/**",
-        "examples/growth/**"
+        "examples/growth/**",
+        "docs/growth/**"
       ],
       "deliverables": [
         "Example-guided synthesis, conjecture/generalization and separate persistent result/experience/artifact stores"
@@ -2352,7 +2357,7 @@
         "Target evidence: learning/observation/plan/declaration/hot-specialization/new-kernel scenarios record actual native-lineage, data/policy and executable-generation changes plus compilation counts."
       ],
       "evidence": [],
-      "notes": "",
+      "notes": "\nCurrent wide product dispatch: Retained mathematical candidate policy and sample observations written; native check pending. Root approved source-owned typed preparation through existing installed math interpreter and charged samples; actual D43 candidate/artifact retention and workbench consumer required. Three shipped growth mechanisms remain distinct migration obligations.",
       "contracts": [
         "C01",
         "C02",
@@ -3069,7 +3074,7 @@
         "native-registry",
         "runtime-host-bootstrap"
       ],
-      "owner": "native_build61",
+      "owner": "native_build_product61",
       "paths": [
         "src/packages/native_build/**",
         "src/isabelle/admission/development/**",
@@ -3101,7 +3106,7 @@
       "evidence": [
         "var/native-scaffold/sessions/31b313bf77664a30/attempts/7b26d14a86d8426bb28246a3691a9f34/receipt.json"
       ],
-      "notes": "Dispatched 6.1-sol after actual C01 expert-edit gap: A.advance accepts unchanged axioms while ordinary definitions require authorized conservative transitions. First full-source definition/lemma replay is scoped starting consumer; full expert/deployment obligations remain. Native_build coordinates authoring package build inventory, admission A/P, recovery private replay and host worker/build seams. Consume immutable bounded host source revision before SessionInventory; verify exact source closure and separately pinned installed roots/options/toolchain. First native source reconstruction awaits own compiler feedback. Full transitive private package source dependencies must be materialized under one governed joint source/worker lifetime (or approved immutable deployed dependencies), with exact package/build relation; one draft revision is not full build closure. Actual Specification.definition_cmd reconstruction must preserve ordinary definition theorem form and code/spec registration, tested against ordinary source. Latest e843 runtime reached actual replay and refuted Token.source_of byte fidelity (compact DEL padding). Owner repair maps native symbol positions into original bytes; recipe producer must share corrected helper. No full development pass yet. Actual SourceTokens leaf passed5s (0.102 body) in stable7b26d snapshot; root read exact original-byte/delimiter fixtures. Helper promotion into common Admission parent and full ordinary source/recipe replay remain consumers, not implied by utility pass.\nOrdinary-source NativeDevelopment evidence now exists at tests/admission/development/evidence/native-development-20261015 (root archive review, full log review pending). Managed P/service-gate producer remains missing; admission61 and native_build61 explicitly resumed together for actual consumer.",
+      "notes": "Dispatched 6.1-sol after actual C01 expert-edit gap: A.advance accepts unchanged axioms while ordinary definitions require authorized conservative transitions. First full-source definition/lemma replay is scoped starting consumer; full expert/deployment obligations remain. Native_build coordinates authoring package build inventory, admission A/P, recovery private replay and host worker/build seams. Consume immutable bounded host source revision before SessionInventory; verify exact source closure and separately pinned installed roots/options/toolchain. First native source reconstruction awaits own compiler feedback. Full transitive private package source dependencies must be materialized under one governed joint source/worker lifetime (or approved immutable deployed dependencies), with exact package/build relation; one draft revision is not full build closure. Actual Specification.definition_cmd reconstruction must preserve ordinary definition theorem form and code/spec registration, tested against ordinary source. Latest e843 runtime reached actual replay and refuted Token.source_of byte fidelity (compact DEL padding). Owner repair maps native symbol positions into original bytes; recipe producer must share corrected helper. No full development pass yet. Actual SourceTokens leaf passed5s (0.102 body) in stable7b26d snapshot; root read exact original-byte/delimiter fixtures. Helper promotion into common Admission parent and full ordinary source/recipe replay remain consumers, not implied by utility pass.\nOrdinary-source NativeDevelopment evidence now exists at tests/admission/development/evidence/native-development-20261015 (root archive review, full log review pending). Managed P/service-gate producer remains missing; admission61 and native_build61 explicitly resumed together for actual consumer.\nCurrent wide product dispatch: New explicit producer owner carries actual source replay/build into opaque zero-export-capable nonassertional candidate, D43 charged artifact ledger, protected recovery/Forget and workbench. Existing P development is reused; it alone is not durable candidate admission.",
       "contracts": [
         "C01",
         "C02",
@@ -3233,13 +3238,13 @@
     {
       "id": "quantity-packages",
       "owner": "domains_reconnected61",
-      "state": "implementing",
+      "state": "core-and-plan-checks-passed-bundle-diagnostic-and-service-pending",
       "target": "Exact linear/affine unit kernels and springs composition via native typed plan"
     },
     {
       "id": "authoring-workflow",
-      "owner": "authoring61",
-      "state": "source-workflow-checked-native-admission-pending",
+      "owner": "workbench_product61",
+      "state": "source-only-consumer-passed-native-inspection-routing-browser-check-pending",
       "target": "Real managed package import/list/inspect/edit through shared CLI/browser service",
       "evidence": "tests/workbench/client/evidence/authoring14-20261015",
       "next": "Actual CLI/HTTP source import/list/inspect/edit passed; managed NativeDevelopment/P producer and user-facing native admission remain required."
@@ -3261,7 +3266,7 @@
     },
     {
       "id": "managed-native-development-consumer",
-      "owner": "admission61",
+      "owner": "native_build_product61",
       "members": [
         "native_build61",
         "recovery61",
@@ -3270,9 +3275,9 @@
         "assembly61",
         "host61"
       ],
-      "state": "managed-source-and-expert-recovery-passed-multiparent-extension-pending",
+      "state": "d47-initial-recovery-passed-schema-extension-and-candidate-consumers-open",
       "target": "Checked ordinary source reconstruction -> managed P object -> descriptor/service gate -> authoring admission",
-      "next": "Actual managed source descriptor and ExpertRecovery replay/cancel/concurrent release leaf pass. Root read exact prior committed fixture and receipt9941b817. New multiparent ordered-import/shared-source extension awaits narrow check. D43 real source candidate persistence/service/UI still required.",
+      "next": "Steward reports stable initial D47 full-sequent certificate + multiparent PASS faeb1f08ec684f31a787fc144de45f93 (4 expert +4 native markers). Subsequent v2 Named descendants of Proof nodes and explicit v1 rejection await new check. Actual D43 zero-export candidate producer assigned native_build_product61; no component pass substitutes for durable candidate/workbench integration.",
       "evidence": "var/native-scaffold/sessions/29d7efc9254bbf93/attempts/9941b8172c1449b3afe020f5f8e0a583/receipt.json"
     },
     {
@@ -3281,9 +3286,9 @@
       "members": [
         "relations_facts61"
       ],
-      "state": "core-and-source-plan-ancestors-passed-row-binder-repaired",
+      "state": "row-plan-repairs-passed-row-slot-proof-blocks-consumer",
       "target": "Actual acquired source snapshot -> closed typed shared relation query -> family consumer; preserve source leases and explicit coverage premises",
-      "next": "Actual2d31b2eccada4b33ba9923f33f75bf10 passed Execution_Core8s and Source_Plans11s; Row_Plans magnitude binder collided with imported constant, exact rename prepared. K/RI/source consumer not reached. Language child now consumes SAME relation carrier; joint fixed gate/qualified response remains required."
+      "next": "Latest ff20af5219eb4274bfe9c261e92a4de1 reaches Row_Slots line78 proof after repaired Row_Plans. K/RI consumer remains unexecuted; plans owner repairs and source owner retains actual consumer responsibility."
     },
     {
       "id": "atomic-native-support-forget",
@@ -3300,14 +3305,15 @@
       "id": "typed-native-build-candidates",
       "owner": "authority_reconnected61",
       "members": [
-        "native_build61",
-        "admission61",
-        "recovery61",
-        "assembly61",
-        "host61",
-        "authoring61"
+        "native_build_product61",
+        "recovery_reconnected61",
+        "assembly_reconnected61",
+        "host_reconnected61",
+        "workbench_product61",
+        "growth_product61",
+        "updates_product61"
       ],
-      "state": "design-approved-after-d44",
+      "state": "owned-producer-active-schema-window-after-d44-capture",
       "target": "D43 typed nonassertional artifact requirements and unified output ledger consumed by actual source build/admission, authoring and recovery"
     },
     {
@@ -3326,9 +3332,9 @@
         "linkage61",
         "relations_facts61"
       ],
-      "state": "concrete-interface-approved-child-implementation",
+      "state": "protected-native-reader-and-escaped-query-guards-written-uncompiled",
       "target": "Original author/property question and versioned source declarations to same SnapshotRelationQuery, typed finite-snapshot result and justified rendering",
-      "next": "Keep utterance/declaration roles and exact byte spans, Unicode titles, ambiguity and incomplete/absent outcomes. Shared source carrier and service integration stay required; no new query authority API."
+      "next": "New bridge binds actual P/L owners, exact original/declaration bytes and revisions to fixed proof-producing reader and exact RI metadata. Monotone literal dependencies guard escaped queries at reservation/worker/result; test composes actual private-ticket Unique3 then sibling-lease invalidation. All uncompiled behind source ancestor. Authored source/schema/version/settings linkage and licensed service rendering still required."
     },
     {
       "id": "native-proof-search-consumer",
@@ -3337,9 +3343,9 @@
         "admission61",
         "assembly61"
       ],
-      "state": "actual-native-compiler-feedback-cleanup-handlers-repaired",
+      "state": "six-native-search-markers-passed-service-consumer-open",
       "target": "Fixed multi-step proof producer to inert proof transport and actual receiver admission, cancellation/budgets, then shared deployed service",
-      "next": "Actual20d56c12 found uninterruptible namespace;03a9a024ab654252bdd88f7d76df2c55 progressed to strict catch-all cleanup audit. Exact Exn.capture/reraise repair prepared; six runtime markers not reached. No service registration claim. Steward fair queue before more syntax-only retries."
+      "next": "Root reviewed actual assertions/producer/receipt and matched hashes; component committed c535d1b. Source-owned shared-ticket SearchService and D47 produced proof recovery consumer now queued; resident registration remains open."
     },
     {
       "id": "indexed-forget-refinement",
@@ -3351,6 +3357,30 @@
       "state": "false-order-target-replaced-indexed-proof-draft-awaits-native-feedback",
       "target": "Proved exact-list-order indexed replacement for measured reference closure, actual generated authority consumer and matched performance",
       "next": "Found counterexample to reconstructing all reached records: seed-only IDs need separate preservation. Corrected characterization uses fired records and retains last-occurrence order. Ancestor summary set proofs independent; indexed denial-history diff and service protected-reference scans share foundation. Native proof feedback and scaling through actual service remain required."
+    },
+    {
+      "id": "diagnosis-repair-consumer",
+      "owner": "diagnostics_product61",
+      "state": "active-consumer-integration",
+      "target": "Actual request owner inspection -> understandable diagnostics -> managed source edit -> revalidation"
+    },
+    {
+      "id": "qualified-package-update-consumer",
+      "owner": "updates_product61",
+      "state": "active-consumer-integration",
+      "target": "Exact source impact -> owned candidate -> fixed qualification -> atomic publication/failure preservation -> restart"
+    },
+    {
+      "id": "dialogue-routing-consumer",
+      "owner": "dialogue_product61",
+      "state": "active-consumer-integration",
+      "target": "Actual native readings -> explicit selected interpretation -> same original bytes -> licensed result and conversation state"
+    },
+    {
+      "id": "retained-growth-consumer",
+      "owner": "growth_product61",
+      "state": "active-consumer-integration",
+      "target": "Owned typed candidate -> charged installed-bundle sample execution -> explicit nonassertional retention -> recovery and Forget"
     }
   ]
 }

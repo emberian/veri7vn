@@ -572,6 +572,17 @@ members relative to the actual prestate in their respective categories. In
 particular, revocation followed by Forget still yields an erasure delta; repeated
 Forget does not resend the entire historical denial set.
 
+The transition-level proof target `forget_roots_new_denials_exact` identifies each
+transport category as the checked removal set minus that category's prestate
+history. `forget_roots_already_revoked_still_erases` makes the Revoke-then-Forget
+case explicit: prior revocation suppresses a new revocation ID but cannot suppress
+a newly required erasure ID. These statements concern generated transition data;
+physical cleanup completion remains the native/host lifecycle obligation. Their
+proofs and transition regressions passed in native attempt
+`38f6a3f89f1c4fb486ac52cdba19f122`; the unchanged event/core/codec and codec
+regressions passed in `3e3b592140a14a1f811b932ca1fc8edc`. Actual indexed service
+selection and host/native cleanup still require joint D44 qualification.
+
 The resident owner will complete a public singleton Forget against its current
 state using protected native support-group descriptors. Current original requests,
 all required native evidence including unused evidence, and other retained

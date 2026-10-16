@@ -127,7 +127,7 @@ lemma empty_forget_roots_rejected:
   by simp
 lemma duplicate_forget_roots_equivalent:
   "step s (ForgetRoots roots) = step s (ForgetRoots (remdups roots))"
-  by simp
+  by (simp add: remdups_remdups)
 lemma forget_roots_exact:
   assumes "roots \<noteq> []" "forget_closure (retained_values s) (remdups roots) = Some removed"
   shows "step s (ForgetRoots roots) =
@@ -171,6 +171,24 @@ lemma new_denial_objects_distinct:
   "distinct (new_revoked_objects previous next)"
   "distinct (new_forgotten_objects previous next)"
   by (simp_all add: new_revoked_objects_def new_forgotten_objects_def)
+
+lemma forget_roots_new_denials_exact:
+  assumes "roots \<noteq> []" "forget_closure (retained_values s) (remdups roots) = Some removed"
+  shows "set (new_revoked_objects s (fst (step s (ForgetRoots roots)))) =
+      set removed - set (revoked_objects s)"
+    "set (new_forgotten_objects s (fst (step s (ForgetRoots roots)))) =
+      set removed - set (forgotten_objects s)"
+  using assms
+  by (auto simp: new_revoked_objects_def new_forgotten_objects_def
+      lifecycle_def forget_state_def revoke_state_def)
+
+lemma forget_roots_already_revoked_still_erases:
+  assumes "roots \<noteq> []" "forget_closure (retained_values s) (remdups roots) = Some removed"
+    "objid \<in> set removed" "objid \<in> set (revoked_objects s)"
+    "objid \<notin> set (forgotten_objects s)"
+  shows "objid \<notin> set (new_revoked_objects s (fst (step s (ForgetRoots roots))))"
+    "objid \<in> set (new_forgotten_objects s (fst (step s (ForgetRoots roots))))"
+  using forget_roots_new_denials_exact[OF assms(1,2)] assms by auto
 
 lemma reconciliation_not_publication:
   "visible_bindings (fst (step s (Reconcile n status))) = visible_bindings s"
