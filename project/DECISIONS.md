@@ -760,3 +760,24 @@ and qualification roles, with shared source/context ownership and no replay of
 charges or external effects. Central cleanup includes pending roots and preserves
 the existing bounded cancellation, drain and retry semantics. This factoring must
 not make every future family a prerequisite for running the current consumers.
+
+## D48 — Versioned source acquisition preserves its actual representation
+
+The original /1 source admission law equates retained bytes with the /1 batch
+encoding. The /2 framed streaming input has different bytes and bounds; changing
+only the runtime decoder would disconnect that law from its consumer. Introduce
+an explicit versioned acquisition branch and migrate the implementation contract,
+acquire/query theorem, admission and output judgment together. Preserve the /1
+law and existing /1 recovery meaning. Never reinterpret an old recipe as /2.
+
+The /2 branch requires an independent stream representation specification covering
+frames, terminal/completeness state, schema and decoded rows, with refinement of
+the actual bounded materializer and retention of the original /2 bytes. Merely
+defining preservation as successful materialization is insufficient. Primitive
+types, duplicates, long text, partial/error states and trailing malformed input
+remain explicit obligations. The importer owns the materializer/specification;
+the native source owner owns kernel/recipe/admission composition. Actual v1-data
+family consumers and the graph projection consume that same guarded association.
+The name of the upstream dataset does not select the wire version. Native checks,
+actual acquired-source queries, restart and retirement must qualify the migration
+before any wider source-preservation claim.

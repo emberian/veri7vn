@@ -1267,7 +1267,7 @@
         "var/runtime-host/managed-effects-20261015T153144Z/receipt.json",
         "var/native-scaffold/sessions/752964f45b43867e/attempts/ceb68e69059f4b22a1d926481149bf52/receipt.json"
       ],
-      "notes": "Dispatched to effects61. Pure shared signed-clock freshness, exact binding session adoption, positive fuel, dependency closure and owned isolated learning implemented; current checks and actual authority/host integration remain open. D36 is the generated reducer integration contract, not an independent permission machine. Pure effects and isolated learning stable PASS 43.796s (1d956133573d9775), conditional closure/minimality checked; totality child and indexed execution remain open. Actual opaque operation profile/input lease under integration; selected-head membership fix required in host. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Root reviewed actual Effects_Closure_Totality source/current-hash/log: total finite-list closure theorem plus existing least-closure laws checked; ticket/operation child sessions7/8s and closure8s passed in overall failed Admission batch. Canonical runtime WorkerResources tests passed c0b87 with actual partial-write cleanup/capture-vs-Forget/join-outside-lock/zeroed-byte-view/late-handoff cases. Full native composed dispatch, erasure and performance remain open. First MathTicket compiler run found two unqualified uninterruptible calls; namespace repairs ready. External effects additionally require reviewed goal ownership/blocker/dependency and multistep revision model repair before dispatch. Measured closure requires algorithmic refinement: preserve exact list/RemoveManaged order, including last-occurrence remdups and empty-values seed duplicates. Effects owner drafted a separate native order-characterization proof; finite search is exploratory only, no optimized implementation selected yet. D42 recurring job lifecycle migration has explicit parent-template and per-poll child requests, cumulative budget and stale incarnation rejection.",
+      "notes": "Dispatched to effects61. Pure shared signed-clock freshness, exact binding session adoption, positive fuel, dependency closure and owned isolated learning implemented; current checks and actual authority/host integration remain open. D36 is the generated reducer integration contract, not an independent permission machine. Pure effects and isolated learning stable PASS 43.796s (1d956133573d9775), conditional closure/minimality checked; totality child and indexed execution remain open. Actual opaque operation profile/input lease under integration; selected-head membership fix required in host. Current managed/host/effects composition passed stable28.593s with27 exactinput snapshots: transactional requestbudget race, exact currentmanifest membership, protected operation input lease, intake26/ManagedDrafts5. Native ticket assembly/release/recovery remains open. Root reviewed actual Effects_Closure_Totality source/current-hash/log: total finite-list closure theorem plus existing least-closure laws checked; ticket/operation child sessions7/8s and closure8s passed in overall failed Admission batch. Canonical runtime WorkerResources tests passed c0b87 with actual partial-write cleanup/capture-vs-Forget/join-outside-lock/zeroed-byte-view/late-handoff cases. Full native composed dispatch, erasure and performance remain open. First MathTicket compiler run found two unqualified uninterruptible calls; namespace repairs ready. External effects additionally require reviewed goal ownership/blocker/dependency and multistep revision model repair before dispatch. Measured closure requires algorithmic refinement: preserve exact list/RemoveManaged order, including last-occurrence remdups and empty-values seed duplicates. Effects owner drafted a separate native order-characterization proof; finite search is exploratory only, no optimized implementation selected yet. D42 recurring job lifecycle migration has explicit parent-template and per-poll child requests, cumulative budget and stale incarnation rejection.\nRoot reviewed and committed core d6fe Indexed proof/export success separately from failing later exact-order eval test. Actual service uses checked ancestor/history core; first native service consumer capture running. Optional forward reconstruction remains unqualified.",
       "contracts": [
         "C04",
         "C05"
@@ -1301,7 +1301,7 @@
         "source-semantics",
         "native-registry"
       ],
-      "owner": "sources61",
+      "owner": "source_import_product61",
       "paths": [
         "src/sources/import/**",
         "tests/sources/import/**",
@@ -1333,7 +1333,7 @@
         "var/native-scaffold/sessions/a45e137bfff0ed36/attempts/fb181df175fe4e1aa69f4313feefdbb7/receipt.json",
         "var/native-scaffold/sessions/95fcfdd61e543422/attempts/8f8f446241be47a1b7a2821da5637529/receipt.json"
       ],
-      "notes": "Start concrete bounded reproducible local import and observation manifests against checked native source semantics while registry/gate integration matures. Preserve actual corpus availability/provenance limits; full authorized snapshot publication/native correspondence remain required gates. D37 actual storage audit refutes four-cell/tiny-codec completion: shipped REAL fields, 64,353-byte UTF8 text, >=257 rows, duplicate rows, NULL, JSONL/FTS types. Explicit observed binary64 carrier and streaming semantic import required; raw chunks alone insufficient. Independent Scala acquisition/chunk/manifest runtime checks passed, with long values/4096 duplicate rows/partial/error/release and strict UTF8 fixture preservation. Native importer now reaches code_reflect after HOL proofs but fails compact-nat pattern equation; metadata child cancelled, not qualified. Raw decoded batch validity is not per-reading scientific validity. Root reviewed native Source_Import parent passed23s, including actual codec code_reflect, observation acquisition soundness and profile. Import leaf reductions and metadata binder typing still fail; full importer/row dispatch not complete. Scala acquisition/chunk/metadata adapter separately passed immutable169b7c36e58f4cb19d2920e40ffd4736. Actual SourceImport rebuilt28s against first D40 Registry; Metadata now only explicit prefixcertificate witness proof fails. New real JDBC fixture passed with all4Scalaadaptergroups30.010s (8f8f snapshot); mixed-value payload assertions and actual native stream correspondence remain open.",
+      "notes": "Start concrete bounded reproducible local import and observation manifests against checked native source semantics while registry/gate integration matures. Preserve actual corpus availability/provenance limits; full authorized snapshot publication/native correspondence remain required gates. D37 actual storage audit refutes four-cell/tiny-codec completion: shipped REAL fields, 64,353-byte UTF8 text, >=257 rows, duplicate rows, NULL, JSONL/FTS types. Explicit observed binary64 carrier and streaming semantic import required; raw chunks alone insufficient. Independent Scala acquisition/chunk/manifest runtime checks passed, with long values/4096 duplicate rows/partial/error/release and strict UTF8 fixture preservation. Native importer now reaches code_reflect after HOL proofs but fails compact-nat pattern equation; metadata child cancelled, not qualified. Raw decoded batch validity is not per-reading scientific validity. Root reviewed native Source_Import parent passed23s, including actual codec code_reflect, observation acquisition soundness and profile. Import leaf reductions and metadata binder typing still fail; full importer/row dispatch not complete. Scala acquisition/chunk/metadata adapter separately passed immutable169b7c36e58f4cb19d2920e40ffd4736. Actual SourceImport rebuilt28s against first D40 Registry; Metadata now only explicit prefixcertificate witness proof fails. New real JDBC fixture passed with all4Scalaadaptergroups30.010s (8f8f snapshot); mixed-value payload assertions and actual native stream correspondence remain open.\nOwnership recovered from inactive sources61. New owner carries actual native stream/Scala snapshot/import consumers; source_reconnected61 retains K/RI/gate and coordinates codec2 acquisition. Original /1 preservation theorem does not automatically establish /2 stream preservation.",
       "contracts": [
         "C01",
         "C04"
@@ -1911,7 +1911,7 @@
         "native-admission",
         "staged-execution"
       ],
-      "owner": "relations_facts61",
+      "owner": "facts_relations_product61",
       "paths": [
         "src/families/relations/**",
         "tests/families/relations/**",
@@ -1933,7 +1933,7 @@
         "Proposed reader cases: capitalized title versus pronoun, animal-only medicine boundary where applicable, handwritten versus mined reader precedence, missing store, and alternate candidate under a scoped blocker."
       ],
       "evidence": [],
-      "notes": "2026-10-15 breadth restart: First finite batch: source-observation relation query kernels, narrator/ship ordered overlap and rel-novels P50 instances from shipped source, linked to existing source semantics. Missing v2 data remains explicit. Shared resident dispatch extension must be integrated after first service compiler batch; family-only checks do not close this task.",
+      "notes": "2026-10-15 breadth restart: First finite batch: source-observation relation query kernels, narrator/ship ordered overlap and rel-novels P50 instances from shipped source, linked to existing source semantics. Missing v2 data remains explicit. Shared resident dispatch extension must be integrated after first service compiler batch; family-only checks do not close this task.\nOwnership recovered from inactive relations_facts61. Actual family callers and available v1 source path coordinated with importer and native source-gate owners; synthetic relation fixture alone cannot close these tasks. Preserve quotation/rule observations/adopted claims as distinct results.",
       "contracts": [
         "C01",
         "C02",
@@ -1967,7 +1967,7 @@
         "native-admission",
         "staged-execution"
       ],
-      "owner": "relations_facts61",
+      "owner": "facts_relations_product61",
       "paths": [
         "src/families/facts/**",
         "src/families/documents/**",
@@ -1990,7 +1990,7 @@
         "Proposed output cases: guarded FactsOrgan variant, quoted historical answer, command-shaped reference data and partial multipart fact response."
       ],
       "evidence": [],
-      "notes": "2026-10-15 breadth restart: Joint relation/fact batch: ordered fact rules with guard evidence and exact source-byte quotation spans, actual packages and caller adapter. No source assertions become world axioms. Existing core dependencies are completion gates, not prohibition on implementing family semantics now.",
+      "notes": "2026-10-15 breadth restart: Joint relation/fact batch: ordered fact rules with guard evidence and exact source-byte quotation spans, actual packages and caller adapter. No source assertions become world axioms. Existing core dependencies are completion gates, not prohibition on implementing family semantics now.\nOwnership recovered from inactive relations_facts61. Actual family callers and available v1 source path coordinated with importer and native source-gate owners; synthetic relation fixture alone cannot close these tasks. Preserve quotation/rule observations/adopted claims as distinct results.",
       "contracts": [
         "C01",
         "C02",
@@ -2158,7 +2158,7 @@
         "Proposed graph cases: valid but nonoptimal path, directed input to an MST contract, unreachable target, equal optima, negative-edge parsing and witness retention through registered codecs."
       ],
       "evidence": [],
-      "notes": "User renewed wide 6.1-sol swarm. Own source-backed graph implementation and concrete callers; coordinate actual acquired source projection with source owner and fixed family dispatch with assembly. No raw numeric edge/source IDs as authority. Full graph acceptance remains open; active dependency warnings are intentional.",
+      "notes": "User renewed wide 6.1-sol swarm. Own source-backed graph implementation and concrete callers; coordinate actual acquired source projection with source owner and fixed family dispatch with assembly. No raw numeric edge/source IDs as authority. Full graph acceptance remains open; active dependency warnings are intentional.\nRoot requires efficient bounded frontier search and MST proposer/independent optimality certificate; exponential all-walk/subset enumeration may remain small reference or explicitly bounded requested output, not deployed default. Source-backed meaning must independently connect decoded row/edge lineage and coverage.",
       "contracts": [
         "C02",
         "C03",
@@ -2221,7 +2221,7 @@
         "Target evidence: interrupt a mock connector before/after coupled claim-and-start handoff and external completion, then reconcile without duplicate blind execution or revived canceled requests."
       ],
       "evidence": [],
-      "notes": "User renewed wide 6.1-sol swarm. Own recovered site/session and acquisition behavior through local connector fixtures and shared executor/source consumer. Preserve original event freshness, config/unit/origin partitions and unknown action outcomes. No remote real-service actions. Shared runtime dependencies remain open.",
+      "notes": "User renewed wide 6.1-sol swarm. Own recovered site/session and acquisition behavior through local connector fixtures and shared executor/source consumer. Preserve original event freshness, config/unit/origin partitions and unknown action outcomes. No remote real-service actions. Shared runtime dependencies remain open.\nRoot review fixed receipt-only repoll being mislabeled identity conflict and invalid multi-quantity readings being attributed to wrong referent. Native/Scala checks queued. Actual shared ClaimStart/acquisition-ticket producer remains required and owned jointly with assembly/host/source.",
       "contracts": [
         "C01",
         "C03",

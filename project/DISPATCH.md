@@ -215,3 +215,12 @@ These lanes arrange shared interface edits with existing owners; they do not cre
 parallel source ownership, execution tickets or registries. Native and Scala checks
 remain serialized by build_reconnected61. Recipient rehearsal is developer evidence,
 not an independent user's success. Root retains tracker and commit ownership.
+
+The ownership audit also recovered two dormant implementation lanes.
+`source_import_product61` now owns `src/sources/import/**` and its tests;
+`facts_relations_product61` owns the facts/documents/relations family source,
+tests and examples. They replace inactive sources61/relations_facts61 handles.
+`source_reconnected61` retains K/RI/admission and native source/language gates.
+Source documentation changes are coordinated between those owners. D48 requires
+the /2 importer, native acquisition theorem and actual family caller to migrate
+together; the base synthetic relation fixture is not whole-family qualification.

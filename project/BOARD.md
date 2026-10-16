@@ -30,7 +30,7 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | native-admission | Implement the authoritative native admission boundary | admission | active | admission61 | native-registry, operational-model |
 | plan-composition | Implement typed composition and justified finite-search quotients | composition | active | plans_reconnected61 | operational-model, interpretation-model, native-registry |
 | state-effects | Implement generated state/effect transitions and linearized execution authority | state and effects | active | effects_reconnected61 | operational-model, native-registry |
-| source-import | Build reproducible snapshot import and missing-store replacement | sources | active | sources61 | native-registry |
+| source-import | Build reproducible snapshot import and missing-store replacement | sources | active | source_import_product61 | native-registry |
 | dependency-updates | Implement dependency-aware generation publication and reuse | updates | active | updates_product61 | source-import, state-effects, native-registry |
 | strategy-engine | Implement budgeted native search strategies and replayable proposals | search | active | plans_reconnected61 | plan-composition, native-admission, state-effects |
 | runtime-service | Implement the Scala/PIDE host, durable writer and native protocol | runtime | active | host_reconnected61 | native-registry, native-admission, state-effects, native-resident-assembly |
@@ -39,8 +39,8 @@ Readiness is derived from completed dependencies for planned/ready tasks. Eviden
 | workspace-client | Build the browser workbench and coherent CLI authoring surface | authoring client | active | workbench_product61 | package-lifecycle, runtime-service |
 | diagnostics-repair | Provide precise counterexamples and reviewable repair proposals | diagnostics | active | diagnostics_product61 | native-admission, interpretation-model, package-lifecycle |
 | staged-execution | Compile stable operations once with explicit assurance boundaries | execution | active | source_reconnected61 | native-registry, native-admission, performance-envelope |
-| relation-family | Migrate relation readers, linking and guarded query behavior | relation specialists | active | relations_facts61 | source-import, interpretation-model, plan-composition, native-admission, staged-execution |
-| facts-document-family | Migrate fact rules and source-grounded document retrieval | facts and documents | active | relations_facts61 | source-import, interpretation-model, native-admission, staged-execution |
+| relation-family | Migrate relation readers, linking and guarded query behavior | relation specialists | active | facts_relations_product61 | source-import, interpretation-model, plan-composition, native-admission, staged-execution |
+| facts-document-family | Migrate fact rules and source-grounded document retrieval | facts and documents | active | facts_relations_product61 | source-import, interpretation-model, native-admission, staged-execution |
 | domain-families | Implement classified domain families with genuine semantic bridges | domain specialists | active | domains_reconnected61 | plan-composition, native-admission, staged-execution |
 | mathematics-family | Implement mathematical capabilities with branch and precision contracts | mathematical specialists | active | math61 | known-regressions, plan-composition, native-admission, staged-execution |
 | graph-family | Implement source-dependent graph reasoning with explicit bounds | graph specialists | active | graphs_product61 | source-import, plan-composition, strategy-engine |
