@@ -13,12 +13,12 @@ while :; do
     n=$(basename "$d"); p=$(cat "$d/scout.pid" 2>/dev/null) || continue
     if kill -0 "$p" 2>/dev/null; then alive=$((alive+1)); continue; fi
     # exited: requeue on rate limit, once per exit
-    if [ -f "$d/stdout.md" ] && grep -q "Rate limit\|(429)" "$d/stdout.md" 2>/dev/null; then
+    if [ -f "$d/stdout.md" ] && grep -q "Rate limit\|(429)\|Prompt is too long" "$d/stdout.md" 2>/dev/null; then
       tries=$(cat "$d/requeues" 2>/dev/null || echo 0)
       if [ "$tries" -lt 3 ] && ! grep -q "^$n " "$Q"; then
-        echo $((tries+1)) > "$d/requeues"; mv "$d/stdout.md" "$d/stdout.429-$tries.md"
+        echo $((tries+1)) > "$d/requeues"; mv "$d/stdout.md" "$d/stdout.died-$tries.md"
         echo "$n $(cat "$d/brief.path" 2>/dev/null || echo project/scouts/briefs/$n.md) 200" >> "$Q"
-        echo "$(date +%H:%M:%S) requeued $n (429, try $((tries+1)))"
+        echo "$(date +%H:%M:%S) requeued $n (died, try $((tries+1)))"
       fi
     fi
   done
