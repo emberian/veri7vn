@@ -13,7 +13,7 @@ fi
 cp "$brief" "$OUT/brief.md"
 prompt="$(cat "$MAIN/project/scouts/SCOUT_BRIEF.md"; printf '\n\n## Your target (scout %s)\n\n' "$name"; cat "$brief")"
 cd "$WT"
-GLM_MODEL=${GLM_MODEL:-glm-5.3-flash} nohup claude-glm -p "$prompt" --dangerously-skip-permissions \
+PYTHONDONTWRITEBYTECODE=1 GLM_MODEL=${GLM_MODEL:-glm-5.3-flash} nohup claude-glm -p "$prompt" --dangerously-skip-permissions \
   --max-turns "$turns" --output-format text > "$OUT/stdout.md" 2> "$OUT/stderr.log" &
 echo $! > "$OUT/scout.pid"
 echo "scout $name: pid $(cat "$OUT/scout.pid"), worktree $WT, branch scout/$name"

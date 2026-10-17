@@ -110,3 +110,5 @@ exact reason there is none yet.
 - Set `PYTHONDONTWRITEBYTECODE=1` (or `python3 -B`) for any Python that imports an organ from `upstream/`; a stray `__pycache__` under upstream is a write.
 
 - Import `HOL-Library.Code_Target_Numeral` (and `Code_Target_Int`/`Code_Target_Nat` as lane G does) in every exported theory. Without it the code generator represents `nat`/`int` in unary: lane S10 saw a binary use 6.5 GB on an empty input and a build climb past 30 GB. Any Isabelle build or binary above a few hundred MB resident is a bug, not a load problem.
+
+- House rounding rule: kernels state exact rationals and round decimal ties UP, and say so in a theorem (`round_tie_up` in lane G). The organs sometimes print the other neighbour on an exact tie because they round a binary float; that is a float artefact, not a rule, and we do not model IEEE doubles to match it. Report tie differences; do not chase them.
