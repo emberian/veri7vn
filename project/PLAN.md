@@ -25,7 +25,7 @@ lane, self stays the core's, within budget.
 
 | Answerer | Specialists' panels right / wrong | Status |
 |---|---|---|
-| Oracle7 as shipped | 15,478 / 14 on the held-out exams | the control |
+| Oracle7 as shipped | 15,478 / 14 on the held-out exams (6,354 / 5 for the 144 non-relation specialists; 9,124 / 9 for the 161 relation readers, whose stores did not ship) | the control; the harness reproduces all 129 non-relation verdicts exactly (`docs/parity/BOARD.md`) |
 | veri7vn revision-2 package (2026-10-16 morning) | 0 / 0, every panel item unrecognized | the starting line |
 | veri7vn extracted `acoustics` binary (2026-10-16 night) | 69 / 0 on its 69 held-out items and 70 / 0 on dev, same as the shipped organ; 428 KB, 12 ms median, 0 false yes; also packaged as a drop-in Oracle7 specialist folder (`src/extract/acoustics/oracle7-organ/`) | first lifted specialist, at parity |
 | veri7vn verified relation reader (2026-10-16 evening) | 60 answers on Oracle7's 205 relation-route core-panel items, 60 identical to Oracle7, 0 wrong | first lifted route |

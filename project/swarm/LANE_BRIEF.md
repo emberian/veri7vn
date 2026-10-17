@@ -106,3 +106,5 @@ own panel.
 ## Report
 Final message and `project/lanes/<lane-id>.md`: numbers per specialist, or the
 exact reason there is none yet.
+
+- Set `PYTHONDONTWRITEBYTECODE=1` (or `python3 -B`) for any Python that imports an organ from `upstream/`; a stray `__pycache__` under upstream is a write.
