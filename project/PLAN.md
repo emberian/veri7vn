@@ -29,6 +29,7 @@ lane, self stays the core's, within budget.
 | veri7vn revision-2 package (2026-10-16 morning) | 0 / 0, every panel item unrecognized | the starting line |
 | veri7vn extracted `acoustics` binary (2026-10-16 night) | 69 / 0 on its 69 held-out items and 70 / 0 on dev, same as the shipped organ; 428 KB, 12 ms median, 0 false yes; also packaged as a drop-in Oracle7 specialist folder (`src/extract/acoustics/oracle7-organ/`) | first lifted specialist, at parity |
 | veri7vn verified relation reader (2026-10-16 evening) | 60 answers on Oracle7's 205 relation-route core-panel items, 60 identical to Oracle7, 0 wrong | first lifted route |
+| veri7vn `quantity` binary: densities, units, units-v3, springs, fluids, fuels (2026-10-17) | 320 / 0 on the six held-out panels and 321 / 0 on dev, same as the shipped organs; one 545 KB binary, 7 ms cold start, 0.2 ms median | one kernel, six specialists, at parity |
 
 The harness must first reproduce Oracle7's own `verdict_heldout.json` numbers
 on a sample of specialists; until it does, it is not a scoreboard.
