@@ -108,3 +108,5 @@ Final message and `project/lanes/<lane-id>.md`: numbers per specialist, or the
 exact reason there is none yet.
 
 - Set `PYTHONDONTWRITEBYTECODE=1` (or `python3 -B`) for any Python that imports an organ from `upstream/`; a stray `__pycache__` under upstream is a write.
+
+- Import `HOL-Library.Code_Target_Numeral` (and `Code_Target_Int`/`Code_Target_Nat` as lane G does) in every exported theory. Without it the code generator represents `nat`/`int` in unary: lane S10 saw a binary use 6.5 GB on an empty input and a build climb past 30 GB. Any Isabelle build or binary above a few hundred MB resident is a bug, not a load problem.
