@@ -1,5 +1,0 @@
-mean of 0.1, 0.2, 0.3
-population variance of 0, 2
-sample variance of 0, 2
-modes of 1, 1, 2, 2, 3
-median of -2, 0, 7, 9

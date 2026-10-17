@@ -1,4 +1,0 @@
-session Veri7vn_Family_Composition_Tests = Veri7vn_Graph_Source +
-  options [document = false, threads = 2]
-  sessions Veri7vn_Interpretation
-  theories Family_Composition_Tests

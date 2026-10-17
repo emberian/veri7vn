@@ -1,3 +1,0 @@
-session Veri7vn_Ordered_Index_Tests = Veri7vn_Ordered_Index +
-  options [document = false]
-  theories Ordered_Index_Tests

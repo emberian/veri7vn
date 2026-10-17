@@ -1,4 +1,0 @@
-session Veri7vn_Native_Admission = HOL +
-  options [document = false, threads = 2]
-  theories
-    Native_Admission

@@ -1,3 +1,0 @@
-session Veri7vn_Search_Tests = Veri7vn_Native_Search +
-  options [document = false, record_proofs = 2]
-  theories Native_Search_Tests

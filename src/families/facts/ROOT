@@ -1,4 +1,0 @@
-session Veri7vn_Facts = Veri7vn_Source_Semantics +
-  options [document = false]
-  sessions Veri7vn_Documents
-  theories Ordered_Facts Literature_Facts Source_Fact_Observation

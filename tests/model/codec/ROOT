@@ -1,4 +1,0 @@
-session Veri7vn_Authority_Codec_Tests = Veri7vn_Authority_Codec +
-  options [document = false, threads = 2]
-  theories
-    Authority_Codec_Tests

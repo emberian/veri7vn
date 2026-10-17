@@ -1,8 +1,0 @@
-session Veri7vn_Ordered_Index = Veri7vn_Effects_RBT +
-  options [document = false]
-  theories Ordered_Index
-
-session Veri7vn_Graph_Index = Veri7vn_Graph_Core +
-  options [document = false]
-  sessions Veri7vn_Ordered_Index
-  theories Graph_Indexed

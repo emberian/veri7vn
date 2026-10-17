@@ -1,1 +1,0 @@
-PASS: exact retained v1 Q170583/P50/Q36322 observation; no v2 snapshot or domain closure claimed

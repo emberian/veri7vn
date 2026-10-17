@@ -1,4 +1,0 @@
-session Veri7vn_Domain_Bundle = Veri7vn_Domains +
-  options [document = false, threads = 2]
-  sessions Veri7vn_Admission Veri7vn_Projection
-  theories Domain_Bundle

@@ -1,9 +1,0 @@
-session Veri7vn_Natural_Source_Rows_Tests = Veri7vn_Natural_Source_Rows +
-  theories Natural_Source_Rows_Tests
-
-session Veri7vn_Natural_Relation_Questions_Tests in relations = Veri7vn_Natural_Relation_Questions +
-  theories Natural_Relation_Questions_Tests
-
-session Veri7vn_Natural_Relation_Gate_Tests in "relations/gate" = Veri7vn_Natural_Relation_Gate +
-  sessions Veri7vn_Natural_Relation_Questions_Tests Veri7vn_Row_Kernel_Tests
-  theories Natural_Relation_Gate_Tests

@@ -1,1 +1,0 @@
-PASS: 6 upstream ordered/guarded literature cases; this does not execute native HOL

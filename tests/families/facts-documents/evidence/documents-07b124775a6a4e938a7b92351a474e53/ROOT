@@ -1,3 +1,0 @@
-session Veri7vn_Documents = Veri7vn_Source_Semantics +
-  options [document = false]
-  theories Document_Quotation Quotation_Examples

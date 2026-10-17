@@ -1,9 +1,0 @@
-session Veri7vn_Native_Build_Candidate = Veri7vn_Native_Request_Scope +
-  options [document = false]
-  sessions Veri7vn_Effect_Tickets Veri7vn_Native_Lifetime
-  theories Native_Build_Candidate
-
-session Veri7vn_Native_Build_Metadata in metadata = Veri7vn_Native_Build_Candidate +
-  options [document = false]
-  sessions Veri7vn_Authority
-  theories Build_Service_Metadata

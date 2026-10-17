@@ -1,3 +1,0 @@
-session Veri7vn_Scoped_Domain_Checks = Veri7vn_Scoped_Domain +
-  options [document = false, threads = 2]
-  theories Scoped_Domain_Checks

@@ -1,3 +1,0 @@
-session Veri7vn_Search_Service_Tests = Veri7vn_Search_Service +
-  options [document = false, record_proofs = 2]
-  theories Search_Service_Tests

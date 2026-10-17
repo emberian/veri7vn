@@ -1,8 +1,0 @@
--- [E181] Potential Issue Warning: /Users/ember/dev/o7vn/tests/effects/check.scala:9:64 
-9 |  val loader=new java.net.URLClassLoader(Array(out.toUri.toURL),getClass.getClassLoader)
-  |                                                                ^^^^^^^^
-  |                       Suspicious top-level unqualified call to getClass
-  |
-  | longer explanation available when compiling with `-explain`
-1 warning found
-VERI7VN_EFFECTS learning_isolation PASS

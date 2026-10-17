@@ -1,3 +1,0 @@
-session Veri7vn_Finite_Tests = Veri7vn_Finite_Runtime +
-  options [document = false, threads = 2]
-  theories Finite_Bundle_Checks Finite_Scoped_Checks

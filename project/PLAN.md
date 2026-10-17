@@ -47,16 +47,15 @@ on a sample of specialists; until it does, it is not a scoreboard.
 
 Lanes own their paths. A lane that needs something from a frozen area asks root.
 
-## Frozen
+## Removed
 
-The revision-2 operating system is frozen, not deleted: the Scala host, the
-authority machine, durable journals, recovery, Forget, search service, package
-lifecycle, deployment generations and the browser workbench. Paths:
-`src/runtime/`, `src/isabelle/{admission,effects,updates,registry,execution,growth,search,plans,codegen,projection}/`,
-`src/{packages,workbench,cli,deployment,connectors,authoring,diagnostics,backends}/`.
-Nothing is added there until a specialist on the board needs it. The
-mathematics, domain, graph, relation, facts and document families under
-`src/families/` stay live; lanes reuse their proved kernels where they fit.
+The revision-2 operating system (Scala host, authority machine, durable
+journals, recovery, Forget, search service, package lifecycle, deployment
+generations, browser workbench, and the family theories that depended on those
+sessions) was removed from the tree on 2026-10-17 after no lane needed it; it
+remains in git history before that commit. What stays: the coverage audit
+(`audit/coverage/`, `docs/coverage/`), the build driver (`tools/dev/`), and the
+revision-3 work.
 
 Deployment target is an extracted binary plus the SQLite stores, not a resident
 Isabelle process. One Isabelle distribution exists on this machine; packages

@@ -1,8 +1,0 @@
-session Veri7vn_Strategies = Veri7vn_Plans +
-  options [document = false]
-  theories Veri7vn_Strategies
-
-session Veri7vn_Native_Search in native = Veri7vn_Effect_Tickets +
-  options [document = false, record_proofs = 2]
-  sessions Veri7vn_Admission Veri7vn_Strategies
-  theories Veri7vn_Native_Search

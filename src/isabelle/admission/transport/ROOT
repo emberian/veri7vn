@@ -1,3 +1,0 @@
-session Veri7vn_Admission_Transport = Veri7vn_Admission +
-  options [document = false, record_proofs = 2]
-  theories Admission_Transport_Tests

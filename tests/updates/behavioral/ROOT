@@ -1,3 +1,0 @@
-session Veri7vn_Behavioral_Evaluation_Tests = Veri7vn_Behavioral_Evaluation +
-  options [document = false]
-  theories Behavioral_Evaluation_Tests Behavioral_Recipes_Tests

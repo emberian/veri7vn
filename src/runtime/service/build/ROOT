@@ -1,4 +1,0 @@
-session Veri7vn_Runtime_Build = Veri7vn_Native_Build_Metadata +
-  options [document = false]
-  sessions Veri7vn_Native_Request_Scope
-  theories Native_Build_Service

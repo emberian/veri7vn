@@ -1,3 +1,0 @@
-session Veri7vn_Registry = HOL +
-  options [document = false]
-  theories Veri7vn_Registry Registry_Tests

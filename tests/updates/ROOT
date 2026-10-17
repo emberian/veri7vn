@@ -1,7 +1,0 @@
-session Veri7vn_Package_Updates = Veri7vn_Native_Build_Candidate +
-  options [document = false]
-  theories Package_Qualification_Test
-
-session Veri7vn_Package_Update_Metadata_Tests = Veri7vn_Package_Update_Metadata +
-  options [document = false]
-  theories Package_Update_Metadata_Test

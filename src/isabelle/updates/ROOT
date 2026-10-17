@@ -1,3 +1,0 @@
-session Veri7vn_Package_Update_Metadata = Veri7vn_Authority +
-  options [document = false]
-  theories Package_Update_Metadata

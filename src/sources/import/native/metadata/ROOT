@@ -1,3 +1,0 @@
-session Veri7vn_Source_Metadata = Veri7vn_Source_Import +
-  options [document = false, threads = 2]
-  theories Source_Metadata_Codec

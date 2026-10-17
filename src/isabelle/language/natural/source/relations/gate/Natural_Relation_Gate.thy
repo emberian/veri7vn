@@ -1,6 +1,0 @@
-theory Natural_Relation_Gate
-  imports Veri7vn_Natural_Relation_Questions.Natural_Relation_Questions
-    Veri7vn_Execution.Veri7vn_Execution_Bundle
-begin
-ML_file "native_relation_language_gate.ML"
-end

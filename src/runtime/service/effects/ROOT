@@ -1,3 +1,0 @@
-session Veri7vn_Runtime_Effects = Veri7vn_Native_Request_Scope +
-  options [document = false]
-  theories Effect_Observation_Encoding Native_Effects_Service

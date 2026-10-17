@@ -1,4 +1,0 @@
-session Veri7vn_Conversation_Source_Recovery_Tests = Veri7vn_Conversation_Metadata +
-  options [document = false]
-  sessions Veri7vn_Session_Source
-  theories Conversation_Source_Recovery_Tests

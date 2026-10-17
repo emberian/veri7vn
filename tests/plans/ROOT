@@ -1,3 +1,0 @@
-session Veri7vn_Plan_Tests = Veri7vn_Plans +
-  options [document = false, threads = 2]
-  theories Plan_Tests

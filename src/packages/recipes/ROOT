@@ -1,4 +1,0 @@
-session Veri7vn_Package_Recipes = Veri7vn_Admission +
-  options [document = false]
-  sessions Veri7vn_Mathematics Veri7vn_Source_Semantics
-  theories Package_Recipes

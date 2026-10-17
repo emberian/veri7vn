@@ -1,8 +1,0 @@
-session Veri7vn_Observation_Pin in pin = Pure +
-  options [document = false]
-  theories Observation_Pin
-
-session Veri7vn_Conversation_Metadata = Veri7vn_Authority_Codec +
-  options [document = false]
-  sessions Veri7vn_Observation_Pin
-  theories Conversation_Metadata

@@ -1,3 +1,0 @@
-session Veri7vn_Conversation_Native_Tests = Veri7vn_Runtime_Service +
-  options [document = false]
-  theories Conversation_Native_Tests

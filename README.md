@@ -80,10 +80,9 @@ Isabelle process runs at answer time.
 | `tools/parity/`, `docs/parity/` | the harness and the board |
 | `audit/folds/` | the catalogue of Oracle7's 346 routing folds |
 | `src/isabelle/routing/`, `src/isabelle/specialists/`, `src/isabelle/reader/` | the cascade, the contract/arbitration/gate, the relation reader |
-| `src/extract/<specialist>/` | one lifted specialist each, theory to binary |
-| `src/families/` | proved exact arithmetic, units, graphs, relations, facts from revision 2; reused where they fit |
-| `src/runtime/`, `src/isabelle/{admission,effects,...}`, `src/{packages,workbench,cli,deployment,...}` | revision-2 host, authority machine, durable lifecycle; frozen |
-| `audit/coverage/`, `docs/coverage/` | revision-2 audit of all 305 Oracle7 manifests into 81 semantic profiles; still the map |
+| `src/extract/<family>/` | lifted specialists, theory to binary: `acoustics`, `quantity` (six specialists), `fusion` in progress |
+| `audit/coverage/`, `docs/coverage/` | audit of all 305 Oracle7 manifests into 81 semantic profiles; still the map |
+| `project/lanes/` | one handoff per lane, with theorem statements and numbers |
 | `upstream/`, `var/` | the Oracle7 drop and local scratch; ignored by git |
 
 ## Working here

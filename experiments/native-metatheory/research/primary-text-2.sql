@@ -1,1 +1,0 @@
-SELECT paper_key,converter,quality_label,text FROM academic.papers WHERE paper_key IN ('10.4204/eptcs.332.1','10.1007/978-3-030-64276-1_2','10.48550/arxiv.2502.19311') AND quality_label = 'good' LIMIT 10

@@ -1,3 +1,0 @@
-session Veri7vn_Domain_Display_Checks = Veri7vn_Domain_Checked_Display +
-  options [document = false, threads = 2]
-  theories Domain_Display_Checks

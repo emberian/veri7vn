@@ -1,3 +1,0 @@
-session Veri7vn_Source_Tokens = HOL +
-  options [document = false]
-  theories Source_Tokens_Test

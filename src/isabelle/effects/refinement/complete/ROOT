@@ -1,4 +1,0 @@
-session Veri7vn_Effects_Indexed_Refinement = Veri7vn_Effects_Indexed +
-  options [document = false]
-  sessions Veri7vn_Effects_Order
-  theories Effects_Indexed_Refinement

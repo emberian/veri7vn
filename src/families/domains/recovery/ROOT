@@ -1,3 +1,0 @@
-session Veri7vn_Domain_Recovery_Payload = Veri7vn_Domain_Checked_Display +
-  options [document = false, threads = 2]
-  theories Domain_Recovery_Payload

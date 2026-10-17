@@ -1,5 +1,0 @@
-session Veri7vn_Source_Stream = Veri7vn_Source_Import +
-  options [document = false, threads = 2]
-  theories
-    Source_Byte_Chunks
-    Source_Row_Stream

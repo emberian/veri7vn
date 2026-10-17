@@ -1,3 +1,0 @@
-session Veri7vn_Admission_Checks = Veri7vn_Admission_Metadata +
-  options [document = false]
-  theories Admission_Tests

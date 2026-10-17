@@ -1,7 +1,0 @@
-session Native_Linkage_Base in base = HOL +
-  options [document = false, threads = 2]
-  theories Native_Linkage_Base
-
-session Native_Linkage_Probe in transport = Native_Linkage_Base +
-  options [document = false, threads = 2, record_proofs = 2]
-  theories Native_Linkage_Probe

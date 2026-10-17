@@ -1,4 +1,0 @@
-session Veri7vn_Original_Session_Source = Veri7vn_Admission +
-  options [document = false]
-  sessions Veri7vn_Observation_Pin
-  theories Original_Session_Source

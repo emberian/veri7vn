@@ -1,4 +1,0 @@
-session Veri7vn_Effects_Tests = Veri7vn_Effects +
-  options [document = false, threads = 2]
-  theories
-    Effects_Tests

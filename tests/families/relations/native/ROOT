@@ -1,4 +1,0 @@
-session Veri7vn_Retained_V1_Relation_Consumer_Tests = Veri7vn_Source_Relation_Consumer_Tests +
-  options [document = false, threads = 2]
-  sessions Veri7vn_Natural_Relation_Gate
-  theories Retained_V1_Relation_Consumer_Tests

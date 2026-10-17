@@ -1,3 +1,0 @@
-session Veri7vn_Effect_Tickets = Veri7vn_Effects +
-  options [document = false, threads = 2]
-  theories Veri7vn_Effect_Tickets

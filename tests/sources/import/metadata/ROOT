@@ -1,3 +1,0 @@
-session Veri7vn_Source_Metadata_Tests = Veri7vn_Source_Metadata +
-  options [document = false, threads = 2]
-  theories Source_Metadata_Tests

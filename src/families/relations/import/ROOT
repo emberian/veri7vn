@@ -1,4 +1,0 @@
-session Veri7vn_Relation_Import = Veri7vn_Relations +
-  options [document = false]
-  sessions Veri7vn_Source_Import
-  theories Relation_Source_Import

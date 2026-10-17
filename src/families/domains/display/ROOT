@@ -1,4 +1,0 @@
-session Veri7vn_Domain_Checked_Display = Veri7vn_Domain_Service_Objects +
-  options [document = false, threads = 2]
-  sessions Veri7vn_Natural_Mathematics Veri7vn_HTML_Bytes
-  theories Domain_Checked_Display

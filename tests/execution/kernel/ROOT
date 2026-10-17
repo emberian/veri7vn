@@ -1,3 +1,0 @@
-session Veri7vn_Row_Kernel_Tests = Veri7vn_Row_Kernel +
-  options [document = false, threads = 2]
-  theories Row_Kernel_Tests

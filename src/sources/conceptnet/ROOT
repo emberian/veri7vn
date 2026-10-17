@@ -1,4 +1,0 @@
-session Veri7vn_ConceptNet_Source = Veri7vn_Source_Import +
-  options [document = false]
-  sessions Veri7vn_Graph_Core
-  theories ConceptNet_Source

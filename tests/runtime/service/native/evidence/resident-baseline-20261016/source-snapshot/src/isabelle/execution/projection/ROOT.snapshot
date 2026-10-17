@@ -1,3 +1,0 @@
-session Veri7vn_Projection = HOL +
-  options [document = false, threads = 2]
-  theories Veri7vn_Bounded_Projection

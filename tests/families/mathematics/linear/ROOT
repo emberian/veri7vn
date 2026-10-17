@@ -1,4 +1,0 @@
-session Veri7vn_Mathematics_Linear_Tests = Veri7vn_Mathematics_Bundle +
-  options [document = false, threads = 2]
-  directories "../../../../src/families/mathematics/bundle"
-  theories Mathematics_Linear_Tests

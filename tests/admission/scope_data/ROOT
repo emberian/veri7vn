@@ -1,3 +1,0 @@
-session Veri7vn_Native_Scope_Data_Tests = Veri7vn_Native_Scope_Data +
-  options [document = false]
-  theories Scope_Data_Tests

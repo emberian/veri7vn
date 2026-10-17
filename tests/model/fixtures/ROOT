@@ -1,4 +1,0 @@
-session Veri7vn_Authority_Fixtures = Veri7vn_Authority +
-  options [document = false, threads = 2]
-  theories
-    Authority_Fixtures

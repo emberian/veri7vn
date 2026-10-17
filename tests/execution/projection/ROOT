@@ -1,3 +1,0 @@
-session Veri7vn_Projection_Tests = Veri7vn_Projection +
-  options [document = false, threads = 2]
-  theories Projection_Tests

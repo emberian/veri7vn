@@ -1,3 +1,0 @@
-session Veri7vn_Native_Scope_Envelope_Tests = Veri7vn_Native_Request_Scope +
-  options [document = false]
-  theories Scope_Envelope_Tests

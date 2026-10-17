@@ -1,3 +1,0 @@
-session Veri7vn_Relations = Veri7vn_Source_Semantics +
-  options [document = false]
-  theories Relation_Query Relation_Join Novel_Relations

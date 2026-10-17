@@ -1,3 +1,0 @@
-session Veri7vn_Source_Import_Tests = Veri7vn_Source_Import +
-  options [document = false, threads = 2]
-  theories Source_Import_Tests

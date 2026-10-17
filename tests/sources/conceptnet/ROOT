@@ -1,4 +1,0 @@
-session Veri7vn_ConceptNet_Tests = Veri7vn_ConceptNet_Source +
- options [document = false]
- sessions Veri7vn_Source_Stream
- theories ConceptNet_Checks ConceptNet_Original_Fixture

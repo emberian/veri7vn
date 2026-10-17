@@ -1,4 +1,0 @@
-session Veri7vn_Source_Plans = Veri7vn_Execution_Core +
-  options [document = false, threads = 2]
-  sessions Veri7vn_Plans
-  theories Veri7vn_Source_Plans Veri7vn_Source_Slots

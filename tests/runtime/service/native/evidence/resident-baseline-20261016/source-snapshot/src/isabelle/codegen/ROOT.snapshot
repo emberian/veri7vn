@@ -1,6 +1,0 @@
-session Veri7vn_Codegen = HOL +
-  options [document = false, threads = 2]
-  directories
-    "installed"
-  theories
-    Veri7vn_Codegen

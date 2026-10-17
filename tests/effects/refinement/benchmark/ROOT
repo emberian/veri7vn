@@ -1,3 +1,0 @@
-session Veri7vn_Effects_Indexed_Benchmark = Veri7vn_Effects_Indexed_Refinement +
-  options [document = false, threads = 2]
-  theories Effects_Indexed_Benchmark

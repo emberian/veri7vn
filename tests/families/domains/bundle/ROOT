@@ -1,3 +1,0 @@
-session Veri7vn_Domain_Bundle_Checks = Veri7vn_Domain_Bundle +
-  options [document = false, threads = 2]
-  theories Domain_Bundle_Checks

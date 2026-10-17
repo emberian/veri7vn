@@ -1,4 +1,0 @@
-session Veri7vn_Growth_Native_Tests = Veri7vn_Growth_Native +
-  options [document = false]
-  sessions Veri7vn_Mathematics_Ticket_Execution
-  theories Growth_Native_Tests Growth_Attachment_Tests

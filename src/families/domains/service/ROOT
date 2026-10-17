@@ -1,4 +1,0 @@
-session Veri7vn_Domain_Service_Objects = Veri7vn_Domain_Bundle +
-  options [document = false, threads = 2]
-  sessions Veri7vn_Effect_Tickets
-  theories Domain_Model_Context Domain_Service_Objects

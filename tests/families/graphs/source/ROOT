@@ -1,3 +1,0 @@
-session Veri7vn_Graph_Source_Tests = Veri7vn_Graph_Source_Soundness +
-  options [document = false]
-  theories Graph_Source_Checks Graph_Weighted_Source_Checks

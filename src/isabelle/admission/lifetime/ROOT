@@ -1,3 +1,0 @@
-session Veri7vn_Native_Lifetime = Pure +
-  options [document = false]
-  theories Native_Lifetime

@@ -1,4 +1,0 @@
-session Veri7vn_Session_Source_Tests = Veri7vn_Session_Source +
-  options [document = false]
-  sessions Veri7vn_Original_Session_Source
-  theories Session_Source_Tests

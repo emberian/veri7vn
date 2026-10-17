@@ -1,4 +1,0 @@
-session Veri7vn_Domains = Veri7vn_Codegen +
-  options [document = false, threads = 2]
-  sessions Veri7vn_Plans
-  theories Domain_Quantities Domain_Springs Domain_Plans

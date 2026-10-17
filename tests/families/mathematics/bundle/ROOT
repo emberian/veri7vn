@@ -1,4 +1,0 @@
-session Veri7vn_Mathematics_Bundle_Tests = Veri7vn_Mathematics_Bundle +
-  options [document = false]
-  sessions Veri7vn_Mathematics_Tests
-  theories Mathematics_Bundle_Tests

@@ -1,3 +1,0 @@
-session Veri7vn_Graph_Tests = Veri7vn_Graphs +
-  options [document = false]
-  theories Graph_Checks

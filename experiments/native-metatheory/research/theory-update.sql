@@ -1,1 +1,0 @@
-SELECT id,title,doi_norm,publication_year,cited_by_count FROM openalex.works WHERE hasAllTokens(search_text_lc,['conservative','extension']) AND hasAnyTokens(search_text_lc,['hol','definitional','overloading']) ORDER BY cited_by_count DESC LIMIT 20
