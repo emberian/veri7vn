@@ -74,9 +74,10 @@ version used "X", which algebra guards match as a variable), and shadowing says
    files carry core_n of 400–406 (the manifest's `core_sample.n`), so the cap the
    1%-formula gives is 5; exam.py always runs the full 924 (cap 9). The only three
    disagreements in the whole drop (rel-graphicartists, rel-novels, rel-translators)
-   are exactly the specialists that took 6: they fail the sample's cap of 5 and fit
-   exam.py's cap of 9. The release's own admissions were tighter than exam.py's rule,
-   by accident of sampling.
+   are exactly the specialists that took 6 general questions. The release ADMITTED all
+   three, so it was looser than exam.py's cap of 9, not stricter; only the gate run on
+   the sample's cap of 5 rejects them. (Corrected by lane W5-03; the scout had this
+   backwards.)
 3. **No shipped verdict carries a files_sha.** exam.py's status check compares the
    folder's current hash to the one written in the verdict; with no hash in the file,
    every one of the 242 checkable specialists reads as "changed since its exam" and

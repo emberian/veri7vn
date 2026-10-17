@@ -459,6 +459,7 @@ class FoldIndex:
         self.compiled = {}          # (pattern, flags) -> regex or None
         self.uncompilable = 0
         self.folds = []
+        self.n_baseline = len(baseline)
         for f in d["folds"]:
             if f.get("kind") != "pre_route" or f.get("shadowed_by"):
                 continue
@@ -585,11 +586,13 @@ def gate_section(rep, gate_res):
         cap = max(5, row["core_n"] // 100)
         extra = ""
         if "LANE" in reasons and row.get("taken") is not None and row["taken"] > cap:
-            extra = ("; its %d takes would fit under the full panel's cap of 9, so this rejection is "
-                     "an artefact of the sample" % row["taken"]) if row["taken"] <= 9 else ""
-        lines.append("  the core counts were measured on a SAMPLE of %d of the 924 core questions, so "
-                     "the lane cap the formula gives is %d, not the 9 that exam.py's full panel gives%s"
-                     % (row["core_n"], cap, extra))
+            extra = ("; the release ADMITTED it with %d takes although that is over the sample's cap, "
+                     "so the release was looser than the formula on its own sample" % row["taken"])
+            if row["taken"] <= 9:
+                extra += " (it would fit under the full panel's cap of 9)"
+        lines.append("  the core counts were measured on a SAMPLE of %d of the 924 core questions: the "
+                     "lane cap the formula gives on that sample is %d, on the full panel exam.py uses "
+                     "it is 9%s" % (row["core_n"], cap, extra))
     shipped = row.get("decision")
     if shipped is not None:
         mapped = SHIPPED_MAP.get(shipped, "?" + str(shipped))
@@ -644,16 +647,19 @@ def render(rep, gate_res):
     for i, (f, gname, cues) in sorted(specific.items(), key=lambda kv: kv[0]):
         how = ("its guard firing is enough for it to answer outright"
                if f["unconditional"] else "its code can answer when its own route matches")
-        out.append("  cue %s -> fold %s (no. %d in the stack, %s): guard %s matches; on generic "
-                   "questions the same guard fires on %d%% so the overlap is this specialist's "
-                   "own language; %s"
+        out.append("  cue %s -> fold %s (no. %d in the stack, %s): guard %s matches; base rate %d%% "
+                   "(this guard matches %d%% of the %d calibration questions; the nearer to 100%%, "
+                   "the less the match says about this domain); %s"
                    % ("/".join(repr(c) for c in sorted(cues)), f["module"], f["index"],
-                      (f["doc"] or "").strip()[:50], gname, round(100 * f["base_rate"]), how))
+                      (f["doc"] or "").strip()[:50], gname, round(100 * f["base_rate"]),
+                      round(100 * f["base_rate"]), folds.n_baseline, how))
     if universal:
         first = universal[min(universal)][0]["module"]
-        out.append("  %d more folds match the cues with guards that fire on nearly every question "
-                   "(starting with %s); that says nothing about this specialist's domain"
-                   % (len(universal), first))
+        out.append("  %d more folds match the cues with universal guards (base rate %d%% or more of the "
+                   "%d calibration questions; starting with %s at %d%%); that says nothing about this "
+                   "specialist's domain"
+                   % (len(universal), round(100 * FoldIndex.UNIVERSAL), folds.n_baseline, first,
+                      round(100 * universal[min(universal)][0]["base_rate"])))
     qs = [h for h in q_hits.values() if h[0]["base_rate"] < FoldIndex.UNIVERSAL]
     qs.sort(key=lambda h: -h[1])
     if qs:
@@ -661,7 +667,7 @@ def render(rep, gate_res):
         out.append("  on its own held-out questions (%d sampled), folds whose guards are not universal:"
                    % sampled)
         for f, cnt, q, gname in qs[:5]:
-            out.append("    fold %s (no. %d) matches %d of them (%d%% of generic questions), e.g. %r "
+            out.append("    fold %s (no. %d) matches %d of them (base rate %d%% of the calibration set), e.g. %r "
                        "via guard %s" % (f["module"], f["index"], cnt, round(100 * f["base_rate"]),
                                          q[:70], gname))
         out.append("    (%d folds in total)" % len(qs))
@@ -771,8 +777,11 @@ def aggregate(reps, gate_results, out_path, folds_path, gate_binary, baseline):
     L.append("  `__ORACLE7_ROOT__` placeholder, which exam.py joins onto the folder as written.")
     L.append("  The exam is written for new folders authored in the workbench, not for the drop.")
     L.append("- Every shipped verdict measured the lane cap on a SAMPLE of about 400 of the 924 core")
-    L.append("  questions, so the cap it used was 5, not exam.py's 9. The three disagreements are all")
-    L.append("  specialists that took 6: they fail the sample's cap and fit exam.py's.")
+    L.append("  questions. On that sample the formula's cap is 5; on the full panel exam.py uses, 9.")
+    L.append("  The three gate disagreements (rel-novels, rel-graphicartists, rel-translators) are all")
+    L.append("  specialists that took 6 general questions. The release ADMITTED them, so it was looser")
+    L.append("  than exam.py's cap of 9, not stricter; only the gate run on the sample's cap of 5")
+    L.append("  rejects them.")
     L.append("- None of the shipped verdict files carries a files_sha, so exam.py's own status check")
     L.append("  would mark every shipped specialist \"changed since its exam\" and keep it out of the")
     L.append("  model (%d verdict files seen, %d carried every count the gate needs, and not one of"
@@ -814,7 +823,8 @@ def render_one_line(rep, g):
     if specific:
         uncond = {h[0]["module"] for h in specific.values() if h[0]["unconditional"]}
         parts.append("cues matched by head folds: %s%s" % (
-            ", ".join(sorted({h[0]["module"] for h in specific.values()})[:3]),
+            ", ".join("%s (base rate %d%%)" % (m_, round(100 * br_)) for m_, br_ in
+                      sorted({(h[0]["module"], h[0]["base_rate"]) for h in specific.values()})[:3]),
             " (answer outright)" if uncond else ""))
     elif cue_hits:
         parts.append("cues: matched only by universal guards")
