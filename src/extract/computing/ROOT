@@ -1,0 +1,21 @@
+(* Lane S15-computing: networking, embedded, cyber, linux-v2, git, sql, python,
+   python-r2 and robotics-v2 as one verified HOL family, exported to SML. The
+   base session only loads Isabelle's interval arithmetic (as lane G does). *)
+session Veri7vn_Computing_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Computing_Base
+
+session Veri7vn_Computing = Veri7vn_Computing_Base +
+  options [document = false, threads = 2]
+  theories
+    Computing_Num
+    Networking
+    Numerics
+    System
+    Pyref_Table
+    Pyref
+    Sql
+    Computing_Export
