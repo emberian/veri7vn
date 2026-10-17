@@ -253,7 +253,7 @@ definition render_rat :: "rat \<Rightarrow> String.literal" where
      | None \<Rightarrow> show_int (fst (quotient_of q)) + STR ''/'' + show_int (snd (quotient_of q)))"
 
 text \<open>Six-significant-digit rounding, the textbook trace's layout
-(Python's \<open>%g\<open> with precision 6): a value is printed as an integer, a
+(Python's %g with precision 6): a value is printed as an integer, a
 decimal, or an exponential form. Used only for the step text; the stated values
 are exact. Not proved: pinned by the self test.\<close>
 
@@ -378,7 +378,7 @@ theorem isqrt_square: "isqrt (k * k) = k"
 fun newton :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
   "newton n x =
     (let y = (x + n div x) div 2 in
-     if y \<ge> x then [] else y # newton n y)"
+     if y \<ge> x then [y] else y # newton n y)"
 
 termination newton
   by (relation "measure (\<lambda>(_, x). x)") (auto simp: Let_def split: if_splits)
@@ -485,23 +485,19 @@ termination euc_trace
 theorem euc_res_gcd: "euc_res a b = gcd a b"
   by (induction a b rule: euc_res.induct) (simp add: gcd_eq_gcd_ab_mod_if)
 
-theorem euc_trace_last:
-  assumes "b > 0"
-  shows "euc_res a b = fst (last ((a, b) # euc_trace b (a mod b))) \<or>
-         euc_res a b = euc_res a b"
-  by simp
-
 section \<open>Requests and outcomes\<close>
 
 datatype req =
     PercentOf rat rat
   | Convert rat munit munit
-  | Sqrt int
+  | Sqrt int bool
   | GcdLcm nat nat bool
   | SolveLin rat rat rat rat "rat list"
   | EvalExpr expr
 \<comment> \<open>\<^term>\<open>SolveLin a b c d gs\<close>: solve \<open>a*x + b = c*x + d\<close>; \<^term>\<open>gs\<close>
-are the values the question itself states (the echo guard reads them).\<close>
+are the values the question itself states (the echo guard reads them).
+\<^term>\<open>Sqrt n want\<close>: the flag says the question asked whether \<open>n\<close> is a
+perfect square (the operator's parse: the words \<^verbatim>\<open>perfect square\<close>).\<close>
 
 datatype kind =
     K_percent | K_convert | K_sqrt | K_gcd | K_lcm | K_solve | K_eval
@@ -519,7 +515,7 @@ datatype outcome = Value kind rat | Decline decline
 fun kind_of :: "req \<Rightarrow> kind" where
   "kind_of (PercentOf _ _) = K_percent"
 | "kind_of (Convert _ _ _) = K_convert"
-| "kind_of (Sqrt _) = K_sqrt"
+| "kind_of (Sqrt _ _) = K_sqrt"
 | "kind_of (GcdLcm _ _ False) = K_gcd"
 | "kind_of (GcdLcm _ _ True) = K_lcm"
 | "kind_of (SolveLin _ _ _ _ _) = K_solve"
@@ -529,7 +525,7 @@ fun kernel :: "req \<Rightarrow> outcome" where
   "kernel (PercentOf p w) = Value K_percent (p * w / 100)"
 | "kernel (Convert x a b) =
     (if mdim_of a \<noteq> mdim_of b then Decline D_mismatch else Value K_convert (x * mfactor a / mfactor b))"
-| "kernel (Sqrt n) =
+| "kernel (Sqrt n want) =
     (if n < 0 then Decline D_negative else Value K_sqrt (of_nat (isqrt (nat n))))"
 | "kernel (GcdLcm a b want) =
     (if a = 0 \<and> b = 0 then Decline D_undefined
@@ -571,16 +567,16 @@ proof -
 qed
 
 theorem sqrt_negative_decline:
-  "kernel (Sqrt n) = Decline D_negative \<longleftrightarrow> n < 0"
+  "kernel (Sqrt n want) = Decline D_negative \<longleftrightarrow> n < 0"
   by auto
 
 theorem sqrt_of_square:
   assumes "s * s = nat n" "0 \<le> n"
-  shows "kernel (Sqrt n) = Value K_sqrt (of_nat s)"
+  shows "kernel (Sqrt n want) = Value K_sqrt (of_nat s)"
   using assms by (auto simp: isqrt_square)
 
 theorem sqrt_value_is_interval:
-  assumes "kernel (Sqrt n) = Value k r" "0 \<le> n"
+  assumes "kernel (Sqrt n want) = Value k r" "0 \<le> n"
   shows "k = K_sqrt \<and> r = of_nat (isqrt (nat n)) \<and>
          r * r \<le> of_nat n \<and> of_nat n < (r + 1) * (r + 1)"
   using isqrt_interval[of "nat n"] assms by (auto split: if_splits)
@@ -792,7 +788,7 @@ definition pluralise :: "rat \<Rightarrow> String.literal \<Rightarrow> String.l
 fun path_of :: "prequest \<Rightarrow> String.literal" where
   "path_of (Ask (PercentOf _ _)) = STR ''organ:math>word:percent_of''"
 | "path_of (Ask (Convert _ _ _)) = STR ''organ:math>word:convert''"
-| "path_of (Ask (Sqrt _)) = STR ''op:integer_sqrt''"
+| "path_of (Ask (Sqrt _ _)) = STR ''op:integer_sqrt''"
 | "path_of (Ask (GcdLcm _ _ _)) = STR ''op:gcd_lcm''"
 | "path_of (Ask (SolveLin _ _ _ _ _)) = STR ''algebra:solved''"
 | "path_of (Ask (EvalExpr _)) = STR ''organ:math>evaluate''"
@@ -816,19 +812,28 @@ fun reply_of :: "prequest \<Rightarrow> reply" where
       + STR '' / '' + render_g6 (mfactor b) + STR '' '' + mlabel b
       + STR ''. '' + checked_word)
       (render_rat (x * mfactor a / mfactor b)) (path_of (Ask (Convert x a b)))"
-| "reply_of (Ask (Sqrt n)) =
-    (if n < 0 then Withheld withhold_text (path_of (Ask (Sqrt n)))
-     else let k = of_nat (isqrt (nat n)) :: rat;
-              est = newton (nat n) (nat n);
-              ests = map (\<lambda>e. STR ''estimate '' + show_int (of_nat e)) (take 4 est);
-              tail = (if want_perfect n then []
-                      else [show_int (of_nat (isqrt (nat n))) + STR '' x '' + show_int (of_nat (isqrt (nat n)))
-                            + STR '' = '' + show_int (of_nat (isqrt (nat n) * isqrt (nat n)))
-                            + STR '', and '' + show_int (of_nat (Suc (isqrt (nat n)) * Suc (isqrt (nat n))))
-                            + STR '' is not a square below it''])
-          in Answered (STR ''The integer square root of '' + show_int n + STR '' is ''
-             + render_rat k + STR ''. '' + trace_lit (ests @ tail) + STR '' '' + checked_two)
-             (render_rat k) (path_of (Ask (Sqrt n))))"
+| "reply_of (Ask (Sqrt n want)) =
+    (if n < 0 then Withheld withhold_text (path_of (Ask (Sqrt n want)))
+     else let r = isqrt (nat n);
+              k = of_nat r :: rat;
+              ests = (if nat n < 2 then [show_int n + STR '' is its own root'']
+                      else map (\<lambda>e. STR ''estimate '' + show_int (of_nat e))
+                            (take 4 (newton (nat n) (nat n))));
+              sq = show_int (of_nat r) + STR '' x '' + show_int (of_nat r)
+                   + STR '' = '' + show_int (of_nat (r * r));
+              tail = (if want then [sq]
+                      else [sq + STR '', and '' + show_int (of_nat (Suc r * Suc r))
+                            + STR '' is not a square below it'']);
+              head = (if want
+                      then show_int n + STR '' is ''
+                           + (if r * r = nat n then STR ''a'' else STR ''not a'')
+                           + STR '' perfect square.''
+                      else STR ''The integer square root of '' + show_int n + STR '' is ''
+                           + render_rat k + STR ''.'')
+          in Answered (head + STR '' '' + trace_lit (ests @ tail) + STR '' '' + checked_two)
+             (if want then (if r * r = nat n then STR ''yes'' else STR ''no'')
+              else render_rat k)
+             (path_of (Ask (Sqrt n want))))"
 | "reply_of (Ask (GcdLcm a b want)) =
     (let g = gcd a b;
          steps = map (\<lambda>(x, y). show_int (of_nat x) + STR '' mod '' + show_int (of_nat y)
@@ -926,14 +931,24 @@ theorem reply_answered_iff:
       | Ask (PercentOf _ _) \<Rightarrow> True
       | Ask (Convert _ _ _) \<Rightarrow> True
       | Ask (GcdLcm _ _ _) \<Rightarrow> True
-      | Ask (Sqrt n) \<Rightarrow> n \<ge> 0
+      | Ask (Sqrt n _) \<Rightarrow> n \<ge> 0
       | _ \<Rightarrow> False)"
   by (cases p; case_tac x) (auto simp: answered_def split: req.splits outcome.splits)
 
 theorem reply_states_value:
   assumes "kernel r = Value k q" "answered (reply_of (Ask r))"
+    and "\<forall>n. r \<noteq> Sqrt n True"
   shows "value_lit (reply_of (Ask r)) = Some (render_rat q)"
   using assms by (cases r) (auto simp: answered_def value_lit_def Let_def)
+
+text \<open>The perfect-square question instead states a verdict, and the verdict
+is right: yes exactly when the integer square root squares back to \<open>n\<close>.\<close>
+
+theorem reply_sqrt_perfect:
+  assumes "0 \<le> n"
+  shows "value_lit (reply_of (Ask (Sqrt n True))) =
+    Some (if isqrt (nat n) * isqrt (nat n) = nat n then STR ''yes'' else STR ''no'')"
+  using assms by (auto simp: value_lit_def Let_def split: if_splits)
 
 theorem reply_withheld_names_decline:
   assumes "kernel r = Decline d"
@@ -983,12 +998,12 @@ definition self_test :: bool where
      kernel (Convert (9 / 2) T_day T_minute) = Value K_convert 6480 \<and>
      kernel (Convert (11 / 2) T_day T_minute) = Value K_convert 7920 \<and>
      (* op:integer_sqrt: all six are perfect squares *)
-     kernel (Sqrt 1764) = Value K_sqrt 42 \<and>
-     kernel (Sqrt 2025) = Value K_sqrt 45 \<and>
-     kernel (Sqrt 3136) = Value K_sqrt 56 \<and>
-     kernel (Sqrt 4624) = Value K_sqrt 68 \<and>
-     kernel (Sqrt 5329) = Value K_sqrt 73 \<and>
-     kernel (Sqrt 6889) = Value K_sqrt 83 \<and>
+     kernel (Sqrt 1764 False) = Value K_sqrt 42 \<and>
+     kernel (Sqrt 2025 False) = Value K_sqrt 45 \<and>
+     kernel (Sqrt 3136 False) = Value K_sqrt 56 \<and>
+     kernel (Sqrt 4624 False) = Value K_sqrt 68 \<and>
+     kernel (Sqrt 5329 False) = Value K_sqrt 73 \<and>
+     kernel (Sqrt 6889 False) = Value K_sqrt 83 \<and>
      isqrt 1764 * isqrt 1764 = 1764 \<and>
      (* op:gcd_lcm *)
      kernel (GcdLcm 91 133 False) = Value K_gcd 7 \<and>
@@ -1011,7 +1026,7 @@ definition self_test :: bool where
      kernel (SolveLin 1 0 0 2 []) = Value K_solve 2 \<and>
      (* declines *)
      kernel (Convert 5 T_hour M_gram) = Decline D_mismatch \<and>
-     kernel (Sqrt (- 4)) = Decline D_negative \<and>
+     kernel (Sqrt (- 4) False) = Decline D_negative \<and>
      kernel (SolveLin 0 3 0 7 []) = Decline D_zero_slope \<and>
      kernel (GcdLcm 0 0 False) = Decline D_undefined \<and>
      kernel (EvalExpr (V (STR ''x''))) = Decline D_symbolic \<and>
@@ -1043,7 +1058,7 @@ definition self_test :: bool where
      render_g6 (1 / 1000) = STR ''0.001'' \<and>
      render_g6 2400 = STR ''2400'' \<and>
      render_point 375 3 = STR ''0.375'' \<and>
-     response (reply_of (Ask (Sqrt 1764))) =
+     response (reply_of (Ask (Sqrt 1764 False))) =
        STR ''The integer square root of 1764 is 42. estimate 882. estimate 442. estimate 222. estimate 114. 42 x 42 = 1764, and 1849 is not a square below it. I checked it by a second method that agrees.'' \<and>
      response (reply_of (Ask (GcdLcm 132 198 False))) =
        STR ''The GCD of 132 and 198 is 66. 132 mod 198 = 132. 198 mod 132 = 66. 132 mod 66 = 0. no remainder left, so the divisor is 66. I checked it by a second method that agrees.'' \<and>
