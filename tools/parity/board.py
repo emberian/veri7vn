@@ -9,8 +9,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import panels  # noqa: E402
+import routes  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -135,7 +141,31 @@ def plain_summary(label, vs):
     return " ".join(parts)
 
 
-def render(runs):
+def routes_section():
+    """the Routes section: the core panel by route, the code-organ count, and what each landed family's binary takes"""
+    core = panels.core_items()
+    code = routes.code_reach(core)
+    out = ["", "## Routes", "",
+           "Which part of Oracle7 the head used for each of the %d general questions in `core_panel.json`, read from the "
+           "`path` the release recorded for each (nothing was run for this table; `tools/parity/routes.py`). The route "
+           "is the text before the first `>` in the path; `|` joins a guard or clarification to the organ it stood in "
+           "front of, and the table counts the first part. Use it to see, before building a lift, whether the family "
+           "you would replace is on a route that any core question takes." % len(core), ""]
+    out += routes.table(routes.core_counts(core))
+    out += ["", "**Code organ: %d of %d core questions reach it** (no route or pipeline step starts with `code` or "
+            "`organ:code`). A lift of the code organ cannot change any number on this panel; it can only matter on "
+            "exams that ask code questions." % (len(code), len(core)), "",
+            "### What each landed family takes of the core panel", "",
+            "From `var/<family>/parity/*.lane.jsonl` (heldout, else dev): a core question counts when any of the "
+            "family's specialists replied to it (`provenance.taken`, else a non-empty path), the same reading the "
+            "harness uses. *Counted by the lane rule* keeps only the questions where the head withheld for lack of a "
+            "reading, which are the ones `exam.py` charges against the cap of 9. A family with no lane run was "
+            "scored without `--lane-answerer`, so its reach is not recorded.", ""]
+    out += routes.family_table(routes.family_rows(core))
+    return out
+
+
+def render(runs, with_routes=True):
     loaded = [(label, load_run(path)[1]) for label, path in runs]
     summaries = [x for x in (plain_summary(label, vs) for label, vs in loaded) if x]
     out = ["# Parity board", ""] + [x for p in summaries for x in (p, "")] + [
@@ -194,16 +224,17 @@ def render(runs):
                 v.get("decision", "-") + ("" if not v.get("reasons") else ": " + "; ".join(v["reasons"])),
                 str(s.get("core_head") or "-").replace("oracle_release_runtime_", ""), t3(s.get("head")),
                 ("%s (%s)" % (t3(s.get("with_specialist")), s.get("n"))) if s else "-", delta))
-    return "\n".join(out + details) + "\n"
+    return "\n".join(out + details + (routes_section() if with_routes else [])) + "\n"
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", action="append", required=True, help="label=path")
     ap.add_argument("--out", default=str(REPO / "docs" / "parity" / "BOARD.md"))
+    ap.add_argument("--no-routes", action="store_true", help="leave out the Routes section")
     a = ap.parse_args()
     runs = [tuple(r.split("=", 1)) for r in a.run]
-    Path(a.out).write_text(render(runs), encoding="utf-8")
+    Path(a.out).write_text(render(runs, not a.no_routes), encoding="utf-8")
     print(a.out)
 
 
