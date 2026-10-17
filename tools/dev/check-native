@@ -235,9 +235,9 @@ def main():
         "VERI7VN_ISABELLE", "/Applications/Isabelle2026-RC1.app/bin/isabelle"),
         help="Isabelle executable (default: installed RC1; or VERI7VN_ISABELLE)")
     parser.add_argument("--timeout", type=int, default=600,
+                        help="maximum seconds per tool invocation (default: 600)")
     parser.add_argument("--no-wait", action="store_true",
                         help="exit with status 2 if another check holds the build lock instead of waiting")
-                        help="maximum seconds per tool invocation (default: 600)")
     parser.add_argument("--session", help="lane-local session (default: scaffold)")
     parser.add_argument("--also-session", action="append", default=[],
                         help="additional selected session, repeat (maximum eight targets total)")
