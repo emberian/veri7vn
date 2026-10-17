@@ -320,14 +320,16 @@ def measure_family(fam, a, scratch):
     first = next((ps for ps in fam["panels"] if ps.get("n")), None)
     fam["cold_trials_ms"] = []
     if first is not None:                        # one question, fresh process, nothing else
-        sid, split = first["specialist"], next(s for s in a.splits
-                                               if any(ps["specialist"] == sid and ps["split"] == s and ps.get("n")
-                                                      for ps in fam["panels"]))
+        sid = first["specialist"]                # bound before the genexp below, which closes over it
+        split = next((s for s in a.splits
+                      if any(ps["specialist"] == sid and ps["split"] == s and ps.get("n")
+                             for ps in fam["panels"])), None)
         d = panels.specialist_dir(sid)
         m = panels.read_manifest(d)
-        q0 = panels.items(d, split, m)[0]
+        items0 = panels.items(d, split, m) if split else []
+        q0 = items0[0] if items0 else None
         extra = family_extra_args(slug, scratch)
-        for _ in range(a.cold_trials):
+        for _ in range(a.cold_trials if q0 is not None else 0):
             prep_run(slug, scratch)
             run = Run([fam["binary"], "--specialist", sid] + extra, a.timeout_s, log)
             r, ms = run.ask("cold:%s" % slug, q0["q"], "perf-cold")
