@@ -1,5 +1,7 @@
 session Veri7vn_Novel_Reader = HOL +
   options [document = false]
+  sessions
+    "HOL-Library"
   theories
     Novel_Reader
     Novel_Reader_Export

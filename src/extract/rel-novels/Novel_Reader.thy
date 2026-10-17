@@ -80,10 +80,10 @@ lemma readers_entries:
 lemma in_table_iff:
   "in_table k i \<longleftrightarrow>
     (k = 50 \<and> i < 6) \<or> (k = 577 \<and> i < 3) \<or> (k = 840 \<and> i < 2) \<or> (k = 156 \<and> i < 2) \<or> (k = 144 \<and> i < 2)"
-  by (auto simp: in_table_def readers_entries)
+  by (auto simp: in_table_def readers_entries readers_def)
 
 lemma dropped_iff: "dropped k i \<longleftrightarrow> k = 50 \<and> i = 2"
-  by (auto simp: dropped_def readers_entries)
+  by (auto simp: dropped_def readers_def)
 
 lemma table_props: "in_table k i \<Longrightarrow> prop_of k = k \<and> k \<in> {50, 577, 840, 156, 144}"
   by (auto simp: in_table_iff prop_of_def)
@@ -115,7 +115,7 @@ definition time_variant :: "natural list" where
 
 lemma table_props_not_time_variant:
   "k \<in> {50, 577, 840, 156, 144} \<Longrightarrow> k \<notin> set time_variant"
-  by (simp add: time_variant_def)
+  by (auto simp: time_variant_def)
 
 definition restates :: "question_features \<Rightarrow> rel_value \<Rightarrow> bool" where
   "restates f v = (case map_of (value_words f) v of
@@ -134,18 +134,27 @@ definition dominated :: "candidate list \<Rightarrow> bool" where
 definition select :: "candidate list \<Rightarrow> candidate list" where
   "select cs = (if dominated cs then take 1 cs else take 3 cs)"
 
+abbreviation (input) selof :: "attempt \<Rightarrow> candidate list" where
+  "selof a \<equiv> select (candidates a)"
+
+abbreviation (input) mineof :: "attempt \<Rightarrow> candidate list" where
+  "mineof a \<equiv> filter domain_member (take 3 (select (candidates a)))"
+
+abbreviation (input) vsof :: "attempt \<Rightarrow> rel_value list list" where
+  "vsof a \<equiv> map (vals (prop_of (key a))) (filter domain_member (take 3 (select (candidates a))))"
+
 lemma select_cases:
   "select cs = take 3 cs \<or> (select cs = take 1 cs \<and> dominated cs)"
-  by (simp add: select_def)
+  by (cases "dominated cs") (simp_all add: select_def)
 
 lemma select_subset: "set (select cs) \<subseteq> set cs"
   by (auto simp: select_def dest: in_set_takeD)
 
 lemma select_nonempty: "cs \<noteq> [] \<Longrightarrow> select cs \<noteq> []"
-  by (cases cs) (simp add: select_def)
+  by (cases cs) (auto simp: select_def split: if_splits)
 
 lemma select_head: "cs \<noteq> [] \<Longrightarrow> hd (select cs) = hd cs"
-  by (cases cs) (simp add: select_def)
+  by (cases cs) (auto simp: select_def split: if_splits)
 
 section \<open>The walk over the question's matched phrasings, in order\<close>
 
@@ -163,22 +172,22 @@ fun walk :: "question_features \<Rightarrow> attempt list \<Rightarrow> (natural
   "walk f [] acc = (case acc of None \<Rightarrow> Silent | Some d \<Rightarrow> Decline d)"
 | "walk f (a # rest) acc =
     (if \<not> in_table (key a) (idx a) \<or> \<not> slot_ok a \<or> candidates a = [] then walk f rest acc
-     else
-       let cs = select (candidates a); p = prop_of (key a) in
-       if dropped (key a) (idx a) then
-         (case acc of
-            None \<Rightarrow> if domain_member (hd cs) then walk f rest (Some (p, qid (hd cs))) else walk f rest None
-          | Some d \<Rightarrow> walk f rest (Some d))
-       else if \<not> (\<forall>c \<in> set cs. complete c) then Incomplete
-       else
-         let mine = filter domain_member (take 3 cs); vs = map (vals p) mine in
-         if mine = [] \<or> (\<exists>v \<in> set vs. v = []) \<or> (\<exists>v \<in> set vs. set v \<noteq> set (hd vs)) \<or> length (hd vs) \<noteq> 1
-         then (case acc of
-                 None \<Rightarrow> if mine = [] then walk f rest None else walk f rest (Some (p, qid (hd mine)))
-               | Some d \<Rightarrow> walk f rest (Some d))
-         else if restates f (hd (hd vs)) then Silent
-         else if p \<in> set time_variant \<and> past f then Silent
-         else Answer (qid (hd mine), p, hd (hd vs)))"
+     else if dropped (key a) (idx a) then
+       (case acc of
+          None \<Rightarrow> if domain_member (hd (selof a))
+                   then walk f rest (Some (prop_of (key a), qid (hd (selof a))))
+                   else walk f rest None
+        | Some d \<Rightarrow> walk f rest (Some d))
+     else if \<not> (\<forall>c \<in> set (selof a). complete c) then Incomplete
+     else if mineof a = [] \<or> (\<exists>v \<in> set (vsof a). v = []) \<or>
+            (\<exists>v \<in> set (vsof a). set v \<noteq> set (hd (vsof a))) \<or> length (hd (vsof a)) \<noteq> 1
+     then (case acc of
+             None \<Rightarrow> if mineof a = [] then walk f rest None
+                     else walk f rest (Some (prop_of (key a), qid (hd (mineof a))))
+           | Some d \<Rightarrow> walk f rest (Some d))
+     else if restates f (hd (hd (vsof a))) then Silent
+     else if prop_of (key a) \<in> set time_variant \<and> past f then Silent
+     else Answer (qid (hd (mineof a)), prop_of (key a), hd (hd (vsof a))))"
 
 definition decide_spec :: "question_features \<Rightarrow> attempt list \<Rightarrow> outcome" where
   "decide_spec f attempts = (if kind_conflict f then Silent else walk f attempts None)"
@@ -197,66 +206,65 @@ candidate at all.\<close>
 definition attempt_values :: "question_features \<Rightarrow> attempt \<Rightarrow> (natural \<times> natural \<times> rel_value) option" where
   "attempt_values f a =
     (if \<not> in_table (key a) (idx a) \<or> \<not> slot_ok a \<or> candidates a = [] then None
-     else let cs = select (candidates a); p = prop_of (key a) in
-       if dropped (key a) (idx a) then None
-       else if \<not> (\<forall>c \<in> set cs. complete c) then None
-       else let mine = filter domain_member (take 3 cs); vs = map (vals p) mine in
-         if mine = [] \<or> (\<exists>v \<in> set vs. v = []) \<or> (\<exists>v \<in> set vs. set v \<noteq> set (hd vs)) \<or> length (hd vs) \<noteq> 1
-         then None
-         else if restates f (hd (hd vs)) then None
-         else if p \<in> set time_variant \<and> past f then None
-         else Some (qid (hd mine), p, hd (hd vs)))"
+     else if dropped (key a) (idx a) then None
+     else if \<not> (\<forall>c \<in> set (selof a). complete c) then None
+     else if mineof a = [] \<or> (\<exists>v \<in> set (vsof a). v = []) \<or>
+            (\<exists>v \<in> set (vsof a). set v \<noteq> set (hd (vsof a))) \<or> length (hd (vsof a)) \<noteq> 1
+     then None
+     else if restates f (hd (hd (vsof a))) then None
+     else if prop_of (key a) \<in> set time_variant \<and> past f then None
+     else Some (qid (hd (mineof a)), prop_of (key a), hd (hd (vsof a))))"
 
 definition attempt_decline :: "question_features \<Rightarrow> attempt \<Rightarrow> (natural \<times> natural) \<Rightarrow> bool" where
   "attempt_decline f a d \<longleftrightarrow>
      in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> [] \<and>
      (if dropped (key a) (idx a) then
-        d = (prop_of (key a), qid (hd (select (candidates a)))) \<and>
-        domain_member (hd (select (candidates a)))
-      else filter domain_member (take 3 (select (candidates a))) \<noteq> [] \<and>
-        (\<forall>c \<in> set (select (candidates a)). complete c) \<and>
-        d = (prop_of (key a), qid (hd (filter domain_member (take 3 (select (candidates a)))))))"
+        d = (prop_of (key a), qid (hd (selof a))) \<and> domain_member (hd (selof a))
+      else mineof a \<noteq> [] \<and> (\<forall>c \<in> set (selof a). complete c) \<and>
+        d = (prop_of (key a), qid (hd (mineof a))))"
 
 definition transparent :: "question_features \<Rightarrow> attempt \<Rightarrow> bool" where
   "transparent f a \<longleftrightarrow>
      (\<not> in_table (key a) (idx a) \<or> \<not> slot_ok a \<or> candidates a = []) \<or>
      (in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> [] \<and> dropped (key a) (idx a) \<and>
-        \<not> domain_member (hd (select (candidates a)))) \<or>
+        \<not> domain_member (hd (selof a))) \<or>
      (in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> [] \<and> \<not> dropped (key a) (idx a) \<and>
-        (\<forall>c \<in> set (select (candidates a)). complete c) \<and>
-        filter domain_member (take 3 (select (candidates a))) = [])"
+        (\<forall>c \<in> set (selof a). complete c) \<and> mineof a = [])"
 
-text \<open>The walk's step on one attempt, seen through @{text attempt_values}: an attempt whose answer
-exists ends the walk with that answer; otherwise the walk does to the accumulator exactly what the
-tree below says.\<close>
+section \<open>The walk's step on one attempt, through @{text attempt_values}\<close>
 
-lemma walk_cons_eq:
-  "walk f (a # rest) acc =
-    (case attempt_values f a of
-       Some x \<Rightarrow> Answer x
-     | None \<Rightarrow>
-         (if \<not> in_table (key a) (idx a) \<or> \<not> slot_ok a \<or> candidates a = [] then walk f rest acc
-          else let cs = select (candidates a); p = prop_of (key a) in
-               if dropped (key a) (idx a) then
-                 (case acc of
-                    None \<Rightarrow> if domain_member (hd cs) then walk f rest (Some (p, qid (hd cs))) else walk f rest None
-                  | Some d \<Rightarrow> walk f rest (Some d))
-               else if \<not> (\<forall>c \<in> set cs. complete c) then Incomplete
-               else let mine = filter domain_member (take 3 cs); vs = map (vals p) mine in
-                    if mine = [] \<or> (\<exists>v \<in> set vs. v = []) \<or> (\<exists>v \<in> set vs. set v \<noteq> set (hd vs)) \<or> length (hd vs) \<noteq> 1
-                    then (case acc of
-                            None \<Rightarrow> if mine = [] then walk f rest None else walk f rest (Some (p, qid (hd mine)))
-                          | Some d \<Rightarrow> walk f rest (Some d))
-                    else if restates f (hd (hd vs)) then Silent
-                    else if p \<in> set time_variant \<and> past f then Silent
-                    else Answer (qid (hd mine), p, hd (hd vs))))"
-  by (simp add: attempt_values_def split: if_splits)
+lemma walk_cons_answer:
+  assumes av: "attempt_values f a = Some x"
+  shows "walk f (a # rest) acc = Answer x"
+  using av[unfolded attempt_values_def] by (simp split: if_splits)
+
+lemma walk_cons_none:
+  assumes av: "attempt_values f a = None"
+  shows "walk f (a # rest) acc =
+    (if \<not> in_table (key a) (idx a) \<or> \<not> slot_ok a \<or> candidates a = [] then walk f rest acc
+     else if dropped (key a) (idx a) then
+       (case acc of
+          None \<Rightarrow> if domain_member (hd (selof a))
+                   then walk f rest (Some (prop_of (key a), qid (hd (selof a))))
+                   else walk f rest None
+        | Some d \<Rightarrow> walk f rest (Some d))
+     else if \<not> (\<forall>c \<in> set (selof a). complete c) then Incomplete
+     else if mineof a = [] \<or> (\<exists>v \<in> set (vsof a). v = []) \<or>
+            (\<exists>v \<in> set (vsof a). set v \<noteq> set (hd (vsof a))) \<or> length (hd (vsof a)) \<noteq> 1
+     then (case acc of
+             None \<Rightarrow> if mineof a = [] then walk f rest None
+                     else walk f rest (Some (prop_of (key a), qid (hd (mineof a))))
+           | Some d \<Rightarrow> walk f rest (Some d))
+     else if restates f (hd (hd (vsof a))) then Silent
+     else if prop_of (key a) \<in> set time_variant \<and> past f then Silent
+     else Answer (qid (hd (mineof a)), prop_of (key a), hd (hd (vsof a))))"
+  using av[unfolded attempt_values_def] by (simp split: if_splits)
 
 lemma walk_answer_exists:
   "\<forall>acc. walk f attempts acc = Answer x \<longrightarrow> (\<exists>a \<in> set attempts. attempt_values f a = Some x)"
 proof (induct attempts)
   case Nil
-  show ?case by simp
+  show ?case by (auto split: option.splits)
 next
   case (Cons a attempts)
   show ?case
@@ -264,7 +272,8 @@ next
     fix acc
     assume ans: "walk f (a # attempts) acc = Answer x"
     have "attempt_values f a = Some x \<or> (\<exists>acc'. walk f attempts acc' = Answer x)"
-      using ans by (subst walk_cons_eq) (auto split: option.splits if_splits simp: attempt_values_def)
+      using ans by (cases "attempt_values f a")
+         (auto simp: walk_cons_none attempt_values_def split: if_splits option.splits)
     then show "\<exists>b \<in> set (a # attempts). attempt_values f b = Some x"
       by (meson Cons in_set_consI)
   qed
@@ -275,15 +284,41 @@ lemma no_answer_when_none:
   shows "walk f attempts acc \<noteq> Answer x"
 proof
   assume eq: "walk f attempts acc = Answer x"
-  then obtain a where "a \<in> set attempts" and "attempt_values f a = Some x"
-    using walk_answer_exists[rule_format, of attempts f x acc] by auto
+  then have "\<exists>a \<in> set attempts. attempt_values f a = Some x"
+    using walk_answer_exists[rule_format] by meson
   with none show False by auto
 qed
 
 lemma walk_acc_decline:
-  assumes "walk f attempts (Some d) = Decline d'"
+  assumes dw: "walk f attempts (Some d) = Decline d'"
   shows "d' = d"
-  using assms by (induct attempts arbitrary: d) (auto split: option.splits if_splits)
+  using dw
+proof (induct attempts arbitrary: d)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a rest)
+  have av: "attempt_values f a = None"
+  proof (rule ccontr)
+    assume "attempt_values f a \<noteq> None"
+    then obtain x where "attempt_values f a = Some x" by blast
+    then have "walk f (a # rest) (Some d) = Answer x" by (rule walk_cons_answer)
+    with Cons(2) show False by simp
+  qed
+  from Cons(2) have tree:
+    "(if \<not> in_table (key a) (idx a) \<or> \<not> slot_ok a \<or> candidates a = [] then walk f rest (Some d)
+      else if dropped (key a) (idx a) then walk f rest (Some d)
+      else if \<not> (\<forall>c \<in> set (selof a). complete c) then Incomplete
+      else if mineof a = [] \<or> (\<exists>v \<in> set (vsof a). v = []) \<or>
+             (\<exists>v \<in> set (vsof a). set v \<noteq> set (hd (vsof a))) \<or> length (hd (vsof a)) \<noteq> 1
+      then walk f rest (Some d)
+      else if restates f (hd (hd (vsof a))) then Silent
+      else if prop_of (key a) \<in> set time_variant \<and> past f then Silent
+      else Answer (qid (hd (mineof a)), prop_of (key a), hd (hd (vsof a)))) = Decline d'"
+    by (simp add: walk_cons_none av)
+  show ?case
+    using tree by (auto split: if_splits option.splits dest: Cons(1))
+qed
 
 text \<open>The invariant behind a decline: no attempt along the way could answer, and the declined pair
 either came in with the accumulator (the decision itself never starts one) or was marked by a real
@@ -298,39 +333,42 @@ proof (induct attempts arbitrary: acc d)
   case Nil
   show "\<forall>b \<in> set []. attempt_values f b = None" by simp
   show "(acc = Some d) \<or> (\<exists>b \<in> set []. attempt_decline f b d)"
-    using Nil by (auto split: option.splits)
+    using Nil by (cases acc) auto
 next
   case (Cons a rest)
   have av: "attempt_values f a = None"
   proof (rule ccontr)
     assume "attempt_values f a \<noteq> None"
     then obtain x where "attempt_values f a = Some x" by blast
-    then have "walk f (a # rest) acc = Answer x" by (simp add: walk_cons_eq)
+    then have "walk f (a # rest) acc = Answer x" by (rule walk_cons_answer)
     with Cons(2) show False by simp
   qed
   from Cons(2) have tree:
     "(if \<not> in_table (key a) (idx a) \<or> \<not> slot_ok a \<or> candidates a = [] then walk f rest acc
-      else let cs = select (candidates a); p = prop_of (key a) in
-      if dropped (key a) (idx a) then
+      else if dropped (key a) (idx a) then
         (case acc of
-           None \<Rightarrow> if domain_member (hd cs) then walk f rest (Some (p, qid (hd cs))) else walk f rest None
+           None \<Rightarrow> if domain_member (hd (selof a))
+                    then walk f rest (Some (prop_of (key a), qid (hd (selof a))))
+                    else walk f rest None
          | Some d \<Rightarrow> walk f rest (Some d))
-      else if \<not> (\<forall>c \<in> set cs. complete c) then Incomplete
-      else let mine = filter domain_member (take 3 cs); vs = map (vals p) mine in
-        if mine = [] \<or> (\<exists>v \<in> set vs. v = []) \<or> (\<exists>v \<in> set vs. set v \<noteq> set (hd vs)) \<or> length (hd vs) \<noteq> 1
-        then (case acc of
-                None \<Rightarrow> if mine = [] then walk f rest None else walk f rest (Some (p, qid (hd mine)))
-              | Some d \<Rightarrow> walk f rest (Some d))
-        else if restates f (hd (hd vs)) then Silent
-        else if p \<in> set time_variant \<and> past f then Silent
-        else Answer (qid (hd mine), p, hd (hd vs))) = Decline d"
-    by (simp add: walk_cons_eq av)
+      else if \<not> (\<forall>c \<in> set (selof a). complete c) then Incomplete
+      else if mineof a = [] \<or> (\<exists>v \<in> set (vsof a). v = []) \<or>
+             (\<exists>v \<in> set (vsof a). set v \<noteq> set (hd (vsof a))) \<or> length (hd (vsof a)) \<noteq> 1
+      then (case acc of
+              None \<Rightarrow> if mineof a = [] then walk f rest None
+                      else walk f rest (Some (prop_of (key a), qid (hd (mineof a))))
+            | Some d \<Rightarrow> walk f rest (Some d))
+      else if restates f (hd (hd (vsof a))) then Silent
+      else if prop_of (key a) \<in> set time_variant \<and> past f then Silent
+      else Answer (qid (hd (mineof a)), prop_of (key a), hd (hd (vsof a)))) = Decline d"
+    by (simp add: walk_cons_none av)
   show "\<forall>b \<in> set (a # rest). attempt_values f b = None"
-    using tree by (auto split: if_splits option.splits simp: attempt_values_def
-                         dest: Cons(1)[THEN conjunct1, rule_format])
+    using tree
+    by (auto split: if_splits option.splits simp: attempt_values_def
+             dest: Cons(1)[THEN conjunct1, rule_format])
   show "(acc = Some d) \<or> (\<exists>b \<in> set (a # rest). attempt_decline f b d)"
     using tree
-    by (auto split: if_splits option.splits simp: attempt_values_def attempt_decline_def
+    by (auto split: if_splits option.splits simp: attempt_decline_def
              dest: walk_acc_decline Cons(1)[THEN conjunct2, rule_format])
 qed
 
@@ -338,7 +376,8 @@ lemma decline_meaning:
   assumes "decide_spec f attempts = Decline d"
   shows "(\<forall>a \<in> set attempts. attempt_values f a = None)" and "(\<exists>a \<in> set attempts. attempt_decline f a d)"
 proof -
-  from assms have "walk f attempts None = Decline d" by (simp add: decide_spec_def)
+  from assms have "walk f attempts None = Decline d"
+    by (cases "kind_conflict f") (simp_all add: decide_spec_def)
   from walk_decline_inv[OF this] show "(\<forall>a \<in> set attempts. attempt_values f a = None)" ..
   from walk_decline_inv[OF this] show "(\<exists>a \<in> set attempts. attempt_decline f a d)" by auto
 qed
@@ -346,49 +385,50 @@ qed
 lemma walk_incomplete_inv:
   assumes iw: "walk f attempts acc = Incomplete"
   shows "\<exists>a \<in> set attempts. in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> [] \<and>
-    \<not> dropped (key a) (idx a) \<and> (\<exists>c \<in> set (select (candidates a)). \<not> complete c)"
+    \<not> dropped (key a) (idx a) \<and> (\<exists>c \<in> set (selof a). \<not> complete c)"
 using iw
 proof (induct attempts arbitrary: acc)
   case Nil
-  then show ?case by simp
+  then show ?case by (cases acc) simp_all
 next
   case (Cons a rest)
   have av: "attempt_values f a = None"
   proof (rule ccontr)
     assume "attempt_values f a \<noteq> None"
     then obtain x where "attempt_values f a = Some x" by blast
-    then have "walk f (a # rest) acc = Answer x" by (simp add: walk_cons_eq)
+    then have "walk f (a # rest) acc = Answer x" by (rule walk_cons_answer)
     with Cons(2) show False by simp
   qed
   from Cons(2) have tree:
     "(if \<not> in_table (key a) (idx a) \<or> \<not> slot_ok a \<or> candidates a = [] then walk f rest acc
-      else let cs = select (candidates a); p = prop_of (key a) in
-      if dropped (key a) (idx a) then
+      else if dropped (key a) (idx a) then
         (case acc of
-           None \<Rightarrow> if domain_member (hd cs) then walk f rest (Some (p, qid (hd cs))) else walk f rest None
+           None \<Rightarrow> if domain_member (hd (selof a))
+                    then walk f rest (Some (prop_of (key a), qid (hd (selof a))))
+                    else walk f rest None
          | Some d \<Rightarrow> walk f rest (Some d))
-      else if \<not> (\<forall>c \<in> set cs. complete c) then Incomplete
-      else let mine = filter domain_member (take 3 cs); vs = map (vals p) mine in
-        if mine = [] \<or> (\<exists>v \<in> set vs. v = []) \<or> (\<exists>v \<in> set vs. set v \<noteq> set (hd vs)) \<or> length (hd vs) \<noteq> 1
-        then (case acc of
-                None \<Rightarrow> if mine = [] then walk f rest None else walk f rest (Some (p, qid (hd mine)))
-              | Some d \<Rightarrow> walk f rest (Some d))
-        else if restates f (hd (hd vs)) then Silent
-        else if p \<in> set time_variant \<and> past f then Silent
-        else Answer (qid (hd mine), p, hd (hd vs))) = Incomplete"
-    by (simp add: walk_cons_eq av)
+      else if \<not> (\<forall>c \<in> set (selof a). complete c) then Incomplete
+      else if mineof a = [] \<or> (\<exists>v \<in> set (vsof a). v = []) \<or>
+             (\<exists>v \<in> set (vsof a). set v \<noteq> set (hd (vsof a))) \<or> length (hd (vsof a)) \<noteq> 1
+      then (case acc of
+              None \<Rightarrow> if mineof a = [] then walk f rest None
+                      else walk f rest (Some (prop_of (key a), qid (hd (mineof a))))
+            | Some d \<Rightarrow> walk f rest (Some d))
+      else if restates f (hd (hd (vsof a))) then Silent
+      else if prop_of (key a) \<in> set time_variant \<and> past f then Silent
+      else Answer (qid (hd (mineof a)), prop_of (key a), hd (hd (vsof a)))) = Incomplete"
+    by (simp add: walk_cons_none av)
   show ?case
-    using tree by (auto split: if_splits option.splits simp: attempt_values_def
-                        dest: Cons(1))
+    using tree by (auto split: if_splits option.splits dest: Cons(1))
 qed
 
 lemma incomplete_meaning:
   assumes "decide_spec f attempts = Incomplete"
   shows "\<exists>a \<in> set attempts. in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> [] \<and>
-    \<not> dropped (key a) (idx a) \<and> (\<exists>c \<in> set (select (candidates a)). \<not> complete c)"
+    \<not> dropped (key a) (idx a) \<and> (\<exists>c \<in> set (selof a). \<not> complete c)"
 proof -
-  from assms have "\<not> kind_conflict f" and "walk f attempts None = Incomplete"
-    by (auto simp: decide_spec_def)
+  have "\<not> kind_conflict f" and "walk f attempts None = Incomplete"
+    using assms by (cases "kind_conflict f") (simp_all add: decide_spec_def)
   from walk_incomplete_inv[OF this(2)] show ?thesis .
 qed
 
@@ -396,53 +436,131 @@ lemma walk_silent_inv:
   assumes sw: "walk f attempts acc = Silent"
   shows "(acc = None \<and> (\<forall>a \<in> set attempts. transparent f a)) \<or>
     (\<exists>a \<in> set attempts. in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> [] \<and>
-       \<not> dropped (key a) (idx a) \<and> (\<forall>c \<in> set (select (candidates a)). complete c) \<and>
-       filter domain_member (take 3 (select (candidates a))) \<noteq> [] \<and>
-       (restates f (hd (hd (map (vals (prop_of (key a))) (filter domain_member (take 3 (select (candidates a))))))) \<or>
+       \<not> dropped (key a) (idx a) \<and> (\<forall>c \<in> set (selof a). complete c) \<and>
+       mineof a \<noteq> [] \<and>
+       (restates f (hd (hd (vsof a))) \<or>
         prop_of (key a) \<in> set time_variant \<and> past f))"
 using sw
 proof (induct attempts arbitrary: acc)
   case Nil
-  then show ?case by (auto split: option.splits)
+  then show ?case by (cases acc) auto
 next
   case (Cons a rest)
   have av: "attempt_values f a = None"
   proof (rule ccontr)
     assume "attempt_values f a \<noteq> None"
     then obtain x where "attempt_values f a = Some x" by blast
-    then have "walk f (a # rest) acc = Answer x" by (simp add: walk_cons_eq)
+    then have "walk f (a # rest) acc = Answer x" by (rule walk_cons_answer)
     with Cons(2) show False by simp
   qed
   from Cons(2) have tree:
     "(if \<not> in_table (key a) (idx a) \<or> \<not> slot_ok a \<or> candidates a = [] then walk f rest acc
-      else let cs = select (candidates a); p = prop_of (key a) in
-      if dropped (key a) (idx a) then
+      else if dropped (key a) (idx a) then
         (case acc of
-           None \<Rightarrow> if domain_member (hd cs) then walk f rest (Some (p, qid (hd cs))) else walk f rest None
+           None \<Rightarrow> if domain_member (hd (selof a))
+                    then walk f rest (Some (prop_of (key a), qid (hd (selof a))))
+                    else walk f rest None
          | Some d \<Rightarrow> walk f rest (Some d))
-      else if \<not> (\<forall>c \<in> set cs. complete c) then Incomplete
-      else let mine = filter domain_member (take 3 cs) in
-        if mine = [] \<or> \<exists>v \<in> set (map (vals p) mine). v = [] \<or>
-           (\<exists>v \<in> set (map (vals p) mine). set v \<noteq> set (hd (map (vals p) mine))) \<or> length (hd (map (vals p) mine)) \<noteq> 1
-        then (case acc of
-                None \<Rightarrow> if mine = [] then walk f rest None else walk f rest (Some (p, qid (hd mine)))
-              | Some d \<Rightarrow> walk f rest (Some d))
-        else if restates f (hd (hd (map (vals p) mine)) ) then Silent
-        else if p \<in> set time_variant \<and> past f then Silent
-        else Answer (qid (hd mine), p, hd (hd (map (vals p) mine)))) = Silent"
-    by (simp add: walk_cons_eq av)
+      else if \<not> (\<forall>c \<in> set (selof a). complete c) then Incomplete
+      else if mineof a = [] \<or> (\<exists>v \<in> set (vsof a). v = []) \<or>
+             (\<exists>v \<in> set (vsof a). set v \<noteq> set (hd (vsof a))) \<or> length (hd (vsof a)) \<noteq> 1
+      then (case acc of
+              None \<Rightarrow> if mineof a = [] then walk f rest None
+                      else walk f rest (Some (prop_of (key a), qid (hd (mineof a))))
+            | Some d \<Rightarrow> walk f rest (Some d))
+      else if restates f (hd (hd (vsof a))) then Silent
+      else if prop_of (key a) \<in> set time_variant \<and> past f then Silent
+      else Answer (qid (hd (mineof a)), prop_of (key a), hd (hd (vsof a)))) = Silent"
+    by (simp add: walk_cons_none av)
   show ?case
-    using tree by (auto split: if_splits option.splits simp: attempt_values_def transparent_def
-                        dest: Cons(1))
+  proof (cases "in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> []")
+    case False
+    note ntab = False
+    then have "walk f rest acc = Silent" using tree by (auto split: if_splits)
+    from Cons(1)[OF this] show ?thesis using ntab by (auto simp: transparent_def)
+  next
+    case True
+    then have t1: "in_table (key a) (idx a)" and t2: "slot_ok a" and t3: "candidates a \<noteq> []" by auto
+    show ?thesis
+    proof (cases "dropped (key a) (idx a)")
+      case True
+      note drp = True
+      show ?thesis
+      proof (cases acc)
+        case None
+        show ?thesis
+        proof (cases "domain_member (hd (selof a))")
+          case True
+          then have "walk f rest (Some (prop_of (key a), qid (hd (selof a)))) = Silent"
+            using tree t1 t2 t3 drp None by (simp split: if_splits)
+          from Cons(1)[OF this] show ?thesis by simp
+        next
+          case False
+          then have "walk f rest None = Silent"
+            using tree t1 t2 t3 drp None by (simp split: if_splits)
+          from Cons(1)[OF this] show ?thesis using t1 t2 t3 drp False by (auto simp: transparent_def)
+        qed
+      next
+        case (Some d)
+        then have "walk f rest (Some d) = Silent"
+          using tree t1 t2 t3 drp by (simp split: if_splits)
+        from Cons(1)[OF this] show ?thesis by simp
+      qed
+    next
+      case False
+      note ndrp = False
+      show ?thesis
+      proof (cases "\<forall>c \<in> set (selof a). complete c")
+        case False
+        then show ?thesis using tree t1 t2 t3 ndrp by simp
+      next
+        case True
+        note comp = True
+        show ?thesis
+        proof (cases "mineof a = [] \<or> (\<exists>v \<in> set (vsof a). v = []) \<or>
+                      (\<exists>v \<in> set (vsof a). set v \<noteq> set (hd (vsof a))) \<or> length (hd (vsof a)) \<noteq> 1")
+          case True
+          note agg = True
+          show ?thesis
+          proof (cases acc)
+            case None
+            show ?thesis
+            proof (cases "mineof a = []")
+              case True
+              then have "walk f rest None = Silent"
+                using tree t1 t2 t3 ndrp comp agg None by (simp split: if_splits)
+              from Cons(1)[OF this] show ?thesis
+                using t1 t2 t3 ndrp comp True by (auto simp: transparent_def)
+            next
+              case False
+              then have "walk f rest (Some (prop_of (key a), qid (hd (mineof a)))) = Silent"
+                using tree t1 t2 t3 ndrp comp agg None by (simp split: if_splits)
+              from Cons(1)[OF this] show ?thesis by simp
+            qed
+          next
+            case (Some d)
+            then have "walk f rest (Some d) = Silent"
+              using tree t1 t2 t3 ndrp comp agg by (simp split: if_splits)
+            from Cons(1)[OF this] show ?thesis by simp
+          qed
+        next
+          case False
+          note nagg = False
+          show ?thesis using tree t1 t2 t3 ndrp comp nagg
+            by (auto split: if_splits simp: transparent_def)
+        qed
+      qed
+    qed
+  qed
 qed
 
 lemma silent_meaning:
   assumes "decide_spec f attempts = Silent"
   shows "kind_conflict f \<or> attempts = [] \<or>
     (\<exists>a \<in> set attempts. in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> [] \<and>
-       \<not> dropped (key a) (idx a) \<and> (\<forall>c \<in> set (select (candidates a)). complete c) \<and>
-       filter domain_member (take 3 (select (candidates a))) \<noteq> [] \<and>
-       (restates f (hd (hd (map (vals (prop_of (key a))) (filter domain_member (take 3 (select (candidates a))))))) \<or>
+       \<not> dropped (key a) (idx a) \<and> (\<forall>c \<in> set (selof a). complete c) \<and>
+       mineof a \<noteq> [] \<and>
+       (restates f (hd (hd (vsof a))) \<or>
         prop_of (key a) \<in> set time_variant \<and> past f)) \<or>
     (\<forall>a \<in> set attempts. transparent f a)"
 proof (cases "kind_conflict f")
@@ -458,47 +576,53 @@ lemma attempt_values_sound:
   assumes "attempt_values f a = Some (s, p, v)"
   shows "in_table (key a) (idx a)" "slot_ok a" "candidates a \<noteq> []" "\<not> dropped (key a) (idx a)"
     "p = prop_of (key a)"
-    "filter domain_member (take 3 (select (candidates a))) \<noteq> []"
-    "s = qid (hd (filter domain_member (take 3 (select (candidates a)))))"
-    "domain_member (hd (filter domain_member (take 3 (select (candidates a)))))"
-    "(\<forall>c \<in> set (select (candidates a)). complete c)"
-    "(\<forall>c \<in> set (filter domain_member (take 3 (select (candidates a)))). set (vals p c) = {v})"
-    "(p, v) \<in> set (rows (hd (filter domain_member (take 3 (select (candidates a))))))"
+    "mineof a \<noteq> []"
+    "s = qid (hd (mineof a))"
+    "domain_member (hd (mineof a))"
+    "(\<forall>c \<in> set (selof a). complete c)"
+    "(\<forall>c \<in> set (mineof a). set (vals p c) = {v})"
+    "(p, v) \<in> set (rows (hd (mineof a)))"
     "v \<noteq> Blank"
     "\<not> restates f v"
     "p \<notin> set time_variant \<or> \<not> past f"
 proof -
-  let ?mine = "filter domain_member (take 3 (select (candidates a)))"
-  note unf = assms[unfolded attempt_values_def, simplified]
-  from unf show "in_table (key a) (idx a)" "slot_ok a" "candidates a \<noteq> []" "\<not> dropped (key a) (idx a)"
-    by (auto split: if_splits)
-  from unf show "p = prop_of (key a)" by (auto split: if_splits)
-  from unf have mine: "?mine \<noteq> []"
-    by (auto split: if_splits)
-  then show mine': "?mine \<noteq> []" by (rule mine)
-  then show dom: "domain_member (hd ?mine)" by (induct ?mine) auto
-  from unf mine show s: "s = qid (hd ?mine)" by (auto split: if_splits)
-  from unf show "(\<forall>c \<in> set (select (candidates a)). complete c)" by (auto split: if_splits)
-  from unf mine have agree: "\<not> ((\<exists>w \<in> set (map (vals p) ?mine). w = []) \<or>
-      (\<exists>w \<in> set (map (vals p) ?mine). set w \<noteq> set (hd (map (vals p) ?mine))) \<or>
-      length (hd (map (vals p) ?mine)) \<noteq> 1)"
-    and no_restates: "\<not> restates f v" and no_past: "p \<notin> set time_variant \<or> \<not> past f"
-    and val: "v = hd (hd (map (vals p) ?mine))"
-    by (auto split: if_splits)
-  have hdmap: "hd (map (vals p) ?mine) = vals p (hd ?mine)" using mine by simp
-  from agree have "\<forall>w \<in> set (map (vals p) ?mine). set w = set (vals p (hd ?mine))"
+  from assms[unfolded attempt_values_def]
+  have guards:
+    "in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> [] \<and> \<not> dropped (key a) (idx a)
+     \<and> p = prop_of (key a) \<and> (\<forall>c \<in> set (selof a). complete c) \<and> mineof a \<noteq> []"
+    by (simp split: if_splits)
+  from guards show "in_table (key a) (idx a)" "slot_ok a" "candidates a \<noteq> []" "\<not> dropped (key a) (idx a)"
+    by auto
+  from guards show "p = prop_of (key a)" "(\<forall>c \<in> set (selof a). complete c)" by auto
+  from guards have mine: "mineof a \<noteq> []" by auto
+  then show mine': "mineof a \<noteq> []" by (rule mine)
+  then show dom: "domain_member (hd (mineof a))" by (cases "mineof a") (auto simp: set_filter)
+  have hdmap: "hd (map (vals p) (mineof a)) = vals p (hd (mineof a))" using mine by simp
+  from assms[unfolded attempt_values_def] guards
+  have core:
+    "\<not> ((\<exists>w \<in> set (map (vals p) (mineof a)). w = []) \<or>
+       (\<exists>w \<in> set (map (vals p) (mineof a)). set w \<noteq> set (hd (map (vals p) (mineof a)))) \<or>
+       length (hd (map (vals p) (mineof a))) \<noteq> 1)
+     \<and> \<not> restates f v \<and> (p \<notin> set time_variant \<or> \<not> past f)
+     \<and> v = hd (hd (map (vals p) (mineof a))) \<and> s = qid (hd (mineof a))"
+    by (simp split: if_splits)
+  from core show s: "s = qid (hd (mineof a))" "\<not> restates f v" "p \<notin> set time_variant \<or> \<not> past f" by auto
+  from core have agree: "\<not> ((\<exists>w \<in> set (map (vals p) (mineof a)). w = []) \<or>
+      (\<exists>w \<in> set (map (vals p) (mineof a)). set w \<noteq> set (hd (map (vals p) (mineof a)))) \<or>
+      length (hd (map (vals p) (mineof a))) \<noteq> 1)"
+    and val: "v = hd (hd (map (vals p) (mineof a)))"
+    by auto
+  from agree have "\<forall>w \<in> set (map (vals p) (mineof a)). set w = set (vals p (hd (mineof a)))"
     using hdmap by auto
-  then have sets: "\<forall>c \<in> set ?mine. set (vals p c) = set (vals p (hd ?mine))"
-    by (induct ?mine) (auto simp: dom)
-  from agree hdmap have len: "length (vals p (hd ?mine)) = 1" by auto
-  then have "set (vals p (hd ?mine)) = {v}" using val hdmap
-    by (cases "vals p (hd ?mine)") (auto simp: dom)
-  with sets show "(\<forall>c \<in> set ?mine. set (vals p c) = {v})" by auto
-  then have in_rows: "v \<in> set (vals p (hd ?mine))" using dom by auto
-  from in_rows show "(p, v) \<in> set (rows (hd ?mine))" by (auto simp: set_vals)
+  then have sets: "\<forall>c \<in> set (mineof a). set (vals p c) = set (vals p (hd (mineof a)))"
+    by (induct "mineof a") (auto simp: dom)
+  from agree hdmap have len: "length (vals p (hd (mineof a))) = 1" by auto
+  then have "set (vals p (hd (mineof a))) = {v}" using val hdmap
+    by (cases "vals p (hd (mineof a))") (auto simp: dom)
+  with sets show "(\<forall>c \<in> set (mineof a). set (vals p c) = {v})" by auto
+  then have in_rows: "v \<in> set (vals p (hd (mineof a)))" using dom by auto
+  from in_rows show "(p, v) \<in> set (rows (hd (mineof a)))" by (auto simp: set_vals)
   from in_rows show "v \<noteq> Blank" by (auto simp: set_vals)
-  show "\<not> restates f v" by (rule no_restates)
-  show "p \<notin> set time_variant \<or> \<not> past f" by (rule no_past)
 qed
 
 section \<open>The receipts\<close>
@@ -512,27 +636,27 @@ theorem answer_stored:
   assumes ans: "decide_spec f attempts = Answer (s, p, v)"
   shows "p \<in> {50, 577, 840, 156, 144}"
     and "\<exists>a c. a \<in> set attempts \<and> attempt_values f a = Some (s, p, v) \<and>
-          c \<in> set (filter domain_member (take 3 (select (candidates a)))) \<and>
-          qid c = s \<and> dom_complete c \<and> (\<forall>c' \<in> set (select (candidates a)). complete c') \<and>
+          c \<in> set (mineof a) \<and> qid c = s \<and> dom_complete c \<and>
+          (\<forall>c' \<in> set (selof a). complete c') \<and>
           (p, v) \<in> set (rows c) \<and> v \<noteq> Blank \<and> \<not> restates f v \<and>
-          (\<forall>c' \<in> set (filter domain_member (take 3 (select (candidates a)))). set (vals p c') = {v})"
+          (\<forall>c' \<in> set (mineof a). set (vals p c') = {v})"
 proof -
-  from ans have "walk f attempts None = Answer (s, p, v)" by (simp add: decide_spec_def)
+  from ans have "walk f attempts None = Answer (s, p, v)"
+    by (cases "kind_conflict f") (simp_all add: decide_spec_def)
   then obtain a where a: "a \<in> set attempts" and av: "attempt_values f a = Some (s, p, v)"
     using walk_answer_exists[rule_format] by meson
   from attempt_values_sound(1)[OF av] table_props
   show "p \<in> {50, 577, 840, 156, 144}" by fastforce
-  let ?mine = "filter domain_member (take 3 (select (candidates a)))"
-  let ?c = "hd ?mine"
-  have mine_ne: "?mine \<noteq> []" by (rule attempt_values_sound(6)[OF av])
-  have cin: "?c \<in> set ?mine" using mine_ne by (cases "?mine") auto
+  let ?c = "hd (mineof a)"
+  have mine_ne: "mineof a \<noteq> []" by (rule attempt_values_sound(6)[OF av])
+  have cin: "?c \<in> set (mineof a)" using mine_ne by (cases "mineof a") auto
   have cdom: "domain_member ?c" using cin by (auto simp: set_filter)
   note receipts = attempt_values_sound(7,8,9,10,11,12,13)[OF av]
   from a av cin receipts cdom show "\<exists>a c. a \<in> set attempts \<and> attempt_values f a = Some (s, p, v) \<and>
-          c \<in> set (filter domain_member (take 3 (select (candidates a)))) \<and>
-          qid c = s \<and> dom_complete c \<and> (\<forall>c' \<in> set (select (candidates a)). complete c') \<and>
+          c \<in> set (mineof a) \<and> qid c = s \<and> dom_complete c \<and>
+          (\<forall>c' \<in> set (selof a). complete c') \<and>
           (p, v) \<in> set (rows c) \<and> v \<noteq> Blank \<and> \<not> restates f v \<and>
-          (\<forall>c' \<in> set (filter domain_member (take 3 (select (candidates a)))). set (vals p c') = {v})"
+          (\<forall>c' \<in> set (mineof a). set (vals p c') = {v})"
     by (intro exI[where x = a] exI[where x = ?c]) (auto simp: domain_member_roots)
 qed
 
@@ -543,7 +667,7 @@ theorem decline_stored:
   assumes dec: "decide_spec f attempts = Decline (p, s)"
   shows "p \<in> {50, 577, 840, 156, 144}"
     and "\<exists>a c. a \<in> set attempts \<and> in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> [] \<and>
-          c \<in> set (select (candidates a)) \<and> qid c = s \<and> domain_member c"
+          c \<in> set (selof a) \<and> qid c = s \<and> domain_member c"
 proof -
   from decline_meaning[OF dec] obtain a where a: "a \<in> set attempts" and ad: "attempt_decline f a (p, s)"
     by auto
@@ -552,30 +676,25 @@ proof -
   have pk: "p = prop_of (key a)"
     using ad by (auto simp: attempt_decline_def split: if_splits)
   from table_props guards pk show "p \<in> {50, 577, 840, 156, 144}" by fastforce
-  let ?cs = "select (candidates a)"
   show "\<exists>a c. a \<in> set attempts \<and> in_table (key a) (idx a) \<and> slot_ok a \<and> candidates a \<noteq> [] \<and>
-          c \<in> set (select (candidates a)) \<and> qid c = s \<and> domain_member c"
+          c \<in> set (selof a) \<and> qid c = s \<and> domain_member c"
   proof (cases "dropped (key a) (idx a)")
     case True
-    with ad have "domain_member (hd ?cs) \<and> (p, s) = (prop_of (key a), qid (hd ?cs))"
-      by (auto simp: attempt_decline_def)
-    with guards have dm: "domain_member (hd ?cs)" and qs: "qid (hd ?cs) = s"
-      by (auto simp: prop_of_def)
-    have hin: "hd ?cs \<in> set ?cs" using guards by (cases "candidates a") (auto simp: select_def)
+    with ad have dm: "domain_member (hd (selof a))" and qs: "qid (hd (selof a)) = s"
+      by (auto simp: attempt_decline_def prop_of_def)
+    have hin: "hd (selof a) \<in> set (selof a)" using guards
+      by (cases "candidates a") (auto simp: select_def split: if_splits)
     show ?thesis
-      by (intro exI[where x = a] exI[where x = "hd ?cs"])
-         (auto simp: guards hin dm qs)
+      by (intro exI[where x = a] exI[where x = "hd (selof a)"]) (auto simp: a guards hin dm qs)
   next
     case False
-    let ?mine = "filter domain_member (take 3 ?cs)"
-    from False ad have mine_ne: "?mine \<noteq> []" and qs: "qid (hd ?mine) = s"
+    from False ad have mine_ne: "mineof a \<noteq> []" and qs: "qid (hd (mineof a)) = s"
       by (auto simp: attempt_decline_def prop_of_def)
-    have dm: "domain_member (hd ?mine)" using mine_ne by (cases "?mine") (auto simp: set_filter)
-    have hin: "hd ?mine \<in> set ?cs" using mine_ne
-      by (cases "?mine") (auto dest: in_set_takeD simp: select_subset)
+    have dm: "domain_member (hd (mineof a))" using mine_ne by (cases "mineof a") (auto simp: set_filter)
+    have hin: "hd (mineof a) \<in> set (selof a)" using mine_ne
+      by (cases "mineof a") (auto dest: in_set_takeD simp: select_subset)
     show ?thesis
-      by (intro exI[where x = a] exI[where x = "hd ?mine"])
-         (auto simp: guards hin dm qs)
+      by (intro exI[where x = a] exI[where x = "hd (mineof a)"]) (auto simp: a guards hin dm qs)
   qed
 qed
 
