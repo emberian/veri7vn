@@ -55,10 +55,12 @@ Isabelle2026-RC1 bundle), not committed. Cold start (process start to first repl
 status `passed`, inputs stable. Session build 2 min 04 s with the base session cached;
 the first base build (Approximation from source) took about 2 min. Receipt
 `var/native-scaffold/sessions/487dde4ecace2b6f/receipt.json`, immutable attempt
-`var/native-scaffold/sessions/487dde4ecace2b6f/attempts/f82c8203b3cc42e9910a899aacddf342/receipt.json`.
-Marker: `VERI7VN_QUANTITY PASS theorems=45 oracles=0`. The ML block in
+`var/native-scaffold/sessions/487dde4ecace2b6f/attempts/50e9b3ffdb164529a0f9b5cdbc643dd4/receipt.json`
+(follow-up build at 22:40; the first acceptance was attempt `f82c8203...`; at load ~250 the follow-up
+session took 8 min 54 s).
+Marker: `VERI7VN_QUANTITY PASS theorems=47 oracles=0`. The ML block in
 `Quantity_Export.thy` prints it only after two checks pass: `Thm_Deps.all_oracles` is
-empty for the 45 theorems below, and the compiled `self_test` holds. The self test
+empty for the 47 theorems below, and the compiled `self_test` holds. The self test
 covers kernel outcomes for every family, the C/F point-versus-difference example, and
 reply text and number layout. Sessions: `Veri7vn_Quantity_Base` (`base/`, loads
 `HOL-Decision_Procs.Approximation`, no HOL-Analysis) and `Veri7vn_Quantity`.
@@ -172,8 +174,14 @@ spring_period_model:
   assumes "0 < k" "0 ≤ siq m"
   shows "0 ≤ phys (SpringPeriod (Some k) (Some m)) ∧
   phys (SpringPeriod (Some k) (Some m)) ^ 2 * rl k = 4 * pi ^ 2 * rl (siq m)"
-spring_frequency_model:
+spring_frequency_inverse:
   "phys (SpringFrequency (Some k) (Some m)) = inverse (phys (SpringPeriod (Some k) (Some m)))"
+spring_frequency_model:
+  assumes "0 < k" "0 < siq m"
+  shows "phys (SpringFrequency (Some k) (Some m)) * phys (SpringPeriod (Some k) (Some m)) = 1"
+round_tie_up:
+  assumes "x / pow10 e = of_int n + 1 / 2"
+  shows "round_at x e = (n + 1, e)"
 gauge_pressure:
   assumes "kernel (PressureGauge f (Some h)) = Exact c y"
   shows "c = K_pressure_gauge ∧ dim_of (snd h) = D_length ∧ y = density f * g0 * siq h"
@@ -278,13 +286,23 @@ and MWh, and any link to the organ tables. The definitions here are local, and
 
 ## Remaining
 
-1. **`spring_frequency_model` was weakened.** The intended statement is
-   `0 < k ⟹ 0 < siq m ⟹ phys (SpringFrequency ..) * phys (SpringPeriod ..) = 1`. It
-   failed twice: simp left the goal `inverse pi * (inverse (sqrt X) * (pi * sqrt X)) = 1`
-   with `X ≠ 0` known only as `siq m ≠ 0 ∧ k ≠ 0`. Under the two-attempt cap it was
-   weakened to `phys (SpringFrequency ..) = inverse (phys (SpringPeriod ..))`. The fix
-   is likely `field_simps` with `sqrt X ≠ 0` and `pi ≠ 0` stated first. The frequency
-   kind is not on the springs panel.
+`spring_frequency_model` (`f * T = 1` for positive k and m) is now proved; it took one more attempt in the follow-up, with an explicit `left_inverse` step. The earlier weakened form remains as `spring_frequency_inverse`.
+
+1. **Rounding on exact decimal ties is stated, not matched (follow-up from lane H).**
+   Example: 0.015 m3 of petrol at 745 kg/m3 is exactly 11.175 kg. The kernel rounds
+   the exact tie up to 11.18 (`round_tie_up`; the self test pins
+   `stated_dec K_mass (11175/1000) = Some (1118, -2)`). The densities organ computes the
+   float `0.015*745 = 11.174999999999999` and prints 11.17. This explains 8 of lane H's
+   266 fourth-digit differences (`var/fusion/measure.json`, differential rows,
+   petrol/gasoline at 15 and 250 litres, carried through to fuel energy).
+   - **Why (b), not (a).** Option (a) (round half to even) does not reproduce the
+     organ: on the exact value 11.175 it also gives 11.18, because 1117 is odd. The
+     organ's 11.17 is an artefact of binary floating point, not a tie rule.
+   - **Matching it** would mean modelling IEEE double arithmetic in the kernel, which
+     the exact-rational design deliberately avoids.
+   - **Scope of the difference.** The kernel and the organs differ only where the exact
+     decimal value is a tie, or within float error of one, at the fourth (or tenth)
+     significant digit. None of the 640 panel items is such a case.
 2. **Rules 1 and 2 of the gate need a head run.** Run
    `tools/parity/answerers/oracle7.py --compose front` with the binary as the specialist
    (needs a small adapter), or run the head alone and combine. Lane A's full board run

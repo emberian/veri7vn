@@ -42,15 +42,17 @@ between the scales' zero points. CO2 equals the energy released times the emissi
 factor. The fraction of a floating solid below the surface times the fluid density
 equals the solid density. The period is computed by enclosing the real value
 `2 pi sqrt(m/k)` in a verified interval and rounding to four digits. `kernel_approx_sound`
-bounds the error at one part in a thousand, and `spring_period_model` proves
-`T^2 k = 4 pi^2 m`. The kernel declines as underspecified exactly when an amount is
+bounds the error at one part in a thousand, `spring_period_model` proves
+`T^2 k = 4 pi^2 m`, and `spring_frequency_model` proves `f T = 1`. The kernel declines as underspecified exactly when an amount is
 missing, as a mismatch exactly when the dimensions are wrong (metres to kilograms), and
 as impossible exactly when the input is impossible (below absolute zero, or a zero
 spring constant or stretch). Statements: [lane G handoff](../../../project/lanes/G-quantity.md).
 
 Stated values are rounded with a proved bound (`stated_dec_sound`). Conversions use ten
 significant digits, or the exact whole number with the exact fraction alongside, as
-units v2 prints them. The other organs use four digits, as `%.4g` gives. How the digits
+units v2 prints them. The other organs use four digits, as `%.4g` gives. An exact
+decimal tie rounds up (`round_tie_up`). The organs round a binary float, so on a tie
+like 0.015 x 745 = 11.175 they can print the lower neighbour (11.17 against 11.18 here). How the digits
 are laid out as text (`render_dec`) is checked by the self test and by the panels. It
 is not proved.
 
