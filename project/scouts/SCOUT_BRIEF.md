@@ -31,9 +31,10 @@ A prototype that scores one real panel number teaches more than any plan.
 - Scoring: `python3 tools/parity/harness.py --answerer "<your binary>" --specialist <id> --split both --out var/scout/parity`
   (the harness kills answerers over 4 GB). MLton:
   `/Applications/Isabelle2026-RC1.app/contrib/mlton-20241230-1/*/bin/mlton`.
-- Jesse (MCP tools `mcp__jesse__*`) is a bounded companion with evidence
-  receipts; good for a second opinion on a formula or a wrong answer; trust
-  only what its receipt marks verified.
+- Scouts run without MCP servers (their tool schemas would not fit your
+  context); the toolset is the built-in one: Read, Write, Edit, Glob, Grep,
+  Bash. Keep your own context small: read files in parts, grep before reading,
+  and avoid printing large outputs.
 
 ## What to bring back
 Write `SCOUT_REPORT.md` at your worktree root and commit it:
