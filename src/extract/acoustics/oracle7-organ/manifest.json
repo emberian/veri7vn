@@ -1,0 +1,79 @@
+{
+ "id": "acoustics-veri7vn",
+ "name": "Acoustics & Sound (veri7vn verified kernel)",
+ "tier": "A",
+ "sources": [
+  {
+   "name": "Speed of sound in dry air v = 331.3 sqrt(1 + T/273.15) m/s; fresh water 1481 m/s at 20 C (stated in every answer)",
+   "licence": "facts / physics",
+   "url": "https://en.wikipedia.org/wiki/Speed_of_sound"
+  },
+  {
+   "name": "Decibel, Doppler, pipe and string harmonic formulas (OpenStax University Physics vol. 1, ch. 17)",
+   "licence": "CC-BY 4.0",
+   "url": "https://openstax.org/details/books/university-physics-volume-1"
+  },
+  {
+   "name": "veri7vn acoustics kernel: formulas, declines and rounding proved in Isabelle/HOL, compiled with MLton (src/extract/acoustics in veri7vn)",
+   "licence": "see veri7vn"
+  }
+ ],
+ "store": {
+  "path": "__ORACLE7_ROOT__/specialists/acoustics-veri7vn/organ_acoustics_veri7vn.py"
+ },
+ "organ": {
+  "dir": "__ORACLE7_ROOT__/specialists/acoustics-veri7vn",
+  "module": "organ_acoustics_veri7vn",
+  "class": "AcousticsVeri7vnOrgan",
+  "init": {}
+ },
+ "accept": {
+  "kinds": [
+   "beat",
+   "doppler",
+   "db_sum",
+   "db_distance",
+   "db_ratio",
+   "intensity_ratio",
+   "string",
+   "pipe_closed",
+   "pipe_open",
+   "wavelength",
+   "frequency",
+   "speed"
+  ],
+  "declines_in_domain": [
+   "underspecified",
+   "impossible"
+  ],
+  "context_regex": "\\b(?:sound|decibels?|db|doppler|siren|horn|honk\\w*|pipe|string|harmonics?|beats?|tuning fork|pitch)\\b"
+ },
+ "panel": {
+  "path": "acoustics_panel_v1.json",
+  "splits": [
+   "dev",
+   "heldout"
+  ],
+  "exclude_kinds_composed": [],
+  "scorer_module": "acoustics_scorer",
+  "scorer_fn": "ok"
+ },
+ "routing_cues": [
+  "speed of sound",
+  "decibels",
+  "Doppler",
+  "beat frequency",
+  "open pipe",
+  "closed pipe",
+  "harmonic"
+ ],
+ "budgets": {
+  "latency_p50_ms": 50,
+  "store_mb": 1
+ },
+ "core_sample": {
+  "n": 400,
+  "seed": 20260928
+ },
+ "notes": "The shipped acoustics specialist's behaviour, computed by a standalone binary extracted from a verified Isabelle/HOL kernel. Panel and scorer are copies of the shipped acoustics ones; the panel is regrouped into {dev, heldout} lists for workbench/exam.py."
+}

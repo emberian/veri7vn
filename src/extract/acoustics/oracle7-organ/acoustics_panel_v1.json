@@ -1,0 +1,979 @@
+{
+ "dev": [
+  {
+   "split": "dev",
+   "kind": "speedT",
+   "valid": true,
+   "q": "What is the speed of sound in air at 0 degrees C?",
+   "expect": 331.3
+  },
+  {
+   "split": "dev",
+   "kind": "wl",
+   "valid": true,
+   "q": "What is the wavelength of a 440 Hz sound in air?",
+   "expect": 0.7800332333694726
+  },
+  {
+   "split": "dev",
+   "kind": "wlT",
+   "valid": true,
+   "q": "What is the wavelength of a 440 Hz sound in air at 0 degrees C?",
+   "expect": 0.7529545454545454
+  },
+  {
+   "split": "dev",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two tuning forks of 440 Hz and 442 Hz sound together. What is the beat frequency?",
+   "expect": 2
+  },
+  {
+   "split": "dev",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "A siren of 440 Hz is moving toward you at 20 m/s. What frequency do you hear?",
+   "expect": 467.2264909519349
+  },
+  {
+   "split": "dev",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A siren of 440 Hz is moving away from you at 20 m/s. What frequency do you hear?",
+   "expect": 415.77190055013074
+  },
+  {
+   "split": "dev",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "Two sources of 60 dB and 60 dB play together. What is the combined sound level in decibels?",
+   "expect": 63.01029995663981
+  },
+  {
+   "split": "dev",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "A sound is 60 dB at 5 m. What is the level in dB at 20 m?",
+   "expect": 47.95880017344075
+  },
+  {
+   "split": "dev",
+   "kind": "dbratio",
+   "valid": true,
+   "q": "How many decibels louder is a sound with 10 times the intensity?",
+   "expect": 10.0
+  },
+  {
+   "split": "dev",
+   "kind": "open",
+   "valid": true,
+   "q": "What is the fundamental frequency of an open pipe 1.2 m long?",
+   "expect": 143.0060927844033
+  },
+  {
+   "split": "dev",
+   "kind": "closed",
+   "valid": true,
+   "q": "What is the fundamental frequency of a closed pipe 1.2 m long?",
+   "expect": 71.50304639220165
+  },
+  {
+   "split": "dev",
+   "kind": "string",
+   "valid": true,
+   "q": "A string 1.2 m long has a wave speed of 120 m/s. What is its fundamental frequency?",
+   "expect": 50.0
+  },
+  {
+   "split": "dev",
+   "kind": "speedT",
+   "valid": true,
+   "q": "What is the speed of sound in air at 35 degrees C?",
+   "expect": 351.8859440791726
+  },
+  {
+   "split": "dev",
+   "kind": "wl",
+   "valid": true,
+   "q": "What is the wavelength of a 1000 Hz sound in air?",
+   "expect": 0.34321462268256797
+  },
+  {
+   "split": "dev",
+   "kind": "wlT",
+   "valid": true,
+   "q": "What is the wavelength of a 1000 Hz sound in air at 35 degrees C?",
+   "expect": 0.35188594407917256
+  },
+  {
+   "split": "dev",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two tuning forks of 512 Hz and 515 Hz sound together. What is the beat frequency?",
+   "expect": 3
+  },
+  {
+   "split": "dev",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "A siren of 1000 Hz is moving toward you at 30 m/s. What frequency do you hear?",
+   "expect": 1095.78096879086
+  },
+  {
+   "split": "dev",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A siren of 1000 Hz is moving away from you at 30 m/s. What frequency do you hear?",
+   "expect": 919.6172974564397
+  },
+  {
+   "split": "dev",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "Two sources of 80 dB and 70 dB play together. What is the combined sound level in decibels?",
+   "expect": 80.41392685158226
+  },
+  {
+   "split": "dev",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "A sound is 80 dB at 2 m. What is the level in dB at 4 m?",
+   "expect": 73.97940008672037
+  },
+  {
+   "split": "dev",
+   "kind": "open",
+   "valid": true,
+   "q": "What is the fundamental frequency of an open pipe 0.75 m long?",
+   "expect": 228.8097484550453
+  },
+  {
+   "split": "dev",
+   "kind": "closed",
+   "valid": true,
+   "q": "What is the fundamental frequency of a closed pipe 0.75 m long?",
+   "expect": 114.40487422752265
+  },
+  {
+   "split": "dev",
+   "kind": "string",
+   "valid": true,
+   "q": "A string 0.75 m long has a wave speed of 120 m/s. What is its fundamental frequency?",
+   "expect": 80.0
+  },
+  {
+   "split": "dev",
+   "kind": "speedT",
+   "valid": true,
+   "q": "What is the speed of sound in air at 25 degrees C?",
+   "expect": 346.1292013525034
+  },
+  {
+   "split": "dev",
+   "kind": "wl",
+   "valid": true,
+   "q": "What is the wavelength of a 2000 Hz sound in air?",
+   "expect": 0.17160731134128399
+  },
+  {
+   "split": "dev",
+   "kind": "wlT",
+   "valid": true,
+   "q": "What is the wavelength of a 2000 Hz sound in air at 25 degrees C?",
+   "expect": 0.1730646006762517
+  },
+  {
+   "split": "dev",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two tuning forks of 440 Hz and 444 Hz sound together. What is the beat frequency?",
+   "expect": 4
+  },
+  {
+   "split": "dev",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "A siren of 2000 Hz is moving toward you at 20 m/s. What frequency do you hear?",
+   "expect": 2123.75677705425
+  },
+  {
+   "split": "dev",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A siren of 2000 Hz is moving away from you at 20 m/s. What frequency do you hear?",
+   "expect": 1889.872275227867
+  },
+  {
+   "split": "dev",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "Two sources of 80 dB and 85 dB play together. What is the combined sound level in decibels?",
+   "expect": 86.19331048066094
+  },
+  {
+   "split": "dev",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "A sound is 80 dB at 5 m. What is the level in dB at 4 m?",
+   "expect": 81.93820026016112
+  },
+  {
+   "split": "dev",
+   "kind": "dbratio",
+   "valid": true,
+   "q": "How many decibels louder is a sound with 1000 times the intensity?",
+   "expect": 30.0
+  },
+  {
+   "split": "dev",
+   "kind": "open",
+   "valid": true,
+   "q": "What is the fundamental frequency of an open pipe 2 m long?",
+   "expect": 85.80365567064199
+  },
+  {
+   "split": "dev",
+   "kind": "closed",
+   "valid": true,
+   "q": "What is the fundamental frequency of a closed pipe 2 m long?",
+   "expect": 42.901827835320994
+  },
+  {
+   "split": "dev",
+   "kind": "string",
+   "valid": true,
+   "q": "A string 2 m long has a wave speed of 200 m/s. What is its fundamental frequency?",
+   "expect": 50.0
+  },
+  {
+   "split": "dev",
+   "kind": "wl",
+   "valid": true,
+   "q": "What is the wavelength of a 3150 Hz sound in air?",
+   "expect": 0.1089570230738311
+  },
+  {
+   "split": "dev",
+   "kind": "wlT",
+   "valid": true,
+   "q": "What is the wavelength of a 3150 Hz sound in air at 35 degrees C?",
+   "expect": 0.11170982351719765
+  },
+  {
+   "split": "dev",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two tuning forks of 256 Hz and 263 Hz sound together. What is the beat frequency?",
+   "expect": 7
+  },
+  {
+   "split": "dev",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "A siren of 3150 Hz is moving toward you at 20 m/s. What frequency do you hear?",
+   "expect": 3344.9169238604436
+  },
+  {
+   "split": "dev",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A siren of 3150 Hz is moving away from you at 20 m/s. What frequency do you hear?",
+   "expect": 2976.5488334838906
+  },
+  {
+   "split": "dev",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "Two sources of 80 dB and 65 dB play together. What is the combined sound level in decibels?",
+   "expect": 80.13520922108037
+  },
+  {
+   "split": "dev",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "A sound is 80 dB at 2 m. What is the level in dB at 10 m?",
+   "expect": 66.02059991327963
+  },
+  {
+   "split": "dev",
+   "kind": "dbratio",
+   "valid": true,
+   "q": "How many decibels louder is a sound with 100 times the intensity?",
+   "expect": 20.0
+  },
+  {
+   "split": "dev",
+   "kind": "open",
+   "valid": true,
+   "q": "What is the fundamental frequency of an open pipe 1 m long?",
+   "expect": 171.60731134128397
+  },
+  {
+   "split": "dev",
+   "kind": "closed",
+   "valid": true,
+   "q": "What is the fundamental frequency of a closed pipe 1 m long?",
+   "expect": 85.80365567064199
+  },
+  {
+   "split": "dev",
+   "kind": "string",
+   "valid": true,
+   "q": "A string 1 m long has a wave speed of 400 m/s. What is its fundamental frequency?",
+   "expect": 200.0
+  },
+  {
+   "split": "dev",
+   "kind": "speedT",
+   "valid": true,
+   "q": "What is the speed of sound in air at 30 degrees C?",
+   "expect": 349.01944191506897
+  },
+  {
+   "split": "dev",
+   "kind": "wl",
+   "valid": true,
+   "q": "What is the wavelength of a 512 Hz sound in air?",
+   "expect": 0.6703410599268905
+  },
+  {
+   "split": "dev",
+   "kind": "wlT",
+   "valid": true,
+   "q": "What is the wavelength of a 512 Hz sound in air at 30 degrees C?",
+   "expect": 0.6816785974903691
+  },
+  {
+   "split": "dev",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two tuning forks of 512 Hz and 517 Hz sound together. What is the beat frequency?",
+   "expect": 5
+  },
+  {
+   "split": "dev",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "A siren of 512 Hz is moving toward you at 25 m/s. What frequency do you hear?",
+   "expect": 552.224424296078
+  },
+  {
+   "split": "dev",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A siren of 512 Hz is moving away from you at 25 m/s. What frequency do you hear?",
+   "expect": 477.2376651781299
+  },
+  {
+   "split": "dev",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "Two sources of 80 dB and 60 dB play together. What is the combined sound level in decibels?",
+   "expect": 80.04321373782643
+  },
+  {
+   "split": "dev",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "A sound is 80 dB at 5 m. What is the level in dB at 10 m?",
+   "expect": 73.97940008672037
+  },
+  {
+   "split": "dev",
+   "kind": "dbratio",
+   "valid": true,
+   "q": "How many decibels louder is a sound with 2 times the intensity?",
+   "expect": 3.010299956639812
+  },
+  {
+   "split": "dev",
+   "kind": "speedT",
+   "valid": true,
+   "q": "What is the speed of sound in air at -10 degrees C?",
+   "expect": 325.17902206082
+  },
+  {
+   "split": "dev",
+   "kind": "wlT",
+   "valid": true,
+   "q": "What is the wavelength of a 3150 Hz sound in air at -10 degrees C?",
+   "expect": 0.10323143557486349
+  },
+  {
+   "split": "dev",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "A siren of 3150 Hz is moving toward you at 10 m/s. What frequency do you hear?",
+   "expect": 3244.533666459194
+  },
+  {
+   "split": "dev",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A siren of 3150 Hz is moving away from you at 10 m/s. What frequency do you hear?",
+   "expect": 3060.8190941791536
+  },
+  {
+   "split": "dev",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "A sound is 80 dB at 2 m. What is the level in dB at 20 m?",
+   "expect": 60.0
+  },
+  {
+   "split": "dev",
+   "kind": "string",
+   "valid": true,
+   "q": "A string 1.2 m long has a wave speed of 200 m/s. What is its fundamental frequency?",
+   "expect": 83.33333333333334
+  },
+  {
+   "split": "dev",
+   "kind": "wlT",
+   "valid": true,
+   "q": "What is the wavelength of a 512 Hz sound in air at -10 degrees C?",
+   "expect": 0.635115277462539
+  },
+  {
+   "split": "dev",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two tuning forks of 440 Hz and 445 Hz sound together. What is the beat frequency?",
+   "expect": 5
+  },
+  {
+   "split": "dev",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "A siren of 512 Hz is moving toward you at 15 m/s. What frequency do you hear?",
+   "expect": 535.3993230930107
+  },
+  {
+   "split": "dev",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A siren of 512 Hz is moving away from you at 15 m/s. What frequency do you hear?",
+   "expect": 490.5603392109271
+  },
+  {
+   "split": "dev",
+   "kind": "string",
+   "valid": true,
+   "q": "A string 1.2 m long has a wave speed of 400 m/s. What is its fundamental frequency?",
+   "expect": 166.66666666666669
+  },
+  {
+   "split": "dev",
+   "kind": "decline",
+   "valid": false,
+   "q": "What frequency do you hear from a siren moving toward you?",
+   "expect": "decline"
+  },
+  {
+   "split": "dev",
+   "kind": "decline",
+   "valid": false,
+   "q": "What is the beat frequency of a 440 Hz tuning fork?",
+   "expect": "decline"
+  },
+  {
+   "split": "dev",
+   "kind": "decline",
+   "valid": false,
+   "q": "What is the second harmonic frequency of a closed pipe 1 m long?",
+   "expect": "decline"
+  },
+  {
+   "split": "dev",
+   "kind": "decline",
+   "valid": false,
+   "q": "A siren of 500 Hz is moving toward you at 400 m/s. What frequency do you hear?",
+   "expect": "decline"
+  }
+ ],
+ "heldout": [
+  {
+   "split": "heldout",
+   "kind": "speedT",
+   "valid": true,
+   "q": "How fast does sound travel in air when it is 30 degrees C?",
+   "expect": 349.01944191506897
+  },
+  {
+   "split": "heldout",
+   "kind": "wl",
+   "valid": true,
+   "q": "Find the wavelength in air of a sound with frequency 440 Hz.",
+   "expect": 0.7800332333694726
+  },
+  {
+   "split": "heldout",
+   "kind": "wlT",
+   "valid": true,
+   "q": "At 30 degrees C, find the wavelength of a 440 Hz sound wave in air.",
+   "expect": 0.7932260043524295
+  },
+  {
+   "split": "heldout",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two notes at 440 Hz and 442 Hz are played together; how many beats per second are heard (beat frequency)?",
+   "expect": 2
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "An ambulance siren emits 440 Hz while driving toward a listener at 20 m/s. What is the observed frequency?",
+   "expect": 467.2264909519349
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A train horn at 440 Hz recedes from you at 20 m/s. What frequency do you hear?",
+   "expect": 415.77190055013074
+  },
+  {
+   "split": "heldout",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "What is the total level in dB when a 70 dB source and a 65 dB source are combined?",
+   "expect": 71.19331048066095
+  },
+  {
+   "split": "heldout",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "At 5 m a speaker measures 70 dB. What will the decibel level be at 4 m?",
+   "expect": 71.93820026016112
+  },
+  {
+   "split": "heldout",
+   "kind": "dbratio",
+   "valid": true,
+   "q": "If the intensity of a sound becomes 2 times greater, by how many dB does the level rise (decibels)?",
+   "expect": 3.010299956639812
+  },
+  {
+   "split": "heldout",
+   "kind": "open",
+   "valid": true,
+   "q": "A pipe open at both ends is 0.5 m long. What is its fundamental frequency?",
+   "expect": 343.21462268256795
+  },
+  {
+   "split": "heldout",
+   "kind": "closed",
+   "valid": true,
+   "q": "Find the fundamental frequency of a pipe closed at one end, 0.5 m in length.",
+   "expect": 171.60731134128397
+  },
+  {
+   "split": "heldout",
+   "kind": "string",
+   "valid": true,
+   "q": "Find the fundamental frequency of a 0.5 m string whose wave speed is 200 m/s.",
+   "expect": 200.0
+  },
+  {
+   "split": "heldout",
+   "kind": "speedT",
+   "valid": true,
+   "q": "How fast does sound travel in air when it is 10 degrees C?",
+   "expect": 337.3099221955511
+  },
+  {
+   "split": "heldout",
+   "kind": "wl",
+   "valid": true,
+   "q": "Find the wavelength in air of a sound with frequency 2000 Hz.",
+   "expect": 0.17160731134128399
+  },
+  {
+   "split": "heldout",
+   "kind": "wlT",
+   "valid": true,
+   "q": "At 10 degrees C, find the wavelength of a 2000 Hz sound wave in air.",
+   "expect": 0.16865496109777556
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "An ambulance siren emits 2000 Hz while driving toward a listener at 40 m/s. What is the observed frequency?",
+   "expect": 2263.8395183326998
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A train horn at 2000 Hz recedes from you at 40 m/s. What frequency do you hear?",
+   "expect": 1791.239698944716
+  },
+  {
+   "split": "heldout",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "What is the total level in dB when a 80 dB source and a 60 dB source are combined?",
+   "expect": 80.04321373782643
+  },
+  {
+   "split": "heldout",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "At 1 m a speaker measures 80 dB. What will the decibel level be at 10 m?",
+   "expect": 60.0
+  },
+  {
+   "split": "heldout",
+   "kind": "dbratio",
+   "valid": true,
+   "q": "If the intensity of a sound becomes 100 times greater, by how many dB does the level rise (decibels)?",
+   "expect": 20.0
+  },
+  {
+   "split": "heldout",
+   "kind": "open",
+   "valid": true,
+   "q": "A pipe open at both ends is 0.75 m long. What is its fundamental frequency?",
+   "expect": 228.8097484550453
+  },
+  {
+   "split": "heldout",
+   "kind": "closed",
+   "valid": true,
+   "q": "Find the fundamental frequency of a pipe closed at one end, 0.75 m in length.",
+   "expect": 114.40487422752265
+  },
+  {
+   "split": "heldout",
+   "kind": "string",
+   "valid": true,
+   "q": "Find the fundamental frequency of a 0.75 m string whose wave speed is 300 m/s.",
+   "expect": 200.0
+  },
+  {
+   "split": "heldout",
+   "kind": "speedT",
+   "valid": true,
+   "q": "How fast does sound travel in air when it is 15 degrees C?",
+   "expect": 340.2750805118605
+  },
+  {
+   "split": "heldout",
+   "kind": "wlT",
+   "valid": true,
+   "q": "At 15 degrees C, find the wavelength of a 2000 Hz sound wave in air.",
+   "expect": 0.17013754025593025
+  },
+  {
+   "split": "heldout",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two notes at 440 Hz and 447 Hz are played together; how many beats per second are heard (beat frequency)?",
+   "expect": 7
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "An ambulance siren emits 2000 Hz while driving toward a listener at 25 m/s. What is the observed frequency?",
+   "expect": 2157.1266574065553
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A train horn at 2000 Hz recedes from you at 25 m/s. What frequency do you hear?",
+   "expect": 1864.20962960207
+  },
+  {
+   "split": "heldout",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "What is the total level in dB when a 60 dB source and a 70 dB source are combined?",
+   "expect": 70.41392685158226
+  },
+  {
+   "split": "heldout",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "At 2 m a speaker measures 60 dB. What will the decibel level be at 40 m?",
+   "expect": 33.979400086720375
+  },
+  {
+   "split": "heldout",
+   "kind": "open",
+   "valid": true,
+   "q": "A pipe open at both ends is 2 m long. What is its fundamental frequency?",
+   "expect": 85.80365567064199
+  },
+  {
+   "split": "heldout",
+   "kind": "closed",
+   "valid": true,
+   "q": "Find the fundamental frequency of a pipe closed at one end, 2 m in length.",
+   "expect": 42.901827835320994
+  },
+  {
+   "split": "heldout",
+   "kind": "string",
+   "valid": true,
+   "q": "Find the fundamental frequency of a 2 m string whose wave speed is 400 m/s.",
+   "expect": 100.0
+  },
+  {
+   "split": "heldout",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "What is the total level in dB when a 90 dB source and a 85 dB source are combined?",
+   "expect": 91.19331048066094
+  },
+  {
+   "split": "heldout",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "At 2 m a speaker measures 90 dB. What will the decibel level be at 10 m?",
+   "expect": 76.02059991327963
+  },
+  {
+   "split": "heldout",
+   "kind": "string",
+   "valid": true,
+   "q": "Find the fundamental frequency of a 0.5 m string whose wave speed is 400 m/s.",
+   "expect": 400.0
+  },
+  {
+   "split": "heldout",
+   "kind": "speedT",
+   "valid": true,
+   "q": "How fast does sound travel in air when it is 0 degrees C?",
+   "expect": 331.3
+  },
+  {
+   "split": "heldout",
+   "kind": "wl",
+   "valid": true,
+   "q": "Find the wavelength in air of a sound with frequency 1000 Hz.",
+   "expect": 0.34321462268256797
+  },
+  {
+   "split": "heldout",
+   "kind": "wlT",
+   "valid": true,
+   "q": "At 0 degrees C, find the wavelength of a 1000 Hz sound wave in air.",
+   "expect": 0.33130000000000004
+  },
+  {
+   "split": "heldout",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two notes at 512 Hz and 516 Hz are played together; how many beats per second are heard (beat frequency)?",
+   "expect": 4
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "An ambulance siren emits 1000 Hz while driving toward a listener at 40 m/s. What is the observed frequency?",
+   "expect": 1131.9197591663499
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A train horn at 1000 Hz recedes from you at 40 m/s. What frequency do you hear?",
+   "expect": 895.619849472358
+  },
+  {
+   "split": "heldout",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "At 1 m a speaker measures 90 dB. What will the decibel level be at 20 m?",
+   "expect": 63.979400086720375
+  },
+  {
+   "split": "heldout",
+   "kind": "dbratio",
+   "valid": true,
+   "q": "If the intensity of a sound becomes 10 times greater, by how many dB does the level rise (decibels)?",
+   "expect": 10.0
+  },
+  {
+   "split": "heldout",
+   "kind": "open",
+   "valid": true,
+   "q": "A pipe open at both ends is 1.2 m long. What is its fundamental frequency?",
+   "expect": 143.0060927844033
+  },
+  {
+   "split": "heldout",
+   "kind": "closed",
+   "valid": true,
+   "q": "Find the fundamental frequency of a pipe closed at one end, 1.2 m in length.",
+   "expect": 71.50304639220165
+  },
+  {
+   "split": "heldout",
+   "kind": "string",
+   "valid": true,
+   "q": "Find the fundamental frequency of a 1.2 m string whose wave speed is 200 m/s.",
+   "expect": 83.33333333333334
+  },
+  {
+   "split": "heldout",
+   "kind": "wlT",
+   "valid": true,
+   "q": "At 15 degrees C, find the wavelength of a 1000 Hz sound wave in air.",
+   "expect": 0.3402750805118605
+  },
+  {
+   "split": "heldout",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two notes at 256 Hz and 259 Hz are played together; how many beats per second are heard (beat frequency)?",
+   "expect": 3
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "An ambulance siren emits 1000 Hz while driving toward a listener at 30 m/s. What is the observed frequency?",
+   "expect": 1095.78096879086
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A train horn at 1000 Hz recedes from you at 30 m/s. What frequency do you hear?",
+   "expect": 919.6172974564397
+  },
+  {
+   "split": "heldout",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "What is the total level in dB when a 60 dB source and a 60 dB source are combined?",
+   "expect": 63.01029995663981
+  },
+  {
+   "split": "heldout",
+   "kind": "string",
+   "valid": true,
+   "q": "Find the fundamental frequency of a 2 m string whose wave speed is 200 m/s.",
+   "expect": 50.0
+  },
+  {
+   "split": "heldout",
+   "kind": "speedT",
+   "valid": true,
+   "q": "How fast does sound travel in air when it is -10 degrees C?",
+   "expect": 325.17902206082
+  },
+  {
+   "split": "heldout",
+   "kind": "wl",
+   "valid": true,
+   "q": "Find the wavelength in air of a sound with frequency 100 Hz.",
+   "expect": 3.4321462268256795
+  },
+  {
+   "split": "heldout",
+   "kind": "wlT",
+   "valid": true,
+   "q": "At -10 degrees C, find the wavelength of a 100 Hz sound wave in air.",
+   "expect": 3.2517902206082
+  },
+  {
+   "split": "heldout",
+   "kind": "beat",
+   "valid": true,
+   "q": "Two notes at 256 Hz and 260 Hz are played together; how many beats per second are heard (beat frequency)?",
+   "expect": 4
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_to",
+   "valid": true,
+   "q": "An ambulance siren emits 100 Hz while driving toward a listener at 10 m/s. What is the observed frequency?",
+   "expect": 103.00106877648234
+  },
+  {
+   "split": "heldout",
+   "kind": "dop_away",
+   "valid": true,
+   "q": "A train horn at 100 Hz recedes from you at 10 m/s. What frequency do you hear?",
+   "expect": 97.16886013267153
+  },
+  {
+   "split": "heldout",
+   "kind": "dbsum",
+   "valid": true,
+   "q": "What is the total level in dB when a 60 dB source and a 65 dB source are combined?",
+   "expect": 66.19331048066095
+  },
+  {
+   "split": "heldout",
+   "kind": "dbdist",
+   "valid": true,
+   "q": "At 5 m a speaker measures 60 dB. What will the decibel level be at 20 m?",
+   "expect": 47.95880017344075
+  },
+  {
+   "split": "heldout",
+   "kind": "dbratio",
+   "valid": true,
+   "q": "If the intensity of a sound becomes 4 times greater, by how many dB does the level rise (decibels)?",
+   "expect": 6.020599913279624
+  },
+  {
+   "split": "heldout",
+   "kind": "open",
+   "valid": true,
+   "q": "A pipe open at both ends is 1 m long. What is its fundamental frequency?",
+   "expect": 171.60731134128397
+  },
+  {
+   "split": "heldout",
+   "kind": "closed",
+   "valid": true,
+   "q": "Find the fundamental frequency of a pipe closed at one end, 1 m in length.",
+   "expect": 85.80365567064199
+  },
+  {
+   "split": "heldout",
+   "kind": "string",
+   "valid": true,
+   "q": "Find the fundamental frequency of a 1 m string whose wave speed is 300 m/s.",
+   "expect": 150.0
+  },
+  {
+   "split": "heldout",
+   "kind": "decline",
+   "valid": false,
+   "q": "Find the fundamental frequency of an open pipe.",
+   "expect": "decline"
+  },
+  {
+   "split": "heldout",
+   "kind": "decline",
+   "valid": false,
+   "q": "What is the wavelength of this sound in air?",
+   "expect": "decline"
+  },
+  {
+   "split": "heldout",
+   "kind": "decline",
+   "valid": false,
+   "q": "Find the fourth harmonic frequency of a closed pipe 0.5 m long.",
+   "expect": "decline"
+  },
+  {
+   "split": "heldout",
+   "kind": "decline",
+   "valid": false,
+   "q": "A jet's 800 Hz whine approaches a listener at 500 m/s. What is the observed frequency?",
+   "expect": "decline"
+  }
+ ]
+}

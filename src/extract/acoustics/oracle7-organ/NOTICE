@@ -1,0 +1,5 @@
+acoustics_scorer.py is a verbatim copy of root/specialists/acoustics/acoustics_scorer.py from Oracle7
+(upstream/root/specialists/acoustics/ in veri7vn). acoustics_panel_v1.json holds the items of
+root/specialists/acoustics/acoustics_panel_v1.json from Oracle7, unchanged, regrouped from one list with a
+"split" field into {"dev": [...], "heldout": [...]} as workbench/exam.py reads panels. Both belong to
+Oracle7's author.

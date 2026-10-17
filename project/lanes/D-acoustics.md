@@ -1,5 +1,64 @@
 # Lane D: acoustics end to end (handoff, 2026-10-16)
 
+## Update (second pass): 69/69 held-out, and the binary as an Oracle7 specialist
+
+- The six `imprecise` misses are fixed. `ln y` is now computed as `256 * ln (sqrt^8 y)`
+  (lemmas `ln_r8`: `0 ≤ y ⟹ ln (r8 y) = ln y / 256` and
+  `interp_Lg`: `0 ≤ interpret_floatarith a xs ⟹ interpret_floatarith (Lg a) xs = log 10 (interpret_floatarith a xs)`).
+  `expr_of_meaning` is now conditional:
+  `assumes "missing r = None" "¬ impossible r" shows "interpret_floatarith (expr_of r) [] = phys r"`;
+  `kernel_value_sound` is unchanged in statement.
+- Decibel kinds now use 40-bit intervals (`prec_of`); the others keep 64.
+- **Panel, binary scored directly: dev 70/70, heldout 69/69, wrong 0, false yes 0**, 0
+  disagreements with the shipped organ (score.py), same counts from lane A's harness;
+  core panel taken 0 of 924, self questions not taken.
+- Binary 428,056 bytes; cold start 13 to 17 ms; p50 12.0 ms over the 139 items; by kind
+  p50/max ms: db_sum 39/47, db_distance 21/24, db_ratio 22/23, doppler 13/21,
+  wavelength 12/14, speed 6/7, pipes 6.5/8, string 0.3/0.8, beat 0.1/0.9.
+  Every kind is now under the 50 ms budget at p50.
+- check-native: passed, inputs stable, attempt
+  `var/native-scaffold/sessions/1913aa72eafed902/attempts/d2a42520f658426f874d5e65f40ff4bc/receipt.json`.
+
+### Oracle7 organ folder (`src/extract/acoustics/oracle7-organ/`)
+
+`manifest.json` (id `acoustics-veri7vn`; accept, declines, context_regex, routing cues and
+budgets copied from the shipped manifest), `organ_acoustics_veri7vn.py`
+(`AcousticsVeri7vnOrgan`: starts the binary once, pipes each `answer(text, session_id)`
+through the answerer contract, returns `{kind, status, response, value}` or None;
+binary from `$VERI7VN_ACOUSTICS_BIN`, else `bin/acoustics` beside it, else
+`var/acoustics/bin/acoustics` up the tree), copies of the shipped scorer and panel
+(panel regrouped into `{dev, heldout}`, which is the shape `workbench/exam.py` reads; the
+shipped flat list would not load there), `NOTICE`, `README.md`. Note: the shipped
+`oracle7.py` has no `exam` command; the exam is `workbench/exam.py`'s `run`.
+
+Oracle7's own exam, dev split only, on a scratch copy
+(`.venv/bin/python src/extract/acoustics/exam_dev.py`: Engine from `upstream/oracle7.py`,
+ORACLE7_STATE `var/acoustics/o7state`, lane A's `redirect_self_loop()`; verdict in
+`var/acoustics/oracle7-organ-trial/verdict_dev.json`; `find upstream -newer` afterwards
+found no written files):
+
+```
+"decision": "WOULD FAIL", "reasons": ["DOMAIN: gain 1, needs 3"], "n": 70,
+"head": {"ok": 46, "fy": 0, "wrong": 0}, "with_specialist": {"ok": 47, "fy": 0, "wrong": 0},
+"gain_needed": 3, "core": {"n": 924, "taken": 0, "cap": 9, "examples": []}, "self_ok": true,
+"p50_ms": 0.05, "budget_ms": 50.0, "core_head": "oracle_release_runtime_w540"
+```
+
+Reading: today's head (tip w540, not the w363 the shipped verdict names) already answers
+46 of 70 dev items itself. exam.py asks a specialist only after the head declines with a
+"fillable" path. The head's "I can't verify an answer to that exact question" declines
+on 12 pipe, string and distance items do not count as fillable, so the specialist is
+never asked there. That leaves a gain of 1 against a needed 3. The binary answers all 70 when asked
+directly. Under combo_runtime's front composition (which lane A found the release uses)
+the specialist would be asked first. Running that composition through
+`tools/parity/answerers/oracle7.py --specialist <folder> --compose front` is the next
+measurement.
+
+The "Remaining" items 1 and 2 below are done; 3 and 4 stand.
+
+---
+
+
 The shipped Oracle7 specialist `acoustics` is now a verified HOL kernel, exported to
 Standard ML, compiled with the MLton inside Isabelle into a 427 KB standalone binary
 that speaks the answerer contract. No Isabelle process runs when it answers.
