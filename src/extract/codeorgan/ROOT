@@ -1,0 +1,13 @@
+(* Scout code-organ: a HOL model of Oracle7's code organ typing (the typed
+   move library, the pool composition rule, well-typedness by construction),
+   exported to SML as an executable type checker for composed programs.
+   Prototype only: the prim table transcribes 31 of the organ's 146 moves,
+   chosen to cover every slot shape (num/seq/coll/any/exact) and all nine
+   any-slot moves; the execution check is modelled nowhere yet. *)
+session Veri7vn_Codeorgan = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Library"
+  theories
+    Codeorgan
+    Codeorgan_Export
