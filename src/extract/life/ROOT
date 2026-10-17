@@ -1,0 +1,23 @@
+(* Lane S09-life: the Oracle7 life-science family (genetics-v2, biology,
+   ecology, forestry, wildlife, microbiology-v2) as HOL kernels exported to SML.
+   The base session holds the numeric layer (lane G's rounding and interval
+   enclosure, copied) on top of Isabelle's HOL-Decision_Procs.Approximation
+   (no HOL-Analysis), so the kernel session rebuilds quickly. *)
+session Veri7vn_Life_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Life_Num
+
+session Veri7vn_Life = Veri7vn_Life_Base +
+  options [document = false, threads = 2]
+  theories
+    Life_Core
+    Genetics
+    Biology
+    Ecology
+    Forestry
+    Wildlife
+    Micro
+    Life_Export
