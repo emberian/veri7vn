@@ -35,8 +35,9 @@ import score  # noqa: E402
 class Answerer:
     """one answerer subprocess speaking JSON lines; a reply that does not arrive within timeout restarts it"""
 
-    def __init__(self, argv, timeout, log):
+    def __init__(self, argv, timeout, log, memory_cap_gb=4.0):
         self.argv, self.timeout, self.log = argv, timeout, log
+        self.memory_cap = int(memory_cap_gb * 1048576)    # KiB of resident memory before the child is killed
         self.p = None
         self.q = None
         self.deaths = 0                                    # consecutive exits without a reply
@@ -70,11 +71,18 @@ class Answerer:
         deadline = time.monotonic() + self.timeout
         while True:
             try:
-                line = self.q.get(timeout=max(0.01, deadline - time.monotonic()))
+                line = self.q.get(timeout=max(0.01, min(1.0, deadline - time.monotonic())))
             except queue.Empty:
-                self.close(kill=True)
-                return {"id": rid, "error": "timeout after %ss" % self.timeout, "response": "", "path": ""}, \
-                    1000 * (time.perf_counter() - t0)
+                if time.monotonic() >= deadline:
+                    self.close(kill=True)
+                    return {"id": rid, "error": "timeout after %ss" % self.timeout, "response": "", "path": ""}, \
+                        1000 * (time.perf_counter() - t0)
+                rss = self._rss_kib()
+                if rss > self.memory_cap:
+                    self.close(kill=True)                  # macOS does not enforce RLIMIT_AS; poll and kill instead
+                    return {"id": rid, "error": "answerer exceeded %d MiB resident; killed" % (rss // 1024),
+                            "response": "", "path": ""}, 1000 * (time.perf_counter() - t0)
+                continue
             ms = 1000 * (time.perf_counter() - t0)
             if line is None:
                 self.close()
@@ -88,6 +96,17 @@ class Answerer:
                 continue                                   # a late reply to an item that already timed out
             self.deaths = 0
             return r, ms
+
+    def _rss_kib(self):
+        """resident size of the child in KiB, 0 if unknown; a shell-free ps call once per second of waiting"""
+        if self.p is None:
+            return 0
+        try:
+            out = subprocess.run(["ps", "-o", "rss=", "-p", str(self.p.pid)], capture_output=True, text=True,
+                                 timeout=5).stdout.strip()
+            return int(out) if out else 0
+        except (OSError, ValueError, subprocess.SubprocessError):
+            return 0
 
     def close(self, kill=False):
         p, self.p = self.p, None
@@ -171,8 +190,8 @@ def run_one(sid, split, args, out, shared):
     log = open(out / ("%s.%s.stderr" % (sid, split)), "a", encoding="utf-8")
 
     per_spec = any(k in a for a in args.answerer for k in ("{dir}", "{id}", "{shipped_head}"))
-    ans = Answerer(fmt(args.answerer, d, sid), args.timeout, log) if per_spec else shared.setdefault(
-        "ans", Answerer(args.answerer, args.timeout, log))
+    ans = Answerer(fmt(args.answerer, d, sid), args.timeout, log, args.memory_cap_gb) if per_spec else shared.setdefault(
+        "ans", Answerer(args.answerer, args.timeout, log, args.memory_cap_gb))
     reqs = [("%s:%s:%d" % (sid, split, i), it["q"], "exam-%s-%s-%d" % (sid, split, i)) for i, it in enumerate(items)]
     t0 = time.time()
     recs = ask_all(ans, out / ("%s.%s.items.jsonl" % (sid, split)), reqs)
@@ -257,6 +276,8 @@ def main(argv=None):
     ap.add_argument("--out", required=True)
     ap.add_argument("--limit", type=int, default=0, help="first N items of each split only (a sample)")
     ap.add_argument("--timeout", type=float, default=300.0, help="seconds per item before the answerer is restarted")
+    ap.add_argument("--memory-cap-gb", type=float, default=4.0,
+                    help="resident GiB an answerer may use on one item before it is killed (default 4)")
     ap.add_argument("--specialists-dir", default=str(panels.SPECIALISTS))
     ap.add_argument("--rescore", action="store_true", help="recompute verdicts from recorded replies (no re-asking)")
     a = ap.parse_args(argv)
