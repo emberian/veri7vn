@@ -176,10 +176,16 @@ definition emb_text :: "ereq \<Rightarrow> String.literal" where
         + snat P + STR '').''
     | ETick fc P False \<Rightarrow> STR ''The tick period is '' + secs_str v + STR '' ('' + snat P + STR '' / '' + g_emb fc + STR '' Hz).'')"
 
+text \<open>The value field (lane S15b): the exact integer, or ten significant digits; the
+reply text keeps the organ's four-decimal layout.\<close>
+definition val_str :: "rat \<Rightarrow> String.literal" where
+  "val_str q = (if q = of_int \<lfloor>q\<rfloor> then show_int \<lfloor>q\<rfloor>
+     else case round_sig 10 (rl q) of Some d \<Rightarrow> render_dec 10 d | None \<Rightarrow> g_emb q)"
+
 definition emb_reply :: "ereq \<Rightarrow> reply" where
   "emb_reply r = (case emb_decline r of
       Some d \<Rightarrow> Reply False (STR ''impossible'') (emb_decl_text r d) None
-    | None \<Rightarrow> Reply True (emb_kind r) (emb_text r) (Some (g_emb (emb_value r))))"
+    | None \<Rightarrow> Reply True (emb_kind r) (emb_text r) (Some (val_str (emb_value r))))"
 
 theorem emb_reply_answered_iff: "answered (emb_reply r) \<longleftrightarrow> emb_decline r = None"
   by (auto simp: emb_reply_def split: option.splits)
@@ -196,7 +202,9 @@ definition emb_self_test :: bool where
      emb_value (EAddr 32 None) = 4294967296 \<and>
      response (emb_reply (EUartTime 9600 10 8 0 1)) =
        STR ''It takes 10.4167 ms (10 bytes x 10-bit frame / 9600 baud, 8N1).'' \<and>
-     response (emb_reply (ETick 8000000 8 False)) = STR ''The tick period is 1 us (8 / 8,000,000 Hz).''"
+     response (emb_reply (ETick 8000000 8 False)) = STR ''The tick period is 1 us (8 / 8,000,000 Hz).'' \<and>
+     stated (emb_reply (EOvf 8 16000000 64 False)) = Some (STR ''0.001024'') \<and>
+     stated (emb_reply (EAddr 32 None)) = Some (STR ''4294967296'')"
 
 section \<open>Cyber\<close>
 
@@ -354,6 +362,7 @@ definition cyb_self_test :: bool where
      cyb_value (CKeyspace CS_lower 12) = 95428956661682176 \<and>
      cyb_value (CBase64 3) = 4 \<and> cyb_value (CBase64 4) = 8 \<and> cyb_value (CDigest 128) = 32 \<and>
      cyb_value (CBirthday 128) = 64 \<and>
+     cyb_entropy CS_lower 12 \<noteq> None \<and>
      cyb_value (CBrute True CS_digits 4 (Some 1)) = 5000 \<and>
      cyb_decline (CBrute False CS_alnum 8 None) = Some C_need_rate \<and>
      response (cyb_reply (CBase64 3)) = STR ''The Base64 length is 4 characters (4 x ceil(3 / 3), with padding).'' \<and>

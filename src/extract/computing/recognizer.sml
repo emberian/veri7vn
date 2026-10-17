@@ -46,6 +46,14 @@ struct
   fun startOf (m : Regex.match) = #start m
   fun stopOf (m : Regex.match) = #stop m
 
+  (* Case-sensitive organ patterns: Regex.compile folds literals to lower case, so a
+     case-sensitive pattern is searched in the lower-cased text (byte positions are
+     unchanged) and each match is then checked against the original characters by ok. *)
+  fun findallCS p (t : string) (ok : Regex.match -> bool) = List.filter ok (findall p (lower t))
+  fun searchCS p t ok = case findallCS p t ok of m :: _ => SOME m | [] => NONE
+  fun span (t : string) (m : Regex.match) = String.substring (t, #start m, #stop m - #start m)
+  fun isLowerSpan s = lower s = s
+
   (* decimal numeral "1,000.50" or "-12.5" as an exact (numerator, denominator) *)
   fun decParts (lit0 : string) : IntInf.int * IntInf.int =
     let
@@ -401,12 +409,15 @@ struct
       let
         val low = lower t
         fun fin req = finishNarrow t (C.lin_reply req)
-        val sigName = Regex.search (Regex.compile "\\b(SIG[A-Z0-9]+)\\b") t
+        val sigName = searchCS "\\b(sig[a-z0-9]+)\\b" t
+                        (fn m => CharVector.all (fn c => Char.isUpper c orelse Char.isDigit c) (span t m))
         val sigNum = search "\\bsignal\\s+(\\d{1,2})\\b" low
         val sm = case sigName of
                    SOME m => SOME (true, g1 t m)
                  | NONE => (case sigNum of SOME m => SOME (false, g1 low m) | NONE => NONE)
-        val sigCtx = isSome (Regex.search (Regex.compile "\\bsignal\\b|\\bexit (?:code|status)\\b|\\bkill\\b|\\bSIG") t)
+        val sigCtx = isSome (searchCS "\\bsignal\\b|\\bexit (?:code|status)\\b|\\bkill\\b|\\bsig" t
+                       (fn m => let val w = span t m
+                                in if lower w = "sig" then w = "SIG" else isLowerSpan w end))
         (* None => not taken, outer SOME r => answered by this branch, NONE inner => fall through *)
         val sigResult : (bool * C.reply option) =
           case sm of
@@ -443,7 +454,7 @@ struct
                   val w = if dir andalso not fil then C.UM_dir else if fil andalso not dir then C.UM_file else C.UM_both
                 in fin (C.LUmask (ds, w)) end
             | NONE =>
-              let val cm = Regex.search (Regex.compile "[`'\"]\\s*(\\S+\\s+\\S+\\s+\\S+\\s+\\S+\\s+\\S+)\\s*[`'\"]") t in
+              let val cm = search "[`'\"]\\s*(\\S+\\s+\\S+\\s+\\S+\\s+\\S+\\s+\\S+)\\s*[`'\"]" t in
                 if isSome cm andalso has "\\bcron\\w*\\b|\\bcrontab\\b" low andalso has "\\bhow many times\\b|\\bhow often\\b|\\bhow many runs\\b" low then
                   let
                     val whole = g1 t (valOf cm)
@@ -462,14 +473,30 @@ struct
                     else NONE
                   end
                 else
-                  let val sy = Regex.search (Regex.compile "(?<![\\w-])([-dlbcps])?([r-][w-][xsS-][r-][w-][xsS-][r-][w-][xtT-])(?![\\w-])") t in
+                  let
+                    val classes = ["r-", "w-", "xsS-", "r-", "w-", "xsS-", "r-", "w-", "xtT-"]
+                    fun symOk m =
+                      let
+                        val s9 = valOf (grp t m 2)
+                        val typeOk = case grp t m 1 of NONE => true | SOME c => CharVector.all (fn ch => Char.contains "-dlbcps" ch) c
+                      in typeOk andalso size s9 = 9 andalso
+                         List.all (fn (i, cl) => Char.contains cl (String.sub (s9, i)))
+                           (ListPair.zip (List.tabulate (9, fn i => i), classes))
+                      end
+                    val sy = searchCS "(?<![\\w-])([-dlbcps])?([r-][w-][xsS-][r-][w-][xsS-][r-][w-][xtT-])(?![\\w-])" t symOk
+                  in
                     if isSome sy andalso has "\\boctal\\b|\\bnumeric\\b|\\bchmod\\b|\\bin numbers\\b|\\bnumber\\b" low then
                       let val s9 = valOf (grp t (valOf sy) 2)
                           val sub = fn i => String.substring (s9, 3 * i, 3)
                       in fin (C.LOctFromSym (C.Sym (permOf (sub 0), permOf (sub 1), permOf (sub 2)))) end
                     else
                       let
-                        val om = case Regex.search (Regex.compile "\\bchmod\\s+(?:-R\\s+)?(\\d{3,4})\\b") t of
+                        fun chmodOk m =
+                          let val w = span t m
+                          in String.isPrefix "chmod" w andalso
+                             (not (String.isSubstring "-r" (lower w)) orelse String.isSubstring "-R" w)
+                          end
+                        val om = case searchCS "\\bchmod\\s+(?:-R\\s+)?(\\d{3,4})\\b" t chmodOk of
                                    SOME m => SOME (g1 t m)
                                  | NONE =>
                                    (case search "\\b(?:permissions?|mode)\\s+(?:of\\s+)?(\\d{3,4})\\b" low of
@@ -501,7 +528,7 @@ struct
         SOME r => SOME r
       | NONE =>
           let val low = lower t4 in
-            (if isSome (Regex.search (Regex.compile "[`'\"]\\s*\\S+\\s+\\S+\\s+\\S+\\s+\\S+\\s+\\S+\\s*[`'\"]") t4)
+            (if isSome (search "[`'\"]\\s*\\S+\\s+\\S+\\s+\\S+\\s+\\S+\\s+\\S+\\s*[`'\"]" t4)
                   andalso has "\\bcron\\w*\\b|\\bcrontab\\b" low
                   andalso has "\\bhow many (?:times|runs)\\b|\\bhow often\\b" low
                   andalso not (has "\\bper (?:day|hour)\\b|\\ba day\\b|\\ban hour\\b|\\bdaily\\b" low)
@@ -574,13 +601,18 @@ struct
       if t = "" orelse not (has SIGRE low orelse has DOESRE low orelse has MODRE low) orelse not (has PYRE low) then NONE
       else
         let
-          fun csFind p = map (fn m => g1 t m) (Regex.findall (Regex.compile p) t)
-          val c1 = case Regex.search (Regex.compile "`([A-Za-z_][\\w.]*)(?:\\(\\))?`") t of SOME m => [g1 t m] | NONE => []
+          (* [A-Za-z_] classes cover both cases, so matching the lower-cased text finds the
+             same spans; the names are read back from the original text *)
+          fun csFind p = map (fn m => g1 t m) (findall p low)
+          val c1 = case search "`([A-Za-z_][\\w.]*)(?:\\(\\))?`" low of SOME m => [g1 t m] | NONE => []
           val c2 = csFind "\\b([A-Za-z_]\\w*(?:\\.[A-Za-z_]\\w*)+)(?:\\(\\))?"
           val c3 = csFind "\\b([A-Za-z_]\\w*)\\(\\)"
           val c4 = map (fn m => String.substring (t, #1 (valOf (Vector.sub (#groups m, 1))), #2 (valOf (Vector.sub (#groups m, 1))) - #1 (valOf (Vector.sub (#groups m, 1)))))
                        (findall "\\b(?:function|method|builtin|built-in)\\s+`?([a-z_]\\w*)`?" low)
-          val c5 = csFind "\\b(?:of|does|is|for|provides)\\s+`?([A-Za-z_][A-Za-z0-9_]*)`?\\b"
+          (* the keyword is case-sensitive in the organ *)
+          val c5 = map (fn m => g1 t m)
+                     (findallCS "\\b(?:of|does|is|for|provides)\\s+`?([A-Za-z_][A-Za-z0-9_]*)`?\\b" t
+                        (fn m => isLowerSpan (String.substring (t, #start m, #1 (valOf (Vector.sub (#groups m, 1))) - #start m))))
           val cands = map rstripDot (c1 @ c2 @ c3 @ c4 @ c5)
           val pcs = map (fn c => C.PyCand (c, rpartition c, size c > 2)) cands
           val q = if has MODRE low then C.PQ_module else if has SIGRE low then C.PQ_signature else C.PQ_doc
@@ -751,7 +783,7 @@ struct
                   else (j2, false)
                 val txt = String.substring (s, i, j3 - i)
               in
-                if not frac andalso not ex then go j3 (C.TI (valOf (IntInf.fromString txt)) :: acc)
+                if not frac andalso not ex then go j3 (C.TI (C.Int_of_integer (valOf (IntInf.fromString txt))) :: acc)
                 else
                   let
                     val (mant, e) = case String.fields (fn c => c = #"e" orelse c = #"E") txt of

@@ -1,5 +1,5 @@
 theory Computing_Export
-  imports Networking Numerics System Pyref Sql
+  imports Networking Numerics System Pyref Sql "HOL-Library.Code_Target_Numeral"
 begin
 
 definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
@@ -26,22 +26,22 @@ export_code net_reply emb_reply cyb_reply rob_reply lin_reply git_reply py_reply
   in SML module_name Computing file_prefix computing
 
 ML \<open>
-  val theorems = [@{thm net_props}, @{thm net_unique}, @{thm bcast_props}, @{thm mask_wildcard_complement},
-    @{thm usable_hosts}, @{thm mask_prefix_iff}, @{thm pfh_smallest}, @{thm pfh_complete},
-    @{thm net_private_iff}, @{thm net_mask_value}, @{thm net_network_value}, @{thm net_broadcast_value},
-    @{thm net_subnets_value}, @{thm net_forhosts_value}, @{thm net_reply_answered_iff},
-    @{thm round_he_close}, @{thm round_he_tie_even}, @{thm to_fixed_sound}, @{thm enclose_fixed_sound},
-    @{thm emb_ctc_value}, @{thm emb_ctc_gives}, @{thm emb_ubrr_value}, @{thm emb_timer_identities},
-    @{thm emb_uart_identities}, @{thm cyb_base64_len}, @{thm cyb_brute_value}, @{thm cyb_entropy_sound},
-    @{thm rob_diff_identities}, @{thm rob_wheel_sound}, @{thm rob_enc_sound}, @{thm rob_fk_sound},
-    @{thm sym_mode_sym}, @{thm mode_sym_mode}, @{thm item_vals_mem}, @{thm field_count_bound}, @{thm sig_table_bijective},
-    @{thm umask_file_bits}, @{thm umask_dir_bits}, @{thm lin_reply_answered_iff}, @{thm git_warns_exactly_destructive},
-    @{thm git_commands_distinct}, @{thm git_reply_states_command},
-    @{thm py_names_distinct}, @{thm py_found_in_table}, @{thm py_missing_sound}, @{thm py_signature_states_row},
-    @{thm py_withheld_iff}, @{thm py_table_size},
-    @{thm isort_perm}, @{thm isort_sorted}, @{thm where_keeps_exactly_true}, @{thm agg_count_skips_null},
-    @{thm agg_sum_empty}, @{thm agg_sum_ints}, @{thm agg_avg_value}, @{thm exec_unknown_column},
-    @{thm sql_reply_answered_iff}, @{thm validity_unbalanced_is_no}, @{thm sql_answer_unparsed_withheld}];
+  val theorems = flat [@{thms net_props}, @{thms net_unique}, @{thms bcast_props}, @{thms mask_wildcard_complement},
+    @{thms usable_hosts}, @{thms mask_prefix_iff}, @{thms pfh_smallest}, @{thms pfh_complete},
+    @{thms net_private_iff}, @{thms net_mask_value}, @{thms net_network_value}, @{thms net_broadcast_value},
+    @{thms net_subnets_value}, @{thms net_forhosts_value}, @{thms net_reply_answered_iff},
+    @{thms round_he_close}, @{thms round_he_tie_even}, @{thms to_fixed_sound}, @{thms enclose_fixed_sound},
+    @{thms emb_ctc_value}, @{thms emb_ctc_gives}, @{thms emb_ubrr_value}, @{thms emb_timer_identities},
+    @{thms emb_uart_identities}, @{thms cyb_base64_len}, @{thms cyb_brute_value}, @{thms cyb_entropy_sound},
+    @{thms rob_diff_identities}, @{thms rob_wheel_sound}, @{thms rob_enc_sound}, @{thms rob_fk_sound},
+    @{thms sym_mode_sym}, @{thms mode_sym_mode}, @{thms item_vals_mem}, @{thms field_count_bound}, @{thms sig_table_bijective},
+    @{thms umask_file_bits}, @{thms umask_dir_bits}, @{thms lin_reply_answered_iff}, @{thms git_warns_exactly_destructive},
+    @{thms git_commands_distinct}, @{thms git_reply_states_command},
+    @{thms py_found_in_table}, @{thms py_missing_sound}, @{thms py_signature_states_row},
+    @{thms py_withheld_iff}, @{thms py_lookup_sound}, @{thms py_lookup_complete},
+    @{thms isort_perm}, @{thms isort_sorted}, @{thms where_keeps_exactly_true}, @{thms agg_count_skips_null},
+    @{thms agg_sum_empty}, @{thms agg_sum_ints}, @{thms agg_avg_value}, @{thms exec_unknown_column},
+    @{thms sql_reply_answered_iff}, @{thms validity_unbalanced_is_no}, @{thms sql_answer_unparsed_withheld}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("computing theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code net_self_test} andalso @{code emb_self_test} andalso @{code cyb_self_test} andalso @{code rob_self_test} andalso

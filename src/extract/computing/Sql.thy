@@ -216,7 +216,8 @@ proof -
   have a: "list_all is_int_v (map SInt xs)" by (induction xs) (simp_all add: is_int_v_def)
   have b: "\<not> list_ex is_text (map SInt xs)" by (induction xs) (simp_all add: is_text_def)
   have c: "nonnull (map SInt xs) = map SInt xs" by (induction xs) (simp_all add: nonnull_def)
-  show ?thesis by (simp add: agg_eval_def Let_def c a b sum_vals_def)
+  have d: "map (int_of \<circ> SInt) xs = xs" by (induction xs) simp_all
+  show ?thesis by (simp add: agg_eval_def Let_def c a b d sum_vals_def)
 qed
 
 theorem agg_avg_value:

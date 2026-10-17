@@ -1,5 +1,5 @@
 theory Computing_Num
-  imports "Veri7vn_Computing_Base.Computing_Base"
+  imports "Veri7vn_Computing_Base.Computing_Base" "HOL-Library.Code_Target_Numeral"
 begin
 
 text \<open>Numbers shared by the computing family: verified decimal rounding and
@@ -225,9 +225,9 @@ definition show4 :: "rat \<Rightarrow> String.literal" where
 
 
 
-definition apos :: String.literal where "apos = String.implode [CHR 0x27]"
-definition dquote :: String.literal where "dquote = String.implode [CHR 0x22]"
-definition bquote :: String.literal where "bquote = String.implode [CHR 0x60]"
+definition apos :: String.literal where "apos = STR 0x27"
+definition dquote :: String.literal where "dquote = STR 0x22"
+definition bquote :: String.literal where "bquote = STR 0x60"
 
 subsection \<open>Fixed-decimal enclosure (new)\<close>
 

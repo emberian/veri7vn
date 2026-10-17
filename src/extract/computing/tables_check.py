@@ -134,5 +134,11 @@ PT = thy("Pyref_Table.thy")
 check("python table row count", len(re.findall(r"(?:\[|,)\n   \(STR", PT)) == len(d["entries"]) == 856)
 check("python version stamp", "py_version = STR ''%s''" % d["python"] in PT)
 
+# Lane S15b: table facts the HOL session no longer proves (evaluation is an oracle)
+rows = re.findall(r"(?:\[|,)\n   \(STR ''([^']*)'', STR ''([^']*)'', STR ''([^']*)''", PT)
+names = [n for n, _, _ in rows]
+check("python table names distinct (was py_names_distinct)", len(rows) == 856 and len(set(names)) == len(names))
+check("python name = prefix.short or short (was py_names_split)",
+      all(n == (sh if pf == "" else pf + "." + sh) for n, pf, sh in rows))
 print("%d checks failed" % len(FAILS) if FAILS else "TABLES PASS")
 sys.exit(1 if FAILS else 0)

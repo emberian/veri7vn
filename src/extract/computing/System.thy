@@ -2,8 +2,8 @@ theory System
   imports Computing_Num
 begin
 
-text \<open>Lane S15-computing: @{text linux-v2} (chmod, umask, cron, signals, exit
-status; upstream/root/specialists/linux-v2/organ_linux_v{1,2}.py) and @{text git}
+text \<open>Lane S15-computing: linux-v2 (chmod, umask, cron, signals, exit
+status; upstream/root/specialists/linux-v2/organ_linux_v{1,2}.py) and git
 (a typed intent table; upstream/root/specialists/git/organ_git_v1.py).\<close>
 
 section \<open>Permission bits\<close>
@@ -172,8 +172,10 @@ proof -
   have sub: "set vs \<subseteq> {lo..hi}"
   proof
     fix x assume "x \<in> set vs"
-    then obtain it xs where it: "it \<in> set its" and xs: "item_vals lo hi it = Some xs" and x: "x \<in> set xs"
+    then obtain it where it: "it \<in> set its" and x0: "x \<in> set (the (item_vals lo hi it))"
       using vs by (auto simp: field_vals_def Let_def split: if_splits)
+    from all it obtain xs where xs: "item_vals lo hi it = Some xs" by blast
+    from x0 xs have x: "x \<in> set xs" by simp
     from item_vals_mem[OF xs] x show "x \<in> {lo..hi}" by auto
   qed
   have ne: "vs \<noteq> []"
@@ -184,7 +186,13 @@ proof -
       and mem: "\<forall>x. x \<in> set xs \<longleftrightarrow> a \<le> x \<and> x \<le> b \<and> s dvd (x - a)" by blast
     have "a \<in> set xs" using mem ab by simp
     then have "xs \<noteq> []" by auto
-    moreover have "set xs \<subseteq> set vs" using it xs vs by (auto simp: field_vals_def Let_def split: if_splits)
+    moreover have "set xs \<subseteq> set vs"
+    proof -
+      have "vs = concat (map (the \<circ> item_vals lo hi) its)"
+        using vs by (auto simp: field_vals_def Let_def split: if_splits)
+      moreover have "xs = (the \<circ> item_vals lo hi) it" using xs by simp
+      ultimately show ?thesis using it by auto
+    qed
     ultimately show ?thesis by auto
   qed
   have "length (remdups vs) = card (set vs)" by (rule length_remdups_card_conv)
@@ -462,7 +470,7 @@ proof
 qed
 
 theorem git_commands_distinct: "distinct (map gcmd all_intents)"
-  by (simp add: all_intents_def dquote_def)
+  by (simp add: all_intents_def dquote_def add_Literal_assoc)
 
 theorem git_reply_states_command:
   "response (git_reply i) = STR ''The command is '' + bquote + gcmd i + bquote + STR '' - it '' + gnote i + STR ''.'' \<and>
