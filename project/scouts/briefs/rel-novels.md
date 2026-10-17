@@ -4,7 +4,13 @@ Prototype a verified relation reader for ONE of Oracle7's 161 `rel-*` specialist
 (schema: entity(qid,label,enwiki), fact(s,p,o,lit)) is available. Lane F already proved the exact
 router's decision over fetched rows (`src/isabelle/reader/Relation_Reader.thy`, `tools/reader/`);
 reuse its shape: verified decision over rows, untrusted sqlite fetch asserting completeness.
-Find out what rel-novels actually asks (its manifest, panel, scorer, the properties it reads),
-build the smallest prototype that answers its panel from the v1 store, score it with the harness,
-and report what the v1 store can and cannot serve, so root can decide whether the 161 readers are
-one lane or blocked for good.
+
+A previous scout attempt in THIS worktree already found: the shipped organ over relations_v1 plus a
+norm-index stand-in for the missing linker scores 84/120 panel items right, 0 wrong, 36 withheld
+because property P144 is absent from the v1 store altogether (see the committed probe under
+`tools/reader-novels/`: build_norm_index.py, probe.py, probe_port.py, and the uncommitted draft
+`src/extract/rel-novels/Novel_Reader.thy`). It ran out of context before writing its report.
+Start by writing SCOUT_REPORT.md from what is already here (commit it immediately), then continue:
+finish the HOL decision theory, build it remotely (`tools/dev/remote-build hbox src/extract/rel-novels <Session> --expect '<MARKER>'`),
+wire an answerer, score with the harness, and update the report. Keep your context small: grep
+before reading, read files in parts, never print whole panels. Commit often.

@@ -1,13 +1,18 @@
 Prototype a verified kernel for the part of Oracle7's head mathematics route that the core panel
-exercises. On `upstream/workbench/data/core_panel.json`, 24 items are answered through
-`organ:math`, 17 through `op:` (integer_sqrt, gcd_lcm, unit_convert, ...) and 6 through
-`algebra:solved`; 114 are withheld by precision guards (`precision_guard:P…/G…/Q…`). The organ is
-`upstream/root/wander-train/math_organ_v3.py` (516 lines, SymPy underneath) with
-`math_solver_v3.py` and the guard folds in the w-chain (grep `precision_guard` under
-`upstream/root/fable-content/.../self_loop/admitted/`). Build the smallest exact-rational HOL
-kernel (evaluate, simplify, solve linear in one unknown, gcd/lcm/integer sqrt) plus a recognizer,
-and a verified version of two or three precision guards (a decline is a theorem too). Measure on
-those core-panel items: the panel records only status and path, so use lane A's head answerer
-`tools/parity/answerers/oracle7.py` ONCE in one process (it redirects Oracle7's stray writes; set
-`ORACLE7_STATE` under var/scout/) to get Oracle7's answer text for those items, then compare.
-Report what SymPy does that an exact kernel cannot, and what the guards really check.
+exercises (`organ:math` 24 items, `op:` 17, `algebra:solved` 6, and 114 `precision_guard` declines
+on `upstream/workbench/data/core_panel.json`). The organ is `upstream/root/wander-train/math_organ_v3.py`
+(SymPy underneath) with `math_solver_v3.py`; the guards are folds in the w-chain (grep
+`precision_guard` under `upstream/root/fable-content/.../self_loop/admitted/`).
+
+A previous scout attempt in THIS worktree left an uncommitted 1,062-line draft
+`src/extract/mathorgan/Math.thy` and ran out of context before building or reporting. Start by
+reading that draft in parts, commit it as-is, write a first SCOUT_REPORT.md stating what it covers
+and what it does not (commit it), then: build it remotely
+(`tools/dev/remote-build persvati src/extract/mathorgan <Session> --expect '<MARKER>'`), fix or
+`sorry`-mark proofs (say so per lemma), export, compile with MLton, write a recognizer for the
+evaluate/simplify/solve-linear/gcd/lcm/integer-sqrt forms, and measure on the core-panel math items
+by running lane A's head answerer `tools/parity/answerers/oracle7.py` ONCE in one process (set
+`ORACLE7_STATE` under var/scout/; it redirects Oracle7's stray writes) to get Oracle7's answer
+text, then compare. Report what SymPy does that an exact kernel cannot, and what the guards check.
+Keep your context small: grep before reading, read files in parts, never print large outputs.
+Commit often.
