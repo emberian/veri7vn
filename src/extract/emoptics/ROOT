@@ -1,0 +1,18 @@
+(* Lane S04: electrical, electronics, wiring and optics (Oracle7 specialists
+   electrical, electronics, electronics-r2, wiring, optics, optics-v2, -v3,
+   -v5, -v5-r2) as one HOL kernel exported to SML. The base session only loads
+   Isabelle's verified interval arithmetic (HOL-Decision_Procs.Approximation,
+   no HOL-Analysis); copied from lane G's quantity/ROOT. *)
+session Veri7vn_Emoptics_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Emoptics_Base
+
+session Veri7vn_Emoptics = Veri7vn_Emoptics_Base +
+  options [document = false, threads = 2]
+  theories
+    Emoptics_Num
+    Emoptics
+    Emoptics_Export
