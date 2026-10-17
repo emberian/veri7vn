@@ -1,0 +1,13 @@
+(* Scout "conversation": Oracle7's conversation conversion layer (runtime AO,
+   the M53 meta-fold; the released head carries the same shape as w529 over
+   chat_context_v2) as a HOL object: a datatype of constructions, the rewrite
+   as a function over dialogue state, and the two properties the AO docstring
+   claims - a rewrite never answers by itself, and a probe leaves state
+   unchanged. No arithmetic beyond numerals, so one session, no base. *)
+session Veri7vn_Converse = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Library"
+  theories
+    Converse
+    Converse_Export
