@@ -1,0 +1,19 @@
+(* Lane S07: the Oracle7 chemistry family (chemistry, chemistry-v3, decay,
+   labsolutions, labsolutions-r2) as one HOL kernel, exported to SML. The base
+   session holds the numerics (Chem_Util: rounding, enclosures via
+   HOL-Decision_Procs.Approximation, number layout) and the generated
+   periodic table, so the kernel session rebuilds quickly on top of it. *)
+session Veri7vn_Chemistry_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Chem_Util
+    Chem_Table
+
+session Veri7vn_Chemistry = Veri7vn_Chemistry_Base +
+  options [document = false, threads = 2]
+  theories
+    Chemistry
+    Decay
+    Chemistry_Export
