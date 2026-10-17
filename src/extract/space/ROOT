@@ -1,0 +1,18 @@
+(* Lane S02-space: the Oracle7 space family (orbits, planetary, spacecraft,
+   spacecomms, astronomy, astronomy-v2, astronomy-v3, astronomy-v3-r2) as one
+   HOL kernel exported to SML. The base session only loads Isabelle's verified
+   interval arithmetic (HOL-Decision_Procs.Approximation, no HOL-Analysis),
+   so the kernel session rebuilds quickly on top of it. *)
+session Veri7vn_Space_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Space_Base
+
+session Veri7vn_Space = Veri7vn_Space_Base +
+  options [document = false, threads = 2]
+  theories
+    Space_Tables
+    Space
+    Space_Export

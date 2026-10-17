@@ -1,0 +1,7 @@
+# The space family, end to end
+
+Eight shipped Oracle7 specialists as one program: `orbits`, `planetary`, `spacecraft`, `spacecomms`, `astronomy`, `astronomy-v2`, `astronomy-v3`, `astronomy-v3-r2`. Same recipe as `src/extract/quantity/`: a HOL kernel over typed requests (`Space.thy`), tables transcribed from the organs (`Space_Tables.thy`, checked by `tables_check.py`), an untrusted SML recognizer (`regex.sml`, `recognizer.sml`) and driver (`main.sml`), compiled by the MLton inside Isabelle into `var/space/bin/space`. `--specialist ID` asks one manifest's organ; with no argument the family is asked in the order planetary, spacecraft, orbits, spacecomms, astronomy-v3-r2.
+
+Proved: each kind's value satisfies its defining equation (Kepler's third law, vis-viva, Tsiolkovsky, escape speed squared times radius = 2GM, mean density, free-space path loss as a power of ten, light time, transfer time, bits in flight, weight scales with surface gravity, ratio times reference = subject). Declines are exactly the organs' underspecified, no-synchronous-orbit, impossible, unknown-body and unknown-value predicates. Decimals from square roots, pi, exp, ln and a cube root come from Isabelle's interval arithmetic, with a proved error bound (`kernel_approx_sound`). Untrusted: the recognizer, JSON framing, number layout (`render_*`, checked by self test and panels), and the transcription of tables (checked by `tables_check.py`, not a proof).
+
+Build and score: see `project/lanes/S02-space.md`.
