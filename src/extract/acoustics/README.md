@@ -65,8 +65,8 @@ The binary is not committed; it lives under `var/acoustics/bin/`.
 
 ## Current result
 
-Held-out panel: 66 of 69 right, 0 wrong, 0 false yes (the shipped organ: 69 of 69).
-The three misses are decibel questions where the interval for a logarithm is too
-wide to give four digits, so the kernel withholds instead of guessing. Binary
-427 KB, cold start about 15 ms, median 12 ms per question. Details, theorem
+Held-out panel: 69 of 69 right, 0 wrong, 0 false yes (the shipped organ: 69 of 69);
+practice panel 70 of 70. Binary 428 KB, cold start about 15 ms, median 12 ms per
+question, every kind under the 50 ms budget. The folder `oracle7-organ/` wraps the
+binary as an Oracle7 specialist (`acoustics-veri7vn`). Details, theorem
 statements and remaining work: [lane D handoff](../../../project/lanes/D-acoustics.md).
