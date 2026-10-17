@@ -45,7 +45,7 @@ def process_inventory():
     """Kernel identities only: never collect process arguments or environment."""
     try:
         result = subprocess.run(["ps", "-axo", "pid=,ppid=,pgid=,stat=,lstart="],
-                                text=True, capture_output=True, timeout=5, check=True)
+                                text=True, capture_output=True, timeout=30, check=True)
     except (OSError, subprocess.SubprocessError) as failure:
         detail = (failure.stderr.strip() if isinstance(failure, subprocess.CalledProcessError)
                   and failure.stderr else str(failure))
