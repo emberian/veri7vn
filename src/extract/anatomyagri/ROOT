@@ -1,0 +1,10 @@
+(* Lane S10: anatomy, anatomy-r2, agriculture-v2, gardening and nutrition-label-v2
+   as one HOL kernel exported to SML. Exact rational arithmetic only, so the session
+   sits directly on the bundled HOL image (no Approximation base session). *)
+session Veri7vn_AnatomyAgri in "." = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Library"
+  theories
+    AnatomyAgri
+    AnatomyAgri_Export
