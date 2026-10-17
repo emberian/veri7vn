@@ -192,40 +192,70 @@ def archive_receipt(state):
     return archived
 
 
+def build_slot_paths(state):
+    """The build lock is a small semaphore: slot 0 is build.lock, further slots build.lock.N."""
+    slots = max(1, int(os.environ.get("VERI7VN_BUILD_SLOTS", "3")))
+    return [state / "build.lock"] + [state / f"build.lock.{i}" for i in range(1, slots)]
+
+
+def acquire_build_slot(state, no_wait):
+    """Take any free slot without blocking; otherwise block on one slot (pid-chosen) unless no_wait."""
+    paths = build_slot_paths(state)
+    for path in paths:
+        handle = path.open("a")
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return handle
+        except BlockingIOError:
+            handle.close()
+    if no_wait:
+        return None
+    print(f"All {len(paths)} native build slots are held; waiting for one (use --no-wait to exit instead).",
+          flush=True)
+    waited = time.monotonic()
+    handle = paths[os.getpid() % len(paths)].open("a")
+    fcntl.flock(handle, fcntl.LOCK_EX)
+    print(f"Native build slot acquired after {time.monotonic() - waited:.0f}s.", flush=True)
+    return handle
+
+
 def show_status():
     state = ROOT / "var/native-scaffold"
     if not (state / "build.lock").exists():
         print("Native build lock: idle (no lock file)")
         return 0
-    with (state / "build.lock").open("a") as lock:
-        try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            held = False
-        except BlockingIOError:
-            held = True
-        print(f"Native build lock: {'held' if held else 'idle'}")
-        try:
-            active = json.loads((state / "active.json").read_text())
-            path = Path(active["receipt"])
-            if not path.resolve().is_relative_to(state.resolve()):
-                raise ValueError("invalid receipt path")
-            receipt = json.loads(path.read_text())
-            print(f"{'Active' if held else 'Last'} driver PID: {active['driver_pid']}; receipt: {path}")
-            print(f"Receipt status: {receipt['status']}; sessions: {receipt.get('sessions', [receipt['session']])}")
-            print(f"Scope: {receipt.get('scope', 'unspecified')}; snapshot: {receipt.get('snapshot_mode', 'conservative')}")
-            if receipt["commands"]:
-                command = receipt["commands"][-1]
-                print(f"Last command: {command['argv']}; child PID: {command.get('pid', 'not started')}")
-                log = (ROOT / command["log"]).resolve()
-                if not log.is_relative_to(state.resolve()):
-                    raise ValueError("invalid log path")
-                if log.is_file():
-                    # Read only the tail; large logs must not burden status checks.
-                    with log.open("rb") as stream:
-                        stream.seek(max(0, log.stat().st_size - 5000))
-                        print(stream.read().decode("utf-8", errors="replace"))
-        except (OSError, ValueError, KeyError, TypeError) as failure:
-            print(f"Latest receipt not yet available: {failure}")
+    paths = build_slot_paths(state)
+    taken = 0
+    for path in paths:
+        with path.open("a") as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                taken += 1
+    held = taken > 0
+    print(f"Native build lock: {'held' if held else 'idle'} ({taken} of {len(paths)} slots taken)")
+    try:
+        active = json.loads((state / "active.json").read_text())
+        path = Path(active["receipt"])
+        if not path.resolve().is_relative_to(state.resolve()):
+            raise ValueError("invalid receipt path")
+        receipt = json.loads(path.read_text())
+        print(f"{'Active' if held else 'Last'} driver PID: {active['driver_pid']}; receipt: {path}")
+        print(f"Receipt status: {receipt['status']}; sessions: {receipt.get('sessions', [receipt['session']])}")
+        print(f"Scope: {receipt.get('scope', 'unspecified')}; snapshot: {receipt.get('snapshot_mode', 'conservative')}")
+        if receipt["commands"]:
+            command = receipt["commands"][-1]
+            print(f"Last command: {command['argv']}; child PID: {command.get('pid', 'not started')}")
+            log = (ROOT / command["log"]).resolve()
+            if not log.is_relative_to(state.resolve()):
+                raise ValueError("invalid log path")
+            if log.is_file():
+                # Read only the tail; large logs must not burden status checks.
+                with log.open("rb") as stream:
+                    stream.seek(max(0, log.stat().st_size - 5000))
+                    print(stream.read().decode("utf-8", errors="replace"))
+    except (OSError, ValueError, KeyError, TypeError) as failure:
+        print(f"Latest receipt not yet available: {failure}")
     return 0
 
 
@@ -317,17 +347,10 @@ def main():
     state = ROOT / "var/native-scaffold"
     state.mkdir(parents=True, exist_ok=True)
     # All invocations in this checkout share a lock, including executable overrides.
-    with (state / "build.lock").open("a") as lock:
-        try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            if args.no_wait:
-                parser.exit(2, "Another native scaffold check holds var/native-scaffold/build.lock.\n")
-            print("Native build lock held by another check; waiting for it (use --no-wait to exit instead).",
-                  flush=True)
-            waited = time.monotonic()
-            fcntl.flock(lock, fcntl.LOCK_EX)
-            print(f"Native build lock acquired after {time.monotonic() - waited:.0f}s.", flush=True)
+    slot = acquire_build_slot(state, args.no_wait)
+    if slot is None:
+        parser.exit(2, "Every native build slot under var/native-scaffold is held.\n")
+    with slot as lock:
         output = state
         if args.session:
             key = hashlib.sha256("\0".join(targets).encode()).hexdigest()[:16]
