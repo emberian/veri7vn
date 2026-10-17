@@ -235,9 +235,9 @@ Organ cross-check (`score.py`): 0 decision disagreements on all 2,476 items. Tex
 replies (28 + 23 + 18 + 18) whose value is an exact decimal tie at 150 g (e.g. 1.3 g x 1.5 = 1.95): kernel rounds
 up, organ prints the float below. Held-out misses, all the organ's own:
 - cooking: 60 withheld, all "What's the X content of ..." (v1's frame leak, e.g. "s content spanish raw peanut").
-- cooking-v2: 55 withheld: 52 "Can you give me the X content of ..." (the stripped question no longer asks),
-  plus "What is the calcium value for 100 g of pound fat cake?" (clarify), and two no_value entries
-  ("pink grapefruit juice" fiber).
+- cooking-v2: 55 withheld: 53 "Can you give me the X content of ..." (the stripped question no longer asks,
+  so the organ is silent), "What is the calcium value for 100 g of pound fat cake?" (clarify), and
+  "I'd like to know how much fiber 150 g of pink grapefruit juice has." (no_value).
 - cooking-v3 / -r2: wrong "Would you tell me the iron value for 150 g of brain cooked beef?" (3.5 vs 3.33) and
   "... carbohydrates value for a cup of jackfruit?" (38.4 vs 42.6, different cup weight); withheld no_value
   "pumpkin flower" sugar and "pink grapefruit juice" fiber.
