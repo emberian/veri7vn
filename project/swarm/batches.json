@@ -1,0 +1,237 @@
+{
+ "S01-mechanics": {
+  "model": "sonnet",
+  "ids": [
+   "physics",
+   "physics-r2",
+   "physics-r3",
+   "mechanisms",
+   "mechanisms-v2",
+   "bodies-v2",
+   "sports",
+   "fleet",
+   "fluids-r2"
+  ]
+ },
+ "S02-space": {
+  "model": "sonnet",
+  "ids": [
+   "orbits",
+   "planetary",
+   "spacecraft",
+   "spacecomms",
+   "astronomy",
+   "astronomy-v2",
+   "astronomy-v3",
+   "astronomy-v3-r2"
+  ]
+ },
+ "S03-earth": {
+  "model": "sonnet",
+  "ids": [
+   "geography",
+   "geology",
+   "seismology",
+   "hydrology",
+   "ocean",
+   "meteorology",
+   "greenhouse",
+   "greenhouse-r2"
+  ]
+ },
+ "S04-em-optics": {
+  "model": "sonnet",
+  "ids": [
+   "electrical",
+   "electronics",
+   "electronics-r2",
+   "wiring",
+   "optics",
+   "optics-v2",
+   "optics-v3",
+   "optics-v5",
+   "optics-v5-r2"
+  ]
+ },
+ "S05-climate": {
+  "model": "sonnet",
+  "ids": [
+   "airquality",
+   "carboncapture",
+   "carbonmat",
+   "climate",
+   "coldchain",
+   "coldchain-v2"
+  ]
+ },
+ "S06-energy": {
+  "model": "sonnet",
+  "ids": [
+   "energy-v2",
+   "energy-v3",
+   "hvac",
+   "thermo",
+   "renewables",
+   "iot"
+  ]
+ },
+ "S07-chemistry": {
+  "model": "sonnet",
+  "ids": [
+   "chemistry",
+   "chemistry-v3",
+   "decay",
+   "labsolutions",
+   "labsolutions-r2"
+  ]
+ },
+ "S08-materials": {
+  "model": "sonnet",
+  "ids": [
+   "additive-v2",
+   "materials-v2",
+   "soil",
+   "soil-r2",
+   "water",
+   "water-r3"
+  ]
+ },
+ "S09-life": {
+  "model": "sonnet",
+  "ids": [
+   "biology",
+   "ecology",
+   "forestry",
+   "wildlife",
+   "microbiology-v2",
+   "genetics-v2"
+  ]
+ },
+ "S10-anatomy-agri": {
+  "model": "sonnet",
+  "ids": [
+   "anatomy",
+   "anatomy-r2",
+   "agriculture-v2",
+   "gardening",
+   "nutrition-label-v2"
+  ]
+ },
+ "S11-geometry-stats": {
+  "model": "sonnet",
+  "ids": [
+   "geometry",
+   "geometry-v3",
+   "geometry-v4",
+   "statistics",
+   "statistics-v2",
+   "statistics-v3"
+  ]
+ },
+ "S12-discrete": {
+  "model": "sonnet",
+  "ids": [
+   "algorithms",
+   "calculus",
+   "dataformats",
+   "games-v3",
+   "logic-v3"
+  ]
+ },
+ "S13-finance": {
+  "model": "sonnet",
+  "ids": [
+   "economics",
+   "finance",
+   "finance-v2",
+   "finance-v2-r2",
+   "retail"
+  ]
+ },
+ "S14-trades": {
+  "model": "sonnet",
+  "ids": [
+   "architecture",
+   "crafts",
+   "printing",
+   "printing-v2",
+   "safety",
+   "woodworking"
+  ]
+ },
+ "S15-computing": {
+  "model": "sonnet",
+  "ids": [
+   "cyber",
+   "embedded",
+   "networking",
+   "linux-v2",
+   "git",
+   "sql",
+   "python",
+   "python-r2",
+   "robotics-v2"
+  ]
+ },
+ "S16-humanities": {
+  "model": "sonnet",
+  "ids": [
+   "grammar",
+   "music-v2",
+   "music-v2-r2",
+   "mythology",
+   "ushistory",
+   "library",
+   "government"
+  ]
+ },
+ "S17-variants": {
+  "model": "sonnet",
+  "ids": [
+   "densities-r2",
+   "units-v2",
+   "units-v3-r2"
+  ],
+  "note": "variants of lifted specialists; extend src/extract/quantity by request to root or copy"
+ },
+ "O18-cooking-warehouse": {
+  "model": "opus",
+  "ids": [
+   "cooking",
+   "cooking-v2",
+   "cooking-v3",
+   "cooking-v3-r2",
+   "warehouse",
+   "warehouse-r2"
+  ],
+  "note": "sqlite-backed USDA table and stateful warehouse"
+ },
+ "O19-facts": {
+  "model": "opus",
+  "ids": [
+   "arthistory",
+   "botany",
+   "childdev",
+   "entomology",
+   "etiquette",
+   "firesafety-v2",
+   "firstaid",
+   "javascript",
+   "law",
+   "linguistics",
+   "literature-v2",
+   "marinebio",
+   "medicine",
+   "medicine-r2",
+   "mycelial",
+   "mycology",
+   "ornithology",
+   "pets",
+   "poetry",
+   "psychology",
+   "sociology",
+   "worldhistory"
+  ],
+  "note": "one FactsOrgan kernel (ordered guarded rules) + 22 transcribed rule tables"
+ }
+}
