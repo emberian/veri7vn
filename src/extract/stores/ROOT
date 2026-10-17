@@ -1,0 +1,17 @@
+(* Lane O18: the Oracle7 store-backed specialists (cooking v1..v3-r2: USDA
+   nutrition; warehouse, warehouse-r2: the site organ with sessions) as one HOL
+   kernel, exported to SML. The base session only loads the code-generation
+   setup for integers and the lexicographic order on pairs, so the kernel
+   session rebuilds quickly on top of it. *)
+session Veri7vn_Stores_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Library"
+  theories
+    Stores_Base
+
+session Veri7vn_Stores = Veri7vn_Stores_Base +
+  options [document = false, threads = 2]
+  theories
+    Stores
+    Stores_Export
