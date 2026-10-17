@@ -21,6 +21,8 @@ sig
 end =
 struct
   structure D = Discrete
+  fun dropWhile' p [] = []
+    | dropWhile' p (x :: xs) = if p x then dropWhile' p xs else x :: xs
 
   val cache : (string * Regex.regex) list ref = ref []
   fun lower s = String.map Char.toLower s
@@ -279,7 +281,7 @@ struct
       if Narrow.narrative t1 then NONE
       else
         let val t2 = subCI "\\b(?:dealt|deal|draw|drawing|holding|hold)\\s+(?:five|5)\\s+cards\\b" "dealt a five-card hand" t1
-        in gamesCore t2 end
+        in Option.map D.RGames (gamesCore t2) end
     end
 
   (* ====================================================================
@@ -379,7 +381,7 @@ struct
   fun isVar (D.FVar _) = true | isVar _ = false
 
   fun strip s = let val l = String.explode s
-                    val l1 = List.rev (List.dropWhile Char.isSpace (List.rev (List.dropWhile Char.isSpace l)))
+                    val l1 = List.rev (dropWhile' Char.isSpace (List.rev (dropWhile' Char.isSpace l)))
                 in String.implode l1 end
 
   val forms = [
@@ -437,7 +439,7 @@ struct
             val premS = case search SPAN_L left of SOME m => g1 left m | NONE => ""
             val conclS = case search SPAN_R right of SOME m => g1 right m | NONE => ""
             val concl = parseF (let val c = strip conclS
-                                    val l = List.rev (List.dropWhile (fn x => x = #"," orelse x = #";") (List.rev (String.explode c)))
+                                    val l = List.rev (dropWhile' (fn x => x = #"," orelse x = #";") (List.rev (String.explode c)))
                                 in String.implode l end)
           in
             case (parseAll (splitSemi premS), concl) of
@@ -691,7 +693,7 @@ struct
   fun parsePoly (expr : string) : ((D.nat * D.rat) list * string) option =
     let
       val s0 = strip expr
-      val s1 = String.implode (List.rev (List.dropWhile (fn c => Char.contains "?.!," c) (List.rev (String.explode s0))))
+      val s1 = String.implode (List.rev (dropWhile' (fn c => Char.contains "?.!," c) (List.rev (String.explode s0))))
       val s = List.foldl (fn ((a, b), x) => replaceStr a b x) s1
                 [("\194\178", "^2"), ("\194\179", "^3"), ("\226\129\180", "^4"), ("\226\129\181", "^5"),
                  ("\226\129\182", "^6"), ("\226\136\146", "-"), ("\194\183", "*")]
