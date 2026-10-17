@@ -34,6 +34,12 @@ Enclosed values are rounded to four significant digits from a verified interval 
 bits); each theorem bounds the error at one part in a thousand plus 1e-9. Genetics answers are
 exact fractions (1/4, 3/4) with the percent alongside, as the organ prints them.
 
+## Regenerating the recognizer
+
+`recognizer.sml` is generated: `sh src/extract/life/gen/rebuild.sh` rebuilds it from
+`gen/part{1,2,3}.sml` with `gen/conv.py` (which turns the bracketed regex text into SML string
+literals). Edit the parts, not the generated file; `git diff` on it must be empty after a no-op regenerate.
+
 ## Build and run
 
 ```sh
