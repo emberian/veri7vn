@@ -1,0 +1,17 @@
+(* Lane G: the Oracle7 quantity family (densities, units, units-v3, springs,
+   fluids, fuels) as one HOL kernel, exported to SML. The base session only
+   loads Isabelle's verified interval arithmetic
+   (HOL-Decision_Procs.Approximation, no HOL-Analysis), so the kernel session
+   rebuilds quickly on top of it. *)
+session Veri7vn_Quantity_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Quantity_Base
+
+session Veri7vn_Quantity = Veri7vn_Quantity_Base +
+  options [document = false, threads = 2]
+  theories
+    Quantity
+    Quantity_Export
