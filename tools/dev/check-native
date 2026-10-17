@@ -235,6 +235,8 @@ def main():
         "VERI7VN_ISABELLE", "/Applications/Isabelle2026-RC1.app/bin/isabelle"),
         help="Isabelle executable (default: installed RC1; or VERI7VN_ISABELLE)")
     parser.add_argument("--timeout", type=int, default=600,
+    parser.add_argument("--no-wait", action="store_true",
+                        help="exit with status 2 if another check holds the build lock instead of waiting")
                         help="maximum seconds per tool invocation (default: 600)")
     parser.add_argument("--session", help="lane-local session (default: scaffold)")
     parser.add_argument("--also-session", action="append", default=[],
@@ -319,7 +321,13 @@ def main():
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
-            parser.exit(2, "Another native scaffold check holds var/native-scaffold/build.lock.\n")
+            if args.no_wait:
+                parser.exit(2, "Another native scaffold check holds var/native-scaffold/build.lock.\n")
+            print("Native build lock held by another check; waiting for it (use --no-wait to exit instead).",
+                  flush=True)
+            waited = time.monotonic()
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            print(f"Native build lock acquired after {time.monotonic() - waited:.0f}s.", flush=True)
         output = state
         if args.session:
             key = hashlib.sha256("\0".join(targets).encode()).hexdigest()[:16]
