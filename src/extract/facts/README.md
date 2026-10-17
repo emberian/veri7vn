@@ -59,6 +59,15 @@ python3 src/extract/facts/score.py
 
 The binary is not committed. It lives under `var/facts/bin/`.
 
+`Facts_Tables.thy` is generated. `sh src/extract/facts/gen/regen.sh` rewrites it from the shipped stores
+(`gen/gen_tables.py`, not trusted), and the output is byte-identical to the committed file.
+`tables_check.py` is the independent check.
+
+`regex.sml` deliberately differs from `src/extract/quantity/regex.sml`. Do not "fix" it back. It folds
+case inside the matcher, as Python's re.I does, and supports the case-sensitive group `(?-i:...)`.
+firesafety-v2's `(?-i:\bPASS\b)` and firstaid's `(?-i:\bRICE\b)` need that group: with the shared
+file's convention of lower-casing the text, those patterns could never match.
+
 ## Current result
 
 All 22 specialists were run on their own panels with `--specialist ID`. Every held-out count equals
