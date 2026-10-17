@@ -46,7 +46,7 @@ structure Json = struct
              | #"r" => str (i + 2, "\r" :: acc) | #"t" => str (i + 2, "\t" :: acc)
              | #"u" =>
                  let val hi = hex4 (i + 2) in
-                   if hi >= 0xD800 andalso hi < 0xDC00 andalso peek (i + 6) = #"\\" andalso peek (i + 7) = #"\u"
+                   if hi >= 0xD800 andalso hi < 0xDC00 andalso peek (i + 6) = #"\\" andalso peek (i + 7) = #"u"
                    then let val lo = hex4 (i + 8)
                         in str (i + 12, utf8 (0x10000 + (hi - 0xD800) * 1024 + (lo - 0xDC00)) :: acc) end
                    else str (i + 6, utf8 hi :: acc)
@@ -81,7 +81,7 @@ structure Json = struct
         else let val (k, j) = str (expect (#"\"", i), []) val j = expect (#":", ws j)
                  val (v, j) = value j val j = ws j in
           case peek j of #"," => obj (ws (j + 1), (k, v) :: acc) | #"}" => (Obj (rev ((k, v) :: acc)), j + 1)
-                       | _ => raise Bad "object") end
+                       | _ => raise Bad "object" end
       val (v, j) = value 0
     in if ws j = n then v else raise Bad "trailing input" end
 
@@ -128,11 +128,11 @@ structure Main = struct
 
   fun candidate c =
     R.Candidate_ext (nat (int (field c "qid")), nat (int (field c "links")), bool (field c "dom"),
-                     map (map (nat o int)) (list (field c "anc")), map row (list (field c "rows")),
-                     bool (field c "complete"), ())
+                     map (fn a => map (nat o int) (list a)) (list (field c "anc")),
+                     map row (list (field c "rows")), bool (field c "complete"), ())
 
   fun attempt a =
-    R.Attempt_ext (nat (int (field a "key")), nat (int (field a "idx")), bool (field a "slot_ok")),
+    R.Attempt_ext (nat (int (field a "key")), nat (int (field a "idx")), bool (field a "slot_ok"),
                    map candidate (list (field a "candidates")), ())
 
   fun vword x = case list x of [v, ws] => (value v, map string (list ws)) | _ => raise Bad "vwords"
@@ -142,7 +142,7 @@ structure Main = struct
                              map string (list (field e "qwords")), map vword (list (field e "vwords")), ())
 
   fun showReaders () =
-    show (Arr (map (fn (k, n, dr) => Arr [unnat k, unnat n, Arr (map unnat dr)]) R.readers))
+    show (Arr (map (fn (k, (n, dr)) => Arr [unnat k, unnat n, Arr (map unnat dr)]) R.readers))
 
   fun handle_line line =
     if line = "readers" then showReaders ()
@@ -153,7 +153,7 @@ structure Main = struct
         val id = field e "id"
       in
         case R.decide_spec f (map attempt (list (field e "attempts"))) of
-          R.Answer (s, p, v) =>
+          R.Answer (s, (p, v)) =>
             show (Obj [("id", id), ("outcome", Str "answer"), ("subject", unnat s),
                        ("property", unnat p), ("value", showValue v)])
         | R.Decline (p, s) =>
