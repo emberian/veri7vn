@@ -40,7 +40,7 @@ struct
   fun re p =
     case List.find (fn (q, _) => q = p) (!cache) of
       SOME (_, r) => r
-    | NONE => let val r = Regex.compile (lower p) in cache := (p, r) :: !cache; r end
+    | NONE => let val r = Regex.compile p in cache := (p, r) :: !cache; r end
 
   fun search p s = Regex.search (re p) s
   fun has p s = isSome (search p s)

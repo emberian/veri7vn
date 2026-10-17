@@ -29,7 +29,7 @@ struct
   fun re p =
     case List.find (fn (q, _) => q = p) (!cache) of
       SOME (_, r) => r
-    | NONE => let val r = Regex.compile (lower p) in cache := (p, r) :: !cache; r end
+    | NONE => let val r = Regex.compile p in cache := (p, r) :: !cache; r end
   fun has p s = isSome (Regex.search (re p) s)
 
   (* ---- densities-r2: names_narrowing_v1.named_not_material ---- *)
@@ -79,8 +79,7 @@ struct
 
   (* ---- units-v3-r2: organ_units_v3_r2.py ---- *)
   val NOT_MINE = "\\b(?:heat loss|R-\\d{1,2}|R-value|U-value|heating degree days)\\b"
-  (* [\s\S] is written (?:.|\s): patterns are lower-cased before compiling, which would turn \S into \s *)
-  val MINE = "\\b(?:convert|conversion|how many \\w+ (?:is|are|in)|in (?:kilo|milli|centi)?\\w+s?\\?)\\b(?!(?:.|\\s)*\\bR-\\d)"
+  val MINE = "\\b(?:convert|conversion|how many \\w+ (?:is|are|in)|in (?:kilo|milli|centi)?\\w+s?\\?)\\b(?![\\s\\S]*\\bR-\\d)"
 
   fun unitsV3R2 text =
     let val low = lower text

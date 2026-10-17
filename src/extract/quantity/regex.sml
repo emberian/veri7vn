@@ -10,9 +10,12 @@
    the end or before a final newline), bounded repetition {m}, {m,} and {m,n}
    (with lazy suffix ?), and lookbehind (?<=...) and (?<!...) (any width; the
    organs only use fixed-width ones).
-   Case-insensitive matching is done by the caller, which lower-cases both the
-   pattern and the text (every organ pattern is compiled with re.I or applied
-   to lower-cased text).
+   Case-insensitive matching: the caller lower-cases the TEXT and passes the
+   pattern as written. compile lower-cases only literal characters and class
+   members (including range ends) while parsing; escape classes keep their
+   meaning (\d \D \s \S \w \W \b \B). Do not lower-case the pattern
+   string first: that turns \S into \s (lane S17 fix; previously every
+   caller did, so upper-case escapes silently changed meaning).
    Text is matched byte by byte; \w and \d are ASCII-only (Python's are
    Unicode-aware, which differs only for non-ASCII letters and digits). *)
 structure Regex :
@@ -35,6 +38,7 @@ struct
     | Look of bool * node list list         (* positive?, alternatives *)
     | Behind of bool * node list list       (* positive?, alternatives *)
     | WordB
+    | NotWordB
     | Bol
     | Eol
     | Rep of node * int * int option * bool (* node, min, max, greedy *)
@@ -58,7 +62,11 @@ struct
           #"d" => SOME Char.isDigit
         | #"s" => SOME isSpace
         | #"w" => SOME isWord
+        | #"D" => SOME (not o Char.isDigit)
+        | #"S" => SOME (not o isSpace)
+        | #"W" => SOME (not o isWord)
         | _ => NONE
+      val lc = Char.toLower
       fun parseAlt i =
         let val (s, i) = parseSeq i []
         in case peek i of
@@ -132,11 +140,12 @@ struct
         | #"\\" =>
             let val c = String.sub (p, i + 1)
             in if c = #"b" then (WordB, i + 2)
+               else if c = #"B" then (NotWordB, i + 2)
                else case escClass c of
                       SOME f => (Cls (false, f), i + 2)
-                    | NONE => (Lit c, i + 2)
+                    | NONE => (Lit (lc c), i + 2)
             end
-        | c => (Lit c, i + 1)
+        | c => (Lit (lc c), i + 1)
       and group idx i =
         let val (alts, j) = parseAlt i
         in if peek j = SOME #")" then (Grp (idx, alts), j + 1)
@@ -161,14 +170,16 @@ struct
                 let val c = String.sub (p, i + 1)
                 in case escClass c of
                      SOME f => (f, i + 2)
-                   | NONE => (fn x => x = c, i + 2)
+                   | NONE => (let val c = lc c in fn x => x = c end, i + 2)
                 end
-            | c =>
+            | c0 =>
+                let val c = lc c0 in
                 if peek (i + 1) = SOME #"-" andalso peek (i + 2) <> SOME #"]"
                    andalso peek (i + 2) <> NONE
-                then let val d = String.sub (p, i + 2)
+                then let val d = lc (String.sub (p, i + 2))
                      in (fn x => c <= x andalso x <= d, i + 3) end
                 else (fn x => x = c, i + 1)
+                end
           fun loop i fs first =
             if not first andalso peek i = SOME #"]" then (fs, i + 1)
             else if peek i = NONE then raise Bad ("unclosed class in " ^ p)
@@ -195,6 +206,7 @@ struct
         | Any => i < n andalso String.sub (s, i) <> #"\n" andalso k (i + 1, caps)
         | Cls (neg, f) => i < n andalso (f (String.sub (s, i)) <> neg) andalso k (i + 1, caps)
         | WordB => (wordAt (i - 1) <> wordAt i) andalso k (i, caps)
+        | NotWordB => (wordAt (i - 1) = wordAt i) andalso k (i, caps)
         | Bol => i = 0 andalso k (i, caps)
         | Eol => (i = n orelse (i = n - 1 andalso String.sub (s, i) = #"\n")) andalso k (i, caps)
         | Behind (pos, alts) =>

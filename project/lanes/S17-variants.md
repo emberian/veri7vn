@@ -60,7 +60,7 @@ Binary 579 KB; worst single question 0.47 ms.
 ## Bug found while porting
 
 `Regex` lower-cases patterns, which turns `\S` into `\s`: the Python `[\s\S]*` in MINE became
-`[\s\s]*` and the R-13 probe disagreed with the organ. Fixed by writing `(?:.|\s)*`. Any other lane
+`[\s\s]*` and the R-13 probe disagreed with the organ. Fixed at the source afterwards (see below); `variants.sml` is back to the organ's `[\s\S]*`. Any other lane
 porting `\S`, `\D`, `\W` through lane G's Regex has the same problem.
 
 ## Untrusted and remaining
@@ -72,3 +72,16 @@ construction (a `NONE` guard around a base result). If root wants it in HOL, the
 predicates would need regex semantics there. Remaining: none for scoring; the base recognizer
 dependency means a change to lane G's recognizer.sml signature or `Narrow` could break build.sh
 (its greps fail loudly).
+
+## Regex fix (root's follow-up quest)
+
+`regex.sml` now lower-cases only literal characters and class members (range ends included)
+while parsing, and the caller passes the pattern as written (text is still lower-cased by the
+caller). Escape classes `\d \D \s \S \w \W \b \B` keep their meaning; `\D \S \W \B` were added (they
+were missing). Because the old callers lower-cased the pattern string before compiling, one
+line changed in each: `Regex.compile (lower p)` became `Regex.compile p` in
+`src/extract/quantity/recognizer.sml` (`re`) and `src/extract/variants/variants.sml`. Root:
+every other lane's own `re` helper needs the same one-line change after taking regex.sml.
+Test: `sh src/extract/quantity/regex_test.sh` prints `REGEX_TEST PASS` (16 checks; 10 fail on
+the old file). Lane G binary rebuilt: all six panels unchanged (every item right, 0 wrong, 0 false
+yes, 0 organ disagreements in both modes). Variants rebuilt and re-scored: same numbers as above.
