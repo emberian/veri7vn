@@ -1,0 +1,93 @@
+{
+ "wave": 5,
+ "from_triage": "project/scouts/TRIAGE-1.md",
+ "batches": {
+  "W5-01-rel-novels-land": {
+   "title": "Land the verified novels reader on the main tree",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev (scout/rel-novels merged at ffcdda8)",
+   "paths": ["src/extract/rel-novels/", "tools/reader-novels/", "project/lanes/W5-01-rel-novels.md"],
+   "brief": "The rel-novels scout's verified decision is merged. Bring it to lane-G finish: add an oracle-refusing PASS marker to Novel_Reader_Export.thy (copy Quantity_Export.thy's pattern, keep the SHA-1 line), write the generated SML where tools/dev/remote-build already returns exports instead of fetching it with scp, add a tables_check.py that asserts the HOL readers table and domain roots equal the shipped organ's, build the norm index and binary from the main checkout, re-run the parity harness on rel-novels, and write the handoff with answer_stored and decline_stored verbatim. State plainly that the shipped verdict is 104/120 on an unshipped store and that this reader reaches 84/120 on relations_v1, with P144 absent.",
+   "done_when": "main-checkout parity for rel-novels is 84/120 right, 0 wrong, 0 false yes, 120/120 item-for-item with tools/reader-novels/probe.py; build marker VERI7VN_NOVEL_READER PASS with oracles=0; tables_check.py green"
+  },
+  "W5-02-relation-family": {
+   "title": "One verified kernel for all 161 relation readers",
+   "model": "opus",
+   "size": "L",
+   "start_from": "dev after W5-01; read the rel-census and rel-linker scout reports first (branches scout/rel-census, scout/rel-linker)",
+   "paths": ["src/extract/relations/", "tools/reader-relations/", "project/lanes/W5-02-relations.md"],
+   "brief": "Generalize Novel_Reader.thy so the reader table, domain roots and time-variant properties are data per specialist, keep answer_stored and decline_stored for the general kernel, and add whatever the novels panel did not exercise (inverse phrasings). Score each rel-* specialist on its own panel. Start with the specialists whose properties exist in relations_v1 (rel-census measures this), and classify every withheld item as missing property, linker miss, or agreement-rule refusal. Do not start before rel-linker has reported; the linker is shared and should not be built twice.",
+   "done_when": "every rel-* panel scored with its own table: per-specialist right/wrong/withheld/false-yes in the handoff, 0 wrong across all, every withheld item classified"
+  },
+  "W5-03-linter-fix": {
+   "title": "Correct the linter's lane-cap finding, then merge it",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "scout/specialist-linter (fix on a new branch from it, or on dev after root merges with the fix as a follow-up commit)",
+   "paths": ["tools/lint/specialist-lint.py", "docs/lint/specialists.md"],
+   "brief": "The linter's numbers reproduce, but it says the release used a lane cap of 5 and was tighter than exam.py. The three specialists that took 6 were ADMITTED, so the release did not apply a cap of 5. Rewrite that sentence in the generator (per-folder gate section and aggregate) to: the counts were taken on a sample of about 400; exam.py's formula gives 5 on that sample and 9 on the full 924; the release admitted 6. Also raise the 'not specific' cut or print each guard's base rate next to the match so a 66% guard is not read as specific. Regenerate docs/lint/specialists.md. Optional: add the 'manifest hygiene' patch output (var/lint/patch/, never upstream) for the 5 backspace regexes and 7 stale store paths.",
+   "done_when": "re-lint of all 305 gives 239 agree / 3 disagree / 50 insufficient / 13 without verdict, the lane-cap sentence matches the verdict files, and root has merged it"
+  },
+  "W5-04-linux-all": {
+   "title": "Every landed family on Linux, with receipts in git",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev (scout/linux-binaries merged at 4eb46e9)",
+   "paths": ["tools/deploy/", "project/deploy/receipts/", "project/lanes/W5-04-linux.md"],
+   "brief": "Run tools/deploy/linux-build.sh for every landed src/extract/* family with its specialists, on hbox and persvati alternately, comparing each against a fresh macOS run. Have the script emit a small receipt per family (binary sha256, generated-SML sha256, panel shas, verdict counts, host, glibc, libgmp) and commit those under project/deploy/receipts/ (root approves the location; binaries stay out of git). Report panel items and core-panel probes separately; the panel items are the evidence.",
+   "done_when": "for every landed family, Linux panel verdicts equal macOS with 0 divergent replies on panel items, and one receipt file per family is committed"
+  },
+  "W5-05-fold-interception": {
+   "title": "Which head folds take which specialists' questions, measured",
+   "model": "opus",
+   "size": "M",
+   "start_from": "W5-03 output; lane A's head-run parity data under var/parity/",
+   "paths": ["tools/lint/", "docs/lint/fold-interception.md"],
+   "brief": "The linter's shadow section matches guard regexes only. Replace guessing with measurement where data exists: for each specialist lane A has run behind the head, compare the linter's predicted folds with the paths the head actually took on that specialist's panel, report precision and recall of the guard-match heuristic, and name the folds whose guards are misnamed (w55 _TOKEN, w34 _world_material). Guard matches stay labelled as matches, never as takes.",
+   "done_when": "per-fold predicted vs measured interception on every specialist with a lane-A head run, with the heuristic's precision and recall stated"
+  },
+  "W5-06-route-column": {
+   "title": "Route distribution as a parity-board column",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev; a transfer of tools/parity/ from lane A by root",
+   "paths": ["tools/parity/"],
+   "brief": "The code-organ scout measured by hand that 0 of 924 core-panel items take the code route. Make that a harness output: per answerer, counts of the path prefix of every reply (organ:*, specialist_call, precision_guard, ...), so any proposed lift can be checked for whether it can move the board before it starts.",
+   "done_when": "harness prints the route table for the shipped core panel and it reproduces the scout's 0/924 for code and the panel's organ 238 / specialist_call 186 / precision_guard 114 head counts"
+  }
+ },
+ "deferred": {
+  "code-organ": "No lane until root decides what the number is: the organ has no shipped panel and 0 of 924 core items reach it. If root accepts a reconstructed MBPP-style measurement, the scout's L-codecheck (sonnet) and L-codevalues (opus) are the right sizes. Branch kept, not merged.",
+  "math-organ": "A scout life is running now (started 2026-10-17 19:47, building on hbox). Triage 2 reads its report. If it lands a binary, its follow-up is a sonnet lane over the 87 math-route core items.",
+  "linux-portability": "Scout's opus lane (static vs dynamic, older distros). Not needed while hbox and persvati are the only Linux hosts.",
+  "head-fail-corpus": "Linter's 'fable' lane is a data harvest of domain.head.fails, sonnet-sized; worth doing only when a lane needs the fillable fraction.",
+  "exam-runs-the-drop": "Linter follow-up 1 overlaps lane A's harness (already loads flat panels with the placeholder) and lane C's check_verdicts.py (already re-decides every verdict through the binary). Dropped.",
+  "linker-hardening": "rel-novels follow-up 2 duplicates the rel-linker scout. Wait for that report.",
+  "p144-store": "rel-novels follow-up 4 is answered: P144 has 0 facts in relations_v1 (indexed count) and no other shipped sqlite is the relation store; the fable-content edges.sqlite files were not examined for P144. Record the 24-item ceiling in W5-01's handoff; no lane."
+ },
+ "merges": [
+  {"branch": "scout/linux-binaries", "merged": true, "commit": "4eb46e9", "note": "new files only; report moved to project/scouts/reports/linux-binaries.md"},
+  {"branch": "scout/rel-novels", "merged": true, "commit": "ffcdda8", "note": "new files only; report moved to project/scouts/reports/rel-novels.md"},
+  {"branch": "scout/specialist-linter", "merged": false, "fix_first": "the lane-cap sentence (W5-03)"},
+  {"branch": "scout/code-organ", "merged": false, "fix_first": "nothing broken; parked until root names a measurement"},
+  {"branch": "scout/math-organ", "merged": false, "fix_first": "unbuilt; scout still running"}
+ ],
+ "unverified": [
+  "linux-binaries: hbox build times, cold-start ranges, and that the hbox exports are sha-identical to the lanes' earlier ones (would need hbox access to re-run)",
+  "linux-binaries: MLton bit-reproducibility across two compiles",
+  "specialist-linter: the 534 errors / 732 notes totals, the 143 and 54 cue-shadow counts, and 'fluids context gate misses 25 of 25' (tool output, not re-derived)",
+  "specialist-linter: the 7 stale store paths and water-r3's unregistered panel (not re-checked)",
+  "code-organ: the three read-only runs of the shipped CodeChat organ and the w486 MBPP numbers (docstring only, data not in the drop)",
+  "rel-novels: the theory build itself (persvati; I checked the marker in its log and the sha pairing, not a rebuild)",
+  "math-organ: coverage claims (47 answered items, guard counts) are the scout's reading of the draft, explicitly unverified by it too"
+ ],
+ "scout_errors": [
+  "specialist-linter: says the release used a lane cap of 5 and was tighter than exam.py; the three specialists over 5 were admitted, so it was not",
+  "specialist-linter: per-folder output lists a 66% guard among 'not universal' folds; the 90% cut is too loose to call that specific",
+  "rel-novels: 'parity with the shipped organ' omits that the shipped verdict is 104/120; 84/120 is parity with the shipped code on the shipped store",
+  "linux-binaries: acoustics macOS size quoted as 427,176 bytes; the binary compared is 428,056",
+  "linux-binaries: 13,786 identical lines are 780 panel items plus 13,006 core-panel probes; the headline should lead with the 780",
+  "code-organ: enum_well_typed is close to definitional (enum's rule is the condition tys checks); fine as a model, not a substantive receipt"
+ ]
+}
