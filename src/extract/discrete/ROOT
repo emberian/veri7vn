@@ -1,0 +1,16 @@
+(* Lane S12-discrete: games-v3, logic-v3, dataformats, algorithms, calculus as
+   one verified HOL kernel family, exported to SML. Plain HOL (Complex_Main is
+   in the HOL image: reals and Deriv for the calculus statements). *)
+session Veri7vn_Discrete = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Library"
+  theories
+    Disc_Dtext
+    Disc_Games
+    Disc_Logic
+    Disc_Algos
+    Disc_Calc
+    Disc_Formats
+    Discrete
+    Discrete_Export
