@@ -1,7 +1,7 @@
 # Lane A handoff: parity harness
 
 Status: harness, answerers, scorer, board and tests delivered; control done; veri7vn sample on the board; full
-Oracle7 board running in the background (see "Full run"). Plain-language account: `docs/parity/README.md`.
+Oracle7 board pass 1 complete and on the board (see "Full run"). Plain-language account: `docs/parity/README.md`.
 Board: `docs/parity/BOARD.md`.
 
 ## Files (lane A owns these)
@@ -113,19 +113,31 @@ python3 tools/parity/harness.py --answerer "$P tools/parity/answerers/oracle7.py
 python3 tools/parity/board.py --run "Oracle7 release composition, shipped head=var/parity/full-front-shipped-head" --run "Oracle7 exam.py composition, w540=var/parity/full-exam-w540" --run "veri7vn packaged, acoustics sample=var/parity/veri7vn-sample"
 ```
 
-Status when this lane stopped: **running**, pass 1 at 15 of 305 (started 18:57 EDT; the machine's load average was
-30-60 from other lanes, so expect about 3 h per pass; the 161 `rel-*` panels are 9,510 of the 17,436 held-out items,
-about 0.8-1.3 s each). PID file `var/parity/full.pid`. The committed BOARD.md includes pass 1 as far as it had got.
+Status: **pass 1 complete** (305 of 305; `water-r3` has no panel). Pass 2 (exam.py composition against w540) was
+not run, by root's decision: the control already gives that result. The run's processes are gone; the PID files and
+the partial pass-2 directory were removed.
 
-Findings so far from pass 1:
-- Every specialist finished with a shipped verdict has matched the shipped composed right and false yes exactly
-  (14 of 14 at the commit; 24 of 25 in an earlier start that used `Combo.reply`).
-- The one miss in that earlier start was `astronomy-v3` (129 vs 137): `Combo.reply` splits "Taking Mars as 1, how
-  many times as massive is Mercury? (mass of Mercury relative to Mars)" into two parts and answers both, the first
-  the wrong way round. The shipped exam predates that splitting; without it (`--compose front`) the count is 137,
-  as shipped. That start was stopped and its outputs from the old mode deleted before restarting.
-- exam.py's WRONG cap (max(1, 2% of n)) is not one of the gate v2 criteria: `astronomy` is shipped ADMIT with
-  68 / 0 and 13 answered wrong; under exam.py's rules it is NEGATIVE ("WRONG: 13 answered wrong, cap 1").
+Pass 1 results (release composition, each verdict's own head), from `docs/parity/BOARD.md`:
+- **All 129 non-relation specialists with a shipped verdict match it exactly on right and false yes**:
+  6,354 right / 17 false yes, against 6,354 / 17 shipped. Where the shipped file records wrong (79 of 129) it is
+  5 here and 5 shipped. This run counts wrong for all 129: 161.
+- The PLAN's 15,478 / 14 splits into 6,354 right / 5 wrong (non-relation; wrong recorded for 79 of 129) and
+  9,124 right / 9 wrong (161 `rel-*`). **Reproduced without the relation readers: 6,354 right / 161 wrong**; the 156
+  wrong beyond the shipped 5 sit in the 50 specialists whose shipped file does not record wrong (`astronomy` alone
+  has 13).
+- **All 161 `rel-*` could not run**: they need `root/relstore/names_v1.sqlite3` (and the core's reader
+  `relations_v2.sqlite3`), which the release does not ship. They score 1,796 right / 0 false yes (core only)
+  against 9,124 / 0 shipped; 0 match.
+- 14 specialists have no shipped verdict (`*-r2`, `physics-r3`); they ran against w540.
+- On 4 questions (rel-museums 1, rel-philosophers 2, rel-photographers 1) the answerer process died without a
+  message and was restarted; counted as declined. Cause not established.
+- No other mismatch. The earlier `astronomy-v3` miss (Combo part-splitting) is gone under `--compose front`.
+
+Upstream writes: `find upstream -newer var/parity/run-full.sh -type f` lists exactly one file,
+`upstream/root/specialists/electronics/__pycache__/organ_circuits_v1.cpython-311.pyc` (2026-10-17 00:50:45). It is
+not from this run: it is CPython 3.11 bytecode, while every organ import here is in the `.venv` Python 3.12 answerer
+with bytecode writing off; the harness (3.11) never imports organs; and this run finished `electronics` at 19:52 the
+evening before. Its writer is unknown (another process importing that organ with the system Python).
 
 ## Unverified / remaining
 

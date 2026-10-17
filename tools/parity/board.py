@@ -59,8 +59,86 @@ def short_answerer(meta):
     return " ".join(a)
 
 
+RELSTORE_NEEDS = ("names_v1.sqlite3", "relations_v2.sqlite3")
+
+
+def plain_summary(label, vs):
+    """one paragraph in plain words for a run compared with the shipped verdicts, or None"""
+    full = [v for v in vs if v.get("with_specialist") and not v.get("limit")]
+    comp = [v for v in full if (v.get("shipped") or {}).get("with_specialist")]
+    if not comp:
+        return None
+
+    def same(v):
+        g = (v.get("gate_aligned") or {}).get("with_specialist") or v["with_specialist"]
+        sw = v["shipped"]["with_specialist"]
+        return g["ok"] == sw.get("ok") and g["fy"] == sw.get("fy")
+    rel = [v for v in comp if v["id"].startswith("rel-")]
+    oth = [v for v in comp if not v["id"].startswith("rel-")]
+    ok_oth = [v for v in oth if same(v)]
+    bad_oth = [v for v in oth if not same(v)]
+    ok_rel = [v for v in rel if same(v)]
+
+    def sums(vs_, key, shipped=False):
+        acc = {"ok": 0, "fy": 0, "wrong": 0}
+        for v in vs_:
+            t = (v["shipped"]["with_specialist"] if shipped else
+                 ((v.get("gate_aligned") or {}).get("with_specialist") or v["with_specialist"]))
+            for k in acc:
+                acc[k] = None if acc[k] is None or t.get(k) is None else acc[k] + t[k]
+        return acc
+    so, ss = sums(oth, None), sums(oth, None, True)
+    ro, rs = sums(rel, None), sums(rel, None, True)
+    root = Path(REPO / "upstream" / "root" / "relstore")
+    missing = [n for n in RELSTORE_NEEDS if not (root / n).exists()]
+    no_verdict = [v["id"] for v in full if not (v.get("shipped") or {}).get("with_specialist")]
+    errs = [v for v in full if v.get("errors")]
+    parts = ["**%s, in plain words.** %d specialists were run on their held-out exams; %d of them have a shipped verdict "
+             "to compare with." % (label, len(full), len(comp))]
+    parts.append("Of the %d that are not relation readers, **%d got exactly the shipped number of right answers and false "
+                 "yeses**%s. Together they score %s right / %s false yes / %s wrong, against %s / %s shipped." % (
+                     len(oth), len(ok_oth), "" if not bad_oth else " and %d did not (%s)" % (len(bad_oth), "; ".join(
+                         "%s: %s right / %s false yes, shipped %s / %s" % (
+                             v["id"], ((v.get("gate_aligned") or {}).get("with_specialist") or v["with_specialist"])["ok"],
+                             ((v.get("gate_aligned") or {}).get("with_specialist") or v["with_specialist"])["fy"],
+                             v["shipped"]["with_specialist"].get("ok"), v["shipped"]["with_specialist"].get("fy"))
+                         for v in bad_oth)),
+                     so["ok"], so["fy"], so["wrong"], ss["ok"], ss["fy"]))
+    rec = [v for v in oth if v["shipped"]["with_specialist"].get("wrong") is not None]
+    if rec:
+        ow = sum(((v.get("gate_aligned") or {}).get("with_specialist") or v["with_specialist"])["wrong"] for v in rec)
+        parts.append("The shipped files record a wrong count for %d of these %d; on those, %d wrong here against %d "
+                     "shipped." % (len(rec), len(oth), ow, sum(v["shipped"]["with_specialist"]["wrong"] for v in rec)))
+    if rel:
+        parts.append("The %d relation readers (`rel-*`) %s: they score %s right / %s false yes, against %s / %s shipped, "
+                     "and %d of them match.%s" % (
+                         len(rel), "could not run on this installation" if missing else "ran",
+                         ro["ok"], ro["fy"], rs["ok"], rs["fy"], len(ok_rel),
+                         (" They need `root/relstore/%s`, which the release does not include, so each one stays silent "
+                          "and only the core answers." % "` and `root/relstore/".join(missing)) if missing else ""))
+    if rel and oth:
+        def shipped_wrong(vs_):
+            w = [v["shipped"]["with_specialist"].get("wrong") for v in vs_]
+            return sum(x for x in w if x is not None), sum(1 for x in w if x is not None)
+        (wo, no), (wr, nr) = shipped_wrong(oth), shipped_wrong(rel)
+        parts.append("The release's published total over these exams, %d right / %d wrong, splits into %d right / %d wrong "
+                     "for the other specialists (wrong recorded for %d of %d) and %d right / %d wrong for the relation "
+                     "readers (wrong recorded for %d of %d). **Reproduced here, without the relation readers: %d right "
+                     "/ %d wrong** (this run counts wrong for every specialist; the shipped files leave it out for %d "
+                     "of them)." % (ss["ok"] + rs["ok"], wo + wr, ss["ok"], wo, no, len(oth), rs["ok"], wr, nr, len(rel),
+                                    so["ok"], so["wrong"], len(oth) - no))
+    if no_verdict:
+        parts.append("%d specialists have no shipped verdict to compare with (%s)." % (len(no_verdict), ", ".join(no_verdict)))
+    if errs:
+        parts.append("On %d questions in %s the answerer process stopped without a message and was restarted; those "
+                     "questions count as declined." % (sum(v["errors"] for v in errs), ", ".join(v["id"] for v in errs)))
+    return " ".join(parts)
+
+
 def render(runs):
-    out = ["# Parity board", "",
+    loaded = [(label, load_run(path)[1]) for label, path in runs]
+    summaries = [x for x in (plain_summary(label, vs) for label, vs in loaded) if x]
+    out = ["# Parity board", ""] + [x for p in summaries for x in (p, "")] + [
            "Generated by `tools/parity/board.py` on %s from the run directories named below. Counts are "
            "**right / false yes / wrong** in the sense of `upstream/workbench/exam.py`: *right* is the specialist's own "
            "scorer saying good (a correct decline of a must-decline item counts as right), *false yes* is an answer to a "
