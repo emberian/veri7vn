@@ -1,0 +1,18 @@
+(* Lane S14-trades: the Oracle7 trades family (architecture, printing,
+   printing-v2, safety, woodworking, crafts) as one HOL kernel, exported to SML.
+   The base session only loads Isabelle's verified interval arithmetic
+   (HOL-Decision_Procs.Approximation, no HOL-Analysis); the kernel session
+   rebuilds quickly on top of it. Same shape as lane G's Veri7vn_Quantity. *)
+session Veri7vn_Trades_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Trades_Base
+
+session Veri7vn_Trades = Veri7vn_Trades_Base +
+  options [document = false, threads = 2]
+  theories
+    Trades_Num
+    Trades
+    Trades_Export
