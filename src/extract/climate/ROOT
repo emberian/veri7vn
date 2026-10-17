@@ -1,0 +1,17 @@
+(* Lane S05-climate: carboncapture, airquality, climate, carbonmat, coldchain and
+   coldchain-v2 as one HOL kernel exported to SML. The base session only loads
+   Isabelle's verified interval arithmetic (HOL-Decision_Procs.Approximation, no
+   HOL-Analysis), so the kernel session rebuilds quickly on top of it. *)
+session Veri7vn_Climate_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Climate_Base
+
+session Veri7vn_Climate = Veri7vn_Climate_Base +
+  options [document = false, threads = 2]
+  theories
+    Climate_Num
+    Climate
+    Climate_Export
