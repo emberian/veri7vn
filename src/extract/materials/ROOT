@@ -1,0 +1,17 @@
+(* Lane S08-materials: the Oracle7 materials family (additive-v2, materials-v2,
+   soil, soil-r2, water, water-r3) as one HOL kernel, exported to SML. The base
+   session holds the interval arithmetic import and the number machinery
+   (rounding, enclosures, layouts) so the kernel session rebuilds quickly. *)
+session Veri7vn_Materials_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Materials_Base
+    Materials_Numbers
+
+session Veri7vn_Materials = Veri7vn_Materials_Base +
+  options [document = false, threads = 2]
+  theories
+    Materials
+    Materials_Export
