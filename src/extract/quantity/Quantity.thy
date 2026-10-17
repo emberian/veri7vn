@@ -891,6 +891,20 @@ proof -
   then show ?thesis by (simp add: dec_val_def round_at_def p_def[symmetric] y_def[symmetric] x[symmetric])
 qed
 
+text \<open>Tie behaviour, stated: an exact decimal tie rounds up (away from minus
+infinity). Oracle7's organs round a binary float instead, so on an exact decimal
+tie whose float lies just below (0.015 * 745 = 11.174999... as a float) they
+print the lower neighbour; round-half-even on the exact value would also give
+the upper one here (11.175 to 11.18), so no tie rule reproduces the float
+artefact.\<close>
+theorem round_tie_up:
+  assumes "x / pow10 e = of_int n + 1 / 2"
+  shows "round_at x e = (n + 1, e)"
+proof -
+  have "x / pow10 e + 1 / 2 = of_int (n + 1)" using assms by simp
+  then show ?thesis by (simp add: round_at_def)
+qed
+
 text \<open>An exponent @{text e} with @{text "10^(p-1) * 10^e \<le> |x| < 10^p * 10^e"}
 when one is found within 400 steps; soundness does not rely on the search,
 @{text round_sig} checks the condition it needs.\<close>
@@ -1264,13 +1278,24 @@ proof -
   then show ?thesis using e by simp
 qed
 
-text \<open>Weakened after two build attempts (see the lane G handoff, remaining
-work): the frequency is the reciprocal of the period, stated with
-@{const inverse}; the form @{text "f * T = 1"} for positive k and m is not
-proved here.\<close>
-theorem spring_frequency_model:
+text \<open>The frequency is the reciprocal of the period, and for a positive
+stiffness and mass @{text "f * T = 1"}.\<close>
+theorem spring_frequency_inverse:
   "phys (SpringFrequency (Some k) (Some m)) = inverse (phys (SpringPeriod (Some k) (Some m)))"
   by simp
+
+theorem spring_frequency_model:
+  assumes "0 < k" "0 < siq m"
+  shows "phys (SpringFrequency (Some k) (Some m)) * phys (SpringPeriod (Some k) (Some m)) = 1"
+proof -
+  have K: "0 < rl k" using assms(1) by (simp add: zero_less_of_rat_iff)
+  have M: "0 < rl (siq m)" using assms(2) by (simp add: zero_less_of_rat_iff)
+  have "0 < rl (siq m) / rl k" by (rule divide_pos_pos[OF M K])
+  then have "0 < sqrt (rl (siq m) / rl k)" by (rule real_sqrt_gt_zero)
+  then have T: "0 < 2 * pi * sqrt (rl (siq m) / rl k)" using pi_gt_zero by simp
+  show ?thesis unfolding phys.simps
+    by (rule left_inverse) (use T in linarith)
+qed
 
 subsection \<open>Fluids\<close>
 

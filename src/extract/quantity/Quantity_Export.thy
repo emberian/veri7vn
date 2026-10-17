@@ -27,6 +27,8 @@ definition self_test :: bool where
      kernel (Submerged M_ice M_water) = Exact K_submerged_fraction (917 / 1000) \<and>
      kernel (FuelCO2 F_lpg (Some (30, U_kilogram))) = Exact K_co2 (895389 / 10000) \<and>
      render_dec 4 (1405, -4) = STR ''0.1405'' \<and>
+     kernel (MassOf M_petrol (Some (15, U_litre)) U_kilogram) = Exact K_mass (11175 / 1000) \<and>
+     stated_dec K_mass (11175 / 1000) = Some (1118, -2) \<and>
      render_dec 10 (3700787402, -9) = STR ''3.700787402'' \<and>
      render_dec 4 (1000, 1) = STR ''1e+04'' \<and>
      stated (reply_of (Convert 94 (Lin U_millimetre) (Lin U_inch))) = Some (STR ''3.700787402'') \<and>
@@ -56,7 +58,8 @@ ML \<open>
     @{thm density_value}, @{thm mass_from_volume}, @{thm volume_from_mass},
     @{thm floats_verdict}, @{thm floats_undecided},
     @{thm hooke_force}, @{thm hooke_extension}, @{thm hooke_constant}, @{thm elastic_energy},
-    @{thm spring_period_model}, @{thm spring_frequency_model},
+    @{thm spring_period_model}, @{thm spring_frequency_inverse}, @{thm spring_frequency_model},
+    @{thm round_tie_up},
     @{thm gauge_pressure}, @{thm absolute_pressure}, @{thm buoyant_force},
     @{thm submerged_fraction}, @{thm submerged_sinks},
     @{thm fuel_energy}, @{thm fuel_co2}, @{thm fuel_mass_needed}, @{thm fuel_ncv},
