@@ -1,0 +1,776 @@
+(* UNTRUSTED. The English recognizer for the mechanics family: a hand port of
+   the regular expressions and branch order of
+     upstream/root/specialists/physics/organ_mechanics_v1.py        (MechanicsOrgan)
+     upstream/root/specialists/physics-r2/organ_mechanics_v2.py     (MechanicsOrganV2)
+     upstream/root/specialists/physics-r3/organ_physics_r3.py       (MechanicsOrganV2Boundary)
+     upstream/root/specialists/mechanisms/organ_mechanisms_v1.py    (MechanismsOrgan)
+     upstream/root/specialists/mechanisms-v2/organ_mechanisms_v2.py (MechanismsOrganV2, numbers_rule_v1)
+     upstream/root/specialists/bodies-v2/organ_bodies_v{1,2}.py     (BodiesOrgan, BodiesOrganV2)
+     upstream/root/specialists/sports/organ_sports_v1.py            (SportsOrgan)
+     upstream/root/specialists/fleet/organ_fleet_v1.py              (FleetOrgan)
+     upstream/root/specialists/fluids-r2/organ_fluids_v{1,2}.py     (FluidsOrgan, FluidsOrganV2)
+   and of their shared narrowing rule narrow_v1.py. It reads numbers and words
+   off the question and builds a typed Mechanics.request; it computes nothing.
+   Every value, decline and response text comes from the verified HOL kernel
+   (Mechanics.reply_of). NONE means the question is not taken (the organ
+   returns None). Where an organ wrapper looks at the organ's reply (physics-r2
+   asks whether it declined, mechanisms-v2 whether it is underspecified), this
+   file asks the kernel for the reply of the request it just built.
+
+   Patterns are passed to Regex.compile exactly as written, so every pattern
+   applied to lower-cased text is written in lower case; the few
+   case-sensitive organ patterns (newtons "N", joules "J", body names, "MA")
+   are applied to the original text. \w and \d are ASCII here.
+
+   Differences from the organs, all in the kernel's favour and none on the
+   panels: inputs the organs divide by zero on or take a square root of a
+   negative on reach the kernel, which declines them as impossible (the organs
+   raise exceptions); a true-shooting turn with no attempts is a withheld
+   reply, where the organ is silent. *)
+structure Recognizer :
+sig
+  val organs : string list
+  val recognize : string -> string -> (string * Mechanics.request) option
+end =
+struct
+  structure M = Mechanics
+
+  val cache : (string * Regex.regex) list ref = ref []
+  fun lower s = String.map Char.toLower s
+  fun re p =
+    case List.find (fn (q, _) => q = p) (!cache) of
+      SOME (_, r) => r
+    | NONE => let val r = Regex.compile p in cache := (p, r) :: !cache; r end
+
+  fun search p s = Regex.search (re p) s
+  fun has p s = isSome (search p s)
+  fun findall p s = Regex.findall (re p) s
+  fun grp s m g = Regex.group s m g
+  fun g1 s m = valOf (grp s m 1)
+  fun firstGroup s m gs = case List.mapPartial (grp s m) gs of x :: _ => SOME x | [] => NONE
+
+  (* splice a replacement over every match (positions found in the lower-cased text, spliced into the original) *)
+  fun substCI p rep orig =
+    let
+      val low = lower orig
+      fun go i [] acc = String.concat (rev (String.extract (orig, i, NONE) :: acc))
+        | go i (({start, stop, ...} : Regex.match) :: ms) acc =
+            go stop ms (rep :: String.substring (orig, i, start - i) :: acc)
+    in go 0 (findall p low) [] end
+
+  (* "1,000.50" -> mk_rat 100050 100, exactly; "-12.5" allowed *)
+  fun ratOf (lit0 : string) : M.rat =
+    let
+      val lit = String.translate (fn #"," => "" | c => String.str c) lit0
+      val (neg, body) = if String.isPrefix "-" lit then (true, String.extract (lit, 1, NONE))
+                        else (false, lit)
+      val (ip, fp) = case String.fields (fn c => c = #".") body of
+                       [a] => (a, "")
+                     | [a, b] => (a, b)
+                     | _ => raise Fail ("bad numeral " ^ lit0)
+      val num = valOf (IntInf.fromString (ip ^ fp))
+      val den = IntInf.pow (10, size fp)
+    in M.mk_rat (if neg then IntInf.~ num else num) den end
+
+  fun natOf (n : int) = M.nat_of_integer (IntInf.fromInt n)
+  fun collapse s = String.concatWith " " (String.tokens Char.isSpace s)
+  fun optG s m g = Option.map ratOf (grp s m g)
+  fun firstRat p s = case search p s of SOME m => SOME (ratOf (g1 s m)) | NONE => NONE
+  fun firstStr p s = case search p s of SOME m => SOME (g1 s m) | NONE => NONE
+  (* case-sensitive checks: the regex matcher folds literals to lower case, so a pattern that is case-sensitive in
+     the organ is matched on the lower-cased text and the original characters are checked afterwards *)
+  fun upperAt orig i = i < size orig andalso Char.isUpper (String.sub (orig, i))
+  fun lowerAt orig i = i < size orig andalso Char.isLower (String.sub (orig, i))
+  fun groupStart m g = case Regex.group "" m g of _ => (case Vector.sub (#groups m, g) of SOME (a, _) => SOME a | NONE => NONE)
+  fun strZero s = List.all (fn c => c = #"0" orelse c = #"." orelse c = #"-") (String.explode s)
+
+  (* ---------- narrow_v1 ---------- *)
+  structure Narrow =
+  struct
+    fun strip s = collapse s
+    fun words t = length (String.tokens Char.isSpace t)
+    fun splits ends t =
+      let
+        val t = strip t
+        val n = size t
+        fun go i acc =
+          if i >= n then rev acc
+          else if Char.isSpace (String.sub (t, i)) andalso i > 0
+                  andalso Char.contains ends (String.sub (t, i - 1))
+          then let fun skip j = if j < n andalso Char.isSpace (String.sub (t, j)) then skip (j + 1) else j
+               in go (skip i) (i :: acc) end
+          else go (i + 1) acc
+      in (t, go 0 []) end
+    fun sentences t =
+      let val (s, sp) = splits ".!?" t in if s = "" then 0 else 1 + length sp end
+    fun last_sentence t =
+      let
+        val (s, sp) = splits ".!?;" t
+      in
+        case rev sp of
+          [] => s
+        | i :: _ => let fun skip j = if j < size s andalso Char.isSpace (String.sub (s, j)) then skip (j + 1) else j
+                    in String.extract (s, skip i, NONE) end
+      end
+    val RELATION = "\\b(?:\\d+(?:\\.\\d+)?|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,2}"
+      ^ "(?:more|less|fewer|longer|shorter)\\s+than\\b|\\b(?:twice|three times|half)\\s+(?:as\\s+\\w+\\s+as\\s+)?the\\s+\\w+\\b"
+    val RATE = "\\b\\d+(?:\\.\\d+)?\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:\\d+(?:\\.\\d+)?|a|an|one|each)\\s+[a-z]+"
+    fun narrative t =
+      let val low = lower t
+      in sentences t >= 3 orelse words t > 40 orelse has RELATION low orelse has RATE low end
+    fun short_direct t = sentences t <= 2 andalso words t <= 25 andalso not (narrative t)
+    fun numbers t = length (findall "(?<![\\w.])\\d+(?:\\.\\d+)?(?!\\w|\\.\\d)" t)
+  end
+
+  val NUM = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"      (* bodies, sports, fleet *)
+  val SNUM = "(-?\\d+(?:\\.\\d+)?)"               (* physics *)
+  val UNUM = "(\\d+(?:\\.\\d+)?)"                 (* mechanisms *)
+  val deg = "\194\176"
+  val sq2 = "\194\178"
+  val cube = "\194\179"
+
+  (* ---------- physics v1 ---------- *)
+  val Pm = SNUM ^ "\\s*(?:kg|kilograms?)\\b"
+  val Pv = SNUM ^ "\\s*(?:m/s|meters? per second|metres? per second)(?!\\s*(?:\\^?2|" ^ sq2 ^ "|squared|per second))"
+  val Pa = SNUM ^ "\\s*(?:m/s\\^?2|m/s" ^ sq2 ^ "|meters? per second squared|metres? per second squared|m/s/s)"
+  val Pt = SNUM ^ "\\s*(?:s|sec|seconds?)\\b(?!\\s*squared)"
+  val Ph = SNUM ^ "\\s*(?:m|meters?|metres?)\\b(?!\\s*/|\\s*per)"
+  val PF = SNUM ^ "\\s*(n|newtons?)\\b"           (* case-sensitive "N" / "newtons": checked on the original text *)
+  val PE = SNUM ^ "\\s*(j|joules?)\\b"            (* case-sensitive "J" / "joules": checked on the original text *)
+  (* first amount whose unit, as written, is the capital letter or the all-lower-case word *)
+  fun firstCS p orig low =
+    let
+      fun ok (m : Regex.match) =
+        case Vector.sub (#groups m, 2) of
+          SOME (a, b) => let val w = String.substring (orig, a, b - a) in w = String.map Char.toUpper w andalso size w = 1 orelse w = lower w andalso size w > 1 end
+        | NONE => false
+    in case List.find ok (findall p low) of SOME m => SOME (ratOf (g1 low m)) | NONE => NONE end
+  val Pdeg = SNUM ^ "\\s*(?:degrees?|" ^ deg ^ ")"
+
+  fun physicsV1 text : M.request option =
+    let
+      val t = collapse text
+      val low = lower t
+    in
+      if not (has ("\\b(?:velocity|speed|accelerat\\w*|falls?|dropped|drop|force|weight|kinetic|potential|momentum|"
+                   ^ "work|power|projectile|launched|thrown)\\b") low) then NONE
+      else
+        let
+          val m_ = firstRat Pm low and v_ = firstRat Pv low and a_ = firstRat Pa low
+          val t_ = firstRat Pt low and h_ = firstRat Ph low
+          val F_ = firstCS PF t low and E_ = firstCS PE t low and d_ = firstRat Pdeg low
+          (* Python's "not a_": absent or zero *)
+          val noA = case firstStr Pa low of NONE => true | SOME a => strZero a
+          val rest1 = has "\\bfrom rest\\b|\\bat rest\\b|\\bstarts? (?:from )?stationary\\b" low
+          val rest2 = has "\\bfrom rest\\b|\\bat rest\\b" low
+        in
+          if has "\\b(?:range|how far)\\b" low andalso has "\\b(?:launched|thrown|projectile|fired|kicked)\\b" low then
+            SOME (M.PhRange (v_, d_))
+          else if has "\\b(?:dropped|falls?|fall from|drop)\\b" low andalso isSome h_ andalso noA then
+            (if has "\\bspeed|velocity|how fast\\b" low then SOME (M.PhImpact (valOf h_)) else SOME (M.PhFall (valOf h_)))
+          else if has "\\bkinetic energy\\b" low then SOME (M.PhKE (m_, v_))
+          else if has "\\bpotential energy\\b" low then SOME (M.PhPE (m_, h_))
+          else if has "\\bmomentum\\b" low then SOME (M.PhMomentum (m_, v_))
+          else if has "\\bweight\\b" low andalso isSome m_ andalso noA then SOME (M.PhWeight (valOf m_))
+          else if has "\\bforce\\b" low then SOME (M.PhForce (m_, a_))
+          else if has "\\bwork\\b" low andalso isSome F_ andalso isSome h_ then SOME (M.PhWork (valOf F_, valOf h_))
+          else if has "\\bpower\\b" low andalso isSome E_ andalso isSome t_ then SOME (M.PhPower (valOf E_, valOf t_))
+          else if has "\\b(?:final (?:velocity|speed)|velocity after|speed after|how fast)\\b" low then
+            SOME (M.PhFinalV (a_, t_, v_, rest1))
+          else if has "\\b(?:how far|distance|displacement)\\b" low andalso isSome a_ andalso isSome t_ then
+            SOME (M.PhDistance (valOf a_, valOf t_, v_, rest2))
+          else NONE
+        end
+    end
+
+  val IDIOM = "\\b(?:air|police|task|labou?r|work|armed|special|security|naval|defen[cs]e|peacekeeping|driving|life)\\s+forces?\\b|"
+    ^ "\\bworkforce\\b|\\b(?:in|into) force\\b|\\bby force\\b|\\bforce majeure\\b|\\bforce of (?:habit|nature|will)\\b|\\bthe force\\b"
+  val ASKS = [("weight", "\\bweigh"), ("force", "\\bforce\\b|\\bnewtons?\\b"), ("ke", "\\bkinetic\\b|\\benergy\\b"),
+              ("pe", "\\bpotential\\b|\\benergy\\b"), ("momentum", "\\bmomentum\\b"),
+              ("range", "\\brange\\b|\\bhow far\\b|\\bdistance\\b|\\bprojectile\\b|\\bgo\\b"),
+              ("impact_speed", "\\bspeed\\b|\\bfast\\b|\\bvelocity\\b"), ("fall_time", "\\bhow long\\b|\\btime\\b|\\bseconds?\\b")]
+
+  fun physicsR2 text : M.request option =
+    let
+      val t = text
+      val low = lower t
+      val idiomOnly = has IDIOM low andalso not (has "\\bforce\\b" (lower (substCI IDIOM " " low)))
+                      andalso not (has "\\b(?:velocity|speed|accelerat\\w*|kinetic|potential|momentum|projectile)\\b" low)
+    in
+      if Narrow.narrative t orelse idiomOnly then NONE
+      else
+        case physicsV1 text of
+          NONE => NONE
+        | SOME req =>
+            let
+              val rep = M.reply_of req
+              val answered = M.answered rep
+            in
+              if not answered then (if Narrow.short_direct t then SOME req else NONE)
+              else
+                let
+                  val kind = M.reply_kind rep
+                  val ls = lower (Narrow.last_sentence t)
+                  val iq = search "\\b(?:what|how|find|calculate|compute|determine|give|which)\\b" ls
+                  val region = case iq of SOME {start, ...} => String.extract (ls, start, NONE) | NONE => ls
+                in
+                  case List.find (fn (k, _) => k = kind) ASKS of
+                    SOME (_, want) => if has want region then SOME req else NONE
+                  | NONE => SOME req
+                end
+            end
+    end
+
+  fun physicsR3 text : M.request option =
+    let val low = lower text
+    in
+      if has "\\b(?:torque|levers?|beaufort|knots?|passwords?|brute[- ]force|characters?|usda|calories)\\b" low
+         andalso not (has "\\b(?:mass|kg|accelerat\\w*|velocity|projectile|momentum|falls?|dropped|kinetic|potential energy)\\b" low)
+      then NONE else physicsR2 text
+    end
+
+  fun zipChecked (xs, ys, what) =
+    if length xs = length ys then ListPair.zip (xs, ys)
+    else raise Fail ("recognizer table length differs from HOL list: " ^ what)
+
+  (* ---------- bodies ---------- *)
+  val bodyKeys = ["Mercury", "Venus", "Earth", "the Moon", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune",
+                  "Pluto", "the Sun", "Ceres", "Io", "Europa", "Ganymede", "Callisto", "Titan", "Triton", "Enceladus"]
+  val bodies = zipChecked (bodyKeys, M.body_order, "body_order")
+  val bodyEarth = List.nth (M.body_order, 2)
+  val bodyMoon = List.nth (M.body_order, 3)
+
+  val GIVEN_G = "\\bg\\s*=\\s*" ^ NUM ^ "\\s*(?:m/s\\^?2|m/s" ^ sq2 ^ "|m/s/s)|\\bgravity\\s+(?:of|is)\\s+" ^ NUM
+    ^ "\\s*(?:m/s\\^?2|m/s" ^ sq2 ^ "|m/s/s)"
+  val MASS = NUM ^ "\\s*(?:kg|kilograms?)\\b"
+  val HEIGHT = NUM ^ "\\s*(?:m|met(?:re|er)s?)\\b(?!\\s*/|\\s*per)"
+  val LENGTH = NUM ^ "\\s*(?:m|met(?:re|er)s?)\\s+(?:long|in length)|(?:length|long)\\s+(?:of\\s+)?" ^ NUM
+    ^ "\\s*(?:m|met(?:re|er)s?)\\b"
+  val ANY_BODY = "\\b(mercury|venus|moon|mars|jupiter|saturn|uranus|neptune|pluto|ceres|io|europa|ganymede|callisto|titan|triton|enceladus)\\b(?:'s)?"
+  val GRAVITY_ASK = "\\b(?:fall\\w*|drop\\w*|released|weigh\\w*|weight|pendulum|impact|land\\w*|hit\\w*|gravity|how long|how fast|speed|period)\\b"
+
+  (* organ_bodies_v1._gravity: a stated g, else exactly one non-Earth body named after on/at/from/of *)
+  fun gravityV1 t low =
+    case search GIVEN_G low of
+      SOME m =>
+        let val s = valOf (firstGroup low m [1, 2])
+        in if strZero s then NONE else SOME (M.G_stated (ratOf s)) end
+    | NONE =>
+        let
+          val found = List.mapPartial (fn (k, b) =>
+            let
+              val ci = String.isPrefix "the " k
+              val name = if ci then String.extract (k, 4, NONE) else k
+              val pre = "\\b(?:on|at|from|of)\\s+(?:the\\s+)?(?:surface of\\s+(?:the\\s+)?)?(" ^ lower name ^ ")\\b"
+              (* the organ's pattern is case-sensitive (lower-case preposition, capitalised name) unless it is "the Moon"/"the Sun" *)
+              fun hit (m : Regex.match) =
+                ci orelse (lowerAt t (#start m) andalso (case Vector.sub (#groups m, 1) of SOME (a, _) => upperAt t a | NONE => false))
+              val hits = List.filter hit (findall pre low)
+            in if not (null hits) andalso k <> "Earth" then SOME b else NONE end) bodies
+        in case found of [b] => SOME (M.G_body b) | _ => NONE end
+
+  (* organ_bodies_v2._gravity: a body named anywhere in proper-noun form *)
+  fun gravityV2 t low =
+    case search GIVEN_G low of
+      SOME _ => gravityV1 t low
+    | NONE =>
+        let
+          fun cap (m : Regex.match) = case Vector.sub (#groups m, 1) of SOME (a, _) => upperAt t a | NONE => false
+          val moonOk = List.exists (fn m => List.exists (fn g => case Vector.sub (#groups m, g) of SOME (a, _) => upperAt t a | NONE => false) [1, 2, 3])
+                         (findall "\\b(?:the|our) (moon)\\b|\\b(moon)'s|\\bon (moon)\\b" low)
+          val names = List.mapPartial (fn m =>
+            if not (cap m) then NONE
+            else let val n = g1 low m
+                 in if n = "moon" andalso not moonOk then NONE else SOME n end) (findall ANY_BODY low)
+          fun dedupe [] = [] | dedupe (x :: xs) = x :: dedupe (List.filter (fn y => y <> x) xs)
+          val uniq = dedupe names
+          fun toBody "moon" = bodyMoon
+            | toBody n = #2 (valOf (List.find (fn (k, _) => lower k = n) bodies))
+        in case uniq of [n] => SOME (M.G_body (toBody n)) | _ => gravityV1 t low end
+
+  fun bodiesV1 gravf text : M.request option =
+    let val t = collapse text in
+      if t = "" orelse Narrow.narrative t then NONE
+      else
+        let
+          val low = lower t
+          val asklow = lower (Narrow.last_sentence t)
+          fun need r = if Narrow.short_direct t then SOME r else NONE
+        in
+          case gravf t low of
+            NONE => NONE
+          | SOME g =>
+              let
+                val masses = map (fn m => g1 low m) (findall MASS low)
+                val heights = map (fn m => g1 low m) (findall HEIGHT low)
+                val falls = has "\\b(?:drop(?:ped)?|falls?|fall(?:ing)?|released)\\b" low
+              in
+                if has "\\bpendulum\\b" low andalso has "\\bperiod\\b|\\bhow long\\b.*\\bswing\\b|\\bswing\\b" asklow then
+                  (case search LENGTH low of
+                     NONE => need (M.BdPendulum (g, NONE))
+                   | SOME m => SOME (M.BdPendulum (g, SOME (ratOf (valOf (firstGroup low m [1, 2]))))))
+                else if has "\\bweigh|\\bweight\\b" asklow then
+                  (case masses of [m] => SOME (M.BdWeight (g, SOME (ratOf m))) | _ => need (M.BdWeight (g, NONE)))
+                else if falls andalso has "\\b(?:how long|how many seconds|time)\\b" asklow then
+                  (case heights of [h] => SOME (M.BdFall (g, SOME (ratOf h))) | _ => need (M.BdFall (g, NONE)))
+                else if falls andalso has "\\b(?:speed|how fast|velocity)\\b" asklow then
+                  (case heights of [h] => SOME (M.BdImpact (g, SOME (ratOf h))) | _ => need (M.BdImpact (g, NONE)))
+                else NONE
+              end
+        end
+    end
+
+  fun bodiesV2 text : M.request option =
+    case bodiesV1 gravityV2 text of
+      SOME r => SOME r
+    | NONE =>
+        let val t = collapse text
+        in
+          if t = "" then NONE
+          else
+            let val low = lower t
+            in case gravityV2 t low of
+                 SOME g => if has GRAVITY_ASK low andalso has "\\d" t then SOME (M.BdUnreadable g) else NONE
+               | NONE => NONE
+            end
+        end
+
+  (* ---------- mechanisms ---------- *)
+  val rpmRx = UNUM ^ "\\s*(?:rpm|rev(?:olution)?s? per minute)\\b"
+  val tqRx = UNUM ^ "\\s*(?:n\\s*(?:\194\183|\\.)?\\s*m|newton[- ]met(?:er|re)s?|nm)\\b"
+
+  (* organ_mechanisms_v1._driver_driven: (driver, driven) from grammar, never from order of mention *)
+  fun driverDriven low u : (string * string) option =
+    let
+      val nu = UNUM ^ "[- ]?" ^ u
+      val m1 = search (nu ^ "[^.?;]*?\\b(?:drives|turns|meshes with and drives|is connected to and drives)\\b[^.?;]*?" ^ nu) low
+      val m2 = search (nu ^ "[^.?;]*?\\b(?:is driven by|driven by)\\b[^.?;]*?" ^ nu) low
+      val a = search ("\\b(?:driver|driving|input|motor)\\b[^.?;]*?" ^ nu ^ "|" ^ nu ^ "[^.?;]*?\\b(?:driver|driving|input)\\b(?! speed)") low
+      val b = search ("\\b(?:driven|output|follower)\\b[^.?;]*?" ^ nu ^ "|" ^ nu ^ "[^.?;]*?\\b(?:driven|output|follower)\\b(?! speed)") low
+    in
+      case m1 of
+        SOME m => SOME (g1 low m, valOf (grp low m 2))
+      | NONE =>
+          (case m2 of
+             SOME m => SOME (valOf (grp low m 2), g1 low m)
+           | NONE =>
+               (case (a, b) of
+                  (SOME ma, SOME mb) => SOME (valOf (firstGroup low ma [1, 2]), valOf (firstGroup low mb [1, 2]))
+                | _ => NONE))
+    end
+
+  fun loadUnit s = if s = "kg" then M.LD_kg else M.LD_n
+  fun lenUnit s = if s = "cm" then M.LU_cm else if s = "mm" then M.LU_mm else M.LU_m
+
+  fun mechV1 text : M.request option =
+    let
+      val t = collapse text
+      val low = lower t
+      val rpm = search rpmRx low
+      val tq = search tqRx low
+      fun need n = SOME (M.McNeed (natOf n))
+    in
+      if has "\\bteeth\\b|\\btooth\\b" low andalso has "\\bgears?\\b" low then
+        (case driverDriven low "(?:teeth|tooth)" of
+           NONE => need 0
+         | SOME (a, b) =>
+             let val ra = ratOf a and rb = ratOf b
+             in
+               case rpm of
+                 SOME rm =>
+                   if has "\\b(?:output|driven|speed of the|how fast)\\b" low then SOME (M.McGearSpeed (ratOf (g1 low rm), ra, rb))
+                   else (case tq of SOME q => if has "\\btorque\\b" low then SOME (M.McGearTorque (ratOf (g1 low q), ra, rb))
+                                              else SOME (M.McGearRatio (ra, rb))
+                                  | NONE => SOME (M.McGearRatio (ra, rb)))
+               | NONE =>
+                   (case tq of SOME q => if has "\\btorque\\b" low then SOME (M.McGearTorque (ratOf (g1 low q), ra, rb))
+                                          else SOME (M.McGearRatio (ra, rb))
+                             | NONE => SOME (M.McGearRatio (ra, rb)))
+             end)
+      else if has "\\bbelt\\b|\\bpulley\\b" low andalso isSome rpm
+              andalso has "\\bdiameter|\\b\\d+(?:\\.\\d+)?\\s*(?:mm|cm|in|inch|inches)\\s+pulley\\b" low then
+        (case driverDriven low "(?:mm|cm|in|inch|inches)" of
+           NONE => need 1
+         | SOME (d1, d2) => SOME (M.McBeltSpeed (ratOf (g1 low (valOf rpm)), ratOf d1, ratOf d2)))
+      else if isSome (search (UNUM ^ "\\s*(?:supporting\\s+)?(?:strands|ropes|rope segments|segments of rope)\\b") low)
+              andalso has "\\bpulley" low then
+        let
+          val m = valOf (search (UNUM ^ "\\s*(?:supporting\\s+)?(?:strands|ropes|rope segments|segments of rope)\\b") low)
+          val n = ratOf (g1 low m)
+        in
+          case search (UNUM ^ "\\s*(n|newtons?|kg)\\b") low of
+            NONE => SOME (M.McPulleyMA n)
+          | SOME ld => SOME (M.McPulleyEffort (n, (ratOf (g1 low ld), loadUnit (valOf (grp low ld 2)))))
+        end
+      else if has "\\blever\\b|\\bfulcrum\\b|\\bcrowbar\\b|\\bseesaw\\b" low then
+        let
+          fun either p1 p2 = case search p1 low of SOME m => SOME m | NONE => search p2 low
+          val ea = either ("\\beffort arm\\s*(?:of|is|=)?\\s*" ^ UNUM) (UNUM ^ "\\s*(?:m|cm|ft)?\\s*(?:from the fulcrum )?(?:effort arm)")
+          val la = either ("\\b(?:load|resistance) arm\\s*(?:of|is|=)?\\s*" ^ UNUM) (UNUM ^ "\\s*(?:m|cm|ft)?\\s*(?:load arm|resistance arm)")
+        in
+          case (ea, la) of
+            (SOME me, SOME ml) =>
+              let
+                val e = ratOf (g1 low me) and l = ratOf (g1 low ml)
+                val ld = either ("\\b(?:lift|load of|weighing|move)\\s*(?:a\\s+)?" ^ UNUM ^ "\\s*(n|newtons?|kg)\\b")
+                                (UNUM ^ "\\s*(n|newtons?|kg)\\s*(?:load|rock|weight|object)\\b")
+              in
+                case ld of
+                  SOME mld =>
+                    if has "\\beffort\\b|\\bforce\\b|\\bhow (?:much|hard)\\b" low
+                    then SOME (M.McLeverEffort (e, l, SOME (ratOf (g1 low mld), loadUnit (valOf (grp low mld 2)))))
+                    else SOME (M.McLeverMA (e, l))
+                | NONE => SOME (M.McLeverMA (e, l))
+              end
+          | _ => need 2
+        end
+      else if has "\\bramp\\b|\\binclined plane\\b|\\bincline\\b" low andalso has "\\bmechanical advantage\\b|\\bma\\b" low then
+        let
+          val lm = search ("\\b(?:length|long)\\s*(?:of|is)?\\s*" ^ UNUM ^ "|" ^ UNUM ^ "\\s*(?:m|ft)?\\s*long\\b") low
+          val hm = search ("\\b(?:height|high|rises?)\\s*(?:of|is|by)?\\s*" ^ UNUM ^ "|" ^ UNUM ^ "\\s*(?:m|ft)?\\s*(?:high|tall)\\b") low
+        in
+          case (lm, hm) of
+            (SOME a, SOME b) => SOME (M.McInclineMA (ratOf (valOf (firstGroup low a [1, 2])), ratOf (valOf (firstGroup low b [1, 2]))))
+          | _ => need 3
+        end
+      else if isSome tq andalso isSome rpm andalso has "\\bpower\\b|\\bwatts?\\b|\\bkw\\b|\\bhorsepower\\b" low then
+        SOME (M.McShaftPower (ratOf (g1 low (valOf rpm)), ratOf (g1 low (valOf tq))))
+      else if has "\\btorque\\b" low then
+        let
+          val f = search (UNUM ^ "\\s*(?:n|newtons?)\\b(?!\\s*(?:\194\183|\\.)?\\s*m)") low
+          val r = search (UNUM ^ "\\s*(m|cm|mm)\\s*(?:long|wrench|lever|arm|from the (?:axis|center|pivot|bolt))|\\b(?:wrench|lever|arm|radius)\\s*(?:of|is)?\\s*"
+                          ^ UNUM ^ "\\s*(m|cm|mm)\\b") low
+        in
+          case (f, r) of
+            (SOME mf, SOME mr) =>
+              let
+                val fv = ratOf (g1 low mf)
+                val rv = ratOf (valOf (firstGroup low mr [1, 3]))
+                val ru = lenUnit (valOf (firstGroup low mr [2, 4]))
+              in
+                case search ("\\bat (?:an angle of )?" ^ UNUM ^ "\\s*(?:degrees|deg|" ^ deg ^ ")") low of
+                  SOME ma => SOME (M.McTorqueAngle (fv, rv, ru, ratOf (g1 low ma)))
+                | NONE => SOME (M.McTorque (fv, rv, ru))
+              end
+          | _ => need 4
+        end
+      else NONE
+    end
+
+  fun mechV2 text : M.request option =
+    let
+      val low0 = lower text
+      val t1 = if has "\\btorque\\b" low0 andalso not (has "\\b(?:effort|load|resistance) arm\\b|\\bfulcrum\\b" low0)
+               then substCI "\\blever\\b" "wrench" text else text
+      val t2 = substCI "\\blift(?:s|ed|ing)\\b" "lift" t1
+      val r = case mechV1 t2 of
+                SOME (M.McLeverMA (e, l)) =>
+                  if has "\\beffort\\b|\\bforce\\b|\\bhow (?:much|hard)\\b" (lower t2)
+                     andalso not (has "\\bmechanical advantage\\b" (lower t2) orelse (has "\\bma\\b" (lower t2) andalso String.isSubstring "MA" t2))
+                  then SOME (M.McLeverEffort (e, l, NONE)) else SOME (M.McLeverMA (e, l))
+              | other => other
+    in
+      case r of
+        SOME req => if M.reply_kind (M.reply_of req) = "underspecified" andalso Narrow.numbers text >= 1 then NONE else r
+      | NONE => NONE
+    end
+
+  (* ---------- sports ---------- *)
+  (* organ_sports_v1.stat: "N name" or "name [of|:|=] N", the first name that matches *)
+  fun stat low names : string option =
+    let
+      fun one nm =
+        case search (NUM ^ "\\s*" ^ nm ^ "\\b") low of
+          SOME m => SOME (g1 low m)
+        | NONE => (case search ("\\b" ^ nm ^ "\\s*(?:of|:|=)?\\s*" ^ NUM) low of SOME m => SOME (g1 low m) | NONE => NONE)
+      fun go [] = NONE
+        | go (n :: ns) = case one n of SOME s => SOME s | NONE => go ns
+    in go names end
+  fun st low names = Option.map ratOf (stat low names)
+  val zero = ratOf "0"
+
+  fun sportsInner text : M.request option =
+    let
+      val t = collapse text
+      val low = lower t
+    in
+      if has "\\bpasser rating\\b|\\bqb rating\\b|\\bquarterback rating\\b" low then
+        (case (st low ["completions?", "cmp"], st low ["attempts?", "att", "passes attempted"],
+               st low ["(?:passing )?yards", "yds"], st low ["(?:passing )?touchdowns?", "tds?"],
+               st low ["interceptions?", "ints?", "picks"]) of
+           (SOME c, SOME a, SOME y, SOME td, SOME i) => SOME (M.SpPasser (c, a, y, td, i))
+         | _ => NONE)
+      else if has "\\btrue shooting\\b|\\bts%\\b|\\bts percentage\\b" low then
+        (case (st low ["points", "pts"], st low ["field goal attempts", "fga", "shots"], st low ["free throw attempts", "fta"]) of
+           (SOME p, SOME fga, SOME fta) => SOME (M.SpTrueShooting (p, fga, fta))
+         | _ => NONE)
+      else if has "\\bera\\b|\\bearned run average\\b|\\bwhip\\b" low then
+        (case search "(\\d+)(?:\\.(\\d))?\\s*(?:innings(?: pitched)?|ip)\\b" low of
+           NONE => NONE
+         | SOME m =>
+             let
+               val wS = g1 low m
+               val fS = case grp low m 2 of SOME d => d | NONE => "0"
+               val w = ratOf wS and f = ratOf fS
+               val dead = valOf (Int.fromString fS) >= 3 orelse (strZero wS andalso strZero fS)
+             in
+               if has "\\bwhip\\b" low then
+                 (case (st low ["walks", "bb"], st low ["hits", "h"]) of
+                    (SOME bb, SOME h) => SOME (M.SpWhip (w, f, bb, h))
+                  | _ => if dead then SOME (M.SpWhip (w, f, zero, zero)) else NONE)
+               else
+                 (case st low ["earned runs", "er"] of
+                    SOME er => SOME (M.SpEra (w, f, er))
+                  | NONE => if dead then SOME (M.SpEra (w, f, zero)) else NONE)
+             end)
+      else
+        let
+          val abS = stat low ["at[- ]bats", "ab"]
+          val h = st low ["hits", "h"]
+        in
+          if isSome abS andalso has "\\bbatting average\\b|\\bon[- ]base\\b|\\bobp\\b|\\bslugging\\b|\\bslg\\b" low then
+            let val ab = ratOf (valOf abS) in
+              if strZero (valOf abS) then SOME (M.SpAvg (getOpt (h, zero), ab))
+              else if has "\\bslugging\\b|\\bslg\\b" low then
+                (case (st low ["singles", "1b"], st low ["doubles", "2b"], st low ["triples", "3b"],
+                       st low ["home runs", "hr", "homers"]) of
+                   (s1, SOME s2, SOME s3, SOME hr) =>
+                     (case (s1, h) of
+                        (NONE, NONE) => NONE
+                      | _ => SOME (M.SpSlg (s1, getOpt (h, zero), s2, s3, hr, ab)))
+                 | _ => NONE)
+              else if has "\\bon[- ]base\\b|\\bobp\\b" low then
+                (case h of
+                   NONE => NONE
+                 | SOME hh =>
+                     SOME (M.SpObp (hh, getOpt (st low ["walks", "bb"], zero),
+                                    getOpt (st low ["hit by pitch(?:es)?", "hbp"], zero),
+                                    getOpt (st low ["sacrifice flies", "sac flies", "sf"], zero), ab)))
+              else (case h of NONE => NONE | SOME hh => SOME (M.SpAvg (hh, ab)))
+            end
+          else if has "\\bgames behind\\b|\\bgames back\\b|\\bgb\\b" low then
+            (case findall "\\b(\\d+)\\s*-\\s*(\\d+)\\b" low of
+               a :: b :: _ =>
+                 SOME (M.SpGamesBehind (ratOf (g1 low a), ratOf (valOf (grp low a 2)), ratOf (g1 low b), ratOf (valOf (grp low b 2))))
+             | _ => NONE)
+          else if has "\\bwin(?:ning)? percentage\\b|\\bwin pct\\b|\\bwin rate\\b" low then
+            let
+              val recm = search "\\b(\\d+)\\s*-\\s*(\\d+)(?:\\s*-\\s*(\\d+))?\\b" low
+              val w = stat low ["wins", "w"] and l = stat low ["losses", "l"]
+              val tie = getOpt (stat low ["ties", "draws", "t"], "0")
+              val (w, l, tie) =
+                (case (w, l, recm) of
+                   (NONE, _, SOME m) => (SOME (g1 low m), SOME (valOf (grp low m 2)), getOpt (grp low m 3, "0"))
+                 | (_, NONE, SOME m) => (SOME (g1 low m), SOME (valOf (grp low m 2)), getOpt (grp low m 3, "0"))
+                 | _ => (w, l, tie))
+            in
+              case (w, l) of
+                (SOME ws, SOME ls) =>
+                  if strZero ws andalso strZero ls andalso strZero tie then NONE
+                  else SOME (M.SpWinPct (ratOf ws, ratOf ls, ratOf tie))
+              | _ => NONE
+            end
+          else NONE
+        end
+    end
+
+  fun sports text : M.request option =
+    if Narrow.narrative text then NONE
+    else
+      case sportsInner text of
+        NONE => NONE
+      | SOME r => if not (M.answered (M.reply_of r)) andalso not (Narrow.short_direct text) then NONE else SOME r
+
+  (* ---------- fleet ---------- *)
+  val MPG = NUM ^ "\\s*(?:us\\s+)?(uk\\s+|imperial\\s+)?mpg\\b|" ^ NUM ^ "\\s*miles per (?:us\\s+)?(imperial\\s+)?gallon\\b"
+  val LPK = NUM ^ "\\s*(?:l|liters?|litres?)\\s*(?:/|per)\\s*100\\s*km\\b"
+
+  fun fleetInner text : M.request option =
+    let
+      val t = collapse text
+      val low = lower t
+      val mpg = search MPG low
+      val lpk = search LPK low
+    in
+      if has "\\bstopping distance\\b|\\bdistance to stop\\b|\\bhow far .* to stop\\b|\\bbraking distance\\b" low then
+        let
+          val v = search (NUM ^ "\\s*(km/h|kph|mph|m/s)\\b") low
+          val mu = search ("\\b(?:friction(?: coefficient)?|coefficient of friction|mu|\206\188)\\s*(?:of|is|=)?\\s*(0?\\.\\d+|\\d(?:\\.\\d+)?)") low
+          val rt = search ("\\breaction time\\s*(?:of|is|=)?\\s*" ^ NUM ^ "\\s*(?:s|sec|seconds?)\\b|" ^ NUM ^ "\\s*(?:s|sec|seconds?)\\s*reaction\\b") low
+        in
+          case (v, mu) of
+            (SOME mv, SOME mm) =>
+              let
+                val unit = case valOf (grp low mv 2) of "mph" => M.SU_mph | "m/s" => M.SU_ms | _ => M.SU_kmh
+                val vv = SOME (ratOf (g1 low mv), unit)
+                val muv = SOME (ratOf (g1 low mm))
+              in
+                if has "\\bbraking distance\\b" low andalso not (has "\\bstopping distance\\b" low) then SOME (M.FvBraking (vv, muv))
+                else SOME (M.FvStopping (vv, muv, Option.map (fn m => ratOf (valOf (firstGroup low m [1, 2]))) rt))
+              end
+          | _ => SOME (M.FvBraking (NONE, NONE))
+        end
+      else
+        let
+          val dist = search (NUM ^ "\\s*(miles?|mi|km|kilometers?|kilometres?)\\b(?!\\s*(?:per|/)\\s*(?:hour|h|gallon|liter|litre))")
+                            (substCI "100\\s*km|miles per (?:us\\s+|imperial\\s+)?gallon" "" low)
+          val ukOf = fn m => isSome (grp low m 2) orelse isSome (grp low m 4)
+          val mpgVal = fn m => ratOf (valOf (firstGroup low m [1, 3]))
+        in
+          if not (isSome dist) andalso (isSome mpg orelse isSome lpk)
+             andalso has "\\bconvert\\b|\\bl/100\\s*km\\b|\\bliters? per 100|\\blitres? per 100|\\bmpg\\b|\\bmiles per gallon\\b" low then
+            (if isSome mpg andalso has "l/100|liters? per 100|litres? per 100" low then
+               SOME (M.FvToLpk (ukOf (valOf mpg), mpgVal (valOf mpg)))
+             else if isSome lpk andalso has "\\bmpg\\b|miles per gallon" low then
+               SOME (M.FvToMpg (has "\\buk\\b|\\bimperial\\b" low, ratOf (g1 low (valOf lpk))))
+             else NONE)
+          else if isSome dist andalso (isSome mpg orelse isSome lpk)
+                  andalso has "\\bfuel\\b|\\bgas\\b|\\bgallons?\\b|\\bliters?\\b|\\blitres?\\b|\\bcost\\b|\\bco2\\b|\\bcarbon\\b|\\bemissions?\\b|\\bspend\\b" low then
+            let
+              val dm = valOf dist
+              val dlow = substCI "100\\s*km|miles per (?:us\\s+|imperial\\s+)?gallon" "" low
+              val d = ratOf (g1 dlow dm)
+              val du = if String.isPrefix "mi" (valOf (grp dlow dm 2)) then M.DU_mi else M.DU_km
+              val ec = case mpg of
+                         SOME m => M.E_mpg (ukOf m, mpgVal m)
+                       | NONE => M.E_lpk (ratOf (g1 low (valOf lpk)))
+            in
+              if has "\\bco2\\b|\\bcarbon\\b|\\bemissions?\\b" low then SOME (M.FvCO2 (d, du, ec, has "diesel" low))
+              else if has "\\bcost\\b|\\bspend\\b|\\bhow much money\\b|\\bprice\\b" low then
+                let
+                  val price = search ("\\$\\s*" ^ NUM ^ "\\s*(?:per|/|a)\\s*(gallon|gal|liter|litre|l)\\b") low
+                  val pr = Option.map (fn m => (ratOf (g1 low m), String.isPrefix "gal" (valOf (grp low m 2)))) price
+                in SOME (M.FvCost (d, du, ec, pr)) end
+              else if has "\\bliters?\\b|\\blitres?\\b" low andalso not (has "\\bgallons?\\b" low) then SOME (M.FvLitres (d, du, ec))
+              else SOME (M.FvGallons (d, du, ec))
+            end
+          else NONE
+        end
+    end
+
+  fun fleet text : M.request option =
+    if Narrow.narrative text then NONE
+    else
+      case fleetInner text of
+        NONE => NONE
+      | SOME r => if not (M.answered (M.reply_of r)) andalso not (Narrow.short_direct text) then NONE else SOME r
+
+  (* ---------- fluids-r2 ---------- *)
+  val fluidRx = ["(?:fresh |pure )?water", "sea ?water|salt water|the sea|the ocean|ocean", "mercury",
+                 "petrol|gasoline", "diesel", "ethanol", "olive oil", "honey", "milk"]
+  val fluidPats = zipChecked (fluidRx, M.fluid_order, "fluid_order")
+  val solidPats = zipChecked (["ice", "aluminium", "steel", "concrete", "glass", "granite", "iron", "copper", "gold",
+                               "lead", "brass"], M.solid_order, "solid_order")
+  val DEPTH = NUM ^ "\\s*(?:m|met(?:re|er)s?)\\b(?!\\s*/|\\s*per|\\s*\\^|\\s*3|" ^ cube ^ ")\\s*(?:deep|down|below|under|beneath|depth)?"
+  val fluidVolPats = [(NUM ^ "\\s*(?:m3|m\\^3|m" ^ cube ^ "|cubic met(?:re|er)s?)", M.VU_m3),
+                      (NUM ^ "\\s*(?:litres?|liters?|l)\\b", M.VU_l),
+                      (NUM ^ "\\s*(?:cm3|cm\\^3|cm" ^ cube ^ "|cubic centimet(?:re|er)s?)", M.VU_cm3)]
+  val fFresh = List.nth (M.fluid_order, 0)
+  val fSea = List.nth (M.fluid_order, 1)
+  fun one [x] = SOME x | one _ = NONE
+
+  fun fluidOf low =
+    let
+      val found = List.mapPartial (fn (p, f) => if has ("\\b(?:" ^ p ^ ")\\b") low then SOME f else NONE) fluidPats
+      val found = if List.exists (fn f => f = fSea) found andalso List.exists (fn f => f = fFresh) found
+                  then List.filter (fn f => f <> fFresh) found else found
+    in one found end
+
+  fun fluidsV1 text : M.request option =
+    let val t = collapse text
+    in
+      if t = "" orelse Narrow.narrative t then NONE
+      else
+        let
+          val low = lower t
+          val ask = lower (Narrow.last_sentence t)
+          val fl = fluidOf low
+          fun need r = if Narrow.short_direct t then SOME r else NONE
+        in
+          if has "\\bpressure\\b" ask andalso has "\\b(?:deep|depth|below|under|beneath|down)\\b" low then
+            (case fl of
+               NONE => NONE
+             | SOME f =>
+                 let
+                   val ds = map (fn m => ratOf (g1 low m)) (findall DEPTH low)
+                   val absolute = has "\\b(?:absolute|total)\\b" low
+                   val d = one ds
+                   val r = if absolute then M.FsAbs (f, d) else M.FsGauge (f, d)
+                 in if length ds = 1 then SOME r else need r end)
+          else if has "\\bbuoyan\\w*\\b|\\bupthrust\\b" low andalso has "\\bforce\\b|\\bupthrust\\b|\\bhow much\\b" ask then
+            (case fl of
+               NONE => NONE
+             | SOME f =>
+                 let
+                   val vs = List.concat (map (fn (p, u) => map (fn m => (ratOf (g1 low m), u)) (findall p low)) fluidVolPats)
+                   val r = M.FsBuoyant (f, one vs)
+                 in if length vs = 1 then SOME r else need r end)
+          else if has "\\b(?:fraction|percent(?:age)?|how much)\\b.*\\b(?:below|under|submerged|beneath)\\b" ask
+                  andalso has "\\bfloat" low then
+            (case fl of
+               NONE => NONE
+             | SOME f =>
+                 (case List.mapPartial (fn (p, s) => if has ("\\b" ^ p ^ "\\b") low then SOME s else NONE) solidPats of
+                    [s] => SOME (M.FsSubmerged (s, f))
+                  | _ => NONE))
+          else NONE
+        end
+    end
+
+  (* names_narrowing_v1.named_not_material: a material word that appears only capitalised mid-sentence is a name *)
+  fun escape s = String.translate (fn c => if Char.isAlphaNum c then String.str c else "\\" ^ String.str c) s
+  fun prefixOk p =
+    let
+      fun rtrim cs = case cs of c :: rest => if Char.isSpace c then rtrim rest else cs | [] => []
+      val core = rev (rtrim (rev (String.explode p)))
+    in p = "" orelse (length core < size p andalso not (null core) andalso Char.contains ".!?" (List.last core)) end
+
+  fun namedNotMaterial t words =
+    let
+      val low = lower t
+      fun check w =
+        let
+          val hits = findall ("\\b" ^ escape (lower w) ^ "\\b") low
+          val first = fn ({start, ...} : Regex.match) => String.sub (t, start)
+          val lowerHits = List.filter (fn m => Char.isLower (first m)) hits
+          val midCaps = List.filter (fn (m as {start, ...} : Regex.match) =>
+                                       Char.isUpper (first m) andalso not (prefixOk (String.substring (t, 0, start)))) hits
+        in not (null midCaps) andalso null lowerHits end
+    in List.exists check words end
+
+  fun fluidsR2 text : M.request option =
+    let
+      val t = text
+      val low = lower t
+      val words = List.concat (map (fn (p, _) =>
+        map (fn (m as {start, stop, ...} : Regex.match) => String.substring (t, start, stop - start))
+            (findall ("\\b(?:" ^ p ^ ")\\b") low)) fluidPats)
+    in
+      if not (null words) andalso namedNotMaterial t words then NONE else fluidsV1 text
+    end
+
+  (* ---------- dispatch ---------- *)
+  val organs = ["physics", "physics-r2", "physics-r3", "mechanisms", "mechanisms-v2", "bodies-v2", "sports", "fleet", "fluids-r2"]
+
+  fun byId "physics" = physicsV1
+    | byId "physics-r2" = physicsR2
+    | byId "physics-r3" = physicsR3
+    | byId "mechanisms" = mechV1
+    | byId "mechanisms-v2" = mechV2
+    | byId "bodies-v2" = bodiesV2
+    | byId "sports" = sports
+    | byId "fleet" = fleet
+    | byId "fluids-r2" = fluidsR2
+    | byId other = raise Fail ("unknown specialist " ^ other)
+
+  (* The family: each manifest's organ in a fixed order, the first that takes the question answers it.
+     Narrow, named-domain organs first; physics-r3 (the broad one) last. *)
+  val familyOrder = ["fluids-r2", "bodies-v2", "fleet", "sports", "mechanisms-v2", "physics-r3"]
+
+  fun recognize mode text =
+    if mode = "family" then
+      let fun go [] = NONE
+            | go (id :: ids) = case byId id text of SOME r => SOME (id, r) | NONE => go ids
+      in go familyOrder end
+    else Option.map (fn r => (mode, r)) (byId mode text)
+end

@@ -1,0 +1,18 @@
+(* Lane S01: the Oracle7 mechanics family (physics, physics-r2, physics-r3,
+   mechanisms, mechanisms-v2, bodies-v2, sports, fleet, fluids-r2) as one HOL
+   kernel, exported to SML. The base session only loads Isabelle's verified
+   interval arithmetic (HOL-Decision_Procs.Approximation), so the kernel
+   session rebuilds quickly on top of it. *)
+session Veri7vn_Mechanics_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Mechanics_Base
+
+session Veri7vn_Mechanics = Veri7vn_Mechanics_Base +
+  options [document = false, threads = 2]
+  theories
+    Mech_Num
+    Mechanics
+    Mechanics_Export
