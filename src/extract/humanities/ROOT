@@ -1,0 +1,31 @@
+(* Lane S16-humanities: music-v2, music-v2-r2, grammar, mythology, ushistory,
+   library, government as verified HOL kernels, exported to SML. The base
+   session holds the shared numerics (and loads HOL-Decision_Procs.Approximation,
+   no HOL-Analysis). Music and the lookup families are separate sessions so a
+   proof fix in one does not rebuild the other. *)
+session Veri7vn_Humanities_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Hum_Num
+
+session Veri7vn_Humanities_Music in music = Veri7vn_Humanities_Base +
+  options [document = false, threads = 2]
+  theories
+    Music
+    Music_Check
+
+session Veri7vn_Humanities_Facts in facts = Veri7vn_Humanities_Base +
+  options [document = false, threads = 2]
+  theories
+    Facts
+    Facts_Check
+
+session Veri7vn_Humanities = Veri7vn_Humanities_Base +
+  options [document = false, threads = 2]
+  sessions
+    Veri7vn_Humanities_Music
+    Veri7vn_Humanities_Facts
+  theories
+    Humanities_Export
