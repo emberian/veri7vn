@@ -1,9 +1,18 @@
 (* Lane H: Oracle7's network_v3 specialist fusion as a HOL decision over a
    pool of typed quantities, with lane G's quantity kernel as the nodes.
    Imports lane G's session (Veri7vn_Quantity, cached) so the fusion
-   theorems quantify over the real kernels. *)
+   theorems quantify over the real kernels.
+   Lane H2: Fusion_Nodes adds the thermo (lane S06), carboncapture (lane S05)
+   and planetary (lane S02) nodes. A session has one parent heap, so the
+   theories it needs from those sessions (Energy_Core, Thermo; Climate_Num,
+   Climate; Space_Tables, Space) are checked again inside this session. *)
 session Veri7vn_Fusion = Veri7vn_Quantity +
   options [document = false, threads = 2]
+  sessions
+    Veri7vn_Energy_Base Veri7vn_Energy
+    Veri7vn_Climate_Base Veri7vn_Climate
+    Veri7vn_Space_Base Veri7vn_Space
   theories
     Fusion
+    Fusion_Nodes
     Fusion_Export

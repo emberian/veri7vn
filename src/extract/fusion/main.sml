@@ -2,7 +2,7 @@
    line on stdin: typed givens, a typed goal, the context facts and the AGREE
    mode, as tools/fusion/answerer.py's recognizer produces them. Writes one JSON
    outcome per line, flushes, exits on EOF. Every decision comes from the HOL
-   function Fusion.qdecide (src/extract/fusion/Fusion.thy); this file only
+   function Fusion.fdecide (src/extract/fusion/Fusion_Nodes.thy); this file only
    converts between JSON and the generated datatypes. The string decoder is
    lane D's / lane G's (src/extract/quantity/main.sml).
 
@@ -12,7 +12,8 @@
             | {"kind": "bool"} | {"kind": "count", "unit": "nights"},
       "givens": [{"v": "num/den", "dim": [...6 ints], "role": "duty", "marks": ["material","fuel","depth"]}],
       "ctx": {"object": "copper"|null, "substance": ..., "fluid": ..., "fuel": ...,
-              "burn": bool, "asks_co2": bool, "spring": bool, "full_of": bool}}
+              "burn": bool, "asks_co2": bool, "spring": bool, "full_of": bool,
+              "heat_mat": "water"|null, "melt": bool, "gasoline": bool}}
    Output line:
      {"id": ..., "outcome": "answer"|"disagree"|"noplan"|"budget"|"single"|"invalid",
       "value": "num/den" | "bool": true, "plan": [{"op","node","args"}], "pool": ["num/den", ...],
@@ -190,10 +191,14 @@ struct
   fun fuel (J.Str s) = (case Fusion.v3_fuel s of SOME f => SOME f | NONE => raise Bad ("unknown fuel " ^ s))
     | fuel _ = NONE
 
+  fun str_opt (J.Str s) = SOME s
+    | str_opt _ = NONE
+
   fun ctx_of c =
     Fusion.fz_ctx (material (J.get c "object")) (material (J.get c "substance")) (material (J.get c "fluid"))
       (fuel (J.get c "fuel")) (bool_of (J.get c "burn")) (bool_of (J.get c "asks_co2"))
       (bool_of (J.get c "spring")) (bool_of (J.get c "full_of"))
+      (str_opt (J.get c "heat_mat")) (bool_of (J.get c "melt")) (bool_of (J.get c "gasoline"))
 
   fun goal_of g =
     case J.get g "kind" of
@@ -227,7 +232,7 @@ struct
       val gs = list_of (J.get req "givens")
       val pool = ListPair.map (fn (i, g) => given i g) (List.tabulate (length gs, fn i => i), gs)
       val c = ctx_of (J.get req "ctx")
-      val d = Fusion.qdecide mode goal c pool
+      val d = Fusion.fdecide mode goal c pool
       val body =
         case d of
           Fusion.Answer (fv, pl) =>

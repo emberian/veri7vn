@@ -6,8 +6,11 @@ diesel into 33.28 kg, the fuels specialist turns 33.28 kg of diesel into 1431 MJ
 arithmetic states the result. Oracle7 calls this fusion (`upstream/root/specialists/_gate/network_v3.py`).
 
 This folder holds that planner as a function written and proved in Isabelle/HOL. The
-specialists it chains are lane G's verified quantity kernel (`../quantity/`). The HOL function
-is exported to Standard ML and compiled into one standalone binary.
+specialists it chains are verified kernels: lane G's quantity kernel (`../quantity/`: densities,
+fluids, springs, fuels), and since lane H2 the thermo kernel of lane S06 (`../energy/`), the
+carboncapture kernel of lane S05 (`../climate/`) and the planetary kernel of lane S02
+(`../space/`). The HOL function is exported to Standard ML and compiled into one standalone
+binary.
 
 ## What the planner does
 
@@ -59,6 +62,10 @@ argument of the planner. The last theorem ties the actual nodes to lane G's kern
 | `single_conversion_not_answer`, `echo_not_answer`, `op_goal_needs_operation` | The three "never an answer" rules of the Finish step. |
 | `core_eval_sound` | The final arithmetic is a product of the remaining amounts, each raised to the power +1 or -1, and the product has the asked dimension. |
 | `qnode_sound`, `phrase_sound` | Every specialist value is lane G's exact kernel value for the request (`kernel_exact_sound` then says that this is the formula's value), rounded to four significant digits as the specialist states it. The inputs are rounded to six digits, as Oracle7 writes them into its question to the specialist. |
+| `sensible_heat_node`, `melt_ice_node` | Heating: the value is mass times the specific heat from lane S06's table times the temperature rise, and melting ice: mass times 334 kJ/kg, each lane S06's kernel value stated to four significant digits. |
+| `gasoline_co2_node` | Gasoline: the value is the volume in US gallons times 8887 g, lane S05's kernel value stated to four decimals. |
+| `surface_gravity_node`, `planet_weight_node` | On a body of M Earth masses and R Earth radii, gravity times R squared is 9.81 M, and weight times R squared is the mass times 9.81 M, both lane S02's kernel values as the planetary specialist states them. |
+| `fnode_lane_g` | The four lane G specialists are still lane G's nodes. |
 
 The exact statements are in the [lane H handoff](../../../project/lanes/H-fusion.md). The build
 fails if any theorem in that list relies on an unchecked step, or if the self test fails
@@ -70,6 +77,14 @@ node. `qnode` is defined directly from lane G's `kernel`, `stated_dec` and `requ
 `qnode_sound` is a statement about the real kernels. Importing costs nothing to rebuild: lane
 G's session is already built.
 
+The thermo, carboncapture and planetary nodes are defined the same way, in `Fusion_Nodes.thy`,
+from lanes S06, S05 and S02's own kernel functions (`Thermo.kernel_t`, `Climate.kernel`,
+`Space.kernel`) and their own rounding of the stated number. An Isabelle session builds on one
+parent, so those lanes' theories are checked again inside this session rather than loaded
+ready-made; that adds a few minutes to the build. Their files are not modified. Several of
+those theories use the same short names (`rl`, `dec_val`, `outcome`, `Exact`, `request`,
+`kernel`, `fuel`), so `Fusion_Nodes.thy` writes every name in full.
+
 ## What is not proved (untrusted)
 
 - `../../../tools/fusion/answerer.py` reads the question. It finds the numbers, their units
@@ -79,7 +94,8 @@ G's session is already built.
 - The tables of material and fuel names in `Fusion_Export.thy` (`v3_materials`, `v3_fuels`)
   map the names Oracle7 puts into its questions to lane G's table entries. `measure.py`
   checks the ones its questions use, by asking lane G's binary the same question in English
-  and by running Oracle7's own planner on the same questions.
+  and by running Oracle7's own planner on the same questions. The heating material is looked
+  up in lane S06's own table (`Thermo.mat_table`) by the name the reader found.
 
 ## Deliberate differences from Oracle7
 
@@ -93,6 +109,11 @@ G's session is already built.
 4. **Exact arithmetic.** Oracle7 computes in floating point. When two equally good final
    formulas give values that differ only by rounding, Oracle7 rounds to 9 decimals before
    comparing; the model compares exactly.
+5. **Temperatures in the heating question.** Oracle7 writes each temperature as Celsius
+   rounded to 4 decimals, then to 6 significant digits; the model skips the 4-decimal step
+   (they differ only for a temperature given to more than 4 decimals). A temperature of
+   exactly 0 C (or anything below 0.0001 C in size) is written by Oracle7 in exponent form,
+   and the model declines that step, as in point 3.
 
 ## Build and run
 
@@ -110,11 +131,15 @@ python3 tools/fusion/measure.py           # var/fusion/measure.json
 These are the 102 core-panel questions that Oracle7 answers by fusion. 84 go through its
 `network` route and 18 through `network3`.
 
-- **60 answered.** All 60 give Oracle7's exact reply text and the same specialist path.
+- **101 answered.** All 101 give Oracle7's exact reply text and the same specialist path
+  (60 since lane H; 41 since lane H2: heating and melting with thermo, gasoline CO2 with
+  carboncapture, planet weight with planetary).
 - **0 wrong.**
-- **42 declined.** Each one needs a specialist that has no verified kernel yet: thermo (23),
-  carboncapture (12), planetary (6), geometry with thermo (1).
+- **1 declined**: it needs the geometry specialist (a cylinder's volume), which has no verified
+  kernel in this tree yet.
 
 The 12 questions that Oracle7's network refuses as impossible (26 hours in a day, a negative
-fall height) are refused with the same text. Details are in the
-[lane H handoff](../../../project/lanes/H-fusion.md).
+fall height) are refused with the same text. Fusion never changes a verdict on the 26
+specialist panels of the four families it calls (2,701 items). Details are in the
+[lane H handoff](../../../project/lanes/H-fusion.md) and the
+[lane H2 handoff](../../../project/lanes/H2-fusion.md).

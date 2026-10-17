@@ -14,8 +14,12 @@ into `var/fusion/bin/fusion`. This folder holds the parts that are not proved.
   Options: `--agree pairwise` (default, every two shallowest plans must agree) or
   `--agree anchor` (network_v3 as shipped: every plan is compared with the first one found).
 - `measure.py` compares the answerer with what Oracle7 answered on its network routes, re-asks
-  every specialist call in English to lane G's binary, and scores lane G's six panels with and
-  without fusion behind lane G. It writes `var/fusion/measure.json`.
+  every specialist call in English to the family binary that owns it (lane G's quantity, S06's
+  energy, S05's climate, S02's space) and the thermo, carboncapture and planetary calls also to
+  the shipped organs, scores the four families' 26 panels with and without fusion behind the
+  family binary, and runs Oracle7's own `network_v3` on a battery of questions. Every binary is
+  driven through `tools/parity/harness.py`'s Answerer (20 s per item, 1 GiB cap). It writes
+  `var/fusion/measure.json`.
 
 What can go wrong here and is not caught by a proof: reading the question (units, roles, which
 material an amount is attached to), and the layout of the reply text.

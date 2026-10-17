@@ -20,6 +20,8 @@ text \<open>
   and use of givens hold for every node. The function qnode instantiates the nodes
   with lane G's verified quantity kernel (densities, fluids, springs, fuels),
   and @{text qnode_sound} ties every node value to that kernel's value.
+  Fusion_Nodes.thy adds the thermo, carboncapture and planetary nodes (lanes
+  S06, S05, S02) and their soundness theorems.
 \<close>
 
 section \<open>Dimensions and typed quantities\<close>
@@ -48,6 +50,7 @@ definition "d_energy = Dim 2 1 (-2) 0 0 0"
 definition "d_force = Dim 1 1 (-2) 0 0 0"
 definition "d_pressure = Dim (-1) 1 (-2) 0 0 0"
 definition "d_stiff = Dim 0 1 (-2) 0 0 0"
+definition "d_acc = Dim 1 0 (-2) 0 0 0"
 
 text \<open>Roles the reader attaches (network_v2.read_givens) and roles of
 specialist outputs. Only some matter to the planner: a temperature point,
@@ -60,19 +63,27 @@ text \<open>What the reader found the amount attached to: the material
 (@{text depth_attached}).\<close>
 datatype mark = Of_material | Of_fuel | Depth_of
 
-text \<open>The v3 operations that lane G's kernels answer (network_v3.ops_v3,
-in its order). The v2 operations (acoustics, physics, planetary, coldchain,
-geometry, thermo, carboncapture) have no lane G kernel and are not nodes.\<close>
+text \<open>The operations with a verified kernel. The v3 operations that lane G's
+kernels answer (network_v3.ops_v3, in its order), and five v2 operations
+(network_v2.ops_for): surface_gravity and planet_weight (planetary, lane S02),
+sensible_heat and melt_ice (thermo, lane S06), fuel_co2 (carboncapture, lane
+S05; here Gasoline_co2). The other v2 operations (acoustics, physics,
+coldchain, geometry) are not nodes.\<close>
 datatype fop = Mass_of_volume | Volume_of_mass | Gauge_pressure | Buoyant_force
   | Spring_force | Spring_energy | Fuel_energy | Fuel_co2_mass
+  | Surface_gravity | Sensible_heat | Melt_ice | Gasoline_co2 | Planet_weight
 
 datatype snode = Nd_densities | Nd_fluids | Nd_springs | Nd_fuels
+  | Nd_thermo | Nd_carboncapture | Nd_planetary
 
 fun node_of :: "fop \<Rightarrow> snode" where
   "node_of Mass_of_volume = Nd_densities" | "node_of Volume_of_mass = Nd_densities"
 | "node_of Gauge_pressure = Nd_fluids" | "node_of Buoyant_force = Nd_fluids"
 | "node_of Spring_force = Nd_springs" | "node_of Spring_energy = Nd_springs"
 | "node_of Fuel_energy = Nd_fuels" | "node_of Fuel_co2_mass = Nd_fuels"
+| "node_of Surface_gravity = Nd_planetary" | "node_of Planet_weight = Nd_planetary"
+| "node_of Sensible_heat = Nd_thermo" | "node_of Melt_ice = Nd_thermo"
+| "node_of Gasoline_co2 = Nd_carboncapture"
 
 text \<open>Where a pool entry came from: the i-th given, core math over givens i
 and j, or a specialist operation (its inputs are recorded in the plan).\<close>
@@ -104,7 +115,11 @@ only a specialist operation may meet it, the v3 "op" goals), a yes/no
 question, or a count of per-unit spans.\<close>
 datatype goal = GDim dimv rat bool | GBool | GCount String.literal
 
-text \<open>Context facts the reader takes from the text (network_v3.read_flags_v3).\<close>
+text \<open>Context facts the reader takes from the text (network_v3.read_flags_v3,
+and network_v2.read_givens's flags): @{text c_heat_mat} is the material name
+the thermo phrasing puts after "kg of" (flags["material"]), @{text c_melt}
+says the text melts ice, @{text c_gasoline} says it names gasoline, petrol,
+gas or miles per gallon.\<close>
 record ctx =
   c_object :: "material option"
   c_substance :: "material option"
@@ -114,6 +129,9 @@ record ctx =
   c_asks_co2 :: bool
   c_spring :: bool
   c_full_of :: bool
+  c_heat_mat :: "String.literal option"
+  c_melt :: bool
+  c_gasoline :: bool
 
 definition c_mat :: "ctx \<Rightarrow> material option" where
   "c_mat c = (case c_object c of Some m \<Rightarrow> Some m | None \<Rightarrow> c_substance c)"
@@ -228,18 +246,29 @@ fun slots :: "fop \<Rightarrow> (dimv \<times> (quantity \<Rightarrow> bool)) li
 | "slots Spring_energy = [(d_stiff, \<lambda>q. True), (d_len, \<lambda>q. True)]"
 | "slots Fuel_energy = [(d_mass, \<lambda>q. role q \<noteq> Some Ro_co2)]"
 | "slots Fuel_co2_mass = [(d_mass, \<lambda>q. role q \<noteq> Some Ro_co2)]"
+| "slots Surface_gravity = [(d_one, \<lambda>q. role q = Some Ro_earth_mass), (d_one, \<lambda>q. role q = Some Ro_earth_radius)]"
+| "slots Sensible_heat = [(d_mass, \<lambda>q. True), (d_temp, is_temp), (d_temp, is_temp)]"
+| "slots Melt_ice = [(d_mass, \<lambda>q. True)]"
+| "slots Gasoline_co2 = [(d_vol, \<lambda>q. True)]"
+| "slots Planet_weight = [(d_mass, \<lambda>q. True), (d_one, \<lambda>q. role q = Some Ro_earth_mass),
+     (d_one, \<lambda>q. role q = Some Ro_earth_radius)]"
 
 fun out_dim :: "fop \<Rightarrow> dimv" where
   "out_dim Mass_of_volume = d_mass" | "out_dim Volume_of_mass = d_vol"
 | "out_dim Gauge_pressure = d_pressure" | "out_dim Buoyant_force = d_force"
 | "out_dim Spring_force = d_force" | "out_dim Spring_energy = d_energy"
 | "out_dim Fuel_energy = d_energy" | "out_dim Fuel_co2_mass = d_mass"
+| "out_dim Surface_gravity = d_acc" | "out_dim Sensible_heat = d_energy" | "out_dim Melt_ice = d_energy"
+| "out_dim Gasoline_co2 = d_mass" | "out_dim Planet_weight = d_force"
 
 fun out_role :: "fop \<Rightarrow> role" where
   "out_role Mass_of_volume = Ro_out STR ''mass''" | "out_role Volume_of_mass = Ro_out STR ''volume''"
 | "out_role Gauge_pressure = Ro_out STR ''pressure''" | "out_role Buoyant_force = Ro_out STR ''buoyancy''"
 | "out_role Spring_force = Ro_out STR ''force''" | "out_role Spring_energy = Ro_out STR ''energy''"
 | "out_role Fuel_energy = Ro_out STR ''energy''" | "out_role Fuel_co2_mass = Ro_co2"
+| "out_role Surface_gravity = Ro_out STR ''gravity''" | "out_role Sensible_heat = Ro_out STR ''heat''"
+| "out_role Melt_ice = Ro_out STR ''heat''" | "out_role Gasoline_co2 = Ro_co2"
+| "out_role Planet_weight = Ro_out STR ''weight''"
 
 text \<open>The pairs of names the fuel and the material share
 (network_v3 compares the fuel's name with the object's or substance's).\<close>
@@ -262,8 +291,17 @@ definition fuel_mass_ok :: "ctx \<Rightarrow> quantity \<Rightarrow> bool" where
   "fuel_mass_ok c m = (case src m of None \<Rightarrow> Of_fuel \<in> set (marks m)
      | Some Nd_densities \<Rightarrow> fuel_is_stuff c | Some _ \<Rightarrow> False)"
 
+text \<open>network_v3's rule for an operation with two temperature slots: both
+are givens, in the order the question names them (from, then to).\<close>
+definition given_before :: "quantity \<Rightarrow> quantity \<Rightarrow> bool" where
+  "given_before a b = (case (origin a, origin b) of (Given i, Given j) \<Rightarrow> i < j | _ \<Rightarrow> False)"
+
 text \<open>When network_v3 renders a phrasing at all (its render functions
-return None otherwise).\<close>
+return None otherwise). Sensible heat: a material is named and is not ice,
+the temperature rises, and the two temperatures keep the question's order.
+Melting: the text melts ice. Gasoline CO2: the text names gasoline and asks
+about CO2 (network_v3 adds the CO2 condition to v2's operation). The planetary
+operations render whenever their slots are filled.\<close>
 fun admits :: "fop \<Rightarrow> ctx \<Rightarrow> quantity list \<Rightarrow> bool" where
   "admits Mass_of_volume c [v] = (c_mat c \<noteq> None \<and> \<not> c_asks_co2 c \<and> vol_ok c v)"
 | "admits Volume_of_mass c [m] =
@@ -274,6 +312,12 @@ fun admits :: "fop \<Rightarrow> ctx \<Rightarrow> quantity list \<Rightarrow> b
 | "admits Spring_energy c [k, x] = c_spring c"
 | "admits Fuel_energy c [m] = (c_fuel c \<noteq> None \<and> c_burn c \<and> fuel_mass_ok c m)"
 | "admits Fuel_co2_mass c [m] = (c_fuel c \<noteq> None \<and> c_burn c \<and> c_asks_co2 c \<and> fuel_mass_ok c m)"
+| "admits Surface_gravity c [em, er] = True"
+| "admits Sensible_heat c [m, t0, t1] = (c_heat_mat c \<noteq> None \<and> c_heat_mat c \<noteq> Some STR ''ice'' \<and>
+     amount t0 < amount t1 \<and> given_before t0 t1)"
+| "admits Melt_ice c [m] = c_melt c"
+| "admits Gasoline_co2 c [v] = (c_gasoline c \<and> c_asks_co2 c)"
+| "admits Planet_weight c [m, em, er] = True"
 | "admits _ _ _ = False"
 
 
@@ -1358,7 +1402,8 @@ proof -
 qed
 
 text \<open>The fusion decision with lane G's kernels as nodes, the v3 catalogue
-order and no path memory: the exported planner.\<close>
+order and no path memory (lane H's planner; Fusion_Nodes.thy defines the
+exported one, with the thermo, carboncapture and planetary nodes added).\<close>
 definition qdecide :: "agree_mode \<Rightarrow> goal \<Rightarrow> ctx \<Rightarrow> quantity list \<Rightarrow> decision" where
   "qdecide m g c p = decide qnode ops_v3 m None g c p"
 

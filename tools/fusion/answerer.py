@@ -2,7 +2,7 @@
 """veri7vn fusion answerer (docs/contracts/answerer.md): JSON lines in, JSON lines out.
 
 UNTRUSTED. This file reads English into typed givens, a typed goal and context facts, asks the
-verified planner (var/fusion/bin/fusion, the MLton build of Fusion.qdecide) for a decision, and
+verified planner (var/fusion/bin/fusion, the MLton build of Fusion.fdecide) for a decision, and
 renders the decision as Oracle7's network replies read. The reading is a port of
 upstream/root/specialists/_gate/network_v2.py (read_givens, read_goal, normalise, the units table)
 and network_v3.py (its added units and goals, read_flags_v3, attached, depth_attached), with one
@@ -19,9 +19,11 @@ import argparse
 import itertools
 import json
 import os
+import queue
 import re
 import subprocess
 import sys
+import threading
 import time
 from fractions import Fraction as Fr
 from pathlib import Path
@@ -353,6 +355,7 @@ FUELS = {"coal": "coal", "lignite": "lignite", "anthracite": "anthracite", "char
          "petrol": "petrol", "gasoline": "petrol", "kerosene": "jet fuel", "jet fuel": "jet fuel"}
 FLUID_IN = re.compile(r"\b(?:in|into)\s+(?:the\s+)?(sea ?water|salt water|fresh water|water|mercury|olive oil|ethanol)\b", re.I)
 FULL_OF = re.compile(r"\b(?:full of|filled with|holds?|holding|contains?)\b", re.I)
+THERMO_MATERIALS = {"water", "ice", "aluminium", "copper", "iron", "steel", "glass", "lead", "gold", "silver", "concrete", "brass", "granite"}
 
 
 def _named(table, t):
@@ -375,8 +378,9 @@ def depth_attached(text, qtext):
     return re.search(r"%s\s+(?:deep|down|below|under|beneath)\b|depth of\s+%s" % (re.escape(qtext), re.escape(qtext)), text, re.I) is not None
 
 
-def read_ctx(text):
-    """network_v3.read_flags_v3: the facts its operations' render functions read"""
+def read_ctx(text, flags=None):
+    """network_v3.read_flags_v3 over network_v2.read_givens's flags: the facts the operations' render functions read"""
+    flags = flags or {}
     f = {}
     f["substance"] = _named(SUBSTANCES, text)
     fm = FLUID_IN.search(text)
@@ -390,6 +394,14 @@ def read_ctx(text):
     f["spring"] = bool(re.search(r"\bsprings?\b", text, re.I))
     f["asks_co2"] = bool(re.search(r"\bco2\b|carbon dioxide|\bemi(?:t|ts|tted|ssions?)\b", text, re.I))
     f["full_of"] = bool(FULL_OF.search(text))
+    # network_v2's sensible_heat phrasing names flags["material"] ("kg of X" in read_givens); network_v3 fills it from
+    # the substance when the text heats, warms or raises it; melt_ice reads flags["melt"], fuel_co2 flags["gasoline"]
+    mat = flags.get("material", "")
+    if not mat and f["substance"] in THERMO_MATERIALS and re.search(r"\b(?:heat|warm|raise)\w*\b", text, re.I):
+        mat = f["substance"]
+    f["heat_mat"] = mat
+    f["melt"] = bool(flags.get("melt"))
+    f["gasoline"] = bool(flags.get("gasoline"))
     return f
 
 
@@ -417,8 +429,8 @@ def typed(text, givens, goal, ctx, mode):
         g = {"kind": "bool"}
     else:
         g = {"kind": "count", "unit": goal[1]}
-    c = {k: (ctx[k] or None) for k in ("object", "substance", "fluid", "fuel")}
-    c.update({k: ctx[k] for k in ("burn", "asks_co2", "spring", "full_of")})
+    c = {k: (ctx[k] or None) for k in ("object", "substance", "fluid", "fuel", "heat_mat")}
+    c.update({k: ctx[k] for k in ("burn", "asks_co2", "spring", "full_of", "melt", "gasoline")})
     return {"mode": mode, "goal": g, "givens": gs, "ctx": c}
 
 
@@ -448,14 +460,62 @@ def nodes_of(plan, goal):
 
 
 class Fusion:
+    """the planner binary as a child process; a call that takes more than TIMEOUT seconds, or a child above
+    MEMORY_CAP_KIB resident, kills that child (by its own Popen handle) and the call reports an error"""
+    TIMEOUT = 20.0
+    MEMORY_CAP_KIB = 1048576
+
     def __init__(self, binary=BINARY, mode="pairwise"):
-        self.mode = mode
-        self.proc = subprocess.Popen([str(binary)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
+        self.mode, self.binary = mode, binary
+        self._start()
+
+    def _start(self):
+        self.proc = subprocess.Popen([str(self.binary)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
+        self.q = queue.Queue()
+        p, q = self.proc, self.q
+
+        def pump():
+            for line in p.stdout:
+                q.put(line)
+            q.put(None)
+        threading.Thread(target=pump, daemon=True).start()
+
+    def _rss_kib(self):
+        try:
+            out = subprocess.run(["ps", "-o", "rss=", "-p", str(self.proc.pid)], capture_output=True, text=True, timeout=5).stdout.strip()
+            return int(out) if out else 0
+        except (OSError, ValueError, subprocess.SubprocessError):
+            return 0
+
+    def _kill(self, why):
+        self.proc.kill()
+        self.proc.wait()
+        self._start()
+        return {"outcome": "error", "error": why}
 
     def ask(self, req):
+        if self.proc.poll() is not None:
+            self._start()
         self.proc.stdin.write(json.dumps(req) + "\n")
         self.proc.stdin.flush()
-        return json.loads(self.proc.stdout.readline())
+        deadline = time.monotonic() + self.TIMEOUT
+        while True:
+            try:
+                line = self.q.get(timeout=max(0.01, min(1.0, deadline - time.monotonic())))
+            except queue.Empty:
+                if time.monotonic() >= deadline:
+                    return self._kill("timeout after %ss" % self.TIMEOUT)
+                if self._rss_kib() > self.MEMORY_CAP_KIB:
+                    return self._kill("planner above %d KiB resident" % self.MEMORY_CAP_KIB)
+                continue
+            if line is None:
+                self._start()
+                return {"outcome": "error", "error": "planner exited"}
+            return json.loads(line)
+
+    def close(self):
+        self.proc.stdin.close()
+        self.proc.wait()
 
     def reply(self, q):
         text = normalise(q)
@@ -467,13 +527,13 @@ class Fusion:
             return dict(base, status="withheld", response="", path="veri7vn:fusion>declined:no_goal", kind="no_goal")
         if not givens:
             return dict(base, status="withheld", response="", path="veri7vn:fusion>declined:no_givens", kind="no_givens")
-        ctx = read_ctx(text)
+        ctx = read_ctx(text, flags)
         req = typed(text, givens, goal, ctx, self.mode)
         req["id"] = 0
         t0 = time.perf_counter()
         out = self.ask(req)
         base["provenance"].update(binary_ms=round(1000 * (time.perf_counter() - t0), 3), decision=out, ctx=ctx,
-                                  kernel="Fusion.qdecide", session="Veri7vn_Fusion", agree=self.mode)
+                                  kernel="Fusion.fdecide", session="Veri7vn_Fusion", agree=self.mode)
         oc = out.get("outcome")
         if oc == "invalid":
             qq = givens[int(out["given"])]

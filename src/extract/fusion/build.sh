@@ -6,7 +6,7 @@
 # Isabelle sessions. It
 #   1. reads the generated SML out of the session database (isabelle export -n,
 #      no build) while holding the shared native build lock,
-#   2. compiles the generated planner (with lane G's kernel) + the untrusted JSON driver with the MLton
+#   2. compiles the generated planner (with lane G's, S06's, S05's and S02's kernels) + the untrusted JSON driver with the MLton
 #      that ships inside Isabelle,
 #   3. writes var/fusion/bin/fusion and prints its size.
 set -eu
@@ -25,7 +25,8 @@ repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT
 with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
     fcntl.flock(lock, fcntl.LOCK_EX)
     env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
-    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/quantity", "-d", "src/extract/fusion",
+    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/quantity", "-d", "src/extract/energy", "-d", "src/extract/climate",
+                    "-d", "src/extract/space", "-d", "src/extract/fusion",
                     "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Fusion"],
                    check=True, env=env, cwd=repo)
 EOF
