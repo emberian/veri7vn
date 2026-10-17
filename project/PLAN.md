@@ -45,7 +45,7 @@ on a sample of specialists; until it does, it is not a scoreboard.
 | F. Verified relation reader | `src/isabelle/reader/`: Oracle7's exact relation router (admitted patterns, up to three linked candidates, unique agreement or refusal) as a HOL decision over fetched candidate rows, with coverage of the fetch as an explicit premise; thin untrusted fetch over `upstream/root/relstore/relations_v1.sqlite3` | lane |
 | E. Plain documents | README and this plan written for a reader who is not a software engineer | root |
 
-Lanes own their paths. A lane that needs something from a frozen area asks root.
+Lanes own their paths. A lane that needs another lane's path asks root.
 
 ## Removed
 

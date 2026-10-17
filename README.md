@@ -75,7 +75,7 @@ Isabelle process runs at answer time.
 
 | Path | What |
 |---|---|
-| `project/PLAN.md` | the plan, the lanes, what is frozen |
+| `project/PLAN.md` | the plan, the lanes, what was removed |
 | `docs/contracts/answerer.md` | the one protocol every answerer speaks |
 | `tools/parity/`, `docs/parity/` | the harness and the board |
 | `audit/folds/` | the catalogue of Oracle7's 346 routing folds |
