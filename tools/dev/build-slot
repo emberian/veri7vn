@@ -1,0 +1,27 @@
+#!/bin/sh
+# Run one command while holding one of the shared Isabelle build slots
+# (var/native-scaffold/build.lock, build.lock.1, build.lock.2 of the MAIN checkout),
+# so scouts building in their own worktrees respect the same memory budget as
+# check-native. Usage: build-slot <command...>
+set -eu
+MAIN=/Users/ember/dev/o7vn/var/native-scaffold
+mkdir -p "$MAIN"
+exec python3 - "$@" <<'PY'
+import fcntl, os, subprocess, sys, time
+main = "/Users/ember/dev/o7vn/var/native-scaffold"
+slots = max(1, int(os.environ.get("VERI7VN_BUILD_SLOTS", "3")))
+paths = [f"{main}/build.lock"] + [f"{main}/build.lock.{i}" for i in range(1, slots)]
+handles = [open(p, "a") for p in paths]
+held = None
+for h in handles:
+    try:
+        fcntl.flock(h, fcntl.LOCK_EX | fcntl.LOCK_NB); held = h; break
+    except BlockingIOError:
+        pass
+if held is None:
+    print(f"build-slot: all {slots} slots held; waiting", flush=True)
+    t = time.monotonic(); held = handles[os.getpid() % slots]; fcntl.flock(held, fcntl.LOCK_EX)
+    print(f"build-slot: acquired after {time.monotonic()-t:.0f}s", flush=True)
+rc = subprocess.call(sys.argv[1:])
+sys.exit(rc)
+PY
