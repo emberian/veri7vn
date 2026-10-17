@@ -55,7 +55,12 @@ own panel.
   D's rounding lemma pattern; no other transcendental. Cap any single lemma at
   TWO build attempts, then weaken or defer it with a named `remaining` entry;
   lane D lost hours on one lemma.
-- Session `Veri7vn_<Session>` under `src/extract/<slug>/ROOT`; build ONLY
+- PREFER REMOTE BUILDS: `tools/dev/remote-build hbox src/extract/<slug> Veri7vn_<Session> --expect 'VERI7VN_<SESSION> PASS'`
+  (or `persvati`) builds on a 24-core Linux box in about a minute and returns the
+  generated SML to `var/<slug>/export-remote/<Session>/`; point your build.sh at
+  that file for the MLton step. Alternate hosts between builds. Fall back to the
+  local path below only if both hosts are unreachable.
+- Session `Veri7vn_<Session>` under `src/extract/<slug>/ROOT`; local build ONLY
   through `python3 tools/dev/check-native --session Veri7vn_<Session>
   --session-root src/extract/<slug> --expect 'VERI7VN_<SESSION> PASS'
   --timeout 600` from the repo root, copying lane G's cached base-session trick

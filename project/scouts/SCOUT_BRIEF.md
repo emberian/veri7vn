@@ -22,8 +22,12 @@ A prototype that scores one real panel number teaches more than any plan.
   write there; set `PYTHONDONTWRITEBYTECODE=1` before importing anything from
   it). Specialists: `upstream/root/specialists/<id>/`. Relation store:
   `upstream/root/relstore/relations_v1.sqlite3` (open read-only).
-- Isabelle builds: run them through the shared slot wrapper so twenty scouts and
-  lanes share three build slots:
+- Isabelle builds: prefer the remote path, which builds on a 24-core Linux box in
+  about a minute and brings the generated SML back:
+  `/Users/ember/dev/o7vn/tools/dev/remote-build hbox src/extract/<slug> <Session> --expect '<MARKER>'`
+  (alternate `hbox` and `persvati`; run it from your worktree root; exports land in
+  `var/<slug>/export-remote/<Session>/`). Only if both hosts are unreachable, build
+  locally through the shared slot wrapper so scouts and lanes share three slots:
   `USER_HOME=/Users/ember/dev/o7vn/var/native-scaffold/user-state /Users/ember/dev/o7vn/tools/dev/build-slot /Applications/Isabelle2026-RC1.app/bin/isabelle build -d <your session dir> -j 1 -o threads=2 <Session>`.
   Import `HOL-Library.Code_Target_Numeral` in every exported theory (without it
   numerals are unary and builds and binaries balloon past 30 GB). Any build or

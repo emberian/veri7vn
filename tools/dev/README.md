@@ -72,3 +72,13 @@ This drafts inputs from saved transitive shasums and proper-session `isabelle_so
 ## Saved-image diagnosis
 
 `--saved-image-diagnostic FILE --diagnostic-theory SESSION.THEORY`, with one `--session` and its ROOTs, invokes official `ML_process`/`ML_Context.eval_file` in an existing successful heap. It checks image stability and records heap/database hashes, UUID and loaded-source inventory. Only diagnostic file/navigation are current inputs. This historical mode neither rebuilds nor qualifies current theories/assertions. It uses the shared lock, two threads and descendant cleanup. Diagnostic ML is trusted, not sandboxed.
+
+## Remote builds (hbox, persvati)
+
+Isabelle2026-RC1 for Linux lives on both hosts at `~/tools/isabelle-rc1/Isabelle2026-RC1` with warmed HOL, HOL-Library, HOL-Computational_Algebra and HOL-Decision_Procs heaps (`~/tools/isabelle-rc1/setup.sh`; user state in `~/tools/isabelle-rc1/user-state`). From the root of any checkout or worktree:
+
+```sh
+tools/dev/remote-build hbox src/extract/<slug> Veri7vn_<Session> --expect 'VERI7VN_<SESSION> PASS' [-d <extra session dir>]
+```
+
+rsyncs `src/` and `tests/` to `<host>:~/veri7vn-builds/<checkout name>/`, builds there under `swarm-build` with one job and two threads, reads the stored session log (`isabelle build_log -v`) for the marker, and brings the code exports back to `var/<slug>/export-remote/<Session>/`. The generated SML is byte-identical to a local export (checked on the quantity family), so the MLton step stays local. Remote builds do not take a local build slot.
