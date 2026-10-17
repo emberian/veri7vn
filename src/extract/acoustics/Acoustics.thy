@@ -295,8 +295,20 @@ definition Q :: "rat \<Rightarrow> floatarith" where
 
 definition Dv :: "floatarith \<Rightarrow> floatarith \<Rightarrow> floatarith" where "Dv a b = floatarith.Mult a (floatarith.Inverse b)"
 definition Sb :: "floatarith \<Rightarrow> floatarith \<Rightarrow> floatarith" where "Sb a b = floatarith.Add a (floatarith.Minus b)"
+text \<open>Base-10 logarithm. The library's bounds for @{text ln} converge slowly when
+the binary mantissa of the argument is near 2 (about four digits at any
+precision), so the argument is first brought near 1 by eight square roots:
+@{text "ln y = 256 ln (sqrt\<^sup>8 y)"} for @{text "y \<ge> 0"}.\<close>
+definition sq8 :: "floatarith \<Rightarrow> floatarith" where
+  "sq8 a = floatarith.Sqrt (floatarith.Sqrt (floatarith.Sqrt (floatarith.Sqrt
+     (floatarith.Sqrt (floatarith.Sqrt (floatarith.Sqrt (floatarith.Sqrt a)))))))"
+
+definition r8 :: "real \<Rightarrow> real" where
+  "r8 y = sqrt (sqrt (sqrt (sqrt (sqrt (sqrt (sqrt (sqrt y)))))))"
+
 definition Lg :: "floatarith \<Rightarrow> floatarith" where
-  "Lg a = floatarith.Mult (floatarith.Ln a) (floatarith.Inverse (floatarith.Ln (I 10)))"
+  "Lg a = floatarith.Mult (floatarith.Mult (I 256) (floatarith.Ln (sq8 a)))
+     (floatarith.Inverse (floatarith.Ln (I 10)))"
 definition P10 :: "floatarith \<Rightarrow> floatarith" where "P10 a = floatarith.Powr (I 10) a"
 
 lemma interp_I [simp]: "interpret_floatarith (I i) xs = of_int i"
@@ -314,8 +326,39 @@ lemma interp_Dv [simp]: "interpret_floatarith (Dv a b) xs = interpret_floatarith
   by (simp add: Dv_def divide_inverse)
 lemma interp_Sb [simp]: "interpret_floatarith (Sb a b) xs = interpret_floatarith a xs - interpret_floatarith b xs"
   by (simp add: Sb_def)
-lemma interp_Lg [simp]: "interpret_floatarith (Lg a) xs = log 10 (interpret_floatarith a xs)"
-  by (simp add: Lg_def log_def divide_inverse)
+lemma interp_sq8: "interpret_floatarith (sq8 a) xs = r8 (interpret_floatarith a xs)"
+  by (simp add: sq8_def r8_def)
+
+lemma ln_sqrt_half: "0 \<le> z \<Longrightarrow> ln (sqrt z) = ln z / 2"
+  by (rule ln_sqrt)
+
+lemma ln_r8: "0 \<le> y \<Longrightarrow> ln (r8 y) = ln y / 256"
+proof -
+  assume y: "0 \<le> y"
+  let ?s = sqrt
+  have n1: "0 \<le> ?s y" and n2: "0 \<le> ?s (?s y)" and n3: "0 \<le> ?s (?s (?s y))"
+    and n4: "0 \<le> ?s (?s (?s (?s y)))" and n5: "0 \<le> ?s (?s (?s (?s (?s y))))"
+    and n6: "0 \<le> ?s (?s (?s (?s (?s (?s y)))))" and n7: "0 \<le> ?s (?s (?s (?s (?s (?s (?s y))))))"
+    using y by (simp_all only: real_sqrt_ge_zero)
+  show ?thesis unfolding r8_def
+    by (simp only: ln_sqrt_half[OF n7] ln_sqrt_half[OF n6] ln_sqrt_half[OF n5] ln_sqrt_half[OF n4]
+        ln_sqrt_half[OF n3] ln_sqrt_half[OF n2] ln_sqrt_half[OF n1] ln_sqrt_half[OF y])
+qed
+
+lemma interp_Lg [simp]:
+  "0 \<le> interpret_floatarith a xs \<Longrightarrow> interpret_floatarith (Lg a) xs = log 10 (interpret_floatarith a xs)"
+proof -
+  assume y: "0 \<le> interpret_floatarith a xs"
+  have "interpret_floatarith (Lg a) xs = of_int 256 * ln (r8 (interpret_floatarith a xs)) * inverse (ln (of_int 10))"
+    by (simp only: Lg_def interpret_floatarith.simps interp_sq8 interp_I)
+  also have "\<dots> = of_int 256 * (ln (interpret_floatarith a xs) / 256) * inverse (ln (of_int 10))"
+    by (simp only: ln_r8[OF y])
+  also have "\<dots> = ln (interpret_floatarith a xs) * inverse (ln 10)"
+    by simp
+  also have "\<dots> = log 10 (interpret_floatarith a xs)"
+    by (simp only: log_def divide_inverse)
+  finally show ?thesis .
+qed
 lemma interp_P10 [simp]: "interpret_floatarith (P10 a) xs = 10 powr interpret_floatarith a xs"
   by (simp add: P10_def)
 
@@ -353,8 +396,14 @@ fun expr_of :: "request \<Rightarrow> floatarith" where
 | "expr_of SpeedWater = I 1481"
 | "expr_of _ = I 0"
 
-theorem expr_of_meaning: "interpret_floatarith (expr_of r) [] = phys r"
-  by (induction r rule: expr_of.induct) simp_all
+lemma intensity_sum_nonneg: "0 \<le> (\<Sum>l\<leftarrow>ls. 10 powr (rl l / 10) :: real)"
+  by (induction ls) (auto intro: add_nonneg_nonneg)
+
+theorem expr_of_meaning:
+  assumes "missing r = None" "\<not> impossible r"
+  shows "interpret_floatarith (expr_of r) [] = phys r"
+  using assms
+  by (induction r rule: expr_of.induct) (simp_all add: intensity_sum_nonneg zero_le_divide_iff)
 
 
 section \<open>Decimal rounding with a proved error bound\<close>
@@ -457,14 +506,24 @@ section \<open>The kernel\<close>
 
 definition prec :: nat where "prec = 64"
 
-definition enclose :: "floatarith \<Rightarrow> (int \<times> int) option" where
-  "enclose e = (case approx prec e [] of None \<Rightarrow> None | Some X \<Rightarrow> to_dec X)"
+text \<open>Precision in bits per kind: the decibel kinds use logarithms and powers,
+which are costly at 64 bits; 40 bits leaves ample margin for the width test.\<close>
+fun prec_of :: "request \<Rightarrow> nat" where
+  "prec_of (DbSum _) = 40"
+| "prec_of (DbTwoEqual _) = 40"
+| "prec_of (DbDistance _ _ _) = 40"
+| "prec_of (DbRatio _) = 40"
+| "prec_of (IntensityRatio _ _) = 40"
+| "prec_of _ = prec"
+
+definition enclose :: "nat \<Rightarrow> floatarith \<Rightarrow> (int \<times> int) option" where
+  "enclose p e = (case approx p e [] of None \<Rightarrow> None | Some X \<Rightarrow> to_dec X)"
 
 lemma enclose_sound:
-  assumes "enclose e = Some d"
+  assumes "enclose p e = Some d"
   shows "\<bar>dec_val d - interpret_floatarith e []\<bar> \<le> \<bar>interpret_floatarith e []\<bar> / 1000 + 1 / 1000000000"
 proof -
-  obtain X where X: "approx prec e [] = Some X" and d: "to_dec X = Some d"
+  obtain X where X: "approx p e [] = Some X" and d: "to_dec X = Some d"
     using assms by (auto simp: enclose_def split: option.splits)
   have "bounded_by [] []" by (simp add: bounded_by_def)
   from approx[OF this X] have "interpret_floatarith e [] \<in>\<^sub>r X" .
@@ -474,7 +533,7 @@ qed
 definition kernel :: "request \<Rightarrow> outcome" where
   "kernel r = (case decline_of r of
      Some w \<Rightarrow> Decline w
-   | None \<Rightarrow> (case enclose (expr_of r) of
+   | None \<Rightarrow> (case enclose (prec_of r) (expr_of r) of
        None \<Rightarrow> Decline Imprecise
      | Some d \<Rightarrow> Value (kind_of r) d))"
 
@@ -486,13 +545,13 @@ theorem kernel_value_sound:
   shows "missing r = None \<and> \<not> impossible r \<and> k = kind_of r \<and>
          \<bar>dec_val d - phys r\<bar> \<le> \<bar>phys r\<bar> / 1000 + 1 / 1000000000"
 proof -
-  have nd: "decline_of r = None" and en: "enclose (expr_of r) = Some d" and k: "k = kind_of r"
+  have nd: "decline_of r = None" and en: "enclose (prec_of r) (expr_of r) = Some d" and k: "k = kind_of r"
     using assms by (auto simp: kernel_def split: option.splits)
   have mi: "missing r = None" and ro: "reason_of r = None"
     using nd by (auto simp: decline_of_def split: option.splits)
   have "\<not> impossible r" using reason_of_exact[OF mi] ro by simp
   moreover have "\<bar>dec_val d - phys r\<bar> \<le> \<bar>phys r\<bar> / 1000 + 1 / 1000000000"
-    using enclose_sound[OF en] by (simp add: expr_of_meaning)
+    using enclose_sound[OF en] by (simp add: expr_of_meaning[OF mi \<open>\<not> impossible r\<close>])
   ultimately show ?thesis using mi k by simp
 qed
 
@@ -556,9 +615,6 @@ theorem doppler_supersonic_source_declined:
   assumes "d \<noteq> Unclear" "speed s \<le> rl u"
   shows "\<exists>why. kernel (Doppler (Some f) (Some u) Source d s) = Decline (Impossible why)"
   using assms by (simp add: kernel_impossible)
-
-lemma intensity_sum_nonneg: "0 \<le> (\<Sum>l\<leftarrow>ls. 10 powr (rl l / 10) :: real)"
-  by (induction ls) (auto intro: add_nonneg_nonneg)
 
 theorem db_sum_intensities:
   assumes "ls \<noteq> []"
@@ -725,7 +781,7 @@ definition show_nat :: "nat \<Rightarrow> String.literal" where
 definition apos :: String.literal where "apos = String.implode [CHR 0x27]"
 
 definition speed_text :: "medium \<Rightarrow> String.literal" where
-  "speed_text s = (case enclose (speed_fa s) of Some d \<Rightarrow> render_dec d | None \<Rightarrow> STR ''?'')"
+  "speed_text s = (case enclose prec (speed_fa s) of Some d \<Rightarrow> render_dec d | None \<Rightarrow> STR ''?'')"
 
 fun medium_note :: "medium \<Rightarrow> String.literal" where
   "medium_note (Stated v) = STR ''v = '' + show_rat v + STR '' m/s''"
