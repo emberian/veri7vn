@@ -1,0 +1,22 @@
+(* Lane S06-energy: the Oracle7 energy family (thermo, energy-v2, energy-v3,
+   hvac, renewables, iot) as one HOL kernel family, exported to SML. The base
+   session only loads Isabelle's verified interval arithmetic
+   (HOL-Decision_Procs.Approximation, no HOL-Analysis); copied from lane G. *)
+session Veri7vn_Energy_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Energy_Base
+
+session Veri7vn_Energy = Veri7vn_Energy_Base +
+  options [document = false, threads = 2]
+  theories
+    Energy_Core
+    Thermo
+    Home
+    Hvac
+    Renewables
+    Iot
+    Energy_Family
+    Energy_Export
