@@ -1,0 +1,9 @@
+(* Lane H: Oracle7's network_v3 specialist fusion as a HOL decision over a
+   pool of typed quantities, with lane G's quantity kernel as the nodes.
+   Imports lane G's session (Veri7vn_Quantity, cached) so the fusion
+   theorems quantify over the real kernels. *)
+session Veri7vn_Fusion = Veri7vn_Quantity +
+  options [document = false, threads = 2]
+  theories
+    Fusion
+    Fusion_Export
