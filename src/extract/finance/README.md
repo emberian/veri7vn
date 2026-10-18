@@ -48,3 +48,5 @@ monthly recurrence agrees with the executable closed form; zero months returns
 the opening balance and zero earned interest. Tax, fees, withdrawals, effective
 annual yield, and mixed schedules remain unsupported. Explicit loan targets
 select monthly payment or total interest; breakdowns/multiple targets refuse.
+
+Inventory periods retain hour/day/week/365-day-year tags until the checked kernel converts them. Days of inventory uses the observed cost period, and reorder points align demand and lead-time units. Calendar months and business-day schedules are not assigned a guessed duration.

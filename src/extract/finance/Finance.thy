@@ -130,6 +130,17 @@ datatype retail_target = RT_Final | RT_Tax | RT_Saving
 
 datatype deposit_timing = At_Start | At_End
 datatype cashflow_target = CF_Balance | CF_Interest
+datatype inventory_time = IT_Hour | IT_Day | IT_Week | IT_Year365
+
+fun inventory_days :: "inventory_time \<Rightarrow> rat" where
+  "inventory_days IT_Hour = 1/24"
+| "inventory_days IT_Day = 1"
+| "inventory_days IT_Week = 7"
+| "inventory_days IT_Year365 = 365"
+
+lemma inventory_days_positive: "0 < inventory_days u"
+  by (cases u) simp_all
+
 datatype request =
     F_Apy "rat option" "freq option"
   | F_Doubling "rat option"
@@ -165,6 +176,10 @@ datatype request =
   | R_ROP "rat option" "rat option" rat
   | R_Turnover "rat option" "rat option"
   | R_Days "rat option" "rat option"
+  | R_TurnoverPeriod rat rat rat inventory_time rat inventory_time
+  | R_DaysPeriod rat rat rat inventory_time
+  | R_ROPPeriod rat rat inventory_time rat inventory_time rat
+  | R_InventoryModel bool
   | R_Markup rat rat
   | R_Margin rat rat
   | R_PriceMarkup rat rat
@@ -190,7 +205,7 @@ datatype need = N_cashflow | N_apr_freq | N_pos_rate | N_loan | N_goal | N_simpl
 datatype reason = R_term | R_degenerate | R_mpc | R_unemp | R_partic | R_positive
   | R_price_cost | R_margin | R_phase | R_discount
 
-datatype decline = Underspecified need | Impossible reason | Advice | MultiPhase | RetailModel | UnknownTarget | Imprecise
+datatype decline = Underspecified need | Impossible reason | Advice | MultiPhase | RetailModel | InventoryModel | UnknownTarget | Imprecise
 
 datatype kind = K_cashflow_balance | K_cashflow_interest | K_compound_interest | K_simple_total | K_apy | K_doubling | K_loan_interest | K_loan_payment | K_savings_goal
   | K_simple_interest | K_compound | K_advice | K_multi_phase
@@ -224,6 +239,10 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (E_Deflator _ _) = K_deflator" | "kind_of (E_Rule70 _) = K_rule70"
 | "kind_of (R_BreakEven _ _ _) = K_break_even" | "kind_of (R_EOQ _ _ _) = K_eoq"
 | "kind_of (R_ROP _ _ _) = K_rop" | "kind_of (R_Turnover _ _) = K_turnover"
+| "kind_of (R_TurnoverPeriod _ _ _ _ _ _) = K_turnover"
+| "kind_of (R_DaysPeriod _ _ _ _) = K_days_inventory"
+| "kind_of (R_ROPPeriod _ _ _ _ _ _) = K_rop"
+| "kind_of (R_InventoryModel rop) = (if rop then K_rop else K_days_inventory)"
 | "kind_of (R_Days _ _) = K_days_inventory" | "kind_of (R_Markup _ _) = K_markup"
 | "kind_of (R_Margin _ _) = K_margin" | "kind_of (R_PriceMarkup _ _) = K_price_from_markup"
 | "kind_of (R_PriceMargin _ _) = K_price_from_margin" | "kind_of (R_Discount _ _) = K_discount"
@@ -331,6 +350,9 @@ fun impossible :: "request \<Rightarrow> bool" where
 | "impossible (E_Rule70 (Some g)) \<longleftrightarrow> g \<le> 0"
 | "impossible (R_EOQ (Some d) (Some s) (Some h)) \<longleftrightarrow> d < 0 \<or> s < 0 \<or> h \<le> 0"
 | "impossible (R_Turnover (Some c) (Some a)) \<longleftrightarrow> c < 0 \<or> a \<le> 0"
+| "impossible (R_TurnoverPeriod c a n u m v) \<longleftrightarrow> c < 0 \<or> a \<le> 0 \<or> n \<le> 0 \<or> m \<le> 0"
+| "impossible (R_DaysPeriod c a n u) \<longleftrightarrow> c \<le> 0 \<or> a < 0 \<or> n \<le> 0"
+| "impossible (R_ROPPeriod d n u l v st) \<longleftrightarrow> d < 0 \<or> n \<le> 0 \<or> l < 0 \<or> st < 0"
 | "impossible (R_Days (Some c) (Some a)) \<longleftrightarrow> c \<le> 0 \<or> a < 0"
 | "impossible (R_Markup c p) \<longleftrightarrow> p < 0 \<or> c \<le> 0"
 | "impossible (R_Margin c p) \<longleftrightarrow> p \<le> 0 \<or> c < 0"
@@ -374,6 +396,9 @@ fun reason_of :: "request \<Rightarrow> reason option" where
 | "reason_of (E_Rule70 (Some g)) = (if g \<le> 0 then Some R_positive else None)"
 | "reason_of (R_EOQ (Some d) (Some s) (Some h)) = (if d < 0 \<or> s < 0 \<or> h \<le> 0 then Some R_positive else None)"
 | "reason_of (R_Turnover (Some c) (Some a)) = (if c < 0 \<or> a \<le> 0 then Some R_positive else None)"
+| "reason_of (R_TurnoverPeriod c a n u m v) = (if c < 0 \<or> a \<le> 0 \<or> n \<le> 0 \<or> m \<le> 0 then Some R_positive else None)"
+| "reason_of (R_DaysPeriod c a n u) = (if c \<le> 0 \<or> a < 0 \<or> n \<le> 0 then Some R_positive else None)"
+| "reason_of (R_ROPPeriod d n u l v st) = (if d < 0 \<or> n \<le> 0 \<or> l < 0 \<or> st < 0 then Some R_positive else None)"
 | "reason_of (R_Days (Some c) (Some a)) = (if c \<le> 0 \<or> a < 0 then Some R_positive else None)"
 | "reason_of (R_Markup c p) = (if p < 0 \<or> c \<le> 0 then Some R_price_cost else None)"
 | "reason_of (R_Margin c p) = (if p \<le> 0 \<or> c < 0 then Some R_price_cost else None)"
@@ -395,10 +420,10 @@ definition decline_of :: "request \<Rightarrow> decline option" where
      Some w \<Rightarrow> Some (Underspecified w)
    | None \<Rightarrow> (case reason_of r of
        Some why \<Rightarrow> Some (Impossible why)
-     | None \<Rightarrow> (case r of F_UnknownTarget \<Rightarrow> Some UnknownTarget | F_Advice \<Rightarrow> Some Advice | F_MultiPhase \<Rightarrow> Some MultiPhase | R_TaxModel \<Rightarrow> Some RetailModel | _ \<Rightarrow> None)))"
+     | None \<Rightarrow> (case r of F_UnknownTarget \<Rightarrow> Some UnknownTarget | F_Advice \<Rightarrow> Some Advice | F_MultiPhase \<Rightarrow> Some MultiPhase | R_TaxModel \<Rightarrow> Some RetailModel | R_InventoryModel _ \<Rightarrow> Some InventoryModel | _ \<Rightarrow> None)))"
 
 definition is_refusal :: "request \<Rightarrow> bool" where
-  "is_refusal r = (case r of F_UnknownTarget \<Rightarrow> True | F_Advice \<Rightarrow> True | F_MultiPhase \<Rightarrow> True | R_TaxModel \<Rightarrow> True | _ \<Rightarrow> False)"
+  "is_refusal r = (case r of F_UnknownTarget \<Rightarrow> True | F_Advice \<Rightarrow> True | F_MultiPhase \<Rightarrow> True | R_TaxModel \<Rightarrow> True | R_InventoryModel _ \<Rightarrow> True | _ \<Rightarrow> False)"
 
 section \<open>Values\<close>
 
@@ -473,6 +498,9 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (R_BreakEven (Some f) (Some p) (Some v)) = f / (p - v)"
 | "qval (R_ROP (Some d) (Some l) s) = d * l + s"
 | "qval (R_Turnover (Some c) (Some a)) = c / a"
+| "qval (R_TurnoverPeriod c a n u m v) = c * (m * inventory_days v) / (a * (n * inventory_days u))"
+| "qval (R_DaysPeriod c a n u) = a * (n * inventory_days u) / c"
+| "qval (R_ROPPeriod d n u l v st) = d * (l * inventory_days v) / (n * inventory_days u) + st"
 | "qval (R_Days (Some c) (Some a)) = 365 / (c / a)"
 | "qval (R_Markup c p) = 100 * (p - c) / c"
 | "qval (R_Margin c p) = 100 * (p - c) / p"
@@ -1121,6 +1149,78 @@ qed
 
 subsection \<open>Retail\<close>
 
+theorem turnover_period_balance:
+  assumes "kernel (R_TurnoverPeriod c a n u m w) = Exact k v"
+  shows "0 \<le> c \<and> 0 < a \<and> 0 < n \<and> 0 < m \<and>
+    v * a * (n * inventory_days u) = c * (m * inventory_days w)"
+  using kernel_exact_sound[OF assms] inventory_days_positive[of u]
+  by (auto simp: field_simps)
+
+theorem turnover_period_nonnegative:
+  assumes "kernel (R_TurnoverPeriod c a n u m w) = Exact k v"
+  shows "0 \<le> v"
+proof -
+  have h: "0 \<le> c" "0 < a" "0 < n" "0 < m"
+    "v = c * (m * inventory_days w) / (a * (n * inventory_days u))"
+    using kernel_exact_sound[OF assms] by auto
+  show ?thesis unfolding h(5)
+    using h(1-4) inventory_days_positive[of u] inventory_days_positive[of w]
+    by (intro divide_nonneg_nonneg mult_nonneg_nonneg) auto
+qed
+
+theorem turnover_observed_period:
+  assumes "0 < n"
+  shows "kernel (R_TurnoverPeriod c a n u n u) = kernel (R_Turnover (Some c) (Some a))"
+  using assms inventory_days_positive[of u]
+  by (simp add: kernel_def decline_of_def field_simps)
+
+
+theorem inventory_period_balance:
+  assumes "kernel (R_DaysPeriod c a n u) = Exact k days"
+  shows "0 < c \<and> 0 \<le> a \<and> 0 < n \<and>
+    days * c = a * (n * inventory_days u)"
+  using kernel_exact_sound[OF assms] by (auto simp: field_simps)
+
+theorem inventory_period_unit_equivalence:
+  assumes "n * inventory_days u = m * inventory_days v"
+  shows "kernel (R_DaysPeriod c a n u) = kernel (R_DaysPeriod c a m v)"
+proof -
+  have hu: "(n * inventory_days u \<le> 0) = (n \<le> 0)"
+    using mult_le_cancel_right_pos[OF inventory_days_positive[of u], of n 0] by simp
+  have hv: "(m * inventory_days v \<le> 0) = (m \<le> 0)"
+    using mult_le_cancel_right_pos[OF inventory_days_positive[of v], of m 0] by simp
+  have "(n \<le> 0) = (m \<le> 0)" using assms hu hv by metis
+  then show ?thesis using assms by (simp add: kernel_def decline_of_def)
+qed
+
+theorem reorder_period_balance:
+  assumes "kernel (R_ROPPeriod d n u l w st) = Exact k v"
+  shows "0 \<le> d \<and> 0 < n \<and> 0 \<le> l \<and> 0 \<le> st \<and>
+    (v - st) * (n * inventory_days u) = d * (l * inventory_days w)"
+  using kernel_exact_sound[OF assms] inventory_days_positive[of u]
+  by (auto simp: field_simps)
+
+theorem reorder_period_nonnegative:
+  assumes "kernel (R_ROPPeriod d n u l w st) = Exact k v"
+  shows "0 \<le> v"
+proof -
+  have h: "0 \<le> d" "0 < n" "0 \<le> l" "0 \<le> st"
+    "v = d * (l * inventory_days w) / (n * inventory_days u) + st"
+    using kernel_exact_sound[OF assms] by auto
+  show ?thesis unfolding h(5)
+    using h(1-4) inventory_days_positive[of u] inventory_days_positive[of w]
+    by (intro add_nonneg_nonneg divide_nonneg_nonneg mult_nonneg_nonneg) auto
+qed
+
+theorem inventory_annual_compatibility:
+  "kernel (R_DaysPeriod c a 1 IT_Year365) = kernel (R_Days (Some c) (Some a))"
+  by (simp add: kernel_def decline_of_def field_simps)
+
+theorem reorder_daily_compatibility:
+  "kernel (R_ROPPeriod d 1 IT_Day l IT_Day st) = kernel (R_ROP (Some d) (Some l) st)"
+  by (simp add: kernel_def decline_of_def)
+
+
 theorem reorder_point_nonnegative:
   assumes "kernel (R_ROP (Some d) (Some l) st) = Exact k v"
   shows "0 \<le> v \<and> v - st = d * l"
@@ -1666,6 +1766,18 @@ definition exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal
      + STR '') per unit), i.e. '' + show_int (- \<lfloor>- q\<rfloor>) + STR '' whole units.'')
    | R_EOQ (Some d) (Some s) (Some h) \<Rightarrow> STR ''The EOQ is '' + V + STR '' units (sqrt(2 x ''
      + g4 d + STR '' x '' + money s + STR '' / '' + money h + STR '')).''
+   | R_TurnoverPeriod c a n u m w \<Rightarrow> STR ''The inventory turnover is '' + V
+       + STR '' times over '' + g4 (m * inventory_days w) + STR '' days (cost of goods sold ''
+       + money c + STR '' observed over '' + g4 (n * inventory_days u) + STR '' days, average inventory ''
+       + money a + STR '').''
+
+   | R_DaysPeriod c a n u \<Rightarrow> STR ''Days of inventory is '' + V + STR '' days (average inventory ''
+       + money a + STR '' divided by cost of goods sold '' + money c
+       + STR '', multiplied by the stated period of '' + g4 (n * inventory_days u) + STR '' days).''
+   | R_ROPPeriod d n u l w st \<Rightarrow> STR ''The reorder point is '' + V + STR '' units (demand of ''
+       + g4 d + STR '' units per '' + g4 (n * inventory_days u) + STR '' days, lead time ''
+       + g4 (l * inventory_days w) + STR '' days, plus safety stock '' + g4 st + STR '' units).''
+
    | R_ROP (Some d) (Some l) s \<Rightarrow> STR ''The reorder point is '' + V + STR '' units ('' + g4 d
      + STR '' a day x '' + g4 l + STR '' days lead time + '' + g4 s + STR '' safety stock).''
    | R_Days (Some c) (Some a) \<Rightarrow> STR ''Days of inventory is '' + V + STR '' days (365 / turnover ''
@@ -1765,7 +1877,7 @@ fun reason_text :: "reason \<Rightarrow> String.literal" where
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of Underspecified _ \<Rightarrow> STR ''underspecified'' | Impossible _ \<Rightarrow> STR ''impossible''
-     | Advice \<Rightarrow> STR ''advice'' | MultiPhase \<Rightarrow> STR ''multi_phase'' | UnknownTarget \<Rightarrow> STR ''unsupported_model'' | RetailModel \<Rightarrow> STR ''unsupported_model'' | Imprecise \<Rightarrow> STR ''imprecise'')"
+     | Advice \<Rightarrow> STR ''advice'' | MultiPhase \<Rightarrow> STR ''multi_phase'' | UnknownTarget \<Rightarrow> STR ''unsupported_model'' | RetailModel \<Rightarrow> STR ''unsupported_model'' | InventoryModel \<Rightarrow> STR ''unsupported_model'' | Imprecise \<Rightarrow> STR ''imprecise'')"
 
 definition decline_text :: "decline \<Rightarrow> String.literal" where
   "decline_text w = (case w of
@@ -1776,6 +1888,7 @@ definition decline_text :: "decline \<Rightarrow> String.literal" where
    | MultiPhase \<Rightarrow> STR ''That account changes rate or term partway through; I compute one rate over one term at a time, so I won''
        + apos + STR ''t give a single figure for the whole thing. Ask about each phase separately (the first phase ends with a balance that starts the second).''
    | UnknownTarget \<Rightarrow> STR ''I need one supported requested quantity: the final balance or the interest amount. A breakdown or multiple requested quantities needs a more specific model.''
+   | InventoryModel \<Rightarrow> STR ''I need one unambiguous inventory period or demand rate and lead time, with compatible explicit time units. Calendar months, changing demand and competing periods need a more specific model.''
    | RetailModel \<Rightarrow> STR ''I need an unambiguous tax base and a request for the final price, tax amount, or savings compared with full price including tax.''
    | Imprecise \<Rightarrow> STR ''The interval arithmetic could not pin the digits; I won'' + apos + STR ''t guess.'')"
 

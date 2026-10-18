@@ -13,6 +13,13 @@ definition answers :: "request \<Rightarrow> bool" where
 
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
+     kernel (R_TurnoverPeriod 700 100 1 IT_Week 1 IT_Year365) = Exact K_turnover 365 \<and>
+     kernel (R_TurnoverPeriod 3000 1000 30 IT_Day 30 IT_Day) = Exact K_turnover 3 \<and>
+     kernel (R_TurnoverPeriod 0 100 1 IT_Week 1 IT_Year365) = Exact K_turnover 0 \<and>
+     kernel (R_DaysPeriod 700 100 1 IT_Week) = Exact K_days_inventory 1 \<and>
+     kernel (R_ROPPeriod 70 1 IT_Week 5 IT_Day 20) = Exact K_rop 70 \<and>
+     kernel (R_ROPPeriod 10 1 IT_Day 2 IT_Week 20) = Exact K_rop 160 \<and>
+     kernel (R_DaysPeriod 700 100 0 IT_Week) = Decline (Impossible R_positive) \<and>
      kernel (F_Savings (Some 1200) (Some 1) None) = Exact K_savings_goal 100 \<and>
      kernel (F_CompoundInterest (Some 1000) (Some (5 / 100)) (Some 2) (Some Fq_annual)) = Cents K_compound_interest 10250 \<and>
      kernel (F_SimpleTotal (Some 1000) (Some (5 / 100)) (Some 2)) = Exact K_simple_total 1100 \<and>
@@ -60,6 +67,8 @@ definition rat_parts :: "rat \<Rightarrow> integer \<times> integer" where
 
 export_code rat_parts check_discount_tax discount_tax_value reply_of answered reply_kind response stated answers mk_rat
   F_Cashflow CF_Balance CF_Interest At_Start At_End
+  R_TurnoverPeriod
+  R_DaysPeriod R_ROPPeriod R_InventoryModel IT_Hour IT_Day IT_Week IT_Year365
   Fq_annual Fq_semi Fq_quarterly Fq_monthly Fq_weekly Fq_daily Fq_continuous
   F_Apy F_Doubling F_LoanPayment F_LoanInterest F_Savings F_Simple F_SimpleTotal F_Compound F_CompoundInterest F_Advice F_UnknownTarget F_MultiPhase
   E_Elasticity E_ElasticityPct E_Inflation E_RealValue E_RealRate E_Fisher E_Growth E_Multiplier
@@ -69,7 +78,7 @@ export_code rat_parts check_discount_tax discount_tax_value reply_of answered re
   in SML module_name Finance file_prefix finance
 
 ML \<open>
-  val theorems = [@{thm cashflow_recurrence}, @{thm cashflow_due_contribution}, @{thm cashflow_balance_binding}, @{thm cashflow_interest_binding}, @{thm reorder_point_nonnegative}, @{thm price_from_markup_nonnegative}, @{thm inventory_turnover_nonnegative}, @{thm kernel_exact_sound}, @{thm kernel_cents_sound}, @{thm kernel_approx_sound},
+  val theorems = [@{thm turnover_period_balance}, @{thm turnover_period_nonnegative}, @{thm turnover_observed_period}, @{thm inventory_period_balance}, @{thm inventory_period_unit_equivalence}, @{thm reorder_period_balance}, @{thm reorder_period_nonnegative}, @{thm inventory_annual_compatibility}, @{thm reorder_daily_compatibility}, @{thm cashflow_recurrence}, @{thm cashflow_due_contribution}, @{thm cashflow_balance_binding}, @{thm cashflow_interest_binding}, @{thm reorder_point_nonnegative}, @{thm price_from_markup_nonnegative}, @{thm inventory_turnover_nonnegative}, @{thm kernel_exact_sound}, @{thm kernel_cents_sound}, @{thm kernel_approx_sound},
     @{thm kernel_underspecified}, @{thm kernel_impossible}, @{thm kernel_imprecise},
     @{thm reason_of_exact}, @{thm never_even_iff},
     @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm to_dec_at_sound}, @{thm to_dec_g4_sound},

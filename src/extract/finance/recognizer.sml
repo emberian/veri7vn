@@ -670,6 +670,105 @@ struct
     end
 
   (* ====================== retail ====================== *)
+  (* Source periods remain typed until the kernel converts them. Every numeric
+     occurrence in these inventory requests must have exactly one role. *)
+  fun inventoryReq low number =
+    let
+      val N = QNUM
+      val U = "(hours?|hrs?|days?|weeks?|wks?|years?)\\b(?!\\s*(?:[/^*\194\183\195\151]|per\\b))"
+      val isRop = has "\\breorder point\\b|\\bwhen (?:should|do) (?:i|we) reorder\\b|\\brop\\b" low
+      val isDays = has "\\bdays of inventory\\b|\\bdays inventory\\b|\\binventory days\\b" low
+      val isTurnover = has "\\binventory turnover\\b|\\bturnover ratio\\b" low
+      fun unit u = if has "^(?:hour|hr)" u then F.IT_Hour
+        else if has "^day" u then F.IT_Day
+        else if has "^(?:week|wk)" u then F.IT_Week else F.IT_Year365
+      fun scan p = findall p low
+      fun key m i = valOf (grp low m i)
+      fun value m i = number (key m i)
+      fun valopt m i = Option.map number (grp low m i)
+      val allKeys = map (fn m => key m 1) (scan N)
+      fun coverage keys = length keys = length allKeys andalso
+        List.all (fn k => List.exists (fn x => k=x) keys) allKeys
+      fun optionKeys m i = case grp low m i of NONE => [] | SOME k => [k]
+      fun amount m = fmul (value m 1) (mult (grp low m 2))
+      val targetPhrase = if isRop then "\\b(?:reorder point|rop)\\b" else if isTurnover then "\\b(?:inventory turnover|turnover ratio)\\b" else "\\b(?:days of inventory|inventory days|days inventory)\\b"
+      val targetEnd = "(?=\\s*(?:[,.?!;:]|$|\\b(?:is|are|for|over|with|given|if|when|at|using|of)\\b))"
+      val targetKnown = length (scan targetPhrase) = length (scan (targetPhrase ^ targetEnd))
+      val badModel = not targetKnown orelse (length (List.filter (fn b => b) [isRop,isDays,isTurnover]) > 1) orelse has "\\b(?:months?|monthly|quarters?|quarterly|business days?|working days?|seasonal|changing|variable demand|varies|varying|360[- ]day)\\b" low
+      fun refuse () = SOME (F.R_InventoryModel isRop)
+    in
+      if not (isRop orelse isDays orelse isTurnover) then NONE
+      else if badModel then refuse ()
+      else if isRop then
+        let
+          val explicit = scan (N ^ "\\s*(?:units?|items?)\\s*(?:/|a\\b|per\\b|each\\b)\\s*(?:" ^ N ^ "\\s*)?" ^ U)
+          val daily = scan ("\\bdaily (?:demand|usage|sales)\\s*(?:of|is|=)?\\s*" ^ N)
+          val leads = scan ("\\blead time\\s*(?:of|is|=)?\\s*" ^ N ^ "\\s*" ^ U)
+          val leadsSuffix = scan (N ^ "[- ]" ^ U ^ "\\s+lead time\\b")
+          val stocks = scan ("\\bsafety stock\\s*(?:of|is|=)?\\s*" ^ N ^ "(?=\\s*(?:units?\\b|items?\\b|and\\b|[,.;?]|$))")
+          val stocksSuffix = scan (N ^ "\\s*(?:units?\\s*)?(?:of\\s*)?safety stock\\b")
+          val demands = distinct (map (fn m => (value m 1,
+            case valopt m 2 of SOME n => n | NONE => fint 1,
+            unit (key m 3), key m 1 :: optionKeys m 2)) explicit @
+            map (fn m => (value m 1, fint 1, F.IT_Day, [key m 1])) daily)
+          val ls = map (fn m => (value m 1,unit (key m 2),key m 1)) (leads @ leadsSuffix)
+          val stockMention = has "\\bsafety stock\\b" low
+          val zeroStock = has "\\b(?:no|without) safety stock\\b|\\bsafety stock\\s*(?:is|of|=)\\s*zero\\b" low
+          val ss = map (fn m => (value m 1,key m 1)) (stocks @ stocksSuffix)
+        in case (demands, ls, ss) of
+          ([(d,n,u,ks)], [(l,w,lk)], []) =>
+            if (not stockMention orelse zeroStock) andalso coverage (lk::ks) then SOME (F.R_ROPPeriod (rat d,rat n,u,rat l,w,rat (fint 0))) else refuse ()
+        | ([(d,n,u,ks)], [(l,w,lk)], [(st,sk)]) =>
+            if coverage (sk::lk::ks) then SOME (F.R_ROPPeriod (rat d,rat n,u,rat l,w,rat st)) else refuse ()
+        | _ => refuse ()
+        end
+      else
+        let
+          val costPat = "\\b(?:cogs|cost of goods sold)\\s*(?:of|is|was|=)?\\s*\\$\\s*" ^ N ^ "\\s*(k|m|million|thousand)?"
+          val cs = scan costPat
+          val avs = scan ("\\baverage inventory\\s*(?:of|is|was|=)?\\s*\\$\\s*" ^ N ^ "\\s*(k|m|million|thousand)?")
+          val periods = scan (costPat ^ "\\s*(?:over|for|during|in|per|a|each)\\s*(?:the\\s+)?(?:" ^ N ^ "\\s*)?" ^ U)
+          val annual = scan ("\\bannual\\s+" ^ costPat) @ scan (costPat ^ "\\s*annually\\b")
+          val weekly = scan ("\\bweekly\\s+" ^ costPat) @ scan (costPat ^ "\\s*weekly\\b")
+          val daily = scan ("\\bdaily\\s+" ^ costPat) @ scan (costPat ^ "\\s*daily\\b")
+          val hourly = scan ("\\bhourly\\s+" ^ costPat) @ scan (costPat ^ "\\s*hourly\\b")
+          val ps = map (fn m => (case valopt m 3 of SOME n => n | NONE => fint 1,
+              unit (key m 4),optionKeys m 3)) periods @
+            map (fn _ => (fint 1,F.IT_Year365,[])) annual @
+            map (fn _ => (fint 1,F.IT_Week,[])) weekly @
+            map (fn _ => (fint 1,F.IT_Day,[])) daily @
+            map (fn _ => (fint 1,F.IT_Hour,[])) hourly
+          val namedTargets =
+            (if has "\\b(?:annual|annualized|yearly)\\s+(?:inventory turnover|turnover ratio)\\b|\\bannualiz(?:e|ing)\\b" low then [(fint 1,F.IT_Year365,[])] else []) @
+            (if has "\\bweekly\\s+(?:inventory turnover|turnover ratio)\\b" low then [(fint 1,F.IT_Week,[])] else []) @
+            (if has "\\bdaily\\s+(?:inventory turnover|turnover ratio)\\b" low then [(fint 1,F.IT_Day,[])] else []) @
+            (if has "\\bhourly\\s+(?:inventory turnover|turnover ratio)\\b" low then [(fint 1,F.IT_Hour,[])] else [])
+          val explicitTargets = scan ("\\b(?:inventory turnover|turnover ratio)\\s*(?:for|over)\\s*(?:(?:that|the|a)\\s*)?" ^ N ^ "[- ]*" ^ U)
+          val targets = namedTargets @ map (fn m => (value m 1,unit (key m 2),[key m 1])) explicitTargets
+          val unknownPeriod = has "\\b(?:over|during|per|weekly|daily|hourly)\\b|\\b(?:hours?|weeks?|years?)\\b" low
+          fun finish c a (n,u,ks) =
+            if isTurnover then
+              (case targets of
+                 [] => if coverage (key c 1::key a 1::ks)
+                   then SOME (F.R_TurnoverPeriod (rat (amount c),rat (amount a),rat n,u,rat n,u)) else refuse ()
+               | [(m,w,ts)] => if coverage (key c 1::key a 1::(ks @ ts))
+                   then SOME (F.R_TurnoverPeriod (rat (amount c),rat (amount a),rat n,u,rat m,w)) else refuse ()
+               | _ => refuse ())
+            else if coverage (key c 1::key a 1::ks)
+              then SOME (F.R_DaysPeriod (rat (amount c),rat (amount a),rat n,u)) else refuse ()
+        in case (cs,avs,ps) of
+          ([c],[a],[period]) => finish c a period
+        | ([c],[a],[]) => if isTurnover then
+            (* An explicit target period is not a source observation period. *)
+            if coverage (key c 1::key a 1::List.concat (map #3 targets))
+              andalso not (has (costPat ^ "\\s*(?:over|for|during|in|per|a|each|weekly|daily|hourly|annually)\\b") low)
+            then finish c a (fint 1,F.IT_Year365,[]) else refuse ()
+          else if not unknownPeriod andalso coverage [key c 1,key a 1]
+            then SOME (F.R_Days (SOME (rat (amount c)),SOME (rat (amount a)))) else refuse ()
+        | _ => refuse ()
+        end
+    end
+
   fun retail text =
     let
       val t = collapse text
@@ -677,6 +776,10 @@ struct
     in
       case retailCore low of
         NONE => NONE
+      | SOME (req as F.R_InventoryModel _) => SOME req
+      | SOME (req as F.R_TurnoverPeriod _) => SOME req
+      | SOME (req as F.R_DaysPeriod _) => SOME req
+      | SOME (req as F.R_ROPPeriod _) => SOME req
       | SOME F.R_TaxModel => SOME F.R_TaxModel
       | SOME (req as F.R_DiscountTax _) => SOME req
       | SOME (req as F.R_TaxQuery _) => SOME req
@@ -731,8 +834,10 @@ struct
       fun firstOf pats = List.mapPartial (fn pt => search pt low) pats
       fun first1 pats = case firstOf pats of m :: _ => SOME m | [] => NONE
       fun money1 pat = Option.map (fn m => fr_of (g1 low m)) (search pat low)
+      val inventory = inventoryReq low fr_of
     in
-      if has "\\bbreak[- ]?even\\b" low then
+      if isSome inventory then inventory
+      else if has "\\bbreak[- ]?even\\b" low then
         let
           val fm = case search ("\\bfixed costs?\\s*(?:of|are|is|=)?\\s*\\$\\s*" ^ N) low of
                      SOME m => SOME (fr_of (g1 low m))

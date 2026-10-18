@@ -130,13 +130,16 @@
         ]
       },
       "context_regex_additions": [
-        "\\b(?:tax(?:ed|es)?|sales tax)\\b.*\\b(?:off|discount(?:ed|s|ing)?|reduced|reduction|marked down)\\b|\\b(?:off|discount(?:ed|s|ing)?|reduced|reduction|marked down)\\b.*\\b(?:tax(?:ed|es)?|sales tax)\\b"
+        "\\b(?:tax(?:ed|es)?|sales tax)\\b.*\\b(?:off|discount(?:ed|s|ing)?|reduced|reduction|marked down)\\b|\\b(?:off|discount(?:ed|s|ing)?|reduced|reduction|marked down)\\b.*\\b(?:tax(?:ed|es)?|sales tax)\\b",
+        "\\b(?:reorder point|rop|days of inventory|inventory days|days inventory)\\b"
       ],
       "evidence": {
-        "computation": "Apply discounts in sequence, tax the explicitly selected original or discounted price, and answer final price, tax amount, or savings against full price including tax.",
+        "computation": "Apply discounts in sequence, tax the explicitly selected original or discounted price, and answer final price, tax amount, or savings against full price including tax. Inventory duration and turnover retain distinct observed and requested time periods; reorder points convert demand and lead time to the same typed time unit in the kernel.",
         "assumptions": [
           "Each discount is from 0% to 100%; the price and tax rate are nonnegative.",
-          "Tax applies after discounts unless the original-price tax base is explicitly requested; savings compares the paid total with full price including tax."
+          "Tax applies after discounts unless the original-price tax base is explicitly requested; savings compares the paid total with full price including tax.",
+          "Inventory days uses average inventory/COGS times the observation period. Absent an explicit period, the inherited annual model uses 365 days.",
+          "Demand is constant over lead time. A model year is exactly 365 days; calendar months, business days and changing demand need additional information."
         ],
         "untrusted": [
           "English recognition, classification of each percentage, and numeric parsing."
