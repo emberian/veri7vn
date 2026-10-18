@@ -99,9 +99,30 @@ class DispatchContractTests(unittest.TestCase):
                                              reply('unknown', 'withheld'))), 1)
         self.assertEqual(obj.organ_cands('H2O?', '', '1', reply('invented_kind')), [])
         self.assertEqual(obj.organ_cands('H2O?', '', '1', reply('percent_composition', sid='retail')), [])
-        # An answer kind accidentally attached to a withheld reply is not a
-        # declared refusal, and cannot take the turn merely because 'taken' says so.
-        self.assertEqual(obj.organ_cands('H2O?', '', '1', reply('percent_composition', 'withheld')), [])
+        # Declared operation kinds retain their turn when a kernel deliberately
+        # withholds; decline-only kinds still need relevant question context.
+        held = obj.organ_cands('H2O?', '', '1', reply('percent_composition', 'withheld'))
+        self.assertEqual(len(held), 1)
+        self.assertTrue(held[0]['declined'])
+        self.assertEqual(obj.organ_cands('Tell me a joke.', '', '1', reply('unknown', 'withheld')), [])
+        self.assertEqual(obj.organ_cands('molar mass of Xx2?', '', '1', reply('invented_kind', 'withheld')), [])
+
+    def test_normal_kind_withheld_survives_arbitration_and_stops_cascade(self):
+        obj = self.bare()
+        obj.order = 'front'
+        obj.pinned = {'chemistry'}
+        obj.arb = types.SimpleNamespace(decide=lambda *a: ('PICK', 0))
+        obj.fan_out = lambda *a: {'chemistry': {
+            'status': 'withheld', 'kind': 'percent_composition',
+            'path': 'specialist:chemistry-v3>percent_composition',
+            'response': 'I cannot compute this composition.', 'provenance': {'taken': True}}}
+        obj.ask_fusion = lambda *a: self.fail('network ran after a declared-operation refusal')
+        obj.reader_stage = lambda *a: self.fail('reader ran after a declared-operation refusal')
+        out = obj.turn('1', 'Percent composition?', 's')
+        self.assertEqual(out['status'], 'withheld')
+        self.assertEqual(out['kind'], 'percent_composition')
+        self.assertTrue(out['provenance']['dispatch']['decisive'])
+        self.assertEqual(out['provenance']['dispatch']['stages_run'], ['specs'])
 
     def test_selected_refusal_prevents_later_answer(self):
         obj = self.bare()

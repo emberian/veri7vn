@@ -488,12 +488,12 @@ class Dispatcher:
             man = manifest(sid)
             kind = str(r.get("kind", ""))
             ctx_hit = man["ctx"] is None or bool(man["ctx"].search(text))
-            # the manifest accept rule of combo_runtime_v1._Organ.reply: the reply counts
-            # only when its kind is one the specialist answers, or it is an in-domain
-            # decline whose context matches the turn (a binary's own "taken" is not enough)
-            declined = r.get("status") != "answered" and kind in man["declines"] and ctx_hit
-            if not ((r.get("status") == "answered" and kind in man["kinds"]) or declined):
+            # Loaded.reply and Combo's _Organ.reply admit declared normal kinds
+            # regardless of status. Refusing a recognized operation must not
+            # turn it into fallthrough merely because its kind stayed the same.
+            if kind not in man["kinds"] and not (kind in man["declines"] and ctx_hit):
                 continue
+            declined = r.get("status") != "answered"
             cands.append({"ix": len(cands), "slug": slug, "child": child, "sid": sid, "reply": r, "declined": bool(declined),
                           "kind": kind, "checked": bool(declined and CHECKED_DECLINE.search(kind + " " + str(r.get("response", "")))),
                           "assumed": bool(ASSUMED.search(str(r.get("response", "")))),

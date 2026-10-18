@@ -7,8 +7,10 @@ added or changed, and this lane ran no Isabelle build.
 
 The dispatcher uses the explicit runtime registry, resolves specialist owners
 without executing probes, and shares the manifest-plus-extension acceptance
-contract with packaging. Accepted in-domain refusals selected by arbitration
-end the turn. Unrecognized questions fall through; stage failures withhold with
+contract with packaging. Accepted refusals selected by arbitration end the turn. Acceptance follows the
+shipped loader: a declared normal operation kind remains accepted when its
+status is withheld, while a decline-only kind requires matching domain context.
+Every accepted non-answered reply is classified as a decline for arbitration. Unrecognized questions fall through; stage failures withhold with
 an error instead of silently disappearing.
 
 It connects the new general relation adapter and document adapter, plus the
@@ -41,7 +43,7 @@ transaction protocol for independently writing processes.
 
 ## Checks and observed numbers
 
-- `python3 -B tools/dispatch/test_dispatch.py`: 11 tests passed. These exercise
+- `python3 -B tools/dispatch/test_dispatch.py`: 12 tests passed. These exercise
   registry roles, owner pins, acceptance, refusal composition, relation silence,
   preview/pinned state selection, skipped stateful perturbations, malformed
   subprocess and direct-call malformed metadata failing closed, and guard rejection
