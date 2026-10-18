@@ -2,8 +2,7 @@
 
 Owner: Codex `/root/symbolic/stores`, 18 October 2026. F was integrated as
 `55b9d8a` before these production changes. The separate reader-domain repair
-was integrated as `36403e7`. Proof, Darwin and scoped consumer checks below pass;
-the already-started Linux closure is the remaining platform check.
+was integrated as `36403e7`. Proof, both native platforms and scoped consumer checks below pass.
 
 ## Actual counterexamples
 
@@ -152,6 +151,20 @@ before compiling. The shared numeric input is unchanged at `2f313c77…`.
 | main.sml | `808aeeb16dbf8592031a1f4df437b488d837a6a94edfdbb8c21d6f3542de2371` |
 | capabilities.json | `6225f02ff86515fcb5aac99e2a873b89781ca827ff530685f671b52c2b209daa` |
 | sensors_check.py | `695595e4b57252f859a2dfecc19741955120ec4a0a02159e441f3d0cbdf371b9` |
+
+Linux also passed the same 270 sensor observations and the current verifier.
+All 2,476 shipped replies are identical to Darwin after removing timing only.
+The binary is `var/stores/stores-sensors-945d2bd682/stores-linux`, SHA256
+`783fddd9d85dd076ecc3692f95882396cd8197469050d49defb87d1aab0d06df`.
+Receipt: `var/linux/receipt-stores-hbox-stores-sensors-945d2bd682.json`.
+This uses the passed G export and a pre-compile frozen source map under the
+managed global build lock with the 8 GiB compiler limit. The Linux source closure
+includes the actual numeric dependency and all current CLI-bearing runtime
+inputs. No old binary or failed proof export is substituted.
+
+G is complete within this packet's scope. Under the user's drain instruction,
+no stock-time successor is launched. The owned counterexample below and its
+finite timestamp-cutoff plan are retained for a later authorized continuation.
 
 ## Remaining stock-time boundary
 
