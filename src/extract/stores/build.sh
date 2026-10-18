@@ -1,16 +1,7 @@
 #!/bin/sh
-# Build the stores family answerer binary from the checked HOL export.
-#
-# Precondition: the Isabelle session Veri7vn_Stores has passed check-native
-# (theorems proved, code generated); this script never builds Isabelle
-# sessions. It
-#   1. reads the generated SML out of the session database (isabelle export -n,
-#      no build) while holding the shared native build lock,
-#   2. compiles generated kernel + commons.sml (Regex) + untrusted JSON, recognizer and driver
-#      (commons.sml comes before json.sml: its Json is shadowed by the stores one on purpose)
-#      with the MLton that ships inside Isabelle,
-#   3. writes var/stores/bin/stores and prints its size.
-# (Lane G's src/extract/quantity/build.sh, with this family's files.)
+# Compile the current recognizer/driver with a successfully checked remote HOL
+# export. Does not build Isabelle or remove previous exports. The receipt must
+# identify the same Stores theories and ROOT currently in the checkout.
 set -eu
 REPO=$(cd "$(dirname "$0")/../../.." && pwd)
 ISABELLE_APP=${ISABELLE_APP:-/Applications/Isabelle2026-RC1.app}
@@ -19,32 +10,38 @@ SRC=$REPO/src/extract/stores
 OUT=$REPO/var/stores
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
-
-rm -rf "$OUT/export"
-REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'PY'
-import fcntl, os, subprocess
-repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT"]
-with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
-    fcntl.flock(lock, fcntl.LOCK_EX)
-    env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
-    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/stores",
-                    "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Stores"],
-                   check=True, env=env, cwd=repo)
+REPO="$REPO" python3 -B - <<'PY'
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+root = Path(os.environ['REPO'])
+source = root / 'src/extract/stores'
+out = root / 'var/stores/build'
+needed = [source/'ROOT', *source.rglob('*.thy')]
+matched = None
+for receipt_path in sorted((root/'var/stores/remote-attempts').glob('*/receipt.json'), reverse=True):
+    receipt = json.loads(receipt_path.read_text())
+    if receipt.get('remote',{}).get('exit_code') != 0 or not receipt.get('exports_published'):
+        continue
+    hashes = json.loads(receipt_path.with_name('source-sha256.json').read_text())
+    if any(hashes.get(str(p.relative_to(root))) != hashlib.sha256(p.read_bytes()).hexdigest() for p in needed):
+        continue
+    gen = receipt_path.parent/'results/export/Veri7vn_Stores/Veri7vn_Stores.Stores_Export/code/stores.ML'
+    expected = receipt.get('export_sha256',{}).get('Veri7vn_Stores.Stores_Export/code/stores.ML')
+    if gen.is_file() and hashlib.sha256(gen.read_bytes()).hexdigest() == expected:
+        matched = gen
+        break
+if matched is None:
+    raise SystemExit('No successful remote export matches these Stores theories. Run tools/dev/remote-build first.')
+shutil.copyfile(matched, out/'stores_generated.sml')
+(out/'config.sml').write_text('structure Config = struct val repo = '+json.dumps(str(root))+' end\n')
+(out/'stores.mlb').write_text('$(SML_LIB)/basis/basis.mlb\nstores_generated.sml\nconfig.sml\n'+
+    str(source.parent/'commons/commons.sml')+'\n'+''.join(str(source/n)+'\n' for n in ('json.sml','recognizer.sml','main.sml')))
+print('Checked export:', matched)
 PY
-GEN=$(find "$OUT/export" -type f -name 'stores*' | head -n 1)
-[ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
-cp "$GEN" "$OUT/build/stores_generated.sml"
-printf 'structure Config = struct val repo = "%s" end\n' "$REPO" > "$OUT/build/config.sml"
-
-cat > "$OUT/build/stores.mlb" <<MLB
-\$(SML_LIB)/basis/basis.mlb
-stores_generated.sml
-config.sml
-$SRC/../commons/commons.sml
-$SRC/json.sml
-$SRC/recognizer.sml
-$SRC/main.sml
-MLB
-"$MLTON" -output "$OUT/bin/stores" "$OUT/build/stores.mlb"
+"$MLTON" -output "$OUT/build/stores.next" "$OUT/build/stores.mlb"
+mv "$OUT/build/stores.next" "$OUT/bin/stores"
 ls -l "$OUT/bin/stores"
 shasum -a 256 "$OUT/build/stores_generated.sml" "$OUT/bin/stores"

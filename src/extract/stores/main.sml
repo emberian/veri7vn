@@ -11,11 +11,13 @@
    kernel (Stores.nreply, Stores.site_reply); this file recognizes (Cook, Site),
    fetches, and frames.
 
-   Usage: stores [--specialist ID] [--state PATH]
+   Usage: stores [--specialist ID] [--state FILE] [--fetch FILE] [--nutrition FILE] [--site FILE] [--preview|--commit]
      ID: cooking, cooking-v2, cooking-v3, cooking-v3-r2, warehouse, warehouse-r2.
      Without it the family is asked in a fixed order: cooking-v3-r2, then
      warehouse-r2. --state is the warehouse session file (default
-     var/stores/state/sessions.json under the repository). *)
+     var/stores/state/sessions.json under the repository). Family mode defaults
+     to preview: possible warehouse replies never persist state. Pinned
+     warehouse mode commits unless --preview is supplied. *)
 structure Main =
 struct
   structure S = Stores
@@ -24,16 +26,27 @@ struct
 
   fun die msg = (TextIO.output (TextIO.stdErr, msg ^ "\n"); OS.Process.exit OS.Process.failure)
 
-  val (mode, statePath) =
+  val (mode, statePath, fetchPath, nutritionPath, sitePath, previewOption) =
     let
-      fun parse args (m, st) =
+      fun parse args (m, st, f, n, s, pv) =
         case args of
-          [] => (m, st)
+          [] => (m, st, f, n, s, pv)
         | "--specialist" :: id :: rest =>
-            if List.exists (fn x => x = id) organs then parse rest (id, st) else die ("unknown specialist " ^ id)
-        | "--state" :: p :: rest => parse rest (m, p)
-        | _ => die "usage: stores [--specialist ID] [--state PATH]"
-    in parse (CommandLine.arguments ()) ("family", Config.repo ^ "/var/stores/state/sessions.json") end
+            if List.exists (fn x => x = id) organs then parse rest (id, st, f, n, s, pv)
+            else die ("unknown specialist " ^ id)
+        | "--state" :: p :: rest => parse rest (m, p, f, n, s, pv)
+        | "--fetch" :: p :: rest => parse rest (m, st, p, n, s, pv)
+        | "--nutrition" :: p :: rest => parse rest (m, st, f, p, s, pv)
+        | "--site" :: p :: rest => parse rest (m, st, f, n, p, pv)
+        | "--preview" :: rest => parse rest (m, st, f, n, s, SOME true)
+        | "--commit" :: rest => parse rest (m, st, f, n, s, SOME false)
+        | _ => die "usage: stores [--specialist ID] [--state FILE] [--fetch FILE] [--nutrition FILE] [--site FILE]"
+    in parse (CommandLine.arguments ())
+      ("family", Config.repo ^ "/var/stores/state/sessions.json",
+       Config.repo ^ "/src/extract/stores/fetch.py",
+       Config.repo ^ "/upstream/root/specialists/cooking/nutrition_v1.sqlite3",
+       Config.repo ^ "/upstream/root/specialists/warehouse/site_fresh.sqlite3", NONE) end
+  val preview = case previewOption of SOME p => p | NONE => mode = "family"
 
   (* ---------- the fetch shim ---------- *)
   val shim : (TextIO.instream * TextIO.outstream) option ref = ref NONE
@@ -45,7 +58,8 @@ struct
         | NONE =>
             let
               val p : (TextIO.instream, TextIO.outstream) Unix.proc =
-                Unix.execute ("/usr/bin/env", ["python3", "-I", Config.repo ^ "/src/extract/stores/fetch.py", "--state", statePath])
+                Unix.execute ("/usr/bin/env", ["python3", "-I", "-B", fetchPath, "--state", statePath,
+                  "--nutrition", nutritionPath, "--site", sitePath, "--preview", Bool.toString preview])
               val x = (Unix.textInstreamOf p, Unix.textOutstreamOf p)
             in shim := SOME x; x end
       val _ = TextIO.output (out, Js.write req ^ "\n")
@@ -77,9 +91,9 @@ struct
       val {nut, amount, phrase, hit, near} = rc
       val ok = ref (!foodsComplete)
       fun fd (f : Cook.food) = (S.mk_int (#fid f), #desc f)
-      val (nrows, ports) =
+      val (nrows, ports, otherPorts) =
         case hit of
-          NONE => ([], [])
+          NONE => ([], [], [])
         | SOME f =>
             let
               val fids = List.foldl (fn (x, acc) => if List.exists (fn y => y = x) acc then acc else acc @ [x]) []
@@ -89,16 +103,19 @@ struct
               val nr = map (fn Js.Arr [a, b, c] => (S.mk_int (Js.int a), (Num.ratOf (Js.str b), Js.str c))
                              | _ => raise Fail "bad nut row") (rows r)
               val needP = case amount of S.A_measure _ => true | S.A_count _ => true | _ => false
-              val ps =
-                if not needP then []
+              val (ps, others) =
+                if not needP then ([], [])
                 else
-                  let val p = op' "portions" [("fdc", Js.Num (IntInf.toString (#fid f)))]
-                  in (if complete p then () else ok := false);
-                     map (fn Js.Arr [l, g] => (Js.str l, Num.ratOf (Js.str g)) | _ => raise Fail "bad portion row") (rows p)
-                  end
-            in (nr, ps) end
+                  let
+                    val p = op' "portions_many" [("fdc", Js.Arr (map (Js.Num o IntInf.toString) fids))]
+                    val _ = if complete p then () else ok := false
+                    val prs = map (fn Js.Arr [id, l, g] => (Js.int id, (Js.str l, Num.ratOf (Js.str g)))
+                                     | _ => raise Fail "bad portion row") (rows p)
+                    fun forFood id = map #2 (List.filter (fn (f, _) => f = id) prs)
+                  in (forFood (#fid f), map (fn id => (S.mk_int id, forFood id)) fids) end
+            in (nr, ps, others) end
     in
-      S.NQ (nut, amount, phrase, Option.map fd hit, map fd near, nrows, ports, !ok)
+      S.NQ (nut, amount, phrase, Option.map fd hit, map fd near, nrows, ports, otherPorts, !ok)
     end
 
   (* ---------- site ---------- *)
@@ -226,7 +243,7 @@ struct
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
     in LargeInt.toString (us div 1000) ^ "." ^ StringCvt.padLeft #"0" 3 (LargeInt.toString (us mod 1000)) end
 
-  val cookThms = "[\"nutrient_answer_sound\",\"nutrient_readings_agree\",\"nutrient_measure_portion\",\"nutrient_count_portion\",\"stated_within_tolerance\"]"
+  val cookThms = "[\"nutrient_answer_sound\",\"nutrient_serving_alternatives\",\"nutrient_readings_agree\",\"nutrient_measure_portion\",\"nutrient_count_portion\",\"stated_within_tolerance\"]"
   val siteThms = "[\"confirm_requires_proposal\",\"sensor_fresh\",\"stock_value\",\"runout_days\",\"low_exact\"]"
 
   fun notTaken id t0 =
@@ -258,7 +275,9 @@ struct
   fun warehouse organ id q session t0 =
     let
       val (tb, meta) = site ()
-      val st = stateOf (Js.field (op' "state_get" [("session", Js.Str session)]) "state")
+      val saved = op' "state_get" [("session", Js.Str session)]
+      val _ = if complete saved then () else raise Fail "warehouse session read failed"
+      val st = stateOf (Js.field saved "state")
       val i = Site.recognize tb st q
       val r = case i of S.I_read r => r | S.I_confirm (_, r) => r
       val ev = evidence st r
@@ -267,15 +286,19 @@ struct
                     SOME (n, (sku, _)) => Js.Obj [("ts", Js.field meta "now"), ("sku", Js.Str sku),
                                                   ("qty", Js.Num (natText n)), ("status", Js.Str "requested")]
                   | NONE => Js.Null
-      val _ = op' "state_put" [("session", Js.Str session), ("state", stateJs st'), ("order", order)]
       val narrowedAway =
         organ = "warehouse-r2" andalso
         (case S.unknown_what out of
            SOME w => Rx.words w > 4 orelse not (Narrow.short_direct q)
          | NONE => false)
     in
-      if not (S.site_taken out) orelse narrowedAway then NONE
-      else SOME (frame id t0 organ "Stores.site_reply" siteThms rep "")
+      if not (S.site_taken out) orelse narrowedAway orelse S.reply_kind rep = "off_site" then NONE
+      else let
+        val saved = op' "state_put" [("session", Js.Str session), ("state", stateJs st'), ("order", order)]
+        val _ = if complete saved andalso Js.bool (Js.field saved "ok") then ()
+                else raise Fail "warehouse session write failed"
+      in SOME (frame id t0 organ "Stores.site_reply" siteThms rep
+        (", \"preview\": " ^ Bool.toString preview)) end
     end
 
   fun reply id q session =

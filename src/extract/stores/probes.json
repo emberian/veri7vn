@@ -1,0 +1,115 @@
+[
+  {
+    "q": "How much protein is in 100 g of raw chayote?",
+    "status": "answered",
+    "value": 0.82,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "What's the protein content of 100 g of raw chayote?",
+    "status": "answered",
+    "value": 0.82,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "Please give me the protein amount in 150 g of raw chayote.",
+    "status": "answered",
+    "value": 1.23,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "Could you show me the protein level of 2 oz of raw chayote?",
+    "status": "answered",
+    "value": 0.46,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "What is the protein in 1/2 kg of raw chayote?",
+    "status": "answered",
+    "value": 4.1,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "What is the protein in 1 1/2 kg of raw chayote?",
+    "status": "answered",
+    "value": 12.3,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "What is the protein in half a cup of raw chayote?",
+    "status": "answered",
+    "value": 0.54,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "What is the protein in a cup of raw chayote?",
+    "status": "answered",
+    "value": 1.08,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "What is the protein in 2 cups of raw chayote?",
+    "status": "answered",
+    "value": 2.16,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "How much protein is in 0.5 kg of raw chayote?",
+    "status": "answered",
+    "value": 4.1,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "How much protein is in 0 g of raw chayote?",
+    "status": "answered",
+    "value": 0,
+    "source": "USDA SR Legacy #170402 protein0.82g per100g; exact mass/portion scaling rounded to2decimals."
+  },
+  {
+    "q": "How much protein is in -5 g of raw chayote?",
+    "status": "withheld",
+    "source": "Invalid amount, unknown food, or supplied alternatives disagree; no numeric estimate."
+  },
+  {
+    "q": "How much protein is in .5 g of raw chayote?",
+    "status": "withheld",
+    "source": "Invalid amount, unknown food, or supplied alternatives disagree; no numeric estimate."
+  },
+  {
+    "q": "How much protein is in 1/0 kg of raw chayote?",
+    "status": "withheld",
+    "source": "Invalid amount, unknown food, or supplied alternatives disagree; no numeric estimate."
+  },
+  {
+    "q": "How much protein is in 100 g of basilisk bacon?",
+    "status": "withheld",
+    "source": "Invalid amount, unknown food, or supplied alternatives disagree; no numeric estimate."
+  },
+  {
+    "q": "How much carbohydrate is in a cup of jackfruit?",
+    "status": "clarify",
+    "source": "Invalid amount, unknown food, or supplied alternatives disagree; no numeric estimate."
+  },
+  {
+    "q": "How much carbohydrate is in a cup of raw jackfruit?",
+    "status": "clarify",
+    "source": "Invalid amount, unknown food, or supplied alternatives disagree; no numeric estimate."
+  },
+  {
+    "q": "How much sodium is in a cup of rye flour?",
+    "status": "clarify",
+    "source": "Invalid amount, unknown food, or supplied alternatives disagree; no numeric estimate."
+  },
+  {
+    "q": "How much carbohydrate is in 100 g of raw jackfruit?",
+    "status": "answered",
+    "value": 23.25,
+    "source": "USDA #174687 carbohydrate23.25g per100g, explicit raw and mass."
+  },
+  {
+    "q": "How much iron is in 150 g of brain cooked beef?",
+    "status": "answered",
+    "value": 3.45,
+    "source": "USDA #168624 simmered2.3mg per100g; pan-fried alternative3.33 also within stated tolerance."
+  }
+]

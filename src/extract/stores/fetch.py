@@ -10,10 +10,12 @@ row it names; the HOL kernel declines without that claim. REAL columns travel as
 
 It also keeps the warehouse sessions: a JSON file (--state, default var/stores/state/sessions.json) holding
 {"sessions": {session_id: state}, "orders": [...]}. The state itself is computed by the verified kernel; this file
-only stores what the binary hands it.
+only stores what the binary hands it, unless --preview true was supplied. Preview
+reloads committed state on each read and makes state_put a no-op.
 
 Nothing here decides an answer. Assumed and not checked: the stores are the shipped files; sqlite's scan order for
 "ORDER BY rowid" is store order (the organ reads the same tables in the same order)."""
+import copy
 import json
 import os
 import sqlite3
@@ -25,7 +27,7 @@ SPEC = REPO / "upstream/root/specialists"
 
 
 def ro(path):
-    return sqlite3.connect("file:%s?immutable=1" % path, uri=True, check_same_thread=False)
+    return sqlite3.connect(Path(path).resolve().as_uri() + "?immutable=1", uri=True, check_same_thread=False)
 
 
 def num(x):
@@ -33,8 +35,9 @@ def num(x):
 
 
 class Shim:
-    def __init__(self, nutrition, site, state):
+    def __init__(self, nutrition, site, state, preview=False):
         self.np, self.sp, self.state_path = nutrition, site, Path(state)
+        self.preview = preview
         self._n = self._s = None
         self.state = None
 
@@ -58,15 +61,16 @@ class Shim:
                 self.state = {"sessions": {}, "orders": []}
         return self.state
 
-    def save_state(self):
+    def save_state(self, state):
         self.state_path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.state_path.with_suffix(".tmp")
-        tmp.write_text(json.dumps(self.state, sort_keys=True), encoding="utf-8")
+        tmp.write_text(json.dumps(state, sort_keys=True), encoding="utf-8")
         os.replace(tmp, self.state_path)
+        self.state = state
 
     def op(self, r):
         o = r["op"]
-        q = self.n.execute if o in ("foods", "nut", "portions") else self.s.execute
+        q = self.n.execute if o in ("foods", "nut", "portions", "portions_many") else self.s.execute
         if o == "foods":
             rows = [[f, d] for f, d in q("SELECT fdc_id, description FROM foods ORDER BY rowid")]
         elif o == "nut":
@@ -74,6 +78,11 @@ class Shim:
             rows = [[f, num(a), u] for f, a, u in q(
                 "SELECT fdc_id, amount, unit FROM nut WHERE key=? AND fdc_id IN (%s) ORDER BY rowid" % ",".join("?" * len(fids)),
                 (r["key"], *fids))] if fids else []
+        elif o == "portions_many":
+            fids = [int(x) for x in r["fdc"]]
+            rows = [[f, l, num(g)] for f, l, g in q(
+                "SELECT fdc_id, label, grams FROM portions WHERE fdc_id IN (%s) ORDER BY rowid" % ",".join("?" * len(fids)),
+                fids)] if fids else []
         elif o == "portions":
             rows = [[l, num(g)] for l, g in q("SELECT label, grams FROM portions WHERE fdc_id=? ORDER BY rowid", (int(r["fdc"]),))]
         elif o == "site":
@@ -119,13 +128,17 @@ class Shim:
             rows = [z for (z,) in q("SELECT z.name FROM sensors s JOIN zones z ON z.id=s.zone_id WHERE s.kind=? ORDER BY z.id",
                                     (r["kind"],))]
         elif o == "state_get":
+            if self.preview:
+                self.state = None  # Observe committed state anew; preview never keeps speculative state.
             return {"state": self.load_state()["sessions"].get(r["session"]), "complete": True}
         elif o == "state_put":
-            st = self.load_state()
+            if self.preview:
+                return {"ok": True, "complete": True, "preview": True}
+            st = copy.deepcopy(self.load_state())
             st["sessions"][r["session"]] = r["state"]
             if r.get("order"):
                 st["orders"].append(r["order"])
-            self.save_state()
+            self.save_state(st)
             return {"ok": True, "complete": True}
         else:
             raise ValueError("unknown op %r" % o)
@@ -135,13 +148,15 @@ class Shim:
 def main():
     a = sys.argv[1:]
     opt = {"--nutrition": str(SPEC / "cooking/nutrition_v1.sqlite3"), "--site": str(SPEC / "warehouse/site_fresh.sqlite3"),
-           "--state": str(REPO / "var/stores/state/sessions.json")}
+           "--state": str(REPO / "var/stores/state/sessions.json"), "--preview": "false"}
     while a:
         k, v, a = a[0], a[1], a[2:]
         if k not in opt:
             sys.exit("fetch: unknown option %s" % k)
         opt[k] = v
-    shim = Shim(opt["--nutrition"], opt["--site"], opt["--state"])
+    if opt["--preview"] not in ("true", "false"):
+        sys.exit("fetch: --preview requires true or false")
+    shim = Shim(opt["--nutrition"], opt["--site"], opt["--state"], opt["--preview"] == "true")
     for line in sys.stdin:
         if not line.strip():
             continue

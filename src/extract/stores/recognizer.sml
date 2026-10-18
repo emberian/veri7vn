@@ -22,7 +22,12 @@
    Matching is case-insensitive: the text is lower-cased and the pattern is
    passed as written (Regex.compile folds its literals; lane S17 fix). Spans
    found in the lower-cased text index the original text (ASCII folding keeps
-   byte positions), so words echoed in replies keep their case. *)
+   byte positions), so words echoed in replies keep their case.
+
+   Beyond parity: polite/content-frame normalization is shared by all cooking
+   variants, food-name "total" is preserved, fractional amounts are supported,
+   and all lexical matches are supplied for the kernel's serving check. These
+   intentional changes are covered by probes.json and the fresh-seed scorer. *)
 structure Rx =
 struct
   val cache : (string * Regex.regex) list ref = ref []
@@ -225,7 +230,7 @@ struct
 
   val FILLER = String.tokens Char.isSpace
     ("how much many is are there in of does do a an the has have contain contains what whats what's per serving "
-     ^ "amount total grams gram g kg oz lb cup cups tbsp tsp tablespoon tablespoons teaspoon teaspoons ounce ounces "
+     ^ "amount grams gram g kg oz lb cup cups tbsp tsp tablespoon tablespoons teaspoon teaspoons ounce ounces "
      ^ "pound pounds kilogram kilograms please tell me give me me about with")
   val PRODUCT_TYPES = ["oil", "spice", "babyfood", "beverage", "candy", "candie", "snack", "fast", "restaurant", "cereal",
     "sauce", "soup", "dessert", "formulated", "school", "infant", "margarine", "shortening", "salad", "flour", "gravy"]
@@ -284,7 +289,8 @@ struct
         seg0 = uniq (map sing (Rx.alphaRuns seg)), brand = brand desc}
     end
 
-  (* NutritionOrgan.match: the reading and the readings still in play *)
+  (* Preference follows NutritionOrgan.match, but all lexical matches remain
+     in play; the kernel checks their scaled servings before accepting. *)
   fun matchFood (foods : food vector) (phrase : string) : (food * food list) option =
     let
       val ws = Rx.alphaRuns (Rx.lower phrase)
@@ -328,8 +334,7 @@ struct
           case sorted of
             [] => NONE
           | ((p0, _, _, _), best) :: _ =>
-              let val near = List.filter (fn ((p, _, _, _), _) => p <= p0 + 1) sorted
-                  val near = List.take (near, Int.min (6, length near))
+              let val near = sorted  (* Every lexical match remains a possible reading. *)
               in SOME (best, map #2 near) end
         end
     end
@@ -340,12 +345,25 @@ struct
       fun ins (x, []) = [x]
         | ins (x, y :: ys) = if size x > size y then x :: y :: ys else y :: ins (x, ys)
     in String.concatWith "|" (List.foldl ins [] names) end
-  val AMOUNT = "\\b(\\d+(?:\\.\\d+)?|an?|one|two|three|half an?|half a)\\s*(" ^ unitAlternation () ^ ")\\b(?:\\s+of)?"
+  val AMOUNT = "\\b((?:\\d+\\s+)?\\d+/\\d+|\\d+(?:\\.\\d+)?|an?|one|two|three|half an?|half a)\\s*(" ^ unitAlternation () ^ ")\\b(?:\\s+of)?"
 
   fun qtyOf (q : string) : S.rat =
-    let val l = Rx.lower q
-    in if size l > 0 andalso Char.isDigit (String.sub (l, 0)) then Num.ratOf l
-       else case List.find (fn (k, _) => k = l) WORDNUM of
+    let
+      val l = Rx.lower q
+      fun natural x = valOf (IntInf.fromString x)
+      fun fraction x whole =
+        case String.fields (fn c => c = #"/") x of
+          [a, b] => let val d = natural b
+                    in if d = 0 then raise Fail "zero denominator in quantity"
+                       else S.mk_rat (whole * d + natural a) d end
+        | _ => raise Fail "invalid fraction quantity"
+    in
+      if String.isSubstring "/" l then
+        (case String.tokens Char.isSpace l of
+           [f] => fraction f 0 | [w, f] => fraction f (natural w)
+         | _ => raise Fail "invalid mixed fraction")
+      else if size l > 0 andalso Char.isDigit (String.sub (l, 0)) then Num.ratOf l
+      else case List.find (fn (k, _) => k = l) WORDNUM of
               SOME (_, (a, b)) => S.mk_rat (IntInf.fromInt a) (IntInf.fromInt b)
             | NONE => raise Fail ("no number " ^ q)
     end
@@ -409,7 +427,7 @@ struct
       val t = Rx.sub (Pats.get "nutrition_v2.FRAME") " " 0 text
       val t = Rx.subWith (Pats.get "nutrition_v2.NEG") (fn m => Rx.g t m 1) 0 t
       val t = Rx.subWith (Pats.get "nutrition_v2.CLITIC") (fn m => Rx.g t m 1) 0 t
-      val t = Rx.sub (Pats.get "nutrition_v2.MEASURE_NOUN") " of " 0 t
+      val t = Rx.sub (Pats.get "nutrition_v2.MEASURE_NOUN") " of " 1 t
       val t = Rx.subWith (Pats.get "nutrition_v2.of_in") (fn m => Rx.g t m 1) 0 t
     in Rx.collapse t end
 
@@ -418,15 +436,16 @@ struct
     in
       if not (Rx.has (Pats.get "nutrition_v1.ASK") t) andalso size t > 0 andalso Char.isAlpha (String.sub (t, 0))
          andalso not (List.exists (fn p => String.isPrefix p (Rx.lower t)) ["how", "what", "which"])
-      then "What is " ^ String.str (Char.toLower (String.sub (t, 0))) ^ String.extract (t, 1, NONE)
+      then "What is the " ^ String.str (Char.toLower (String.sub (t, 0))) ^ String.extract (t, 1, NONE)
       else t
     end
 
   (* Per manifest: (pre-narrowing passes, normalized text, decline-narrowing applies) *)
   fun recognize (mode : string) (foods : unit -> food vector) (text : string) : (recog * bool) option =
-    case mode of
-      "cooking" => Option.map (fn r => (r, false)) (v1 foods text)
-    | "cooking-v2" => if Narrow.narrative text then NONE else Option.map (fn r => (r, true)) (v1 foods (normalize2 text))
+    if Rx.has "(?:^|\\s)-\\s*\\d|(?:^|\\s)\\.\\d" text then NONE
+    else case mode of
+      "cooking" => Option.map (fn r => (r, false)) (v1 foods (normalize3 text))
+    | "cooking-v2" => if Narrow.narrative text then NONE else Option.map (fn r => (r, true)) (v1 foods (normalize3 text))
     | "cooking-v3" => if Narrow.narrative text then NONE else Option.map (fn r => (r, true)) (v1 foods (normalize3 text))
     | "cooking-v3-r2" =>
         if Rx.has (Pats.get "cooking_v3_r2.NOT_MINE") text andalso not (Rx.has (Pats.get "cooking_v3_r2.MINE") text) then NONE

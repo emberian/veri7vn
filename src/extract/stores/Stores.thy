@@ -354,9 +354,10 @@ datatype nquery = NQ
   (nq_nutrient: nutrient) (nq_amount: amount) (nq_phrase: String.literal)
   (nq_hit: "(int \<times> String.literal) option") (nq_near: "(int \<times> String.literal) list")
   (nq_rows: "(int \<times> rat \<times> String.literal) list") (nq_portions: "(String.literal \<times> rat) list")
+  (nq_other_portions: "(int \<times> (String.literal \<times> rat) list) list")
   (nq_complete: bool)
 
-datatype ndecline = ND_unknown_food | ND_no_value | ND_clarify | ND_no_portion | ND_incomplete
+datatype ndecline = ND_unknown_food | ND_no_value | ND_clarify | ND_no_portion | ND_incomplete | ND_serving_ambiguous
 
 text \<open>An answer: grams of food, amount per 100 g, the value, and the household
 portion used (if any).\<close>
@@ -483,6 +484,46 @@ fun amount_grams :: "amount \<Rightarrow> (String.literal \<times> rat) list \<R
 | "amount_grams (A_measure q nt ut m) ps = map_option (\<lambda>p. (q * snd p, Some (fst p))) (measure_portion m ps)"
 | "amount_grams (A_count q nt w) ps = map_option (\<lambda>p. (q * snd p, Some (fst p))) (count_portion ps)"
 
+subsection \<open>Displayed precision and plausible servings\<close>
+
+text \<open>Two decimal places avoid spending most of the error budget on display
+rounding after selecting one of several close food readings.\<close>
+definition dp_of :: "String.literal \<Rightarrow> rat \<Rightarrow> nat" where
+  "dp_of u v = 2"
+
+definition stated_num :: "String.literal \<Rightarrow> rat \<Rightarrow> rat" where
+  "stated_num u v = of_int (round_dp (dp_of u v) v) / pow10 (dp_of u v)"
+
+theorem stated_within_tolerance:
+  "\<bar>stated_num u v - v\<bar> \<le> max (v / 20) (15 / 100)"
+proof -
+  have "\<bar>stated_num u v - v\<bar> \<le> 1 / 200"
+    using round_dp_sound[of 2 v] by (simp add: stated_num_def dp_of_def pow10_def)
+  then show ?thesis by (simp add: le_max_iff_disj; linarith)
+qed
+
+fun possible_grams :: "amount \<Rightarrow> (String.literal \<times> rat) list \<Rightarrow> rat list" where
+  "possible_grams (A_measure q nt ut m) ps = map (\<lambda>p. q * snd p) (filter (\<lambda>p. like_measure m (fst p)) ps)"
+| "possible_grams a ps = (case amount_grams a ps of None \<Rightarrow> [] | Some g \<Rightarrow> [fst g])"
+
+definition portions_for :: "nquery \<Rightarrow> int \<Rightarrow> (String.literal \<times> rat) list" where
+  "portions_for e f = (if map_option fst (nq_hit e) = Some f then nq_portions e
+     else case map_of (nq_other_portions e) f of None \<Rightarrow> [] | Some ps \<Rightarrow> ps)"
+
+definition possible_values :: "nquery \<Rightarrow> rat list" where
+  "possible_values e = concat (map (\<lambda>fd.
+     case row_of (nq_rows e) (fst fd) of None \<Rightarrow> [] | Some r \<Rightarrow>
+       map (\<lambda>g. fst r * g / 100) (possible_grams (nq_amount e) (portions_for e (fst fd)))) (nq_near e))"
+
+definition serving_agrees :: "nquery \<Rightarrow> rat \<Rightarrow> bool" where
+  "serving_agrees e v \<longleftrightarrow> (\<forall>w\<in>set (possible_values e).
+     \<bar>stated_num (nutrient_unit (nq_nutrient e)) v - w\<bar> \<le> max (w / 20) (15 / 100))"
+
+text \<open>The alternatives come from every lexical food match supplied by the
+untrusted recognizer, and every household portion supplied for those foods.
+This checks the scaled serving, not just values per 100 g. Coverage remains
+conditional on those inputs: a missing row cannot be recovered by this test.\<close>
+
 subsection \<open>The decision\<close>
 
 definition nkernel :: "nquery \<Rightarrow> noutcome" where
@@ -495,7 +536,8 @@ definition nkernel :: "nquery \<Rightarrow> noutcome" where
            if spread (map fst (near_vals e)) then NDecline ND_clarify
            else (case amount_grams (nq_amount e) (nq_portions e) of
              None \<Rightarrow> NDecline ND_no_portion
-           | Some (g, pl) \<Rightarrow> NAnswer g (fst r) (fst r * g / 100) pl)))"
+           | Some (g, pl) \<Rightarrow> if serving_agrees e (fst r * g / 100)
+               then NAnswer g (fst r) (fst r * g / 100) pl else NDecline ND_serving_ambiguous)))"
 
 subsection \<open>Theorems\<close>
 
@@ -516,12 +558,17 @@ proof -
   have ns: "\<not> spread (map fst (near_vals e))"
     using assms c h r by (auto simp: nkernel_def split: if_splits)
   have ag: "amount_grams (nq_amount e) (nq_portions e) = Some (g, pl)" and pv: "p = fst r" "v = fst r * g / 100"
-    using assms c h r ns by (auto simp: nkernel_def split: option.splits prod.splits)
+    using assms c h r ns by (auto simp: nkernel_def split: option.splits prod.splits if_splits)
   have "snd r = nutrient_unit (nq_nutrient e)"
     using row_of_Some[OF r] c(2) by (auto simp: rows_ok_def)
   then have "r = (p, nutrient_unit (nq_nutrient e))" using pv by (cases r) simp
   then show ?thesis using h r ag pv c ns by (cases fd) auto
 qed
+
+theorem nutrient_serving_alternatives:
+  assumes "nkernel e = NAnswer g p v pl" "w \<in> set (possible_values e)"
+  shows "\<bar>stated_num (nutrient_unit (nq_nutrient e)) v - w\<bar> \<le> max (w / 20) (15 / 100)"
+  using assms by (auto simp: nkernel_def serving_agrees_def split: option.splits prod.splits if_splits)
 
 theorem nutrient_requires_complete: "nkernel e = NAnswer g p v pl \<Longrightarrow> nq_complete e"
   using nutrient_answer_sound by blast
@@ -705,47 +752,6 @@ theorem nutrient_incomplete:
   "nkernel e = NDecline ND_incomplete \<longleftrightarrow> \<not> nq_complete e \<or> \<not> rows_ok e"
   by (auto simp: nkernel_def split: option.splits prod.splits if_splits)
 
-subsection \<open>The stated number\<close>
-
-text \<open>The organ prints kcal and mg values of 10 or more as whole numbers, other
-values of 1 or more with one decimal, smaller ones with two.\<close>
-definition dp_of :: "String.literal \<Rightarrow> rat \<Rightarrow> nat" where
-  "dp_of u v = (if (u = STR ''kcal'' \<or> u = STR ''mg'') \<and> 10 \<le> v then 0 else if 1 \<le> v then 1 else 2)"
-
-definition stated_num :: "String.literal \<Rightarrow> rat \<Rightarrow> rat" where
-  "stated_num u v = of_int (round_dp (dp_of u v) v) / pow10 (dp_of u v)"
-
-text \<open>The stated number is within the cooking scorer's tolerance of the
-value: 5% of it, or 0.15 absolute.\<close>
-theorem stated_within_tolerance:
-  "\<bar>stated_num u v - v\<bar> \<le> max (v / 20) (15 / 100)"
-proof -
-  define d where "d = dp_of u v"
-  define er where "er = stated_num u v - v"
-  have b: "\<bar>er\<bar> \<le> 1 / (2 * pow10 d)"
-    unfolding er_def stated_num_def d_def by (rule round_dp_sound)
-  have "d = 0 \<and> 10 \<le> v \<or> d = 1 \<or> d = 2"
-    unfolding d_def dp_of_def by auto
-  then consider "d = 0" "10 \<le> v" | "d = 1" | "d = 2" by blast
-  then show ?thesis
-  proof cases
-    case 1
-    then have "\<bar>er\<bar> \<le> 1 / 2" using b by (simp add: pow10_def)
-    then have "\<bar>er\<bar> \<le> v / 20" using 1 by linarith
-    then show ?thesis by (simp add: er_def le_max_iff_disj)
-  next
-    case 2
-    then have "\<bar>er\<bar> \<le> 1 / 20" using b by (simp add: pow10_def)
-    then have "\<bar>er\<bar> \<le> 15 / 100" by linarith
-    then show ?thesis by (simp add: er_def le_max_iff_disj)
-  next
-    case 3
-    then have "\<bar>er\<bar> \<le> 1 / 200" using b by (simp add: pow10_def)
-    then have "\<bar>er\<bar> \<le> 15 / 100" by linarith
-    then show ?thesis by (simp add: er_def le_max_iff_disj)
-  qed
-qed
-
 subsection \<open>Reply text (the organ's wording, ASCII: x for the multiplication sign)\<close>
 
 definition shown :: "String.literal \<Rightarrow> rat \<Rightarrow> String.literal" where
@@ -803,6 +809,9 @@ definition nreply :: "nquery \<Rightarrow> reply" where
        | _ \<Rightarrow> Reply False (STR ''withheld'') (STR ''no_portion'')
            (STR ''USDA gives no per-item weight for '' + dq + d + dq + STR '', so I can'' + apos
              + STR ''t count them. Ask me in grams instead.'') None)
+     | NDecline ND_serving_ambiguous \<Rightarrow> Reply False (STR ''clarify'') (STR ''clarify'')
+         (STR ''The matching USDA foods or household portions give different amounts for '' + lower ph
+           + STR ''. Please specify the food preparation and its weight in grams.'') None
      | NDecline ND_incomplete \<Rightarrow> Reply False (STR ''withheld'') (STR ''incomplete'')
          (STR ''The store fetch did not claim every row, so I won'' + apos + STR ''t answer.'') None)"
 

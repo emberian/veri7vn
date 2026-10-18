@@ -156,7 +156,9 @@ for key, pat in sml_pairs("inline"):
         bad.append("inline pattern %s not found verbatim in the organ: %r" % (key, pat))
 
 # ---- word tables
-check("FILLER", sorted(set(sml_strings("FILLER"))), sorted(v1.FILLER))
+# Intentional beyond-parity correction: "total" can identify a USDA food
+# (e.g. "total can contents"); only the question-prefix normalizer strips it.
+check("FILLER", sorted(set(sml_strings("FILLER"))), sorted(v1.FILLER - {"total"}))
 check("PRODUCT_TYPES", sorted(set(sml_strings("PRODUCT_TYPES"))), sorted(v1.PRODUCT_TYPES))
 check("SPECIALTY", sorted(set(sml_strings("SPECIALTY"))), sorted(v1.SPECIALTY))
 check("VARIANT", sorted(set(sml_strings("VARIANT"))), sorted(v1.VARIANT))
@@ -172,5 +174,5 @@ if bad:
         print(" -", b)
     sys.exit(1)
 print("tables_check: %d patterns, %d inline patterns, 13 nutrients, %d mass and %d measure names, 5 sensor kinds, "
-      "5 unit suffixes, 6 word tables: all equal to the organs and the store"
+      "5 unit suffixes, 6 word tables: equal to the organs and the store (except documented total-word preservation)"
       % (len(pats), len(sml_pairs("inline")), len(v1.MASS), len(v1.MEASURE)))

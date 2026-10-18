@@ -28,21 +28,21 @@ definition unknown_what :: "soutcome \<Rightarrow> String.literal option" where
 
 definition q1 :: nquery where
   "q1 = NQ N_protein (A_mass 2 (STR ''oz'') MU_oz) (STR ''raw chayote'') (Some (170402, STR ''Chayote, fruit, raw''))
-     [(170402, STR ''Chayote, fruit, raw'')] [(170402, 82 / 100, STR ''g'')] [] True"
+     [(170402, STR ''Chayote, fruit, raw'')] [(170402, 82 / 100, STR ''g'')] [] [] True"
 
 definition q2 :: nquery where
   "q2 = NQ N_sodium (A_measure 1 (STR ''a'') (STR ''cup'') M_cup) (STR ''x'') (Some (1, STR ''X''))
-     [(1, STR ''X''), (2, STR ''Y'')] [(1, 100, STR ''mg''), (2, 50, STR ''mg'')] [] True"
+     [(1, STR ''X''), (2, STR ''Y'')] [(1, 100, STR ''mg''), (2, 50, STR ''mg'')] [] [] True"
 
 definition q3 :: nquery where
   "q3 = NQ N_sodium (A_measure 1 (STR ''a'') (STR ''cup'') M_cup) (STR ''x'') (Some (1, STR ''X''))
      [(1, STR ''X''), (2, STR ''Y'')] [(1, 100, STR ''mg''), (2, 90, STR ''mg'')]
-     [(STR ''1 cup, chopped'', 150), (STR ''1 Cup'', 140), (STR ''1 tbsp'', 9)] True"
+     [(STR ''1 cup, chopped'', 150), (STR ''1 Cup'', 140), (STR ''1 tbsp'', 9)] [] True"
 
 definition q4 :: nquery where
   "q4 = NQ N_calories (A_count 2 (STR ''2'') (STR ''bananas'')) (STR ''banana'') (Some (1, STR ''Bananas, raw''))
      [(1, STR ''Bananas, raw'')] [(1, 89, STR ''kcal'')]
-     [(STR ''1 cup, mashed'', 225), (STR ''1 extra small'', 81), (STR ''1 medium (7 to 7-7/8 long)'', 118)] True"
+     [(STR ''1 cup, mashed'', 225), (STR ''1 extra small'', 81), (STR ''1 medium (7 to 7-7/8 long)'', 118)] [] True"
 
 definition ev0 :: sev where
   "ev0 = SEv 1000000 30 [(0, 10), (900000, -7)] 5 (Some (STR ''A1-01'', STR ''Aisle 1'')) None
@@ -57,8 +57,8 @@ definition self_test :: bool where
      stated (nreply q1) = Some (STR ''0.46'') \<and>
      response (nreply q1) = STR ''2 oz of raw chayote has 0.46 g of protein (USDA SR Legacy #170402: Chayote, fruit, raw; 0.82 g per 100 g).'' \<and>
      nkernel q2 = NDecline ND_clarify \<and>
-     nkernel q3 = NAnswer 140 100 140 (Some (STR ''1 Cup'')) \<and>
-     response (nreply q3) = STR ''a cup (140 g) of x has 140 mg of sodium (USDA SR Legacy #1: X; 100 mg per 100 g).'' \<and>
+     nkernel q3 = NDecline ND_serving_ambiguous \<and>
+     reply_status (nreply q3) = STR ''clarify'' \<and>
      nkernel q4 = NAnswer 236 89 (89 * 236 / 100) (Some (STR ''1 medium (7 to 7-7/8 long)'')) \<and>
      reply_status (nreply q2) = STR ''clarify'' \<and>
      show_g (566990 / 10000) = STR ''56.699'' \<and> show_g 100 = STR ''100'' \<and> show_g (1 / 3) = STR ''0.333333'' \<and>
@@ -90,7 +90,7 @@ export_code nreply nkernel answered reply_status reply_kind response stated
 
 ML \<open>
   val theorems = [@{thm first_min_Some}, @{thm first_min_tie_first}, @{thm round_dp_sound},
-    @{thm nutrient_answer_covered}, @{thm nutrient_portion_real}, @{thm grams_pos}, @{thm stale_mono},
+    @{thm nutrient_serving_alternatives}, @{thm nutrient_answer_covered}, @{thm nutrient_portion_real}, @{thm grams_pos}, @{thm stale_mono},
     @{thm nutrient_answer_sound}, @{thm nutrient_requires_complete}, @{thm nutrient_value},
     @{thm nutrient_default_grams}, @{thm nutrient_mass_grams}, @{thm nutrient_measure_portion},
     @{thm nutrient_count_portion}, @{thm nutrient_readings_agree}, @{thm nutrient_unknown_food},

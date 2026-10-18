@@ -1,78 +1,99 @@
-# The store-backed family, end to end
+# Food amounts and warehouse questions
 
-This folder carries six shipped Oracle7 specialists as one program. They are the only ones among the
-non-relation specialists that read a database and, for the warehouse, remember a conversation:
+One program serves `cooking`, `cooking-v2`, `cooking-v3`, `cooking-v3-r2`,
+`warehouse` and `warehouse-r2`. Cooking reads the shipped USDA nutrition table.
+Warehouse reads one site's stock and sensors, and remembers proposals that
+require a later confirmation. The databases are opened immutable and never
+changed; warehouse conversations live in a separate writable JSON file.
 
-- `cooking`, `cooking-v2`, `cooking-v3`, `cooking-v3-r2` answer "how much protein is in 2 oz of raw chayote?"
-  from the USDA nutrition table (`upstream/root/specialists/cooking/nutrition_v1.sqlite3`, about 7 MB). The
-  four versions read the same table; they differ in how they strip the polite frame of a question ("Could you
-  tell me the calcium content of ...") and in which questions they leave to the core.
-- `warehouse` and `warehouse-r2` answer questions about one site: stock counts, bins, run-out days, what is low,
-  sensor readings and their age, and reorders that wait for a yes (`site_fresh.sqlite3`).
+Cooking handles polite questions, nutrient-content questions, masses, household
+measures and whole or fractional quantities. Before answering, the kernel checks
+that its displayed amount agrees with every supplied plausible food and serving
+within 5% or 0.15 absolute. This matters when foods have similar amounts per 100 g
+but different cup weights: an unspecified cup of jackfruit now needs clarification.
+A weight in grams often resolves that uncertainty.
 
-## How it is split
+The exact arithmetic, serving checks, reply construction, warehouse freshness
+and stock calculations, and confirmation state machine are exported from HOL.
+English matching, SQLite fetching, file persistence, timestamps and JSON remain
+untrusted. The fetcher's completeness flags are assumptions: checking supplied
+rows cannot prove that none were omitted. Missing or duplicate alternative
+portion groups can hide a possible serving; their complete and unique delivery
+is currently an untrusted input premise. The kernel theorem concerns the
+alternatives it receives, not every possible real-world food interpretation.
 
-| Part | File | Trusted? |
-|---|---|---|
-| The decision over fetched rows: which nutrient row, whether the readings in play disagree, which household portion, grams, the value and its rounding; stock, run-out, freshness, the low list, the session state machine (propose, confirm, cancel); the reply text | `Stores.thy` | HOL, proved; exported to SML |
-| Export, self test, oracle check | `Stores_Export.thy` | the build fails if a listed theorem uses an oracle or the self test fails |
-| Tables: nutrient keys and units, gram factors, cup/tbsp/tsp names, sensor kinds, unit suffixes | `Stores.thy` | HOL constants; `tables_check.py` compares them with the organs and the store |
-| Reading the question: the organs' patterns, the USDA food match (every question word present, then the organ's penalties), pronouns, follow-ups and ellipsis against the session | `recognizer.sml`, `../commons/commons.sml` | **untrusted**, hand-ported; every pattern is checked verbatim against the organ by `tables_check.py` |
-| Store access and the session file | `fetch.py` | **untrusted**; opens the stores read-only, says `complete` only for queries without a limit |
-| JSON, the child process, timestamps | `json.sml`, `main.sml` | **untrusted** |
-| Isabelle code generator, MLton, Python's sqlite3 | toolchain | trusted |
-
-The binary `var/stores/bin/stores` speaks the [answerer contract](../../../docs/contracts/answerer.md). It
-starts `fetch.py` as a child process and asks it for rows over a pipe, one JSON line each way; the stores are
-never copied and never written. The kernel declines (`incomplete`) whenever the shim did not claim to have
-returned every row it was asked for.
-
-What is proved is stated in the [lane handoff](../../../project/lanes/O18-cooking-warehouse.md): for cooking,
-the answer is the stored amount per 100 g times the grams over 100, the grams come from the asked mass or from a
-stored portion row of the asked measure (the shortest such label) or the organ's per-item preference, any two
-readings in play differ by at most 15% of the largest when it answers, every decline is exactly its condition,
-and the stated number is within the scorer's tolerance of the value. For the site, an order is placed only on a
-yes to the pending proposal of the same session, for exactly the proposed quantity and item, and only once; a
-reorder only proposes and is idempotent; a sensor value is reported only from the latest reading and only when
-it is no older than the freshness bound; stock is the sum of the stock events; run-out days are the whole days
-the count lasts at the last seven days' rate; the low list is exactly the items at or below their reorder level.
-
-Values are exact fractions. The organs compute with binary floats: on two store items (none on the panels) the
-organ's run-out days are one less than the exact quotient (135 units at 9 a week: 105 days exactly, 104 in the
-organ). Printed numbers round an exact tie up; the organs round the float.
+For warehouse, the HOL state machine requires a pending proposal in the same
+session before confirmation can place its exact order, and consumes that proposal.
+This does not prove atomicity or isolation of an external shared state file.
+Use one state file per serialized owner. Runtime wrappers do not retry stateful
+requests automatically.
 
 ## Build and run
 
 ```sh
-python3 tools/dev/check-native --session Veri7vn_Stores --session-root src/extract/stores \
-  --expect 'VERI7VN_STORES PASS' --timeout 900
-python3 src/extract/stores/tables_check.py
+python3 tools/dev/remote-build persvati src/extract/stores Veri7vn_Stores \
+  -d src/extract/commons --expect 'VERI7VN_STORES PASS theorems=43 oracles=0'
 sh src/extract/stores/build.sh
-echo '{"id": "1", "q": "How much protein is in 2 oz of raw chayote?", "session": "s"}' \
+python3 -B src/extract/stores/tables_check.py
+python3 -B src/extract/stores/verify.py
+printf '%s\n' '{"id":"1","q":"How much protein is in 1/2 kg of raw chayote?"}' \
   | var/stores/bin/stores --specialist cooking-v3
-python3 src/extract/stores/score.py
 ```
 
-The binary is not committed; it lives under `var/stores/bin/`.
+The build script finds a successful remote receipt matching the current Stores
+theories and ROOT, checks its export hash, and compiles that export with the
+current driver. It keeps previous artifacts and refuses a stale proof export.
+The native binary and its receipt stay under `var/stores/`.
 
-## Current result (2026-10-17)
+Runtime paths can all be supplied explicitly:
 
-Scored with `tools/parity/harness.py` (each specialist's own panel and scorer), right / wrong / false yes:
+```sh
+stores --specialist warehouse-r2 --fetch /package/stores/fetch.py \
+  --nutrition /package/stores/nutrition_v1.sqlite3 \
+  --site /package/stores/site_fresh.sqlite3 --state /writable/session.json
+```
 
-| Specialist | dev | held-out | shipped held-out |
-|---|---|---|---|
-| cooking | 200 / 1 / 0 of 202 | 158 / 0 / 0 of 218 | 158 of 218 |
-| cooking-v2 | 209 / 0 / 0 of 210 | 155 / 0 / 0 of 210 | 155 of 210 |
-| cooking-v3 | 191 / 1 / 0 of 192 | 224 / 2 / 0 of 228 | 224 of 228 |
-| cooking-v3-r2 | 191 / 1 / 0 of 192 | 224 / 2 / 0 of 228 | none shipped (same panel as cooking-v3) |
-| warehouse | 199 / 0 / 0 (193 of 193 without `off_site`) | 199 / 0 / 0 (193 of 193) | 193 of 193 |
-| warehouse-r2 | 199 / 0 / 0 (193 of 193) | 199 / 0 / 0 (193 of 193) | 193 of 193 |
+`--state` is a **file**, not a directory. Repository defaults remain available
+for development. The Python child runs with `-I -B`.
 
-Every reply makes the same decision as the shipped organ on the same question (answered or not, same kind, same
-value within the scorer's tolerance): 0 disagreements on all 2,476 panel items. The misses are the organs' own
-(v1's question frame leaking into the food name, v2's stripped question word, four USDA entries without the value
-or a portion that differs from the panel's). The reply text is the organ's byte for byte except 87 cooking replies
-whose value is an exact decimal tie (150 g at 1.3 g per 100 g is 1.95 g): the kernel rounds the tie up, the organ
-rounds the binary float, which here lies just below. The binary is 564 KB; the first question takes 120 to 145 ms
-for cooking (starting the shim and reading the 7,793 food names) and about 55 ms for the warehouse; after that the
-median is 0.5 to 0.8 ms per cooking question (budget 150 ms) and 1.3 ms per warehouse question (budget 50 ms).
+`--preview` evaluates warehouse replies without saving any proposed state or
+order. Unpinned family mode defaults to preview; pinned warehouse mode commits
+unless preview is requested. `--commit` is an explicit override. Every taken
+warehouse reply identifies its preview status in provenance. The dispatcher
+must not present a previewed order as placed. A serialized owner may select a
+preview through arbitration and guards, then commit that exact request once
+using its sole committing child and private state file. Speculative Oracle7
+Combo wrappers default to preview; explicit effectful mode requires a caller
+that guarantees this ownership. Unrecognized questions, narrowed-away
+questions and `off_site` replies fall through before persistence. Failed reads
+or writes withhold with an error; the shim updates its cache only after a
+successful file replacement.
+
+## Results on 18 October 2026
+
+Standalone shipped-panel scores are right/wrong/false yes. Right includes
+correct refusals; the remainder is valid questions withheld or clarified.
+
+| Specialist | Dev | Held-out |
+|---|---:|---:|
+| cooking |200/0/0 of202|214/0/0 of218|
+| cooking-v2 |207/0/0 of210|205/0/0 of210|
+| cooking-v3 |190/0/0 of192|223/0/0 of228|
+| cooking-v3-r2 |190/0/0 of192|223/0/0 of228|
+| warehouse |199/0/0 of199|199/0/0 of199|
+| warehouse-r2 |199/0/0 of199|199/0/0 of199|
+
+Two fresh cooking seeds also have zero wrong and zero false yes; the second
+was first evaluated after the nutrition implementation froze. Some previously
+correct cup answers now clarify because the question does not specify which
+household preparation it means. Missing USDA values are still not estimated.
+The 20 implementation-authored probes and executable persistence checks pass.
+
+The Darwin binary is about 582 KB. Measured steady p50 is 0.41–0.48ms cooking and
+1.18–1.37ms warehouse. Cold first replies are about 79 ms and 33 ms respectively,
+so the 20ms cold-start target remains unmet. These standalone results do not
+claim completion of all six head-composition criteria.
+
+The [current lane report](../../../project/lanes/C-symbolic-stores.md) contains
+exact theorem statements, both fresh-seed comparisons, receipts, known limits
+and package/dispatcher integration results.
