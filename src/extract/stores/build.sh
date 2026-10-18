@@ -39,7 +39,8 @@ shutil.copyfile(matched, out/'stores_generated.sml')
 (out/'proof-receipt.txt').write_text(str(receipt_path))
 (out/'config.sml').write_text('structure Config = struct val repo = '+json.dumps(str(root))+' end\n')
 (out/'stores.mlb').write_text('$(SML_LIB)/basis/basis.mlb\nstores_generated.sml\nconfig.sml\n'+
-    str(source.parent/'commons/commons.sml')+'\n'+''.join(str(source/n)+'\n' for n in ('json.sml','recognizer.sml','main.sml')))
+    ''.join(str(source.parent/'commons'/n)+'\n' for n in ('commons.sml','numeric.sml'))+
+    ''.join(str(source/n)+'\n' for n in ('json.sml','recognizer.sml','main.sml')))
 print('Checked export:', matched)
 PY
 python3 -B "$REPO/tools/dev/native-compile" --family stores --compiler "$MLTON" \

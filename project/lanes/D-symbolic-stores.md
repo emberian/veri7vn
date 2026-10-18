@@ -49,10 +49,14 @@ Adversarial numeral checks then exposed two concrete parser faults: Unicode
 suffix “000” and answered zero. Unicode minus now goes through the existing
 negative-quantity rejection, and quantity matches cannot begin inside another
 numeric token. Ordinary decimals and deliberate mixed fractions remain supported.
-Leading-dot decimals, scientific notation and grouped numerals currently withhold;
-they are not claimed as supported formats. This is a conservative lexical check,
-not a complete semantic number grammar. A shared issued-token parser remains
-the appropriate next abstraction rather than more independent numeric patterns.
+The tested leading-dot, scientific-notation and grouped-numeral cases withheld;
+they were not supported formats. This was only a conservative lexical check.
+The subsequent E role matrix found that scientific notation with raw chayote
+could still fall back to the default 100 g, because food matching dropped the
+unrecognized single-letter exponent text: `1e3 g` answered 0.82 g protein
+instead of 8.20 g. The captured D artifact retains this known limitation. The
+shared issued-token follow-on removes that fallback; D's shipped-panel scores
+do not measure this counterexample.
 
 ## What the proof says
 

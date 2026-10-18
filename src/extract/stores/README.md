@@ -16,7 +16,14 @@ A weight in grams often resolves that uncertainty.
 Counted foods carry an explicit size and form. Two small Granny Smith apples
 and two large ones use different USDA weights; an unspecified pair clarifies
 when the possible sizes disagree. Slices, strips and pieces cannot silently
-use a whole-food weight. Number words and fractions work for counts too.
+use a whole-food weight. Number words and fractions work for counts too. Numeric serving amounts use the
+shared exact-number reader: leading-dot decimals, scientific notation, correctly
+grouped thousands and explicit plus signs work for mass, household and count
+roles. A mixed fraction deliberately combines a nonnegative integer with a
+proper slash fraction. Every numeric token must belong to that single quantity;
+negative amounts, malformed numerals, forged markers, extra quantities and
+uninterpreted numeric food attributes withhold. A failed numeric role cannot
+fall back to the default 100 g. Unsupported non-ASCII food text also withholds.
 
 The exact arithmetic, serving checks, reply construction, warehouse freshness
 and stock calculations, and confirmation state machine are exported from HOL.
@@ -99,7 +106,7 @@ correct cup answers now clarify because the question does not specify which
 household preparation it means. Missing USDA values are still not estimated.
 The 20 implementation-authored probes and executable persistence checks pass.
 
-The Darwin binary is about 617 KB; the Linux binary is 1,461,752 bytes and
+The E Darwin binary is 637,320 bytes; the E Linux binary is 1,560,136 bytes and
 still exceeds the 1 MB goal. All 2,476 shipped-panel replies match across these
 platforms after removing timing. Earlier measured steady p50 is 0.41–0.48ms cooking and
 1.18–1.37ms warehouse. Cold first replies are about 79 ms and 33 ms respectively,
@@ -112,3 +119,7 @@ and package/dispatcher integration results.
 The [counted-serving follow-up](../../../project/lanes/D-symbolic-stores.md)
 records explicit sizes, finite portion-group validation, the warehouse reference
 repair, and their measured results.
+
+The [exact quantity-role follow-up](../../../project/lanes/E-symbolic-stores.md)
+records shared numeric-token consumption, the repaired scientific-notation
+default-serving fault, final artifact bindings and independently calculated probes.

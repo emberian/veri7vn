@@ -72,8 +72,9 @@
   },
   {
     "q": "How much protein is in .5 g of raw chayote?",
-    "status": "withheld",
-    "source": "Invalid amount, unknown food, or supplied alternatives disagree; no numeric estimate."
+    "status": "answered",
+    "source": "USDA #170402 protein0.82g per100g; .5g has0.0041g, displayed0.00g after two-decimal rounding. ExactNumeric issues the leading-dot quantity.",
+    "value": 0
   },
   {
     "q": "How much protein is in 1/0 kg of raw chayote?",

@@ -15,9 +15,9 @@
    follow-ups, pronouns and ellipsis against the session and names the item,
    zone and sensor kind. It computes no value and decides no decline: that is
    the HOL kernel (Stores.nreply, Stores.site_reply) over the rows the fetch
-   shim returns. Every pattern is in the table `pats` below with the organ's
-   own text; tables_check.py compares each one with the organ's pattern, and
-   the word tables with the organ's sets.
+   shim returns. Inherited patterns are in `pats` below with the organ's own
+   text; tables_check.py compares those and the inherited word tables. Added
+   quantity roles consume ExactNumeric-issued values and have separate probes.
 
    Matching is case-insensitive: the text is lower-cased and the pattern is
    passed as written (Regex.compile folds its literals; lane S17 fix). Spans
@@ -345,7 +345,8 @@ struct
       fun ins (x, []) = [x]
         | ins (x, y :: ys) = if size x > size y then x :: y :: ys else y :: ins (x, ys)
     in String.concatWith "|" (List.foldl ins [] names) end
-  val NUMBER = "(?:\\d+\\s+)?\\d+/\\d+|\\d+(?:\\.\\d+)?|an?|one|two|three|half an?|half a"
+  val MARKER = "qnum[0-9]+q"
+  val NUMBER = "(?:" ^ MARKER ^ "\\s+" ^ MARKER ^ ")|" ^ MARKER ^ "|an?|one|two|three|half an?|half a"
   val AMOUNT = "\\b(" ^ NUMBER ^ ")\\s*(" ^ unitAlternation () ^ ")\\b(?:\\s+of)?"
   (* Count modifiers describe the portion, so they are removed before matching
      food descriptions and carried explicitly into the checked request. *)
@@ -359,25 +360,35 @@ struct
   fun countForm s = case sing (Rx.lower s) of
       "slice" => S.CF_slice | "strip" => S.CF_strip | "piece" => S.CF_piece | _ => S.CF_whole
 
-  fun qtyOf (q : string) : S.rat =
+  type issued = (string * {value : ExactNumeric.rational, literal : string}) list
+
+  (* Only values issued by the shared scanner can occupy a numeric role.
+     Number words are the explicit finite dictionary above. The one two-token
+     construction is a nonnegative integer followed by a proper slash fraction. *)
+  fun qtyOf (issued : issued) (q : string) : S.rat * string * string list =
     let
       val l = Rx.lower q
-      fun natural x = valOf (IntInf.fromString x)
-      fun fraction x whole =
-        case String.fields (fn c => c = #"/") x of
-          [a, b] => let val d = natural b
-                    in if d = 0 then raise Fail "zero denominator in quantity"
-                       else S.mk_rat (whole * d + natural a) d end
-        | _ => raise Fail "invalid fraction quantity"
+      fun lookup key = Option.map #2 (List.find (fn (marker, _) => marker = key) issued)
+      fun checked (n, d) = if n >= 0 andalso d > 0 then S.mk_rat n d
+                           else raise Fail "food quantities must be nonnegative"
     in
-      if String.isSubstring "/" l then
-        (case String.tokens Char.isSpace l of
-           [f] => fraction f 0 | [w, f] => fraction f (natural w)
-         | _ => raise Fail "invalid mixed fraction")
-      else if size l > 0 andalso Char.isDigit (String.sub (l, 0)) then Num.ratOf l
-      else case List.find (fn (k, _) => k = l) WORDNUM of
-              SOME (_, (a, b)) => S.mk_rat (IntInf.fromInt a) (IntInf.fromInt b)
-            | NONE => raise Fail ("no number " ^ q)
+      case List.find (fn (word, _) => word = l) WORDNUM of
+        SOME (_, (n, d)) => (checked (IntInf.fromInt n, IntInf.fromInt d), q, [])
+      | NONE =>
+          (case String.tokens Char.isSpace l of
+             [marker] =>
+               (case lookup marker of
+                  SOME {value, literal} => (checked value, literal, [marker])
+                | NONE => raise Fail "quantity marker was not issued")
+           | [whole, fraction] =>
+               (case (lookup whole, lookup fraction) of
+                  (SOME {value = (w, wd), literal = wl}, SOME {value = (n, d), literal = fl}) =>
+                    if wd = 1 andalso w >= 0 andalso n >= 0 andalso n < d
+                       andalso String.isSubstring "/" fl
+                    then (checked (w * d + n, d), wl ^ " " ^ fl, [whole, fraction])
+                    else raise Fail "mixed quantity requires an integer and a proper fraction"
+                | _ => raise Fail "mixed quantity markers were not issued")
+           | _ => raise Fail "unsupported quantity role")
     end
 
   (* What the recognizer hands the kernel; rows are fetched afterwards. *)
@@ -387,7 +398,15 @@ struct
   (* NutritionOrgan.answer up to the store lookups. NONE = the organ returns None. *)
   fun v1 (foods : unit -> food vector) (text : string) : recog option =
     let
-      val t = Rx.sub "\\s*/\\s*" "/" 0 (Rx.collapse text)
+      val original = Rx.collapse text
+      val {text = t, numbers} = case ExactNumeric.mask original of
+          SOME masked => masked | NONE => raise Fail "malformed numeric token"
+      val literals = List.mapPartial (fn ExactNumeric.Number {start, stop, ...} =>
+            SOME (String.substring (original, start, stop - start)) | _ => NONE) (ExactNumeric.scan original)
+      val issued : issued = ListPair.mapEq
+        (fn ((marker, value), literal) => (marker, {value = value, literal = literal})) (numbers, literals)
+      val _ = if List.all (fn m => mem (Rx.lower (Rx.whole t m)) (map #1 issued)) (Rx.findall ("\\b" ^ MARKER ^ "\\b") t)
+              then () else raise Fail "unissued numeric marker in question"
       val found = List.mapPartial (fn (k, n, p) => Option.map (fn (m : Regex.match) => (#start m, k, n)) (Rx.search p t)) nutPats
       fun better ((s1, k1, _), (s2, k2, _)) = s1 < s2 orelse (s1 = s2 andalso k1 < k2)
       val nut = List.foldl (fn (x, NONE) => SOME x | (x, SOME y) => SOME (if better (x, y) then x else y)) NONE found
@@ -400,8 +419,9 @@ struct
             let
               val m = Rx.search AMOUNT t
               val cm = if isSome m then NONE else Rx.search COUNT_PREFIX t
-              (* A suffix of an unsupported numeral is not a quantity: e.g.
-                 2,000 must not become 000, nor 1.2.3 become 3. *)
+              (* Roles start at language boundaries, not inside unscanned
+                 structural text. Signed number words such as "- two" are
+                 unsupported; issued numeric signs already belong to values. *)
               val _ = case (case m of SOME x => SOME x | NONE => cm) of
                   SOME (mm as {start, ...} : Regex.match) =>
                     let val prefix = Rx.rstrip " \t\r\n" (String.substring (t, 0, start))
@@ -413,9 +433,18 @@ struct
                     in if adjacent orelse priorNumeric
                        then raise Fail "unsupported quantity token" else () end
                 | NONE => ()
+              val (quantity, quantityText, claimed) =
+                case (case m of SOME x => SOME x | NONE => cm) of
+                  SOME mm => qtyOf issued (Rx.g t mm 1)
+                | NONE => (S.mk_rat 100 1, "", [])
+              val _ = if length claimed = length issued andalso
+                         List.all (fn (marker, _) => mem marker claimed) issued
+                      then () else raise Fail "numeric token has no quantity role"
               val rest = Rx.sub (Pats.get ("nutrition_v1.NUTRIENTS." ^ k)) " " 1 t
               val rest = case m of SOME mm => Rx.replaceAll (Rx.whole t mm) " " rest
                          | NONE => (case cm of SOME mm => Rx.replaceAll (Rx.whole t mm) " " rest | NONE => rest)
+              val _ = if List.exists (fn c => Char.isDigit c orelse Char.ord c >= 128) (String.explode rest)
+                      then raise Fail "uninterpreted numeric or non-ASCII text outside quantity role" else ()
               val rest = String.map (fn c => if Char.isAlpha c andalso Char.ord c < 128 orelse c = #" " orelse c = #"," then c else #" ") rest
               val fv = foods ()
               val hit = matchFood fv rest
@@ -426,24 +455,23 @@ struct
                 case m of
                   SOME mm =>
                     let
-                      val q = Rx.g t mm 1 and u = Rx.g t mm 2
+                      val q = quantityText and u = Rx.g t mm 2
                       val lu = Rx.lower u
                     in
                       case List.find (fn (nm, _) => nm = lu) S.mass_names of
-                        SOME (_, mu) => S.A_mass (qtyOf q, lu, mu)
+                        SOME (_, mu) => S.A_mass (quantity, lu, mu)
                       | NONE =>
                           (case List.find (fn (nm, _) => nm = lu) S.measure_names of
-                             SOME (_, me) => S.A_measure (qtyOf q, q, u, me)
+                             SOME (_, me) => S.A_measure (quantity, q, u, me)
                            | NONE => raise Fail ("no unit " ^ u))
                     end
                 | NONE =>
                     (case cm of
                        SOME mm =>
-                         let val quantity = Rx.g t mm 1
-                             val sz = case Rx.grp t mm 2 of SOME x => x | NONE => ""
+                         let val sz = case Rx.grp t mm 2 of SOME x => x | NONE => ""
                              val form = case Rx.grp t mm 3 of SOME x => x | NONE => ""
                              val description = String.concatWith " " (List.filter (fn x => x <> "") [sz, form, phrase])
-                         in S.A_count (qtyOf quantity, quantity, description, countSize sz, countForm form) end
+                         in S.A_count (quantity, quantityText, description, countSize sz, countForm form) end
                      | NONE => S.A_default)
             in
               SOME {nut = n, amount = amount, phrase = Rx.strip phrase,
@@ -471,9 +499,7 @@ struct
 
   (* Per manifest: (pre-narrowing passes, normalized text, decline-narrowing applies) *)
   fun recognize (mode : string) (foods : unit -> food vector) (text : string) : (recog * bool) option =
-    let val text = Rx.replaceAll "\226\136\146" "-" text in
-    if Rx.has "(?:^|\\s)-\\s*\\d|(?:^|\\s)\\.\\d" text then NONE
-    else case mode of
+    case mode of
       "cooking" => Option.map (fn r => (r, false)) (v1 foods (normalize3 text))
     | "cooking-v2" => if Narrow.narrative text then NONE else Option.map (fn r => (r, true)) (v1 foods (normalize3 text))
     | "cooking-v3" => if Narrow.narrative text then NONE else Option.map (fn r => (r, true)) (v1 foods (normalize3 text))
@@ -482,7 +508,6 @@ struct
         else if Narrow.narrative text then NONE
         else Option.map (fn r => (r, true)) (v1 foods (normalize3 text))
     | _ => NONE
-    end
 end
 
 (* ------------------------------------------------------------------ site *)
