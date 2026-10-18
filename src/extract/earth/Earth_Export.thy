@@ -47,7 +47,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat capital_
   GlPlateDist GlPlateRate GlDepthTemp GlAge GlLeft HlNone HlGiven HlIso C14 K40 U238 U235 MRatio MFrac
   SeEnergy SeAmp SeAsk SeMw SeM0 SeSP SeGR
   HyRational HyHarvest HyManning HyFill HyCont IIn IMm AAcre AHa AKm2 HUS HSI HMix VGal VL VM3 TMin THour TSec
-  OSonar OPressure OTsunamiSpeed OTsunamiTime ODeepSpeed ODeepWL
+  OSonar OPressure OTsunamiSpeed OTsunamiTime ODeepSpeed ODeepGroupSpeed ODeepWL
   WHeat WChill WDew WAirT WRH WSaffir WBeaufort WIsa TsF TsC WMph WKmh WMs WKn AltKm AltM AltFt RhBoth RhWhich
   GhVpd GhDli GhPpfd GhGdd GhPlants GC GF LCm LM LIn LFt GaM2 GaFt2
   in SML module_name Earth file_prefix earth
@@ -82,6 +82,9 @@ ML \<open>
     @{thm oc_impossible_iff}, @{thm oc_value_sound}, @{thm shallow_speed_squared},
     @{thm tsunami_time_times_speed}, @{thm deep_wavelength_is_speed_times_period},
     @{thm deep_speed_relation}, @{thm sonar_round_trip}, @{thm absolute_pressure_adds_atmosphere},
+    @{thm ocean_success_feasible}, @{thm ocean_impossible_exact}, @{thm sonar_value_physical},
+    @{thm pressure_value_increment}, @{thm wave_travel_value_law},
+    @{thm deep_dispersion_derivative}, @{thm group_speed_is_dispersion_derivative}, @{thm group_speed_half_phase},
     @{thm oc_answered_iff},
     @{thm w_underspecified}, @{thm w_impossible_iff}, @{thm w_range_iff}, @{thm w_wind_chill_undefined},
     @{thm w_value_sound}, @{thm rnd_even_nearest}, @{thm ss_cat_monotone}, @{thm bft_force_monotone},

@@ -535,17 +535,23 @@ struct
     in if Narrow.narrative t then NONE else gate t (hydrologyReq t) end
 
   (* ============================ ocean ============================ *)
-  fun metresOf (v : string) (u : string) : fr =
-    if startsWith "k" u then fmul (frOf v) (fint 1000) else frOf v
+  exception UnknownOceanNumber
 
   fun ocean text =
     let
       val t = collapse text
     in
       if Narrow.narrative t then NONE
-      else
+      else case ExactNumeric.mask (lower t) of
+        NONE => NONE
+      | SOME {text = low, numbers} =>
         let
-          val low = lower t
+          val N = "(qnum[0-9]+q)"
+          fun frOf marker =
+            case List.find (fn (name, _) => name = marker) numbers of
+              SOME (_, value) => value
+            | NONE => raise UnknownOceanNumber
+          fun metresOf v u = if startsWith "k" u then fmul (frOf v) (fint 1000) else frOf v
           val depth = search ("\\b(?:depth|deep)\\s*(?:of|is|=)?\\s*" ^ N ^ "\\s*(km|m|meters?|metres?)\\b|"
                               ^ N ^ "\\s*(km|m|meters?|metres?)\\s*(?:deep|depth|of water|below|down|beneath)\\b|"
                               ^ "\\bat\\s+" ^ N ^ "\\s*(km|m|meters?|metres?)\\b") low
@@ -610,6 +616,8 @@ struct
                         let val per = fq (frOf (valOf (firstGroup low m [1, 2])))
                         in
                           if has "\\bwavelength\\b|\\bhow long\\b.*\\bwave\\b" low then SOME (E.ROcean (E.ODeepWL per))
+                          else if has "\\bgroup\\b" low andalso has "\\bcapillary\\b|\\bsurface tension\\b" low then NONE
+                          else if has "\\bgroup\\b" low andalso has "\\bspeed\\b|\\bvelocity\\b|\\bcelerity\\b" low then SOME (E.ROcean (E.ODeepGroupSpeed per))
                           else if has "\\bspeed\\b|\\bhow fast\\b|\\bvelocity\\b|\\bcelerity\\b" low then SOME (E.ROcean (E.ODeepSpeed per))
                           else NONE
                         end
@@ -618,7 +626,7 @@ struct
                 end
             end
         end
-    end
+    end handle UnknownOceanNumber => NONE
 
   (* ============================ meteorology ============================ *)
   val WN = "(-?\\d+(?:\\.\\d+)?)"

@@ -76,13 +76,16 @@
         "declines_in_domain": [
           "impossible",
           "imprecise"
+        ],
+        "kinds": [
+          "deep_group_speed"
         ]
       },
       "evidence": {
-        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "computation": "Ocean requests preserve exact signed numbers, reject physically infeasible inputs for their scalar models, and distinguish phase speed from group velocity. Group velocity is tied to the derivative of deep-water gravity-wave dispersion.",
         "assumptions": [
-          "The natural-language question was mapped to the intended typed request and units.",
-          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+          "Gravity is 9.81 m/s2; seawater density and sound speed use declared defaults unless supplied.",
+          "The supplied wave is in the deep-water gravity-wave regime for phase and group speed; these formulas do not cover capillary waves or intermediate depth."
         ],
         "untrusted": [
           "Natural-language recognition, family selection and parsing of numbers and units."

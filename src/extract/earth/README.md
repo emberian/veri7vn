@@ -26,6 +26,12 @@ explicit equals sign. Invalid latitude coordinates reach the kernel's decline,
 instead of falling through to a different distance calculation.
 
 `python3 -B src/extract/earth/beyond.py --seeds 701,1701 --out var/earth/beyond`
-runs the shipped panels, fresh numeric samples and 20 authored boundary probes.
+runs the shipped panels, fresh numeric samples and the authored boundary probes.
 Hydrology and meteorology ship panels but no generator source; the report names
 that gap. Self-tests execute during the checked build, not at binary startup.
+
+The next Ocean packet preserves full signed quantities, adds scalar-model
+physical feasibility, and distinguishes deep-water group velocity from phase
+velocity. The checked D candidate passes its panels and exact composed probes; the
+selected C delivery remains independently captured pending D integration. See
+[the D report](../../../project/lanes/D-earth.md) for exact state and model limits.

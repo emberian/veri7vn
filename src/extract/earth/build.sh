@@ -24,6 +24,7 @@ cat > "$OUT/build/earth.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 earth_generated.sml
 $SRC/regex.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF

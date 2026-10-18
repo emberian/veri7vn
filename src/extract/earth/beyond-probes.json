@@ -6,126 +6,383 @@
       "q": "For a region with a-value 6 and b-value 1, how many quakes of magnitude at least 4 occur per year?",
       "expected": 100,
       "status": "answered",
-      "kind": "gr_count"
+      "kind": "gr_count",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "seismology",
       "q": "For a region with a-value 5.3 and b-value 0.8, how many quakes of magnitude at least 5 occur per year?",
       "expected": 19.952623149688787,
       "status": "answered",
-      "kind": "gr_count"
+      "kind": "gr_count",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "seismology",
       "q": "For a region with a-value 4 and b-value 0.5, how many quakes of magnitude at least 6 occur per year?",
       "expected": 10.0,
       "status": "answered",
-      "kind": "gr_count"
+      "kind": "gr_count",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "seismology",
       "q": "For a region with a-value 7.1 and b-value 1.2, how many quakes of magnitude at least 5 occur per year?",
       "expected": 12.589254117941662,
       "status": "answered",
-      "kind": "gr_count"
+      "kind": "gr_count",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "seismology",
       "q": "With b-value 0.8, how many quakes of magnitude at least 4 occur per year?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "missing_required_input"
     },
     {
       "specialist": "seismology",
       "q": "With a-value 5, how many quakes of magnitude at least 4 occur per year?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "missing_required_input"
     },
     {
       "specialist": "seismology",
       "q": "With a-value 5 and b-value 1, how many earthquakes occur per year?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "missing_required_input"
     },
     {
       "specialist": "seismology",
       "q": "The P waves travel 4 km/s and S waves 6 km/s with an S-P time of 12 s. How far away is the quake?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "geography",
       "q": "What is the great-circle distance between 10°N, 20°E and 30°S, 40°W in km?",
       "expected": 7799.976537459435,
       "status": "answered",
-      "kind": "gc_km"
+      "kind": "gc_km",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "geography",
       "q": "What is the great-circle distance between 30°S, 40°W and 10°N, 20°E in km?",
       "expected": 7799.976537459435,
       "status": "answered",
-      "kind": "gc_km"
+      "kind": "gc_km",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "geography",
       "q": "What is the great-circle distance between 95°N, 20°E and 30°S, 40°W in km?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "geology",
       "q": "A sample of carbon-14 has 25% remaining. How old is it?",
       "expected": 11460,
-      "status": "answered"
+      "status": "answered",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "geology",
       "q": "A sample of carbon-14 has 125% remaining. How old is it?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "meteorology",
       "q": "What is the dew point at 25 C and 100% relative humidity?",
       "expected": 25,
-      "status": "answered"
+      "status": "answered",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "meteorology",
       "q": "What is the dew point at 25 C and 0% relative humidity?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "meteorology",
       "q": "What is the standard atmosphere temperature at an altitude of 12000 m?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
     },
     {
       "specialist": "greenhouse",
       "q": "What PPFD do I need to reach a DLI of 18 mol/m2/d with a 0 hours photoperiod?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "greenhouse",
       "q": "What is the VPD at 25 C and 120% relative humidity?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "hydrology",
       "q": "Using Manning's equation with n = -0.05, flow area 2 m2, wetted perimeter 4 m and slope 0.002, what is the velocity?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "hydrology",
       "q": "Using Manning's equation with n = 0.05, flow area 2 m2, wetted perimeter 4 m and slope -0.002, what is the velocity?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the depth from a sonar echo return time of -2 seconds?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the depth from a sonar echo return time of 2 seconds with sound speed -1500 m/s?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the depth from a sonar echo return time of 2 seconds with sound speed 0 m/s?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth -10 m in seawater?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 10 m in seawater with density -1025 kg/m3?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 10 m in seawater with density 0 kg/m3?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the speed of a tsunami in water of depth -10 m?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "How long does a tsunami take to cross 100 km at depth 0 m?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "How long does a tsunami take to cross -100 km at depth 1000 m?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the speed of a deep-water wave with period -10 seconds?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the wavelength of a deep-water wave with period 0 seconds?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the depth from a sonar echo return time of 0 seconds?",
+      "status": "answered",
+      "kind": "sonar_depth",
+      "expected": 0,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the depth from a sonar echo return time of .5 seconds?",
+      "status": "answered",
+      "kind": "sonar_depth",
+      "expected": 375,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the depth from a sonar echo return time of 1/2 seconds?",
+      "status": "answered",
+      "kind": "sonar_depth",
+      "expected": 375,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the depth from a sonar echo return time of 5e-1 seconds?",
+      "status": "answered",
+      "kind": "sonar_depth",
+      "expected": 375,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 0 m in seawater?",
+      "status": "answered",
+      "kind": "pressure",
+      "expected": 0,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the speed of a tsunami in water of depth 0 m?",
+      "status": "answered",
+      "kind": "shallow_speed",
+      "expected": 0,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "How long does a tsunami take to cross 0 km at depth 1000 m?",
+      "status": "answered",
+      "kind": "tsunami_time",
+      "expected": 0,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the depth from a sonar echo return time of 1.2.3 seconds?",
+      "status": "withheld",
+      "expected": null,
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the depth from a sonar echo return time of qnum0q seconds?",
+      "status": "withheld",
+      "expected": null,
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the group velocity of a deep-water wave with period 10 seconds?",
+      "expected": 7.806549958657468,
+      "status": "answered",
+      "kind": "deep_group_speed",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the group speed of a deep-water wave with a 10-second period?",
+      "expected": 7.806549958657468,
+      "status": "answered",
+      "kind": "deep_group_speed",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the group velocity of a deep-water wave with period .5 seconds?",
+      "expected": 0.39032749793287336,
+      "status": "answered",
+      "kind": "deep_group_speed",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the group velocity of a deep-water wave with period 1/2 seconds?",
+      "expected": 0.39032749793287336,
+      "status": "answered",
+      "kind": "deep_group_speed",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the group velocity of a deep-water wave with period 5e-1 seconds?",
+      "expected": 0.39032749793287336,
+      "status": "answered",
+      "kind": "deep_group_speed",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the group velocity of a deep-water wave with period 0 seconds?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the group velocity of a deep-water wave with period -2 seconds?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the group velocity of a deep-water wave with period −.5 seconds?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the phase velocity of a deep-water wave with period 10 seconds?",
+      "expected": 15.613099917314935,
+      "status": "answered",
+      "kind": "deep_speed",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the group velocity of a deep-water capillary wave with period 10 seconds?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
     }
   ]
 }

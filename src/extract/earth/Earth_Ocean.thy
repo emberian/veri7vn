@@ -18,14 +18,33 @@ datatype ocean_req =
   | OTsunamiSpeed rat
   | OTsunamiTime rat rat
   | ODeepSpeed rat
+  | ODeepGroupSpeed rat
   | ODeepWL rat
 
 section \<open>Declines\<close>
 
-fun oc_impossible :: "ocean_req \<Rightarrow> String.literal option" where
-  "oc_impossible (OTsunamiTime d _) =
-     (if d \<le> 0 then Some (STR ''A tsunami needs water of positive depth to have a travel time.'') else None)"
-| "oc_impossible _ = None"
+fun oc_feasible :: "ocean_req \<Rightarrow> bool" where
+  "oc_feasible (OSonar t v _) = (0 \<le> t \<and> 0 < v)"
+| "oc_feasible (OPressure d rho _) = (0 \<le> d \<and> 0 < rho)"
+| "oc_feasible (OTsunamiSpeed d) = (0 \<le> d)"
+| "oc_feasible (OTsunamiTime d km) = (0 < d \<and> 0 \<le> km)"
+| "oc_feasible (ODeepSpeed t) = (0 < t)"
+| "oc_feasible (ODeepGroupSpeed t) = (0 < t)"
+| "oc_feasible (ODeepWL t) = (0 < t)"
+
+fun oc_bad_input_text :: "ocean_req \<Rightarrow> String.literal" where
+  "oc_bad_input_text (OSonar _ _ _) = STR ''Echo time cannot be negative and sound speed must be positive.''"
+| "oc_bad_input_text (OPressure _ _ _) = STR ''Water depth cannot be negative and density must be positive.''"
+| "oc_bad_input_text (OTsunamiSpeed _) = STR ''Water depth cannot be negative.''"
+| "oc_bad_input_text (OTsunamiTime _ _) = STR ''Wave travel needs positive water depth and a nonnegative travel distance.''"
+| "oc_bad_input_text (ODeepSpeed _) = STR ''A wave period must be positive.''"
+| "oc_bad_input_text (ODeepGroupSpeed _) = STR ''A wave period must be positive.''"
+| "oc_bad_input_text (ODeepWL _) = STR ''A wave period must be positive.''"
+
+definition oc_impossible :: "ocean_req \<Rightarrow> String.literal option" where
+  "oc_impossible r = (if oc_feasible r then None else Some (oc_bad_input_text r))"
+
+declare oc_impossible_def [simp]
 
 section \<open>Values\<close>
 
@@ -39,6 +58,7 @@ definition oc_xval :: "ocean_req \<Rightarrow> xexpr" where
     | OTsunamiSpeed d \<Rightarrow> XFa dprec (sqrt_gd_fa d)
     | OTsunamiTime d km \<Rightarrow> XFa dprec (floatarith.Mult (Q (km * 1000 / 3600)) (floatarith.Inverse (sqrt_gd_fa d)))
     | ODeepSpeed t \<Rightarrow> XFa dprec (floatarith.Mult (Q (grav * t / 2)) (floatarith.Inverse floatarith.Pi))
+    | ODeepGroupSpeed t \<Rightarrow> XFa dprec (floatarith.Mult (Q (grav * t / 4)) (floatarith.Inverse floatarith.Pi))
     | ODeepWL t \<Rightarrow> XFa dprec (floatarith.Mult (Q (grav * t * t / 2)) (floatarith.Inverse floatarith.Pi)))"
 
 definition oc_phys :: "ocean_req \<Rightarrow> real" where
@@ -48,6 +68,7 @@ definition oc_phys :: "ocean_req \<Rightarrow> real" where
     | OTsunamiSpeed d \<Rightarrow> sqrt (rl grav * rl d)
     | OTsunamiTime d km \<Rightarrow> rl km * 1000 / sqrt (rl grav * rl d) / 3600
     | ODeepSpeed t \<Rightarrow> rl grav * rl t / (2 * pi)
+    | ODeepGroupSpeed t \<Rightarrow> rl grav * rl t / (4 * pi)
     | ODeepWL t \<Rightarrow> rl grav * rl t ^ 2 / (2 * pi))"
 
 definition oc_kernel :: "ocean_req \<Rightarrow> outcome" where
@@ -55,13 +76,13 @@ definition oc_kernel :: "ocean_req \<Rightarrow> outcome" where
 
 theorem oc_impossible_iff:
   "oc_kernel r = Decline (Imposs w) \<longleftrightarrow> oc_impossible r = Some w"
-  by (auto simp: oc_kernel_def split: option.splits)
+  by (auto simp: oc_kernel_def split: option.splits if_splits)
 
 lemma oc_value_cases: "oc_kernel r = Value x \<Longrightarrow> oc_impossible r = None \<and> x = oc_xval r"
-  by (auto simp: oc_kernel_def split: option.splits)
+  by (auto simp: oc_kernel_def split: option.splits if_splits)
 
 lemma oc_not_word: "oc_kernel r \<noteq> Word t" "oc_kernel r \<noteq> Note"
-  by (auto simp: oc_kernel_def split: option.splits)
+  by (auto simp: oc_kernel_def split: option.splits if_splits)
 
 lemma interp_sqrt_gd [simp]: "interpret_floatarith (sqrt_gd_fa d) xs = sqrt (rl grav * rl d)"
   by (simp add: sqrt_gd_fa_def of_rat_mult)
@@ -86,6 +107,9 @@ proof -
     then show ?thesis by (simp add: oc_xval_def oc_phys_def of_rat_mult of_rat_divide field_simps)
   next
     case (ODeepSpeed t)
+    then show ?thesis by (simp add: oc_xval_def oc_phys_def of_rat_mult of_rat_divide field_simps)
+  next
+    case (ODeepGroupSpeed t)
     then show ?thesis by (simp add: oc_xval_def oc_phys_def of_rat_mult of_rat_divide field_simps)
   next
     case (ODeepWL t)
@@ -137,6 +161,91 @@ theorem absolute_pressure_adds_atmosphere:
   "oc_phys (OPressure d rho True) = oc_phys (OPressure d rho False) + rl atm_kpa"
   by (simp add: oc_phys_def)
 
+section \<open>Physical feasibility of successful requests\<close>
+
+theorem ocean_success_feasible:
+  "oc_kernel r = Value x \<Longrightarrow> oc_feasible r"
+  using oc_value_cases[of r x] by (auto split: if_splits)
+
+theorem ocean_impossible_exact:
+  "(\<exists>w. oc_kernel r = Decline (Imposs w)) \<longleftrightarrow> \<not> oc_feasible r"
+  by (auto simp: oc_kernel_def)
+
+theorem sonar_value_physical:
+  assumes k: "oc_kernel (OSonar t v st) = Value x"
+  shows "0 \<le> t \<and> 0 < v \<and> 0 \<le> xsem x \<and> xsem x * 2 = rl v * rl t"
+proof -
+  have dom: "0 \<le> t" "0 < v" using ocean_success_feasible[OF k] by auto
+  have t0: "0 \<le> rl t" using dom(1) by (simp add: zero_le_of_rat_iff)
+  have v0: "0 \<le> rl v" using dom(2) by (simp add: zero_le_of_rat_iff less_imp_le)
+  have eq: "xsem x = rl v * rl t / 2" using oc_value_sound[OF k] by (simp add: oc_phys_def)
+  have product_nonnegative: "0 \<le> rl v * rl t"
+    by (rule mult_nonneg_nonneg[OF v0 t0])
+  have result_nonnegative: "0 \<le> xsem x" using eq product_nonnegative by linarith
+  have round_trip: "xsem x * 2 = rl v * rl t" using eq by linarith
+  show ?thesis using dom result_nonnegative round_trip by blast
+qed
+
+theorem pressure_value_increment:
+  assumes a: "oc_kernel (OPressure d1 rho ab) = Value x"
+      and b: "oc_kernel (OPressure d2 rho ab) = Value y"
+  shows "(xsem y - xsem x) * 1000 = rl rho * rl grav * (rl d2 - rl d1)"
+  using oc_value_sound[OF a] oc_value_sound[OF b]
+  by (simp add: oc_phys_def algebra_simps)
+
+theorem wave_travel_value_law:
+  assumes k: "oc_kernel (OTsunamiTime d km) = Value x"
+  shows "0 < d \<and> 0 \<le> km \<and> xsem x * 3600 * sqrt (rl grav * rl d) = rl km * 1000"
+  using ocean_success_feasible[OF k] oc_value_sound[OF k] tsunami_time_times_speed[of d km]
+  by auto
+
+section \<open>Group velocity from the dispersion relation\<close>
+
+definition deep_omega :: "real \<Rightarrow> real" where
+  "deep_omega k = sqrt (rl grav * k)"
+
+lemma deep_dispersion_derivative:
+  assumes "0 < k"
+  shows "DERIV deep_omega k :> (rl grav / (2 * deep_omega k))"
+proof -
+  have p: "0 < rl grav * k" using assms by (simp add: grav_def)
+  have sq: "DERIV sqrt (rl grav * k) :> inverse (sqrt (rl grav * k)) / 2"
+    by (rule DERIV_real_sqrt[OF p])
+  have lin: "DERIV (\<lambda>x. rl grav * x) k :> rl grav" by simp
+  have omega_fun: "deep_omega = (\<lambda>x. sqrt (rl grav * x))"
+    by (rule ext) (simp add: deep_omega_def)
+  have "DERIV (\<lambda>x. sqrt (rl grav * x)) k :> (inverse (sqrt (rl grav * k)) / 2 * rl grav)"
+    by (rule DERIV_chain2[OF sq lin])
+  then show ?thesis by (simp only: omega_fun divide_inverse inverse_mult_distrib mult.assoc mult.commute mult.left_commute)
+qed
+
+theorem group_speed_is_dispersion_derivative:
+  assumes answer: "oc_kernel (ODeepGroupSpeed t) = Value x"
+      and wave: "0 < k" "deep_omega k * rl t = 2 * pi"
+  shows "DERIV deep_omega k :> xsem x"
+proof -
+  have semantic_eq: "xsem x = rl grav * rl t / (4 * pi)"
+    using oc_value_sound[OF answer] by (simp add: oc_phys_def)
+  have pos: "0 < deep_omega k" using wave(1)
+    by (simp add: deep_omega_def grav_def)
+  have period: "rl t = 2 * pi / deep_omega k"
+    using wave(2) pos by (simp add: field_simps mult.commute)
+  have same: "rl grav * rl t / (4 * pi) = rl grav / (2 * deep_omega k)"
+    unfolding period by (simp add: field_simps)
+  show ?thesis using deep_dispersion_derivative[OF wave(1)] semantic_eq same by simp
+qed
+
+theorem group_speed_half_phase:
+  assumes "oc_kernel (ODeepGroupSpeed t) = Value x" "oc_kernel (ODeepSpeed t) = Value y"
+  shows "2 * xsem x = xsem y"
+proof -
+  have group_eq: "xsem x = rl grav * rl t / (4 * pi)"
+    using oc_value_sound[OF assms(1)] by (simp add: oc_phys_def)
+  have phase_eq: "xsem y = rl grav * rl t / (2 * pi)"
+    using oc_value_sound[OF assms(2)] by (simp add: oc_phys_def)
+  show ?thesis unfolding group_eq phase_eq by (simp add: field_simps)
+qed
+
 section \<open>Text\<close>
 
 fun oc_kind :: "ocean_req \<Rightarrow> String.literal" where
@@ -145,6 +254,7 @@ fun oc_kind :: "ocean_req \<Rightarrow> String.literal" where
 | "oc_kind (OTsunamiSpeed _) = STR ''shallow_speed''"
 | "oc_kind (OTsunamiTime _ _) = STR ''tsunami_time''"
 | "oc_kind (ODeepSpeed _) = STR ''deep_speed''"
+| "oc_kind (ODeepGroupSpeed _) = STR ''deep_group_speed''"
 | "oc_kind (ODeepWL _) = STR ''deep_wavelength''"
 
 definition o1 :: "rat \<Rightarrow> String.literal" where "o1 q = showx GOcean (XRat q)"
@@ -163,6 +273,7 @@ fun oc_text :: "ocean_req \<Rightarrow> xexpr \<Rightarrow> String.literal \<Rig
      + showx GOcean (XFa dprec (sqrt_gd_fa d)) + STR '' m/s, c = sqrt(g d) = sqrt(9.81 x '' + o1 d + STR '' m)).''"
 | "oc_text (ODeepSpeed t) x V = STR ''The wave speed is '' + V + STR '' m/s (c = g T / 2pi = 9.81 x '' + o1 t
      + STR '' / 2pi; deep water).''"
+| "oc_text (ODeepGroupSpeed t) x V = STR ''The group velocity is '' + V + STR '' m/s (d omega/d k = g T / 4pi; deep-water gravity-wave dispersion).''"
 | "oc_text (ODeepWL t) x V = STR ''The wavelength is '' + V + STR '' m (L = g T^2 / 2pi = 9.81 x '' + o1 t
      + STR ''^2 / 2pi; deep water).''"
 

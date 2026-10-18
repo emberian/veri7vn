@@ -1,9 +1,20 @@
-# D-earth: model boundaries after the C packet
+# D-earth: Ocean physical inputs and group velocity
 
-Status: active implementation, no D proof or final D panel claim yet. C results
-remain in the C report. These rows are actual binary probes, not a completeness
-claim; passing one boundary does not establish the full model. Raw replies:
-`var/earth/d-domain/ledger-probes.json`.
+Status: checked kernel, selected native, official panels and exact composed
+consumer checks pass. Actual compiler inputs are immutably captured at
+`var/C-runtime-package/bound-prepared/20261018T081639Z-a5c43993f5ec/earth`.
+Source and native remain frozen pending root integration. The earlier C artifact remains independently
+captured and committed in `5327e3c`; this is a separate next-cohort candidate.
+
+The old reader silently changed sonar -2 seconds into +2 and answered depth 1500m.
+It also returned phase speed when asked for group velocity. Ocean now preserves
+full signed quantities through the shared exact lexer, rejects physically
+infeasible scalar inputs, and computes a distinct group-speed request.
+
+## Specialist model ledger
+
+These rows record actual boundary probes, not complete domain coverage. Initial
+raw replies are in `var/earth/d-domain/ledger-probes.json`.
 
 | Specialist | Model boundary exercised | Actual result | Next concrete work |
 |---|---|---|---|
@@ -11,72 +22,103 @@ claim; passing one boundary does not establish the full model. Raw replies:
 | geology | A remaining fraction cannot be negative. | -25% is silently read as +25%, answered age 11460 y. | Shared exact numeric lexer; bind accepted fraction to full signed source token and retain existing kernel range guard. |
 | seismology | Supplied coefficients retain their sign. | b=-1 is treated as absent, yielding underspecified. | Preserve typed signed Gutenberg–Richter coefficients; distinguish mathematically defined model from plausible calibrated parameters. |
 | hydrology | Runoff fraction C is in [0,1] under the simple precipitation-partition model. | C=1.5 becomes 1 and answers 0.5556 m3/s. | Consume complete number; add kernel coefficient feasibility and conservation bound Q<=i*A (with units). |
-| ocean | Echo duration is nonnegative; sound speed is positive. | -2 seconds becomes +2, answering depth1500m. | First D implementation: shared numeric lexer + complete typed feasibility for all six requests + model-bound conservation/nonnegative laws. |
+| ocean | Physical scalar inputs retain signs; group and phase velocity differ. | D now rejects -2 seconds and nonpositive sound speed; ten-second group velocity is 7.807 m/s, phase is 15.61 m/s. | Checked feasibility and dispersion-derivative laws; capillary group waves remain unsupported. |
 | meteorology | RH must be positive and <=100 for dew-point inversion. | -50% produces impossible. | Check empirical model applicability separately from algebraic poles; high/low RH proof does not establish calibration range. |
 | greenhouse | A daily light integration duration lies within a day. | 30h/day gives DLI54 without qualification. | Bound daily duration to [0,24], positive duration for PPFD inversion; preserve zero-light case and bind DLI/PPFD inversion. |
 | greenhouse-r2 | Same daily duration semantics as greenhouse. | Same DLI54 response. | Shared kernel repair, both specialist consumers. |
 
-## First implementation: ocean physical feasibility
 
-Keep the current six computations and declared constants. Make complete signed
-inputs reach the typed kernel, with guards:
+A further seismology case reads magnitude 10 as 1, returning 100000/year instead
+of 0.0001/year for a=6,b=1; `var/earth/d-domain/magnitude-gap.json`. That full-token
+repair remains outstanding. No other Earth reader is silently claimed fixed by
+Ocean's shared-lexer adoption.
 
-- Echo: elapsed time >=0 and sound speed >0.
-- Gauge/absolute pressure: depth >=0 and density >0.
-- Shallow wave speed: depth >=0 (zero depth gives zero model speed).
-- Tsunami travel: depth >0 and travel distance >=0.
-- Deep-water speed/wavelength: period >0.
+## Changes and checked laws
 
-These are assumptions of the existing scalar models, not a general description
-of every wave or ocean state. Bind successful output to physical feasibility,
-round-trip echo distance, pressure increment, and wave distance/time laws already
-connected to the computation. Add explicit impossible equivalences and scan every
-new theorem. Negative tests cover each independent argument, zero boundaries,
-and full source token consumption. Ordinary shipped/fresh panels must retain
-scores; composed refusals need explicit accepted domain context.
+Changed `Earth_Ocean.thy`, `Earth_Export.thy`, `recognizer.sml`, `build.sh`,
+`capabilities.json`, `beyond-probes.json`, and `README.md`. The build script uses
+the common immutable-input helper and now consumes `commons/numeric.sml`.
 
-The shared lexer is being implemented by /root/natural/chemistry_parser under
-commons/numeric.sml. This lane will adopt it selectively after Earth C captures
-and freezes. No new lasting numeric regex helper belongs here.
+The typed feasible domain is explicit:
 
-## Work prepared while C finishes
+- Sonar time >=0 and sound speed >0.
+- Pressure depth >=0 and density >0.
+- Shallow-water speed depth >=0; travel depth >0 and distance >=0.
+- Deep-water phase speed, group speed and wavelength period >0.
 
-Prepared files are `var/earth/d-domain/Earth_Ocean.thy` and `recognizer.sml`,
-with 20 boundary and lexical probes in `ocean-probes.json`. Current family source
-is still the C proof candidate. The scratch reader compiled against the previous
-checked kernel: .5, 1/2 and 5e-1 seconds all yield 375m; malformed 1.2.3 and a forged
-qnum0q marker are not taken. Negative -2s now reaches the old kernel as -1500m,
-showing why lexer preservation and kernel feasibility are both required.
+Successful kernel values imply those constraints; impossible refusal occurs
+exactly outside them. A successful sonar value is nonnegative and twice it equals
+speed times elapsed echo time. For two successful pressure requests with the same
+density and absolute/gauge choice, pressure difference times 1000 equals rho*g
+ times the depth difference. Successful shallow-wave travel obeys time*3600*
+sqrt(g*depth)=distance_km*1000 and carries positive-depth/nonnegative-distance
+premises from the actual kernel.
 
-Initial scratch reader shipped scoring: dev 23/23, heldout 20/23, wrong 0, false yes 0.
-All three misses are hyphenated wave periods (10-second, 8-second, 12-second);
-the shared lexer owner fixed the token-boundary issue. Rebuilt scoped consumer
-now passes 46/46 (23 dev, 23 heldout), zero wrong/false yes. The new physical kernel
-still needs to be checked after C capture.
+The new `ODeepGroupSpeed` computes g*T/(4*pi), emits `deep_group_speed`, and is
+selected before generic speed wording. For positive wave number k,
+omega(k)=sqrt(g*k) has derivative g/(2*omega(k)). A successful group-speed output
+is that derivative whenever the physical period relation omega(k)*T=2*pi holds.
+A second kernel-bound law says twice a successful group speed equals the
+successful phase speed for the same period. All eight new laws enter the oracle
+scan. This is a gravity-wave deep-water model with g=9.81m/s2; it does not model
+capillary/surface-tension waves, which the reader leaves unsupported.
 
-## Further model-selection counterexample
+The untrusted reader handles exact decimals, fractions, scientific notation,
+Unicode signs and hyphenated period adjectives. Every masked number must resolve
+through the shared lexer's actual table. Malformed and forged numeric markers
+cannot become a trusted quantity. Unit/role recognition and physical model
+selection remain untrusted.
 
-The current Ocean reader answers "What is the group velocity of a deep-water
-wave with period 10 seconds?" with 15.61 m/s. That is the phase speed. Under the
-same deep-water dispersion model, omega²=g*k, the derivative d(omega)/dk gives
-group speed g*T/(4*pi), about 7.80655 m/s. This is an actual wrong answer outside
-the shipped panel (`var/earth/d-domain/group-speed-gap.json`). After completing
-the feasibility packet, the next algorithmic extension should distinguish phase
-and group requests and bind the group computation to that dispersion law; merely
-adding physical-domain guards will not fix this selection error.
+## Exact checked candidate
 
-A second full-token counterexample affects Gutenberg–Richter: with a=6, b=1 and
-magnitude threshold 10, the current reader takes only the digit 1 and answers
-100000/year instead of the declared model's 0.0001/year. Exact reply:
-`var/earth/d-domain/magnitude-gap.json`. The shared lexer should consume the full
-threshold and signed regional coefficients; an arbitrary one-digit magnitude
-restriction is not a domain property of the exponential count model.
+Passed proof: `var/earth/remote-attempts/20261018T080936Z-0c7db09e8ddf/receipt.json`,
+persvati exit 0, marker found, source stable and fresh exports published.
+Assertion export: `VERI7VN_EARTH PASS theorems=124 oracles=0`. Earlier failed
+attempts were repaired using explicit conditional splits, sign arithmetic,
+function extensionality and field cancellation; no failed export was consumed
+and no heavier theory imports were added.
 
-The group-speed implementation is now prepared separately in
-`var/earth/e-group/Earth_Ocean.thy` and `recognizer.sml`; it has not been promoted
-or checked. It adds a distinct `ODeepGroupSpeed` request and `deep_group_speed`
-kind, evaluates g*T/(4*pi), and proposes a theorem connecting a successful answer
-to the derivative of omega(k)=sqrt(g*k) whenever the supplied period satisfies
-omega*T=2*pi. A second law ties group speed to half the successful phase speed.
-This extends the pending Ocean feasibility source and keeps current C source
-frozen. The new runtime kind will need explicit capability acceptance when promoted.
+- Generated SML SHA256: `a6b6822aca71433f6a883243732187a789338d1aa77d8991137d0061220b8f57`.
+- Native `var/earth/bin/earth`: `8f064d55a3953b4af0e80e80bcb21633c40ff1369a78ad919b9b0b9039904ce2`, 931320 bytes.
+- Immutable compiler-input manifest: `var/earth/native-attempts/20261018T081639Z-a5c43993f5ec/compile-inputs.json`.
+- Consumed shared numeric SHA256: `2f313c77fadce09298f0387599e630b04a6551e800f52b6c79a88468b2cc046d`.
+
+The helper captured actual generated SML, family regex, numeric lexer,
+recognizer/main and rewritten MLB, checked export provenance and rechecked inputs
+after compilation.
+
+## Measured results and capability limits
+
+| Official-scored panel | Right / total | Wrong | False yes | Valid withheld |
+|---|---:|---:|---:|---:|
+| All eight shipped specialists | 554/554 |0|0|0|
+| Fresh offset 8701 |350/350|0|0|0|
+| Reserved offset 13701 |348/348|0|0|0|
+| Actual Ocean family harness |46/46|0|0|0|
+
+Offsets were generated after the selected compile. Hydrology and meteorology
+have no shipped generator source, so their shipped panels are covered with no
+fresh-panel claim. The family harness remains INCOMPLETE because head/core/self
+admission checks were not run; this is not full six-criterion completion.
+
+Authored policy assertions pass 50/50. Those are not fifty answered capabilities:
+21 answerable model cases are answered correctly; two valid queries remain
+withheld (ISA beyond its modeled layer and capillary group waves). Thus the
+answerable/unsupported capability slice is 21/23 with two withheld-valid cases.
+The remaining policy cases comprise 22 impossible inputs, 2 malformed inputs and 3
+missing-required-input requests. Classification is explicit in
+`var/earth/d-domain/probe-classification.json`; official scorer labels are unchanged.
+
+Shipped p50 milliseconds: geography 0.105, geology 15.789, seismology 18.628,
+hydrology 0.121, ocean 1.920, meteorology 0.190, greenhouse 10.897,
+greenhouse-r2 11.171. Cold median 3.87ms. Four unchanged specialist medians remain
+above 5ms; their interval precision has not been lowered.
+
+Five actual CLI-composed checks pass on the exact selected hash in
+`var/C-runtime-consumers/earth-D-final.json`: negative sonar time/speed are
+terminal impossible, group 10s is 7.807 under the new accepted kind, phase 10s is
+15.61 (sentence 15.613), and zero-depth travel is terminal impossible. These are
+next-cohort checks, not automatic replacement of the captured C delivery.
+
+Panel receipts: `var/earth/d-final/report.json`, `var/earth/d-parity/`,
+`var/earth/d-domain/native.log`, and `var/earth/d-domain/final.log`.
