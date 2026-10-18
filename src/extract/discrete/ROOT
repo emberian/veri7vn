@@ -5,6 +5,7 @@ session Veri7vn_Discrete = HOL +
   options [document = false, threads = 2]
   sessions
     "HOL-Library"
+    "Veri7vn_Commons"
   theories
     Disc_Dtext
     Disc_Games

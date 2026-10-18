@@ -1,5 +1,5 @@
 theory Disc_Dtext
-  imports Complex_Main "HOL-Library.Code_Target_Numeral"
+  imports Complex_Main "HOL-Library.Code_Target_Numeral" "Veri7vn_Commons.Commons_Num"
 begin
 
 text \<open>Shared reply type and plain-ASCII text helpers for the discrete family.
@@ -17,30 +17,6 @@ definition piece_lit :: "piece \<Rightarrow> String.literal option" where
 definition piece_raw :: "piece \<Rightarrow> nat list" where
   "piece_raw p = (case p of PB l \<Rightarrow> l | PS _ \<Rightarrow> [])"
 
-fun digits :: "nat \<Rightarrow> nat list" where
-  "digits n = (if n < 10 then [n] else digits (n div 10) @ [n mod 10])"
-
-definition digit_lit :: "nat \<Rightarrow> String.literal" where
-  "digit_lit d = (if d = 0 then STR ''0'' else if d = 1 then STR ''1'' else if d = 2 then STR ''2''
-    else if d = 3 then STR ''3'' else if d = 4 then STR ''4'' else if d = 5 then STR ''5''
-    else if d = 6 then STR ''6'' else if d = 7 then STR ''7'' else if d = 8 then STR ''8''
-    else STR ''9'')"
-
-definition lit :: "nat list \<Rightarrow> String.literal" where
-  "lit ds = foldr (\<lambda>d s. digit_lit d + s) ds (STR '''')"
-
-definition strip_zeros :: "nat list \<Rightarrow> nat list" where
-  "strip_zeros ds = rev (dropWhile (\<lambda>d. d = 0) (rev ds))"
-
-definition pad2 :: "nat list \<Rightarrow> nat list" where
-  "pad2 ds = (if length ds < 2 then 0 # ds else ds)"
-
-definition show_nat :: "nat \<Rightarrow> String.literal" where
-  "show_nat n = lit (digits n)"
-
-definition show_int :: "int \<Rightarrow> String.literal" where
-  "show_int i = (if i < 0 then STR ''-'' else STR '''') + lit (digits (nat \<bar>i\<bar>))"
-
 text \<open>Thousands separators, as Python's @{text "format(n, ',')"}.\<close>
 definition commas :: "nat \<Rightarrow> String.literal" where
   "commas n = (let ds = digits n; k = length ds in
@@ -56,23 +32,6 @@ definition show_frac :: "rat \<Rightarrow> String.literal" where
 
 text \<open>Python's @{text "%.pg"} layout for a decimal @{text "m * 10^e"} (lane G's
 @{text render_dec}).\<close>
-definition render_dec :: "nat \<Rightarrow> int \<times> int \<Rightarrow> String.literal" where
-  "render_dec p d = (case d of (m, e) \<Rightarrow>
-     if m = 0 then STR ''0'' else
-     let sg = (if m < 0 then STR ''-'' else STR '''');
-         ds = digits (nat \<bar>m\<bar>); k = int (length ds); x = e + k - 1 in
-     if x < -4 \<or> int p \<le> x then
-       (let fr = strip_zeros (tl ds) in
-        sg + lit [hd ds] + (if fr = [] then STR '''' else STR ''.'' + lit fr) + STR ''e''
-          + (if x < 0 then STR ''-'' else STR ''+'') + lit (pad2 (digits (nat \<bar>x\<bar>))))
-     else if 0 \<le> e then sg + lit (ds @ replicate (nat e) 0)
-     else
-       (let p = nat (- e);
-            ip = (if p < length ds then take (length ds - p) ds else [0]);
-            fr = strip_zeros (if p < length ds then drop (length ds - p) ds
-                              else replicate (p - length ds) 0 @ ds)
-        in sg + lit ip + (if fr = [] then STR '''' else STR ''.'' + lit fr)))"
-
 section \<open>Percentages: fixed point, four decimals\<close>
 
 definition pct_num :: "rat \<Rightarrow> nat" where
