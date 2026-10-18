@@ -248,7 +248,7 @@
   {
     "id": "one-example",
     "q": "Write a function f that reverses a list: f([1,2]) == [2,1]",
-    "status": "withheld",
+    "status": "answered",
     "valid": true
   },
   {

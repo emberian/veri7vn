@@ -10,7 +10,7 @@ import re
 
 LIMIT = 10**30
 WORK_LIMIT = 10**240
-RENDER_GLOBALS = {'type', 'any', 'int', 'list', 'TypeError', 'sorted',
+RENDER_GLOBALS = {'type', 'any', 'int', 'list', 'TypeError', 'ValueError', 'sorted',
                   'enumerate', 'abs', 'sum', 'math', 'len', 'set', 'max', 'min', 'zip'}
 
 
@@ -39,6 +39,12 @@ def equal(a, b):
     return type(a) is type(b) and a == b
 
 
+def bounded_factorial(n):
+    if not 0 <= n <= 100:
+        raise ValueError('factorial input is outside zero through 100')
+    return math.factorial(n)
+
+
 # Each entry binds the public operation to input type, independent evaluator,
 # and the exact source expression that implements that operation.
 UNARY = {
@@ -64,6 +70,7 @@ UNARY = {
  'absolute': ('int', abs, 'abs({x})'),
  'square': ('int', lambda x:x*x, '({x} * {x})'),
  'cube': ('int', lambda x:x*x*x, '({x} * {x} * {x})'),
+ 'factorial': ('int', bounded_factorial, 'math.factorial({x})'),
  'negate': ('int', lambda x:-x, '(-{x})'),
  'is_even': ('int', lambda x:x%2==0, '({x} % 2 == 0)'),
  'is_odd': ('int', lambda x:x%2!=0, '({x} % 2 != 0)'),
@@ -80,6 +87,7 @@ BINARY = {
  'add': ('int', lambda a,b:a+b, '({a} + {b})'),
  'subtract': ('int', lambda a,b:a-b, '({a} - {b})'),
  'multiply': ('int', lambda a,b:a*b, '({a} * {b})'),
+ 'gcd': ('int', math.gcd, 'math.gcd({a}, {b})'),
  'concat': ('list', lambda a,b:a+b, '({a} + {b})'),
  'zip_add': ('list', lambda a,b:[x+y for x,y in zip(a,b)], '[x + y for x, y in zip({a}, {b})]'),
  'zip_multiply': ('list', lambda a,b:[x*y for x,y in zip(a,b)], '[x * y for x, y in zip({a}, {b})]'),
@@ -162,7 +170,7 @@ def validate_code(reply, packet):
         raise ValueError('invalid code function name')
     if type(arity) is not int or arity not in (1,2): raise ValueError('invalid code arity')
     cases,results=packet['examples'],packet['results']
-    if not isinstance(cases,list) or not 2<=len(cases)<=32 or not isinstance(results,list) or len(results)!=len(cases): raise ValueError('incomplete code examples or results')
+    if not isinstance(cases,list) or not 1<=len(cases)<=32 or not isinstance(results,list) or len(results)!=len(cases): raise ValueError('incomplete code examples or results')
     run,source,expressions=program_operations(packet['program'],arity)
     shapes=None
     for case,result in zip(cases,results):
@@ -174,12 +182,12 @@ def validate_code(reply, packet):
             if typ=='bool' or (typ=='list' and len(a)>256): raise ValueError('invalid example input')
             types.append(typ)
         if shapes is not None and types!=shapes: raise ValueError('example input types differ')
-        shapes=types;value(case['expected']);value(result)
+        shapes=types;value(case['expected'],WORK_LIMIT);value(result,WORK_LIMIT)
         if any(type(v) is list and len(v)>256 for v in (case['expected'],result)):
             raise ValueError('example output exceeds the list bound')
         actual=run(args)
         if not equal(actual,case['expected']) or not equal(actual,result): raise ValueError('code replay disagrees with an example or result')
-    lines=['import math'] if any(m['op']=='product' for m in packet['program']['moves']) else []
+    lines=['import math'] if packet['program']['base']['op']=='gcd' or any(m['op'] in ('product','factorial') for m in packet['program']['moves']) else []
     lines += [f'def {name}('+', '.join(f'a{i}' for i in range(arity))+'):']
     for i,typ in enumerate(shapes):
         if typ=='int':
@@ -187,9 +195,14 @@ def validate_code(reply, packet):
         else:
             lines.append(f"    if type(a{i}) is not list or any(type(v) is not int for v in a{i}): raise TypeError('Expected integer-list argument a{i}')")
     lines.append(f'    v0 = {source}')
-    lines += [f'    v{i} = {e}' for i,e in enumerate(expressions,1)]
+    for i,e in enumerate(expressions,1):
+        if packet['program']['moves'][i-1]['op']=='factorial':
+            lines.append(f"    if not 0 <= v{i-1} <= 100: raise ValueError('Factorial input must be between 0 and 100')")
+        lines.append(f'    v{i} = {e}')
     lines += [f'    return v{len(expressions)}'];rendered='\n'.join(lines)+'\n'
-    expected='```python\n'+rendered+'```\nThis candidate matches all '+str(len(cases))+' supplied examples. The examples do not determine its behavior on other inputs.'
+    caveat = ('This candidate matches the supplied example. The example does not determine its behavior on other inputs.'
+              if len(cases)==1 else 'This candidate matches all '+str(len(cases))+' supplied examples. The examples do not determine its behavior on other inputs.')
+    expected='```python\n'+rendered+'```\n'+caveat
     expected += deduplication_note(packet['program']['moves'])
     if packet['program']['base']['op'] in ('zip_add','zip_multiply'):
         expected+='\nPairwise operations stop at the shorter input list.'

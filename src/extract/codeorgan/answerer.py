@@ -25,18 +25,19 @@ ASK = re.compile(r'\b(?:write|make|create|build|implement|code|give me)\b.*\b(?:
 CALL = re.compile(r'\b([A-Za-z_][A-Za-z_0-9]*)\s*\(')
 CONNECT = re.compile(r'\s*(?:==|->|→|returns?|should\s+(?:return|give|be)|gives?|is)\s*', re.I)
 MAX_INTEGER = 10**30
+MAX_RESULT = 10**240
 MAX_CANDIDATES = 256
-RESERVED_NAMES = {'sum','sorted','type','any','int','list','math','abs','len','set','enumerate','max','min','zip','TypeError'}
+RESERVED_NAMES = {'sum','sorted','type','any','int','list','math','abs','len','set','enumerate','max','min','zip','TypeError','ValueError'}
 
 class Unsupported(ValueError):
     pass
 
-def value_type(v):
-    if type(v) is int and abs(v) <= MAX_INTEGER:
+def value_type(v, limit=MAX_INTEGER):
+    if type(v) is int and abs(v) <= limit:
         return 'int'
     if type(v) is bool:
         return 'bool'
-    if type(v) is list and len(v) <= 256 and all(type(x) is int and abs(x) <= MAX_INTEGER for x in v):
+    if type(v) is list and len(v) <= 256 and all(type(x) is int and abs(x) <= limit for x in v):
         return 'list'
     raise Unsupported('Examples must use bounded integers, integer lists or Boolean results.')
 
@@ -73,6 +74,42 @@ def _literal_end(text, start):
     if not m: raise Unsupported('An expected result is not a supported literal.')
     return start + m.end()
 
+def prose_examples(text):
+    """Read one explicit prose example as literal data, never as user code."""
+    m=re.search(r'\bso\s+(?:that\s+)?',text,re.I)
+    if not m: raise Unsupported('Supply at least one literal input/output example.')
+    desc=text[:m.start()].rstrip(' ,:;')
+    rest=text[m.end():]
+    pos=0;args=[]
+    while True:
+        while pos<len(rest) and rest[pos].isspace():pos+=1
+        end=_literal_end(rest,pos)
+        try:args.append(ast.literal_eval(rest[pos:end]))
+        except (ValueError,SyntaxError,TypeError,RecursionError) as exc:
+            raise Unsupported('A prose example must contain literal input data.') from exc
+        if len(args)>2:raise Unsupported('This code library supports one or two arguments.')
+        pos=end
+        sep=re.match(r'\s+(?:becomes|gives?|is|returns?|equals?)\s+',rest[pos:],re.I)
+        if sep:
+            pos+=sep.end();break
+        both=re.match(r'\s+and\s+',rest[pos:],re.I)
+        if not both:raise Unsupported('Separate prose example inputs with and, then state their result.')
+        pos+=both.end()
+    end=_literal_end(rest,pos)
+    try:expected=ast.literal_eval(rest[pos:end])
+    except (ValueError,SyntaxError,TypeError,RecursionError) as exc:
+        raise Unsupported('A prose example must have a literal expected result.') from exc
+    if re.sub(r'[\s.;`]', '',rest[end:]):raise Unsupported('Trailing example text is not supported.')
+    shapes=[value_type(a) for a in args]
+    if 'bool' in shapes:raise Unsupported('Boolean inputs are not integers in this code library.')
+    value_type(expected,MAX_RESULT)
+    declared=re.search(r'\bfunction\s+([A-Za-z_][A-Za-z_0-9]*)\b',desc,re.I)
+    name=declared[1] if declared and declared[1].lower() not in {'that','which','to','for','returning'} else 'solution'
+    if len(name)>64 or keyword.iskeyword(name) or name.startswith('__') or name in RESERVED_NAMES:
+        raise Unsupported('Use a function name that does not shadow globals used by the code templates.')
+    desc=re.sub(r'(\bfunction\s+)'+re.escape(name)+r'\b',r'\1 ',desc,flags=re.I)
+    return name,[{'args':args,'expected':expected}],desc,shapes
+
 def examples(text):
     found, name, first, end = [], None, None, 0
     for m in CALL.finditer(text):
@@ -92,7 +129,7 @@ def examples(text):
         if not 1 <= len(args) <= 2: raise Unsupported('This code library supports one or two input arguments.')
         for a in args:
             if value_type(a) == 'bool': raise Unsupported('Boolean inputs are not integers in this code library.')
-        value_type(expected)
+        value_type(expected,MAX_RESULT)
         if len(call.func.id)>64 or keyword.iskeyword(call.func.id) or call.func.id.startswith('__') or call.func.id in RESERVED_NAMES:
             raise Unsupported('Use a function name that does not shadow globals used by the code templates.')
         if name is not None and name != call.func.id:
@@ -106,10 +143,9 @@ def examples(text):
         end = stop
         found.append({'args':args, 'expected':expected})
         if len(found) > 32: raise Unsupported('At most 32 examples are supported.')
-    if not found: raise Unsupported('Supply at least two literal input/output examples, such as f([1,2]) == 3.')
+    if not found: return prose_examples(text)
     if re.sub(r'[\s,;:.`]', '', text[end:]):
         raise Unsupported('There is trailing text after the last example; every example must be checked in full.')
-    if len(found) < 2: raise Unsupported('Supply at least two examples for this bounded synthesis route.')
     shapes = [value_type(a) for a in found[0]['args']]
     if any([value_type(a) for a in ex['args']] != shapes for ex in found):
         raise Unsupported('Examples must have one consistent argument count and input types.')
@@ -136,6 +172,7 @@ UNARY = {
  'negative_only':lambda x:f'[v for v in {x} if v < 0]',
  'sum':lambda x:f'sum({x})',
  'product':lambda x:f'math.prod({x})',
+ 'factorial':lambda x:f'math.factorial({x})',
  'length':lambda x:f'len({x})',
  'maximum':lambda x:f'max({x})',
  'minimum':lambda x:f'min({x})',
@@ -161,6 +198,7 @@ BINARY = {
  'add':lambda a,b:f'({a} + {b})',
  'subtract':lambda a,b:f'({a} - {b})',
  'multiply':lambda a,b:f'({a} * {b})',
+ 'gcd':lambda a,b:f'math.gcd({a}, {b})',
  'concat':lambda a,b:f'({a} + {b})',
  'zip_add':lambda a,b:f'[x + y for x, y in zip({a}, {b})]',
  'zip_multiply':lambda a,b:f'[x * y for x, y in zip({a}, {b})]',
@@ -172,7 +210,7 @@ def render(name, arity, program, shapes):
     else: expr = BINARY[base['op']]('a'+str(base['left']), 'a'+str(base['right']))
     # Sequential bindings ensure repeated subexpressions are evaluated once and
     # make empty maximum/minimum behavior match the partial DSL exactly.
-    lines = ['import math'] if any(m['op']=='product' for m in program['moves']) else []
+    lines = ['import math'] if program['base']['op']=='gcd' or any(m['op'] in {'product','factorial'} for m in program['moves']) else []
     lines += [f'def {name}(' + ', '.join(f'a{i}' for i in range(arity)) + '):']
     for i, shape in enumerate(shapes):
         if shape=='int':
@@ -182,6 +220,8 @@ def render(name, arity, program, shapes):
     lines.append(f'    v0 = {expr}')
     for i, move in enumerate(program['moves'], 1):
         op = move['op']
+        if op=='factorial':
+            lines.append(f"    if not 0 <= v{i-1} <= 100: raise ValueError('Factorial input must be between 0 and 100')")
         expr = UNARY[op](f'v{i-1}') if op in UNARY else PARAM[op](f'v{i-1}',move['constant'])
         lines.append(f'    v{i} = {expr}')
     lines.append(f'    return v{len(program["moves"])}')
@@ -191,9 +231,34 @@ def render(name, arity, program, shapes):
 # terminal refusals rather than silently erased. Recognition remains untrusted.
 GENERIC = set('write make create build implement code give me a an the function program method script python that returns return returning of to and then for from in with input output examples example assert given integer integers number numbers list lists array arrays sequence sequences value values elements items each every all two by their its it is are check checks whether computes compute calculate calculates result using takes accepts first last occurrence occurrences keeping keep remove removed duplicates duplicate distinct deduplicate deduplicated unique order ordered ascending descending sorted sort reverse reversed sum total product length count size maximum minimum largest smallest biggest absolute abs square squares squared cube cubed negate negated negation even odd positive negative only filter filters filtered add adds addition plus subtract subtracts subtraction difference minus multiply multiplies multiplication times concatenate concatenates concatenation concat combine combined zip elementwise pairwise same identical above below greater less than take drop skip' .split())
 
+def ranked_moves(low):
+    """A named order statistic expands to existing checked list operations."""
+    rx=re.compile(r'\b(first|second|third|fourth|\d+(?:st|nd|rd|th))[-\s]+'
+                  r'(?:(distinct)\s+)?(largest|smallest)(?:\s+(distinct))?'
+                  r'(?:\s+(?:number|integer|element))?'
+                  r'(?:\s+((?:including|counting|without)\s+duplicates))?\b')
+    matches=list(rx.finditer(low))
+    if not matches:return low,[],False
+    if len(matches)!=1:raise Unsupported('Name one ranked target quantity.')
+    m=matches[0]
+    words={'first':1,'second':2,'third':3,'fourth':4}
+    rank=words.get(m[1])
+    if rank is None:rank=int(re.match(r'\d+',m[1])[0])
+    if not 1<=rank<=1000:raise Unsupported('Rank must be between 1 and 1000.')
+    qualifier=m[5] or ''
+    distinct=bool(m[2] or m[4] or qualifier.startswith('without'))
+    repeated=qualifier.startswith(('including','counting'))
+    if distinct and repeated:raise Unsupported('State whether duplicate values count separately.')
+    order='sort_desc' if m[3]=='largest' else 'sort'
+    extreme='maximum' if m[3]=='largest' else 'minimum'
+    core=[{'op':order},{'op':'drop','constant':rank-1},{'op':extreme}]
+    choices=([{'macro':[{'op':'unique'}]+core}] if distinct else
+             [{'macro':core}] if repeated else [{'macro':core},{'macro':[{'op':'unique'}]+core}])
+    return low[:m.start()]+' '+low[m.end():],choices,not distinct and not repeated
+
 def candidates(desc, shapes):
     low = desc.lower()
-    inflections = {'sums':'sum','counts':'count','keeps':'keep','removes':'remove','reverses':'reverse','sorts':'sort','negates':'negate','removing':'remove','concatenates':'concatenate','adds':'add','subtracts':'subtract','multiplies':'multiply'}
+    inflections = {'sums':'sum','counts':'count','keeps':'keep','doubles':'double','merges':'merge','removes':'remove','reverses':'reverse','sorts':'sort','negates':'negate','removing':'remove','concatenates':'concatenate','adds':'add','subtracts':'subtract','multiplies':'multiply'}
     low = re.sub(r'\b(?:'+ '|'.join(inflections) +r')\b',lambda m:inflections[m[0]],low)
     low = re.sub(r'\bwhile\s+remove\b','remove',low)
     parameter_groups = []
@@ -213,8 +278,13 @@ def candidates(desc, shapes):
             if abs(k)>1000: raise Unsupported('Description parameters are limited to magnitude 1000.')
             parameter_groups.append([{'op':op,'constant':k}])
         low = re.sub(rx,' ',low)
+    if re.search(r'\b(double|doubled|twice)\b',low):
+        parameter_groups.append([{'op':'multiply_each','constant':2}])
+        low=re.sub(r'\b(double|doubled|twice)\b',' ',low)
+    low,rank_choices,rank_ambiguous=ranked_moves(low)
+    if rank_choices:parameter_groups.append(rank_choices)
     words = set(re.findall(r'[a-zA-Z_]+', low))
-    unknown = words - GENERIC - {'preserve','preserves','preserving','original','after','them'}
+    unknown = words - GENERIC - {'preserve','preserves','preserving','original','after','them','double','doubled','twice','merge','gcd','greatest','common','divisor','factorial','so'}
     if unknown: raise Unsupported('The bounded code vocabulary does not cover: ' + ', '.join(sorted(unknown)) + '.')
     if re.search(r'\b(?:first|last)\b', low) and not re.search(r'\b(?:first|last)\s+occurrences?\b', low):
         raise Unsupported('Positional qualifiers need an explicit supported operation.')
@@ -224,9 +294,9 @@ def candidates(desc, shapes):
     bases = [{'op':'arg','index':0}]
     if len(shapes)==2:
         if shapes==['int','int']:
-            options = [('add',r'\b(add|adds|addition|sum|plus|total)\b'),('subtract',r'\b(subtract|subtracts|subtraction|difference|minus)\b'),('multiply',r'\b(multiply|multiplies|multiplication|product|times)\b')]
+            options = [('add',r'\b(add|adds|addition|sum|plus|total)\b'),('subtract',r'\b(subtract|subtracts|subtraction|difference|minus)\b'),('multiply',r'\b(multiply|multiplies|multiplication|product|times)\b'),('gcd',r'\bgcd\b|\bgreatest common divisor\b')]
         elif shapes==['list','list']:
-            options = [('concat',r'\b(concatenate|concatenation|concat|combine)\b'),('zip_add',r'\b(add|sum|plus)\b'),('zip_multiply',r'\b(multiply|product|times)\b')]
+            options = [('concat',r'\b(concatenate|concatenation|concat|combine|merge)\b'),('zip_add',r'\b(add|sum|plus)\b'),('zip_multiply',r'\b(multiply|product|times)\b')]
         else: raise Unsupported('The current binary library needs two integers or two integer lists.')
         bases = [{'op':op,'left':0,'right':1} for op,rx in options if has(rx)]
         if len(bases)!=1: raise Unsupported('Name one supported binary operation for two arguments.')
@@ -234,6 +304,7 @@ def candidates(desc, shapes):
         low = re.sub(options[[x[0] for x in options].index(bases[0]['op'])][1], '', low)
     if has(r'\b(sum|total)\b'): group('sum')
     if has(r'\bproduct\b'): group('product')
+    if has(r'\bfactorial\b'): group('factorial')
     if has(r'\b(length|count|size)\b|\bnumber of\b'): group('length')
     if has(r'\b(maximum|largest|biggest)\b'): group('maximum')
     if has(r'\b(minimum|smallest)\b'): group('minimum')
@@ -266,6 +337,8 @@ def candidates(desc, shapes):
     if re.search(r'\d',low): raise Unsupported('Numeric description parameters are not supported by this recognizer yet.')
     if not groups and bases[0]['op']=='arg': raise Unsupported('Name a supported library operation in the description.')
     if len(groups)>4: raise Unsupported('At most four named unary operations are supported.')
+    if rank_ambiguous and len(groups)>1:
+        raise Unsupported('State whether duplicate values count separately before composing a ranked target.')
     programs=[]
     for choice in itertools.product(*groups):
         for moves in itertools.permutations(choice):
@@ -383,7 +456,8 @@ def answer(request, kernel):
                 'semantics':{'integer_type':'unbounded mathematical integer; Boolean is distinct',
                   'list_type':'finite list of integers','zip':'truncate to shorter input',
                   'unique':'retain last occurrence','maximum_minimum_empty':'undefined; candidate rejected for an empty-list example'}}
-        response='```python\n'+source+'```\nThis candidate matches all '+str(len(cases))+' supplied examples. The examples do not determine its behavior on other inputs.'
+        claim=('This candidate matches the supplied example. The example does not determine its behavior on other inputs.' if len(cases)==1 else 'This candidate matches all '+str(len(cases))+' supplied examples. The examples do not determine its behavior on other inputs.')
+        response='```python\n'+source+'```\n'+claim
         response += deduplication_note(program['moves'])
         if program['base']['op'] in {'zip_add','zip_multiply'}:
             response += '\nPairwise operations stop at the shorter input list.'

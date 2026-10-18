@@ -16,7 +16,7 @@ structure Main = struct
            | #"]" => rev(raw::acc) | _ => raise Reject "array delimiter" end end
     in loop(i+1) [] end
   fun integer s =
-    if size s > 80 orelse size s=0 orelse
+    if size s > 242 orelse size s=0 orelse
        not (List.all Char.isDigit (String.explode (if String.sub(s,0)= #"-" then String.extract(s,1,NONE) else s)))
     then raise Reject "bounded integer expected"
     else case IntInf.fromString (if String.sub(s,0)= #"-" then "~" ^ String.extract(s,1,NONE) else s) of
@@ -29,7 +29,7 @@ structure Main = struct
   fun source s = let val fs=Json.fields s val opn=Json.stringValue(get fs "op") in
     if opn="arg" then K.Argument(nat(get fs "index")) else
     let val b=case opn of "add"=>K.Plus | "subtract"=>K.Minus | "multiply"=>K.Times
-      | "concat"=>K.Concat | "zip_add"=>K.ZipPlus | "zip_multiply"=>K.ZipTimes
+      | "gcd"=>K.GcdInt | "concat"=>K.Concat | "zip_add"=>K.ZipPlus | "zip_multiply"=>K.ZipTimes
       | _=>raise Reject "unknown base operation"
     in K.Combine(b,nat(get fs "left"),nat(get fs "right")) end end
   fun move s = let val fs=Json.fields s val opn=Json.stringValue(get fs "op")
@@ -42,6 +42,7 @@ structure Main = struct
     | "all_same"=>K.AllSame | "all_unique"=>K.AllUnique | "is_sorted"=>K.IsSorted
     | "absolute"=>K.Absolute | "square"=>K.Square | "cube"=>K.Cube | "negate"=>K.Negate
     | "is_even"=>K.IsEven | "is_odd"=>K.IsOdd
+    | "factorial"=>K.Factorial
     | "add_each"=>K.AddEach(param()) | "multiply_each"=>K.MultiplyEach(param())
     | "above"=>K.Above(param()) | "below"=>K.Below(param())
     | "take"=>K.Take(nat(get fs "constant")) | "drop"=>K.Drop(nat(get fs "constant"))

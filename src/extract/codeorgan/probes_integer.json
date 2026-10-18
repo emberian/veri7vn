@@ -1,0 +1,289 @@
+[
+  {
+    "id": "stored-second_biggest",
+    "q": "write a function second_biggest that returns the second largest number: second_biggest([5,2,8,3]) == 5, second_biggest([1,9,4]) == 4",
+    "status": "withheld",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-counts_vowels",
+    "q": "Write a Python function that counts the vowels in a string, so 'banana' gives 3.",
+    "status": "withheld",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-doubled",
+    "q": "Write a Python function that returns a list doubled, so [1,2,3] gives [2,4,6].",
+    "status": "answered",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-converts_celsius_fahrenheit",
+    "q": "Write a Python function that converts Celsius to Fahrenheit, so 100 gives 212.",
+    "status": "withheld",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-factorial",
+    "q": "Write a Python function that returns the factorial of a number, so 5 gives 120.",
+    "status": "answered",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-merges_sorted_lists",
+    "q": "Write a Python function that merges two sorted lists, so [1,3,5] and [2,4,6] give [1,2,3,4,5,6].",
+    "status": "answered",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-joins_words_comma",
+    "q": "Write a Python function that joins words with a comma, so ['a','b'] gives 'a,b'.",
+    "status": "withheld",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-reverses",
+    "q": "Write a Python function that reverses a string, so that 'oracle' becomes 'elcaro'.",
+    "status": "withheld",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-length_longest_word",
+    "q": "Write a Python function that returns the length of the longest word, so 'a bb ccc' gives 3.",
+    "status": "withheld",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-removes_duplicates_keeping_order",
+    "q": "Write a Python function that removes duplicates keeping order, so [3,1,3,2,1] gives [3,1,2].",
+    "status": "answered",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-sums_even",
+    "q": "Write a Python function that sums the even numbers in a list, so [1,2,3,4] gives 6.",
+    "status": "answered",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-greatest_common_divisor",
+    "q": "Write a Python function that returns the greatest common divisor, so 12 and 18 give 6.",
+    "status": "answered",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-largest",
+    "q": "Write a Python function that returns the largest number in a list, so [5,-2,8,3] gives 8.",
+    "status": "answered",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-counts_words_sentence",
+    "q": "Write a Python function that counts the words in a sentence, so 'one two three' gives 3.",
+    "status": "withheld",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "stored-second_largest",
+    "q": "Write a Python function that returns the second largest number, so [5,2,8,3] gives 5.",
+    "status": "withheld",
+    "valid": true,
+    "origin": "actual stored upstream request"
+  },
+  {
+    "id": "one-structured",
+    "q": "Write a function f that returns the square: f(-7) == 49",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "signed-gcd",
+    "q": "Write a function f that returns the greatest common divisor, so -12 and 18 give 6.",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "zero-gcd",
+    "q": "Write a function f that returns the gcd: f(0,0) == 0",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "single-add",
+    "q": "Write a function f that adds two integers, so -3 and 7 give 4.",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "fact-zero",
+    "q": "Write a function f that returns the factorial, so 0 gives 1.",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "fact-100",
+    "q": "Write a function f that returns the factorial: f(100) == 93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "fact-101",
+    "q": "Write a function f that returns the factorial: f(101) == 9425947759838359420851623124482936749562312794702543768327889353416977599316221476503087861591808346911623490003549599583369706302603264000000000000000000000000",
+    "status": "withheld",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "fact-negative",
+    "q": "Write a function f that returns the factorial: f(-1) == 1",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "fact-bool",
+    "q": "Write a function f that returns the factorial: f(True) == 1",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "fact-wrong",
+    "q": "Write a function f that returns the factorial: f(5) == 5",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "rank-position",
+    "q": "Write a function f that returns the second largest number including duplicates: f([4,4,2]) == 4",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "rank-distinct",
+    "q": "Write a function f that returns the second distinct largest number: f([4,4,2]) == 2",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "rank-smallest",
+    "q": "Write a function f that returns the third-smallest integer without duplicates: f([4,4,2,1]) == 4",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "rank-inferred",
+    "q": "Write a function f that returns the second largest number: f([4,4,2]) == 4",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "rank-short",
+    "q": "Write a function f that returns the third largest number including duplicates: f([4,2]) == 0",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "rank-empty",
+    "q": "Write a function f that returns the second largest number including duplicates: f([]) == 0",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "rank-zero",
+    "q": "Write a function f that returns the 0th largest number including duplicates: f([1,2]) == 2",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "rank-over-bound",
+    "q": "Write a function f that returns the 1001st largest number including duplicates: f([1,2]) == 2",
+    "status": "withheld",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "rank-model-conflict",
+    "q": "Write a function f that returns the second distinct largest number including duplicates: f([4,4,2]) == 4",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "prose-trailing-expression",
+    "q": "Write a function f that returns the factorial, so 5 gives 120 + 7.",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "prose-nonliteral-input",
+    "q": "Write a function f that returns the factorial, so __import__(\"os\") gives 120.",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "prose-nonliteral-output",
+    "q": "Write a function f that returns the factorial, so 5 gives __import__(\"os\").",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "prose-statement",
+    "q": "Write a function f that returns the factorial, so 5 gives 120; print(1).",
+    "status": "withheld",
+    "valid": false,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "no-example",
+    "q": "Write a function f that returns the factorial.",
+    "status": "withheld",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "factorial-shadow",
+    "q": "Write a function ValueError that returns the factorial, so 5 gives 120.",
+    "status": "withheld",
+    "valid": true,
+    "origin": "authored boundary"
+  },
+  {
+    "id": "prose-empty-sum",
+    "q": "Write a function f that sums the even integers, so [] gives 0.",
+    "status": "answered",
+    "valid": true,
+    "origin": "authored boundary"
+  }
+]

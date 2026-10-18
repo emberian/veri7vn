@@ -1,6 +1,7 @@
 """Independent boundary cases for code-example replay; no requested code executes."""
 import copy
 import importlib.util
+import math
 import shutil
 import tempfile
 import unittest
@@ -110,6 +111,57 @@ class CodeEvidenceTests(unittest.TestCase):
         for ops in [('unique','reverse','unique','reverse'),('reverse','unique','reverse','unique')]:
             self.assertEqual(deduplication_note([{'op':op} for op in ops]),"\nThe deduplication step keeps each value's last occurrence.")
         self.assertEqual(deduplication_note([{'op':'reverse'}]),'')
+
+    def test_single_example_is_actual_and_worded_singular(self):
+        r,p=fixture();p['examples']=p['examples'][:1];p['results']=p['results'][:1]
+        r['response']=r['response'].replace('matches all 2 supplied examples. The examples do not determine its','matches the supplied example. The example does not determine its')
+        self.assertEqual(validate_code(r,p)['status'],'consistent')
+        r['response']=r['response'].replace('the supplied example. The example','all 2 supplied examples. The examples')
+        with self.assertRaises(ValueError):validate_code(r,p)
+
+    def test_gcd_and_factorial_exact_domains(self):
+        gcd,_,_=program_operations({'base':{'op':'gcd','left':0,'right':1},'moves':[]},2)
+        for args,want in [([0,0],0),([-54,24],6),([21,-14],7)]:self.assertEqual(gcd(args),want)
+        with self.assertRaises(ValueError):gcd([True,2])
+        fac,_,_=program_operations({'base':{'op':'arg','index':0},'moves':[{'op':'factorial'}]},1)
+        self.assertEqual(fac([0]),1);self.assertEqual(fac([6]),720)
+        self.assertEqual(fac([100]),math.factorial(100))
+        for n in (-1,101,10**30,True):
+            with self.subTest(n=n),self.assertRaises(ValueError):fac([n])
+
+    def test_factorial_source_guard_and_large_output_are_checked(self):
+        r,p=fixture()
+        p['program']={'base':{'op':'arg','index':0},'moves':[{'op':'factorial'}]}
+        p['examples']=[{'args':[100],'expected':math.factorial(100)}];p['results']=[math.factorial(100)]
+        source="import math\ndef f(a0):\n    if type(a0) is not int: raise TypeError('Expected integer argument a0')\n    v0 = a0\n    if not 0 <= v0 <= 100: raise ValueError('Factorial input must be between 0 and 100')\n    v1 = math.factorial(v0)\n    return v1\n"
+        p['program_source']=source
+        r['response']='```python\n'+source+'```\nThis candidate matches the supplied example. The example does not determine its behavior on other inputs.'
+        self.assertEqual(validate_code(r,p)['status'],'consistent')
+        for change in ('guard','wrong_result','huge_result','shadow'):
+            rr,pp=copy.deepcopy(r),copy.deepcopy(p)
+            if change=='guard':
+                pp['program_source']=source.replace("    if not 0 <= v0 <= 100: raise ValueError('Factorial input must be between 0 and 100')\n",'')
+                rr['response']=rr['response'].replace(source,pp['program_source'])
+            elif change=='wrong_result':pp['results'][0]-=1
+            elif change=='huge_result':pp['results'][0]=10**241
+            else:pp['function_name']='ValueError'
+            with self.subTest(change=change),self.assertRaises(ValueError):validate_code(rr,pp)
+
+    def test_gcd_source_import_and_signed_result_are_checked(self):
+        r,p=fixture();p['argument_count']=2
+        p['program']={'base':{'op':'gcd','left':0,'right':1},'moves':[]}
+        p['examples']=[{'args':[-54,24],'expected':6}];p['results']=[6]
+        source="import math\ndef f(a0, a1):\n    if type(a0) is not int: raise TypeError('Expected integer argument a0')\n    if type(a1) is not int: raise TypeError('Expected integer argument a1')\n    v0 = math.gcd(a0, a1)\n    return v0\n"
+        p['program_source']=source
+        r['response']='```python\n'+source+'```\nThis candidate matches the supplied example. The example does not determine its behavior on other inputs.'
+        self.assertEqual(validate_code(r,p)['status'],'consistent')
+        for change in ('import','negative_result'):
+            rr,pp=copy.deepcopy(r),copy.deepcopy(p)
+            if change=='import':
+                pp['program_source']=source.replace('import math\n','')
+                rr['response']=rr['response'].replace(source,pp['program_source'])
+            else:pp['results'][0]=-6
+            with self.subTest(change=change),self.assertRaises(ValueError):validate_code(rr,pp)
 
     def test_function_name_cannot_shadow_generated_global_dependencies(self):
         for name in ('sum', 'type', 'math', 'int', 'list', 'sorted', 'zip'):

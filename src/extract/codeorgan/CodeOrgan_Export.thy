@@ -14,10 +14,10 @@ definition truth_value :: "cvalue \<Rightarrow> bool option" where
   "truth_value v = (case v of Truth b \<Rightarrow> Some b | _ \<Rightarrow> None)"
 
 export_code run check_program self_test mk_number mk_numbers number_value numbers_value truth_value
-  Program Argument Combine Plus Minus Times Concat ZipPlus ZipTimes Truth
+  Program Argument Combine Plus Minus Times GcdInt Concat ZipPlus ZipTimes Truth
   Reverse Ascending Descending Unique SquareEach AbsEach NegateEach
   KeepEven KeepOdd KeepPositive KeepNegative Sum Product Length Maximum Minimum
-  AllSame AllUnique IsSorted Absolute Square Cube Negate IsEven IsOdd
+  AllSame AllUnique IsSorted Absolute Square Cube Negate IsEven IsOdd Factorial
   AddEach MultiplyEach Above Below Take Drop int_of_integer nat_of_integer
   in SML module_name Codekernel file_prefix codekernel
 
@@ -26,10 +26,11 @@ ML \<open>
     check_rejects_mismatch steps_append lookup_sound reverse_involution
     sort_preserves_members unique_preserves_members sum_of_even_squares
     length_of_map concat_length add_arguments maximum_empty_refused
-    minimum_empty_refused truth_is_not_number};
+    minimum_empty_refused truth_is_not_number gcd_result_characterization
+    gcd_zero_arguments gcd_sign_invariant factorial_value_iff factorial_zero factorial_successor_bounded};
   val _ = if null (Thm_Deps.all_oracles roots) then () else error "code organ oracle";
   val _ = if @{code self_test} then () else error "code organ self test";
-  val marker = "VERI7VN_CODEORGAN PASS theorems=16 oracles=0";
+  val marker = "VERI7VN_CODEORGAN PASS theorems=22 oracles=0";
   val _ = writeln marker;
   val _ = Export.export @{theory} (Path.binding0 (Path.explode "veri7vn/assertions/codeorgan")) [XML.Text marker];
 \<close>

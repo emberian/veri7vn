@@ -6,13 +6,13 @@ text \<open>A small closed program language. Inputs are data, never source text.
 The checker establishes the supplied examples, not the completeness of a user's
 specification. Programs have no I/O, recursion, imports or persistent effects.\<close>
 datatype cvalue = Number int | Numbers "int list" | Truth bool
-datatype binary = Plus | Minus | Times | Concat | ZipPlus | ZipTimes
+datatype binary = Plus | Minus | Times | GcdInt | Concat | ZipPlus | ZipTimes
 datatype source = Argument nat | Combine binary nat nat
 datatype move = Reverse | Ascending | Descending | Unique
   | SquareEach | AbsEach | NegateEach | KeepEven | KeepOdd
   | KeepPositive | KeepNegative | Sum | Product | Length | Maximum | Minimum
   | AllSame | AllUnique | IsSorted | Absolute | Square | Cube | Negate
-  | IsEven | IsOdd
+  | IsEven | IsOdd | Factorial
   | AddEach int | MultiplyEach int | Above int | Below int | Take nat | Drop nat
 datatype cprogram = Program source "move list"
 
@@ -25,6 +25,7 @@ fun binary_eval :: "binary \<Rightarrow> cvalue \<Rightarrow> cvalue \<Rightarro
   "binary_eval Plus (Number x) (Number y) = Some (Number (x+y))"
 | "binary_eval Minus (Number x) (Number y) = Some (Number (x-y))"
 | "binary_eval Times (Number x) (Number y) = Some (Number (x*y))"
+| "binary_eval GcdInt (Number x) (Number y) = Some (Number (gcd x y))"
 | "binary_eval Concat (Numbers xs) (Numbers ys) = Some (Numbers (xs@ys))"
 | "binary_eval ZipPlus (Numbers xs) (Numbers ys) = Some (Numbers (map (\<lambda>(x,y). x+y) (zip xs ys)))"
 | "binary_eval ZipTimes (Numbers xs) (Numbers ys) = Some (Numbers (map (\<lambda>(x,y). x*y) (zip xs ys)))"
@@ -61,6 +62,7 @@ fun move_eval :: "move \<Rightarrow> cvalue \<Rightarrow> cvalue option" where
 | "move_eval Negate (Number x) = Some (Number (-x))"
 | "move_eval IsEven (Number x) = Some (Truth (even x))"
 | "move_eval IsOdd (Number x) = Some (Truth (odd x))"
+| "move_eval Factorial (Number n) = (if 0 \<le> n \<and> n \<le> 100 then Some (Number (int (fact (nat n)))) else None)"
 | "move_eval (AddEach k) (Numbers xs) = Some (Numbers (map (\<lambda>x. x+k) xs))"
 | "move_eval (MultiplyEach k) (Numbers xs) = Some (Numbers (map (\<lambda>x. x*k) xs))"
 | "move_eval (Above k) (Numbers xs) = Some (Numbers (filter (\<lambda>x. x>k) xs))"
@@ -144,10 +146,46 @@ lemma minimum_empty_refused: "move_eval Minimum (Numbers []) = None"
 lemma truth_is_not_number: "move_eval Square (Truth b) = None"
   by simp
 
+lemma gcd_result_characterization:
+  "run (Program (Combine GcdInt 0 1) []) [Number a, Number b] = Some (Number d)
+   \<Longrightarrow> 0 \<le> d \<and> d dvd a \<and> d dvd b \<and>
+      (\<forall>c. c dvd a \<and> c dvd b \<longrightarrow> c dvd d)"
+  by (auto intro: gcd_greatest)
+lemma gcd_zero_arguments:
+  "run (Program (Combine GcdInt 0 1) []) [Number 0,Number 0] = Some (Number 0)"
+  by simp
+lemma gcd_sign_invariant:
+  "run (Program (Combine GcdInt 0 1) []) [Number (-a),Number (-b)] =
+   run (Program (Combine GcdInt 0 1) []) [Number a,Number b]"
+  by simp
+lemma factorial_value_iff:
+  "move_eval Factorial (Number n) = Some (Number y) \<longleftrightarrow>
+   0 \<le> n \<and> n \<le> 100 \<and> y = int (fact (nat n))"
+  by (auto split: if_splits)
+lemma factorial_zero:
+  "move_eval Factorial (Number 0) = Some (Number 1)"
+  by simp
+lemma factorial_successor_bounded:
+  "n < 100 \<Longrightarrow> move_eval Factorial (Number (int (Suc n))) =
+   Some (Number (int (Suc n) * int (fact n)))"
+proof -
+  assume bound: "n < 100"
+  have domain: "0 \<le> int (Suc n) \<and> int (Suc n) \<le> 100"
+    using bound by simp
+  have recurrence: "int (fact (Suc n)) = int (Suc n) * int (fact n)"
+    by (simp add: algebra_simps)
+  show ?thesis
+    by (simp only: move_eval.simps domain if_True nat_int recurrence simp_thms)
+qed
+
 definition self_test :: bool where
   "self_test = (check_program (Program (Argument 0) [KeepEven,SquareEach,Sum])
       [([Numbers [-4,-1,0,2,3]], Number 20), ([Numbers []],Number 0)]
     \<and> \<not> check_program (Program (Argument 0) [Maximum]) [([Numbers []], Number 0)]
     \<and> \<not> check_program (Program (Argument 0) [Square]) [([Truth True],Number 1)]
-    \<and> \<not> check_program (Program (Argument 0) []) [])"
+    \<and> \<not> check_program (Program (Argument 0) []) []
+    \<and> check_program (Program (Combine GcdInt 0 1) []) [([Number (-12),Number 18],Number 6)]
+    \<and> check_program (Program (Argument 0) [Factorial]) [([Number 0],Number 1),([Number 5],Number 120)]
+    \<and> \<not> check_program (Program (Argument 0) [Factorial]) [([Number 101],Number 0)]
+    \<and> \<not> check_program (Program (Argument 0) [Factorial]) [([Number (-1)],Number 1)])"
 end

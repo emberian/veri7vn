@@ -6,6 +6,7 @@ import argparse
 import ast
 import hashlib
 import itertools
+import math
 import json
 import random
 from pathlib import Path
@@ -28,12 +29,17 @@ def reference(p,args):
             if b['op']=='add': v=number(a)+number(c)
             elif b['op']=='subtract': v=number(a)-number(c)
             elif b['op']=='multiply': v=number(a)*number(c)
+            elif b['op']=='gcd': v=math.gcd(number(a),number(c))
             elif b['op']=='concat': v=numbers(a)+numbers(c)
             elif b['op']=='zip_add': v=[x+y for x,y in zip(numbers(a),numbers(c))]
             elif b['op']=='zip_multiply': v=[x*y for x,y in zip(numbers(a),numbers(c))]
             else: raise Undefined()
         for m in p['moves']:
             op=m['op']
+            if op=='factorial':
+                x=number(v)
+                if not 0<=x<=100:raise Undefined()
+                v=math.factorial(x);continue
             if op in {'absolute','square','cube','negate','is_even','is_odd'}:
                 x=number(v)
                 v={'absolute':lambda:abs(x),'square':lambda:x*x,'cube':lambda:x*x*x,
@@ -77,7 +83,7 @@ def reference(p,args):
 
 def native_checks(kernel,seed,count):
     rng=random.Random(seed)
-    unary=list(UNARY)+list(PARAM)
+    unary=[op for op in UNARY if op!='factorial']+list(PARAM)
     scalar={'absolute','square','cube','negate','is_even','is_odd'}
     list_to_number={'sum','product','length','maximum','minimum'}
     list_to_bool={'all_same','all_unique','is_sorted'}

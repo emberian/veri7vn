@@ -1,0 +1,74 @@
+{
+  "status": "parked unfinished draft, not integrated or release-ready",
+  "base_commit": "53ae833e52876a7f92b471aa2ef917ea75077dcb",
+  "branch": "codex/parked-codeorgan-integer-20261018",
+  "reason": "Unfinished: proof passes 22 roots but factorial native evaluation times out on unary natural arithmetic. Requires a proved efficient integer accumulator and complete native/consumer checks. Active predecessor remains selected. See project/lanes/G-codeorgan-integer.md.",
+  "files": [
+    {
+      "path": "src/extract/codeorgan/CodeOrgan.thy",
+      "sha256": "da46911b705a1e724ca7ac8abc188ff2422ea45f11124934ec3dcd8f495bbc79",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "src/extract/codeorgan/CodeOrgan_Export.thy",
+      "sha256": "bd0f81e30825d24a3bf680b7188f7944d4dcb3bca50f8c21a8385e65d2763d99",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "src/extract/codeorgan/README.md",
+      "sha256": "4136cfa7a819717b4c3ce772aa34a571e639b16c51018656e778b10941fb3eb1",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "src/extract/codeorgan/answerer.py",
+      "sha256": "f3153b1a4fb4e4ee84ffe8ff81ee512c2cda25d8ca4b57e56e6903653453a9ed",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "src/extract/codeorgan/check.py",
+      "sha256": "7c442739073a571020136cadbd5541832253cbb0576188fea9930ab88266f7cf",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "src/extract/codeorgan/main.sml",
+      "sha256": "abbdb1a872fa3ebe850eb7856c5db63554b622497481f61485a57be0cc2fda82",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "src/extract/codeorgan/probes.json",
+      "sha256": "e4815a24aeb35a437226455ec6a87bdb056450fc072ef07a3d30a6f51679d09d",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "src/extract/codeorgan/check_integer.py",
+      "sha256": "4438e5d337a5dcc5f608b4576888dbd0abedb07e96728b33f72418299da19b35",
+      "tracked_before": false,
+      "mode": "100644"
+    },
+    {
+      "path": "src/extract/codeorgan/probes_integer.json",
+      "sha256": "d370415eb8976c55df7d4a481e91554365c7170d9dc5408668d974729f6bbf49",
+      "tracked_before": false,
+      "mode": "100644"
+    },
+    {
+      "path": "tools/code_evidence.py",
+      "sha256": "023badf3c0be689d313968e77b7c2320f47ca231cbcdb40447bb2c4691360060",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "tools/test_code_evidence.py",
+      "sha256": "93cb1fed8871f9b104fc3ea10eb49547195525be8c626ff54a01043aeea5210f",
+      "tracked_before": true,
+      "mode": "100644"
+    }
+  ]
+}
