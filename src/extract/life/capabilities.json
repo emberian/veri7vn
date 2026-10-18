@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "family": "life",
+  "specialists": {
+    "genetics-v2": {
+      "evidence": {
+        "computation": "Exact Mendelian probabilities and dominant-first phenotype ratios for one through six distinct loci. The kernel composes independent-locus probabilities multiplicatively and checks Hardy-Weinberg frequency bounds.",
+        "assumptions": [
+          "Complete dominance and independent assortment; repeated locus letters are not separate independent loci.",
+          "Hardy-Weinberg calculations assume the equilibrium model and the requested allele/phenotype meaning.",
+          "The model describes a hypothetical cross, not a prediction establishing biological independence in a real organism."
+        ],
+        "untrusted": [
+          "English recognition, locus identity and alignment, choice of model, decimal parsing and JSON framing."
+        ]
+      }
+    },
+    "wildlife": {
+      "evidence": {
+        "computation": "Lincoln-Petersen or Chapman mark-recapture estimates, density, survival and mortality. Recaptured marked animals cannot exceed either source count; survivors cannot exceed the starting population.",
+        "assumptions": [
+          "The supplied counts denote the specified marked, captured, recaptured or surviving groups.",
+          "Population estimates additionally require the sampling assumptions of the chosen model; arithmetic does not establish those ecological conditions."
+        ],
+        "untrusted": [
+          "English role assignment, supplied observations, units and JSON framing."
+        ]
+      }
+    }
+  }
+}

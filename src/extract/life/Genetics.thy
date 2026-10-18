@@ -228,12 +228,14 @@ datatype greq =
   | G_GRatio locus locus
   | G_HW hwk hwsrc
   | G_Need
+  | G_Model
 
 definition need_freq :: String.literal where
   "need_freq = STR ''I need a frequency (the recessive phenotype share, q, or p) to work that out; I won'' + apos + STR ''t assume one.''"
 
 fun g_decline :: "greq \<Rightarrow> decline option" where
   "g_decline (G_HW k s) = (case hw_bad s of None \<Rightarrow> None | Some r \<Rightarrow> Some (Impossible r))"
+| "g_decline G_Model = Some (Underspecified (STR ''This calculation assumes complete dominance and independent loci; it cannot determine linked, codominant or epistatic inheritance.''))"
 | "g_decline G_Need = Some (Underspecified need_freq)"
 | "g_decline r = None"
 
@@ -245,6 +247,7 @@ fun g_answer :: "greq \<Rightarrow> outcome" where
 | "g_answer (G_GRatio a b) =
      Ratio (STR ''geno_ratio'') (ratio_of (map (cnt1 (locus_zyg a) (locus_zyg b)) [Hom_dom, Het, Hom_rec]))"
 | "g_answer (G_HW k s) = hw_answer k s"
+| "g_answer G_Model = Decline Imprecise"
 | "g_answer G_Need = Decline Imprecise"
 
 definition g_kernel :: "greq \<Rightarrow> outcome" where
@@ -278,6 +281,18 @@ theorem hw_one_declines_iff:
 theorem geno_prob_value:
   "g_kernel (G_Geno xs) = Exact (STR ''genotype_prob'') (gprob xs)"
   by (simp add: g_kernel_def)
+
+text \<open>Independent-locus composition is multiplication of the two already
+checked probabilities; this is the assumption of the Mendelian model, not a
+claim about arbitrary linked genes.\<close>
+lemma gprob_append: "gprob (xs @ ys) = gprob xs * gprob ys"
+  by (induct xs) (auto simp: algebra_simps split: prod.splits)
+
+theorem genotype_independent_composition:
+  assumes "g_kernel (G_Geno xs) = Exact k a"
+    "g_kernel (G_Geno ys) = Exact k' b"
+  shows "g_kernel (G_Geno (xs @ ys)) = Exact (STR ''genotype_prob'') (a * b)"
+  using assms by (simp add: g_kernel_def gprob_append)
 
 theorem pheno_prob_complement:
   "of_nat (fst (pcnt x)) / 4 + of_nat (snd (pcnt x)) / 4 = (1::rat)"
@@ -354,6 +369,10 @@ theorem hw_imprecise:
   shows "hw_bad s = None"
   using assms by (cases "hw_bad s") (simp_all add: g_kernel_hw)
 
+theorem unsupported_model_declines:
+  "\<exists>t. g_kernel G_Model = Decline (Underspecified t)"
+  by (simp add: g_kernel_def)
+
 theorem need_declines: "g_kernel G_Need = Decline (Underspecified need_freq)"
   by (simp add: g_kernel_def)
 
@@ -397,7 +416,7 @@ fun g_text :: "greq \<Rightarrow> outcome \<Rightarrow> String.literal" where
      + STR '' phenotype from '' + geno_lit [a] + STR '' x '' + geno_lit [b] + STR '' (complete dominance).''"
 | "g_text (G_PRatio ls) (Ratio _ r) = STR ''The phenotypic ratio is '' + ratio_lit r + STR '' (''
      + geno_lit (map fst ls) + STR '' x '' + geno_lit (map snd ls)
-     + STR '', complete dominance; dominant classes first).''"
+     + STR '', complete dominance and independent loci; dominant classes first).''"
 | "g_text (G_GRatio a b) (Ratio _ r) = STR ''The genotypic ratio is '' + ratio_lit r + STR '' (''
      + join_lit (STR '' : '') (map (\<lambda>w. (case a of Locus u l _ \<Rightarrow> zyg_lit (Locus u l w)))
          (filter (\<lambda>w. 0 < cnt1 (locus_zyg a) (locus_zyg b) w) [Hom_dom, Het, Hom_rec]))
@@ -407,6 +426,6 @@ fun g_text :: "greq \<Rightarrow> outcome \<Rightarrow> String.literal" where
 | "g_text r o' = STR ''''"
 
 definition g_reply :: "greq \<Rightarrow> reply" where
-  "g_reply r = mk_reply (g_kernel r) (g_text r (g_kernel r))"
+  "g_reply r = (let result = g_kernel r in mk_reply result (g_text r result))"
 
 end

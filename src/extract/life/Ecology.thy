@@ -461,6 +461,6 @@ fun e_text :: "ereq \<Rightarrow> outcome \<Rightarrow> String.literal" where
      + STR '' x '' + plain_lit l + STR ''^'' + plain_lit t + STR '', discrete growth).''"
 
 definition e_reply :: "ereq \<Rightarrow> reply" where
-  "e_reply r = mk_reply (e_kernel r) (e_text r (e_kernel r))"
+  "e_reply r = (let result = e_kernel r in mk_reply result (e_text r result))"
 
 end

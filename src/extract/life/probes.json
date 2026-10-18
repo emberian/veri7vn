@@ -1,0 +1,122 @@
+[
+  {
+    "specialist": "genetics-v2",
+    "q": "What is the probability of aabbcc offspring from AaBbCc x AaBbCc?",
+    "expect": 0.015625,
+    "source": "Three independent recessive outcomes, (1/4)^3."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "What is the probability of AaBbCc offspring from AaBbCc x aabbcc?",
+    "expect": 0.125,
+    "source": "Three independent heterozygote outcomes, (1/2)^3."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "Phenotypic ratio of offspring from AaBbCc x AaBbCc?",
+    "expect": "27:9:9:3:9:3:3:1",
+    "source": "Ordered dominant-first product of [3,1] at three loci."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "Phenotypic ratio of offspring from AaBbCc x aabbcc?",
+    "expect": "1:1:1:1:1:1:1:1",
+    "source": "Independent trihybrid testcross."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "Phenotypic ratio when Aa is crossed with aa?",
+    "expect": "1:1",
+    "source": "Monohybrid testcross."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "What is the probability of aabbccdd offspring from AaBbCcDd x AaBbCcDd?",
+    "expect": 0.00390625,
+    "source": "Four independent recessive outcomes."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "What is the probability of aabbccddeeff offspring from AaBbCcDdEeFf x AaBbCcDdEeFf?",
+    "expect": 0.000244140625,
+    "source": "Six independent recessive outcomes."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "What is the probability of aaaa offspring from AaAa x AaAa?",
+    "expect": null,
+    "source": "Repeated locus is not independent; must not multiply it."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "For linked genes, what is the probability of aabb offspring from AaBb x AaBb?",
+    "expect": null,
+    "source": "Recombination fraction and phase not supplied."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "With incomplete dominance, phenotypic ratio of Aa x Aa?",
+    "expect": null,
+    "source": "Complete-dominance phenotype model is inapplicable."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "Hardy-Weinberg: 36% of a coastal population has the recessive phenotype. Find q.",
+    "expect": 0.6,
+    "source": "sqrt(0.36)."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "q = 1 under Hardy-Weinberg. What is p?",
+    "expect": 0,
+    "source": "Allele frequencies sum to one."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "q = 1.7 under Hardy-Weinberg. What is p?",
+    "expect": null,
+    "source": "Frequency exceeds one."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "q = -0.2 under Hardy-Weinberg. What is p?",
+    "expect": null,
+    "source": "Negative frequency."
+  },
+  {
+    "specialist": "forestry",
+    "q": "Stand with 80 trees per acre averaging 10 inches DBH: basal area per acre?",
+    "expect": 43.632,
+    "source": "80*10^2*0.005454, shipped forestry model."
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mark-recapture: 60 frogs tagged, 40 captured in the second sample, 12 recaptured. Population estimate?",
+    "expect": 200,
+    "source": "Lincoln-Petersen M*C/R."
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mortality rate if 75 of 100 monitored bats survived?",
+    "expect": 25,
+    "source": "100*(1-75/100)."
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Survival rate if 30 of 50 monitored turtles survived?",
+    "expect": 60,
+    "source": "100*30/50."
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mortality rate if 120 of 100 monitored bats survived?",
+    "expect": null,
+    "source": "Survivors exceed starting count."
+  },
+  {
+    "specialist": "biology",
+    "q": "Reverse complement of AATGCC?",
+    "expect": "GGCATT",
+    "source": "Reverse the Watson-Crick DNA complement."
+  }
+]

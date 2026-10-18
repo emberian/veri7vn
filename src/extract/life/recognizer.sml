@@ -124,8 +124,8 @@ struct
   val N = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
 
   (* ---------- genetics ---------- *)
-  val GT = "\\b((?:[A-Za-z])(?:[A-Za-z])(?:[A-Za-z][A-Za-z])?)\\b"
-  val crossRe = GT ^ "\\s*(?:x|\195\151|and|crossed with|with)\\s*" ^ GT
+  val GT = "\\b((?:[A-Za-z][A-Za-z]){1,6})\\b"
+  val crossRe = GT ^ "\\s*(?:x|\195\151|and|(?:is\\s+)?crossed with|with)\\s*" ^ GT
 
   fun zygOf c1 c2 =
     case (Char.isUpper c1, Char.isUpper c2) of
@@ -135,10 +135,11 @@ struct
   fun locusOf c1 c2 = L.Locus (String.str (Char.toUpper c1), String.str (Char.toLower c1), zygOf c1 c2)
   fun lociOf s = List.tabulate (size s div 2, fn i => (String.sub (s, 2 * i), String.sub (s, 2 * i + 1)))
   fun validPair p1 p2 =
-    size p1 = size p2 andalso (size p1 = 2 orelse size p1 = 4) andalso
+    size p1 = size p2 andalso (size p1 >= 2 andalso size p1 <= 12 andalso size p1 mod 2 = 0) andalso
     List.all (fn (a, b) => 
       let val l = Char.toLower
       in l a = l b end) (lociOf p1) andalso
+    length (List.foldl (fn ((a, _), seen) => if List.exists (fn c => c = Char.toLower a) seen then seen else Char.toLower a :: seen) [] (lociOf p1)) = size p1 div 2 andalso
     List.all (fn ((a, b), (c, d)) =>
       let val l = Char.toLower in l a = l c andalso l a = l d end) (ListPair.zip (lociOf p1, lociOf p2))
 
@@ -146,23 +147,23 @@ struct
     let
       val q2 = search "\\b1 in ([\\d,]+)\\b" low
       val fq =
-        case search "\\bq\\s*(?:=|is)\\s*(0?\\.\\d+)" low of
+        case search "\\bq\\s*(?:=|is)\\s*(-?\\d*(?:\\.\\d+)|-?\\d+)" low of
           SOME m => SOME (g1 low m)
-        | NONE => (case search "\\brecessive allele (?:frequency )?(?:is|of|=)\\s*(0?\\.\\d+)" low of
+        | NONE => (case search "\\brecessive allele (?:frequency )?(?:is|of|=)\\s*(-?\\d*(?:\\.\\d+)|-?\\d+)" low of
                      SOME m => SOME (g1 low m) | NONE => NONE)
       val fp =
-        case search "\\bp\\s*(?:=|is)\\s*(0?\\.\\d+)" low of
+        case search "\\bp\\s*(?:=|is)\\s*(-?\\d*(?:\\.\\d+)|-?\\d+)" low of
           SOME m => SOME (g1 low m)
-        | NONE => (case search "\\bdominant allele (?:frequency )?(?:is|of|=)\\s*(0?\\.\\d+)" low of
+        | NONE => (case search "\\bdominant allele (?:frequency )?(?:is|of|=)\\s*(-?\\d*(?:\\.\\d+)|-?\\d+)" low of
                      SOME m => SOME (g1 low m) | NONE => NONE)
       val fq2 =
-        case search "(\\d+(?:\\.\\d+)?)\\s*%\\s*(?:of (?:the )?(?:population|people|individuals) )?(?:(?:show|have|has|express)\\w*\\s+)?(?:the\\s+)?recessive" low of
+        case search "(\\d+(?:\\.\\d+)?)\\s*%\\s*(?:of (?:(?:the|a|an) )?(?:(?:[a-z]+\\s+){0,2}population|people|individuals) )?(?:(?:show|have|has|express)\\w*\\s+)?(?:the\\s+)?recessive" low of
           SOME m => SOME (g1 low m, true)
         | NONE =>
           (case search "\\brecessive (?:phenotype|trait|condition|disorder)\\w*[^.?]{0,40}?(?:in|affects|of)\\s+(\\d+(?:\\.\\d+)?)\\s*%" low of
              SOME m => SOME (g1 low m, true)
            | NONE =>
-             (case search "\\bq\\s*(?:\\^2|\194\178|squared)\\s*(?:=|is)\\s*(0?\\.\\d+)" low of
+             (case search "\\bq\\s*(?:\\^2|\194\178|squared)\\s*(?:=|is)\\s*(-?\\d*(?:\\.\\d+)|-?\\d+)" low of
                 SOME m => SOME (g1 low m, String.isSubstring "%" (Regex.whole low m))
               | NONE => NONE))
     in
@@ -238,6 +239,7 @@ struct
 
   fun genetics text : L.reply option =
     if Narrow.narrative text then NONE
+    else if isSome (search crossRe (lower text)) andalso has "\\blinked\\b|\\blinkage\\b|\\bsex[- ]linked\\b|\\bincomplete dominance\\b|\\bcodominan\\w*\\b|\\bepistasis\\b" (lower text) then SOME (L.g_reply L.G_Model)
     else
       let
         val t0 = collapse text
@@ -504,7 +506,7 @@ struct
               end
             else
               let
-                val dbh = search ("\\b(?:dbh|diameter(?: at breast height)?)\\s*(?:of|is|=)?\\s*" ^ FN ^ "\\s*(inches|inch|in\\b|\"|cm)|" ^ FN ^ "[- ]?(inch|in\\b|\"|cm)\\s*(?:dbh|diameter)") low
+                val dbh = search ("\\b(?:dbh|diameter(?: at breast height)?)\\s*(?:of|is|=)?\\s*" ^ FN ^ "\\s*(inches|inch|in\\b|\"|cm)|" ^ FN ^ "[- ]?(inches|inch|in\\b|\"|cm)\\s*(?:dbh|diameter)") low
               in
                 case dbh of
                   SOME m =>
@@ -543,14 +545,15 @@ struct
           val v = bigOf (g1 low mt)
           val b0 = Int.max (0, s - 45)
           val bef = String.substring (low, b0, s - b0)
-          val aft = String.substring (low, e, Int.min (60, size low - e))
+          val aft0 = String.substring (low, e, Int.min (60, size low - e))
+          val aft = hd (String.fields (fn c => c = #"," orelse c = #";" orelse c = #".") aft0)
           val ofthe = anchored "\\s+of\\s+the\\s+(\\d+(?:,\\d{3})*)" aft
         in
           if isSome ofthe andalso not (isSome (!outR)) then
             (outR := SOME v; setdef outC (bigOf (g1 aft (valOf ofthe))))
           else if isSome (anchored "\\s+(?:\\w+\\s+){0,2}?(?:of (?:them|these|which)\\b|(?:were|was|had been|are)\\s+(?:already|previously)\\b|recaptur|(?:marked|tagged|banded) ones\\b|carried|bore|had (?:tags|marks|bands)|with (?:tags|marks|bands))" aft)
                   orelse has "\\b(?:recaptured|contained|including|found)\\s+$" bef
-                  orelse has "\\brecaptur\\w*\\s*(?:of|was|were|=|:)?\\s*$" bef
+                  orelse has "\\b(?:recaptured|recaptures|recapture count)\\s*(?:of|was|were|=|:)?\\s*$" bef
           then setdef outR v
           else if has ("\\bsecond (?:sample|capture|survey|session|trapping)\\s+of\\s+$") bef
                   orelse has ("\\b(?:later|again|second|next|afterwards)\\b[^.;]{0,30}" ^ CAP ^ "\\s+$") bef
@@ -611,8 +614,13 @@ struct
     end
   and wSurv low fin : L.reply option =
     let
-      val surv = search (N ^ "\\s+(?:\\w+\\s+){0,2}?(?:survived|were still alive|remained alive|lived)\\b") low
-      val start = search ("\\b(?:of|out of|from)\\s+(\\d+(?:,\\d{3})*)\\b|(\\d+(?:,\\d{3})*)\\s+(?:\\w+\\s+){0,2}?(?:were )?(?:released|tagged|collared|monitored|hatched|born)\\b") low
+      val surv = search (N ^ "\\s+(?:of\\s+\\d+(?:,\\d{3})*\\s+)?(?:\\w+\\s+){0,2}?(?:survived|were still alive|remained alive|lived)\\b") low
+      (* Explicit "s of n" roles take precedence over a nearby monitored verb.
+         Otherwise the old leftmost match can read "75 of 100 monitored" as
+         75 starting animals and silently turn mortality into zero. *)
+      val start = case search "\\b(?:of|out of|from)\\s+(\\d+(?:,\\d{3})*)\\b" low of
+          SOME m => SOME m
+        | NONE => search "(\\d+(?:,\\d{3})*)\\s+(?:\\w+\\s+){0,2}?(?:were )?(?:released|tagged|collared|monitored|hatched|born)\\b" low
     in
       case (surv, start) of
         (SOME sm, SOME st) =>

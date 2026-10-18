@@ -32,7 +32,7 @@ datatype outcome =
 section \<open>Interval enclosure of a real value\<close>
 
 definition approx_out :: "kind \<Rightarrow> floatarith \<Rightarrow> outcome" where
-  "approx_out k e = (case enclose prec e of None \<Rightarrow> Decline Imprecise | Some d \<Rightarrow> Approx k d)"
+  "approx_out k e = (case enclose (if k = STR ''shannon'' \<or> k = STR ''evenness'' then 64 else 40) e of None \<Rightarrow> Decline Imprecise | Some d \<Rightarrow> Approx k d)"
 
 lemma approx_out_sound:
   assumes "approx_out c e = Approx k d"

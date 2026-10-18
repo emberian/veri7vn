@@ -135,6 +135,6 @@ fun w_text :: "wreq \<Rightarrow> outcome \<Rightarrow> String.literal" where
 | "w_text r o' = STR ''''"
 
 definition w_reply :: "wreq \<Rightarrow> reply" where
-  "w_reply r = mk_reply (w_kernel r) (w_text r (w_kernel r))"
+  "w_reply r = (let result = w_kernel r in mk_reply result (w_text r result))"
 
 end

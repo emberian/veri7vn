@@ -222,6 +222,6 @@ fun f_text :: "freq \<Rightarrow> outcome \<Rightarrow> String.literal" where
 | "f_text (F_BAm d) o' = STR ''The basal area is '' + vtxt o' + STR '' m2 (pi x ('' + plain_lit d + STR '' cm / 200)^2).''"
 
 definition f_reply :: "freq \<Rightarrow> reply" where
-  "f_reply r = mk_reply (f_kernel r) (f_text r (f_kernel r))"
+  "f_reply r = (let result = f_kernel r in mk_reply result (f_text r result))"
 
 end

@@ -275,6 +275,6 @@ fun m_text :: "mreq \<Rightarrow> outcome \<Rightarrow> String.literal" where
 | "m_text M_Unread o' = STR ''''"
 
 definition m_reply :: "mreq \<Rightarrow> reply" where
-  "m_reply r = mk_reply (m_kernel r) (m_text r (m_kernel r))"
+  "m_reply r = (let result = m_kernel r in mk_reply result (m_text r result))"
 
 end

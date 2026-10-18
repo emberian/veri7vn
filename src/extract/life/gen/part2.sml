@@ -166,7 +166,7 @@
               end
             else
               let
-                val dbh = search (⟦\b(?:dbh|diameter(?: at breast height)?)\s*(?:of|is|=)?\s*⟧ ^ FN ^ ⟦\s*(inches|inch|in\b|"|cm)|⟧ ^ FN ^ ⟦[- ]?(inch|in\b|"|cm)\s*(?:dbh|diameter)⟧) low
+                val dbh = search (⟦\b(?:dbh|diameter(?: at breast height)?)\s*(?:of|is|=)?\s*⟧ ^ FN ^ ⟦\s*(inches|inch|in\b|"|cm)|⟧ ^ FN ^ ⟦[- ]?(inches|inch|in\b|"|cm)\s*(?:dbh|diameter)⟧) low
               in
                 case dbh of
                   SOME m =>
@@ -205,14 +205,15 @@
           val v = bigOf (g1 low mt)
           val b0 = Int.max (0, s - 45)
           val bef = String.substring (low, b0, s - b0)
-          val aft = String.substring (low, e, Int.min (60, size low - e))
+          val aft0 = String.substring (low, e, Int.min (60, size low - e))
+          val aft = hd (String.fields (fn c => c = #"," orelse c = #";" orelse c = #".") aft0)
           val ofthe = anchored ⟦\s+of\s+the\s+(\d+(?:,\d{3})*)⟧ aft
         in
           if isSome ofthe andalso not (isSome (!outR)) then
             (outR := SOME v; setdef outC (bigOf (g1 aft (valOf ofthe))))
           else if isSome (anchored ⟦\s+(?:\w+\s+){0,2}?(?:of (?:them|these|which)\b|(?:were|was|had been|are)\s+(?:already|previously)\b|recaptur|(?:marked|tagged|banded) ones\b|carried|bore|had (?:tags|marks|bands)|with (?:tags|marks|bands))⟧ aft)
                   orelse has ⟦\b(?:recaptured|contained|including|found)\s+$⟧ bef
-                  orelse has ⟦\brecaptur\w*\s*(?:of|was|were|=|:)?\s*$⟧ bef
+                  orelse has ⟦\b(?:recaptured|recaptures|recapture count)\s*(?:of|was|were|=|:)?\s*$⟧ bef
           then setdef outR v
           else if has (⟦\bsecond (?:sample|capture|survey|session|trapping)\s+of\s+$⟧) bef
                   orelse has (⟦\b(?:later|again|second|next|afterwards)\b[^.;]{0,30}⟧ ^ CAP ^ ⟦\s+$⟧) bef
@@ -273,8 +274,13 @@
     end
   and wSurv low fin : L.reply option =
     let
-      val surv = search (N ^ ⟦\s+(?:\w+\s+){0,2}?(?:survived|were still alive|remained alive|lived)\b⟧) low
-      val start = search (⟦\b(?:of|out of|from)\s+(\d+(?:,\d{3})*)\b|(\d+(?:,\d{3})*)\s+(?:\w+\s+){0,2}?(?:were )?(?:released|tagged|collared|monitored|hatched|born)\b⟧) low
+      val surv = search (N ^ ⟦\s+(?:of\s+\d+(?:,\d{3})*\s+)?(?:\w+\s+){0,2}?(?:survived|were still alive|remained alive|lived)\b⟧) low
+      (* Explicit "s of n" roles take precedence over a nearby monitored verb.
+         Otherwise the old leftmost match can read "75 of 100 monitored" as
+         75 starting animals and silently turn mortality into zero. *)
+      val start = case search ⟦\b(?:of|out of|from)\s+(\d+(?:,\d{3})*)\b⟧ low of
+          SOME m => SOME m
+        | NONE => search ⟦(\d+(?:,\d{3})*)\s+(?:\w+\s+){0,2}?(?:were )?(?:released|tagged|collared|monitored|hatched|born)\b⟧ low
     in
       case (surv, start) of
         (SOME sm, SOME st) =>

@@ -153,9 +153,9 @@ definition self_test :: bool where
 
 
 export_code g_reply b_reply e_reply f_reply w_reply m_reply
-  answered reply_kind response stated mk_rat self_test st0 st1 st2 st3 st4 st5 st6 st7 st8 st9 st10 st11 st12 st13 st14 st15 st16 st17 st18 st19 st20 st21 st22 st23 st24 st25 st26 st27 st28 st29 st30 st31 st32
+  answered reply_kind response stated mk_rat
   integer_of_int nat_of_integer int_of_integer
-  Hom_dom Het Hom_rec Locus G_Geno G_Pheno G_PRatio G_GRatio G_HW G_Need
+  Hom_dom Het Hom_rec Locus G_Geno G_Pheno G_PRatio G_GRatio G_HW G_Need G_Model
   HK_carrier HK_p2 HK_p HK_q HWq2 HWone HWqs HWps
   NA NC NG NT NU Op_codon Op_gc Op_revcomp Op_complement Op_transcribe Op_translate Op_protlen Bio
   E_Shannon E_Evenness E_SimpD E_SimpDiv E_SimpInv E_Richness E_LogRate E_LogN E_ExpN E_Doubling E_Geom
@@ -170,9 +170,9 @@ ML \<open>
     @{thm reply_withheld_names_decline}, @{thm reply_answered_not_decline}, @{thm reply_states_exact},
     @{thm reply_states_approx},
     @{thm punnett_closed}, @{thm punnett_total}, @{thm gprob_total_one_locus}, @{thm pclasses_sum},
-    @{thm ratio_proportional}, @{thm hw_sum_one}, @{thm geno_prob_value}, @{thm pheno_prob_complement},
+    @{thm ratio_proportional}, @{thm hw_sum_one}, @{thm geno_prob_value}, @{thm genotype_independent_composition}, @{thm pheno_prob_complement},
     @{thm pheno_ratio_value}, @{thm geno_ratio_value}, @{thm hw_exact}, @{thm hw_approx},
-    @{thm hw_impossible}, @{thm hw_imprecise}, @{thm need_declines},
+    @{thm hw_impossible}, @{thm hw_imprecise}, @{thm need_declines}, @{thm unsupported_model_declines},
     @{thm revcomp_involutive}, @{thm transcription_inverse}, @{thm protein_length_bound},
     @{thm protein_has_no_stop}, @{thm gc_val_bounds}, @{thm gc_val_defining}, @{thm bio_mixed_declines},
     @{thm bio_codon}, @{thm bio_complement}, @{thm bio_revcomp}, @{thm bio_transcribe},

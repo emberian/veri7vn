@@ -124,8 +124,8 @@ struct
   val N = ⟦(\d+(?:,\d{3})*(?:\.\d+)?)⟧
 
   (* ---------- genetics ---------- *)
-  val GT = ⟦\b((?:[A-Za-z])(?:[A-Za-z])(?:[A-Za-z][A-Za-z])?)\b⟧
-  val crossRe = GT ^ ⟦\s*(?:x|×|and|crossed with|with)\s*⟧ ^ GT
+  val GT = ⟦\b((?:[A-Za-z][A-Za-z]){1,6})\b⟧
+  val crossRe = GT ^ ⟦\s*(?:x|×|and|(?:is\s+)?crossed with|with)\s*⟧ ^ GT
 
   fun zygOf c1 c2 =
     case (Char.isUpper c1, Char.isUpper c2) of
@@ -135,10 +135,11 @@ struct
   fun locusOf c1 c2 = L.Locus (String.str (Char.toUpper c1), String.str (Char.toLower c1), zygOf c1 c2)
   fun lociOf s = List.tabulate (size s div 2, fn i => (String.sub (s, 2 * i), String.sub (s, 2 * i + 1)))
   fun validPair p1 p2 =
-    size p1 = size p2 andalso (size p1 = 2 orelse size p1 = 4) andalso
+    size p1 = size p2 andalso (size p1 >= 2 andalso size p1 <= 12 andalso size p1 mod 2 = 0) andalso
     List.all (fn (a, b) => 
       let val l = Char.toLower
       in l a = l b end) (lociOf p1) andalso
+    length (List.foldl (fn ((a, _), seen) => if List.exists (fn c => c = Char.toLower a) seen then seen else Char.toLower a :: seen) [] (lociOf p1)) = size p1 div 2 andalso
     List.all (fn ((a, b), (c, d)) =>
       let val l = Char.toLower in l a = l c andalso l a = l d end) (ListPair.zip (lociOf p1, lociOf p2))
 
@@ -146,23 +147,23 @@ struct
     let
       val q2 = search ⟦\b1 in ([\d,]+)\b⟧ low
       val fq =
-        case search ⟦\bq\s*(?:=|is)\s*(0?\.\d+)⟧ low of
+        case search ⟦\bq\s*(?:=|is)\s*(-?\d*(?:\.\d+)|-?\d+)⟧ low of
           SOME m => SOME (g1 low m)
-        | NONE => (case search ⟦\brecessive allele (?:frequency )?(?:is|of|=)\s*(0?\.\d+)⟧ low of
+        | NONE => (case search ⟦\brecessive allele (?:frequency )?(?:is|of|=)\s*(-?\d*(?:\.\d+)|-?\d+)⟧ low of
                      SOME m => SOME (g1 low m) | NONE => NONE)
       val fp =
-        case search ⟦\bp\s*(?:=|is)\s*(0?\.\d+)⟧ low of
+        case search ⟦\bp\s*(?:=|is)\s*(-?\d*(?:\.\d+)|-?\d+)⟧ low of
           SOME m => SOME (g1 low m)
-        | NONE => (case search ⟦\bdominant allele (?:frequency )?(?:is|of|=)\s*(0?\.\d+)⟧ low of
+        | NONE => (case search ⟦\bdominant allele (?:frequency )?(?:is|of|=)\s*(-?\d*(?:\.\d+)|-?\d+)⟧ low of
                      SOME m => SOME (g1 low m) | NONE => NONE)
       val fq2 =
-        case search ⟦(\d+(?:\.\d+)?)\s*%\s*(?:of (?:the )?(?:population|people|individuals) )?(?:(?:show|have|has|express)\w*\s+)?(?:the\s+)?recessive⟧ low of
+        case search ⟦(\d+(?:\.\d+)?)\s*%\s*(?:of (?:(?:the|a|an) )?(?:(?:[a-z]+\s+){0,2}population|people|individuals) )?(?:(?:show|have|has|express)\w*\s+)?(?:the\s+)?recessive⟧ low of
           SOME m => SOME (g1 low m, true)
         | NONE =>
           (case search ⟦\brecessive (?:phenotype|trait|condition|disorder)\w*[^.?]{0,40}?(?:in|affects|of)\s+(\d+(?:\.\d+)?)\s*%⟧ low of
              SOME m => SOME (g1 low m, true)
            | NONE =>
-             (case search ⟦\bq\s*(?:\^2|²|squared)\s*(?:=|is)\s*(0?\.\d+)⟧ low of
+             (case search ⟦\bq\s*(?:\^2|²|squared)\s*(?:=|is)\s*(-?\d*(?:\.\d+)|-?\d+)⟧ low of
                 SOME m => SOME (g1 low m, String.isSubstring "%" (Regex.whole low m))
               | NONE => NONE))
     in
@@ -238,6 +239,7 @@ struct
 
   fun genetics text : L.reply option =
     if Narrow.narrative text then NONE
+    else if isSome (search crossRe (lower text)) andalso has ⟦\blinked\b|\blinkage\b|\bsex[- ]linked\b|\bincomplete dominance\b|\bcodominan\w*\b|\bepistasis\b⟧ (lower text) then SOME (L.g_reply L.G_Model)
     else
       let
         val t0 = collapse text

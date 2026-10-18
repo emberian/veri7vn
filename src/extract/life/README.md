@@ -30,8 +30,7 @@ small HOL kernel, but they share one numeric layer, one reply type and one binar
 | Reading English | `../commons/commons.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions |
 | JSON framing | `main.sml` | **untrusted** |
 
-Enclosed values are rounded to four significant digits from a verified interval (precision 72
-bits); each theorem bounds the error at one part in a thousand plus 1e-9. Genetics answers are
+Enclosed values are rounded to four significant digits from a verified interval (40-bit precision, or 64 bits for Shannon diversity and evenness); each theorem bounds the error at one part in a thousand plus 1e-9. Genetics answers are
 exact fractions (1/4, 3/4) with the percent alongside, as the organ prints them.
 
 ## Regenerating the recognizer
@@ -43,14 +42,34 @@ literals). Edit the parts, not the generated file; `git diff` on it must be empt
 ## Build and run
 
 ```sh
-python3 tools/dev/check-native --session Veri7vn_Life --session-root src/extract/life \
-  --expect 'VERI7VN_LIFE PASS' --timeout 900
+python3 tools/dev/remote-build persvati src/extract/life Veri7vn_Life -d src/extract/commons \
+  --expect 'VERI7VN_LIFE PASS'
 python3 src/extract/life/tables_check.py
-sh src/extract/life/build.sh                 # exports the SML, compiles var/life/bin/life
+VERI7VN_GENERATED=/path/from/successful/receipt/life.ML sh src/extract/life/build.sh
 echo '{"id": "1", "q": "Reverse complement of ATGCGT?", "session": "s"}' | var/life/bin/life
 PYTHONDONTWRITEBYTECODE=1 python3 src/extract/life/score.py     # organ cross-check, all six panels
 ```
 
 ## Current result
 
-See [the lane handoff](../../../project/lanes/S09-life.md) for the per-specialist table.
+The current candidate scores 179/179 shipped items (previously 170/179),
+with zero wrong answers or false yes on these panels. Three fresh seeds also
+score 179/179 each. See [C-life](../../../project/lanes/C-life.md) for exact
+receipts, per-specialist results and known semantic gaps outside the panels.
+
+## Beyond the original phrasing
+
+Genotype probabilities and phenotype ratios accept one through six distinct
+independent loci. Explicit linkage, incomplete dominance, codominance and
+epistasis are declined; a repeated locus is never treated as another independent
+one. The declared assumptions are available in `capabilities.json`. They do
+not prove that an actual biological cross satisfies the model.
+
+The recognizer handles inverted cross descriptions, population qualifiers in
+Hardy-Weinberg questions, plural DBH units and explicit survival-count roles.
+The build checks all self-test vectors but does not export eager test constants
+into the answerer. The expensive numeric reply paths reuse their result instead of recalculating intervals.
+
+`beyond.py` reproduces fresh generator panels without writing to upstream;
+`probe.py` runs the same-author model probes. See the current work and receipts
+in [C-life](../../../project/lanes/C-life.md).
