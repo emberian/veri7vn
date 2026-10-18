@@ -58,12 +58,15 @@ Two things are deliberately NOT modelled, both float artefacts of the
 Python organ, stated in the theory text: binary floating-point rounding
 (the organ prints `0.30000000000000004`-style neighbours on exact decimal
 ties sometimes; the kernel states exact rationals and rounds ties up), and
-`math.isfinite` (an exact rational is always finite). One residual
-fidelity gap: when the printed value's unit is an abbreviation ("min",
-"kg"), fold w490 pluralises the first number-unit pair in the STEPS rather
-than the value; the kernel pluralises the value. Every core-panel and
-probe shape prints the value first with a spelled-out unit, so the two
-agree there.
+`math.isfinite` (an exact rational is always finite). The one tie this
+costs on the probe set: `What is 12.5% of $1?` is exactly 1/8, the organ's
+`{:,.2f}` rounds the tie to even and prints `$0.12`, the kernel's money
+path rounds up and prints `$0.13` (probe wp:78; no core-panel item is a
+money tie). One residual fidelity gap: when the printed value's unit is an
+abbreviation ("min", "kg"), fold w490 pluralises the first number-unit
+pair in the STEPS rather than the value; the kernel pluralises the value.
+Every core-panel and probe shape prints the value first with a spelled-out
+unit, so the two agree there.
 
 ## Run it
 

@@ -142,7 +142,7 @@ end
 
 structure Main =
 struct
-  val theorems = String.concatWith "," (map (fn s => "\\\"" ^ s ^ "\\\"")
+  val theorems = String.concatWith "," (map (fn s => "\"" ^ s ^ "\"")
     ["reply_answered_iff", "response_template", "printed_rounds_value", "printed_rounds_value_percent",
      "stated6_sound", "stated4_sound", "round_dec_error", "rl_round_dec_bound", "round_tie_up",
      "round_sig_sound", "round_at_error", "percent_of_value", "convert_value", "simple_interest_value",
@@ -166,7 +166,7 @@ struct
         ^ ", \"response\": " ^ Json.quote (Wordprob.response r)
         ^ ", \"path\": " ^ Json.quote ("organ:math>word:" ^ schema)
         ^ ", \"kind\": " ^ Json.quote schema
-        ^ (case Wordprob.stated r of SOME v => ", \"value\": " ^ v | NONE => "")
+        ^ (case Wordprob.stated r of SOME v => ", \"value\": " ^ Json.quote v | NONE => "")
         ^ ", \"provenance\": {\"taken\": true, \"organ\": \"word_problems_v1\""
         ^ ", \"specialist_ms\": " ^ ms t0
         ^ ", \"kernel\": \"Wordprob.reply_ofa\", \"session\": \"Veri7vn_Wordprob\", \"theorems\": ["
