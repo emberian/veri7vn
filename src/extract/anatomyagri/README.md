@@ -17,7 +17,7 @@ that manifest's organ does; with none, the family is asked in a fixed order.
 | Tables, requests, kernel, rounding, reply text | `AnatomyAgri.thy` | HOL, proved, exported |
 | Export, self test, oracle check | `AnatomyAgri_Export.thy` | build fails on an oracle or a failed self test |
 | Table transcription check | `tables_check.py` | Python check against the organ files, not a proof |
-| Reading English | `regex.sml`, `recognizer.sml` | **untrusted**, hand port of the organs' regexes |
+| Reading English | `../commons/commons.sml`, `recognizer.sml` | **untrusted**, hand port of the organs' regexes |
 | JSON framing | `main.sml` | **untrusted** |
 
 Build and run:
@@ -29,3 +29,8 @@ PYTHONDONTWRITEBYTECODE=1 python3 src/extract/anatomyagri/score.py     # has an 
 ```
 The binary is under `var/anatomyagri/bin/` and is not committed. Results and statements:
 [lane handoff](../../../project/lanes/S10-anatomy-agri.md).
+
+The numeric layout helpers (`digits`, `digit_lit`, `lit`, `strip_zeros`) and the
+Regex/Json SML come from the shared `Veri7vn_Commons` session and
+`src/extract/commons/commons.sml` (lane W5-12); the rounding here stays
+nat-based and local.

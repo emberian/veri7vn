@@ -1,5 +1,5 @@
 theory AnatomyAgri
-  imports Main "HOL.Rat" "HOL-Library.Code_Target_Numeral"
+  imports Main "HOL.Rat" "HOL-Library.Code_Target_Numeral" "Veri7vn_Commons.Commons_Num"
 begin
 
 text \<open>
@@ -17,9 +17,6 @@ text \<open>
 \<close>
 
 section \<open>Number layout\<close>
-
-fun digits :: "nat \<Rightarrow> nat list" where
-  "digits n = (if n < 10 then [n] else digits (n div 10) @ [n mod 10])"
 
 declare digits.simps [simp del]
 
@@ -51,23 +48,11 @@ proof (induction n rule: digits.induct)
   qed
 qed
 
-definition digit_lit :: "nat \<Rightarrow> String.literal" where
-  "digit_lit d = (if d = 0 then STR ''0'' else if d = 1 then STR ''1'' else if d = 2 then STR ''2''
-    else if d = 3 then STR ''3'' else if d = 4 then STR ''4'' else if d = 5 then STR ''5''
-    else if d = 6 then STR ''6'' else if d = 7 then STR ''7'' else if d = 8 then STR ''8''
-    else STR ''9'')"
-
-definition lit :: "nat list \<Rightarrow> String.literal" where
-  "lit ds = foldr (\<lambda>d s. digit_lit d + s) ds (STR '''')"
-
 definition cat :: "String.literal list \<Rightarrow> String.literal" where
   "cat ss = foldr (+) ss (STR '''')"
 
 definition sn :: "nat \<Rightarrow> String.literal" where
   "sn n = lit (digits n)"
-
-fun strip_zeros :: "nat list \<Rightarrow> nat list" where
-  "strip_zeros ds = (if ds \<noteq> [] \<and> last ds = 0 then strip_zeros (butlast ds) else ds)"
 
 definition frac_digits :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
   "frac_digits k f = replicate (k - length (digits f)) 0 @ digits f"

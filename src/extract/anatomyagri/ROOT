@@ -5,6 +5,7 @@ session Veri7vn_AnatomyAgri in "." = HOL +
   options [document = false, threads = 2]
   sessions
     "HOL-Library"
+    "Veri7vn_Commons"
   theories
     AnatomyAgri
     AnatomyAgri_Export
