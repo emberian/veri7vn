@@ -1,0 +1,10 @@
+(* Lane W5-02: one verified decision for Oracle7's 161 relation specialists, with each
+   specialist's reader table and domain as HOL data (Relation_Tables, generated and checked). *)
+session Veri7vn_Relations = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Library"
+  theories
+    Relation_Reader
+    Relation_Tables
+    Relation_Reader_Export

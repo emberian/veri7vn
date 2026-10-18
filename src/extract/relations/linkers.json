@@ -1,0 +1,1778 @@
+{
+ "note": "linker per specialist, chosen on the DEV split only: the labels-only stand-in (W5-01) where it answers more dev items right with no more wrong, else the reconstructed names_v1 index (ties go to names_v1, the reconstruction of what the organ shipped with). Held-out numbers are reported, never used to choose. [right, wrong] per dev run below.",
+ "choice": {
+  "rel-actors": "names",
+  "rel-aircraft": "names",
+  "rel-airlines": "names",
+  "rel-airports": "names",
+  "rel-albums": "names",
+  "rel-animators": "names",
+  "rel-anime": "names",
+  "rel-architects": "names",
+  "rel-asteroids": "names",
+  "rel-astronauts": "names",
+  "rel-astronomers": "names",
+  "rel-athletes": "names",
+  "rel-awards": "names",
+  "rel-ballets": "standin",
+  "rel-bands": "names",
+  "rel-baseball": "names",
+  "rel-basketball": "names",
+  "rel-battles": "names",
+  "rel-biathletes": "names",
+  "rel-biologists": "names",
+  "rel-bloggers": "names",
+  "rel-boxers": "names",
+  "rel-brands": "standin",
+  "rel-breeds": "names",
+  "rel-bridges": "names",
+  "rel-business": "names",
+  "rel-carbrands": "standin",
+  "rel-carmodels": "names",
+  "rel-castles": "names",
+  "rel-channels": "names",
+  "rel-characters": "names",
+  "rel-chefs": "names",
+  "rel-chemists": "names",
+  "rel-chess": "names",
+  "rel-churches": "names",
+  "rel-comedians": "names",
+  "rel-comics": "names",
+  "rel-companies": "names",
+  "rel-composers": "names",
+  "rel-compounds": "names",
+  "rel-computerscientists": "names",
+  "rel-countries-v2": "names",
+  "rel-cricketers": "names",
+  "rel-criminals": "names",
+  "rel-crosscountry": "names",
+  "rel-curlers": "standin",
+  "rel-cyclists": "names",
+  "rel-dancers": "names",
+  "rel-diplomats": "names",
+  "rel-directors": "names",
+  "rel-diseases": "names",
+  "rel-dishes": "names",
+  "rel-drivers": "names",
+  "rel-economists": "names",
+  "rel-editors": "names",
+  "rel-engineers": "names",
+  "rel-equestrians": "names",
+  "rel-explorers": "names",
+  "rel-fencers": "names",
+  "rel-fieldhockey": "names",
+  "rel-films-v2": "names",
+  "rel-footballclubs": "names",
+  "rel-footballers": "names",
+  "rel-galaxies": "names",
+  "rel-genres": "names",
+  "rel-geologists": "names",
+  "rel-golfers": "names",
+  "rel-graphicartists": "names",
+  "rel-gridiron": "names",
+  "rel-gymnasts": "names",
+  "rel-handball": "names",
+  "rel-historians": "names",
+  "rel-hotels": "names",
+  "rel-icehockey": "standin",
+  "rel-illustrators": "standin",
+  "rel-instruments": "names",
+  "rel-islands": "names",
+  "rel-journalists": "names",
+  "rel-lakes": "names",
+  "rel-languages": "names",
+  "rel-lawyers": "names",
+  "rel-leagues": "names",
+  "rel-libraries": "names",
+  "rel-linguists": "names",
+  "rel-mathematicians": "names",
+  "rel-military": "names",
+  "rel-militaryunits": "names",
+  "rel-missionaries": "names",
+  "rel-models": "names",
+  "rel-monarchs": "names",
+  "rel-monuments": "names",
+  "rel-moons": "standin",
+  "rel-mountains": "names",
+  "rel-museums": "names",
+  "rel-musicians": "names",
+  "rel-mythology": "names",
+  "rel-newspapers": "names",
+  "rel-novelists": "names",
+  "rel-novels": "names",
+  "rel-nurses": "names",
+  "rel-observatories": "names",
+  "rel-operas": "names",
+  "rel-organisations": "names",
+  "rel-painters": "names",
+  "rel-paintings": "names",
+  "rel-parks": "names",
+  "rel-parties": "standin",
+  "rel-pharmacists": "standin",
+  "rel-philosophers": "names",
+  "rel-photographers": "names",
+  "rel-physicians": "names",
+  "rel-physicists": "names",
+  "rel-planets": "names",
+  "rel-playwrights": "names",
+  "rel-poems": "names",
+  "rel-poets": "names",
+  "rel-police": "names",
+  "rel-politicians": "names",
+  "rel-printmakers": "names",
+  "rel-psychologists": "names",
+  "rel-racketsports": "names",
+  "rel-religions": "names",
+  "rel-rivers": "names",
+  "rel-rowers": "standin",
+  "rel-rugby": "names",
+  "rel-sculptors": "names",
+  "rel-sculptures": "names",
+  "rel-ships": "names",
+  "rel-shooters": "names",
+  "rel-singers": "names",
+  "rel-skaters": "names",
+  "rel-skiers": "standin",
+  "rel-skyscrapers": "names",
+  "rel-snooker": "names",
+  "rel-software": "standin",
+  "rel-songs": "standin",
+  "rel-spacecraft": "standin",
+  "rel-speedskaters": "names",
+  "rel-spies": "names",
+  "rel-sportsevents": "names",
+  "rel-sportsteams": "names",
+  "rel-stadiums": "names",
+  "rel-stations": "standin",
+  "rel-statisticians": "standin",
+  "rel-swimmers": "names",
+  "rel-temples": "names",
+  "rel-tennis": "standin",
+  "rel-theatres": "names",
+  "rel-themeparks": "names",
+  "rel-theologians": "names",
+  "rel-tradeunionists": "names",
+  "rel-translators": "names",
+  "rel-triathletes": "names",
+  "rel-tvproducers": "names",
+  "rel-tvseries-v2": "names",
+  "rel-universities": "names",
+  "rel-videogames": "names",
+  "rel-volleyball": "standin",
+  "rel-wars": "names",
+  "rel-waterpolo": "names",
+  "rel-youtubers": "names"
+ },
+ "dev": {
+  "rel-actors": {
+   "dev_names": [
+    70,
+    0
+   ],
+   "dev_standin": [
+    70,
+    0
+   ]
+  },
+  "rel-aircraft": {
+   "dev_names": [
+    6,
+    0
+   ],
+   "dev_standin": [
+    6,
+    0
+   ]
+  },
+  "rel-airlines": {
+   "dev_names": [
+    41,
+    0
+   ],
+   "dev_standin": [
+    41,
+    0
+   ]
+  },
+  "rel-airports": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-albums": {
+   "dev_names": [
+    29,
+    0
+   ],
+   "dev_standin": [
+    29,
+    0
+   ]
+  },
+  "rel-animators": {
+   "dev_names": [
+    66,
+    0
+   ],
+   "dev_standin": [
+    66,
+    0
+   ]
+  },
+  "rel-anime": {
+   "dev_names": [
+    24,
+    0
+   ],
+   "dev_standin": [
+    24,
+    0
+   ]
+  },
+  "rel-architects": {
+   "dev_names": [
+    88,
+    0
+   ],
+   "dev_standin": [
+    88,
+    0
+   ]
+  },
+  "rel-asteroids": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-astronauts": {
+   "dev_names": [
+    96,
+    0
+   ],
+   "dev_standin": [
+    96,
+    0
+   ]
+  },
+  "rel-astronomers": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    95,
+    0
+   ]
+  },
+  "rel-athletes": {
+   "dev_names": [
+    94,
+    0
+   ],
+   "dev_standin": [
+    94,
+    0
+   ]
+  },
+  "rel-awards": {
+   "dev_names": [
+    11,
+    0
+   ],
+   "dev_standin": [
+    11,
+    0
+   ]
+  },
+  "rel-ballets": {
+   "dev_names": [
+    6,
+    0
+   ],
+   "dev_standin": [
+    9,
+    0
+   ]
+  },
+  "rel-bands": {
+   "dev_names": [
+    22,
+    0
+   ],
+   "dev_standin": [
+    22,
+    0
+   ]
+  },
+  "rel-baseball": {
+   "dev_names": [
+    54,
+    0
+   ],
+   "dev_standin": [
+    53,
+    0
+   ]
+  },
+  "rel-basketball": {
+   "dev_names": [
+    94,
+    0
+   ],
+   "dev_standin": [
+    94,
+    0
+   ]
+  },
+  "rel-battles": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-biathletes": {
+   "dev_names": [
+    43,
+    0
+   ],
+   "dev_standin": [
+    43,
+    0
+   ]
+  },
+  "rel-biologists": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    95,
+    0
+   ]
+  },
+  "rel-bloggers": {
+   "dev_names": [
+    79,
+    0
+   ],
+   "dev_standin": [
+    79,
+    0
+   ]
+  },
+  "rel-boxers": {
+   "dev_names": [
+    94,
+    0
+   ],
+   "dev_standin": [
+    94,
+    0
+   ]
+  },
+  "rel-brands": {
+   "dev_names": [
+    44,
+    0
+   ],
+   "dev_standin": [
+    45,
+    0
+   ]
+  },
+  "rel-breeds": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-bridges": {
+   "dev_names": [
+    17,
+    0
+   ],
+   "dev_standin": [
+    17,
+    0
+   ]
+  },
+  "rel-business": {
+   "dev_names": [
+    82,
+    0
+   ],
+   "dev_standin": [
+    82,
+    0
+   ]
+  },
+  "rel-carbrands": {
+   "dev_names": [
+    22,
+    0
+   ],
+   "dev_standin": [
+    28,
+    0
+   ]
+  },
+  "rel-carmodels": {
+   "dev_names": [
+    6,
+    0
+   ],
+   "dev_standin": [
+    6,
+    0
+   ]
+  },
+  "rel-castles": {
+   "dev_names": [
+    24,
+    0
+   ],
+   "dev_standin": [
+    24,
+    0
+   ]
+  },
+  "rel-channels": {
+   "dev_names": [
+    28,
+    0
+   ],
+   "dev_standin": [
+    27,
+    0
+   ]
+  },
+  "rel-characters": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    11,
+    0
+   ]
+  },
+  "rel-chefs": {
+   "dev_names": [
+    18,
+    0
+   ],
+   "dev_standin": [
+    18,
+    0
+   ]
+  },
+  "rel-chemists": {
+   "dev_names": [
+    96,
+    0
+   ],
+   "dev_standin": [
+    96,
+    0
+   ]
+  },
+  "rel-chess": {
+   "dev_names": [
+    76,
+    0
+   ],
+   "dev_standin": [
+    76,
+    0
+   ]
+  },
+  "rel-churches": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-comedians": {
+   "dev_names": [
+    96,
+    0
+   ],
+   "dev_standin": [
+    96,
+    0
+   ]
+  },
+  "rel-comics": {
+   "dev_names": [
+    30,
+    0
+   ],
+   "dev_standin": [
+    28,
+    0
+   ]
+  },
+  "rel-companies": {
+   "dev_names": [
+    55,
+    0
+   ],
+   "dev_standin": [
+    55,
+    0
+   ]
+  },
+  "rel-composers": {
+   "dev_names": [
+    81,
+    0
+   ],
+   "dev_standin": [
+    81,
+    0
+   ]
+  },
+  "rel-compounds": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-computerscientists": {
+   "dev_names": [
+    88,
+    0
+   ],
+   "dev_standin": [
+    88,
+    0
+   ]
+  },
+  "rel-countries-v2": {
+   "dev_names": [
+    59,
+    0
+   ],
+   "dev_standin": [
+    59,
+    0
+   ]
+  },
+  "rel-cricketers": {
+   "dev_names": [
+    55,
+    0
+   ],
+   "dev_standin": [
+    54,
+    0
+   ]
+  },
+  "rel-criminals": {
+   "dev_names": [
+    71,
+    0
+   ],
+   "dev_standin": [
+    71,
+    0
+   ]
+  },
+  "rel-crosscountry": {
+   "dev_names": [
+    55,
+    0
+   ],
+   "dev_standin": [
+    55,
+    0
+   ]
+  },
+  "rel-curlers": {
+   "dev_names": [
+    18,
+    0
+   ],
+   "dev_standin": [
+    20,
+    0
+   ]
+  },
+  "rel-cyclists": {
+   "dev_names": [
+    92,
+    0
+   ],
+   "dev_standin": [
+    92,
+    0
+   ]
+  },
+  "rel-dancers": {
+   "dev_names": [
+    96,
+    0
+   ],
+   "dev_standin": [
+    96,
+    0
+   ]
+  },
+  "rel-diplomats": {
+   "dev_names": [
+    93,
+    0
+   ],
+   "dev_standin": [
+    93,
+    0
+   ]
+  },
+  "rel-directors": {
+   "dev_names": [
+    84,
+    0
+   ],
+   "dev_standin": [
+    84,
+    0
+   ]
+  },
+  "rel-diseases": {
+   "dev_names": [
+    0,
+    0
+   ],
+   "dev_standin": [
+    0,
+    0
+   ]
+  },
+  "rel-dishes": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-drivers": {
+   "dev_names": [
+    88,
+    0
+   ],
+   "dev_standin": [
+    88,
+    0
+   ]
+  },
+  "rel-economists": {
+   "dev_names": [
+    96,
+    0
+   ],
+   "dev_standin": [
+    96,
+    0
+   ]
+  },
+  "rel-editors": {
+   "dev_names": [
+    78,
+    0
+   ],
+   "dev_standin": [
+    78,
+    0
+   ]
+  },
+  "rel-engineers": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    95,
+    0
+   ]
+  },
+  "rel-equestrians": {
+   "dev_names": [
+    31,
+    0
+   ],
+   "dev_standin": [
+    31,
+    0
+   ]
+  },
+  "rel-explorers": {
+   "dev_names": [
+    93,
+    0
+   ],
+   "dev_standin": [
+    93,
+    0
+   ]
+  },
+  "rel-fencers": {
+   "dev_names": [
+    73,
+    0
+   ],
+   "dev_standin": [
+    73,
+    0
+   ]
+  },
+  "rel-fieldhockey": {
+   "dev_names": [
+    15,
+    0
+   ],
+   "dev_standin": [
+    15,
+    0
+   ]
+  },
+  "rel-films-v2": {
+   "dev_names": [
+    51,
+    0
+   ],
+   "dev_standin": [
+    47,
+    0
+   ]
+  },
+  "rel-footballclubs": {
+   "dev_names": [
+    21,
+    0
+   ],
+   "dev_standin": [
+    21,
+    0
+   ]
+  },
+  "rel-footballers": {
+   "dev_names": [
+    82,
+    0
+   ],
+   "dev_standin": [
+    82,
+    0
+   ]
+  },
+  "rel-galaxies": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-genres": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-geologists": {
+   "dev_names": [
+    91,
+    0
+   ],
+   "dev_standin": [
+    90,
+    0
+   ]
+  },
+  "rel-golfers": {
+   "dev_names": [
+    28,
+    0
+   ],
+   "dev_standin": [
+    28,
+    0
+   ]
+  },
+  "rel-graphicartists": {
+   "dev_names": [
+    93,
+    0
+   ],
+   "dev_standin": [
+    93,
+    0
+   ]
+  },
+  "rel-gridiron": {
+   "dev_names": [
+    47,
+    0
+   ],
+   "dev_standin": [
+    47,
+    0
+   ]
+  },
+  "rel-gymnasts": {
+   "dev_names": [
+    70,
+    0
+   ],
+   "dev_standin": [
+    70,
+    0
+   ]
+  },
+  "rel-handball": {
+   "dev_names": [
+    58,
+    0
+   ],
+   "dev_standin": [
+    58,
+    0
+   ]
+  },
+  "rel-historians": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    95,
+    0
+   ]
+  },
+  "rel-hotels": {
+   "dev_names": [
+    11,
+    0
+   ],
+   "dev_standin": [
+    11,
+    0
+   ]
+  },
+  "rel-icehockey": {
+   "dev_names": [
+    81,
+    0
+   ],
+   "dev_standin": [
+    86,
+    0
+   ]
+  },
+  "rel-illustrators": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    96,
+    0
+   ]
+  },
+  "rel-instruments": {
+   "dev_names": [
+    11,
+    0
+   ],
+   "dev_standin": [
+    11,
+    0
+   ]
+  },
+  "rel-islands": {
+   "dev_names": [
+    19,
+    0
+   ],
+   "dev_standin": [
+    19,
+    0
+   ]
+  },
+  "rel-journalists": {
+   "dev_names": [
+    96,
+    0
+   ],
+   "dev_standin": [
+    96,
+    0
+   ]
+  },
+  "rel-lakes": {
+   "dev_names": [
+    11,
+    0
+   ],
+   "dev_standin": [
+    11,
+    0
+   ]
+  },
+  "rel-languages": {
+   "dev_names": [
+    0,
+    0
+   ],
+   "dev_standin": [
+    0,
+    0
+   ]
+  },
+  "rel-lawyers": {
+   "dev_names": [
+    94,
+    0
+   ],
+   "dev_standin": [
+    93,
+    0
+   ]
+  },
+  "rel-leagues": {
+   "dev_names": [
+    15,
+    0
+   ],
+   "dev_standin": [
+    15,
+    0
+   ]
+  },
+  "rel-libraries": {
+   "dev_names": [
+    22,
+    0
+   ],
+   "dev_standin": [
+    22,
+    0
+   ]
+  },
+  "rel-linguists": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    94,
+    0
+   ]
+  },
+  "rel-mathematicians": {
+   "dev_names": [
+    94,
+    0
+   ],
+   "dev_standin": [
+    94,
+    0
+   ]
+  },
+  "rel-military": {
+   "dev_names": [
+    70,
+    0
+   ],
+   "dev_standin": [
+    70,
+    0
+   ]
+  },
+  "rel-militaryunits": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-missionaries": {
+   "dev_names": [
+    78,
+    0
+   ],
+   "dev_standin": [
+    78,
+    0
+   ]
+  },
+  "rel-models": {
+   "dev_names": [
+    96,
+    0
+   ],
+   "dev_standin": [
+    96,
+    0
+   ]
+  },
+  "rel-monarchs": {
+   "dev_names": [
+    69,
+    0
+   ],
+   "dev_standin": [
+    69,
+    0
+   ]
+  },
+  "rel-monuments": {
+   "dev_names": [
+    28,
+    0
+   ],
+   "dev_standin": [
+    28,
+    0
+   ]
+  },
+  "rel-moons": {
+   "dev_names": [
+    11,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-mountains": {
+   "dev_names": [
+    9,
+    0
+   ],
+   "dev_standin": [
+    9,
+    0
+   ]
+  },
+  "rel-museums": {
+   "dev_names": [
+    34,
+    0
+   ],
+   "dev_standin": [
+    34,
+    0
+   ]
+  },
+  "rel-musicians": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    94,
+    0
+   ]
+  },
+  "rel-mythology": {
+   "dev_names": [
+    29,
+    0
+   ],
+   "dev_standin": [
+    29,
+    0
+   ]
+  },
+  "rel-newspapers": {
+   "dev_names": [
+    18,
+    0
+   ],
+   "dev_standin": [
+    18,
+    0
+   ]
+  },
+  "rel-novelists": {
+   "dev_names": [
+    83,
+    0
+   ],
+   "dev_standin": [
+    83,
+    0
+   ]
+  },
+  "rel-novels": {
+   "dev_names": [
+    41,
+    0
+   ],
+   "dev_standin": [
+    41,
+    0
+   ]
+  },
+  "rel-nurses": {
+   "dev_names": [
+    50,
+    0
+   ],
+   "dev_standin": [
+    50,
+    0
+   ]
+  },
+  "rel-observatories": {
+   "dev_names": [
+    16,
+    0
+   ],
+   "dev_standin": [
+    16,
+    0
+   ]
+  },
+  "rel-operas": {
+   "dev_names": [
+    9,
+    0
+   ],
+   "dev_standin": [
+    9,
+    0
+   ]
+  },
+  "rel-organisations": {
+   "dev_names": [
+    34,
+    0
+   ],
+   "dev_standin": [
+    34,
+    0
+   ]
+  },
+  "rel-painters": {
+   "dev_names": [
+    93,
+    0
+   ],
+   "dev_standin": [
+    93,
+    0
+   ]
+  },
+  "rel-paintings": {
+   "dev_names": [
+    0,
+    0
+   ],
+   "dev_standin": [
+    0,
+    0
+   ]
+  },
+  "rel-parks": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-parties": {
+   "dev_names": [
+    24,
+    0
+   ],
+   "dev_standin": [
+    25,
+    0
+   ]
+  },
+  "rel-pharmacists": {
+   "dev_names": [
+    55,
+    0
+   ],
+   "dev_standin": [
+    56,
+    0
+   ]
+  },
+  "rel-philosophers": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    95,
+    0
+   ]
+  },
+  "rel-photographers": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    95,
+    0
+   ]
+  },
+  "rel-physicians": {
+   "dev_names": [
+    84,
+    0
+   ],
+   "dev_standin": [
+    84,
+    0
+   ]
+  },
+  "rel-physicists": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    95,
+    0
+   ]
+  },
+  "rel-planets": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-playwrights": {
+   "dev_names": [
+    83,
+    0
+   ],
+   "dev_standin": [
+    83,
+    0
+   ]
+  },
+  "rel-poems": {
+   "dev_names": [
+    11,
+    0
+   ],
+   "dev_standin": [
+    11,
+    0
+   ]
+  },
+  "rel-poets": {
+   "dev_names": [
+    71,
+    0
+   ],
+   "dev_standin": [
+    71,
+    0
+   ]
+  },
+  "rel-police": {
+   "dev_names": [
+    32,
+    0
+   ],
+   "dev_standin": [
+    32,
+    0
+   ]
+  },
+  "rel-politicians": {
+   "dev_names": [
+    76,
+    0
+   ],
+   "dev_standin": [
+    76,
+    0
+   ]
+  },
+  "rel-printmakers": {
+   "dev_names": [
+    85,
+    0
+   ],
+   "dev_standin": [
+    85,
+    0
+   ]
+  },
+  "rel-psychologists": {
+   "dev_names": [
+    88,
+    0
+   ],
+   "dev_standin": [
+    88,
+    0
+   ]
+  },
+  "rel-racketsports": {
+   "dev_names": [
+    38,
+    0
+   ],
+   "dev_standin": [
+    38,
+    0
+   ]
+  },
+  "rel-religions": {
+   "dev_names": [
+    18,
+    0
+   ],
+   "dev_standin": [
+    18,
+    0
+   ]
+  },
+  "rel-rivers": {
+   "dev_names": [
+    0,
+    0
+   ],
+   "dev_standin": [
+    0,
+    0
+   ]
+  },
+  "rel-rowers": {
+   "dev_names": [
+    86,
+    0
+   ],
+   "dev_standin": [
+    89,
+    0
+   ]
+  },
+  "rel-rugby": {
+   "dev_names": [
+    23,
+    0
+   ],
+   "dev_standin": [
+    23,
+    0
+   ]
+  },
+  "rel-sculptors": {
+   "dev_names": [
+    79,
+    0
+   ],
+   "dev_standin": [
+    79,
+    0
+   ]
+  },
+  "rel-sculptures": {
+   "dev_names": [
+    12,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-ships": {
+   "dev_names": [
+    6,
+    0
+   ],
+   "dev_standin": [
+    6,
+    0
+   ]
+  },
+  "rel-shooters": {
+   "dev_names": [
+    39,
+    0
+   ],
+   "dev_standin": [
+    39,
+    0
+   ]
+  },
+  "rel-singers": {
+   "dev_names": [
+    105,
+    0
+   ],
+   "dev_standin": [
+    105,
+    0
+   ]
+  },
+  "rel-skaters": {
+   "dev_names": [
+    57,
+    0
+   ],
+   "dev_standin": [
+    57,
+    0
+   ]
+  },
+  "rel-skiers": {
+   "dev_names": [
+    69,
+    0
+   ],
+   "dev_standin": [
+    70,
+    0
+   ]
+  },
+  "rel-skyscrapers": {
+   "dev_names": [
+    21,
+    0
+   ],
+   "dev_standin": [
+    21,
+    0
+   ]
+  },
+  "rel-snooker": {
+   "dev_names": [
+    1,
+    0
+   ],
+   "dev_standin": [
+    1,
+    0
+   ]
+  },
+  "rel-software": {
+   "dev_names": [
+    21,
+    0
+   ],
+   "dev_standin": [
+    22,
+    0
+   ]
+  },
+  "rel-songs": {
+   "dev_names": [
+    30,
+    0
+   ],
+   "dev_standin": [
+    32,
+    0
+   ]
+  },
+  "rel-spacecraft": {
+   "dev_names": [
+    9,
+    0
+   ],
+   "dev_standin": [
+    10,
+    0
+   ]
+  },
+  "rel-speedskaters": {
+   "dev_names": [
+    56,
+    0
+   ],
+   "dev_standin": [
+    56,
+    0
+   ]
+  },
+  "rel-spies": {
+   "dev_names": [
+    62,
+    0
+   ],
+   "dev_standin": [
+    62,
+    0
+   ]
+  },
+  "rel-sportsevents": {
+   "dev_names": [
+    24,
+    0
+   ],
+   "dev_standin": [
+    24,
+    0
+   ]
+  },
+  "rel-sportsteams": {
+   "dev_names": [
+    22,
+    0
+   ],
+   "dev_standin": [
+    22,
+    0
+   ]
+  },
+  "rel-stadiums": {
+   "dev_names": [
+    24,
+    0
+   ],
+   "dev_standin": [
+    23,
+    0
+   ]
+  },
+  "rel-stations": {
+   "dev_names": [
+    11,
+    0
+   ],
+   "dev_standin": [
+    12,
+    0
+   ]
+  },
+  "rel-statisticians": {
+   "dev_names": [
+    63,
+    0
+   ],
+   "dev_standin": [
+    64,
+    0
+   ]
+  },
+  "rel-swimmers": {
+   "dev_names": [
+    95,
+    0
+   ],
+   "dev_standin": [
+    95,
+    0
+   ]
+  },
+  "rel-temples": {
+   "dev_names": [
+    34,
+    0
+   ],
+   "dev_standin": [
+    34,
+    0
+   ]
+  },
+  "rel-tennis": {
+   "dev_names": [
+    94,
+    0
+   ],
+   "dev_standin": [
+    95,
+    0
+   ]
+  },
+  "rel-theatres": {
+   "dev_names": [
+    11,
+    0
+   ],
+   "dev_standin": [
+    11,
+    0
+   ]
+  },
+  "rel-themeparks": {
+   "dev_names": [
+    0,
+    0
+   ],
+   "dev_standin": [
+    0,
+    0
+   ]
+  },
+  "rel-theologians": {
+   "dev_names": [
+    88,
+    0
+   ],
+   "dev_standin": [
+    88,
+    0
+   ]
+  },
+  "rel-tradeunionists": {
+   "dev_names": [
+    65,
+    0
+   ],
+   "dev_standin": [
+    65,
+    0
+   ]
+  },
+  "rel-translators": {
+   "dev_names": [
+    93,
+    0
+   ],
+   "dev_standin": [
+    93,
+    0
+   ]
+  },
+  "rel-triathletes": {
+   "dev_names": [
+    6,
+    0
+   ],
+   "dev_standin": [
+    6,
+    0
+   ]
+  },
+  "rel-tvproducers": {
+   "dev_names": [
+    89,
+    0
+   ],
+   "dev_standin": [
+    89,
+    0
+   ]
+  },
+  "rel-tvseries-v2": {
+   "dev_names": [
+    33,
+    0
+   ],
+   "dev_standin": [
+    33,
+    0
+   ]
+  },
+  "rel-universities": {
+   "dev_names": [
+    36,
+    0
+   ],
+   "dev_standin": [
+    36,
+    0
+   ]
+  },
+  "rel-videogames": {
+   "dev_names": [
+    23,
+    0
+   ],
+   "dev_standin": [
+    22,
+    0
+   ]
+  },
+  "rel-volleyball": {
+   "dev_names": [
+    48,
+    0
+   ],
+   "dev_standin": [
+    49,
+    0
+   ]
+  },
+  "rel-wars": {
+   "dev_names": [
+    0,
+    0
+   ],
+   "dev_standin": [
+    0,
+    0
+   ]
+  },
+  "rel-waterpolo": {
+   "dev_names": [
+    40,
+    0
+   ],
+   "dev_standin": [
+    40,
+    0
+   ]
+  },
+  "rel-youtubers": {
+   "dev_names": [
+    62,
+    0
+   ],
+   "dev_standin": [
+    62,
+    0
+   ]
+  }
+ }
+}
