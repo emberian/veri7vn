@@ -33,6 +33,7 @@ Full table with every run: [`docs/parity/BOARD.md`](docs/parity/BOARD.md).
 | veri7vn: 18 family kernels, 131 non-relation specialists | every panel equal to or better than the shipped organ, **0 wrong, 0 false yes** | each miss is one the shipped organ also makes, named in its lane's handoff |
 | veri7vn: one relation kernel, 161 readers | 16,284 / **0** of 18,976 panel items | the shipped organs score 16,261 / 11 on the same store; the 11 homonym errors are now proved declines |
 | veri7vn: fusion (`network_v3`) | 101 of 102 of Oracle7's fusion answers identical | the last needs the geometry kernel |
+| veri7vn beyond parity: chemistry family (B-chemistry, 2026-10-18) | chemistry/chemistry-v3 held-out 281 / 0 wrong / 0 withheld against the shipped organ's 223 / 2 / 56; decay 42/42 against 34/42; same numbers on two fresh generator seeds; cold start 58 ms → 4 ms | the second scoreboard (`project/swarm/BEYOND.md`): 0 wrong stays the law, the other numbers move |
 | veri7vn: head routes | word problems 24/24 core items; precision guards 114/114 recorded declines; document route 224/231 status | each with its classified misses |
 | veri7vn: dialogue | 236 of 237 recorded verdicts; tests 2, 4, 5 reproduce the published summaries exactly | the harness has a dialogue mode |
 
