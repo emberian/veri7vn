@@ -72,14 +72,14 @@ export_code reply_of answered reply_kind response stated mk_rat
   TCarnot TGas TRad TFusion TVapor TSens TAny Thermo
   H_pdd H_pdy H_pdm H_day H_tot H_min Cap_wh Cap_kwh Cap_ahv Dr_none Dr_loss Dr_eff
   Per_day Per_year Per_month HPayback HRuntime HRuntimeAdjusted HRuntimeMissingFactors HSolar HSwap HEnergy
-  DS_direct DS_pair VTons VBtuh VAch VCfm VSens VCond VSeasonal VSizing
+  DS_direct DS_pair VTons VBtuh VAch VCfm VSens VCond VSeasonal VSizing VBadDimensions
   G_swept G_diam G_rad Irr_given Irr_stc Irr_none RHydro RPV RCapF RAnnual RRatio RWind
   IAdcLsb IAdcVolt IAdcCode INyquist IAvgCur IBat IBatConst IDataRate IStorage
   FThermo FHome FHvac FRen FIot
   in SML module_name Energy file_prefix energy
 
 ML \<open>
-  val theorems = [@{thm cap_valid_nonnegative}, @{thm runtime_missing_factors}, @{thm adjusted_runtime_law}, @{thm adjusted_runtime_agrees}, @{thm mk_exact}, @{thm mk_pi}, @{thm mk_fixed}, @{thm mk_decline},
+  val theorems = [@{thm cap_valid_nonnegative}, @{thm runtime_missing_factors}, @{thm hydro_nonnegative}, @{thm average_current_between}, @{thm adjusted_zero_output}, @{thm adjusted_runtime_law}, @{thm adjusted_runtime_agrees}, @{thm mk_exact}, @{thm mk_pi}, @{thm mk_fixed}, @{thm mk_decline},
     @{thm num_dec_r_sound}, @{thm show_fmt_sound}, @{thm round_sig_sound}, @{thm to_dec_sound},
     @{thm round_tie_up}, @{thm pi_bounds_sound}, @{thm pw_scale_sound}, @{thm pw_show_sound},
     @{thm mk_reply_answered_iff}, @{thm mk_reply_exact}, @{thm mk_reply_withheld},

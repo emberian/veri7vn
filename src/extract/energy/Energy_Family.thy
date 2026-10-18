@@ -44,8 +44,8 @@ reads the kernel twice and neither is a restatement of one formula.\<close>
 lemma neg_swap: "neg_temp [a, b] = None \<longleftrightarrow> neg_temp [b, a] = None"
   by (auto simp: neg_temp_none)
 
-lemma pre_t_none: "pre_t (Thermo ts q) = None \<longleftrightarrow> neg_temp ts = None"
-  by (cases "neg_temp ts") (auto split: temp.splits)
+lemma pre_t_none: "pre_t (Thermo ts q) = None \<longleftrightarrow> neg_temp ts = None \<and> physical_t q"
+  by (cases "neg_temp ts") (auto split: temp.splits if_splits)
 
 text \<open>Heating from the first temperature to the second and the reverse
 are opposite: swapping the two temperatures of a sensible-heat question
@@ -79,16 +79,19 @@ theorem tons_btuh_roundtrip:
   assumes "kernel_v (VTons b) = Exact k q"
   shows "kernel_v (VBtuh q) = Exact (STR ''btuh'') b"
 proof -
-  have "q * 12000 = b" using tons_law[OF assms] by blast
-  then show ?thesis by (simp add: kernel_v_def mk_exact btu_per_ton_def)
+  have equation: "q * 12000 = b" using tons_law[OF assms] by blast
+  have load: "0 \<le> b" using exact_parts_v(1)[OF assms] by (auto split: if_splits)
+  have tons: "0 \<le> q" using equation load by linarith
+  show ?thesis using equation tons by (simp add: kernel_v_def mk_exact btu_per_ton_def)
 qed
 
 theorem btuh_tons_roundtrip:
   assumes "kernel_v (VBtuh t) = Exact k q"
   shows "kernel_v (VTons q) = Exact (STR ''tons'') t"
 proof -
-  have "q = t * 12000" using btuh_law[OF assms] by blast
-  then show ?thesis by (simp add: kernel_v_def mk_exact btu_per_ton_def)
+  have equation: "q = t * 12000" using btuh_law[OF assms] by blast
+  have tons: "0 \<le> t" using exact_parts_v(1)[OF assms] by (auto split: if_splits)
+  show ?thesis using equation tons by (simp add: kernel_v_def mk_exact btu_per_ton_def)
 qed
 
 text \<open>What a device costs is the energy it uses times the tariff: the

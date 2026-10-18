@@ -41,9 +41,10 @@ cat > "$OUT/build/energy.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 energy_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/energy" "$OUT/build/energy.mlb"
+"$REPO/tools/dev/native-compile" --family energy --compiler "$MLTON" -- -output "$OUT/bin/energy" "$OUT/build/energy.mlb"
 ls -l "$OUT/bin/energy"
 shasum -a 256 "$OUT/build/energy_generated.sml" "$OUT/bin/energy"

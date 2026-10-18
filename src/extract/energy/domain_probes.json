@@ -1,0 +1,266 @@
+[
+  {
+    "specialist": "thermo",
+    "q": "How much heat is needed to melt -2 kg of ice?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Thermo.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "thermo",
+    "q": "What is the pressure of 1 mol of ideal gas at 300 K in -1 L?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Thermo.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "thermo",
+    "q": "What is the volume of 1 mol of ideal gas at 300 K and -1 atm?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Thermo.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "thermo",
+    "q": "What is the radiated power of a black body with area -2 m2 at 300 K?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Thermo.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "thermo",
+    "q": "What is the radiated power of a body with area 2 m2 at 300 K and emissivity 0?",
+    "valid": true,
+    "expect": 0,
+    "source": "src/extract/energy/Thermo.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula."
+  },
+  {
+    "specialist": "thermo",
+    "q": "How much heat is needed to melt 0 kg of ice?",
+    "valid": true,
+    "expect": 0,
+    "source": "src/extract/energy/Thermo.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula."
+  },
+  {
+    "specialist": "thermo",
+    "q": "What is the Carnot efficiency between a hot reservoir at 20 C and a cold reservoir at -20 C?",
+    "valid": true,
+    "expect": 13.644891693672182,
+    "source": "src/extract/energy/Thermo.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula."
+  },
+  {
+    "specialist": "hvac",
+    "q": "What is the sensible heat for -100 CFM and a temperature difference of 20 F?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Hvac.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "hvac",
+    "q": "What is the sensible heat for 0 CFM and a temperature difference of 20 F?",
+    "valid": true,
+    "expect": 0,
+    "source": "src/extract/energy/Hvac.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "response_value_regex": "\\bis\\s+([+-]?[\\d,]+(?:\\.\\d+)?(?:e[+-]?\\d+)?)"
+  },
+  {
+    "specialist": "hvac",
+    "q": "What is the sensible heat for 100 CFM and a temperature difference of -20 F?",
+    "valid": true,
+    "expect": -2160,
+    "source": "src/extract/energy/Hvac.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "response_value_regex": "\\bis\\s+([+-]?[\\d,]+(?:\\.\\d+)?(?:e[+-]?\\d+)?)"
+  },
+  {
+    "specialist": "hvac",
+    "q": "What are the air changes per hour with 100 CFM in a -1000 cubic feet room?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Hvac.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "hvac",
+    "q": "What are the air changes per hour with 100 CFM in a -10 by -20 by 8 feet room?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Hvac.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "renewables",
+    "q": "What is the power from a hydro turbine with flow 2 m3/s, head 30 m and -80% efficiency?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Renewables.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "renewables",
+    "q": "What is the power from a hydro turbine with flow 2 m3/s, head 30 m and 0% efficiency?",
+    "valid": true,
+    "expect": 0,
+    "source": "src/extract/energy/Renewables.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "response_value_regex": "\\bis\\s+([+-]?[\\d,]+(?:\\.\\d+)?(?:e[+-]?\\d+)?)"
+  },
+  {
+    "specialist": "renewables",
+    "q": "What is the power from a hydro turbine with flow 2 m3/s, head -30 m and 80% efficiency?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Renewables.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "renewables",
+    "q": "What is the capacity factor for a -10 MW plant producing 100 MWh in -20 hours?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Renewables.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "iot",
+    "q": "What is the resolution of a 12-bit ADC with reference voltage -3.3 V?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Iot.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "iot",
+    "q": "What is the resolution of a 12-bit ADC with reference voltage 0 V?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Iot.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "iot",
+    "q": "What is the average current with 20 mA active, 2 mA asleep and -10% duty cycle?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Iot.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "iot",
+    "q": "What is the average current with 20 mA active, 2 mA asleep and 0% duty cycle?",
+    "valid": true,
+    "expect": 2,
+    "source": "src/extract/energy/Iot.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "response_value_regex": "\\bis\\s+([+-]?[\\d,]+(?:\\.\\d+)?(?:e[+-]?\\d+)?)"
+  },
+  {
+    "specialist": "iot",
+    "q": "How long will a -1000 mAh battery last drawing 10 mA?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Iot.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "iot",
+    "q": "What is the Nyquist sampling rate for a signal of -1000 Hz?",
+    "valid": false,
+    "expect": null,
+    "source": "src/extract/energy/Iot.thy: stated physical model and signed-input domain; same-author probe, independently evaluated formula.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "thermo",
+    "q": "How much heat is needed to melt \u22122 kg of ice?",
+    "valid": false,
+    "expect": null,
+    "source": "ExactNumeric issued-token contract plus corresponding Energy model; same-author spelling equivalence/adversarial probes.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "thermo",
+    "q": "How much heat is needed to melt 1/2 kg of ice?",
+    "valid": true,
+    "expect": 167000,
+    "source": "ExactNumeric issued-token contract plus corresponding Energy model; same-author spelling equivalence/adversarial probes."
+  },
+  {
+    "specialist": "thermo",
+    "q": "How much heat is needed to melt .5 kg of ice?",
+    "valid": true,
+    "expect": 167000,
+    "source": "ExactNumeric issued-token contract plus corresponding Energy model; same-author spelling equivalence/adversarial probes."
+  },
+  {
+    "specialist": "thermo",
+    "q": "How much heat is needed to melt 5e-1 kg of ice?",
+    "valid": true,
+    "expect": 167000,
+    "source": "ExactNumeric issued-token contract plus corresponding Energy model; same-author spelling equivalence/adversarial probes."
+  },
+  {
+    "specialist": "thermo",
+    "q": "How much heat is needed to melt 1\u00d710^3 kg of ice?",
+    "valid": true,
+    "expect": 334000000,
+    "source": "ExactNumeric issued-token contract plus corresponding Energy model; same-author spelling equivalence/adversarial probes.",
+    "expected_withheld": true
+  },
+  {
+    "specialist": "renewables",
+    "q": "What is the power from a hydro turbine with flow 2 m3/s, head 30 m and \u221280% efficiency?",
+    "valid": false,
+    "expect": null,
+    "source": "ExactNumeric issued-token contract plus corresponding Energy model; same-author spelling equivalence/adversarial probes.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "hvac",
+    "q": "What is the sensible heat for 1e2 CFM and a temperature difference of 20 F?",
+    "valid": true,
+    "expect": 2160,
+    "source": "ExactNumeric issued-token contract plus corresponding Energy model; same-author spelling equivalence/adversarial probes.",
+    "response_value_regex": "\\bis\\s+([+-]?[\\d,]+(?:\\.\\d+)?(?:e[+-]?\\d+)?)"
+  },
+  {
+    "specialist": "hvac",
+    "q": "What is the heat loss through 100 sq ft at R-10 with a temperature difference of 20 F?",
+    "valid": true,
+    "expect": 200,
+    "source": "ExactNumeric issued-token contract plus corresponding Energy model; same-author spelling equivalence/adversarial probes.",
+    "response_value_regex": "\\bis\\s+([+-]?[\\d,]+(?:\\.\\d+)?(?:e[+-]?\\d+)?)"
+  },
+  {
+    "specialist": "hvac",
+    "q": "What is the heat loss through 100 sq ft at R-value -10 with a temperature difference of 20 F?",
+    "valid": false,
+    "expect": null,
+    "source": "ExactNumeric issued-token contract plus corresponding Energy model; same-author spelling equivalence/adversarial probes.",
+    "expect_kind": "impossible"
+  },
+  {
+    "specialist": "iot",
+    "q": "What is the average current with 2e1 mA active, 2 mA asleep and 50% duty cycle?",
+    "valid": true,
+    "expect": 11,
+    "source": "ExactNumeric issued-token contract plus corresponding Energy model; same-author spelling equivalence/adversarial probes.",
+    "response_value_regex": "\\bis\\s+([+-]?[\\d,]+(?:\\.\\d+)?(?:e[+-]?\\d+)?)"
+  },
+  {
+    "specialist": "renewables",
+    "q": "What is the power from a hydro turbine with flow 2 m3/s, head 30 m and unknown efficiency?",
+    "valid": false,
+    "expect": null,
+    "source": "RHydro requires a stated factor or explicitly unmentioned ideal assumption; unread mentioned efficiency cannot be replaced by one."
+  },
+  {
+    "specialist": "renewables",
+    "q": "What is the wind turbine power for swept area 100 m2, wind speed 10 m/s and unknown power coefficient?",
+    "valid": false,
+    "expect": null,
+    "source": "RWind distinguishes absent coefficient (incident wind power) from mentioned but unread turbine coefficient."
+  }
+]

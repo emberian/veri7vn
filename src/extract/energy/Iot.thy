@@ -34,10 +34,19 @@ definition avg_cur :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat
 
 section \<open>Declines\<close>
 
+fun physical_i :: "iot_req \<Rightarrow> bool" where
+  "physical_i (IAdcLsb n v) = (\<forall>x\<in>set_option v. 0 < x)"
+| "physical_i (IAdcVolt n v c) = (\<forall>x\<in>set_option v. 0 < x)"
+| "physical_i (IAdcCode n v x) = ((\<forall>r\<in>set_option v. 0 < r) \<and> 0 \<le> x)"
+| "physical_i (INyquist f) = (0 \<le> f)"
+| "physical_i (IAvgCur ia slp d) = (0 \<le> ia \<and> 0 \<le> slp \<and> 0 \<le> d \<and> d \<le> 1)"
+| "physical_i (IBat c ia slp d y) = (0 \<le> c \<and> 0 \<le> ia \<and> 0 \<le> slp \<and> 0 \<le> d \<and> d \<le> 1)"
+| "physical_i (IBatConst c i y) = (0 \<le> c)"
+| "physical_i (IDataRate s b ch) = (0 \<le> s)"
+| "physical_i (IStorage s b ch) = (0 \<le> s)"
+
 fun pre_i :: "iot_req \<Rightarrow> (dcl \<times> String.literal) option" where
-  "pre_i (IAvgCur ia slp d) = (if 1 < d then Some (D_imposs, STR ''A duty cycle above 100% is not possible.'') else None)"
-| "pre_i (IBat c ia slp d y) = (if 1 < d then Some (D_imposs, STR ''A duty cycle above 100% is not possible.'') else None)"
-| "pre_i _ = None"
+  "pre_i r = (if physical_i r then None else Some (D_imposs, STR ''Currents, capacity, frequencies and input voltage must be nonnegative; ADC reference positive and duty cycle in [0,1].''))"
 
 fun miss_i :: "iot_req \<Rightarrow> String.literal option" where
   "miss_i (IAdcLsb n v) = (case v of None \<Rightarrow> Some (STR ''the reference voltage'') | Some _ \<Rightarrow> None)"
@@ -209,6 +218,36 @@ theorem storage_law:
   assumes "kernel_i (IStorage s b ch) = Exact k q"
   shows "k = STR ''storage_day'' \<and> q * 8 * 1000000 = s * of_nat b * of_nat ch * 86400"
   using exact_parts_i(4,5)[OF assms] by (simp add: field_simps)
+
+text \<open>A duty-cycle average stays between its two current levels, including
+zero and full duty endpoints. This follows from the convex combination, not a
+comparison against the implementation's own result.\<close>
+theorem average_current_between:
+  assumes "kernel_i (IAvgCur active sleep duty) = Exact k q"
+  shows "min active sleep \<le> q \<and> q \<le> max active sleep"
+proof -
+  have duty: "0 \<le> duty" "duty \<le> 1"
+    using exact_parts_i(1)[OF assms] by (auto split: if_splits)
+  have value_eq: "q = active * duty + sleep * (1 - duty)"
+    using exact_parts_i(5)[OF assms] by (simp add: avg_cur_def)
+  have rest: "0 \<le> 1 - duty" using duty by simp
+  have bounds: "min active sleep \<le> active" "min active sleep \<le> sleep"
+    "active \<le> max active sleep" "sleep \<le> max active sleep"
+    by (auto simp: min_def max_def)
+  have a: "min active sleep * duty \<le> active * duty"
+    by (rule mult_right_mono[OF bounds(1) duty(1)])
+  have b: "min active sleep * (1-duty) \<le> sleep * (1-duty)"
+    by (rule mult_right_mono[OF bounds(2) rest])
+  have c: "active * duty \<le> max active sleep * duty"
+    by (rule mult_right_mono[OF bounds(3) duty(1)])
+  have d: "sleep * (1-duty) \<le> max active sleep * (1-duty)"
+    by (rule mult_right_mono[OF bounds(4) rest])
+  have lo: "min active sleep \<le> q"
+    using add_mono[OF a b] unfolding value_eq by (simp add: algebra_simps)
+  have hi: "q \<le> max active sleep"
+    using add_mono[OF c d] unfolding value_eq by (simp add: algebra_simps)
+  show ?thesis using lo hi by simp
+qed
 
 section \<open>Reply text\<close>
 

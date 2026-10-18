@@ -104,9 +104,19 @@ definition neg_temp :: "temp list \<Rightarrow> temp option" where
 lemma neg_temp_none: "neg_temp ts = None \<longleftrightarrow> (\<forall>t \<in> set ts. 0 \<le> kel t)"
   by (auto simp: neg_temp_def find_None_iff)
 
+fun physical_t :: "tq \<Rightarrow> bool" where
+  "physical_t (TGas n p v) = ((\<forall>x\<in>set_option n. 0 \<le> x) \<and>
+     (\<forall>x\<in>set_option p. 0 \<le> fst x) \<and> (\<forall>x\<in>set_option v. 0 < fst x))"
+| "physical_t (TRad a e) = (\<forall>x\<in>set_option a. 0 \<le> x)"
+| "physical_t (TFusion m) = (\<forall>x\<in>set_option m. 0 \<le> fst x)"
+| "physical_t (TVapor m) = (\<forall>x\<in>set_option m. 0 \<le> fst x)"
+| "physical_t (TSens m cs dq) = ((\<forall>x\<in>set_option m. 0 \<le> fst x) \<and>
+     (case cs of C_given c \<Rightarrow> 0 < c | _ \<Rightarrow> True))"
+| "physical_t _ = True"
+
 fun pre_t :: "request \<Rightarrow> (dcl \<times> String.literal) option" where
   "pre_t (Thermo ts q) = (case neg_temp ts of
-       None \<Rightarrow> None
+       None \<Rightarrow> (if physical_t q then None else Some (D_imposs, STR ''Mass, amount, pressure and area must be nonnegative; volume and specific heat must be positive.''))
      | Some (Temp v u) \<Rightarrow> Some (D_imposs, gs v + STR '' '' + tletter u
          + STR '' is below absolute zero, so it is not a real temperature.''))"
 
@@ -166,7 +176,7 @@ fun post_t :: "request \<Rightarrow> (dcl \<times> String.literal) option" where
      (if gas_div0 n (pSI p) (vSI v) (t0_k ts)
       then Some (D_imposs, STR ''That would divide by zero.'') else None)"
 | "post_t (Thermo ts (TRad a e)) =
-     (if e \<le> 0 \<or> 1 < e then Some (D_imposs, STR ''Emissivity must be between 0 and 1.'') else None)"
+     (if e < 0 \<or> 1 < e then Some (D_imposs, STR ''Emissivity must be between 0 and 1.'') else None)"
 | "post_t _ = None"
 
 section \<open>Values\<close>
@@ -231,10 +241,10 @@ lemmas exact_parts =
   thermo_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2]
 
 lemma pre_t_not_under: "pre_t r \<noteq> Some (D_under, w)"
-  by (cases r) (auto split: option.splits temp.splits)
+  by (cases r) (auto split: option.splits temp.splits if_splits)
 
 lemma pre_t_imposs: "pre_t r = Some (d, w) \<Longrightarrow> d = D_imposs"
-  by (cases r) (auto split: option.splits temp.splits)
+  by (cases r) (auto split: option.splits temp.splits if_splits)
 
 lemma post_t_imposs: "post_t r = Some (d, w) \<Longrightarrow> d = D_imposs"
 proof (cases r)
@@ -279,7 +289,7 @@ lemma kelvin_nonneg_given_pre:
   assumes "pre_t (Thermo ts q) = None" "t \<in> set ts"
   shows "0 \<le> kel t"
 proof -
-  have "neg_temp ts = None" using assms(1) by (auto split: option.splits temp.splits)
+  have "neg_temp ts = None" using assms(1) by (auto split: option.splits temp.splits if_splits)
   then show ?thesis using assms(2) neg_temp_none by blast
 qed
 
@@ -364,10 +374,10 @@ qed
 text \<open>Stefan-Boltzmann: P = epsilon sigma A T^4 with 0 < epsilon <= 1.\<close>
 theorem radiated_power_law:
   assumes "kernel_t (Thermo (t # rest) (TRad (Some a) e)) = Exact k q"
-  shows "k = STR ''radiated_power'' \<and> 0 < e \<and> e \<le> 1 \<and> q = e * sigma_sb * a * (kel t) ^ 4"
+  shows "k = STR ''radiated_power'' \<and> 0 \<le> e \<and> e \<le> 1 \<and> q = e * sigma_sb * a * (kel t) ^ 4"
 proof -
   note p = exact_parts[OF assms]
-  have "\<not> (e \<le> 0 \<or> 1 < e)" using p(3) by (auto split: if_splits)
+  have "\<not> (e < 0 \<or> 1 < e)" using p(3) by (auto split: if_splits)
   then show ?thesis using p(4,5) by auto
 qed
 

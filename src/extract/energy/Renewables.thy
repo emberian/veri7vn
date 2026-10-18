@@ -49,13 +49,22 @@ section \<open>Declines\<close>
 
 abbreviation g3 :: "rat \<Rightarrow> String.literal" where "g3 \<equiv> gf F3C"
 
+fun geo_valid :: "geo \<Rightarrow> bool" where
+  "geo_valid (G_swept a) = (0 \<le> a)"
+| "geo_valid (G_diam d) = (0 \<le> d)"
+| "geo_valid (G_rad r) = (0 \<le> r)"
+
+fun physical_r :: "ren_req \<Rightarrow> bool" where
+  "physical_r (RHydro q h e) = (0 \<le> q \<and> 0 \<le> h \<and> 0 \<le> e \<and> e \<le> 1)"
+| "physical_r (RPV a i e) = (0 \<le> a \<and> 0 \<le> irr_val i \<and> 0 \<le> e \<and> e \<le> 1)"
+| "physical_r (RAnnual r h c) = (0 \<le> r \<and> 0 \<le> h \<and> 0 \<le> c \<and> c \<le> 1)"
+| "physical_r (RCapF r e h) = (0 < r \<and> 0 < h \<and> 0 \<le> e)"
+| "physical_r (RRatio v1 v2) = (0 < v1 \<and> 0 \<le> v2)"
+| "physical_r (RWind g v rho cp) = (geo_valid g \<and> 0 \<le> v \<and> 0 < rho \<and>
+     (\<forall>c\<in>set_option cp. 0 \<le> c \<and> c \<le> betz))"
+
 fun pre_r :: "ren_req \<Rightarrow> (dcl \<times> String.literal) option" where
-  "pre_r (RHydro q h e) = (if 1 < e then Some (D_imposs, STR ''An efficiency above 100% is not possible.'') else None)"
-| "pre_r (RPV a i e) = (if 1 < e then Some (D_imposs, STR ''A module efficiency above 100% is not possible.'') else None)"
-| "pre_r (RAnnual r h c) = (if 1 < c then Some (D_imposs, STR ''A capacity factor above 100% is not possible.'') else None)"
-| "pre_r (RWind g v rho (Some c)) = (if betz < c then Some (D_imposs, STR ''A power coefficient of '' + g3 (c * 100)
-     + STR ''% exceeds the Betz limit (16/27 = 59.3%); no turbine can capture that much.'') else None)"
-| "pre_r _ = None"
+  "pre_r r = (if physical_r r then None else Some (D_imposs, STR ''Power, energy, dimensions, flow and speed must be nonnegative; denominators and air density positive. Efficiencies and capacity factors must be in [0,1], and turbine coefficients at most the Betz limit.''))"
 
 fun miss_r :: "ren_req \<Rightarrow> String.literal option" where
   "miss_r (RPV a Irr_none e) = Some (STR ''the irradiance (W/m2)'')"
@@ -220,6 +229,19 @@ proof -
   have "rl c = rl rho * rl v ^ 3 * rl (cpf cp) / 2 * (rl r * rl r)"
     by (simp add: c of_rat_mult of_rat_divide of_rat_power)
   then show ?thesis using x(3) by (auto simp: power2_eq_square field_simps)
+qed
+
+text \<open>A physical production model cannot assert negative generated hydropower.\<close>
+theorem hydro_nonnegative:
+  assumes "kernel_r (RHydro flow head efficiency) = Exact k p"
+  shows "0 \<le> p"
+proof -
+  have inputs: "0 \<le> flow" "0 \<le> head" "0 \<le> efficiency"
+    using exact_parts_r(1)[OF assms] by (auto split: if_splits)
+  have value_eq: "p = rho_water * grav * flow * head * efficiency"
+    using exact_parts_r(5)[OF assms] by simp
+  show ?thesis unfolding value_eq rho_water_def grav_def
+    using inputs by (intro mult_nonneg_nonneg) auto
 qed
 
 section \<open>Reply text\<close>

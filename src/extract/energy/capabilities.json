@@ -17,14 +17,14 @@
         "\\b(?:cost|price)\\b.*\\b(?:run|running|operate|operating)\\b"
       ],
       "evidence": {
-        "computation": "Hours = nominal Wh times efficiency times usable fraction divided by constant load W.",
+        "computation": "Home-energy catalogue: device energy and running cost, passive device-swap savings, nominal or efficiency/depth-adjusted battery runtime, solar yield, and simple payback. Reply kind selects the operation; this static declaration is not a per-answer interpretation proof.",
         "assumptions": [
-          "Constant load; stated efficiency is one-way. Unmentioned factors are one; mentioned but unread factors and round-trip descriptions are refused.",
-          "Efficiency and usable depth in (0,1]; Wh/kWh and amp-hours nonnegative, voltage and load positive.",
-          "No self-discharge, voltage sag, ageing, idle load, or Peukert model."
+          "Runtime uses constant load, nominal capacity, positive voltage/load and nonnegative Wh/kWh or amp-hours. For adjusted runtime only, efficiency and usable depth are in [0,1]; zero factors give zero runtime. Unmentioned factors are one; mentioned unread factors and round-trip descriptions need clarification.",
+          "Device costs require a stated tariff; simple payback ignores financing and future price changes. Solar yield uses stated peak sun hours and derating.",
+          "No dynamic battery discharge, ageing, voltage sag or self-discharge model."
         ],
         "untrusted": [
-          "English recognition and decimal parsing; JSON framing."
+          "English operation recognition, decimal and unit parsing, JSON framing. The family declaration does not establish that the recognized request matches the question."
         ]
       }
     },
@@ -43,14 +43,86 @@
         "\\b(?:cost|price)\\b.*\\b(?:run|running|operate|operating)\\b"
       ],
       "evidence": {
-        "computation": "Hours = nominal Wh times efficiency times usable fraction divided by constant load W.",
+        "computation": "Home-energy catalogue: device energy and running cost, passive device-swap savings, nominal or efficiency/depth-adjusted battery runtime, solar yield, and simple payback. Reply kind selects the operation; this static declaration is not a per-answer interpretation proof.",
         "assumptions": [
-          "Constant load; stated efficiency is one-way. Unmentioned factors are one; mentioned but unread factors and round-trip descriptions are refused.",
-          "Efficiency and usable depth in (0,1]; Wh/kWh and amp-hours nonnegative, voltage and load positive.",
-          "No self-discharge, voltage sag, ageing, idle load, or Peukert model."
+          "Runtime uses constant load, nominal capacity, positive voltage/load and nonnegative Wh/kWh or amp-hours. For adjusted runtime only, efficiency and usable depth are in [0,1]; zero factors give zero runtime. Unmentioned factors are one; mentioned unread factors and round-trip descriptions need clarification.",
+          "Device costs require a stated tariff; simple payback ignores financing and future price changes. Solar yield uses stated peak sun hours and derating.",
+          "No dynamic battery discharge, ageing, voltage sag or self-discharge model."
         ],
         "untrusted": [
-          "English recognition and decimal parsing; JSON framing."
+          "English operation recognition, decimal and unit parsing, JSON framing. The family declaration does not establish that the recognized request matches the question."
+        ]
+      }
+    },
+    "thermo": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Thermodynamic catalogue: sensible/latent heat, ideal gas, Carnot efficiency and thermal radiation. Reply kind selects its formula; this is a static catalogue, not an interpretation certificate.",
+        "assumptions": [
+          "Mass, amount, pressure and area are nonnegative; given volume and specific heat are positive. Absolute temperatures are nonnegative; signed Celsius/Fahrenheit and signed temperature differences are allowed.",
+          "Radiation emissivity is in [0,1]. Zero production inputs may yield zero output."
+        ],
+        "untrusted": [
+          "Numeric tokens are bound to complete original byte spans; English role recognition, label normalization, framing and supplied-model choice remain untrusted."
+        ]
+      }
+    },
+    "hvac": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Building arithmetic catalogue: tons/BTU conversion, air changes/airflow, standard-air sensible heat, conduction and seasonal heat loss.",
+        "assumptions": [
+          "Cooling capacity, airflow, area and degree-days are nonnegative; room dimensions, room volume and thermal resistance are positive. Signed temperature differences retain their direction.",
+          "Standard-air factor1.08 and stated US customary quantities; real building equipment sizing is refused."
+        ],
+        "untrusted": [
+          "Numeric tokens are bound to complete original byte spans; English role recognition, label normalization, framing and supplied-model choice remain untrusted."
+        ]
+      }
+    },
+    "renewables": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Renewable production catalogue: hydro, photovoltaic output, capacity factor/annual energy, and wind power/ratios.",
+        "assumptions": [
+          "Physical dimensions, speeds, flow, energy and production factors are nonnegative; reference speed, rated-power/time denominator and air density are positive.",
+          "Efficiencies/capacity factors are in [0,1]. A stated turbine coefficient cannot exceed16/27; omitted coefficient means incident wind power."
+        ],
+        "untrusted": [
+          "Numeric tokens are bound to complete original byte spans; English role recognition, label normalization, framing and supplied-model choice remain untrusted."
+        ]
+      }
+    },
+    "iot": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [
+        "\\baverage current\\b"
+      ],
+      "evidence": {
+        "computation": "Sensor arithmetic catalogue: ADC steps/codes/voltage, duty-cycle current and battery runtime, Nyquist rate, data rate and storage.",
+        "assumptions": [
+          "Currents, capacity, input voltage and frequencies are nonnegative; ADC reference and runtime current denominators are positive. Duty is in [0,1].",
+          "Ideal ADC and constant stated current model; no analogue noise, dynamic battery or radio protocol model."
+        ],
+        "untrusted": [
+          "Numeric tokens are bound to complete original byte spans; English role recognition, label normalization, framing and supplied-model choice remain untrusted."
         ]
       }
     }

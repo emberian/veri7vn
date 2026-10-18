@@ -94,8 +94,8 @@ fun hnote :: "hspec \<Rightarrow> String.literal" where
 
 fun post_h :: "home_req \<Rightarrow> (dcl \<times> String.literal) option" where
   "post_h (HRuntimeAdjusted c w e d) =
-     (if e \<le> 0 \<or> 1 < e \<or> d \<le> 0 \<or> 1 < d
-      then Some (D_imposs, STR ''Efficiency and usable depth must be above 0 and at most 100%.'')
+     (if e < 0 \<or> 1 < e \<or> d < 0 \<or> 1 < d
+      then Some (D_imposs, STR ''Efficiency and usable depth must be between 0 and 100%, inclusive.'')
       else case (c,w) of (Some c, Some w) \<Rightarrow>
         (if \<not> cap_valid c \<or> w \<le> 0 then Some (D_imposs, STR ''Capacity and amp-hours must be nonnegative; voltage and load positive.'') else None)
       | _ \<Rightarrow> None)"
@@ -220,10 +220,16 @@ theorem runtime_missing_factors:
 
 theorem adjusted_runtime_law:
   assumes "kernel_h (HRuntimeAdjusted (Some c) (Some w) e d) = Exact k q"
-  shows "cap_valid c \<and> 0 < e \<and> e \<le> 1 \<and> 0 < d \<and> d \<le> 1 \<and> 0 < w \<and>
+  shows "cap_valid c \<and> 0 \<le> e \<and> e \<le> 1 \<and> 0 \<le> d \<and> d \<le> 1 \<and> 0 < w \<and>
          0 \<le> capwh c \<and> q * w = capwh c * e * d"
   using exact_parts_h(2,5)[OF assms] cap_valid_nonnegative[of c]
   by (auto simp: field_simps split: if_splits)
+
+theorem adjusted_zero_output:
+  assumes "kernel_h (HRuntimeAdjusted (Some c) (Some w) e d) = Exact k q"
+      and "e = 0 \<or> d = 0"
+  shows "q = 0"
+  using exact_parts_h(5)[OF assms(1)] assms(2) by auto
 
 theorem adjusted_runtime_agrees:
   assumes "kernel_h (HRuntimeAdjusted (Some c) (Some w) e d) = Exact k q"

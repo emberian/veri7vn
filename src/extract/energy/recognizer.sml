@@ -44,7 +44,35 @@ struct
   fun search p s = Regex.search (re p) s
   fun has p s = isSome (search p s)
   fun findall p s = Regex.findall (re p) s
-  fun grp s m g = Regex.group s m g
+  exception UnboundNumeral
+  val numericText = ref ""
+  val numericTokens : ExactNumeric.token list ref = ref []
+  val capturedValues : (string * ExactNumeric.rational) list ref = ref []
+  fun tokensFor s =
+    if s = !numericText then !numericTokens
+    else let val ts = ExactNumeric.scan s
+             val _ = numericText := s
+             val _ = numericTokens := ts
+             val _ = capturedValues := []
+         in ts end
+  fun numericHead lit = size lit > 0 andalso
+    (Char.isDigit (String.sub (lit,0)) orelse Char.contains "+-." (String.sub (lit,0))
+     orelse String.isPrefix "\226\136\146" lit)
+  (* A scalar role must cover one whole lexer-issued token. Alternation groups
+     go through this same gate. Its exact value comes from that token. *)
+  fun grp s (m as {groups,...} : Regex.match) g =
+    case Regex.group s m g of
+      NONE => NONE
+    | SOME lit =>
+        if not (numericHead lit) then SOME lit
+        else let val ts = tokensFor s
+                 val span = Vector.sub (groups,g)
+             in case List.find (fn ExactNumeric.Number {start,stop,...} => span = SOME (start,stop)
+                                | _ => false) ts of
+                  SOME (ExactNumeric.Number {value,...}) =>
+                    (capturedValues := (lit,value) :: !capturedValues; SOME lit)
+                | _ => raise UnboundNumeral
+             end
   fun g1 s m = valOf (grp s m 1)
   fun firstGroup s m gs = case List.mapPartial (grp s m) gs of x :: _ => SOME x | [] => NONE
 
@@ -65,23 +93,12 @@ struct
   fun qint (n : int) : q = (IntInf.fromInt n, 1)
   fun qpow10 (e : int) : q = if e >= 0 then (IntInf.pow (10, e), 1) else (1, IntInf.pow (10, ~e))
 
-  (* "1,000.50" "-12.5" "1.5e+3" -> exact *)
-  fun dec (lit0 : string) : q =
-    let
-      val lit = String.translate (fn #"," => "" | c => String.str c) lit0
-      val (mant, ex) =
-        case String.fields (fn c => c = #"e") lit of
-          [a] => (a, 0)
-        | [a, b] => (a, valOf (Int.fromString (if String.isPrefix "+" b then String.extract (b, 1, NONE) else b)))
-        | _ => raise Fail ("bad numeral " ^ lit0)
-      val (neg, body) = if String.isPrefix "-" mant then (true, String.extract (mant, 1, NONE)) else (false, mant)
-      val (ip, fp) = case String.fields (fn c => c = #".") body of
-                       [a] => (a, "")
-                     | [a, b] => (a, b)
-                     | _ => raise Fail ("bad numeral " ^ lit0)
-      val num = valOf (IntInf.fromString (ip ^ fp))
-      val den = IntInf.pow (10, size fp)
-    in qmul (if neg then (IntInf.~ num, den) else (num, den)) (qpow10 ex) end
+  fun dec lit : q =
+    case List.find (fn (key,_) => key = lit) (!capturedValues) of
+      SOME (_,value) => value
+    | NONE => raise UnboundNumeral
+  fun integerOf lit = let val (n,d) = dec lit
+                      in if d = 1 then n else raise UnboundNumeral end
   fun gq s m = dec (g1 s m)
   fun gqn s m n = dec (valOf (grp s m n))
   fun nat (n : IntInf.int) = E.nat_of_integer n
@@ -128,7 +145,10 @@ struct
   val deg = "\194\176"
   val sup3 = "\194\179"
   val sup2 = "\194\178"
-  val NT = "(-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?)"
+  (* This role pattern only finds candidate spans. ExactNumeric issues the
+     tokens and values; grp rejects candidates that cover only a suffix. *)
+  val NUMERAL = "([+\\-\226\136\146]?(?:\\d+(?:,\\d{3})*(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?(?:\\s*/\\s*[+\\-\226\136\146]?(?:\\d+(?:,\\d{3})*(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?)?)"
+  val NT = NUMERAL
   val TEMP_RX = NT ^ "\\s*(?:" ^ deg ^ "\\s*|degrees?\\s*)?(c|k|f|celsius|kelvin|fahrenheit)\\b"
 
   fun tunit u = if String.isPrefix "c" u then E.TU_C else if String.isPrefix "f" u then E.TU_F else E.TU_K
@@ -182,7 +202,7 @@ struct
         let
           val a = Option.map (fn m => mk (gq low m))
                     (search (NT ^ "\\s*(m\\^?2|m" ^ sup2 ^ "|square met(?:er|re)s?)\\b") low)
-          val e = case search "\\bemissivity\\s*(?:of|is|=)?\\s*(-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?)" low of
+          val e = case search ("\\bemissivity\\s*(?:of|is|=)?\\s*" ^ NT) low of
                     SOME m => mk (gq low m) | NONE => mk (qint 1)
         in req (E.TRad (a, e)) end
       else if has "\\b(?:melt|freeze|boil|vapori[sz]e|evaporate|condense)\\b" low
@@ -206,7 +226,7 @@ struct
 
   (* ---------- energy-v2 / energy-v3 ---------- *)
   val NE = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
-  val NS = "(-?\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
+  val NS = NUMERAL
   val cent = "\194\162"
 
   fun wattsOf low =
@@ -378,19 +398,30 @@ struct
            | SOME req => if ANSWERED req orelse Narrow.short_direct t then SOME req else NONE
     end
 
+  (* Physical magnitudes keep their signs; a later typed guard decides domain.
+     Prevent a failed negative match from restarting at its unsigned suffix. *)
+  val NE = NUMERAL
+
   (* ---------- hvac ---------- *)
   val times = "\195\151"
-  fun volumeOf low : E.rat option =
+  fun roomDimensions low =
     case search (NE ^ "\\s*(?:ft|feet|foot)?\\s*(?:x|by|" ^ times ^ ")\\s*" ^ NE ^ "\\s*(?:ft|feet|foot)?\\s*(?:x|by|" ^ times ^ ")\\s*" ^ NE ^ "\\s*(?:ft|feet|foot)?\\b") low of
-      SOME m => SOME (mk (qmul (qmul (gq low m) (gqn low m 2)) (gqn low m 3)))
-    | NONE => Option.map (fn m => mk (gq low m)) (search (NE ^ "\\s*(?:cubic feet|cu\\.? ?ft|ft3|ft" ^ sup3 ^ ")\\b") low)
+      SOME m => SOME [gq low m, gqn low m 2, gqn low m 3]
+    | NONE => NONE
+
+  fun volumeOf low : E.rat option =
+    case roomDimensions low of
+      SOME [a,b,c] => SOME (mk (qmul (qmul a b) c))
+    | _ => Option.map (fn m => mk (gq low m)) (search (NE ^ "\\s*(?:cubic feet|cu\\.? ?ft|ft3|ft" ^ sup3 ^ ")\\b") low)
 
   val DELTA = "(?:temperature (?:difference|rise|drop|change)|delta[- ]?t|dt|\206\180t|\206\148t)"
 
   fun hvac text =
     let
       val t = collapse text
-      val low = lower t
+      val low0 = lower t
+      val low = replaceAllWith "\\br-?(\\d+(?:\\.\\d+)?)\\b"
+        (fn m => "r value " ^ valOf (Regex.group low0 m 1)) low0
       val cfm = search (NE ^ "\\s*cfm\\b") low
       val ach = search (NE ^ "\\s*(?:ach|air changes? (?:per|an|each) hour)\\b") low
       val sq = NE ^ "\\s*(?:sq\\.? ?ft|square feet|ft2|ft" ^ sup2 ^ ")\\b"
@@ -411,11 +442,13 @@ struct
         else NONE
       val airch =
         if has "\\bach\\b|\\bair changes?\\b" low then
-          let val v = volumeOf low
+          let val badDimensions = case roomDimensions low of SOME xs => List.exists (fn (n,_) => n <= 0) xs | NONE => false
+              val v = volumeOf low
               val c = Option.map (fn m => mk (gq low m)) cfm
               val a = Option.map (fn m => mk (gq low m)) ach
           in
-            if not (isSome v) then SOME (E.FHvac (E.VAch (NONE, NONE)))
+            if badDimensions then SOME (E.FHvac E.VBadDimensions)
+            else if not (isSome v) then SOME (E.FHvac (E.VAch (NONE, NONE)))
             else if isSome cfm andalso not (has "\\bhow many cfm\\b|\\bwhat cfm\\b|\\bcfm (?:do i need|is needed|needed|required)\\b" low)
               then SOME (E.FHvac (E.VAch (c, v)))
             else if isSome ach then SOME (E.FHvac (E.VCfm (a, v)))
@@ -433,7 +466,7 @@ struct
             else NONE
         | NONE => NONE
       val cond =
-        let val rm = case search ("\\br[- ]?(?:value)?\\s*(?:of|is|=)?\\s*-?\\s*" ^ NE ^ "\\b") low of
+        let val rm = case search ("\\br(?:[- ]?value)?\\s*(?:of|is|=)?\\s*" ^ NE ^ "\\b") low of
                        SOME m => SOME m
                      | NONE => search ("\\br-?" ^ NE ^ "\\b") low
         in
@@ -468,11 +501,11 @@ struct
 
   (* ---------- renewables ---------- *)
   fun pct low name : E.rat option =
-    case (case search (name ^ "[^0-9%]{0,25}?(\\d+(?:\\.\\d+)?)\\s*%") low of
+    case (case search (name ^ "[^0-9%+-]{0,25}?" ^ NE ^ "\\s*%") low of
             SOME m => SOME m
-          | NONE => search ("(\\d+(?:\\.\\d+)?)\\s*%\\s*" ^ name) low) of
+          | NONE => search (NE ^ "\\s*%\\s*" ^ name) low) of
       SOME m => SOME (mk (qdiv (gq low m) (qint 100)))
-    | NONE => Option.map (fn m => mk (gq low m)) (search (name ^ "[^0-9]{0,20}?(0?\\.\\d+)\\b") low)
+    | NONE => Option.map (fn m => mk (gq low m)) (search (name ^ "[^0-9+-]{0,20}?" ^ NE ^ "\\b") low)
 
   val MS = "(?:m/s|mph|km/h|knots?)"
   val CUBIC_PER_S = "m3\\s*/\\s*s|m" ^ sup3 ^ "\\s*/\\s*s|cubic met(?:er|re)s? per second|cumecs"
@@ -578,7 +611,12 @@ struct
                 | NONE => NONE
               end
           end
-    in narrowed text result end
+    in
+      if has "\\befficien\\w*\\b|\\bpower coefficient\\b|\\bcp\\b" low
+         andalso not (isSome (pct low "\\b(?:efficien\\w*|power coefficient|cp)\\b"))
+      then NONE
+      else narrowed text result
+    end
 
   (* ---------- iot ---------- *)
   val CUR = "(a|ma|ua|\194\181a|\206\188a|microamps?|milliamps?|amps?)\\b"
@@ -609,7 +647,7 @@ struct
           if not (has "\\bbattery\\b|\\bbatteries\\b|\\bcell\\b" low orelse has "\\baverage current\\b" low) then NONE
           else
             let
-              val duty = case search "\\b(?:awake|active|on|transmitting|duty cycle(?: of)?)\\s*(?:for\\s+)?(\\d+(?:\\.\\d+)?)\\s*%|(\\d+(?:\\.\\d+)?)\\s*%\\s*(?:of the time\\s+)?(?:duty cycle|awake|active|of the time)" low of
+              val duty = case search ("\\b(?:awake|active|on|transmitting|duty cycle(?: of)?)\\s*(?:for\\s+)?" ^ NE ^ "\\s*%|" ^ NE ^ "\\s*%\\s*(?:of the time\\s+)?(?:duty cycle|awake|active|of the time)") low of
                            SOME m => SOME (qdiv (dec (valOf (firstGroup low m [1, 2]))) (qint 100))
                          | NONE => NONE
               val days = has "\\bdays?\\b" low andalso not (has "\\bhours\\b" low)
@@ -646,7 +684,7 @@ struct
         case bits of
           SOME bm =>
             if has "\\badc\\b|\\banalog[- ]to[- ]digital\\b|\\bconverter\\b" low then
-              let val n = valOf (IntInf.fromString (g1 low bm))
+              let val n = integerOf (g1 low bm)
               in
                 if n < 1 orelse n > 32 then SOME NONE
                 else
@@ -661,7 +699,7 @@ struct
                         val volt = search ("\\binput (?:of\\s+)?" ^ NE ^ "\\s*v\\b|" ^ NE ^ "\\s*v\\s*(?:input|signal|in)\\b|\\b(?:for|at)\\s+" ^ NE ^ "\\s*v\\b(?!\\s*(?:reference|vref|full))") low
                       in
                         if isSome code andalso has "\\bvolt\\w*\\b|\\bwhat voltage\\b|\\bin volts\\b" low andalso not (isSome volt) then
-                          SOME (req (E.IAdcVolt (nn, vref, nat (valOf (IntInf.fromString (valOf (firstGroup low (valOf code) [1, 2])))))))
+                          SOME (req (E.IAdcVolt (nn, vref, nat (integerOf (valOf (firstGroup low (valOf code) [1, 2]))))))
                         else if isSome volt andalso has "\\bcode\\b|\\breading\\b|\\bcount\\b|\\bdigital value\\b|\\boutput\\b" low then
                           SOME (req (E.IAdcCode (nn, vref, mk (dec (valOf (firstGroup low (valOf volt) [1, 2, 3]))))))
                         else SOME NONE
@@ -693,9 +731,9 @@ struct
                          if has "\\bdata rate\\b|\\bbit rate\\b|\\bthroughput\\b|\\bstorage\\b|\\bper day\\b|\\bbytes\\b|\\bbandwidth\\b" low then
                            let
                              val ch = case search "\\b(\\d+)\\s+(?:channels?|sensors?)\\b" low of
-                                        SOME m => valOf (IntInf.fromString (g1 low m)) | NONE => 1
+                                        SOME m => integerOf (g1 low m) | NONE => 1
                              val sv = mk (gq low s)
-                             val bv = nat (valOf (IntInf.fromString (g1 low b)))
+                             val bv = nat (integerOf (g1 low b))
                            in
                              if has "\\bper day\\b|\\ba day\\b|\\bdaily\\b|\\bstorage\\b" low
                              then req (E.IStorage (sv, bv, nat ch))
@@ -724,12 +762,12 @@ struct
     | context "energy-v3" = "\\b(?:kwh|watts?|kw|battery|solar|payback|energy|electricity|power bank|tariff|bill)\\b|\\b(?:\\d+(?:\\.\\d*)?|\\.\\d+)\\s*w\\b|\\b(?:cost|price)\\b.*\\b(?:run|running|operate|operating)\\b"
     | context "hvac" = "\\b(?:cfm|ach|air changes?|btu\\w*|tons?|r-?\\d+|r-value|heat loss|hvac|furnace|air conditioner|ac)\\b"
     | context "renewables" = "\\b(?:wind|turbine|rotor|capacity factor|solar|pv|photovoltaic|hydro\\w*|dam|betz)\\b"
-    | context "iot" = "\\b(?:adc|analog[- ]to[- ]digital|battery|mah|duty cycle|nyquist|sampl\\w+|sensor|data rate|bit rate)\\b"
+    | context "iot" = "\\b(?:adc|analog[- ]to[- ]digital|battery|mah|duty cycle|nyquist|sampl\\w+|sensor|data rate|bit rate)\\b|\\baverage current\\b"
     | context other = raise Fail ("unknown specialist " ^ other)
 
   val familyOrder = ["thermo", "hvac", "renewables", "iot", "energy-v3"]
 
-  fun recognize mode text =
+  fun recognizeUnchecked mode text =
     if mode = "family" then
       let val low = lower text
           fun go [] = NONE
@@ -739,4 +777,9 @@ struct
                 else go ids
       in go familyOrder end
     else Option.map (fn r => (mode, r)) (byId mode text)
+
+  fun recognize mode text =
+    if List.exists (fn ExactNumeric.Malformed _ => true | _ => false) (ExactNumeric.scan text)
+    then NONE
+    else (recognizeUnchecked mode text handle UnboundNumeral => NONE)
 end

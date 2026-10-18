@@ -27,6 +27,7 @@ datatype hvac_req =
   | VCond "rat option" rat "dsrc option"
   | VSeasonal "rat option" rat rat
   | VSizing
+  | VBadDimensions
 
 definition btu_per_ton :: rat where "btu_per_ton = 12000"
 definition air_factor :: rat where "air_factor = 108 / 100"
@@ -36,9 +37,21 @@ fun dsv :: "dsrc \<Rightarrow> rat" where
 
 section \<open>Declines\<close>
 
+fun physical_v :: "hvac_req \<Rightarrow> bool" where
+  "physical_v (VTons b) = (0 \<le> b)"
+| "physical_v (VBtuh t) = (0 \<le> t)"
+| "physical_v (VAch c v) = (\<forall>x\<in>set_option c. 0 \<le> x)"
+| "physical_v (VCfm a v) = (\<forall>x\<in>set_option a. 0 \<le> x)"
+| "physical_v (VSens c d) = (0 \<le> c)"
+| "physical_v (VCond a r d) = ((\<forall>x\<in>set_option a. 0 \<le> x) \<and> 0 < r)"
+| "physical_v (VSeasonal a r h) = ((\<forall>x\<in>set_option a. 0 \<le> x) \<and> 0 < r \<and> 0 \<le> h)"
+| "physical_v VSizing = True"
+| "physical_v VBadDimensions = False"
+
 fun pre_v :: "hvac_req \<Rightarrow> (dcl \<times> String.literal) option" where
   "pre_v VSizing = Some (D_sizing, STR ''Sizing equipment for a real building needs a Manual J load calculation (insulation, windows, climate, occupancy); I can do the pieces - heat through a wall, airflow heat, tons from BTU/h - for numbers you give me.'')"
-| "pre_v _ = None"
+| "pre_v VBadDimensions = Some (D_imposs, STR ''Every room dimension must be positive.'')"
+| "pre_v r = (if physical_v r then None else Some (D_imposs, STR ''Flow, cooling capacity, area and degree-days must be nonnegative; R-value must be positive.''))"
 
 fun miss_v :: "hvac_req \<Rightarrow> String.literal option" where
   "miss_v (VAch c v) = (case v of None \<Rightarrow> Some (STR ''the room volume (dimensions or cubic feet)'')
@@ -76,6 +89,7 @@ fun kd_v :: "hvac_req \<Rightarrow> String.literal" where
 | "kd_v (VCfm _ _) = STR ''cfm_needed''" | "kd_v (VSens _ _) = STR ''sensible''"
 | "kd_v (VCond _ _ _) = STR ''conduction''" | "kd_v (VSeasonal _ _ _) = STR ''seasonal''"
 | "kd_v VSizing = STR ''sizing''"
+| "kd_v VBadDimensions = STR ''impossible''"
 
 definition kernel_v :: "hvac_req \<Rightarrow> outcome" where
   "kernel_v = mk_kernel pre_v miss_v post_v (\<lambda>_. None) kd_v vl_v (\<lambda>_. False)"
@@ -95,7 +109,7 @@ lemmas exact_parts_v =
   hvac_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2]
 
 lemma pre_v_not_under: "pre_v r \<noteq> Some (D_under, w)"
-  by (cases r rule: pre_v.cases) auto
+  by (cases r rule: pre_v.cases) (auto split: if_splits)
 
 lemma post_v_not_under: "post_v r \<noteq> Some (D_under, w)"
   by (cases r rule: post_v.cases) (auto split: if_splits)
