@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+"""Diff the mathorgan answerer against the original head's replies on the
+core panel's 93 mathematics items (var/mathorgan/panel/head_replies.jsonl,
+produced by run_head.py from upstream oracle7.py).
+
+A match needs status, path and (for answered) response and value to agree.
+Prints the per-route tally and every miss.
+
+  python3 tools/dev/math-diff --answerer var/mathorgan/bin/mathorgan \
+      [--replies var/mathorgan/panel/head_replies.jsonl] [--out var/mathorgan/panel/diff.json]
+"""
+import argparse
+import json
+import subprocess
+import sys
+from collections import Counter
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
+
+
+def ask(answerer, recs):
+    lines = []
+    for n, r in enumerate(recs):
+        lines.append(json.dumps({"id": n, "q": r["q"], "session": "diff-%d" % n}))
+    p = subprocess.run(answerer.split(), input="\n".join(lines) + "\n",
+                       capture_output=True, text=True, timeout=300)
+    if p.returncode != 0:
+        sys.exit("answerer exited %d: %s" % (p.returncode, p.stderr[:500]))
+    out = [json.loads(l) for l in p.stdout.splitlines() if l.strip()]
+    if len(out) != len(recs):
+        sys.exit("answerer returned %d replies for %d questions" % (len(out), len(recs)))
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--answerer", required=True)
+    ap.add_argument("--replies", default="var/mathorgan/panel/head_replies.jsonl")
+    ap.add_argument("--out", default=None)
+    ap.add_argument("--misses", type=int, default=40, help="how many misses to print")
+    a = ap.parse_args()
+
+    recs = [json.loads(l) for l in open(a.replies)]
+    reps = ask(a.answerer, recs)
+
+    tally = Counter()
+    misses = []
+    for r, rep in zip(recs, reps):
+        want_status = r["head_status"]
+        want_path = r["head_path"]
+        got_status = rep.get("status")
+        got_path = rep.get("path")
+        ok = (want_status == got_status and want_path == got_path
+              and (want_status != "answered" or r["head_response"] == rep.get("response")))
+        # a reply the head answered but we did not take at all is a special miss
+        if not ok and got_path == "" and got_status == "withheld":
+            why = "not-taken"
+        elif not ok:
+            why = "wrong"
+        else:
+            why = "ok"
+        tally[(want_path, why)] += 1
+        if why != "ok":
+            misses.append({"q": r["q"], "want": [want_status, want_path, r["head_response"]],
+                           "got": [got_status, got_path, rep.get("response", "")]})
+
+    n_ok = sum(v for (p, w), v in tally.items() if w == "ok")
+    print("match %d / %d" % (n_ok, len(recs)))
+    by_route = {}
+    for (p, w), v in sorted(tally.items()):
+        by_route.setdefault(p, Counter())[w] += v
+    for p, c in sorted(by_route.items()):
+        print("  %-55s ok=%-3d wrong=%-3d not-taken=%d" % (p, c["ok"], c["wrong"], c["not-taken"]))
+    for m in misses[:a.misses]:
+        print("MISS %s" % m["q"])
+        print("  want %s" % (m["want"],))
+        print("  got  %s" % (m["got"],))
+    if a.out:
+        Path(a.out).write_text(json.dumps({"match": n_ok, "n": len(recs),
+                                           "tally": {("%s|%s" % k): v for k, v in tally.items()},
+                                           "misses": misses}, indent=1))
+    sys.exit(0 if not misses else 1)
+
+
+if __name__ == "__main__":
+    main()

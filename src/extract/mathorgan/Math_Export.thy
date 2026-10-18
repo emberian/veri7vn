@@ -14,6 +14,7 @@ export_code reply_of answered response value_lit path_lit self_test mk_rat
   T_second T_minute T_hour T_day T_week T_year
   M_milligram M_gram M_kilogram M_ounce M_pound
   Ask WordConv OpConv GuardP7 GuardG6 GuardG5
+  GuardQ1 GuardR1 GuardR6
   in SML module_name Mathkernel file_prefix mathkernel
 
 ML \<open>
@@ -34,6 +35,7 @@ ML \<open>
     P7_area_of_negative_side_ambiguous
     guard_G6_rule G6_value_not_determined
     guard_G5_rule
+    guard_english_rule
     reply_answered_iff reply_states_value reply_sqrt_perfect
     reply_withheld_names_decline};
   val oracles = Thm_Deps.all_oracles theorems;

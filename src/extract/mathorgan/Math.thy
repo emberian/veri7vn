@@ -909,7 +909,26 @@ conversion, states the decimal exactly (\<^const>\<open>dec_expansion\<close>). 
 panel items the decimals all terminate: 3/8 = 0.375, 7/16 = 0.4375, 5/8 =
 0.625, 3/5 = 0.6, 7/20 = 0.35, 9/25 = 0.36 (pinned in the self test). The
 algebra form of the guard is the kernel's own echo decline: it fires exactly
-when the root is one of the question's stated values (solve_echo_iff).\<close>
+when the root is one of the question's stated values (solve_echo_iff), and
+\<^const>\<open>reply_of\<close> reports it under the guard's own name.\<close>
+
+text \<open>Q1, R1, R6 (folds w513, w514, w516): the evaluator read an English
+question as a product of variables and letters. The three rules are the same
+justification at three depths of the chain (Q1 before R1 before R6; a question
+any earlier rule catches never reaches the later one), so one definition with
+three names: the question is a formula on English words and carries no
+algebra of its own.\<close>
+
+definition guard_english :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
+  "guard_english formula_question no_algebra \<longleftrightarrow> formula_question \<and> no_algebra"
+
+theorem guard_english_rule: "guard_english f a \<longleftrightarrow> f \<and> a"
+  by (simp add: guard_english_def)
+
+text \<open>Justification is G6's, made explicit: the reply such a question pulls
+out of the evaluator is a coefficient times a product of the question's own
+letters, and \<^theorem>\<open>G6_value_not_determined\<close> shows no number is
+determined that way.\<close>
 
 section \<open>Requests the recognizer can ask, and the reply text\<close>
 
@@ -926,6 +945,9 @@ datatype prequest =
   | GuardP7 bool bool
   | GuardG6 "String.literal list" "String.literal list" bool
   | GuardG5 bool bool
+  | GuardQ1 bool bool
+  | GuardR1 bool bool
+  | GuardR6 bool bool
 
 datatype reply =
     Answered String.literal String.literal String.literal  \<comment> \<open>response, value text, path\<close>
@@ -974,6 +996,9 @@ fun path_of :: "prequest \<Rightarrow> String.literal" where
 | "path_of (GuardP7 _ _) = STR ''precision_guard:P7_negative_given|organ:math>evaluate''"
 | "path_of (GuardG6 _ _ _) = STR ''precision_guard:G6_units_not_variables|organ:math>evaluate''"
 | "path_of (GuardG5 _ _) = STR ''precision_guard:G5_echo|organ:math>evaluate''"
+| "path_of (GuardQ1 _ _) = STR ''precision_guard:Q1_english_as_algebra|organ:math>evaluate''"
+| "path_of (GuardR1 _ _) = STR ''precision_guard:R1_english_as_algebra|organ:math>evaluate''"
+| "path_of (GuardR6 _ _) = STR ''precision_guard:R6_math_on_english|organ:math>evaluate''"
 
 text \<open>The linear side of an equation, in the algebra fold's own layout:
 \<^verbatim>\<open>5x - 7\<close>, \<^verbatim>\<open>x\<close>, a bare number.\<close>
@@ -1073,7 +1098,12 @@ fun reply_of :: "prequest \<Rightarrow> reply" where
     (case kernel (SolveLin a b c d gs) of
        Value _ x \<Rightarrow> Answered (solve_head x a b c d) (render_rat x)
          (path_of (Ask (SolveLin a b c d gs)))
-     | Decline _ \<Rightarrow> Withheld withhold_text (STR ''algebra:out_of_fragment''))"
+     | Decline D_echo \<Rightarrow> Withheld withhold_text (STR ''precision_guard:G5_echo|algebra:solved'')
+     | Decline _ \<Rightarrow>
+         Withheld (STR ''I solve linear equations in one unknown exactly, and this one is ''
+                   + STR ''outside that fragment. I could give you a plausible looking answer, ''
+                   + STR ''but I would have no way to check it, so I will not.'')
+           (STR ''algebra:out_of_fragment''))"
 | "reply_of (Ask (EvalExpr e)) =
     (case kernel (EvalExpr e) of
        Value _ v \<Rightarrow> Answered (STR ''[ev:derived] '' + render_rat v
@@ -1109,7 +1139,16 @@ fun reply_of :: "prequest \<Rightarrow> reply" where
      else Withheld (STR ''guard G6 does not fire'') (STR ''''))"
 | "reply_of (GuardG5 a v) =
     (if guard_G5 a v then Withheld withhold_text (path_of (GuardG5 a v))
-     else Withheld (STR ''guard G5 does not fire'') (STR ''''))"
+     else Withheld (STR ''guard G5 does not fire'') (STR ''''))
+| "reply_of (GuardQ1 f a) =
+    (if guard_english f a then Withheld withhold_text (path_of (GuardQ1 f a))
+     else Withheld (STR ''guard Q1 does not fire'') (STR ''''))
+| "reply_of (GuardR1 f a) =
+    (if guard_english f a then Withheld withhold_text (path_of (GuardR1 f a))
+     else Withheld (STR ''guard R1 does not fire'') (STR ''''))
+| "reply_of (GuardR6 f a) =
+    (if guard_english f a then Withheld withhold_text (path_of (GuardR6 f a))
+     else Withheld (STR ''guard R6 does not fire'') (STR ''''))"
 
 
 definition preq_of :: "prequest \<Rightarrow> req option" where
@@ -1345,6 +1384,7 @@ definition self_test :: bool where
      \<not> guard_G6 [STR ''m''] [STR ''m''] False \<and>
      \<not> guard_G6 [STR ''y''] [STR ''m''] True \<and>
      guard_G5 True True \<and> \<not> guard_G5 True False \<and> \<not> guard_G5 False True \<and>
+     guard_english True True \<and> \<not> guard_english True False \<and> \<not> guard_english False True \<and>
  
      render_rat 408 = STR ''408'' \<and>
      render_rat (19 / 4) = STR ''4.75'' \<and>
@@ -1367,6 +1407,18 @@ definition self_test :: bool where
        STR ''x = 9. read it as 5x - 7 = 38; then collect x on the left: 5x = 45; then divide both sides by 5: x = 9; then check by substitution: left gives 38, right gives 38, equal.'' \<and>
      response (reply_of (GuardG5 True True)) = withhold_text \<and>
      path_lit (reply_of (GuardG5 True True)) =
-       STR ''precision_guard:G5_echo|organ:math>evaluate''"
+       STR ''precision_guard:G5_echo|organ:math>evaluate'' \<and>
+     path_lit (reply_of (Ask (SolveLin 1 0 0 2 [2]))) =
+       STR ''precision_guard:G5_echo|algebra:solved'' \<and>
+     response (reply_of (Ask (SolveLin 1 0 0 2 [2]))) = withhold_text \<and>
+     response (reply_of (GuardQ1 True True)) = withhold_text \<and>
+     path_lit (reply_of (GuardQ1 True True)) =
+       STR ''precision_guard:Q1_english_as_algebra|organ:math>evaluate'' \<and>
+     path_lit (reply_of (GuardR1 True True)) =
+       STR ''precision_guard:R1_english_as_algebra|organ:math>evaluate'' \<and>
+     path_lit (reply_of (GuardR6 True True)) =
+       STR ''precision_guard:R6_math_on_english|organ:math>evaluate'' \<and>
+     \<not> answered (reply_of (GuardQ1 True True)) \<and>
+     \<not> answered (reply_of (Ask (SolveLin 0 3 0 7 [])))"
 
 end
