@@ -1,0 +1,3 @@
+session Veri7vn_CodeOrgan = HOL +
+  options [document = false, threads = 2]
+  theories CodeOrgan CodeOrgan_Export

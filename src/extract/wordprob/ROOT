@@ -18,4 +18,5 @@ session Veri7vn_Wordprob = Veri7vn_Wordprob_Base +
   theories
     Wordprob
     Wordprob_Units
+    Wordprob_Motion
     Wordprob_Export

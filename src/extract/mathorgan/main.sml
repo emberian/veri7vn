@@ -88,10 +88,30 @@ struct
       ",\"left_affine\":" ^ pair(valOf(K.affine_norm l)) ^ ",\"right_affine\":" ^ pair(valOf(K.affine_norm r)) ^ "}}}}}"
     end
 
+  fun closedReply id q expression =
+    let val e=AffineParser.kernel expression
+    in case K.closed_value e of
+      NONE => "{\"id\":" ^ id ^ ",\"status\":\"withheld\",\"path\":\"mathorgan>undefined_expression\",\"response\":\"This closed expression is undefined or outside the supported arithmetic grammar.\",\"provenance\":{\"taken\":true,\"recognition_trusted\":false,\"kernel\":\"Mathkernel.closed_value\"}}"
+    | SOME value =>
+      let val components=AffineParser.bounded(K.affine_rat_components value)
+          val accepted=K.check_closed e value
+          val _=if accepted then () else raise Fail "closed candidate failed its checker"
+      in "{\"id\":" ^ id ^ ",\"status\":\"answered\",\"kind\":\"closed_expression\",\"path\":\"organ:math>evaluate\",\"response\":" ^
+        Json.quote(K.closed_response value) ^ ",\"value\":" ^ Json.quote(K.affine_exact value) ^
+        ",\"provenance\":{\"request_text\":" ^ Json.quote q ^ ",\"taken\":true,\"recognition_trusted\":false,\"kernel\":\"Mathkernel.check_closed\",\"session\":\"Veri7vn_MathOrgan\",\"evidence\":{\"checked_computation\":{" ^
+        "\"schema_version\":1,\"kind\":\"closed_expression\",\"checker\":\"Mathkernel.check_closed\",\"accepted\":true," ^
+        "\"assumptions\":[\"The typed expression represents the requested expression.\"]," ^
+        "\"inputs\":{\"expression\":" ^ AffineParser.json expression ^ "},\"result\":" ^ AffineParser.ratJson components ^ "}}}}"
+      end
+    end
+
   fun reply id q =
     (case (if mode="family" orelse mode="algebra" then AffineParser.request q else NONE) of
         SOME equation => affineReply id q equation
-      | NONE => legacyReply id q)
+      | NONE =>
+        (case (if mode="family" orelse mode="closed" orelse mode="ops" then AffineParser.closedRequest q else NONE) of
+            SOME expression => closedReply id q expression
+          | NONE => legacyReply id q))
     handle AffineParser.Reject reason =>
       "{\"id\":" ^ id ^ ",\"status\":\"withheld\",\"path\":\"mathorgan>unsupported_input\",\"response\":" ^
       Json.quote reason ^ ",\"provenance\":{\"taken\":true,\"recognizer_rejection\":true,\"recognition_trusted\":false}}"

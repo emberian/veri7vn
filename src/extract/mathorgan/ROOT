@@ -9,4 +9,5 @@ session Veri7vn_MathOrgan in "." = HOL +
   theories
     Math
     Math_Affine
+    Math_Closed
     Math_Export

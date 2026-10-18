@@ -103,6 +103,25 @@
       "build": "tools/document/build.sh"
     },
     {
+      "family": "codeorgan",
+      "role": "code",
+      "session": "Veri7vn_CodeOrgan",
+      "binary": "var/codeorgan/bin/codeorgan-kernel",
+      "specialists": [],
+      "specialist_flag": false,
+      "build": "src/extract/codeorgan/build.sh",
+      "note": "Structured native checker; dispatch uses src/extract/codeorgan/answerer.py as its untrusted English and source-rendering adapter."
+    },
+    {
+      "family": "converse",
+      "role": "dialogue",
+      "session": "Veri7vn_Converse",
+      "binary": "var/converse/bin/converse",
+      "specialists": [],
+      "specialist_flag": false,
+      "build": "src/extract/converse/build.sh"
+    },
+    {
       "family": "earth",
       "role": "specialist",
       "session": "Veri7vn_Earth",

@@ -109,3 +109,17 @@ zero oracles (`20261018T081347Z-fa668924d7c5`). Its selected actual dispatcher
 checks cover unique/all/no solutions and malformed/nonlinear/undefined inputs:
 8/8 expected outcomes, alongside the focused parser, evidence-mutation and
 guard-composition tests recorded in the lane report.
+
+Closed arithmetic now has a checked route too: whole requests such as
+“What is 5 squared?”, “Evaluate (-3/2)^2”, or “Calculate 1/3+1/6” preserve the
+original typed expression and return exact integer/fraction values. Only
+square/cube powers are supported. Unbound variables, division by zero,
+malformed tokens, other powers and excess resource bounds refuse. Unary minus
+has its usual precedence (`-2^2 = -4`, `(-2)^2 = 4`); squared/cubed word suffixes
+apply to the entire preceding operand. A mandatory `closed_expression` packet
+is independently replayed and its request text checked before guards run.
+The route is `--route closed` (also accepted by `--route ops` for direct callers).
+All five focused test methods and eleven selected actual dispatcher probes
+pass. The 52-statement proof/native and exact boundaries are recorded in
+`project/lanes/F-runtime-closed.md`. Run
+`python3 -B src/extract/mathorgan/test_closed.py` for the focused checks.

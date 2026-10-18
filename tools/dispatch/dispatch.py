@@ -34,6 +34,7 @@ sys.path.insert(0, str(REPO / "tools"))
 from runtime_contract import load_registry, acceptance, capability_for, validate_capabilities, enforce_reply_evidence  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from routes import RouteStages, stage_programs as route_programs  # noqa: E402
+from dialogue.state import Dialogue, outcome as dialogue_outcome  # noqa: E402
 UPSTREAM = Path(os.environ.get("PARITY_UPSTREAM", str(MAIN_REPO / "upstream")))
 
 # ---------------------------------------------------------------- combo oracles
@@ -334,8 +335,13 @@ def enabled_routes(args):
 
 
 def enabled_stage(args, role):
-    flag = "no_reader" if role == "relation" else "no_document"
+    flag = {"relation": "no_reader", "document": "no_document", "code": "no_code"}[role]
     return not getattr(args, flag, False) and any(e["role"] == role for e in load_registry(REPO))
+
+
+def dialogue_enabled(args):
+    return not getattr(args, "no_dialogue", False) and any(
+        e["role"] == "dialogue" for e in load_registry(REPO))
 
 
 def stage_programs(args, var, entries):
@@ -344,12 +350,19 @@ def stage_programs(args, var, entries):
               ("network (fusion answerer)", REPO / "tools/fusion/answerer.py"),
               ("arbitration (arb_check)", Path(args.arb))]
     progs.extend(route_programs(REPO, var, enabled_routes(args)).items())
+    if dialogue_enabled(args):
+        progs.append(("dialogue policy", var / "converse/bin/converse"))
+    if enabled_stage(args, "code"):
+        progs.append(("code frontend", REPO / "src/extract/codeorgan/answerer.py"))
+        progs.append(("code kernel", var / "codeorgan/bin/codeorgan-kernel"))
     if enabled_stage(args, "relation"):
         progs.append(("reader", REPO / "tools/relations/frontdoor.py"))
         progs.append(("reader kernel", var / "relations/bin/decide"))
     if enabled_stage(args, "document"):
-        progs.append(("document", REPO / "tools/document/answerer.py"))
+        progs.extend(("document " + name, REPO / "tools/document" / name)
+                     for name in ("frontdoor.py", "anchor_answerer.py", "anchor_fetch.py", "answerer.py"))
         progs.append(("document kernel", var / "document/bin/document"))
+        progs.append(("document anchor kernel", var / "document_anchors/bin/document_anchors"))
         progs.append(("document Python environment", Path(args.adapter_python)))
     return progs
 
@@ -401,6 +414,13 @@ def effectful_selection(entries, pins, order):
     return [e for e in entries if e["family"] not in skipped], sorted(skipped)
 
 
+class Evaluation:
+    """A guarded route result and deferred effect; constructing one never commits."""
+    def __init__(self, reply, question, preview=None, commit_slug=None):
+        self.reply, self.question = reply, question
+        self.preview, self.commit_slug = preview, commit_slug
+
+
 class Dispatcher:
     def __init__(self, args):
         self.order = args.order
@@ -441,17 +461,63 @@ class Dispatcher:
             "reader", [sys.executable, "-B", str(REPO / "tools/relations/frontdoor.py"),
                        "--binary", str(var / "relations/bin/decide")],
             max(args.timeout, 120.0), log_dir)
+        self.code = None if not enabled_stage(args, "code") else Child(
+            "code", [sys.executable, "-B", str(REPO / "src/extract/codeorgan/answerer.py"),
+                     "--kernel", str(var / "codeorgan/bin/codeorgan-kernel")],
+            max(args.timeout, 30.0), log_dir)
         self.document = None if not enabled_stage(args, "document") else Child(
-            "document", [args.adapter_python, "-B", str(REPO / "tools/document/answerer.py"),
-                         "--binary", str(var / "document/bin/document")],
+            "document", [args.adapter_python, "-I", "-B", str(REPO / "tools/document/frontdoor.py"),
+                         "--binary", str(var / "document/bin/document"),
+                         "--anchors-binary", str(var / "document_anchors/bin/document_anchors")],
             max(args.timeout, 30.0), log_dir)
         self.route_names = set(enabled_routes(args))
         self.routes = RouteStages(REPO, var, args.timeout, log_dir, Child, self.route_names)
         self.arb = Arb(Path(args.arb))
         self.pool = ThreadPoolExecutor(max_workers=max(8, len(self.organs) + 2))
         self.n = 0
+        self.dialogue_policy = (Child("converse", [str(var / "converse/bin/converse")],
+                                      args.timeout, log_dir) if dialogue_enabled(args) else None)
+        self.dialogue = (Dialogue(self.dialogue_policy, native_owners=(pins[slug] for slug in self.commit_organs))
+                         if self.dialogue_policy else None)
 
     # -- stages
+    def code_stage(self, text, session, rid):
+        """Accept only the finite code protocol, bound to this exact request.
+
+        The independent packet replay checks the closed program and supplied
+        examples. It does not prove English recognition or generalization.
+        """
+        r = self.code.ask(rid, text, session)
+        malformed = reply_shape_error(r)
+        if malformed:
+            return {"status": "withheld", "response": "", "path": "code>protocol_error",
+                    "error": malformed}
+        if "error" in r:
+            return r
+        prov = r.get("provenance", {})
+        reason = None
+        if r.get("status") == "answered":
+            packet = prov.get("evidence", {}).get("checked_computation")
+            if r.get("kind") != "code_program":
+                reason = "code answers require kind code_program"
+            elif prov.get("request_text") != text:
+                reason = "code answer is not bound to this exact request"
+            elif not isinstance(packet, dict) or packet.get("kind") != "code_program":
+                reason = "code answer requires a code_program computation packet"
+            else:
+                return enforce_reply_evidence(r)
+        elif prov.get("taken") is not True:
+            return None
+        elif r.get("status") == "withheld" and r.get("kind") == "code_program_refusal":
+            return r
+        else:
+            reason = "code frontend returned an undeclared terminal result"
+        out = dict(r, status="withheld", response="", path="code>contract_rejected")
+        out.pop("value", None)
+        out["provenance"] = dict(prov, taken=True,
+                                  code_contract={"status": "rejected", "reason": reason})
+        return out
+
     def fan_out(self, text, session, rid, organs, timeout=None):
         """ask every family binary in parallel; -> {slug: reply}"""
         futs = {slug: self.pool.submit(lambda ch=ch: ch.ask(rid, text, session, timeout)) for ch, slug in organs}
@@ -651,10 +717,16 @@ class Dispatcher:
         out.setdefault("provenance", {}).setdefault("dispatch", {})["decisive"] = True
         return out, None, replies
 
-    def reader_stage(self, text, session, rid):
+    def reader_stage(self, text, session, rid, bound_query_entity=None):
         if self.reader is None:
             return None
-        r = self.reader.ask(rid, text, session)
+        if bound_query_entity is None:
+            r = self.reader.ask(rid, text, session)
+        else:
+            # Constructed internally from a prior accepted final receipt. The
+            # public request handler never forwards caller-supplied identities.
+            r = self.reader.ask_payload({"id": rid, "q": text, "session": session,
+                                         "bound_query_entity": bound_query_entity})
         if "error" in r:
             return r
         prov = r.get("provenance") or {}
@@ -712,6 +784,54 @@ class Dispatcher:
             return self._turn(rid, text, session)
 
     def _turn(self, rid, text, session):
+        started = time.perf_counter()
+        evaluated = []
+        def observe(evaluation):
+            reply = evaluation.reply
+            evaluated.append({"question": evaluation.question, "status": reply.get("status"),
+                              "path": reply.get("path"),
+                              "stages_run": reply.get("provenance", {}).get("dispatch", {}).get("stages_run", [])})
+        dialogue = getattr(self, "dialogue", None)
+        recall = dialogue.ledger.recall(session, text) if dialogue else None
+        plan = None
+        if recall is not None:
+            selected = Evaluation(recall, text)
+        else:
+            try:
+                # Select the finite contextual interpretation before issuing any
+                # route request. Never evaluate a literal alternative or replace
+                # a producer's refusal after it has spoken.
+                plan = dialogue.plan(session, text) if dialogue else None
+                if plan and plan.refusal:
+                    selected = Evaluation({"status": "clarify", "response": plan.refusal,
+                        "path": "dialogue>" + plan.construction,
+                        "provenance": {"taken": True}}, text)
+                elif plan and plan.question and plan.question != text:
+                    selected = self.evaluate(rid, plan.question, session, plan.bound_query_entity)
+                    observe(selected)
+                else:
+                    selected = self.evaluate(rid, text, session)
+                    observe(selected)
+            except (RuntimeError, ValueError, KeyError) as exc:
+                selected = Evaluation({"status": "withheld", "response": "",
+                    "path": "dialogue>policy_error", "error": str(exc)}, text)
+        out = self.finalize(rid, session, selected)
+        if dialogue:
+            details = out.setdefault("provenance", {}).setdefault("dialogue", {})
+            details.update({"standalone_question": selected.question,
+                            "rewrites_evaluated": int(bool(plan and plan.question and plan.question != text)),
+                            "recognition_trusted": False, "evaluations": evaluated,
+                            "interpretation_before_evaluation": True})
+            if plan:
+                details.update({"construction": plan.construction, "source_turn": plan.source_turn,
+                                "rewrite_selected": selected.question != text})
+            details["turn"] = len(dialogue.ledger.turns.get(session, [])) + 1
+            out.setdefault("provenance", {}).setdefault("dispatch", {}).setdefault("ms", {})["total_turn"] = round(1000 * (time.perf_counter() - started), 3)
+            dialogue.ledger.append(session, text, selected.question, out, recall=recall is not None)
+        return out
+
+    def evaluate(self, rid, text, session, bound_query_entity=None):
+        """Run routes and guards without writing warehouse or conversation state."""
         t0 = time.perf_counter()
         ms = {}
         out = None
@@ -735,7 +855,8 @@ class Dispatcher:
 
         def rel():
             t = time.perf_counter()
-            o = self.reader_stage(text, session, rid)
+            o = (self.reader_stage(text, session, rid, bound_query_entity) if bound_query_entity
+                 else self.reader_stage(text, session, rid))
             ms["reader"] = round(1000 * (time.perf_counter() - t), 3)
             return o
 
@@ -749,6 +870,7 @@ class Dispatcher:
             return run
 
         math = extra("math", lambda: self.routes.answer_math(rid, text, session))
+        code = extra("code", lambda: self.code_stage(text, session, rid))
         wordprob = extra("wordprob", lambda: self.routes.answer_wordprob(rid, text, session))
         document = extra("document", lambda: self.document_stage(text, session, rid))
         math_guard = extra("math_guard", lambda: self.routes.fallback_math_decline(rid, text, session))
@@ -764,7 +886,10 @@ class Dispatcher:
             tail.append(document)
         if "mathorgan" in getattr(self, "route_names", set()):
             tail.append(math_guard)
-        seq = (([net, specs] if head_first else [specs, net]) + tail) if out is None else []
+        # Explicit requests for a program must be interpreted by the code
+        # reader before a numeric specialist mistakes an example for a question.
+        prefix = [code] if getattr(self, "code", None) is not None else []
+        seq = (prefix + ([net, specs] if head_first else [specs, net]) + tail) if out is None else []
         for stage in seq:
             r = stage()
             if stage is specs:
@@ -788,13 +913,6 @@ class Dispatcher:
             out = self.routes.apply_guards(text, out)
             ms["guards"] = round(1000 * (time.perf_counter() - t), 3)
             stages.append("guards")
-        if commit_slug and out.get("status") == "answered" and "error" not in out:
-            t = time.perf_counter()
-            out = self.commit_selected(commit_slug, rid, text, session, preview, out)
-            ms["commit"] = round(1000 * (time.perf_counter() - t), 3)
-            stages.append("commit")
-        elif commit_slug:
-            out.setdefault("provenance", {}).setdefault("dispatch", {})["commit"] = "not attempted; preview was withheld"
         prov = out.get("provenance") if isinstance(out.get("provenance"), dict) else {}
         prov["dispatch"] = {**(prov.get("dispatch") or {}), "stages_run": stages,
                             "ms": dict(ms, total=round(1000 * (time.perf_counter() - t0), 3))}
@@ -802,9 +920,29 @@ class Dispatcher:
             prov["dispatch"]["stateful_not_selected"] = self.stateful_not_selected
         out["provenance"] = prov
         out["id"] = rid
+        return Evaluation(out, text, preview, commit_slug)
+
+    def finalize(self, rid, session, selected):
+        """Perform the chosen effect once; failed commits are never retried."""
+        out, slug = selected.reply, selected.commit_slug
+        if slug and out.get("status") == "answered" and "error" not in out:
+            t = time.perf_counter()
+            dispatch = dict(out.get("provenance", {}).get("dispatch", {}))
+            out = self.commit_selected(slug, rid, selected.question, session, selected.preview, out)
+            current = out.setdefault("provenance", {}).setdefault("dispatch", {})
+            current.update({key: value for key, value in dispatch.items() if key not in current})
+            current["stages_run"] = [*dispatch.get("stages_run", []), "commit"]
+            current.setdefault("ms", {})["commit"] = round(1000 * (time.perf_counter() - t), 3)
+        elif slug:
+            out.setdefault("provenance", {}).setdefault("dispatch", {})["commit"] = "not attempted; preview was withheld"
+        out["id"] = rid
         return out
 
     def close(self):
+        if getattr(self, "code", None):
+            self.code.close()
+        if getattr(self, "dialogue_policy", None):
+            self.dialogue_policy.close()
         for ch, _ in self.organs:
             ch.close()
         for child in self.commit_organs.values():
@@ -856,6 +994,8 @@ def main():
     ap.add_argument("--var-root", default=os.environ.get("VERI7VN_VAR", str(REPO / "var")))
     ap.add_argument("--order", choices=["head", "front"], default="head")
     ap.add_argument("--organs", help="comma-separated registered specialist families (default: all)")
+    ap.add_argument("--no-dialogue", action="store_true", help="disable final-turn ledger and contextual follow-ups")
+    ap.add_argument("--no-code", action="store_true", help="disable checked example-based code generation")
     ap.add_argument("--no-reader", action="store_true")
     ap.add_argument("--no-document", action="store_true")
     ap.add_argument("--no-routes", action="store_true", help="disable math, word-problem and precision-guard stages")

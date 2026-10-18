@@ -7,15 +7,15 @@ struct
   type rational = ExactNumeric.rational
   datatype expression = Const of rational | Var | Neg of expression
     | Add of expression * expression | Sub of expression * expression
-    | Mul of expression * expression | Div of expression * expression
-  datatype token = Number of rational | X | Plus | Minus | Times | Slash | LP | RP
+    | Mul of expression * expression | Div of expression * expression | Pow of expression * int
+  datatype token = Number of rational | X | Plus | Minus | Times | Slash | LP | RP | Power
 
   fun lower s = String.map Char.toLower s
   fun trim s = String.concatWith " " (String.tokens Char.isSpace s)
   fun reject s = raise Reject s
   fun digits n = size (IntInf.toString (IntInf.abs n))
   fun bounded (n,d) =
-    if digits n <= 256 andalso digits d <= 256 then (n,d)
+    if size(ExactNumeric.canonical(n,1)) <= 256 andalso digits d <= 256 then (n,d)
     else reject "An exact coefficient exceeds the 256-digit component limit."
   fun numeric s = case ExactNumeric.parse s of
       SOME value => bounded value
@@ -45,13 +45,14 @@ struct
              | #"-" => go(i+1)(Minus::acc)
              | #"*" => go(i+1)(Times::acc)
              | #"/" => go(i+1)(Slash::acc)
+             | #"^" => go(i+1)(Power::acc)
              | #"(" => go(i+1)(LP::acc)
              | #")" => go(i+1)(RP::acc)
              | _ => reject "Only x, exact numbers, +, -, *, / and parentheses are supported."
           end
     in go 0 [] end
 
-  fun parseSide s =
+  fun parseExpression allowPowers s =
     let val nodes=ref 0
         fun node e = (nodes := !nodes+1;
           if !nodes>128 then reject "The equation exceeds the 128-node limit." else e)
@@ -73,7 +74,18 @@ struct
         and unary d ts = (depth d; case ts of
             Plus::tail => unary(d+1) tail
           | Minus::tail => let val(e,r)=unary(d+1) tail in (node(Neg e),r) end
-          | Number q::tail => (node(Const q),tail)
+          | _ => power d ts)
+        and power d ts =
+          let val(e,rest)=atom d ts
+          in case rest of
+            Power::Number(n,den)::tail =>
+              if allowPowers andalso den=1 andalso (n=2 orelse n=3)
+              then (node(Pow(e,IntInf.toInt n)),tail)
+              else reject "Only square and cube powers are supported in closed expressions."
+          | Power::_ => reject "A power must be an explicit exponent 2 or 3."
+          | _ => (e,rest) end
+        and atom d ts = (depth d; case ts of
+            Number q::tail => (node(Const q),tail)
           | X::tail => (node Var,tail)
           | LP::tail => (case sum(d+1) tail of
               (e,RP::rest)=>(e,rest) | _=>reject "A closing parenthesis is missing.")
@@ -81,9 +93,12 @@ struct
         val (e,rest)=sum 0 (lex s)
     in if null rest then e else reject "Unexpected trailing expression tokens." end
 
+  fun parseSide s = parseExpression false s
+
   fun limits e =
     case e of Const _ => (1,1) | Var => (1,1)
     | Neg x => let val(n,d)=limits x in(n+1,d+1)end
+    | Pow(x,_) => let val(n,d)=limits x in(n+1,d+1)end
     | Add(x,y)=>pairLimits(x,y) | Sub(x,y)=>pairLimits(x,y)
     | Mul(x,y)=>pairLimits(x,y) | Div(x,y)=>pairLimits(x,y)
   and pairLimits(x,y)=let val(nx,dx)=limits x val(ny,dy)=limits y
@@ -113,9 +128,56 @@ struct
        | _ => reject "An equation must contain exactly one equals sign."
     end
 
+  (* Conservative bit-growth bound, checked BEFORE exact evaluation. A decimal
+     digit needs fewer than four bits. The sum bounds numerator/denominator
+     growth even without rational reduction; nested powers multiply it. *)
+  fun closedWork e =
+    let fun cap n = if n>8192 then reject "The expression exceeds the arithmetic work limit." else n
+        fun both x y extra = cap(closedWork x + closedWork y + extra)
+    in case e of Const(n,d)=>cap(4*Int.max(digits n,digits d))
+      | Var=>reject "A closed expression cannot contain an unbound variable."
+      | Neg x=>closedWork x
+      | Add(x,y)=>both x y 1 | Sub(x,y)=>both x y 1
+      | Mul(x,y)=>both x y 0 | Div(x,y)=>both x y 0
+      | Pow(x,n)=>cap(n*closedWork x)
+    end
+
+  fun closedRequest text =
+    let val q=trim(lower text)
+        fun search pat = Regex.search(Regex.compile pat) q
+        val prefix=search "^(?:what is|calculate|compute|evaluate)\\s*:?\\s+"
+        val strong=Option.isSome(search "^(?:calculate|compute|evaluate)\\b")
+        val body0=case prefix of SOME m=>String.extract(q,#stop m,NONE) | NONE=>q
+        val body=if size body0>0 andalso Char.contains "?." (String.sub(body0,size body0-1))
+                 then trim(String.substring(body0,0,size body0-1)) else body0
+        val (base,power)=if String.isSuffix " squared" body then
+              (trim(String.substring(body,0,size body-8)),SOME 2)
+            else if String.isSuffix " cubed" body then
+              (trim(String.substring(body,0,size body-6)),SOME 3)
+            else (body,NONE)
+        fun mathChar c = Char.isDigit c orelse Char.isSpace c orelse
+              Char.contains "xe.,+-*/^()" c orelse Char.ord c>=128
+        val startsMath=size base>0 andalso
+          (Char.isDigit(String.sub(base,0)) orelse Char.contains "x(.+-" (String.sub(base,0))
+           orelse Char.ord(String.sub(base,0))>=128)
+        val finite=List.all mathChar (String.explode base)
+        val powerCue=String.isSubstring " squared" body orelse String.isSubstring " cubed" body
+    in if String.isSubstring "=" body orelse not startsMath orelse
+          not(finite orelse strong orelse powerCue) then NONE
+       else if size base>8192 then reject "The expression text exceeds its input limit."
+       else let val e0=parseExpression true base
+                val e=case power of NONE=>e0 | SOME n=>Pow(e0,n)
+                val(nodes,depth)=limits e
+                val _=if nodes<=128 andalso depth<=32 then ()
+                      else reject "The expression exceeds its syntax-tree resource limit."
+                val _=closedWork e
+            in SOME e end
+    end
+
   fun kernel e = case e of
       Const(n,d)=>Mathkernel.C(Mathkernel.mk_rat n d) | Var=>Mathkernel.V "x"
     | Neg x=>Mathkernel.Neg(kernel x)
+    | Pow(x,n)=>Mathkernel.Pow(kernel x,Mathkernel.Int_of_integer(IntInf.fromInt n))
     | Add(x,y)=>Mathkernel.Add(kernel x,kernel y)
     | Sub(x,y)=>Mathkernel.Sub(kernel x,kernel y)
     | Mul(x,y)=>Mathkernel.Mul(kernel x,kernel y)
@@ -128,6 +190,7 @@ struct
       Const q=>"{\"op\":\"const\",\"value\":" ^ ratJson q ^ "}"
     | Var=>"{\"op\":\"var\",\"name\":\"x\"}"
     | Neg x=>"{\"op\":\"neg\",\"arg\":" ^ json x ^ "}"
+    | Pow(x,n)=>"{\"op\":\"pow\",\"base\":" ^ json x ^ ",\"exponent\":" ^ Int.toString n ^ "}"
     | Add(x,y)=>binary "add" (x,y) | Sub(x,y)=>binary "sub" (x,y)
     | Mul(x,y)=>binary "mul" (x,y) | Div(x,y)=>binary "div" (x,y)
   and binary name (x,y)="{\"op\":\"" ^ name ^ "\",\"left\":" ^ json x ^ ",\"right\":" ^ json y ^ "}"

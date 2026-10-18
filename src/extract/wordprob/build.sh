@@ -54,6 +54,7 @@ $SRC/../commons/commons.sml
 $SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/measured.sml
+$SRC/motion.sml
 $SRC/main.sml
 EOF
 "$REPO/tools/dev/native-compile" --family wordprob --session Veri7vn_Wordprob --compiler "$MLTON" -- -output "$OUT/bin/wordprob" "$OUT/build/wordprob.mlb"

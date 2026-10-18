@@ -1,0 +1,4 @@
+session Veri7vn_Converse = HOL +
+  options [document = false, threads = 2]
+  sessions "HOL-Library"
+  theories Converse Converse_Export

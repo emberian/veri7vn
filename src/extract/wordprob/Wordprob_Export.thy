@@ -1,5 +1,5 @@
 theory Wordprob_Export
-  imports Wordprob_Units
+  imports Wordprob_Motion
 begin
 
 text \<open>Constructor the untrusted SML recognizer uses to build exact rationals
@@ -100,7 +100,9 @@ definition half_rat :: "rat \<Rightarrow> rat" where
 definition reply_checked' :: "bool \<Rightarrow> integer option \<times> wp list \<Rightarrow> wreply" where
   "reply_checked' neg x = reply_checked neg (map_option nat_of_integer (fst x), snd x)"
 
-export_code measured_reply Geometry Distance Speed RectangleArea RectanglePerimeter
+export_code journey_reply journey_value journey_valid total_distance total_duration
+  MotionRate DistanceDuration RateDuration DistanceRate ExplicitLegs EqualTimes EqualDistances
+  measured_reply Geometry Distance Speed RectangleArea RectanglePerimeter
   CircleAreaU CircleCircumference CylinderVolume ConeVolume SphereVolume
   measured_value measured_valid
   reply_of' reply_checked' answered schema response stated mk_rat g6r uname self_test self_failures half_rat
@@ -115,7 +117,12 @@ export_code measured_reply Geometry Distance Speed RectangleArea RectanglePerime
   in SML module_name Wordprob file_prefix wordprob
 
 ML \<open>
-  val theorems = [@{thm geometry_unit_conservation}, @{thm geometry_scale_law},
+  val theorems = [@{thm journey_valid_measured}, @{thm journey_unit_conservation},
+    @{thm journey_answered_iff}, @{thm journey_zero_time_refuses},
+    @{thm journey_stated_value}, @{thm journey_precision},
+    @{thm equal_times_arithmetic_mean}, @{thm equal_times_common_duration},
+    @{thm equal_distances_harmonic_mean}, @{thm equal_distances_common_length},
+    @{thm stopped_interval_counts}, @{thm geometry_unit_conservation}, @{thm geometry_scale_law},
     @{thm distance_unit_conservation}, @{thm speed_unit_conservation},
     @{thm speed_distance_inverse}, @{thm measured_answered_iff},
     @{thm measured_reply_states_value}, @{thm measured_precision}, @{thm reply_answered_iff}, @{thm response_template},

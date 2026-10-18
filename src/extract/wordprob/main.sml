@@ -23,6 +23,12 @@ struct
      "speed_unit_conservation", "speed_distance_inverse", "measured_answered_iff",
      "measured_reply_states_value", "measured_precision"])
 
+  val journeyTheorems = String.concatWith "," (map Json.quote
+    ["journey_valid_measured", "journey_unit_conservation", "journey_answered_iff",
+     "journey_zero_time_refuses", "journey_stated_value", "journey_precision",
+     "equal_times_arithmetic_mean", "equal_times_common_duration",
+     "equal_distances_harmonic_mean", "equal_distances_common_length", "stopped_interval_counts"])
+
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
     in LargeInt.toString (us div 1000) ^ "." ^ StringCvt.padLeft #"0" 3 (LargeInt.toString (us mod 1000)) end
@@ -30,13 +36,16 @@ struct
   fun reply (id : string) (q : string) : string =
     let
       val t0 = Time.now ()
-      val (r,taken,kernel) = case MeasuredRecognizer.recognize q of
+      val (r,taken,kernel) = case JourneyRecognizer.recognize q of
+          SOME (journey,ou,ot) => (Wordprob.journey_reply NONE journey ou ot,true,"Wordprob.journey_reply")
+        | NONE => (case MeasuredRecognizer.recognize q of
           SOME request => (Wordprob.measured_reply (Recognizer.roundingOf (String.map Char.toLower q)) request,
                            true,"Wordprob.measured_reply")
         | NONE => let val (neg,(rnd,reqs)) = Recognizer.answer q
-                  in (Wordprob.reply_checkeda neg (rnd,reqs),not (null reqs),"Wordprob.reply_checkeda") end
+                  in (Wordprob.reply_checkeda neg (rnd,reqs),not (null reqs),"Wordprob.reply_checkeda") end)
       val schema = Wordprob.schema r
-      val inventory = if kernel = "Wordprob.measured_reply" then measuredTheorems else theorems
+      val inventory = if kernel = "Wordprob.journey_reply" then journeyTheorems
+        else if kernel = "Wordprob.measured_reply" then measuredTheorems else theorems
     in
       if Wordprob.answered r then
         "{\"id\": " ^ id ^ ", \"status\": \"answered\""

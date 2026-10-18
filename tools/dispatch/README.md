@@ -21,6 +21,7 @@ printf '%s\n' '{"id":"1","q":"Who wrote Leaves of Grass?","session":"demo"}' |
 # A specialist's own composition, with just its family and the network:
 python3 -B tools/dispatch/dispatch.py --order front --organs chemistry \
   --specialist chemistry-v3 --no-reader --no-document --no-routes
+  # Add --no-dialogue --no-code to isolate the older specialist/network stages.
 
 python3 -B tools/dispatch/dispatch.py --selftest
 python3 -B tools/dispatch/test_dispatch.py
@@ -37,7 +38,16 @@ stop startup with an explanation.
 
 ## How a turn proceeds
 
-The default asks the network first, then specialist families. `--order front`
+The finite dialogue reader first selects a grounded follow-up question, or asks
+for clarification when its reference is missing or ambiguous. Only that one
+question is evaluated; a captured refusal is never replaced by another literal
+interpretation. Explicit titles and self-contained questions keep their ordinary
+reading. See `tools/dialogue/README.md` for the context boundary.
+
+The code reader runs first for explicit program requests. Its answers require a
+request-bound checked program/examples packet; unsupported program requests
+remain refusals. An ordinary question falls through. Then the default asks the
+network first, then specialist families. `--order front`
 asks specialists first; when `--specialist ID` is supplied, its owning family is
 asked alone before other families. Ownership comes from the registry, without
 starting programs to guess which flags they accept.
@@ -59,14 +69,16 @@ refusals from these routes also stop the turn. Math's reconstructed guard-only
 fallback runs last. Precision guards inspect the **actual selected answer**
 once, after routing. These guards currently model 20 of 87 catalogue codes;
 store-dependent facts are marked unavailable unless supplied by an adapter.
-`--no-routes`, `--no-reader`, and `--no-document` support scoped checks. The
+`--no-routes`, `--no-reader`, `--no-document`, and `--no-code` support scoped checks. The
 `stages_run` trace lists invoked stages, not disabled callbacks.
 
 The general relation adapter asks matching readers through one shared kernel
 and requires agreement across their decisive claims. Its source assertions,
 entity linking and fetched-row completeness remain assumptions; those limits
-travel with its reply. Document composition is still partial: recognizing a
-summary or timeline request does not mean the system can generate it.
+travel with its reply. Document uses the anchor front door before its legacy
+reader; both explicit binaries are required. Its source-supported cause,
+process and date routes remain partial: recognizing a summary or timeline
+request does not mean the system can generate it.
 
 ## State and evidence
 
@@ -82,7 +94,7 @@ Warehouse operations require `--order front --specialist warehouse-r2` (or
 `warehouse`) with no competing specialist pin. This creates a preview child and
 one committing child sharing a new private state file. The dispatcher serializes
 the whole turn: preview, acceptance and selection, precision guards, then one
-commit of the exact original request if the preview remains accepted. The
+commit of the exact selected question if the preview remains accepted. The
 preview reloads current committed state each time; the committing child is its
 only writer. Other programs must not write that private file.
 
@@ -94,6 +106,11 @@ reads also commit once after guards to retain conversation references: a stock
 question can be followed by “Where is it?” in the same session. Unpinned reads
 return the preview without retaining that reference. Cooking needs no warehouse
 state. Each session has separate references and pending confirmation state. Counterfactual ranking never perturbs a stateful candidate.
+The dialogue ledger records only the final post-guard/post-commit result. A
+successfully committed warehouse receipt delegates its finite native item
+follow-ups to the same pinned owner; it does not create a global entity ID.
+Literal recall quotes the actual final reply and its provenance. `--no-dialogue`
+disables history and contextual follow-ups.
 `check_state.py` exercises this sequence against real children, including
 injected guard rejection and uncertain commit outcomes.
 

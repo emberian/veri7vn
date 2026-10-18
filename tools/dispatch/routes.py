@@ -66,7 +66,7 @@ class RouteStages:
         self.children = {}
         for name, path in self.programs.items():
             if name == "mathorgan":
-                for mode in ("algebra", "ops", "guards"):
+                for mode in ("algebra", "closed", "ops", "guards"):
                     key = "mathorgan-" + mode
                     self.children[key] = Child(key, [str(path), "--route", mode], timeout, log_dir)
             else:
@@ -80,15 +80,18 @@ class RouteStages:
         if key == "mathorgan-algebra" and reply.get("status") == "answered" and reply.get("kind") != "affine_equation":
             return _contract_decline(reply, ">algebra_contract", "route_contract",
                                      "the algebra stage requires a checked affine_equation reply")
-        if reply.get("kind") == "affine_equation":
+        if key == "mathorgan-closed" and reply.get("status") == "answered" and reply.get("kind") != "closed_expression":
+            return _contract_decline(reply, ">closed_contract", "route_contract",
+                                     "the closed stage requires a checked closed_expression reply")
+        if reply.get("kind") in {"affine_equation", "closed_expression"}:
             provenance = reply.get("provenance")
             if not isinstance(provenance, dict) or provenance.get("request_text") != text:
                 return _contract_decline(reply, ">request_mismatch", "request_binding",
-                                         "affine reply does not name the submitted request")
+                                         "math reply does not name the submitted request")
         return _terminal(reply)
 
     def answer_math(self, rid, text, session):
-        for mode in ("algebra", "ops"):
+        for mode in ("algebra", "closed", "ops"):
             out = self._ask("mathorgan-" + mode, rid, text, session)
             if out is not None:
                 return out

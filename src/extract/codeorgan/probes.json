@@ -1,0 +1,338 @@
+[
+  {
+    "id": "add",
+    "q": "Write a function add that adds two numbers: add(2, 3) == 5, add(-1, 1) == 0",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "subtract",
+    "q": "Write a function f that subtracts two integers: f(3, 8) == -5, f(-2, -7) == 5",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "multiply",
+    "q": "Write a function f that multiplies two numbers: f(-2, 4) == -8, f(0, 9) == 0",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "sum-even-squares",
+    "q": "Write a function f that returns the sum of squares of even numbers: f([-4,-1,0,2,3]) == 20, f([]) == 0",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "reverse",
+    "q": "Write a function f that reverses a list: f([1,2,3]) == [3,2,1], f([]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "sort",
+    "q": "Write a function f that sorts a list: f([3,-1,3,0]) == [-1,0,3,3], f([]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "sort-desc",
+    "q": "Write a function f that sorts a list in descending order: f([1,3,2]) == [3,2,1], f([]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "unique-last",
+    "q": "Write a function f that removes duplicates keeping last occurrences: f([1,2,1]) == [2,1], f([3,3,2,3]) == [2,3]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "abs-sum",
+    "q": "Write a function f that returns the sum of absolute values: f([-2,1]) == 3, f([-3,-1,2]) == 6",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "sum-square",
+    "q": "Write a function f that squares the sum: f([1,2]) == 9, f([-2,3]) == 1",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "length",
+    "q": "Write a function f that returns the length of a list: f([3,1,3]) == 3, f([]) == 0",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "product",
+    "q": "Write a function f that returns the product of a list: f([-2,3]) == -6, f([]) == 1",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "maximum",
+    "q": "Write a function f that returns the maximum: f([-2,-4]) == -2, f([8,3]) == 8",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "minimum",
+    "q": "Write a function f that returns the minimum: f([-2,-4]) == -4, f([8,3]) == 3",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "even",
+    "q": "Write a function f that returns only even integers: f([-3,-2,0,1,4]) == [-2,0,4], f([]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "odd",
+    "q": "Write a function f that returns only odd integers: f([-3,-2,0,1,4]) == [-3,1], f([]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "positive",
+    "q": "Write a function f that returns only positive numbers: f([-3,0,2]) == [2], f([-1]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "negative",
+    "q": "Write a function f that returns only negative numbers: f([-3,0,2]) == [-3], f([1]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "all-same",
+    "q": "Write a function f that checks whether all values are identical: f([2,2]) == True, f([1,2]) == False",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "all-unique",
+    "q": "Write a function f that checks whether all values are unique: f([2,2]) == False, f([1,2]) == True",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "is-sorted",
+    "q": "Write a function f that checks whether a list is sorted: f([-1,0,0]) == True, f([2,1]) == False",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "absolute",
+    "q": "Write a function f that returns the absolute value: f(-7) == 7, f(2) == 2",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "cube",
+    "q": "Write a function f that returns the cube: f(-3) == -27, f(2) == 8",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "negate",
+    "q": "Write a function f that negates each value: f([-2,3]) == [2,-3], f([]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "is-even",
+    "q": "Write a function f that checks whether an integer is even: f(-2) == True, f(-3) == False",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "is-odd",
+    "q": "Write a function f that checks whether an integer is odd: f(-3) == True, f(-2) == False",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "concat",
+    "q": "Write a function f that concatenates two lists: f([1,2],[3]) == [1,2,3], f([],[4]) == [4]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "zip-add",
+    "q": "Write a function f that adds two lists elementwise: f([1,2,3],[4]) == [5], f([],[2]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "zip-multiply",
+    "q": "Write a function f that multiplies two lists elementwise: f([1,-2],[3,4,9]) == [3,-8], f([],[2]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "add-each",
+    "q": "Write a function f that add -3 to each value: f([1,-2]) == [-2,-5], f([]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "scale",
+    "q": "Write a function f that multiply each by -2: f([1,-2]) == [-2,4], f([]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "above",
+    "q": "Write a function f that returns values greater than -1: f([-2,-1,0,2]) == [0,2], f([]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "below",
+    "q": "Write a function f that returns values below 3: f([3,2,4,-1]) == [2,-1], f([]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "take",
+    "q": "Write a function f that take 2 values: f([1,2,3]) == [1,2], f([4]) == [4]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "drop",
+    "q": "Write a function f that drop 2 values: f([1,2,3]) == [3], f([4]) == []",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "ambiguous",
+    "q": "Write a function f that returns the sum of absolute values: f([1,2]) == 3, f([3]) == 3",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "ambiguous-square",
+    "q": "Write a function f that squares the sum: f([2]) == 4, f([3]) == 9",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "empty-maximum",
+    "q": "Write a function f that returns the maximum: f([]) == 0, f([1]) == 1",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "unsupported-prime",
+    "q": "Write a function f that checks whether an integer is prime: f(2) == True, f(4) == False",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "unsupported-strings",
+    "q": "Write a function f that reverses a string: f(\"abc\") == \"cba\", f(\"\") == \"\"",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "unsupported-mean",
+    "q": "Write a function f that returns the mean: f([1,3]) == 2, f([2,4]) == 3",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "one-example",
+    "q": "Write a function f that reverses a list: f([1,2]) == [2,1]",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "extra-condition",
+    "q": "Write a function f that sums numbers except negatives: f([1,2]) == 3, f([3]) == 3",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "bool-not-int",
+    "q": "Write a function f that returns the square: f(1) == True, f(0) == False",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "nonliteral",
+    "q": "Write a function f that returns the sum: f(__import__(\"os\").system(\"touch var/codeorgan-sol/INJECTED\")) == 0, f([1]) == 1",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "suffix-expression",
+    "q": "Write a function f that returns the sum: f([1]) == 1 + 99, f([2]) == 2",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "suffix-multiply",
+    "q": "Write a function f that returns the square: f(2) == 4, f(3) == 9 * 2",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "contradiction",
+    "q": "Write a function f that reverses a list: f([1,2]) == [2,1], f([1,2]) == [1,2]",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "mixed-names",
+    "q": "Write a function f that returns the sum: f([1]) == 1, g([2]) == 2",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "mixed-types",
+    "q": "Write a function f that returns the square: f(2) == 4, f([3]) == 9",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "boolean-input",
+    "q": "Write a function f that returns the square: f(True) == 1, f(False) == 0",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "output-leak",
+    "q": "Write a function f that returns a number: f(2) == 567, f(3) == 567",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "inconsistent-negative",
+    "q": "Write a function f that returns only positive integers: f([-2,1]) == [-2,1], f([0]) == [0]",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "reserved-sum",
+    "q": "Write a function sum that returns total: sum([1,2]) == 3, sum([]) == 0",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "reserved-type",
+    "q": "Write a function type that returns the square: type(2) == 4, type(3) == 9",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "reserved-math",
+    "q": "Write a function math that returns the product: math([2,3]) == 6, math([]) == 1",
+    "status": "withheld",
+    "valid": true
+  }
+]

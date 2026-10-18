@@ -101,9 +101,46 @@ Use the project's managed build driver and a successful immutable export:
 guard composition. `score_core.py` retains the original recorded core
 references and reports intentional behavior/text differences; it does not
 silently rewrite them. These checks are distinct from shipped specialist
-panels and their six-criterion scorers. The 924-question core comparison now answers 46 questions (five newly
-answered rectangle perimeters are independently correct), preserves all 24
+panels and their six-criterion scorers. The recorded D-packet 924-question core comparison answered 46 questions (five newly
+answered rectangle perimeters are independently correct), preserved all 24
 core word-item status/path results and all 12 negative-given refusals, and
-changes 12 other geometry/motion schema paths deliberately. No shipped
+changed 12 other geometry/motion schema paths deliberately. No shipped
 specialist-panel completion is claimed for this route. Receipts are tracked in
 `project/lanes/D-runtime-routes.md`.
+
+
+## Multi-leg average speed
+
+`motion.sml` reads complete requests such as:
+
+- “A car travels at 60 km/hour for 1 hour, then at 30 km/hour for 2 hours.
+  What is its average speed in km/hour?” → 40 km/hour.
+- The same two rates **for equal times** → 45 km/hour.
+- The same two rates **for equal distances** → 40 km/hour.
+- 60 km/hour for 1 hour, then stops for 30 minutes → 40 km/hour.
+
+Two to eight explicit legs may each supply distance and duration, rate and
+duration, or distance and positive rate. Their units may differ. The requested
+speed unit is checked; absent an output unit, the first leg's length unit per
+hour is used. Explicit equal-times/equal-distances forms currently take two
+rates. Unspecified weighting, unsupported clauses or units, extra quantities,
+malformed numerals, negative lengths/times/rates and zero total time refuse.
+A zero-distance/zero-duration leg is valid when it introduces no division;
+zero speed as a divisor is invalid even for zero distance. Single-leg questions
+continue through the measured route.
+
+`Wordprob_Motion.thy` retains typed legs and normalizes them to metres/hours.
+It proves the relation between total distance, total duration and output-unit
+speed, connects valid trips to the measured renderer, and establishes the
+arithmetic versus harmonic means and their common-duration/length invariance.
+Stopped time contributes to the total. This is scalar path-length average
+speed, not displacement velocity. The English premises remain untrusted and
+the static theorem inventory is not an independently checked answer packet.
+
+The managed proof passed with 60 scanned statements and zero oracles.
+`python3 -B src/extract/wordprob/test_motion.py` passes five focused methods,
+including 20 useful results, eight kernel refusals, 17 parser refusals and
+actual guard composition. The existing three unit methods pass. All 24 selected
+full-dispatcher cases pass; receipt and exact source/native linkage are in
+`project/lanes/G-runtime-motion.md`. These results are additional capability
+probes, not a new full-core or specialist-panel score.

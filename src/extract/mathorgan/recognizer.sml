@@ -314,7 +314,7 @@ struct
   (* ---------- dispatch, in the chain's order ----------
      algebra (w55) is innermost; then the op host (w59); then the word-problem
      fold (w488); the guard folds (w511+) wrap all of them. *)
-  val organs = ["algebra", "ops", "word", "guards"]
+  val organs = ["algebra", "closed", "ops", "word", "guards"]
 
   fun opsRoute low =
     case sqrtRoute low of

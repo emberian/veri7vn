@@ -7,13 +7,15 @@ nor an evidence declaration certifies a particular answer or its recognition.
 from __future__ import annotations
 
 import copy
+import importlib.util
 import json
 import re
+from functools import lru_cache
 from fractions import Fraction
 from pathlib import Path
 
 
-ROLES = {"specialist", "network", "guard", "word_problem", "math", "document", "relation"}
+ROLES = {"specialist", "network", "guard", "word_problem", "math", "document", "relation", "dialogue", "code"}
 NAME = re.compile(r"[a-z][a-z0-9_-]*\Z")
 
 
@@ -279,6 +281,101 @@ def _validate_affine_evidence(reply, packet):
             "boundary": "Checks the supplied typed equation over rational numbers, not whether it matches the user's request. This Python replay is not formally verified."}
 
 
+def _validate_closed_evidence(reply, packet):
+    """UNTRUSTED bounded exact replay, never evaluation of Python source."""
+    if packet.get('checker') != 'Mathkernel.check_closed' or packet.get('accepted') is not True:
+        raise ContractError('closed-expression kernel checker did not accept')
+    if reply.get('status') != 'answered' or reply.get('kind') != 'closed_expression':
+        raise ContractError('closed-expression packet is attached to a different decision')
+    inputs = packet.get('inputs')
+    _object(inputs, {'expression'}, 'closed-expression inputs')
+    remaining = 128
+
+    def inspect(node, depth=0):
+        nonlocal remaining
+        remaining -= 1
+        if remaining < 0 or depth > 32:
+            raise ContractError('closed-expression AST exceeds the node or depth limit')
+        if not isinstance(node, dict):
+            raise ContractError('closed-expression AST node must be an object')
+        op = node.get('op')
+        if op == 'const':
+            _object(node, {'op', 'value'}, 'constant AST node')
+            q = _evidence_rational(node.get('value'))
+            # Conservative decimal-to-bit bound; inspect the original components
+            # so cancellation cannot hide an expensive intermediate operation.
+            cost = 4 * max(len(node['value']['num'].lstrip('-')), len(node['value']['den']))
+            return ('const', q), cost
+        if op == 'neg':
+            _object(node, {'op', 'arg'}, 'negation AST node')
+            child, cost = inspect(node.get('arg'), depth + 1)
+            return ('neg', child), cost
+        if op == 'pow':
+            _object(node, {'op', 'base', 'exponent'}, 'power AST node')
+            power = node.get('exponent')
+            if type(power) is not int or power not in (2, 3):
+                raise ContractError('only square and cube powers are supported')
+            child, cost = inspect(node.get('base'), depth + 1)
+            cost *= power
+            if cost > 8192:
+                raise ContractError('closed-expression arithmetic exceeds the work limit')
+            return ('pow', child, power), cost
+        if op not in {'add', 'sub', 'mul', 'div'}:
+            raise ContractError('unsupported closed-expression AST operation')
+        _object(node, {'op', 'left', 'right'}, 'binary AST node')
+        left, lc = inspect(node.get('left'), depth + 1)
+        right, rc = inspect(node.get('right'), depth + 1)
+        cost = lc + rc + (1 if op in {'add', 'sub'} else 0)
+        if cost > 8192:
+            raise ContractError('closed-expression arithmetic exceeds the work limit')
+        return (op, left, right), cost
+
+    def compute(tree):
+        op = tree[0]
+        if op == 'const':
+            return tree[1]
+        left = compute(tree[1])
+        if op == 'neg':
+            return -left
+        if op == 'pow':
+            return left ** tree[2]
+        right = compute(tree[2])
+        if op == 'add': return left + right
+        if op == 'sub': return left - right
+        if op == 'mul': return left * right
+        if not right:
+            raise ContractError('closed-expression division by zero')
+        return left / right
+
+    tree, _ = inspect(inputs.get('expression'))
+    result = _evidence_rational(packet.get('result'))
+    if compute(tree) != result:
+        raise ContractError('closed-expression result disagrees with the typed AST')
+    value = str(result.numerator) if result.denominator == 1 else f'{result.numerator}/{result.denominator}'
+    if reply.get('value') != value or reply.get('response') != f'[ev:derived] {value}.':
+        raise ContractError('closed-expression displayed value disagrees with the checked result')
+    _strings(packet.get('assumptions', []), 'computation assumptions')
+    return {'status': 'consistent', 'checker': 'python_exact_closed_expression_v1',
+            'checks': ['closed_typed_AST', 'bounded_exact_arithmetic', 'displayed_result_matches'],
+            'explanation': f'The supplied closed rational expression evaluates exactly to {value}.',
+            'boundary': "Checks the supplied expression, not whether English recognition or conversation substitution selected the intended expression. This Python replay is not formally verified."}
+
+
+@lru_cache(maxsize=1)
+def _code_checker():
+    """Load this consumer's explicit sibling, including in relocated packages."""
+    path = Path(__file__).with_name("code_evidence.py")
+    try:
+        spec = importlib.util.spec_from_file_location("_veri7vn_code_evidence", path)
+        if spec is None or spec.loader is None:
+            raise ContractError("code evidence consumer is unavailable")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.validate_code
+    except (OSError, ImportError) as exc:
+        raise ContractError("code evidence consumer is unavailable") from exc
+
+
 def validate_reply_evidence(reply):
     """Independently recheck the supported arithmetic packet and final amount.
 
@@ -297,15 +394,19 @@ def validate_reply_evidence(reply):
         if not isinstance(evidence, dict):
             raise ContractError("present evidence must be an object")
         if "checked_computation" not in evidence:
-            if reply.get("kind") == "affine_equation":
-                raise ContractError("affine equation replies require a checked computation packet")
+            if reply.get("kind") in {"affine_equation", "code_program", "closed_expression"}:
+                raise ContractError("this reply kind requires a checked computation packet")
             return {"status": "not_present"}
         packet = evidence["checked_computation"]
+        if isinstance(packet, dict) and packet.get("kind") == "code_program":
+            return _code_checker()(reply, packet)
         _object(packet, {"schema_version", "kind", "inputs", "result", "checker", "accepted", "assumptions"}, "computation packet")
         if type(packet.get("schema_version")) is not int or packet["schema_version"] != 1:
             raise ContractError("unsupported computation packet version")
         if packet.get("kind") == "affine_equation":
             return _validate_affine_evidence(reply, packet)
+        if packet.get("kind") == "closed_expression":
+            return _validate_closed_evidence(reply, packet)
         if packet.get("kind") != "discount_tax" or packet.get("checker") != "Finance.check_discount_tax":
             raise ContractError("unsupported computation checker")
         if packet.get("accepted") is not True:

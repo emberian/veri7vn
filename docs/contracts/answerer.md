@@ -130,6 +130,29 @@ request; it does not verify the English-to-expression parser. The guard's
 recognition of a solution-set answer is a separate feature policy, not another
 proof of the equation.
 
+The closed arithmetic route similarly requires `kind: "closed_expression"`,
+`Mathkernel.check_closed`, the original typed expression, and an exact rational
+result. It supports rational arithmetic and square/cube powers, without free
+variables. The independent replay validates the whole tree and an arithmetic
+work bound before computing, then requires the canonical rational `value` and
+`[ev:derived] VALUE.` response to agree. The route binds `request_text` to the
+actual request. Neither replay nor that binding establishes that a conversation
+reference was resolved to the intended quantity.
+
+Code synthesis reserves `kind: "code_program"` for a mandatory version-1
+`Codekernel.check_program` packet containing the finite program tree, all typed
+examples and results, and the displayed Python source. The consumer replays
+the closed integer/list operation language and independently reconstructs the
+exact source, including type guards; it never executes producer-supplied code.
+Boolean values are distinct from integers. Deduplication keeps the last
+occurrence and pairwise list operations stop at the shorter input, with those
+choices stated in affected replies. Examples and intermediate calculations
+have explicit bounds. Accepted examples establish those examples only: finite
+ambiguity probes establish neither program equivalence nor intended behavior
+on other inputs. The source renderer and independent replay remain untrusted.
+Relocated consumers load the exact sibling `code_evidence.py`; a missing helper
+or altered displayed program causes refusal rather than unchecked acceptance.
+
 ## Sessions
 
 `session` is a conversation id. Items from one panel use distinct sessions
