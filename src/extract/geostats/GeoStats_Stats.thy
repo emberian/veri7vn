@@ -335,7 +335,7 @@ qed
 
 subsection \<open>Median\<close>
 
-lemma length_filter_mono: "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> length (filter P s) \<le> length (filter Q s)"
+lemma length_filter_mono: "(\<forall>x. P x \<longrightarrow> R x) \<Longrightarrow> length (filter P s) \<le> length (filter R s)"
   by (induct s) auto
 
 lemma length_filter_perm: "length (filter P xs) = length (filter P (sort xs))"
