@@ -1,5 +1,5 @@
 theory Wordprob
-  imports "Veri7vn_Wordprob_Base.Wordprob_Base"
+  imports "Veri7vn_Wordprob_Base.Wordprob_Base" "Veri7vn_Commons.Commons_Num"
 begin
 
 text \<open>
@@ -285,85 +285,11 @@ fun wdecline :: "wp \<Rightarrow> bool" where
 
 section \<open>Rounding and the %g layout\<close>
 
-abbreviation rl :: "rat \<Rightarrow> real" where "rl \<equiv> of_rat"
-
-text \<open>The decimal machinery (pow10, round_at, round_sig, render_dec and
-their proofs) is lane G's (src/extract/quantity/Quantity.thy), restated here
-for this session.\<close>
-
-definition pow10 :: "int \<Rightarrow> real" where
-  "pow10 k = (if 0 \<le> k then 10 ^ nat k else inverse (10 ^ nat (- k)))"
-
-lemma pow10_pos: "0 < pow10 k"
-  by (simp add: pow10_def)
-
-definition dec_val :: "int \<times> int \<Rightarrow> real" where
-  "dec_val d = (case d of (m, e) \<Rightarrow> of_int m * pow10 e)"
-
-definition round_at :: "real \<Rightarrow> int \<Rightarrow> int \<times> int" where
-  "round_at x e = (\<lfloor>x / pow10 e + 1 / 2\<rfloor>, e)"
-
-lemma round_at_error: "\<bar>dec_val (round_at x e) - x\<bar> \<le> pow10 e / 2"
-proof -
-  define p where "p = pow10 e"
-  have p: "0 < p" by (simp add: p_def pow10_pos)
-  define y where "y = x / p"
-  have x: "x = y * p" using p by (simp add: y_def)
-  have lo: "of_int \<lfloor>y + 1 / 2\<rfloor> \<le> y + 1 / 2" by (rule of_int_floor_le)
-  have hi: "y + 1 / 2 < of_int \<lfloor>y + 1 / 2\<rfloor> + 1" by (rule real_of_int_floor_add_one_gt)
-  have "\<bar>of_int \<lfloor>y + 1 / 2\<rfloor> - y\<bar> \<le> 1 / 2" using lo hi by linarith
-  then have "\<bar>of_int \<lfloor>y + 1 / 2\<rfloor> - y\<bar> * p \<le> 1 / 2 * p" using p by (intro mult_right_mono) auto
-  then have "\<bar>of_int \<lfloor>y + 1 / 2\<rfloor> * p - y * p\<bar> \<le> p / 2"
-    using p by (simp add: abs_mult left_diff_distrib[symmetric])
-  then show ?thesis by (simp add: dec_val_def round_at_def p_def[symmetric] y_def[symmetric] x[symmetric])
-qed
-
-text \<open>Tie behaviour, stated: an exact decimal tie rounds up (towards plus
-infinity). The organ rounds a binary float with Python's @{text round}
-(banker's on the double), so an exact tie can print the other neighbour
-(@{text "0.125"} dollars prints @{text "$0.12"}); that is a float artefact
-and is not modelled.\<close>
-theorem round_tie_up:
-  assumes "x / pow10 e = of_int n + 1 / 2"
-  shows "round_at x e = (n + 1, e)"
-proof -
-  have "x / pow10 e + 1 / 2 = of_int (n + 1)" using assms by simp
-  then show ?thesis by (simp add: round_at_def)
-qed
-
-fun exp_up :: "real \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int" where
-  "exp_up B x 0 e = e"
-| "exp_up B x (Suc n) e = (if B * pow10 e \<le> x then exp_up B x n (e + 1) else e)"
-
-fun exp_down :: "real \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int" where
-  "exp_down L x 0 e = e"
-| "exp_down L x (Suc n) e = (if x < L * pow10 e then exp_down L x n (e - 1) else e)"
-
-definition sig_exp :: "nat \<Rightarrow> real \<Rightarrow> int" where
-  "sig_exp p x = exp_down (10 ^ (p - 1)) \<bar>x\<bar> 400 (exp_up (10 ^ p) \<bar>x\<bar> 400 0)"
-
-definition round_sig :: "nat \<Rightarrow> real \<Rightarrow> (int \<times> int) option" where
-  "round_sig p x = (if x = 0 then Some (0, 0) else
-     let e = sig_exp p x in if 10 ^ (p - 1) * pow10 e \<le> \<bar>x\<bar> then Some (round_at x e) else None)"
-
-theorem round_sig_sound:
-  assumes "round_sig p x = Some d"
-  shows "\<bar>dec_val d - x\<bar> \<le> \<bar>x\<bar> / (2 * 10 ^ (p - 1))"
-proof (cases "x = 0")
-  case True
-  then have "d = (0, 0)" using assms by (simp add: round_sig_def)
-  then show ?thesis using True by (simp add: dec_val_def)
-next
-  case False
-  define e where "e = sig_exp p x"
-  have chk: "10 ^ (p - 1) * pow10 e \<le> \<bar>x\<bar>" and dd: "d = round_at x e"
-    using assms False by (simp_all add: round_sig_def Let_def e_def split: if_splits)
-  have r: "\<bar>dec_val d - x\<bar> \<le> pow10 e / 2" unfolding dd by (rule round_at_error)
-  have "(10 ^ (p - 1) * pow10 e) / (2 * 10 ^ (p - 1)) \<le> \<bar>x\<bar> / (2 * 10 ^ (p - 1))"
-    using chk by (intro divide_right_mono) auto
-  moreover have "(10 ^ (p - 1) * pow10 e) / (2 * 10 ^ (p - 1)) = pow10 e / 2" by simp
-  ultimately show ?thesis using r by linarith
-qed
+text \<open>The decimal machinery (pow10, dec_val, round_at, round_at_error,
+round_tie_up, round_sig, round_sig_sound, the digit layout render_dec and
+show_int) is the shared numeric core in src/extract/commons/Commons_Num.thy
+(session Veri7vn_Commons), imported above; this file keeps only the organ's
+rounding policy on top of it.\<close>
 
 text \<open>The organ's @{text "round(v, nd)"}: round to @{text nd} decimal
 places, ties up (towards plus infinity), as an exact rational.\<close>
@@ -399,6 +325,18 @@ proof -
     by (simp add: round_dec_def Let_def d_def)
   moreover have "(1 / 2) / d = 1 / (2 * 10 ^ n)" by (simp add: d_def field_simps)
   ultimately show ?thesis by simp
+qed
+
+text \<open>The house rounding rule, stated (LANE_BRIEF): the kernel rounds
+exact rationals and an exact decimal tie rounds UP, towards plus infinity.
+@{text round_tie_up} (Commons_Num) says it for reals; this is the same fact
+for the organ's @{text "round(v, n)"}.\<close>
+theorem round_dec_tie_up:
+  assumes "v * of_nat (10 ^ n) = of_int k + 1 / 2"
+  shows "round_dec n v = of_int (k + 1) / of_nat (10 ^ n)"
+proof -
+  have h: "v * of_nat (10 ^ n) + 1 / 2 = of_int (k + 1)" using assms by simp
+  show ?thesis by (simp only: round_dec_def Let_def h floor_of_int)
 qed
 
 text \<open>The organ's printed value: "%g" % round(v, 6) for plain
@@ -451,9 +389,9 @@ proof -
   ultimately show ?thesis by simp
 qed
 
-lemma pow10_4_real: "(10::real) ^ 4 = 10000" by eval
-lemma pow10_5_real: "(10::real) ^ 5 = 100000" by eval
-lemma pow10_6_real: "(10::real) ^ 6 = 1000000" by eval
+lemma pow10_4_real: "(10::real) ^ 4 = 10000" by simp
+lemma pow10_5_real: "(10::real) ^ 5 = 100000" by simp
+lemma pow10_6_real: "(10::real) ^ 6 = 1000000" by simp
 
 theorem stated6_sound:
   assumes "stated6 v = Some d"
@@ -502,44 +440,8 @@ qed
 
 section \<open>Rendering (ASCII)\<close>
 
-fun digits :: "nat \<Rightarrow> nat list" where
-  "digits n = (if n < 10 then [n] else digits (n div 10) @ [n mod 10])"
-
-definition digit_lit :: "nat \<Rightarrow> String.literal" where
-  "digit_lit d = (if d = 0 then STR ''0'' else if d = 1 then STR ''1'' else if d = 2 then STR ''2''
-    else if d = 3 then STR ''3'' else if d = 4 then STR ''4'' else if d = 5 then STR ''5''
-    else if d = 6 then STR ''6'' else if d = 7 then STR ''7'' else if d = 8 then STR ''8''
-    else STR ''9'')"
-
-definition lit :: "nat list \<Rightarrow> String.literal" where
-  "lit ds = foldr (\<lambda>d s. digit_lit d + s) ds (STR '''')"
-
-definition strip_zeros :: "nat list \<Rightarrow> nat list" where
-  "strip_zeros ds = rev (dropWhile (\<lambda>d. d = 0) (rev ds))"
-
-definition pad2 :: "nat list \<Rightarrow> nat list" where
-  "pad2 ds = (if length ds < 2 then 0 # ds else ds)"
-
-text \<open>Python's @{text "%.pg"} layout for a decimal @{text "m * 10^e"}.\<close>
-definition render_dec :: "nat \<Rightarrow> int \<times> int \<Rightarrow> String.literal" where
-  "render_dec p d = (case d of (m, e) \<Rightarrow>
-     if m = 0 then STR ''0'' else
-     let sg = (if m < 0 then STR ''-'' else STR '''');
-         ds = digits (nat \<bar>m\<bar>); k = int (length ds); x = e + k - 1 in
-     if x < -4 \<or> int p \<le> x then
-       (let fr = strip_zeros (tl ds) in
-        sg + lit [hd ds] + (if fr = [] then STR '''' else STR ''.'' + lit fr) + STR ''e''
-          + (if x < 0 then STR ''-'' else STR ''+'') + lit (pad2 (digits (nat \<bar>x\<bar>))))
-     else if 0 \<le> e then sg + lit (ds @ replicate (nat e) 0)
-     else
-       (let p = nat (- e);
-            ip = (if p < length ds then take (length ds - p) ds else [0]);
-            fr = strip_zeros (if p < length ds then drop (length ds - p) ds
-                              else replicate (p - length ds) 0 @ ds)
-        in sg + lit ip + (if fr = [] then STR '''' else STR ''.'' + lit fr)))"
-
-definition show_int :: "int \<Rightarrow> String.literal" where
-  "show_int i = (if i < 0 then STR ''-'' else STR '''') + lit (digits (nat \<bar>i\<bar>))"
+text \<open>The number layout (digits, lit, strip_zeros, pad2, render_dec, show_int)
+is imported from Commons_Num.\<close>
 
 definition is_int :: "rat \<Rightarrow> bool" where
   "is_int q \<longleftrightarrow> snd (quotient_of q) = 1"
@@ -617,6 +519,30 @@ definition rounded :: "nat option \<Rightarrow> wp \<Rightarrow> rat" where
   "rounded rnd r = (case rnd of
      Some n \<Rightarrow> round_dec n (wvalue r)
    | None \<Rightarrow> if wlab r = STR ''$'' then round_dec 2 (wvalue r) else wvalue r)"
+
+text \<open>The money rule, named. Money is rounded to cents by @{const round_dec};
+a value that is exactly half a cent (twelve and a half percent of one
+dollar is one eighth of a dollar, 12.5 cents) prints the upper neighbour,
+so that example prints $0.13. The organ prints $0.12: it rounds the binary
+double with Python's banker's rule and 0.125 is exactly representable, so
+there the double IS a tie and Python takes the even neighbour. That is the one
+stated deviation; no core-panel item is a money tie (see
+project/lanes/W5-16-wordprob.md).\<close>
+theorem money_round_tie_up:
+  assumes "wlab r = STR ''$''" and "wvalue r * 100 = of_int k + 1 / 2"
+  shows "rounded None r = of_int (k + 1) / 100"
+proof -
+  have "wvalue r * of_nat (10 ^ 2) = of_int k + 1 / 2" using assms(2) by simp
+  from round_dec_tie_up[OF this] show ?thesis using assms(1) by (simp add: rounded_def)
+qed
+
+theorem money_tie_example:
+  "rounded None (PercentOf True (25 / 2) 1) = 13 / 100"
+proof -
+  have w: "wlab (PercentOf True (25 / 2) 1) = STR ''$''" by simp
+  have "wvalue (PercentOf True (25 / 2) 1) * 100 = of_int 12 + 1 / 2" by simp
+  from money_round_tie_up[OF w this] show ?thesis by simp
+qed
 
 definition num_str :: "rat \<Rightarrow> String.literal \<Rightarrow> String.literal" where
   "num_str v l = (if l = STR ''$'' then money_str v
@@ -755,5 +681,34 @@ theorem response_template:
   assumes "\<not> wdecline r"
   shows "response (reply_of (rnd, [r])) = body_text rnd r"
   using assms by (simp add: reply_one_def split: if_splits)
+
+section \<open>Negative givens are declined, not unsigned\<close>
+
+text \<open>The organ reads a numeral without its sign: "A car travels -60 km in
+2 hours" is answered as 60 km, 30 km/h. Every request here carries unsigned
+rationals, so the sign cannot be carried. We chose to DECLINE (as the head's
+precision guard P7_negative_given does) rather than to carry the sign,
+because a signed distance or mass has no physical reading in these nine
+schemas and the head already withholds those items on the shipped panel.
+The untrusted recognizer reports whether any quantity it read was written
+with a minus sign (ASCII hyphen or U+2212 directly before the numeral); the
+kernel then never answers. What the theorems cannot say is that the
+recognizer's flag is complete; that part is tested in score_core.py over the
+core panel.\<close>
+definition reply_checked :: "bool \<Rightarrow> nat option \<times> wp list \<Rightarrow> wreply" where
+  "reply_checked neg x = (if neg then WReply False (STR ''negative_given'') (STR '''') None
+     else reply_of x)"
+
+theorem negative_given_declines:
+  "neg \<Longrightarrow> \<not> answered (reply_checked neg x) \<and> schema (reply_checked neg x) = STR ''negative_given''"
+  by (simp add: reply_checked_def)
+
+theorem unsigned_given_unchanged:
+  "\<not> neg \<Longrightarrow> reply_checked neg x = reply_of x"
+  by (simp add: reply_checked_def)
+
+theorem checked_answered_iff:
+  "answered (reply_checked neg (rnd, rs)) \<longleftrightarrow> \<not> neg \<and> (\<exists>r. rs = [r] \<and> \<not> wdecline r)"
+  by (simp add: reply_checked_def reply_answered_iff)
 
 end

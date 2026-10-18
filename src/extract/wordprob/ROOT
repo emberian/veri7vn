@@ -1,16 +1,20 @@
 (* Scout: the Oracle7 head word-problem organ (wander-train/word_problems_v1.py,
    admitted through fold w488, pluralised by w490, guarded by w502/w531) as one
-   HOL kernel over exact rationals. The base session only fixes the code-target
-   imports so the kernel session rebuilds quickly. *)
+   HOL kernel over exact rationals. The base session only loads Isabelle's
+   interval arithmetic session so the kernel session rebuilds quickly; the
+   numeric core (rounding, number layout) is the shared session
+   Veri7vn_Commons (src/extract/commons, build with -d src/extract/commons). *)
 session Veri7vn_Wordprob_Base in base = HOL +
   options [document = false, threads = 2]
   sessions
-    "HOL-Library"
+    "HOL-Decision_Procs"
   theories
     Wordprob_Base
 
 session Veri7vn_Wordprob = Veri7vn_Wordprob_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     Wordprob
     Wordprob_Export

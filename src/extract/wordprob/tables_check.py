@@ -116,6 +116,22 @@ if w490 and w490.exists():
 else:
     print("plural units: %d in kernel (w490 source not found, not checked)" % len(hol_plural))
 
+# ---- the oracle scan covers every theorem, and nothing records an oracle ----------
+# The marker's scan lists theorems by name; a theorem missing from that list, or
+# one proved by `eval`, would escape it (T4 found two such lemmas after a scan).
+EXP = (Path(__file__).resolve().parent / "Wordprob_Export.thy").read_text(encoding="utf-8")
+names = re.findall(r"^(?:lemma|theorem|corollary) ([A-Za-z0-9_']+)", THY + "\n" + EXP, re.M)
+listed = set(re.findall(r"@\{thm ([A-Za-z0-9_']+)\}", EXP))
+missing = [n for n in names if n not in listed]
+if missing:
+    FAILS.append("theorems not in the oracle scan: %s" % missing)
+if re.search(r"\bby\s+(eval|normalization)\b|\bvalue\b\s*\[", THY + EXP):
+    FAILS.append("an eval/normalization proof (records an oracle) is present")
+last = EXP.rstrip().rsplit("\nML ", 1)[-1]
+if "VERI7VN_WORDPROB PASS" not in last or re.search(r"^\s*(lemma|theorem)\b", last, re.M):
+    FAILS.append("the PASS marker is not in the last ML block of the export theory")
+print("oracle scan: %d theorems, all listed, no eval proofs, marker last" % len(names))
+
 for f in FAILS:
     print("MISMATCH:", f)
 sys.exit(1 if FAILS else 0)

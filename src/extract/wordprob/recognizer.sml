@@ -12,7 +12,7 @@
    Case handling, matching the organ exactly: patterns the organ compiles with
    re.I run with Regex.compile over lower-cased text; patterns the organ
    compiles case-SENSITIVELY (the quantity reader's "percent", the "$X off"
-   look, the word-number years) run with Regex.compileExact over the original
+   look, the word-number years) run with Regex.compileCS over the original
    text, so upper-case text does not match them, as in Python.
 
    Guards the organ gets from exceptions (a schema raising ZeroDivisionError
@@ -25,7 +25,7 @@
    range through float overflow, which no panel question reaches). *)
 structure Recognizer :
 sig
-  val answer : string -> IntInf.int option * Wordprob.wp list
+  val answer : string -> bool * (IntInf.int option * Wordprob.wp list)
 end =
 struct
   structure Q = Wordprob
@@ -36,7 +36,7 @@ struct
     case List.find (fn (q, _) => q = p) (!cache) of
       SOME (_, r) => r
     | NONE => let val r = Regex.compile p in cache := (p, r) :: !cache; r end
-  fun reX p = Regex.compileExact p   (* case-sensitive: not cached, rare *)
+  fun reX p = Regex.compileCS p   (* case-sensitive: not cached, rare *)
 
   fun search p s = Regex.search (re p) s
   fun has p s = isSome (search p s)
@@ -69,7 +69,36 @@ struct
         val spots = go 0
         fun put [] j acc = String.substring (s, j, n - j) :: acc
           | put (i :: is) j acc = put is (i + 3) ("-" :: String.substring (s, j, i - j) :: acc)
-    in String.concat (put spots 0 []) end
+    in String.concat (rev (put spots 0 [])) end
+
+  (* ---------------- negative givens ---------------------------------------
+     The organ's quantity reader takes the numeral and drops a sign in front of
+     it ("-60 km" is read as 60 km). The kernel's requests are unsigned, so the
+     sign cannot be carried; instead the recognizer reports whether any numeral
+     the reader consumed had a minus sign directly in front of it (ASCII
+     hyphen or U+2212), standing at the start of the text or after a space,
+     an opening bracket or a dollar sign. The kernel then declines
+     (Wordprob.negative_given_declines). A hyphen between two numerals or
+     inside a word ("5-6", "twenty-five") has a digit or letter before it and
+     does not count. UNTRUSTED like the rest of this file: its completeness is
+     checked over the core panel by score_core.py, not proved. *)
+  fun negativeGiven (t : string) : bool =
+    let
+      val tt = substMinus t
+      fun signBefore (m : Regex.match) =
+        let val p = #start m in
+          p >= 1 andalso String.sub (tt, p - 1) = #"-"
+          andalso (p = 1 orelse
+                   (let val c = String.sub (tt, p - 2)
+                    in Char.isSpace c orelse c = #"(" orelse c = #"$" end))
+        end
+      (* the digits themselves, so that "$-5" and "-5" are both seen: the
+         reader's own match may begin at the "$" *)
+      val digitRuns = Regex.findall (Regex.compileCS "\\d") tt
+      fun runStarts [] _ = []
+        | runStarts (m :: ms) prevStop =
+            (if #start m = prevStop then [] else [m]) @ runStarts ms (#stop m)
+    in List.exists signBefore (runStarts digitRuns ~1) end
 
   (* ---------------- quantities(): the organ's typed quantity reader -------- *)
 
@@ -376,19 +405,19 @@ struct
                  | "one" => SOME 1 | "two" => SOME 2 | _ => NONE)
     | NONE => NONE
 
-  fun answer (text : string) : IntInf.int option * Q.wp list =
+  fun answer (text : string) : bool * (IntInf.int option * Q.wp list) =
     let
       val t = collapse text
       val tl = lower t
       val q = questionPart t
       val qs = quantities t
     in
-      if has MULTISTEP tl then (NONE, [])
+      if has MULTISTEP tl then (false, (NONE, []))
       else
         let
           val hits = List.mapPartial (fn f => f (t, tl, q, qs))
             [sSimpleInterest, sUnitPrice, sTotalCost, sSalePrice, sPercentOfTotal,
              sPercentOf, sMotion, sConvert, sGeometry]
-        in (roundingOf tl, hits) end
+        in (negativeGiven t, (roundingOf tl, hits)) end
     end
 end

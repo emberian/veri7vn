@@ -38,7 +38,8 @@ value, decline and printed reply comes from one HOL function.
 | Requests, values, declines, rounding, `%g`/money rendering, reply | `Wordprob.thy` | HOL, proved; exported to SML |
 | Export, self test, oracle check | `Wordprob_Export.thy` | HOL; the build fails if a listed theorem depends on an oracle or the self test fails |
 | Table transcription check | `tables_check.py` | a Python check of the HOL text against the organ file; not a proof |
-| Reading numbers, units and trigger words out of English | `regex.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organ |
+| Reading numbers, units and trigger words out of English, and flagging a minus sign in front of a numeral | `recognizer.sml` (regex matcher: `../commons/commons.sml`) | **untrusted**, hand-ported from the organ |
+| Rounding, `%g` digit layout (`pow10`, `round_at`, `round_sig`, `render_dec`, `show_int`) | `../commons/Commons_Num.thy` | HOL, proved once for every family (session `Veri7vn_Commons`) |
 | JSON framing | `main.sml` | **untrusted** |
 | Isabelle code generator, MLton | toolchain | trusted |
 
@@ -49,10 +50,26 @@ factor equals the amount times the source factor, and so on). The printed
 number is tied to the formula by `stated6_sound`/`stated4_sound`: the
 printed decimal is within half a unit in the last significant digit of the
 exact value, plus the decimal-places rounding the organ applies first
-(`round_dec_error`), and an exact decimal tie rounds up (`round_tie_up`).
+(`round_dec_error`), and an exact decimal tie rounds up (`round_tie_up` for reals, `round_dec_tie_up` for the organ's `round(v, n)`, `money_round_tie_up` for cents).
 `reply_answered_iff` is the exactly-one-schema rule: the reply is an answer
 exactly when one schema fired and its formula divides by nothing zero;
 `response_template` is fold w488's reply body.
+
+**Stated deviation, money ties.** House rule: decimal ties round up, and
+`money_round_tie_up` says so. We keep it rather than adopting half-even,
+because the organ's own result on a tie is a property of the binary double
+(0.125 is exact, so Python takes the even neighbour; 11.175 is a double just
+below the tie and Python takes the lower one), and no one rule reproduces
+both. The only probe that differs is `What is 12.5% of $1?` (`$0.13` here,
+`$0.12` from the organ); `money_tie_example` proves our side. No core-panel
+item is a money tie.
+
+**Negative givens.** The organ reads `-60 km` as 60 km and answers 30 km/h;
+the head's precision guard `P7_negative_given` withholds those items. We
+decline too, and say why in `Wordprob.thy`: every request carries unsigned
+rationals, and a signed distance or radius has no reading in these schemas.
+`negative_given_declines` is the kernel half; the recognizer's flag for a
+minus sign is untrusted and checked by `score_core.py`.
 
 Two things are deliberately NOT modelled, both float artefacts of the
 Python organ, stated in the theory text: binary floating-point rounding
@@ -70,11 +87,11 @@ unit, so the two agree there.
 
 ## Run it
 
-    tools/dev/remote-build hbox src/extract/wordprob Veri7vn_Wordprob --expect 'VERI7VN_WORDPROB PASS'
+    tools/dev/remote-build persvati src/extract/wordprob Veri7vn_Wordprob -d src/extract/commons --expect 'VERI7VN_WORDPROB PASS'
     python3 src/extract/wordprob/tables_check.py
     src/extract/wordprob/build.sh          # MLton: var/wordprob/bin/wordprob
+    PYTHONDONTWRITEBYTECODE=1 python3 src/extract/wordprob/score_core.py   # all 924 core questions
     python3 src/extract/wordprob/score.py var/scout/probes/all87.jsonl --ref head
-    python3 src/extract/wordprob/score.py var/scout/probes/extra12.jsonl --ref organ
 
 `--ref head` compares against the shipped head's own replies (one run of
 lane A's `tools/parity/answerers/oracle7.py`, state under `var/scout/`),

@@ -46,6 +46,13 @@ definition c_sphere_vol :: bool where
 definition c_percent_of_g :: bool where
   "c_percent_of_g \<longleftrightarrow> response (reply_of (None, [PercentOf False 33 1234567])) =
        STR ''[ev:derived] 407407. Read as percent of: 33% of 1.23457e+06. Checked: every quantity the formula needs was found with its unit, and the question asks for what the formula gives.''"
+definition c_negative :: bool where
+  "c_negative \<longleftrightarrow> \<not> answered (reply_checked True (None, [MotionSpeed 60 U_kilometer 2 U_hour]))
+     \<and> response (reply_checked False (None, [MotionSpeed 60 U_kilometer 2 U_hour])) =
+       response (reply_of (None, [MotionSpeed 60 U_kilometer 2 U_hour]))"
+definition c_money_tie :: bool where
+  "c_money_tie \<longleftrightarrow> response (reply_of (None, [PercentOf True (mk_rat 125 10) 1])) =
+       STR ''[ev:derived] $0.13. Read as percent of: 12.5% of 1. Checked: every quantity the formula needs was found with its unit, and the question asks for what the formula gives.''"
 definition c_empty :: bool where
   "c_empty \<longleftrightarrow> \<not> answered (reply_of (None, []))"
 definition c_ambiguous :: bool where
@@ -70,6 +77,8 @@ definition self_failures :: "String.literal" where
      (if c_circle_area then STR '''' else STR ''circle_area '') +
      (if c_sphere_vol then STR '''' else STR ''sphere_vol '') +
      (if c_percent_of_g then STR '''' else STR ''percent_of_g '') +
+     (if c_negative then STR '''' else STR ''negative '') +
+     (if c_money_tie then STR '''' else STR ''money_tie '') +
      (if c_empty then STR '''' else STR ''empty '') +
      (if c_ambiguous then STR '''' else STR ''ambiguous '') +
      (if c_tables then STR '''' else STR ''tables '')"
@@ -88,7 +97,10 @@ recognizer never computes: it halves an exact rational.\<close>
 definition half_rat :: "rat \<Rightarrow> rat" where
   "half_rat x = x / 2"
 
-export_code reply_of' answered schema response stated mk_rat g6r uname self_test self_failures half_rat
+definition reply_checked' :: "bool \<Rightarrow> integer option \<times> wp list \<Rightarrow> wreply" where
+  "reply_checked' neg x = reply_checked neg (map_option nat_of_integer (fst x), snd x)"
+
+export_code reply_of' reply_checked' answered schema response stated mk_rat g6r uname self_test self_failures half_rat
   integer_of_int int_of_integer
   unit_table plural_units
   PercentOf Convert SimpleInterest UnitPrice TotalCost SaleOff SalePct
@@ -104,17 +116,22 @@ ML \<open>
     @{thm printed_rounds_value}, @{thm printed_rounds_value_percent},
     @{thm stated6_sound}, @{thm stated4_sound}, @{thm round_dec_error},
     @{thm rl_round_dec_bound},
-    @{thm round_tie_up}, @{thm round_sig_sound}, @{thm round_at_error},
+    @{thm round_tie_up}, @{thm round_dec_tie_up}, @{thm money_round_tie_up},
+    @{thm money_tie_example}, @{thm negative_given_declines},
+    @{thm unsigned_given_unchanged}, @{thm checked_answered_iff},
+    @{thm round_sig_sound}, @{thm round_at_error},
     @{thm percent_of_value}, @{thm convert_value}, @{thm simple_interest_value},
     @{thm unit_price_value}, @{thm total_cost_value}, @{thm sale_off_value},
     @{thm sale_pct_value}, @{thm percent_of_total_value}, @{thm motion_dist_value},
     @{thm motion_speed_value}, @{thm rect_area_value}, @{thm rect_perim_value},
     @{thm circle_area_value}, @{thm circle_circ_value}, @{thm cone_vol_value},
-    @{thm cyl_vol_value}, @{thm sphere_vol_value}];
+    @{thm cyl_vol_value}, @{thm sphere_vol_value},
+    @{thm pow10_4_real}, @{thm pow10_5_real}, @{thm pow10_6_real}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("wordprob theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error ("wordprob self test failed: " ^ @{code self_failures});
-  val _ = writeln ("VERI7VN_WORDPROB PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");
+  val _ = writeln ("VERI7VN_WORDPROB PASS theorems=" ^ string_of_int (length theorems)
+    ^ " oracles=" ^ string_of_int (length oracles));
 \<close>
 
 end
