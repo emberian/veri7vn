@@ -1,5 +1,5 @@
 theory GeoStats_Export
-  imports GeoStats_Geometry GeoStats_Stats GeoStats_Weighted GeoStats_Extensions
+  imports GeoStats_Geometry GeoStats_Stats GeoStats_Weighted GeoStats_Extensions GeoStats_Paired
 begin
 
 (* W6-15: marker and oracle scan are the last commands; every headline theorem is listed. *)
@@ -47,9 +47,17 @@ definition self_test :: bool where
      s_kernel (S_arrange 5 None False) = SCount SK_permutations 120 \<and>
      stated (s_reply (S_binom 7 7 (1 / 2) True)) = Some (STR ''0.0078125'') \<and>
      stated (s_reply (S_z 44 61 12)) = Some (STR ''-1.4167'') \<and>
-     s_kernel (S_z 44 61 0) = SDecline (SImpossible SR_nonpositive_sd)"
+     s_kernel (S_z 44 61 0) = SDecline (SImpossible SR_nonpositive_sd) \<and>
+     line_fit [(1,2),(2,5),(3,5)] = Some (1,3/2) \<and>
+     line_fit [(2,1),(2,3)] = None \<and>
+     paired_covariance True [(1,5)] = Some 0 \<and>
+     paired_covariance False [(1,2),(2,5),(3,5)] = Some (3/2) \<and>
+     \<not> answered (paired_reply P_slope [1,2] [3]) \<and>
+     stated (paired_reply P_slope [1,2,3] [2,5,5]) = Some (STR ''1.5'')"
 
-export_code converted_parts geometry_unit_reply filtered_reply modifier_refusal units_refusal
+export_code paired_reply paired_model_refusal paired_prediction_refusal
+  P_covariance P_slope P_intercept P_predict P_line
+  converted_parts geometry_unit_reply filtered_reply modifier_refusal units_refusal
   LU_mm LU_cm LU_m LU_km LU_in LU_ft LU_yd
   g_reply s_reply answered reply_kind response stated mk_rat mk_nat weighted_reply
   integer_of_int nat_of_integer int_of_integer
@@ -60,7 +68,11 @@ export_code converted_parts geometry_unit_reply filtered_reply modifier_refusal 
   in SML module_name GeoStats file_prefix geostats
 
 ML \<open>
-  val theorems = [@{thm length_convert_physical}, @{thm length_convert_composes}, @{thm length_convert_sign},
+  val theorems = [@{thm paired_moments_spec}, @{thm centered_x_moments},
+    @{thm line_fit_normal_equations}, @{thm line_fit_least_squares(1)}, @{thm line_fit_least_squares(2)},
+    @{thm paired_covariance_centered}, @{thm paired_mismatch}, @{thm paired_line_reply_normal},
+    @{thm paired_line_reply_minimal(1)}, @{thm paired_line_reply_minimal(2)},
+    @{thm length_convert_physical}, @{thm length_convert_composes}, @{thm length_convert_sign},
     @{thm converted_rectangle_area}, @{thm geometry_unit_reply_value}, @{thm exclusion_membership},
     @{thm exclusion_sum_partition}, @{thm filtered_mean_partition}, @{thm weighted_balance}, @{thm weighted_between}, @{thm weighted_rejects_invalid}, @{thm weighted_equal_weights}, @{thm g_exact_sound}, @{thm g_approx_value}, @{thm g_count_value},
     @{thm g_underspecified}, @{thm g_impossible}, @{thm g_imprecise},

@@ -5,7 +5,12 @@
     "statistics": {
       "accept": {
         "kinds": [
-          "weighted_mean"
+          "weighted_mean",
+          "covariance",
+          "regression_slope",
+          "regression_intercept",
+          "regression_prediction",
+          "regression_line"
         ],
         "declines_in_domain": [
           "impossible",
@@ -15,16 +20,18 @@
       },
       "context_regex_additions": [
         "\\bweighted\\s+(?:mean|average)\\b",
-        "\\b(?:mean|average|median|mode|range|variance|standard deviation)\\b.*\\b(?:of|for|in|data|values|numbers|list)\\s*:?\\s*[+\\-0-9.\\[\u2212]"
+        "\\b(?:mean|average|median|mode|range|variance|standard deviation)\\b.*\\b(?:of|for|in|data|values|numbers|list)\\s*:?\\s*[+\\-0-9.\\[\u2212]",
+        "\\b(?:covariance|regression|least[- ]squares)\\b"
       ],
       "evidence": {
-        "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof.",
+        "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof. Paired observations also support explicitly chosen population/sample covariance and ordinary least-squares line, slope, intercept and prediction.",
         "assumptions": [
           "Dataset operations use finite rational observations; sample variance/deviation need at least two observations. Population and sample denominators differ.",
           "For weighted_mean only: equally long lists, nonnegative weights with positive sum; zero individual weights allowed. Mean is sum(value times weight) / sum(weights).",
           "Combinatorial operations use bounded natural counts; binomial probability requires a valid trial count and probability in [0,1]; z-score requires positive standard deviation.",
           "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval.",
-          "Explicit exclusions remove every equal-valued observation and retain the order and multiplicity of all remaining observations. Unsupported modifiers are refused; weighted exclusions are not supported."
+          "Explicit exclusions remove every equal-valued observation and retain the order and multiplicity of all remaining observations. Unsupported modifiers are refused; weighted exclusions are not supported.",
+          "Paired lists have equal length and retain every observation in order. Population covariance needs at least one pair; sample covariance at least two. The line predicts y from x with an intercept and requires nonconstant x values. Reversed-variable models are not supported. Full line replies state both rounded coefficients without a single scalar value. Weighted or filtered regression is not supported."
         ],
         "untrusted": [
           "English operation recognition and complete dataset-list parsing (commas delimit observations), exact scalar lexical adapter, and JSON framing. This catalogue does not certify interpretation."
@@ -34,7 +41,12 @@
     "statistics-v2": {
       "accept": {
         "kinds": [
-          "weighted_mean"
+          "weighted_mean",
+          "covariance",
+          "regression_slope",
+          "regression_intercept",
+          "regression_prediction",
+          "regression_line"
         ],
         "declines_in_domain": [
           "impossible",
@@ -44,16 +56,18 @@
       },
       "context_regex_additions": [
         "\\bweighted\\s+(?:mean|average)\\b",
-        "\\b(?:mean|average|median|mode|range|variance|standard deviation)\\b.*\\b(?:of|for|in|data|values|numbers|list)\\s*:?\\s*[+\\-0-9.\\[\u2212]"
+        "\\b(?:mean|average|median|mode|range|variance|standard deviation)\\b.*\\b(?:of|for|in|data|values|numbers|list)\\s*:?\\s*[+\\-0-9.\\[\u2212]",
+        "\\b(?:covariance|regression|least[- ]squares)\\b"
       ],
       "evidence": {
-        "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof.",
+        "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof. Paired observations also support explicitly chosen population/sample covariance and ordinary least-squares line, slope, intercept and prediction.",
         "assumptions": [
           "Dataset operations use finite rational observations; sample variance/deviation need at least two observations. Population and sample denominators differ.",
           "For weighted_mean only: equally long lists, nonnegative weights with positive sum; zero individual weights allowed. Mean is sum(value times weight) / sum(weights).",
           "Combinatorial operations use bounded natural counts; binomial probability requires a valid trial count and probability in [0,1]; z-score requires positive standard deviation.",
           "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval.",
-          "Explicit exclusions remove every equal-valued observation and retain the order and multiplicity of all remaining observations. Unsupported modifiers are refused; weighted exclusions are not supported."
+          "Explicit exclusions remove every equal-valued observation and retain the order and multiplicity of all remaining observations. Unsupported modifiers are refused; weighted exclusions are not supported.",
+          "Paired lists have equal length and retain every observation in order. Population covariance needs at least one pair; sample covariance at least two. The line predicts y from x with an intercept and requires nonconstant x values. Reversed-variable models are not supported. Full line replies state both rounded coefficients without a single scalar value. Weighted or filtered regression is not supported."
         ],
         "untrusted": [
           "English operation recognition and complete dataset-list parsing (commas delimit observations), exact scalar lexical adapter, and JSON framing. This catalogue does not certify interpretation."
@@ -63,7 +77,12 @@
     "statistics-v3": {
       "accept": {
         "kinds": [
-          "weighted_mean"
+          "weighted_mean",
+          "covariance",
+          "regression_slope",
+          "regression_intercept",
+          "regression_prediction",
+          "regression_line"
         ],
         "declines_in_domain": [
           "impossible",
@@ -73,16 +92,18 @@
       },
       "context_regex_additions": [
         "\\bweighted\\s+(?:mean|average)\\b",
-        "\\b(?:mean|average|median|mode|range|variance|standard deviation)\\b.*\\b(?:of|for|in|data|values|numbers|list)\\s*:?\\s*[+\\-0-9.\\[\u2212]"
+        "\\b(?:mean|average|median|mode|range|variance|standard deviation)\\b.*\\b(?:of|for|in|data|values|numbers|list)\\s*:?\\s*[+\\-0-9.\\[\u2212]",
+        "\\b(?:covariance|regression|least[- ]squares)\\b"
       ],
       "evidence": {
-        "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof.",
+        "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof. Paired observations also support explicitly chosen population/sample covariance and ordinary least-squares line, slope, intercept and prediction.",
         "assumptions": [
           "Dataset operations use finite rational observations; sample variance/deviation need at least two observations. Population and sample denominators differ.",
           "For weighted_mean only: equally long lists, nonnegative weights with positive sum; zero individual weights allowed. Mean is sum(value times weight) / sum(weights).",
           "Combinatorial operations use bounded natural counts; binomial probability requires a valid trial count and probability in [0,1]; z-score requires positive standard deviation.",
           "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval.",
-          "Explicit exclusions remove every equal-valued observation and retain the order and multiplicity of all remaining observations. Unsupported modifiers are refused; weighted exclusions are not supported."
+          "Explicit exclusions remove every equal-valued observation and retain the order and multiplicity of all remaining observations. Unsupported modifiers are refused; weighted exclusions are not supported.",
+          "Paired lists have equal length and retain every observation in order. Population covariance needs at least one pair; sample covariance at least two. The line predicts y from x with an intercept and requires nonconstant x values. Reversed-variable models are not supported. Full line replies state both rounded coefficients without a single scalar value. Weighted or filtered regression is not supported."
         ],
         "untrusted": [
           "English operation recognition and complete dataset-list parsing (commas delimit observations), exact scalar lexical adapter, and JSON framing. This catalogue does not certify interpretation."

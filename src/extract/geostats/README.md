@@ -76,3 +76,45 @@ optional matched brackets. A weight list is never silently dropped. Negative
 weights, unequal lengths and all-zero weights reach the existing kernel refusal;
 zero individual weights remain valid. Weighted exclusions and other statistical
 modifiers such as a trimmed mean remain unsupported, valid-but-withheld requests.
+
+
+## Paired observations: covariance and fitted lines
+
+Population/sample covariance and ordinary least-squares regression use equal-length
+x and y lists, paired by position. Duplicate observations remain separate. Inputs
+can use the same exact decimals, fractions and scientific notation as other
+statistics. Examples:
+
+- `What is the sample covariance for x values [1, 2, 3] and y values [2, 5, 5]?`
+- `What is the regression slope for x values [1, 2, 3] and y values [2, 5, 5]?`
+- `What is the least-squares line for x values [1, 2, 3] and y values [2, 5, 5]?`
+- `Predict y at x=4 from the least-squares line for x values [1, 2, 3] and y values [2, 5, 5]?`
+
+One pass accumulates n, sum x, sum y, sum x² and sum xy using exact rationals.
+Population covariance needs at least one pair; sample covariance needs two.
+A fitted line needs nonconstant x data. Empty or unequal-length lists are
+refused before zip can discard observations. The returned line predicts y from
+x with an intercept; explicit reversed-variable fits, weighted/filtered fits,
+nonlinear models, constrained fits and uncertainty intervals are outside this
+packet. Unread operation-prefix or list-tail modifiers are refused. Explicit
+population/sample choice is required for covariance.
+
+The exported computation is tied to independent centered-product covariance,
+zero residual sum and zero x-weighted residual sum. Its squared-error
+decomposition proves that the actual returned coefficients minimize squared
+error over all intercept/slope pairs. These are exact typed-input statements;
+English interpretation remains untrusted. Display uses four decimal places.
+A full-line reply explicitly labels both coefficients as rounded and has no single scalar `value`;
+slope, intercept, prediction and covariance do carry their scalar value.
+
+`paired_probes.json` covers the coherent operations, malformed/incompatible data
+and safe refusals. `check_paired.py` checks exact Fraction expectations and both
+full-line coefficients. It separately reports right/wrong/false-yes/withheld-valid
+and policy assertions, so a correct refusal of valid weighted or reversed
+regression does not inflate capability counts. `generate_paired.py SEED OUTPUT`
+provides independent seeded noisy/affine rational data for untouched evaluation.
+
+Evaluating the displayed rounded line can accumulate error proportional to the
+magnitude of x. The prediction operation instead evaluates exact internal
+intercept + slope × x and then rounds that result; it does not first round the
+coefficients. Exact-rational or significant-digit line display is future work.

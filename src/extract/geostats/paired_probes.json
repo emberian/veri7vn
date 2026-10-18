@@ -1,0 +1,579 @@
+[
+  {
+    "q": "What is the population covariance for x values [1, 2, 3] and y values [2, 4, 6]?",
+    "operation": "population covariance",
+    "x": [
+      "1",
+      "2",
+      "3"
+    ],
+    "y": [
+      "2",
+      "4",
+      "6"
+    ],
+    "valid": true,
+    "expected": "4/3",
+    "expect_kind": "covariance",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the sample covariance for x values [1, 2, 3] and y values [2, 4, 6]?",
+    "operation": "sample covariance",
+    "x": [
+      "1",
+      "2",
+      "3"
+    ],
+    "y": [
+      "2",
+      "4",
+      "6"
+    ],
+    "valid": true,
+    "expected": "2",
+    "expect_kind": "covariance",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the regression slope for x values [1, 2, 3] and y values [2, 4, 6]?",
+    "operation": "regression slope",
+    "x": [
+      "1",
+      "2",
+      "3"
+    ],
+    "y": [
+      "2",
+      "4",
+      "6"
+    ],
+    "valid": true,
+    "expected": "2",
+    "expect_kind": "regression_slope",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the regression intercept for x values [1, 2, 3] and y values [2, 4, 6]?",
+    "operation": "regression intercept",
+    "x": [
+      "1",
+      "2",
+      "3"
+    ],
+    "y": [
+      "2",
+      "4",
+      "6"
+    ],
+    "valid": true,
+    "expected": "0",
+    "expect_kind": "regression_intercept",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the least-squares line for x values [1, 2, 3] and y values [2, 4, 6]?",
+    "operation": "least-squares line",
+    "x": [
+      "1",
+      "2",
+      "3"
+    ],
+    "y": [
+      "2",
+      "4",
+      "6"
+    ],
+    "valid": true,
+    "expected": [
+      "0",
+      "2"
+    ],
+    "expect_kind": "regression_line",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the population covariance for x values [-2, 0, 3] and y values [5, 1, -5]?",
+    "operation": "population covariance",
+    "x": [
+      "-2",
+      "0",
+      "3"
+    ],
+    "y": [
+      "5",
+      "1",
+      "-5"
+    ],
+    "valid": true,
+    "expected": "-76/9",
+    "expect_kind": "covariance",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the sample covariance for x values [-2, 0, 3] and y values [5, 1, -5]?",
+    "operation": "sample covariance",
+    "x": [
+      "-2",
+      "0",
+      "3"
+    ],
+    "y": [
+      "5",
+      "1",
+      "-5"
+    ],
+    "valid": true,
+    "expected": "-38/3",
+    "expect_kind": "covariance",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the regression slope for x values [-2, 0, 3] and y values [5, 1, -5]?",
+    "operation": "regression slope",
+    "x": [
+      "-2",
+      "0",
+      "3"
+    ],
+    "y": [
+      "5",
+      "1",
+      "-5"
+    ],
+    "valid": true,
+    "expected": "-2",
+    "expect_kind": "regression_slope",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the regression intercept for x values [-2, 0, 3] and y values [5, 1, -5]?",
+    "operation": "regression intercept",
+    "x": [
+      "-2",
+      "0",
+      "3"
+    ],
+    "y": [
+      "5",
+      "1",
+      "-5"
+    ],
+    "valid": true,
+    "expected": "1",
+    "expect_kind": "regression_intercept",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the least-squares line for x values [-2, 0, 3] and y values [5, 1, -5]?",
+    "operation": "least-squares line",
+    "x": [
+      "-2",
+      "0",
+      "3"
+    ],
+    "y": [
+      "5",
+      "1",
+      "-5"
+    ],
+    "valid": true,
+    "expected": [
+      "1",
+      "-2"
+    ],
+    "expect_kind": "regression_line",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the population covariance for x values [1, 1, 2, 4] and y values [4, 2, 3, 7]?",
+    "operation": "population covariance",
+    "x": [
+      "1",
+      "1",
+      "2",
+      "4"
+    ],
+    "y": [
+      "4",
+      "2",
+      "3",
+      "7"
+    ],
+    "valid": true,
+    "expected": "2",
+    "expect_kind": "covariance",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the sample covariance for x values [1, 1, 2, 4] and y values [4, 2, 3, 7]?",
+    "operation": "sample covariance",
+    "x": [
+      "1",
+      "1",
+      "2",
+      "4"
+    ],
+    "y": [
+      "4",
+      "2",
+      "3",
+      "7"
+    ],
+    "valid": true,
+    "expected": "8/3",
+    "expect_kind": "covariance",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the regression slope for x values [1, 1, 2, 4] and y values [4, 2, 3, 7]?",
+    "operation": "regression slope",
+    "x": [
+      "1",
+      "1",
+      "2",
+      "4"
+    ],
+    "y": [
+      "4",
+      "2",
+      "3",
+      "7"
+    ],
+    "valid": true,
+    "expected": "4/3",
+    "expect_kind": "regression_slope",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the regression intercept for x values [1, 1, 2, 4] and y values [4, 2, 3, 7]?",
+    "operation": "regression intercept",
+    "x": [
+      "1",
+      "1",
+      "2",
+      "4"
+    ],
+    "y": [
+      "4",
+      "2",
+      "3",
+      "7"
+    ],
+    "valid": true,
+    "expected": "4/3",
+    "expect_kind": "regression_intercept",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the least-squares line for x values [1, 1, 2, 4] and y values [4, 2, 3, 7]?",
+    "operation": "least-squares line",
+    "x": [
+      "1",
+      "1",
+      "2",
+      "4"
+    ],
+    "y": [
+      "4",
+      "2",
+      "3",
+      "7"
+    ],
+    "valid": true,
+    "expected": [
+      "4/3",
+      "4/3"
+    ],
+    "expect_kind": "regression_line",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the population covariance for x values [1/2, 3/2, 5/2] and y values [3/2, 7/2, 11/2]?",
+    "operation": "population covariance",
+    "x": [
+      "1/2",
+      "3/2",
+      "5/2"
+    ],
+    "y": [
+      "3/2",
+      "7/2",
+      "11/2"
+    ],
+    "valid": true,
+    "expected": "4/3",
+    "expect_kind": "covariance",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the sample covariance for x values [1/2, 3/2, 5/2] and y values [3/2, 7/2, 11/2]?",
+    "operation": "sample covariance",
+    "x": [
+      "1/2",
+      "3/2",
+      "5/2"
+    ],
+    "y": [
+      "3/2",
+      "7/2",
+      "11/2"
+    ],
+    "valid": true,
+    "expected": "2",
+    "expect_kind": "covariance",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the regression slope for x values [1/2, 3/2, 5/2] and y values [3/2, 7/2, 11/2]?",
+    "operation": "regression slope",
+    "x": [
+      "1/2",
+      "3/2",
+      "5/2"
+    ],
+    "y": [
+      "3/2",
+      "7/2",
+      "11/2"
+    ],
+    "valid": true,
+    "expected": "2",
+    "expect_kind": "regression_slope",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the regression intercept for x values [1/2, 3/2, 5/2] and y values [3/2, 7/2, 11/2]?",
+    "operation": "regression intercept",
+    "x": [
+      "1/2",
+      "3/2",
+      "5/2"
+    ],
+    "y": [
+      "3/2",
+      "7/2",
+      "11/2"
+    ],
+    "valid": true,
+    "expected": "1/2",
+    "expect_kind": "regression_intercept",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the least-squares line for x values [1/2, 3/2, 5/2] and y values [3/2, 7/2, 11/2]?",
+    "operation": "least-squares line",
+    "x": [
+      "1/2",
+      "3/2",
+      "5/2"
+    ],
+    "y": [
+      "3/2",
+      "7/2",
+      "11/2"
+    ],
+    "valid": true,
+    "expected": [
+      "1/2",
+      "2"
+    ],
+    "expect_kind": "regression_line",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the population covariance for x values [1] and y values [5]?",
+    "operation": "population covariance",
+    "x": [
+      "1"
+    ],
+    "y": [
+      "5"
+    ],
+    "valid": true,
+    "expected": "0",
+    "expect_kind": "covariance",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the sample covariance for x values [1] and y values [5]?",
+    "operation": "sample covariance",
+    "x": [
+      "1"
+    ],
+    "y": [
+      "5"
+    ],
+    "valid": false,
+    "expected": null,
+    "expect_kind": "impossible",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the regression slope for x values [1] and y values [5]?",
+    "operation": "regression slope",
+    "x": [
+      "1"
+    ],
+    "y": [
+      "5"
+    ],
+    "valid": false,
+    "expected": null,
+    "expect_kind": "impossible",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the regression slope for x values [2, 2] and y values [1, 3]?",
+    "operation": "regression slope",
+    "x": [
+      "2",
+      "2"
+    ],
+    "y": [
+      "1",
+      "3"
+    ],
+    "valid": false,
+    "expected": null,
+    "expect_kind": "impossible",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the sample covariance for x values [1, 2] and y values [2]?",
+    "operation": "sample covariance",
+    "x": [
+      "1",
+      "2"
+    ],
+    "y": [
+      "2"
+    ],
+    "valid": false,
+    "expected": null,
+    "expect_kind": "impossible",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmc/section5/pmc541.htm"
+  },
+  {
+    "q": "What is the regression slope for x values [1, 2] and y values [3, 3]?",
+    "operation": "regression slope",
+    "x": [
+      "1",
+      "2"
+    ],
+    "y": [
+      "3",
+      "3"
+    ],
+    "valid": true,
+    "expected": "0",
+    "expect_kind": "regression_slope",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "Predict y at x=-2 from the least-squares line for x values [1, 2, 3] and y values [2, 5, 5]?",
+    "operation": "regression prediction",
+    "valid": true,
+    "expected": "-2",
+    "expect_kind": "regression_prediction",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "Predict y at x=0 from the least-squares line for x values [1, 2, 3] and y values [2, 5, 5]?",
+    "operation": "regression prediction",
+    "valid": true,
+    "expected": "1",
+    "expect_kind": "regression_prediction",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "Predict y at x=1/2 from the least-squares line for x values [1, 2, 3] and y values [2, 5, 5]?",
+    "operation": "regression prediction",
+    "valid": true,
+    "expected": "7/4",
+    "expect_kind": "regression_prediction",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "Predict y at x=4 from the least-squares line for x values [1, 2, 3] and y values [2, 5, 5]?",
+    "operation": "regression prediction",
+    "valid": true,
+    "expected": "7",
+    "expect_kind": "regression_prediction",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "Predict y at x=1e2 from the least-squares line for x values [1, 2, 3] and y values [2, 5, 5]?",
+    "operation": "regression prediction",
+    "valid": true,
+    "expected": "151",
+    "expect_kind": "regression_prediction",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the population covariance for x values [] and y values []?",
+    "operation": "incomplete paired request",
+    "valid": false,
+    "expected": null,
+    "expect_kind": "underspecified",
+    "source": "Explicit model/completeness contract; no unique supplied numeric request."
+  },
+  {
+    "q": "What is the covariance for x values [1, 2] and y values [2, 3]?",
+    "operation": "incomplete paired request",
+    "valid": false,
+    "expected": null,
+    "expect_kind": "underspecified",
+    "source": "Explicit model/completeness contract; no unique supplied numeric request."
+  },
+  {
+    "q": "What is the regression slope for x values [1, 2] and y values [2, nope]?",
+    "operation": "incomplete paired request",
+    "valid": false,
+    "expected": null,
+    "expect_kind": "unsupported_modifier",
+    "source": "Explicit model/completeness contract; no unique supplied numeric request."
+  },
+  {
+    "q": "What is the weighted regression slope with weights [1, 1, 1] for x values [1, 2, 3] and y values [2, 4, 6]?",
+    "operation": "unsupported weighted model",
+    "valid": true,
+    "expected": "2",
+    "expected_withheld": true,
+    "expect_kind": "unsupported_modifier",
+    "source": "Equal supplied weights recover ordinary least squares; weighted regression remains a valid unsupported capability."
+  },
+  {
+    "q": "What is the regression slope of x on y for x values [1,2,3] and y values [2,4,6]?",
+    "valid": true,
+    "expected": "1/2",
+    "expected_withheld": true,
+    "expect_kind": "unsupported_modifier",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the regression slope of y on x for x values [1,2,3] and y values [2,4,6]?",
+    "valid": true,
+    "expected": "2",
+    "expect_kind": "regression_slope",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the nonlinear regression for x values [1,2,3] and y values [2,4,6]?",
+    "valid": false,
+    "expect_kind": "unsupported_modifier",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm"
+  },
+  {
+    "q": "What is the least-squares line for x values [0, 1000000] and y values [0, 1]?",
+    "valid": true,
+    "expected": [
+      "0",
+      "1/1000000"
+    ],
+    "expect_kind": "regression_line",
+    "source": "https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm",
+    "note": "Rendered slope rounds to zero; user text must identify rounded coefficients.",
+    "response_contains": "coefficients rounded to four decimal places"
+  }
+]

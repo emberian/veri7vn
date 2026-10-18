@@ -699,8 +699,62 @@ struct
            (SOME x,SOME mu,SOME sd) => SOME(S.s_reply(S.S_z(x,mu,sd)))
          | _ => NONE
       end handle Geo.BadGeometry => NONE
+    (* Paired lists are consumed together, in order. The HOL wrapper checks
+       equal lengths before zip, preserving every observation and duplicate. *)
+    fun paired text =
+      let val t = replaceAll "[?.]$" "" (norm text)
+          val marker = has "\\bcovariance\\b|\\bregression\\b|\\bleast[- ]squares\\b" t
+          val label = "\\s+(?:values|data|observations)\\s*[:=]?\\s*"
+          val separator = "\\s*(?:,?\\s+and\\s+|;\\s*|,\\s*)y"
+          val lists = case search ("\\bx" ^ label ^ "(.+?)" ^ separator ^ label ^ "(.+)$") t of
+              SOME m => SOME m
+            | NONE => search ("\\bx\\s*[:=]\\s*(\\[[^]]*\\])" ^ separator ^
+                "\\s*[:=]\\s*(\\[[^]]*\\])$") t
+          fun list body = if has "^\\s*\\[\\s*\\]\\s*$" body then SOME [] else exactList body
+          val unsupported = unsupportedDatasetOperation t orelse
+            (has "\\bcovariance\\b" t andalso has "\\bregression\\b|\\bleast[- ]squares\\b" t) orelse
+            has "\\b(?:weighted|weights|excluding|except|without|omitting|remove|drop|ignore|nonlinear|non-linear|quadratic|cubic|polynomial|power|loglinear|exponential|logistic|logarithmic|standardi[sz]ed|normali[sz]ed|origin|constrained|fixed|robust|ridge|lasso|regulari[sz]ed|bayesian|orthogonal|interval|confidence|residuals?|correlation)\\b" t
+          val reverseOrientation = has "\\bx\\s+(?:on|against|versus|vs[.]?)\\s+y\\b" t
+          (* Consume the operation prefix as well as both data lists: an
+             unfamiliar model or direction must not become ordinary y-on-x. *)
+          fun completePrefix (m : Regex.match) =
+            let val pre = String.substring(t,0,#start m)
+                val lead = "(?:(?:what is|calculate|compute|find|give me)\\s+(?:the\\s+)?)?"
+                val fit = "(?:(?:ordinary|linear)\\s+)?(?:regression|least[- ]squares)"
+                val tail = "\\s+(?:for|from|using|of)\\s*$"
+                val scalar = "(?:\\s+(?:line|slope|intercept|slope and intercept))?"
+                val direction = "(?:\\s+of\\s+y\\s+(?:on|against|versus|vs[.]?)\\s+x)?"
+            in has ("^" ^ lead ^ "(?:(?:(?:population|sample)\\s+)?covariance|" ^ fit ^ scalar ^ direction ^ ")" ^ tail) pre
+               orelse has ("^" ^ lead ^ fit ^ "\\s+prediction\\s+at\\s+x\\s*(?:=|of)?\\s*.+?" ^ tail) pre
+               orelse has ("^predict\\s+y\\s+at\\s+x\\s*(?:=|of)?\\s*.+?\\s+(?:from|using)\\s+(?:the\\s+)?" ^ fit ^ "\\s+line" ^ tail) pre
+            end
+          fun prediction () =
+            case search "\\bat\\s+x\\s*(?:=|of)?\\s*(.+?)\\s+(?:from|for|using)\\b" t of
+               NONE => NONE
+             | SOME m => Option.map (G.P_predict o toRat) (ExactNumeric.parse (g1 t m))
+          fun operation () =
+            if has "\\bcovariance\\b" t then
+              if has "\\bpopulation\\b" t andalso has "\\bsample\\b" t then NONE
+              else if has "\\bpopulation\\b" t then SOME(G.P_covariance true)
+              else if has "\\bsample\\b" t then SOME(G.P_covariance false) else NONE
+            else if has "\\bpredict(?:ion)?\\b" t then prediction ()
+            else if has "\\bslope\\b" t andalso has "\\bintercept\\b" t then SOME G.P_line
+            else if has "\\bslope\\b" t then SOME G.P_slope
+            else if has "\\bintercept\\b" t then SOME G.P_intercept
+            else SOME G.P_line
+      in if not marker then NONE
+         else case lists of NONE => NONE
+         | SOME m =>
+           if unsupported orelse reverseOrientation orelse not(completePrefix m) then SOME G.modifier_refusal
+           else case (list(g1 t m),list(valOf(grp t m 2))) of
+             (SOME xs,SOME ys) => (case operation () of
+                 SOME req => SOME(G.paired_reply req xs ys)
+               | NONE => SOME (if has "\\bcovariance\\b" t then G.paired_model_refusal else G.paired_prediction_refusal))
+           | _ => SOME G.modifier_refusal
+      end
     fun complete text =
-      if has "\\bz[- ]?score\\b" (norm text) then exactZ text
+      case paired text of SOME r => SOME r
+      | NONE => if has "\\bz[- ]?score\\b" (norm text) then exactZ text
       else if has "\\bweighted (?:mean|average)\\b" (norm text) andalso
          has "\\b(?:excluding|except|without|omitting|remove|drop|trim|ignore)\\b" (norm text)
       then SOME G.modifier_refusal

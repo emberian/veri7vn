@@ -2,9 +2,13 @@
 
 Owner: Codex energy/geostats implementer under the physical deputy.
 
-Weighted grammar packet `099f430b…` is frozen and captured as NEXT. Its reader,
-ROOT and export stay unchanged pending root integration. This continuation owns
-new `src/extract/geostats/GeoStats_Paired.thy`. Its source and consumer have passed a complete staged production proof/export and native evaluation. The staged files remain separate from the frozen live weighted reader, ROOT, export and binary. Results below describe the staged candidate, not selected delivery.
+Weighted grammar `099f430b…` and Energy ownership `a720c691…` are now integrated
+in root commit `3d44920` and captured. After both gates cleared, the independently
+reviewed Paired sources, exact export and native were promoted to the live
+GeoStats paths. Their original immutable compiler-input manifest is retained.
+Paired root integration/capture is the remaining gate; results below preserve
+the distinction between predecessor db89 broad evaluation and final ad71 focused
+rendering checks. Selected package delivery changes only when runtime selects it.
 
 The model pairs equal-length finite lists by position, preserving duplicate
 observations. One pass computes n, sum x, sum y, sum x² and sum xy. Population
@@ -51,8 +55,7 @@ IoT27/27, with zero wrong/false yes/withheld-valid. Receipts are
 `energy-ownership-domain.json` and `energy-ownership-score.json` in lane scratch.
 Thermo has no fresh generator; unrelated family generators were not rerun for
 this operation-ownership edit. Native size795,704 bytes; cold starts3.27,2.94,
-2.78,2.94,2.99 ms on the shared live host. Independent Quantity composition confirms this reader boundary; the separately discovered supplied-calorific-value issue has also been repaired by Quantity as a truthful model-limit refusal. Immutable capture remains pending; this source is frozen while Paired theory work
-continues separately.
+2.78,2.94,2.99 ms on the shared live host. Independent Quantity composition confirms this reader boundary; the separately discovered supplied-calorific-value issue has also been repaired by Quantity as a truthful model-limit refusal. This source was subsequently integrated in 3d44920 and captured; Paired work proceeded separately.
 
 ## Paired proof diagnostic progress
 
@@ -185,3 +188,27 @@ also independently matched all four staged runtime sources and all twelve
 proof inputs, with zero mismatches, against the correct-marker passed receipt.
 Root weighted integration and live adoption remain pending; final staged sources
 are frozen, and live weighted source/selected delivery remain unchanged.
+
+
+## Live Paired promotion after release
+
+Following root 3d44920 and runtime confirmation of both predecessor captures,
+the ten exact named files in `var/c-physical-energy-geostats/paired-promoted.json`
+were copied from reviewed stage to live `src/extract/geostats/`. All four
+canonical runtime source hashes and twelve proof dependency hashes match the
+original final manifest/proof snapshot. No Isabelle or native recompilation was
+necessary. The live binary is byte-identical ad71e10a; the checked export is
+retained at `var/geostats/adopted/paired-e0b85/geostats.ML`. Original manifest
+`var/geostats/native-attempts/20261018T091800Z-d6a1fb2ebe07/compile-inputs.json`
+is unchanged, including its actual staged compiler input paths and retained
+proof-snapshot declaration. Promotion is a separate adoption record, not a
+retrospectively manufactured compiler receipt.
+
+Six narrow controls pass through the promoted live binary and current live
+GeoStats+Fusion dispatcher, receipts `paired-promoted-direct.json` and
+`paired-promoted-composed.json`. Ready files are GeoStats_Paired.thy, ROOT,
+GeoStats_Export.thy, recognizer.sml, main.sml, capabilities.json, README.md,
+paired_probes.json, check_paired.py and generate_paired.py under the family,
+plus this report. All are frozen for root integration and runtime capture.
+Earlier db89 broad panel counts remain attributed to db89; the final ad71 text
+change has its focused owner and independent checks rather than relabeled suites.

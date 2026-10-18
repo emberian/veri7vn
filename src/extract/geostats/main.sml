@@ -15,7 +15,7 @@
 structure Main =
 struct
   (* Family declarations, not per-answer proof certificates. *)
-  val theorems = "[\"g_exact_sound\",\"g_approx_value\",\"g_underspecified\",\"g_impossible\",\"s_rat_sound\",\"s_approx_sound\",\"s_impossible\",\"median_halves\",\"choose_value\",\"weighted_balance\",\"weighted_equal_weights\",\"weighted_between\"]"
+  val theorems = "[\"g_exact_sound\",\"g_approx_value\",\"g_underspecified\",\"g_impossible\",\"s_rat_sound\",\"s_approx_sound\",\"s_impossible\",\"median_halves\",\"choose_value\",\"weighted_balance\",\"weighted_equal_weights\",\"weighted_between\",\"paired_covariance_centered\",\"line_fit_normal_equations\",\"line_fit_least_squares\",\"paired_line_reply_normal\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
@@ -49,7 +49,7 @@ struct
           ^ ", \"kind\": " ^ Json.quote kind ^ value
           ^ ", \"provenance\": {\"taken\": true, \"organ\": " ^ Json.quote organ
           ^ ", \"specialist_ms\": " ^ ms t0
-          ^ ", \"kernel\": \"GeoStats.g_reply/s_reply/weighted_reply\", \"session\": \"Veri7vn_GeoStats\", \"theorems\": "
+          ^ ", \"kernel\": \"GeoStats.g_reply/s_reply/weighted_reply/paired_reply\", \"session\": \"Veri7vn_GeoStats\", \"theorems\": "
           ^ theorems ^ "}}"
         end
     end
