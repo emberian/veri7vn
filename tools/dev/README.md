@@ -172,3 +172,44 @@ client interrupt requests cancellation through its attempt's `cancel` file;
 the worker either leaves the queue or stops its own exact systemd service.
 If superseding a queued snapshot, request cancellation of that exact attempt
 and collect its terminal result before resubmitting current sources.
+
+## Immutable local native compilation
+
+Family recipes retain their flat MLB declarations and replace the MLton call:
+
+```
+"$REPO/tools/dev/native-compile" --family climate --compiler "$MLTON" \
+  -- -output "$OUT/bin/climate" "$OUT/build/climate.mlb"
+```
+
+`--from-receipt PATH` pins a managed proof receipt. Otherwise the helper selects
+one matching the generated SML actually listed in the MLB and the current
+project proof dependencies. `--session NAME` supports a separate proof consumer
+outside the family registry. Only flat source lists plus the installed standard
+basis are accepted. The existing Guards annotation is supported explicitly;
+unknown flags or MLB constructs fail rather than escaping input capture.
+
+The helper holds `var/native-compile.lock`, copies every application compiler
+input into a unique `var/FAMILY/native-attempts/ID/` directory, rewrites the MLB,
+and compiles only those copies. It rejects changed copies, a rejected proof
+receipt, and failed compilation before replacing the output. Each attempt keeps
+its binary, log, original and rewritten MLB, and `compile-inputs.json`. The
+successful convenience receipt is `var/FAMILY/build/compile-inputs.json`.
+Existing retrospective receipt writers should be removed, not run afterward.
+
+The receipt distinguishes actual compiled inputs from the installed toolchain
+basis. `input_snapshot_map` maps original paths to copied files;
+`frozen_inputs_sha256` hashes those copies and rewritten MLB.
+`canonical_source_map` maps ordinary project runtime inputs to repository names,
+including inputs staged by earlier family recipes. `source_sha256` is the
+corresponding convenience map, not independent evidence: consumers should derive
+and compare it from actual frozen inputs. Generated SML has its own hash and
+passed proof receipt. A transformed staging input is retained as an actual input
+without falsely claiming its bytes equal the original source. Separately loaded
+runtime assets such as Stores' Python fetcher belong in package runtime-asset
+captures; they are not compiled SML.
+
+The output and convenience receipt are published under the compiler lock after
+success. Readers still compare the binary hash with the receipt: two filesystem
+paths are not a transactional pair. Installed compiler path, wrapper/backend
+hashes and path map identify the toolchain separately from application snapshots.

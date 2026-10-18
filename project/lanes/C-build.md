@@ -195,3 +195,28 @@ Math/commons proof sources matching its snapshot. Runtime received the export
 for final native compilation. A later audit of66 local receipts found no
 remaining passed receipt with `cancelled=true`. This infrastructure lane has no
 specialist panel numbers of its own; family owners report their consumer panels.
+
+## Actual native compiler inputs
+
+Runtime exposed a Climate binary mismatch after shared numeric source changed:
+retrospectively hashing current files did not identify what MLton consumed.
+`tools/dev/native-compile` now freezes the actual flat MLB application inputs,
+binds the consumed generated SML to a passed current-proof receipt, compiles the
+copied inputs, retains the binary and manifest, and publishes only after success.
+Installed basis/toolchain dependencies and separately loaded runtime assets are
+identified separately from compiled application inputs. Family owners adopt the
+single helper in their existing recipes rather than duplicating snapshot code.
+
+Ten focused tests pass. They refute stale/canceled proof acceptance, changed
+exports, mutation of frozen inputs, unsafe MLB syntax, and publication after
+compiler failure. A live source changed by the mock compiler leaves the binary
+bound to its earlier copied input. A staged runtime source maps to its canonical
+repository name; unrelated nested sessions do not stale a parent proof.
+
+Actual Climate native compilation passed from immutable inputs using proof
+`20261018T071733Z-ee097b9b817a`, with final shared numeric hash
+`3fb670227808db735fbaddf1fbc3d70ee77952536ebdd01547bdf5217050e3e5`.
+Receipt: `var/climate/native-attempts/20261018T073431Z-833b2038dcef/compile-inputs.json`.
+Binary: `a1bd7aa362aed6bd4c7caea0f0b37c4ed5e55c824c666f30387755833aaf0b70`.
+The Climate owner received this actual output for final consumer panels; this
+infrastructure check itself adds no specialist panel score.
