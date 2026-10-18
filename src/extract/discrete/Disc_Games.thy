@@ -142,6 +142,49 @@ text \<open>The counts add up to all @{text "s^n"} equally likely outcomes.\<clo
 theorem sum_dist: "sum_list (dice_dist n s) = s ^ n"
   by (induction n) (simp_all add: sum_step)
 
+text \<open>Independent sample space: finite sequences of actual die faces.
+The event counts sequences containing the requested signed face.\<close>
+
+definition roll_sequences :: "nat \<Rightarrow> nat \<Rightarrow> int list set" where
+  "roll_sequences s k = {xs. set xs \<subseteq> {1..int s} \<and> length xs = k}"
+
+lemma roll_sequences_count: "card (roll_sequences s k) = s ^ k"
+  unfolding roll_sequences_def by (simp add: card_lists_length_eq)
+
+lemma roll_sequences_nonempty:
+  "0 < s \<Longrightarrow> 0 < card (roll_sequences s k)"
+  by (simp add: roll_sequences_count)
+
+lemma containing_lists_count:
+  assumes "finite A"
+  shows "card {xs. set xs \<subseteq> A \<and> length xs = k \<and> f \<in> set xs} =
+    card A ^ k - card (A - {f}) ^ k"
+proof -
+  let ?all = "{xs. set xs \<subseteq> A \<and> length xs = k}"
+  let ?avoid = "{xs. set xs \<subseteq> A - {f} \<and> length xs = k}"
+  have fin: "finite ?avoid" by (rule finite_lists_length_eq) (simp add: assms)
+  have sub: "?avoid \<subseteq> ?all" by auto
+  have eq: "{xs. set xs \<subseteq> A \<and> length xs = k \<and> f \<in> set xs} = ?all - ?avoid"
+    by auto
+  show ?thesis unfolding eq
+    using card_Diff_subset[OF fin sub] assms
+    by (simp add: card_lists_length_eq)
+qed
+
+lemma roll_sequences_containing:
+  "card {xs \<in> roll_sequences s k. f \<in> set xs} =
+    (if 1 \<le> f \<and> f \<le> int s then s ^ k - (s - 1) ^ k else 0)"
+proof (cases "1 \<le> f \<and> f \<le> int s")
+  case True
+  show ?thesis using containing_lists_count[of "{1..int s}" k f] True
+    by (simp add: roll_sequences_def)
+next
+  case False
+  have empty: "{xs \<in> roll_sequences s k. f \<in> set xs} = {}"
+    using False by (auto simp: roll_sequences_def)
+  show ?thesis unfolding empty using False by auto
+qed
+
 section \<open>Poker hands\<close>
 
 fun ff :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
@@ -241,13 +284,14 @@ section \<open>Requests and the kernel\<close>
 datatype gkind = GK_poker_prob | GK_poker_count | GK_dice_sum | GK_at_least_one
   | GK_card_one | GK_card_k | GK_card_k_repl | GK_anagrams
 
-datatype gdecl = GD_impossible nat nat nat | GD_no_word | GD_no_rolls
+datatype gdecl = GD_impossible nat nat nat | GD_no_word | GD_no_rolls | GD_unsupported
 
 datatype greq =
     G_poker bool hand
   | G_dice nat nat nat
-  | G_atleast nat nat
+  | G_atleast nat nat int
   | G_atleast_unknown
+  | G_need
   | G_card_one card
   | G_card_k card nat bool
   | G_anagram "nat list"
@@ -261,8 +305,10 @@ fun g_kernel :: "greq \<Rightarrow> gout" where
 | "g_kernel (G_dice n s k) =
      (if atn (dice_dist n s) k = 0 then GDecline (GD_impossible k n s)
       else GProb GK_dice_sum (rat_of_nat (atn (dice_dist n s) k) / rat_of_nat (s ^ n)))"
-| "g_kernel (G_atleast s k) = GProb GK_at_least_one (1 - (rat_of_nat (s - 1) / rat_of_nat s) ^ k)"
+| "g_kernel (G_atleast s k f) = GProb GK_at_least_one
+    (if 1 \<le> f \<and> f \<le> int s then rat_of_nat (s ^ k - (s - 1) ^ k) / rat_of_nat (s ^ k) else 0)"
 | "g_kernel G_atleast_unknown = GDecline GD_no_rolls"
+| "g_kernel G_need = GDecline GD_unsupported"
 | "g_kernel (G_card_one c) = GProb GK_card_one (rat_of_nat (card_good c) / 52)"
 | "g_kernel (G_card_k c k repl) =
      (if repl then GProb GK_card_k_repl ((rat_of_nat (card_good c) / 52) ^ k)
@@ -280,23 +326,61 @@ theorem dice_impossible:
      ways n s k = 0 \<and> k' = k \<and> n' = n \<and> s' = s"
   by (auto simp: dist_ways split: if_splits)
 
+text \<open>The actual probability branch equals the fraction of the independent
+finite sample space whose sequences contain the requested signed face. This
+includes impossible faces and the unique empty sequence for zero rolls.\<close>
 theorem atleast_value:
-  "g_kernel (G_atleast s k) = GProb GK_at_least_one p \<Longrightarrow>
-     p + (rat_of_nat (s - 1) / rat_of_nat s) ^ k = 1"
-  by simp
+  "g_kernel (G_atleast s k f) = GProb GK_at_least_one p \<Longrightarrow>
+    p = rat_of_nat (card {xs \<in> roll_sequences s k. f \<in> set xs}) /
+        rat_of_nat (card (roll_sequences s k))"
+  by (auto simp: roll_sequences_count roll_sequences_containing split: if_splits)
 
 theorem atleast_range:
-  assumes "1 \<le> s" and "g_kernel (G_atleast s k) = GProb GK_at_least_one p"
+  assumes "g_kernel (G_atleast s k f) = GProb GK_at_least_one p"
   shows "0 \<le> p \<and> p \<le> 1"
 proof -
-  have a0: "0 \<le> rat_of_nat (s - 1) / rat_of_nat s" by simp
-  have sp: "0 < rat_of_nat s" using assms(1) by simp
-  have a1: "rat_of_nat (s - 1) / rat_of_nat s \<le> 1"
-    by (simp add: pos_divide_le_eq[OF sp])
-  have "(rat_of_nat (s - 1) / rat_of_nat s) ^ k \<le> 1" using power_le_one[OF a0 a1] .
-  moreover have "0 \<le> (rat_of_nat (s - 1) / rat_of_nat s) ^ k" using a0 by simp
-  ultimately show ?thesis using assms(2) by auto
+  have le: "rat_of_nat (s ^ k - (s - 1) ^ k) \<le> rat_of_nat (s ^ k)" by simp
+  have range: "0 \<le> rat_of_nat (s ^ k - (s - 1) ^ k) / rat_of_nat (s ^ k) \<and>
+    rat_of_nat (s ^ k - (s - 1) ^ k) / rat_of_nat (s ^ k) \<le> 1"
+  proof (cases "s ^ k = 0")
+    case True then show ?thesis by simp
+  next
+    case False
+    have pos: "0 < rat_of_nat (s ^ k)" using False by simp
+    show ?thesis using le pos by (auto simp: divide_le_eq_1)
+  qed
+  show ?thesis using assms range by (auto split: if_splits)
 qed
+
+theorem atleast_empty:
+  "g_kernel (G_atleast s 0 f) = GProb GK_at_least_one 0"
+  by simp
+
+theorem atleast_impossible_face:
+  "\<not> (1 \<le> f \<and> f \<le> int s) \<Longrightarrow>
+    g_kernel (G_atleast s k f) = GProb GK_at_least_one 0"
+  by auto
+
+lemma seq_prob_too_many:
+  "g < k \<Longrightarrow> seq_prob g n k = 0"
+proof (induction k arbitrary: g n)
+  case 0 then show ?case by simp
+next
+  case (Suc k)
+  show ?case
+  proof (cases "g = 0")
+    case True then show ?thesis by simp
+  next
+    case False
+    have "g - 1 < k" using Suc.prems False by arith
+    then have "seq_prob (g - 1) (n - 1) k = 0" by (rule Suc.IH)
+    then show ?thesis by simp
+  qed
+qed
+
+theorem card_k_too_many:
+  "card_good c < k \<Longrightarrow> g_kernel (G_card_k c k False) = GProb GK_card_k 0"
+  by (simp add: seq_prob_too_many)
 
 theorem card_one_value:
   "g_kernel (G_card_one c) = GProb GK_card_one p \<Longrightarrow> p * 52 = rat_of_nat (card_good c)"
@@ -383,10 +467,16 @@ definition g_reply :: "greq \<Rightarrow> reply" where
         | G_dice n s kk \<Rightarrow> show_nat (atn (dice_dist n s) kk) + STR '' of the '' + commas (s ^ n)
               + STR '' equally likely outcomes of '' + show_nat n + STR '' d'' + show_nat s
               + STR '' total '' + show_nat kk
-        | G_atleast s kk \<Rightarrow> STR ''1 - ('' + show_nat (s - 1) + STR ''/'' + show_nat s + STR '')^'' + show_nat kk
+        | G_atleast s kk f \<Rightarrow>
+            (if 1 \<le> f \<and> f \<le> int s then show_nat (s ^ kk - (s - 1) ^ kk) + STR '' of ''
+              + show_nat (s ^ kk) + STR '' equally likely roll sequences contain '' + show_int f
+             else STR ''face '' + show_int f + STR '' is outside 1..'' + show_nat s)
         | G_card_one c \<Rightarrow> show_nat (card_good c) + STR '' '' + card_label c + STR ''s in 52 cards''
         | G_card_k c kk b \<Rightarrow>
-            (if b then STR ''('' + show_nat (card_good c) + STR ''/52)^'' + show_nat kk + STR '', with replacement''
+            (if kk = 0 then STR ''no draws; the empty sequence''
+             else if \<not> b \<and> card_good c < kk then STR ''only '' + show_nat (card_good c)
+               + STR '' matching cards in the deck; '' + show_nat kk + STR '' requested without replacement''
+             else if b then STR ''('' + show_nat (card_good c) + STR ''/52)^'' + show_nat kk + STR '', with replacement''
              else join_x (seq_parts (card_good c) 52 kk) + STR '', without replacement'')
         | _ \<Rightarrow> STR '''')
        in Reply True (gk_name k) (frac_reply (gk_name k) p why) JNone
@@ -411,7 +501,10 @@ definition g_reply :: "greq \<Rightarrow> reply" where
          [PS (STR ''Which word? Give it like the word BANANA and I will count the distinct arrangements.'')] JNone
    | GDecline GD_no_rolls \<Rightarrow>
        Reply False (STR ''underspecified'')
-         [PS (STR ''I could not tell how many rolls that is; say in 10 rolls and I will work it out.'')] JNone)"
+         [PS (STR ''I could not tell how many rolls that is; say in 10 rolls and I will work it out.'')] JNone
+   | GDecline GD_unsupported \<Rightarrow>
+       Reply False (STR ''unsupported'')
+         [PS (STR ''I cannot interpret that probability request safely. Specify one die face and a roll count, or one card category and a draw count.'')] JNone)"
 
 theorem g_reply_answered:
   "answered (g_reply r) \<longleftrightarrow> (\<forall>d. g_kernel r \<noteq> GDecline d)"

@@ -159,41 +159,78 @@ struct
             end
       end
 
+  (* Complete adjacent quantities. Unknown modifiers never default to one. *)
+  val gameSmall = [("zero",0),("one",1),("two",2),("three",3),("four",4),
+    ("five",5),("six",6),("seven",7),("eight",8),("nine",9),("ten",10),
+    ("eleven",11),("twelve",12),("thirteen",13),("fourteen",14),("fifteen",15),
+    ("sixteen",16),("seventeen",17),("eighteen",18),("nineteen",19),
+    ("twenty",20),("thirty",30),("forty",40),("fifty",50),("sixty",60),
+    ("seventy",70),("eighty",80),("ninety",90),("hundred",100),("a",1),("an",1)]
+  fun gameNumber phrase =
+    if has "^[+-]?[0-9]+$" phrase then
+      SOME (if String.isPrefix "-" phrase then IntInf.~ (intOf (String.extract (phrase,1,NONE)))
+        else if String.isPrefix "+" phrase then intOf (String.extract (phrase,1,NONE)) else intOf phrase)
+    else if String.isPrefix "minus " phrase then Option.map IntInf.~ (gameNumber (String.extract (phrase,6,NONE)))
+    else if String.isPrefix "negative " phrase then Option.map IntInf.~ (gameNumber (String.extract (phrase,9,NONE)))
+    else
+      let val words = String.tokens (fn c => Char.isSpace c orelse c = #"-") phrase
+          fun small w = Option.map (IntInf.fromInt o #2) (List.find (fn (s,_) => s=w) gameSmall)
+      in case words of
+           [w] => small w
+         | [a,b] => (case (small a,small b) of
+              (SOME x,SOME y) => if x >= 20 andalso x <= 90 andalso x mod 10 = 0 andalso y > 0 andalso y < 10
+                                then SOME (x+y) else if x=1 andalso y=100 then SOME 100 else NONE
+            | _ => NONE)
+         | _ => NONE
+      end
+  fun gameNumberish w =
+    isSome (gameNumber w) orelse has "^[+0-9.-]" w orelse
+    List.exists (fn x => x=w) ["minus","negative","positive","plus","and","thousand","million"]
+  fun quantityBefore low (m : Regex.match) =
+    let val words = rev (String.tokens Char.isSpace (String.substring (low,0,#start m)))
+        fun gather [] acc = acc
+          | gather (w::ws) acc = if gameNumberish w then gather ws (w::acc) else acc
+    in case words of
+         [] => NONE
+       | w::_ => if gameNumberish w then gameNumber (String.concatWith " " (gather words [])) else NONE
+    end
+
   fun atLeast low =
-    case search "\\bat least one\\s+(\\d|six|one|five|four|three|two)\\b" low of
-      NONE => NONE
-    | SOME al =>
-        if not (has "\\bdi(?:e|ce)\\b|\\bd(\\d+)\\b" low andalso has PROB low) then NONE
-        else
-          let
-            val faceNum = g1 low al
-            val sd = search "\\b(\\d+)-sided\\b|\\bd(\\d+)\\b" low
-            val sdv = case sd of NONE => NONE
-                      | SOME m => (case grp low m 1 of SOME x => SOME x | NONE => grp low m 2)
-            val s = case sdv of SOME x => intOf x | NONE => 6
-            val dm = search ("\\b" ^ NW ^ "\\s+(?:fair\\s+)?(?:\\d+-sided\\s+)?dice\\b") low
-            val k0 =
-              let fun first [] = NONE
-                    | first (p :: ps) = (case search p low of SOME m => nOf (g1 low m) | NONE => first ps)
-              in first ["\\b" ^ NW ^ "\\s+times\\b", "\\b" ^ NW ^ "\\s+(?:rolls|throws|tosses|tries|attempts)\\b",
-                        "\\brolled\\s+" ^ NW ^ "\\s+times\\b"] end
-            val k1 = case (k0, dm) of (NONE, SOME m) => nOf (g1 low m) | _ => k0
-          in
-            case k1 of
-              NONE =>
-                let
-                  val sdnums = case sd of NONE => []
-                               | SOME m => List.mapPartial (grp low m) [1, 2]
-                  val others = List.filter (fn m => let val x = Regex.whole low m in x <> faceNum andalso not (List.exists (fn y => y = x) sdnums) end)
-                                           (findall "\\b\\d+\\b" low)
-                in if not (null others) then SOME D.G_atleast_unknown
-                   else if s < 2 then NONE
-                   else SOME (D.G_atleast (natI s, nat 1))
-                end
-            | SOME k =>
-                if k = 0 orelse k > 1000 orelse s < 2 then NONE
-                else SOME (D.G_atleast (natI s, natI k))
-          end
+    if not (has "\\bat least one\\b" low andalso has PROB low andalso
+      has "\\bdi(?:e|ce)\\b|\\bd[0-9]+\\b" low) then NONE
+    else
+      let
+        val faces = findall "\\bat least one\\b" low
+        val sides = findall "([^ ]+)-sided\\b|\\bd([0-9]+)\\b" low
+        val rolls = findall "\\b(?:rolls|throws|tosses|tries|attempts|trials|times)\\b|(?:fair\\s+)?(?:[^ ]+-sided\\s+)?\\bdice\\b" low
+        fun cleanFace str =
+          if size str > 0 andalso Char.contains ".!,;?" (String.sub (str,size str - 1))
+          then String.substring (str,0,size str - 1) else str
+        fun faceAfter (m : Regex.match) =
+          let val words = String.tokens Char.isSpace (String.extract (low,#stop m,NONE))
+              fun gather [] acc = (rev acc,[])
+                | gather (w::ws) acc = if gameNumberish (cleanFace w)
+                    then gather ws (cleanFace w::acc) else (rev acc,w::ws)
+              val (number,rest) = gather words []
+              val complete = case rest of [] => true
+                | w::_ => List.exists (fn x => x = w)
+                    ["in","on","from","when","if","with","after","over","during",
+                     "among","out","of","rolling","rolls","throws","times"]
+          in if complete then gameNumber (String.concatWith " " number) else NONE end
+        val face = case faces of [m] => faceAfter m | _ => NONE
+        val side = case sides of [] => SOME 6
+          | [m] => gameNumber (valOf (case grp low m 1 of SOME x => SOME x | NONE => grp low m 2))
+          | _ => NONE
+        val remaining = subCI "([^ ]+)-sided\\b|\\bd[0-9]+\\b" "" (subCI "\\bat least one\\s+((?:minus|negative)\\s+[^ ,;?]+|[^ ,;?]+)" "" low)
+        val unsafe = has "\\b(?:and|or|not|neither|except)\\b" low
+        val count = case rolls of [] => if has "[0-9]" remaining then NONE else SOME 1
+          | [m] => quantityBefore low m | _ => NONE
+      in case (face,side,count) of
+           (SOME f,SOME s,SOME k) =>
+             if not unsafe andalso s >= 1 andalso s <= 1000 andalso k >= 0 andalso k <= 1000
+             then SOME (D.G_atleast (natI s,natI k,D.Int_of_integer f)) else SOME D.G_need
+         | _ => SOME D.G_need
+      end
 
   fun gamesCore t =
     let
@@ -234,10 +271,7 @@ struct
                         val smm = search "\\b(?:sum|total)\\s*(?:of|is|=)?\\s*(\\d+)\\b|\\broll(?:ing)?\\s+(?:a|an)\\s+(\\d+)\\b|\\bget(?:ting)?\\s+(?:a\\s+)?(\\d+)\\b" low
                       in
                         case alm of
-                          SOME _ =>
-                            let val k = case search "\\bin\\s+(\\d+)\\s+(?:rolls|throws|tries)\\b" low of
-                                          SOME r => intOf (g1 low r) | NONE => n
-                            in SOME (D.G_atleast (natI s, natI k)) end
+                          SOME _ => SOME D.G_need
                         | NONE =>
                             (case smm of
                                SOME r =>
@@ -252,27 +286,35 @@ struct
     end
   and cards low =
     if has "\\bdeck\\b|\\bcards?\\b" low andalso has PROB low andalso not (has "\\bpoker\\b|\\bhand\\b" low) then
-      case List.find (fn (p, _) => has p low) cardPats of
-        NONE => NONE
-      | SOME (_, ci) =>
+      case List.filter (fn (p, _) => has p low) cardPats of
+        [] => NONE
+      | [(pat, ci)] =>
           let
-            val km = search ("\\b(two|three|four|2|3|4)\\s+(?:\\w+\\s+){0,2}?(?:in a row|consecutive\\w*)\\b|"
-                             ^ "\\b(two|three|four|2|3|4)\\s+(?:aces|kings|queens|jacks|hearts|spades|diamonds|clubs|face cards|red cards|black cards)\\b") low
-            val k = case km of
-                      NONE => 1
-                    | SOME m => (case numWord (valOf (case grp low m 1 of SOME x => SOME x | NONE => grp low m 2)) of
-                                   SOME v => IntInf.toInt v | NONE => 1)
-            val repl = has "\\bwith replacement\\b|\\breplac(?:e|ing) (?:it|the card|each)\\b|\\bputting it back\\b" low
-                       andalso not (has "\\bwithout replacement\\b" low)
+            val cm = valOf (search pat low)
+            val prefixWords = rev (String.tokens Char.isSpace (String.substring (low,0,#start cm)))
+            val count = case quantityBefore low cm of SOME n => SOME n
+              | NONE => (case prefixWords of
+                  w::_ => if List.exists (fn v => v=w) ["draw","drawing","pull","pulling","of","a","an"] then SOME 1 else NONE
+                | [] => NONE)
+            val withRepl = has "\\bwith replacement\\b|\\breplac(?:e|ing) (?:it|the card|each)\\b|\\bputting it back\\b" low
+            val withoutRepl = has "\\bwithout replacement\\b" low
+            val sizes = findall "([^ ]+)-card deck\\b|\\bdeck of ([^ ]+) cards\\b" low
+            val standard = List.all (fn m => gameNumber (valOf (case grp low m 1 of SOME x => SOME x | NONE => grp low m 2)) = SOME 52) sizes
+            val extra = has "\\b(?:exactly|at least|at most|draws|trials|attempts|times|jokers?|decks|and|or|not|neither|except)\\b" low
           in
-            if k = 1 then SOME (D.G_card_one (cardOf ci))
-            else SOME (D.G_card_k (cardOf ci, nat k, repl))
+            if length (findall pat low) <> 1 orelse not standard orelse extra orelse (withRepl andalso withoutRepl) then SOME D.G_need
+            else case count of
+                SOME k => if k < 0 orelse k > 1000 then SOME D.G_need
+                  else if k = 1 then SOME (D.G_card_one (cardOf ci))
+                  else SOME (D.G_card_k (cardOf ci,natI k,withRepl))
+              | NONE => SOME D.G_need
           end
+      | _ => SOME D.G_need
     else NONE
 
   fun games text =
     let
-      val t0 = collapse text
+      val t0 = subCI "\226\136\146" "-" (collapse text)
       val t1 = subCI "\\bchances\\b" "chance" t0
       val t1 = subCI "\\bprobabilities\\b" "probability" t1
       val t1 = subCI "\\blikelihood\\b" "chance" t1

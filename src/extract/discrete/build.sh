@@ -49,6 +49,7 @@ $SRC/../commons/commons.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/discrete" "$OUT/build/discrete.mlb"
+python3 -B "$REPO/tools/dev/native-compile" --family discrete --compiler "$MLTON" \
+  -- -output "$OUT/bin/discrete" "$OUT/build/discrete.mlb"
 ls -l "$OUT/bin/discrete"
 shasum -a 256 "$OUT/build/discrete_generated.sml" "$OUT/bin/discrete"

@@ -22,6 +22,25 @@
           "Natural-language and polynomial recognition; this declaration is not a per-answer certificate."
         ]
       }
+    },
+    "games-v3": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "unsupported"
+        ]
+      },
+      "evidence": {
+        "computation": "Exact finite dice sequence counts for a named signed face, and repeated draws of one card category. Impossible faces and zero rolls give zero; zero card draws give one; too many matching cards without replacement give zero.",
+        "assumptions": [
+          "Uniform independent die rolls with integer faces 1 through the stated side count.",
+          "One standard 52-card deck; the stated replacement rule and a single named card category.",
+          "Complete counts, face and sampling model were parsed correctly."
+        ],
+        "untrusted": [
+          "Natural-language recognition and transport. This declaration is not a per-answer proof."
+        ]
+      }
     }
   }
 }

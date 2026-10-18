@@ -39,8 +39,8 @@ definition st6 :: bool where
 
 definition st7 :: bool where
   "st7 \<longleftrightarrow>
-     response (reply_of (RGames (G_atleast 6 2))) =
-       [PS (STR ''The probability is 11/36 (30.5556%; 1 - (5/6)^2).'')]"
+     response (reply_of (RGames (G_atleast 6 2 6))) =
+       [PS (STR ''The probability is 11/36 (30.5556%; 11 of 36 equally likely roll sequences contain 6).'')]"
 
 definition st8 :: bool where
   "st8 \<longleftrightarrow>
@@ -177,7 +177,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat
   piece_lit piece_raw hand_list card_list form_list complexity_names
   PS PB JNone JRaw JStr
   RGames RLogic RAlgos RCalc RFormats
-  G_poker G_dice G_atleast G_atleast_unknown G_card_one G_card_k G_anagram G_anagram_none
+  G_poker G_dice G_atleast G_atleast_unknown G_need G_card_one G_card_k G_anagram G_anagram_none
   FVar FNeg FConj FDisj FImpl FEquiv L_formula L_argument L_form L_bad_formula L_bad_argument
   A_sp A_sp_need A_mst A_mst_need A_bsearch A_bsearch_need A_sort A_complexity
   C_deriv C_deriv_at C_anti C_def C_need
@@ -188,7 +188,9 @@ export_code reply_of answered reply_kind response stated answers mk_rat
 ML \<open>
   val theorems = [@{thm anagram_equation}, @{thm sum_dist}, @{thm dist_ways}, @{thm hand_values},
     @{thm hand_partition}, @{thm seq_prob_ordered}, @{thm dice_value}, @{thm dice_impossible},
-    @{thm atleast_value}, @{thm atleast_range}, @{thm card_one_value}, @{thm card_k_ordered},
+    @{thm roll_sequences_count}, @{thm roll_sequences_nonempty}, @{thm containing_lists_count}, @{thm roll_sequences_containing},
+    @{thm atleast_value}, @{thm atleast_range}, @{thm atleast_empty}, @{thm atleast_impossible_face},
+    @{thm seq_prob_too_many}, @{thm card_k_too_many}, @{thm card_one_value}, @{thm card_k_ordered},
     @{thm card_k_repl_value}, @{thm poker_value}, @{thm anagram_value}, @{thm g_reply_answered},
     @{thm pct_num_sound},
     @{thm classify_taut}, @{thm classify_contr}, @{thm classify_conting}, @{thm argument_valid},

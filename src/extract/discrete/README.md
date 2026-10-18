@@ -52,3 +52,13 @@ of taking a convenient suffix. Numeric ordinals require their canonical suffix
 (21st, not 21th). `ordinal_probes.py` checks exact values and the named order for
 168 authored cases; [the ordinal report](../../../project/lanes/D-symbolic-discrete.md)
 records panel and dispatcher results. This still does not verify English parsing.
+
+The games continuation retains the requested signed die face and connects its
+probability to counts of actual finite roll sequences. Impossible faces and zero
+rolls give zero. Complete card draw counts now use the exact existing calculation;
+zero draws give one and too many matching cards without replacement give zero.
+Mixed events and incomplete quantities refuse decisively. Counts are bounded at
+1000; the recognizer remains untrusted. `games_probes.py` checks exact arithmetic
+against enumerated dice and combinatorial card counts. The [games report](../../../project/lanes/E-symbolic-discrete.md)
+records the checked statements, panel results, compiler inputs and remaining
+interpretation defects in the other specialists.

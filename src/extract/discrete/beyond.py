@@ -26,12 +26,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--binary', default='var/discrete/bin/discrete')
     ap.add_argument('--seeds', nargs='+', type=int, default=[181013,181027])
+    ap.add_argument('--specialist', choices=list(GENERATORS), help='run only the changed specialist')
     ap.add_argument('--out', required=True)
     args=ap.parse_args(); out=Path(args.out);out.mkdir(parents=True,exist_ok=True)
     report={}
     for seed in args.seeds:
         for sid, mod, cls, _, scorer_mod, tol in score.SPECIALISTS:
             if sid not in GENERATORS: continue
+            if args.specialist and sid != args.specialist: continue
             panelpath=out / f'{sid}-{seed}.json'; generate(sid,seed,panelpath)
             panel=score.read_panel(panelpath)
             organ=getattr(score.load(sid,mod),cls)(); scorer=score.load(sid,scorer_mod)
