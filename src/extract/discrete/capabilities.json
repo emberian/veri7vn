@@ -86,6 +86,24 @@
           "English recognition and transport; declaration is not a per-answer certificate."
         ]
       }
+    },
+    "logic-v3": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "unsupported"
+        ]
+      },
+      "evidence": {
+        "computation": "Complete propositional formulas and premise lists use exhaustive truth tables. A kernel guard admits at most 12 distinct variables (4096 rows). Invalid arguments return a counterexample assignment.",
+        "assumptions": [
+          "The complete formula and every premise denote the parsed propositional syntax.",
+          "Variables are single letters; word and symbolic operators use the documented precedence."
+        ],
+        "untrusted": [
+          "English recognition and transport; this declaration is not a per-answer certificate."
+        ]
+      }
     }
   }
 }

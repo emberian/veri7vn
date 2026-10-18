@@ -436,7 +436,7 @@ struct
     "^if (\\w+)(?:,)? then (\\w+)\\.? if \\2(?:,)? then (\\w+)\\.? therefore,? if \\1(?:,)? then \\3\\.?$",
     "^(\\w+) or (\\w+)\\.? not \\1\\.? therefore,? \\2\\.?$"]
 
-  val TAIL = "\\s*(?:is (?:it|this|the argument|this argument) (?:a )?valid(?: argument)?|what (?:is this|form is this|fallacy is this)[^?]*|name (?:the|this) (?:form|fallacy))\\??\\s*$"
+  val TAIL = "\\s*(?:is (?:it|this|the argument|this argument) (?:a )?valid(?: argument)?|what (?:is this|form is this|fallacy is this)|name (?:the|this) (?:form|fallacy))\\??\\s*$"
 
   fun stripTail body =
     case search TAIL body of
@@ -448,187 +448,53 @@ struct
           | go i (p :: ps) = if has p body then SOME (List.nth (D.form_list, i)) else go (i + 1) ps
     in go 0 forms end
 
-  val TOK = "(?:<->|->|" ^ aR ^ "|" ^ aLR ^ "|" ^ andS ^ "|" ^ orS ^ "|" ^ notS ^ "|~|!|&&?|\\|\\|?|\\^|\\(|\\)|,|;|\\b[a-z]\\b)"
-  val SPAN_L = "((?:\\s*" ^ TOK ^ ")+)\\s*$"
-  val SPAN_R = "^\\s*((?:\\s*" ^ TOK ^ ")+)"
-  val SPAN_ANY = "(?:\\s*" ^ TOK ^ ")+"
-  val CLS = "\\btautolog\\w*\\b|\\bcontradiction\\b|\\bcontingent\\b|\\bsatisfiable\\b|\\balways true\\b"
-  val SYMB = "<->|->|" ^ aR ^ "|" ^ aLR ^ "|" ^ andS ^ "|" ^ orS ^ "|" ^ notS ^ "|~|&|\\|"
-
-  fun splitSemi (s : string) = String.fields (fn c => c = #";" orelse c = #",") s
-
-  fun parseAll (parts : string list) : D.fm list option =
-    let val ps = List.filter (fn x => strip x <> "") parts
-        val rs = map parseF ps
-    in if null ps orelse List.exists (not o isSome) rs then NONE else SOME (map valOf rs) end
-
-  fun shape low =
-    let
-      val starts = 0 :: map (fn {stop, ...} : Regex.match => stop) (findall "[:?]\\s+|\\.\\s+(?=if\\b)" low)
-      fun go [] = NONE
-        | go (s :: ss) =
-            let val body = strip (stripTail (String.extract (low, s, NONE)))
-            in case formOf body of SOME f => SOME (D.RLogic (D.L_form f)) | NONE => go ss end
-    in go starts end
-
-  fun turnstile low =
-    case search ("\\|-|" ^ tsile ^ "|" ^ thf) low of
-      NONE => NONE
-    | SOME {start, stop, ...} =>
-        if not (has "\\bvalid\\b|\\binvalid\\b|\\bentail\\w*\\b|\\bfollows?\\b|\\bsound\\b" low) then NONE
-        else
-          let
-            val left = String.substring (low, 0, start)
-            val right = String.extract (low, stop, NONE)
-            val premS = case search SPAN_L left of SOME m => g1 left m | NONE => ""
-            val conclS = case search SPAN_R right of SOME m => g1 right m | NONE => ""
-            val concl = parseF (let val c = strip conclS
-                                    val l = List.rev (dropWhile' (fn x => x = #"," orelse x = #";") (List.rev (String.explode c)))
-                                in String.implode l end)
-          in
-            case (parseAll (splitSemi premS), concl) of
-              (SOME ps, SOME c) => SOME (D.RLogic (D.L_argument (ps, c)))
-            | _ => SOME (D.RLogic D.L_bad_argument)
-          end
-
-  (* the first quoted span, as the regex  ["'`‘“]([^"'`’”]+)["'`’”]  would find it *)
-  fun quotedSpan (s : string) : string option =
-    let
-      val n = size s
-      fun starts i p = i + size p <= n andalso String.substring (s, i, size p) = p
-      val lq = "\226\128\152" val rq = "\226\128\153" val ldq = "\226\128\156" val rdq = "\226\128\157"
-      fun openLen i = if starts i lq orelse starts i ldq then SOME 3
-                      else if i < n andalso Char.contains "\"'`" (String.sub (s, i)) then SOME 1 else NONE
-      fun closeLen i = if starts i rq orelse starts i rdq then SOME 3
-                       else if i < n andalso Char.contains "\"'`" (String.sub (s, i)) then SOME 1 else NONE
-      fun run j = if j >= n then NONE
-                  else case closeLen j of SOME _ => SOME j | NONE => run (j + 1)
-      fun tryAt i =
-        if i >= n then NONE
-        else case openLen i of
-               NONE => tryAt (i + 1)
-             | SOME l =>
-                 (case run (i + l) of
-                    SOME k => if k > i + l then SOME (String.substring (s, i + l, k - i - l)) else tryAt (i + 1)
-                  | NONE => tryAt (i + 1))
-    in tryAt 0 end
-
-  fun classOf e = SOME (D.RLogic (D.L_formula e))
-
-  fun quoted low =
-    if not (has CLS low) then NONE
-    else
-      case quotedSpan low of
-        NONE => NONE
-      | SOME span =>
-          let val symbolic = has SYMB span
-          in
-            if not symbolic andalso not (has "\\b(?:and|or|not|iff|implies)\\b" span) then NONE
-            else
-              case parseF span of
-                NONE => if not symbolic then NONE else SOME (D.RLogic D.L_bad_formula)
-              | SOME e => if isVar e then NONE else classOf e
-          end
-
-  fun cutSuffixA s = case search "\\s+a$" s of SOME {start, ...} => String.substring (s, 0, start) | NONE => s
-  fun cutPrefixA s = case search "^a\\s+" s of SOME {stop, ...} => String.extract (s, stop, NONE) | NONE => s
-
-  fun span low =
-    if not (has CLS low) then NONE
-    else
-      let
-        val spans = List.filter (fn x => has SYMB x) (map (fn m => strip (Regex.whole low m)) (findall SPAN_ANY low))
-      in
-        if null spans then NONE
-        else
-          let
-            val best = List.foldl (fn (x, b) => if size x > size b then x else b) (hd spans) (tl spans)
-            val cands = [best, cutSuffixA best, cutPrefixA best, cutSuffixA (cutPrefixA best)]
-            fun go [] = SOME (D.RLogic D.L_bad_formula)
-              | go (c :: cs) = (case parseF c of
-                                  SOME e => if isVar e then go cs else classOf e
-                                | NONE => go cs)
-          in go cands end
-      end
-
-  fun logicV1 low =
-    if not (has "\\btautolog\\w*\\b|\\bcontradiction\\b|\\bcontingent\\b|\\bvalid\\b|\\binvalid\\b|\\bfallacy\\b|\\bargument form\\b|\\bmodus\\b|\\btruth table\\b|\\blogically\\b|\\bsatisfiable\\b" low)
-    then NONE
-    else
-      let
-        val body0 = case CharVector.findi (fn (_, c) => c = #":") low of
-                      SOME (i, _) =>
-                        let fun skip j = if j < size low andalso Char.isSpace (String.sub (low, j)) then skip (j + 1) else j
-                        in String.extract (low, skip (i + 1), NONE) end
-                    | NONE => low
-        val body = strip (stripTail body0)
-      in
-        case formOf body of
-          SOME f => SOME (D.RLogic (D.L_form f))
-        | NONE =>
-          let
-            val arg =
-              case search ("(?:premises?:?\\s*)?(.+?)\\s*(?:\\|-|" ^ tsile ^ "|therefore|" ^ thf ^ "|entails?)\\s*(.+?)\\s*(?:\\?|$|\\bvalid\\b)") low of
-                SOME am =>
-                  if has "\\bvalid\\b|\\binvalid\\b|\\bentail\\w*\\b" low
-                     andalso has ("->|" ^ aR ^ "|<->|" ^ aLR ^ "|" ^ andS ^ "|" ^ orS ^ "|" ^ notS ^ "|~|\\|-|" ^ tsile ^ "|\\bimplies\\b") low
-                  then
-                    let
-                      val p1 = g1 low am
-                      val premS = case search "^\\s*(?:is the argument|is|are|does)\\s+" p1 of
-                                    SOME {stop, ...} => String.extract (p1, stop, NONE) | NONE => p1
-                      val c2 = valOf (grp low am 2)
-                      val conclS = case search "\\s*(?:valid|a valid argument).*$" c2 of
-                                     SOME {start, ...} => String.substring (c2, 0, start) | NONE => c2
-                    in
-                      case (parseAll (splitSemi premS), parseF conclS) of
-                        (SOME ps, SOME c) => SOME (D.RLogic (D.L_argument (ps, c)))
-                      | _ => NONE
-                    end
-                  else NONE
-              | NONE => NONE
-          in
-            case arg of
-              SOME r => SOME r
-            | NONE =>
-              let
-                val fm =
-                  case search "(?:is|formula|statement|expression|sentence)\\s+[\"'`]?(.+?)[\"'`]?\\s+(?:a |an )?(?:tautology|contradiction|contingent|valid|satisfiable|always true)" low of
-                    SOME m => SOME (g1 low m)
-                  | NONE =>
-                    (case search "(?:classify|evaluate|check)\\s+[\"'`]?(.+?)[\"'`]?\\s*(?:[:.?]|$)" low of
-                       SOME m => SOME (g1 low m)
-                     | NONE => (case search "[\"'`](.+?)[\"'`]" low of SOME m => SOME (g1 low m) | NONE => NONE))
-              in
-                case fm of
-                  NONE => NONE
-                | SOME f =>
-                    if has "\\btautolog\\w*\\b|\\bcontradiction\\b|\\bcontingent\\b|\\bsatisfiable\\b|\\balways true\\b" low then
-                      (case parseF f of
-                         NONE => NONE
-                       | SOME e => if isVar e then NONE else classOf e)
-                    else NONE
-              end
-          end
-      end
+  fun unwrapFormula s =
+    let val s=strip s val n=size s
+    in if n>=2 andalso List.exists(fn q=>String.sub(s,0)=q)[#"'",#"\"",#"`"]
+       then if String.sub(s,n-1)=String.sub(s,0) then SOME(String.substring(s,1,n-2)) else NONE
+       else SOME s end
 
   fun logic text =
     let
-      val t = collapse text
-      val low = lower t
+      val low=lower(collapse text)
+      val t=subCI "^using a truth table,?\\s+" "" low
+      fun L r=SOME(D.RLogic r)
+      fun need()=L D.L_need
+      val clsTail="(?:(?:a )?tautology(?:, (?:a )?contradiction,? or contingent)?|(?:a )?contradiction|contingent|satisfiable|always true)"
+      val named=search "^(?:name this argument form:|what argument form \\(or fallacy\\) is this:|identify the form of this argument:|what kind of argument is this\\?)\\s*(.+)$" t
+      val namedBody=case named of SOME m=>SOME(g1 t m) | NONE=>if has "^if |\\btherefore\\b" t then SOME t else NONE
+      val namedForm=case namedBody of NONE=>NONE | SOME b=>formOf(strip(stripTail b))
+      val body=subCI "^(?:check whether the premises entail the conclusion:\\s*|(?:is(?: the argument)?|determine whether|does)\\s+)" "" t
+      val argEnd="(?:\\. is it valid\\??|\\s+(?:is (?:a )?)?valid(?: argument)?[?.]?|\\s+hold as a valid inference\\??)$"
+      val argBody=strip(subCI argEnd "" body)
+      val argBody=case unwrapFormula argBody of SOME b=>b | NONE=>argBody
+      val symbolic=findall ("\\|-|"^tsile^"|"^thf) argBody
+      val marks=if null symbolic then findall "\\b(?:therefore|entails?)\\b" argBody else symbolic
+      val logicalCue=has "\\btautolog\\w*\\b|\\bcontradiction\\b|\\bcontingent\\b|\\bsatisfiable\\b|\\balways true\\b|\\bargument\\b|\\binference\\b" t orelse not(null symbolic)
+      fun parsePrem s =
+        if strip s="" then SOME [] else
+        let val parts=String.fields(fn c=>c= #"," orelse c= #";") s
+            val fs=map parseF parts
+        in if List.all isSome fs then SOME(map valOf fs) else NONE end
+      fun formula s=case unwrapFormula s of NONE=>need()
+        | SOME b=>case parseF b of NONE=>need() | SOME f=>L(D.L_formula f)
+      fun classification()=
+        case search ("^(?:is|determine whether)\\s+(.+?)\\s+(?:is )?"^clsTail^"[?.]?$") t of
+          SOME m=>formula(g1 t m)
+        | NONE=>
+          (case search ("^(?:classify|evaluate|check)(?: the)?(?: formula| statement| expression)?\\s+(.+?)(?:: ?"^clsTail^")?[?.]?$") t of
+             SOME m=>formula(g1 t m)
+           | NONE=>if logicalCue then need() else NONE)
     in
-      case shape low of
-        SOME r => SOME r
-      | NONE =>
-      case turnstile low of
-        SOME r => SOME r
-      | NONE =>
-      case quoted low of
-        SOME r => SOME r
-      | NONE =>
-      case span low of
-        SOME r => SOME r
-      | NONE => logicV1 low
+      case namedForm of SOME f=>L(D.L_form f)
+      | NONE=>if isSome named then need() else
+        case marks of
+          [m]=>let val prem=String.substring(argBody,0,#start m)
+                   val concl=String.extract(argBody,#stop m,NONE)
+               in case (parsePrem prem,parseF concl) of
+                 (SOME ps,SOME c)=>L(D.L_argument(ps,c)) | _=>need() end
+        | []=>classification()
+        | _=>need()
     end
 
   (* ====================================================================

@@ -78,3 +78,14 @@ appear in reply text and as JSON strings for noninteger results; integers stay
 numeric. Unsupported grammar and uncertified candidates refuse. The
 [algorithms report](../../../project/lanes/G-symbolic-discrete.md) records current
 build status, independent small-graph checks and remaining limits.
+
+The logic continuation consumes complete formulas, premise lists and conclusions,
+including word operators mixed with symbols. It does not discard unknown text or
+empty premise-list entries. Operator precedence is negation, conjunction,
+disjunction, implication, equivalence; implication associates to the right and
+equivalence to the left. Single-letter variables are case-insensitive. The
+exported kernel admits at most 12 distinct variables before building a truth table,
+and proves successful formula counts have at most 4096 rows. This limits rows,
+not formula size or elapsed time. Independent checks evaluate generated syntax
+and returned counterexample assignments; [the logic report](../../../project/lanes/H-symbolic-discrete.md)
+records exact outcomes, proof statements and remaining interpretation limits.

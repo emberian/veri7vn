@@ -227,7 +227,7 @@ qed
 section \<open>Requests, kernel and reply\<close>
 
 datatype lreq = L_formula fm | L_argument "fm list" fm | L_form form
-  | L_bad_formula | L_bad_argument
+  | L_bad_formula | L_bad_argument | L_need
 
 datatype lout =
     LClass cls nat nat
@@ -235,35 +235,59 @@ datatype lout =
   | LInvalid "(nat \<times> bool) list"
   | LForm form bool
   | LUnparsed bool
+  | LUnsupported
 
 definition row_of :: "nat list \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> (nat \<times> bool) list" where
   "row_of vs e = map (\<lambda>v. (v, e v)) vs"
 
 definition l_kernel :: "lreq \<Rightarrow> lout" where
   "l_kernel r = (case r of
-      L_formula f \<Rightarrow> LClass (classify f) (rows_true f) (nrows f)
+      L_formula f \<Rightarrow> (if length (fvars f) > 12 then LUnsupported
+        else LClass (classify f) (rows_true f) (nrows f))
     | L_argument ps c \<Rightarrow>
-        (case cex ps c of None \<Rightarrow> LValid (2 ^ length (avars ps c))
+        (if length (avars ps c) > 12 then LUnsupported else case cex ps c of None \<Rightarrow> LValid (2 ^ length (avars ps c))
          | Some e \<Rightarrow> LInvalid (row_of (avars ps c) e))
     | L_form f \<Rightarrow> LForm f (form_valid f)
     | L_bad_formula \<Rightarrow> LUnparsed True
-    | L_bad_argument \<Rightarrow> LUnparsed False)"
+    | L_bad_argument \<Rightarrow> LUnparsed False
+    | L_need \<Rightarrow> LUnsupported)"
 
 theorem l_formula_sound:
   "l_kernel (L_formula f) = LClass c t n \<Longrightarrow>
      (c = Taut \<longleftrightarrow> (\<forall>g. eval g f)) \<and> (c = Contr \<longleftrightarrow> (\<forall>g. \<not> eval g f))
      \<and> (c = Conting \<longleftrightarrow> (\<exists>g. eval g f) \<and> (\<exists>g. \<not> eval g f))"
-  using classify_taut classify_contr classify_conting by (auto simp: l_kernel_def)
+  using classify_taut classify_contr classify_conting by (auto simp: l_kernel_def split: if_splits)
 
 theorem l_argument_valid_sound:
   "l_kernel (L_argument ps c) = LValid n \<Longrightarrow>
      (\<forall>g. (\<forall>p \<in> set ps. eval g p) \<longrightarrow> eval g c)"
-  using argument_valid by (auto simp: l_kernel_def split: option.splits)
+  using argument_valid by (auto simp: l_kernel_def split: option.splits if_splits)
 
 theorem l_argument_invalid_sound:
   "l_kernel (L_argument ps c) = LInvalid row \<Longrightarrow>
      \<exists>e. row = row_of (avars ps c) e \<and> (\<forall>p \<in> set ps. eval e p) \<and> \<not> eval e c"
-  using argument_witness by (auto simp: l_kernel_def split: option.splits)
+  using argument_witness by (auto simp: l_kernel_def split: option.splits if_splits)
+
+text \<open>The guard is inside the exported kernel, before truth-table enumeration.
+The bound concerns table rows, not formula size or elapsed execution time.\<close>
+lemma logic_rows_bound:
+  "length vs \<le> 12 \<Longrightarrow> length (envs vs) \<le> 4096"
+proof -
+  assume h: "length vs \<le> 12"
+  have "(2::nat) ^ length vs \<le> 2 ^ 12" using h by (rule power_increasing) simp
+  then show ?thesis by (simp add: length_envs)
+qed
+
+theorem l_formula_table_bound:
+  "l_kernel (L_formula f) = LClass c t n \<Longrightarrow> t \<le> n \<and> n \<le> 4096"
+  using logic_rows_bound[of "fvars f"] length_filter_le[of "\<lambda>e. eval e f" "envs (fvars f)"]
+  by (auto simp: l_kernel_def rows_true_def nrows_def split: if_splits)
+
+theorem l_argument_table_bound:
+  "l_kernel (L_argument ps c) \<noteq> LUnsupported \<Longrightarrow>
+    length (envs (avars ps c)) \<le> 4096"
+  using logic_rows_bound[of "avars ps c"]
+  by (auto simp: l_kernel_def split: if_splits)
 
 definition letters :: "String.literal list" where
   "letters = [STR ''a'', STR ''b'', STR ''c'', STR ''d'', STR ''e'', STR ''f'', STR ''g'', STR ''h'',
@@ -304,6 +328,9 @@ definition l_reply :: "lreq \<Rightarrow> reply" where
               + (if v then STR ''the conclusion follows in every case''
                  else STR ''a counterexample row makes the premises true and the conclusion false'')
               + STR '').'')] JNone
+    | LUnsupported \<Rightarrow>
+        Reply False (STR ''unsupported'')
+          [PS (STR ''Use one complete propositional formula or argument with at most 12 distinct single-letter variables.'')] JNone
     | LUnparsed True \<Rightarrow>
         Reply False (STR ''underspecified'')
           [PS (STR ''I could not parse that formula; use single-letter variables with ~ & | -> <->.'')] JNone
@@ -312,7 +339,7 @@ definition l_reply :: "lreq \<Rightarrow> reply" where
           [PS (STR ''I could not parse that argument; write it like p -> q, p |- q using single-letter variables.'')] JNone)"
 
 theorem l_reply_answered:
-  "answered (l_reply r) \<longleftrightarrow> (\<forall>b. l_kernel r \<noteq> LUnparsed b)"
+  "answered (l_reply r) \<longleftrightarrow> (\<forall>b. l_kernel r \<noteq> LUnparsed b) \<and> l_kernel r \<noteq> LUnsupported"
   by (auto simp: l_reply_def split: lout.splits bool.splits)
 
 end

@@ -178,7 +178,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat
   PS PB JNone JRaw JStr
   RGames RLogic RAlgos RCalc RFormats
   G_poker G_dice G_atleast G_atleast_unknown G_need G_card_one G_card_k G_anagram G_anagram_none
-  FVar FNeg FConj FDisj FImpl FEquiv L_formula L_argument L_form L_bad_formula L_bad_argument
+  FVar FNeg FConj FDisj FImpl FEquiv L_formula L_argument L_form L_bad_formula L_bad_argument L_need
   A_sp A_sp_need A_mst A_mst_need A_bsearch A_bsearch_need A_need A_sort A_complexity
   C_deriv C_deriv_at C_anti C_def C_need
   F_json F_b64dec F_b64enc F_hash F_urldec F_urlenc F_base F_signed_base F_need F_day
@@ -195,7 +195,7 @@ ML \<open>
     @{thm pct_num_sound},
     @{thm classify_taut}, @{thm classify_contr}, @{thm classify_conting}, @{thm argument_valid},
     @{thm argument_witness}, @{thm form_table}, @{thm form_semantics}, @{thm l_formula_sound},
-    @{thm l_argument_valid_sound}, @{thm l_argument_invalid_sound}, @{thm l_reply_answered},
+    @{thm l_argument_valid_sound}, @{thm l_argument_invalid_sound}, @{thm l_reply_answered}, @{thm l_formula_table_bound}, @{thm l_argument_table_bound},
     @{thm sp_found_sound}, @{thm sp_unreach_sound}, @{thm a_shortest_sound}, @{thm a_unreach_sound},
     @{thm a_nonode}, @{thm a_mst_sound}, @{thm mst_edges}, @{thm bsearch_found}, @{thm bsearch_none},
     @{thm a_bsearch_found}, @{thm a_bsearch_none}, @{thm a_bsearch_unsorted}, @{thm isort_correct},
