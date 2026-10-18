@@ -24,10 +24,10 @@ saved pre-change binary agree on the baseline specialist counts.
 | woodworking | 36/0/0/0 | 33/0/0/3 | 36/0/0/0 | 36/0/0/0 |
 | crafts | 14/0/0/0 | 14/0/0/0 | 14/0/0/0 | 14/0/0/0 |
 
-Total specialist results improve from 388/397 to 397/397. Family mode also
-scores 397/397; it already used printing-v2 for the printing questions, so its
+Total specialist results improve from 348/357 to 357/357. Family mode also
+scores 357/357; it already used printing-v2 for the printing questions, so its
 new shipped gain is the three woodworking answers. The scoped parity harness
-confirms 397/397, zero wrong and false yes. Its overall verdict remains
+confirms 357/357, zero wrong and false yes. Its overall verdict remains
 **INCOMPLETE** because no whole-head domain-gain/lane/self comparison was run.
 
 ## Fresh and extension checks
@@ -36,13 +36,13 @@ Seed offset 20261018 yields complete results in both modes: architecture 10/10,
 printing 39/37, printing-v2 38/38, woodworking 36/36, crafts 14/14 (dev/heldout).
 Safety retains its shipped 44/45 because no generator ships for it; those 89
 items are explicitly not fresh. Including safety, the saved binary and organs
-score 393/401, versus 401/401 after: five printing and three woodworking misses
+score 353/361, versus 361/361 after: five printing and three woodworking misses
 resolved, with zero wrong and false yes.
 
 The untouched second seed offset 20261231, generated after the final reader,
 yields architecture 10/10, printing 35/35, printing-v2 36/38, woodworking 36/36,
-crafts 14/14, plus retained safety 44/45. Final result is 393/393 in both modes,
-versus 384/393 for original organs and saved binary. No new tuning followed
+crafts 14/14, plus retained safety 44/45. Final result is 353/353 in both modes,
+versus 344/353 for original organs and saved binary. No new tuning followed
 this seed. Fresh sampling varies existing pools/templates, not independent
 question design.
 
@@ -110,3 +110,9 @@ separate D audit also found inherited epsilon ceiling/floor behavior wrong at
 integer boundaries; its exact-count correction is staged separately until
 this C packet is captured. Full shipped parity is not a claim that every input
 or every original model convention is correct.
+
+Correction during D integration: the initial prose aggregates above mistakenly
+added 40 to both totals. They are now computed from the unchanged per-specialist
+JSON receipts. Individual table rows, replies, wrong/false-yes counts and the
+immutable captured C artifacts were unaffected. The frozen scratch report is
+preserved as originally captured.
