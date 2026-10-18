@@ -87,3 +87,24 @@ python3 tools/parity/harness.py --answerer "var/energy/bin/energy" \
 # own cross-check against the organs, per specialist and for the whole family
 python3 src/extract/energy/score.py
 ```
+
+## Beyond the shipped versions (Codex, 18 October)
+
+The home-energy readers now share the complete passive-swap grammar, so the
+older energy-v2 name no longer answers a saving question with total usage.
+Hydropower also reads a stated falling height. A new `runtime_adjusted` request
+uses nominal battery energy times inverter efficiency times usable depth,
+divided by a constant load. Unmentioned factors are one; a mentioned factor
+without a numeric value takes the dedicated missing-factor request and is declined
+as underspecified. A round-trip efficiency cannot supply the one-way factor. Each factor must be above zero and at
+most one. This is a constant-load energy budget, not a discharge-curve model;
+voltage sag, idle consumption, ageing and Peukert effects are outside it.
+
+The two runtime laws connect the adjusted result to delivered energy and to
+the existing ideal runtime. The capability sidecar declares this new kind to
+the shared runtime. `probes.json` supplies numeric and invalid-input checks;
+these were authored alongside the recognizer and are not independent evidence.
+
+The build-time self-test still runs and the final oracle scan remains mandatory.
+The self-test is no longer exported as an eager startup value. To compile a
+checked remote export, pass its SML path as the first argument to `build.sh`.

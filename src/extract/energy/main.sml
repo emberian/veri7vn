@@ -13,7 +13,8 @@
 
 structure Main =
 struct
-  val theorems = "[\"thermo_exact_sound\",\"home_exact_sound\",\"hvac_exact_sound\",\"ren_exact_sound\",\"iot_exact_sound\",\"family_declines_withheld\",\"num_dec_r_sound\"]"
+  (* Family declarations, not per-answer proof certificates. *)
+  val theorems = "[\"thermo_exact_sound\",\"home_exact_sound\",\"hvac_exact_sound\",\"ren_exact_sound\",\"iot_exact_sound\",\"family_declines_withheld\",\"num_dec_r_sound\",\"adjusted_runtime_law\",\"adjusted_runtime_agrees\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))

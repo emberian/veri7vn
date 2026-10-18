@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "family": "energy",
+  "specialists": {
+    "energy-v2": {
+      "accept": {
+        "kinds": [
+          "runtime_adjusted"
+        ],
+        "declines_in_domain": [
+          "impossible",
+          "underspecified"
+        ]
+      },
+      "context_regex_additions": [
+        "\\b(?:\\d+(?:\\.\\d*)?|\\.\\d+)\\s*w\\b",
+        "\\b(?:cost|price)\\b.*\\b(?:run|running|operate|operating)\\b"
+      ],
+      "evidence": {
+        "computation": "Hours = nominal Wh times efficiency times usable fraction divided by constant load W.",
+        "assumptions": [
+          "Constant load; stated efficiency is one-way. Unmentioned factors are one; mentioned but unread factors and round-trip descriptions are refused.",
+          "Efficiency and usable depth in (0,1]; Wh/kWh and amp-hours nonnegative, voltage and load positive.",
+          "No self-discharge, voltage sag, ageing, idle load, or Peukert model."
+        ],
+        "untrusted": [
+          "English recognition and decimal parsing; JSON framing."
+        ]
+      }
+    },
+    "energy-v3": {
+      "accept": {
+        "kinds": [
+          "runtime_adjusted"
+        ],
+        "declines_in_domain": [
+          "impossible",
+          "underspecified"
+        ]
+      },
+      "context_regex_additions": [
+        "\\b(?:\\d+(?:\\.\\d*)?|\\.\\d+)\\s*w\\b",
+        "\\b(?:cost|price)\\b.*\\b(?:run|running|operate|operating)\\b"
+      ],
+      "evidence": {
+        "computation": "Hours = nominal Wh times efficiency times usable fraction divided by constant load W.",
+        "assumptions": [
+          "Constant load; stated efficiency is one-way. Unmentioned factors are one; mentioned but unread factors and round-trip descriptions are refused.",
+          "Efficiency and usable depth in (0,1]; Wh/kWh and amp-hours nonnegative, voltage and load positive.",
+          "No self-discharge, voltage sag, ageing, idle load, or Peukert model."
+        ],
+        "untrusted": [
+          "English recognition and decimal parsing; JSON framing."
+        ]
+      }
+    }
+  }
+}

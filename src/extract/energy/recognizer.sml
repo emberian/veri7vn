@@ -206,6 +206,7 @@ struct
 
   (* ---------- energy-v2 / energy-v3 ---------- *)
   val NE = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
+  val NS = "(-?\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
   val cent = "\194\162"
 
   fun wattsOf low =
@@ -267,17 +268,37 @@ struct
   fun energyV1 (low : string) : E.home_req option =
     if has "\\bbattery|\\bpower bank\\b|\\bups\\b" low andalso has "\\bhow long\\b|\\bruntime\\b|\\brun time\\b|\\blast\\b" low then
       let
-        val wh = search (NE ^ "\\s*(kwh|wh)\\b") low
-        val ah = search (NE ^ "\\s*ah\\b") low
-        val v = search (NE ^ "\\s*v(?:olts?)?\\b") low
-        val load = search ("\\b(?:a|an|the)?\\s*" ^ NE ^ "\\s*(w|watts?)\\b(?!\\s*h\\b)\\s*(?:device|load|appliance|fridge|light|laptop|lamp|fan|tv|router|pump|heater)?") low
+        val wh = search (NS ^ "\\s*(kwh|wh)\\b") low
+        val ah = search (NS ^ "\\s*ah\\b") low
+        val v = search (NS ^ "\\s*v(?:olts?)?\\b") low
+        val load = search ("(?<![\\w.-])(?:a|an|the)?\\s*" ^ NS ^ "\\s*(kw|kilowatts?|w|watts?)\\b(?!\\s*h\\b)\\s*(?:device|load|appliance|fridge|light|laptop|lamp|fan|tv|router|pump|heater)?") low
         val cap =
           case wh of
             SOME m => SOME (if valOf (grp low m 2) = "kwh" then E.Cap_kwh (mk (gq low m)) else E.Cap_wh (mk (gq low m)))
           | NONE => (case (ah, v) of
                        (SOME a, SOME vv) => SOME (E.Cap_ahv (mk (gq low a), mk (gq low vv)))
                      | _ => NONE)
-      in SOME (E.HRuntime (cap, Option.map (fn m => mk (gq low m)) load)) end
+        val load = Option.map (fn m => mk (qmul (gq low m) (if String.isPrefix "k" (valOf (grp low m 2)) then qint 1000 else qint 1))) load
+        fun fraction name =
+          let val rx = "(?:" ^ name ^ ")\\s*(?:of|is|=|:)?\\s*" ^ NT ^ "\\s*(%)?"
+              val revRx = NT ^ "\\s*(%)\\s*(?:" ^ name ^ ")"
+          in case (case search rx low of SOME m => SOME m | NONE => search revRx low) of
+               NONE => NONE
+             | SOME m => SOME (mk (if isSome (grp low m 2) then qdiv (gq low m) (qint 100) else gq low m))
+          end
+        val eff = fraction "(?:inverter )?efficiency"
+        val depth = fraction "(?:usable )?depth(?:[- ]of[- ]discharge)?|dod|usable capacity"
+        val adjusted = has "\\befficiency\\b|\\bdepth\\b|\\bdod\\b|\\busable capacity\\b|-\\d" low
+        val unknownFactor =
+          (has "efficiency" low andalso not (isSome eff)) orelse
+          (has "depth|dod|usable capacity" low andalso not (isSome depth)) orelse
+          has "round[- ]?trip" low
+      in if unknownFactor then SOME E.HRuntimeMissingFactors
+         else if adjusted then
+           SOME (E.HRuntimeAdjusted (cap, load,
+             case eff of SOME x => x | NONE => mk (qint 1),
+             case depth of SOME x => x | NONE => mk (qint 1)))
+         else SOME (E.HRuntime (cap, load)) end
     else if has "\\bsolar\\b|\\bpv\\b|\\bpanels?\\b" low andalso has "\\bsun ?hours?\\b|\\bpeak sun\\b|\\bsunlight hours?\\b" low then
       let
         val k = search (NE ^ "\\s*(kw|kilowatts?|w|watts?)\\b(?!\\s*h\\b)") low
@@ -467,7 +488,7 @@ struct
         if has "\\bhydro\\w*\\b|\\bdam\\b|\\bturbine\\b.*\\bwater\\b|\\bhead of\\b|\\bflow rate\\b" low andalso has CUBIC_PER_S low then
           let
             val q = search (NE ^ "\\s*(?:" ^ CUBIC_PER_S ^ ")") low
-            val h = case search ("\\b(?:head|drop|fall|height)\\s*(?:of|is|=)?\\s*" ^ NE ^ "\\s*m\\b") low of
+            val h = case search ("\\b(?:head|drop|fall|falling|height)\\s*(?:of|is|=)?\\s*" ^ NE ^ "\\s*m\\b") low of
                       SOME m => SOME m
                     | NONE => search (NE ^ "\\s*m\\s*(?:of\\s+)?(?:head|drop|fall)\\b") low
           in
@@ -689,18 +710,18 @@ struct
   val organs = ["thermo", "energy-v2", "energy-v3", "hvac", "renewables", "iot"]
 
   fun byId "thermo" = thermo
-    | byId "energy-v2" = homeV2
+    | byId "energy-v2" = homeV3
     | byId "energy-v3" = homeV3
     | byId "hvac" = hvac
     | byId "renewables" = renewables
     | byId "iot" = iot
     | byId other = raise Fail ("unknown specialist " ^ other)
 
-  (* manifest context_regex of each specialist; used only to choose among them when no
+  (* Manifest context plus family capability additions; used only to choose among them when no
      --specialist is given *)
   fun context "thermo" = "\\b(?:heat|energy|joules?|ideal gas|carnot|efficiency|stefan|black ?body|radiat\\w*|melt|boil|vapori[sz]e)\\b"
-    | context "energy-v2" = "\\b(?:kwh|watts?|kw|battery|solar|payback|energy|electricity|power bank|tariff|bill)\\b"
-    | context "energy-v3" = "\\b(?:kwh|watts?|kw|battery|solar|payback|energy|electricity|power bank|tariff|bill)\\b"
+    | context "energy-v2" = "\\b(?:kwh|watts?|kw|battery|solar|payback|energy|electricity|power bank|tariff|bill)\\b|\\b(?:\\d+(?:\\.\\d*)?|\\.\\d+)\\s*w\\b|\\b(?:cost|price)\\b.*\\b(?:run|running|operate|operating)\\b"
+    | context "energy-v3" = "\\b(?:kwh|watts?|kw|battery|solar|payback|energy|electricity|power bank|tariff|bill)\\b|\\b(?:\\d+(?:\\.\\d*)?|\\.\\d+)\\s*w\\b|\\b(?:cost|price)\\b.*\\b(?:run|running|operate|operating)\\b"
     | context "hvac" = "\\b(?:cfm|ach|air changes?|btu\\w*|tons?|r-?\\d+|r-value|heat loss|hvac|furnace|air conditioner|ac)\\b"
     | context "renewables" = "\\b(?:wind|turbine|rotor|capacity factor|solar|pv|photovoltaic|hydro\\w*|dam|betz)\\b"
     | context "iot" = "\\b(?:adc|analog[- ]to[- ]digital|battery|mah|duty cycle|nyquist|sampl\\w+|sensor|data rate|bit rate)\\b"

@@ -26,6 +26,15 @@ datatype cap = Cap_wh rat | Cap_kwh rat | Cap_ahv rat rat
 fun capwh :: "cap \<Rightarrow> rat" where
   "capwh (Cap_wh x) = x" | "capwh (Cap_kwh x) = x * 1000" | "capwh (Cap_ahv ah v) = ah * v"
 
+fun cap_valid :: "cap \<Rightarrow> bool" where
+  "cap_valid (Cap_wh x) = (0 \<le> x)"
+| "cap_valid (Cap_kwh x) = (0 \<le> x)"
+| "cap_valid (Cap_ahv ah v) = (0 \<le> ah \<and> 0 < v)"
+
+lemma cap_valid_nonnegative:
+  "cap_valid c \<Longrightarrow> 0 \<le> capwh c"
+  by (cases c) (auto intro: mult_nonneg_nonneg)
+
 datatype derate = Dr_none | Dr_loss rat | Dr_eff rat
 datatype per = Per_day | Per_year | Per_month
 
@@ -39,6 +48,8 @@ HEnergy: watts, hours, tariff, and whether a cost was asked.\<close>
 datatype home_req =
     HPayback "rat option" "(rat \<times> bool) option"
   | HRuntime "cap option" "rat option"
+  | HRuntimeAdjusted "cap option" "rat option" rat rat
+  | HRuntimeMissingFactors
   | HSolar "(rat \<times> bool) option" "rat option" "rat option" derate per
   | HSwap rat rat "hspec option" "rat option"
   | HEnergy "rat option" "hspec option" "rat option" bool
@@ -52,11 +63,18 @@ fun solar_kw :: "(rat \<times> bool) option \<Rightarrow> rat option \<Rightarro
 
 section \<open>Declines\<close>
 
+definition runtime_missing :: "cap option \<Rightarrow> rat option \<Rightarrow> String.literal option" where
+  "runtime_missing c w = (case c of None \<Rightarrow> Some (STR ''the capacity of the battery (Wh, or volts and amp-hours)'')
+     | Some _ \<Rightarrow> (case w of None \<Rightarrow> Some (STR ''the load in watts'') | Some _ \<Rightarrow> None))"
+
+declare runtime_missing_def[simp]
+
 fun miss_h :: "home_req \<Rightarrow> String.literal option" where
   "miss_h (HPayback c s) = (case (c, s) of (Some _, Some _) \<Rightarrow> None
      | _ \<Rightarrow> Some (STR ''the up-front cost and the saving per year (or month)''))"
-| "miss_h (HRuntime c w) = (case c of None \<Rightarrow> Some (STR ''the capacity of the battery (Wh, or volts and amp-hours)'')
-     | Some _ \<Rightarrow> (case w of None \<Rightarrow> Some (STR ''the load in watts'') | Some _ \<Rightarrow> None))"
+| "miss_h (HRuntime c w) = runtime_missing c w"
+| "miss_h (HRuntimeAdjusted c w e d) = runtime_missing c w"
+| "miss_h HRuntimeMissingFactors = Some (STR ''a numeric one-way efficiency and usable depth for each loss factor mentioned'')"
 | "miss_h (HSolar a p s d pe) = (case (a, s) of (Some _, Some _) \<Rightarrow> None
      | _ \<Rightarrow> Some (STR ''the array size (kW) and the peak sun hours''))"
 | "miss_h (HSwap a b h r) = (case h of None \<Rightarrow> Some (STR ''how many hours it runs'') | Some _ \<Rightarrow> None)"
@@ -75,8 +93,14 @@ fun hnote :: "hspec \<Rightarrow> String.literal" where
 | "hnote (H_min m) = gw m + STR '' min''"
 
 fun post_h :: "home_req \<Rightarrow> (dcl \<times> String.literal) option" where
-  "post_h (HRuntime c (Some w)) =
-     (if w \<le> 0 then Some (D_imposs, STR ''A load must draw more than 0 W.'') else None)"
+  "post_h (HRuntimeAdjusted c w e d) =
+     (if e \<le> 0 \<or> 1 < e \<or> d \<le> 0 \<or> 1 < d
+      then Some (D_imposs, STR ''Efficiency and usable depth must be above 0 and at most 100%.'')
+      else case (c,w) of (Some c, Some w) \<Rightarrow>
+        (if \<not> cap_valid c \<or> w \<le> 0 then Some (D_imposs, STR ''Capacity and amp-hours must be nonnegative; voltage and load positive.'') else None)
+      | _ \<Rightarrow> None)"
+| "post_h (HRuntime (Some c) (Some w)) =
+     (if \<not> cap_valid c \<or> w \<le> 0 then Some (D_imposs, STR ''Capacity and amp-hours must be nonnegative; voltage and load positive.'') else None)"
 | "post_h (HEnergy (Some w) (Some h) None True) =
      Some (D_tariff, STR ''It uses '' + gw (w * htot h / 1000) + STR '' kWh ('' + gw w + STR '' W x ''
        + hnote h + STR ''); give me your price per kWh and I will price it.'')"
@@ -91,6 +115,7 @@ section \<open>Values\<close>
 fun vl_h :: "home_req \<Rightarrow> rat" where
   "vl_h (HPayback (Some c) (Some (s, m))) = c / syear s m"
 | "vl_h (HRuntime (Some c) (Some w)) = capwh c / w"
+| "vl_h (HRuntimeAdjusted (Some c) (Some w) e d) = capwh c * e * d / w"
 | "vl_h (HSolar a p (Some s) d pe) = solar_kw a p * s * dfac d * perfac pe"
 | "vl_h (HSwap a b (Some h) r) = (a - b) * htot h / 1000"
 | "vl_h (HEnergy (Some w) (Some h) r cost) =
@@ -100,6 +125,8 @@ fun vl_h :: "home_req \<Rightarrow> rat" where
 fun kd_h :: "home_req \<Rightarrow> String.literal" where
   "kd_h (HPayback _ _) = STR ''payback''"
 | "kd_h (HRuntime _ _) = STR ''runtime''"
+| "kd_h (HRuntimeAdjusted _ _ _ _) = STR ''runtime_adjusted''"
+| "kd_h HRuntimeMissingFactors = STR ''runtime_adjusted''"
 | "kd_h (HSolar _ _ _ _ _) = STR ''solar_yield''"
 | "kd_h (HSwap _ _ _ _) = STR ''swap_saving''"
 | "kd_h (HEnergy _ _ _ cost) = (if cost then STR ''cost'' else STR ''energy'')"
@@ -122,7 +149,7 @@ lemmas exact_parts_h =
   home_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2]
 
 lemma post_h_not_under: "post_h r \<noteq> Some (D_under, w)"
-  by (cases r rule: post_h.cases) auto
+  by (cases r rule: post_h.cases) (auto split: option.splits prod.splits)
 
 theorem home_underspecified:
   "kernel_h r = Decline D_under w \<longleftrightarrow> miss_h r = Some w"
@@ -187,6 +214,24 @@ theorem cost_needs_tariff:
   "\<exists>w'. kernel_h (HEnergy (Some w) (Some h) None True) = Decline D_tariff w'"
   by (simp add: kernel_h_def mk_kernel_def)
 
+theorem runtime_missing_factors:
+  "\<exists>w. kernel_h HRuntimeMissingFactors = Decline D_under w"
+  by (simp add: kernel_h_def mk_kernel_def)
+
+theorem adjusted_runtime_law:
+  assumes "kernel_h (HRuntimeAdjusted (Some c) (Some w) e d) = Exact k q"
+  shows "cap_valid c \<and> 0 < e \<and> e \<le> 1 \<and> 0 < d \<and> d \<le> 1 \<and> 0 < w \<and>
+         0 \<le> capwh c \<and> q * w = capwh c * e * d"
+  using exact_parts_h(2,5)[OF assms] cap_valid_nonnegative[of c]
+  by (auto simp: field_simps split: if_splits)
+
+theorem adjusted_runtime_agrees:
+  assumes "kernel_h (HRuntimeAdjusted (Some c) (Some w) e d) = Exact k q"
+      and "kernel_h (HRuntime (Some c) (Some w)) = Exact k' base"
+  shows "q = base * e * d"
+  using exact_parts_h(5)[OF assms(1)] exact_parts_h(5)[OF assms(2)]
+  by (simp add: field_simps)
+
 section \<open>Reply text\<close>
 
 fun capnote :: "cap \<Rightarrow> String.literal" where
@@ -213,6 +258,9 @@ fun exact_text_h :: "home_req \<Rightarrow> rat \<Rightarrow> String.literal \<R
      + STR '' saved per year), ignoring price changes and financing.''"
 | "exact_text_h (HRuntime (Some c) (Some w)) q V = STR ''The runtime is about '' + V + STR '' hours (''
      + capnote c + STR '' / '' + gw w + STR '' W), before inverter and depth-of-discharge losses.''"
+| "exact_text_h (HRuntimeAdjusted (Some c) (Some w) e d) q V = STR ''The runtime is about '' + V
+     + STR '' hours ('' + capnote c + STR '' x '' + gw (e * 100) + STR ''% efficiency x ''
+     + gw (d * 100) + STR ''% usable depth / '' + gw w + STR '' W; constant load and stated losses).''"
 | "exact_text_h (HSolar a p (Some s) d pe) q V = STR ''The array makes about '' + V + STR '' kWh''
      + pertext pe + STR '' ('' + gw (solar_kw a p) + STR '' kW x '' + gw s + STR '' peak sun hours, ''
      + dernote d + STR '').''"

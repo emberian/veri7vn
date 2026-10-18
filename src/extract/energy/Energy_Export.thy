@@ -64,14 +64,14 @@ definition self_test :: bool where
        STR ''That is 17.28 MB per day (1600 bit/s x 86,400 s / 8 / 10^6).'' \<and>
      \<not> answered (reply_i (IAdcVolt 8 (Some 5) 256))"
 
-export_code reply_of answered reply_kind response stated mk_rat self_test
+export_code reply_of answered reply_kind response stated mk_rat
   integer_of_int nat_of_integer int_of_integer
   mat_table air_density
   Temp TU_C TU_F TU_K PU_Pa PU_kPa PU_atm PU_bar VU_m3 VU_L VU_mL MU_kg MU_g
   C_given C_mat C_none DT_by DT_temps
   TCarnot TGas TRad TFusion TVapor TSens TAny Thermo
   H_pdd H_pdy H_pdm H_day H_tot H_min Cap_wh Cap_kwh Cap_ahv Dr_none Dr_loss Dr_eff
-  Per_day Per_year Per_month HPayback HRuntime HSolar HSwap HEnergy
+  Per_day Per_year Per_month HPayback HRuntime HRuntimeAdjusted HRuntimeMissingFactors HSolar HSwap HEnergy
   DS_direct DS_pair VTons VBtuh VAch VCfm VSens VCond VSeasonal VSizing
   G_swept G_diam G_rad Irr_given Irr_stc Irr_none RHydro RPV RCapF RAnnual RRatio RWind
   IAdcLsb IAdcVolt IAdcCode INyquist IAvgCur IBat IBatConst IDataRate IStorage
@@ -79,7 +79,7 @@ export_code reply_of answered reply_kind response stated mk_rat self_test
   in SML module_name Energy file_prefix energy
 
 ML \<open>
-  val theorems = [@{thm mk_exact}, @{thm mk_pi}, @{thm mk_fixed}, @{thm mk_decline},
+  val theorems = [@{thm cap_valid_nonnegative}, @{thm runtime_missing_factors}, @{thm adjusted_runtime_law}, @{thm adjusted_runtime_agrees}, @{thm mk_exact}, @{thm mk_pi}, @{thm mk_fixed}, @{thm mk_decline},
     @{thm num_dec_r_sound}, @{thm show_fmt_sound}, @{thm round_sig_sound}, @{thm to_dec_sound},
     @{thm round_tie_up}, @{thm pi_bounds_sound}, @{thm pw_scale_sound}, @{thm pw_show_sound},
     @{thm mk_reply_answered_iff}, @{thm mk_reply_exact}, @{thm mk_reply_withheld},

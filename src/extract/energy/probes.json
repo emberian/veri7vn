@@ -1,0 +1,174 @@
+[
+  {
+    "q": "How long can a 1000 Wh battery run a 100 W load with 90% inverter efficiency and 80% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 7.2,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 1200 Wh battery run a 200 W load with 90% inverter efficiency and 50% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 2.7,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 2000 Wh battery run a 250 W load with 95% inverter efficiency and 80% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 6.08,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 500 Wh battery run a 50 W load with 80% inverter efficiency and 100% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 8.0,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 100 Wh battery run a 10 W load with 100% inverter efficiency and 100% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 10.0,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 600 Wh battery run a 75 W load with 90% inverter efficiency and 60% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 4.32,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 2400 Wh battery run a 300 W load with 85% inverter efficiency and 80% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 5.44,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 1000 Wh battery run a 100 W load with 0% inverter efficiency and 80% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 1000 Wh battery run a 100 W load with 101% inverter efficiency and 80% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 1000 Wh battery run a 100 W load with 90% inverter efficiency and 0% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 1000 Wh battery run a 100 W load with 90% inverter efficiency and 120% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 1000 Wh battery run a 0 W load with 90% inverter efficiency and 80% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 0 Wh battery run a 100 W load with 90% inverter efficiency and 80% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 0.0,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 1000 Wh battery run a 100 W load with -10% inverter efficiency and 80% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 1000 Wh battery run a 100 W load with 90% inverter efficiency and -10% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "note": "Constant-load energy budget with separately stated usable fraction; no dynamic battery model."
+  },
+  {
+    "q": "How long can a 1000 Wh battery run a 100 W load with 90% inverter efficiency?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 9,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf"
+  },
+  {
+    "q": "How long can a 1000 Wh battery run a 100 W load with 80% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 8,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf"
+  },
+  {
+    "q": "How long can a 2 kWh battery run a 200 W load with efficiency 0.9 and depth of discharge 0.8?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 7.2,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf"
+  },
+  {
+    "q": "How long can a 100 Ah 12 V battery run a 120 W load with 90% inverter efficiency and 80% depth of discharge?",
+    "specialist": "energy-v3",
+    "valid": true,
+    "expect": 7.2,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf"
+  },
+  {
+    "q": "How long can a 1000 Wh battery run a 100 W load with unknown inverter efficiency?",
+    "specialist": "energy-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.victronenergy.com/Manuals/phoenix/phoenix%20uni/ph06003.pdf",
+    "expect_kind": "underspecified"
+  },
+  {
+    "q": "How long can a -2 Ah -12 V battery run a 24 W load with 90% efficiency?",
+    "specialist": "energy-v3",
+    "valid": false,
+    "expect": null,
+    "expect_kind": "impossible",
+    "source": "Home.thy: cap_valid constituent domain; constant-load model, not signed electric sources."
+  },
+  {
+    "q": "How long can a 100 Ah 0 V battery run a 100 W load with 90% efficiency?",
+    "specialist": "energy-v3",
+    "valid": false,
+    "expect": null,
+    "expect_kind": "impossible",
+    "source": "Home.thy: cap_valid constituent domain; constant-load model, not signed electric sources."
+  }
+]
