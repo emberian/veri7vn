@@ -444,6 +444,7 @@ def main():
     ap.add_argument("--out", default=str(REPO / "var/organs"))
     ap.add_argument("--darwin-dir")
     ap.add_argument("--prepared-dir", type=Path, help="validated per-family frozen runtime/native/export captures")
+    ap.add_argument("--consumer-ref", help="pin committed registry and shared checker; requires --prepared-dir")
     ap.add_argument("--linux-dir", default=str(REPO / "var/organs/linux-x86_64"))
     ap.add_argument("--pull-linux", metavar="HOST")
     ap.add_argument("--allow-missing", action="store_true")
@@ -452,6 +453,8 @@ def main():
     ap.add_argument("--allow-dirty", action="store_true", help="record modified source state; does not certify binary freshness")
     ap.add_argument("--include-stores", action="store_true", help="requires stores binaries with explicit asset-path options")
     a = ap.parse_args()
+    if a.consumer_ref and not a.prepared_dir:
+        ap.error("--consumer-ref requires --prepared-dir")
     os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 
     out = Path(a.out)
@@ -461,7 +464,13 @@ def main():
         print("pulled %d Linux programs from %s" % (len(info["bins"]), a.pull_linux))
     linux_info = json.loads((linux_dir / "linux-info.json").read_text(encoding="utf-8")) if (linux_dir / "linux-info.json").exists() else {"bins": {}}
 
-    registry = {e["family"]: e for e in json.loads((REPO / "src/extract/families.json").read_text(encoding="utf-8"))["families"]}
+    head = sh("git", "rev-parse", "HEAD").strip()
+    consumer_head = sh("git", "rev-parse", "--verify", (a.consumer_ref or head) + "^{commit}").strip()
+    registry_text = (sh("git", "show", consumer_head + ":src/extract/families.json") if a.consumer_ref
+                     else (REPO / "src/extract/families.json").read_text(encoding="utf-8"))
+    registry = {e["family"]: e for e in json.loads(registry_text)["families"]}
+    mo.REGISTRY = {slug: e for slug, e in registry.items() if e.get("role") == "specialist"}
+    mo.NO_FLAG = {slug for slug, e in mo.REGISTRY.items() if not e.get("specialist_flag", True)}
     tables = mo.family_tables()
     selected = set(a.family.split(",")) if a.family else set(tables)
     unknown = selected - set(tables)
@@ -481,8 +490,7 @@ def main():
     if not slugs:
         raise SystemExit("no families selected")
 
-    head = sh("git", "rev-parse", "HEAD").strip()
-    consumer_files = approved_consumer_files(head)
+    consumer_files = approved_consumer_files(consumer_head)
     consumer_checker = consumer_files['runtime_contract.py']
     # Family owners can have next-cohort checker edits in this shared checkout.
     # Use the same approved version to generate acceptance and execute replies.
@@ -613,7 +621,8 @@ def main():
     (shared / "README.md").write_text(readme, encoding="utf-8")
     manifest = {"package": "veri7vn-specialists", "date": a.date, "veri7vn_commit": head, "families": families,
                 "consumer_runtime_contract_sha256": sha256(shared / "runtime_contract.py"),
-                "consumer_runtime_contract_commit": head,
+                "consumer_runtime_contract_commit": consumer_head,
+                "consumer_registry_sha256": hashlib.sha256(registry_text.encode()).hexdigest(),
                 "consumer_files_sha256": {name: hashlib.sha256(content).hexdigest()
                                           for name, content in consumer_files.items()},
                 "consumer_runtime_scope": "approved committed integration checker; separate from each captured family proof",
