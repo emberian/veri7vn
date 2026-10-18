@@ -75,7 +75,25 @@ checks, not claimed as fresh original-generator panels.
 Tracked current observations: `project/audits/evidence/fleet-units-fixed-20261018.json`.
 The Fleet audit record binds the immutable new native and retains its historical
 receipt reference. Local checks, predecessor and integration index are under
-`var/root-fleet-units/`. Linux and scoped portable packaging are being completed.
+`var/root-fleet-units/`. The exact integration index is
+`var/root-fleet-units/integration.json`.
+
+Linux and scoped portable packaging also passed. Managed Linux receipt
+`var/linux/receipt-mechanics-persvati-mechanics-1792325003-97113.json` records
+1264 freshly scored replies identical to macOS, all correct. Linux native SHA256:
+`1639907a67c967e7bda630f95714db179a3e00ba578060094a0d5229986f1f70`.
+
+The nine-folder macOS/Linux package at
+`var/root-fleet-units/portability/package/veri7vn-specialists-2026-10-18.tar.gz`
+pins shared consumers to `382a7cf`. It is 866,560 bytes, SHA256
+`95b7f8dae5e976ab6ff3126d5068d54a1f5631fb5b818a8c1669d7edaf459968`.
+Both relocated platforms again score 1264/1264 with identical replies, including
+46 correct invalid refusals. Their 110 Fleet unit-role checks also match exactly:
+97 numerical answers, ten correct invalid refusals and three valid withholds.
+All expected-behavior assertions pass; the withholds remain capability gaps.
+Exact bindings and evidence: `var/root-fleet-units/portability/delivery.json`.
+All nine explicit specialist audit records validate, but remain partial coverage
+of the full system. No proof, compiler, remote test or implementation job remains.
 
 ## Remaining surface
 

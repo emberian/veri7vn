@@ -10,7 +10,23 @@ are not specialist folders. Stores needs binaries with the explicit asset-path
 options and is included only with `--include-stores`; its six IDs otherwise
 remain explicitly excluded.
 
-## Later mechanics successor
+## Latest mechanics successor: Fleet unit correction
+
+The nine mechanics specialists have a newer package at
+`var/root-fleet-units/portability/package/veri7vn-specialists-2026-10-18.tar.gz`.
+It retains the mechanism efficiency repair and fixes Fleet's separate economy,
+requested-volume and price-unit roles. Shared consumers are pinned to `382a7cf`.
+Both relocated platforms score 1264/1264 shipped cases with identical replies.
+All 110 Fleet unit-role checks match too: 97 answers, ten correct invalid refusals
+and three valid withholds for unsupported unit qualifications. Broader Fleet
+semantics, including braking slopes and emissions assumptions, remain unaudited.
+
+The archive is 866,560 bytes, SHA256
+`95b7f8dae5e976ab6ff3126d5068d54a1f5631fb5b818a8c1669d7edaf459968`.
+Exact bindings: `var/root-fleet-units/portability/delivery.json`. This is the
+latest scoped mechanics package; it does not replace the full delivery below.
+
+## Earlier mechanics successor: mechanism efficiency
 
 The nine mechanics specialists have a separate macOS/Linux package at
 `var/root-mechanics-efficiency/resume/portability/package/veri7vn-specialists-2026-10-18.tar.gz`.
