@@ -20,7 +20,9 @@
    one, this port drops the \b (Python counts those characters as word
    characters, this matcher does not).
 
-   Differences from the organs, all in the kernel's favour: a fuel economy of 0
+   Completion: measured/read pollutant concentrations, decimal cooling
+   durations, and the same complete food vocabulary for both coldchain versions.
+   Other differences from the organs: a fuel economy of 0
    mpg reaches the kernel, which declines it (the organ raises
    ZeroDivisionError); a negative solar constant is declined; cooling readings,
    hour counts and temperatures are exact rationals, not floats. *)
@@ -141,7 +143,7 @@ struct
      unit) is silence *)
   fun finish t req =
     if Q.not_taken req then NONE
-    else if (not (Q.answers req)) andalso (not (Narrow.short_direct t)) then NONE
+    else if (not (Narrow.short_direct t)) andalso (not (Q.answers req)) then NONE
     else SOME req
 
   val N = NUM
@@ -227,7 +229,7 @@ struct
         List.concat (map (fn (p, rx) =>
           let
             val a = map (fn m => (p, g1 low m, grp low m 2, #start m))
-                      (findall ("(?:" ^ rx ^ ")\\s*(?:\\(?\\s*(?:24|8|1)[- ]?h(?:ou)?r\\s*\\)?\\s*)?(?:level|concentration|reading|average|of|is|at|=|:|\\s)*" ^ aqNum ^ aqUnit) low)
+                      (findall ("(?:" ^ rx ^ ")\\s*(?:\\(?\\s*(?:24|8|1)[- ]?h(?:ou)?r\\s*\\)?\\s*)?(?:level|concentration|reading|reads|measured|average|of|is|at|=|:|\\s)*" ^ aqNum ^ aqUnit) low)
             val b = List.mapPartial (fn m =>
                       let val u = grp low m 2
                       in if isSome u orelse isPm p then SOME (p, g1 low m, u, #start m) else NONE end)
@@ -493,8 +495,6 @@ struct
         end
     end
 
-  fun coldchain text = coldchainCore text
-
   val foodish = "\\btime as a (?:public health )?control\\b|\\bsandwich\\w*|\\bsalad\\b|\\bmeat\\b|\\bchicken\\b|\\bdish\\b|\\bstock\\b|\\bmeals?\\b|\\bbeans\\b|\\bpasta\\b"
   fun coldchainV2 text =
     let
@@ -506,7 +506,7 @@ struct
           let
             val hm = search "\\b(?:in|within|over|took|taking)\\s+(\\d+(?:\\.\\d+)?)\\s*(hours?|hrs?|minutes?)\\b" low
             val a = search ("\\bfrom\\s+" ^ TEMP ^ "(?:\\s+down)?\\s+to\\s+" ^ TEMP) low
-            val b = search ("\\b(?:after reaching|once (?:it|at)|at)\\s+" ^ TEMP ^ "[^.?]*?\\bto\\s+" ^ TEMP) low
+            val b = search ("\\b(?:after reaching|once (?:it|at)|at)\\s+" ^ TEMP ^ "[^?]*?\\bto\\s+" ^ TEMP) low
             val m = case a of SOME x => SOME x | NONE => b
           in
             case (m, hm) of
@@ -536,13 +536,12 @@ struct
     | byId "airquality" = airquality
     | byId "climate" = climate
     | byId "carbonmat" = carbonmat
-    | byId "coldchain" = coldchain
+    | byId "coldchain" = coldchainV2
     | byId "coldchain-v2" = coldchainV2
     | byId other = raise Fail ("unknown specialist " ^ other)
 
-  (* The family: each manifest's organ in a fixed order, the first that takes the
-     question answers it. coldchain-v2 stands for both coldchain manifests (v2 is
-     v1 plus word order). *)
+  (* Both coldchain manifests use the completed reader. The family asks each
+     domain in a fixed order, taking its first recognized request. *)
   val familyOrder = ["airquality", "carbonmat", "coldchain-v2", "climate", "carboncapture"]
 
   fun recognize mode text =

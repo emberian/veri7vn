@@ -17,6 +17,18 @@ definition answers :: "request \<Rightarrow> bool" where
 definition not_taken :: "request \<Rightarrow> bool" where
   "not_taken r = (kernel r = Decline Not_taken)"
 
+text \<open>Only the AQI and cooling routes can fall through. Testing whether a
+climate or carbon-material request is in lane must not compute its interval
+answer and then throw that computation away.\<close>
+lemma not_taken_code [code]:
+  "not_taken r = (case r of
+     Req_aq a \<Rightarrow> aq_kernel a = Decline Not_taken
+   | Req_cd c \<Rightarrow> cd_kernel c = Decline Not_taken
+   | _ \<Rightarrow> False)"
+  by (cases r)
+     (auto simp: not_taken_def cc_kernel_def cl_kernel_def cm_kernel_def Let_def
+       split: option.splits cmreq.splits dest: spec_out_decline)
+
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
      stated (reply_of (Req_cc (Cc_fuel_co2 F_gasoline (STR ''gasoline'') 10))) = Some (STR ''88.87'') \<and>
@@ -48,7 +60,7 @@ definition self_test :: bool where
      kernel (Req_cd (Cd_date (Some Thursday))) = Weekday Wednesday \<and>
      kernel (Req_cd (Cd_cook Cook_ground)) = Exact K_cook_temp 155"
 
-export_code reply_of answered reply_kind response stated answers not_taken self_test
+export_code reply_of answered reply_kind response stated answers not_taken
   mk_rat mk_int integer_of_int nat_of_integer int_of_integer
   Req_cc Req_aq Req_cl Req_cm Req_cd
   F_gasoline F_diesel E_kwh E_mwh E_gj
@@ -63,7 +75,8 @@ export_code reply_of answered reply_kind response stated answers not_taken self_
   in SML module_name Climate file_prefix climate
 
 ML \<open>
-  val theorems = [@{thm approx_out_sound}, @{thm spec_out_exact}, @{thm spec_out_approx},
+  val theorems = [
+    @{thm not_taken_code}, @{thm approx_out_sound}, @{thm spec_out_exact}, @{thm spec_out_approx},
     @{thm to_fixed_sound}, @{thm enclose_fixed_sound}, @{thm g_dec_sound}, @{thm round_sig_sound},
     @{thm cc_kernel_sound}, @{thm cc_kernel_declines}, @{thm c_to_co2_model}, @{thm co2_to_c_model},
     @{thm carbon_co2_roundtrip}, @{thm fuel_co2_model}, @{thm co2_per_mile_model}, @{thm captured_model},

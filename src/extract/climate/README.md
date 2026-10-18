@@ -20,8 +20,8 @@ climate, carboncapture. Handoff with theorem statements and numbers:
 ## Build and run
 
 ```sh
-python3 tools/dev/check-native --session Veri7vn_Climate --session-root src/extract/climate \
-  --expect 'VERI7VN_CLIMATE PASS' --timeout 900
+tools/dev/remote-build persvati src/extract/climate Veri7vn_Climate -d src/extract/commons \
+  --expect 'VERI7VN_CLIMATE PASS'
 python3 src/extract/climate/tables_check.py
 sh src/extract/climate/build.sh
 PYTHONDONTWRITEBYTECODE=1 python3 src/extract/climate/score.py
@@ -31,5 +31,10 @@ python3 tools/parity/harness.py --answerer var/climate/bin/climate \
 
 ## Result
 
-Every shipped panel item is right or withheld; 0 wrong and 0 false yes anywhere, and every
-reply agrees with the shipped organ on all panel questions. See the handoff for the table.
+The completed reader accepts measured/read AQI concentrations. Both cold-chain
+wrappers recognize decimal durations and the same food vocabulary. See
+`project/lanes/C-climate.md` for the measured comparison, build state and limits.
+
+`python3 -B src/extract/climate/beyond.py --seeds 701,1701 --out var/climate/beyond`
+runs the shipped panels, fresh numeric samples and 20 authored boundary probes.
+Self-tests execute during the checked build, not at binary startup.
