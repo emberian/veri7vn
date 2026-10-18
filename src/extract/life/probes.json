@@ -186,7 +186,7 @@
   },
   {
     "specialist": "biology",
-    "q": "Translate RNA 3′-UCCGUA-5′.",
+    "q": "Translate RNA 3\u2032-UCCGUA-5\u2032.",
     "expect": "MP",
     "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
   },
@@ -233,7 +233,7 @@
   },
   {
     "specialist": "microbiology-v2",
-    "q": "Calculate CFU/mL: −40 colonies, dilution 10^-3, .1 mL plated.",
+    "q": "Calculate CFU/mL: \u221240 colonies, dilution 10^-3, .1 mL plated.",
     "expect": null,
     "source": "Shared exact numeric token roles; no malformed suffix recovery; CFU=c/(d*v).",
     "decline_class": "invalid"
@@ -381,7 +381,7 @@
   },
   {
     "specialist": "microbiology-v2",
-    "q": "A plate has 45 colonies from a −1:100 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "q": "A plate has 45 colonies from a \u22121:100 dilution with 0.25 ml plated. Calculate CFU/ml.",
     "expect": null,
     "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline.",
     "decline_class": "invalid"
@@ -520,5 +520,903 @@
     "source": "Population, finite growth multiplier and forward elapsed time must be nonnegative.",
     "decline_class": "unsupported",
     "capability_expect": 783.5261664684589
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with 100 cells and doubles every 1/2 hour. How many cells after 2 hours?",
+    "expect": 1600,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with 100 cells and doubles every 1200 seconds. How many cells after 1 hour?",
+    "expect": 800,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with .5e3 cells and doubles every 20 minutes. How many cells after 1 hour?",
+    "expect": 4000,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with .5 x 10^3 cells and doubles every 20 minutes. How many cells after 1 hour?",
+    "expect": 4000,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with -100 cells and doubles every 20 minutes. How many cells after 1 hour?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with 100 cells and doubles every -20 minutes. How many cells after 1 hour?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with 1.2.3 cells and doubles every 20 minutes. How many cells after 1 hour?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with 100 cells and doubles every 20 minutes and doubles every 30 minutes. How many cells after 1 hour?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with 0 cells and doubles every 20 minutes. How many cells after 1 hour?",
+    "expect": 0,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with 100 cells and doubles every 20 minutes. How many cells after 0 hours?",
+    "expect": 100,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with 100 cells and doubles every 20 minutes. How many cells after -1 hour?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "unsupported",
+    "capability_expect": 12.5
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A bacterial population grows from 100 cells to 800 cells over 1 hour. What is the doubling time in hours?",
+    "expect": 0.3333333333333333,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "response_contains": [
+      "hours"
+    ]
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A bacterial population grows from 100 cells to 800 cells over 1 hour. What is the doubling time in seconds?",
+    "expect": 1200,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "response_contains": [
+      "seconds"
+    ]
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A bacterial population grows from 100 cells to 800 cells over 1 hour. What is the doubling time in days?",
+    "expect": 0.013888888888888888,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "response_contains": [
+      "days"
+    ]
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A bacterial population grows from 100 cells to 300 cells over 1 hour. What is the doubling time in hours?",
+    "expect": 0.6309297535714575,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "response_contains": [
+      "hours"
+    ]
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A bacterial population grows from 100 cells to 800 cells over -1 hour. What is the doubling time?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A bacterial population grows from 100 cells to 800 cells over 0 hours. What is the doubling time?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "What is the total dilution after 3 serial 0-fold dilutions?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "What is the total dilution after -3 serial 10-fold dilutions?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "What is the total dilution after 0 serial 10-fold dilutions?",
+    "expect": 1,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "What is the total dilution after 3 serial 1:5 dilutions?",
+    "expect": 125,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "What is the total dilution after 3 serial 10-fold dilutions?",
+    "expect": 1000,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "What is the total dilution after 2.5 serial 10-fold dilutions?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "What is the total dilution after 3 serial -10-fold dilutions?",
+    "expect": null,
+    "source": "Binary-fission trajectory N0*2^(elapsed/doubling time), exact minute conversion, generation-time output units, and complete equal-factor serial product; same-author mechanistic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A bacterial population grows from 100 cells to 800 cells over 1 hour. What is the doubling time in weeks?",
+    "expect": null,
+    "decline_class": "unsupported",
+    "capability_expect": 0.001984126984126984,
+    "source": "Twenty minutes equals1/504 week; weeks output unsupported by current typed time unit model."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "What is the total dilution after 3 serial 2.5-fold dilutions?",
+    "expect": null,
+    "decline_class": "unsupported",
+    "capability_expect": 15.625,
+    "source": "Positive rational dilution factors are physically valid; this serial kernel currently admits integer factors only."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "How many generations of bacteria occur in 0 hours if the doubling time is 20 minutes?",
+    "expect": 0,
+    "source": "Forward binary-fission elapsed time and positive doubling-time domain; zero elapsed time gives zero generations."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "How many generations of bacteria occur in -1 hour if the doubling time is 20 minutes?",
+    "expect": null,
+    "source": "Forward binary-fission elapsed time and positive doubling-time domain; zero elapsed time gives zero generations.",
+    "decline_class": "unsupported",
+    "capability_expect": -3
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A culture starts with 100 cells and doubles every 0 minutes. How many cells after 1 hour?",
+    "expect": null,
+    "source": "Forward binary-fission elapsed time and positive doubling-time domain; zero elapsed time gives zero generations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "forestry",
+    "q": "A stand has 100 trees per acre, each with DBH 20 cm. What is the basal area per acre?",
+    "expect": 3.141592653589793,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "m2 per acre"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A stand has 50 trees per acre with DBH 10 inches and 50 trees per acre with DBH 20 inches. What is the total basal area per acre?",
+    "expect": 136.35,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "sq ft per acre"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A stand has 50 trees per acre with DBH 20 inches and 50 trees per acre with DBH 10 inches. What is the total basal area per acre?",
+    "expect": 136.35,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "sq ft per acre"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A stand has 25 trees per acre with DBH 20 cm and 75 trees per acre with DBH 30 cm. What is the total basal area per acre?",
+    "expect": 6.086835766330224,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "m2 per acre"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A stand has 100 trees per acre with quadratic mean diameter 10 inches. What is the basal area per acre?",
+    "expect": 54.54,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A stand has 100 trees per acre with arithmetic mean DBH 10 inches. What is the exact basal area per acre?",
+    "expect": null,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "decline_class": "unsupported"
+  },
+  {
+    "specialist": "forestry",
+    "q": "A clinometer angle to the top is 45 degrees, standing 10 meters from the tree, eye height is 5 feet. What is the tree height in meters?",
+    "expect": 11.524,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "m tall"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A clinometer angle to the top is 45 degrees, standing 10 feet from the tree, eye height is 1.524 meters. What is the tree height in feet?",
+    "expect": 15,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "ft tall"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A tree is 10 meters away at an angle of 45 degrees. What is its height in feet?",
+    "expect": 32.808398950131235,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "ft"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A tree is -10 meters away at an angle of 45 degrees. What is its height?",
+    "expect": null,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "forestry",
+    "q": "A tree is 10 meters away at an angle of 45 degrees with eye height -2 meters. What is its height?",
+    "expect": null,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "forestry",
+    "q": "A log has 12 inch small-end diameter and is -16 feet long. What is the Doyle board foot volume?",
+    "expect": null,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "forestry",
+    "q": "A log has 12 inch small-end diameter and is 5 meters long. What is the Doyle board foot volume?",
+    "expect": 65.61679790026247,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "board feet"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A log has 30.48 cm small-end diameter and is 16 feet long. What is the Doyle board foot volume?",
+    "expect": 64,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "board feet"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A log has 12 inch small-end diameter and is 0 feet long. What is the Doyle board foot volume?",
+    "expect": 0,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "board feet"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A log has end diameters 10 inches and 20 inches and length 10 feet. What is its Smalian volume?",
+    "expect": 13.635,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "cubic feet"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A log has end diameters -10 inches and 20 inches and length 10 feet. What is its Smalian volume?",
+    "expect": null,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "forestry",
+    "q": "What is the basal area of a tree with DBH -10 inches?",
+    "expect": null,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "forestry",
+    "q": "What is the basal area of a tree with DBH 1.2.3 inches?",
+    "expect": null,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "forestry",
+    "q": "What is the basal area of a tree with DBH 1/2 inches?",
+    "expect": 0.0013635,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "sq ft"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "What is the basal area of a tree with DBH 2e1 cm?",
+    "expect": 0.031415926535897934,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "m2"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "What is the basal area of a tree with DBH 0 cm?",
+    "expect": 0,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "m2"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A stand has -100 trees per acre with DBH 10 inches. What is its basal area per acre?",
+    "expect": null,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "forestry",
+    "q": "A stand has 0 trees per acre with DBH 10 inches. What is its basal area per acre?",
+    "expect": 0,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "A stand has 100 trees per acre with DBH 20 cm. What is its basal area in square feet per acre?",
+    "expect": 33.81486762973526,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "sq ft per acre"
+    ]
+  },
+  {
+    "specialist": "forestry",
+    "q": "Trees are planted at -10 by 10 feet spacing. How many trees per acre?",
+    "expect": null,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "forestry",
+    "q": "Trees are planted at 1/2 by 10 feet spacing. How many trees per acre?",
+    "expect": 8712,
+    "source": "Weighted stand model sums n*d\u00b2 for explicit diameter classes; imperial coefficient0.005454, metric pi/40000. Height assumes horizontal distance and angle to top, with exact feet/metre conversion. Same-author dimensional/physical-domain probes.",
+    "response_contains": [
+      "trees per acre"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mark-recapture: -40 frogs tagged, 50 captured in the second sample, 10 recaptured. Population estimate?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mark-recapture: 40 frogs tagged, 50 captured in the second sample, -10 recaptured. Population estimate?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mark-recapture: 40 frogs tagged, 50 captured in the second sample, 10 recaptured and 20 recaptured. Population estimate?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mark-recapture: 4e1 frogs tagged, 5e1 captured in the second sample, 1e1 recaptured. Population estimate?",
+    "expect": 200,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "Lincoln"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mark-recapture: 40 frogs tagged, 50 captured in the second sample, 10.5 recaptured. Population estimate?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mark-recapture: 40 frogs tagged, 50 captured in the second sample, 1.2.3 recaptured. Population estimate?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 50 deer across 1/2 hectare?",
+    "expect": 100,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "per hectare"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 50 deer across 2 hectares, in deer per square kilometer?",
+    "expect": 2500,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "per square kilometer"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 50 deer across 2 square kilometers, in deer per hectare?",
+    "expect": 0.25,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "per hectare"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 640 deer across 1 square mile, in deer per acre?",
+    "expect": 1,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 100 deer across 1 acre, in deer per hectare?",
+    "expect": 247.10538146716533,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "per hectare"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 5e1 deer across 2e0 hectares?",
+    "expect": 25,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "per hectare"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of -50 deer across 2 hectares?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 50 deer across -2 hectares?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 50 deer across 0 hectares?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 50 deer across 1.2.3 hectares?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 50.5 deer across 2 hectares?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 0 deer across 2 hectares?",
+    "expect": 0,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "per hectare"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 50 deer across 2 hectares and 60 deer across 3 hectares?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mortality rate if 75 of 100 monitored bats survived the first year, and 60 survived the second year?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Annual mortality rate if 75 of 100 monitored bats survived over 2 years?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Mortality rate if 75 of 100 monitored bats survived over 2 years?",
+    "expect": 25,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate."
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Survival rate if -75 of 100 monitored bats survived?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Survival rate if 75 of -100 monitored bats survived?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Survival rate if 7.5e1 of 1e2 monitored bats survived?",
+    "expect": 75,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate."
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Survival rate if 101 of 100 monitored bats survived?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Of 100 monitored bats, 75 survived the first year and 60 survived the second year. What is the mortality rate during the second year?",
+    "expect": 20,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "second observation period"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Of 100 monitored bats, 75 survived the first year and 60 survived the second year. What is the survival rate during the second year?",
+    "expect": 80,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "second observation period"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Of 100 monitored bats, 75 survived the first year and 60 survived the second year. What is the overall mortality rate over both years?",
+    "expect": 40,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "both observation periods"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Of 100 monitored bats, 75 survived the first year and 60 survived the second year. What is the overall survival rate over both years?",
+    "expect": 60,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "both observation periods"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Of 100 monitored bats, 60 survived the first year and 75 survived the second year. What is the survival rate during the second year?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Of 100 monitored bats, 0 survived the first year and 0 survived the second year. What is the survival rate during the second year?",
+    "expect": null,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Of 100 monitored bats, 0 survived the first year and 0 survived the second year. What is the overall survival rate over both years?",
+    "expect": 0,
+    "source": "Same-author observation model probes: unique exact whole counts; exact area conversion; closed cohort conditional versus cumulative survival proportions. No annualization inferred from one aggregate.",
+    "response_contains": [
+      "both observation periods"
+    ]
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Of 100 monitored bats, 60 survived the second year and 75 survived the first year. What is the mortality rate during the second year?",
+    "expect": 20,
+    "response_contains": [
+      "second observation period"
+    ],
+    "source": "Explicit endpoint identity determines the denominator regardless of statement order."
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Population density of 50 deer across 2 hectares, in deer per square meter?",
+    "expect": null,
+    "decline_class": "unsupported",
+    "capability_expect": 0.0025,
+    "source": "Square-meter requested output is valid but not in the four supported area units."
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Annual mortality rate if 75 of 100 monitored bats survived over 6 months?",
+    "expect": null,
+    "decline_class": "underspecified",
+    "source": "A measured survival proportion over one observation period does not identify a rate over a different period."
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Monthly mortality rate if 75 of 100 monitored bats survived over 1 year?",
+    "expect": null,
+    "decline_class": "underspecified",
+    "source": "A measured survival proportion over one observation period does not identify a rate over a different period."
+  },
+  {
+    "specialist": "wildlife",
+    "q": "Annual mortality rate if 75 of 100 monitored bats survived over two years?",
+    "expect": null,
+    "decline_class": "underspecified",
+    "source": "A measured survival proportion over one observation period does not identify a rate over a different period."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA AATGAAA in reading frame 2 using the standard genetic code.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 2"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA CCATGAAA in reading frame 3 using the standard genetic code.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 3"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate RNA AAUGAAA in reading frame 2 using the standard genetic code.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 2"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate coding DNA 3'-AAAGTAA-5' in reading frame 2.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 2"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate template DNA 3'-TTACTTT-5' in reading frame 2.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 2"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate template DNA 5'-TTTCATT-3' in reading frame 2.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 2"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA AATGAAATAA in reading frame 2.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 2"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA CCATGAAATAA in reading frame 3.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 3"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA CATGAAA in reading frame 2.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 2"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA GGATGAAA in reading frame 3.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 3"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "How many amino acids are encoded by DNA AATGAAATAA in reading frame 2?",
+    "expect": 2,
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 2"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "How many amino acids are encoded by DNA CCATGAAATAA in reading frame 3?",
+    "expect": 2,
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 3"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA ATAAGGG in reading frame 2.",
+    "expect": "",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 2",
+      "empty"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "How many amino acids are encoded by DNA ATAAGGG in reading frame 2?",
+    "expect": 0,
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "response_contains": [
+      "reading frame 2"
+    ]
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA AATGAAA in reading frame 0.",
+    "expect": null,
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA AATGAAA in reading frame 2.5.",
+    "expect": null,
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA AATGAAA in reading frame 2 and reading frame 3.",
+    "expect": null,
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA AATGAAA in reading frame -2.",
+    "expect": null,
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "decline_class": "unsupported"
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate RNA TAUGAAA in reading frame 2.",
+    "expect": null,
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA AATGAAA in reading frame 2 using the mitochondrial genetic code.",
+    "expect": null,
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes.",
+    "decline_class": "unsupported"
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate DNA ATGAAA in reading frame 1.",
+    "expect": "MK",
+    "source": "Standard genetic code, stated positive frame relative to normalized coding strand; complete remaining codons; stop truncation. Same-author mechanistic probes."
   }
 ]

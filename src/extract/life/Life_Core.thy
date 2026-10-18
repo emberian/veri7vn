@@ -16,7 +16,7 @@ datatype nuc = NA | NC | NG | NT | NU
 
 datatype reason =
     R_freq | R_zero | R_both | R_rna | R_frame | R_one_species | R_doyle | R_angle
-  | R_no_recapture | R_recapture_exceeds | R_final_below | R_rate | R_survivors | R_population | R_plate
+  | R_no_recapture | R_recapture_exceeds | R_final_below | R_rate | R_survivors | R_population | R_plate | R_micro_domain | R_forest_domain | R_wild_count
 
 datatype decline = Underspecified String.literal | Impossible reason | Imprecise
 
@@ -72,7 +72,9 @@ definition quote_lit :: String.literal where "quote_lit = String.implode [CHR 0x
 definition reason_text :: "reason \<Rightarrow> String.literal" where
   "reason_text r = (case r of
      R_freq \<Rightarrow> STR ''A frequency must be between 0 and 1.''
-   | R_zero \<Rightarrow> STR ''A quantity that must be positive is zero.''
+   | R_micro_domain \<Rightarrow> STR ''Population and forward elapsed time must be nonnegative; dilution factors and time for an increasing population must be positive.''
+   | R_forest_domain \<Rightarrow> STR ''Forestry dimensions and counts must be nonnegative; horizontal viewing distance must be positive.''
+   | R_zero \<Rightarrow> STR ''A required positive quantity is zero or negative.''
    | R_both \<Rightarrow> STR ''A sequence cannot contain both T (DNA) and U (RNA).''
    | R_rna \<Rightarrow> STR ''That sequence is already RNA.''
    | R_frame \<Rightarrow> STR ''The sequence is not a whole number of codons; I won'' + apos + STR ''t guess a reading frame.''
@@ -83,7 +85,8 @@ definition reason_text :: "reason \<Rightarrow> String.literal" where
    | R_recapture_exceeds \<Rightarrow> STR ''The recaptured-marked count cannot exceed the second sample or the number marked.''
    | R_final_below \<Rightarrow> STR ''The final count must exceed the starting count for a positive generation time.''
    | R_rate \<Rightarrow> STR ''A growth rate must be positive for a doubling time.''
-   | R_survivors \<Rightarrow> STR ''The survivors cannot outnumber the starting number.''
+   | R_wild_count \<Rightarrow> STR ''Animal counts must be whole nonnegative numbers; a negative or fractional count is outside this observation model.''
+   | R_survivors \<Rightarrow> STR ''The starting cohort must be positive and survivors cannot increase. A conditional rate also needs a nonempty cohort at its starting endpoint.''
    | R_population \<Rightarrow> STR ''The population and elapsed time must be nonnegative and carrying capacity positive. This forward logistic model excludes negative intrinsic rates above capacity, where finite-time divergence can occur.''
    | R_plate \<Rightarrow> STR ''The colony count must be nonnegative, the dilution must be in (0,1], and the plated volume must be positive.'')"
 

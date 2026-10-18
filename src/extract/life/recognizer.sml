@@ -326,8 +326,18 @@ struct
     end
 
   fun bioUnsupportedCode low =
-    has "\\bmitochondri\\w*\\b|\\bciliate\\w*\\b|\\balternative (?:genetic )?code\\b|\\bnonstandard\\b|\\bnon-standard\\b|\\bselenocysteine\\b|\\bpyrrolysine\\b|\\b(?:reading )?frame\\s*(?:[023456]|-[123])\\b" low
+    has "\\bmitochondri\\w*\\b|\\bciliate\\w*\\b|\\balternative (?:genetic )?code\\b|\\bnonstandard\\b|\\bnon-standard\\b|\\bselenocysteine\\b|\\bpyrrolysine\\b" low
     orelse (has "\\b(?:genetic )?code\\s*(?:table\\s*)?\\d+\\b" low andalso not (has "\\b(?:genetic )?code\\s*(?:table\\s*)?1\\b" low))
+
+  fun bioFrame low =
+    let
+      val explicit = has "\\b(?:reading )?frame" low
+      val rows = List.mapPartial (fn ExactNumeric.Number {start,value,...} =>
+          if has "\\b(?:reading )?frame\\s*$" (String.substring(low,0,start)) then SOME value else NONE
+          | _=>NONE) (ExactNumeric.scan low)
+    in if not explicit then SOME(1:IntInf.int)
+       else case rows of [(n,d)]=>if d=1 andalso 1<=n andalso n<=3 then SOME n else NONE | _=>NONE
+    end
 
   fun biology text : L.reply option =
     if Narrow.narrative text then NONE
@@ -349,14 +359,15 @@ struct
                 val template = has "\\btemplate\\b|\\bantisense\\b|\\bnon-?coding strand\\b" low
                 val coding = has "\\bcoding strand\\b|\\bsense strand\\b" (subWith "\\bnon-?coding strand\\b" (fn _ => fn _ => "") low)
                 val direction = bioDirection low s
+                val frame = bioFrame low
                 val codeTask = has "\\btranslat\\w*\\b|\\bprotein\\b|\\bamino acid\\b|\\bcodon\\b|\\bcode for\\b" low
                 val strandTask = codeTask orelse has "\\btranscri\\w*\\b|\\bmrna\\b" low
                 val ys = L.bio_input template (case direction of SOME x => x | NONE => false) xs
               in
-                if strandTask andalso (not (isSome direction) orelse (template andalso coding) orelse (codeTask andalso bioUnsupportedCode low))
+                if strandTask andalso (not (isSome direction) orelse (template andalso coding) orelse (codeTask andalso (bioUnsupportedCode low orelse not(isSome frame))))
                 then gate text L.bio_model_reply
                 else if both then fin (L.Bio (L.Op_complement, xs))
-                else if size s = 3 andalso has "\\bcodon\\b|\\bcode for\\b|\\bencode\\w*\\b|\\bamino acid\\b|\\bspecif\\w*\\b" low
+                else if frame = SOME 1 andalso size s = 3 andalso has "\\bcodon\\b|\\bcode for\\b|\\bencode\\w*\\b|\\bamino acid\\b|\\bspecif\\w*\\b" low
                 then fin (L.Bio (L.Op_codon, ys))
                 else if has "\\bgc content\\b|\\bgc percent\\w*\\b|\\bgc %|\\bpercent(?:age)? (?:of )?g(?:\\s*\\+\\s*|c\\b)" low
                 then fin (L.Bio (L.Op_gc, xs))
@@ -368,10 +379,10 @@ struct
                 then
                   (if String.isSubstring "U" s then NONE
                    else fin (L.Bio (L.Op_transcribe false, ys)))
-                else if has "\\btranslat\\w*\\b|\\bprotein\\b|\\bamino acid sequence\\b|\\bpeptide\\b" low then
+                else if has "\\btranslat\\w*\\b|\\bprotein\\b|\\bamino acid sequence\\b|\\bhow many amino acids\\b|\\bpeptide\\b" low then
                   (if has "\\bhow many amino acids\\b|\\blength of the protein\\b|\\bhow long\\b" low
-                   then fin (L.Bio (L.Op_protlen, ys))
-                   else fin (L.Bio (L.Op_translate, ys)))
+                   then gate text (L.b_frame_reply (natOf(valOf frame)) true ys)
+                   else gate text (L.b_frame_reply (natOf(valOf frame)) false ys))
                 else NONE
               end
       end
@@ -499,98 +510,111 @@ struct
     if Narrow.narrative text then NONE
     else
       let
-        val t = collapse text
-        val low = lower t
+        val low = lower(collapse text)
         fun fin r = gate text (L.f_reply r)
-        val inchPat = FN ^ "[- ]?(?:inch|in\\.?|\")"
+        fun unread() = gate text L.f_unread
+        val tokens = ExactNumeric.scan low
+        val bad = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+        fun parts(ExactNumeric.Number{start,stop,value,...}) = SOME(start,stop,value,String.substring(low,0,start),String.extract(low,stop,NONE))
+          | parts _ = NONE
+        val numbers=List.mapPartial parts tokens
+        fun rat(n,d)=L.mk_rat n d
+        fun scale(n,d)(a,b)=(n*a,d*b)
+        fun lengthUnit post =
+          case search "^[- ]*(inches|inch|in\\b|\"|feet|foot|ft\\b|cm\\b|centimeters?|centimetres?|mm\\b|millimeters?|millimetres?|m\\b|meters?|metres?)\\b" post of
+            SOME m => SOME(g1 post m) | NONE=>NONE
+        fun metres v u = if String.isPrefix "in" u orelse u="\"" then scale v (127,5000)
+          else if String.isPrefix "f" u then scale v (381,1250)
+          else if String.isPrefix "c" u then scale v (1,100)
+          else if String.isPrefix "mm" u orelse String.isPrefix "milli" u then scale v(1,1000)
+          else v
+        fun inUnit v u metric = scale (metres v u) (if metric then (100,1) else (5000,127))
+        val lengths=List.mapPartial(fn(start,stop,v,pre,post)=>Option.map(fn u=>(start,stop,v,u,pre,post))(lengthUnit post)) numbers
+        fun eyeRole(pre,_) = has "\\beye (?:height|level)\\s*(?:of|is|=)?\\s*$" pre
+        fun diamRole(pre,post) = has "\\b(?:dbh|diameter(?: at breast height)?)\\s*(?:of|is|=)?\\s*$" pre orelse
+          has "^[- ]*(?:inches|inch|in\\b|\"|cm|centimeters?|centimetres?|mm|millimeters?|millimetres?)\\s*(?:dbh|diameter|small[- ]end)\\b" post
+        fun countRole(_,_,_,_,post) = has "^\\s*trees\\s*(?:per|an|/)\\s*acre\\b" post
+        val counts=List.filter countRole numbers
+        val diameters=List.filter(fn(_,_,_,_,pre,post)=>diamRole(pre,post)) lengths
+        fun tuple(_,_,v,u,_,_)=rat(inUnit v u false)
+        val forest = has "\\btrees?\\b|\\blogs?\\b|\\bdbh\\b|\\bbasal area\\b|\\bstand\\b|\\btimber\\b|\\bforest\\w*\\b|\\bclinometer\\b|\\bdoyle\\b|\\bsmalian\\b|\\bseedlings?\\b|\\bplanting\\b" low
       in
-        if not (has "\\btrees?\\b|\\blogs?\\b|\\bdbh\\b|\\bbasal area\\b|\\bstand\\b|\\btimber\\b|\\bforest\\w*\\b|\\bclinometer\\b|\\bdoyle\\b|\\bsmalian\\b|\\bseedlings?\\b|\\bplanting\\b" low)
-        then NONE
-        else if has "\\bdoyle\\b" low then
+        if not forest then NONE
+        else if bad then unread()
+        else if has "\\bdoyle\\b|\\bsmalian\\b|\\blog volume\\b|\\bcubic (?:feet|foot) (?:in|of) (?:the |a |this )?log\\b" low then
           let
-            val d = search (inchPat ^ "\\s*(?:small[- ]end\\s*)?(?:diameter|dib|log)?|\\bdiameter\\s*(?:of|is)?\\s*" ^ FN ^ "\\s*(?:inches|in)") low
-            val l = search (FN ^ "[- ]?(?:foot|feet|ft)\\b") low
+            val ds=List.filter(fn(_,_,_,u,_,_)=>String.isPrefix "in" u orelse u="\"" orelse String.isPrefix "c" u) lengths
+            val ls=List.filter(fn(_,_,_,u,pre,post)=>not(eyeRole(pre,post)) andalso (String.isPrefix "f" u orelse u="m" orelse String.isPrefix "meter" u orelse String.isPrefix "metre" u)) lengths
+            fun feet(_,_,v,u,_,_)=rat(scale(metres v u)(1250,381))
           in
-            case (d, l) of
-              (SOME dm, SOME lm) => fin (L.F_Doyle (ratOf (valOf (firstGroup low dm [1, 2])), ratOf (g1 low lm)))
-            | _ => NONE
+            if has "\\bdoyle\\b" low then
+              (case(ds,ls)of([d],[l])=>fin(L.F_Doyle(tuple d,feet l))|_=>unread())
+            else(case(ds,ls)of([d1,d2],[l])=>fin(L.F_Smalian(tuple d1,tuple d2,feet l))|_=>unread())
           end
-        else if has "\\bsmalian\\b|\\bcubic (?:feet|foot) (?:in|of) (?:the |a |this )?log\\b|\\blog volume\\b" low then
+        else if has "\\bheight\\b|\\bhow tall\\b" low andalso has "\\bangle\\b|\\bdegrees?\\b|\194\176|\\bclinometer\\b" low then
           let
-            val ds = map (fn m => g1 low m) (findall inchPat low)
-            val l = search (FN ^ "[- ]?(?:foot|feet|ft)\\b\\s*(?:long)?") low
+            val angles=List.filter(fn(_,_,_,_,post)=>has "^\\s*(?:degrees?\\b|\194\176)" post) numbers
+            val eyes=List.filter(fn(_,_,_,_,pre,post)=>eyeRole(pre,post)) lengths
+            val ds=List.filter(fn(_,_,_,_,pre,post)=>not(eyeRole(pre,post))) lengths
+            val outFeet=has "\\b(?:height|tall)[^?;]*\\bin\\s*(?:feet|ft)\\b" low
+            val outMetres=has "\\b(?:height|tall)[^?;]*\\bin\\s*(?:m|meters?|metres?)\\b" low
+            fun convert v u ft=rat(scale(metres v u)(if ft then(1250,381)else(1,1)))
           in
-            case (ds, l) of
-              (d1 :: d2 :: _, SOME lm) => fin (L.F_Smalian (ratOf d1, ratOf d2, ratOf (g1 low lm)))
-            | _ => NONE
+            if has "\\bslope\\b|\\bsloping\\b|\\binclined\\b|\\bbase angle\\b" low orelse (outFeet andalso outMetres) then unread()
+            else case(ds,angles,eyes)of
+              ([(_,_,dv,du,_,_)],[(_,_,a,_,_)],[])=>let val ft=outFeet orelse(not outMetres andalso String.isPrefix "f" du)
+                in fin(L.F_Height(convert dv du ft,rat a,NONE,ft))end
+            | ([(_,_,dv,du,_,_)],[(_,_,a,_,_)],[(_,_,ev,eu,_,_)])=>let val ft=outFeet orelse(not outMetres andalso String.isPrefix "f" du)
+                in fin(L.F_Height(convert dv du ft,rat a,SOME(convert ev eu ft),ft))end
+            | _=>unread()
           end
-        else
+        else if has "\\bbasal area\\b" low then
           let
-            val sp = search (FN ^ "\\s*(?:ft|feet|foot|')?\\s*(?:x|\195\151|by)\\s*" ^ FN ^ "\\s*(?:ft|feet|foot|')\\s*(?:spacing|apart|grid)?") low
+            val metric=has "\\b(?:m2|m\194\178|square met(?:er|re)s?)\\b" low orelse
+              (not(has "\\b(?:sq(?:uare)?\\s*ft|square feet)\\b" low) andalso List.exists(fn(_,_,_,u,_,_)=>String.isPrefix "c" u orelse String.isPrefix "m" u)diameters)
+            val explicitMean=has "\\barithmetic mean\\b|\\bmean arithmetic\\b" low
+            fun dval(_,_,v,u,_,_)=rat(inUnit v u metric)
+            fun nval(_,_,v,_,_)=rat v
+            fun pair([],[])=SOME []
+              | pair((d as (dp,_,_,_,_,_))::dr,(n as(np,ns,_,_,_))::nr)=
+                  if np<dp andalso (case nr of(nnp,_,_,_,_)::_=>dp<nnp|[]=>true)
+                  then Option.map(fn rest=>(dval d,nval n)::rest)(pair(dr,nr))else NONE
+              | pair _=NONE
           in
-            if isSome sp andalso has "\\bper acre\\b|\\ban acre\\b|\\btrees per acre\\b|\\bhow many (?:trees|seedlings)\\b" low
-               andalso has "\\bspac\\w*\\b|\\bplant\\w*\\b|\\bgrid\\b" low
-            then
-              let val m = valOf sp
-                  val a = ratOf (g1 low m) val b = ratOf (valOf (grp low m 2))
-              in if not (litPos (g1 low m)) orelse not (litPos (valOf (grp low m 2))) then NONE else fin (L.F_Tpa (a, b)) end
-            else if has "\\bheight\\b|\\bhow tall\\b" low andalso has "\\bangle\\b|\\bdegrees?\\b|\194\176|\\bclinometer\\b" low then
-              let
-                val dist = search (FN ^ "\\s*(ft|feet|m|meters?|metres?)\\s*(?:away|from the (?:tree|base)|from the trunk)|\\b(?:standing|distance of|from)\\s*" ^ FN ^ "\\s*(ft|feet|m|meters?|metres?)") low
-                val ang = search (FN ^ "\\s*(?:\194\176|degrees?\\b)") low
-              in
-                case (dist, ang) of
-                  (SOME dm, SOME am) =>
-                    let
-                      val (dv, du) = case grp low dm 1 of
-                                       SOME v => (v, valOf (grp low dm 2))
-                                     | NONE => (valOf (grp low dm 3), valOf (grp low dm 4))
-                      val eye = search ("\\beye (?:height|level)\\s*(?:of|is)?\\s*" ^ FN ^ "\\s*(?:ft|feet|m|meters?)") low
-                    in
-                      fin (L.F_Height (ratOf dv, ratOf (g1 low am), Option.map (fn m => ratOf (g1 low m)) eye,
-                                       String.isPrefix "f" du))
-                    end
-                | _ => NONE
-              end
-            else
-              let
-                val dbh = search ("\\b(?:dbh|diameter(?: at breast height)?)\\s*(?:of|is|=)?\\s*" ^ FN ^ "\\s*(inches|inch|in\\b|\"|cm)|" ^ FN ^ "[- ]?(inches|inch|in\\b|\"|cm)\\s*(?:dbh|diameter)") low
-              in
-                case dbh of
-                  SOME m =>
-                    if has "\\bbasal area\\b" low then
-                      let
-                        val (d, u) = case grp low m 1 of
-                                       SOME v => (v, valOf (grp low m 2))
-                                     | NONE => (valOf (grp low m 3), valOf (grp low m 4))
-                        val tpa = search (FN ^ "\\s*trees\\s*(?:per|an|/)\\s*acre") low
-                      in
-                        if u = "cm" then fin (L.F_BAm (ratOf d))
-                        else case tpa of
-                               SOME tm => fin (L.F_BAPA (ratOf d, ratOf (g1 low tm)))
-                             | NONE => fin (L.F_BA (ratOf d))
-                      end
-                    else NONE
-                | NONE => NONE
-              end
+            if explicitMean then unread()
+            else case(diameters,counts)of
+              ([d],[])=>if has "\\bper acre\\b|\\bstand\\b" low then unread()
+                         else if metric then fin(L.F_BAm(dval d))else fin(L.F_BA(dval d))
+            | ([d],[n])=>fin(L.F_BAStand(metric,[(dval d,nval n)]))
+            | _=>(case pair(diameters,counts)of SOME(xs as _::_)=>fin(L.F_BAStand(metric,xs))|_=>unread())
           end
+        else if has "\\bspac\\w*\\b|\\bplant\\w*\\b|\\bgrid\\b" low andalso
+                has "\\bper acre\\b|\\ban acre\\b|\\bhow many (?:trees|seedlings)\\b" low then
+          (case numbers of
+            [(_,s1,v1,_,_), (s2,_,v2,_,post2)]=>
+              if has "^\\s*(?:ft|feet|foot|')?\\s*(?:x|\195\151|by)\\s*$"(String.substring(low,s1,s2-s1)) andalso
+                 has "^\\s*(?:ft|feet|foot|')\\b" post2
+              then fin(L.F_Tpa(rat v1,rat v2))else unread()
+          | _=>unread())
+        else NONE
       end
 
   (* ---------- wildlife ---------- *)
   val MARK = "(?:marked|tagged|banded|marking|tagging|banding)"
   val CAP = "(?:caught|captured|trapped|netted|sampled|collected|seined)"
 
-  fun roles low : IntInf.int option * IntInf.int option * IntInf.int option =
+  fun roles low =
     let
       val outM = ref (NONE : IntInf.int option)
       val outC = ref (NONE : IntInf.int option)
       val outR = ref (NONE : IntInf.int option)
-      fun setdef r v = case !r of NONE => r := SOME v | SOME _ => ()
-      fun step (mt : Regex.match) =
+      val conflict = ref false
+      val invalid = ref false
+      fun assign r v = case !r of NONE => r := SOME v | SOME old => if old = v then () else conflict := true
+      fun step (ExactNumeric.Malformed _) = (conflict := true)
+        | step (ExactNumeric.Number {start=s,stop=e,value=(v,d)}) =
         let
-          val s = #start mt
-          val e = #stop mt
-          val v = bigOf (g1 low mt)
+          fun setdef r value = (if value < 0 orelse d <> 1 then invalid := true else (); assign r value)
           val b0 = Int.max (0, s - 45)
           val bef = String.substring (low, b0, s - b0)
           val aft0 = String.substring (low, e, Int.min (60, size low - e))
@@ -598,7 +622,7 @@ struct
           val ofthe = anchored "\\s+of\\s+the\\s+(\\d+(?:,\\d{3})*)" aft
         in
           if isSome ofthe andalso not (isSome (!outR)) then
-            (outR := SOME v; setdef outC (bigOf (g1 aft (valOf ofthe))))
+            (setdef outR v; setdef outC (bigOf (g1 aft (valOf ofthe))))
           else if isSome (anchored "\\s+(?:\\w+\\s+){0,2}?(?:of (?:them|these|which)\\b|(?:were|was|had been|are)\\s+(?:already|previously)\\b|recaptur|(?:marked|tagged|banded) ones\\b|carried|bore|had (?:tags|marks|bands)|with (?:tags|marks|bands))" aft)
                   orelse has "\\b(?:recaptured|contained|including|found)\\s+$" bef
                   orelse has "\\b(?:recaptured|recaptures|recapture count)\\s*(?:of|was|were|=|:)?\\s*$" bef
@@ -615,10 +639,24 @@ struct
           then setdef outM v
           else ()
         end
-      val _ = List.app step (findall "(?<![\\d.,])(\\d+(?:,\\d{3})*)(?![\\d.,]*\\d)" low)
-    in (!outM, !outC, !outR) end
+      val _ = List.app step (ExactNumeric.scan low)
+    in (!outM, !outC, !outR, !conflict, !invalid) end
 
   val animals = "(?:animals|fish|deer|birds|turtles|frogs|mice|rabbits|butterflies|beetles|trout|salamanders|individuals|lizards|bats|squirrels)"
+
+  (* Exact numeric roles are complete tokens. Area input and output units
+     are separate fields; densities do not silently retain the input unit. *)
+  fun wNumbers low = List.mapPartial
+    (fn ExactNumeric.Number {start,stop,value,...} => SOME(value,String.substring(low,0,start),String.extract(low,stop,NONE)) | _ => NONE)
+    (ExactNumeric.scan low)
+  fun wMalformed low = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) (ExactNumeric.scan low)
+  fun wOne xs = case xs of [v] => SOME v | _ => NONE
+  val wAreaPat = "(hectares?|ha|acres?|km2|km\194\178|square kilomet(?:er|re)s?|sq\\.?\\s*km|square miles?|sq\\.?\\s*mi|mi2)"
+  fun wUnit t = if has "^(?:hectare|ha)" t then L.Hectare
+                else if has "^acre" t then L.Acre
+                else if has "(?:mile|mi)" t then L.SquareMile else L.SquareKm
+  fun wArea suffix = case search ("^\\s*" ^ wAreaPat ^ "\\b") suffix of
+      SOME m => SOME(wUnit(g1 suffix m)) | NONE => NONE
 
   fun wildlife text : L.reply option =
     let
@@ -638,73 +676,85 @@ struct
         in
           if mrGate then
             let
-              val (m, c, r) = roles low
+              val (m, c, r, conflict, invalid) = roles low
               val onat = Option.map natOf
-            in fin (L.w_reply (L.W_Lincoln (onat m, onat c, onat r, has "\\bchapman\\b" low))) end
-          else
+            in fin (L.w_reply (if invalid then L.W_BadCount
+                 else if conflict orelse has "\\b(?:third|fourth|multiple) (?:sample|capture|occasion|survey)\\b" low then L.W_Unread
+                 else L.W_Lincoln (onat m, onat c, onat r, has "\\bchapman\\b" low))) end
+          else if has "\\bdensity\\b|\\bper (?:hectare|acre|km|square)\\b" low then
             let
-              val dens = search (N ^ "\\s+" ^ animals ^ "\\b[^.?]{0,40}?\\b(?:in|on|across|over)\\s+(?:an?\\s+)?(\\d+(?:\\.\\d+)?)\\s*(hectares?|ha|acres?|km2|km\194\178|square (?:kilomet(?:er|re)s?|miles?)|sq mi|mi2)") low
+              val nums = wNumbers low
+              val count = wOne(List.filter (fn (_,_,aft) => has ("^\\s+" ^ animals ^ "\\b") aft) nums)
+              val area = wOne(List.mapPartial (fn ((n,d),bef,aft) =>
+                if has "\\b(?:in|on|across|over)\\s+(?:an?\\s+)?$" bef
+                then Option.map(fn u=>((n,d),u))(wArea aft) else NONE) nums)
+              val targets = findall ("\\bper\\s+" ^ wAreaPat ^ "\\b") low
+              val target = case targets of [] => NONE | [m] => SOME(wUnit(g1 low m)) | _ => NONE
             in
-              case dens of
-                SOME dm =>
-                  if has "\\bdensity\\b|\\bper (?:hectare|acre|km|square)\\b" low then
-                    let
-                      val a = ratOf (valOf (grp low dm 2))
-                      val u0 = valOf (grp low dm 3)
-                      val u = if String.isSuffix "s" u0 then String.substring (u0, 0, size u0 - 1) else u0
-                    in
-                      if not (litPos (valOf (grp low dm 2))) then NONE else fin (L.w_reply (L.W_Density (natS (g1 low dm), a, u)))
-                    end
-                  else wSurv low fin
-              | NONE => wSurv low fin
+              if wMalformed low orelse length targets > 1 orelse (has "\\bper\\b" low andalso null targets) then fin(L.w_reply L.W_Unread)
+              else case (count,area) of
+                (SOME((n,d),_,_),SOME((a,b),u)) =>
+                  if n < 0 orelse d <> 1 then fin(L.w_reply L.W_BadCount)
+                  else fin(L.w_reply(L.W_DensityUnit(natOf n,L.mk_rat a b,u,case target of SOME v=>v|NONE=>u)))
+              | _ => fin(L.w_reply L.W_Unread)
             end
+          else wSurv low fin
         end
     end
   and wSurv low fin : L.reply option =
-    let
-      val surv = search (N ^ "\\s+(?:of\\s+\\d+(?:,\\d{3})*\\s+)?(?:\\w+\\s+){0,2}?(?:survived|were still alive|remained alive|lived)\\b") low
-      (* Explicit "s of n" roles take precedence over a nearby monitored verb.
-         Otherwise the old leftmost match can read "75 of 100 monitored" as
-         75 starting animals and silently turn mortality into zero. *)
-      val start = case search "\\b(?:of|out of|from)\\s+(\\d+(?:,\\d{3})*)\\b" low of
-          SOME m => SOME m
-        | NONE => search "(\\d+(?:,\\d{3})*)\\s+(?:\\w+\\s+){0,2}?(?:were )?(?:released|tagged|collared|monitored|hatched|born)\\b" low
+    if not(has "\\bsurvival\\b|\\bmortality\\b|\\bdeath rate\\b" low) then NONE
+    else let
+      val nums = wNumbers low
+      fun starting (_,bef,aft) = has "\\b(?:of|out of|from)\\s*$" bef orelse
+         (not(has "^\\s+of\\b" aft) andalso has "^\\s+(?:\\w+\\s+){0,2}?(?:were )?(?:released|tagged|collared|monitored|hatched|born)\\b" aft)
+      val starts = List.filter starting nums
+      fun survivor (row as (_,bef,aft)) = not(starting row) andalso
+        (has "^\\s+(?:of\\s+[+\226\136\146\\-\\d.,/e]+\\s+)?(?:\\w+\\s+){0,3}?(?:survived|were still alive|remained alive|lived)\\b" aft orelse
+         has "\\b(?:survivors|surviving)\\s*(?:=|:|was|were)?\\s*$" bef)
+      val survivors = List.filter survivor nums
+      val invalid = List.exists (fn ((n,d),_,_)=>n<0 orelse d<>1) (starts@survivors)
+      val mort = has "\\bmortality\\b|\\bdeath rate\\b" low
+      val asks = findall "\\b(?:what|calculate|find|determine)\\b" low
+      val target = case rev asks of (m:Regex.match)::_ => String.extract(low,#start m,NONE) | [] => low
+      val cumulative = has "\\boverall\\b|\\bcumulative\\b|\\b(?:over|across|for) (?:both|the two|two|2) (?:years|periods)\\b" target
+      val conditional = has "\\b(?:during|in|for) (?:the )?second (?:year|period)\\b" target
+      val annual = has "\\bannual(?:ized)?\\b|\\bper year\\b" target
+      val multiYear = List.exists(fn((n,d),bef,aft)=>has "\\b(?:over|after|for|across)\\s*$" bef andalso has "^\\s*years?\\b" aft andalso n<>d) nums
+      fun periodUnit text = if has "\\byears?\\b|\\bannual(?:ized)?\\b|\\byearly\\b" text then SOME "year"
+        else if has "\\bmonths?\\b|\\bmonthly\\b" text then SOME "month"
+        else if has "\\bweeks?\\b|\\bweekly\\b" text then SOME "week"
+        else if has "\\bdays?\\b|\\bdaily\\b" text then SOME "day" else NONE
+      val outputPeriod = case search "\\b(?:annual(?:ized)?|yearly|monthly|weekly|daily|per (?:year|month|week|day))\\b" target of
+        SOME m=>periodUnit(Regex.whole target m) | NONE=>NONE
+      val durations = List.mapPartial(fn((n,d),bef,aft)=>
+        if has "\\b(?:over|after|for|across)\\s*$" bef then
+          (case search "^\\s*(years?|months?|weeks?|days?)\\b" aft of
+             SOME m=>SOME(n,d,periodUnit(g1 aft m))|NONE=>NONE) else NONE) nums
+      val incompatiblePeriod = case outputPeriod of NONE=>false | SOME u=>
+        (case durations of [] => has "\\b(?:two|three|four|five|several|multiple) (?:years|months|weeks|days)\\b" low
+                          orelse (u<>"year" andalso has "\\b(?:first|second) year\\b" low)
+         | [(n,d,SOME v)]=>n<>d orelse u<>v | _=>true)
+      fun period aft = case search "\\b(?:survived|were still alive|remained alive|lived)\\s+(?:the )?(first|second) (?:year|period)\\b" aft of SOME m=>SOME(g1 aft m)|NONE=>NONE
+      fun unread() = fin(L.w_reply L.W_Unread)
     in
-      case (surv, start) of
-        (SOME sm, SOME st) =>
-          if has "\\bsurvival\\b|\\bmortality\\b|\\bdeath rate\\b" low then
-            let
-              val s = bigOf (g1 low sm)
-              val n0 = bigOf (valOf (firstGroup low st [1, 2]))
-            in
-              if n0 <= 0 orelse s > n0 then NONE
-              else fin (L.w_reply (L.W_Surv (natOf s, natOf n0, has "\\bmortality\\b|\\bdeath rate\\b" low)))
-            end
-          else NONE
-      | _ => NONE
+      if wMalformed low then unread()
+      else if invalid then fin(L.w_reply L.W_BadCount)
+      else case (starts,survivors) of
+        ([((n,_),_,_)],[((s,_),_,_)]) =>
+          if incompatiblePeriod orelse (annual andalso multiYear) then unread()
+          else fin(L.w_reply(L.W_Surv(natOf s,natOf n,mort)))
+      | ([((n,_),_,_)],[((s1,_),_,a1),((s2,_),_,a2)]) =>
+          if (conditional <> cumulative) andalso not annual then
+            (case (period a1,period a2) of
+               (SOME "first",SOME "second") => fin(L.w_reply(L.W_Interval(natOf s1,natOf s2,natOf n,conditional,mort)))
+             | (SOME "second",SOME "first") => fin(L.w_reply(L.W_Interval(natOf s2,natOf s1,natOf n,conditional,mort)))
+             | _ => unread())
+          else unread()
+      | _ => unread()
     end
 
   (* ---------- microbiology v2 ---------- *)
-  val SCI = "(\\d+(?:\\.\\d+)?)\\s*(?:(?:x|\195\151|\\*)\\s*10\\s*\\^?\\s*([+-]?\\d+)|e([+-]?\\d+))?"
-  val TU = "\\s*(minutes?|min|hours?|hrs?|h|days?)\\b"
   val ASKS = "\\?|\\b(?:find|calculate|compute|determine|estimate|what|how many|how long|give)\\b"
-
-  fun signedInt s =
-    if String.isPrefix "+" s then valOf (Int.fromString (String.extract (s, 1, NONE)))
-    else if String.isPrefix "-" s then ~ (valOf (Int.fromString (String.extract (s, 1, NONE))))
-    else valOf (Int.fromString s)
-
-  fun sciVal low m =
-    let val e = case firstGroup low m [2, 3] of SOME x => signedInt x | NONE => 0
-    in ratSci (g1 low m) e end
-
-  fun ratTimes lit (k : int) =
-    let val (n, d) = decParts lit in L.mk_rat (IntInf.* (n, IntInf.fromInt k)) d end
-  fun ratDiv lit (k : int) =
-    let val (n, d) = decParts lit in L.mk_rat n (IntInf.* (d, IntInf.fromInt k)) end
-
-  fun minutesOf lit unit =
-    ratTimes lit (if String.isPrefix "h" unit then 60 else if String.isPrefix "d" unit then 1440 else 1)
 
   (* Dilution powers and colon ratios are domain notation. Normalize only
      complete powers, then let shared exact tokenization preserve all signs,
@@ -762,47 +812,89 @@ struct
               in SOME (L.M_CFU (L.mk_rat cn cd, d, vol)) end
           | _ => SOME L.M_Unread
         end
-      else
-        case search "\\b(\\d+|two|three|four|five|six)\\s+(?:serial\\s+)?(?:1\\s*[:/]\\s*(\\d+)|(\\d+)[- ]fold)\\s+(?:serial\\s+)?dilutions?\\b" low of
-          SOME sm =>
-            if has "\\btotal\\b|\\bfinal\\b|\\boverall\\b" low then
-              let
-                val ks = g1 low sm
-                val k = case ks of "two" => 2 | "three" => 3 | "four" => 4 | "five" => 5 | "six" => 6 | _ => intOf ks
-                val f = intOf (valOf (firstGroup low sm [2, 3]))
-              in SOME (L.M_Serial (natI f, natI k)) end
-            else microGrowth low
-        | NONE => microGrowth low
+      else if has "\\bserial dilutions?\\b|\\bfold\\s+dilutions?\\b|\\b1\\s*/\\s*\\d+\\s+(?:serial\\s+)?dilutions?\\b" low
+      then microSerial low
+      else microGrowth low
+    end
+  and microSerial low : L.mreq option =
+    let
+      val text = subWith "\\b(two|three|four|five|six)\\s+(?=(?:serial\\s+)?(?:1\\s*/|\\d+[- ]fold))"
+        (fn t => fn m => (case g1 t m of "two" => "2 " | "three" => "3 " | "four" => "4 " | "five" => "5 " | _ => "6 ")) low
+      val tokens = ExactNumeric.scan text
+      val bad = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+      fun factors (ExactNumeric.Number {start,stop,value=(n,d),...}) =
+            let val after = String.extract(text,stop,NONE)
+            in if has "^[- ]fold\\s+(?:serial\\s+)?dilutions?\\b" after
+               then SOME(start,n,d)
+               else if has "^\\s+(?:serial\\s+)?dilutions?\\b" after andalso n=1
+               then SOME(start,d,1) else NONE end
+        | factors _ = NONE
+      fun steps factorStart (ExactNumeric.Number {stop,value,...}) =
+            if stop <= factorStart andalso has "^\\s+(?:serial\\s+)?$" (String.substring(text,stop,factorStart-stop))
+            then SOME value else NONE
+        | steps _ _ = NONE
+    in
+      if bad then SOME L.M_Unread
+      else case List.mapPartial factors tokens of
+        [(factorStart,f,1)] =>
+          (case List.mapPartial (steps factorStart) tokens of
+             [(k,1)] => if f>=0 andalso k>=0 andalso k<=10000 andalso IntInf.fromInt(size(IntInf.toString f))*k<=10000
+                        then SOME (L.M_Serial(natOf f,natOf k))
+                        else SOME L.M_Unread
+           | _ => SOME L.M_Unread)
+      | _ => SOME L.M_Unread
     end
   and microGrowth low : L.mreq option =
     if not (has "\\bbacteri\\w*\\b|\\bcells?\\b|\\bgeneration\\b|\\bdoubl\\w*\\b|\\bbinary fission\\b|\\bculture\\b|\\be\\.? coli\\b|\\bpopulation\\b" low) then NONE
     else
       let
-        val gt = search ("\\b(?:generation|doubling) time\\s*(?:of|is|=)?\\s*" ^ N ^ TU ^ "|\\b(?:divides?|doubles?)\\s+every\\s+" ^ N ^ TU) low
-        val tt = search ("\\b(?:after|in|for|over)\\s+" ^ N ^ TU) low
-        val n0 = case search ("\\b(?:starts? with|initial(?:ly)?|beginning with|begins with|starting with|inoculated with)\\s+(?:a\\s+)?" ^ SCI ^ "\\s*(?:cells|bacteria|cfu)?") low of
-                   SOME m => SOME m
-                 | NONE => search (SCI ^ "\\s*(?:cells|bacteria)\\s*(?:initially|at the start|to start)") low
-        val nf = search ("\\b(?:to|reaches|reach|grows? to|final(?: count| population)?(?: of| is)?|ends? with)\\s+" ^ SCI ^ "\\s*(?:cells|bacteria|cfu)?") low
-        fun gMin m = minutesOf (valOf (firstGroup low m [1, 3])) (valOf (firstGroup low m [2, 4]))
-        fun tMin m = minutesOf (g1 low m) (valOf (grp low m 2))
+        val tokens = ExactNumeric.scan low
+        val bad = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+        fun parts (ExactNumeric.Number {start,stop,value,...}) = SOME(String.substring(low,0,start),String.extract(low,stop,NONE),value)
+          | parts _ = NONE
+        val quantities = List.mapPartial parts tokens
+        fun count pred = List.mapPartial (fn (pre,post,value) =>
+          if pred(pre,post) andalso has "^\\s*(?:(?:cells?|bacteria|cfu|organisms)\\b|,|and\\b|to\\b|[?.;]|$)" post
+          then SOME value else NONE) quantities
+        val initial = count(fn(pre,post) =>
+          has "\\b(?:starts? with|initial(?:ly)?(?: count| population)?(?: of| is| =)?|beginning with|begins with|starting with|inoculated with|from|(?:population|culture|sample|colony|inoculum) of)\\s+(?:a\\s+)?$" pre
+          orelse has "^\\s*(?:cells|bacteria)\\s*(?:initially|at the start|to start)\\b" post)
+        val final = count(fn(pre,_) => has "\\b(?:to|reaches|reach|grows? to|final(?: count| population)?(?: of| is| =)?|ends? with)\\s+$" pre)
+        fun scale (n,d) unit =
+          if String.isPrefix "s" unit then (n,d*60)
+          else if String.isPrefix "h" unit then (n*60,d)
+          else if String.isPrefix "d" unit then (n*1440,d) else (n,d)
+        fun time role = List.mapPartial (fn(pre,post,value) =>
+          if has role pre then
+            (case search "^\\s*(seconds?|sec|s|minutes?|mins?|hours?|hrs?|h|days?)\\b" post of
+              SOME m => SOME(scale value (g1 post m)) | NONE => NONE)
+          else NONE) quantities
+        val generation = time "\\b(?:(?:generation|doubling) time\\s*(?:(?:of|is|=)\\s*)?|(?:divides?|doubles?)\\s+every\\s*)$"
+        val elapsed = time "\\b(?:after|in|for|over)\\s+$"
+        fun rat(n,d)=L.mk_rat n d
+        val askGens = has "\\bhow many generations\\b|\\bnumber of generations\\b" low
+        val askTime = has "(?:what|find|calculate|compute|determine|give)[^?;]*\\b(?:generation|doubling) time\\b" low
+        val targetText = case search "\\b(?:what|find|calculate|compute|determine|give)\\b" low of
+            SOME m => String.extract(low,#start m,NONE) | NONE => low
+        val outputUnits = List.mapPartial (fn(pat,u) => if has pat targetText then SOME u else NONE)
+          [("\\bin\\s+(?:seconds?|sec|s)\\b",L.M_Seconds),
+           ("\\bin\\s+(?:minutes?|mins?)\\b",L.M_Minutes),
+           ("\\bin\\s+(?:hours?|hrs?|h)\\b",L.M_Hours),
+           ("\\bin\\s+days?\\b",L.M_Days)]
+        val badUnit = askTime andalso (length outputUnits>1 orelse has "\\bin\\s+(?:weeks?|months?|years?)\\b" targetText)
+        val outputUnit = case outputUnits of [u] => u | _ => L.M_Minutes
       in
-        case (gt, tt) of
-          (SOME g, SOME t) =>
-            if isSome n0 andalso has "\\bhow many\\b|\\bpopulation\\b|\\bnumber of (?:cells|bacteria)\\b" low
-               andalso not (has "\\bhow many generations\\b" low)
-            then SOME (L.M_GrowthN (sciVal low (valOf n0), gMin g, tMin t))
-            else if has "\\bhow many generations\\b" low then SOME (L.M_Gens (tMin t, gMin g))
-            else microTime low n0 nf tt
-        | _ => microTime low n0 nf tt
+        if bad orelse badUnit then SOME L.M_Unread
+        else if askGens then
+          (case (elapsed,generation) of ([t],[g]) => SOME(L.M_Gens(rat t,rat g)) | _ => SOME L.M_Unread)
+        else if askTime then
+          (case (initial,final,elapsed,generation) of
+             ([a],[b],[t],[]) => SOME(L.M_GenTimeIn(outputUnit,rat a,rat b,rat t))
+           | _ => SOME L.M_Unread)
+        else case (initial,generation,elapsed,final) of
+          ([a],[g],[t],[]) => SOME(L.M_GrowthN(rat a,rat g,rat t))
+        | _ => SOME L.M_Unread
       end
-  and microTime low n0 nf tt : L.mreq option =
-    case (n0, nf, tt) of
-      (SOME a, SOME b, SOME t) =>
-        if has "\\bgeneration time\\b|\\bdoubling time\\b" low
-        then SOME (L.M_GenTime (sciVal low a, sciVal low b, minutesOf (g1 low t) (valOf (grp low t 2))))
-        else NONE
-    | _ => NONE
 
   fun micro text : L.reply option =
     let
@@ -812,13 +904,8 @@ struct
       if Narrow.narrative text andalso not (has ASKS low0) then NONE
       else
         let
-          val NUM2 = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?(?:\\s*(?:x|\195\151|\\*)\\s*10\\s*\\^?\\s*[+-]?\\d+|e[+-]?\\d+)?)"
-          val UNIT2 = "(?:cells|bacteria|bacterial cells|cfu|organisms)"
-          val s1 = subWith ("\\bfrom\\s+" ^ NUM2 ^ "\\s*" ^ UNIT2 ^ "\\s+to\\s+" ^ NUM2 ^ "\\s*" ^ UNIT2 ^ "?|\\bfrom\\s+" ^ NUM2 ^ "\\s+to\\s+" ^ NUM2 ^ "\\s*" ^ UNIT2)
-                     (fn t => fn m =>
-                        "starting with " ^ valOf (firstGroup t m [1, 3]) ^ " cells, reaches " ^ valOf (firstGroup t m [2, 4]) ^ " cells") t0
-          val s2 = subWith ("\\b(?:a |the )?(?:bacterial )?(?:population|culture|sample|colony|inoculum) of\\s+" ^ NUM2 ^ "\\s*" ^ UNIT2)
-                     (fn t => fn m => "a culture starting with " ^ g1 t m ^ " cells") s1
+          val s2 = subWith "(?<![\\w.,+\\-/^\226\136\146])([+\\-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+))\\s*(?:x|\195\151|\\*)\\s*10\\s*\\^?\\s*([+-]?\\d+)(?![\\d.\\^])"
+            (fn t => fn m => g1 t m ^ "e" ^ valOf(grp t m 2)) t0
           val s3 = subWith "\\btenfold\\b" (fn _ => fn _ => "10-fold") s2
           val s4 = subWith "\\bhundredfold\\b" (fn _ => fn _ => "100-fold") s3
           val t = subWith "\\b(successive|consecutive|sequential|repeated)\\s+(?=1\\s*[:/]|\\d+[- ]fold)" (fn _ => fn _ => "") s4

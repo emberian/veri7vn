@@ -326,8 +326,18 @@ struct
     end
 
   fun bioUnsupportedCode low =
-    has ⟦\bmitochondri\w*\b|\bciliate\w*\b|\balternative (?:genetic )?code\b|\bnonstandard\b|\bnon-standard\b|\bselenocysteine\b|\bpyrrolysine\b|\b(?:reading )?frame\s*(?:[023456]|-[123])\b⟧ low
+    has ⟦\bmitochondri\w*\b|\bciliate\w*\b|\balternative (?:genetic )?code\b|\bnonstandard\b|\bnon-standard\b|\bselenocysteine\b|\bpyrrolysine\b⟧ low
     orelse (has ⟦\b(?:genetic )?code\s*(?:table\s*)?\d+\b⟧ low andalso not (has ⟦\b(?:genetic )?code\s*(?:table\s*)?1\b⟧ low))
+
+  fun bioFrame low =
+    let
+      val explicit = has ⟦\b(?:reading )?frame⟧ low
+      val rows = List.mapPartial (fn ExactNumeric.Number {start,value,...} =>
+          if has ⟦\b(?:reading )?frame\s*$⟧ (String.substring(low,0,start)) then SOME value else NONE
+          | _=>NONE) (ExactNumeric.scan low)
+    in if not explicit then SOME(1:IntInf.int)
+       else case rows of [(n,d)]=>if d=1 andalso 1<=n andalso n<=3 then SOME n else NONE | _=>NONE
+    end
 
   fun biology text : L.reply option =
     if Narrow.narrative text then NONE
@@ -349,14 +359,15 @@ struct
                 val template = has ⟦\btemplate\b|\bantisense\b|\bnon-?coding strand\b⟧ low
                 val coding = has ⟦\bcoding strand\b|\bsense strand\b⟧ (subWith ⟦\bnon-?coding strand\b⟧ (fn _ => fn _ => "") low)
                 val direction = bioDirection low s
+                val frame = bioFrame low
                 val codeTask = has ⟦\btranslat\w*\b|\bprotein\b|\bamino acid\b|\bcodon\b|\bcode for\b⟧ low
                 val strandTask = codeTask orelse has ⟦\btranscri\w*\b|\bmrna\b⟧ low
                 val ys = L.bio_input template (case direction of SOME x => x | NONE => false) xs
               in
-                if strandTask andalso (not (isSome direction) orelse (template andalso coding) orelse (codeTask andalso bioUnsupportedCode low))
+                if strandTask andalso (not (isSome direction) orelse (template andalso coding) orelse (codeTask andalso (bioUnsupportedCode low orelse not(isSome frame))))
                 then gate text L.bio_model_reply
                 else if both then fin (L.Bio (L.Op_complement, xs))
-                else if size s = 3 andalso has ⟦\bcodon\b|\bcode for\b|\bencode\w*\b|\bamino acid\b|\bspecif\w*\b⟧ low
+                else if frame = SOME 1 andalso size s = 3 andalso has ⟦\bcodon\b|\bcode for\b|\bencode\w*\b|\bamino acid\b|\bspecif\w*\b⟧ low
                 then fin (L.Bio (L.Op_codon, ys))
                 else if has ⟦\bgc content\b|\bgc percent\w*\b|\bgc %|\bpercent(?:age)? (?:of )?g(?:\s*\+\s*|c\b)⟧ low
                 then fin (L.Bio (L.Op_gc, xs))
@@ -368,10 +379,10 @@ struct
                 then
                   (if String.isSubstring "U" s then NONE
                    else fin (L.Bio (L.Op_transcribe false, ys)))
-                else if has ⟦\btranslat\w*\b|\bprotein\b|\bamino acid sequence\b|\bpeptide\b⟧ low then
+                else if has ⟦\btranslat\w*\b|\bprotein\b|\bamino acid sequence\b|\bhow many amino acids\b|\bpeptide\b⟧ low then
                   (if has ⟦\bhow many amino acids\b|\blength of the protein\b|\bhow long\b⟧ low
-                   then fin (L.Bio (L.Op_protlen, ys))
-                   else fin (L.Bio (L.Op_translate, ys)))
+                   then gate text (L.b_frame_reply (natOf(valOf frame)) true ys)
+                   else gate text (L.b_frame_reply (natOf(valOf frame)) false ys))
                 else NONE
               end
       end

@@ -43,12 +43,30 @@ definition small_nat :: "rat \<Rightarrow> nat option" where
 lemma small_nat_sound: "small_nat n = Some m \<Longrightarrow> n = of_nat m"
   by (auto simp: small_nat_def dest: nat_of_rat_sound split: option.splits if_splits)
 
+datatype mtimeunit = M_Seconds | M_Minutes | M_Hours | M_Days
+
+fun minutes_per_unit :: "mtimeunit \<Rightarrow> rat" where
+  "minutes_per_unit M_Seconds = 1/60"
+| "minutes_per_unit M_Minutes = 1"
+| "minutes_per_unit M_Hours = 60"
+| "minutes_per_unit M_Days = 1440"
+
+lemma minutes_per_unit_pos [simp]: "0 < minutes_per_unit u"
+  by (cases u) simp_all
+
+fun time_unit_label :: "mtimeunit \<Rightarrow> String.literal" where
+  "time_unit_label M_Seconds = STR ''seconds''"
+| "time_unit_label M_Minutes = STR ''minutes''"
+| "time_unit_label M_Hours = STR ''hours''"
+| "time_unit_label M_Days = STR ''days''"
+
 datatype mreq =
     M_CFU rat rat rat
   | M_Serial nat nat
   | M_GrowthN rat rat rat
   | M_Gens rat rat
   | M_GenTime rat rat rat
+  | M_GenTimeIn mtimeunit rat rat rat
   | M_Unread
 
 definition read_fail :: String.literal where
@@ -57,11 +75,14 @@ definition read_fail :: String.literal where
 fun m_phys :: "mreq \<Rightarrow> real" where
   "m_phys (M_GrowthN n0 g t) = rl n0 * 2 powr (rl t / rl g)"
 | "m_phys (M_GenTime n0 nf t) = rl t / log 2 (rl nf / rl n0)"
+| "m_phys (M_GenTimeIn u n0 nf t) = rl (t / minutes_per_unit u) / log 2 (rl nf / rl n0)"
 | "m_phys r = 0"
 
 fun m_fa :: "mreq \<Rightarrow> floatarith" where
   "m_fa (M_GrowthN n0 g t) = floatarith.Mult (Q n0) (floatarith.Powr (I 2) (Q (t / g)))"
 | "m_fa (M_GenTime n0 nf t) = floatarith.Mult (Q t)
+     (floatarith.Mult (floatarith.Ln (I 2)) (floatarith.Inverse (floatarith.Ln (Q (nf / n0)))))"
+| "m_fa (M_GenTimeIn u n0 nf t) = floatarith.Mult (Q (t / minutes_per_unit u))
      (floatarith.Mult (floatarith.Ln (I 2)) (floatarith.Inverse (floatarith.Ln (Q (nf / n0)))))"
 | "m_fa r = I 0"
 
@@ -73,14 +94,21 @@ lemma interp_m_fa_gentime [simp]:
   "interpret_floatarith (m_fa (M_GenTime n0 nf t)) xs = m_phys (M_GenTime n0 nf t)"
   by (simp add: of_rat_divide of_rat_mult of_rat_inverse log_def divide_inverse)
 
+lemma interp_m_fa_gentime_unit [simp]:
+  "interpret_floatarith (m_fa (M_GenTimeIn u n0 nf t)) xs = m_phys (M_GenTimeIn u n0 nf t)"
+  by (simp add: of_rat_divide of_rat_mult of_rat_inverse log_def divide_inverse)
+
 fun m_bad :: "mreq \<Rightarrow> decline option" where
   "m_bad (M_CFU c d v) = (if c < 0 \<or> d \<le> 0 \<or> 1 < d \<or> v \<le> 0 then Some (Impossible R_plate) else None)"
-| "m_bad (M_GrowthN n0 g t) = (if g \<le> 0 then Some (Impossible R_zero) else None)"
-| "m_bad (M_Gens t g) = (if g \<le> 0 then Some (Impossible R_zero) else None)"
+| "m_bad (M_GrowthN n0 g t) = (if g \<le> 0 then Some (Impossible R_zero) else if n0 < 0 \<or> t < 0 then Some (Impossible R_micro_domain) else None)"
+| "m_bad (M_Gens t g) = (if g \<le> 0 then Some (Impossible R_zero) else if t < 0 then Some (Impossible R_micro_domain) else None)"
 | "m_bad (M_GenTime n0 nf t) = (if nf \<le> n0 then Some (Impossible R_final_below)
-     else if n0 \<le> 0 then Some (Impossible R_zero) else None)"
+     else if n0 \<le> 0 then Some (Impossible R_zero) else if t \<le> 0 then Some (Impossible R_micro_domain) else None)"
+| "m_bad (M_GenTimeIn u n0 nf t) = (if nf \<le> n0 then Some (Impossible R_final_below)
+     else if n0 \<le> 0 then Some (Impossible R_zero) else if t \<le> 0 then Some (Impossible R_micro_domain) else None)"
+| "m_bad (M_Serial f k) = (if f = 0 then Some (Impossible R_micro_domain) else None)"
 | "m_bad M_Unread = Some (Underspecified read_fail)"
-| "m_bad r = None"
+
 
 fun m_answer :: "mreq \<Rightarrow> outcome" where
   "m_answer (M_CFU c d v) = Exact (STR ''cfu'') (c / (d * v))"
@@ -92,6 +120,9 @@ fun m_answer :: "mreq \<Rightarrow> outcome" where
 | "m_answer (M_GenTime n0 nf t) = (case log2_exact (nf / n0) of
      Some m \<Rightarrow> Exact (STR ''gen_time'') (t / of_nat m)
    | None \<Rightarrow> approx_out (STR ''gen_time'') (m_fa (M_GenTime n0 nf t)))"
+| "m_answer (M_GenTimeIn u n0 nf t) = (case log2_exact (nf / n0) of
+     Some m \<Rightarrow> Exact (STR ''gen_time'') (t / (of_nat m * minutes_per_unit u))
+   | None \<Rightarrow> approx_out (STR ''gen_time'') (m_fa (M_GenTimeIn u n0 nf t)))"
 | "m_answer M_Unread = Decline Imprecise"
 
 definition m_kernel :: "mreq \<Rightarrow> outcome" where
@@ -122,30 +153,30 @@ proof -
 qed
 
 theorem serial_value:
-  "m_kernel (M_Serial f k) = Exact (STR ''serial'') (of_nat (f ^ k))"
+  "0 < f \<Longrightarrow> m_kernel (M_Serial f k) = Exact (STR ''serial'') (of_nat (f ^ k))"
   by (simp add: m_kernel_def)
 
 text \<open>Dilutions compose: k1 steps then k2 steps is k1 + k2 steps.\<close>
 theorem serial_composes:
   assumes "m_kernel (M_Serial f k1) = Exact c a" "m_kernel (M_Serial f k2) = Exact c' b"
   shows "m_kernel (M_Serial f (k1 + k2)) = Exact (STR ''serial'') (a * b)"
-  using assms by (simp add: m_kernel_def power_add)
+  using assms by (auto simp: m_kernel_def power_add split: if_splits)
 
 theorem generations_value:
   assumes "m_kernel (M_Gens t g) = Exact k q"
-  shows "0 < g \<and> q * g = t"
+  shows "0 < g \<and> 0 \<le> t \<and> q * g = t"
 proof -
-  have nd: "\<not> g \<le> 0" using assms by (cases "g \<le> 0") (simp_all add: m_kernel_def)
+  have nd: "0 < g \<and> 0 \<le> t" using assms by (auto simp: m_kernel_def split: if_splits)
   then have g: "0 < g" by simp
   have "q = t / g" using assms nd by (simp add: m_kernel_def)
-  then show ?thesis using g by simp
+  then show ?thesis using g nd by simp
 qed
 
 theorem growth_exact:
   assumes "m_kernel (M_GrowthN n0 g t) = Exact k q"
-  shows "0 < g \<and> rl q = m_phys (M_GrowthN n0 g t)"
+  shows "0 < g \<and> 0 \<le> n0 \<and> 0 \<le> t \<and> rl q = m_phys (M_GrowthN n0 g t)"
 proof -
-  have nd: "\<not> g \<le> 0" using assms by (cases "g \<le> 0") (simp_all add: m_kernel_def)
+  have nd: "0 < g \<and> 0 \<le> n0 \<and> 0 \<le> t" using assms by (auto simp: m_kernel_def split: if_splits)
   then have gpos: "0 < g" by simp
   have a: "m_answer (M_GrowthN n0 g t) = Exact k q" using assms nd by (simp add: m_kernel_def)
   show ?thesis
@@ -162,15 +193,15 @@ proof -
       then show ?thesis by (simp add: of_rat_divide)
     qed
     then have "(2::real) powr (rl t / rl g) = 2 ^ m" by (simp add: powr_realpow)
-    then show ?thesis using q gpos by (simp add: of_rat_mult of_rat_power)
+    then show ?thesis using q gpos nd by (simp add: of_rat_mult of_rat_power)
   qed
 qed
 
 theorem growth_approx:
   assumes "m_kernel (M_GrowthN n0 g t) = Approx k d"
-  shows "0 < g \<and> \<bar>dec_val d - m_phys (M_GrowthN n0 g t)\<bar> \<le> \<bar>m_phys (M_GrowthN n0 g t)\<bar> / 1000 + 1 / 1000000000"
+  shows "0 < g \<and> 0 \<le> n0 \<and> 0 \<le> t \<and> \<bar>dec_val d - m_phys (M_GrowthN n0 g t)\<bar> \<le> \<bar>m_phys (M_GrowthN n0 g t)\<bar> / 1000 + 1 / 1000000000"
 proof -
-  have nd: "\<not> g \<le> 0" using assms by (cases "g \<le> 0") (simp_all add: m_kernel_def)
+  have nd: "0 < g \<and> 0 \<le> n0 \<and> 0 \<le> t" using assms by (auto simp: m_kernel_def split: if_splits)
   then have gpos: "0 < g" by simp
   have a: "m_answer (M_GrowthN n0 g t) = Approx k d" using assms nd by (simp add: m_kernel_def)
   show ?thesis
@@ -179,7 +210,7 @@ proof -
     have a2: "approx_out (STR ''growth_n'') (m_fa (M_GrowthN n0 g t)) = Approx k d" using a None by simp
     have e: "\<forall>xs. interpret_floatarith (m_fa (M_GrowthN n0 g t)) xs = m_phys (M_GrowthN n0 g t)"
       using interp_m_fa_growth by blast
-    from approx_out_phys[OF a2 e] show ?thesis using gpos by simp
+    from approx_out_phys[OF a2 e] show ?thesis using gpos nd by simp
   next
     case (Some m)
     then show ?thesis using a by simp
@@ -192,7 +223,7 @@ theorem gentime_exact:
 proof -
   have nd1: "\<not> nf \<le> n0" using assms by (cases "nf \<le> n0") (simp_all add: m_kernel_def)
   have nd2: "\<not> n0 \<le> 0" using assms nd1 by (cases "n0 \<le> 0") (simp_all add: m_kernel_def)
-  have nd: "\<not> nf \<le> n0 \<and> \<not> n0 \<le> 0" using nd1 nd2 by simp
+  have nd: "\<not> nf \<le> n0 \<and> \<not> n0 \<le> 0 \<and> 0 < t" using assms by (auto simp: m_kernel_def split: if_splits)
   have a: "m_answer (M_GenTime n0 nf t) = Exact k q" using assms nd by (simp add: m_kernel_def)
   show ?thesis
   proof (cases "log2_exact (nf / n0)")
@@ -214,7 +245,7 @@ theorem gentime_approx:
 proof -
   have nd1: "\<not> nf \<le> n0" using assms by (cases "nf \<le> n0") (simp_all add: m_kernel_def)
   have nd2: "\<not> n0 \<le> 0" using assms nd1 by (cases "n0 \<le> 0") (simp_all add: m_kernel_def)
-  have nd: "\<not> nf \<le> n0 \<and> \<not> n0 \<le> 0" using nd1 nd2 by simp
+  have nd: "\<not> nf \<le> n0 \<and> \<not> n0 \<le> 0 \<and> 0 < t" using assms by (auto simp: m_kernel_def split: if_splits)
   have a: "m_answer (M_GenTime n0 nf t) = Approx k d" using assms nd by (simp add: m_kernel_def)
   show ?thesis
   proof (cases "log2_exact (nf / n0)")
@@ -254,6 +285,67 @@ theorem gentime_zero_iff:
   "m_kernel (M_GenTime n0 nf t) = Decline (Impossible R_zero) \<longleftrightarrow> n0 < nf \<and> n0 \<le> 0"
   by (auto simp: m_decl_iff)
 
+section \<open>Physical domains and output dimensions\<close>
+
+theorem serial_positive:
+  assumes "m_kernel (M_Serial f k) = Exact c q"
+  shows "0 < f \<and> 1 \<le> q \<and> 0 < 1/q \<and> 1/q \<le> 1"
+proof -
+  have h: "0 < f" "q = of_nat(f^k)"
+    using assms by (auto simp: m_kernel_def split: if_splits)
+  have fp: "1 \<le> f^k" using h(1) by simp
+  have "(of_nat 1::rat) \<le> of_nat(f^k)" by (rule of_nat_mono[OF fp])
+  then have q: "1 \<le> q" using h(2) by (simp only: of_nat_1)
+  have qp: "0 < q" using q by linarith
+  show ?thesis using h q qp by (auto simp: divide_le_eq)
+qed
+
+theorem growth_domain:
+  "m_bad (M_GrowthN n0 g t) = None \<Longrightarrow> 0 \<le> n0 \<and> 0 < g \<and> 0 \<le> t"
+  by (auto split: if_splits)
+
+theorem zero_population_equilibrium:
+  "m_phys (M_GrowthN 0 g t) = 0"
+  by simp
+
+theorem growth_time_scale:
+  assumes "0 < c" "0 < g"
+  shows "m_phys (M_GrowthN n (c*g) (c*t)) = m_phys (M_GrowthN n g t)"
+  using assms by (simp add: of_rat_mult field_simps)
+
+theorem generation_time_unit_model:
+  "m_phys (M_GenTimeIn u n0 nf t) * rl(minutes_per_unit u) = m_phys (M_GenTime n0 nf t)"
+  by (cases u) (simp_all add: of_rat_divide of_rat_mult field_simps)
+
+theorem generation_time_unit_exact:
+  assumes "m_kernel (M_GenTimeIn u n0 nf t) = Exact k q"
+  shows "0 < n0 \<and> n0 < nf \<and> 0 < t \<and>
+    (\<exists>m\<ge>1. (2::rat)^m = nf/n0 \<and> q * minutes_per_unit u * of_nat m = t)"
+proof -
+  have dom: "0 < n0" "n0 < nf" "0 < t"
+    using assms by (auto simp: m_kernel_def split: if_splits)
+  obtain m where m: "log2_exact (nf/n0) = Some m"
+    using assms dom by (cases "log2_exact (nf/n0)") (auto simp: m_kernel_def)
+  have exact: "(2::rat)^m = nf/n0" "1 \<le> m" using log2_exact_sound[OF m] by auto
+  have q: "q = t / (of_nat m * minutes_per_unit u)" using assms dom m by (simp add: m_kernel_def)
+  have mn: "(of_nat m::rat) \<noteq> 0" using exact(2) by auto
+  have "q * minutes_per_unit u * of_nat m = t" using q mn by (cases u) (simp_all add: field_simps)
+  then show ?thesis using dom exact by blast
+qed
+
+theorem generation_time_unit_approx:
+  assumes "m_kernel (M_GenTimeIn u n0 nf t) = Approx k d"
+  shows "0 < n0 \<and> n0 < nf \<and> 0 < t \<and>
+    \<bar>dec_val d - m_phys (M_GenTimeIn u n0 nf t)\<bar> \<le> \<bar>m_phys (M_GenTimeIn u n0 nf t)\<bar>/1000 + 1/1000000000"
+proof -
+  have dom: "0 < n0" "n0 < nf" "0 < t"
+    using assms by (auto simp: m_kernel_def split: if_splits)
+  have a: "approx_out (STR ''gen_time'') (m_fa (M_GenTimeIn u n0 nf t)) = Approx k d"
+    using assms dom by (auto simp: m_kernel_def split: option.splits)
+  have e: "\<forall>xs. interpret_floatarith (m_fa (M_GenTimeIn u n0 nf t)) xs = m_phys (M_GenTimeIn u n0 nf t)" using interp_m_fa_gentime_unit by blast
+  show ?thesis using approx_out_phys[OF a e] dom by simp
+qed
+
 section \<open>Response text\<close>
 
 definition mnum :: "outcome \<Rightarrow> String.literal" where
@@ -272,6 +364,8 @@ fun m_text :: "mreq \<Rightarrow> outcome \<Rightarrow> String.literal" where
      + STR '' min / '' + plain_lit g + STR '' min).''"
 | "m_text (M_GenTime n0 nf t) o' = STR ''The generation time is '' + mnum o'
      + STR '' minutes (t / log2(N/N0) = '' + plain_lit t + STR '' min / log2('' + plain_lit (nf / n0) + STR '')).''"
+| "m_text (M_GenTimeIn u n0 nf t) o' = STR ''The generation time is '' + mnum o'
+     + STR '' '' + time_unit_label u + STR '' (elapsed time divided by log2(final/initial), under binary fission).''"
 | "m_text M_Unread o' = STR ''''"
 
 definition m_reply :: "mreq \<Rightarrow> reply" where

@@ -1,25 +1,6 @@
 
   (* ---------- microbiology v2 ---------- *)
-  val SCI = ⟦(\d+(?:\.\d+)?)\s*(?:(?:x|×|\*)\s*10\s*\^?\s*([+-]?\d+)|e([+-]?\d+))?⟧
-  val TU = ⟦\s*(minutes?|min|hours?|hrs?|h|days?)\b⟧
   val ASKS = ⟦\?|\b(?:find|calculate|compute|determine|estimate|what|how many|how long|give)\b⟧
-
-  fun signedInt s =
-    if String.isPrefix "+" s then valOf (Int.fromString (String.extract (s, 1, NONE)))
-    else if String.isPrefix "-" s then ~ (valOf (Int.fromString (String.extract (s, 1, NONE))))
-    else valOf (Int.fromString s)
-
-  fun sciVal low m =
-    let val e = case firstGroup low m [2, 3] of SOME x => signedInt x | NONE => 0
-    in ratSci (g1 low m) e end
-
-  fun ratTimes lit (k : int) =
-    let val (n, d) = decParts lit in L.mk_rat (IntInf.* (n, IntInf.fromInt k)) d end
-  fun ratDiv lit (k : int) =
-    let val (n, d) = decParts lit in L.mk_rat n (IntInf.* (d, IntInf.fromInt k)) end
-
-  fun minutesOf lit unit =
-    ratTimes lit (if String.isPrefix "h" unit then 60 else if String.isPrefix "d" unit then 1440 else 1)
 
   (* Dilution powers and colon ratios are domain notation. Normalize only
      complete powers, then let shared exact tokenization preserve all signs,
@@ -77,47 +58,89 @@
               in SOME (L.M_CFU (L.mk_rat cn cd, d, vol)) end
           | _ => SOME L.M_Unread
         end
-      else
-        case search ⟦\b(\d+|two|three|four|five|six)\s+(?:serial\s+)?(?:1\s*[:/]\s*(\d+)|(\d+)[- ]fold)\s+(?:serial\s+)?dilutions?\b⟧ low of
-          SOME sm =>
-            if has ⟦\btotal\b|\bfinal\b|\boverall\b⟧ low then
-              let
-                val ks = g1 low sm
-                val k = case ks of "two" => 2 | "three" => 3 | "four" => 4 | "five" => 5 | "six" => 6 | _ => intOf ks
-                val f = intOf (valOf (firstGroup low sm [2, 3]))
-              in SOME (L.M_Serial (natI f, natI k)) end
-            else microGrowth low
-        | NONE => microGrowth low
+      else if has ⟦\bserial dilutions?\b|\bfold\s+dilutions?\b|\b1\s*/\s*\d+\s+(?:serial\s+)?dilutions?\b⟧ low
+      then microSerial low
+      else microGrowth low
+    end
+  and microSerial low : L.mreq option =
+    let
+      val text = subWith ⟦\b(two|three|four|five|six)\s+(?=(?:serial\s+)?(?:1\s*/|\d+[- ]fold))⟧
+        (fn t => fn m => (case g1 t m of "two" => "2 " | "three" => "3 " | "four" => "4 " | "five" => "5 " | _ => "6 ")) low
+      val tokens = ExactNumeric.scan text
+      val bad = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+      fun factors (ExactNumeric.Number {start,stop,value=(n,d),...}) =
+            let val after = String.extract(text,stop,NONE)
+            in if has ⟦^[- ]fold\s+(?:serial\s+)?dilutions?\b⟧ after
+               then SOME(start,n,d)
+               else if has ⟦^\s+(?:serial\s+)?dilutions?\b⟧ after andalso n=1
+               then SOME(start,d,1) else NONE end
+        | factors _ = NONE
+      fun steps factorStart (ExactNumeric.Number {stop,value,...}) =
+            if stop <= factorStart andalso has ⟦^\s+(?:serial\s+)?$⟧ (String.substring(text,stop,factorStart-stop))
+            then SOME value else NONE
+        | steps _ _ = NONE
+    in
+      if bad then SOME L.M_Unread
+      else case List.mapPartial factors tokens of
+        [(factorStart,f,1)] =>
+          (case List.mapPartial (steps factorStart) tokens of
+             [(k,1)] => if f>=0 andalso k>=0 andalso k<=10000 andalso IntInf.fromInt(size(IntInf.toString f))*k<=10000
+                        then SOME (L.M_Serial(natOf f,natOf k))
+                        else SOME L.M_Unread
+           | _ => SOME L.M_Unread)
+      | _ => SOME L.M_Unread
     end
   and microGrowth low : L.mreq option =
     if not (has ⟦\bbacteri\w*\b|\bcells?\b|\bgeneration\b|\bdoubl\w*\b|\bbinary fission\b|\bculture\b|\be\.? coli\b|\bpopulation\b⟧ low) then NONE
     else
       let
-        val gt = search (⟦\b(?:generation|doubling) time\s*(?:of|is|=)?\s*⟧ ^ N ^ TU ^ ⟦|\b(?:divides?|doubles?)\s+every\s+⟧ ^ N ^ TU) low
-        val tt = search (⟦\b(?:after|in|for|over)\s+⟧ ^ N ^ TU) low
-        val n0 = case search (⟦\b(?:starts? with|initial(?:ly)?|beginning with|begins with|starting with|inoculated with)\s+(?:a\s+)?⟧ ^ SCI ^ ⟦\s*(?:cells|bacteria|cfu)?⟧) low of
-                   SOME m => SOME m
-                 | NONE => search (SCI ^ ⟦\s*(?:cells|bacteria)\s*(?:initially|at the start|to start)⟧) low
-        val nf = search (⟦\b(?:to|reaches|reach|grows? to|final(?: count| population)?(?: of| is)?|ends? with)\s+⟧ ^ SCI ^ ⟦\s*(?:cells|bacteria|cfu)?⟧) low
-        fun gMin m = minutesOf (valOf (firstGroup low m [1, 3])) (valOf (firstGroup low m [2, 4]))
-        fun tMin m = minutesOf (g1 low m) (valOf (grp low m 2))
+        val tokens = ExactNumeric.scan low
+        val bad = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+        fun parts (ExactNumeric.Number {start,stop,value,...}) = SOME(String.substring(low,0,start),String.extract(low,stop,NONE),value)
+          | parts _ = NONE
+        val quantities = List.mapPartial parts tokens
+        fun count pred = List.mapPartial (fn (pre,post,value) =>
+          if pred(pre,post) andalso has ⟦^\s*(?:(?:cells?|bacteria|cfu|organisms)\b|,|and\b|to\b|[?.;]|$)⟧ post
+          then SOME value else NONE) quantities
+        val initial = count(fn(pre,post) =>
+          has ⟦\b(?:starts? with|initial(?:ly)?(?: count| population)?(?: of| is| =)?|beginning with|begins with|starting with|inoculated with|from|(?:population|culture|sample|colony|inoculum) of)\s+(?:a\s+)?$⟧ pre
+          orelse has ⟦^\s*(?:cells|bacteria)\s*(?:initially|at the start|to start)\b⟧ post)
+        val final = count(fn(pre,_) => has ⟦\b(?:to|reaches|reach|grows? to|final(?: count| population)?(?: of| is| =)?|ends? with)\s+$⟧ pre)
+        fun scale (n,d) unit =
+          if String.isPrefix "s" unit then (n,d*60)
+          else if String.isPrefix "h" unit then (n*60,d)
+          else if String.isPrefix "d" unit then (n*1440,d) else (n,d)
+        fun time role = List.mapPartial (fn(pre,post,value) =>
+          if has role pre then
+            (case search ⟦^\s*(seconds?|sec|s|minutes?|mins?|hours?|hrs?|h|days?)\b⟧ post of
+              SOME m => SOME(scale value (g1 post m)) | NONE => NONE)
+          else NONE) quantities
+        val generation = time ⟦\b(?:(?:generation|doubling) time\s*(?:(?:of|is|=)\s*)?|(?:divides?|doubles?)\s+every\s*)$⟧
+        val elapsed = time ⟦\b(?:after|in|for|over)\s+$⟧
+        fun rat(n,d)=L.mk_rat n d
+        val askGens = has ⟦\bhow many generations\b|\bnumber of generations\b⟧ low
+        val askTime = has ⟦(?:what|find|calculate|compute|determine|give)[^?;]*\b(?:generation|doubling) time\b⟧ low
+        val targetText = case search ⟦\b(?:what|find|calculate|compute|determine|give)\b⟧ low of
+            SOME m => String.extract(low,#start m,NONE) | NONE => low
+        val outputUnits = List.mapPartial (fn(pat,u) => if has pat targetText then SOME u else NONE)
+          [(⟦\bin\s+(?:seconds?|sec|s)\b⟧,L.M_Seconds),
+           (⟦\bin\s+(?:minutes?|mins?)\b⟧,L.M_Minutes),
+           (⟦\bin\s+(?:hours?|hrs?|h)\b⟧,L.M_Hours),
+           (⟦\bin\s+days?\b⟧,L.M_Days)]
+        val badUnit = askTime andalso (length outputUnits>1 orelse has ⟦\bin\s+(?:weeks?|months?|years?)\b⟧ targetText)
+        val outputUnit = case outputUnits of [u] => u | _ => L.M_Minutes
       in
-        case (gt, tt) of
-          (SOME g, SOME t) =>
-            if isSome n0 andalso has ⟦\bhow many\b|\bpopulation\b|\bnumber of (?:cells|bacteria)\b⟧ low
-               andalso not (has ⟦\bhow many generations\b⟧ low)
-            then SOME (L.M_GrowthN (sciVal low (valOf n0), gMin g, tMin t))
-            else if has ⟦\bhow many generations\b⟧ low then SOME (L.M_Gens (tMin t, gMin g))
-            else microTime low n0 nf tt
-        | _ => microTime low n0 nf tt
+        if bad orelse badUnit then SOME L.M_Unread
+        else if askGens then
+          (case (elapsed,generation) of ([t],[g]) => SOME(L.M_Gens(rat t,rat g)) | _ => SOME L.M_Unread)
+        else if askTime then
+          (case (initial,final,elapsed,generation) of
+             ([a],[b],[t],[]) => SOME(L.M_GenTimeIn(outputUnit,rat a,rat b,rat t))
+           | _ => SOME L.M_Unread)
+        else case (initial,generation,elapsed,final) of
+          ([a],[g],[t],[]) => SOME(L.M_GrowthN(rat a,rat g,rat t))
+        | _ => SOME L.M_Unread
       end
-  and microTime low n0 nf tt : L.mreq option =
-    case (n0, nf, tt) of
-      (SOME a, SOME b, SOME t) =>
-        if has ⟦\bgeneration time\b|\bdoubling time\b⟧ low
-        then SOME (L.M_GenTime (sciVal low a, sciVal low b, minutesOf (g1 low t) (valOf (grp low t 2))))
-        else NONE
-    | _ => NONE
 
   fun micro text : L.reply option =
     let
@@ -127,13 +150,8 @@
       if Narrow.narrative text andalso not (has ASKS low0) then NONE
       else
         let
-          val NUM2 = ⟦(\d+(?:,\d{3})*(?:\.\d+)?(?:\s*(?:x|×|\*)\s*10\s*\^?\s*[+-]?\d+|e[+-]?\d+)?)⟧
-          val UNIT2 = ⟦(?:cells|bacteria|bacterial cells|cfu|organisms)⟧
-          val s1 = subWith (⟦\bfrom\s+⟧ ^ NUM2 ^ ⟦\s*⟧ ^ UNIT2 ^ ⟦\s+to\s+⟧ ^ NUM2 ^ ⟦\s*⟧ ^ UNIT2 ^ ⟦?|\bfrom\s+⟧ ^ NUM2 ^ ⟦\s+to\s+⟧ ^ NUM2 ^ ⟦\s*⟧ ^ UNIT2)
-                     (fn t => fn m =>
-                        "starting with " ^ valOf (firstGroup t m [1, 3]) ^ " cells, reaches " ^ valOf (firstGroup t m [2, 4]) ^ " cells") t0
-          val s2 = subWith (⟦\b(?:a |the )?(?:bacterial )?(?:population|culture|sample|colony|inoculum) of\s+⟧ ^ NUM2 ^ ⟦\s*⟧ ^ UNIT2)
-                     (fn t => fn m => "a culture starting with " ^ g1 t m ^ " cells") s1
+          val s2 = subWith ⟦(?<![\w.,+\-/^−])([+\-]?(?:\d+(?:\.\d*)?|\.\d+))\s*(?:x|×|\*)\s*10\s*\^?\s*([+-]?\d+)(?![\d.\^])⟧
+            (fn t => fn m => g1 t m ^ "e" ^ valOf(grp t m 2)) t0
           val s3 = subWith ⟦\btenfold\b⟧ (fn _ => fn _ => "10-fold") s2
           val s4 = subWith ⟦\bhundredfold\b⟧ (fn _ => fn _ => "100-fold") s3
           val t = subWith ⟦\b(successive|consecutive|sequential|repeated)\s+(?=1\s*[:/]|\d+[- ]fold)⟧ (fn _ => fn _ => "") s4

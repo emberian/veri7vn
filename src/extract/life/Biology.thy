@@ -288,8 +288,8 @@ theorem bio_input_orientation_invariance:
 
 definition bio_model_reply :: reply where
   "bio_model_reply = mk_reply
-     (Decline (Underspecified (STR ''I need one unambiguous strand direction and role, and this translator supports the standard genetic code from the first base.'')))
-     (STR ''I need one unambiguous strand direction and role, and this translator supports the standard genetic code from the first base.'')"
+     (Decline (Underspecified (STR ''I need one unambiguous strand direction and role, and this translator supports the standard genetic code with a positive reading frame from 1 through 3 and complete remaining codons.'')))
+     (STR ''I need one unambiguous strand direction and role, and this translator supports the standard genetic code with a positive reading frame from 1 through 3 and complete remaining codons.'')"
 
 theorem bio_model_declines:
   "\<not> answered bio_model_reply"
@@ -301,5 +301,58 @@ definition b_reply :: "breq \<Rightarrow> reply" where
        Amino _ c \<Rightarrow> Reply (answered rp) (reply_kind rp) (response rp)
           (Some (quote_lit + (if c = stop_aa then STR ''stop'' else aa_name c) + quote_lit))
      | _ \<Rightarrow> rp)"
+
+section \<open>Explicit positive reading frame\<close>
+text \<open>The frame is relative to the already normalized coding sequence.
+This selects a specified frame; it does not discover an open reading frame.
+The original input is checked for mixed DNA/RNA before selecting a suffix.\<close>
+
+definition b_frame_kernel :: "nat \<Rightarrow> bool \<Rightarrow> nuc list \<Rightarrow> outcome" where
+  "b_frame_kernel frame length_only xs =
+    (if frame < 1 \<or> 3 < frame then Decline (Underspecified (STR ''Specify a positive reading frame from 1 through 3.''))
+     else if has_both xs then Decline (Impossible R_both)
+     else b_kernel (Bio (if length_only then Op_protlen else Op_translate) (drop (frame - 1) xs)))"
+
+theorem frame_one_equivalence:
+  "b_frame_kernel 1 length_only xs = b_kernel (Bio (if length_only then Op_protlen else Op_translate) xs)"
+  by (cases length_only) (auto simp: b_frame_kernel_def b_kernel_bio split: if_splits)
+
+theorem frame_selected_suffix:
+  assumes "1 \<le> frame" "frame \<le> 3" "\<not> has_both xs" "\<not> has_both ys"
+      "drop (frame - 1) xs = drop (frame - 1) ys"
+  shows "b_frame_kernel frame length_only xs = b_frame_kernel frame length_only ys"
+  using assms by (simp add: b_frame_kernel_def)
+
+theorem frame_orientation_invariance:
+  "b_frame_kernel frame length_only (bio_input template (\<not> backwards) (rev xs)) =
+   b_frame_kernel frame length_only (bio_input template backwards xs)"
+  by (simp add: bio_input_orientation_invariance)
+
+theorem frame_bounds:
+  assumes "b_frame_kernel frame length_only xs = Exact k q \<or> b_frame_kernel frame length_only xs = Prot k p"
+  shows "1 \<le> frame \<and> frame \<le> 3 \<and> \<not> has_both xs"
+  using assms by (auto simp: b_frame_kernel_def split: if_splits)
+
+theorem frame_translation_value:
+  assumes "b_frame_kernel frame False xs = Prot k p"
+  shows "length (drop (frame - 1) xs) mod 3 = 0 \<and>
+         p = prot_of (drop (frame - 1) xs) \<and>
+         stop_aa \<notin> set p \<and>
+         length p \<le> (length xs - (frame - 1)) div 3"
+proof -
+  have result: "b_kernel (Bio Op_translate (drop (frame - 1) xs)) = Prot k p"
+    using assms by (auto simp: b_frame_kernel_def split: if_splits)
+  show ?thesis using bio_translate[OF result] by auto
+qed
+
+fun b_frame_text :: "nat \<Rightarrow> bool \<Rightarrow> outcome \<Rightarrow> String.literal" where
+  "b_frame_text frame False (Prot k p) = STR ''The protein is '' + (if p = [] then STR ''empty (stop codon at the selected start)'' else String.implode p) + STR '' (standard genetic code, reading frame '' + show_int (int frame) + STR '' of the normalized coding sequence).''"
+| "b_frame_text frame True (Exact k q) = STR ''The protein length is '' + plain_lit q + STR '' amino acids (reading frame '' + show_int (int frame) + STR '').''"
+| "b_frame_text frame length_only result = STR ''''"
+
+definition b_frame_reply :: "nat \<Rightarrow> bool \<Rightarrow> nuc list \<Rightarrow> reply" where
+  "b_frame_reply frame length_only xs =
+     (let result = b_frame_kernel frame length_only xs
+      in mk_reply result (b_frame_text frame length_only result))"
 
 end

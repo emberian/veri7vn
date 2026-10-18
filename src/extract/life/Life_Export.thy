@@ -152,7 +152,7 @@ definition self_test :: bool where
   "self_test \<longleftrightarrow> st0 \<and> st1 \<and> st2 \<and> st3 \<and> st4 \<and> st5 \<and> st6 \<and> st7 \<and> st8 \<and> st9 \<and> st10 \<and> st11 \<and> st12 \<and> st13 \<and> st14 \<and> st15 \<and> st16 \<and> st17 \<and> st18 \<and> st19 \<and> st20 \<and> st21 \<and> st22 \<and> st23 \<and> st24 \<and> st25 \<and> st26 \<and> st27 \<and> st28 \<and> st29 \<and> st30 \<and> st31 \<and> st32"
 
 
-export_code bio_input bio_model_reply g_reply b_reply e_reply f_reply w_reply m_reply
+export_code b_frame_reply f_unread bio_input bio_model_reply g_reply b_reply e_reply f_reply w_reply m_reply
   answered reply_kind response stated mk_rat
   integer_of_int nat_of_integer int_of_integer
   Hom_dom Het Hom_rec Locus G_Geno G_Pheno G_PRatio G_GRatio G_HW G_Need G_Model
@@ -160,8 +160,8 @@ export_code bio_input bio_model_reply g_reply b_reply e_reply f_reply w_reply m_
   NA NC NG NT NU Op_codon Op_gc Op_revcomp Op_complement Op_transcribe Op_translate Op_protlen Bio
   E_Shannon E_Evenness E_SimpD E_SimpDiv E_SimpInv E_Richness E_LogRate E_LogN E_LogRateAt E_ExpN E_ExpRateAt E_Doubling E_Geom
   F_Doyle F_Smalian F_Tpa F_Height F_BA F_BAPA F_BAm
-  W_Lincoln W_Density W_Surv
-  M_CFU M_Serial M_GrowthN M_Gens M_GenTime M_Unread
+  W_Lincoln W_Density W_Surv W_DensityUnit W_Interval W_Unread W_BadCount Hectare Acre SquareKm SquareMile
+  M_CFU M_Serial M_GrowthN M_Gens M_GenTime M_GenTimeIn M_Seconds M_Minutes M_Hours M_Days M_Unread
   in SML module_name Life file_prefix life
 
 ML \<open>
@@ -178,7 +178,7 @@ ML \<open>
     @{thm bio_codon}, @{thm bio_complement}, @{thm bio_revcomp}, @{thm bio_transcribe},
     @{thm bio_model_declines}, @{thm bio_input_template_backwards}, @{thm bio_input_coding_backwards},
     @{thm bio_input_preserves_length}, @{thm bio_input_orientation_invariance},
-    @{thm bio_translate}, @{thm bio_translate_frame}, @{thm bio_gc},
+    @{thm frame_one_equivalence}, @{thm frame_selected_suffix}, @{thm frame_orientation_invariance}, @{thm frame_bounds}, @{thm frame_translation_value}, @{thm bio_translate}, @{thm bio_translate_frame}, @{thm bio_gc},
     @{thm e_impossible}, @{thm e_imprecise}, @{thm simpson_d_value}, @{thm simpson_div_value},
     @{thm simpson_inv_value}, @{thm richness_value}, @{thm logistic_rate_value},
     @{thm logistic_rate_at_capacity}, @{thm geometric_exact}, @{thm ecology_approx},
@@ -188,14 +188,16 @@ ML \<open>
     @{thm logistic_zero_equilibrium}, @{thm logistic_future_rate_start}, @{thm exponential_future_derivative}, @{thm logistic_future_rate_bound}, @{thm shannon_gibbs}, @{thm evenness_range},
     @{thm shannon_kernel_range}, @{thm doubling_kernel_bound},
     @{thm doyle_declines_iff}, @{thm tpa_declines_iff}, @{thm height_declines_iff},
+    @{thm serial_positive}, @{thm growth_domain}, @{thm zero_population_equilibrium},
+    @{thm growth_time_scale}, @{thm generation_time_unit_model}, @{thm generation_time_unit_exact}, @{thm generation_time_unit_approx},
     @{thm cfu_declines_iff}, @{thm gens_declines_iff}, @{thm gentime_final_below_iff}, @{thm gentime_zero_iff},
     @{thm hw_q2_declines_iff}, @{thm hw_qs_declines_iff}, @{thm hw_ps_declines_iff}, @{thm hw_one_declines_iff},
     @{thm gc_count_le},
     @{thm f_impossible}, @{thm f_imprecise}, @{thm doyle_value}, @{thm doyle_declines_small},
     @{thm smalian_value}, @{thm smalian_cylinder}, @{thm tpa_value}, @{thm basal_area_value},
-    @{thm ba_per_acre_value}, @{thm forestry_approx}, @{thm height_angle_range},
+    @{thm ba_per_acre_value}, @{thm stand_basal_area_value}, @{thm stand_basal_area_additive}, @{thm stand_uniform_class}, @{thm stand_qmd_equivalence}, @{thm height_physical_domain}, @{thm forestry_approx}, @{thm height_angle_range},
     @{thm lincoln_underspecified}, @{thm lincoln_estimate}, @{thm chapman_estimate},
-    @{thm lincoln_impossible}, @{thm density_value}, @{thm survival_value}, @{thm survival_mortality_sum},
+    @{thm lincoln_impossible}, @{thm density_value}, @{thm density_unit_conservation}, @{thm density_same_unit}, @{thm interval_observation_domain}, @{thm interval_survival_value}, @{thm interval_survival_composes}, @{thm survival_value}, @{thm survival_mortality_sum},
     @{thm m_imprecise}, @{thm unread_declines}, @{thm cfu_value}, @{thm serial_value},
     @{thm serial_composes}, @{thm generations_value}, @{thm growth_exact}, @{thm growth_approx},
     @{thm gentime_exact}, @{thm gentime_approx}, @{thm gentime_declines_shrinking}]
@@ -205,7 +207,9 @@ ML \<open>
   val st = [(0, @{code st0}), (1, @{code st1}), (2, @{code st2}), (3, @{code st3}), (4, @{code st4}), (5, @{code st5}), (6, @{code st6}), (7, @{code st7}), (8, @{code st8}), (9, @{code st9}), (10, @{code st10}), (11, @{code st11}), (12, @{code st12}), (13, @{code st13}), (14, @{code st14}), (15, @{code st15}), (16, @{code st16}), (17, @{code st17}), (18, @{code st18}), (19, @{code st19}), (20, @{code st20}), (21, @{code st21}), (22, @{code st22}), (23, @{code st23}), (24, @{code st24}), (25, @{code st25}), (26, @{code st26}), (27, @{code st27}), (28, @{code st28}), (29, @{code st29}), (30, @{code st30}), (31, @{code st31}), (32, @{code st32})];
   val bad = map fst (filter (not o snd) st);
   val _ = if null bad then () else error ("life self test failed at " ^ String.concatWith "," (map string_of_int bad));
-  val _ = writeln ("VERI7VN_LIFE PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");
+  val marker = "VERI7VN_LIFE PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0";
+  val _ = writeln marker;
+  val _ = Export.export @{theory} (Path.binding0 (Path.explode "veri7vn/assertions/life")) [XML.Text marker];
 \<close>
 
 end

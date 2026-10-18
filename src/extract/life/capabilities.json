@@ -17,13 +17,22 @@
     },
     "wildlife": {
       "evidence": {
-        "computation": "Lincoln-Petersen or Chapman mark-recapture estimates, density, survival and mortality. Recaptured marked animals cannot exceed either source count; survivors cannot exceed the starting population.",
+        "computation": "Exact Lincoln-Petersen/Chapman estimates from unique whole count roles; density converts the supplied area to the requested unit; closed-cohort survival distinguishes the second observation period from the cumulative two-period total.",
         "assumptions": [
-          "The supplied counts denote the specified marked, captured, recaptured or surviving groups.",
-          "Population estimates additionally require the sampling assumptions of the chosen model; arithmetic does not establish those ecological conditions."
+          "Counts are nonnegative whole observed animals; conflicting count roles or more than two capture samples are not combined into a two-sample estimate.",
+          "Mark-recapture retains its positive-overlap coverage and ecological sampling assumptions; no claim that arithmetic establishes a closed population or equal catchability.",
+          "Density area units are hectares, acres, square kilometers or square miles; international acre and mile conversions are exact. One stated population and one stated area are required.",
+          "Two-period survival follows one closed cohort without entrants or replacement. The second-period denominator is the surviving first endpoint; cumulative survival uses the original count.",
+          "A multi-year observed total does not identify an annual survival or mortality rate without an additional model. Conditional survival for an empty cohort is undefined."
         ],
         "untrusted": [
-          "English role assignment, supplied observations, units and JSON framing."
+          "English count/period-role binding, observation completeness, supplied measurements, unit interpretation, exact numeric tokenization and framing."
+        ]
+      },
+      "accept": {
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
         ]
       }
     },
@@ -35,27 +44,41 @@
         ]
       },
       "evidence": {
-        "computation": "Standard genetic code from the first base, with explicit template/coding strand and 5-prime/3-prime orientation normalized by the extracted kernel. Strand reversal plus direction reversal preserves the normalized input.",
+        "computation": "Normalize explicit template/coding strand and 5-prime/3-prime direction; select positive reading frame1\u20133 inside the extracted kernel; translate complete remaining codons under the standard genetic code and stop at the first stop codon. Protein length counts resulting amino acids.",
         "assumptions": [
-          "One unambiguous sequence and strand role; absent orientation retains the documented 5-prime to 3-prime convention.",
-          "Only the standard genetic code and first-base frame; explicitly incompatible models decline."
+          "Frame is relative to the normalized 5-prime coding sequence; absence of an explicit frame preserves frame 1.",
+          "Only the standard genetic code is supported; negative/six-frame search, open-reading-frame discovery and terminal partial-codon translation are outside this model.",
+          "Strand role/direction must be unambiguous. Mixed DNA/RNA bases are rejected on the original sequence before selecting a frame."
         ],
         "untrusted": [
-          "English strand role, orientation and genetic-code recognition; source codon table and framing."
+          "English sequence extraction, frame/strand/direction binding, supplied model applicability, source codon table, exact numeric lexer and framing."
         ]
       }
     },
     "microbiology-v2": {
       "evidence": {
-        "computation": "CFU equals colonies divided by dilution times plated volume. The kernel enforces nonnegative colony counts, dilution in (0,1], positive volume and nonnegative concentration.",
+        "computation": "CFU equals colonies divided by dilution times plated volume. The kernel enforces nonnegative colony counts, dilution in (0,1], positive volume and nonnegative concentration. Binary-fission trajectories, generation counts and generation times use exact time conversions; requested generation-time units are retained. Serial dilutions compose equal positive integer factors for a whole nonnegative step count.",
         "assumptions": [
           "Colony count and plated volume are explicitly supplied and uniquely assigned; units are converted to mL.",
-          "The concentration estimator uses the supplied dilution and plate count without certifying sampling validity."
+          "The concentration estimator uses the supplied dilution and plate count without certifying sampling validity.",
+          "Binary fission has constant positive doubling time and nonnegative initial population/forward elapsed time; inferred positive generation time requires positive starting population, a larger final population and positive elapsed time.",
+          "Time inputs support seconds, minutes, hours and days. Generation-time output uses the explicitly requested supported unit, defaulting to minutes only when none is requested.",
+          "Serial dilution uses equal factors and complete whole step counts; explicit heterogeneous dilution sequences remain unsupported."
         ],
         "untrusted": [
           "Shared exact numeric tokenization, English quantity-role binding, physical observations and framing."
         ]
-      }
+      },
+      "accept": {
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\bserial\\s+(?:[+\\-\u2212\\d./e]+[- ]fold\\s+)?dilutions?\\b",
+        "\\bfold\\s+dilutions?\\b"
+      ]
     },
     "ecology": {
       "accept": {
@@ -73,6 +96,29 @@
         ],
         "untrusted": [
           "English quantity roles, target clause and unit interpretation; shared exact numeric parsing and framing."
+        ]
+      }
+    },
+    "forestry": {
+      "accept": {
+        "kinds": [
+          "ba_per_acre_m2"
+        ],
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
+        ]
+      },
+      "evidence": {
+        "computation": "Basal area sums stated diameter-class cross sections times trees per acre; metric stands retain their population density and output area. Doyle/Smalian log volume and clinometer height preserve complete signed dimensions with exact length-unit conversion.",
+        "assumptions": [
+          "Every supplied diameter class denotes nonoverlapping trees at its stated density. A representative single diameter denotes uniform diameter or quadratic mean diameter; an explicit arithmetic mean alone cannot establish exact area.",
+          "Basal area in square feet uses the stated rounded0.005454 inch coefficient; metric area uses pi. Doyle uses small-end diameter greater than4inches and nonnegative length.",
+          "Clinometer distance is horizontal and angle is to the top; eye height has its own unit. Sloping ground or multiple-angle models remain unsupported.",
+          "Dimensions and counts are nonnegative; spacing and horizontal viewing distance are positive."
+        ],
+        "untrusted": [
+          "English role binding, supplied class coverage, unit interpretation, model applicability, shared exact numeric lexer and framing."
         ]
       }
     }
