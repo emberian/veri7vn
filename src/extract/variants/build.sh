@@ -3,7 +3,8 @@
 # the base quantity ids). Lane G's checked export and recognizer are reused;
 # nothing under src/extract/quantity is edited and no Isabelle session is built.
 # RecognizerBase is lane G's recognizer.sml with its structure renamed and three
-# functions added to its signature (sed below).
+# functions added to its signature (sed below). Regex and Json come from
+# src/extract/commons/commons.sml, as in lane G's own build.
 set -eu
 REPO=$(cd "$(dirname "$0")/../../.." && pwd)
 ISABELLE_APP=${ISABELLE_APP:-/Applications/Isabelle2026-RC1.app}
@@ -21,7 +22,7 @@ repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT
 with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
     fcntl.flock(lock, fcntl.LOCK_EX)
     env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
-    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/quantity",
+    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/quantity", "-d", "src/extract/commons",
                     "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Quantity"],
                    check=True, env=env, cwd=repo)
 PY
@@ -38,7 +39,7 @@ grep -q 'val unitsV2 :' "$OUT/build/recognizer_base.sml"
 cat > "$OUT/build/variants.mlb" <<EOM
 \$(SML_LIB)/basis/basis.mlb
 quantity_generated.sml
-$Q/regex.sml
+$REPO/src/extract/commons/commons.sml
 recognizer_base.sml
 $SRC/variants.sml
 $Q/main.sml
