@@ -19,8 +19,8 @@ table). Root granted running the Oracle7 head by name; nothing was written under
 - Held-out items on the 30 properties with no row in `relations_v1`: 903 of 9,510 (9.5%), in 69 readers; 1,814 across
   both splits (rel-census), so the held-out share is 49.8%. Computed by `var/W5-07/analyze.py` (a property counts as
   absent when `fact` has no row for it). 140 of 161 readers fall short of shipped by no more than their absent-property
-  items, so their whole shortfall is store gap; 21 readers fall short by more (31 items over their gap in total; largest
-  rel-albums 4, rel-songs 3, rel-engineers 2, rel-lawyers 2, rel-videogames 2; the rest 1 each or within 2 of the gap).
+  items, so their whole shortfall is store gap; 21 readers fall short by more (31 items over their gap in total: 14 by 1,
+  5 by 2, 1 by 3 (rel-songs), 1 by 4 (rel-albums)).
   Five readers answer nothing right (rel-diseases, rel-languages, rel-rivers, rel-themeparks, rel-wars); their held-out
   items sit on absent properties (wars 24 of 24, rivers 24 of 24, diseases 12 of 12, themeparks 12 of 12, languages 12 of 12).
 - The 16 wrong: 12 answers by a reader (a same-name entity linked first), and 4 `clarification` replies from the core
@@ -65,5 +65,4 @@ verdicts.
 
 - Per-item attribution of each silence to an absent property was not done; the 903 is the count of items whose property
   is absent, not the count of those items that were silent (the core answers a few).
-- 5 of the 21 "beyond the gap" readers are within 1 item of their gap; the cause of the rest (linker misses) is not
-  traced here.
+- The cause of the 31 items beyond the gap in those 21 readers (linker misses, homonyms) is not traced here.
