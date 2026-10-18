@@ -57,17 +57,22 @@
     "thermo": {
       "accept": {
         "kinds": [],
-        "declines_in_domain": []
+        "declines_in_domain": [
+          "unsupported_model",
+          "underspecified",
+          "impossible"
+        ]
       },
       "context_regex_additions": [],
       "evidence": {
         "computation": "Thermodynamic catalogue: sensible/latent heat, ideal gas, Carnot efficiency and thermal radiation. Reply kind selects its formula; this is a static catalogue, not an interpretation certificate.",
         "assumptions": [
           "Mass, amount, pressure and area are nonnegative; given volume and specific heat are positive. Absolute temperatures are nonnegative; signed Celsius/Fahrenheit and signed temperature differences are allowed.",
-          "Radiation emissivity is in [0,1]. Zero production inputs may yield zero output."
+          "Radiation emissivity is in [0,1]. Zero production inputs may yield zero output.",
+          "Sensible heat uses constant specific heat. Supplied energy/mass/temperature-interval units are converted in HOL; Fahrenheit intervals scale by 5/9 without an absolute-temperature offset. Unread supplied specific heat or emissivity is not replaced by a table/default. Efficiency, pressure-dependent properties, combined phase paths and net radiation conditions are outside this finite unit-aware packet."
         ],
         "untrusted": [
-          "Numeric tokens are bound to complete original byte spans; English role recognition, label normalization, framing and supplied-model choice remain untrusted."
+          "Whole numeric and measured-unit spans retain original symbol case. English roles, unit vocabulary selection, complete-field coverage, framing and model choice remain untrusted."
         ]
       }
     },

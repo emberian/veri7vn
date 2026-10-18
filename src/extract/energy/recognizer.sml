@@ -169,11 +169,74 @@ struct
     | SOME m => SOME (gq low m, if String.isPrefix "k" (valOf (grp low m 2)) then E.MU_kg else E.MU_g)
   fun massOpt low = Option.map (fn (v, u) => (mk v, u)) (massKg low)
 
+  (* Whole measured-unit spans retain original symbol case. This adapter only
+     selects constructors; heat-capacity and interval arithmetic is in HOL. *)
+  exception ThermalLimit of E.calor_limit
+  structure ThermalUnits =
+  struct
+    fun spec alias tag dimension sensitive : MeasuredInput.unitSpec =
+      {alias=alias,tag=tag,dimension=dimension,caseSensitive=sensitive}
+    val energies = [("J","J"),("kJ","kJ"),("MJ","MJ")]
+    val masses = [("kg","kg"),("g","g")]
+    val intervals = [("K","K"),("C","C"),("F","F"),(deg^"C","C"),(deg^"F","F")]
+    val heatcaps = List.concat(map(fn(e,et)=>List.concat(map(fn(m,mt)=>
+      List.concat(map(fn(t,tt)=>map(fn alias=>spec alias (et^":"^mt^":"^tt) "specific_heat" true)
+        [e^"/("^m^" "^t^")",e^"/("^m^"\194\183"^t^")",e^"/"^m^"/"^t,
+         e^"/"^m^" "^t,e^" "^m^"^-1 "^t^"^-1"]) intervals)) masses)) energies)
+    val table = heatcaps @ map(fn(a,t)=>spec a t "mass" true) masses @
+      map(fn(a,t)=>spec a t "mass" false) [("kilograms","kg"),("kilogram","kg"),("grams","g"),("gram","g")] @
+      map(fn(a,t)=>spec a t "temperature" true)
+        (intervals @ List.concat(map(fn u=>[("degrees "^u,u),("degree "^u,u),(deg^" "^u,u)]) ["C","F","K"])) @
+      map(fn(a,t)=>spec a t "temperature" false)
+        [("degrees Celsius","C"),("degrees Fahrenheit","F"),("Celsius","C"),("Fahrenheit","F"),("kelvin","K")]
+    fun cleanFieldTail text stop =
+      let val rest=lower(String.extract(text,stop,NONE))
+      in case search "^\\s*([a-z]+)" rest of NONE=>not(has "^\\s*[0-9]" rest)
+       | SOME m=>let val w=valOf(Regex.group rest m 1)
+          in List.exists(fn x=>x=w)["of","from","to","by","at","with","and","for","into","given","is","in",
+               "material","substance","object","solid","liquid","heated","cooled"]
+             orelse List.exists(fn(name,_)=>name=w) E.mat_table end
+      end
+    fun bind text (m:Regex.match) group expected missing =
+      let val span = Vector.sub(#groups m,group)
+          val found = List.find(fn MeasuredInput.Measurement{numberSpan={start,stop},...}=>span=SOME(start,stop)
+                                  | _=>false) (MeasuredInput.scan table text)
+      in case found of SOME(MeasuredInput.Measurement measure)=>
+           (case MeasuredInput.bind {expected=expected,inheritFrom=NONE} measure of
+              MeasuredInput.Bound{measurement={value,numberSpan={start,...},...},unit={tag,...},origin=MeasuredInput.Supplied{stop,...}} =>
+                if cleanFieldTail text stop then (value,tag,(start,stop))
+                else raise ThermalLimit E.IncompatibleThermalUnits
+            | MeasuredInput.MissingUnit=>
+                let val (_,stop)=valOf span
+                in raise ThermalLimit (if cleanFieldTail text stop then missing else E.IncompatibleThermalUnits) end
+            | _=>raise ThermalLimit E.IncompatibleThermalUnits)
+         | _=>raise ThermalLimit E.IncompatibleThermalUnits
+      end
+    fun cap tag = case String.tokens(fn c=>c = #":") tag of
+      [e,m,t]=>E.HeatCapacity(if e="kJ" then E.HU_kJ else if e="MJ" then E.HU_MJ else E.HU_J,
+                             if m="g" then E.MU_g else E.MU_kg,
+                             if t="F" then E.TU_F else if t="C" then E.TU_C else E.TU_K)
+    | _=>raise ThermalLimit E.IncompatibleThermalUnits
+    fun allNumbersUsed text spans = List.all(fn
+        ExactNumeric.Number{start,stop,...}=>List.exists(fn(a,b)=>a<=start andalso stop<=b) spans
+      | ExactNumeric.Malformed _=>false) (ExactNumeric.scan text)
+  end
+
   fun thermo text =
     let
       val t = collapse text
       val low = lower t
-      val tms = List.map (fn m => (gq low m, tunit (valOf (grp low m 2)))) (findall TEMP_RX low)
+      val intervalMatch = search ("\\bby\\s+" ^ NT) low
+      val thermalMeasurements = MeasuredInput.scan ThermalUnits.table t
+      fun insideUnit (a,b) = List.exists(fn
+          MeasuredInput.Measurement{unitBinding=MeasuredInput.Explicit{span={start,stop},...},...}=>start<=a andalso b<=stop
+        | _=>false) thermalMeasurements
+      fun absoluteMatch (m:Regex.match) =
+        let val numericSpan=Vector.sub(#groups m,1)
+            val delta = case intervalMatch of NONE=>false | SOME dm=>numericSpan=Vector.sub(#groups dm,1)
+        in not delta andalso not(case numericSpan of SOME span=>insideUnit span | NONE=>false) end
+      val temperatureMatches = List.filter absoluteMatch (findall TEMP_RX low)
+      val tms = List.map (fn m => (gq low m, tunit (valOf (grp low m 2)))) temperatureMatches
       val tl = List.map (fn (v, u) => E.Temp (mk v, u)) tms
       fun req q = SOME (E.FThermo (E.Thermo (tl, q)))
       (* Fuel combustion, heating values and useful delivered heat describe
@@ -204,32 +267,61 @@ struct
                         if String.isPrefix "m" u andalso u <> "ml" then E.VU_m3
                         else if String.isPrefix "l" u then E.VU_L else E.VU_mL) end)
                   (search (NT ^ "\\s*(m\\^?3|m" ^ sup3 ^ "|l|liters?|litres?|ml)\\b") low)
+          val _ = if has "\\b(?:compressibility|non[- ]ideal|real gas|density|humidity)\\b" low
+                  then raise ThermalLimit E.UnsupportedThermalCondition else ()
         in req (E.TGas (n, p, v)) end
       else if has "\\bstefan|\\bblack ?body\\b|\\bradiat\\w* power\\b|\\bpower radiated\\b" low then
         let
           val a = Option.map (fn m => mk (gq low m))
                     (search (NT ^ "\\s*(m\\^?2|m" ^ sup2 ^ "|square met(?:er|re)s?)\\b") low)
+          val _ = if has "\\b(?:net|ambient|surroundings?|environment|view factor|background)\\b" low
+                  then raise ThermalLimit E.UnsupportedThermalCondition else ()
           val e = case search ("\\bemissivity\\s*(?:of|is|=)?\\s*" ^ NT) low of
-                    SOME m => mk (gq low m) | NONE => mk (qint 1)
+                    SOME m => if has "^\\s*%" (String.extract(low,#stop m,NONE))
+                              then raise ThermalLimit E.IncompatibleThermalUnits else mk (gq low m)
+                  | NONE => if has "\\bemissivity\\b" low then raise ThermalLimit E.MissingEmissivity else mk (qint 1)
         in req (E.TRad (a, e)) end
       else if has "\\b(?:melt|freeze|boil|vapori[sz]e|evaporate|condense)\\b" low
               andalso has "\\bheat\\b|\\benergy\\b|\\bjoules?\\b" low
               andalso has "\\b(?:water|ice|steam)\\b" low then
         let val m = massOpt low
+            val _ = if has "\\b(?:pressure|efficien\\w*|loss(?:es)?)\\b" low
+                      orelse has (NT ^ "\\s*(?:pa|kpa|mpa|bar|atm)\\b") low
+                    then raise ThermalLimit E.UnsupportedThermalCondition else ()
+            val _ = if length tms > 1 orelse has "\\bfrom\\b.*\\bto\\b" low
+                    then raise ThermalLimit E.UnsupportedPhasePath else ()
         in if has "\\bmelt|\\bfreeze" low then req (E.TFusion m) else req (E.TVapor m) end
       else if has "\\bheat\\b|\\benergy\\b|\\bjoules?\\b" low
               andalso has "\\braise|\\bheat(?:ing)?\\b.*\\bfrom\\b|\\bwarm|\\bcool|\\bchange\\b|\\bincrease\\b|\\bby \\d" low then
         let
+          val used : (int*int) list ref = ref []
+          fun bound m dimension missing =
+            let val (v,u,span)=ThermalUnits.bind t m 1 dimension missing
+            in used:=span :: !used; (v,u) end
           val mat = List.find (fn (name, _) => has ("\\b" ^ name ^ "\\b") low) E.mat_table
           val cm = search ("\\bspecific heat(?: capacity)?\\s*(?:of|is|=)?\\s*" ^ NT) low
           val cs = case cm of
-                     SOME m => E.C_given (mk (gq low m))
-                   | NONE => (case mat of SOME (_, mt) => E.C_mat mt | NONE => E.C_none)
-          val dm = search ("\\bby\\s+" ^ NT ^ "\\s*(?:" ^ deg ^ "\\s*|degrees?\\s*)?(?:c|k|celsius|kelvin)\\b") low
-          val dq = case dm of SOME m => E.DT_by (mk (gq low m)) | NONE => E.DT_temps
-        in req (E.TSens (massOpt low, cs, dq)) end
+              SOME m=>let val(v,u)=bound m "specific_heat" E.MissingSpecificHeat
+                      in E.given_heat_capacity (mk v) (ThermalUnits.cap u) end
+            | NONE=>if has "\\bspecific heat\\b" low then raise ThermalLimit E.MissingSpecificHeat
+                    else (case mat of SOME(_,mt)=>E.C_mat mt | NONE=>E.C_none)
+          val mass = case search (NT ^ "\\s*(?:kg|kilograms?|g|grams?)\\b") low of
+              NONE=>NONE
+            | SOME m=>let val(v,u)=bound m "mass" E.IncompatibleThermalUnits
+                      in SOME(mk v,if u="g" then E.MU_g else E.MU_kg) end
+          val dq = case intervalMatch of
+              NONE=>E.DT_temps
+            | SOME m=>let val(v,u)=bound m "temperature" E.IncompatibleThermalUnits
+                      in E.DT_by(E.temperature_interval (tunit(lower u)) (mk v)) end
+          val temps = map(fn m=>let val(v,u)=bound m "temperature" E.IncompatibleThermalUnits
+                               in E.Temp(mk v,tunit(lower u)) end) temperatureMatches
+          val _ = if has "\\b(?:efficien\\w*|loss(?:es)?|pressure|isobaric|isochoric|heat capacity varies|temperature-dependent)\\b" low
+                     orelse length temps>2 orelse (isSome intervalMatch andalso not(null temps))
+                     orelse not(ThermalUnits.allNumbersUsed t (!used))
+                  then raise ThermalLimit E.UnsupportedThermalCondition else ()
+        in SOME(E.FThermo(E.Thermo(temps,E.TSens(mass,cs,dq)))) end
       else NONE
-    end
+    end handle ThermalLimit why => SOME(E.FCalorLimit why)
 
   (* ---------- energy-v2 / energy-v3 ---------- *)
   val NE = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"

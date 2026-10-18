@@ -1,0 +1,183 @@
+[
+  {
+    "q": "How much heat is needed to raise 2 kg of material by 10 C with specific heat 4186 J/(kg K)?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of material by 10 C with specific heat 4.186 kJ/(kg K)?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of material by 10 C with specific heat 4.186 J/(g K)?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of material by 10 C with specific heat 0.004186 MJ/(kg K)?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of material by 10 C with specific heat 4186 J/kg/K?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of material by 10 C with specific heat 4186 J/(kg C)?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of material by 10 C with specific heat 4186 J/(kg\u00b7K)?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to raise 2000 g of material by 18 F with specific heat 4.186 J/(g K)?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kilograms of material by 18 F with specific heat 2325 J/(kg F)?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83700,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of water by 18 F?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to change 2 kg of water by -10 C?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": -83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to change 2 kg of material by -500 C with specific heat 1 J/(kg K)?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": -1000,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to heat 2 kg of water from 68 F to 30 C?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "sensible_heat"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of water by 10 C with specific heat unknown?",
+    "specialist": "thermo",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "underspecified"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of material by 10 C with specific heat 4186 J/K?",
+    "specialist": "thermo",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "unsupported_model"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of material by 10 C with specific heat 4186 J/(kg K)/s?",
+    "specialist": "thermo",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "unsupported_model"
+  },
+  {
+    "q": "How much heat is needed to raise 2 kg of material by 10 C with specific heat 4186000 mJ/(kg K)?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 83720,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expected_withheld": true,
+    "expect_kind": "unsupported_model"
+  },
+  {
+    "q": "How much input energy is needed to heat 2 kg of water from 20 C to 30 C with 50% efficiency?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 167440,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expected_withheld": true,
+    "expect_kind": "unsupported_model"
+  },
+  {
+    "q": "How much heat is needed to heat and melt 1 kg of ice from -10 C to liquid water at 20 C?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 438620,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expected_withheld": true,
+    "expect_kind": "unsupported_model"
+  },
+  {
+    "q": "What is the power radiated with area 2 m2 at 300 K and emissivity unknown?",
+    "specialist": "thermo",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expect_kind": "underspecified"
+  },
+  {
+    "q": "What is the net radiated power from area 2 m2 at 300 K into surroundings at 290 K with emissivity 0.75?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 87.36827849178916,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expected_withheld": true,
+    "expect_kind": "unsupported_model"
+  },
+  {
+    "q": "What is the power radiated with area 2 m2 at 300 K and emissivity 75%?",
+    "specialist": "thermo",
+    "valid": true,
+    "expect": 688.9504919085,
+    "source": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "expected_withheld": true,
+    "expect_kind": "unsupported_model"
+  }
+]

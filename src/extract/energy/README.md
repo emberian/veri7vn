@@ -136,3 +136,20 @@ heating. Those requests are left to the appropriate fuel/delivery reader instead
 of receiving a misleading request for specific heat. Explicit supported model
 names (Carnot, ideal gas, Stefan/black-body radiation) still select their own
 thermodynamic equations when a fuel is also mentioned.
+
+
+## Sensible heat with explicit units
+
+Sensible heat accepts specific heat in J, kJ or MJ per kg or g per Celsius,
+kelvin or Fahrenheit interval. The checked kernel converts these units and
+computes signed heat added as mass × specific heat × temperature change.
+Fahrenheit intervals scale by 5/9; endpoint temperatures retain their offsets.
+The reader preserves unit-symbol case and consumes complete unit fields. A
+supplied unknown specific heat does not silently select water's table value.
+
+This finite constant-specific-heat model does not include supplied efficiency,
+losses, pressure dependence or a combined sensible/phase-change path. Those
+requests are withheld. Pure latent melting/boiling remains a separate existing
+model; a complete phase-state interpretation is future work. Net radiation and
+unknown/percentage emissivity also receive explicit missing-input or model-limit
+replies instead of silently ignoring the supplied condition.

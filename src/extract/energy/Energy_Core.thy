@@ -235,7 +235,7 @@ section \<open>Outcomes and the generic kernel\<close>
 text \<open>An outcome is an exact rational value of a named kind, a rational multiple
 of pi (rotor areas and wind power), an answer with no number, or a decline.
 A decline carries its class and the words the reply uses.\<close>
-datatype dcl = D_under | D_imposs | D_sizing | D_tariff
+datatype dcl = D_under | D_imposs | D_sizing | D_tariff | D_model
 
 datatype outcome =
     Exact String.literal rat
@@ -286,7 +286,8 @@ datatype reply = Reply (answered: bool) (reply_kind: String.literal)
 
 definition dcl_name :: "dcl \<Rightarrow> String.literal" where
   "dcl_name d = (case d of D_under \<Rightarrow> STR ''underspecified'' | D_imposs \<Rightarrow> STR ''impossible''
-     | D_sizing \<Rightarrow> STR ''sizing'' | D_tariff \<Rightarrow> STR ''need_tariff'')"
+     | D_sizing \<Rightarrow> STR ''sizing'' | D_tariff \<Rightarrow> STR ''need_tariff''
+     | D_model \<Rightarrow> STR ''unsupported_model'')"
 
 definition decline_text :: "dcl \<Rightarrow> String.literal \<Rightarrow> String.literal" where
   "decline_text d w = (case d of

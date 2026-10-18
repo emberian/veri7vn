@@ -62,9 +62,16 @@ definition self_test :: bool where
      response (reply_i (INyquist 1000)) = STR ''The minimum sampling rate is 2000 Hz (Nyquist: 2 x 1000 Hz).'' \<and>
      response (reply_i (IStorage 100 16 1)) =
        STR ''That is 17.28 MB per day (1600 bit/s x 86,400 s / 8 / 10^6).'' \<and>
-     \<not> answered (reply_i (IAdcVolt 8 (Some 5) 256))"
+     \<not> answered (reply_i (IAdcVolt 8 (Some 5) 256)) \<and>
+     csv (given_heat_capacity (4186/1000) (HeatCapacity HU_kJ MU_kg TU_K)) = 4186 \<and>
+     temperature_interval TU_F 18 = 10 \<and>
+     kernel_t (Thermo [] (TSens (Some (2,MU_kg))
+       (given_heat_capacity (4186/1000) (HeatCapacity HU_J MU_g TU_K))
+       (DT_by (temperature_interval TU_F 18)))) = Exact (STR ''sensible_heat'') 83720"
 
 export_code reply_of answered reply_kind response stated mk_rat
+  given_heat_capacity temperature_interval HeatCapacity HU_J HU_kJ HU_MJ
+  MissingSpecificHeat MissingEmissivity IncompatibleThermalUnits UnsupportedThermalCondition UnsupportedPhasePath FCalorLimit
   integer_of_int nat_of_integer int_of_integer
   mat_table air_density
   Temp TU_C TU_F TU_K PU_Pa PU_kPa PU_atm PU_bar VU_m3 VU_L VU_mL MU_kg MU_g
@@ -79,7 +86,9 @@ export_code reply_of answered reply_kind response stated mk_rat
   in SML module_name Energy file_prefix energy
 
 ML \<open>
-  val theorems = [@{thm cap_valid_nonnegative}, @{thm runtime_missing_factors}, @{thm hydro_nonnegative}, @{thm average_current_between}, @{thm adjusted_zero_output}, @{thm adjusted_runtime_law}, @{thm adjusted_runtime_agrees}, @{thm mk_exact}, @{thm mk_pi}, @{thm mk_fixed}, @{thm mk_decline},
+  val theorems = [@{thm interval_is_temperature_difference}, @{thm heatcapfactor_positive},
+    @{thm specific_heat_energy_balance}, @{thm sensible_unit_energy_balance},
+    @{thm sensible_interval_agrees_with_endpoints}, @{thm calor_limit_withheld}, @{thm cap_valid_nonnegative}, @{thm runtime_missing_factors}, @{thm hydro_nonnegative}, @{thm average_current_between}, @{thm adjusted_zero_output}, @{thm adjusted_runtime_law}, @{thm adjusted_runtime_agrees}, @{thm mk_exact}, @{thm mk_pi}, @{thm mk_fixed}, @{thm mk_decline},
     @{thm num_dec_r_sound}, @{thm show_fmt_sound}, @{thm round_sig_sound}, @{thm to_dec_sound},
     @{thm round_tie_up}, @{thm pi_bounds_sound}, @{thm pw_scale_sound}, @{thm pw_show_sound},
     @{thm mk_reply_answered_iff}, @{thm mk_reply_exact}, @{thm mk_reply_withheld},

@@ -1,5 +1,5 @@
 theory Energy_Family
-  imports Thermo Home Hvac Renewables Iot
+  imports Calorimetry Home Hvac Renewables Iot
 begin
 
 text \<open>The family's one request type: a typed request for any of the six
@@ -13,6 +13,7 @@ datatype family_request =
   | FHvac hvac_req
   | FRen ren_req
   | FIot iot_req
+  | FCalorLimit calor_limit
 
 fun reply_of :: "family_request \<Rightarrow> reply" where
   "reply_of (FThermo r) = reply_t r"
@@ -20,6 +21,7 @@ fun reply_of :: "family_request \<Rightarrow> reply" where
 | "reply_of (FHvac r) = reply_v r"
 | "reply_of (FRen r) = reply_r r"
 | "reply_of (FIot r) = reply_i r"
+| "reply_of (FCalorLimit r) = calor_limit_reply r"
 
 fun kernel_of :: "family_request \<Rightarrow> outcome" where
   "kernel_of (FThermo r) = kernel_t r"
@@ -27,13 +29,14 @@ fun kernel_of :: "family_request \<Rightarrow> outcome" where
 | "kernel_of (FHvac r) = kernel_v r"
 | "kernel_of (FRen r) = kernel_r r"
 | "kernel_of (FIot r) = kernel_i r"
+| "kernel_of (FCalorLimit r) = calor_limit_kernel r"
 
 text \<open>A reply is withheld exactly when its kernel declines (or the digits
 cannot be pinned), whichever specialist it came from.\<close>
 theorem family_declines_withheld:
   assumes "kernel_of r = Decline d w"
   shows "\<not> answered (reply_of r) \<and> response (reply_of r) = decline_text d w"
-  using assms reply_t_withheld reply_h_withheld reply_v_withheld reply_r_withheld reply_i_withheld
+  using assms reply_t_withheld reply_h_withheld reply_v_withheld reply_r_withheld reply_i_withheld calor_limit_withheld
   by (cases r) auto
 
 section \<open>Laws across kinds\<close>

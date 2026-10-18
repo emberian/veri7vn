@@ -16,6 +16,7 @@ session Veri7vn_Energy = Veri7vn_Energy_Base +
   theories
     Energy_Core
     Thermo
+    Calorimetry
     Home
     Hvac
     Renewables
