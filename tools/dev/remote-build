@@ -12,7 +12,7 @@
 # its code exports are pulled into var/<session-dir basename>/export-remote/<Session>/,
 # and the build log into var/<...>/remote-build.log. Exit status is the build's;
 # with --expect, a missing marker also fails. The marker is looked for in the
-# build output, the stored session log (`isabelle log`, which RC1 keeps even when
+# WHOLE stored session log on the host (Approximation-heavy sessions push it past any tail), the build output, the stored session log tail (`isabelle log`, which RC1 keeps even when
 # the console log is silent or the session was cached) and the exported assertion files.
 set -eu
 host=$1; sdir=$2; session=$3; shift 3
@@ -31,14 +31,15 @@ ssh -o BatchMode=yes "$host" "mkdir -p ~/$remote"
 rsync -a --delete --exclude var --exclude upstream --exclude .git --exclude '*.pyc' "$root/src" "$root/tests" "$host:~/$remote/"
 ssh -o BatchMode=yes "$host" "cd ~/$remote && export USER_HOME=\$HOME/tools/isabelle-rc1/user-state && \
   swarm-build \$HOME/tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle build -v -b -d $sdir $extra -j 1 -o threads=2 $session; rc=\$?; \
-  echo '=== session log (isabelle log) ==='; \$HOME/tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle build_log -v $session 2>/dev/null | tail -2000; \
+  echo '=== session log (isabelle build_log, tail) ==='; mkdir -p export; \$HOME/tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle build_log -v $session > export/$session.build_log 2>/dev/null; tail -2000 export/$session.build_log; \
+  if [ -n '$expect' ] && grep -qF -- '$expect' export/$session.build_log; then echo \"REMOTE_MARKER_FOUND: $expect\"; fi; \
   mkdir -p export; rm -rf export/$session; \
   \$HOME/tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle export -n -d $sdir $extra -O export/$session -x '*:code/**' -x '*:veri7vn/assertions/**' $session >/dev/null 2>&1 || true; \
   exit \$rc" > "$out/remote-build.log" 2>&1; rc=$?
 mkdir -p "$out/export-remote/$session"
 rsync -a --delete "$host:~/$remote/export/$session/" "$out/export-remote/$session/" || echo "remote-build: export rsync failed" >&2
 tail -5 "$out/remote-build.log"
-if [ -n "$expect" ] && ! grep -rqF -- "$expect" "$out/remote-build.log" "$out/export-remote/$session"; then
+if [ -n "$expect" ] && ! grep -qF -- "REMOTE_MARKER_FOUND: $expect" "$out/remote-build.log" && ! grep -rqF -- "$expect" "$out/remote-build.log" "$out/export-remote/$session"; then
   echo "remote-build: marker not found: $expect" >&2; exit 1
 fi
 echo "remote-build: $host $session exit $rc; exports in $out/export-remote/$session/; log $out/remote-build.log"
