@@ -1,13 +1,20 @@
 {
  "wave": 5,
- "from_triage": "project/scouts/TRIAGE-1.md",
+ "from_triage": [
+  "project/scouts/TRIAGE-1.md",
+  "project/scouts/TRIAGE-2.md"
+ ],
  "batches": {
   "W5-01-rel-novels-land": {
    "title": "Land the verified novels reader on the main tree",
    "model": "sonnet",
    "size": "S",
    "start_from": "dev (scout/rel-novels merged at ffcdda8)",
-   "paths": ["src/extract/rel-novels/", "tools/reader-novels/", "project/lanes/W5-01-rel-novels.md"],
+   "paths": [
+    "src/extract/rel-novels/",
+    "tools/reader-novels/",
+    "project/lanes/W5-01-rel-novels.md"
+   ],
    "brief": "The rel-novels scout's verified decision is merged. Bring it to lane-G finish: add an oracle-refusing PASS marker to Novel_Reader_Export.thy (copy Quantity_Export.thy's pattern, keep the SHA-1 line), write the generated SML where tools/dev/remote-build already returns exports instead of fetching it with scp, add a tables_check.py that asserts the HOL readers table and domain roots equal the shipped organ's, build the norm index and binary from the main checkout, re-run the parity harness on rel-novels, and write the handoff with answer_stored and decline_stored verbatim. State plainly that the shipped verdict is 104/120 on an unshipped store and that this reader reaches 84/120 on relations_v1, with P144 absent.",
    "done_when": "main-checkout parity for rel-novels is 84/120 right, 0 wrong, 0 false yes, 120/120 item-for-item with tools/reader-novels/probe.py; build marker VERI7VN_NOVEL_READER PASS with oracles=0; tables_check.py green"
   },
@@ -15,17 +22,24 @@
    "title": "One verified kernel for all 161 relation readers",
    "model": "opus",
    "size": "L",
-   "start_from": "dev after W5-01; read the rel-census and rel-linker scout reports first (branches scout/rel-census, scout/rel-linker)",
-   "paths": ["src/extract/relations/", "tools/reader-relations/", "project/lanes/W5-02-relations.md"],
-   "brief": "Generalize Novel_Reader.thy so the reader table, domain roots and time-variant properties are data per specialist, keep answer_stored and decline_stored for the general kernel, and add whatever the novels panel did not exercise (inverse phrasings). Score each rel-* specialist on its own panel. Start with the specialists whose properties exist in relations_v1 (rel-census measures this), and classify every withheld item as missing property, linker miss, or agreement-rule refusal. Do not start before rel-linker has reported; the linker is shared and should not be built twice.",
-   "done_when": "every rel-* panel scored with its own table: per-specialist right/wrong/withheld/false-yes in the handoff, 0 wrong across all, every withheld item classified"
+   "start_from": "dev: src/extract/rel-novels/ and tools/reader-novels/ (W5-01), the reconstructed linker index at var/linker/o7root (tools/linker/build_names.py then make_overlay.py), and scout/rel-census (docs/coverage/rel-ceiling.md, tools/rel-census/census.py)",
+   "paths": [
+    "src/extract/relations/",
+    "tools/reader-relations/",
+    "project/lanes/W5-02-relations.md"
+   ],
+   "brief": "Generalize Novel_Reader.thy so the reader table, domain roots/occupations and time-variant properties are data per specialist, read from each manifest and readers.json, with a tables_check.py per specialist; keep answer_stored and decline_stored for the general kernel and add what the novels panel did not exercise (inverse phrasings). Link through names_v1 from var/linker/o7root, or the labels-only stand-in where it measures better (novels: 84/0 stand-in vs 83/1 index), and name the choice per reader. The shipped organs over the index give 16,261 right / 11 wrong; all 11 are homonyms where the degree-based fame proxy ranked the wrong same-named work first. Prove that the kernel declines when two linked in-domain candidates carry different values, so those become declines. Score every reader on its own panel with lane A's harness and ORACLE7_ROOT=/Users/ember/dev/o7vn/var/linker/o7root, both splits. Classify every withheld item as absent property (30 properties with 0 rows cost 1,814 items; rel-census and triage 2 agree), linker miss, or agreement refusal.",
+   "done_when": "all 161 rel-* panels scored through the harness with the index: per-reader right/wrong/withheld in the handoff, 0 wrong in total, right >= 16,000 of the 17,162 answerable items, every withheld item classified"
   },
   "W5-03-linter-fix": {
    "title": "Correct the linter's lane-cap finding, then merge it",
    "model": "sonnet",
    "size": "S",
    "start_from": "scout/specialist-linter (fix on a new branch from it, or on dev after root merges with the fix as a follow-up commit)",
-   "paths": ["tools/lint/specialist-lint.py", "docs/lint/specialists.md"],
+   "paths": [
+    "tools/lint/specialist-lint.py",
+    "docs/lint/specialists.md"
+   ],
    "brief": "The linter's numbers reproduce, but it says the release used a lane cap of 5 and was tighter than exam.py. The three specialists that took 6 were ADMITTED, so the release did not apply a cap of 5. Rewrite that sentence in the generator (per-folder gate section and aggregate) to: the counts were taken on a sample of about 400; exam.py's formula gives 5 on that sample and 9 on the full 924; the release admitted 6. Also raise the 'not specific' cut or print each guard's base rate next to the match so a 66% guard is not read as specific. Regenerate docs/lint/specialists.md. Optional: add the 'manifest hygiene' patch output (var/lint/patch/, never upstream) for the 5 backspace regexes and 7 stale store paths.",
    "done_when": "re-lint of all 305 gives 239 agree / 3 disagree / 50 insufficient / 13 without verdict, the lane-cap sentence matches the verdict files, and root has merged it"
   },
@@ -34,7 +48,11 @@
    "model": "sonnet",
    "size": "S",
    "start_from": "dev (scout/linux-binaries merged at 4eb46e9)",
-   "paths": ["tools/deploy/", "project/deploy/receipts/", "project/lanes/W5-04-linux.md"],
+   "paths": [
+    "tools/deploy/",
+    "project/deploy/receipts/",
+    "project/lanes/W5-04-linux.md"
+   ],
    "brief": "Run tools/deploy/linux-build.sh for every landed src/extract/* family with its specialists, on hbox and persvati alternately, comparing each against a fresh macOS run. Have the script emit a small receipt per family (binary sha256, generated-SML sha256, panel shas, verdict counts, host, glibc, libgmp) and commit those under project/deploy/receipts/ (root approves the location; binaries stay out of git). Report panel items and core-panel probes separately; the panel items are the evidence.",
    "done_when": "for every landed family, Linux panel verdicts equal macOS with 0 divergent replies on panel items, and one receipt file per family is committed"
   },
@@ -43,7 +61,10 @@
    "model": "opus",
    "size": "M",
    "start_from": "W5-03 output; lane A's head-run parity data under var/parity/",
-   "paths": ["tools/lint/", "docs/lint/fold-interception.md"],
+   "paths": [
+    "tools/lint/",
+    "docs/lint/fold-interception.md"
+   ],
    "brief": "The linter's shadow section matches guard regexes only. Replace guessing with measurement where data exists: for each specialist lane A has run behind the head, compare the linter's predicted folds with the paths the head actually took on that specialist's panel, report precision and recall of the guard-match heuristic, and name the folds whose guards are misnamed (w55 _TOKEN, w34 _world_material). Guard matches stay labelled as matches, never as takes.",
    "done_when": "per-fold predicted vs measured interception on every specialist with a lane-A head run, with the heuristic's precision and recall stated"
   },
@@ -52,9 +73,48 @@
    "model": "sonnet",
    "size": "S",
    "start_from": "dev; a transfer of tools/parity/ from lane A by root",
-   "paths": ["tools/parity/"],
+   "paths": [
+    "tools/parity/"
+   ],
    "brief": "The code-organ scout measured by hand that 0 of 924 core-panel items take the code route. Make that a harness output: per answerer, counts of the path prefix of every reply (organ:*, specialist_call, precision_guard, ...), so any proposed lift can be checked for whether it can move the board before it starts.",
    "done_when": "harness prints the route table for the shipped core panel and it reproduces the scout's 0/924 for code and the panel's organ 238 / specialist_call 186 / precision_guard 114 head counts"
+  },
+  "W5-07-rel-board": {
+   "title": "Board re-run for the 161 relation readers with the reconstructed index",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev with var/linker/o7root (make_overlay.py); root must grant this lane the Oracle7 head run by name",
+   "paths": [
+    "var/parity/rel-linker-board/",
+    "docs/parity/BOARD.md",
+    "project/lanes/W5-07-rel-board.md"
+   ],
+   "brief": "Re-run lane A's full-board row for the 161 rel-* readers exactly as lane A did, changing only ORACLE7_ROOT: ORACLE7_ROOT=/Users/ember/dev/o7vn/var/linker/o7root python3 tools/parity/harness.py --answerer \"python3 tools/parity/answerers/oracle7.py --compose front --tip {shipped_head} --specialist {dir}\" --specialist <the 161> --split heldout --out var/parity/rel-linker-board. Engine state stays under var/ (the answerer's default). Report per reader and in total right / wrong / false yes against the shipped held-out verdicts (control 9,124 right / 9 wrong; today's row is 1,796 right with the readers silent), how many readers now match exactly, and how many held-out items fall to the 30 absent properties. Update docs/parity/BOARD.md, naming the index as a reconstruction (its meta table).",
+   "done_when": "the board's rel-* row is re-scored with the index and compared reader by reader with the shipped 9,124 / 9, and BOARD.md says what the index is"
+  },
+  "W5-08-conv-board": {
+   "title": "Conversation as a board row",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev; src/extract/converse/score.py from scout/conversation (rules part); a transfer of tools/parity/ from root",
+   "paths": [
+    "tools/parity/",
+    "project/lanes/W5-08-conv-board.md"
+   ],
+   "brief": "Add a dialogue mode to the parity harness: feed the four shipped sealed dialogue runs (upstream/research/sealed_history/conv_sealed_v[1-5].json scripts, the conv*_sealed_run*_w53x.json recordings) turn by turn with one session per dialogue, and score with the conv_tests_v1 docstring rules as the conversation scout reimplemented them. First rescore the recordings themselves (the control), then make any answerer scoreable on the same 237 turns.",
+   "done_when": "the harness reproduces 236 of 237 recorded verdicts and the conv2, conv4, conv5 summaries exactly, with the one divergence (conv1r3 d17t1 'And Phobos?') named"
+  },
+  "W5-09-dispatcher": {
+   "title": "Dispatcher: retract the drift claim, fix two defects, land it",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "scout/dispatcher (its uncommitted SCOUT_REPORT.md is in var/scout-wt/dispatcher/); or the scout's next life",
+   "paths": [
+    "tools/dispatch/",
+    "project/scouts/reports/dispatcher.md"
+   ],
+   "brief": "The core-panel numbers reproduce 924/924 (status and path). The report's claim that the space binary drifted past its receipt is wrong: with --specialist astronomy-v3 it scores 137/0/0 held-out, as lane S02 recorded; without the flag it applies astronomy-v3-r2's rules (111/0/3). The dispatcher starts every family binary without --specialist, so its own astronomy-v3 110/4 has the same cause. Retract the claim, decide how the dispatcher tells a family binary whose rules apply (per-specialist processes or the manifest context), make the dispatcher refuse to start when a stage process cannot (a copy without tools/fusion silently lost 58 network answers), commit the report, hand to root.",
+   "done_when": "report committed with the drift claim replaced; astronomy-v3 held-out 137/0/0 through the dispatcher; core-panel statuses otherwise unchanged (924 compared); a missing stage is a start-up error"
   }
  },
  "deferred": {
@@ -64,14 +124,57 @@
   "head-fail-corpus": "Linter's 'fable' lane is a data harvest of domain.head.fails, sonnet-sized; worth doing only when a lane needs the fillable fraction.",
   "exam-runs-the-drop": "Linter follow-up 1 overlaps lane A's harness (already loads flat panels with the placeholder) and lane C's check_verdicts.py (already re-decides every verdict through the binary). Dropped.",
   "linker-hardening": "rel-novels follow-up 2 duplicates the rel-linker scout. Wait for that report.",
-  "p144-store": "rel-novels follow-up 4 is answered: P144 has 0 facts in relations_v1 (indexed count) and no other shipped sqlite is the relation store; the fable-content edges.sqlite files were not examined for P144. Record the 24-item ceiling in W5-01's handoff; no lane."
+  "p144-store": "rel-novels follow-up 4 is answered: P144 has 0 facts in relations_v1 (indexed count) and no other shipped sqlite is the relation store; the fable-content edges.sqlite files were not examined for P144. Record the 24-item ceiling in W5-01's handoff; no lane.",
+  "wikidata-data": "Real Wikidata aliases, sitelink counts and relations_v2.sqlite3 are a root data decision; they would fix the rank losses, the 11 homonyms and the 1,814 absent-property items. Nothing in the drop reconstructs them.",
+  "names-polish-and-top3": "rel-linker follow-ups 2 and 4; after W5-02, whose agreement rule changes what a rank loss costs.",
+  "relation-route-harness": "rel-linker follow-up 1; W5-07 covers the rel-* row, and the core's 204 relation items route through the tritree, which does not read names_v1.",
+  "conversation-lifts": "conversation follow-ups 2-4 (w529 lift, converse organ, dialogue-state locale); after W5-08 gives them a number.",
+  "dispatcher-follow-ups": "verified stage order, guard narrows, network v2 mode, static distribution; after W5-09."
  },
  "merges": [
-  {"branch": "scout/linux-binaries", "merged": true, "commit": "4eb46e9", "note": "new files only; report moved to project/scouts/reports/linux-binaries.md"},
-  {"branch": "scout/rel-novels", "merged": true, "commit": "ffcdda8", "note": "new files only; report moved to project/scouts/reports/rel-novels.md"},
-  {"branch": "scout/specialist-linter", "merged": false, "fix_first": "the lane-cap sentence (W5-03)"},
-  {"branch": "scout/code-organ", "merged": false, "fix_first": "nothing broken; parked until root names a measurement"},
-  {"branch": "scout/math-organ", "merged": false, "fix_first": "unbuilt; scout still running"}
+  {
+   "branch": "scout/linux-binaries",
+   "merged": true,
+   "commit": "4eb46e9",
+   "note": "new files only; report moved to project/scouts/reports/linux-binaries.md"
+  },
+  {
+   "branch": "scout/rel-novels",
+   "merged": true,
+   "commit": "ffcdda8",
+   "note": "new files only; report moved to project/scouts/reports/rel-novels.md"
+  },
+  {
+   "branch": "scout/specialist-linter",
+   "merged": false,
+   "fix_first": "the lane-cap sentence (W5-03)"
+  },
+  {
+   "branch": "scout/code-organ",
+   "merged": false,
+   "fix_first": "nothing broken; parked until root names a measurement"
+  },
+  {
+   "branch": "scout/math-organ",
+   "merged": false,
+   "fix_first": "unbuilt; scout still running"
+  },
+  {
+   "branch": "scout/rel-linker",
+   "merged": true,
+   "commit": "b9f01c8",
+   "note": "new files only; report moved to project/scouts/reports/rel-linker.md; follow-ups c4e1c64 (make_overlay.py, VERI7VN_LINKER_ROOT, builder defaults) and 909568d (overlay is a full ORACLE7_ROOT)"
+  },
+  {
+   "branch": "scout/conversation",
+   "merged": false,
+   "fix_first": "parked: no board number; conv_step_is_one_dispatch is its definition and conv_step_deterministic holds for any function; W5-08 takes the scorer"
+  },
+  {
+   "branch": "scout/dispatcher",
+   "merged": false,
+   "fix_first": "report uncommitted; the space-drift claim is wrong (W5-09)"
+  }
  ],
  "unverified": [
   "linux-binaries: hbox build times, cold-start ranges, and that the hbox exports are sha-identical to the lanes' earlier ones (would need hbox access to re-run)",
@@ -80,7 +183,10 @@
   "specialist-linter: the 7 stale store paths and water-r3's unregistered panel (not re-checked)",
   "code-organ: the three read-only runs of the shipped CodeChat organ and the w486 MBPP numbers (docstring only, data not in the drop)",
   "rel-novels: the theory build itself (persvati; I checked the marker in its log and the sha pairing, not a rebuild)",
-  "math-organ: coverage claims (47 answered items, guard counts) are the scout's reading of the draft, explicitly unverified by it too"
+  "math-organ: coverage claims (47 answered items, guard counts) are the scout's reading of the draft, explicitly unverified by it too",
+  "rel-linker: the 5-minute build itself; slot top-1 96.5% over all 18,969 (ten readers re-run only); the ~14M original name count; the exact-router examples; the breakdown of the 935 non-gap silences",
+  "conversation: the AO case-flag bug; the 84-of-143 fold catalogue counts",
+  "dispatcher: the ten front-order panels table; 84/101 byte-identical network texts; cold start and memory; the Mercury arbitration case"
  ],
  "scout_errors": [
   "specialist-linter: says the release used a lane cap of 5 and was tighter than exam.py; the three specialists over 5 were admitted, so it was not",
@@ -88,6 +194,12 @@
   "rel-novels: 'parity with the shipped organ' omits that the shipped verdict is 104/120; 84/120 is parity with the shipped code on the shipped store",
   "linux-binaries: acoustics macOS size quoted as 427,176 bytes; the binary compared is 428,056",
   "linux-binaries: 13,786 identical lines are 780 panel items plus 13,006 core-panel probes; the headline should lead with the 780",
-  "code-organ: enum_well_typed is close to definitional (enum's rule is the condition tys checks); fine as a model, not a substantive receipt"
+  "code-organ: enum_well_typed is close to definitional (enum's rule is the condition tys checks); fine as a model, not a substantive receipt",
+  "rel-linker: the o7root overlay (store links and the 52 merged domains) was hand-made; no script on the branch produced it",
+  "rel-linker: 'false yes 0' is vacuous; the 161 relation panels contain no invalid items",
+  "rel-linker: the 11 wrong answers are blamed on missing aliases; they are label collisions ranked by the fame proxy",
+  "rel-linker: builder docstring says ~3.6M aliases missing, report says ~1.9M rows; neither is measured",
+  "conversation: conv_step_deterministic is true of any function; conv_step_is_one_dispatch is proved by its definition",
+  "dispatcher: 'the space binary has drifted past its parity receipt' is the missing --specialist flag"
  ]
 }
