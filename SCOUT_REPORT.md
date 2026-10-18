@@ -79,10 +79,10 @@ family module, so `recognizer.sml`/`main.sml` see the same interface.
 Acoustics' generated kernel grew 4,625 → 4,627 lines (the `render_dec 4`
 arguments); the +1 KB binary is the larger canonical regex engine.
 
-**Umbrella check (in flight at writing, see §6):** `Veri7vn_Fusion` has
-`Veri7vn_Quantity` as parent session; its build line now needs
-`-d src/extract/commons` (patched in `src/extract/fusion/build.sh`); a remote
-fusion build was launched to verify.
+**Umbrella check: green.** `Veri7vn_Fusion` has `Veri7vn_Quantity` as parent
+session; with `-d src/extract/commons` added (patched in
+`src/extract/fusion/build.sh`) it built on hbox and printed
+`VERI7VN_FUSION PASS theorems=32 oracles=0`.
 
 ### The duplication, measured
 
@@ -224,11 +224,12 @@ commons/commons.sml` as a rename.
 - Untrusted parts unchanged in kind: `commons.sml` (Regex + Json) is
   UNTRUSTED exactly as the per-family files were; the recognizers are
   untouched; `main.sml` remains the untrusted driver.
-- The fusion umbrella check (`Veri7vn_Fusion` with the ported quantity
-  parent) was LAUNCHED (`var/commons/rb-fusion-check.log`, hbox) but had not
-  finished when this report was written; its build.sh patch is committed. If
-  it is red, the cause will be the missing `-d` in some other invocation of
-  the fusion session — the fix is one flag, not a revert.
+- The fusion umbrella check finished green: `Veri7vn_Fusion` (parent session
+  `Veri7vn_Quantity`, which re-checks the ported `Quantity.thy`, plus
+  Energy/Climate/Space theories inside it) built on hbox with
+  `-d src/extract/commons` and printed `VERI7VN_FUSION PASS theorems=32
+  oracles=0` (assertion export `var/fusion/export-remote/.../assertions/fusion`).
+  `src/extract/fusion/build.sh` gained the same `-d`.
 - The `upstream` symlink in this worktree root (→ the main checkout's drop,
   read-only, for tables_check/harness) is untracked and must not be
   committed; `.gitignore`'s `upstream/` pattern does not match a symlink.
