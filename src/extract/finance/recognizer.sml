@@ -136,23 +136,26 @@ struct
   val SCALE = "\\s*(trillion|billion|million|thousand)?"
 
   (* ====================== finance ====================== *)
-  val PCT0 = "\\d+(?:\\.\\d+)?\\s*(?:%|percent\\b)"
+  (* Consume a complete signed decimal, never the tail of a malformed token. *)
+  val DECIMAL = "-?(?:(?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d+)?|\\.\\d+)"
+  val SIGNED_N = "(?<![\\w.,+\\-])(" ^ DECIMAL ^ ")(?![\\w,]|\\.\\d)"
+  val PCT0 = SIGNED_N ^ "\\s*(?:%|percent\\b)"
   val PCT = PCT0
   val FIN_MONEY = "\\binterest\\b|\\bloan\\b|\\bmortgage\\b|\\bapr\\b|\\bapy\\b|\\bsav(?:e|ings)\\b|\\binvest\\w*\\b|\\bcompound\\w*\\b|\\bdoubl\\w*\\b|\\bdeposit\\b"
   val ADVICE = "\\bshould i\\b|\\bis it (?:a )?(?:good|bad|smart|wise)\\b|\\bworth it\\b|\\bwhich (?:stock|fund|etf|crypto|coin|bank|card)\\b|"
     ^ "\\bbest (?:investment|stock|fund|way to invest)\\b|\\bwhat (?:should|to) (?:i )?(?:buy|invest)\\b|\\brecommend\\b|\\bwill .* go up\\b"
 
-  fun frate low = case search (N ^ "\\s*%") low of
+  fun frate low = case search (SIGNED_N ^ "\\s*%") low of
                     NONE => NONE
                   | SOME m => SOME (fdivi (fr_of (g1 low m)) 100)
   fun fyears low =
-    case search (N ^ "\\s*years?\\b") low of
+    case search (SIGNED_N ^ "\\s*years?\\b") low of
       SOME m => SOME (fr_of (g1 low m))
-    | NONE => (case search (N ^ "\\s*months?\\b") low of
+    | NONE => (case search (SIGNED_N ^ "\\s*months?\\b") low of
                  SOME m => SOME (fdivi (fr_of (g1 low m)) 12)
                | NONE => NONE)
   fun fprincipal low =
-    case search ("\\$\\s*" ^ N ^ "\\s*(k|thousand|million)?\\b") low of
+    case search ("\\$\\s*" ^ SIGNED_N ^ "\\s*(k|thousand|million)?\\b") low of
       NONE => NONE
     | SOME m => SOME (fmul (fr_of (g1 low m)) (mult (grp low m 2)))
 
@@ -241,7 +244,7 @@ struct
   (* B-lane: exactly "R1% compounded F1 for Y1 years, and then R2% compounded F2 for the next Y2 years" on one dollar
      amount; anything looser stays the in-domain multi-phase decline. *)
   val NUMW = "(\\d+(?:\\.\\d+)?|one|two|three|four|five|six|seven|eight|nine|ten)"
-  val PHASE1 = "(\\d+(?:\\.\\d+)?)\\s*(?:%|percent\\b)[^.?;]{0,40}?compounded\\s+(annually|yearly|semi-?annually|quarterly|monthly|weekly|daily)"
+  val PHASE1 = SIGNED_N ^ "\\s*(?:%|percent\\b)[^.?;]{0,40}?compounded\\s+(annually|yearly|semi-?annually|quarterly|monthly|weekly|daily)"
                ^ "[^.?;%]{0,25}?for\\s+(?:the\\s+(?:next|following)\\s+)?" ^ NUMW ^ "\\s+years?\\b"
   fun numWord "one" = SOME (fint 1) | numWord "two" = SOME (fint 2) | numWord "three" = SOME (fint 3)
     | numWord "four" = SOME (fint 4) | numWord "five" = SOME (fint 5) | numWord "six" = SOME (fint 6)
@@ -273,7 +276,7 @@ struct
                       (replaceWith "\\b(\\d+(?:\\.\\d+)?)[- ](year|month)s?\\b(?!\\s+(?:old|ago))"
                          (fn s => fn m => g1 s m ^ " " ^ valOf (grp s m 2) ^ "s") low0)
                else low0
-      val a = finCore tx
+      val a = if has "-\\s*\\$" tx then NONE else finCore tx
       (* organ_finance_v1.answer: advice passes; narrative turns and unanswerable short turns are dropped *)
       val a1 = case a of
                  NONE => NONE
@@ -286,6 +289,7 @@ struct
       val a2 = if variant >= 2 then
                  (case a1 of
                     SOME F.F_Advice => a1
+                  | SOME (F.F_Annuity _) => a1
                   | SOME req => if not (answersM req) andalso Narrow.numbers low0 >= 1 then NONE else a1
                   | NONE => NONE)
                else a1
@@ -548,6 +552,7 @@ struct
       else
         case retailCore low of
           NONE => NONE
+        | SOME F.R_TaxModel => SOME F.R_TaxModel
         | SOME req => if not (answersM req) andalso not (Narrow.short_direct t) then NONE else SOME req
     end
   and retailCore low : F.request option =
@@ -556,7 +561,7 @@ struct
       val price = search ("\\b(?:sells? (?:it )?for|selling price|retail price|price(?:d)?(?: at)?|sell (?:it )?at|sale price of)\\s*(?:of|is|=)?\\s*\\$\\s*" ^ N) low
       val c = Option.map (fn m => fr_of (valOf (firstGroup low m [1, 2]))) cost
       val p = Option.map (fn m => fr_of (g1 low m)) price
-      val pct = search (N ^ "\\s*%") low
+      val pct = search (SIGNED_N ^ "\\s*%") low
       fun firstOf pats = List.mapPartial (fn pt => search pt low) pats
       fun first1 pats = case firstOf pats of m :: _ => SOME m | [] => NONE
       fun money1 pat = Option.map (fn m => fr_of (g1 low m)) (search pat low)
@@ -621,34 +626,49 @@ struct
       (* B-lane: a discount AND a sales tax in one question ("$50 shirt, 20% off, then 8% sales tax"): the discounted price
          plus tax. Before this, the discount branch below answered the discount alone and ignored the tax. Strict reading:
          one dollar amount, every percent figure is either "N% off" / "discount of N%" or the tax rate; otherwise withheld. *)
-      else if has "\\bdiscount\\b|%\\s*off\\b|\\boff\\b" low andalso has "\\btax\\b" low andalso has ("\\$\\s*" ^ N) low then
+      else if has "\\bdiscount\\b|%\\s*off\\b|\\boff\\b" low andalso has "\\btax\\b" low andalso has ("\\$\\s*" ^ SIGNED_N) low then
         let
-          val offs = map (fn m => fr_of (g1 low m)) (findall (N ^ "\\s*%\\s*off\\b") low)
-                     @ map (fn m => fr_of (g1 low m)) (findall ("\\bdiscount\\s*(?:of|at)?\\s*" ^ N ^ "\\s*%") low)
-                     @ map (fn m => fr_of (g1 low m)) (findall (N ^ "\\s*%\\s*discount\\b") low)
-          val taxm = case search (N ^ "\\s*%\\s*(?:sales\\s+)?tax\\b") low of
+          val offs = map (fn m => fr_of (g1 low m)) (findall (SIGNED_N ^ "\\s*%\\s*off\\b") low)
+                     @ map (fn m => fr_of (g1 low m)) (findall ("\\bdiscount\\s*(?:of|at)?\\s*" ^ SIGNED_N ^ "\\s*%") low)
+                     @ map (fn m => fr_of (g1 low m)) (findall (SIGNED_N ^ "\\s*%\\s*discount\\b") low)
+          val taxm = case search (SIGNED_N ^ "\\s*%\\s*(?:sales\\s+)?tax\\b") low of
                        SOME m => SOME m
-                     | NONE => search ("\\b(?:sales\\s+)?tax\\s*(?:rate\\s*)?(?:of|at|is|=)?\\s*" ^ N ^ "\\s*%") low
+                     | NONE => search ("\\b(?:sales\\s+)?tax\\s*(?:rate\\s*)?(?:of|at|is|=)?\\s*" ^ SIGNED_N ^ "\\s*%") low
+          val original = has "\\b(?:tax|taxed)\\b[^!?;]{0,30}?\\b(?:on|of|applies to|based on)\\s+(?:the\\s+)?(?:original|full|undiscounted)\\b|\\bof (?:the )?(?:original|full|undiscounted) price[^.!?]{0,20}\\btax\\b" low
+          val discounted = has "\\b(?:tax|taxed)\\b[^!?;]{0,30}?\\b(?:on|of|applies to|based on)\\s+(?:the\\s+)?(?:discounted|sale) price\\b" low
+          val saving = has "\\bsav(?:e|ed|ing|ings)\\b" low
+          val taxOnly = has "\\btax amount\\b|\\bhow much (?:sales )?tax\\b|\\bwhat is the (?:sales )?tax\\b(?!\\s+rate)" low
+          val savingBasis = has "\\b(?:full|original) price\\b[^.!?]*\\b(?:with|including|plus) tax\\b" low
         in
           case taxm of
             SOME tm =>
-              if length (findall "\\$" low) = 1 andalso not (null offs) andalso length (findall (N ^ "\\s*%") low) = length offs + 1
-                 andalso not (has "\\btax[- ]free\\b|\\bbefore tax\\b" low)
-              then SOME (F.R_DiscountTax (rat (fr_of (g1 low (valOf (search ("\\$\\s*" ^ N) low)))), map rat offs,
-                                          rat (fdivi (fr_of (g1 low tm)) 100)))
-              else NONE
-          | NONE => NONE
+              if length (findall "\\$" low) = 1 andalso not (null offs) andalso length (findall (SIGNED_N ^ "\\s*%") low) = length offs + 1
+                 andalso not (has "\\btax[- ]free\\b|\\bbefore tax\\b|-\\s*\\$" low)
+                 andalso not (original andalso discounted)
+                 andalso not (saving andalso (taxOnly orelse not savingBasis))
+              then
+                let val base = rat (fr_of (g1 low (valOf (search ("\\$\\s*" ^ SIGNED_N) low))))
+                    val ds = map rat offs
+                    val rate = rat (fdivi (fr_of (g1 low tm)) 100)
+                in SOME (if saving then F.R_TaxQuery (base, ds, rate, original, F.RT_Saving)
+                         else if taxOnly then F.R_TaxQuery (base, ds, rate, original, F.RT_Tax)
+                         else if original then F.R_TaxQuery (base, ds, rate, true, F.RT_Final)
+                         else F.R_DiscountTax (base, ds, rate)) end
+              else SOME F.R_TaxModel
+          | NONE => SOME F.R_TaxModel
         end
-      else if has "\\bdiscount\\b|\\b% off\\b|\\boff\\b|\\bsale\\b" low andalso has ("\\$\\s*" ^ N) low andalso isSome pct then
+      else if has "\\bdiscount\\b|\\b% off\\b|\\boff\\b|\\bsale\\b" low andalso has ("\\$\\s*" ^ SIGNED_N) low andalso isSome pct then
         let
-          val base = fr_of (g1 low (valOf (search ("\\$\\s*" ^ N) low)))
-          val offs = case findall (N ^ "\\s*%\\s*off\\b") low of
+          val base = fr_of (g1 low (valOf (search ("\\$\\s*" ^ SIGNED_N) low)))
+          val offs = case findall (SIGNED_N ^ "\\s*%\\s*off\\b") low of
                        [] => [fr_of (g1 low (valOf pct))]
                      | ms => map (fn m => fr_of (g1 low m)) ms
-        in SOME (F.R_Discount (rat base, map rat offs)) end
-      else if has "\\bsales tax\\b|\\bwith tax\\b|\\bincluding tax\\b|\\bafter tax\\b" low andalso has ("\\$\\s*" ^ N) low andalso isSome pct then
+        in SOME (if has "\\bhow much (?:do i save|will i save|money (?:is saved|do i save))\\b|\\b(?:amount|total) saved\\b" low
+                 then F.R_TaxQuery (rat base, map rat offs, rat (fint 0), false, F.RT_Saving)
+                 else F.R_Discount (rat base, map rat offs)) end
+      else if has "\\bsales tax\\b|\\bwith tax\\b|\\bincluding tax\\b|\\bafter tax\\b" low andalso has ("\\$\\s*" ^ SIGNED_N) low andalso isSome pct then
         let
-          val base = fr_of (g1 low (valOf (search ("\\$\\s*" ^ N) low)))
+          val base = fr_of (g1 low (valOf (search ("\\$\\s*" ^ SIGNED_N) low)))
           val r = fdivi (fr_of (g1 low (valOf pct))) 100
         in SOME (F.R_WithTax (rat base, rat r)) end
       else NONE
@@ -658,7 +678,7 @@ struct
   val organs = ["finance", "finance-v2", "finance-v2-r2", "economics", "retail"]
 
   fun byId "finance" = finance 3
-    | byId "finance-v2" = finance 2
+    | byId "finance-v2" = finance 3
     | byId "finance-v2-r2" = finance 3
     | byId "economics" = economics
     | byId "retail" = retail

@@ -51,13 +51,16 @@ definition self_test :: bool where
      response (reply_of (E_Elasticity (Some (20, 22)) (Some (1000, 980)))) =
        STR ''The price elasticity of demand is -0.212 (midpoint method: %dQ -2.02% / %dP 9.524%) - inelastic (|E| < 1).''"
 
-export_code reply_of answered reply_kind response stated answers mk_rat
+definition rat_parts :: "rat \<Rightarrow> integer \<times> integer" where
+  "rat_parts r = (integer_of_int (fst (quotient_of r)), integer_of_int (snd (quotient_of r)))"
+
+export_code rat_parts check_discount_tax discount_tax_value reply_of answered reply_kind response stated answers mk_rat
   Fq_annual Fq_semi Fq_quarterly Fq_monthly Fq_weekly Fq_daily Fq_continuous
   F_Apy F_Doubling F_LoanPayment F_LoanInterest F_Savings F_Simple F_Compound F_Advice F_MultiPhase
   E_Elasticity E_ElasticityPct E_Inflation E_RealValue E_RealRate E_Growth E_Multiplier
   E_TaxMultiplier E_Unemployment E_Participation E_Deflator E_Rule70
   R_BreakEven R_EOQ R_ROP R_Turnover R_Days R_Markup R_Margin R_PriceMarkup R_PriceMargin
-  R_Discount R_WithTax F_Annuity F_TwoPhase E_RealGdp R_DiscountTax
+  R_Discount R_WithTax R_TaxModel R_TaxQuery RT_Final RT_Tax RT_Saving F_Annuity F_TwoPhase E_RealGdp R_DiscountTax
   in SML module_name Finance file_prefix finance
 
 ML \<open>
@@ -77,7 +80,8 @@ ML \<open>
     @{thm reply_states_approx}, @{thm reply_withheld_names_decline},
     @{thm exact_stated_within_tolerance},
     @{thm annuity_accumulates}, @{thm annuity_inverts_savings}, @{thm two_phase_chains},
-    @{thm real_gdp_equation}, @{thm real_gdp_deflator_roundtrip}, @{thm discount_tax_chains}] @ @{thms kernel_refusal};
+    @{thm real_gdp_equation}, @{thm real_gdp_deflator_roundtrip}, @{thm discount_tax_chains}, @{thm disc_val_bounds}, @{thm discount_bounds}, @{thm discount_tax_bounds}, @{thm disc_val_product}, @{thm check_discount_tax_iff}, @{thm discount_tax_value_checked}, @{thm retail_tax_components(1)}, @{thm retail_tax_components(2)},
+    @{thm retail_final_binding}, @{thm retail_tax_binding}, @{thm retail_savings_binding}] @ @{thms kernel_refusal};
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("finance theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "finance self test failed";

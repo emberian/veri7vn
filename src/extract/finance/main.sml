@@ -15,6 +15,27 @@ structure Main =
 struct
   val theorems = "[\"kernel_exact_sound\",\"kernel_cents_sound\",\"kernel_approx_sound\",\"kernel_underspecified\",\"kernel_impossible\",\"quant_sound\"]"
 
+  (* Exact values come from the actual typed request and checked kernel result.
+     The outer JSON serialization and its binding to the sentence are untrusted. *)
+  fun rational x =
+    let val (n, d) = Finance.rat_parts x
+        fun decimal i = if i < 0 then "-" ^ IntInf.toString (~i) else IntInf.toString i
+    in "{\"num\":" ^ Json.quote (decimal n) ^ ",\"den\":" ^ Json.quote (decimal d) ^ "}" end
+
+  fun evidence request =
+    case request of
+      Finance.R_DiscountTax (price, discounts, tax) =>
+        (case Finance.discount_tax_value request of
+           NONE => ""
+         | SOME result =>
+           ", \"evidence\": {\"checked_computation\": {\"schema_version\":1,\"kind\":\"discount_tax\",\"inputs\":{\"price\":"
+           ^ rational price ^ ",\"discounts_percent\":[" ^ String.concatWith "," (map rational discounts)
+           ^ "],\"tax_rate\":" ^ rational tax ^ "},\"result\":" ^ rational result
+           ^ ",\"checker\":\"Finance.check_discount_tax\",\"accepted\":"
+           ^ Bool.toString (Finance.check_discount_tax price discounts tax result)
+           ^ ",\"assumptions\":[\"English recognition supplied these exact inputs.\",\"Tax applies after every listed discount; discounts are percentages and tax_rate is a fraction.\"]}}")
+    | _ => ""
+
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
     in LargeInt.toString (us div 1000) ^ "." ^ StringCvt.padLeft #"0" 3 (LargeInt.toString (us mod 1000)) end
@@ -49,7 +70,7 @@ struct
           ^ ", \"provenance\": {\"taken\": true, \"organ\": " ^ Json.quote organ
           ^ ", \"specialist_ms\": " ^ ms t0
           ^ ", \"kernel\": \"Finance.reply_of\", \"session\": \"Veri7vn_Finance\", \"theorems\": "
-          ^ theorems ^ "}}"
+          ^ theorems ^ evidence request ^ "}}"
         end
     end
 

@@ -126,6 +126,8 @@ qed
 
 section \<open>Requests and outcomes\<close>
 
+datatype retail_target = RT_Final | RT_Tax | RT_Saving
+
 datatype request =
     F_Apy "rat option" "freq option"
   | F_Doubling "rat option"
@@ -163,6 +165,8 @@ datatype request =
   | R_Discount rat "rat list"
   | R_WithTax rat rat
   | R_DiscountTax rat "rat list" rat
+  | R_TaxModel
+  | R_TaxQuery rat "rat list" rat bool retail_target
 
 text \<open>Finance: principal, annual rate as a fraction, years; a savings goal, years,
 optional rate. Economics: percentages as the percent numbers, MPC as a fraction;
@@ -177,9 +181,9 @@ datatype need = N_apr_freq | N_pos_rate | N_loan | N_goal | N_simple | N_compoun
   | N_break_even | N_eoq | N_rop | N_turnover | N_annuity | N_two_phase | N_real_gdp
 
 datatype reason = R_term | R_degenerate | R_mpc | R_unemp | R_partic | R_positive
-  | R_price_cost | R_margin | R_phase
+  | R_price_cost | R_margin | R_phase | R_discount
 
-datatype decline = Underspecified need | Impossible reason | Advice | MultiPhase | Imprecise
+datatype decline = Underspecified need | Impossible reason | Advice | MultiPhase | RetailModel | Imprecise
 
 datatype kind = K_apy | K_doubling | K_loan_interest | K_loan_payment | K_savings_goal
   | K_simple_interest | K_compound | K_advice | K_multi_phase
@@ -187,7 +191,7 @@ datatype kind = K_apy | K_doubling | K_loan_interest | K_loan_payment | K_saving
   | K_tax_multiplier | K_unemployment | K_participation | K_deflator | K_rule70
   | K_break_even | K_never_even | K_eoq | K_rop | K_days_inventory | K_turnover
   | K_markup | K_margin | K_price_from_markup | K_price_from_margin | K_discount | K_with_tax
-  | K_annuity | K_two_phase | K_real_gdp | K_discount_tax
+  | K_annuity | K_two_phase | K_real_gdp | K_discount_tax | K_tax_amount | K_discount_savings
 
 datatype outcome = Exact kind rat | Cents kind int | Approx kind "int \<times> int" | NoValue kind | Decline decline
 
@@ -211,6 +215,10 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (R_Margin _ _) = K_margin" | "kind_of (R_PriceMarkup _ _) = K_price_from_markup"
 | "kind_of (R_PriceMargin _ _) = K_price_from_margin" | "kind_of (R_Discount _ _) = K_discount"
 | "kind_of (R_WithTax _ _) = K_with_tax"
+| "kind_of R_TaxModel = K_discount_tax"
+| "kind_of (R_TaxQuery _ _ _ _ RT_Final) = K_discount_tax"
+| "kind_of (R_TaxQuery _ _ _ _ RT_Tax) = K_tax_amount"
+| "kind_of (R_TaxQuery _ _ _ _ RT_Saving) = K_discount_savings"
 
 fun fmt_of :: "kind \<Rightarrow> fmt" where
   "fmt_of K_apy = Fm_pct4" | "fmt_of K_doubling = Fm_years2"
@@ -229,6 +237,7 @@ fun fmt_of :: "kind \<Rightarrow> fmt" where
 | "fmt_of K_rule70 = Fm_g3"
 | "fmt_of K_annuity = Fm_money" | "fmt_of K_two_phase = Fm_money" | "fmt_of K_real_gdp = Fm_g3"
 | "fmt_of K_discount_tax = Fm_money"
+| "fmt_of K_tax_amount = Fm_money" | "fmt_of K_discount_savings = Fm_money"
 
 text \<open>A phase of a two-phase account must compound periodically over a whole
 number of periods; continuous compounding and fractional periods are declined
@@ -274,7 +283,7 @@ fun impossible :: "request \<Rightarrow> bool" where
   "impossible (F_LoanPayment (Some p) (Some r) (Some y)) \<longleftrightarrow> months y = 0"
 | "impossible (F_LoanInterest (Some p) (Some r) (Some y)) \<longleftrightarrow> months y = 0"
 | "impossible (F_Savings (Some g) (Some y) r) \<longleftrightarrow> months y = 0"
-| "impossible (F_Annuity (Some d) (Some r) (Some y)) \<longleftrightarrow> months y = 0"
+| "impossible (F_Annuity (Some d) (Some r) (Some y)) \<longleftrightarrow> months y = 0 \<or> of_nat (months y) \<noteq> 12 * y \<or> d < 0 \<or> r \<le> -12"
 | "impossible (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) \<longleftrightarrow>
      \<not> phase_ok y1 f1 \<or> \<not> phase_ok y2 f2"
 | "impossible (E_RealGdp (Some n) (Some d) u) \<longleftrightarrow> d \<le> 0"
@@ -295,13 +304,18 @@ fun impossible :: "request \<Rightarrow> bool" where
 | "impossible (R_Markup c p) \<longleftrightarrow> p \<le> 0 \<or> c \<le> 0"
 | "impossible (R_Margin c p) \<longleftrightarrow> p \<le> 0 \<or> c \<le> 0"
 | "impossible (R_PriceMargin c m) \<longleftrightarrow> 1 \<le> m"
+| "impossible (R_Discount b os) \<longleftrightarrow> b < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x)"
+| "impossible (R_WithTax b r) \<longleftrightarrow> b < 0 \<or> r < 0"
+| "impossible (R_DiscountTax b os r) \<longleftrightarrow> b < 0 \<or> r < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x)"
+| "impossible (R_TaxQuery b os r _ _) \<longleftrightarrow> b < 0 \<or> r < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x)"
 | "impossible _ \<longleftrightarrow> False"
 
 fun reason_of :: "request \<Rightarrow> reason option" where
   "reason_of (F_LoanPayment (Some p) (Some r) (Some y)) = (if months y = 0 then Some R_term else None)"
 | "reason_of (F_LoanInterest (Some p) (Some r) (Some y)) = (if months y = 0 then Some R_term else None)"
 | "reason_of (F_Savings (Some g) (Some y) r) = (if months y = 0 then Some R_term else None)"
-| "reason_of (F_Annuity (Some d) (Some r) (Some y)) = (if months y = 0 then Some R_term else None)"
+| "reason_of (F_Annuity (Some d) (Some r) (Some y)) = (if months y = 0 \<or> of_nat (months y) \<noteq> 12 * y then Some R_term
+     else if d < 0 \<or> r \<le> -12 then Some R_positive else None)"
 | "reason_of (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) =
      (if \<not> phase_ok y1 f1 \<or> \<not> phase_ok y2 f2 then Some R_phase else None)"
 | "reason_of (E_RealGdp (Some n) (Some d) u) = (if d \<le> 0 then Some R_positive else None)"
@@ -323,6 +337,10 @@ fun reason_of :: "request \<Rightarrow> reason option" where
 | "reason_of (R_Markup c p) = (if p \<le> 0 \<or> c \<le> 0 then Some R_price_cost else None)"
 | "reason_of (R_Margin c p) = (if p \<le> 0 \<or> c \<le> 0 then Some R_price_cost else None)"
 | "reason_of (R_PriceMargin c m) = (if 1 \<le> m then Some R_margin else None)"
+| "reason_of (R_Discount b os) = (if b < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x) then Some R_discount else None)"
+| "reason_of (R_WithTax b r) = (if b < 0 \<or> r < 0 then Some R_discount else None)"
+| "reason_of (R_DiscountTax b os r) = (if b < 0 \<or> r < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x) then Some R_discount else None)"
+| "reason_of (R_TaxQuery b os r _ _) = (if b < 0 \<or> r < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x) then Some R_discount else None)"
 | "reason_of _ = None"
 
 theorem reason_of_exact: "reason_of r \<noteq> None \<longleftrightarrow> impossible r"
@@ -333,10 +351,10 @@ definition decline_of :: "request \<Rightarrow> decline option" where
      Some w \<Rightarrow> Some (Underspecified w)
    | None \<Rightarrow> (case reason_of r of
        Some why \<Rightarrow> Some (Impossible why)
-     | None \<Rightarrow> (case r of F_Advice \<Rightarrow> Some Advice | F_MultiPhase \<Rightarrow> Some MultiPhase | _ \<Rightarrow> None)))"
+     | None \<Rightarrow> (case r of F_Advice \<Rightarrow> Some Advice | F_MultiPhase \<Rightarrow> Some MultiPhase | R_TaxModel \<Rightarrow> Some RetailModel | _ \<Rightarrow> None)))"
 
 definition is_refusal :: "request \<Rightarrow> bool" where
-  "is_refusal r = (case r of F_Advice \<Rightarrow> True | F_MultiPhase \<Rightarrow> True | _ \<Rightarrow> False)"
+  "is_refusal r = (case r of F_Advice \<Rightarrow> True | F_MultiPhase \<Rightarrow> True | R_TaxModel \<Rightarrow> True | _ \<Rightarrow> False)"
 
 section \<open>Values\<close>
 
@@ -375,6 +393,9 @@ fun qval :: "request \<Rightarrow> rat" where
       | None \<Rightarrow> 0)"
 | "qval (E_RealGdp (Some n) (Some d) u) = n / d * 100"
 | "qval (R_DiscountTax b os r) = disc_val b os * (1 + r)"
+| "qval (R_TaxQuery b os r original RT_Final) = disc_val b os + (if original then b else disc_val b os) * r"
+| "qval (R_TaxQuery b os r original RT_Tax) = (if original then b else disc_val b os) * r"
+| "qval (R_TaxQuery b os r original RT_Saving) = b * (1 + r) - (disc_val b os + (if original then b else disc_val b os) * r)"
 | "qval (E_Elasticity (Some (p1, p2)) (Some (q1, q2))) =
      ((q2 - q1) / ((q1 + q2) / 2)) / ((p2 - p1) / ((p1 + p2) / 2))"
 | "qval (E_ElasticityPct (Some dp) (Some dq)) = dq / dp"
@@ -691,6 +712,7 @@ qed
 theorem kernel_refusal:
   "kernel r = Decline Advice \<longleftrightarrow> missing r = None \<and> \<not> impossible r \<and> r = F_Advice"
   "kernel r = Decline MultiPhase \<longleftrightarrow> missing r = None \<and> \<not> impossible r \<and> r = F_MultiPhase"
+  "kernel r = Decline RetailModel \<longleftrightarrow> missing r = None \<and> \<not> impossible r \<and> r = R_TaxModel"
   using reason_of_exact[of r]
   by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline two_phase_out_decline split: option.splits request.splits)
 
@@ -1076,22 +1098,23 @@ proof -
 qed
 
 theorem annuity_accumulates:
-  assumes "kernel (F_Annuity (Some d) (Some r) (Some y)) = Exact k fv" and "0 \<le> r"
-  shows "0 < months y \<and> accum (r / 12) d (months y) = fv"
+  assumes "kernel (F_Annuity (Some d) (Some r) (Some y)) = Exact k fv"
+  shows "0 < months y \<and> of_nat (months y) = 12 * y \<and> accum (r / 12) d (months y) = fv"
 proof -
   have nd: "decline_of (F_Annuity (Some d) (Some r) (Some y)) = None" and
        a: "answer_of (F_Annuity (Some d) (Some r) (Some y)) = Exact k fv"
     using assms(1) by (auto simp: kernel_def split: option.splits)
   have n0: "months y \<noteq> 0" using decline_none[OF nd] by simp
+  have periods: "of_nat (months y) = (12 * y :: rat)" using decline_none[OF nd] by simp
   have fv: "fv = fv_ann d (r / 12) (months y)" using answer_exact[OF a] by simp
   show ?thesis
   proof (cases "r = 0")
     case True
-    then show ?thesis using n0 fv by (simp add: fv_ann_def accum_zero_rate)
+    then show ?thesis using n0 periods fv by (simp add: fv_ann_def accum_zero_rate)
   next
     case False
     then have "r / 12 \<noteq> 0" by simp
-    then show ?thesis using n0 fv fv_ann_accum by simp
+    then show ?thesis using n0 periods fv fv_ann_accum by simp
   qed
 qed
 
@@ -1152,6 +1175,107 @@ price, discounts first.\<close>
 theorem discount_tax_chains:
   "qval (R_DiscountTax b os r) = qval (R_WithTax (qval (R_Discount b os)) r)"
   by simp
+
+text \<open>Successive ordinary discounts cannot turn a nonnegative price negative.
+The executable domain check now rejects percentages outside this model.\<close>
+lemma disc_val_bounds:
+  assumes "0 \<le> b" and "\<forall>x\<in>set os. 0 \<le> x \<and> x \<le> 100"
+  shows "0 \<le> disc_val b os \<and> disc_val b os \<le> b"
+  using assms
+proof (induction os arbitrary: b)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons x xs)
+  have x: "0 \<le> x" "x \<le> 100" using Cons.prems(2) by auto
+  have factor: "0 \<le> 1 - x / 100" "1 - x / 100 \<le> (1::rat)" using x by auto
+  have nb: "0 \<le> b * (1 - x / 100)" using Cons.prems(1) factor(1) by (rule mult_nonneg_nonneg)
+  have ub: "b * (1 - x / 100) \<le> b" using mult_left_mono[OF factor(2) Cons.prems(1)] by simp
+  have rest: "\<forall>z\<in>set xs. 0 \<le> z \<and> z \<le> 100" using Cons.prems(2) by simp
+  have lower: "0 \<le> disc_val (b * (1 - x / 100)) xs"
+    and upper: "disc_val (b * (1 - x / 100)) xs \<le> b * (1 - x / 100)"
+    using Cons.IH[OF nb rest] by auto
+  have upper_b: "disc_val (b * (1 - x / 100)) xs \<le> b"
+    by (rule order_trans[OF upper ub])
+  show ?case using lower upper_b by simp
+qed
+
+theorem discount_bounds:
+  assumes "kernel (R_Discount b os) = Exact k v"
+  shows "0 \<le> v \<and> v \<le> b \<and> (\<forall>x\<in>set os. 0 \<le> x \<and> x \<le> 100)"
+proof -
+  have h: "\<not> impossible (R_Discount b os) \<and> v = qval (R_Discount b os)"
+    using kernel_exact_sound[OF assms] by blast
+  have b: "0 \<le> b" and os: "\<forall>x\<in>set os. 0 \<le> x \<and> x \<le> 100" using h by auto
+  show ?thesis using h os disc_val_bounds[OF b os] by simp
+qed
+
+theorem discount_tax_bounds:
+  assumes "kernel (R_DiscountTax b os r) = Exact k v"
+  shows "0 \<le> v \<and> v \<le> b * (1 + r) \<and>
+    (\<forall>x\<in>set os. 0 \<le> x \<and> x \<le> 100)"
+proof -
+  have h: "\<not> impossible (R_DiscountTax b os r) \<and> v = qval (R_DiscountTax b os r)"
+    using kernel_exact_sound[OF assms] by blast
+  have b: "0 \<le> b" and r: "0 \<le> r" and os: "\<forall>x\<in>set os. 0 \<le> x \<and> x \<le> 100"
+    using h by auto
+  have db: "0 \<le> disc_val b os" "disc_val b os \<le> b" using disc_val_bounds[OF b os] by auto
+  have valeq: "v = disc_val b os * (1 + r)" using h by simp
+  show ?thesis using db r os unfolding valeq by (auto intro: mult_nonneg_nonneg mult_right_mono)
+qed
+
+text \<open>A replayable computation certificate uses a product of discount factors,
+independently of the kernel's recursive price updates. Its theorem binds a
+successful check to the executable kernel; English recognition remains outside it.\<close>
+lemma disc_val_product:
+  "disc_val b os = b * prod_list (map (\<lambda>x. 1 - x / 100) os)"
+  by (induction os arbitrary: b) (simp_all add: algebra_simps)
+
+definition check_discount_tax :: "rat \<Rightarrow> rat list \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> bool" where
+  "check_discount_tax b os r v \<longleftrightarrow>
+    0 \<le> b \<and> 0 \<le> r \<and> (\<forall>x\<in>set os. 0 \<le> x \<and> x \<le> 100) \<and>
+    v = b * prod_list (map (\<lambda>x. 1 - x / 100) os) * (1 + r)"
+
+theorem check_discount_tax_iff:
+  "check_discount_tax b os r v \<longleftrightarrow>
+    kernel (R_DiscountTax b os r) = Exact K_discount_tax v"
+  by (auto simp: check_discount_tax_def kernel_def decline_of_def disc_val_product; fastforce)
+
+definition discount_tax_value :: "request \<Rightarrow> rat option" where
+  "discount_tax_value rq = (case rq of R_DiscountTax b os r \<Rightarrow>
+    (case kernel rq of Exact k v \<Rightarrow> Some v | _ \<Rightarrow> None) | _ \<Rightarrow> None)"
+
+theorem discount_tax_value_checked:
+  assumes "discount_tax_value (R_DiscountTax b os r) = Some v"
+  shows "check_discount_tax b os r v"
+proof -
+  obtain k where kv: "kernel (R_DiscountTax b os r) = Exact k v"
+    using assms by (auto simp: discount_tax_value_def split: outcome.splits)
+  have "k = K_discount_tax" using kernel_exact_sound[OF kv] by simp
+  then show ?thesis using kv check_discount_tax_iff by simp
+qed
+
+text \<open>The same retail model can answer a final price, tax amount, or savings
+against full price including tax. The tax base is an explicit typed input.\<close>
+theorem retail_tax_components:
+  "qval (R_TaxQuery b os r original RT_Final) = disc_val b os + qval (R_TaxQuery b os r original RT_Tax)"
+  "qval (R_TaxQuery b os r original RT_Saving) + qval (R_TaxQuery b os r original RT_Final) = b * (1 + r)"
+  by simp_all
+
+theorem retail_final_binding:
+  assumes "kernel (R_TaxQuery b os r original RT_Final) = Exact k v"
+  shows "k = K_discount_tax \<and> v = disc_val b os + (if original then b else disc_val b os) * r"
+  using kernel_exact_sound[OF assms] by simp
+
+theorem retail_tax_binding:
+  assumes "kernel (R_TaxQuery b os r original RT_Tax) = Exact k v"
+  shows "k = K_tax_amount \<and> v = (if original then b else disc_val b os) * r"
+  using kernel_exact_sound[OF assms] by simp
+
+theorem retail_savings_binding:
+  assumes "kernel (R_TaxQuery b os r original RT_Saving) = Exact k v"
+  shows "k = K_discount_savings \<and> v + qval (R_TaxQuery b os r original RT_Final) = b * (1 + r)"
+  using kernel_exact_sound[OF assms] by simp
 
 section \<open>Response text (plain ASCII; layout is checked by the self test, not proved)\<close>
 
@@ -1278,6 +1402,11 @@ definition exact_text_b :: "request \<Rightarrow> rat \<Rightarrow> String.liter
    | R_DiscountTax b os r \<Rightarrow> STR ''The final price is '' + V + STR '' ('' + money b + STR '' less ''
        + join_with (STR '' then '') (map (\<lambda>x. g4 x + STR ''%'') os) + STR '' = '' + money (disc_val b os) + STR '', plus ''
        + g4 (100 * r) + STR ''% tax = '' + money (disc_val b os * r) + STR '').''
+   | R_TaxQuery b os r original target \<Rightarrow>
+       (case target of RT_Final \<Rightarrow> STR ''The final price is '' | RT_Tax \<Rightarrow> STR ''The tax amount is ''
+         | RT_Saving \<Rightarrow> STR ''You save '') + V
+       + (case target of RT_Saving \<Rightarrow> STR '' compared with the full price including tax'' | _ \<Rightarrow> STR '''')
+       + STR '' (tax applies to the '' + (if original then STR ''original'' else STR ''discounted'') + STR '' price).''
    | _ \<Rightarrow> exact_text rq q V)"
 
 fun novalue_text :: "request \<Rightarrow> String.literal" where
@@ -1318,7 +1447,7 @@ definition need_text :: "need \<Rightarrow> String.literal" where
      + apos + STR ''t assume it.''"
 
 fun reason_text :: "reason \<Rightarrow> String.literal" where
-  "reason_text R_term = STR ''A loan or savings term must be at least one month.''"
+  "reason_text R_term = STR ''A loan or savings term must be at least one month; monthly deposits need a whole number of months.''"
 | "reason_text R_degenerate = STR ''Those figures do not give a defined elasticity.''"
 | "reason_text R_mpc = STR ''The MPC must be between 0 and 1 for a finite multiplier.''"
 | "reason_text R_unemp = STR ''The unemployed cannot outnumber the labour force.''"
@@ -1326,11 +1455,12 @@ fun reason_text :: "reason \<Rightarrow> String.literal" where
 | "reason_text R_positive = STR ''That input must be positive for the formula to apply.''"
 | "reason_text R_price_cost = STR ''Prices and costs must be positive.''"
 | "reason_text R_margin = STR ''A gross margin must be below 100%.''"
+| "reason_text R_discount = STR ''Prices and tax rates must be nonnegative, and each discount must be between 0% and 100%.''"
 | "reason_text R_phase = STR ''Each phase needs periodic compounding over a whole number of periods.''"
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of Underspecified _ \<Rightarrow> STR ''underspecified'' | Impossible _ \<Rightarrow> STR ''impossible''
-     | Advice \<Rightarrow> STR ''advice'' | MultiPhase \<Rightarrow> STR ''multi_phase'' | Imprecise \<Rightarrow> STR ''imprecise'')"
+     | Advice \<Rightarrow> STR ''advice'' | MultiPhase \<Rightarrow> STR ''multi_phase'' | RetailModel \<Rightarrow> STR ''unsupported_model'' | Imprecise \<Rightarrow> STR ''imprecise'')"
 
 definition decline_text :: "decline \<Rightarrow> String.literal" where
   "decline_text w = (case w of
@@ -1340,6 +1470,7 @@ definition decline_text :: "decline \<Rightarrow> String.literal" where
        + STR ''t advise. I can compute growth, loan payments, interest or a savings target for any numbers you give me.''
    | MultiPhase \<Rightarrow> STR ''That account changes rate or term partway through; I compute one rate over one term at a time, so I won''
        + apos + STR ''t give a single figure for the whole thing. Ask about each phase separately (the first phase ends with a balance that starts the second).''
+   | RetailModel \<Rightarrow> STR ''I need an unambiguous tax base and a request for the final price, tax amount, or savings compared with full price including tax.''
    | Imprecise \<Rightarrow> STR ''The interval arithmetic could not pin the digits; I won'' + apos + STR ''t guess.'')"
 
 definition kind_name :: "kind \<Rightarrow> String.literal" where
@@ -1358,7 +1489,8 @@ definition kind_name :: "kind \<Rightarrow> String.literal" where
      | K_price_from_markup \<Rightarrow> STR ''price_from_markup'' | K_price_from_margin \<Rightarrow> STR ''price_from_margin''
      | K_discount \<Rightarrow> STR ''discount'' | K_with_tax \<Rightarrow> STR ''with_tax''
      | K_annuity \<Rightarrow> STR ''annuity'' | K_two_phase \<Rightarrow> STR ''two_phase'' | K_real_gdp \<Rightarrow> STR ''real_gdp''
-     | K_discount_tax \<Rightarrow> STR ''discount_tax'')"
+     | K_discount_tax \<Rightarrow> STR ''discount_tax'' | K_tax_amount \<Rightarrow> STR ''tax_amount''
+     | K_discount_savings \<Rightarrow> STR ''discount_savings'')"
 
 text \<open>The whole reply: answered or withheld, the kind, the response text and the
 stated value (a plain decimal, no currency sign or grouping).\<close>

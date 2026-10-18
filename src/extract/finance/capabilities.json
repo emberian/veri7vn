@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "family": "finance",
+  "specialists": {
+    "finance": {
+      "accept": {
+        "kinds": [
+          "annuity",
+          "two_phase"
+        ],
+        "declines_in_domain": [
+          "impossible",
+          "imprecise",
+          "multi_phase"
+        ]
+      },
+      "evidence": {
+        "computation": "Exact ordinary monthly-deposit accumulation and periodic compound growth, with checked money rounding.",
+        "assumptions": [
+          "Deposits occur at the end of each month. The term contains a whole number of months.",
+          "Annual rates are nominal fractions; compounding frequency is explicit or uses the documented default.",
+          "Two-phase growth, when supported, has no intervening deposits or withdrawals."
+        ],
+        "untrusted": [
+          "English recognition and decimal-to-request conversion; mathematical proof does not establish that the sentence was read correctly."
+        ]
+      }
+    },
+    "finance-v2": {
+      "accept": {
+        "kinds": [
+          "annuity",
+          "two_phase"
+        ],
+        "declines_in_domain": [
+          "impossible",
+          "imprecise",
+          "multi_phase"
+        ]
+      },
+      "evidence": {
+        "computation": "Exact ordinary monthly-deposit accumulation and periodic compound growth, with checked money rounding.",
+        "assumptions": [
+          "Deposits occur at the end of each month. The term contains a whole number of months.",
+          "Annual rates are nominal fractions; compounding frequency is explicit or uses the documented default.",
+          "Two-phase growth, when supported, has no intervening deposits or withdrawals."
+        ],
+        "untrusted": [
+          "English recognition and decimal-to-request conversion; mathematical proof does not establish that the sentence was read correctly."
+        ]
+      }
+    },
+    "finance-v2-r2": {
+      "accept": {
+        "kinds": [
+          "annuity",
+          "two_phase"
+        ],
+        "declines_in_domain": [
+          "impossible",
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "Exact ordinary monthly-deposit accumulation and periodic compound growth, with checked money rounding.",
+        "assumptions": [
+          "Deposits occur at the end of each month. The term contains a whole number of months.",
+          "Annual rates are nominal fractions; compounding frequency is explicit or uses the documented default.",
+          "Two-phase growth, when supported, has no intervening deposits or withdrawals."
+        ],
+        "untrusted": [
+          "English recognition and decimal-to-request conversion; mathematical proof does not establish that the sentence was read correctly."
+        ]
+      }
+    },
+    "economics": {
+      "accept": {
+        "kinds": [
+          "real_gdp"
+        ]
+      },
+      "evidence": {
+        "computation": "Real GDP satisfies real times deflator = nominal times 100.",
+        "assumptions": [
+          "The deflator is a positive index with base 100.",
+          "Amounts retain the scale named in the question."
+        ],
+        "untrusted": [
+          "English recognition, unit-scale selection, and numeric parsing."
+        ]
+      }
+    },
+    "retail": {
+      "accept": {
+        "kinds": [
+          "discount_tax",
+          "tax_amount",
+          "discount_savings"
+        ],
+        "declines_in_domain": [
+          "unsupported_model"
+        ]
+      },
+      "context_regex_additions": [
+        "\\b(?:tax rate|tax)\\b.*\\b(?:off|discount)\\b|\\b(?:off|discount)\\b.*\\b(?:tax rate|tax)\\b"
+      ],
+      "evidence": {
+        "computation": "Apply discounts in sequence, tax the explicitly selected original or discounted price, and answer final price, tax amount, or savings against full price including tax.",
+        "assumptions": [
+          "Each discount is from 0% to 100%; the price and tax rate are nonnegative.",
+          "Tax applies after discounts unless the original-price tax base is explicitly requested; savings compares the paid total with full price including tax."
+        ],
+        "untrusted": [
+          "English recognition, classification of each percentage, and numeric parsing."
+        ]
+      }
+    }
+  }
+}

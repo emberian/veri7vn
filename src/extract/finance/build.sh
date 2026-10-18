@@ -4,8 +4,7 @@
 # Precondition: the Isabelle session has passed check-native (that is where the
 # theorems are proved and the code is generated); this script never builds
 # Isabelle sessions. It
-#   1. reads the generated SML out of the session database (isabelle export -n,
-#      no build) while holding the shared native build lock,
+#   1. reads the explicitly supplied generated SML from a successful scoped build,
 #   2. compiles generated kernel + untrusted recognizer + driver with the MLton
 #      that ships inside Isabelle,
 #   3. writes var/finance/bin/finance and prints its size.
@@ -18,19 +17,9 @@ OUT=$REPO/var/finance
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
-rm -rf "$OUT/export"
-REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
-import fcntl, os, subprocess
-repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT"]
-with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
-    fcntl.flock(lock, fcntl.LOCK_EX)
-    env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
-    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/finance", "-d", "src/extract/commons",
-                    "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Finance"],
-                   check=True, env=env, cwd=repo)
-EOF
-GEN=$(find "$OUT/export" -type f -name 'finance*' | head -n 1)
-[ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
+# Require the export from a successful build receipt; never consume a stale local heap.
+GEN=${VERI7VN_GENERATED:-}
+[ -n "$GEN" ] && [ -f "$GEN" ] || { echo "set VERI7VN_GENERATED to a fresh checked finance.ML export" >&2; exit 1; }
 cp "$GEN" "$OUT/build/finance_generated.sml"
 
 cat > "$OUT/build/finance.mlb" <<EOF
