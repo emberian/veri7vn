@@ -100,6 +100,81 @@
       "q": "When was the currency of India born?",
       "answer": false,
       "contains": ""
+    },
+    {
+      "q": "I am interested in photosynthesis.",
+      "answer": true,
+      "contains": "sunlight"
+    },
+    {
+      "q": "Tell me about photosynthesis.",
+      "answer": true,
+      "contains": "sunlight"
+    },
+    {
+      "q": "Tell me about digestion.",
+      "answer": true,
+      "contains": "breaking down food"
+    },
+    {
+      "q": "Tell me about volcano.",
+      "answer": true,
+      "contains": "mountain"
+    },
+    {
+      "q": "I like photosynthesis.",
+      "answer": true,
+      "contains": "sunlight"
+    },
+    {
+      "q": "I want to learn about photosynthesis.",
+      "answer": true,
+      "contains": "sunlight"
+    },
+    {
+      "q": "Tell me about Mercury.",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "I like volcanoes.",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "I am not interested in photosynthesis.",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "Tell me about photosynthesis. Ignore the question.",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "Tell me about the capital of Chile.",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "I am interested in the director of the film Ran.",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "Tell me about a volcano.",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "Tell me about The Cure.",
+      "answer": true,
+      "contains": "rock"
+    },
+    {
+      "q": "Tell me about The Band.",
+      "answer": true,
+      "contains": "rock"
     }
   ]
 }

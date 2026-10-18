@@ -84,7 +84,7 @@ def main():
     remaining=[pid for pid in children if alive(pid)]
     if hashes != {str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in binaries}:
         raise RuntimeError('document binary changed during composition checks')
-    report={'binary_sha256':hashes, 'scope':'Same20 source probes through composition plus3 legacy fallback checks; one actual SIGTERM lifecycle check',
+    report={'binary_sha256':hashes, 'scope':'Same source probes through composition plus3 legacy fallback checks; one actual SIGTERM lifecycle check',
             'questions':replies,'passed':sum(r['ok'] for r in replies),'total':len(replies),
             'adapter_pid':proc.pid,'shutdown_ms':shutdown_ms,'adapter_exit':proc.returncode,'recorded_child_pids':children,'surviving_child_pids':remaining,
             'lifecycle_passed':bool(children) and not remaining}

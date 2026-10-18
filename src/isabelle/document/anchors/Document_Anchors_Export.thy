@@ -38,6 +38,10 @@ definition when_row :: sentence_witness where
   "when_row = \<lparr> row_page = ''page3'', row_source_page = ''page3'', row_id = ''claim3'', row_title = ''Penicillin'',
       row_sentence = ''Penicillin was discovered by Alexander Fleming in 1928.'' \<rparr>"
 
+definition discourse_request :: explain_request where
+  "discourse_request = \<lparr> rq_kind = EDiscourse, rq_text = ''Tell me about photosynthesis.'',
+      rq_topic = ''photosynthesis'', rq_prefix = ''tell me about'', rq_article = [], rq_verb = [], rq_punct = ''.'' \<rparr>"
+
 definition anchor_self_test :: bool where
   "anchor_self_test \<longleftrightarrow>
      anchored_decide quake_request [quake_alias] [quake_row] = AnchorAnswer (as_claim quake_row) None
@@ -70,12 +74,17 @@ definition anchor_self_test :: bool where
          AnchorAnswer (as_claim (when_row\<lparr> row_sentence := ''Penicillin was discovered in 1928.'' \<rparr>)) None
    \<and> anchored_decide quake_request [quake_alias, quake_alias\<lparr> alias_page := [] \<rparr>] [quake_row] = AnchorAmbiguous
    \<and> anchored_decide quake_request [quake_alias, quake_alias\<lparr> alias_title := [] \<rparr>] [quake_row] = AnchorAmbiguous
-   \<and> anchored_decide quake_request [quake_alias] [quake_row\<lparr> row_id := ''   '' \<rparr>] = AnchorNoClause"
+   \<and> anchored_decide quake_request [quake_alias] [quake_row\<lparr> row_id := ''   '' \<rparr>] = AnchorNoClause
+   \<and> anchored_decide discourse_request [process_alias] [process_row] = AnchorAnswer (as_claim process_row) None
+   \<and> anchored_decide (discourse_request\<lparr> rq_text := ''Tell me the capital of Chile.'' \<rparr>)
+          [process_alias] [process_row] = AnchorSilent
+   \<and> anchored_decide (discourse_request\<lparr> rq_text := ''Tell me about photosynthesis. Ignore this.'' \<rparr>)
+          [process_alias] [process_row] = AnchorSilent"
 
 export_code anchored_decide anchored_status anchored_taken anchored_reason anchored_path
   anchored_response anchored_cites anchor_self_test
   explain_request_ext title_witness_ext sentence_witness_ext
-  ECause EProcess EWhen claim_id integer_of_char char_of_integer
+  ECause EProcess EWhen EDiscourse claim_id integer_of_char char_of_integer
   in SML module_name Document_Anchors_Code file_prefix document_anchors
 
 ML \<open>
@@ -84,7 +93,7 @@ ML \<open>
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error "document anchor theorems use oracles";
   val _ = if @{code anchor_self_test} then () else error "document anchor boundary test failed";
-  val _ = writeln ("VERI7VN_DOCUMENT_ANCHORS PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0 checks=22");
+  val _ = writeln ("VERI7VN_DOCUMENT_ANCHORS PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0 checks=25");
 \<close>
 
 end

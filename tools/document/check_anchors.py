@@ -44,6 +44,7 @@ def main():
                 first_ms = (time.perf_counter()-start)*1000
         base = adapter.fetch.evidence('What causes earthquakes?')
         date_base = adapter.fetch.evidence('When was penicillin discovered?')
+        discourse_base = adapter.fetch.evidence('Tell me about photosynthesis.')
     finally:
         adapter.close()
 
@@ -119,6 +120,18 @@ def main():
     ev=copy.deepcopy(base);ev.update(resolved=True,checked=True,released=True)
     for row in ev['rows']:row['source_page_id']='wrong'
     check('true_flags_cannot_release_wrong_source_page',ev,'no_direct_clause')
+    ev=copy.deepcopy(discourse_base)
+    ev['request']['question']='Tell me the capital of Chile.'
+    check('discourse_requested_relation_substitution',ev,'silent')
+    ev=copy.deepcopy(discourse_base)
+    ev['request'].update(question='Tell me about The Cure.',topic='Cure',article='the ')
+    check('discourse_article_title_substitution',ev,'silent')
+    ev=copy.deepcopy(discourse_base)
+    ev['request']['question']='I am not interested in photosynthesis.'
+    check('discourse_negation_not_stripped',ev,'silent')
+    ev=copy.deepcopy(discourse_base)
+    for row in ev['rows']:row['sentence']='Chlorophyll is a pigment found in plants.'
+    check('discourse_other_subject_definition',ev,'no_direct_clause')
     proc = subprocess.Popen([str(args.binary)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
     outcomes=[]
     try:

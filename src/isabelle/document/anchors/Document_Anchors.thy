@@ -13,7 +13,7 @@ key. Omitting an alias can hide ambiguity: that completeness premise is explicit
 not established by a Boolean from the fetch. Sentence selection is bounded to the
 supplied rows; no absence claim about the entire source is made.\<close>
 
-datatype explain_kind = ECause | EProcess | EWhen
+datatype explain_kind = ECause | EProcess | EWhen | EDiscourse
 
 record explain_request =
   rq_kind :: explain_kind
@@ -58,12 +58,14 @@ definition supported_form :: "explain_request \<Rightarrow> bool" where
     rq_punct r \<in> set ['''', ''?'', ''.''] \<and>
     (case rq_kind r of
        ECause \<Rightarrow> rq_prefix r \<in> set [''what causes'', ''what makes''] \<and> rq_verb r = []
+     | EDiscourse \<Rightarrow> rq_article r = [] \<and> rq_prefix r \<in> set [''i am interested in'', ''i like'', ''tell me about'', ''i want to learn about'']
+                      \<and> rq_verb r = []
      | EProcess \<Rightarrow> rq_prefix r \<in> set [''how does'', ''how do'', ''how is'', ''how are'', ''how can'']
                       \<and> rq_verb r \<in> set process_verbs
      | EWhen \<Rightarrow> rq_prefix r \<in> set [''when did'', ''when was'', ''when were'', ''when does'', ''when do'']
                       \<and> rq_article r \<in> set ['''', ''the ''] \<and> rq_verb r \<in> set event_verbs) \<and>
     lowercase (rq_text r) = rq_prefix r @ '' '' @ rq_article r @ lowercase (rq_topic r)
-       @ (if rq_kind r = ECause then [] else '' '' @ rq_verb r) @ rq_punct r"
+       @ (if rq_kind r \<in> {ECause, EDiscourse} then [] else '' '' @ rq_verb r) @ rq_punct r"
 
 definition topic_keys :: "explain_request \<Rightarrow> string list" where
   "topic_keys r = (let k = lowercase (rq_topic r) in
@@ -102,6 +104,8 @@ definition direct_cues :: "explain_request \<Rightarrow> string list" where
   "direct_cues r = (case rq_kind r of
       ECause \<Rightarrow> ['' is caused by '', '' are caused by '', '' results from '', '' result from '',
                    '' is due to '', '' are due to '']
+    | EDiscourse \<Rightarrow> ['' is a '', '' is an '', '' is the '', '' are a '', '' are an '', '' are the '',
+                       '' was a '', '' was an '', '' was the '', '' were a '', '' were an '', '' were the '', '' refers to '']
     | EWhen \<Rightarrow> event_cues (rq_verb r)
     | EProcess \<Rightarrow>
        (if rq_verb r \<in> set [''work'', ''works'', ''function'', ''functions'']
@@ -288,6 +292,7 @@ fun anchored_reason :: "anchored_outcome \<Rightarrow> String.literal" where
 fun anchored_path :: "explain_kind \<Rightarrow> String.literal" where
   "anchored_path ECause = STR ''capability:what_causes''"
 | "anchored_path EProcess = STR ''capability:how_does''"
+| "anchored_path EDiscourse = STR ''document:discourse''"
 | "anchored_path EWhen = STR ''capability:when_did''"
 
 fun anchored_response :: "explain_request \<Rightarrow> anchored_outcome \<Rightarrow> string" where

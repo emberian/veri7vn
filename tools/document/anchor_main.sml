@@ -98,7 +98,7 @@ structure Main = struct
   fun hs s = map (fn ch => D.char_of_integer (IntInf.fromInt (Char.ord ch))) (String.explode s)
   fun sh cs = String.implode (map (fn c => Char.chr (IntInf.toInt (D.integer_of_char c))) cs)
   fun hstr v = hs (string v)
-  fun kind v = case string v of "cause" => D.ECause | "process" => D.EProcess | "when" => D.EWhen
+  fun kind v = case string v of "cause" => D.ECause | "process" => D.EProcess | "when" => D.EWhen | "discourse" => D.EDiscourse
     | _ => raise Bad "explanatory kind"
   fun request r = D.Explain_request_ext (kind (field r "kind"), hstr (field r "question"),
     hstr (field r "topic"), hstr (field r "prefix"), hstr (field r "article"),

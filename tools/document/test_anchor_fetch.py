@@ -25,8 +25,9 @@ class FetchWitnesses(unittest.TestCase):
           CREATE TABLE page_sentence(page_id TEXT, sentence_ordinal INTEGER, source_rowid INTEGER);
           CREATE TABLE source_rows(claim_id TEXT, fact TEXT, fact_sha256 TEXT, page_id TEXT, sentence_ordinal INTEGER);
           INSERT INTO article VALUES('p1','Earthquake','source:earthquake'),('p2','Mercury planet','source:planet'),
-            ('p3','Mercury element','source:element'),('p4','India','source:india');
-          INSERT INTO title_alias VALUES('earthquake','p1'),('mercury','p2'),('mercury','p3'),('india','p4'),('incomplete','missing-page');
+            ('p3','Mercury element','source:element'),('p4','India','source:india'),
+            ('p5','The Cure','source:band'),('p6','Cure','source:healing');
+          INSERT INTO title_alias VALUES('earthquake','p1'),('mercury','p2'),('mercury','p3'),('india','p4'),('incomplete','missing-page'),('the cure','p5'),('cure','p6');
           INSERT INTO source_rows VALUES('c1','Earthquakes are caused by plate movement.','digest','p1',0),
             ('c2','Unrelated text.','digest','different-page',1);
           INSERT INTO page_sentence VALUES('p1',0,1),('p1',1,2);
@@ -69,11 +70,17 @@ class FetchWitnesses(unittest.TestCase):
                   "When was penicillin discovered after 2020?", "What does not cause earthquakes?"):
             self.assertIsNone(propose(q), q)
 
+    def test_discourse_keeps_article_in_title(self):
+        ev = self.fetch.evidence("Tell me about The Cure.")
+        self.assertEqual(ev["request"]["topic"], "The Cure")
+        self.assertEqual(ev["request"]["article"], "")
+        self.assertEqual({a["page_id"] for a in ev["aliases"]}, {"p5"})
+
     def test_request_reconstructs_whole_question(self):
-        for q in ("What causes earthquakes?", "How does a volcano erupt?", "When was the Eiffel Tower built?"):
+        for q in ("What causes earthquakes?", "How does a volcano erupt?", "When was the Eiffel Tower built?", "Tell me about The Cure.", "I am interested in photosynthesis."):
             r = propose(q)
             text = r["prefix"] + " " + r["article"] + r["topic"].lower()
-            if r["kind"] != "cause":
+            if r["kind"] not in ("cause", "discourse"):
                 text += " " + r["verb"]
             text += r["punctuation"]
             self.assertEqual(text, r["question"].lower())

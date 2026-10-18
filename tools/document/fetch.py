@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """fetch - UNTRUSTED evidence builder for the verified document-route kernel.
 
-Everything here is glue around Oracle7's own shipped code, imported read-only from
+This legacy fallback wraps Oracle7's shipped code, imported read-only from
 upstream/ (nothing under upstream is written; PYTHONDONTWRITEBYTECODE must be set by
 the caller): the recognition regexes and the store reads are the organs' own, so the
-evidence cannot drift from the release. The only trusted part is the decision inside
+source fetch stays outside HOL. Convenient-word converse statements are disabled;
+whole-request discourse uses anchor_fetch.py and the extracted anchor kernel first.
+The checked decision inside this legacy path is
 the exported kernel (Document_Route_Code, from src/isabelle/document/Document_Route.thy).
 
 What this fetch assumes, and the kernel takes on trust:
@@ -13,7 +15,7 @@ What this fetch assumes, and the kernel takes on trust:
      corpus-query rules (base runtime b), their decline included; else runtime S's arbiter capture (arbiter v3, family
      "definitional", canonical surface "What is a <topic>?" over the bench anchor store, the
      redispatch read with runtime c / w193's own _definitional_turn); then w420's factoid
-     route; then the converse organ (w494) where nothing spoke; else the clarify terminal.
+     route; else the clarify terminal. The old converse organ no longer admits statements.
      The base chain's other organs (relation reader, specialists, maths) are not consulted:
      a turn they would have taken is not a document-route turn.
   2. When the arb redispatch is not a definitional lead, the head's document_runtime answered
@@ -24,13 +26,13 @@ What this fetch assumes, and the kernel takes on trust:
   3. The cube CHECK of verified_retrieval_v1 is not ported, and no flag stands in for it: the
      kernel asserts a weak-route sentence only by the definition test it reads off the text.
   4. Flags the kernel cannot read itself: the DEF_Q shape of the question and its asked term
-     (verified_reach_v1.DEF_Q / RELATIVE), w468's pointer phrase (DEICTIC, then POINTER),
+     (verified_reach_v1.DEF_Q / RELATIVE), a whole reference-only request's pointer,
      w511's P4 shape (the question gives numbers and asks for a number, and the route that took
      it is a lookup that answered), and the displaced path label. The kernel re-checks what it
      can: the pointer must occur in the question, the P4 question must carry a numeral, and
      the computation gateway reads the question itself, whatever this fetch says.
   5. Stores: the bench build (m13e7) answers the corpus-query rules and holds the arbiter's
-     anchor titles; the deep build (m13e8) feeds the factoid route and the converse organ.
+     anchor titles; the deep build (m13e8) feeds the factoid route.
      Every store is opened read-only with immutable=1 by the organs' own classes (the arbiter's
      ConceptNet connection, which v3 opens with mode=ro only, is opened here with immutable=1
      and handed to it first).
@@ -77,16 +79,13 @@ UPSTREAM = REPO / "upstream"
 if not UPSTREAM.exists():
     UPSTREAM = REPO.parents[2] / "upstream"      # var/scout-wt/<name> -> the main checkout
 os.environ.setdefault("ORACLE7_ROOT", str(UPSTREAM / "root"))
-# oracle7.py:51 sets NLTK_DATA to root/nltk_data (the WordNet the converse organ's
-# noun_senses needs); without it organ.answer() raises LookupError and every statement
-# turn silently degrades to the clarify terminal.
+# Retain the upstream runtime chain's configured lexical resources. The old
+# converse organ is no longer constructed or called by this fetch.
 os.environ.setdefault("NLTK_DATA", str(UPSTREAM / "root" / "nltk_data"))
 
 sys.path.insert(0, str(UPSTREAM / "root" / "wander-train"))
 sys.path.insert(0, str(UPSTREAM / "root" / "fable-content" / "oracle-m-series-2026-08-15" / "self_loop" / "admitted"))
 
-import organ_converse_v1 as OC                     # noqa: E402  (read-only import)
-from oracle_cube_reader_v1_4 import CubeReader     # noqa: E402
 import stage5m13e7_benchfold_induction_v1 as BF    # noqa: E402
 import verified_retrieval_v1 as VR                 # noqa: E402
 import oracle_release_runtime_w420 as W420         # noqa: E402
@@ -99,7 +98,6 @@ import oracle_release_runtime_d as RD              # noqa: E402  (the anchor sto
 import oracle_release_runtime_q as RQ              # noqa: E402  (the canonical surface)
 import oracle_release_runtime_z as RZ              # noqa: E402  (substitution disclosure)
 import oracle_release_runtime_w193 as W193         # noqa: E402  (the head's _definitional_turn)
-import oracle_release_runtime_w468 as W468         # noqa: E402  (the door's pointer)
 import oracle_release_runtime_w511 as W511         # noqa: E402  (P4's number shapes)
 import stage5m17_release_arbiter_v3 as ARB         # noqa: E402  (runtime S's arbiter)
 import sqlite3                                     # noqa: E402
@@ -127,15 +125,22 @@ WHAT_NUMBER = re.compile(
     r"velocity|density|mass|weight|power|resistance|current|pressure|work|cost|price|average|mean|hypotenuse|ph|"
     r"square root|cube root|sum|product|value)\b", re.I)
 
+# UNTRUSTED proposal for the legacy door. A pronoun anywhere in a request does
+# not establish missing context: the same turn may already name its subject.
+# Only these complete reference-only forms propose a pointer. Shared dialogue
+# handles supported contextual bindings before this stateless fallback.
+REFERENCE_ONLY = re.compile(
+    r"\s*(?:(?:what|who|where)\s+(?:is|are|was|were)\s+"
+    r"(?P<subject>it|this|that|they|these|those)|"
+    r"what\s+(?:is|was)\s+(?P<possessive>its|their)\s+[a-z]+|"
+    r"(?:tell me about|describe|explain)\s+(?P<object>it|this|that|them|these|those))"
+    r"\s*[?.!]?\s*", re.I)
+
 
 class Fetch:
     def __init__(self):
         self.bench = BF.DBpediaQuery(BENCH)
         self.deep = BF.DBpediaQuery(DEEP)
-        self.cube = CubeReader(str(DEEP))
-        organ = object.__new__(OC.ConverseOrgan)    # skip __init__: no jokes/recipes stores here
-        organ.r = self.cube
-        self.organ = organ
         w420 = object.__new__(W420.OracleReleaseRuntimeW420)  # the statics only; stores injected below
         w420.bench_query = self.bench
         w420._s244_deep = self.deep
@@ -175,12 +180,12 @@ class Fetch:
     def _base(self, turn, q, topic=""):
         m = VREACH.DEF_Q.match(q)
         x = ((m.group(1) or m.group(2) or "").strip()) if m else ""
-        point = W468.DEICTIC.search(q) or W468.POINTER.search(q)
+        point = REFERENCE_ONLY.fullmatch(q)
         return {"turn": turn, "topic": topic, "asked": q, "future": False,
                 "pool": {"resolved": False, "conjunctive": 0, "claims": []},
                 "tiers": [], "candidate": None,
                 "term": x, "def_question": bool(x) and not VREACH.RELATIVE.search(x),
-                "pointer": point.group(0) if point else None,
+                "pointer": next((value for value in point.groups() if value), None) if point else None,
                 "lookup_for_compute": False, "displaced": ""}
 
     @staticmethod
@@ -373,35 +378,6 @@ class Fetch:
         ev["candidate"] = self._claim(_cid_of(out), _sentence_of(out))
         return self._answered_by(ev, "compose:bridge")
 
-    def converse_turn(self, q):
-        """organ_converse_v1's own answer(): the statement move with its definition and citation."""
-        a = None
-        try:
-            a = self.organ.answer(" ".join(str(q).split()))
-        except Exception:                        # noqa: BLE001 - WordNet absent, store hiccup: no statement
-            return None
-        if not a or a.get("kind") not in ("statement", "request"):
-            return None
-        text = str(a.get("response") or "")
-        # "Got it. Since you mention {about}: {sentence} [cite] Want to know more about it?" -- the first
-        # colon after the mention ends the topic; the sentence runs to the citation tag.
-        tail = text.split("Since you mention", 1)
-        if len(tail) != 2:
-            return None
-        about, _, rest = tail[1].partition(":")
-        m = re.search(r"^(.*?)\s*\[([a-z]+_[0-9a-f]{6,})\]", rest.strip())
-        if not m:
-            return None
-        sentence, cid = m.group(1).strip(), m.group(2)
-        about = about.strip()
-        ev = self._base("statement", q, topic=about)
-        ev["future"] = bool(re.search(r"\b(?:tomorrow|next week|soon|going to|about to|gonna)\b", q, re.I))
-        claim = self._claim(cid, sentence)
-        ev["pool"] = {"resolved": True, "conjunctive": 0, "claims": [claim]}
-        ev["candidate"] = claim
-        ev["term"] = about                       # the kernel checks it is named by the question and the sentence
-        return ev
-
     def _factoid_eligible(self, q):
         """w420's own chat gate, read from its chat(): GUARD_Q or a trailing '?' only ENTER the
         function -- the factoid attempt itself fires only for a WH-question shape (is_wh), over
@@ -416,7 +392,7 @@ class Fetch:
     def evidence(self, q):
         """The cascade order as the head runs it (see the module docstring, items 1, 6 and 7): the corpus rules,
         runtime S's capture, runtime AO's bare-phrase rewrite, w420 (w424's try), w426 (w430's bridge), then
-        the converse organ where nothing spoke, else the terminal."""
+        the terminal when none of these paths has evidence."""
         q = " ".join(str(q).split())
         ev = self.corpus_turn(q)
         if ev is not None and (ev.get("candidate") is not None or self.summarize_turn(q) is None):
@@ -443,9 +419,6 @@ class Fetch:
                 return ev, "compose:bridge"
         if parent is not None:
             return parent, "capture:" + parent["turn"]
-        ev = self.converse_turn(q)
-        if ev is not None:
-            return ev, "organ:converse"
         return self._base("fallback", q), "terminal"
 
     def present(self, q, out):

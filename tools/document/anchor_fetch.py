@@ -17,6 +17,7 @@ REPO = Path(__file__).resolve().parents[2]
 DEFAULT_STORE = REPO / "upstream/root/fable-content/oracle-m-series-2026-08-15/m13e7_dbpedia_openstax_full_fable_bench_a_v1/wikipedia_specialist.sqlite3"
 TOPIC = r"[A-Za-z0-9][A-Za-z0-9' -]*?"
 FORMS = [
+    ("discourse", re.compile(r"^(?P<prefix>i am interested in|i like|tell me about|i want to learn about) (?P<article>)(?P<topic>" + TOPIC + r")(?P<punct>[?.]?)$", re.I)),
     ("cause", re.compile(r"^(?P<prefix>what causes|what makes) (?P<article>a |an |the |)(?P<topic>" + TOPIC + r")(?P<punct>[?.]?)$", re.I)),
     ("process", re.compile(r"^(?P<prefix>how does|how do|how is|how are|how can) (?P<article>a |an |the |)(?P<topic>" + TOPIC + r") (?P<verb>work|works|erupt|erupts|happen|happens|form|forms|occur|occurs|made|grow|grows|move|moves|function|functions)(?P<punct>[?.]?)$", re.I)),
     ("when", re.compile(r"^(?P<prefix>when did|when was|when were|when does|when do) (?P<article>the |)(?P<topic>" + TOPIC + r") (?P<verb>start|begin|end|happen|occur|founded|built|discovered|invented|born|die)(?P<punct>[?.]?)$", re.I)),
