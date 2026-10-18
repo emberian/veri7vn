@@ -1,5 +1,5 @@
 theory Math_Export
-  imports Math
+  imports Math_Affine
 begin
 
 text \<open>Constructors the untrusted SML recognizer uses to build requests from
@@ -7,7 +7,9 @@ decimal numerals it read off the text.\<close>
 definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
   "mk_rat a b = Fract (int_of_integer a) (int_of_integer b)"
 
-export_code reply_of answered response value_lit path_lit self_test mk_rat
+export_code affine_norm affine_candidate check_affine affine_response affine_exact affine_rat_components
+  AffineUnique AffineAll AffineNone AffineUnsupported
+  reply_of answered response value_lit path_lit self_test mk_rat
   integer_of_int nat_of_integer int_of_integer
   PercentOf Convert Sqrt GcdLcm SolveLin EvalExpr
   C V Add Sub Mul Div Neg Pow
@@ -18,7 +20,9 @@ export_code reply_of answered response value_lit path_lit self_test mk_rat
   in SML module_name Mathkernel file_prefix mathkernel
 
 ML \<open>
-  val theorems = @{thms eval_closed_ignores_reading mfactor_positive
+  val theorems = @{thms affine_norm_sound affine_equation_normalized
+    affine_unique_checked affine_all_checked affine_none_checked affine_candidate_checked
+    eval_closed_ignores_reading mfactor_positive
     dec_search_sound dec_expansion_sound
     isqrt_interval isqrt_unique isqrt_square
     newton_step_bounds newton_last_sound newton_last_isqrt
@@ -40,6 +44,7 @@ ML \<open>
     reply_withheld_names_decline};
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("mathorgan theorems use oracles: " ^ string_of_int (length oracles));
+  val _ = if @{code affine_self_test} then () else error "affine self test failed";
   val _ = if @{code self_test} then () else error "mathorgan self test failed";
   val _ = writeln ("VERI7VN_MATHORGAN PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");
 \<close>

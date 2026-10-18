@@ -103,3 +103,12 @@ rejected valid zero results and computations equal to their givens. Presence
 is necessary for these numeric requests, but is not proof that the value is
 correct or answers the question. G5 still checks its separate assignment-echo
 condition; no route or provenance flag exempts a reply from the guards.
+
+For a complete finite equation request, an exact all-rational-solutions or no-rational-solutions
+classification is a solution-set answer, so P2 does not demand a digit. This
+is untrusted recognition of the answer type. The route consumer independently
+checks the required affine packet before invoking guards; the standalone
+guard program neither receives nor verifies that packet. Other nonnumeric
+replies still face P2. The complete-request G5 feature admits parentheses and
+exact coefficient notation while still excluding incidental assignments in
+derivative questions.

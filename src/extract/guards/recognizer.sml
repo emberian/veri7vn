@@ -349,13 +349,24 @@ fun noEntryGroup s =
                       | NONE => NONE)
       end
 
-fun f511Of (q, reply, respG3low) =
+(* Finite complete equation surface, shared by the G5 request feature and
+   P2 answer-type reconstruction. This is untrusted text recognition, not
+   certificate verification. The route consumer checks affine packets before
+   invoking guards; the standalone guards program does not check packets. *)
+val solveQuestion = R.compile "^\\s*(?:(?:solve(?: for x)?|find x(?: if| given| when)?|what is (?:the value of )?x(?: if| given| when)?)\\s*:?\\s*)?([0-9xe,+ */().\226\136\146-]+)=([0-9xe,+ */().\226\136\146-]+?)(?:\\s+for x)?[?.]?\\s*$"
+fun completeEquation q = sub1 solveQuestion (lower q)
+
+fun f511Of (q, route, reply, respG3low) =
   let val ql = lower q
       val ne = noEntryGroup (lower (collapse reply))
       val (neP, neA, neF) = case ne of
             NONE => (false, false, false)
           | SOME g => (true, sub1 attr g, not (sub1 punct g))
-      val asksNum = sub1 numq ql orelse matchAt0 whatThe ql
+      val classification = collapse(stripEv(lower(collapse reply)))
+      val solutionSet = route = "algebra:solved" andalso completeEquation ql andalso
+        (classification = "every rational value of x satisfies this equation." orelse
+         classification = "no rational value of x satisfies this equation.")
+      val asksNum = (sub1 numq ql orelse matchAt0 whatThe ql) andalso not solutionSet
       val numwordHit = sub1 numword (lower (collapse reply))
   in Guards.F511 (sub1 negPhys q,        (* neg_phys_given *)
                   sub1 symbolic ql,      (* symbolic_cue *)
@@ -586,8 +597,7 @@ fun f533Of (q, route, reply) =
     (* A complete equation-solving request may correctly return a value already
        present in its equation. This is a recognition policy, not a proof of
        the English or of the answer. Incidental "at x=..." still triggers G5. *)
-    val solveQuestion = R.compile "^\\s*(?:(?:solve(?: for x)?|find x(?: if| given| when)?|what is (?:the value of )?x(?: if| given| when)?)\\s*:?\\s*)?([0-9x+ .-]+)=([0-9x+ .-]+?)(?:\\s+for x)?[?.]?\\s*$"
-    val requestedEquation = route = "algebra:solved" andalso sub1 solveQuestion ql
+    val requestedEquation = route = "algebra:solved" andalso completeEquation ql
     val eqGiven = not requestedEquation andalso (
       case R.matchHere equation v 0 of
         SOME m =>
@@ -631,7 +641,7 @@ fun featsOf {status : string, q : string, route : string, reply : string,
                    ratsOf q, ratsOf (collapse reply),
                    human, prem,
                    Guards.F510 (gate510 q, map istr (specifics q), map (map istr) (ofPhrases q)),
-                   f511Of (q, reply, rg3),
+                   f511Of (q, route, reply, rg3),
                    f513Of (q, rq),
                    f514Of q,
                    f516Of q,

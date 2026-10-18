@@ -11,7 +11,7 @@ the shared UTF-8 regex and JSON code in `commons.sml` instead of the scout's
 older copies. HOL reply text was subsequently repaired: equations retain
 both sides, and unsupported claims of a second-method check or verified
 English interpretation were removed. The `Veri7vn_MathOrgan` session
-was freshly built on hbox on 2026-10-18 (final attempt
+was initially built on hbox on 2026-10-18 (final attempt
 `20261018T063946Z-59fed3b412e5`): 41 scanned statements, no
 oracles. The marker is `VERI7VN_MATHORGAN PASS theorems=41 oracles=0`.
 
@@ -26,27 +26,44 @@ question needs an exact integer root; otherwise the route refuses rather
 than silently returning the floor. Explicit integer-root questions still
 return the floor with its defining bounds.
 
-The central guarantees concern the typed request read by the untrusted
-recognizer. For a nondegenerate equation `a*x+b=c*x+d`, the returned rational
-root satisfies that equation and is its only root. For nonnegative integer
-`n`, the integer square root `s` satisfies `s*s <= n < (s+1)*(s+1)`. Conversion
-values preserve the source amount times its unit factor. The reply's value
-field is the kernel's rendered value. `render_rat` uses an exact integer,
-terminating decimal or fraction; it does not round. Some intermediate step
-text uses a separate six-significant-digit formatter whose rounding behavior
-is tested, not proved. These do not prove that the recognizer
-read the user's sentence correctly; the theorem names in JSON are a static
-inventory, not a proof newly constructed for that sentence.
+The affine route accepts complete equations in the single variable `x`:
+exact decimal, grouped, fractional and scientific coefficients; parentheses;
+sums, differences, negation; multiplication by a normalized constant; and
+division by a normalized nonzero constant. It preserves the expression tree
+and sends it to the kernel. HOL normalization proves that each accepted tree
+has value `a*x+b`, including its definedness. The result distinguishes one
+exact rational root, every rational value, and no rational solution. For a
+unique root, the actual checker also evaluates both original typed sides at
+that root. Nonlinear products, variable divisors, division by zero, powers,
+malformed numbers, other variables and oversized requests are explicit
+refusals. A missed English pattern does not become a partial equation.
 
-The program is deliberately small. It does not implement a general algebra
-system or a general expression parser, even though the kernel includes an
-expression datatype. Fraction arithmetic and identities or inconsistent
-equations are not answered by this recognizer. Complete equation-solving
-requests, including a bare equation or “for x” before or after it, may return
-a proved root even when its number appears in the input. Incidental assignments
-inside derivative questions are no longer interpreted as solve requests.
-The actual G5 guard likewise distinguishes complete solve requests from
-answers that merely repeat an incidental given.
+Each affine answer includes the original typed tree, its normalized sides,
+classification, exact root when unique, and the actual checker outcome in
+`provenance.evidence.checked_computation`. The route consumer independently
+replays that bounded arithmetic and checks the displayed result. It also
+requires `provenance.request_text` to equal the submitted request, preventing
+stale or swapped replies from passing. Neither check proves that the untrusted
+parser read the user's text correctly. The parser uses shared `ExactNumeric`
+for whole numeric atoms; limits are 128 total AST nodes, depth 32, and 256
+decimal digits per reduced rational component in the packet.
+
+Complete solve requests may return a root already present in the input.
+Incidental assignments inside derivative questions are not solve requests.
+G5 recognizes the complete request surface. P2 recognizes exact all/no-solution
+sentences as solution-set classifications, while other nonnumeric replies
+still face its number-presence rule. Standalone guards reconstruct text
+features; they do not verify affine packets. The route consumer does that
+before invoking guards.
+
+The other routes retain their typed-request guarantees: for nonnegative
+integer `n`, integer square root `s` satisfies `s*s <= n < (s+1)*(s+1)`;
+conversion values preserve amount times unit factor. Their theorem-name
+lists are static inventories, not per-answer proof objects. Affine replies
+use canonical integers or fractions with no rounding. The legacy `render_rat`
+also uses exact integers, terminating decimals or fractions; some legacy
+intermediate text uses a separately tested six-significant-digit formatter.
+This remains a finite equation solver, not a general computer algebra system.
 
 Build and score:
 
@@ -55,6 +72,7 @@ tools/dev/remote-build persvati src/extract/mathorgan Veri7vn_MathOrgan --expect
 sh src/extract/mathorgan/build.sh
 python3 -B src/extract/mathorgan/score.py --answerer var/mathorgan/bin/mathorgan --replies var/scout-wt/math-organ/var/mathorgan/panel/head_replies.jsonl --allow-assurance-text-change
 python3 -B src/extract/mathorgan/test_recognizer.py
+python3 -B src/extract/mathorgan/test_affine.py
 ```
 
 The scorer compares the 93 mathematics questions with previously recorded
@@ -65,8 +83,8 @@ Before the unsupported assurance sentences were removed, the adopted binary
 matched all 93 recorded cases. The scorer separately reports exact matches
 and the precise suffix-only changes; its optional flag never hides other
 text or value differences. That initial adoption kept all 93 status/path results:
-52 exact matches and 41 suffix-only changes. The later complete-request repair
-keeps 87 status/path pairs; six derivative questions now correctly fall through
+52 exact matches and 41 suffix-only changes. The subsequent complete-request repair
+kept 87 status/path pairs; six derivative questions now correctly fall through
 instead of being misread as linear equations and vetoed. They remain withheld
 in this small route's comparison. Seven test methods cover 28 boundary cases
 absent from the original panel. Eight route test methods exercise complete
@@ -79,3 +97,15 @@ recognized refusal stops the cascade. `--route guards` reconstructs a
 hypothetical mathematics refusal from the question; use it only after the
 other answer-producing routes have found no answer. The separate `guards`
 program inspects the actual selected answer and has a different protocol.
+
+The affine extension intentionally replaces legacy solution prose and answers
+identities/inconsistent equations instead of calling both “zero slope”. Its
+current proof/native and selected-consumer results are recorded separately in
+`project/lanes/E-runtime-affine.md`; the old 93-response comparison remains a
+historical reference rather than a requirement to preserve its weaknesses.
+
+The affine extension was proved on persvati with 47 scanned statements and
+zero oracles (`20261018T081347Z-fa668924d7c5`). Its selected actual dispatcher
+checks cover unique/all/no solutions and malformed/nonlinear/undefined inputs:
+8/8 expected outcomes, alongside the focused parser, evidence-mutation and
+guard-composition tests recorded in the lane report.

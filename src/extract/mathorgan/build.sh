@@ -34,6 +34,8 @@ cat > "$OUT/build/mathorgan.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 mathkernel_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
+$SRC/affine.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF

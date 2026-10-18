@@ -76,14 +76,19 @@ class AlgebraDisplayTests(unittest.TestCase):
         self.assertEqual(reply["status"], "answered")
         self.assertEqual(reply["value"], "-4")
 
-    def test_two_sided_equation_display_keeps_right_coefficient(self):
+    def test_two_sided_equation_evidence_keeps_right_coefficient(self):
         result = subprocess.run([str(BIN), "--route", "algebra"], text=True,
                                 input=json.dumps({"id": 0, "q": "Solve 2x + 3 = x + 7"}) + "\n",
                                 capture_output=True, check=True, timeout=20)
         reply = json.loads(result.stdout)
         self.assertEqual(reply["status"], "answered")
         self.assertEqual(reply["value"], "4")
-        self.assertIn("read it as 2x + 3 = x + 7;", reply["response"])
+        packet = reply["provenance"]["evidence"]["checked_computation"]
+        self.assertEqual(packet["inputs"]["right"], {
+            "op": "add", "left": {"op": "var", "name": "x"},
+            "right": {"op": "const", "value": {"num": "7", "den": "1"}}})
+        self.assertEqual(packet["result"]["right_affine"]["coefficient"], {"num": "1", "den": "1"})
+        self.assertEqual(reply["response"], "[ev:derived] x = 4.")
 
 
 if __name__ == "__main__":

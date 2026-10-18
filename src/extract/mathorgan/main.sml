@@ -1,7 +1,8 @@
 (* UNTRUSTED answerer-contract framing. Json comes from commons.sml.
-   All answer content comes from Mathkernel.reply_of. *)
+   Answer content comes from the exported Mathkernel reply functions. *)
 structure Main =
 struct
+  structure K = Mathkernel
   val theorems = "[\"eval_closed_ignores_reading\",\"dec_expansion_sound\",\"isqrt_interval\",\"isqrt_unique\"," ^
     "\"isqrt_square\",\"newton_last_isqrt\",\"euc_res_gcd\",\"percent_value\",\"convert_exact\",\"convert_composes\"," ^
     "\"sqrt_of_square\",\"sqrt_value_is_interval\",\"gcd_value_divides\",\"lcm_value_identity\",\"solve_linear_sound\"," ^
@@ -30,7 +31,7 @@ struct
        | [] => p
     end
 
-  fun reply (id : string) (q : string) : string =
+  fun legacyReply (id : string) (q : string) : string =
     let val t0 = Time.now ()
     in
     case Recognizer.recognize mode q of
@@ -59,6 +60,41 @@ struct
       "{\"id\": " ^ id ^ ", \"status\": \"withheld\", \"response\": " ^ Json.quote reason
       ^ ", \"path\": \"mathorgan>unsupported_input\", \"provenance\": {\"taken\": true,"
       ^ "\"recognizer_rejection\": true, \"recognition_trusted\": false}}"
+
+  fun affineReply id q (left,right) =
+    let val l=AffineParser.kernel left
+        val r=AffineParser.kernel right
+        val result=K.affine_candidate l r
+        val accepted=K.check_affine l r result
+        fun rat q = AffineParser.ratJson(AffineParser.bounded(K.affine_rat_components q))
+        fun pair (a,b) = "{\"coefficient\":" ^ rat a ^ ",\"constant\":" ^ rat b ^ "}"
+        val (classification,root,value) = case result of
+            K.AffineUnique x => ("unique",rat x,",\"value\":" ^ Json.quote(K.affine_exact x))
+          | K.AffineAll => ("all","null","")
+          | K.AffineNone => ("none","null","")
+          | K.AffineUnsupported => ("unsupported","null","")
+    in if not accepted then
+      "{\"id\":" ^ id ^ ",\"status\":\"withheld\",\"path\":\"mathorgan>unsupported_affine\",\"response\":" ^
+      Json.quote(K.affine_response K.AffineUnsupported) ^
+      ",\"provenance\":{\"taken\":true,\"recognition_trusted\":false,\"kernel\":\"Mathkernel.affine_candidate\"}}"
+    else
+      "{\"id\":" ^ id ^ ",\"status\":\"answered\",\"kind\":\"affine_equation\",\"path\":\"algebra:solved\",\"response\":" ^
+      Json.quote(K.affine_response result) ^ value ^
+      ",\"provenance\":{\"request_text\":" ^ Json.quote q ^ ",\"taken\":true,\"recognition_trusted\":false,\"kernel\":\"Mathkernel.check_affine\",\"session\":\"Veri7vn_MathOrgan\",\"evidence\":{\"checked_computation\":{" ^
+      "\"schema_version\":1,\"kind\":\"affine_equation\",\"checker\":\"Mathkernel.check_affine\",\"accepted\":true," ^
+      "\"assumptions\":[\"The typed equation represents the requested equation.\"]," ^
+      "\"inputs\":{\"variable\":\"x\",\"left\":" ^ AffineParser.json left ^ ",\"right\":" ^ AffineParser.json right ^ "}," ^
+      "\"result\":{\"classification\":" ^ Json.quote classification ^ ",\"root\":" ^ root ^
+      ",\"left_affine\":" ^ pair(valOf(K.affine_norm l)) ^ ",\"right_affine\":" ^ pair(valOf(K.affine_norm r)) ^ "}}}}}"
+    end
+
+  fun reply id q =
+    (case (if mode="family" orelse mode="algebra" then AffineParser.request q else NONE) of
+        SOME equation => affineReply id q equation
+      | NONE => legacyReply id q)
+    handle AffineParser.Reject reason =>
+      "{\"id\":" ^ id ^ ",\"status\":\"withheld\",\"path\":\"mathorgan>unsupported_input\",\"response\":" ^
+      Json.quote reason ^ ",\"provenance\":{\"taken\":true,\"recognizer_rejection\":true,\"recognition_trusted\":false}}"
 
   fun handle_line (line : string) : string =
     let

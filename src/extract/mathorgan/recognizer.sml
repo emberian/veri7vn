@@ -63,19 +63,10 @@ struct
                    ^ String.extract (s, stop, NONE))
     in go ms s end
 
-  (* "1,000.50" -> mk_rat 100050 100, exactly; "-12.5" allowed *)
-  fun ratOf (lit0 : string) : K.rat =
-    let
-      val lit = String.translate (fn #"," => "" | c => String.str c) lit0
-      val (neg, body) = if String.isPrefix "-" lit then (true, String.extract (lit, 1, NONE))
-                        else (false, lit)
-      val (ip, fp) = case String.fields (fn c => c = #".") body of
-                       [a] => (a, "")
-                     | [a, b] => (a, b)
-                     | _ => raise Fail ("bad numeral " ^ lit0)
-      val num = valOf (IntInf.fromString (ip ^ fp))
-      val den = IntInf.pow (10, size fp)
-    in K.mk_rat (if neg then IntInf.~ num else num) den end
+  (* Shared exact numeric adapter; role binding remains untrusted. *)
+  fun ratOf lit = case ExactNumeric.parse lit of
+      SOME (n,d) => K.mk_rat n d
+    | NONE => raise Reject "Malformed exact numeric literal."
 
   val NUM = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
 
@@ -152,112 +143,10 @@ struct
     in List.concat (map (String.explode o String.translate (fn c => if Char.isAlpha c then String.str c else "")) ss) end
   fun spanHasLetter low = List.exists Char.isAlpha (spanLetters low)
 
-  (* ---------- algebra host (w55) ---------- *)
-  (* the characters the equation scan admits: digits, operators, brackets,
-     space, and the three variables x y z *)
-  fun okChar c =
-    Char.isDigit c orelse Char.contains "+-*/^(). " c
-    orelse c = #"x" orelse c = #"y" orelse c = #"z"
-  (* index of the first '=' (Basis has no String.index) *)
-  fun findEq s =
-    let
-      fun go i = if i >= size s then NONE
-                 else if String.sub (s, i) = #"=" then SOME i
-                 else go (i + 1)
-    in go 0 end
-
-  (* scan outward from the first '=' over okChar only (w55._extract) *)
-  fun extractEq low =
-    case findEq low of
-      NONE => NONE
-    | SOME e =>
-        let
-          val left = String.substring (low, 0, e)
-          val right = String.extract (low, e + 1, NONE)
-          fun back i = if i > 0 andalso okChar (String.sub (left, i - 1)) then back (i - 1) else i
-          fun fwd j = if j < size right andalso okChar (String.sub (right, j)) then fwd (j + 1) else j
-          val lo = back (size left)
-          val hi = fwd 0
-          val lhs = collapse (String.substring (left, lo, size left - lo))
-          val rhs = collapse (String.substring (right, 0, hi))
-        in
-          if lhs = "" orelse rhs = "" then NONE else SOME (lhs, rhs)
-        end
-
-  (* "a x + b" with rational a b: a sum of terms, each a number or a number
-     times x (like-term folding, as the host's own parser does); anything else
-     (brackets, products, a second unknown) is outside the shape *)
-  datatype lin = Lin of K.rat * K.rat
-  type rr = IntInf.int * IntInf.int
-  fun rrAdd ((a, b) : rr, (c, d) : rr) : rr =
-    if b = d then (a + c, b) else (a * d + c * b, b * d)
-  fun rrOf (s : string) : rr =
-    let
-      val (neg, body) = if String.isPrefix "-" s then (true, String.extract (s, 1, NONE)) else (false, s)
-      val (ip, fp) = case String.fields (fn c => c = #".") body of
-                       [a] => (a, "") | [a, b] => (a, b) | _ => raise Fail ("bad numeral " ^ s)
-      val num = valOf (IntInf.fromString (ip ^ fp))
-      val den = IntInf.pow (10, size fp)
-    in (if neg then IntInf.~ num else num, den) end
-  fun rrRat ((a, b) : rr) : K.rat = K.mk_rat a b
-
-  fun parseLin t =
-    let
-      val t = collapse t
-      (* split at a +/- that FOLLOWS a term (digit or x); a leading sign stays
-         with its numeral *)
-      val ms = findall "(?<=[\\dx])\\s*[+-]" t
-      val signs = map (fn m => String.translate (fn c => if c = #"+" orelse c = #"-" then String.str c else "")
-                            (Regex.whole t m)) ms
-      val segs =
-        let
-          fun go i [] acc = rev (String.extract (t, i, NONE) :: acc)
-            | go i (({start, stop, ...} : Regex.match) :: ms) acc =
-                go stop ms (String.substring (t, i, start - i) :: acc)
-        in go 0 ms [] end
-      val pieces = case segs of
-                     [] => []
-                   | b0 :: bs => b0 :: ListPair.map (fn (s, b) => s ^ b) (signs, bs)
-      (* each piece contributes (dx, db) *)
-      fun parsePiece p =
-        case search "^\\s*([-+])?\\s*(\\d+\\.?\\d*)?\\s*x\\s*$" p of
-          SOME m =>
-            let val c = case grp p m 2 of
-                          SOME s => rrOf ((case grp p m 1 of SOME "-" => "-" | _ => "") ^ s)
-                        | NONE => (if grp p m 1 = SOME "-" then (~1, 1) else (1, 1))
-            in SOME (c, (0, 1)) end
-        | NONE =>
-            (case search "^\\s*([-+])?\\s*(\\d+\\.?\\d*)\\s*$" p of
-               SOME m => SOME ((0, 1), rrOf ((case grp p m 1 of SOME "-" => "-" | _ => "")
-                                             ^ valOf (grp p m 2)))
-             | NONE => NONE)
-      fun foldPieces ([], a, b) = SOME (a, b)
-        | foldPieces (p :: ps, a, b) =
-            (case parsePiece p of
-               SOME (dx, db) => foldPieces (ps, rrAdd (a, dx), rrAdd (b, db))
-             | NONE => NONE)
-    in
-      case foldPieces (pieces, (0, 1), (0, 1)) of
-        SOME (a, b) => SOME (Lin (rrRat a, rrRat b))
-      | NONE => NONE
-    end
-
-  (* A complete equation-solving request, not an incidental assignment in a
-     derivative, integral, or multi-part question. Recognition remains untrusted.
-     The kernel receives no echo veto: with a != c it proves the unique root,
-     including when that root is already written in the input. *)
-  val solveQuestion = "^\\s*(?:(?:solve(?: for x)?|find x(?: if| given| when)?|what is (?:the value of )?x(?: if| given| when)?)\\s*:?\\s*)?([0-9x+ .-]+)=([0-9x+ .-]+?)(?:\\s+for x)?[?.]?\\s*$"
-  fun algebraRoute low =
-    if not (has solveQuestion low andalso has "x" low andalso has "\\d" low)
-    then NONE
-    else
-      case search solveQuestion low of
-        NONE => NONE
-      | SOME m =>
-          (case (parseLin (g1 low m), parseLin (valOf (grp low m 2))) of
-             (SOME (Lin (a, b)), SOME (Lin (c, d))) =>
-               SOME (K.Ask (K.SolveLin (a, b, c, d, [])))
-           | _ => NONE)
+  (* AffineParser and the checked affine kernel now own complete equation
+     requests. This legacy request interface no longer reduces coefficients
+     in untrusted SML or supplies an echo-veto list. *)
+  fun algebraRoute _ = NONE
 
   (* ---------- op: integer_sqrt / gcd_lcm / unit_convert ---------- *)
   val SQRT_TRIG = "\\b(?:square root|sqrt|perfect square)\\b"
@@ -406,7 +295,7 @@ struct
           SOME (K.GuardP7 (true, false))
         else if not (has "[+\\-*/^=]" low) andalso length cq >= 3 andalso spanHasLetter low then
           SOME (K.GuardQ1 (true, true))
-        else if not (isSome (findEq low)) andalso length cqn >= 3 andalso spanHasLetter low then
+        else if not (String.isSubstring "=" low) andalso length cqn >= 3 andalso spanHasLetter low then
           SOME (K.GuardR1 (true, true))
         else if not (has "[=+*/^]" low) andalso not (has COMPUTE_RX low) andalso length cq >= 4 then
           SOME (K.GuardR6 (true, true))

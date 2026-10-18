@@ -112,6 +112,24 @@ checker is formally verified or that the parser understood the question.
 The packet remains inspectable alongside the checks and their explanation.
 An answer without a packet receives no such claim.
 
+The affine equation route reserves `kind: "affine_equation"` for replies with
+a checked-computation packet. Missing packets are refused. Its version-1 packet
+names `Mathkernel.check_affine` and contains the original typed left and right
+expression trees, their claimed affine coefficients and constants, and a
+`unique`, `all` or `none` solution classification. Rational constants use the
+same numerator/denominator representation. A unique result includes its exact
+root; the other classes contain a null root and omit the reply's numeric value.
+
+The consumer independently normalizes those trees, checks the classification
+and any root, and requires the displayed result to agree. It accepts addition,
+subtraction, negation, multiplication with a constant affine operand and
+division by a nonzero constant affine operand, within explicit size bounds.
+The route also compares the producer's `provenance.request_text` with the
+actual request before accepting the reply. That comparison detects a stale
+request; it does not verify the English-to-expression parser. The guard's
+recognition of a solution-set answer is a separate feature policy, not another
+proof of the equation.
+
 ## Sessions
 
 `session` is a conversation id. Items from one panel use distinct sessions

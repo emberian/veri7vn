@@ -11,7 +11,12 @@ another organ. Precision guards instead inspect the actual selected reply.
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
+
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from runtime_contract import enforce_reply_evidence
 
 
 ROUTE_NAMES = frozenset({"mathorgan", "wordprob", "guards"})
@@ -37,9 +42,21 @@ def _terminal(reply):
         return reply
     if reply.get("status") not in ("answered", "withheld", "clarification"):
         return {"error": "route stage returned an invalid status"}
+    reply = enforce_reply_evidence(reply)
     provenance = reply.get("provenance")
     taken = isinstance(provenance, dict) and provenance.get("taken") is True
     return reply if reply["status"] == "answered" or taken else None
+
+
+def _contract_decline(reply, suffix, field, reason):
+    rejected = dict(reply)
+    rejected.update(status="withheld", response="", path=str(reply.get("path", "")) + suffix)
+    rejected.pop("value", None)
+    provenance = reply.get("provenance")
+    rejected["provenance"] = dict(provenance) if isinstance(provenance, dict) else {}
+    rejected["provenance"].update(taken=True)
+    rejected["provenance"][field] = {"status": "rejected", "reason": reason}
+    return rejected
 
 
 class RouteStages:
@@ -57,7 +74,18 @@ class RouteStages:
 
     def _ask(self, key, rid, text, session):
         child = self.children.get(key)
-        return _terminal(child.ask(rid, text, session)) if child is not None else None
+        if child is None:
+            return None
+        reply = child.ask(rid, text, session)
+        if key == "mathorgan-algebra" and reply.get("status") == "answered" and reply.get("kind") != "affine_equation":
+            return _contract_decline(reply, ">algebra_contract", "route_contract",
+                                     "the algebra stage requires a checked affine_equation reply")
+        if reply.get("kind") == "affine_equation":
+            provenance = reply.get("provenance")
+            if not isinstance(provenance, dict) or provenance.get("request_text") != text:
+                return _contract_decline(reply, ">request_mismatch", "request_binding",
+                                         "affine reply does not name the submitted request")
+        return _terminal(reply)
 
     def answer_math(self, rid, text, session):
         for mode in ("algebra", "ops"):

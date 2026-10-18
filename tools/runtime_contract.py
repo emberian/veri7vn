@@ -177,6 +177,108 @@ def validate_capabilities(repo):
     return entries
 
 
+def _evidence_rational(value):
+    _object(value, {"num", "den"}, "rational")
+    for key in ("num", "den"):
+        text = value.get(key)
+        if not isinstance(text, str) or len(text) > 256 or not re.fullmatch(r"-?[0-9]+", text):
+            raise ContractError("rational components must be bounded decimal integer strings")
+    if int(value["den"]) <= 0:
+        raise ContractError("rational denominator must be positive")
+    return Fraction(int(value["num"]), int(value["den"]))
+
+
+def _validate_affine_evidence(reply, packet):
+    """UNTRUSTED replay of a finite typed AST, not of the user's English."""
+    if packet.get("checker") != "Mathkernel.check_affine" or packet.get("accepted") is not True:
+        raise ContractError("affine kernel checker did not accept the computation")
+    if reply.get("status") != "answered" or reply.get("kind") != "affine_equation":
+        raise ContractError("affine packet is attached to a different decision")
+    inputs = packet.get("inputs")
+    _object(inputs, {"variable", "left", "right"}, "affine inputs")
+    if inputs.get("variable") != "x":
+        raise ContractError("unsupported affine variable")
+    remaining = 128
+
+    def bounded(pair):
+        if any(max(abs(v.numerator).bit_length(), v.denominator.bit_length()) > 131072 for v in pair):
+            raise ContractError("affine arithmetic exceeds the supported range")
+        return pair
+
+    def normalize(node, depth=0):
+        nonlocal remaining
+        remaining -= 1
+        if remaining < 0 or depth > 32:
+            raise ContractError("affine AST exceeds the node or depth limit")
+        if not isinstance(node, dict):
+            raise ContractError("affine AST node must be an object")
+        op = node.get("op")
+        if op == "const":
+            _object(node, {"op", "value"}, "constant AST node")
+            return Fraction(0), _evidence_rational(node.get("value"))
+        if op == "var":
+            _object(node, {"op", "name"}, "variable AST node")
+            if node.get("name") != "x":
+                raise ContractError("unsupported variable in affine AST")
+            return Fraction(1), Fraction(0)
+        if op == "neg":
+            _object(node, {"op", "arg"}, "negation AST node")
+            a, b = normalize(node.get("arg"), depth + 1)
+            return -a, -b
+        if op not in {"add", "sub", "mul", "div"}:
+            raise ContractError("unsupported affine AST operation")
+        _object(node, {"op", "left", "right"}, "binary AST node")
+        a, b = normalize(node.get("left"), depth + 1)
+        c, d = normalize(node.get("right"), depth + 1)
+        if op == "add":
+            return bounded((a + c, b + d))
+        if op == "sub":
+            return bounded((a - c, b - d))
+        if op == "mul":
+            if a and c:
+                raise ContractError("nonlinear product in affine AST")
+            return bounded((a * d + b * c, b * d))
+        if c or not d:
+            raise ContractError("affine divisor must normalize to a nonzero constant")
+        return bounded((a / d, b / d))
+
+    left, right = normalize(inputs.get("left")), normalize(inputs.get("right"))
+    result = packet.get("result")
+    _object(result, {"classification", "left_affine", "right_affine", "root"}, "affine result")
+    for key, expected in (("left_affine", left), ("right_affine", right)):
+        row = result.get(key)
+        _object(row, {"coefficient", "constant"}, "normalized affine side")
+        if (_evidence_rational(row.get("coefficient")), _evidence_rational(row.get("constant"))) != expected:
+            raise ContractError("normalized coefficients disagree with the typed AST")
+    a, b = left
+    c, d = right
+    classification = "unique" if a != c else "all" if b == d else "none"
+    if result.get("classification") != classification or "root" not in result:
+        raise ContractError("affine solution classification disagrees with the typed equation")
+    if classification == "unique":
+        root = _evidence_rational(result["root"])
+        if a * root + b != c * root + d:
+            raise ContractError("affine root does not satisfy the typed equation")
+        value = str(root.numerator) if root.denominator == 1 else f"{root.numerator}/{root.denominator}"
+        if reply.get("value") != value or reply.get("response") != f"[ev:derived] x = {value}.":
+            raise ContractError("affine displayed solution disagrees with the checked root")
+        explanation = f"Both typed sides normalize to affine expressions; substituting x = {value} makes them equal, and their different coefficients give one solution."
+    else:
+        if result["root"] is not None or "value" in reply:
+            raise ContractError("nonunique affine result must not assert one numeric root")
+        expected = ("Every rational value of x satisfies this equation." if classification == "all"
+                    else "No rational value of x satisfies this equation.")
+        if reply.get("response") != "[ev:derived] " + expected:
+            raise ContractError("affine displayed classification disagrees with the checked equation")
+        explanation = ("The typed sides have equal coefficients and constants." if classification == "all"
+                       else "The typed sides have equal coefficients but different constants.")
+    _strings(packet.get("assumptions", []), "computation assumptions")
+    return {"status": "consistent", "checker": "python_exact_affine_v1",
+            "checks": ["typed_AST_domain", "affine_normalization", "solution_classification", "displayed_result_matches"],
+            "explanation": explanation,
+            "boundary": "Checks the supplied typed equation over rational numbers, not whether it matches the user's request. This Python replay is not formally verified."}
+
+
 def validate_reply_evidence(reply):
     """Independently recheck the supported arithmetic packet and final amount.
 
@@ -195,11 +297,15 @@ def validate_reply_evidence(reply):
         if not isinstance(evidence, dict):
             raise ContractError("present evidence must be an object")
         if "checked_computation" not in evidence:
+            if reply.get("kind") == "affine_equation":
+                raise ContractError("affine equation replies require a checked computation packet")
             return {"status": "not_present"}
         packet = evidence["checked_computation"]
         _object(packet, {"schema_version", "kind", "inputs", "result", "checker", "accepted", "assumptions"}, "computation packet")
         if type(packet.get("schema_version")) is not int or packet["schema_version"] != 1:
             raise ContractError("unsupported computation packet version")
+        if packet.get("kind") == "affine_equation":
+            return _validate_affine_evidence(reply, packet)
         if packet.get("kind") != "discount_tax" or packet.get("checker") != "Finance.check_discount_tax":
             raise ContractError("unsupported computation checker")
         if packet.get("accepted") is not True:
@@ -209,28 +315,18 @@ def validate_reply_evidence(reply):
         inputs = packet.get("inputs")
         _object(inputs, {"price", "discounts_percent", "tax_rate"}, "computation inputs")
 
-        def rational(value):
-            _object(value, {"num", "den"}, "rational")
-            for key in ("num", "den"):
-                text = value.get(key)
-                if not isinstance(text, str) or len(text) > 256 or not re.fullmatch(r"-?[0-9]+", text):
-                    raise ContractError("rational components must be bounded decimal integer strings")
-            if int(value["den"]) <= 0:
-                raise ContractError("rational denominator must be positive")
-            return Fraction(int(value["num"]), int(value["den"]))
-
-        price, rate = rational(inputs.get("price")), rational(inputs.get("tax_rate"))
+        price, rate = _evidence_rational(inputs.get("price")), _evidence_rational(inputs.get("tax_rate"))
         discounts = inputs.get("discounts_percent")
         if not isinstance(discounts, list) or not 1 <= len(discounts) <= 64:
             raise ContractError("expected one to 64 discounts")
-        discounts = [rational(discount) for discount in discounts]
+        discounts = [_evidence_rational(discount) for discount in discounts]
         if price < 0 or rate < 0 or any(discount < 0 or discount > 100 for discount in discounts):
             raise ContractError("inputs are outside the ordinary discount and sales-tax domain")
         expected = price
         for discount in discounts:
             expected *= 1 - discount / 100
         expected *= 1 + rate
-        result = rational(packet.get("result"))
+        result = _evidence_rational(packet.get("result"))
         if result != expected:
             raise ContractError("exact result disagrees with discount-then-tax arithmetic")
         cents = (result * 100 + Fraction(1, 2)).__floor__()
