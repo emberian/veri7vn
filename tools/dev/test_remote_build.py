@@ -6,6 +6,8 @@ from types import SimpleNamespace
 import json
 from pathlib import Path
 import tempfile
+import threading
+import time
 import unittest
 from unittest.mock import patch
 
@@ -24,7 +26,7 @@ class Process:
 class WorkerChecks(unittest.TestCase):
     def run_worker(self, *, build_rc=0, marker=True, export_rc=0, cancel=False, resource_error=False,
                    no_exports=False, cleanup_error=False, completed=True, cancel_during_build=False,
-                   cancel_during_export=False):
+                   cancel_during_export=False, changed_sources=False):
         with tempfile.TemporaryDirectory() as temp:
             managed = Path(temp) / "managed"
             attempt = managed / "attempts" / "test-attempt"
@@ -63,6 +65,8 @@ class WorkerChecks(unittest.TestCase):
                      patch.object(worker, "resources", side_effect=RuntimeError("disk reserve") if resource_error else None,
                                   return_value={"job_cap": worker.MEMORY_CAP}), \
                      patch.object(worker, "active_heap_writers", return_value={}), \
+                     patch.object(worker, "prepare_workspace", return_value=(attempt, {})), \
+                     patch.object(worker, "source_hashes", return_value={"changed": "digest"} if changed_sources else {}), \
                      patch.object(worker.subprocess, "Popen", side_effect=launch) as popen, \
                      patch.object(worker.subprocess, "run", side_effect=run):
                     worker.main()
@@ -106,6 +110,12 @@ class WorkerChecks(unittest.TestCase):
         self.assertEqual(result["exit_code"], 1)
         self.assertTrue(result["cancelled"])
 
+    def test_sources_changed_during_build_fail_before_export(self):
+        result, calls, _ = self.run_worker(changed_sources=True)
+        self.assertEqual(result["exit_code"], 1)
+        self.assertFalse(result["source_stable"])
+        self.assertFalse(any("export" in c for c in calls))
+
     def test_missing_marker_fails(self):
         result, _, _ = self.run_worker(marker=False)
         self.assertEqual(result["exit_code"], 1)
@@ -138,6 +148,64 @@ class WorkerChecks(unittest.TestCase):
         result, _, started = self.run_worker(resource_error=True)
         self.assertEqual(started, 0)
         self.assertEqual(result["error"], "disk reserve")
+
+
+class QueueAndSnapshotChecks(unittest.TestCase):
+    def test_blocking_lock_has_bounded_deadline(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with (root / "lock").open("a") as holder, (root / "lock").open("a") as waiter:
+                worker.fcntl.flock(holder, worker.fcntl.LOCK_EX)
+                started = time.monotonic()
+                with self.assertRaisesRegex(RuntimeError, "queue timeout"):
+                    worker.acquire_host_lock(waiter, root / "cancel", started + 0.1)
+                self.assertLess(time.monotonic() - started, 1)
+
+    def test_blocked_waiter_can_be_cancelled_without_releasing_holder(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            with (root / "lock").open("a") as holder, (root / "lock").open("a") as waiter:
+                worker.fcntl.flock(holder, worker.fcntl.LOCK_EX)
+                timer = threading.Timer(0.1, (root / "cancel").touch)
+                timer.start()
+                try:
+                    with self.assertRaisesRegex(RuntimeError, "cancelled while queued"):
+                        worker.acquire_host_lock(waiter, root / "cancel", time.monotonic() + 3)
+                finally:
+                    timer.join()
+
+    def test_uncontended_lock_acquires_and_restores_signal_handlers(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            before = worker.signal.getsignal(worker.signal.SIGALRM)
+            with (root / "lock").open("a") as lock:
+                worker.acquire_host_lock(lock, root / "cancel", time.monotonic() + 3)
+            self.assertEqual(worker.signal.getsignal(worker.signal.SIGALRM), before)
+
+    def test_stable_workspace_exactly_matches_each_immutable_snapshot(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            managed = root / "managed"
+            managed.mkdir()
+            workspace_paths = []
+            for number in (1, 2):
+                attempt = root / str(number)
+                (attempt / "src").mkdir(parents=True)
+                (attempt / "tests").mkdir()
+                (attempt / "src/A.thy").write_text(str(number))
+                if number == 1:
+                    (attempt / "src/removed.thy").write_text("old")
+                expected = worker.source_hashes(attempt)
+                (attempt / "source-sha256.json").write_text(json.dumps(expected))
+                result = {}
+                workspace, actual = worker.prepare_workspace(attempt, managed, result)
+                workspace_paths.append(workspace)
+                self.assertEqual(worker.source_hashes(workspace), expected)
+                self.assertEqual(actual, expected)
+                self.assertTrue(result["source_verified"])
+            self.assertEqual(workspace_paths[0], workspace_paths[1])
+            self.assertFalse((workspace_paths[-1] / "src/removed.thy").exists())
+            self.assertEqual((root / "1/src/A.thy").read_text(), "1")
 
 
 class TransportChecks(unittest.TestCase):

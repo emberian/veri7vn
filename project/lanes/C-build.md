@@ -14,7 +14,7 @@ Its consumers are all family proof builds and the subsequent MLton compilers.
 - `tools/dev/remote_build_worker.py`: global host lock, independent persistent
   warm cache, resource checks, capped systemd service, cancellation, full stored
   logs and export collection.
-- `tools/dev/test_remote_build.py`: seven targeted checks for build failure,
+- `tools/dev/test_remote_build.py`: targeted checks for build failure,
   stale markers after failure, missing markers, export failure, queue cancellation,
   disk refusal, successful cleanup and whole-job bounds.
 - `tools/dev/README.md`: invocation, limits, cache boundary and evidence contract.
@@ -42,7 +42,9 @@ the contract; the driver does not claim to sandbox other users.
 
 ## Validation
 
-`python3 tools/dev/test_remote_build.py`:7 passed. Python compilation of both
+`python3 tools/dev/test_remote_build.py`:20 passed after the completed driver
+repairs, including transport, cancellation, lock deadlines and source snapshots.
+Python compilation of both
 driver files passed.
 
 A real `Veri7vn_MathOrgan` build on persvati passed with
@@ -101,9 +103,8 @@ Hbox passed the unchanged `Veri7vn_Dev_Driver_Test` in3 seconds session time,
 Both hosts are ready, with one automatic queue each and unchanged16 GiB cap.
 Hbox retains33 GiB free disk. No legacy job was killed or cache removed.
 
-Final focused tests before cancellation repair: `python3 tools/dev/test_remote_build.py`:12 passed,
-including finite transport retries, no retry of actual remote command failure,
-proof-only marker checks and receipt publication after cleanup timeout. The
+Focused checks include finite transport retries, no retry of actual remote
+command failure, proof-only markers and receipt publication after cleanup timeout. The
 unchanged public invocation still works; the new recovery and proof-only flags
 are optional. Receipts include driver/worker hashes for newly submitted jobs.
 
@@ -130,9 +131,43 @@ with a sleep that was stopped by its exact owned unit. Both outer launchers
 returned0, reproducing the defect. Only the successful command wrote completion
 evidence; the stopped command did not. Report:
 `var/c-build/systemd-stop-report.json`. This test used64 MiB service caps and
-no Isabelle build. Final targeted tests:15 passed, including launcher0 with
+no Isabelle build. The targeted tests include launcher0 with
 cancellation and cached marker, missing completion with cached marker, and late
 cancellation during export. Existing queued workers have their earlier snapshot
 of the driver; canceled results from those workers must be rejected even if an
 old client prints passed. Uncanceled final-source receipts still require the
 ordinary full-log/source review by their owners.
+
+
+## Warm-cache and queue follow-through
+
+New workers wait in the kernel for the host lock. A small cancellation watcher
+interrupts only when the exact attempt is canceled, and a timer enforces its
+queue deadline. This avoids the old two-second ownership race; it does not claim
+strict FIFO ordering while old queued workers are still running. Receipts record
+when the lock was acquired and when the actual build started and finished.
+
+Under that lock, each immutable attempt is copied with checksum checking into
+`managed/workspace`, then compared with the saved SHA256 source manifest. The
+same comparison after the build fails the attempt if sources changed. Session
+paths are therefore stable without allowing two builds to mutate the workspace.
+The original source snapshot and its attribution remain in the receipt archive.
+This matters: the first two MathOrgan attempts had identical Math/Commons files
+yet both did17–20 seconds of theory work under different attempt paths.
+
+Twenty focused checks pass, including an actually blocked lock interrupted by
+its deadline and by cancellation, source replacement/removal between snapshots,
+and rejection when execution sources change during the build. Real cache-hit
+validation uses only the unchanged small driver proof session; results below.
+
+The real hbox checks passed from the same execution path:
+
+- First stable-path driver proof:Isabelle reported5 seconds elapsed, including2 seconds session
+  build; receipt `var/session/remote-attempts/20261018T065008Z-630d974df43c/receipt.json`.
+- Second unchanged driver proof:Isabelle reported1 second elapsed, no session rebuilt; receipt
+  `var/session/remote-attempts/20261018T065205Z-d7c89c9949dd/receipt.json`.
+
+Both receipts have actual in-service completion evidence, verified execution
+source hashes, unchanged sources after building, and the requested marker.
+The second receipt demonstrates cache reuse; it is not merely a timing guess.
+No broad suite or family rebuild was run to validate this change.

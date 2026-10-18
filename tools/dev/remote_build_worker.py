@@ -12,9 +12,11 @@ import os
 from pathlib import Path
 import re
 import shutil
+import signal
 import sqlite3
 import subprocess
 import sys
+import threading
 import time
 
 GIB = 1024 ** 3
@@ -123,6 +125,61 @@ def resources(managed):
             "memory_available": available, "job_cap": MEMORY_CAP}
 
 
+def acquire_host_lock(lock, cancel, deadline):
+    """Wait in the kernel; interrupt only for cancellation or the queue deadline."""
+    def cancelled(*unused):
+        raise RuntimeError("cancelled while queued")
+    def expired(*unused):
+        raise RuntimeError("host build queue timeout")
+    if cancel.exists():
+        cancelled()
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        expired()
+    previous_alarm = signal.signal(signal.SIGALRM, expired)
+    previous_cancel = signal.signal(signal.SIGUSR1, cancelled)
+    stopped = threading.Event()
+    def watch_cancel():
+        while not stopped.wait(0.2):
+            if cancel.exists():
+                os.kill(os.getpid(), signal.SIGUSR1)
+                return
+    watcher = threading.Thread(target=watch_cancel, daemon=True)
+    watcher.start()
+    signal.setitimer(signal.ITIMER_REAL, remaining)
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        stopped.set()
+        watcher.join()
+        signal.signal(signal.SIGALRM, previous_alarm)
+        signal.signal(signal.SIGUSR1, previous_cancel)
+    if cancel.exists():
+        cancelled()
+
+
+def source_hashes(root):
+    return {str(p.relative_to(root)): digest(p)
+            for top in ("src", "tests") for p in sorted((root / top).rglob("*"))
+            if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"}
+
+
+def prepare_workspace(attempt, managed, result):
+    # The global host lock makes a stable source path safe. Unique attempt paths
+    # otherwise invalidate Isabelle's cached source identities on every request.
+    workspace = managed / "workspace"
+    workspace.mkdir(exist_ok=True)
+    subprocess.run(["rsync", "-a", "--checksum", "--delete", str(attempt / "src"),
+                    str(attempt / "tests"), str(workspace) + "/"], check=True, timeout=120)
+    expected = json.loads((attempt / "source-sha256.json").read_text())
+    if source_hashes(workspace) != expected:
+        raise RuntimeError("execution workspace differs from submitted source snapshot")
+    result["execution_root"] = str(workspace)
+    result["source_verified"] = True
+    return workspace, expected
+
+
 def main():
     attempt = Path.cwd()
     config = json.loads((attempt / "config.json").read_text())
@@ -137,16 +194,9 @@ def main():
     try:
         lock = (managed / "build.lock").open("a")
         deadline = time.monotonic() + config["queue_timeout"]
-        while True:
-            if (attempt / "cancel").exists():
-                raise RuntimeError("cancelled while queued")
-            try:
-                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except BlockingIOError:
-                if time.monotonic() >= deadline:
-                    raise RuntimeError("host build queue timeout")
-                time.sleep(2)
+        acquire_host_lock(lock, attempt / "cancel", deadline)
+        result["lock_acquired"] = time.time()
+        result["queue_seconds"] = result["lock_acquired"] - result["started"]
         while True:
             check = resources(managed)
             if check is not None:
@@ -160,6 +210,7 @@ def main():
             raise RuntimeError("cancelled before build start")
         result["user_state"] = str(state)
         result["unmanaged_writers"] = active_heap_writers()
+        execution_root, expected_sources = prepare_workspace(attempt, managed, result)
         isabelle = Path.home() / "tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle"
         env = os.environ | {"USER_HOME": str(state)}
         dirs = ["-d", config["session_dir"]]
@@ -168,7 +219,8 @@ def main():
         # Transient service ownership is exact and persists if SSH disappears.
         # RuntimeMaxSec and KillMode bound detached workers as well as the launcher.
         command = ["systemd-run", "--user", "--wait", "--pipe", "--collect", "--quiet",
-                   "--unit=" + unit, "--slice=swarm.slice", "--working-directory=" + str(attempt),
+                   "--unit=" + unit, "--slice=swarm.slice", "--working-directory=" + str(execution_root),
+                   "--setenv=VERI7VN_BUILD_RESULT=" + str(results / "build-exit.json"),
                    "--setenv=USER_HOME=" + str(state), "--setenv=PATH=" + os.environ["PATH"],
                    "-p", "MemoryMax=" + str(MEMORY_CAP), "-p", "MemorySwapMax=0",
                    "-p", "RuntimeMaxSec=" + str(config["timeout"]), "-p", "TimeoutStopSec=30",
@@ -178,6 +230,7 @@ def main():
                    "-j", "1", "-o", "threads=2", config["session"]]
         result["command"] = command
         result["unit"] = unit
+        result["build_started"] = time.time()
         process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, env=env)
         service_started = True
         while process.poll() is None:
@@ -185,11 +238,16 @@ def main():
                 subprocess.run(["systemctl", "--user", "stop", unit], stdout=log, stderr=log, timeout=45)
                 result["cancelled"] = True
             time.sleep(1)
+        result["build_finished"] = time.time()
         result["launcher_exit"] = process.returncode
         completed = results / "build-exit.json"
         result["build_completed"] = completed.exists()
         result["build_exit"] = json.loads(completed.read_text())["exit_code"] if completed.exists() else 1
         result["cancelled"] = result.get("cancelled", False) or (attempt / "cancel").exists()
+        result["source_stable"] = source_hashes(execution_root) == expected_sources
+        if not result["source_stable"]:
+            result["error"] = "execution sources changed during build"
+            result["build_exit"] = 1
         if result["cancelled"]:
             result["build_exit"] = 1
         # Keep the host lock until diagnostics and export finish: build_log/export
@@ -197,7 +255,7 @@ def main():
         stored = results / "session.log"
         with stored.open("w") as f:
             logged = subprocess.run([str(isabelle), "build_log", "-v", config["session"]],
-                                    env=env, stdout=f, stderr=subprocess.STDOUT, timeout=120)
+                                    env=env, cwd=execution_root, stdout=f, stderr=subprocess.STDOUT, timeout=120)
         result["log_exit"] = logged.returncode
         export = results / "export" / config["session"]
         export.mkdir(parents=True)
@@ -207,7 +265,7 @@ def main():
         else:
             exported = subprocess.run([str(isabelle), "export", "-n", *dirs, "-O", str(export),
                                        "-x", "*:code/**", "-x", "*:veri7vn/assertions/**", config["session"]],
-                                      env=env, stdout=log, stderr=subprocess.STDOUT, timeout=120)
+                                      env=env, cwd=execution_root, stdout=log, stderr=subprocess.STDOUT, timeout=120)
             result["export_exit"] = exported.returncode
         log.flush()
         marker = config["expect"]
@@ -255,7 +313,8 @@ if __name__ == "__main__":
         # Isabelle actually returns. systemd-run can return zero when an explicit
         # stop killed the service, so its own return code is not build evidence.
         build = subprocess.run(sys.argv[2:])
-        atomic_json(Path.cwd() / "results/build-exit.json",
+        completion = Path(os.environ.get("VERI7VN_BUILD_RESULT", str(Path.cwd() / "results/build-exit.json")))
+        atomic_json(completion,
                     {"exit_code": build.returncode, "finished": time.time()})
         sys.exit(build.returncode)
     main()

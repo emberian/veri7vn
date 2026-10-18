@@ -83,16 +83,22 @@ tools/dev/remote-build hbox src/extract/<slug> Veri7vn_<Session> --expect 'VERI7
 
 The driver takes a stable copy of `src/` and `tests/` (up to five short retries
 if another lane edits during copying) and sends that snapshot to a unique
-remote attempt directory. Work continues against the snapshot, so later local
-edits do not change a queued build. The source files and their SHA256 hashes
-remain with its local receipt.
+remote attempt directory. Once it holds the host lock, the worker copies that
+snapshot into the stable `managed/workspace` build folder and checks every source
+hash. It checks again after building. Later local edits do not change a queued
+build, and the original snapshot remains with its local receipt. A stable path
+lets Isabelle reuse warm sessions when their sources are unchanged; unique
+per-attempt source paths forced unnecessary rebuilds.
 
 Each host has one lock at `~/veri7vn-builds/managed/build.lock`. It covers the
 whole build, including any parent sessions, stored logs and exports. Jobs queue
 automatically: the default queue limit is two hours and the default build limit
 is 30 minutes (`--queue-timeout` and `--timeout`, in seconds). This intentionally
 allows one Isabelle build per host; per-session locks did not protect shared
-parent databases. A process that directly uses the managed cache must obey the
+parent databases. New workers wait on a blocking kernel lock, with cancellation
+and deadline interrupts, instead of repeatedly racing for ownership. This is
+not a promise of strict FIFO ordering, especially while older polling workers
+drain. Receipts separate queue time from time inside the build. A process that directly uses the managed cache must obey the
 same lock. Remote MLton deployment builds also take this lock to avoid memory
 contention.
 
