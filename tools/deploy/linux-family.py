@@ -27,11 +27,12 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("slug")
 parser.add_argument("host")
 parser.add_argument("--from-receipt", type=Path, help="reuse a passed managed session receipt and its immutable sources/export")
-parser.add_argument("--runtime-overlay", action="store_true", help="snapshot current runtime sources after validating unchanged proof dependency sources")
+parser.add_argument("--runtime-overlay", nargs="?", const=REPO, type=Path, help="snapshot runtime sources from this root (default checkout), validating unchanged proof dependencies")
 args = parser.parse_args()
 if args.runtime_overlay and not args.from_receipt:
     parser.error("--runtime-overlay requires --from-receipt; it never starts Isabelle")
 slug, host = args.slug, args.host
+SOURCE_REPO = args.runtime_overlay.resolve() if args.runtime_overlay else REPO
 LIN = REPO / "var/linux"
 RUN_ID = f"{slug}-{int(time.time())}-{os.getpid()}"
 LIN.mkdir(parents=True, exist_ok=True)
@@ -39,7 +40,7 @@ OUT = LIN / "linux" / RUN_ID
 LOG = open(LIN / f"run-{RUN_ID}-{host}.log", "x")
 sys.path.insert(0, str(REPO / "tools"))
 from runtime_contract import load_registry
-ENTRY = next((e for e in load_registry(REPO) if e["family"] == slug), None)
+ENTRY = next((e for e in load_registry(SOURCE_REPO) if e["family"] == slug), None)
 if ENTRY is None:
     raise SystemExit("unknown registered family: " + slug)
 SPEC = ENTRY["specialists"]
@@ -57,12 +58,12 @@ SRCDIR = "quantity" if slug == "variants" else slug
 def session_dirs():
     """session name -> (ROOT dir, referenced session names), over every src/ ROOT"""
     m = {}
-    for root in glob.glob(str(REPO / "src/**/ROOT"), recursive=True):
+    for root in glob.glob(str(SOURCE_REPO / "src/**/ROOT"), recursive=True):
         txt = re.sub(r"\(\*.*?\*\)", " ", Path(root).read_text(), flags=re.S)
         for blk in re.split(r"(?m)^(?=session )", txt):
             h = re.match(r"session\s+(\S+)", blk)
             if h:
-                m[h.group(1)] = (os.path.dirname(root), set(re.findall(r"Veri7vn_\w+", blk[len(h.group(0)):])))
+                m[h.group(1)] = (str(REPO / Path(root).parent.relative_to(SOURCE_REPO)), set(re.findall(r"Veri7vn_\w+", blk[len(h.group(0)):])))
     return m
 
 
@@ -153,10 +154,11 @@ if args.runtime_overlay:
     directories = [str(Path(d).relative_to(REPO)) for d in
                    [str(REPO / "src/extract" / slug), str(REPO / "src/extract" / SRCDIR), *EXTRA]]
     runtime_stage = LIN / "runtime" / RUN_ID
-    before = stage_runtime_overlay(REPO, runtime_stage, directories, proof_sources,
-                                   runtime_files=["src/extract/commons/commons.sml"])
+    before = stage_runtime_overlay(SOURCE_REPO, runtime_stage, directories, proof_sources,
+                                   runtime_files=["src/extract/commons/commons.sml", "src/extract/families.json", "tools/runtime_contract.py"])
     SNAPSHOT = runtime_stage
     rec["runtime_overlay"] = str(runtime_stage)
+    rec["runtime_overlay_input"] = str(SOURCE_REPO)
     rec["proof_dependency_sha256"] = proof_sources
     rec["source_sha256"] = before
 
@@ -252,6 +254,29 @@ for name in (b/"{slug}.mlb").read_text().splitlines():
 print("INPUTS_JSON="+json.dumps(inputs,sort_keys=True))
 INPUTREC
 '''
+sys.path.insert(0, str(REPO / "tools/organs"))
+import make_organ as organs
+organs.REPO = SNAPSHOT if args.runtime_overlay else REPO
+organs.REGISTRY = {entry["family"]: entry for entry in load_registry(SNAPSHOT if args.runtime_overlay else REPO) if entry["specialists"]}
+organs.family_tables()
+index = organs.shipped_index()
+panel_root = local_run / "specialists"
+for sid in SPEC:
+    made = organs.make_organ(panel_root, slug, sid, index[sid], quiet=True)
+    if "error" in made:
+        raise SystemExit("could not prepare " + sid + ": " + made["error"])
+rec["panel_files_sha256"] = {str(path.relative_to(panel_root)): sha(path)
+                             for path in panel_root.rglob("*") if path.is_file()}
+smoke = local_run / "smoke.py"
+shutil.copyfile(REPO / "tools/organs/package_smoke.py", smoke)
+rec["smoke_sha256"] = sha(smoke)
+mac_dump = local_run / "macos.json"
+mac_env = os.environ.copy()
+mac_env.update({"VERI7VN_" + slug.upper() + "_BIN": str(frozen_mac), "PYTHONDONTWRITEBYTECODE": "1"})
+p = run([sys.executable, "-B", str(smoke), "--root", str(panel_root), "--dump", str(mac_dump)], env=mac_env)
+if p.returncode:
+    raise SystemExit("fresh macOS specialist smoke failed; see deployment log")
+
 run(["ssh", "-o", "BatchMode=yes", host, f"mkdir -p {R}/gen"])
 run(["rsync", "-a", "--exclude", "__pycache__", f"{SNAPSHOT}/src/", f"{host}:{R}/src/"])
 _g = generated_export
@@ -272,24 +297,6 @@ rec["binary_sha256"] = [s for s, f in shas if f == f"{D}/build/{RUN_ID}/{slug}"]
 rec["generated_sha256"] = [s for s, f in shas if f.endswith("_generated.sml")][0]
 mac_gen = REPO / f"var/{SRCDIR}/build/{gen_local}"
 rec["generated_sha256_macos"] = sha(mac_gen) if mac_gen.exists() else None
-sys.path.insert(0, str(REPO / "tools/organs"))
-import make_organ as organs
-organs.family_tables()
-index = organs.shipped_index()
-panel_root = local_run / "specialists"
-for sid in SPEC:
-    made = organs.make_organ(panel_root, slug, sid, index[sid], quiet=True)
-    if "error" in made:
-        raise SystemExit("could not prepare " + sid + ": " + made["error"])
-rec["panel_files_sha256"] = {str(path.relative_to(panel_root)): sha(path)
-                             for path in panel_root.rglob("*") if path.is_file()}
-smoke = REPO / "tools/organs/package_smoke.py"
-mac_dump = local_run / "macos.json"
-mac_env = os.environ.copy()
-mac_env.update({"VERI7VN_" + slug.upper() + "_BIN": str(frozen_mac), "PYTHONDONTWRITEBYTECODE": "1"})
-p = run([sys.executable, "-B", str(smoke), "--root", str(panel_root), "--dump", str(mac_dump)], env=mac_env)
-if p.returncode:
-    raise SystemExit("fresh macOS specialist smoke failed; see deployment log")
 # Every file and acceptance rule is copied identically to the remote run.
 for local, remote in ((panel_root, R + "/specialists"), (smoke, R + "/smoke.py"),
                       (mac_dump, R + "/macos.json")):
