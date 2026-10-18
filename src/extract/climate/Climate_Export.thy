@@ -74,7 +74,7 @@ ML \<open>
     @{thm cl_exact_sound}, @{thm cl_approx_sound}, @{thm cl_underspecified}, @{thm cl_impossible_iff},
     @{thm forcing_model}, @{thm forcing_doubling}, @{thm warming_ecs_model}, @{thm warming_ecs_per_doubling},
     @{thm warming_lambda_model}, @{thm effective_temperature_model}, @{thm ppm_gtc_model},
-    @{thm gtco2_gtc_model}, @{thm mass_ppm_inverse}, @{thm co2e_model}, @{thm co2e_needs_gwp},
+    @{thm gtco2_gtc_model}, @{thm co2e_model}, @{thm co2e_needs_gwp},
     @{thm warming_needs_sensitivity}, @{thm albedo_out_of_range},
     @{thm cm_exact_sound}, @{thm cm_approx_sound}, @{thm cm_impossible_iff}, @{thm cnt_circumference},
     @{thm cnt_chiral_angle_tangent}, @{thm cnt_type_metallic}, @{thm cnt_kind_classes},
@@ -83,7 +83,7 @@ ML \<open>
     @{thm cool_stage3}, @{thm cold_hold_verdict(1)}, @{thm cold_hold_verdict(2)}, @{thm cooking_minimums(1)}, @{thm cooking_minimums(2)}, @{thm cooking_minimums(3)}, @{thm tphc_limit(1)}, @{thm tphc_limit(2)},
     @{thm date_marking}, @{thm date_marking_kernel}, @{thm celsius_to_fahrenheit},
     @{thm reply_answered_iff}, @{thm reply_withheld_names_decline}, @{thm reply_states_exact},
-    @{thm reply_states_approx}, @{thm exact_stated_sound}, @{thm kernel_deterministic}]
+    @{thm reply_states_approx}, @{thm exact_stated_sound}, @{thm carbon_kernel_roundtrip}, @{thm sub_index_monotone}, @{thm albedo_decline_iff}]
     @ @{thms cnt_chirality_declined};
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("climate theorems use oracles: " ^ string_of_int (length oracles));

@@ -157,6 +157,16 @@ theorem cc_kernel_declines:
   "cc_kernel r = Decline w \<longleftrightarrow> (\<exists>why. cc_impossible r = Some why \<and> w = Impossible why)"
   by (auto simp: cc_kernel_def split: option.splits)
 
+text \<open>The carbon round trip through the kernel: converting a carbon mass to CO2 and
+that CO2 mass back to carbon returns the mass asked about (units only echo).\<close>
+theorem carbon_kernel_roundtrip:
+  assumes "cc_kernel (Cc_c_to_co2 m u) = Exact k q"
+  shows "cc_kernel (Cc_co2_to_c q u') = Exact K_co2_to_c m"
+proof -
+  have "q = m * c_ratio" using cc_kernel_sound[OF assms] by simp
+  then show ?thesis by (simp add: cc_kernel_def)
+qed
+
 text \<open>What each kind means. One mole of carbon makes one mole of CO2, so the
 masses are in the ratio of the molar masses; the fuel factor is grams per gallon;
 the captured mass is the emitted mass times the rate.\<close>
@@ -480,6 +490,121 @@ theorem cat_of_bands:
    \<and> cat_of 201 = Cat_very_unhealthy \<and> cat_of 300 = Cat_very_unhealthy \<and> cat_of 301 = Cat_hazardous"
   by simp
 
+text \<open>The AQI is monotone in concentration, stated against the transcribed
+breakpoint table @{const rows}. A table is well ordered when each row has a
+positive-width concentration range and a non-decreasing index range, and every
+later row starts above where this one ends in both. The index of a concentration
+is then non-decreasing in the concentration (a concentration in a gap between rows
+has no index and is not compared).\<close>
+definition row_valid :: "(rat \<times> rat) \<times> (rat \<times> rat) \<Rightarrow> bool" where
+  "row_valid r = (fst (snd r) < snd (snd r) \<and> fst (fst r) \<le> snd (fst r))"
+
+fun rows_ordered :: "((rat \<times> rat) \<times> (rat \<times> rat)) list \<Rightarrow> bool" where
+  "rows_ordered [] = True"
+| "rows_ordered (r # rs) = (row_valid r \<and> rows_ordered rs \<and>
+     (\<forall>r' \<in> set rs. snd (snd r) < fst (snd r') \<and> snd (fst r) \<le> fst (fst r')))"
+
+lemma rows_ordered_valid: "rows_ordered rs \<Longrightarrow> r \<in> set rs \<Longrightarrow> row_valid r"
+  by (induction rs) auto
+
+lemma interp_mono:
+  assumes "row_valid r" "c1 \<le> c2"
+  shows "interp r c1 \<le> interp r c2"
+proof -
+  have "0 \<le> (snd (fst r) - fst (fst r)) / (snd (snd r) - fst (snd r))"
+    using assms(1) by (auto simp: row_valid_def intro!: divide_nonneg_pos)
+  then have "(snd (fst r) - fst (fst r)) / (snd (snd r) - fst (snd r)) * (c1 - fst (snd r))
+      \<le> (snd (fst r) - fst (fst r)) / (snd (snd r) - fst (snd r)) * (c2 - fst (snd r))"
+    using assms(2) by (intro mult_left_mono) simp_all
+  then show ?thesis by (simp add: interp_def)
+qed
+
+lemma interp_le_hi:
+  assumes "row_valid r" "in_row c r"
+  shows "interp r c \<le> snd (fst r)"
+proof -
+  have w: "0 < snd (snd r) - fst (snd r)" using assms(1) by (simp add: row_valid_def)
+  have "(snd (fst r) - fst (fst r)) / (snd (snd r) - fst (snd r)) * (c - fst (snd r))
+        \<le> (snd (fst r) - fst (fst r)) / (snd (snd r) - fst (snd r)) * (snd (snd r) - fst (snd r))"
+    using assms by (intro mult_left_mono) (auto simp: row_valid_def in_row_def intro!: divide_nonneg_pos)
+  also have "\<dots> = snd (fst r) - fst (fst r)" using w by simp
+  finally show ?thesis by (simp add: interp_def)
+qed
+
+lemma interp_ge_lo:
+  assumes "row_valid r" "in_row c r"
+  shows "fst (fst r) \<le> interp r c"
+proof -
+  have "0 \<le> (snd (fst r) - fst (fst r)) / (snd (snd r) - fst (snd r)) * (c - fst (snd r))"
+    using assms by (intro mult_nonneg_nonneg) (auto simp: row_valid_def in_row_def intro!: divide_nonneg_pos)
+  then show ?thesis by (simp add: interp_def)
+qed
+
+lemma find_in_row: "List.find P xs = Some x \<Longrightarrow> x \<in> set xs \<and> P x"
+  by (induction xs) (auto split: if_splits)
+
+lemma find_rows_mono:
+  assumes "rows_ordered rs" "List.find (in_row c1) rs = Some r1" "List.find (in_row c2) rs = Some r2"
+    "c1 \<le> c2"
+  shows "\<lfloor>interp r1 c1 + 1 / 2\<rfloor> \<le> \<lfloor>interp r2 c2 + 1 / 2\<rfloor>"
+  using assms
+proof (induction rs arbitrary: r1 r2)
+  case Nil then show ?case by simp
+next
+  case (Cons r rs)
+  have ord: "row_valid r" "rows_ordered rs"
+    and later: "\<forall>r' \<in> set rs. snd (snd r) < fst (snd r') \<and> snd (fst r) \<le> fst (fst r')"
+    using Cons.prems(1) by simp_all
+  show ?case
+  proof (cases "in_row c1 r")
+    case t1: True
+    show ?thesis
+    proof (cases "in_row c2 r")
+      case True
+      then have "r1 = r" "r2 = r" using t1 Cons.prems by simp_all
+      then show ?thesis using interp_mono[OF ord(1) Cons.prems(4)] by (simp add: floor_mono)
+    next
+      case False
+      then have r1: "r1 = r" and f2: "List.find (in_row c2) rs = Some r2" using t1 Cons.prems by simp_all
+      have m2: "r2 \<in> set rs" "in_row c2 r2" using find_in_row[OF f2] by simp_all
+      have v2: "row_valid r2" using rows_ordered_valid[OF ord(2) m2(1)] .
+      have "interp r c1 \<le> snd (fst r)" using interp_le_hi[OF ord(1) t1] .
+      also have "snd (fst r) \<le> fst (fst r2)" using later m2(1) by blast
+      also have "fst (fst r2) \<le> interp r2 c2" using interp_ge_lo[OF v2 m2(2)] .
+      finally show ?thesis using r1 by (simp add: floor_mono)
+    qed
+  next
+    case f1: False
+    show ?thesis
+    proof (cases "in_row c2 r")
+      case True
+      then have r2: "r2 = r" and g1: "List.find (in_row c1) rs = Some r1" using f1 Cons.prems by simp_all
+      have m1: "r1 \<in> set rs" "in_row c1 r1" using find_in_row[OF g1] by simp_all
+      have "snd (snd r) < fst (snd r1)" using later m1(1) by blast
+      moreover have "fst (snd r1) \<le> c1" "c2 \<le> snd (snd r)" using m1(2) True by (simp_all add: in_row_def)
+      ultimately show ?thesis using Cons.prems(4) by linarith
+    next
+      case False
+      then show ?thesis using f1 Cons.IH[OF ord(2)] Cons.prems by simp
+    qed
+  qed
+qed
+
+lemma all_rows_ordered: "rows_ordered (rows p)"
+  by (cases p) (simp_all add: rows_def idx_rows_def row_valid_def)
+
+theorem sub_index_monotone:
+  assumes "sub_index p c1 = Some a1" "sub_index p c2 = Some a2" "c1 \<le> c2"
+  shows "a1 \<le> a2"
+proof -
+  obtain r1 where r1: "find_row p c1 = Some r1" "a1 = \<lfloor>interp r1 c1 + 1 / 2\<rfloor>"
+    using assms(1) by (auto simp: sub_index_def)
+  obtain r2 where r2: "find_row p c2 = Some r2" "a2 = \<lfloor>interp r2 c2 + 1 / 2\<rfloor>"
+    using assms(2) by (auto simp: sub_index_def)
+  show ?thesis using find_rows_mono[OF all_rows_ordered r1(1)[unfolded find_row_def]
+      r2(1)[unfolded find_row_def] assms(3)] r1(2) r2(2) by simp
+qed
+
 
 section \<open>Climate arithmetic (climate)\<close>
 
@@ -761,10 +886,6 @@ theorem gtco2_gtc_model:
   "p * gtco2_per_ppm * (12011 / 1000) = p * gtc_per_ppm * (440095 / 10000)"
   by (simp add: gtco2_per_ppm_def gtc_per_ppm_def field_simps)
 
-theorem mass_ppm_inverse:
-  "c / (if co2 then gtco2_per_ppm else gtc_per_ppm) * (if co2 then gtco2_per_ppm else gtc_per_ppm) = c"
-  by (cases co2) (simp_all add: gtco2_per_ppm_def gtc_per_ppm_def field_simps)
-
 theorem co2e_model:
   assumes "cl_kernel (Cl_co2e (Some g) m u gs) = Exact k q"
   shows "k = K_co2e \<and> q = m * g"
@@ -782,6 +903,26 @@ theorem albedo_out_of_range:
   assumes "0 \<le> s" "a < 0 \<or> 1 < a"
   shows "cl_kernel (Cl_eff_temp (Some s) (Some a)) = Decline (Impossible R_albedo_range)"
   using assms by (auto simp: cl_kernel_def)
+
+text \<open>The albedo decline is exact: with a non-negative solar constant, the albedo
+reason is given precisely when the albedo is outside 0 to 1.\<close>
+theorem albedo_decline_iff:
+  assumes "0 \<le> s"
+  shows "cl_kernel (Cl_eff_temp (Some s) (Some a)) = Decline (Impossible R_albedo_range)
+         \<longleftrightarrow> a < 0 \<or> 1 < a"
+proof
+  assume "a < 0 \<or> 1 < a"
+  then show "cl_kernel (Cl_eff_temp (Some s) (Some a)) = Decline (Impossible R_albedo_range)"
+    using assms by (auto simp: cl_kernel_def)
+next
+  assume h: "cl_kernel (Cl_eff_temp (Some s) (Some a)) = Decline (Impossible R_albedo_range)"
+  show "a < 0 \<or> 1 < a"
+  proof (rule ccontr)
+    assume "\<not> (a < 0 \<or> 1 < a)"
+    then have "cl_impossible (Cl_eff_temp (Some s) (Some a)) = None" using assms by simp
+    then show False using cl_decline_cases[OF h] by simp
+  qed
+qed
 
 
 section \<open>Carbon nanomaterials (carbonmat)\<close>
@@ -1418,8 +1559,5 @@ theorem reply_states_approx:
 theorem exact_stated_sound:
   "\<bar>dec_val (g_dec (dd_of k) q) - rl q\<bar> \<le> pow10 (snd (g_dec (dd_of k) q)) / 2"
   by (rule conjunct2[OF g_dec_sound])
-
-theorem kernel_deterministic: "kernel r = o1 \<Longrightarrow> kernel r = o2 \<Longrightarrow> o1 = o2"
-  by simp
 
 end
