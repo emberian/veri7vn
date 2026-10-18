@@ -84,6 +84,9 @@ ML \<open>
     @{thm round_tie_up}, @{thm pi_bounds_sound}, @{thm pw_scale_sound}, @{thm pw_show_sound},
     @{thm mk_reply_answered_iff}, @{thm mk_reply_exact}, @{thm mk_reply_withheld},
     @{thm family_declines_withheld},
+    (* across kinds *)
+    @{thm sensible_heat_swap}, @{thm tons_btuh_roundtrip}, @{thm btuh_tons_roundtrip},
+    @{thm cost_is_energy_times_tariff}, @{thm swap_is_energy_difference},
     (* thermo *)
     @{thm thermo_exact_sound}, @{thm thermo_underspecified}, @{thm thermo_impossible_temperature},
     @{thm thermo_impossible_only_if}, @{thm thermo_no_other_declines}, @{thm kelvin_scales},
@@ -99,6 +102,7 @@ ML \<open>
     @{thm reply_h_states_digits}, @{thm reply_h_withheld},
     (* hvac *)
     @{thm hvac_exact_sound}, @{thm hvac_underspecified}, @{thm hvac_sizing_always_declined},
+    @{thm pair_difference_nonneg},
     @{thm tons_law}, @{thm btuh_law}, @{thm ach_law}, @{thm cfm_law}, @{thm sensible_law},
     @{thm conduction_law}, @{thm seasonal_law}, @{thm reply_v_answered_iff},
     @{thm reply_v_states_digits}, @{thm reply_v_withheld},

@@ -218,19 +218,17 @@ definition kernel_t :: "request \<Rightarrow> outcome" where
 
 section \<open>The kernel's soundness\<close>
 
-lemma kernel_t_exact:
-  "kernel_t r = Exact k q \<longleftrightarrow> pre_t r = None \<and> miss_t r = None \<and> post_t r = None \<and> k = kd_t r \<and> q = vl_t r"
-  by (simp add: kernel_t_def mk_exact)
-
 theorem thermo_exact_sound:
   assumes "kernel_t r = Exact k q"
   shows "pre_t r = None \<and> miss_t r = None \<and> post_t r = None \<and> k = kd_t r \<and> q = vl_t r"
-  using assms kernel_t_exact by blast
+  using assms by (auto simp: kernel_t_def mk_exact)
 
-lemma exact_parts:
-  assumes "kernel_t r = Exact k q"
-  shows "pre_t r = None" "miss_t r = None" "post_t r = None" "k = kd_t r" "q = vl_t r"
-  using thermo_exact_sound[OF assms] by blast+
+lemmas exact_parts =
+  thermo_exact_sound[THEN conjunct1]
+  thermo_exact_sound[THEN conjunct2, THEN conjunct1]
+  thermo_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct1]
+  thermo_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct1]
+  thermo_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2]
 
 lemma pre_t_not_under: "pre_t r \<noteq> Some (D_under, w)"
   by (cases r) (auto split: option.splits temp.splits)

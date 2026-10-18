@@ -109,19 +109,17 @@ definition kernel_h :: "home_req \<Rightarrow> outcome" where
 
 section \<open>Soundness\<close>
 
-lemma kernel_h_exact:
-  "kernel_h r = Exact k q \<longleftrightarrow> miss_h r = None \<and> post_h r = None \<and> fx_h r = None \<and> k = kd_h r \<and> q = vl_h r"
-  by (simp add: kernel_h_def mk_exact)
-
-lemma exact_parts_h:
-  assumes "kernel_h r = Exact k q"
-  shows "miss_h r = None" "post_h r = None" "fx_h r = None" "k = kd_h r" "q = vl_h r"
-  using assms kernel_h_exact by blast+
-
 theorem home_exact_sound:
   assumes "kernel_h r = Exact k q"
   shows "miss_h r = None \<and> post_h r = None \<and> fx_h r = None \<and> k = kd_h r \<and> q = vl_h r"
-  using exact_parts_h[OF assms] by blast
+  using assms by (auto simp: kernel_h_def mk_exact)
+
+lemmas exact_parts_h =
+  home_exact_sound[THEN conjunct1]
+  home_exact_sound[THEN conjunct2, THEN conjunct1]
+  home_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct1]
+  home_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct1]
+  home_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2]
 
 lemma post_h_not_under: "post_h r \<noteq> Some (D_under, w)"
   by (cases r rule: post_h.cases) auto

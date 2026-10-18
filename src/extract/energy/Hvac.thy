@@ -82,19 +82,17 @@ definition kernel_v :: "hvac_req \<Rightarrow> outcome" where
 
 section \<open>Soundness\<close>
 
-lemma kernel_v_exact:
-  "kernel_v r = Exact k q \<longleftrightarrow> pre_v r = None \<and> miss_v r = None \<and> post_v r = None \<and> k = kd_v r \<and> q = vl_v r"
-  by (simp add: kernel_v_def mk_exact)
-
-lemma exact_parts_v:
-  assumes "kernel_v r = Exact k q"
-  shows "pre_v r = None" "miss_v r = None" "post_v r = None" "k = kd_v r" "q = vl_v r"
-  using assms kernel_v_exact by blast+
-
 theorem hvac_exact_sound:
   assumes "kernel_v r = Exact k q"
   shows "pre_v r = None \<and> miss_v r = None \<and> post_v r = None \<and> k = kd_v r \<and> q = vl_v r"
-  using exact_parts_v[OF assms] by blast
+  using assms by (auto simp: kernel_v_def mk_exact)
+
+lemmas exact_parts_v =
+  hvac_exact_sound[THEN conjunct1]
+  hvac_exact_sound[THEN conjunct2, THEN conjunct1]
+  hvac_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct1]
+  hvac_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct1]
+  hvac_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2]
 
 lemma pre_v_not_under: "pre_v r \<noteq> Some (D_under, w)"
   by (cases r rule: pre_v.cases) auto
@@ -105,10 +103,6 @@ lemma post_v_not_under: "post_v r \<noteq> Some (D_under, w)"
 theorem hvac_underspecified:
   "kernel_v r = Decline D_under w \<longleftrightarrow> pre_v r = None \<and> miss_v r = Some w"
   by (auto simp: kernel_v_def mk_decline pre_v_not_under post_v_not_under)
-
-theorem hvac_sizing:
-  "kernel_v VSizing = Decline D_sizing w \<longleftrightarrow> pre_v VSizing = Some (D_sizing, w)"
-  by (auto simp: kernel_v_def mk_decline)
 
 theorem hvac_sizing_always_declined:
   "\<exists>w. kernel_v VSizing = Decline D_sizing w"

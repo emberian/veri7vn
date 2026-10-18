@@ -96,33 +96,28 @@ definition kernel_r :: "ren_req \<Rightarrow> outcome" where
 
 section \<open>Soundness\<close>
 
-lemma kernel_r_exact:
-  "kernel_r r = Exact k q \<longleftrightarrow> pre_r r = None \<and> miss_r r = None \<and> post_r r = None \<and> \<not> pf_r r \<and> k = kd_r r \<and> q = vl_r r"
-  by (simp add: kernel_r_def mk_exact)
-
-lemma kernel_r_pi:
-  "kernel_r r = PiMul k q \<longleftrightarrow> pre_r r = None \<and> miss_r r = None \<and> post_r r = None \<and> pf_r r \<and> k = kd_r r \<and> q = vl_r r"
-  by (simp add: kernel_r_def mk_pi)
-
-lemma exact_parts_r:
-  assumes "kernel_r r = Exact k q"
-  shows "pre_r r = None" "miss_r r = None" "post_r r = None" "k = kd_r r" "q = vl_r r"
-  using assms kernel_r_exact by blast+
-
-lemma pi_parts_r:
-  assumes "kernel_r r = PiMul k q"
-  shows "pre_r r = None" "post_r r = None" "k = kd_r r" "q = vl_r r"
-  using assms kernel_r_pi by blast+
-
 theorem ren_exact_sound:
   assumes "kernel_r r = Exact k q"
   shows "pre_r r = None \<and> miss_r r = None \<and> post_r r = None \<and> \<not> pf_r r \<and> k = kd_r r \<and> q = vl_r r"
-  using assms kernel_r_exact by blast
+  using assms by (auto simp: kernel_r_def mk_exact)
 
 theorem ren_pi_sound:
   assumes "kernel_r r = PiMul k q"
   shows "pre_r r = None \<and> miss_r r = None \<and> post_r r = None \<and> pf_r r \<and> k = kd_r r \<and> q = vl_r r"
-  using assms kernel_r_pi by blast
+  using assms by (auto simp: kernel_r_def mk_pi)
+
+lemmas exact_parts_r =
+  ren_exact_sound[THEN conjunct1]
+  ren_exact_sound[THEN conjunct2, THEN conjunct1]
+  ren_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct1]
+  ren_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct1]
+  ren_exact_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2]
+
+lemmas pi_parts_r =
+  ren_pi_sound[THEN conjunct1]
+  ren_pi_sound[THEN conjunct2, THEN conjunct2, THEN conjunct1]
+  ren_pi_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct1]
+  ren_pi_sound[THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2, THEN conjunct2]
 
 lemma pre_r_not_under: "pre_r r \<noteq> Some (D_under, w)"
   by (cases r rule: pre_r.cases) (auto split: if_splits)
@@ -305,12 +300,5 @@ proof -
     using h(1) sc h(2,3) m by simp
   then show ?thesis by blast
 qed
-
-text \<open>The digits stated for a rotor power are within the rounding of some
-real number the interval arithmetic encloses (the true value c * pi).\<close>
-theorem reply_r_pi_enclosed:
-  assumes "pi_bounds c = Some (lo, hi)"
-  shows "lo \<le> rl c * pi \<and> rl c * pi \<le> hi"
-  using pi_bounds_sound[OF assms] .
 
 end
