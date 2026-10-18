@@ -423,6 +423,15 @@ definition reply_val :: "gfmt \<Rightarrow> String.literal \<Rightarrow> (String
      None \<Rightarrow> Reply False (STR ''imprecise'') imprecise_text None
    | Some s \<Rightarrow> Reply True k (txt s) (stated_x x))"
 
+text \<open>The common four-significant-digit layout uses the same decimal for
+its sentence and machine-readable value. Evaluate its enclosure once.\<close>
+lemma reply_val_code [code]:
+  "reply_val f k txt x = (case render_x f x of
+     None \<Rightarrow> Reply False (STR ''imprecise'') imprecise_text None
+   | Some s \<Rightarrow> Reply True k (txt s)
+       (if f = GFix L4 then Some s else stated_x x))"
+  by (auto simp: reply_val_def stated_x_def split: option.splits)
+
 theorem reply_val_states:
   assumes "answered (reply_val f k txt x)"
   shows "\<exists>s. render_x f x = Some s \<and> response (reply_val f k txt x) = txt s"

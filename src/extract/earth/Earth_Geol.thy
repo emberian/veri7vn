@@ -279,4 +279,26 @@ theorem gl_answered_iff:
   using gl_not_word[of r] by (cases "gl_kernel r")
     (auto simp: gl_reply_def reply_with_def decline_reply_def split: option.splits decl.splits)
 
+
+text \<open>Explicit input conditions for impossible requests. A missing half-life
+is an underspecified request, not an impossible one.\<close>
+theorem gl_fraction_decline:
+  "(\<exists>w. gl_kernel (GlAge h (MFrac f)) = Decline (Imposs w)) \<longleftrightarrow>
+   (\<exists>y. gl_half h = Some y \<and> (y \<le> 0 \<or> f \<le> 0 \<or> 1 < f))"
+  by (cases h) (auto simp: gl_kernel_def bad_half_def split: if_splits)
+
+theorem gl_ratio_decline:
+  "(\<exists>w. gl_kernel (GlAge h (MRatio r)) = Decline (Imposs w)) \<longleftrightarrow>
+   (\<exists>y. gl_half h = Some y \<and> (y \<le> 0 \<or> r < 0))"
+  by (cases h) (auto simp: gl_kernel_def bad_half_def split: if_splits)
+
+theorem gl_remaining_decline:
+  "(\<exists>w. gl_kernel (GlLeft h t) = Decline (Imposs w)) \<longleftrightarrow>
+   (\<exists>y. gl_half h = Some y \<and> y \<le> 0)"
+  by (cases h) (auto simp: gl_kernel_def bad_half_def split: if_splits)
+
+theorem gl_plate_rate_decline:
+  "(\<exists>w. gl_kernel (GlPlateRate d t) = Decline (Imposs w)) \<longleftrightarrow> t \<le> 0"
+  by (auto simp: gl_kernel_def)
+
 end

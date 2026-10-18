@@ -1,0 +1,131 @@
+{
+  "source": "Author-written capability and refusal probes; numeric expectations from the independent formulas in shipped generators and declared kernel models. These probes share the recognizer author, unlike generator seeds.",
+  "items": [
+    {
+      "specialist": "seismology",
+      "q": "For a region with a-value 6 and b-value 1, how many quakes of magnitude at least 4 occur per year?",
+      "expected": 100,
+      "status": "answered",
+      "kind": "gr_count"
+    },
+    {
+      "specialist": "seismology",
+      "q": "For a region with a-value 5.3 and b-value 0.8, how many quakes of magnitude at least 5 occur per year?",
+      "expected": 19.952623149688787,
+      "status": "answered",
+      "kind": "gr_count"
+    },
+    {
+      "specialist": "seismology",
+      "q": "For a region with a-value 4 and b-value 0.5, how many quakes of magnitude at least 6 occur per year?",
+      "expected": 10.0,
+      "status": "answered",
+      "kind": "gr_count"
+    },
+    {
+      "specialist": "seismology",
+      "q": "For a region with a-value 7.1 and b-value 1.2, how many quakes of magnitude at least 5 occur per year?",
+      "expected": 12.589254117941662,
+      "status": "answered",
+      "kind": "gr_count"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With b-value 0.8, how many quakes of magnitude at least 4 occur per year?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With a-value 5, how many quakes of magnitude at least 4 occur per year?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With a-value 5 and b-value 1, how many earthquakes occur per year?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "seismology",
+      "q": "The P waves travel 4 km/s and S waves 6 km/s with an S-P time of 12 s. How far away is the quake?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "geography",
+      "q": "What is the great-circle distance between 10°N, 20°E and 30°S, 40°W in km?",
+      "expected": 7799.976537459435,
+      "status": "answered",
+      "kind": "gc_km"
+    },
+    {
+      "specialist": "geography",
+      "q": "What is the great-circle distance between 30°S, 40°W and 10°N, 20°E in km?",
+      "expected": 7799.976537459435,
+      "status": "answered",
+      "kind": "gc_km"
+    },
+    {
+      "specialist": "geography",
+      "q": "What is the great-circle distance between 95°N, 20°E and 30°S, 40°W in km?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "geology",
+      "q": "A sample of carbon-14 has 25% remaining. How old is it?",
+      "expected": 11460,
+      "status": "answered"
+    },
+    {
+      "specialist": "geology",
+      "q": "A sample of carbon-14 has 125% remaining. How old is it?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "meteorology",
+      "q": "What is the dew point at 25 C and 100% relative humidity?",
+      "expected": 25,
+      "status": "answered"
+    },
+    {
+      "specialist": "meteorology",
+      "q": "What is the dew point at 25 C and 0% relative humidity?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "meteorology",
+      "q": "What is the standard atmosphere temperature at an altitude of 12000 m?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "greenhouse",
+      "q": "What PPFD do I need to reach a DLI of 18 mol/m2/d with a 0 hours photoperiod?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "greenhouse",
+      "q": "What is the VPD at 25 C and 120% relative humidity?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using Manning's equation with n = -0.05, flow area 2 m2, wetted perimeter 4 m and slope 0.002, what is the velocity?",
+      "expected": null,
+      "status": "withheld"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using Manning's equation with n = 0.05, flow area 2 m2, wetted perimeter 4 m and slope -0.002, what is the velocity?",
+      "expected": null,
+      "status": "withheld"
+    }
+  ]
+}

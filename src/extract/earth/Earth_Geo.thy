@@ -487,4 +487,30 @@ theorem geo_declines_impossible:
               | _ \<Rightarrow> False)"
   by (cases r) (auto simp: capital_known_def split: option.splits prod.splits)
 
+
+text \<open>Swapping the endpoints leaves the spherical distance unchanged. This
+compares two kernel results, independently of their interval enclosures.\<close>
+lemma hav_symmetric:
+  fixes lat_a lon_a lat_b lon_b :: real
+  shows "hav lat_a lon_a lat_b lon_b = hav lat_b lon_b lat_a lon_a"
+proof -
+  have p: "(lat_a - lat_b) / 2 = - ((lat_b - lat_a) / 2)"
+    by (simp only: minus_divide_left minus_diff_eq)
+  have l: "(lon_a - lon_b) / 2 = - ((lon_b - lon_a) / 2)"
+    by (simp only: minus_divide_left minus_diff_eq)
+  show ?thesis by (simp add: hav_def p l mult.commute)
+qed
+
+theorem gc_symmetric:
+  assumes a: "geo_kernel (GGc mi p1 l1 p2 l2) = Value x"
+      and b: "geo_kernel (GGc mi p2 l2 p1 l1) = Value y"
+  shows "xsem x = xsem y"
+proof -
+  have ok: "lat_ok p1" "lat_ok p2" using a by (auto split: if_splits)
+  have x: "x = gc_x mi p1 l1 p2 l2" using a ok by simp
+  have y: "y = gc_x mi p2 l2 p1 l1" using b ok by simp
+  show ?thesis unfolding x y gc_x_def
+    by (simp add: interp_central_fa[OF ok] interp_central_fa[OF ok(2) ok(1)] hav_symmetric)
+qed
+
 end

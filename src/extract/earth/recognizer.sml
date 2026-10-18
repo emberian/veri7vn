@@ -22,7 +22,9 @@
    organs' patterns (the degree sign, the multiplication sign, micro, the
    superscript two) are matched as their UTF-8 bytes in groups.
 
-   Differences from the organs, none of which is on a panel: a zero half-life,
+   Completion: optional coefficient connectors in Gutenberg-Richter counts;
+   invalid coordinate latitudes reach the kernel instead of being dropped.
+   Other differences from the organs: a zero half-life,
    Manning n or wetted perimeter, a negative daughter-to-parent ratio, a zero
    flow rate reach the kernel, which declines them as impossible (the organ
    raises ZeroDivisionError or computes). *)
@@ -122,7 +124,7 @@ struct
   fun gate t (r : E.request option) =
     case r of
       NONE => NONE
-    | SOME req => if not (E.answers req) andalso not (Narrow.short_direct t) then NONE else r
+    | SOME req => if Narrow.short_direct t orelse E.answers req then r else NONE
 
   (* ============================ geography ============================ *)
   val GN = "(-?\\d+(?:\\.\\d+)?)"
@@ -162,7 +164,6 @@ struct
                   val lonf = frOf lon
                 in
                   if ((isSome h2 andalso isSome h4) orelse cnt >= 2)
-                     andalso fle (fint ~90) latf andalso fle latf (fint 90)
                      andalso fle (fint ~180) lonf andalso fle lonf (fint 180)
                   then SOME (signed lat h2 "s", signed lon h4 "w") else NONE
                 end) (findall PT low)
@@ -191,11 +192,13 @@ struct
                       val lats = findall (GN ^ "\\s*" ^ degOpt ^ "\\s*([ns])\\b") low
                     in
                       if length lats >= 2 andalso has "\\bnorth[- ]south\\b|\\bdistance\\b|\\bhow far\\b" low
-                         andalso length pts < 2
+                         andalso null lons andalso length pts < 2
                       then
                         let val a = signed (gs low (List.nth (lats, 0)) 1) (SOME (gs low (List.nth (lats, 0)) 2)) "s"
                             val b = signed (gs low (List.nth (lats, 1)) 1) (SOME (gs low (List.nth (lats, 1)) 2)) "s"
-                        in SOME (E.RGeo (E.GLat (fq a, fq b))) end
+                        in if fle (fint ~90) a andalso fle a (fint 90)
+                              andalso fle (fint ~90) b andalso fle b (fint 90)
+                           then SOME (E.RGeo (E.GLat (fq a, fq b))) else NONE end
                       else NONE
                     end
                 end
@@ -412,8 +415,8 @@ struct
     if has "\\bgutenberg\\b|\\bb[- ]value\\b|\\ba[- ]value\\b|\\bhow many (?:earthquakes|quakes)\\b" low
        andalso has "\\bper year\\b|\\bhow many\\b|\\bexpected number\\b|\\bannual\\b" low then
       let
-        val am = search ("\\ba\\s*(?:[- ]?value)?\\s*(?:of|is|=)\\s*" ^ SN) low
-        val bm = search ("\\bb\\s*(?:[- ]?value)?\\s*(?:of|is|=)\\s*" ^ SN) low
+        val am = search ("\\ba\\s*(?:[- ]?value)?\\s*(?:of|is|=)?\\s*" ^ SN) low
+        val bm = search ("\\bb\\s*(?:[- ]?value)?\\s*(?:of|is|=)?\\s*" ^ SN) low
         val mm = search ("\\bmagnitude\\s*(?:of\\s*)?(?:>=|\226\137\165|at least|or (?:greater|more|larger)|)\\s*(\\d(?:\\.\\d+)?)"
                          ^ "|(\\d(?:\\.\\d+)?)\\s*or (?:greater|more|larger|above)") low
         fun og m = Option.map (fn x => fq (frOf (g1 low x))) m

@@ -260,4 +260,24 @@ theorem gh_answered_iff:
   using gh_not_word[of r] by (cases "gh_kernel r")
     (auto simp: gh_reply_def reply_val_def decline_reply_def split: option.splits decl.splits)
 
+
+theorem gh_vpd_decline:
+  "(\<exists>w. gh_kernel (GhVpd (Some t) u leaf lu (Some r) True) = Decline (Imposs w))
+   \<longleftrightarrow> r < 0 \<or> 100 < r \<or> tetens_c + g_to_c t u = 0 \<or>
+     (\<exists>l. leaf = Some l \<and> tetens_c + g_to_c l lu = 0)"
+  by (auto simp: gh_kernel_def pole_ok_def split: option.splits)
+
+theorem gh_photoperiod_decline:
+  "(\<exists>w. gh_kernel (GhPpfd d h) = Decline (Imposs w)) \<longleftrightarrow> h \<le> 0"
+  by (auto simp: gh_kernel_def)
+
+theorem gh_temperature_order_decline:
+  "(\<exists>w. gh_kernel (GhGdd (Some hi) (Some lo) (Some b)) = Decline (Imposs w)) \<longleftrightarrow> hi < lo"
+  by (auto simp: gh_kernel_def)
+
+theorem gh_spacing_decline:
+  "(\<exists>w. gh_kernel (GhPlants (Some a) au (Some s1) u1 (Some s2) u2) = Decline (Imposs w))
+   \<longleftrightarrow> s1 * len_m u1 \<le> 0 \<or> s2 * len_m u2 \<le> 0"
+  by (auto simp: gh_kernel_def)
+
 end

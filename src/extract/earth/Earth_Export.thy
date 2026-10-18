@@ -40,7 +40,7 @@ definition self_tests :: "bool list" where
 definition self_test :: bool where
   "self_test \<longleftrightarrow> list_all id self_tests"
 
-export_code reply_of answered reply_kind response stated answers mk_rat self_test self_tests capital_known
+export_code reply_of answered reply_kind response stated answers mk_rat capital_known
   integer_of_int nat_of_integer int_of_integer
   RGeo RGeol RSeis RHydro ROcean RWeather RGreen
   GCapital GGc GAntipode GSolar GLat
@@ -54,7 +54,17 @@ export_code reply_of answered reply_kind response stated answers mk_rat self_tes
 
 ML \<open>
   val theorems = [
-    @{thm round_tie_up}, @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm to_places_sound},
+    @{thm answers_iff_kernel_answers(1)}, @{thm answers_iff_kernel_answers(2)}, @{thm answers_iff_kernel_answers(3)},
+    @{thm answers_iff_kernel_answers(4)}, @{thm answers_iff_kernel_answers(5)}, @{thm answers_iff_kernel_answers(6)},
+    @{thm answers_iff_kernel_answers(7)}, @{thm age_ratio_decay_law}, @{thm age_fraction_decay_law},
+    @{thm harvest_without_efficiency_is_before_losses}, @{thm mw_spec_is_mw_of}, @{thm m0_spec_is_m0_of},
+    @{thm rnd_even_class_saffir}, @{thm hav_symmetric}, @{thm gc_symmetric},
+    @{thm gl_fraction_decline}, @{thm gl_ratio_decline}, @{thm gl_remaining_decline},
+    @{thm gl_plate_rate_decline}, @{thm seis_travel_decline}, @{thm seis_moment_decline},
+    @{thm hy_manning_decline}, @{thm hy_fill_decline}, @{thm gh_vpd_decline},
+    @{thm gh_photoperiod_decline}, @{thm gh_temperature_order_decline}, @{thm gh_spacing_decline},
+    @{thm w_reply_numeric_sound},
+    @{thm reply_val_code}, @{thm round_tie_up}, @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm to_places_sound},
     @{thm round_layout_sound}, @{thm render_x_sound}, @{thm reply_val_states}, @{thm reply_with_states},
     @{thm decline_reply_withheld}, @{thm reply_withheld_has_no_value},
     @{thm central_angle}, @{thm hav_le_one}, @{thm gc_sound}, @{thm antipode_sound},

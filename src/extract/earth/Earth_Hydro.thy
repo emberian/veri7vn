@@ -65,7 +65,7 @@ fun hy_missing :: "hyd_req \<Rightarrow> String.literal option" where
 
 fun hy_impossible :: "hyd_req \<Rightarrow> String.literal option" where
   "hy_impossible (HyManning (Some n) (Some a) (Some p) (Some s) q) =
-     (if n = 0 \<or> p = 0 then Some (STR ''Manning'' + apos + STR ''s n and the wetted perimeter must be positive.'') else None)"
+     (if n \<le> 0 \<or> p \<le> 0 \<or> a < 0 \<or> s < 0 then Some (STR ''Manning'' + apos + STR ''s n and the wetted perimeter must be positive; area and slope cannot be negative.'') else None)"
 | "hy_impossible (HyFill (Some v) vu (Some r) ru tu) =
      (if r * vol_litres ru \<le> 0 then Some (STR ''A flow rate must be positive.'') else None)"
 | "hy_impossible _ = None"
@@ -269,5 +269,18 @@ theorem hy_answered_iff:
   "answered (hy_reply r) \<longleftrightarrow> (\<exists>x s. hy_kernel r = Value x \<and> render_x GHydro x = Some s)"
   using hy_not_word[of r] by (cases "hy_kernel r")
     (auto simp: hy_reply_def reply_val_def decline_reply_def split: option.splits decl.splits)
+
+
+text \<open>The Manning model requires positive roughness and perimeter, and
+nonnegative area and slope.\<close>
+theorem hy_manning_decline:
+  "(\<exists>w. hy_kernel (HyManning (Some n) (Some a) (Some p) (Some s) q) = Decline (Imposs w))
+   \<longleftrightarrow> n \<le> 0 \<or> p \<le> 0 \<or> a < 0 \<or> s < 0"
+  by (auto simp: hy_kernel_def)
+
+theorem hy_fill_decline:
+  "(\<exists>w. hy_kernel (HyFill (Some v) vu (Some r) ru tu) = Decline (Imposs w))
+   \<longleftrightarrow> r * vol_litres ru \<le> 0"
+  by (auto simp: hy_kernel_def)
 
 end

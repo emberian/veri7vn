@@ -266,4 +266,14 @@ theorem seis_answered_iff:
   using seis_not_word[of r] by (cases "seis_kernel r")
     (auto simp: seis_reply_def reply_val_def decline_reply_def split: option.splits decl.splits)
 
+
+theorem seis_travel_decline:
+  "(\<exists>w. seis_kernel (SeSP (Some dt) (Some p) (Some s)) = Decline (Imposs w))
+   \<longleftrightarrow> p \<le> s \<or> s \<le> 0"
+  by (auto simp: seis_kernel_def)
+
+theorem seis_moment_decline:
+  "(\<exists>w. seis_kernel (SeMw m) = Decline (Imposs w)) \<longleftrightarrow> m \<le> 0"
+  by (auto simp: seis_kernel_def)
+
 end

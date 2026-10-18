@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "family": "earth",
+  "specialists": {
+    "geography": {
+      "accept": {
+        "declines_in_domain": [
+          "impossible",
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "geology": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "seismology": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "hydrology": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "ocean": {
+      "accept": {
+        "declines_in_domain": [
+          "impossible",
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      },
+      "context_regex_additions": [
+        "\\bshallow[- ]water(?: wave)?\\b"
+      ]
+    },
+    "meteorology": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "greenhouse": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "greenhouse-r2": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    }
+  }
+}

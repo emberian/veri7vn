@@ -1,14 +1,10 @@
 #!/bin/sh
 # Build the earth family answerer binary from the checked HOL export.
 #
-# Precondition: the Isabelle session has passed check-native (that is where the
-# theorems are proved and the code is generated); this script never builds
-# Isabelle sessions. It
-#   1. reads the generated SML out of the session database (isabelle export -n,
-#      no build) while holding the shared native build lock,
-#   2. compiles generated kernel + untrusted recognizer + driver with the MLton
-#      that ships inside Isabelle,
-#   3. writes var/earth/bin/earth and prints its size.
+# Precondition: tools/dev/remote-build passed the Earth proof marker and published
+# its fresh checked SML under var/earth/export-remote. This script never builds
+# Isabelle sessions. It compiles that kernel with the untrusted recognizer and
+# driver, then prints binary size and both kernel and binary hashes.
 set -eu
 REPO=$(cd "$(dirname "$0")/../../.." && pwd)
 ISABELLE_APP=${ISABELLE_APP:-/Applications/Isabelle2026-RC1.app}
@@ -18,7 +14,7 @@ OUT=$REPO/var/earth
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
-# the generated SML comes from the remote build (tools/dev/remote-build hbox src/extract/earth Veri7vn_Earth)
+# The generated SML comes from a successful scoped remote proof build.
 EXP="$OUT/export-remote/Veri7vn_Earth"
 GEN=$(find "$EXP" -type f -name 'earth*.ML' | head -n 1)
 [ -n "$GEN" ] || { echo "no generated SML found under $EXP" >&2; exit 1; }
@@ -31,6 +27,6 @@ $SRC/regex.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/earth" "$OUT/build/earth.mlb"
+"$REPO/tools/dev/native-compile" --family earth --compiler "$MLTON" -- -output "$OUT/bin/earth" "$OUT/build/earth.mlb"
 ls -l "$OUT/bin/earth"
 shasum -a 256 "$OUT/build/earth_generated.sml" "$OUT/bin/earth"

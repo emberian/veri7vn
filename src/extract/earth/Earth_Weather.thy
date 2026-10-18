@@ -570,4 +570,32 @@ theorem w_answered_iff:
   using w_not_word[of r] by (cases "w_kernel r")
     (auto simp: w_reply_def reply_val_def decline_reply_def split: option.splits decl.splits)
 
+
+text \<open>The actual stated decimal and the number inserted into the weather
+sentence denote the physical model's value within the chosen layout error.\<close>
+theorem w_reply_numeric_sound:
+  assumes "answered (w_reply r)"
+  shows "w_kernel r = Note \<or> (\<exists>x L d. w_kernel r = Value x \<and>
+    stated (w_reply r) = Some (render_layout L d) \<and>
+    response (w_reply r) = w_text r (render_layout L d) \<and>
+    \<bar>dec_val d - w_phys r\<bar> \<le> layout_err L (w_phys r))"
+proof -
+  from assms w_answered_iff obtain x s where
+    c: "w_kernel r = Note \<or> (w_kernel r = Value x \<and> render_x (GFix L4) x = Some s)" by blast
+  show ?thesis
+  proof (cases "w_kernel r = Note")
+    case True then show ?thesis by blast
+  next
+    case False
+    with c have k: "w_kernel r = Value x" and s: "render_x (GFix L4) x = Some s" by auto
+    obtain L d where ds: "s = render_layout L d"
+      and b: "\<bar>dec_val d - xsem x\<bar> \<le> layout_err L (xsem x)"
+      using render_x_sound[OF s] by blast
+    have sem: "xsem x = w_phys r" using w_value_sound[OF k] .
+    show ?thesis
+      by (intro disjI2 exI[of _ x] exI[of _ L] exI[of _ d])
+         (use k s ds b sem in \<open>simp add: w_reply_def reply_val_def stated_x_def\<close>)
+  qed
+qed
+
 end
