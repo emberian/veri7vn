@@ -66,7 +66,17 @@ eight wrong numerical answers, one ignored output unit and five valid withholds.
 2. **Fleet output volume:** an explicit Imperial-gallon output request returns
    4.804 US gallons for 100 miles at 25 Imperial mpg. Preserve output units
    independently of the input economy unit and return 4 Imperial gallons.
-   Review trip-price volume units through the same model.
+   A subsequent 39-case unit-role panel confirms three wrong numerical costs,
+   three ignored output units, 12 right answers and 21 valid withholds. In
+   particular, 100 miles at 25 Imperial mpg and $3 per gallon (Imperial)
+   returns $14.41 instead of $12. The price boolean represents US gallons or
+   litres only. Carry the price denominator as a separate volume unit too;
+   merely extending the regex would still bind the wrong model. Prefix-qualified
+   prices and multisentence requests also expose capability misses. The exact
+   cases are in `evidence/fleet-units-20261018.json`; replay with
+   `src/extract/mechanics/check_fleet_units.py --binary PATH --out PATH`.
+   Its exit status is 1 while known gaps remain. These are additional partial
+   audit measurements, not a new shipped score or a production repair.
 3. **Quantity-dependent physical conditions:** all four gravity wrappers
    withhold a potential-energy request just because it mentions drag. Keep the
    drag restriction on fall-time and impact-speed models, but allow quantities
