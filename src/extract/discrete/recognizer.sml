@@ -759,6 +759,75 @@ struct
       SOME m => SOME (g1 t m)
     | NONE => NONE
 
+  (* Whole ordinal phrases, rather than suffix matches: twenty-first is not
+     first, -1st is not first, and 21.5th is not fifth. This parser is untrusted. *)
+  val ordinalUnits = [("first", 1), ("second", 2), ("third", 3), ("fourth", 4),
+    ("fifth", 5), ("sixth", 6), ("seventh", 7), ("eighth", 8), ("ninth", 9)]
+  val ordinalWords = ordinalUnits @
+    [("tenth",10), ("eleventh",11), ("twelfth",12), ("thirteenth",13),
+     ("fourteenth",14), ("fifteenth",15), ("sixteenth",16), ("seventeenth",17),
+     ("eighteenth",18), ("nineteenth",19), ("twentieth",20), ("thirtieth",30),
+     ("fortieth",40), ("fiftieth",50)] @
+    List.concat (map (fn (ten, n) => List.concat (map (fn (unit, k) =>
+      [(ten ^ "-" ^ unit, n + k), (ten ^ " " ^ unit, n + k)]) ordinalUnits))
+      [("twenty",20), ("thirty",30), ("forty",40)])
+  val cardinalWords = ["zero", "one", "two", "three", "four", "five", "six", "seven",
+    "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+    "sixteen", "seventeen", "eighteen", "nineteen", "twenty", "thirty", "forty",
+    "fifty", "sixty", "seventy", "eighty", "ninety", "hundred", "thousand",
+    "million", "billion", "and", "negative", "minus", "plus", "positive", "-", "+", "\226\136\146", "\226\128\147"]
+  fun numberModifier token =
+    List.exists (fn w => w = token) cardinalWords orelse
+    (* Gather only adjacent numeric-looking tokens; exact ordinalValue below
+       rejects a fraction/scientific spelling instead of discarding it. *)
+    has "^(?:[+-]|\226\136\146|\226\128\147)?(?:[0-9]|\\.[0-9])" token
+  fun ordinalValue phrase =
+    case List.find (fn (word, _) => word = phrase) ordinalWords of
+      SOME (_, n) => SOME n
+    | NONE =>
+      (case search "^([0-9]+)(st|nd|rd|th)$" phrase of
+         NONE => NONE
+       | SOME m =>
+         let val n = intOf (g1 phrase m)
+             val suffix = valOf (grp phrase m 2)
+             val lastTwo = n mod 100
+             val expected = if lastTwo >= 11 andalso lastTwo <= 13 then "th"
+               else if n mod 10 = 1 then "st" else if n mod 10 = 2 then "nd"
+               else if n mod 10 = 3 then "rd" else "th"
+         in if n >= 1 andalso n <= 50 andalso suffix = expected
+            then SOME (IntInf.toInt n) else NONE end)
+  fun derivativeOrder low =
+    case search "\\bderivative\\b" low of
+      NONE => SOME 1
+    | SOME m =>
+      let
+        val prefixText = String.substring (low, 0, #start m)
+        val words = rev (String.tokens Char.isSpace prefixText)
+        fun qualifiers flag (w :: ws) =
+              if w = "partial" orelse w = "ordinary" orelse w = "total"
+              then qualifiers flag ws
+              else if w = "order" then
+                (if flag then (true, w :: ws) else qualifiers true ws)
+              else (flag, w :: ws)
+          | qualifiers flag [] = (flag, [])
+        val (explicit, words) = qualifiers false words
+        fun preceding [] acc = rev acc
+          | preceding (w :: ws) acc =
+              if numberModifier w then preceding ws (w :: acc) else rev acc
+      in
+        case words of
+          [] => if explicit then NONE else SOME 1
+        | raw :: rest =>
+          let val ordered = String.isSuffix "-order" raw
+              val token = if ordered then String.substring (raw, 0, size raw - 6) else raw
+              val indicated = explicit orelse ordered orelse numberModifier token orelse
+                has "(?:st|nd|rd|th)(?:[^a-z0-9]|$)" token
+              val prefix = preceding rest []
+              val phrase = String.concatWith " " (rev prefix @ [token])
+          in if token = "find" andalso not explicit andalso not ordered then SOME 1
+             else if indicated then ordinalValue phrase else SOME 1 end
+      end
+
   fun calculus text =
     let
       val t = collapse text
@@ -809,17 +878,7 @@ struct
                 end
               else
                 let
-                  val orderWords = [("first", 1), ("second", 2), ("third", 3), ("fourth", 4),
-                    ("fifth", 5), ("sixth", 6), ("seventh", 7), ("eighth", 8), ("ninth", 9), ("tenth", 10)]
-                  val n = case search "\\b([a-z0-9]+(?:th|nd|rd|st)|second)\\s+derivative\\b" low of
-                    NONE => 1
-                  | SOME m => let val word = g1 low m in
-                      case List.find (fn (w, _) => w = word) orderWords of
-                        SOME (_, n) => n
-                      | NONE => (case IntInf.fromString word of
-                          SOME n => if n >= 1 andalso n <= 50 then IntInf.toInt n else 0
-                        | NONE => 0)
-                    end
+                  val n = case derivativeOrder low of SOME n => n | NONE => 0
                   val pm = case search ("\\b(?:at|when|where)\\s+(?:[a-z]\\s*=\\s*)?" ^ NUMRE ^ "(?![a-z0-9_/+*^-]|\\.[a-z0-9])") low of
                              SOME m => SOME (g1 low m)
                            | NONE => (case search ("\\bf'+\\(\\s*" ^ NUMRE ^ "\\s*\\)") low of SOME m => SOME (g1 low m) | NONE => NONE)

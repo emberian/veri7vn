@@ -45,3 +45,10 @@ calculus or algorithms generator. `probes.py` records 24 calculus development
 probes with exact expectations; its author also changed the recognizer, so it is
 not independent evidence. Current numbers and build receipts belong in
 [the continuation report](../../../project/lanes/C-symbolic-discrete.md).
+
+Derivative ordinals now parse as complete phrases: “twenty-first” and “twenty
+first” mean 21, while negative, fractional and malformed ordinals refuse instead
+of taking a convenient suffix. Numeric ordinals require their canonical suffix
+(21st, not 21th). `ordinal_probes.py` checks exact values and the named order for
+168 authored cases; [the ordinal report](../../../project/lanes/D-symbolic-discrete.md)
+records panel and dispatcher results. This still does not verify English parsing.
