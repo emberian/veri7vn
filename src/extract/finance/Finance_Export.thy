@@ -29,6 +29,16 @@ definition self_test :: bool where
      kernel (R_BreakEven (Some 1) (Some 4) (Some 4)) = NoValue K_never_even \<and>
      kernel (R_EOQ (Some 1200) (Some 40) (Some 2)) = Approx K_eoq (2191, -1) \<and>
      kernel F_Advice = Decline Advice \<and>
+     kernel (F_Annuity (Some 100) (Some 0) (Some 1)) = Exact K_annuity 1200 \<and>
+     stated (reply_of (F_Annuity (Some 100) (Some (12 / 100)) (Some 1))) = Some (STR ''1268.25'') \<and>
+     kernel (F_Annuity (Some 100) None (Some 1)) = Decline (Underspecified N_annuity) \<and>
+     kernel (F_TwoPhase (Some 1000) (Some (1 / 10)) (Some 1) (Some Fq_annual) (Some (1 / 5)) (Some 1) (Some Fq_annual))
+       = Cents K_two_phase 132000 \<and>
+     kernel (F_TwoPhase (Some 1000) (Some (1 / 10)) (Some 1) (Some Fq_continuous) (Some (1 / 5)) (Some 1) (Some Fq_annual))
+       = Decline (Impossible R_phase) \<and>
+     kernel (E_RealGdp (Some 24) (Some 120) (STR '''')) = Exact K_real_gdp 20 \<and>
+     kernel (E_RealGdp (Some 24) (Some 0) (STR '''')) = Decline (Impossible R_positive) \<and>
+     kernel (R_DiscountTax 100 [20] (1 / 10)) = Exact K_discount_tax 88 \<and>
      response (reply_of (F_Simple (Some 5000) (Some (8 / 100)) (Some 10))) =
        STR ''The simple interest is $4,000.00 (I = P*r*t = $5,000.00 x 8% x 10 years); total $9,000.00.'' \<and>
      stated (reply_of (F_Simple (Some 5000) (Some (8 / 100)) (Some 10))) = Some (STR ''4000.00'') \<and>
@@ -47,7 +57,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat self_tes
   E_Elasticity E_ElasticityPct E_Inflation E_RealValue E_RealRate E_Growth E_Multiplier
   E_TaxMultiplier E_Unemployment E_Participation E_Deflator E_Rule70
   R_BreakEven R_EOQ R_ROP R_Turnover R_Days R_Markup R_Margin R_PriceMarkup R_PriceMargin
-  R_Discount R_WithTax
+  R_Discount R_WithTax F_Annuity F_TwoPhase E_RealGdp R_DiscountTax
   in SML module_name Finance file_prefix finance
 
 ML \<open>
@@ -65,7 +75,9 @@ ML \<open>
     @{thm tax_multiplier_relation}, @{thm fisher_relation}, @{thm unemployment_in_range},
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_states_cents},
     @{thm reply_states_approx}, @{thm reply_withheld_names_decline},
-    @{thm exact_stated_within_tolerance}] @ @{thms kernel_refusal};
+    @{thm exact_stated_within_tolerance},
+    @{thm annuity_accumulates}, @{thm annuity_inverts_savings}, @{thm two_phase_chains},
+    @{thm real_gdp_equation}, @{thm real_gdp_deflator_roundtrip}, @{thm discount_tax_chains}] @ @{thms kernel_refusal};
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("finance theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "finance self test failed";

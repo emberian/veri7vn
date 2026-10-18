@@ -126,6 +126,8 @@ struct
   val SCALE = "\\s*(trillion|billion|million|thousand)?"
 
   (* ====================== finance ====================== *)
+  val PCT0 = "\\d+(?:\\.\\d+)?\\s*(?:%|percent\\b)"
+  val PCT = PCT0
   val FIN_MONEY = "\\binterest\\b|\\bloan\\b|\\bmortgage\\b|\\bapr\\b|\\bapy\\b|\\bsav(?:e|ings)\\b|\\binvest\\w*\\b|\\bcompound\\w*\\b|\\bdoubl\\w*\\b|\\bdeposit\\b"
   val ADVICE = "\\bshould i\\b|\\bis it (?:a )?(?:good|bad|smart|wise)\\b|\\bworth it\\b|\\bwhich (?:stock|fund|etf|crypto|coin|bank|card)\\b|"
     ^ "\\bbest (?:investment|stock|fund|way to invest)\\b|\\bwhat (?:should|to) (?:i )?(?:buy|invest)\\b|\\brecommend\\b|\\bwill .* go up\\b"
@@ -160,6 +162,26 @@ struct
            NONE => NONE
          | SOME m => (case firstGroup low m [1, 2] of NONE => NONE | SOME w => freqWord w)
 
+  (* B-lane: forward value of equal monthly deposits ("I deposit $200 a month at 6% for 10 years; how much will I have?").
+     Strict: one dollar amount (the deposit), one percent figure, a term, a monthly deposit, deposits at the END of the
+     month (the kernel's ordinary annuity), compounding monthly or unstated; anything else stays withheld. *)
+  val MONTHLY_DEP = "\\$\\s*" ^ N ^ "\\s*(?:a|each|every|per)\\s+month\\b|\\bmonthly (?:deposits?|contributions?|payments?) of\\s*\\$\\s*" ^ N
+  fun annuityOk low =
+    has MONTHLY_DEP low
+    andalso has "\\b(?:deposit|deposits|deposited|depositing|save|saves|saving|invest|invests|contribute|contributes|put|add)\\b" low
+    andalso has "\\bhow much\\b|\\bwhat (?:will|would)\\b|\\bfuture value\\b|\\bbalance\\b|\\bworth\\b" low
+    andalso length (findall "\\$" low) = 1
+    andalso length (findall PCT0 low) = 1
+    andalso isSome (fyears low)
+    andalso not (has "\\b(?:beginning|start|first day|advance|due)\\b|\\bannuity due\\b|\\b(?:initial|starting|opening|existing|already)\\b|\\bloan\\b|\\bmortgage\\b|\\bwithdraw\\w*\\b" low)
+    andalso (case freqOf low of NONE => true | SOME F.Fq_monthly => true | SOME _ => false)
+    andalso not (has "\\bcontinuous(?:ly)?\\b" low)
+  and annuityReq low =
+    let
+      val dm = valOf (search MONTHLY_DEP low)
+      val dep = fr_of (valOf (firstGroup low dm [1, 2]))
+    in SOME (F.F_Annuity (SOME (rat dep), ratO (frate low), ratO (fyears low))) end
+
   fun finCore low : F.request option =
     if not (has FIN_MONEY low) then NONE
     else
@@ -185,6 +207,7 @@ struct
                     andalso has "\\bmonth" low then
               SOME (F.F_Savings (P, y, r))
             else if has "\\bsimple interest\\b" low then SOME (F.F_Simple (P, r, y))
+            else if annuityOk low then annuityReq low
             else if has ("\\bannuit|\\b(?:per|each|every|a) (?:month|week|year)\\b(?![^.?]*\\bcompound)|"
                          ^ "\\bmonthly (?:deposits?|payments?|contributions?|earnings|savings)\\b") low then NONE
             else
@@ -202,9 +225,34 @@ struct
           end
       end
 
-  val PCT = "\\d+(?:\\.\\d+)?\\s*(?:%|percent\\b)"
   val PHASE = "\\b(?:and\\s+then|then\\s+\\d|for\\s+the\\s+(?:next|following|remaining)|after\\s+that|thereafter|afterwards)\\b"
   fun distinct xs = List.foldl (fn (x, acc) => if List.exists (fn y => y = x) acc then acc else x :: acc) [] xs
+
+  (* B-lane: exactly "R1% compounded F1 for Y1 years, and then R2% compounded F2 for the next Y2 years" on one dollar
+     amount; anything looser stays the in-domain multi-phase decline. *)
+  val NUMW = "(\\d+(?:\\.\\d+)?|one|two|three|four|five|six|seven|eight|nine|ten)"
+  val PHASE1 = "(\\d+(?:\\.\\d+)?)\\s*(?:%|percent\\b)[^.?;]{0,40}?compounded\\s+(annually|yearly|semi-?annually|quarterly|monthly|weekly|daily)"
+               ^ "[^.?;%]{0,25}?for\\s+(?:the\\s+(?:next|following)\\s+)?" ^ NUMW ^ "\\s+years?\\b"
+  fun numWord "one" = SOME (fint 1) | numWord "two" = SOME (fint 2) | numWord "three" = SOME (fint 3)
+    | numWord "four" = SOME (fint 4) | numWord "five" = SOME (fint 5) | numWord "six" = SOME (fint 6)
+    | numWord "seven" = SOME (fint 7) | numWord "eight" = SOME (fint 8) | numWord "nine" = SOME (fint 9)
+    | numWord "ten" = SOME (fint 10) | numWord w = SOME (fr_of w)
+  fun twoPhase low : F.request option =
+    case findall PHASE1 low of
+      [m1, m2] =>
+        if length (findall "\\$" low) = 1 andalso length (findall PCT0 low) = 2 andalso length (findall "\\byears?\\b" low) = 2
+           andalso has "\\band\\s+then\\b|\\bthen\\b|\\bfor the next\\b|\\bafter that\\b" low
+           andalso has "\\bgrow|\\bworth\\b|\\bbalance\\b|\\bhave\\b|\\bend up\\b|\\bvalue\\b" low
+           andalso not (has "\\bshould\\b|\\bdeposit\\w*\\s+(?:each|every|a)\\b|\\bwithdraw\\w*\\b|\\bper (?:month|year)\\b" low)
+        then
+          (case (fprincipal low, freqWord (valOf (grp low m1 2)), freqWord (valOf (grp low m2 2)),
+                 numWord (valOf (grp low m1 3)), numWord (valOf (grp low m2 3))) of
+             (SOME p, SOME f1, SOME f2, SOME y1, SOME y2) =>
+               SOME (F.F_TwoPhase (SOME (rat p), SOME (rat (fdivi (fr_of (g1 low m1)) 100)), SOME (rat y1), SOME f1,
+                                   SOME (rat (fdivi (fr_of (g1 low m2)) 100)), SOME (rat y2), SOME f2))
+           | _ => NONE)
+        else NONE
+    | _ => NONE
 
   (* variant 1 = finance, 2 = finance-v2, 3 = finance-v2-r2 *)
   fun finance variant text =
@@ -238,7 +286,7 @@ struct
              if F.answers req
                 andalso (length (distinct (map (fn m => replaceAll "\\s" "" (Regex.whole low0 m)) (findall PCT low0))) >= 2
                          orelse (has PHASE low0 andalso has PCT low0))
-             then SOME F.F_MultiPhase else a2
+             then (case twoPhase low0 of SOME req => SOME req | NONE => SOME F.F_MultiPhase) else a2
          | NONE => NONE)
       else a2
     end
@@ -331,7 +379,7 @@ struct
                            in if fle gr (fint 0) then NONE else SOME (F.E_Rule70 (SOME (rat gr))) end)
             else if has "\\belasticity\\b|\\belastic\\b" low then econElast low
             else if has "\\bcpi\\b|\\bconsumer price index\\b|\\bprice index\\b" low
-                    andalso has "\\binflation\\b|\\bhow much (?:did )?prices\\b|\\bpercent(?:age)? (?:change|increase)\\b" low
+                    andalso has "\\binflation\\b|\\bhow much (?:did )?prices\\b|\\bpercent(?:age)? (?:change|increase)\\b|\\bby what percent(?:age)?\\b" low
                     andalso not (has "\\bworth\\b|\\bdollars\\b|\\badjust\\w*\\b" low) then
               (case from_to low "\\bcpi\\b|\\bconsumer price index\\b|\\bprice index\\b" of
                  NONE => SOME (F.E_Inflation NONE)
@@ -383,7 +431,21 @@ struct
     let
       val nm = search ("\\bnominal gdp\\s*(?:of|is|was|=|:)?\\s*" ^ NM ^ SCALE) low
       val rm = search ("\\breal gdp\\s*(?:of|is|was|=|:)?\\s*" ^ NM ^ SCALE) low
+      (* B-lane: "What is real GDP if nominal GDP is $24 trillion and the GDP deflator is 120?" -> nominal / deflator x 100,
+         in the units the question used. A deflator below 10 is probably a ratio, not an index near 100: withheld. *)
+      val dm = search ("\\bdeflator\\s*(?:of|is|was|=|:)?\\s*" ^ N ^ "(?!\\s*(?:trillion|billion|million|thousand|%))") low
+      val asksReal = has "\\b(?:what|find|compute|calculate|determine)\\b[^.?]{0,30}\\breal gdp\\b" low
     in
+      case (nm, rm, dm) of
+        (SOME n, NONE, SOME d) =>
+          if asksReal andalso not (has "\\bwhat is the (?:gdp )?deflator\\b|\\bcompute the (?:gdp )?deflator\\b" low) then
+            let val dv = fr_of (g1 low d)
+            in if fle dv (fint 10) then NONE
+               else SOME (F.E_RealGdp (SOME (rat (fnum low n 1)), SOME (rat dv),
+                                       (case grp low n 2 of SOME u => " " ^ u | NONE => "")))
+            end
+          else SOME (F.E_Deflator (NONE, NONE))
+      | _ =>
       case (nm, rm) of
         (SOME n, SOME r) =>
           let val nv = scaled low n 1 2
@@ -497,6 +559,9 @@ struct
           val vm = case search ("\\bvariable cost\\s*(?:of|is|=)?\\s*\\$\\s*" ^ N) low of
                      SOME m => SOME (fr_of (g1 low m))
                    | NONE => money1 ("\\$\\s*" ^ N ^ "\\s*(?:variable|per unit (?:to make|in variable))")
+          (* B-lane: "a $25 price" (amount before the word) *)
+          val p = case p of SOME x => SOME x
+                  | NONE => money1 ("\\$\\s*" ^ N ^ "\\s+(?:selling |sale )?price\\b")
         in SOME (F.R_BreakEven (ratO fm, ratO p, ratO vm)) end
       else if has "\\beoq\\b|\\beconomic order quantity\\b" low then
         let
@@ -542,6 +607,27 @@ struct
                         in SOME (if want_markup then F.R_PriceMarkup (rat cc, rat m) else F.R_PriceMargin (rat cc, rat m)) end
                    else NONE
                | _ => NONE)
+        end
+      (* B-lane: a discount AND a sales tax in one question ("$50 shirt, 20% off, then 8% sales tax"): the discounted price
+         plus tax. Before this, the discount branch below answered the discount alone and ignored the tax. Strict reading:
+         one dollar amount, every percent figure is either "N% off" / "discount of N%" or the tax rate; otherwise withheld. *)
+      else if has "\\bdiscount\\b|%\\s*off\\b|\\boff\\b" low andalso has "\\btax\\b" low andalso has ("\\$\\s*" ^ N) low then
+        let
+          val offs = map (fn m => fr_of (g1 low m)) (findall (N ^ "\\s*%\\s*off\\b") low)
+                     @ map (fn m => fr_of (g1 low m)) (findall ("\\bdiscount\\s*(?:of|at)?\\s*" ^ N ^ "\\s*%") low)
+                     @ map (fn m => fr_of (g1 low m)) (findall (N ^ "\\s*%\\s*discount\\b") low)
+          val taxm = case search (N ^ "\\s*%\\s*(?:sales\\s+)?tax\\b") low of
+                       SOME m => SOME m
+                     | NONE => search ("\\b(?:sales\\s+)?tax\\s*(?:rate\\s*)?(?:of|at|is|=)?\\s*" ^ N ^ "\\s*%") low
+        in
+          case taxm of
+            SOME tm =>
+              if length (findall "\\$" low) = 1 andalso not (null offs) andalso length (findall (N ^ "\\s*%") low) = length offs + 1
+                 andalso not (has "\\btax[- ]free\\b|\\bbefore tax\\b" low)
+              then SOME (F.R_DiscountTax (rat (fr_of (g1 low (valOf (search ("\\$\\s*" ^ N) low)))), map rat offs,
+                                          rat (fdivi (fr_of (g1 low tm)) 100)))
+              else NONE
+          | NONE => NONE
         end
       else if has "\\bdiscount\\b|\\b% off\\b|\\boff\\b|\\bsale\\b" low andalso has ("\\$\\s*" ^ N) low andalso isSome pct then
         let

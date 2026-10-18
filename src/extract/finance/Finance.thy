@@ -123,6 +123,8 @@ datatype request =
   | F_Savings "rat option" "rat option" "rat option"
   | F_Simple "rat option" "rat option" "rat option"
   | F_Compound "rat option" "rat option" "rat option" "freq option"
+  | F_Annuity "rat option" "rat option" "rat option"
+  | F_TwoPhase "rat option" "rat option" "rat option" "freq option" "rat option" "rat option" "freq option"
   | F_Advice
   | F_MultiPhase
   | E_Elasticity "(rat \<times> rat) option" "(rat \<times> rat) option"
@@ -137,6 +139,7 @@ datatype request =
   | E_Participation "rat option" "rat option"
   | E_Deflator "rat option" "rat option"
   | E_Rule70 "rat option"
+  | E_RealGdp "rat option" "rat option" String.literal
   | R_BreakEven "rat option" "rat option" "rat option"
   | R_EOQ "rat option" "rat option" "rat option"
   | R_ROP "rat option" "rat option" rat
@@ -148,18 +151,22 @@ datatype request =
   | R_PriceMargin rat rat
   | R_Discount rat "rat list"
   | R_WithTax rat rat
+  | R_DiscountTax rat "rat list" rat
 
 text \<open>Finance: principal, annual rate as a fraction, years; a savings goal, years,
 optional rate. Economics: percentages as the percent numbers, MPC as a fraction;
 the CPI base year first. Retail: percentages as fractions, discounts as percent
-numbers (as the organs hold them).\<close>
+numbers (as the organs hold them). Lane B-finance additions: a monthly deposit
+(rate as a fraction, years), a two-phase account (principal, then rate, years and
+compounding for each phase), real GDP from nominal GDP and the deflator, and a
+discounted price with tax (discounts as percent numbers, tax as a fraction).\<close>
 
 datatype need = N_apr_freq | N_pos_rate | N_loan | N_goal | N_simple | N_compound
   | N_unemployed | N_labour | N_lf_pop | N_gdps | N_growth | N_elasticity | N_cpi | N_cpi_years
-  | N_break_even | N_eoq | N_rop | N_turnover
+  | N_break_even | N_eoq | N_rop | N_turnover | N_annuity | N_two_phase | N_real_gdp
 
 datatype reason = R_term | R_degenerate | R_mpc | R_unemp | R_partic | R_positive
-  | R_price_cost | R_margin
+  | R_price_cost | R_margin | R_phase
 
 datatype decline = Underspecified need | Impossible reason | Advice | MultiPhase | Imprecise
 
@@ -169,6 +176,7 @@ datatype kind = K_apy | K_doubling | K_loan_interest | K_loan_payment | K_saving
   | K_tax_multiplier | K_unemployment | K_participation | K_deflator | K_rule70
   | K_break_even | K_never_even | K_eoq | K_rop | K_days_inventory | K_turnover
   | K_markup | K_margin | K_price_from_markup | K_price_from_margin | K_discount | K_with_tax
+  | K_annuity | K_two_phase | K_real_gdp | K_discount_tax
 
 datatype outcome = Exact kind rat | Cents kind int | Approx kind "int \<times> int" | NoValue kind | Decline decline
 
@@ -178,6 +186,8 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (F_Savings _ _ _) = K_savings_goal" | "kind_of (F_Simple _ _ _) = K_simple_interest"
 | "kind_of (F_Compound _ _ _ _) = K_compound" | "kind_of F_Advice = K_advice"
 | "kind_of F_MultiPhase = K_multi_phase"
+| "kind_of (F_Annuity _ _ _) = K_annuity" | "kind_of (F_TwoPhase _ _ _ _ _ _ _) = K_two_phase"
+| "kind_of (E_RealGdp _ _ _) = K_real_gdp" | "kind_of (R_DiscountTax _ _ _) = K_discount_tax"
 | "kind_of (E_Elasticity _ _) = K_elasticity" | "kind_of (E_ElasticityPct _ _) = K_elasticity"
 | "kind_of (E_Inflation _) = K_inflation" | "kind_of (E_RealValue _ _ _ _ _) = K_real_value"
 | "kind_of (E_RealRate _ _) = K_real_rate" | "kind_of (E_Growth _ _) = K_growth"
@@ -206,6 +216,14 @@ fun fmt_of :: "kind \<Rightarrow> fmt" where
 | "fmt_of K_growth = Fm_g3" | "fmt_of K_multiplier = Fm_g3" | "fmt_of K_tax_multiplier = Fm_g3"
 | "fmt_of K_unemployment = Fm_g3" | "fmt_of K_participation = Fm_g3" | "fmt_of K_deflator = Fm_g3"
 | "fmt_of K_rule70 = Fm_g3"
+| "fmt_of K_annuity = Fm_money" | "fmt_of K_two_phase = Fm_money" | "fmt_of K_real_gdp = Fm_g3"
+| "fmt_of K_discount_tax = Fm_money"
+
+text \<open>A phase of a two-phase account must compound periodically over a whole
+number of periods; continuous compounding and fractional periods are declined
+(the exact fraction cannot be formed).\<close>
+definition phase_ok :: "rat \<Rightarrow> freq option \<Rightarrow> bool" where
+  "phase_ok y fo = (dflt fo \<noteq> Fq_continuous \<and> nat_exp (of_nat (per (dflt fo)) * y) \<noteq> None)"
 
 section \<open>Declines\<close>
 
@@ -220,6 +238,10 @@ fun missing :: "request \<Rightarrow> need option" where
 | "missing (F_Savings g y r) = (if g = None \<or> y = None then Some N_goal else None)"
 | "missing (F_Simple p r y) = (if p = None \<or> r = None \<or> y = None then Some N_simple else None)"
 | "missing (F_Compound p r y f) = (if p = None \<or> r = None \<or> y = None then Some N_compound else None)"
+| "missing (F_Annuity d r y) = (if d = None \<or> r = None \<or> y = None then Some N_annuity else None)"
+| "missing (F_TwoPhase p r1 y1 f1 r2 y2 f2) =
+     (if p = None \<or> r1 = None \<or> y1 = None \<or> r2 = None \<or> y2 = None then Some N_two_phase else None)"
+| "missing (E_RealGdp n d u) = (if n = None \<or> d = None then Some N_real_gdp else None)"
 | "missing (E_Elasticity pr qt) = (if pr = None \<or> qt = None then Some N_elasticity else None)"
 | "missing (E_ElasticityPct dp dq) = (if dp = None \<or> dq = None then Some N_elasticity else None)"
 | "missing (E_Inflation x) = (if x = None then Some N_cpi else None)"
@@ -241,6 +263,10 @@ fun impossible :: "request \<Rightarrow> bool" where
   "impossible (F_LoanPayment (Some p) (Some r) (Some y)) \<longleftrightarrow> months y = 0"
 | "impossible (F_LoanInterest (Some p) (Some r) (Some y)) \<longleftrightarrow> months y = 0"
 | "impossible (F_Savings (Some g) (Some y) r) \<longleftrightarrow> months y = 0"
+| "impossible (F_Annuity (Some d) (Some r) (Some y)) \<longleftrightarrow> months y = 0"
+| "impossible (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) \<longleftrightarrow>
+     \<not> phase_ok y1 f1 \<or> \<not> phase_ok y2 f2"
+| "impossible (E_RealGdp (Some n) (Some d) u) \<longleftrightarrow> d \<le> 0"
 | "impossible (E_Elasticity (Some (p1, p2)) (Some (q1, q2))) \<longleftrightarrow> p1 = p2 \<or> p1 + p2 = 0 \<or> q1 + q2 = 0"
 | "impossible (E_ElasticityPct (Some dp) (Some dq)) \<longleftrightarrow> dp = 0"
 | "impossible (E_Inflation (Some (a, b))) \<longleftrightarrow> a \<le> 0"
@@ -264,6 +290,10 @@ fun reason_of :: "request \<Rightarrow> reason option" where
   "reason_of (F_LoanPayment (Some p) (Some r) (Some y)) = (if months y = 0 then Some R_term else None)"
 | "reason_of (F_LoanInterest (Some p) (Some r) (Some y)) = (if months y = 0 then Some R_term else None)"
 | "reason_of (F_Savings (Some g) (Some y) r) = (if months y = 0 then Some R_term else None)"
+| "reason_of (F_Annuity (Some d) (Some r) (Some y)) = (if months y = 0 then Some R_term else None)"
+| "reason_of (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) =
+     (if \<not> phase_ok y1 f1 \<or> \<not> phase_ok y2 f2 then Some R_phase else None)"
+| "reason_of (E_RealGdp (Some n) (Some d) u) = (if d \<le> 0 then Some R_positive else None)"
 | "reason_of (E_Elasticity (Some (p1, p2)) (Some (q1, q2))) =
      (if p1 = p2 \<or> p1 + p2 = 0 \<or> q1 + q2 = 0 then Some R_degenerate else None)"
 | "reason_of (E_ElasticityPct (Some dp) (Some dq)) = (if dp = 0 then Some R_degenerate else None)"
@@ -311,6 +341,11 @@ text \<open>Monthly deposit that grows to @{text g}.\<close>
 definition sinking :: "rat \<Rightarrow> rat \<Rightarrow> nat \<Rightarrow> rat" where
   "sinking g i n = (if i = 0 then g / of_nat n else g * i / (rpow (1 + i) n - 1))"
 
+text \<open>Balance of equal deposits made at the end of each month at the monthly
+rate @{text i} (the closed form of @{text accum}).\<close>
+definition fv_ann :: "rat \<Rightarrow> rat \<Rightarrow> nat \<Rightarrow> rat" where
+  "fv_ann d i n = (if i = 0 then of_nat n * d else d * (rpow (1 + i) n - 1) / i)"
+
 fun qval :: "request \<Rightarrow> rat" where
   "qval (F_Apy (Some r) (Some f)) = 100 * (rpow (1 + r / of_nat (per f)) (per f) - 1)"
 | "qval (F_LoanPayment (Some p) (Some r) (Some y)) = pmt p (r / 12) (months y)"
@@ -320,6 +355,15 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (F_Compound (Some p) (Some r) (Some y) fo) =
      (case nat_exp (of_nat (per (dflt fo)) * y) of
         Some n \<Rightarrow> p * (1 + r / of_nat (per (dflt fo))) ^ n | None \<Rightarrow> 0)"
+| "qval (F_Annuity (Some d) (Some r) (Some y)) = fv_ann d (r / 12) (months y)"
+| "qval (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) =
+     (case nat_exp (of_nat (per (dflt f1)) * y1) of
+        Some n1 \<Rightarrow> (case nat_exp (of_nat (per (dflt f2)) * y2) of
+                     Some n2 \<Rightarrow> p * (1 + r1 / of_nat (per (dflt f1))) ^ n1 * (1 + r2 / of_nat (per (dflt f2))) ^ n2
+                   | None \<Rightarrow> 0)
+      | None \<Rightarrow> 0)"
+| "qval (E_RealGdp (Some n) (Some d) u) = n / d * 100"
+| "qval (R_DiscountTax b os r) = disc_val b os * (1 + r)"
 | "qval (E_Elasticity (Some (p1, p2)) (Some (q1, q2))) =
      ((q2 - q1) / ((q1 + q2) / 2)) / ((p2 - p1) / ((p1 + p2) / 2))"
 | "qval (E_ElasticityPct (Some dp) (Some dq)) = dq / dp"
@@ -476,12 +520,87 @@ next
   qed
 qed
 
+text \<open>Two phases of compound growth as one unreduced fraction (the second phase
+multiplies the first phase's numerator and denominator), rounded to cents.\<close>
+definition mul_frac :: "int \<times> int \<Rightarrow> rat \<Rightarrow> nat \<Rightarrow> int \<times> int" where
+  "mul_frac x b n = (case x of (N, D) \<Rightarrow> case quotient_of b of (a, c) \<Rightarrow> (N * a ^ n, D * c ^ n))"
+
+lemma mul_frac_props:
+  assumes "0 < D"
+  shows "0 < snd (mul_frac (N, D) b n) \<and>
+         of_int (fst (mul_frac (N, D) b n)) / of_int (snd (mul_frac (N, D) b n)) = (of_int N / of_int D) * b ^ n"
+proof -
+  obtain a c where b: "quotient_of b = (a, c)" by force
+  have bb: "b = of_int a / of_int c" by (rule quotient_of_div[OF b])
+  have c: "0 < c" by (rule quotient_of_denom_pos[OF b])
+  have hD: "(of_int D :: rat) \<noteq> 0" using assms by simp
+  have hc: "(of_int c :: rat) \<noteq> 0" using c by simp
+  have pos: "0 < D * c ^ n" using assms c by simp
+  have eq: "(of_int (N * a ^ n) / of_int (D * c ^ n) :: rat) = (of_int N / of_int D) * (of_int a / of_int c) ^ n"
+    using hD hc by (simp add: field_simps power_divide)
+  show ?thesis unfolding mul_frac_def b using pos eq bb by simp
+qed
+
+definition two_phase_out :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> freq \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> freq \<Rightarrow> outcome" where
+  "two_phase_out p r1 y1 f1 r2 y2 f2 =
+     (case nat_exp (of_nat (per f1) * y1) of
+        Some n1 \<Rightarrow> (case nat_exp (of_nat (per f2) * y2) of
+          Some n2 \<Rightarrow> Cents K_two_phase (round_frac 2 (mul_frac (compound_frac p (1 + r1 / of_nat (per f1)) n1)
+                                                        (1 + r2 / of_nat (per f2)) n2))
+        | None \<Rightarrow> Decline Imprecise)
+      | None \<Rightarrow> Decline Imprecise)"
+
+lemma two_phase_out_not_exact [simp]: "two_phase_out p r1 y1 f1 r2 y2 f2 \<noteq> Exact k q"
+  by (auto simp: two_phase_out_def split: option.splits)
+
+lemma two_phase_out_not_approx [simp]: "two_phase_out p r1 y1 f1 r2 y2 f2 \<noteq> Approx k d"
+  by (auto simp: two_phase_out_def split: option.splits)
+
+lemma two_phase_out_not_novalue [simp]: "two_phase_out p r1 y1 f1 r2 y2 f2 \<noteq> NoValue k"
+  by (auto simp: two_phase_out_def split: option.splits)
+
+lemma two_phase_out_decline: "two_phase_out p r1 y1 f1 r2 y2 f2 = Decline w \<Longrightarrow> w = Imprecise"
+  by (auto simp: two_phase_out_def split: option.splits)
+
+lemma two_phase_out_cents:
+  assumes "two_phase_out p r1 y1 f1 r2 y2 f2 = Cents k c"
+  shows "k = K_two_phase \<and> (\<exists>n1 n2. nat_exp (of_nat (per f1) * y1) = Some n1 \<and> nat_exp (of_nat (per f2) * y2) = Some n2 \<and>
+            c = \<lfloor>p * (1 + r1 / of_nat (per f1)) ^ n1 * (1 + r2 / of_nat (per f2)) ^ n2 * 100 + 1 / 2\<rfloor>)"
+proof (cases "nat_exp (of_nat (per f1) * y1)")
+  case None
+  then show ?thesis using assms by (simp add: two_phase_out_def)
+next
+  case (Some n1)
+  note s1 = Some
+  show ?thesis
+  proof (cases "nat_exp (of_nat (per f2) * y2)")
+    case None
+    then show ?thesis using assms s1 by (simp add: two_phase_out_def)
+  next
+    case (Some n2)
+    note s2 = Some
+    obtain N1 D1 where c1: "compound_frac p (1 + r1 / of_nat (per f1)) n1 = (N1, D1)" by force
+    have p1: "0 < D1" "of_int N1 / of_int D1 = (p * (1 + r1 / of_nat (per f1)) ^ n1 :: rat)"
+      using compound_frac_props[of p "1 + r1 / of_nat (per f1)" n1] c1 by simp_all
+    obtain N2 D2 where c2: "mul_frac (N1, D1) (1 + r2 / of_nat (per f2)) n2 = (N2, D2)" by force
+    have p2: "0 < D2" "of_int N2 / of_int D2 = (of_int N1 / of_int D1) * (1 + r2 / of_nat (per f2)) ^ n2"
+      using mul_frac_props[where N=N1 and b="1 + r2 / of_nat (per f2)" and n=n2, OF p1(1)] c2 by simp_all
+    have cc: "c = round_frac 2 (N2, D2)" and k: "k = K_two_phase"
+      using assms s1 s2 c1 c2 by (simp_all add: two_phase_out_def)
+    have "round_frac 2 (N2, D2) = \<lfloor>(of_int N2 / of_int D2) * 10 ^ 2 + 1 / 2 :: rat\<rfloor>"
+      by (rule round_frac_eq[OF p2(1)])
+    then show ?thesis using cc k s1 s2 p1(2) p2(2) by simp
+  qed
+qed
+
 section \<open>The kernel\<close>
 
 fun answer_of :: "request \<Rightarrow> outcome" where
   "answer_of (F_Apy (Some r) (Some Fq_continuous)) = approx_out K_apy (apy_fa r)"
 | "answer_of (F_Doubling (Some r)) = approx_out K_doubling (doubling_fa r)"
 | "answer_of (F_Compound (Some p) (Some r) (Some y) fo) = compound_out p r y (dflt fo)"
+| "answer_of (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) =
+     two_phase_out p r1 y1 (dflt f1) r2 y2 (dflt f2)"
 | "answer_of (R_EOQ (Some d) (Some s) (Some h)) = approx_out K_eoq (eoq_fa d s h)"
 | "answer_of (R_BreakEven (Some f) (Some p) (Some v)) =
      (if p \<le> v then NoValue K_never_even else Exact K_break_even (f / (p - v)))"
@@ -491,7 +610,7 @@ definition kernel :: "request \<Rightarrow> outcome" where
   "kernel r = (case decline_of r of Some w \<Rightarrow> Decline w | None \<Rightarrow> answer_of r)"
 
 lemma answer_decline: "answer_of r = Decline w \<Longrightarrow> w = Imprecise"
-  by (cases r rule: answer_of.cases) (auto dest: approx_out_decline compound_out_decline split: if_splits)
+  by (cases r rule: answer_of.cases) (auto dest: approx_out_decline compound_out_decline two_phase_out_decline split: if_splits)
 
 lemma answer_exact: "answer_of r = Exact k q \<Longrightarrow> k = kind_of r \<and> q = qval r"
   by (cases r rule: answer_of.cases) (auto split: if_splits)
@@ -500,7 +619,7 @@ lemma answer_cents:
   assumes "answer_of r = Cents k c"
   shows "k = kind_of r \<and> c = \<lfloor>qval r * 100 + 1 / 2\<rfloor>"
   using assms
-  by (cases r rule: answer_of.cases) (auto split: if_splits dest!: compound_out_cents)
+  by (cases r rule: answer_of.cases) (auto split: if_splits dest!: compound_out_cents two_phase_out_cents)
 
 lemma answer_approx:
   assumes "answer_of r = Approx k d"
@@ -548,13 +667,13 @@ qed
 
 theorem kernel_underspecified:
   "kernel r = Decline (Underspecified w) \<longleftrightarrow> missing r = Some w"
-  by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline split: option.splits request.splits)
+  by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline two_phase_out_decline split: option.splits request.splits)
 
 theorem kernel_impossible:
   "(\<exists>why. kernel r = Decline (Impossible why)) \<longleftrightarrow> missing r = None \<and> impossible r"
 proof -
   have "(\<exists>why. kernel r = Decline (Impossible why)) \<longleftrightarrow> missing r = None \<and> reason_of r \<noteq> None"
-    by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline split: option.splits request.splits)
+    by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline two_phase_out_decline split: option.splits request.splits)
   then show ?thesis using reason_of_exact by blast
 qed
 
@@ -562,7 +681,7 @@ theorem kernel_refusal:
   "kernel r = Decline Advice \<longleftrightarrow> missing r = None \<and> \<not> impossible r \<and> r = F_Advice"
   "kernel r = Decline MultiPhase \<longleftrightarrow> missing r = None \<and> \<not> impossible r \<and> r = F_MultiPhase"
   using reason_of_exact[of r]
-  by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline split: option.splits request.splits)
+  by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline two_phase_out_decline split: option.splits request.splits)
 
 theorem kernel_imprecise:
   assumes "kernel r = Decline Imprecise"
@@ -896,6 +1015,98 @@ proof -
   show ?thesis unfolding v using a1 a2 by auto
 qed
 
+subsection \<open>Lane B-finance additions\<close>
+
+text \<open>Recurring deposits. The closed form agrees with depositing, month after
+month, at the end of each month (the same @{text accum} the savings goal is
+proved against), and it inverts the savings goal: the deposit that the goal
+kind would ask for, to reach the annuity's balance, is the deposit itself.\<close>
+lemma fv_ann_accum:
+  assumes "i \<noteq> 0"
+  shows "accum i d n = fv_ann d i n"
+proof -
+  have h: "accum i d n * i = d * ((1 + i) ^ n - 1)" using accum_closed[of i d n] by (simp add: mult.commute)
+  show ?thesis using assms h by (simp add: fv_ann_def eq_divide_eq)
+qed
+
+theorem annuity_accumulates:
+  assumes "kernel (F_Annuity (Some d) (Some r) (Some y)) = Exact k fv" and "0 \<le> r"
+  shows "0 < months y \<and> accum (r / 12) d (months y) = fv"
+proof -
+  have nd: "decline_of (F_Annuity (Some d) (Some r) (Some y)) = None" and
+       a: "answer_of (F_Annuity (Some d) (Some r) (Some y)) = Exact k fv"
+    using assms(1) by (auto simp: kernel_def split: option.splits)
+  have n0: "months y \<noteq> 0" using decline_none[OF nd] by simp
+  have fv: "fv = fv_ann d (r / 12) (months y)" using answer_exact[OF a] by simp
+  show ?thesis
+  proof (cases "r = 0")
+    case True
+    then show ?thesis using n0 fv by (simp add: fv_ann_def accum_zero_rate)
+  next
+    case False
+    then have "r / 12 \<noteq> 0" by simp
+    then show ?thesis using n0 fv fv_ann_accum by simp
+  qed
+qed
+
+theorem annuity_inverts_savings:
+  assumes "0 \<le> i" and "n \<noteq> 0"
+  shows "sinking (fv_ann d i n) i n = d"
+proof (cases "i = 0")
+  case True
+  have n0: "0 < (of_nat n :: rat)" using assms(2) by simp
+  have n1: "(of_nat n :: rat) \<noteq> 0" by (rule pos_ne[OF n0])
+  show ?thesis using True n1 by (simp add: sinking_def fv_ann_def field_simps)
+next
+  case False
+  then have ipos: "0 < i" using assms(1) by simp
+  have a1: "1 < (1 + i) ^ n" using ipos assms(2) by (simp add: one_less_power)
+  have d0: "0 < (1 + i) ^ n - 1" using a1 by linarith
+  have dn: "(1 + i) ^ n - 1 \<noteq> 0" by (rule pos_ne[OF d0])
+  show ?thesis using False dn by (simp add: sinking_def fv_ann_def field_simps)
+qed
+
+text \<open>Two phases: the first phase's ending balance is the second phase's
+starting amount.\<close>
+theorem two_phase_chains:
+  assumes "phase_ok y1 f1" and "phase_ok y2 f2"
+  shows "qval (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) =
+         qval (F_Compound (Some (qval (F_Compound (Some p) (Some r1) (Some y1) f1)))
+                          (Some r2) (Some y2) f2)"
+proof -
+  obtain n1 where n1: "nat_exp (of_nat (per (dflt f1)) * y1) = Some n1"
+    using assms(1) by (auto simp: phase_ok_def)
+  obtain n2 where n2: "nat_exp (of_nat (per (dflt f2)) * y2) = Some n2"
+    using assms(2) by (auto simp: phase_ok_def)
+  show ?thesis using n1 n2 by simp
+qed
+
+text \<open>Real GDP is nominal GDP divided by the deflator (per hundred), and the
+deflator of that pair is the deflator we started with.\<close>
+theorem real_gdp_equation:
+  assumes "kernel (E_RealGdp (Some n) (Some d) u) = Exact k r"
+  shows "0 < d \<and> r * d = n * 100"
+proof -
+  have nd: "decline_of (E_RealGdp (Some n) (Some d) u) = None" and
+       a: "answer_of (E_RealGdp (Some n) (Some d) u) = Exact k r"
+    using assms by (auto simp: kernel_def split: option.splits)
+  have c: "0 < d" using decline_none[OF nd] by simp
+  have dn: "d \<noteq> 0" by (rule pos_ne[OF c])
+  have "r = n / d * 100" using answer_exact[OF a] by simp
+  then show ?thesis using c dn by (simp add: field_simps)
+qed
+
+theorem real_gdp_deflator_roundtrip:
+  assumes "n \<noteq> 0" and "d \<noteq> 0"
+  shows "qval (E_Deflator (Some n) (Some (qval (E_RealGdp (Some n) (Some d) u)))) = d"
+  using assms by simp
+
+text \<open>A discounted price with tax is the tax kind applied to the discounted
+price, discounts first.\<close>
+theorem discount_tax_chains:
+  "qval (R_DiscountTax b os r) = qval (R_WithTax (qval (R_Discount b os)) r)"
+  by simp
+
 section \<open>Response text (plain ASCII; layout is checked by the self test, not proved)\<close>
 
 definition disp :: "fmt \<Rightarrow> int \<times> int \<Rightarrow> String.literal" where
@@ -909,6 +1120,11 @@ definition dec_rat :: "int \<times> int \<Rightarrow> rat" where
 
 definition fix1 :: "rat \<Rightarrow> String.literal" where
   "fix1 q = fixed_lit 1 False (fst (round_at (rl q) (-1)))"
+
+definition phase_mid :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> freq option \<Rightarrow> String.literal" where
+  "phase_mid p r y fo = (case nat_exp (of_nat (per (dflt fo)) * y) of
+     Some n \<Rightarrow> disp Fm_money (round_frac 2 (compound_frac p (1 + r / of_nat (per (dflt fo))) n), -2)
+   | None \<Rightarrow> STR '''')"
 
 definition pc :: "rat \<Rightarrow> String.literal" where "pc r = g6 (100 * r)"
 
@@ -1000,6 +1216,24 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + STR ''% tax = '' + money (b * r) + STR '').''"
 | "exact_text r q V = V"
 
+definition exact_text_b :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Rightarrow> String.literal" where
+  "exact_text_b rq q V = (case rq of
+     F_Annuity (Some d) (Some r) (Some y) \<Rightarrow> STR ''After '' + ny y + STR '' monthly deposits of ''
+       + money d + STR '' at '' + pc r + STR ''% compounded monthly the balance is '' + V
+       + STR '' (FV = D*((1 + i)^n - 1)/i, i = r/12, deposits at the end of each month); you deposit ''
+       + money (of_nat (months y) * d) + STR '' and earn '' + money (q - of_nat (months y) * d) + STR '' in interest.''
+   | F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2 \<Rightarrow>
+       STR ''It grows to '' + V + STR '' ('' + money p + STR '' at '' + pc r1 + STR ''% compounded '' + freq_word (dflt f1)
+       + STR '' for '' + g6 y1 + STR '' years reaches '' + phase_mid p r1 y1 f1 + STR '', which then earns '' + pc r2
+       + STR ''% compounded '' + freq_word (dflt f2) + STR '' for '' + g6 y2 + STR '' years; interest earned ''
+       + money (q - p) + STR '').''
+   | E_RealGdp (Some n) (Some d) u \<Rightarrow> STR ''Real GDP is '' + V + u + STR '' (nominal '' + g3 n + u
+       + STR '' / deflator '' + g3 d + STR '' x 100).''
+   | R_DiscountTax b os r \<Rightarrow> STR ''The final price is '' + V + STR '' ('' + money b + STR '' less ''
+       + join_with (STR '' then '') (map (\<lambda>x. g4 x + STR ''%'') os) + STR '' = '' + money (disc_val b os) + STR '', plus ''
+       + g4 (100 * r) + STR ''% tax = '' + money (disc_val b os * r) + STR '').''
+   | _ \<Rightarrow> exact_text rq q V)"
+
 fun novalue_text :: "request \<Rightarrow> String.literal" where
   "novalue_text (R_BreakEven (Some f) (Some p) (Some v)) = STR ''It never breaks even: each unit sells for no more than it costs to make (''
      + money p + STR '' vs '' + money v + STR '').''"
@@ -1024,9 +1258,13 @@ fun need_what :: "need \<Rightarrow> String.literal" where
 | "need_what N_eoq = STR ''the annual demand, the cost per order and the holding cost per unit per year''"
 | "need_what N_rop = STR ''the daily demand and the lead time''"
 | "need_what N_turnover = STR ''the cost of goods sold and the average inventory''"
+| "need_what N_annuity = STR ''the monthly deposit, the annual rate and the time''"
+| "need_what N_two_phase = STR ''the starting amount and the rate and time of each phase''"
+| "need_what N_real_gdp = STR ''both nominal GDP and the GDP deflator''"
 
 definition finance_need :: "need \<Rightarrow> bool" where
-  "finance_need w = (w = N_apr_freq \<or> w = N_pos_rate \<or> w = N_loan \<or> w = N_goal \<or> w = N_simple \<or> w = N_compound)"
+  "finance_need w = (w = N_apr_freq \<or> w = N_pos_rate \<or> w = N_loan \<or> w = N_goal \<or> w = N_simple \<or> w = N_compound
+     \<or> w = N_annuity \<or> w = N_two_phase)"
 
 definition need_text :: "need \<Rightarrow> String.literal" where
   "need_text w = STR ''I need '' + need_what w
@@ -1042,6 +1280,7 @@ fun reason_text :: "reason \<Rightarrow> String.literal" where
 | "reason_text R_positive = STR ''That input must be positive for the formula to apply.''"
 | "reason_text R_price_cost = STR ''Prices and costs must be positive.''"
 | "reason_text R_margin = STR ''A gross margin must be below 100%.''"
+| "reason_text R_phase = STR ''Each phase needs periodic compounding over a whole number of periods.''"
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of Underspecified _ \<Rightarrow> STR ''underspecified'' | Impossible _ \<Rightarrow> STR ''impossible''
@@ -1071,7 +1310,9 @@ definition kind_name :: "kind \<Rightarrow> String.literal" where
      | K_rop \<Rightarrow> STR ''rop'' | K_days_inventory \<Rightarrow> STR ''days_inventory'' | K_turnover \<Rightarrow> STR ''turnover''
      | K_markup \<Rightarrow> STR ''markup'' | K_margin \<Rightarrow> STR ''margin''
      | K_price_from_markup \<Rightarrow> STR ''price_from_markup'' | K_price_from_margin \<Rightarrow> STR ''price_from_margin''
-     | K_discount \<Rightarrow> STR ''discount'' | K_with_tax \<Rightarrow> STR ''with_tax'')"
+     | K_discount \<Rightarrow> STR ''discount'' | K_with_tax \<Rightarrow> STR ''with_tax''
+     | K_annuity \<Rightarrow> STR ''annuity'' | K_two_phase \<Rightarrow> STR ''two_phase'' | K_real_gdp \<Rightarrow> STR ''real_gdp''
+     | K_discount_tax \<Rightarrow> STR ''discount_tax'')"
 
 text \<open>The whole reply: answered or withheld, the kind, the response text and the
 stated value (a plain decimal, no currency sign or grouping).\<close>
@@ -1082,10 +1323,10 @@ definition reply_of :: "request \<Rightarrow> reply" where
   "reply_of r = (case kernel r of
      Exact k q \<Rightarrow> (case quant (fmt_of k) q of
          None \<Rightarrow> Reply False (STR ''imprecise'') (decline_text Imprecise) None
-       | Some d \<Rightarrow> Reply True (kind_name k) (exact_text r q (disp (fmt_of k) d)) (Some (plain (fmt_of k) d)))
-   | Cents k c \<Rightarrow> Reply True (kind_name k) (exact_text r (of_int c / 100) (disp (fmt_of k) (c, -2)))
+       | Some d \<Rightarrow> Reply True (kind_name k) (exact_text_b r q (disp (fmt_of k) d)) (Some (plain (fmt_of k) d)))
+   | Cents k c \<Rightarrow> Reply True (kind_name k) (exact_text_b r (of_int c / 100) (disp (fmt_of k) (c, -2)))
        (Some (plain (fmt_of k) (c, -2)))
-   | Approx k d \<Rightarrow> Reply True (kind_name k) (exact_text r (dec_rat d) (disp (fmt_of k) d))
+   | Approx k d \<Rightarrow> Reply True (kind_name k) (exact_text_b r (dec_rat d) (disp (fmt_of k) d))
        (Some (plain (fmt_of k) d))
    | NoValue k \<Rightarrow> Reply True (kind_name k) (novalue_text r) None
    | Decline w \<Rightarrow> Reply False (decline_name w) (decline_text w) None)"
