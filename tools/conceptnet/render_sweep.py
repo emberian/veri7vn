@@ -59,9 +59,11 @@ def main():
 
     def flush(batch):
         nonlocal done, mismatches
-        proc.stdin.write("".join(json.dumps(req) + "\n" for req, _ in batch))
-        proc.stdin.flush()
+        # one reply read per request written: batching the writes then reading would
+        # deadlock on the pipe buffers (the binary answers line-by-line)
         for req, want in batch:
+            proc.stdin.write(json.dumps(req) + "\n")
+            proc.stdin.flush()
             reply = json.loads(proc.stdout.readline())
             got = ["".join(chr(c) for c in l) for l in reply.get("lines", [])]
             if got != [want]:
