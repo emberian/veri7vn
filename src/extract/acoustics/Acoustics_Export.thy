@@ -30,11 +30,14 @@ definition self_test :: bool where
      render_dec 4 (2000, -3) = STR ''2'' \<and>
      kernel (Doppler (Some 500) (Some 400) Source Toward AirDefault) = Decline (Impossible Shock_Wave) \<and>
      kernel (PipeClosed 2 (Some (1, Metre)) AirDefault) = Decline (Impossible (Even_Closed_Harmonic 2)) \<and>
+     kernel (OutsideModel Moving_Medium) = Decline (UnsupportedModel Moving_Medium) \<and>
+     kernel (DopplerBoth 500 30 Toward 10 Toward (Stated 330)) = Value K_doppler (5667, -1) \<and>
+     kernel (DopplerBoth 500 0 Toward 330 Away (Stated 330)) = Value K_doppler (0, 0) \<and>
      kernel (Beat (Some 440) None) = Decline (Underspecified Both_Frequencies) \<and>
      kernel (Beat (Some 440) (Some 442)) = Value K_beat (2000, -3)"
 
 export_code reply_of answered reply_kind response stated mk_rat mk_nat debug_enclosure debug_approx integer_of_int nat_of_integer int_of_integer Float floatarith.Num floatarith.Mult floatarith.Add floatarith.Inverse floatarith.Ln floatarith.Sqrt floatarith.Powr floatarith.Exp expr_of
-  Beat Doppler DbSum DbTwoEqual DbDistance DbRatio IntensityRatio StringHarmonic
+  Beat Doppler DopplerBoth OutsideModel Moving_Medium Motion_Domain Unbound_Motion DbSum DbTwoEqual DbDistance DbRatio IntensityRatio StringHarmonic
   PipeClosed PipeOpen Wavelength Frequency SpeedAir SpeedWater
   Toward Away Unclear Source Listener Metre Centimetre Hz KHz Stated AirAt AirDefault
   in SML module_name Acoustics file_prefix acoustics
@@ -52,7 +55,11 @@ ML \<open>
     @{thm wavelength_relation}, @{thm frequency_relation}, @{thm speed_air_square},
     @{thm speed_air_freezing}, @{thm reply_answered_iff}, @{thm reply_states_kernel_value},
     @{thm answered_reply_model_bound}, @{thm pipe_open_closed_consistent},
-    @{thm db_sum_not_quieter}, @{thm enclose_retry_sound}];
+    @{thm db_sum_not_quieter}, @{thm enclose_retry_sound},
+    @{thm at_sound_iff}, @{thm speed_squared_correct}, @{thm outside_model_declined},
+    @{thm doppler_both_returned}, @{thm doppler_both_source_returned},
+    @{thm doppler_both_listener_returned}, @{thm doppler_both_stationary_returned},
+    @{thm doppler_both_denominator}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("acoustics theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "acoustics self test failed";

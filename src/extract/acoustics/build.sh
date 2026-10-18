@@ -43,6 +43,7 @@ cat > "$OUT/build/acoustics.mlb" <<EOF
 acoustics_generated.sml
 $SRC/../commons/commons.sml
 $SRC/../commons/numeric.sml
+$SRC/../commons/measured_input.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF

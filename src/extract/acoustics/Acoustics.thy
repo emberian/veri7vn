@@ -32,9 +32,13 @@ text \<open>Where the speed of sound comes from: a stated speed, dry air at a st
 temperature in degrees C, or air at 20 C when the question gives neither.\<close>
 datatype medium = Stated rat | AirAt rat | AirDefault
 
+datatype model_limit = Moving_Medium | Motion_Domain | Unbound_Motion
+
 datatype request =
     Beat "rat option" "rat option"
   | Doppler "rat option" "rat option" mover direction medium
+  | DopplerBoth rat rat direction rat direction medium
+  | OutsideModel model_limit
   | DbSum "rat list"
   | DbTwoEqual rat
   | DbDistance rat rat rat
@@ -55,7 +59,7 @@ datatype reason = Below_Absolute_Zero | Nonpositive_Speed | Nonpositive_Frequenc
   | Negative_Speed | Shock_Wave | Outruns_Sound | Nonpositive_Distance | Nonpositive_Ratio
   | Nonpositive_Length | Zero_Harmonic | Even_Closed_Harmonic nat | Nonpositive_Wavelength
 
-datatype decline = Underspecified need | Impossible reason | Imprecise
+datatype decline = Underspecified need | Impossible reason | Imprecise | UnsupportedModel model_limit
 
 datatype kind = K_beat | K_doppler | K_db_sum | K_db_distance | K_db_ratio
   | K_intensity_ratio | K_string | K_pipe_closed | K_pipe_open | K_wavelength
@@ -67,6 +71,8 @@ datatype outcome = Value kind "int \<times> int" | Decline decline
 fun kind_of :: "request \<Rightarrow> kind" where
   "kind_of (Beat _ _) = K_beat"
 | "kind_of (Doppler _ _ _ _ _) = K_doppler"
+| "kind_of (DopplerBoth _ _ _ _ _ _) = K_doppler"
+| "kind_of (OutsideModel _) = K_doppler"
 | "kind_of (DbSum _) = K_db_sum"
 | "kind_of (DbTwoEqual _) = K_db_sum"
 | "kind_of (DbDistance _ _ _) = K_db_distance"
@@ -118,6 +124,15 @@ proof (cases s)
   then show ?thesis using AirAt by (simp add: air_speed_def real_sqrt_gt_zero)
 qed (auto simp: air_speed_def real_sqrt_gt_zero zero_less_of_rat_iff)
 
+text \<open>Motion magnitudes are measured relative to a stationary medium,
+along the source/listener line. Toward is positive for each actor separately:
+source toward listener lowers the denominator; listener toward source raises
+the numerator. This is not a ground-frame model in moving air.\<close>
+fun toward_speed :: "rat \<Rightarrow> direction \<Rightarrow> rat" where
+  "toward_speed u Toward = u"
+| "toward_speed u Away = -u"
+| "toward_speed u Unclear = 0"
+
 text \<open>The model value of each request. Patterns are the same as in the
 executable expression below, so the two agree everywhere.\<close>
 fun phys :: "request \<Rightarrow> real" where
@@ -126,6 +141,7 @@ fun phys :: "request \<Rightarrow> real" where
 | "phys (Doppler (Some f) (Some u) Source Away s) = rl f * speed s / (speed s + rl u)"
 | "phys (Doppler (Some f) (Some u) Listener Toward s) = rl f * (speed s + rl u) / speed s"
 | "phys (Doppler (Some f) (Some u) Listener Away s) = rl f * (speed s - rl u) / speed s"
+| "phys (DopplerBoth f us ds ul dl s) = rl f * (speed s + rl (toward_speed ul dl)) / (speed s - rl (toward_speed us ds))"
 | "phys (DbSum ls) = 10 * log 10 (\<Sum>l\<leftarrow>ls. 10 powr (rl l / 10))"
 | "phys (DbTwoEqual l) = rl l + 10 * log 10 2"
 | "phys (DbDistance l r1 r2) = rl l - 20 * log 10 (rl r2 / rl r1)"
@@ -149,6 +165,7 @@ fun missing :: "request \<Rightarrow> need option" where
 | "missing (Doppler f u m d s) =
      (if f = None \<or> u = None then Some Doppler_Inputs
       else if d = Unclear then Some Doppler_Direction else None)"
+| "missing (DopplerBoth f us ds ul dl s) = (if ds = Unclear \<or> dl = Unclear then Some Doppler_Direction else None)"
 | "missing (DbSum ls) = (if length ls < 2 then Some Two_Levels else None)"
 | "missing (StringHarmonic n L v) =
      (if L = None then Some Length else if v = None then Some Wave_Speed else None)"
@@ -164,6 +181,7 @@ fun impossible :: "request \<Rightarrow> bool" where
   "impossible (Beat (Some a) (Some b)) \<longleftrightarrow> a \<le> 0 \<or> b \<le> 0"
 | "impossible (Doppler (Some f) (Some u) m d s) \<longleftrightarrow>
      \<not> medium_ok s \<or> f \<le> 0 \<or> u < 0 \<or> (speed s \<le> rl u \<and> (m = Source \<or> d = Away))"
+| "impossible (DopplerBoth f us ds ul dl s) \<longleftrightarrow> \<not> medium_ok s \<or> f \<le> 0 \<or> us < 0 \<or> ul < 0"
 | "impossible (DbDistance l r1 r2) \<longleftrightarrow> r1 \<le> 0 \<or> r2 \<le> 0"
 | "impossible (DbRatio k) \<longleftrightarrow> k \<le> 0"
 | "impossible (StringHarmonic n (Some L) (Some v)) \<longleftrightarrow> n = 0 \<or> len L \<le> 0 \<or> v \<le> 0"
@@ -237,6 +255,59 @@ next
   ultimately show ?thesis using AirDefault air_reach[of 20 "rl u"] by (simp add: reach_def)
 qed
 
+fun speed_squared :: "medium \<Rightarrow> rat" where
+  "speed_squared (Stated v) = v^2"
+| "speed_squared (AirAt T) = (3313/10)^2 * (1 + T/(27315/100))"
+| "speed_squared AirDefault = (3313/10)^2 * (1 + 20/(27315/100))"
+
+definition at_sound :: "rat \<Rightarrow> medium \<Rightarrow> bool" where
+  "at_sound u s \<longleftrightarrow> 0 \<le> u \<and> u^2 = speed_squared s"
+
+lemma speed_squared_correct:
+  assumes "medium_ok s"
+  shows "speed s ^ 2 = rl (speed_squared s)"
+proof (cases s)
+  case (AirAt T)
+  have pos: "0 \<le> 1 + rl T / 273.15" using assms AirAt rl_temp
+    by (simp add: field_simps)
+  show ?thesis using AirAt pos by (simp add: air_speed_def power_mult_distrib power_divide
+    of_rat_mult of_rat_add of_rat_divide of_rat_power)
+qed (simp_all add: air_speed_def power_mult_distrib power_divide of_rat_mult of_rat_add of_rat_divide of_rat_power)
+
+lemma at_sound_iff:
+  assumes "medium_ok s"
+  shows "at_sound u s \<longleftrightarrow> rl u = speed s"
+proof -
+  have p: "0 < speed s" using speed_pos[OF assms] .
+  have sq: "speed s ^ 2 = rl (speed_squared s)" using speed_squared_correct[OF assms] .
+  have conv: "u^2 = speed_squared s \<longleftrightarrow> (rl u)^2 = rl (speed_squared s)"
+    by (metis of_rat_eq_iff of_rat_power)
+  show ?thesis
+  proof
+    assume a: "at_sound u s"
+    have un: "0 \<le> u" and eq: "u^2 = speed_squared s" using a by (simp_all add: at_sound_def)
+    have rn: "0 \<le> rl u" using un by simp
+    have sn: "0 \<le> speed s" using p by simp
+    have eqr: "(rl u)^2 = rl (speed_squared s)" using eq conv by blast
+    have eqs: "(rl u)^2 = speed s ^ 2" using eqr sq by simp
+    show "rl u = speed s" by (rule power2_eq_imp_eq[OF eqs rn sn])
+  next
+    assume eq: "rl u = speed s"
+    have rn: "0 \<le> rl u" using eq p by simp
+    have un: "0 \<le> u" using rn by simp
+    have eqr: "(rl u)^2 = rl (speed_squared s)" using eq sq by simp
+    have eqs: "u^2 = speed_squared s" using eqr conv by blast
+    show "at_sound u s" using un eqs by (simp add: at_sound_def)
+  qed
+qed
+
+fun model_limit_of :: "request \<Rightarrow> model_limit option" where
+  "model_limit_of (OutsideModel why) = Some why"
+| "model_limit_of (DopplerBoth f us ds ul dl s) =
+    (if reach us s \<or> (dl = Away \<and> reach ul s \<and> \<not> at_sound ul s)
+     then Some Motion_Domain else None)"
+| "model_limit_of _ = None"
+
 fun medium_reason :: "medium \<Rightarrow> reason" where
   "medium_reason (Stated _) = Nonpositive_Speed"
 | "medium_reason _ = Below_Absolute_Zero"
@@ -252,6 +323,9 @@ fun reason_of :: "request \<Rightarrow> reason option" where
       else if reach u s \<and> m = Source then Some Shock_Wave
       else if reach u s \<and> d = Away then Some Outruns_Sound
       else None)"
+| "reason_of (DopplerBoth f us ds ul dl s) =
+    (if \<not> medium_ok s then Some (medium_reason s) else if f \<le> 0 then Some Nonpositive_Frequency
+     else if us < 0 \<or> ul < 0 then Some Negative_Speed else None)"
 | "reason_of (DbDistance l r1 r2) = (if r1 \<le> 0 \<or> r2 \<le> 0 then Some Nonpositive_Distance else None)"
 | "reason_of (DbRatio k) = (if k \<le> 0 then Some Nonpositive_Ratio else None)"
 | "reason_of (StringHarmonic n (Some L) (Some v)) =
@@ -281,7 +355,8 @@ theorem reason_of_exact:
 definition decline_of :: "request \<Rightarrow> decline option" where
   "decline_of r = (case missing r of
      Some w \<Rightarrow> Some (Underspecified w)
-   | None \<Rightarrow> map_option Impossible (reason_of r))"
+   | None \<Rightarrow> (case reason_of r of Some why \<Rightarrow> Some (Impossible why)
+       | None \<Rightarrow> map_option UnsupportedModel (model_limit_of r)))"
 
 
 section \<open>Executable enclosure of the model\<close>
@@ -358,6 +433,7 @@ fun expr_of :: "request \<Rightarrow> floatarith" where
 | "expr_of (Doppler (Some f) (Some u) Source Away s) = Dv (floatarith.Mult (Q f) (speed_fa s)) (floatarith.Add (speed_fa s) (Q u))"
 | "expr_of (Doppler (Some f) (Some u) Listener Toward s) = Dv (floatarith.Mult (Q f) (floatarith.Add (speed_fa s) (Q u))) (speed_fa s)"
 | "expr_of (Doppler (Some f) (Some u) Listener Away s) = Dv (floatarith.Mult (Q f) (Sb (speed_fa s) (Q u))) (speed_fa s)"
+| "expr_of (DopplerBoth f us ds ul dl s) = Dv (floatarith.Mult (Q f) (floatarith.Add (speed_fa s) (Q (toward_speed ul dl)))) (Sb (speed_fa s) (Q (toward_speed us ds)))"
 | "expr_of (DbSum ls) = floatarith.Mult (I 10) (Lg (sum_fa ls))"
 | "expr_of (DbTwoEqual l) = floatarith.Add (Q l) (floatarith.Mult (I 10) (Lg (I 2)))"
 | "expr_of (DbDistance l r1 r2) = Sb (Q l) (floatarith.Mult (I 20) (Lg (Dv (Q r2) (Q r1))))"
@@ -453,13 +529,84 @@ proof -
   then show ?thesis using reason_of_exact by blast
 qed
 
-text \<open>The only other decline is numerical, and it only happens on requests
+text \<open>The numerical decline only happens on requests
 that are fully specified and possible.\<close>
 theorem kernel_imprecise:
   "kernel r = Decline Imprecise \<Longrightarrow> missing r = None \<and> \<not> impossible r"
   using reason_of_exact[of r]
   by (auto simp: kernel_def decline_of_def split: option.splits)
 
+
+theorem outside_model_declined:
+  "kernel (OutsideModel why) = Decline (UnsupportedModel why)"
+  by (simp add: kernel_def decline_of_def)
+
+lemma doppler_both_source_reduction:
+  assumes "d \<noteq> Unclear"
+  shows "phys (DopplerBoth f u d 0 Toward s) = phys (Doppler (Some f) (Some u) Source d s)"
+  using assms by (cases d) (simp_all add: of_rat_minus)
+
+lemma doppler_both_listener_reduction:
+  assumes "d \<noteq> Unclear"
+  shows "phys (DopplerBoth f 0 Toward u d s) = phys (Doppler (Some f) (Some u) Listener d s)"
+  using assms by (cases d) (simp_all add: of_rat_minus)
+
+theorem doppler_both_returned:
+  assumes "kernel (DopplerBoth f us ds ul dl s) = Value k d"
+  shows "k = K_doppler \<and>
+    \<bar>dec_val d - rl f * (speed s + rl (toward_speed ul dl)) / (speed s - rl (toward_speed us ds))\<bar>
+    \<le> \<bar>rl f * (speed s + rl (toward_speed ul dl)) / (speed s - rl (toward_speed us ds))\<bar> / 1000 + 1 / 1000000000"
+  using kernel_value_sound[OF assms] by simp
+
+theorem doppler_both_source_returned:
+  assumes "kernel (DopplerBoth f u dir 0 Toward s) = Value k d" "dir \<noteq> Unclear"
+  shows "\<bar>dec_val d - phys (Doppler (Some f) (Some u) Source dir s)\<bar> \<le>
+    \<bar>phys (Doppler (Some f) (Some u) Source dir s)\<bar> / 1000 + 1 / 1000000000"
+  using kernel_value_sound[OF assms(1)]
+  by (simp only: doppler_both_source_reduction[OF assms(2)]; blast)
+
+theorem doppler_both_listener_returned:
+  assumes "kernel (DopplerBoth f 0 Toward u dir s) = Value k d" "dir \<noteq> Unclear"
+  shows "\<bar>dec_val d - phys (Doppler (Some f) (Some u) Listener dir s)\<bar> \<le>
+    \<bar>phys (Doppler (Some f) (Some u) Listener dir s)\<bar> / 1000 + 1 / 1000000000"
+  using kernel_value_sound[OF assms(1)]
+  by (simp only: doppler_both_listener_reduction[OF assms(2)]; blast)
+
+theorem doppler_both_stationary_returned:
+  assumes "kernel (DopplerBoth f 0 Toward 0 Toward s) = Value k d"
+  shows "\<bar>dec_val d - rl f\<bar> \<le> \<bar>rl f\<bar>/1000 + 1/1000000000"
+proof -
+  have ok: "medium_ok s" using kernel_value_sound[OF assms] by auto
+  have nz: "speed s \<noteq> 0" using speed_pos[OF ok] by simp
+  have model: "phys (DopplerBoth f 0 Toward 0 Toward s) = rl f" using nz by simp
+  show ?thesis using kernel_value_sound[OF assms] by (simp only: model; blast)
+qed
+
+theorem doppler_both_denominator:
+  assumes "kernel (DopplerBoth f us ds ul dl s) = Value k d"
+  shows "0 < speed s - rl (toward_speed us ds)"
+proof -
+  have nd: "decline_of (DopplerBoth f us ds ul dl s) = None"
+    using assms by (auto simp: kernel_def split: option.splits)
+  have ok: "medium_ok s" and nonneg: "0 \<le> us"
+    using kernel_value_sound[OF assms] by auto
+  have sub: "rl us < speed s" using nd reach_iff[OF ok, of us]
+    by (auto simp: decline_of_def split: option.splits if_splits)
+  have p: "0 < speed s" using speed_pos[OF ok] .
+  have u: "0 \<le> rl us" using nonneg by simp
+  show ?thesis
+  proof (cases ds)
+    case Toward
+    then show ?thesis using sub by simp
+  next
+    case Away
+    have "0 < speed s + rl us" using p u by linarith
+    then show ?thesis using Away by (simp add: of_rat_minus)
+  next
+    case Unclear
+    then show ?thesis using p by simp
+  qed
+qed
 
 section \<open>The defining physical equations\<close>
 
@@ -673,6 +820,7 @@ fun medium_note :: "medium \<Rightarrow> String.literal" where
 
 fun medium_of :: "request \<Rightarrow> medium" where
   "medium_of (Doppler _ _ _ _ s) = s"
+| "medium_of (DopplerBoth _ _ _ _ _ s) = s"
 | "medium_of (PipeClosed _ _ s) = s"
 | "medium_of (PipeOpen _ _ s) = s"
 | "medium_of (Wavelength _ s) = s"
@@ -717,6 +865,11 @@ fun value_text :: "request \<Rightarrow> String.literal \<Rightarrow> String.lit
 | "value_text (Doppler (Some f) (Some u) Source d s) V = STR ''The heard frequency is '' + V
      + STR '' Hz (f'' + apos + STR '' = f v/(v '' + (if d = Toward then STR ''-'' else STR ''+'')
      + STR '' v_s) with '' + medium_note s + STR '', v_s = '' + show_rat u + STR '' m/s).''"
+| "value_text (DopplerBoth f us ds ul dl s) V = STR ''The heard frequency is '' + V
+    + STR '' Hz, from f (c '' + (if dl = Toward then STR ''+'' else STR ''-'')
+    + STR '' listener speed)/(c '' + (if ds = Toward then STR ''-'' else STR ''+'')
+    + STR '' source speed), with '' + medium_note s
+    + STR ''. Both motion speeds are relative to the stationary medium along the sound path.''"
 | "value_text (DbSum ls) V = STR ''The combined level is '' + V
      + STR '' dB (10 log10 of the summed intensities, not '' + show_rat (sum_list ls) + STR '' dB).''"
 | "value_text (DbTwoEqual l) V = STR ''The combined level is '' + V
@@ -763,6 +916,10 @@ definition reply_of :: "request \<Rightarrow> reply" where
    | Decline (Underspecified w) \<Rightarrow> Reply False (STR ''underspecified'')
        (STR ''I need '' + need_text w + STR '' to compute that; I won'' + apos + STR ''t assume it.'') None
    | Decline (Impossible why) \<Rightarrow> Reply False (STR ''impossible'') (reason_text r why) None
+   | Decline (UnsupportedModel why) \<Rightarrow> Reply False (STR ''unsupported_model'')
+       (case why of Moving_Medium \<Rightarrow> STR ''This sound model needs motion relative to stationary air; supplied wind or medium motion is not modelled.''
+        | Motion_Domain \<Rightarrow> STR ''These speeds are outside the subsonic-source, forward crest-crossing model.''
+        | Unbound_Motion \<Rightarrow> STR ''Each source and listener speed and direction must be bound separately in the stationary-medium frame.'') None
    | Decline Imprecise \<Rightarrow> Reply False (STR ''imprecise'')
        (STR ''The interval arithmetic could not pin four digits; I won'' + apos + STR ''t guess.'') None)"
 

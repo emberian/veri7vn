@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "family": "acoustics",
+  "specialists": {
+    "acoustics": {
+      "accept": {"kinds": [], "declines_in_domain": ["unsupported_model"]},
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Joint acoustic Doppler shift binds source and listener motion relative to a stationary medium and evaluates one combined expression.",
+        "assumptions": ["Each actor's motion is along the propagation line, with a separately bound direction.", "Explicit wind or moving-medium conditions, unresolved actor roles and speeds outside the stated model are consumed model refusals."],
+        "untrusted": ["English role and unit interpretation, numeric lexing and JSON framing remain untrusted."]
+      }
+    }
+  }
+}

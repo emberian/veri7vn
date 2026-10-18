@@ -37,6 +37,7 @@ struct
   (* Every role capture resolves through the current lexer's token table.
      Text that merely looks like a token cannot supply a numeric value. *)
   exception UnboundNumeral
+  val originalInput = ref ""
   val numericValues : (string * ExactNumeric.rational) list ref = ref []
   fun rationalOf token = case List.find (fn (key, _) => key = token) (!numericValues) of
       SOME (_, value) => value | NONE => raise UnboundNumeral
@@ -44,10 +45,13 @@ struct
   fun withNumerals read text = case ExactNumeric.mask text of NONE => NONE
     | SOME {text = masked, numbers} =>
         let val previous = !numericValues
+            val previousInput = !originalInput
+            val _ = originalInput := text
             val _ = numericValues := numbers
             val answer = (read masked handle UnboundNumeral => NONE)
-                handle e => (numericValues := previous; raise e)
+                handle e => (numericValues := previous; originalInput := previousInput; raise e)
             val _ = numericValues := previous
+            val _ = originalInput := previousInput
         in answer end
 
   fun lower s = String.map Char.toLower s
@@ -96,6 +100,60 @@ struct
           end
     end
 
+  structure MI = MeasuredInput
+  fun motionSpec (alias,tag,dimension) = {alias=alias,tag=tag,dimension=dimension,caseSensitive=false}:MI.unitSpec
+  val motionUnits = map motionSpec
+    [("m/s","mps","speed"),("Hz","hz","frequency"),
+     ("C","c","temperature"),("degree C","c","temperature"),("degrees C","c","temperature"),
+     ("Celsius","c","temperature"),(deg ^ "C","c","temperature"),(celsius,"c","temperature")]
+  fun motionInputs () =
+    let val ms=List.mapPartial(fn MI.Measurement m=>SOME m | _=>NONE)(MI.scan motionUnits (!originalInput))
+    in if length ms=length(!numericValues) then ListPair.zip(map #1 (!numericValues),ms)
+       else raise UnboundNumeral end
+  fun motionDim (_,m:MI.measurement) = case #unitBinding m of MI.Explicit{unit,...}=> #dimension unit | _=>"unbound"
+  fun motionRat (token,_) = ratOf token
+  val ACTOR = "(source|siren|car|train|ambulance|horn|listener|observer|you|i)"
+  val ACTOR_MOTION = "\\b" ^ ACTOR ^ "\\b(?:\\s+(?:emits|emitting)\\s+" ^ N ^ "\\s*(?:[km]?hz|hertz))?"
+    ^ "\\s+(?:(?:is|are)\\s+)?(?:moves?|moving|travels?|traveling|approach\\w*|reced\\w*|speed\\b|stationary\\b|at rest\\b)"
+  fun jointMotion low =
+    let val roles=findall ACTOR_MOTION low
+        fun listener m = List.exists(fn x=>grp low m 1=SOME x)["listener","observer","you","i"]
+        val both=List.exists listener roles andalso List.exists (not o listener) roles
+        val ms=motionInputs()
+        val mediumMatch=labelledSpeedMatch low
+        val mediumToken=Option.map(fn m=>valOf(grp low m 1)) mediumMatch
+        fun mediumInput(token,_) = mediumToken=SOME token
+        val fs=List.filter(fn x=>motionDim x="frequency")ms
+        val ts=List.filter(fn x=>motionDim x="temperature")ms
+        val ps=List.filter mediumInput ms
+        val vs=List.filter(fn x=>motionDim x="speed" andalso not(mediumInput x))ms
+        fun bind (m:Regex.match) stop =
+          let val clause=String.substring(low,#start m,stop- #start m)
+              val values=List.filter(fn(token,_)=>has("\\b"^token^"\\b")clause)vs
+              val stationary=has "\\bstationary\\b|\\bat rest\\b" clause
+              val toward=has "\\btoward\\w*|\\bapproach\\w*" clause
+              val away=has "\\baway\\b|\\breced\\w*" clause
+              val d=if stationary then A.Toward else if toward=away then A.Unclear else if toward then A.Toward else A.Away
+          in if stationary andalso null values then SOME(listener m,A.mk_rat 0 1,d,[])
+             else case values of [v]=>SOME(listener m,motionRat v,d,[#1 v]) | _=>NONE end
+        fun clauses []=[] | clauses [m]=[bind m (size low)] | clauses (m::(next::rest))=bind m (#start next)::clauses(next::rest)
+        val bindings=List.mapPartial(fn x=>x)(clauses roles)
+        val sources=List.filter(fn(l,_,_,_)=>not l)bindings
+        val listeners=List.filter(fn(l,_,_,_)=>l)bindings
+        val consumed=List.concat(map #4 bindings)
+        val complete=length ms=length fs+length ts+length ps+length vs
+          andalso length consumed=length vs andalso length roles=2 andalso length bindings=2
+          andalso length ts<=1 andalso length ps<=1 andalso (null ps orelse null ts)
+          andalso List.all(fn x=>motionDim x="speed")ps
+        val targetUnsupported=has "\\bin\\s+(?:khz|kilohertz|mhz|megahertz)\\b" low
+    in if not both then NONE
+       else SOME(case (fs,sources,listeners) of
+          ([f],[(_,us,ds,_)],[(_,ul,dl,_)])=>
+             if complete andalso not targetUnsupported then A.DopplerBoth(motionRat f,us,ds,ul,dl,speed low)
+             else A.OutsideModel A.Unbound_Motion
+        | _=>A.OutsideModel A.Unbound_Motion)
+    end
+
   val ordinals = [("first", 1), ("fundamental", 1), ("second", 2), ("third", 3),
                   ("fourth", 4), ("fifth", 5), ("sixth", 6), ("seventh", 7)]
 
@@ -105,7 +163,7 @@ struct
       val low = lower t
       val sound = has ("\\bsound\\b|\\bacoustic|\\bdecibel|\\bdb\\b|\\bdoppler\\b|\\bsiren\\b|\\bhorn\\b|"
                        ^ "\\bpipe\\b|\\bstring\\b|\\bharmonic|\\bbeats?\\b|\\btuning fork\\b|\\bpitch\\b|"
-                       ^ "\\bhonk\\w*|\\bwhistle\\b|\\bhear\\b") low
+                       ^ "\\bhonk\\w*|\\bwhistle\\b|\\bhear(?:d)?\\b") low
       (* These inputs state a physical condition for which this recognizer
          has no unit/model conversion. Do not silently replace it by air
          at 20 C or interpret feet per second as metres per second. *)
@@ -122,7 +180,11 @@ struct
            (water andalso (waterAtOtherTemperature orelse
              not (has "\\bspeed of sound\\b|\\bhow fast (?:does|is) sound\\b" low))))
     in
-      if not sound orelse unsupportedSpeed orelse unsupportedTemperature orelse unsupportedWater orelse ambiguousSpeed then NONE
+      if not sound then NONE
+      else if has "\\b(?:wind|headwind|tailwind|moving air|moving medium|air current)\\b" low
+           andalso has motionContext low then SOME(A.OutsideModel A.Moving_Medium)
+      else if unsupportedSpeed orelse unsupportedTemperature orelse unsupportedWater orelse ambiguousSpeed then
+        (case jointMotion low of SOME _=>SOME(A.OutsideModel A.Unbound_Motion) | NONE=>NONE)
       else if has "\\bbeat frequency\\b|\\bbeats? per second\\b" low
               orelse (has "\\bbeats?\\b" low andalso length (findall (N ^ "\\s*hz\\b") low) >= 2) then
         let val fs = map (fn m => ratOf (valOf (grp low m 1))) (findall (N ^ "\\s*hz\\b") low)
@@ -133,6 +195,7 @@ struct
         end
       else if has motionContext low
               andalso has "\\bfrequency\\b|\\bpitch\\b|\\bhear\\b|\\bheard\\b|\\bobserved\\b" low then
+        (case jointMotion low of SOME request=>SOME request | NONE=>
         let
           val fm = search (N ^ "\\s*hz\\b") low
           (* Remove the labelled medium speed before looking for a mover's
@@ -140,8 +203,18 @@ struct
           val movingText = case speedMatch low of
               SOME m => replaceAll (low, Regex.whole low m, " ") | NONE => low
           val vm = search (N ^ "\\s*m/s\\b") movingText
+          val ms = motionInputs()
+          val frequencies = List.filter(fn x=>motionDim x="frequency")ms
+          val temperatures = List.filter(fn x=>motionDim x="temperature")ms
+          val velocities = List.filter(fn x=>motionDim x="speed")ms
+          val movingSpeeds = findall (N ^ "\\s*m/s\\b") movingText
+          val complete = length ms = length frequencies + length temperatures + length velocities
+            andalso length frequencies<=1 andalso length temperatures<=1 andalso length movingSpeeds<=1
+            andalso length velocities = length movingSpeeds + (if isSome(speedMatch low) then 1 else 0)
+            andalso (null temperatures orelse not(isSome(speedMatch low)))
         in
-          case (fm, vm) of
+          if not complete then SOME(A.OutsideModel A.Unbound_Motion)
+          else case (fm, vm) of
             (SOME fm, SOME vm) =>
               let
                 val f = ratOf (valOf (grp low fm 1))
@@ -166,14 +239,14 @@ struct
                 val bothMoving = listener andalso List.exists (fn x => not x) actors
                 val dir = if toward = away then A.Unclear else if toward then A.Toward else A.Away
               in
-                if bothMoving then NONE else
+                if bothMoving then SOME(A.OutsideModel A.Unbound_Motion) else
                   SOME (A.Doppler (SOME f, SOME u, if listener then A.Listener else A.Source, dir, medium))
               end
           | (fm, vm) =>
               SOME (A.Doppler (Option.map (fn m => ratOf (valOf (grp low m 1))) fm,
                                Option.map (fn m => ratOf (valOf (grp movingText m 1))) vm,
                                A.Source, A.Unclear, A.AirDefault))
-        end
+        end)
       else if has "\\bdecibel|\\bdb\\b" low then
         let
           val ls = map (fn m => ratOf (valOf (grp low m 1))) (findall (N ^ "\\s*(?:db|decibels?)\\b") low)

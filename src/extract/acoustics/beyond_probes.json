@@ -379,12 +379,12 @@
   },
   {
     "q": "A 500 Hz siren is moving toward a listener at 10 m/s and the listener is moving toward it at 20 m/s. What is the heard frequency?",
-    "kind": "decline",
-    "expect": "decline",
-    "valid": false,
+    "kind": "doppler",
+    "expect": 545.0160316472352,
+    "valid": true,
     "split": "probe",
-    "source": "Declared single-moving-actor Doppler request model",
-    "calculation": "Both moving actors require a different request model"
+    "source": "OpenStax University Physics volume1 chapter17 (upstream acoustics manifest)",
+    "calculation": "Joint stationary-medium model:500*(c+20)/(c-10), c=331.3*sqrt(1+20/273.15). Former valid-withheld single-actor limitation is now supported."
   },
   {
     "q": "What is the frequency of sound with wavelength 0.5 m and speed 330 m/s?",

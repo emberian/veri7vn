@@ -81,15 +81,29 @@ source cannot make the combined level lower. Continuation receipts and probes:
 
 ## Current result
 
-Held-out panel: 69 of 69 right, 0 wrong, 0 false yes (the shipped organ: 69 of 69);
-practice panel 70 of 70. The final continuation binary is 428,720 bytes, with
-a measured 4.25 ms median cold start and 1.99 ms shipped-panel median per question.
-All 45 additional probes and a reserved 180-case numerical challenge pass.
-The numerical challenge has an 8.18 ms median and 76.95 ms maximum; the earlier
-regression seed includes an 89.02 ms retry, exceeding the 50 ms aspiration.
-The folder `oracle7-organ/` wraps the
-binary as an Oracle7 specialist (`acoustics-veri7vn`). Details, theorem
-statements and remaining work: [continuation report](../../../project/lanes/C-physical-quantity-sound.md).
+Held-out panel: 69 of 69 right, 0 wrong, 0 false yes; practice panel 70 of 70.
+The current joint-motion binary is 517,768 bytes, with measured 3.510 ms median
+cold start and 0.399 ms warm median on the stated joint-motion question.
+All 45 cited probes and the existing 180-case numerical challenge pass; the
+latter has an 8.602 ms median and 43.446 ms maximum. An unused 123-case motion
+challenge scores 109 right, 0 wrong, 0 false yes and 14 valid withheld. Expected
+safe refusals are not counted as additional capability.
+
+The source and listener can now move independently relative to a stationary
+medium along the sound path. Their speeds and directions enter one combined
+Doppler expression, rounded once. Actual-return laws recover each one-mover
+model and the stationary identity, and prove a positive source denominator.
+A listener receding exactly at sound speed returns zero; source sonic or
+supersonic motion, an outrunning listener, supplied wind and unbound extra
+measurements receive model refusals. English and unit interpretation remain
+untrusted, and the joint reader currently binds Hz, m/s and Celsius.
+
+The folder `oracle7-organ/` wraps the binary as an Oracle7 specialist
+(`acoustics-veri7vn`). Exact theorem statements, source/native manifests,
+scoring receipts and remaining limits are in the
+[motion report](../../../project/lanes/C-physical-acoustic-motion.md).
+The earlier [continuation report](../../../project/lanes/C-physical-quantity-sound.md)
+records the previous temperature and inverse-frequency packet.
 
 ## Exact numeral interpretation
 
