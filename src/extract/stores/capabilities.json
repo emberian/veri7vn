@@ -5,17 +5,22 @@
     "warehouse": {
       "accept": {
         "declines_in_domain": [
-          "order_clarify"
+          "order_clarify",
+          "sensor_time",
+          "sensor_conflict",
+          "sensor_missing_data"
         ]
       },
       "context_regex_additions": [
-        "^(?:(?:can|could|would|will) you (?:please )?|please )?(?:re-?order|restock)\\b"
+        "^(?:(?:can|could|would|will) you (?:please )?|please )?(?:re-?order|restock)\\b",
+        "(?s:^(?=.*\\b(?:sensor|temperature|temp|humidity|co2|carbon dioxide|lux|light|occupancy)\\b)(?=.*\\b(?:aisle\\s+\\d+|cold room|loading dock|assembly bay|warehouse)\\b))"
       ],
       "evidence": {
-        "computation": "An unsupported single-order request leaves the complete kernel session state unchanged. A recognized order binds one exact positive integral quantity to one complete known item phrase; confirmation still requires the pending proposal in the same session.",
+        "computation": "An unsupported single-order request leaves the complete kernel session state unchanged. A recognized order binds one exact positive integral quantity to one complete known item phrase; confirmation still requires the pending proposal in the same session. Individual and zone sensor values use a latest timestamp no later than the supplied site clock, within the freshness window, and agreed by every supplied row at that timestamp.",
         "assumptions": [
           "The fetched item-name table is accurate; a normalized complete name identifies one supplied item.",
-          "Each state file has one serialized owner; external file isolation is not proved."
+          "Each state file has one serialized owner; external file isolation is not proved.",
+          "The site clock, freshness bound and supplied sensor rows are accurate; finite agreement does not establish omitted-row coverage."
         ],
         "untrusted": [
           "English interpretation, exact numeric token recognition, item-table completeness, persistence and dispatch ownership."
@@ -25,17 +30,22 @@
     "warehouse-r2": {
       "accept": {
         "declines_in_domain": [
-          "order_clarify"
+          "order_clarify",
+          "sensor_time",
+          "sensor_conflict",
+          "sensor_missing_data"
         ]
       },
       "context_regex_additions": [
-        "^(?:(?:can|could|would|will) you (?:please )?|please )?(?:re-?order|restock)\\b"
+        "^(?:(?:can|could|would|will) you (?:please )?|please )?(?:re-?order|restock)\\b",
+        "(?s:^(?=.*\\b(?:sensor|temperature|temp|humidity|co2|carbon dioxide|lux|light|occupancy)\\b)(?=.*\\b(?:aisle\\s+\\d+|cold room|loading dock|assembly bay|warehouse)\\b))"
       ],
       "evidence": {
-        "computation": "An unsupported single-order request leaves the complete kernel session state unchanged. A recognized order binds one exact positive integral quantity to one complete known item phrase; confirmation still requires the pending proposal in the same session.",
+        "computation": "An unsupported single-order request leaves the complete kernel session state unchanged. A recognized order binds one exact positive integral quantity to one complete known item phrase; confirmation still requires the pending proposal in the same session. Individual and zone sensor values use a latest timestamp no later than the supplied site clock, within the freshness window, and agreed by every supplied row at that timestamp.",
         "assumptions": [
           "The fetched item-name table is accurate; a normalized complete name identifies one supplied item.",
-          "Each state file has one serialized owner; external file isolation is not proved."
+          "Each state file has one serialized owner; external file isolation is not proved.",
+          "The site clock, freshness bound and supplied sensor rows are accurate; finite agreement does not establish omitted-row coverage."
         ],
         "untrusted": [
           "English interpretation, exact numeric token recognition, item-table completeness, persistence and dispatch ownership."

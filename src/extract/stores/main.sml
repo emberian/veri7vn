@@ -244,7 +244,7 @@ struct
     in LargeInt.toString (us div 1000) ^ "." ^ StringCvt.padLeft #"0" 3 (LargeInt.toString (us mod 1000)) end
 
   val cookThms = "[\"nutrient_answer_sound\",\"nutrient_serving_alternatives\",\"nutrient_readings_agree\",\"nutrient_measure_portion\",\"nutrient_count_portion\",\"stated_within_tolerance\"]"
-  val siteThms = "[\"confirm_requires_proposal\",\"sensor_fresh\",\"stock_value\",\"runout_days\",\"low_exact\"]"
+  val siteThms = "[\"confirm_requires_proposal\",\"sensor_fresh\",\"zone_parts_fresh\",\"future_latest_refused\",\"conflicting_latest_refused\",\"stock_value\",\"runout_days\",\"low_exact\"]"
 
   fun notTaken id t0 =
     "{\"id\": " ^ id ^ ", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\""

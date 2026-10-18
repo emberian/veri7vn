@@ -49,11 +49,23 @@ conditional requests, return `order_clarify` and preserve all pending/reference
 state. They cannot fall through to a stock lookup. No state file is written when
 the kernel state is unchanged and no order was emitted.
 
+Current sensor answers and zone summaries share one latest-reading check. A
+reading must be no later than the supplied site clock and within its freshness
+window. All supplied readings tied at the latest timestamp must agree. Future,
+conflicting, stale and missing readings cannot appear as current values; zone
+summaries omit them and describe the issue. Identical duplicates are allowed.
+This is conditional on the supplied clock, configuration and row coverage.
+Stock-event aggregation does not yet apply that clock cutoff.
+
+Nutrition establishes its nutrient/request domain before parsing numeric roles.
+Unrelated algebra goes to other specialists; malformed nutrition quantities still
+withhold.
+
 ## Build and run
 
 ```sh
 python3 tools/dev/remote-build persvati src/extract/stores Veri7vn_Stores \
-  -d src/extract/commons --expect 'VERI7VN_STORES PASS theorems=45 oracles=0'
+  -d src/extract/commons --expect 'VERI7VN_STORES PASS theorems=48 oracles=0'
 sh src/extract/stores/build.sh
 python3 -B src/extract/stores/tables_check.py
 python3 -B src/extract/stores/verify.py

@@ -957,7 +957,7 @@ datatype sev = SEv
   (ev_where: "String.literal list")    \<comment> \<open>zones with a sensor of the kind, by zone id\<close>
   (ev_complete: bool)
 
-datatype flag = F_stale skind rat | F_out skind
+datatype flag = F_stale skind rat | F_out skind | F_future skind | F_conflict skind | F_missing skind
 
 datatype soutcome =
     SO_stock String.literal int int
@@ -968,6 +968,9 @@ datatype soutcome =
   | SO_sensor String.literal skind String.literal rat rat rat rat bool
   | SO_stale String.literal skind rat
   | SO_missing_sensor String.literal skind
+  | SO_missing_reading String.literal skind
+  | SO_future_sensor String.literal skind
+  | SO_conflicting_sensor String.literal skind
   | SO_zone_status String.literal "(skind \<times> rat \<times> String.literal) list" "flag list"
   | SO_neighbour_last String.literal String.literal
   | SO_neighbour String.literal String.literal String.literal "(String.literal \<times> int) list"
@@ -1009,6 +1012,21 @@ text \<open>The latest reading (SQL: ORDER BY ts DESC LIMIT 1).\<close>
 definition latest :: "(int \<times> rat) list \<Rightarrow> (int \<times> rat) option" where
   "latest rs = first_min (\<lambda>r. - fst r) rs"
 
+text \<open>A shared finite reading check for individual and zone replies.
+A timestamp after the snapshot clock is not a current observation. Tied latest
+rows must agree exactly; scan order cannot choose between conflicting values.\<close>
+datatype checked_reading = CR_missing | CR_future int | CR_conflict int
+  | CR_stale int rat | CR_live int rat
+
+definition checked_latest :: "int \<Rightarrow> int \<Rightarrow> (int \<times> rat) list \<Rightarrow> checked_reading" where
+  "checked_latest now fresh rs = (case latest rs of
+     None \<Rightarrow> CR_missing
+   | Some (ts, v) \<Rightarrow>
+       if now < ts then CR_future ts
+       else if stale now fresh ts then CR_stale ts v
+       else if (\<exists>r\<in>set rs. fst r = ts \<and> snd r \<noteq> v) then CR_conflict ts
+       else CR_live ts v)"
+
 definition in_range :: "sensor \<Rightarrow> rat \<Rightarrow> bool" where
   "in_range sn v \<longleftrightarrow> fst (snd sn) \<le> v \<and> v \<le> snd (snd sn)"
 
@@ -1017,18 +1035,20 @@ definition zone_sorted :: "(skind \<times> sensor \<times> (int \<times> rat) li
 
 text \<open>The zone's live readings, by kind name: a stale reading is never reported.\<close>
 definition part_of :: "int \<Rightarrow> int \<Rightarrow> skind \<times> sensor \<times> (int \<times> rat) list \<Rightarrow> (skind \<times> rat \<times> String.literal) option" where
-  "part_of now fresh z = (case latest (snd (snd z)) of
-       None \<Rightarrow> None
-     | Some r \<Rightarrow> if stale now fresh (fst r) then None else Some (fst z, snd r, fst (fst (snd z))))"
+  "part_of now fresh z = (case checked_latest now fresh (snd (snd z)) of
+       CR_live ts v \<Rightarrow> Some (fst z, v, fst (fst (snd z)))
+     | _ \<Rightarrow> None)"
 
 definition zone_parts :: "int \<Rightarrow> int \<Rightarrow> (skind \<times> sensor \<times> (int \<times> rat) list) list \<Rightarrow> (skind \<times> rat \<times> String.literal) list" where
   "zone_parts now fresh zs = List.map_filter (part_of now fresh) (zone_sorted zs)"
 
 definition flag_of :: "int \<Rightarrow> int \<Rightarrow> skind \<times> sensor \<times> (int \<times> rat) list \<Rightarrow> flag option" where
-  "flag_of now fresh z = (case latest (snd (snd z)) of
-       None \<Rightarrow> None
-     | Some r \<Rightarrow> if stale now fresh (fst r) then Some (F_stale (fst z) (age_min now (fst r)))
-                 else if in_range (fst (snd z)) (snd r) then None else Some (F_out (fst z)))"
+  "flag_of now fresh z = (case checked_latest now fresh (snd (snd z)) of
+       CR_missing \<Rightarrow> Some (F_missing (fst z))
+     | CR_future ts \<Rightarrow> Some (F_future (fst z))
+     | CR_conflict ts \<Rightarrow> Some (F_conflict (fst z))
+     | CR_stale ts v \<Rightarrow> Some (F_stale (fst z) (age_min now ts))
+     | CR_live ts v \<Rightarrow> if in_range (fst (snd z)) v then None else Some (F_out (fst z)))"
 
 definition zone_flags :: "int \<Rightarrow> int \<Rightarrow> (skind \<times> sensor \<times> (int \<times> rat) list) list \<Rightarrow> flag list" where
   "zone_flags now fresh zs = List.map_filter (flag_of now fresh) (zone_sorted zs)"
@@ -1054,11 +1074,12 @@ definition with_pending :: "sstate \<Rightarrow> (nat \<times> item) option \<Ri
 definition sensor_out :: "sev \<Rightarrow> zone \<Rightarrow> skind \<Rightarrow> bool \<Rightarrow> soutcome" where
   "sensor_out ev z k rng = (case ev_sensor ev of
        None \<Rightarrow> SO_missing_sensor (snd z) k
-     | Some (sn, rs) \<Rightarrow> (case latest rs of
-         None \<Rightarrow> SO_incomplete
-       | Some (ts, v) \<Rightarrow>
-           if stale (ev_now ev) (ev_fresh ev) ts then SO_stale (snd z) k (age_min (ev_now ev) ts)
-           else SO_sensor (snd z) k (fst sn) v (fst (snd sn)) (snd (snd sn)) (age_min (ev_now ev) ts) rng))"
+     | Some (sn, rs) \<Rightarrow> (case checked_latest (ev_now ev) (ev_fresh ev) rs of
+         CR_missing \<Rightarrow> SO_missing_reading (snd z) k
+       | CR_future ts \<Rightarrow> SO_future_sensor (snd z) k
+       | CR_conflict ts \<Rightarrow> SO_conflicting_sensor (snd z) k
+       | CR_stale ts v \<Rightarrow> SO_stale (snd z) k (age_min (ev_now ev) ts)
+       | CR_live ts v \<Rightarrow> SO_sensor (snd z) k (fst sn) v (fst (snd sn)) (snd (snd sn)) (age_min (ev_now ev) ts) rng))"
 
 definition runout_out :: "sev \<Rightarrow> item \<Rightarrow> soutcome" where
   "runout_out ev it = (let c = stock_count (ev_events ev); u = used7 (ev_now ev) (ev_events ev) in
@@ -1107,11 +1128,11 @@ subsection \<open>Theorems: the state machine\<close>
 
 lemma sread_not_ordered: "fst (sread s r ev) \<noteq> SO_ordered n it"
   by (cases "(s, r, ev)" rule: sread.cases)
-    (auto simp: runout_out_def sensor_out_def Let_def split: option.splits prod.splits)
+    (auto simp: runout_out_def sensor_out_def Let_def split: option.splits checked_reading.splits prod.splits)
 
 lemma sread_not_cancelled: "fst (sread s r ev) \<noteq> SO_cancelled"
   by (cases "(s, r, ev)" rule: sread.cases)
-    (auto simp: runout_out_def sensor_out_def Let_def split: option.splits prod.splits)
+    (auto simp: runout_out_def sensor_out_def Let_def split: option.splits checked_reading.splits prod.splits)
 
 text \<open>An order is logged only on a confirmation of the pending proposal, for
 exactly the proposed quantity and item.\<close>
@@ -1171,6 +1192,20 @@ subsection \<open>Theorems: freshness and the stated values\<close>
 lemma latest_Some: "latest rs = Some (ts, v) \<Longrightarrow> (ts, v) \<in> set rs \<and> (\<forall>x\<in>set rs. fst x \<le> ts)"
   using first_min_Some[of "\<lambda>r. - fst r" rs "(ts, v)"] by (auto simp: latest_def)
 
+lemma checked_latest_live:
+  assumes "checked_latest now fresh rs = CR_live ts v"
+  shows "latest rs = Some (ts, v) \<and> (ts, v) \<in> set rs
+    \<and> (\<forall>x\<in>set rs. fst x \<le> ts) \<and> ts \<le> now
+    \<and> 0 \<le> age_min now ts \<and> age_min now ts \<le> of_int fresh
+    \<and> (\<forall>w. (ts, w) \<in> set rs \<longrightarrow> w = v)"
+proof -
+  have q: "latest rs = Some (ts, v)" "ts \<le> now" "\<not> stale now fresh ts"
+    "\<forall>w. (ts, w) \<in> set rs \<longrightarrow> w = v"
+    using assms by (auto simp: checked_latest_def split: option.splits prod.splits if_splits)
+  have "0 \<le> age_min now ts" using q(2) by (simp add: age_min_def)
+  then show ?thesis using q latest_Some[OF q(1)] by (auto simp: stale_def)
+qed
+
 lemma sstep_from_read:
   "fst (sstep s i ev) = o' \<Longrightarrow> o' = SO_incomplete \<or> (\<exists>n it. o' = SO_ordered n it) \<or> o' = SO_cancelled
      \<or> (ev_complete ev \<and> (\<exists>r. fst (sread s r ev) = o'))"
@@ -1183,61 +1218,72 @@ lemma sread_sensor:
 lemma sread_stock:
   "fst (sread s r ev) = SO_stock nm c rl \<Longrightarrow> c = stock_count (ev_events ev) \<and> rl = ev_reorder ev"
   by (cases "(s, r, ev)" rule: sread.cases)
-    (auto simp: runout_out_def sensor_out_def Let_def split: option.splits prod.splits if_splits)
+    (auto simp: runout_out_def sensor_out_def Let_def split: option.splits checked_reading.splits prod.splits if_splits)
 
 lemma sread_runout:
   "fst (sread s r ev) = SO_runout nm c rate d \<Longrightarrow> \<exists>it. runout_out ev it = SO_runout nm c rate d"
-  by (cases "(s, r, ev)" rule: sread.cases) (auto simp: sensor_out_def split: option.splits prod.splits if_splits)
+  by (cases "(s, r, ev)" rule: sread.cases) (auto simp: sensor_out_def split: option.splits checked_reading.splits prod.splits if_splits)
 
 text \<open>A sensor value is reported only from the zone sensor's latest reading,
 and only when that reading is no older than the freshness bound.\<close>
 theorem sensor_fresh:
   assumes "fst (sstep s i ev) = SO_sensor zn k u v lo hi a rng"
   shows "\<exists>sn rs ts. ev_sensor ev = Some (sn, rs) \<and> latest rs = Some (ts, v) \<and> (ts, v) \<in> set rs
-    \<and> (\<forall>x\<in>set rs. fst x \<le> ts) \<and> a = age_min (ev_now ev) ts \<and> a \<le> of_int (ev_fresh ev)
+    \<and> (\<forall>x\<in>set rs. fst x \<le> ts) \<and> ts \<le> ev_now ev
+    \<and> a = age_min (ev_now ev) ts \<and> 0 \<le> a \<and> a \<le> of_int (ev_fresh ev)
+    \<and> (\<forall>w. (ts, w) \<in> set rs \<longrightarrow> w = v)
     \<and> sn = (u, lo, hi) \<and> ev_complete ev"
 proof -
   from sstep_from_read[OF assms] obtain r where c: "ev_complete ev"
     and rd: "fst (sread s r ev) = SO_sensor zn k u v lo hi a rng" by auto
   from sread_sensor[OF rd] obtain z k' b where so: "sensor_out ev z k' b = SO_sensor zn k u v lo hi a rng"
     by blast
-  then obtain sn rs ts v' where e: "ev_sensor ev = Some (sn, rs)" "latest rs = Some (ts, v')"
-    and ns: "\<not> stale (ev_now ev) (ev_fresh ev) ts"
-    by (auto simp: sensor_out_def split: option.splits prod.splits if_splits)
-  then have q: "v' = v" "a = age_min (ev_now ev) ts" "fst sn = u" "fst (snd sn) = lo" "snd (snd sn) = hi"
-    using so by (auto simp: sensor_out_def)
-  have "sn = (u, lo, hi)" using q(3-5) by (cases sn rule: prod_cases3) auto
-  moreover have "a \<le> of_int (ev_fresh ev)" using ns q(2) by (simp add: stale_def not_less)
-  ultimately show ?thesis using e c latest_Some[OF e(2)] q(1,2)
-    by (auto intro!: exI[of _ sn] exI[of _ rs] exI[of _ ts])
+  then obtain sn rs ts where e: "ev_sensor ev = Some (sn, rs)"
+    "checked_latest (ev_now ev) (ev_fresh ev) rs = CR_live ts v"
+    "sn = (u, lo, hi)" "a = age_min (ev_now ev) ts"
+    by (auto simp: sensor_out_def split: option.splits checked_reading.splits prod.splits)
+  show ?thesis using e c checked_latest_live[OF e(2)] by blast
 qed
 
 text \<open>A stale latest reading is declined, never reported as current.\<close>
 theorem stale_declines:
   assumes "ev_complete ev" "ev_sensor ev = Some (sn, rs)" "latest rs = Some (ts, v)"
-    "of_int (ev_fresh ev) < age_min (ev_now ev) ts"
+    "of_int (ev_fresh ev) < age_min (ev_now ev) ts" "ts \<le> ev_now ev"
   shows "fst (sstep s (I_read (R_sensor z k rng)) ev) = SO_stale (snd z) k (age_min (ev_now ev) ts)"
-  using assms by (simp add: sensor_out_def stale_def)
+  using assms by (simp add: sensor_out_def checked_latest_def stale_def)
 
 text \<open>A zone report lists only fresh latest readings of the zone's sensors.\<close>
 theorem zone_parts_fresh:
   assumes "(k, v, u) \<in> set (zone_parts now fresh zs)"
-  shows "\<exists>sn rs ts. (k, sn, rs) \<in> set zs \<and> latest rs = Some (ts, v) \<and> \<not> stale now fresh ts \<and> fst sn = u"
+  shows "\<exists>sn rs ts. (k, sn, rs) \<in> set zs \<and> latest rs = Some (ts, v)
+    \<and> ts \<le> now \<and> 0 \<le> age_min now ts \<and> age_min now ts \<le> of_int fresh
+    \<and> (\<forall>w. (ts, w) \<in> set rs \<longrightarrow> w = v) \<and> fst sn = u"
 proof -
   obtain z where z: "z \<in> set zs" "part_of now fresh z = Some (k, v, u)"
     using assms by (auto simp: zone_parts_def zone_sorted_def set_mapf)
   obtain a sn rs where zz: "z = (a, sn, rs)" by (cases z rule: prod_cases3)
-  show ?thesis
-  proof (cases "latest rs")
-    case None
-    then show ?thesis using z zz by (simp add: part_of_def)
-  next
-    case (Some r)
-    obtain ts w where r: "r = (ts, w)" by (cases r)
-    then have "(k, sn, rs) \<in> set zs \<and> latest rs = Some (ts, v) \<and> \<not> stale now fresh ts \<and> fst sn = u"
-      using z zz Some by (auto simp: part_of_def split: if_splits)
-    then show ?thesis by blast
+  obtain ts where ck: "checked_latest now fresh rs = CR_live ts v" "a = k" "fst sn = u"
+    using z zz by (auto simp: part_of_def split: checked_reading.splits)
+  show ?thesis using z zz ck checked_latest_live[OF ck(1)] by blast
+qed
+
+theorem future_latest_refused:
+  assumes "ev_complete ev" "ev_sensor ev = Some (sn, rs)" "latest rs = Some (ts, v)"
+    "ev_now ev < ts"
+  shows "fst (sstep s (I_read (R_sensor z k rng)) ev) = SO_future_sensor (snd z) k"
+  using assms by (simp add: sensor_out_def checked_latest_def)
+
+theorem conflicting_latest_refused:
+  assumes "ev_complete ev" "ev_sensor ev = Some (sn, rs)" "latest rs = Some (ts, v)"
+    "ts \<le> ev_now ev" "\<not> stale (ev_now ev) (ev_fresh ev) ts" "(ts, w) \<in> set rs" "w \<noteq> v"
+  shows "fst (sstep s (I_read (R_sensor z k rng)) ev) = SO_conflicting_sensor (snd z) k"
+proof -
+  have conflict: "\<exists>r\<in>set rs. fst r = ts \<and> snd r \<noteq> v"
+  proof (rule bexI[where x="(ts, w)"])
+    show "fst (ts, w) = ts \<and> snd (ts, w) \<noteq> v" using assms by simp
+    show "(ts, w) \<in> set rs" by fact
   qed
+  show ?thesis using assms conflict by (simp add: sensor_out_def checked_latest_def)
 qed
 
 theorem stock_value:
@@ -1306,7 +1352,10 @@ definition range_text :: "rat \<Rightarrow> rat \<Rightarrow> String.literal \<R
 
 definition flag_text :: "int \<Rightarrow> flag \<Rightarrow> String.literal" where
   "flag_text now f = (case f of F_stale k a \<Rightarrow> skind_label k + STR '' sensor stale ('' + age_text a + STR '')''
-     | F_out k \<Rightarrow> skind_label k + STR '' out of range'')"
+     | F_out k \<Rightarrow> skind_label k + STR '' out of range''
+     | F_future k \<Rightarrow> skind_label k + STR '' reading is dated after the site clock''
+     | F_conflict k \<Rightarrow> skind_label k + STR '' latest readings disagree''
+     | F_missing k \<Rightarrow> skind_label k + STR '' has no reading'')"
 
 definition unknown_text :: "String.literal \<Rightarrow> bool \<Rightarrow> String.literal" where
   "unknown_text w ro = STR ''I don'' + apos + STR ''t have anything called '' + dq + w + dq + STR '' in this site''
@@ -1347,6 +1396,12 @@ fun sreply :: "soutcome \<Rightarrow> reply" where
      + skind_label k + STR '' - the sensor may be offline.'')"
 | "sreply (SO_missing_sensor zn k) = wh (STR ''missing_sensor'') (STR ''There'' + apos + STR ''s no '' + skind_label k
      + STR '' sensor in '' + zn + STR '', so I can'' + apos + STR ''t tell you the '' + skind_label k + STR '' there.'')"
+| "sreply (SO_missing_reading zn k) = wh (STR ''sensor_missing_data'') (STR ''The '' + zn + STR '' '' + skind_label k
+     + STR '' sensor has no stored reading, so I cannot report its current value.'')"
+| "sreply (SO_future_sensor zn k) = wh (STR ''sensor_time'') (STR ''The latest '' + zn + STR '' '' + skind_label k
+     + STR '' reading is dated after the site clock, so I cannot report it as current.'')"
+| "sreply (SO_conflicting_sensor zn k) = wh (STR ''sensor_conflict'') (STR ''The latest '' + zn + STR '' '' + skind_label k
+     + STR '' readings have the same timestamp but disagree, so I cannot select one value.'')"
 | "sreply (SO_zone_status zn ps fs) = ans (STR ''zone_status'') (zn + STR '': ''
      + (if ps = [] then STR ''no live readings''
         else join (STR '', '') (map (\<lambda>p. skind_label (fst p) + STR '' '' + show_g (fst (snd p)) + unit_suffix (snd (snd p))) ps))

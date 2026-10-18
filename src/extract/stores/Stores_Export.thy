@@ -83,6 +83,18 @@ definition self_test :: bool where
      sstep (with_pending s0 (Some (5, it0))) (I_read R_invalid_order) ev0 =
        (SO_order_clarify, with_pending s0 (Some (5, it0))) \<and>
      reply_status (sreply SO_order_clarify) = STR ''withheld'' \<and>
+     checked_latest 1000 30 [(1060, 77)] = CR_future 1060 \<and>
+     checked_latest 1000 30 [(940, 20), (940, 40)] = CR_conflict 940 \<and>
+     checked_latest 1000 30 [(940, 40), (940, 20)] = CR_conflict 940 \<and>
+     checked_latest 1000 30 [(940, 20), (940, 20)] = CR_live 940 20 \<and>
+     checked_latest 1000 30 [(1000 - 1800, 20)] = CR_live (1000 - 1800) 20 \<and>
+     checked_latest 1000 30 [(1000 - 1801, 20)] = CR_stale (1000 - 1801) 20 \<and>
+     checked_latest 1000 30 [] = CR_missing \<and>
+     part_of 1000 30 (SK_temperature, (STR ''C'', 15, 26), [(1060, 77)]) = None \<and>
+     part_of 1000 30 (SK_temperature, (STR ''C'', 15, 26), [(940, 20), (940, 40)]) = None \<and>
+     flag_of 1000 30 (SK_temperature, (STR ''C'', 15, 26), []) = Some (F_missing SK_temperature) \<and>
+     reply_status (sreply (SO_future_sensor (STR ''Aisle 1'') SK_temperature)) = STR ''withheld'' \<and>
+     reply_status (sreply (SO_conflicting_sensor (STR ''Aisle 1'') SK_temperature)) = STR ''withheld'' \<and>
      fst (sstep s0 (I_confirm True R_off_site) ev0) = SO_off_site \<and>
      fst (sstep s0 (I_read (R_reorder 5 (Some it0) (STR ''M4 valve''))) ev0) = SO_confirm 5 it0 3 \<and>
      fst (sstep (snd (sstep s0 (I_read (R_reorder 5 (Some it0) (STR ''M4 valve''))) ev0)) (I_confirm True R_off_site) ev0)
@@ -120,7 +132,7 @@ ML \<open>
     @{thm confirm_requires_proposal}, @{thm confirm_without_proposal_refused}, @{thm confirm_consumes},
     @{thm no_double_order}, @{thm propose_sets_pending}, @{thm propose_idempotent},
     @{thm invalid_order_preserves_state}, @{thm reading_keeps_proposal}, @{thm incomplete_fetch_declines}, @{thm latest_Some},
-    @{thm sensor_fresh}, @{thm stale_declines}, @{thm zone_parts_fresh}, @{thm stock_value},
+    @{thm checked_latest_live}, @{thm future_latest_refused}, @{thm conflicting_latest_refused}, @{thm sensor_fresh}, @{thm stale_declines}, @{thm zone_parts_fresh}, @{thm stock_value},
     @{thm runout_days}, @{thm low_exact}, @{thm low_sorted}, @{thm stale_not_answered},
     @{thm sensor_reply_states_value}];
   val oracles = Thm_Deps.all_oracles theorems;
