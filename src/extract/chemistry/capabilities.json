@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "family": "chemistry",
+  "specialists": {
+    "chemistry": {
+      "accept": {
+        "kinds": [
+          "percent_composition"
+        ],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\bpercent(?:age)?\\s+composition\\b|\\belemental\\s+composition\\b|\\bcomposition\\s+by\\s+(?:mass|weight)\\b"
+      ],
+      "evidence": {
+        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding.",
+        "assumptions": [
+          "The question denotes one molecular formula, not a solution, mixture, alloy or sample.",
+          "Embedded atomic masses are the supplied PubChem decimals, not independently established physical facts."
+        ],
+        "untrusted": [
+          "Natural-language recognition and selection of a formula from the question.",
+          "The original periodic-table source and its import."
+        ]
+      }
+    },
+    "chemistry-v3": {
+      "accept": {
+        "kinds": [
+          "percent_composition"
+        ],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\bpercent(?:age)?\\s+composition\\b|\\belemental\\s+composition\\b|\\bcomposition\\s+by\\s+(?:mass|weight)\\b"
+      ],
+      "evidence": {
+        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding.",
+        "assumptions": [
+          "The question denotes one molecular formula, not a solution, mixture, alloy or sample.",
+          "Embedded atomic masses are the supplied PubChem decimals, not independently established physical facts."
+        ],
+        "untrusted": [
+          "Natural-language recognition and selection of a formula from the question.",
+          "The original periodic-table source and its import."
+        ]
+      }
+    },
+    "labsolutions": {
+      "accept": {
+        "kinds": [
+          "diluted_conc",
+          "water_to_add",
+          "moles_in_solution",
+          "molarity_from_moles"
+        ]
+      },
+      "evidence": {
+        "computation": "Exact rational solution arithmetic: C2 V2 = C1 V1; added volume plus stock volume equals final volume; n = C V. Concentrations, amounts and volumes obey the explicit kernel guards.",
+        "assumptions": [
+          "Requested volumes use the ideal additive-volume dilution model.",
+          "Natural-language numbers and units were mapped to the intended typed request."
+        ],
+        "untrusted": [
+          "Natural-language recognition, unit extraction and choice of requested quantity."
+        ]
+      }
+    },
+    "labsolutions-r2": {
+      "accept": {
+        "kinds": [
+          "diluted_conc",
+          "water_to_add",
+          "moles_in_solution",
+          "molarity_from_moles"
+        ]
+      },
+      "evidence": {
+        "computation": "Exact rational solution arithmetic: C2 V2 = C1 V1; added volume plus stock volume equals final volume; n = C V. Concentrations, amounts and volumes obey the explicit kernel guards.",
+        "assumptions": [
+          "Requested volumes use the ideal additive-volume dilution model.",
+          "Natural-language numbers and units were mapped to the intended typed request."
+        ],
+        "untrusted": [
+          "Natural-language recognition, unit extraction and choice of requested quantity."
+        ]
+      }
+    }
+  }
+}

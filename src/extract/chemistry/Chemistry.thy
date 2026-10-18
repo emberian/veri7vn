@@ -169,11 +169,106 @@ qed
 theorem wf_merge: "wf_counts base \<Longrightarrow> wf_counts tp \<Longrightarrow> wf_counts (merge_into tp k base)"
   unfolding merge_into_def by (rule wf_fold)
 
-text \<open>The parser's own invariant (@{text "parse_formula f = FOk cs \<Longrightarrow> wf_counts cs"}) needs an
-induction over the scanner's fuel and stack; two attempts at it did not close (the second
-looped in fastforce), so it is listed under remaining work, not claimed. What is proved is
-the step the scanner is made of: adding an element and merging a group keep a count list
-well-formed.\<close>
+text \<open>The scanner preserves this invariant on every stack frame. Fuel exhaustion,
+unmatched brackets and unknown symbols cannot produce a successful result. The proof
+follows each recursive branch, without assuming the input is a valid formula.\<close>
+lemma scan_wf:
+  assumes "\<forall>x \<in> set st. wf_counts x" "scan fuel input st = FOk result"
+  shows "wf_counts result"
+  using assms
+proof (induction fuel arbitrary: input st)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons tick fuel)
+  note recurse = Cons.IH and initial = Cons.prems(1) and success = Cons.prems(2)
+  show ?case
+  proof (cases input)
+    case Nil
+    then show ?thesis using Cons.prems
+      by (cases st) (auto split: list.splits)
+  next
+    case (Cons c cs)
+    note input = Cons
+    show ?thesis
+    proof (cases "c = CHR ''(''")
+      case True
+      have stack: "\<forall>x \<in> set ([] # st). wf_counts x"
+        using initial wf_nil by simp
+      have parsed: "scan fuel cs ([] # st) = FOk result"
+        using success input True by simp
+      show ?thesis by (rule recurse[OF stack parsed])
+    next
+      case False
+      note not_open = False
+      show ?thesis
+      proof (cases "c = CHR '')''")
+        case True
+        let ?k = "if takeWhile is_dig cs = [] then 1 else num_of (takeWhile is_dig cs)"
+        obtain tp below more where st: "st = tp # below # more"
+          using success input not_open True
+          by (cases st) (auto simp: Let_def split: list.splits)
+        have stack: "\<forall>x \<in> set (merge_into tp ?k below # more). wf_counts x"
+          using initial st wf_merge by auto
+        have parsed: "scan fuel (dropWhile is_dig cs) (merge_into tp ?k below # more) = FOk result"
+          using success input not_open True st
+          by (simp add: Let_def)
+        show ?thesis by (rule recurse[OF stack parsed])
+      next
+        case False
+        note not_close = False
+        have up: "is_up c"
+          using success input not_open not_close
+          by (cases "is_up c") auto
+        let ?lo = "case cs of d # ds \<Rightarrow> is_lowc d | [] \<Rightarrow> False"
+        let ?nm = "if ?lo then c # take 1 cs else [c]"
+        let ?cs1 = "if ?lo then drop 1 cs else cs"
+        let ?k = "if takeWhile is_dig ?cs1 = [] then 1 else num_of (takeWhile is_dig ?cs1)"
+        have known: "find_sym ?nm \<noteq> None"
+          using success input not_open not_close up
+          by (cases "find_sym ?nm = None") (auto simp: Let_def)
+        obtain tp more where st: "st = tp # more"
+          using success input not_open not_close up known
+          by (cases st) (auto simp: Let_def)
+        have stack: "\<forall>x \<in> set (add_count ?nm ?k tp # more). wf_counts x"
+          using initial st wf_add known by auto
+        have parsed: "scan fuel (dropWhile is_dig ?cs1) (add_count ?nm ?k tp # more) = FOk result"
+          using success input not_open not_close up known st
+          by (simp add: Let_def)
+        show ?thesis by (rule recurse[OF stack parsed])
+      qed
+    qed
+  qed
+qed
+
+lemma parse_parts_wf:
+  assumes "wf_counts acc" "parse_parts parts acc = FOk result"
+  shows "wf_counts result"
+  using assms
+proof (induction parts arbitrary: acc)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons part parts)
+  let ?rest = "dropWhile is_dig part"
+  let ?mult = "if takeWhile is_dig part = [] then 1 else num_of (takeWhile is_dig part)"
+  obtain cs where parsed: "scan (CHR 0x20 # ?rest) ?rest [[]] = FOk cs"
+    using Cons.prems(2) by (cases "scan (CHR 0x20 # ?rest) ?rest [[]]") (auto simp: Let_def)
+  have valid: "wf_counts cs" by (rule scan_wf[OF _ parsed]) (simp add: wf_nil)
+  have acc: "wf_counts (merge_into cs ?mult acc)" by (rule wf_merge[OF Cons.prems(1) valid])
+  have rest: "parse_parts parts (merge_into cs ?mult acc) = FOk result"
+    using Cons.prems(2) parsed by (simp add: Let_def)
+  show ?case by (rule Cons.IH[OF acc rest])
+qed
+
+theorem parse_formula_wf:
+  "parse_formula f = FOk cs \<Longrightarrow> wf_counts cs"
+  unfolding parse_formula_def by (rule parse_parts_wf[OF wf_nil])
+
+theorem parse_formula_known_distinct:
+  assumes "parse_formula f = FOk cs"
+  shows "(\<forall>p \<in> set cs. \<exists>e. find_sym (fst p) = Some e) \<and> distinct (map fst cs)"
+  using parse_formula_wf[OF assms] unfolding wf_counts_def by auto
 
 section \<open>Requests and outcomes\<close>
 
@@ -283,6 +378,15 @@ theorem molar_mass_value:
   assumes "ckernel (MolarMass f) = CExact k m"
   shows "k = CK_molar_mass \<and> (\<exists>cs. parse_formula f = FOk cs \<and> m = mass_total cs)"
   using assms by (auto simp: with_mass_def split: fparse.splits)
+
+text \<open>A reported molar mass comes from one entry per element in the actual
+periodic table. This connects the parser invariant to a consumer of the counts.\<close>
+theorem molar_mass_known_distinct:
+  assumes "ckernel (MolarMass f) = CExact k m"
+  shows "k = CK_molar_mass \<and> (\<exists>cs. parse_formula f = FOk cs \<and>
+    distinct (map fst cs) \<and> (\<forall>p \<in> set cs. \<exists>e. find_sym (fst p) = Some e) \<and>
+    m = sum_list (map (\<lambda>p. elem_mass (fst p) * of_nat (snd p)) cs))"
+  using molar_mass_value[OF assms] parse_formula_known_distinct mass_total_eq by blast
 
 theorem grams_to_moles_value:
   assumes "ckernel (GramsToMoles q f) = CExact k v"
@@ -448,6 +552,16 @@ proof -
   finally have sm: "sum_list (map snd (comp_pcts cs0 (mass_total cs0))) = 100" .
   from eq have f1: "f' = f" and c1: "cs = cs0" and m1: "m = mass_total cs0" by blast+
   show ?thesis by (simp add: f1 c1 m1 p nz sm)
+qed
+
+theorem percent_comp_known_distinct:
+  assumes "ckernel (PercentComp f) = CComp f' cs m"
+  shows "distinct (map fst (comp_pcts cs m)) \<and>
+    (\<forall>p \<in> set (comp_pcts cs m). \<exists>e. find_sym (fst p) = Some e)"
+proof -
+  have parsed: "parse_formula f = FOk cs" using percent_comp_value[OF assms] by blast
+  show ?thesis using parse_formula_known_distinct[OF parsed]
+    by (auto simp: comp_pcts_def comp_def)
 qed
 
 text \<open>An element's share, summed over the entries naming it, is exactly what the

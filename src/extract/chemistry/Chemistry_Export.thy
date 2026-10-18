@@ -101,7 +101,8 @@ ML \<open>
     @{thm time_real_half}, @{thm factor_nv_sound}, @{thm halv_nv_sound}, @{thm half_lives_value},
     @{thm remaining_amount_value}, @{thm remaining_fraction_value}, @{thm remaining_whole_half_lives},
     @{thm time_to_fraction_value}, @{thm time_to_fraction_half}, @{thm decay_declines},
-    @{thm decay_declines_fraction}, @{thm wf_add}, @{thm wf_merge}, @{thm dilution_stock_le_final}, @{thm remaining_halflives_agree}, @{thm reply_d_withheld}, @{thm reply_d_answered}]
+    @{thm decay_declines_fraction}, @{thm wf_add}, @{thm wf_merge}, @{thm scan_wf}, @{thm parse_parts_wf}, @{thm parse_formula_wf},
+    @{thm parse_formula_known_distinct}, @{thm molar_mass_known_distinct}, @{thm percent_comp_known_distinct}, @{thm dilution_stock_le_final}, @{thm remaining_halflives_agree}, @{thm reply_d_withheld}, @{thm reply_d_answered}]
     @ [@{thm ge_dec_true}, @{thm ge_dec_false}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("chemistry theorems use oracles: " ^ string_of_int (length oracles));
