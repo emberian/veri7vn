@@ -127,47 +127,77 @@ struct
       else if has "^(?:ft|feet|foot)" w then G.LU_ft
       else if has "^(?:yd|yard)" w then G.LU_yd else G.LU_m
     fun suffix text stop = String.extract(text,stop,NONE)
+    fun unitSpec alias tag dimension sensitive : MeasuredInput.unitSpec =
+      {alias=alias,tag=tag,dimension=dimension,caseSensitive=sensitive}
+    val lengthUnits = List.concat(map(fn(tag,names)=>
+      map(fn name=>unitSpec name tag "length" (size name<=2)) names)
+      [("mm",["mm","millimeter","millimeters","millimetre","millimetres"]),
+       ("cm",["cm","centimeter","centimeters","centimetre","centimetres"]),
+       ("m",["m","meter","meters","metre","metres"]),
+       ("km",["km","kilometer","kilometers","kilometre","kilometres"]),
+       ("in",["in","inch","inches"]),("ft",["ft","foot","feet"]),("yd",["yd","yard","yards"])])
+    val outputUnits = lengthUnits @ List.concat(map(fn({alias,tag,caseSensitive,...}:MeasuredInput.unitSpec)=>
+      map(fn a=>unitSpec a tag "area" caseSensitive)["square "^alias,alias^"2",alias^"^2",alias^"\194\178"] @
+      map(fn a=>unitSpec a tag "volume" caseSensitive)["cubic "^alias,alias^"3",alias^"^3",alias^"\194\179"]) lengthUnits)
+    fun cleanUnitTail text stop =
+      let val rest=lower(suffix text stop)
+      in case search "^\\s*([a-z]+)" rest of NONE=>not(has "^\\s*[0-9]" rest)
+       | SOME m=>List.exists(fn w=>w=valOf(Regex.group rest m 1))
+          ["by","x","and","or","long","wide","high","tall","thick","radius","diameter","height","width",
+           "length","base","edge","side","leg","hypotenuse","is","with","has","what","find","compute",
+           "calculate","determine","the","a","of","rectangle","rectangular","box","cuboid","square",
+           "triangle","circle","sphere","cylinder","cone","cube","polygon","legs"]
+      end
     fun attachedUnit text stop =
-      case search ("^\\s*(" ^ unitRx ^ ")\\b") (suffix text stop) of
-        NONE => NONE
-      | SOME (m as {stop=unitStop,...}) =>
-          let val tail = suffix text stop
-              val w = valOf (Regex.group tail m 1)
-          in SOME (unitOf w, stop+unitStop) end
+      case MeasuredInput.unitAt lengthUnits text stop of
+        SOME(MeasuredInput.Explicit{unit={tag,...},span={stop=last,...}})=>
+          if cleanUnitTail text last then SOME(unitOf tag,last) else raise BadGeometry
+      | SOME(MeasuredInput.Unsupported _)=>raise BadGeometry
+      | _=>NONE
     fun prepare text =
-      let val original = lower (collapse text)
-          val outputRx = "\\b(?:in|into)\\s+(?:square\\s+|cubic\\s+)?(" ^ unitRx ^ ")(?:[23]|\\^[23]|\194\178|\194\179)?(?![a-z0-9])"
-          val explicitOutput = search outputRx original
-          (* Output unit exponents are notation, never input dimensions. *)
-          val t = replaceAll outputRx "" original
+      let val original = collapse text
+          val lowOriginal = lower original
+          val outputRx = "\\b(?:in|into)\\s+((?:square\\s+|cubic\\s+)?(" ^ unitRx ^ ")(?:[23]|\\^[23]|\194\178|\194\179)?)(?![a-z0-9])"
+          val outputs = findall outputRx lowOriginal
+          val _ = if length outputs>1 then raise BadGeometry else ()
+          val explicitOutput = case outputs of []=>NONE | m::_=>SOME m
+          val requested = case explicitOutput of NONE=>NONE | SOME(m:Regex.match)=>
+            (case Vector.sub(#groups m,1) of NONE=>raise BadGeometry | SOME(a,b)=>
+              (case MeasuredInput.requested outputUnits original {start=a,stop=b} of
+                 SOME(MeasuredInput.RequestedOutput{unit={tag,dimension,...},span={stop,...}})=>
+                   if cleanUnitTail original stop then SOME(unitOf tag,dimension) else raise BadGeometry
+               | _=>raise BadGeometry))
+          (* Output fields never supply an inherited input unit. *)
+          val t = case explicitOutput of NONE=>original | SOME({start,stop,...}:Regex.match)=>
+            String.substring(original,0,start)^String.extract(original,stop,NONE)
+          fun countRole stop = has "^\\s*-?\\s*sided\\b" (lower(suffix t stop))
           val ts = ExactNumeric.scan t
           val _ = if List.exists (fn ExactNumeric.Malformed _ => true | _ => false) ts
                   then raise BadGeometry else ()
           val inputUnits = List.mapPartial (fn ExactNumeric.Number {stop,...} => Option.map #1 (attachedUnit t stop) | _ => NONE) ts
           val mixed = case inputUnits of [] => false | u::us => List.exists (fn v => v<>u) us
-          val hasBare = List.exists (fn ExactNumeric.Number {stop,...} => not(isSome(attachedUnit t stop)) | _ => false) ts
+          val hasBare = List.exists (fn ExactNumeric.Number {stop,...} => not(countRole stop) andalso not(isSome(attachedUnit t stop)) | _ => false) ts
           val _ = if mixed andalso hasBare then raise BadGeometry else ()
           val firstUnit = List.find (fn ExactNumeric.Number {stop,...} => isSome(attachedUnit t stop) | _ => false) ts
-          val outputPhrase = search "\\b(?:in|into)\\s+([a-z]+(?:\\s+[a-z]+)?)(?:[23]|\\^[23]|\194\178|\194\179)?(?:[?.]|$)" original
+          val outputPhrase = search "\\b(?:in|into)\\s+([a-z]+(?:\\s+[a-z]+)?)(?:[23]|\\^[23]|\194\178|\194\179)?(?:[?.]|$)" lowOriginal
           val _ = if isSome outputPhrase andalso not(isSome explicitOutput) then raise BadGeometry else ()
-          val requestedPower = if has ("\\b(?:in|into)\\s+(?:square\\s+" ^ unitRx ^ "|" ^ unitRx ^ "(?:2|\\^2|\194\178))") original then SOME 2
-              else if has ("\\b(?:in|into)\\s+(?:cubic\\s+" ^ unitRx ^ "|" ^ unitRx ^ "(?:3|\\^3|\194\179))") original then SOME 3 else NONE
-          val operationPower = if has "\\b(?:interior )?angles?\\b" t then 0 else if has "\\bvolume\\b" t then 3 else if has "\\barea\\b" t then 2 else 1
-          val _ = if operationPower=0 andalso isSome explicitOutput then raise BadGeometry else ()
-          val _ = case requestedPower of SOME n => if n=operationPower then () else raise BadGeometry | NONE => ()
-          val target = case explicitOutput of
-              SOME m => SOME(unitOf (valOf(Regex.group original m 1)))
+          val operationPower = if has "\\b(?:interior )?angles?\\b" (lower t) then "angle"
+              else if has "\\bvolume\\b" (lower t) then "volume"
+              else if has "\\barea\\b" (lower t) then "area" else "length"
+          val _ = case requested of SOME(_,dimension)=>if dimension=operationPower then () else raise BadGeometry | NONE=>()
+          val target = case requested of SOME(unit,_)=>SOME unit
             | NONE => (case firstUnit of SOME(ExactNumeric.Number {stop,...}) =>
                           Option.map #1 (attachedUnit t stop) | _ => NONE)
           fun replacement (ExactNumeric.Number {start,stop,value}) =
-                (case attachedUnit t stop of
+                if countRole stop then (start,stop,String.substring(t,start,stop-start))
+                else (case attachedUnit t stop of
                    SOME (source,last) =>
                      let val rest = suffix t last
                          val _ = if has "^(?:[23]|\\^[23]|\194\178|\194\179)" rest then raise BadGeometry else ()
                          val q = G.converted_parts source (valOf target) (toRat value)
                      in (start,last,ExactNumeric.canonical q) end
                  | NONE =>
-                     let val tail = suffix t stop
+                     let val tail = lower(suffix t stop)
                          val _ = if has "^\\s*(?:['\"]|\194\181|\206\188|\194\176)" tail then raise BadGeometry else ()
                          val _ = case search "^\\s*([a-z]+)" tail of
                            NONE => ()
@@ -182,7 +212,7 @@ struct
                      in (start,stop,
                          case (inputUnits,target) of
                            (source::_,SOME dest) =>
-                             if has "\\b(?:interior )?angles?\\b" t
+                             if has "\\b(?:interior )?angles?\\b" (lower t)
                              then String.substring(t,start,stop-start)
                              else ExactNumeric.canonical (G.converted_parts source dest (toRat value))
                          | _ => String.substring(t,start,stop-start)) end)
@@ -192,12 +222,14 @@ struct
       in (rewrite 0 (map replacement ts) [],target) end
 
     fun valD low word : dec option =
-      case search ("\\b" ^ word ^ "\\s*(?:of|=|is|:)?\\s*" ^ N) low of
+      let val role = if word="side" orelse word="edge" orelse word="base" then word ^ "(?:\\s+length)?" else word
+      in case search ("\\b" ^ role ^ "\\s*(?:of|=|is|:)?\\s*" ^ N) low of
         SOME m => SOME (parseDec (g1 low m))
       | NONE =>
-          (case search (N ^ "\\s*(?:cm|m|mm|in|ft|units?)?\\s*" ^ word ^ "\\b") low of
+          (case search (N ^ "\\s*(?:cm|m|mm|in|ft|units?)?\\s*" ^ role ^ "\\b") low of
              SOME m => SOME (parseDec (g1 low m))
            | NONE => NONE)
+      end
 
     fun some d = SOME (toRat d)
 

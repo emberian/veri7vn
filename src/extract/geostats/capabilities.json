@@ -117,7 +117,9 @@
           "unsupported_units"
         ]
       },
-      "context_regex_additions": [],
+      "context_regex_additions": [
+        "\\b(?:square|rectangular|box|cuboid|sided)\\b"
+      ],
       "evidence": {
         "computation": "Geometry catalogue: lengths, perimeters, areas, surfaces, volumes and polygon angle sums. Explicit length units are converted exactly before the existing shape computation; output names the selected unit and its dimension. Static catalogue, not an interpretation proof.",
         "assumptions": [
@@ -126,7 +128,7 @@
           "Pi and roots use verified intervals rounded to six significant digits."
         ],
         "untrusted": [
-          "English roles and units, original numeric-token span binding, output unit recognition, and JSON framing."
+          "English dimensional roles, shared whole-unit binding with original symbol case, requested-output dimension recognition, and JSON framing."
         ]
       }
     },
@@ -137,7 +139,9 @@
           "unsupported_units"
         ]
       },
-      "context_regex_additions": [],
+      "context_regex_additions": [
+        "\\b(?:square|rectangular|box|cuboid|sided)\\b"
+      ],
       "evidence": {
         "computation": "Geometry catalogue: lengths, perimeters, areas, surfaces, volumes and polygon angle sums. Explicit length units are converted exactly before the existing shape computation; output names the selected unit and its dimension. Static catalogue, not an interpretation proof.",
         "assumptions": [
@@ -146,7 +150,7 @@
           "Pi and roots use verified intervals rounded to six significant digits."
         ],
         "untrusted": [
-          "English roles and units, original numeric-token span binding, output unit recognition, and JSON framing."
+          "English dimensional roles, shared whole-unit binding with original symbol case, requested-output dimension recognition, and JSON framing."
         ]
       }
     },
@@ -157,7 +161,9 @@
           "unsupported_units"
         ]
       },
-      "context_regex_additions": [],
+      "context_regex_additions": [
+        "\\b(?:square|rectangular|box|cuboid|sided)\\b"
+      ],
       "evidence": {
         "computation": "Geometry catalogue: lengths, perimeters, areas, surfaces, volumes and polygon angle sums. Explicit length units are converted exactly before the existing shape computation; output names the selected unit and its dimension. Static catalogue, not an interpretation proof.",
         "assumptions": [
@@ -166,7 +172,7 @@
           "Pi and roots use verified intervals rounded to six significant digits."
         ],
         "untrusted": [
-          "English roles and units, original numeric-token span binding, output unit recognition, and JSON framing."
+          "English dimensional roles, shared whole-unit binding with original symbol case, requested-output dimension recognition, and JSON framing."
         ]
       }
     }

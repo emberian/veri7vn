@@ -1,0 +1,341 @@
+[
+  {
+    "q": "A square has side length 2 m. What is its area in cm2?",
+    "specialist": "geometry",
+    "valid": true,
+    "expect": 40000,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "cm^2"
+  },
+  {
+    "q": "What is the area in m2 of a square with side length 2 cm?",
+    "specialist": "geometry",
+    "valid": true,
+    "expect": 0.0004,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "m^2"
+  },
+  {
+    "q": "What is the volume in cm3 of a cube with edge length 2 m?",
+    "specialist": "geometry",
+    "valid": true,
+    "expect": 8000000,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "cm^3"
+  },
+  {
+    "q": "What is the perimeter in cm of a square with side length 2 m?",
+    "specialist": "geometry",
+    "valid": true,
+    "expect": 800,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "cm"
+  },
+  {
+    "q": "What is the area of a square with side length 2 m/s?",
+    "specialist": "geometry",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm3 of a square with side length 2 m?",
+    "specialist": "geometry",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area of a square with side length 2?",
+    "specialist": "geometry",
+    "valid": true,
+    "expect": 4,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the sum of the interior angles of a 5-sided polygon?",
+    "specialist": "geometry",
+    "valid": true,
+    "expect": 540,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "A square has side length 2 m. What is its area in cm2?",
+    "specialist": "geometry-v3",
+    "valid": true,
+    "expect": 40000,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "cm^2"
+  },
+  {
+    "q": "What is the area in m2 of a square with side length 2 cm?",
+    "specialist": "geometry-v3",
+    "valid": true,
+    "expect": 0.0004,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "m^2"
+  },
+  {
+    "q": "What is the volume in cm3 of a cube with edge length 2 m?",
+    "specialist": "geometry-v3",
+    "valid": true,
+    "expect": 8000000,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "cm^3"
+  },
+  {
+    "q": "What is the perimeter in cm of a square with side length 2 m?",
+    "specialist": "geometry-v3",
+    "valid": true,
+    "expect": 800,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "cm"
+  },
+  {
+    "q": "What is the area of a square with side length 2 m/s?",
+    "specialist": "geometry-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm3 of a square with side length 2 m?",
+    "specialist": "geometry-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area of a square with side length 2?",
+    "specialist": "geometry-v3",
+    "valid": true,
+    "expect": 4,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the sum of the interior angles of a 5-sided polygon?",
+    "specialist": "geometry-v3",
+    "valid": true,
+    "expect": 540,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "A square has side length 2 m. What is its area in cm2?",
+    "specialist": "geometry-v4",
+    "valid": true,
+    "expect": 40000,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "cm^2"
+  },
+  {
+    "q": "What is the area in m2 of a square with side length 2 cm?",
+    "specialist": "geometry-v4",
+    "valid": true,
+    "expect": 0.0004,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "m^2"
+  },
+  {
+    "q": "What is the volume in cm3 of a cube with edge length 2 m?",
+    "specialist": "geometry-v4",
+    "valid": true,
+    "expect": 8000000,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "cm^3"
+  },
+  {
+    "q": "What is the perimeter in cm of a square with side length 2 m?",
+    "specialist": "geometry-v4",
+    "valid": true,
+    "expect": 800,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expect_unit": "cm"
+  },
+  {
+    "q": "What is the area of a square with side length 2 m/s?",
+    "specialist": "geometry-v4",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm3 of a square with side length 2 m?",
+    "specialist": "geometry-v4",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area of a square with side length 2?",
+    "specialist": "geometry-v4",
+    "valid": true,
+    "expect": 4,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the sum of the interior angles of a 5-sided polygon?",
+    "specialist": "geometry-v4",
+    "valid": true,
+    "expect": 540,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm2 of a square with side length 2 m s?",
+    "specialist": "geometry",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm2/s of a square with side length 2 m?",
+    "specialist": "geometry",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area of a square with side length 2 m^2?",
+    "specialist": "geometry",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in m2 of a square with side length 2 Mm?",
+    "specialist": "geometry",
+    "valid": true,
+    "expect": 4000000000000.0,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expected_withheld": true,
+    "expect_kind": "unsupported_units"
+  },
+  {
+    "q": "What is the volume in mm3 of a cube with edge length 2 Centimetres?",
+    "specialist": "geometry",
+    "valid": true,
+    "expect": 8000,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm2 of a square with side length 2 m s?",
+    "specialist": "geometry-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm2/s of a square with side length 2 m?",
+    "specialist": "geometry-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area of a square with side length 2 m^2?",
+    "specialist": "geometry-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in m2 of a square with side length 2 Mm?",
+    "specialist": "geometry-v3",
+    "valid": true,
+    "expect": 4000000000000.0,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expected_withheld": true,
+    "expect_kind": "unsupported_units"
+  },
+  {
+    "q": "What is the volume in mm3 of a cube with edge length 2 Centimetres?",
+    "specialist": "geometry-v3",
+    "valid": true,
+    "expect": 8000,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm2 of a square with side length 2 m s?",
+    "specialist": "geometry-v4",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm2/s of a square with side length 2 m?",
+    "specialist": "geometry-v4",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area of a square with side length 2 m^2?",
+    "specialist": "geometry-v4",
+    "valid": false,
+    "expect": null,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in m2 of a square with side length 2 Mm?",
+    "specialist": "geometry-v4",
+    "valid": true,
+    "expect": 4000000000000.0,
+    "source": "https://www.nist.gov/pml/owm/si-units-length",
+    "expected_withheld": true,
+    "expect_kind": "unsupported_units"
+  },
+  {
+    "q": "What is the volume in mm3 of a cube with edge length 2 Centimetres?",
+    "specialist": "geometry-v4",
+    "valid": true,
+    "expect": 8000,
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm2 s of a square with side length 2 m?",
+    "specialist": "geometry",
+    "valid": false,
+    "expect": null,
+    "expect_kind": "unsupported_units",
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm2 s of a square with side length 2 m?",
+    "specialist": "geometry-v3",
+    "valid": false,
+    "expect": null,
+    "expect_kind": "unsupported_units",
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "What is the area in cm2 s of a square with side length 2 m?",
+    "specialist": "geometry-v4",
+    "valid": false,
+    "expect": null,
+    "expect_kind": "unsupported_units",
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "A triangle has base length 40 cm and height 0.3 m. What is its area in cm2?",
+    "specialist": "geometry",
+    "valid": true,
+    "expect": 600,
+    "expect_unit": "cm^2",
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "A triangle has base length 40 cm and height 0.3 m. What is its area in cm2?",
+    "specialist": "geometry-v3",
+    "valid": true,
+    "expect": 600,
+    "expect_unit": "cm^2",
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  },
+  {
+    "q": "A triangle has base length 40 cm and height 0.3 m. What is its area in cm2?",
+    "specialist": "geometry-v4",
+    "valid": true,
+    "expect": 600,
+    "expect_unit": "cm^2",
+    "source": "https://www.nist.gov/pml/owm/si-units-length"
+  }
+]

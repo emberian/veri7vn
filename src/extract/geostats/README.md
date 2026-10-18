@@ -118,3 +118,13 @@ Evaluating the displayed rounded line can accumulate error proportional to the
 magnitude of x. The prediction operation instead evaluates exact internal
 intercept + slope × x and then rounds that result; it does not first round the
 coefficients. Exact-rational or significant-digit line display is future work.
+
+
+Side and edge roles accept both “side 2 m” and “side length 2 m” forms.
+MeasuredInput now binds complete source length units and complete requested
+length/area/volume units before the existing exact HOL conversion. Unit symbols
+retain their original case, and unsupported compound continuations such as m/s
+or cm²/s are refused. Spelled unit names are case-insensitive. Polygon side
+counts remain dimensionless and do not inherit a length unit. Unlisted length
+scales, including megametres, remain unsupported even though mathematically
+convertible; they are counted as valid withheld requests in evaluation.

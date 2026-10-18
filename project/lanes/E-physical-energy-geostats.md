@@ -212,3 +212,40 @@ paired_probes.json, check_paired.py and generate_paired.py under the family,
 plus this report. All are frozen for root integration and runtime capture.
 Earlier db89 broad panel counts remain attributed to db89; the final ad71 text
 change has its focused owner and independent checks rather than relabeled suites.
+
+
+## Geometry role and complete-unit follow-up (drained)
+
+Paired work above was integrated as 61aa3fe and captured at
+`var/C-runtime-package/bound-prepared/20261018T091800Z-d6a1fb2ebe07/geostats`.
+This follow-up recognizes side length, edge length and base length through the
+shared labelled-length reader. It binds each complete source/output unit using
+frozen MeasuredInput 11f703, preserving symbol case and keeping polygon counts
+separate from lengths. Compound dimensions cannot be truncated to length.
+Supported square/rectangular/box/cuboid/sided contexts now retain their decisive
+in-domain refusals through the full dispatcher. No HOL model changed: existing
+checked length conversion and geometry requests remain the consumers.
+
+Final native SHA is `0eff8efb025f0029d313a679ed3166505758e0a112c96a1d80dd705a009b2dc3`.
+Actual manifest is `var/geostats/native-attempts/20261018T103007Z-09c60f9681a9/compile-inputs.json`,
+using the passed e0b85dc79ad2 proof closure against current canonical sources.
+The 45 authored checks are 42 right, 0 wrong, 0 false yes and 3 valid withheld
+(unsupported megametre symbol), with 45/45 policy assertions. Full default
+composition confirms square2m→40000cm², triangle40cm×0.3m→600cm², and a decisive
+geometry unsupported_units reply for square side2m/s. Receipts are
+`var/c-physical-energy-geostats/side-role-ready.json` and
+`side-role-ready-default.json` in the same directory.
+
+The immediately preceding a201528 native has shipped own-scorer results:
+geometry106/97, geometry-v3 100/100, geometry-v4 100/93 right on dev/heldout,
+with zero wrong/false yes/valid withheld in both pinned and family modes.
+Receipt `side-role-final-shipped.json` retains that exact binary identity,
+650728 bytes, cold timings and p50 2.92–3.29ms. Independent fresh rational/unit
+seeds13918 and14918 each passed36/36 on a201528; they were generated after the
+reader freeze and are not shipped panels. The final narrow base-length alias
+and context addition have the focused45+3 checks above rather than relabeled
+broad counts. Parent independent a201528 checks were12/16, with4 valid withheld
+across two modes; base-length support closes one of those two questions.
+Circle radius→diameter remains a valid-withheld model frontier, not a success.
+The finite geometry packet is frozen for integration/capture. Energy F work is
+separate; no additional geometry capability is launched during drain.
