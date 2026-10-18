@@ -1,3 +1,6 @@
+> User-requested wrap-up: [WRAPUP-2026-10-18.md](WRAPUP-2026-10-18.md).
+> Work is stopped; unfinished work is preserved on named pushed branches.
+
 > Latest terminal state and resume map: [DRAIN-2026-10-18.md](DRAIN-2026-10-18.md).
 > The usage-aware drain is complete; the broader project remains unfinished.
 

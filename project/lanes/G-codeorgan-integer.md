@@ -1,5 +1,12 @@
 # G — finite integer/list programs from actual examples
 
+Wrap-up preservation: the unfinished eleven-file draft is committed and pushed
+on `codex/parked-codeorgan-integer-20261018`, commit `7c3cafa`. Its branch-only
+`project/parked/codeorgan-integer-20261018.json` records exact file hashes and
+the blocker. Active checkout files now match the committed working predecessor;
+the draft is no longer left dirty. No functionality or proof completion is
+claimed by archiving it. Local copies and original failed receipts are retained.
+
 Owner: codeorgan_sol. This succeeds `345f77b`. Runtime owns the independent
 shared consumer. **No code-organ specialist panel is shipped.** These are
 scoped route checks, not a specialist scoreboard result.

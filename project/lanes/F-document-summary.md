@@ -1,5 +1,13 @@
 # Source-backed extractive summaries
 
+Wrap-up preservation: the unfinished five-file source draft is committed and
+pushed on `codex/parked-document-summary-20261018`, commit `9525094`. Its
+branch-only `project/parked/document-summary-20261018.json` records exact hashes
+and the blocker. Active checkout files now match the committed E predecessor.
+The unpublished parser proposal and independent questions are also preserved on
+`codex/parked-staged-proposals-20261018`. This preserves unfinished work; it does
+not make the summary proof or capability complete. Local evidence remains intact.
+
 Owner: Codex document lane. Builds on E discourse, integrated as `0b185dc`.
 This packet is unfinished and frozen after the final allowed drain build failed.
 No summary native or capability result is claimed. The integrated E discourse
