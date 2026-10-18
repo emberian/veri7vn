@@ -70,3 +70,8 @@ residual concentration from CT and contact time. Time inputs may be minutes,
 hours or seconds; output contact time is minutes. The model assumes a constant
 residual concentration. It does not select a treatment target or declare water
 safe. Negative quantities and nonpositive inverse divisors are refused.
+
+CT readers bind each explicit unit to its quantity dimension. A CT label cannot
+override mg/L or minutes, and residual/time labels cannot swap their units.
+Compound units are not truncated to a supported prefix. Explicit requested
+targets take priority over incidental trailing input labels.

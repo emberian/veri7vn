@@ -1,7 +1,7 @@
 # Completing CT arithmetic, 18 October 2026
 
-Status: proof and final native passed; source frozen for runtime capture and
-root integration. Hbox attempt `20261018T075206Z-27ab84a25c41` passed with
+Status: corrective native passed; source frozen for runtime capture and
+root integration. Initial E was integrated as b4a0699; its native is delivery-held. Hbox attempt `20261018T075206Z-27ab84a25c41` passed with
 74 theorem roots and zero oracles (build/log/export exit zero).
 D is integrated as 4e51593 and its final native is preserved at
 `var/E-materials/before-bin`.
@@ -65,3 +65,40 @@ with residual 2 gives 30 minutes; CT 60 with half an hour gives concentration 2.
 Both are decisive answers from the specialist stage alone. The exact command,
 replies and binary hash are in `var/E-materials/root-consumer.json`.
 Linux/package capture remains separate; no platform pass is claimed here.
+
+
+## Dimensional correction after initial integration
+
+The initial E reader accepted “CT 60 mg/L and contact time 30 min” as if CT
+had units mg-min/L and returned concentration 2. That candidate is rejected;
+its actual input snapshot and binary remain preserved. Evidence is
+`var/E-materials/rejected-ct-unit-candidate.json`. The initial measurements and
+hash above describe that rejected candidate, not the delivery selection.
+
+The correction binds units to dimensions before assigning quantity roles.
+Explicit CT, residual and time labels must agree with the supplied units;
+compound units cannot be truncated to mg/L or minutes. Bare labelled CT retains
+the established mg-min/L convention. Explicit requested targets also take
+priority over trailing input labels. This changes only the untrusted reader,
+not the proven request algebra or the 74-root export.
+
+Thirteen new dimensional/role probes give 79/79 right in both modes, with zero
+wrong, false yes or valid withheld. The invalid cases have contradictory
+physical dimensions; they are not unsupported valid conversions relabelled
+as successes. Auditing preceding material probe labels found malformed,
+contradictory, missing or physically impossible input cases, not unsupported
+unit requests. Final shipped mapped panels remain 440/440; official 347/347
+remain complete at the panel level (water-r3 still NO PANEL; overall scoped
+harness INCOMPLETE). Untouched seed 20270919 gives 448/448. Earlier fresh seed
+20270518 remains a pre-correction measurement; it is not claimed as final.
+
+Corrected native SHA256:
+`41eb7ac26ff0d0e3c922616ec016608f7e6e888c16a23158e19a031b927f3a41`.
+It is 825,032 bytes; five measured launches take 3.26–4.25 ms.
+Actual-input receipt:
+`var/materials/native-attempts/20261018T082033Z-f6ee7b94dbf9/compile-inputs.json`.
+Proof/export remain the passed 20261018T075206Z-27ab84a25c41 attempt listed above.
+Final source hashes: `var/E-materials/corrective-final-hashes.json`.
+Final checks: `corrective-final.json`, `corrective-untouched.json`,
+`corrective-probes.json`, and `corrective-parity` under `var/E-materials/`.
+Consumer composition and Linux capture must select this corrective native.

@@ -414,6 +414,97 @@
       "q": "What is the concentration times time for residual 2 mg/L and contact time 30 min?",
       "valid": true,
       "expect": 60
+    },
+    {
+      "specialist": "water",
+      "q": "What residual concentration is needed for CT 60 mg/L and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 60 minutes and residual 2 mg/L?",
+      "valid": false,
+      "expect": null,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 minutes and contact time 30 mg/L?",
+      "valid": false,
+      "expect": null,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 60 mg-min/L and residual 2 min?",
+      "valid": false,
+      "expect": null,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What residual concentration is needed for CT 60 mg-min/L and contact time 30 mg/L?",
+      "valid": false,
+      "expect": null,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What residual concentration is needed for CT 60 kg and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for 60 mg-min/L CT and 2 mg/L residual?",
+      "valid": true,
+      "expect": 30,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for 2 mg/L residual and 30 min contact time?",
+      "valid": true,
+      "expect": 60,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What residual concentration is needed for CT 60 and contact time 30 min?",
+      "valid": true,
+      "expect": 2,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 60 mg\u00b7min/L and residual 2 mg/L?",
+      "valid": true,
+      "expect": 30,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 60 mg min/L and residual 2 mg/L?",
+      "valid": true,
+      "expect": 30,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L/min and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for 2 mg/L contact time and 30 min residual?",
+      "valid": false,
+      "expect": null,
+      "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
     }
   ]
 }

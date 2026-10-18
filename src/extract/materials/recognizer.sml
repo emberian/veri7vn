@@ -632,21 +632,59 @@ struct
         val ns = scalars low
         fun tail n = afterScalar low n
         fun prefix n = beforeScalar low n
-        fun selected test = Option.map (fn n => rat (#value n)) (only (List.filter test ns))
-        val ct = selected (fn n =>
-          has "\\b(?:target\\s+)?ct(?: value| target)?\\s*(?:of|is|=|:)?\\s*$" (prefix n) orelse
-          has "^\\s*mg(?:[- ]min|[- ]minute|[\194\183]min)(?:s)?/l\\b" (tail n))
-        val concentration = selected (fn n => has "^\\s*(?:mg/l|ppm)\\b" (tail n))
-        val time = only (List.mapPartial (fn n =>
-          case search "^\\s*(minutes?|mins?|hours?|hrs?|seconds?|secs?)\\b" (tail n) of NONE => NONE
-          | SOME m => let val u = valOf (grp (tail n) m 1)
-                          val factor : q = if String.isPrefix "h" u then (60,1)
-                                           else if String.isPrefix "s" u then (1,60) else (1,1)
-                      val (numerator, denominator) = #value n
-                          val (scaleNum, scaleDen) = factor
-                      in SOME (rat (numerator * scaleNum, denominator * scaleDen)) end) ns)
-        val wantTime = has "\\bhow (?:long|many minutes|much time)\\b|\\b(?:what|find|calculate|compute)\\s+(?:is\\s+)?(?:the\\s+)?(?:required\\s+)?(?:contact\\s+)?time\\b|\\b(?:contact )?time\\s*\\?$" low
-        val wantConcentration = not (has "\\bconcentration\\s+times\\s+time\\b" low) andalso has "\\b(?:what|find|calculate|compute)\\s+(?:is\\s+)?(?:the\\s+)?(?:required\\s+)?(?:residual(?: concentration)?|concentration)\\b|\\b(?:residual(?: concentration)?|concentration)\\s*\\?$" low
+        (* Units establish dimensions; an explicit role cannot override them.
+           Bare labelled CT retains the established mg-min/L convention. *)
+        val ctRole = "(?:target\\s+)?ct(?: value| target)?"
+        val concentrationRole = "(?:residual(?: concentration)?|concentration)"
+        val timeRole = "(?:contact\\s+)?time"
+        fun role pattern n = has ("\\b" ^ pattern ^ "\\s*(?:of|is|=|:)?\\s*$") (prefix n)
+        fun labelled n = if role ctRole n then SOME 0
+                         else if role concentrationRole n then SOME 1
+                         else if role timeRole n then SOME 2 else NONE
+        fun unit n =
+          let val t = tail n
+              fun matched pattern dimension factor =
+                case search pattern t of NONE => NONE | SOME m =>
+                  SOME (dimension, factor, String.extract (t, #stop m, NONE))
+          in case matched "^\\s*mg\\s*(?:[- ]|\194\183)\\s*(?:minutes?|mins?)\\s*/\\s*l\\b" 0 (1,1) of
+               SOME x => SOME x | NONE =>
+             (case matched "^\\s*(?:mg\\s*/\\s*l|ppm)\\b" 1 (1,1) of
+               SOME x => SOME x | NONE =>
+             (case search "^\\s*(minutes?|mins?|hours?|hrs?|seconds?|secs?)\\b" t of
+               NONE => NONE | SOME m =>
+                 let val u = valOf (grp t m 1)
+                     val factor : q = if String.isPrefix "h" u then (60,1)
+                                      else if String.isPrefix "s" u then (1,60) else (1,1)
+                 in SOME (2, factor, String.extract (t, #stop m, NONE)) end)) end
+        fun bareTail t = has "^\\s*(?:$|[,.?!;:]|(?:and|at|with|for)\\b)" t
+        fun suffixRole pattern t = has ("^\\s+" ^ pattern ^ "\\b") t
+        fun consistent n dimension rest =
+          (case labelled n of NONE => true | SOME r => r = dimension) andalso
+          (not (suffixRole ctRole rest) orelse dimension = 0) andalso
+          (not (suffixRole concentrationRole rest) orelse dimension = 1) andalso
+          (not (suffixRole timeRole rest) orelse dimension = 2) andalso
+          not (has "^\\s*[/^%]" rest)
+        fun quantity n = case unit n of
+            SOME (dimension, (a,b), rest) =>
+              if consistent n dimension rest then
+                let val (v,w) = #value n in SOME (dimension, rat (v*a,w*b)) end else NONE
+          | NONE => if labelled n = SOME 0 andalso bareTail (tail n)
+                    then SOME (0, rat (#value n)) else NONE
+        val conflict = List.exists (fn n =>
+          (case unit n of SOME (dimension, _, rest) => not (consistent n dimension rest)
+           | NONE => isSome (labelled n) andalso not (labelled n = SOME 0 andalso bareTail (tail n)))) ns
+        val quantities = if conflict then [] else List.mapPartial quantity ns
+        fun selected dimension = only (List.mapPartial
+          (fn (d,q) => if d = dimension then SOME q else NONE) quantities)
+        val ct = selected 0
+        val concentration = selected 1
+        val time = selected 2
+        val explicitTime = has "\\bhow (?:long|many minutes|much time)\\b|\\b(?:what|find|calculate|compute)\\s+(?:is\\s+)?(?:the\\s+)?(?:required\\s+)?(?:contact\\s+)?time\\b" low
+        val explicitConcentration = not (has "\\bconcentration\\s+times\\s+time\\b" low) andalso has "\\b(?:what|find|calculate|compute)\\s+(?:is\\s+)?(?:the\\s+)?(?:required\\s+)?(?:residual(?: concentration)?|concentration)\\b" low
+        val explicitCt = has "\\b(?:what|find|calculate|compute)\\s+(?:is\\s+)?(?:the\\s+)?ct\\b|\\bconcentration\\s+times\\s+time\\b" low
+        val explicitTarget = explicitTime orelse explicitConcentration orelse explicitCt
+        val wantTime = explicitTime orelse (not explicitTarget andalso has "\\b(?:contact )?time\\s*\\?$" low)
+        val wantConcentration = explicitConcentration orelse (not explicitTarget andalso has "\\b(?:residual(?: concentration)?|concentration)\\s*\\?$" low)
       in if wantTime andalso wantConcentration then SOME (M.CtValue (NONE,NONE))
          else if wantTime then SOME (M.CtTime (ct, concentration))
          else if wantConcentration then SOME (M.CtConcentration (ct, time))
