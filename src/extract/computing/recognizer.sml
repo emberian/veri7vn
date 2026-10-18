@@ -250,6 +250,9 @@ struct
                 if isSome fc andalso has "\\bubrr\\b|\\bbaud (?:rate )?register\\b|\\bdivisor\\b" low then fin (C.EUbrr (r (valOf fc), B))
                 else
                   let
+                    val unit = if has "\\bcharacters? per second\\b|\\bhow many characters?\\b" low
+                                  andalso not (has "\\bbytes? per second\\b|\\bhow many bytes?\\b" low)
+                               then C.E_char else C.E_byte
                     val (data, par, stop) =
                       case search "\\b([5-9])([neo])([12])\\b" low of
                         SOME m => (natS (g1 low m), if valOf (grp low m 2) = "n" then nat 0 else nat 1, natS (valOf (grp low m 3)))
@@ -261,12 +264,14 @@ struct
                                       then nat 1 else nat 0
                           in (case dm of SOME m => natS (g1 low m) | NONE => nat 8, par, case sm of SOME m => natS (g1 low m) | NONE => nat 1) end
                   in
-                    if has "\\bbytes? per second\\b|\\bthroughput\\b|\\bcharacters per second\\b|\\bhow many bytes\\b" low then fin (C.EUartTp (B, data, par, stop))
+                    if has "\\bbytes? per second\\b|\\bthroughput\\b|\\bcharacters per second\\b|\\bhow many bytes\\b" low then fin (C.EUartTp (unit, B, data, par, stop))
                     else if has "\\bhow long\\b|\\btime\\b|\\bduration\\b" low then
                       let
-                        val nb = search (NUMP ^ "\\s*(?:bytes|characters|chars)\\b") low
+                        val nb = search (NUMP ^ "\\s*(bytes|characters|chars)\\b") low
                         val k = case nb of SOME m => ratOf (g1 low m) | NONE => ratP (1, 1)
-                      in fin (C.EUartTime (B, k, data, par, stop)) end
+                        val countUnit = case nb of SOME m => if grp low m 2 = SOME "bytes" then C.E_byte else C.E_char
+                                                   | NONE => if has "\\b(?:a|one) character\\b" low then C.E_char else C.E_byte
+                      in fin (C.EUartTime (countUnit, B, k, data, par, stop)) end
                     else NONE
                   end
               end
@@ -306,6 +311,8 @@ struct
     ("\\bdigits only\\b|\\bnumeric pin\\b|\\bpin\\b|\\bdigits\\b|\\bnumbers only\\b", C.CS_digits)]
   val digestBits = [("md5", 128), ("sha-1", 160), ("sha1", 160), ("sha-224", 224), ("sha224", 224), ("sha-256", 256),
                     ("sha256", 256), ("sha-384", 384), ("sha384", 384), ("sha-512", 512), ("sha512", 512)] : (string * int) list
+
+  val nonuniform = "\\bnon[- ]?uniform(?:ly)?\\b|\\bnot (?:uniform(?:ly)?|independent(?:ly)?|equally likely)\\b|\\bunequal(?:ly)?\\b|\\bbiased\\b|\\bcorrelated\\b|\\bdependent (?:characters|choices|symbols)\\b"
 
   fun cyber text =
     if Narrow.narrative text then NONE
@@ -359,8 +366,8 @@ struct
                                       val mul = case grp low m 2 of SOME "thousand" => 1000 | SOME "million" => 1000000 | SOME "billion" => 1000000000
                                                                   | SOME "trillion" => 1000000000000 | _ => 1 : IntInf.int
                                     in ratP (n * mul * IntInf.pow (10, ex), d) end) rate
-                              in fin (C.CBrute (avg, cs, L, R)) end
-                            else if has "\\bentropy\\b|\\bbits\\b" low then fin (C.CEntropy (cs, L))
+                              in fin (if avg andalso has nonuniform low then C.CDistribution else C.CBrute (avg, cs, L, R)) end
+                            else if has "\\bentropy\\b|\\bbits\\b" low then fin (if has nonuniform low then C.CDistribution else C.CEntropy (cs, L))
                             else if has "\\bhow many (?:possible )?(?:passwords|combinations|pins|keys|codes)\\b|\\bkeyspace\\b|\\bcombinations\\b|\\bpossibilities\\b" low then
                               fin (C.CKeyspace (cs, L))
                             else NONE

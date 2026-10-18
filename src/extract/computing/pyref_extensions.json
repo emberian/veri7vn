@@ -1,0 +1,15 @@
+{
+  "python": "3.12.3",
+  "entries": {
+    "os.remove": {
+      "name": "os.remove",
+      "module": "os",
+      "kind": "function",
+      "signature": "(path, *, dir_fd=None)",
+      "doc": "Remove a file (same as unlink()).",
+      "source": "https://github.com/python/cpython/blob/v3.12.3/Modules/clinic/posixmodule.c.h#L2812-L2823",
+      "source_symbol": "os_remove__doc__",
+      "scope": "Public os API documented by CPython v3.12.3; hidden module argument omitted from the call signature. Platform support for dir_fd varies."
+    }
+  }
+}

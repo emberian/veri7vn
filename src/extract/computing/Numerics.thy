@@ -13,16 +13,18 @@ definition snat :: "nat \<Rightarrow> String.literal" where "snat n = lit (digit
 
 section \<open>Embedded\<close>
 
+datatype eunit = E_char | E_byte
+
 datatype ereq =
     EAddr nat "nat option"
   | EUbrr rat rat
-  | EUartTp rat nat nat nat
-  | EUartTime rat rat nat nat nat
+  | EUartTp eunit rat nat nat nat
+  | EUartTime eunit rat rat nat nat nat
   | ECtc rat nat rat nat
   | EOvf nat rat nat bool
   | ETick rat nat bool
 
-datatype edecl = E_zero | E_nofit | E_slow
+datatype edecl = E_zero | E_nofit | E_slow | E_mapping
 
 definition frame_bits :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where "frame_bits d p s = 1 + d + p + s"
 
@@ -35,8 +37,8 @@ fun emb_decline :: "ereq \<Rightarrow> edecl option" where
   "emb_decline (EAddr n w) = None"
 | "emb_decline (EUbrr fc B) = (if fc \<le> 0 \<or> B \<le> 0 then Some E_zero
      else if round_he (ubrr_raw fc B) < 0 then Some E_slow else None)"
-| "emb_decline (EUartTp B d p s) = (if B \<le> 0 then Some E_zero else None)"
-| "emb_decline (EUartTime B k d p s) = (if B \<le> 0 then Some E_zero else None)"
+| "emb_decline (EUartTp u B d p s) = (if B \<le> 0 then Some E_zero else if u = E_byte \<and> d \<noteq> 8 then Some E_mapping else None)"
+| "emb_decline (EUartTime u B k d p s) = (if B \<le> 0 then Some E_zero else if u = E_byte \<and> d \<noteq> 8 then Some E_mapping else None)"
 | "emb_decline (ECtc fc P ft bits) = (if fc \<le> 0 \<or> P = 0 \<or> ft \<le> 0 then Some E_zero
      else if round_he (ctc_raw fc P ft) < 0 \<or> 2 ^ bits - 1 < round_he (ctc_raw fc P ft) then Some E_nofit else None)"
 | "emb_decline (EOvf bits fc P fl) = (if fc \<le> 0 \<or> P = 0 then Some E_zero else None)"
@@ -44,10 +46,10 @@ fun emb_decline :: "ereq \<Rightarrow> edecl option" where
 
 fun emb_value :: "ereq \<Rightarrow> rat" where
   "emb_value (EAddr n None) = 2 ^ n"
-| "emb_value (EAddr n (Some w)) = of_nat (2 ^ n * w div 8)"
+| "emb_value (EAddr n (Some w)) = of_nat (2 ^ n * w) / 8"
 | "emb_value (EUbrr fc B) = of_int (round_he (ubrr_raw fc B))"
-| "emb_value (EUartTp B d p s) = B / of_nat (frame_bits d p s)"
-| "emb_value (EUartTime B k d p s) = k * of_nat (frame_bits d p s) / B"
+| "emb_value (EUartTp u B d p s) = B / of_nat (frame_bits d p s)"
+| "emb_value (EUartTime u B k d p s) = k * of_nat (frame_bits d p s) / B"
 | "emb_value (ECtc fc P ft bits) = of_int (round_he (ctc_raw fc P ft))"
 | "emb_value (EOvf bits fc P False) = 2 ^ bits * of_nat P / fc"
 | "emb_value (EOvf bits fc P True) = fc / (2 ^ bits * of_nat P)"
@@ -119,27 +121,44 @@ qed
 
 theorem emb_uart_identities:
   assumes "0 < B"
-  shows "emb_value (EUartTp B d p s) * of_nat (frame_bits d p s) = B"
-    and "emb_value (EUartTime B k d p s) * B = k * of_nat (frame_bits d p s)"
+  shows "emb_value (EUartTp u B d p s) * of_nat (frame_bits d p s) = B"
+    and "emb_value (EUartTime u B k d p s) * B = k * of_nat (frame_bits d p s)"
 proof -
   have b: "B \<noteq> 0" using assms by simp
-  show "emb_value (EUartTp B d p s) * of_nat (frame_bits d p s) = B"
+  show "emb_value (EUartTp u B d p s) * of_nat (frame_bits d p s) = B"
     by (simp add: frame_bits_def)
-  show "emb_value (EUartTime B k d p s) * B = k * of_nat (frame_bits d p s)" using b by simp
+  show "emb_value (EUartTime u B k d p s) * B = k * of_nat (frame_bits d p s)" using b by simp
 qed
 
 theorem emb_address_value:
-  "emb_value (EAddr n None) = 2 ^ n \<and> emb_value (EAddr n (Some w)) = of_nat (2 ^ n * w div 8)"
+  "emb_value (EAddr n None) = 2 ^ n \<and> emb_value (EAddr n (Some w)) = of_nat (2 ^ n * w) / 8"
   by simp
 
-theorem emb_address_bytes_exact:
-  fixes n w :: nat
-  assumes "8 dvd w"
-  shows "(2 ^ n * w div 8) * 8 = 2 ^ n * w"
+text \<open>A physical bit address is an n-long Boolean vector. Every address
+stores w bits; a byte contains eight bits, even when the total is fractional.
+This capacity relation does not assume byte-aligned words.\<close>
+definition bit_addresses :: "nat \<Rightarrow> bool list set" where
+  "bit_addresses n = {xs. set xs \<subseteq> (UNIV :: bool set) \<and> length xs = n}"
+
+lemma bit_addresses_card: "card (bit_addresses n) = 2 ^ n"
 proof -
-  have "8 dvd 2 ^ n * w" using assms by simp
-  then show ?thesis by (rule dvd_div_mult_self)
+  have count: "card {xs. set xs \<subseteq> (UNIV :: bool set) \<and> length xs = n} = card (UNIV :: bool set) ^ n"
+    by (rule card_lists_length_eq) simp
+  show ?thesis using count unfolding bit_addresses_def by simp
 qed
+
+theorem emb_address_bytes_exact:
+  "8 * emb_value (EAddr n (Some w)) = of_nat (card (bit_addresses n) * w)"
+  by (simp add: bit_addresses_card)
+
+theorem emb_address_locations:
+  "emb_value (EAddr n None) = of_nat (card (bit_addresses n))"
+  by (simp add: bit_addresses_card)
+
+theorem emb_uart_byte_mapping:
+  "emb_decline (EUartTp E_byte B d p s) = None \<Longrightarrow> d = 8"
+  "emb_decline (EUartTime E_byte B k d p s) = None \<Longrightarrow> d = 8"
+  by (auto split: if_splits)
 
 definition g_emb :: "rat \<Rightarrow> String.literal" where
   "g_emb q = (if q \<noteq> 0 \<and> \<bar>q\<bar> < 1 / 1000 then sig4_str q
@@ -151,14 +170,18 @@ definition secs_str :: "rat \<Rightarrow> String.literal" where
      else if 1 / 1000000 \<le> s then g_emb (s * 1000000) + STR '' us''
      else g_emb (s * 1000000000) + STR '' ns'')"
 
+fun uart_unit :: "eunit \<Rightarrow> rat \<Rightarrow> String.literal" where
+  "uart_unit E_char k = (if k = 1 then STR '' character'' else STR '' characters'')"
+| "uart_unit E_byte k = (if k = 1 then STR '' byte'' else STR '' bytes'')"
+
 definition uart_label :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> String.literal" where
   "uart_label d p s = snat d + (if p = 0 then STR ''N'' else STR ''P'') + snat s"
 
 definition emb_kind :: "ereq \<Rightarrow> String.literal" where
   "emb_kind r = (case r of
       EAddr _ None \<Rightarrow> STR ''address_space'' | EAddr _ (Some _) \<Rightarrow> STR ''address_bytes''
-    | EUbrr _ _ \<Rightarrow> STR ''ubrr'' | EUartTp _ _ _ _ \<Rightarrow> STR ''uart_throughput''
-    | EUartTime _ _ _ _ _ \<Rightarrow> STR ''uart_time'' | ECtc _ _ _ _ \<Rightarrow> STR ''ctc''
+    | EUbrr _ _ \<Rightarrow> STR ''ubrr'' | EUartTp _ _ _ _ _ \<Rightarrow> STR ''uart_throughput''
+    | EUartTime _ _ _ _ _ _ \<Rightarrow> STR ''uart_time'' | ECtc _ _ _ _ \<Rightarrow> STR ''ctc''
     | EOvf _ _ _ True \<Rightarrow> STR ''overflow_freq'' | EOvf _ _ _ False \<Rightarrow> STR ''overflow''
     | ETick _ _ True \<Rightarrow> STR ''tick_freq'' | ETick _ _ False \<Rightarrow> STR ''tick'')"
 
@@ -168,20 +191,21 @@ definition emb_decl_text :: "ereq \<Rightarrow> edecl \<Rightarrow> String.liter
         + STR '', which does not fit a '' + snat bits + STR ''-bit timer (max '' + sintz (2 ^ bits - 1)
         + STR ''); use a larger prescaler.''
     | (EUbrr fc B, E_slow) \<Rightarrow> STR ''The clock is too slow for '' + g_emb B + STR '' baud in normal mode.''
+    | (_, E_mapping) \<Rightarrow> STR ''A byte has eight bits. Specify how bytes map to these non-eight-bit UART characters, or ask for characters.''
     | _ \<Rightarrow> STR ''A zero clock, baud rate, prescaler or target frequency makes that undefined.'')"
 
 definition emb_text :: "ereq \<Rightarrow> String.literal" where
   "emb_text r = (let v = emb_value r in case r of
       EAddr n None \<Rightarrow> STR ''That is '' + commas (int (2 ^ n)) + STR '' addressable locations (2^'' + snat n + STR '').''
-    | EAddr n (Some w) \<Rightarrow> STR ''That is '' + commas (int (2 ^ n * w div 8)) + STR '' bytes (2^'' + snat n
+    | EAddr n (Some w) \<Rightarrow> STR ''That is '' + g_emb v + STR '' bytes (2^'' + snat n
         + STR '' locations x '' + snat w + STR '' bits / 8).''
     | EUbrr fc B \<Rightarrow> (let u = round_he (ubrr_raw fc B); act = fc / (16 * (of_int u + 1)) in
         STR ''The UBRR value is '' + sintz u + STR '' (f_clk / (16 x baud) - 1 = '' + g_emb (ubrr_raw fc B)
         + STR '', rounded; actual '' + g_emb act + STR '' baud, error '' + g_emb ((act / B - 1) * 100) + STR ''%).'')
-    | EUartTp B d p s \<Rightarrow> STR ''The throughput is '' + g_emb v + STR '' bytes per second ('' + g_emb B
+    | EUartTp u B d p s \<Rightarrow> STR ''The throughput is '' + g_emb v + uart_unit u 2 + STR '' per second ('' + g_emb B
         + STR '' baud / '' + snat (frame_bits d p s) + STR ''-bit frame, '' + uart_label d p s + STR '').''
-    | EUartTime B k d p s \<Rightarrow> STR ''It takes '' + secs_str v + STR '' ('' + g_emb k
-        + (if k = 1 then STR '' byte'' else STR '' bytes'') + STR '' x '' + snat (frame_bits d p s)
+    | EUartTime u B k d p s \<Rightarrow> STR ''It takes '' + secs_str v + STR '' ('' + g_emb k
+        + uart_unit u k + STR '' x '' + snat (frame_bits d p s)
         + STR ''-bit frame / '' + g_emb B + STR '' baud, '' + uart_label d p s + STR '').''
     | ECtc fc P ft bits \<Rightarrow> (let o' = round_he (ctc_raw fc P ft) in
         STR ''The compare value is '' + sintz o' + STR '' (f_clk / (N x f) - 1 = '' + g_emb (ctc_raw fc P ft)
@@ -202,7 +226,7 @@ definition val_str :: "rat \<Rightarrow> String.literal" where
 
 definition emb_reply :: "ereq \<Rightarrow> reply" where
   "emb_reply r = (case emb_decline r of
-      Some d \<Rightarrow> Reply False (STR ''impossible'') (emb_decl_text r d) None
+      Some d \<Rightarrow> Reply False (if d = E_mapping then STR ''underspecified'' else STR ''impossible'') (emb_decl_text r d) None
     | None \<Rightarrow> Reply True (emb_kind r) (emb_text r) (Some (val_str (emb_value r))))"
 
 theorem emb_reply_answered_iff: "answered (emb_reply r) \<longleftrightarrow> emb_decline r = None"
@@ -216,9 +240,9 @@ definition emb_self_test :: bool where
      emb_value (ECtc 8000000 8 100 16) = 9999 \<and>
      emb_decline (ECtc 16000000 1 1 8) = Some E_nofit \<and>
      emb_value (EUbrr 8000000 57600) = 8 \<and>
-     emb_value (EUartTp 115200 8 0 1) = 11520 \<and>
+     emb_value (EUartTp E_byte 115200 8 0 1) = 11520 \<and>
      emb_value (EAddr 32 None) = 4294967296 \<and>
-     response (emb_reply (EUartTime 9600 10 8 0 1)) =
+     response (emb_reply (EUartTime E_byte 9600 10 8 0 1)) =
        STR ''It takes 10.4167 ms (10 bytes x 10-bit frame / 9600 baud, 8N1).'' \<and>
      response (emb_reply (ETick 8000000 8 False)) = STR ''The tick period is 1 us (8 / 8,000,000 Hz).'' \<and>
      stated (emb_reply (EOvf 8 16000000 64 False)) = Some (STR ''0.001024'') \<and>
@@ -242,14 +266,15 @@ fun clabel :: "cset \<Rightarrow> String.literal" where
 
 datatype creq =
     CDigest nat | CBirthday nat | CBase64 nat
-  | CKeyspace cset nat | CEntropy cset nat | CBrute bool cset nat "rat option"
+  | CKeyspace cset nat | CEntropy cset nat | CDistribution | CBrute bool cset nat "rat option"
 
-datatype cdecl = C_need_rate | C_zero
+datatype cdecl = C_need_rate | C_zero | C_need_distribution
 
 fun cyb_decline :: "creq \<Rightarrow> cdecl option" where
   "cyb_decline (CBrute avg cs L None) = Some C_need_rate"
 | "cyb_decline (CBrute avg cs L (Some R)) = (if R \<le> 0 then Some C_zero else None)"
 | "cyb_decline (CEntropy cs L) = (if csize cs = 0 then Some C_zero else None)"
+| "cyb_decline CDistribution = Some C_need_distribution"
 | "cyb_decline r = None"
 
 fun cyb_value :: "creq \<Rightarrow> rat" where
@@ -258,6 +283,7 @@ fun cyb_value :: "creq \<Rightarrow> rat" where
 | "cyb_value (CBase64 n) = of_nat (4 * ((n + 2) div 3))"
 | "cyb_value (CKeyspace cs L) = of_nat (csize cs ^ L)"
 | "cyb_value (CEntropy cs L) = 0"
+| "cyb_value CDistribution = 0"
 | "cyb_value (CBrute avg cs L None) = 0"
 | "cyb_value (CBrute avg cs L (Some R)) = of_nat (csize cs ^ L) / R / (if avg then 2 else 1)"
 
@@ -341,7 +367,7 @@ definition ks_str :: "rat \<Rightarrow> String.literal" where
 definition cyb_kind :: "creq \<Rightarrow> String.literal" where
   "cyb_kind r = (case r of
       CDigest _ \<Rightarrow> STR ''digest_hex'' | CBirthday _ \<Rightarrow> STR ''birthday'' | CBase64 _ \<Rightarrow> STR ''base64_len''
-    | CKeyspace _ _ \<Rightarrow> STR ''keyspace'' | CEntropy _ _ \<Rightarrow> STR ''entropy''
+    | CKeyspace _ _ \<Rightarrow> STR ''keyspace'' | CEntropy _ _ \<Rightarrow> STR ''entropy'' | CDistribution \<Rightarrow> STR ''underspecified''
     | CBrute True _ _ _ \<Rightarrow> STR ''brute_avg'' | CBrute False _ _ _ \<Rightarrow> STR ''brute_worst'')"
 
 definition cyb_text :: "creq \<Rightarrow> String.literal" where
@@ -355,6 +381,7 @@ definition cyb_text :: "creq \<Rightarrow> String.literal" where
     | CKeyspace cs L \<Rightarrow> STR ''The keyspace is '' + ks_str v + STR '' ('' + snat (csize cs) + STR ''^'' + snat L + STR ''; ''
         + clabel cs + STR '').''
     | CEntropy cs L \<Rightarrow> STR ''''
+    | CDistribution \<Rightarrow> STR ''''
     | CBrute avg cs L ro \<Rightarrow> (case ro of None \<Rightarrow> STR '''' | Some R \<Rightarrow>
         (let ks = of_nat (csize cs ^ L) in
          if avg then STR ''The average time is '' + dur_str v + STR '' (half the keyspace: '' + g_cy ks + STR '' / 2 / '' + g_cy R
@@ -374,6 +401,8 @@ definition cyb_reply :: "creq \<Rightarrow> reply" where
     | _ \<Rightarrow> (case cyb_decline r of
         Some C_need_rate \<Rightarrow> Reply False (STR ''underspecified'')
           (STR ''I need the guess rate (guesses per second) - the time depends entirely on the hardware; I won'' + apos + STR ''t assume one.'') None
+      | Some C_need_distribution \<Rightarrow> Reply False (STR ''underspecified'')
+          (STR ''This calculation requires uniform independent choices. Nonuniform or dependent choices need a probability model that this calculator does not support.'') None
       | Some C_zero \<Rightarrow> Reply False (STR ''impossible'') (STR ''A guess rate must be positive.'') None
       | None \<Rightarrow> Reply True (cyb_kind r) (cyb_text r) None))"
 
@@ -381,6 +410,12 @@ theorem cyb_reply_answered:
   "answered (cyb_reply r) \<longleftrightarrow>
      (case r of CEntropy cs L \<Rightarrow> cyb_decline r = None \<and> cyb_entropy cs L \<noteq> None | _ \<Rightarrow> cyb_decline r = None)"
   by (cases r) (auto simp: cyb_reply_def split: option.splits cdecl.splits)
+
+theorem cyb_distribution_withheld:
+  "\<not> answered (cyb_reply CDistribution) \<and>
+   reply_kind (cyb_reply CDistribution) = STR ''underspecified'' \<and>
+   stated (cyb_reply CDistribution) = None"
+  by (simp add: cyb_reply_def)
 
 definition cyb_self_test :: bool where
   "cyb_self_test \<longleftrightarrow>

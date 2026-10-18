@@ -7,7 +7,7 @@ recognizer's tables with the shipped organ files, read-only (no bytecode written
   cyber      : character set sizes and labels, digest bit sizes, duration unit seconds
   linux-v2   : the 21-entry signal table, cron field ranges
   git        : original intent order/commands/notes, unchanged patterns and explicit stash extensions
-  python     : Pyref_Table.thy regenerates exactly from pyref_v1.json; python and python-r2 ship the same file
+  python     : Pyref_Table.thy matches original pyref_v1.json plus inventoried extensions; originals identical
   robotics   : (no tables)
 Exit 1 on any mismatch.   python3 src/extract/computing/tables_check.py
 """
@@ -145,20 +145,26 @@ check("git command/note/warning transcription and unchanged patterns", not error
 
 # ---- python
 before = (HERE / "Pyref_Table.thy").read_text()
-r = subprocess.run([sys.executable, "-B", str(HERE / "gen_pyref.py")], capture_output=True, text=True, cwd=REPO)
-check("python Pyref_Table.thy equals the regeneration from pyref_v1.json (856 rows)",
-      r.returncode == 0 and "856 rows" in r.stdout and (HERE / "Pyref_Table.thy").read_text() == before)
+r = subprocess.run([sys.executable, "-B", str(HERE / "gen_pyref.py"), "--check"], capture_output=True, text=True, cwd=REPO)
+check("python Pyref_Table.thy equals original reference plus inventoried extensions (857 rows)",
+      r.returncode == 0 and "857 rows" in r.stdout and (HERE / "Pyref_Table.thy").read_text() == before)
 d = json.load(open(SPEC / "python/pyref_v1.json"))
 d2 = json.load(open(SPEC / "python-r2/pyref_v1.json"))
 check("python and python-r2 ship the same reference file", d == d2)
+ext = json.loads((HERE / "pyref_extensions.json").read_text())
+check("python extension version and nonshadowing inventory",
+      ext["python"] == d["python"] and set(ext["entries"]) == {"os.remove"} and
+      not set(ext["entries"]) & set(d["entries"]) and
+      ext["entries"]["os.remove"]["source_symbol"] == "os_remove__doc__" and
+      "/v3.12.3/" in ext["entries"]["os.remove"]["source"])
 PT = thy("Pyref_Table.thy")
-check("python table row count", len(re.findall(r"(?:\[|,)\n   \(STR", PT)) == len(d["entries"]) == 856)
+check("python table row count", len(re.findall(r"(?:\[|,)\n   \(STR", PT)) == len(d["entries"]) + len(ext["entries"]) == 857)
 check("python version stamp", "py_version = STR ''%s''" % d["python"] in PT)
 
 # Lane S15b: table facts the HOL session no longer proves (evaluation is an oracle)
 rows = re.findall(r"(?:\[|,)\n   \(STR ''([^']*)'', STR ''([^']*)'', STR ''([^']*)''", PT)
 names = [n for n, _, _ in rows]
-check("python table names distinct (was py_names_distinct)", len(rows) == 856 and len(set(names)) == len(names))
+check("python table names distinct (was py_names_distinct)", len(rows) == 857 and len(set(names)) == len(names))
 check("python name = prefix.short or short (was py_names_split)",
       all(n == (sh if pf == "" else pf + "." + sh) for n, pf, sh in rows))
 print("%d checks failed" % len(FAILS) if FAILS else "TABLES PASS")

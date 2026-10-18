@@ -5,7 +5,9 @@ begin
 text \<open>Lane S15-computing: python and python-r2
 (upstream/root/specialists/python*/organ_pyref_v1.py; the two organs are the same
 file and read the same JSON). Python 3.12.3 reference: signature, module,
-docstring line of 856 standard-library names, from the generated table.
+docstring line of standard-library names, from the generated partial table.
+The original 856 rows are preserved; separately sourced extensions are inventoried.
+A missing row means no reference coverage, not that a runtime API does not exist.
 The recognizer reads the question and the names it mentions; this kernel resolves
 a name against the table, as the organ's _name does, and states the row.\<close>
 
@@ -58,7 +60,7 @@ definition py_reply :: "pyask \<Rightarrow> pycand list \<Rightarrow> reply" whe
   "py_reply q cs = (case py_resolve cs of
       PyNone \<Rightarrow> Reply False (STR ''not_taken'') (STR '''') None
     | PyMissing m a \<Rightarrow> Reply False (STR ''unknown'')
-        (STR ''Python '' + py_version + apos + STR ''s '' + m + STR '' has no '' + a + STR '', so I can'' + apos + STR ''t describe it.'') None
+        (STR ''My Python '' + py_version + STR '' reference has no entry for '' + m + STR ''.'' + a + STR ''. This does not establish whether the API exists.'') None
     | PyAmbig ns \<Rightarrow> Reply False (STR ''clarify'')
         (STR ''Several standard-library names match: '' + join_lit (STR '', '') (take 5 (sort ns))
           + STR ''. Which one do you mean?'') None
@@ -69,12 +71,12 @@ definition py_reply :: "pyask \<Rightarrow> pycand list \<Rightarrow> reply" whe
                (nm + STR '' is in the '' + pe_module e + STR '' module (Python '' + py_version + STR '').'') (Some (pe_module e))
            | PQ_signature \<Rightarrow>
                (if pe_sig e = STR '''' then Reply False (STR ''no_signature'')
-                  (STR ''Python '' + py_version + STR '' doesn'' + apos + STR ''t expose a signature for '' + nm
+                  (STR ''My Python '' + py_version + STR '' reference has no recorded signature for '' + nm
                     + STR '', so I won'' + apos + STR ''t guess its parameters.'') None
                 else Reply True (STR ''signature'')
                   (nm + STR '' - signature '' + pe_sig e + STR '' (Python '' + py_version + STR '').'') (Some (pe_sig e)))
            | PQ_doc \<Rightarrow> Reply True (STR ''doc'')
-               (nm + STR '': '' + (if pe_doc e = STR '''' then STR ''(no docstring)'' else pe_doc e) + STR '' Call it as ''
+               (nm + STR '': '' + (if pe_doc e = STR '''' then STR ''(no documentation recorded in this reference)'' else pe_doc e) + STR '' Call it as ''
                  + (if pe_sig e = STR '''' then nm else nm + pe_sig e) + STR '' (Python '' + py_version + STR '').'')
                (Some (pe_doc e)))))"
 
@@ -184,6 +186,24 @@ next
       qed
     qed
   qed
+qed
+
+theorem py_missing_is_reference_absence:
+  assumes "py_resolve cs = PyMissing m a"
+  shows "\<not> (\<exists>e \<in> set py_entries. pe_name e = m + STR ''.'' + a)"
+    and "\<not> answered (py_reply q cs)"
+proof -
+  have missing: "py_lookup (m + STR ''.'' + a) = None"
+    using py_missing_sound[OF assms] by (rule conjunct1)
+  show "\<not> (\<exists>e \<in> set py_entries. pe_name e = m + STR ''.'' + a)"
+  proof
+    assume "\<exists>e \<in> set py_entries. pe_name e = m + STR ''.'' + a"
+    then obtain e where member: "e \<in> set py_entries" and name: "pe_name e = m + STR ''.'' + a"
+      by blast
+    have "py_lookup (pe_name e) \<noteq> None" by (rule py_lookup_complete[OF member])
+    with missing name show False by simp
+  qed
+  show "\<not> answered (py_reply q cs)" using assms by (simp add: py_reply_def)
 qed
 
 theorem py_signature_states_row:

@@ -10,9 +10,9 @@ export_code net_reply emb_reply cyb_reply rob_reply lin_reply git_reply py_reply
   integer_of_int nat_of_integer int_of_integer integer_of_nat
   IP NReq BMask BPrefix BWildcard BCount BAddr BNeedPrefix BSame BPrivate BSubnets BForHosts
   W_hosts W_network W_broadcast W_first W_last W_range
-  EAddr EUbrr EUartTp EUartTime ECtc EOvf ETick
+  E_char E_byte EAddr EUbrr EUartTp EUartTime ECtc EOvf ETick
   CS_printable CS_alnum CS_mixed CS_lower CS_digits CS_custom
-  CDigest CBirthday CBase64 CKeyspace CEntropy CBrute
+  CDigest CBirthday CBase64 CKeyspace CEntropy CDistribution CBrute
   RW_radius RW_angular RW_linear RPwm RFk REnc RWheel RDiff
   LSymFromOct LOctFromSym LUmask LCron LCronNoPeriod LSigNum LSigName LExit
   Sym Perm X_no X_x X_sp X_SP UM_file UM_dir UM_both CStar CRange CSingle CI CBad
@@ -36,7 +36,7 @@ ML \<open>
     @{thms sym_mode_sym}, @{thms mode_sym_mode}, @{thms item_vals_mem}, @{thms field_count_bound}, @{thms sig_table_bijective},
     @{thms umask_file_bits}, @{thms umask_dir_bits}, @{thms lin_reply_answered_iff}, @{thms git_warns_exactly_destructive},
     @{thms git_commands_distinct}, @{thms git_reply_states_command},
-    @{thms py_found_in_table}, @{thms py_missing_sound}, @{thms py_signature_states_row},
+    @{thms py_found_in_table}, @{thms py_missing_sound}, @{thms py_missing_is_reference_absence}, @{thms py_signature_states_row},
     @{thms py_withheld_iff}, @{thms py_lookup_sound}, @{thms py_lookup_complete},
     @{thms isort_perm}, @{thms isort_sorted}, @{thms where_keeps_exactly_true}, @{thms agg_count_skips_null},
     @{thms agg_sum_empty}, @{thms agg_sum_ints}, @{thms agg_avg_value}, @{thms exec_unknown_column},
@@ -45,10 +45,10 @@ ML \<open>
     @{thms priv_block_complete}, @{thms net_kernel_value}, @{thms net_decline_ip}, @{thms net_decline_prefix},
     @{thms net_decline_mask}, @{thms net_prefix_value}, @{thms net_wildcard_value}, @{thms net_usable_value},
     @{thms net_same_value}, @{thms net_forhosts_declines_iff}, @{thms net_reply_withheld_names_decline},
-    @{thms emb_address_value}, @{thms emb_address_bytes_exact}, @{thms emb_reply_answered_iff},
+    @{thms emb_address_value}, @{thms emb_address_bytes_exact}, @{thms emb_address_locations}, @{thms emb_uart_byte_mapping}, @{thms emb_reply_answered_iff},
     @{thms cyb_digest_hex}, @{thms cyb_birthday_value}, @{thms cyb_keyspace_value},
     @{thms cyb_brute_avg_half}, @{thms cyb_underspecified}, @{thms dur_unit_years},
-    @{thms cyb_reply_answered}, @{thms rob_diff_straight}, @{thms rob_pwm_bound},
+    @{thms cyb_reply_answered}, @{thms cyb_distribution_withheld}, @{thms rob_diff_straight}, @{thms rob_pwm_bound},
     @{thms rob_reply_withheld_iff_decline}, @{thms py_module_states_row}, @{thms py_doc_states_row},
     @{thms ins_stable_before_equal}, @{thms where_null_never_kept}, @{thms agg_count_star_len},
     @{thms agg_max_is_member}, @{thms validity_bad_leading_word}, @{thms validity_yes_reply_answered},
