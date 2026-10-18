@@ -15,6 +15,13 @@ structure Main =
 struct
   val theorems = "[\"kernel_exact_sound\",\"kernel_approx_sound\",\"kernel_class_sound\",\"kernel_decline_iff\",\"stated_of_sound\",\"enclose_sound\"]"
 
+  (* The selected request determines the additional model theorem; English recognition remains untrusted. *)
+  fun supporting request =
+    case request of
+      Materials.HookeStress _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"hooke_stress_binding\"]"
+    | Materials.HookeStrain _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"hooke_strain_balance\"]"
+    | _ => theorems
+
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
     in LargeInt.toString (us div 1000) ^ "." ^ StringCvt.padLeft #"0" 3 (LargeInt.toString (us mod 1000)) end
@@ -49,7 +56,7 @@ struct
           ^ ", \"provenance\": {\"taken\": true, \"organ\": " ^ Json.quote organ
           ^ ", \"specialist_ms\": " ^ ms t0
           ^ ", \"kernel\": \"Materials.reply_of\", \"session\": \"Veri7vn_Materials\", \"theorems\": "
-          ^ theorems ^ "}}"
+          ^ supporting request ^ "}}"
         end
     end
 

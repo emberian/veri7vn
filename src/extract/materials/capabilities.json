@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "family": "materials",
+  "specialists": {
+    "materials-v2": {
+      "evidence": {
+        "computation": "For inverse stress/strain requests, the kernel computes the uniaxial linear-elastic relation stress = Young modulus times strain, converts stress units, and refuses nonpositive modulus. It does not establish that a real specimen remains elastic. Other materials requests retain their own named model.",
+        "assumptions": [
+          "Inverse stress/strain requests assume uniaxial linear elasticity and positive Young modulus; supplied inputs and units must describe the intended sample."
+        ],
+        "untrusted": [
+          "English recognition and framing."
+        ]
+      }
+    }
+  }
+}

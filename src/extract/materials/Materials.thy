@@ -143,6 +143,8 @@ datatype request =
   | CrystalDensity "crystal option" rat xunit rat
   | PorosityAerogel rat rat
   | Expansion "rat option" rat lunit rat
+  | HookeStress rat sunit rat
+  | HookeStrain rat sunit rat sunit
   | Modulus rat sunit rat
   | Strain rat lunit rat lunit
   | Stress rat funit rat aunit
@@ -205,6 +207,8 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (CrystalDensity _ _ _ _) = K_crystal_density"
 | "kind_of (PorosityAerogel _ _) = K_porosity"
 | "kind_of (Expansion _ _ _ _) = K_expansion"
+| "kind_of (HookeStress _ _ _) = K_stress"
+| "kind_of (HookeStrain _ _ _ _) = K_strain"
 | "kind_of (Modulus _ _ _) = K_modulus"
 | "kind_of (Strain _ _ _ _) = K_strain"
 | "kind_of (Stress _ _ _ _) = K_stress"
@@ -286,6 +290,8 @@ fun decline_of :: "request \<Rightarrow> decline option" where
      (if s < b \<or> s \<le> 0 then Some (Impossible R_bulk_above_skeletal) else None)"
 | "decline_of (Expansion None _ _ _) = Some (Underspecified N_alpha)"
 | "decline_of (Expansion (Some _) _ _ _) = None"
+| "decline_of (HookeStress e _ _) = (if e \<le> 0 then Some (Impossible R_nonpositive_denominator) else None)"
+| "decline_of (HookeStrain _ _ e _) = (if e \<le> 0 then Some (Impossible R_nonpositive_denominator) else None)"
 | "decline_of (Modulus _ _ e) = (if e \<le> 0 then Some (Impossible R_nonpositive_denominator) else None)"
 | "decline_of (Strain _ _ l _) = (if l \<le> 0 then Some (Impossible R_nonpositive_denominator) else None)"
 | "decline_of (Stress _ _ a _) = (if a \<le> 0 then Some (Impossible R_nonpositive_denominator) else None)"
@@ -347,6 +353,8 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (CrystalDensity (Some st) a u m) = atoms st * m / (NA * (a * xcm u) ^ 3)"
 | "qval (PorosityAerogel b s) = (1 - b / s) * 100"
 | "qval (Expansion (Some al) l _ dt) = al * l * dt"
+| "qval (HookeStress e eu strain) = e * smpa eu * strain"
+| "qval (HookeStrain stress su e eu) = stress * smpa su / (e * smpa eu)"
 | "qval (Modulus s su e) = (s * smpa su) / e / 1000"
 | "qval (Strain d du l lu) = (d * lmm du) / (l * lmm lu)"
 | "qval (Stress f fu a au) = (f * fnewton fu) / (a * amm2 au)"
@@ -441,6 +449,23 @@ definition answer_of :: "request \<Rightarrow> outcome" where
 
 definition kernel :: "request \<Rightarrow> outcome" where
   "kernel r = (case decline_of r of Some w \<Rightarrow> Decline w | None \<Rightarrow> answer_of r)"
+
+text \<open>The inverse calculations assume uniaxial linear elasticity. They
+compute the specified model, not whether a real sample remains elastic.\<close>
+lemma hooke_stress_binding:
+  assumes "kernel (HookeStress e eu strain) = Exact k q"
+  shows "0 < e \<and> k = K_stress \<and> q = e * smpa eu * strain"
+  using assms by (auto simp: kernel_def answer_of_def split: if_splits)
+
+lemma hooke_strain_balance:
+  assumes "kernel (HookeStrain stress su e eu) = Exact k q"
+  shows "0 < e \<and> k = K_strain \<and> q * (e * smpa eu) = stress * smpa su"
+  using assms by (cases eu) (auto simp: kernel_def answer_of_def field_simps split: if_splits)
+
+lemma hooke_round_trip:
+  assumes "0 < e"
+  shows "qval (HookeStrain (qval (HookeStress e eu strain)) SU_MPa e eu) = strain"
+  using assms by (cases eu) (simp_all add: field_simps)
 
 lemma answer_decline: "answer_of r = Decline w \<Longrightarrow> w = Imprecise"
   by (auto simp: answer_of_def split: option.splits prod.splits)
@@ -983,6 +1008,8 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + STR '' / skeletal '' + sm s + STR '').''"
 | "exact_text (Expansion (Some al) l u dt) q V = STR ''The change in length is '' + V + STR '' '' + llabel u
      + STR '' (alpha L0 dT = '' + sm al + STR '' x '' + sm l + STR '' '' + llabel u + STR '' x '' + sm dt + STR '').''"
+| "exact_text (HookeStress e eu strain) q V = STR ''The stress is '' + V + STR '' MPa (Young modulus times strain; uniaxial linear elasticity).''"
+| "exact_text (HookeStrain stress su e eu) q V = STR ''The strain is '' + V + STR '' (stress / Young modulus; dimensionless, uniaxial linear elasticity).''"
 | "exact_text (Modulus s su e) q V = STR ''Young'' + apos + STR ''s modulus is '' + V
      + STR '' GPa (stress '' + sm (s * smpa su) + STR '' MPa / strain '' + sm e + STR '').''"
 | "exact_text (Strain d du l lu) q V = STR ''The strain is '' + V + STR '' (dL / L0 = '' + sm (d * lmm du)

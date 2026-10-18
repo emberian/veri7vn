@@ -19,9 +19,9 @@ state the bound for every printed digit string (`enclose_sound`, `stated_of_soun
 Soil texture is a typed class decided by the organ's twelve ordered rules.
 
 ```sh
-python3 tools/dev/check-native --session Veri7vn_Materials --session-root src/extract/materials --expect 'VERI7VN_MATERIALS PASS' --timeout 900
+tools/dev/remote-build persvati src/extract/materials Veri7vn_Materials -d src/extract/commons --expect 'VERI7VN_MATERIALS PASS'
 python3 -B src/extract/materials/tables_check.py
-sh src/extract/materials/build.sh
+VERI7VN_GENERATED=/path/from/successful/receipt/materials.ML sh src/extract/materials/build.sh
 PYTHONDONTWRITEBYTECODE=1 python3 -B src/extract/materials/score.py
 PYTHONDONTWRITEBYTECODE=1 python3 -B tools/parity/harness.py --answerer var/materials/bin/materials --specialist additive-v2,materials-v2,soil,soil-r2,water,water-r3 --split both --out var/materials/parity
 ```
@@ -29,3 +29,23 @@ PYTHONDONTWRITEBYTECODE=1 python3 -B tools/parity/harness.py --answerer var/mate
 Result: every item of every shipped panel is right, 0 wrong, 0 false yes, 0 disagreements
 with the organs (`water-r3` has no panel of its own; it is scored on `water`'s). Details in
 [the handoff](../../../project/lanes/S08-materials.md).
+
+## Linear-elastic inverse calculations
+
+The materials specialist also computes stress from Young modulus and strain,
+and strain from stress and Young modulus. Inputs can use Pa, MPa or GPa;
+strain can be a ratio or a percentage. Compression may use a negative sign.
+The kernel refuses a nonpositive modulus. The answer names its assumption:
+uniaxial linear elasticity. It does not decide whether a real sample remains
+elastic or whether a structure is safe.
+
+`capabilities.json` records the model boundary for dispatch and packaging.
+The new requests reuse the existing `stress` and `strain` kinds, and their
+replies name the binding theorem selected by the typed request. Recognition
+of English and unit labels remains untrusted.
+
+`score.py --fresh-seed 20261018 --out var/materials/fresh-score.json --probes`
+runs fresh samples from the shipped generators and the authored extension
+probes. Fresh seeds vary selections from the generators' existing pools;
+they do not provide independent phrasings. `generation.json` records exactly
+which generator supplied each specialist.

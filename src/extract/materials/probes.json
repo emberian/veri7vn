@@ -1,0 +1,189 @@
+{
+  "note": "These authored probes share assumptions with the recognizer; they are not independent panels. Expected numbers use the stated linear model or the shipped organ docstring formula.",
+  "source": "Uniaxial stress = E * strain",
+  "items": [
+    {
+      "q": "Young modulus is 200 GPa and strain is 0.001. What is the stress?",
+      "valid": true,
+      "expect": 200,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 70 GPa and strain is 0.002. Find the stress.",
+      "valid": true,
+      "expect": 140,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Elastic modulus is 1000 MPa, strain is 0.01. Calculate the stress.",
+      "valid": true,
+      "expect": 10,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Modulus is 2000000 Pa and strain is 0.02. Compute stress.",
+      "valid": true,
+      "expect": 0.04,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 210 GPa and strain is -0.001. What is the stress?",
+      "valid": true,
+      "expect": -210,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 100 GPa and strain is 0. What is the stress?",
+      "valid": true,
+      "expect": 0,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 200 GPa and strain is 0.2%. What is the stress?",
+      "valid": true,
+      "expect": 400,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 70 GPa and strain is -0.1%. Find the stress.",
+      "valid": true,
+      "expect": -70,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 200 GPa and stress is 400 MPa. What is the strain?",
+      "valid": true,
+      "expect": 0.002,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 70 GPa and stress is 140 MPa. Find the strain.",
+      "valid": true,
+      "expect": 0.002,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Elastic modulus is 200000 MPa and stress is 0.4 GPa. Calculate the strain.",
+      "valid": true,
+      "expect": 0.002,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Modulus is 2000000 Pa and stress is 40000 Pa. Compute strain.",
+      "valid": true,
+      "expect": 0.02,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 210 GPa and stress is -210 MPa. What is the strain?",
+      "valid": true,
+      "expect": -0.001,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 100 GPa and stress is 0 MPa. What is the strain?",
+      "valid": true,
+      "expect": 0,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 0 GPa and strain is 0.001. What is the stress?",
+      "valid": false,
+      "expect": null,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is -200 GPa and strain is 0.001. What is the stress?",
+      "valid": false,
+      "expect": null,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 0 GPa and stress is 200 MPa. What is the strain?",
+      "valid": false,
+      "expect": null,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is -200 GPa and stress is 200 MPa. What is the strain?",
+      "valid": false,
+      "expect": null,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "Young modulus is 200 GPa. What is the strain?",
+      "valid": false,
+      "expect": null,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "The strain is 0.002. What is the stress?",
+      "valid": false,
+      "expect": null,
+      "specialist": "materials-v2"
+    },
+    {
+      "q": "What is the strain at 100 MPa stress with Young modulus 50 GPa?",
+      "valid": true,
+      "expect": 0.002,
+      "specialist": "materials-v2",
+      "source": "Root consumer probe: quantity before role."
+    },
+    {
+      "q": "What is the strain at 100 MPa stress with Young modulus 0 GPa?",
+      "valid": false,
+      "expect": null,
+      "specialist": "materials-v2",
+      "source": "Root consumer probe: zero modulus must retain its invalid refusal."
+    },
+    {
+      "q": "Find the stress with 0.2% strain and 70 GPa Young modulus.",
+      "valid": true,
+      "expect": 140,
+      "specialist": "materials-v2",
+      "source": "General role-order regression: both strain and modulus labels follow their value."
+    },
+    {
+      "q": "Find the strain with -50 MPa stress and 25 GPa elastic modulus.",
+      "valid": true,
+      "expect": -0.002,
+      "specialist": "materials-v2",
+      "source": "General role-order regression with compression."
+    },
+    {
+      "q": "What stress results from Young modulus 200 GPa and .001 strain?",
+      "valid": true,
+      "expect": 200,
+      "specialist": "materials-v2",
+      "source": "Numeric-token boundary regression."
+    },
+    {
+      "q": "What is the strain at .1MPa stress with Young modulus .05GPa?",
+      "valid": true,
+      "expect": 0.002,
+      "specialist": "materials-v2",
+      "source": "Numeric-token boundary regression."
+    },
+    {
+      "q": "What is the strain at 1.2.3 MPa stress with Young modulus 50 GPa?",
+      "valid": false,
+      "expect": null,
+      "specialist": "materials-v2",
+      "source": "Numeric-token boundary regression."
+    },
+    {
+      "q": "Young modulus is 50 GPa and stress is 1.2.3 MPa. What is the strain?",
+      "valid": false,
+      "expect": null,
+      "specialist": "materials-v2",
+      "source": "Numeric-token boundary regression."
+    },
+    {
+      "q": "What is the strain at 1,00 MPa stress with Young modulus 50 GPa?",
+      "valid": false,
+      "expect": null,
+      "specialist": "materials-v2",
+      "source": "Numeric-token boundary regression."
+    }
+  ]
+}

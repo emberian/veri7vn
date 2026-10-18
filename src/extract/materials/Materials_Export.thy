@@ -34,11 +34,11 @@ definition self_test :: bool where
      render_layout (Sig 3) (398, -9) = STR ''3.98e-07'' \<and>
      response (reply_of (MeshEdges 3000)) = STR ''The mesh has 4500 edges (E = 3F/2 = 3 x 3000 / 2; closed triangle mesh).''"
 
-export_code reply_of answered reply_kind response stated silent mk_rat self_test
+export_code reply_of answered reply_kind response stated silent mk_rat
   integer_of_int nat_of_integer int_of_integer
   MeshVertices MeshEdges MeshFaces ScadCube ScadSphere ScadCylinder ScadFrustum ScaleAmount
   ScaleFactor ScaleUnread Extrude PackingFactor CrystalDensity PorosityAerogel Expansion Modulus
-  Strain Stress MatUnread Texture SoilPorosity WaterContent VolWaterContent BulkDensity
+  HookeStress HookeStrain Strain Stress MatUnread Texture SoilPorosity WaterContent VolWaterContent BulkDensity
   HardnessGpg HardnessMgl Pounds CtValue ChlorineDose Dilution PhOf HConc Potable
   St_sc St_bcc St_fcc LU_mm LU_cm LU_m AU_mm2 AU_cm2 AU_m2 FU_N FU_kN SU_Pa SU_MPa SU_GPa
   XU_pm XU_nm XU_A VA_mm3 VA_cm3 BU_g BU_kg BU_cm3 BU_mm3 BU_cm2 BU_mm2 BU_ml C_pct C_mgl
@@ -56,6 +56,7 @@ ML \<open>
     @{thm extrude_time}, @{thm extrude_underspecified},
     @{thm packing_factor}, @{thm crystal_density}, @{thm crystal_structure_needed},
     @{thm porosity_aerogel}, @{thm porosity_aerogel_decline}, @{thm stress_def}, @{thm strain_def},
+    @{thm hooke_stress_binding}, @{thm hooke_strain_balance}, @{thm hooke_round_trip},
     @{thm modulus_def}, @{thm expansion_def}, @{thm expansion_needs_alpha},
     @{thm classify_sand}, @{thm classify_clay}, @{thm classify_silt}, @{thm texture_sound},
     @{thm texture_underspecified}, @{thm soil_bulk_density}, @{thm soil_porosity},

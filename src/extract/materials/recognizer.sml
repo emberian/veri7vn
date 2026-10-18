@@ -8,8 +8,8 @@
      upstream/root/specialists/water-r3/organ_water_r{2,3}.py         (WaterOrganBoundaryBoundary)
    and of their shared narrowing rule narrow_v1.py. It reads numbers and words
    off the question and builds a typed Materials.request; it computes
-   nothing but the half of a diameter and the difference of two temperatures
-   (exact integer fractions). Every value, decline and response text comes
+   nothing but the half of a diameter, the difference of two temperatures,
+   and percent-to-ratio normalization (exact integer fractions). Every value, decline and response text comes
    from the verified HOL kernel (Materials.reply_of). NONE means the question
    is not taken (the organ returns None).
 
@@ -336,6 +336,38 @@ struct
   fun luOf u = if u = "cm" then M.LU_cm else if u = "mm" then M.LU_mm else M.LU_m
   fun luOfLen u = if u = "mm" then M.LU_mm else if u = "cm" then M.LU_cm else M.LU_m
 
+  (* Quantity roles can precede or follow their number and unit. The selected
+     output role must remain distinct from the supplied input roles. *)
+  fun hooke low =
+    let
+      val number = "(?<![a-z0-9_.,+~-])(-?(?:\\d+(?:,\\d{3})*(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?)(?![0-9_,]|\\.\\d|e[+-]?\\d)"
+      val modulusRole = "(?:young'?s? modulus|elastic modulus|modulus)"
+      fun unit s = case s of "pa" => M.SU_Pa | "gpa" => M.SU_GPa | _ => M.SU_MPa
+      fun quantity role =
+        let
+          val prefix = search ("\\b" ^ role ^ "\\s*(?:of|is|=|:)?\\s*" ^ number ^ "\\s*(gpa|mpa|pa)\\b") low
+          val suffix = search (number ^ "\\s*(gpa|mpa|pa)\\s+(?:of\\s+)?" ^ role ^ "\\b") low
+          val found = case prefix of SOME m => SOME m | NONE => suffix
+        in Option.map (fn m => (rat (nth low m 1), unit (valOf (grp low m 2)))) found end
+      val modulus = quantity modulusRole
+      val stress = quantity "stress"
+      val strainPrefix = search ("\\bstrain\\s*(?:of|is|=|:)?\\s*" ^ number ^ "(?![a-z0-9_]|\\.\\d)\\s*(%)?") low
+      val strainSuffix = search (number ^ "\\s*(%)?\\s+strain\\b") low
+      val strain = case strainPrefix of SOME m => SOME m | NONE => strainSuffix
+      val explicitStress = has "\\b(?:what|find|calculate|compute|determine)(?: is| the|,)* stress\\b" low
+      val explicitStrain = has "\\b(?:what|find|calculate|compute|determine)(?: is| the|,)* strain\\b" low
+      val asksStress = explicitStress orelse (not explicitStrain andalso has "\\bstress\\?" low)
+      val asksStrain = explicitStrain orelse (not explicitStress andalso has "\\bstrain\\?" low)
+    in
+      case modulus of NONE => NONE | SOME (e, eu) =>
+        if asksStress andalso not asksStrain then
+          Option.map (fn x => M.HookeStress (e, eu,
+            rat (let val (a,b) = nth low x 1 in (a, if isSome (grp low x 2) then b * 100 else b) end))) strain
+        else if asksStrain andalso not asksStress then
+          Option.map (fn (stress, su) => M.HookeStrain (stress, su, e, eu)) stress
+        else NONE
+    end
+
   fun materialsV1 (low : string) : M.request option =
     let val st = structure_ low in
       if has "\\bpacking (?:factor|fraction|efficiency)\\b|\\bapf\\b" low andalso isSome st
@@ -462,7 +494,7 @@ struct
           val low = subst "\\b(heated|warmed|cooled|raised|increased)\\s+(?=-?\\d)"
                       (fn m => valOf (grp low m 1) ^ " by ") low
         in
-          case materialsV1 low of
+          case (case hooke low of SOME r => SOME r | NONE => materialsV1 low) of
             SOME req => if not (answered req) andalso not (has "\\d" low) then NONE else SOME req
           | NONE =>
               let
