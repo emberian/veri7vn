@@ -2,7 +2,10 @@
 """measure - the document-route kernel against Oracle7's recorded core panel, on every core item whose path
 belongs to the document route.
 
-  PYTHONDONTWRITEBYTECODE=1 PYTHONHASHSEED=0 .venv/bin/python tools/document/measure.py [--out FILE]
+  PYTHONDONTWRITEBYTECODE=1 PYTHONHASHSEED=0 .venv/bin/python tools/document/measure.py [--all] [--out FILE]
+
+With --all the binary also runs on the other 667 core questions (the answerer pointed at the whole panel), and the
+report counts every item outside the 231 that it answers where the head withheld or clarified (lane W5-18's gate).
 
 UNTRUSTED (a measuring script). Reads upstream/workbench/data/core_panel.json (924 items, each with the head's
 recorded status and path; head w538) and never runs the head. The item set is derived with
@@ -99,6 +102,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(REPO / "var/document/measure231.json"))
     ap.add_argument("--bin", default=str(REPO / "var/document/bin/document"))
+    ap.add_argument("--all", action="store_true",
+                    help="also run the binary over every other core question and count where it answers and the head "
+                         "withheld or clarified (the answerer pointed at the whole panel)")
     args = ap.parse_args()
     sys.path.insert(0, str(HERE))
     import fetch
@@ -107,10 +113,11 @@ def main():
     heads = {r["id"]: r for r in (json.loads(l) for l in HEADS.read_text(encoding="utf-8").splitlines() if l.strip())}
     sel = [j for j, it in enumerate(core) if doc_part(it["path"])]
     wide = [j for j, it in enumerate(core) if wider_only(it["path"])]
+    rest = [j for j in range(len(core)) if j not in set(sel) | set(wide)] if args.all else []
     f = fetch.Fetch()
     proc = subprocess.Popen([args.bin], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, encoding="utf-8")
     rows, times = [], []
-    for j in sel + wide:
+    for j in sel + wide + rest:
         it = core[j]
         t0 = time.perf_counter()
         try:
@@ -131,7 +138,7 @@ def main():
         if h is not None:
             ht = str(h.get("response") or "")
             text = "exact" if mt == ht else ("first-line" if mt and mt == head_first_line(ht) else "differs")
-        row = {"id": j, "q": it["q"], "set": "231" if j in sel else "wider",
+        row = {"id": j, "q": it["q"], "set": "231" if j in sel else ("wider" if j in wide else "rest"),
                "head_status": it["status"], "head_path": it["path"],
                "my_status": mine.get("status"), "my_path": mine.get("path"),
                "route_class": route,
@@ -156,9 +163,14 @@ def main():
     r231 = [r for r in rows if r["set"] == "231"]
     rwide = [r for r in rows if r["set"] == "wider"]
     texted = [r for r in rows if r["text"] is not None]
+    # the answerer pointed at the whole panel: outside the 231, every item it answers where the head did not
+    over = [r for r in rows if r["set"] != "231" and r["my_status"] == "answered" and r["head_status"] != "answered"]
     out = {"core_panel": str(CORE.relative_to(REPO)), "head": "recorded paths/status of the core panel (head w538)",
            "summary_231": summary(r231), "summary_wider": summary(rwide),
            "text_30": dict(Counter(r["text"] for r in texted)),
+           "outside_231": ({"items": len([r for r in rows if r["set"] != "231"]),
+                            "answered": sum(r["my_status"] == "answered" for r in rows if r["set"] != "231"),
+                            "answered_where_head_did_not": [r["id"] for r in over]} if args.all else None),
            "times_ms": {"p50": sorted(times)[len(times) // 2], "max": max(times)}, "rows": rows}
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
@@ -169,6 +181,17 @@ def main():
     print("wider %d: status %d  path %d  path-exact %d  misses %s" % (w["items"], w["status"], w["path"], w["path_exact"],
                                                                       w["misses_by_class"]))
     print("text on the 30 recorded head replies: %s" % out["text_30"])
+    if args.all:
+        o = out["outside_231"]
+        print("outside the 231 (%d items): answered %d, of them where the head withheld or clarified %d" % (
+            o["items"], o["answered"], len(over)))
+        for r in over:
+            print("  over #%d %s | mine %s | head %s %s | %s" % (r["id"], r["route_class"], r["my_path"], r["head_status"],
+                  r["head_path"][:70], r["q"][:60]))
+    for r in rwide:
+        print("wider #%d %s/%s | mine %s %s | head %s %s | %s" % (r["id"], "S" if r["status_match"] else "-",
+              "P" if r["path_match"] else "-", r["my_status"], r["my_path"], r["head_status"], r["head_path"],
+              r["q"][:60]))
     for r in r231:
         if not (r["status_match"] and r["path_match"]):
             print("#%d [%s] %s | mine %s %s | head %s %s | %s" % (r["id"], r.get("class"), r["route_class"], r["my_status"],

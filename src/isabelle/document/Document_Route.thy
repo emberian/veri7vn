@@ -23,7 +23,14 @@ Six engine rules are lifted:
   operation and the numerals off the question text itself;
 - the clarify terminal of @{text oracle_release_runtime_u}, and the door of
   @{text oracle_release_runtime_w468}: a terminal clarify on a turn that points ("that",
-  "the thing ...") asks what the pointer refers to, naming the phrase verbatim.
+  "the thing ...") asks what the pointer refers to, naming the phrase verbatim;
+- the capability captures (lane W5-18): runtime S's arbiter capture into the timeline and
+  explain-simply capabilities, and runtime AO's rewrite of a bare phrase into a summary
+  request. None of the three compositions is ported, so a captured turn is withheld, with
+  the capability's own text when its material is missing; the kernel reads the bare-phrase
+  shape and the topic's presence off the question, and counts dated statements off the
+  sentences. A bare phrase never reaches the statement move. The bridge of
+  @{text oracle_release_runtime_w426} (as w430 floors it) is one more weak route.
 
 The fetch (sqlite/FTS), title resolution, the cue regexes, the arbiter and the WordNet
 senses stay outside HOL: their results arrive as flags, claim lists and strings, exactly as
@@ -245,12 +252,18 @@ datatype weak_route = FTS \<comment> \<open> factoid:fts -- full-text search \<c
   | Page \<comment> \<open> factoid:page -- a page was read \<close>
   | CorpusQuery \<comment> \<open> corpus_query:property_of \<close>
   | ArbDefinitional \<comment> \<open> arb:definitional \<close>
+  | Bridge \<comment> \<open> compose:bridge -- w426's two-hop reading (w430's first-hop floor) \<close>
+
+datatype capability = Summarize \<comment> \<open> runtime F, reached by runtime AO's bare-phrase rewrite \<close>
+  | Timeline \<comment> \<open> runtimes J and AC, reached by runtime S's arbiter capture \<close>
+  | ExplainSimply \<comment> \<open> runtimes M and AC, reached by runtime S's arbiter capture \<close>
 
 datatype turn =
     Explain cue_kind
   | Weak weak_route
   | Statement \<comment> \<open> organ_converse_v1's statement move: acknowledge + one grounded sentence \<close>
   | Fallback \<comment> \<open> nothing read the turn; runtime U's clarify terminal speaks \<close>
+  | Capture capability bool \<comment> \<open> a capability capture; the flag: by the arbiter (runtime S) \<close>
 
 text \<open>The definition test of @{text verified_reach_v1.defines_asked}, read off the text: the
 asked term has content words, and each opens a word both in the question and in the first
@@ -288,6 +301,133 @@ definition released :: "evidence \<Rightarrow> claim \<Rightarrow> bool" where
 definition disambiguation :: "claim \<Rightarrow> bool" where
   "disambiguation c \<longleftrightarrow> list_ex (\<lambda>p. word_in p (lowercase (sentence c)))
      [''may refer to'', ''can refer to'', ''disambiguation'']"
+
+fun occurs :: "string \<Rightarrow> string \<Rightarrow> bool" where
+  "occurs p [] = (p = [])"
+| "occurs p (c # cs) = (starts p (c # cs) \<or> occurs p cs)"
+
+lemma occurs_sound: "occurs p s \<Longrightarrow> \<exists>pre suf. s = pre @ suf \<and> starts p suf"
+proof (induct s)
+  case Nil thus ?case by auto
+next
+  case (Cons c cs)
+  show ?case
+  proof (cases "starts p (c # cs)")
+    case True
+    hence "c # cs = [] @ (c # cs) \<and> starts p (c # cs)" by simp
+    thus ?thesis by blast
+  next
+    case False
+    hence "occurs p cs" using Cons.prems by simp
+    then obtain pre suf where "cs = pre @ suf" "starts p suf" using Cons.hyps by blast
+    hence "c # cs = (c # pre) @ suf \<and> starts p suf" by simp
+    thus ?thesis by blast
+  qed
+qed
+
+section \<open>The capability captures (W5-18): bare phrases, topics, years\<close>
+
+text \<open>Python's ASCII whitespace (the fetch has already collapsed every run to one space).\<close>
+definition is_space :: "char \<Rightarrow> bool" where
+  "is_space c \<longleftrightarrow> c = CHR '' '' \<or> (9 \<le> byte_of c \<and> byte_of c \<le> 13)"
+
+text \<open>Runtime AO's @{text BARE}, @{text "^(?:the\\s+)?[a-z][a-z \\-']{2,40}$"} under
+@{text re.I}: a letter, then two to forty letters, spaces, hyphens or apostrophes, after an
+optional leading "the" and whitespace.\<close>
+definition bare_char :: "char \<Rightarrow> bool" where
+  "bare_char c \<longleftrightarrow> is_letter c \<or> c = CHR '' '' \<or> c = CHR ''-'' \<or> c = CHR 0x27"
+
+definition bare_core :: "string \<Rightarrow> bool" where
+  "bare_core r \<longleftrightarrow> r \<noteq> [] \<and> is_letter (hd r) \<and> 3 \<le> length r \<and> length r \<le> 41 \<and> list_all bare_char r"
+
+definition bare_shape :: "string \<Rightarrow> bool" where
+  "bare_shape s \<longleftrightarrow> bare_core s
+     \<or> (lowercase (take 3 s) = ''the'' \<and> (case drop 3 s of [] \<Rightarrow> False | c # _ \<Rightarrow> is_space c)
+        \<and> bare_core (dropWhile is_space (drop 3 s)))"
+
+text \<open>@{text "len(s.split())"}: the maximal runs of non-space characters.\<close>
+fun wcount :: "bool \<Rightarrow> string \<Rightarrow> nat" where
+  "wcount inw [] = 0"
+| "wcount inw (c # cs) = (if is_space c then wcount False cs
+     else if inw then wcount True cs else Suc (wcount True cs))"
+
+text \<open>Runtime AO's @{text CONTINUATION} alternatives; a bare phrase carries no punctuation, so
+its trailing @{text "[?.!]*"} is empty and the test is equality.\<close>
+definition continuations :: "string list" where
+  "continuations = [''go on'', ''more'', ''tell me more'', ''more about that'', ''more about it'',
+    ''what else'', ''continue'', ''thanks'', ''thank you'', ''ok'', ''okay'', ''got it'', ''great'',
+    ''why'', ''how do you know'', ''what is your source'', ''why did you say that'']"
+
+text \<open>The turns runtime AO rewrites to "Summarize <phrase>." when nothing answered them: a bare
+phrase of at most four words that is not a continuation (no question mark is implied by the
+shape).\<close>
+definition bare_phrase :: "string \<Rightarrow> bool" where
+  "bare_phrase q \<longleftrightarrow> bare_shape q \<and> wcount False q \<le> 4 \<and> lowercase q \<notin> set continuations"
+
+text \<open>The capture's topic as space-separated tokens; runtime Q's @{text "_arb_topics"} builds it
+from words of the question, and runtime F's topic is the phrase itself.\<close>
+fun ssplit :: "string \<Rightarrow> string \<Rightarrow> string list" where
+  "ssplit acc [] = (if acc = [] then [] else [rev acc])"
+| "ssplit acc (c # cs) = (if is_space c then (if acc = [] then ssplit [] cs else rev acc # ssplit [] cs)
+     else ssplit (c # acc) cs)"
+
+definition topic_named :: "evidence \<Rightarrow> bool" where
+  "topic_named ev \<longleftrightarrow> ssplit [] (topic ev) \<noteq> []
+     \<and> list_all (\<lambda>w. occurs (lowercase w) (lowercase (asked ev))) (ssplit [] (topic ev))"
+
+text \<open>A capture stands only for a topic the question names, and AO's summary only for a bare
+phrase.\<close>
+definition capture_named :: "capability \<Rightarrow> bool \<Rightarrow> evidence \<Rightarrow> bool" where
+  "capture_named k a ev \<longleftrightarrow> topic_named ev \<and> (k = Summarize \<and> \<not> a \<longrightarrow> bare_phrase (asked ev))"
+
+text \<open>Runtime J's @{text YEAR}, @{text "\\b(1[0-9]{3}|20[0-2][0-9])\\b"}: four digits at a word
+boundary on both sides.\<close>
+definition is_year4 :: "string \<Rightarrow> bool" where
+  "is_year4 d \<longleftrightarrow> length d = 4 \<and> list_all is_digit d \<and>
+     (d ! 0 = CHR ''1'' \<or> (d ! 0 = CHR ''2'' \<and> d ! 1 = CHR ''0''
+        \<and> (d ! 2 = CHR ''0'' \<or> d ! 2 = CHR ''1'' \<or> d ! 2 = CHR ''2'')))"
+
+fun year_scan :: "bool \<Rightarrow> string \<Rightarrow> bool" where
+  "year_scan b [] = False"
+| "year_scan b (c # cs) = ((b \<and> is_year4 (take 4 (c # cs))
+       \<and> (case drop 4 (c # cs) of [] \<Rightarrow> True | d # _ \<Rightarrow> \<not> is_word d))
+     \<or> year_scan (\<not> is_word c) cs)"
+
+lemma year_scan_sound: "year_scan b s \<Longrightarrow> \<exists>pre y suf. s = pre @ y @ suf \<and> is_year4 y"
+proof (induct s arbitrary: b)
+  case Nil thus ?case by simp
+next
+  case (Cons c cs)
+  show ?case
+  proof (cases "is_year4 (take 4 (c # cs))")
+    case True
+    have "c # cs = [] @ take 4 (c # cs) @ drop 4 (c # cs)" by simp
+    thus ?thesis using True by blast
+  next
+    case False
+    hence "year_scan (\<not> is_word c) cs" using Cons.prems by auto
+    then obtain pre y suf where "cs = pre @ y @ suf" "is_year4 y" using Cons.hyps by blast
+    hence "c # cs = (c # pre) @ y @ suf \<and> is_year4 y" by simp
+    thus ?thesis by blast
+  qed
+qed
+
+text \<open>The capture's material that carries a year: what runtime J counts.\<close>
+definition dated :: "evidence \<Rightarrow> claim list" where
+  "dated ev = filter (\<lambda>c. year_scan True (sentence c)) (claims (pool_e ev))"
+
+text \<open>Runtime AO's rewrite as the kernel applies it: a statement or terminal turn on a bare
+phrase is the summary capture, so the statement move never sees a bare phrase.\<close>
+definition reroute :: "turn \<Rightarrow> evidence \<Rightarrow> turn" where
+  "reroute t ev = (if (t = Statement \<or> t = Fallback) \<and> bare_phrase (asked ev) then Capture Summarize False else t)"
+
+lemma reroute_simps [simp]:
+  "reroute (Explain j) ev = Explain j"
+  "reroute (Weak r) ev = Weak r"
+  "reroute (Capture k a) ev = Capture k a"
+  "reroute Statement ev = (if bare_phrase (asked ev) then Capture Summarize False else Statement)"
+  "reroute Fallback ev = (if bare_phrase (asked ev) then Capture Summarize False else Fallback)"
+  by (simp_all add: reroute_def)
 
 section \<open>The anchored pool (m13d2: no query anchor, no claims)\<close>
 
@@ -381,6 +521,7 @@ datatype outcome =
   | Refused refusal \<comment> \<open> the computation gateway; asserts nothing \<close>
   | Clarify \<comment> \<open> the typed clarify terminal; asserts nothing \<close>
   | AskWhich string \<comment> \<open> w468's door: what does this phrase of yours refer to? \<close>
+  | NotComposed capability bool \<comment> \<open> a captured capability, not composed here; asserts nothing \<close>
 
 definition need_year :: "cue_kind \<Rightarrow> bool" where
   "need_year k \<longleftrightarrow> k = When"
@@ -407,29 +548,7 @@ fun route :: "turn \<Rightarrow> evidence \<Rightarrow> outcome" where
       | Some c \<Rightarrow> if anchor_present (pool_e ev) \<and> names_term ev c \<and> \<not> disambiguation c
                   then Answer c None else Clarify)"
 | "route Fallback ev = Clarify"
-
-fun occurs :: "string \<Rightarrow> string \<Rightarrow> bool" where
-  "occurs p [] = (p = [])"
-| "occurs p (c # cs) = (starts p (c # cs) \<or> occurs p cs)"
-
-lemma occurs_sound: "occurs p s \<Longrightarrow> \<exists>pre suf. s = pre @ suf \<and> starts p suf"
-proof (induct s)
-  case Nil thus ?case by auto
-next
-  case (Cons c cs)
-  show ?case
-  proof (cases "starts p (c # cs)")
-    case True
-    hence "c # cs = [] @ (c # cs) \<and> starts p (c # cs)" by simp
-    thus ?thesis by blast
-  next
-    case False
-    hence "occurs p cs" using Cons.prems by simp
-    then obtain pre suf where "cs = pre @ suf" "starts p suf" using Cons.hyps by blast
-    hence "c # cs = (c # pre) @ suf \<and> starts p suf" by simp
-    thus ?thesis by blast
-  qed
-qed
+| "route (Capture k a) ev = (if capture_named k a ev then NotComposed k a else Clarify)"
 
 text \<open>w468's door, on a fresh conversation (no thread to bind to): a terminal clarify on a
 turn that points asks what the phrase refers to, and only for a phrase the question holds.\<close>
@@ -445,7 +564,7 @@ definition lookup_refused :: "evidence \<Rightarrow> bool" where
 definition decide :: "turn \<Rightarrow> evidence \<Rightarrow> outcome" where
   "decide t ev = (case compute_op (asked ev) of
        Some op \<Rightarrow> Refused (OutOfFragment op)
-     | None \<Rightarrow> if lookup_refused ev then Refused LookupForCompute else door ev (route t ev))"
+     | None \<Rightarrow> if lookup_refused ev then Refused LookupForCompute else door ev (route (reroute t ev) ev))"
 
 section \<open>The reply (status, path, text; rendered so the citation is manifest)\<close>
 
@@ -497,13 +616,51 @@ fun refusal_text :: "refusal \<Rightarrow> string" where
      @ '', and I compute exactly or not at all. It is outside the arithmetic I can carry out, so rather than answer it from a page about the words in your question, I am telling you I cannot do it yet.''"
 | "refusal_text LookupForCompute = ''I can'' @ apos @ ''t verify an answer to that exact question, so I won'' @ apos @ ''t guess.''"
 
+text \<open>A captured turn's withheld reply. Where the capability's own material is missing it says
+so in the organ's own words (runtime F: no admitted material to summarize; runtime AC: none to
+explain, the gloss counted as material; runtime J: fewer than two dated statements, with the
+count read off the sentences); otherwise it says the composition is not made here. Every
+version quotes the topic.\<close>
+definition held_lead :: string where "held_lead = ''I hold admitted material on ''"
+definition no_material_lead :: string where "no_material_lead = ''No provenance-admitted material on ''"
+definition timeline_lead :: string where
+  "timeline_lead = ''A timeline needs at least two dated statements; the admitted material on ''"
+
+definition not_composed_tail :: "string \<Rightarrow> string" where
+  "not_composed_tail w = '', but I do not compose '' @ w @ '' from it yet, so I won'' @ apos @ ''t give one.''"
+
+definition capture_lead :: "capability \<Rightarrow> evidence \<Rightarrow> string" where
+  "capture_lead k ev = (case k of
+      Timeline \<Rightarrow> (if length (dated ev) < 2 then timeline_lead else held_lead)
+    | _ \<Rightarrow> (if claims (pool_e ev) = [] then no_material_lead else held_lead))"
+
+definition capture_tail :: "capability \<Rightarrow> evidence \<Rightarrow> string" where
+  "capture_tail k ev = (case k of
+      Summarize \<Rightarrow> (if claims (pool_e ev) = [] then '' is available to summarize.'' else not_composed_tail ''a summary'')
+    | ExplainSimply \<Rightarrow> (if claims (pool_e ev) = [] then '' is available to explain.''
+        else not_composed_tail ''a simple explanation'')
+    | Timeline \<Rightarrow> (if length (dated ev) < 2 then '' contains '' @ (if dated ev = [] then ''0'' else ''1'') @ ''.''
+        else not_composed_tail ''a timeline''))"
+
+definition capture_text :: "capability \<Rightarrow> evidence \<Rightarrow> string" where
+  "capture_text k ev = capture_lead k ev @ topic ev @ capture_tail k ev"
+
+definition family :: "capability \<Rightarrow> String.literal" where
+  "family k = (case k of Summarize \<Rightarrow> STR ''summarize'' | Timeline \<Rightarrow> STR ''timeline''
+    | ExplainSimply \<Rightarrow> STR ''explain_simply'')"
+
+text \<open>Runtime S prefixes the arbiter's family to the redispatched path.\<close>
+definition capture_path :: "capability \<Rightarrow> bool \<Rightarrow> String.literal" where
+  "capture_path k a = (if a then STR ''arb:'' + family k + STR ''->'' else STR '''') + STR ''capability:'' + family k"
+
 definition cue_path :: "cue_kind \<Rightarrow> String.literal" where
   "cue_path k = (case k of Cause \<Rightarrow> STR ''capability:what_causes''
     | Process \<Rightarrow> STR ''capability:how_does'' | When \<Rightarrow> STR ''capability:when_did'')"
 
 definition route_name :: "weak_route \<Rightarrow> String.literal" where
   "route_name r = (case r of FTS \<Rightarrow> STR ''factoid:fts'' | Page \<Rightarrow> STR ''factoid:page''
-    | CorpusQuery \<Rightarrow> STR ''corpus_query:property_of'' | ArbDefinitional \<Rightarrow> STR ''arb:definitional'')"
+    | CorpusQuery \<Rightarrow> STR ''corpus_query:property_of'' | ArbDefinitional \<Rightarrow> STR ''arb:definitional''
+    | Bridge \<Rightarrow> STR ''compose:bridge'')"
 
 fun status_of :: "outcome \<Rightarrow> String.literal" where
   "status_of (Answer _ _) = STR ''answered''"
@@ -512,6 +669,7 @@ fun status_of :: "outcome \<Rightarrow> String.literal" where
 | "status_of (Refused _) = STR ''withheld''"
 | "status_of Clarify = STR ''clarification''"
 | "status_of (AskWhich _) = STR ''clarification''"
+| "status_of (NotComposed _ _) = STR ''withheld''"
 
 text \<open>A refusal's path names the lookup route it displaced, as the head prints it; that label
 is the fetch's, and it decides nothing.\<close>
@@ -521,6 +679,7 @@ fun path_of :: "turn \<Rightarrow> evidence \<Rightarrow> outcome \<Rightarrow> 
       else displaced ev + STR ''|math:out_of_fragment|vessel:receipt'')"
 | "path_of t ev (Refused LookupForCompute) = STR ''precision_guard:P4_lookup_for_compute|'' + displaced ev"
 | "path_of t ev (AskWhich _) = STR ''act:clarify_specific''"
+| "path_of t ev (NotComposed k a) = capture_path k a"
 | "path_of t ev Clarify = STR ''act:clarify''"
 | "path_of (Explain k) ev (Answer _ _) = cue_path k"
 | "path_of (Explain k) ev (Declined _) = cue_path k"
@@ -533,6 +692,7 @@ fun path_of :: "turn \<Rightarrow> evidence \<Rightarrow> outcome \<Rightarrow> 
 fun response_of :: "turn \<Rightarrow> evidence \<Rightarrow> outcome \<Rightarrow> string" where
   "response_of t ev (Refused g) = refusal_text g"
 | "response_of t ev (AskWhich p) = ask_text p"
+| "response_of t ev (NotComposed k a) = capture_text k ev"
 | "response_of t ev Clarify = clarify_text"
 | "response_of (Explain k) ev (Answer c e) = render_answer c e"
 | "response_of (Explain k) ev (Declined NoAnchor) = no_anchor_text ev"
@@ -709,11 +869,21 @@ theorem lookup_refusal_iff:
      compute_op (asked ev) = None \<and> lookup_for_compute ev \<and> 0 < numerals NFree (lowercase (asked ev))"
   by (auto simp: decide_def lookup_refused_def door_eq split: option.splits if_splits)
 
+text \<open>Only an unrerouted turn can answer: the summary capture never does.\<close>
+lemma route_reroute_answer: "route (reroute t ev) ev = Answer c e \<Longrightarrow> reroute t ev = t"
+  by (auto simp: reroute_def split: if_splits)
+
 text \<open>Every answer is the route's own answer, on a question the gateway let through.\<close>
 theorem answer_comes_from_route:
   "decide t ev = Answer c e \<Longrightarrow>
      compute_op (asked ev) = None \<and> \<not> lookup_refused ev \<and> route t ev = Answer c e"
-  by (auto simp: decide_def door_eq split: option.splits if_splits)
+proof -
+  assume a: "decide t ev = Answer c e"
+  have r: "compute_op (asked ev) = None \<and> \<not> lookup_refused ev \<and> route (reroute t ev) ev = Answer c e"
+    using a by (auto simp: decide_def door_eq split: option.splits if_splits)
+  hence "reroute t ev = t" using route_reroute_answer by blast
+  thus ?thesis using r by simp
+qed
 
 theorem no_answer_to_a_computation:
   "compute_op (asked ev) \<noteq> None \<Longrightarrow> decide t ev \<noteq> Answer c e"
@@ -772,7 +942,7 @@ section \<open>The statement move (organ_converse: only the subject's own defini
 
 theorem statement_answer_iff:
   "decide Statement ev = Answer c e \<longleftrightarrow>
-     compute_op (asked ev) = None \<and> \<not> lookup_refused ev \<and> e = None
+     compute_op (asked ev) = None \<and> \<not> lookup_refused ev \<and> \<not> bare_phrase (asked ev) \<and> e = None
      \<and> candidate ev = Some c \<and> anchor_present (pool_e ev) \<and> names_term ev c \<and> \<not> disambiguation c"
   by (auto simp: decide_def door_eq split: option.splits if_splits)
 
@@ -792,12 +962,12 @@ section \<open>The terminal, the door and the refusals assert nothing\<close>
 
 theorem door_asks_only_what_was_said:
   assumes "decide t ev = AskWhich p"
-  shows "route t ev = Clarify \<and> pointer ev = Some p \<and> p \<noteq> []
+  shows "route (reroute t ev) ev = Clarify \<and> pointer ev = Some p \<and> p \<noteq> []
     \<and> (\<exists>pre suf. asked ev = pre @ suf \<and> starts p suf)"
 proof -
-  have "compute_op (asked ev) = None" "\<not> lookup_refused ev" "door ev (route t ev) = AskWhich p"
+  have "compute_op (asked ev) = None" "\<not> lookup_refused ev" "door ev (route (reroute t ev) ev) = AskWhich p"
     using assms by (auto simp: decide_def split: option.splits if_splits)
-  hence "route t ev = Clarify \<and> pointer ev = Some p \<and> p \<noteq> [] \<and> occurs p (asked ev)"
+  hence "route (reroute t ev) ev = Clarify \<and> pointer ev = Some p \<and> p \<noteq> [] \<and> occurs p (asked ev)"
     by (auto simp: door_eq split: option.splits if_splits)
   thus ?thesis using occurs_sound by blast
 qed
@@ -859,7 +1029,95 @@ proof -
     thus ?thesis using Statement ans by simp
   next
     case Fallback thus ?thesis using r by simp
+  next
+    case (Capture k a) thus ?thesis using r by (simp split: if_splits)
   qed
+qed
+
+section \<open>The capability captures assert nothing, and never reach the statement move\<close>
+
+text \<open>A captured turn is withheld exactly when the gateway lets it through and the question names
+its topic (and, for runtime AO's summary, is a bare phrase).\<close>
+theorem capture_iff:
+  "decide (Capture k a) ev = NotComposed k' a' \<longleftrightarrow>
+     compute_op (asked ev) = None \<and> \<not> lookup_refused ev \<and> capture_named k a ev \<and> k' = k \<and> a' = a"
+  by (auto simp: decide_def door_eq split: option.splits if_splits)
+
+text \<open>A turn classed as a capture is never answered: its reply is the capture's withhold, the
+terminal, the door or a refusal, and it cites nothing. The statement move's answer is not among
+them.\<close>
+theorem capture_never_reaches_statement:
+  shows "reroute (Capture k a) ev = Capture k a"
+    and "decide (Capture k a) ev \<noteq> Answer c e"
+    and "cited_claims (decide (Capture k a) ev) = []"
+    and "decide (Capture k a) ev = NotComposed k a \<or> decide (Capture k a) ev = Clarify
+         \<or> (\<exists>p. decide (Capture k a) ev = AskWhich p) \<or> (\<exists>g. decide (Capture k a) ev = Refused g)"
+  by (auto simp: decide_def door_eq split: option.splits if_splits)
+
+text \<open>A bare phrase, read off the question by the kernel, is runtime AO's summary request whatever
+turn the fetch proposed for the statement move or the terminal; so the statement move never
+answers it.\<close>
+theorem bare_phrase_never_reaches_statement:
+  assumes "bare_phrase (asked ev)"
+  shows "decide Statement ev = decide (Capture Summarize False) ev"
+    and "decide Fallback ev = decide (Capture Summarize False) ev"
+    and "decide Statement ev \<noteq> Answer c e"
+  using assms by (auto simp: decide_def door_eq split: option.splits if_splits)
+
+text \<open>What a capture's withhold says: every token of its topic occurs in the question, AO's summary
+stands only on a bare phrase, and the reply quotes the topic and asserts nothing.\<close>
+theorem capture_names_the_question:
+  assumes "decide (Capture k a) ev = NotComposed k a"
+  shows "ssplit [] (topic ev) \<noteq> []
+      \<and> (\<forall>w\<in>set (ssplit [] (topic ev)). \<exists>pre suf. lowercase (asked ev) = pre @ suf \<and> starts (lowercase w) suf)"
+    and "k = Summarize \<and> \<not> a \<Longrightarrow> bare_phrase (asked ev)"
+    and "\<exists>pre suf. response_of t ev (decide (Capture k a) ev) = pre @ topic ev @ suf"
+    and "status_of (decide (Capture k a) ev) = STR ''withheld''"
+    and "path_of t ev (decide (Capture k a) ev) = capture_path k a"
+    and "cited_claims (decide (Capture k a) ev) = []"
+proof -
+  have n: "capture_named k a ev" using assms capture_iff by blast
+  hence tn: "topic_named ev" by (simp add: capture_named_def)
+  show "ssplit [] (topic ev) \<noteq> []
+      \<and> (\<forall>w\<in>set (ssplit [] (topic ev)). \<exists>pre suf. lowercase (asked ev) = pre @ suf \<and> starts (lowercase w) suf)"
+  proof
+    show "ssplit [] (topic ev) \<noteq> []" using tn by (simp add: topic_named_def)
+    show "\<forall>w\<in>set (ssplit [] (topic ev)). \<exists>pre suf. lowercase (asked ev) = pre @ suf \<and> starts (lowercase w) suf"
+    proof
+      fix w assume "w \<in> set (ssplit [] (topic ev))"
+      hence "occurs (lowercase w) (lowercase (asked ev))" using tn by (auto simp: topic_named_def list_all_iff)
+      thus "\<exists>pre suf. lowercase (asked ev) = pre @ suf \<and> starts (lowercase w) suf" by (rule occurs_sound)
+    qed
+  qed
+  show "k = Summarize \<and> \<not> a \<Longrightarrow> bare_phrase (asked ev)" using n by (simp add: capture_named_def)
+  have "response_of t ev (decide (Capture k a) ev) = capture_lead k ev @ topic ev @ capture_tail k ev"
+    using assms by (simp add: capture_text_def)
+  thus "\<exists>pre suf. response_of t ev (decide (Capture k a) ev) = pre @ topic ev @ suf" by blast
+  show "status_of (decide (Capture k a) ev) = STR ''withheld''" using assms by simp
+  show "path_of t ev (decide (Capture k a) ev) = capture_path k a" using assms by simp
+  show "cited_claims (decide (Capture k a) ev) = []" using assms by simp
+qed
+
+text \<open>A timeline withhold for want of dates prints the number of its material's sentences that
+carry a year, read off those sentences by the kernel, as runtime J counts them.\<close>
+theorem timeline_count_read_off_the_text:
+  assumes "decide (Capture Timeline a) ev = NotComposed Timeline a" and "length (dated ev) < 2"
+  shows "response_of t ev (decide (Capture Timeline a) ev) =
+      timeline_lead @ topic ev @ '' contains '' @ (if dated ev = [] then ''0'' else ''1'') @ ''.''"
+    and "\<forall>c\<in>set (dated ev). \<exists>pre y suf. sentence c = pre @ y @ suf \<and> is_year4 y"
+    and "\<forall>c\<in>set (claims (pool_e ev)). c \<notin> set (dated ev) \<longrightarrow> \<not> year_scan True (sentence c)"
+proof -
+  show "response_of t ev (decide (Capture Timeline a) ev) =
+      timeline_lead @ topic ev @ '' contains '' @ (if dated ev = [] then ''0'' else ''1'') @ ''.''"
+    using assms by (simp add: capture_text_def capture_lead_def capture_tail_def)
+  show "\<forall>c\<in>set (dated ev). \<exists>pre y suf. sentence c = pre @ y @ suf \<and> is_year4 y"
+  proof
+    fix c assume "c \<in> set (dated ev)"
+    hence "year_scan True (sentence c)" by (simp add: dated_def)
+    thus "\<exists>pre y suf. sentence c = pre @ y @ suf \<and> is_year4 y" by (rule year_scan_sound)
+  qed
+  show "\<forall>c\<in>set (claims (pool_e ev)). c \<notin> set (dated ev) \<longrightarrow> \<not> year_scan True (sentence c)"
+    by (auto simp: dated_def)
 qed
 
 text \<open>The evidence of a turn nothing was fetched for; fixtures and the self test update it.\<close>

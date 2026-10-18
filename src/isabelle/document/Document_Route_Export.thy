@@ -3,7 +3,7 @@ theory Document_Route_Export
 begin
 
 text \<open>Computed checks of the decision on real questions, each with the reply text the head
-prints (ASCII; the apostrophe and the double quote assembled as the organs print them). Ten
+prints (ASCII; the apostrophe and the double quote assembled as the organs print them). Eleven
 named parts so a failing evaluation says which rule is wrong. They are evaluated by the build
 below and again by the binary at start-up; they are checks, not theorems.\<close>
 
@@ -136,18 +136,64 @@ definition st10_lookup :: bool where
             ''I can'' @ apos @ ''t verify an answer to that exact question, so I won'' @ apos @ ''t guess.''
         \<and> decide Fallback (ev\<lparr> asked := ''What is a pound in kilograms?'' \<rparr>) = Clarify)"
 
+text \<open>The captures (W5-18): the bare-phrase reading on the core panel's own surfaces, runtime F's
+and J's withheld texts, the topic check, and the bridge as a weak route.\<close>
+definition swiss :: evidence where
+  "swiss = (blank ''The currency of Switzerland'')\<lparr> topic := ''currency of Switzerland'' \<rparr>"
+
+definition moon1996 :: claim where
+  "moon1996 = \<lparr> claim_id = ''m1'', page = ''Man'', sentence = ''In 1996 a man walked 3000 metres.'',
+     fragment = False, has_year = True, tier = None \<rparr>"
+
+definition ravel :: claim where
+  "ravel = \<lparr> claim_id = ''r1'', page = ''Maurice Ravel'', sentence = ''Maurice Ravel was a French composer.'',
+     fragment = False, has_year = False, tier = None \<rparr>"
+
+definition st11_captures :: bool where
+  "st11_captures \<longleftrightarrow>
+     bare_phrase ''The currency of Switzerland'' \<and> bare_phrase ''The inventor of dynamite''
+     \<and> bare_phrase ''the  currency of India''
+     \<and> \<not> bare_phrase ''The first person in space'' \<and> \<not> bare_phrase ''go on''
+     \<and> \<not> bare_phrase ''Who won the 2030 FIFA World Cup?'' \<and> \<not> bare_phrase ''Tell me the capital of Norway''
+     \<and> \<not> bare_phrase ''ab'' \<and> \<not> bare_phrase ''The 1990s''
+     \<and> decide (Capture Summarize False) swiss = NotComposed Summarize False
+     \<and> path_of (Capture Summarize False) swiss (decide (Capture Summarize False) swiss) = STR ''capability:summarize''
+     \<and> response_of (Capture Summarize False) swiss (decide (Capture Summarize False) swiss) =
+         ''No provenance-admitted material on currency of Switzerland is available to summarize.''
+     \<and> decide Statement (swiss\<lparr> pool_e := \<lparr> resolved = True, conjunctive = 0, claims = [lyon] \<rparr>,
+         candidate := Some lyon, asked_term := ''switzerland'' \<rparr>) = NotComposed Summarize False
+     \<and> decide Fallback swiss = NotComposed Summarize False
+     \<and> (let ev = (blank ''The first man to walk on the Moon'')\<lparr> topic := ''man'',
+               pool_e := \<lparr> resolved = False, conjunctive = 0, claims = [moon1996, lyon] \<rparr> \<rparr>
+        in decide (Capture Timeline True) ev = NotComposed Timeline True
+          \<and> path_of (Capture Timeline True) ev (decide (Capture Timeline True) ev) = STR ''arb:timeline->capability:timeline''
+          \<and> response_of (Capture Timeline True) ev (decide (Capture Timeline True) ev) =
+              ''A timeline needs at least two dated statements; the admitted material on man contains 1.''
+          \<and> decide (Capture Timeline True) (ev\<lparr> topic := ''woman'' \<rparr>) = Clarify)
+     \<and> (let ev = (blank ''The director of the film Rome, Open City'')\<lparr> topic := ''director'',
+               pool_e := \<lparr> resolved = False, conjunctive = 0, claims = [lyon] \<rparr> \<rparr>
+        in decide (Capture ExplainSimply True) ev = NotComposed ExplainSimply True
+          \<and> path_of (Capture ExplainSimply True) ev (decide (Capture ExplainSimply True) ev)
+              = STR ''arb:explain_simply->capability:explain_simply''
+          \<and> response_of (Capture ExplainSimply True) ev (decide (Capture ExplainSimply True) ev) =
+              ''I hold admitted material on director, but I do not compose a simple explanation from it yet, so I won'' @ apos @ ''t give one.'')
+     \<and> (let ev = (blank ''Name the composer of Bolero'')\<lparr> candidate := Some ravel \<rparr>
+        in decide (Weak Bridge) ev = UnverifiedPassage Bridge ''Maurice Ravel was a French composer.''
+          \<and> path_of (Weak Bridge) ev (decide (Weak Bridge) ev) = STR ''unverified:compose:bridge'')"
+
 definition self_test :: bool where
   "self_test \<longleftrightarrow> st1_tiered_pick \<and> st2_unverified_weak \<and> st3_corpus_empty
      \<and> st4_statement \<and> st5_clarify \<and> st6_no_anchor \<and> st7_compute \<and> st8_door
-     \<and> st9_release \<and> st10_lookup"
+     \<and> st9_release \<and> st10_lookup \<and> st11_captures"
 
 export_code decide status_of path_of response_of cited_claims compute_op self_test
   st1_tiered_pick st2_unverified_weak st3_corpus_empty st4_statement st5_clarify st6_no_anchor
-  st7_compute st8_door st9_release st10_lookup
+  st7_compute st8_door st9_release st10_lookup st11_captures bare_phrase
   claim_ext pool_ext evidence_ext
-  Cause Process When FTS Page CorpusQuery ArbDefinitional
-  Explain Weak Statement Fallback
-  Answer UnverifiedPassage Declined Refused Clarify AskWhich NoAnchor NoAdmittedStatement
+  Cause Process When FTS Page CorpusQuery ArbDefinitional Bridge
+  Summarize Timeline ExplainSimply
+  Explain Weak Statement Fallback Capture
+  Answer UnverifiedPassage Declined Refused Clarify AskWhich NotComposed NoAnchor NoAdmittedStatement
   OutOfFragment LookupForCompute
   natural_of_integer integer_of_natural integer_of_char char_of_integer
   in SML module_name Document_Route_Code file_prefix document_route
@@ -163,13 +209,16 @@ ML \<open>
        weak_pass_through_iff unverified_reply_shape
        statement_answer_iff statement_quotes_the_topic door_asks_only_what_was_said
        clarify_shape refusal_shape cited_iff_answer answer_reply_carries_citation
-       op_scan_sound word_in_sound occurs_sound names_term_sound};
+       op_scan_sound word_in_sound occurs_sound names_term_sound
+       year_scan_sound route_reroute_answer capture_iff capture_never_reaches_statement
+       bare_phrase_never_reaches_statement capture_names_the_question timeline_count_read_off_the_text};
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("document route theorems use oracles: " ^ string_of_int (length oracles));
   val parts = [(1, @{code st1_tiered_pick}), (2, @{code st2_unverified_weak}),
     (3, @{code st3_corpus_empty}), (4, @{code st4_statement}),
     (5, @{code st5_clarify}), (6, @{code st6_no_anchor}), (7, @{code st7_compute}),
-    (8, @{code st8_door}), (9, @{code st9_release}), (10, @{code st10_lookup})];
+    (8, @{code st8_door}), (9, @{code st9_release}), (10, @{code st10_lookup}),
+    (11, @{code st11_captures})];
   val bad = map #1 (List.filter (fn (_, b) => not b) parts);
   val _ = if null bad then () else error ("document route self test failed at parts: " ^ commas (map string_of_int bad));
   val _ = writeln ("VERI7VN_DOCUMENT PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");

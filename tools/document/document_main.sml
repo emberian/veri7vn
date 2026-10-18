@@ -119,6 +119,9 @@ structure Main = struct
   fun pool p =
     D.Pool_ext (bool (field p "resolved"), nat (int (field p "conjunctive")), map claim (list (field p "claims")), ())
 
+  (* the capture's flag: taken by runtime S's arbiter (absent on every other turn) *)
+  fun arb e = case field e "arb" of Bool b => b | _ => false
+
   fun turn e =
     case string (field e "turn") of
       "cause" => D.Explain D.Cause
@@ -128,6 +131,10 @@ structure Main = struct
     | "page" => D.Weak D.Page
     | "corpus" => D.Weak D.CorpusQuery
     | "arbdef" => D.Weak D.ArbDefinitional
+    | "bridge" => D.Weak D.Bridge
+    | "summarize" => D.Capture (D.Summarize, arb e)
+    | "timeline" => D.Capture (D.Timeline, arb e)
+    | "explain_simply" => D.Capture (D.ExplainSimply, arb e)
     | "statement" => D.Statement
     | "fallback" => D.Fallback
     | s => raise Bad ("turn " ^ s)
