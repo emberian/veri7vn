@@ -136,13 +136,15 @@ def main():
         "misses_examples": misses[:40],
         "organ_decline_finales": dict(declines),
         "path_diverged_examples": diverged[:20],
+        "items": [{"i": r["i"], "st": r["reply"].get("status"), "path": str(r["reply"].get("path", ""))[:90],
+                   "rtt": r["rtt_ms"]} for r in recs],
         "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
     out = Path(a.out)
     out.write_text(json.dumps(rep, indent=1, ensure_ascii=False), encoding="utf-8")
     brief = {k: v for k, v in rep.items()
              if k not in ("answered_where_record_withheld_examples", "misses_examples",
-                          "path_diverged_examples") and k != "live_head_text_on_network_subset"}
+                          "path_diverged_examples", "items") and k != "live_head_text_on_network_subset"}
     print(json.dumps(brief, indent=1, ensure_ascii=False))
     print("text on lane-H live-head subset:", rep["live_head_text_on_network_subset"]["n"], "same",
           rep["live_head_text_on_network_subset"]["same"])
