@@ -138,3 +138,33 @@ composition checks. The expanded default panel passes24/24, and the permanent
 metadata/source capture for future Trades portability work is
 `var/root-physical-arbitration/prepared/trades`; the earlier capture remains
 historical. The Trades native and its357/357 shipped result are unchanged.
+
+## Scoped portability completed
+
+The current Trades source/export/runtime binding still matches. A managed
+Linux compile from the passed H proof and updated frozen runtime produced
+`dd562045366fe6439c0b2f3be89fa327a7bf463f06abcea91f64c6ae70688da2`.
+Receipt `var/linux/receipt-trades-persvati-trades-1792323606-85951.json`
+records 357 freshly scored macOS/Linux replies, all identical and correct,
+with zero wrong or false yes. Its 30 withheld replies are correct refusals of
+invalid requests, not capability misses.
+
+The six-folder package at
+`var/root-trades-h/portability/package/veri7vn-specialists-2026-10-18.tar.gz`
+uses shared consumers from `2e1b8bd` and the updated material admission metadata.
+Its SHA256 is
+`b87d5419d122728f84e47ca3605984d91c096d5f078216d2dfb15316c298958c`;
+size 932,195 bytes. Relocation checks load its actual wrappers outside the
+checkout on macOS and persvati, with identical replies on all 179 cases:
+100 numerical/colour answers, 59 correct invalid refusals and 20 valid
+withholds. The latter pass their explicit refusal policies but remain useful
+requests the specialist cannot answer. These are the 169 authored cases plus
+ten positive/negative requests using the supported material names; they are
+not a new independent shipped panel.
+
+Exact artifact, consumer and evidence hashes are in
+`var/root-trades-h/portability/delivery.json`. Linux relocation is retained at
+the path recorded in `linux-relocation.json`. The scoped Trades portability
+gap is closed. The full 144-specialist archive has not been refreshed with
+these changes, and the separate dispatcher fix still needs Linux validation.
+No build, package or remote test job remains from this step.

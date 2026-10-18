@@ -10,6 +10,24 @@ are not specialist folders. Stores needs binaries with the explicit asset-path
 options and is included only with `--include-stores`; its six IDs otherwise
 remain explicitly excluded.
 
+## Later Trades successor
+
+The six Trades specialists have a separate, tested macOS/Linux package at
+`var/root-trades-h/portability/package/veri7vn-specialists-2026-10-18.tar.gz`.
+It includes the mixed-unit layer and continuous fabric-length repairs, plus
+the complete material vocabulary in Crafts admission metadata. Shared consumers
+are pinned to `2e1b8bd`. All 357 freshly scored shipped-panel replies match
+across platforms and score correct, including 30 correct invalid refusals.
+
+The relocated package produces identical replies on 179 checks per platform:
+100 answers, 59 correct invalid refusals and 20 valid withholds. All assertions
+pass, including the expected withholding policies; those 20 requests remain
+capability gaps. The archive is 932,195 bytes, SHA256
+`b87d5419d122728f84e47ca3605984d91c096d5f078216d2dfb15316c298958c`.
+Exact bindings and evidence are in `var/root-trades-h/portability/delivery.json`.
+This is a specialist package: it does not carry veri7vn's separate dispatcher
+or change Oracle7's arbitration. It does not replace the full delivery below.
+
 ## Later chemistry-only successor
 
 The live Chemistry J integration has a separate, tested five-specialist package:
