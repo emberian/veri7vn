@@ -4,7 +4,8 @@
   "project/scouts/TRIAGE-1.md",
   "project/scouts/TRIAGE-2.md",
   "project/scouts/TRIAGE-3.md",
-  "project/scouts/TRIAGE-4.md"
+  "project/scouts/TRIAGE-4.md",
+  "project/scouts/TRIAGE-5.md"
  ],
  "batches": {
   "W5-01-rel-novels-land": {
@@ -214,10 +215,23 @@
    ],
    "brief": "measure.py reads core_panel.json directly and compares status and path on all 231 items on the route's paths; text stays on the 30-item sample unless recorded head replies cover more. Add a compute gateway: compute-shaped turns end withheld with the math refusal, not clarify. Classify every miss.",
    "done_when": "status and path counts on 231 items with every miss classified; #75, #80, #92, #99 match the head's status and path"
+  },
+  "W5-18-document-captures": {
+   "title": "Document route: summarize, timeline and bridge captures",
+   "model": "opus",
+   "size": "M",
+   "start_from": "dev (src/isabelle/document/, tools/document/, W5-17's measure.py)",
+   "paths": [
+    "src/isabelle/document/",
+    "tools/document/",
+    "var/document/"
+   ],
+   "brief": "W5-17 found the document answerer answers 9 core noun-phrase questions the head withholds (summarize, timeline, bridge routes the fetch does not model). Add those captures to the fetch and the turn classes to the kernel; each route withholds unless it has its evidence; prove such a turn never reaches the converse statement move. Measure the 26 wider-prefix items (10 arb:timeline, 8 unverified:compose:bridge, 5 capability:summarize, 3 arb:explain_simply) for status and path, and run the binary over all 924 core questions counting answers where the head did not answer outside the 231.",
+   "done_when": "0 answers outside the 231 where the head withheld or clarified (today at least 9); each of the 26 matches the head's status and path or has a named class; the 231 stay at status 224, path 190; fresh remote PASS oracles=0"
   }
  },
  "deferred": {
-  "code-organ": "No lane until root decides what the number is: the organ has no shipped panel and 0 of 924 core items reach it. If root accepts a reconstructed MBPP-style measurement, the scout's L-codecheck (sonnet) and L-codevalues (opus) are the right sizes. Branch kept, not merged.",
+  "code-organ": "No lane until root decides what the number is: the organ has no shipped panel and 0 of 924 core items reach it. If root accepts a reconstructed MBPP-style measurement, the scout's L-codecheck (sonnet) and L-codevalues (opus) are the right sizes. Branch kept, not merged. Triage 5: Oracle7 ships no code tests (workbench/ has none; python and python-r2 are PyRefOrgan reference lookups) and no reply in lane A's full held-out run or control-w540 takes an organ:code path. Stays parked.",
   "math-organ": "A scout life is running now (started 2026-10-17 19:47, building on hbox). Triage 2 reads its report. If it lands a binary, its follow-up is a sonnet lane over the 87 math-route core items.",
   "linux-portability": "Scout's opus lane (static vs dynamic, older distros). Not needed while hbox and persvati are the only Linux hosts.",
   "head-fail-corpus": "Linter's 'fable' lane is a data harvest of domain.head.fails, sonnet-sized; worth doing only when a lane needs the fillable fraction.",
@@ -239,7 +253,9 @@
   "guards-all-codes": "precision-guards follow-up 1: the 67 unmodelled codes; after W5-15 says which fire.",
   "guards-live-head": "precision-guards follow-up 4: after W5-15.",
   "document-cube-check": "document-route follow-up 1 (cube CHECK port) and 3 (Explain benchmark): after W5-17.",
-  "wordprob-head-composition": "word-problems follow-ups 3 and 4 (fuzz, head fold order around w488): no board number moves."
+  "wordprob-head-composition": "word-problems follow-ups 3 and 4 (fuzz, head fold order around w488): no board number moves.",
+  "conceptnet": "Parked: no core item reaches ConceptNet and on panels it is head fallback behind specialists (13 held-out items) or the wrong Pluto answer; no number can move. The panel-visible organ is the IsA turn, not the commonsense adapter the scout modelled.",
+  "rel-census-follow-ups": "Shared linker index and per-reader decline accounting done by W5-01/W5-02; inverse fixtures move no number (no panel item is inverse)."
  },
  "merges": [
   {
@@ -320,6 +336,17 @@
    "merged": true,
    "commit": "0db9328",
    "note": "fresh hbox build PASS theorems=31 oracles=0; 30-item measure re-run 27/25/18+7; schemas confirmed, counts quoted are metadata's"
+  },
+  {
+   "branch": "scout/rel-census",
+   "merged": "partial",
+   "commit": "46b479c",
+   "note": "census.py and rel-ceiling.md only (re-run identical; bytecode flag, path and linker headline corrected); kernel src/isabelle/relorgan/ left on the branch: W5-02 supersedes it, pattern fallback answers 0 panel items, organ_answer_means conclusion 3 vacuous (proved in a probe, fresh persvati build)"
+  },
+  {
+   "branch": "scout/conceptnet",
+   "merged": false,
+   "note": "parked: 0 core items reach ConceptNet; 14 held-out panel items reach it in the head, 13 taken by the specialist, Pluto wrong; report uncommitted, kernel unbuilt at tip"
   }
  ],
  "unverified": [
@@ -336,7 +363,10 @@
   "organ-wrappers: the 124-folder smoke run; git/orbits/acoustics verdicts beyond the headline counts; multi-folder exam_dev.py",
   "commons: the exact Isabelle duplication census (90/35/1,312); the ~6,300-line migration saving; regex_test.sh and tables_check.py on the port",
   "perf-envelope: the 61-minute head pass (1.96 GB, 140 ms p50, 8.4 s max); the 16 binaries not re-run; the outlier reproductions",
-  "Mercury: why the w540 head withholds this question"
+  "Mercury: why the w540 head withholds this question",
+  "rel-census: three-reader scores and 120/120 against rel-novels (superseded by W5-02, not re-run)",
+  "conceptnet: quoted head replies (dog used for, dogs animals) and the kernel (not built at tip)",
+  "conceptnet: what the scout's hbox pattern kill stopped"
  ],
  "scout_errors": [
   "specialist-linter: says the release used a lane cap of 5 and was tighter than exam.py; the three specialists over 5 were admitted, so it was not",
@@ -354,6 +384,12 @@
   "organ-wrappers: 11 of the 12 visible units 'wrong' answers are the head's right number in fraction form, misread by the shipped scorer; the report does not say so",
   "commons: regex.sml copies total 4,475 lines, not 4,197; main.sml 3,782, not ~3,400",
   "commons: left tools/deploy/linux-build.sh and src/extract/variants/build.sh pointing at the deleted quantity/regex.sml",
-  "perf-envelope: load stated as 4 to 5.5, the JSON records 6.0 at start; 0.8 MB raw JSON committed under docs/; the page printed the worktree path"
+  "perf-envelope: load stated as 4 to 5.5, the JSON records 6.0 at start; 0.8 MB raw JSON committed under docs/; the page printed the worktree path",
+  "rel-census: headline blames the whole remaining gap on the linker (W5-02: 371 dropped phrasings, 259 agreement refusals, 178 restating, 68 linker misses, 2 kind)",
+  "rel-census: sys.dont_writebytecode misspelled, so census.py wrote .pyc under upstream/ without -B",
+  "rel-census: build receipt predates its last commit 07ed454; PASS marker has no oracle scan",
+  "rel-census: organ_answer_means conclusion 3 is vacuous (candidate list existentially chosen, not tied to the turn)",
+  "conceptnet: says no panel question has the adapter's forms and only Pluto reaches ConceptNet; 13 more held-out items do in the head",
+  "conceptnet: report uncommitted with three sections TO FILL; killed hbox poly processes by pattern"
  ]
 }

@@ -352,3 +352,68 @@ decimal library that commons already is, and does not say its binary answers
 26 core questions the head routes elsewhere (9 with a dropped minus sign);
 document-route quotes the stores' metadata counts as table sizes and places
 the `rel` column in the FTS table (it is in `edges.sqlite`).
+
+## Triage 5 (2026-10-17)
+
+Log: [`project/scouts/TRIAGE-5.md`](../scouts/TRIAGE-5.md).
+
+| Branch | Merged | Why, or what to fix first |
+|---|---|---|
+| scout/rel-census | in part, `46b479c` | census re-run: table identical (30 properties, 1,814 items, ceiling 17,162); landed `tools/rel-census/census.py` and `docs/coverage/rel-ceiling.md` with three corrections (bytecode flag misspelled, so it wrote `.pyc` under `upstream/`; hard-coded path; "the gap is all linker"). The kernel `src/isabelle/relorgan/` stays on the branch: W5-02 already covers all 161 readers, the pattern fallback it adds answers 0 panel items, and its headline theorem's third conclusion is vacuous (rebuilt fresh on persvati, probe lemma proved) |
+| scout/conceptnet | no, parked | no core item reaches ConceptNet; on panels the head reaches it on 14 held-out items, 13 answered first by the specialist and the 14th (Pluto) a wrong answer; report uncommitted and unfinished |
+
+| Lane | Tier | Size | Start from | Done when |
+|---|---|---|---|---|
+| W5-18 Document route: summarize, timeline and bridge captures | opus | M | dev (`src/isabelle/document/`, `tools/document/`, W5-17's `measure.py`) | over all 924 core questions the binary answers 0 that the head withheld or clarified outside its 231 (9 today); the 26 wider-prefix items each match the head's status, path family named per miss; the 231 stay at status 224, path 190 |
+
+**W5-18.** W5-17 found that the document answerer answers 9 core questions
+the head withholds. These are noun phrases ("The currency of Switzerland",
+"The first person in space") that the head sends to `capability:summarize`,
+`arb:timeline` or `unverified:compose:bridge` and then withholds. The fetch
+models none of those captures, so the converse statement move answers them
+with a page's first sentence, sometimes the wrong page ("The currency of
+India" gives an album). Add the captures to the untrusted fetch and the turn
+classes to the kernel: a summarize, timeline, explain-simply or bridge turn
+goes to its own route, and each route withholds unless it has the evidence it
+needs (the head's own withheld paths are the target; answering better than the
+head is not this lane's job). Prove that a turn classed as one of these never
+reaches the converse statement move. Measure in two parts. First, the 26
+wider-prefix items W5-17 lists (10 `arb:timeline`, 8
+`unverified:compose:bridge`, 5 `capability:summarize`, 3 `arb:explain_simply`):
+status and path against `core_panel.json` (today 3/26 status, 0 path). Second,
+the binary over all 924 core questions: count every item outside the 231 where
+it answers and the head did not. Done: that count is 0 (today at least 9), each
+of the 26 matches or has a named class, the 231 stay at 224 / 190, fresh
+remote PASS with oracles 0. Not in scope: the head's two answered timelines
+and one answered explain-simply as text.
+
+Parked from triage 5:
+
+- **ConceptNet** (scout/conceptnet): it reaches no core item and on panels only
+  head fallback behind specialists or the wrong Pluto answer; no number can
+  move. If a ConceptNet panel ever matters, the panel-visible organ is the IsA
+  turn (`stage5m21_transitive_reasoner_v2`), not the commonsense adapter the
+  scout modelled.
+- **code-organ** stays parked: Oracle7 ships no code tests (`workbench/` has
+  none; `python`/`python-r2` are `PyRefOrgan` reference lookups), and no reply
+  in lane A's full held-out run or `control-w540` takes an `organ:code` path.
+  A reconstructed MBPP-style number is root's call.
+- **rel-census follow-ups**: the shared linker index and the per-reader
+  decline accounting are done by W5-01/W5-02; inverse fixtures from the store
+  move no number (no panel item is inverse).
+- **Theorem quality**: lane A1. The vacuous `organ_answer_means` conclusion is
+  passed to it as an example.
+
+Triage 5, claims not verified: rel-census's three-reader scores and the
+120/120 match with rel-novels (superseded by W5-02); conceptnet's quoted head
+replies and its kernel (not built at the tip, no numbers); what the
+conceptnet scout's pattern kill on hbox stopped.
+
+Triage 5, what scouts got wrong: rel-census's headline blames the whole
+remaining gap on the linker (W5-02 finds 371 dropped phrasings, 259
+agreement refusals, 178 restating values, 68 linker misses), its bytecode flag
+is misspelled, its build receipt predates its last commit, and
+`organ_answer_means`'s third conclusion holds for any value. conceptnet says
+no panel question has the adapter's forms and only Pluto reaches ConceptNet
+(13 more held-out items do, in the head); it left its report uncommitted and
+unfinished, and killed hbox processes by pattern.
