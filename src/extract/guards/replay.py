@@ -286,7 +286,64 @@ def main():
     print("reproduced %d / %d" % (ok, len(ROWS)))
     for row, tried in bad:
         print("MISS %-26s want=%-26s got=%s | %s" % (row["guard"], row["guard"], tried, row["q"][:60]))
+    if "--emit-inputs" in sys.argv:
+        emit_inputs(json.load(open(HERE / "fixtures114.json")))
     return 0 if not bad else 1
+
+
+TAGS = re.compile(r"\[ev:[a-z_]+\]|\[[a-z]+_[0-9a-f]{6,}\]|\[\d+\]")
+
+
+def s1_human(reply):
+    """w516 S1's relstore answer: resolve the reply's first sentence, ask the store."""
+    vis = " ".join(TAGS.sub(" ", str(reply)).split())
+    value = vis.split(". ", 1)[0].strip()
+    qid = RS.entity(value)
+    return [None, True, False][1 if qid and RS.is_human(qid) else (2 if qid else 0)]
+
+
+def premise_raw(q):
+    """w532/w534 G3's premise WITHOUT the tolerance check (the kernel checks it):
+    (label, asked year, recorded years) when the question is a dated-creation
+    premise and the store has dates for the linked item."""
+    w = M["w532"]
+    m = w.PREMISE.match(q)
+    if not m:
+        return None
+    x, year = m.group(2).strip(), int(m.group(3))
+    try:
+        spans = EL.link(q, k=3)
+    except Exception:
+        return None
+    cands = [c for s, cs in spans if s.lower().lstrip("the ").strip() == x.lower().lstrip("the ").strip()
+             for c in cs[:1]]
+    if not cands:
+        return None
+    qid, _, label = cands[0]
+    years = set()
+    for p in RV.PROPS:
+        for v in RV.values(qid, p):
+            y = re.match(r"^[+]?(-?\d{1,4})-", str(v))
+            if y:
+                years.add(int(y.group(1)))
+    if not years:
+        return None
+    return {"label": label, "year": year, "years": sorted(years)}
+
+
+def emit_inputs(fixtures):
+    """inputs114.json: the binary's stdin, one JSON object per line. human and
+    premise are the relstore facts (recognizer-side inputs, untrusted); the
+    rest is raw text the binary's recognizer reads itself."""
+    lines = []
+    for fx in fixtures:
+        lines.append(json.dumps({
+            "id": fx["idx"], "q": fx["q"], "route": fx["route"], "reply": fx["reply"],
+            "status": "answered", "human": s1_human(fx["reply"]),
+            "premise": premise_raw(fx["q"])}))
+    dst = HERE / "inputs114.jsonl"
+    dst.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print("wrote %s (%d lines)" % (dst, len(lines)))
 
 
 if __name__ == "__main__":

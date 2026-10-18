@@ -21,11 +21,13 @@ relation store. This theory is the verified half of that decision:
                   first guard that fires wins, as in the chain of folds.
                   \<open>decision_auto\<close> is the stratum policy of the replay.
 
-The model covers the 20 codes that fire on the 114 recorded items, over eight
-layers. The full inventory (14 folds, 87 codes) is the \<open>catalogue\<close>
+The model covers the 20 codes that fire on the 114 recorded items, over nine
+layers (w510-w517, w532-w534; w517 models the one rule of its that fires on
+the panel, the re-run of w516's R2 under its weaker factual gate). The full
+inventory (14 folds, 87 codes) is the \<open>catalogue\<close>
 constant, generated from the Python source by \<open>extract_catalogue.py\<close> and
-checked by \<open>tables_check.py\<close>. The six folds whose codes never fire on the
-panel (w517, w519, w521, w531, w539, w540) are not modelled; their layers are
+checked by \<open>tables_check.py\<close>. The five folds whose codes never fire on the
+panel (w519, w521, w531, w539, w540) are not modelled; their layers are
 absent, which can only matter when one of their rules fires before a modelled
 one - the replay shows that never happens on these 114 items.
 
@@ -52,6 +54,13 @@ definition covered :: "string \<Rightarrow> string \<Rightarrow> bool" where
   "covered t h \<longleftrightarrow> t \<noteq> [] \<and> wordish (hd t) \<and>
     (\<exists>i<length h. (i = 0 \<or> \<not> wordish (h ! (i - 1))) \<and>
       take (min 5 (length t)) (drop i h) = take (min 5 (length t)) t)"
+
+text \<open>w513's Q3 and w514's R5 check a six-character stem of the subject
+(\<open>re.escape(group(1)[:6])\<close>), not w510's five.\<close>
+definition covered6 :: "string \<Rightarrow> string \<Rightarrow> bool" where
+  "covered6 t h \<longleftrightarrow> t \<noteq> [] \<and> wordish (hd t) \<and>
+    (\<exists>i<length h. (i = 0 \<or> \<not> wordish (h ! (i - 1))) \<and>
+      take (min 6 (length t)) (drop i h) = take (min 6 (length t)) t)"
 
 definition lmin :: "int list \<Rightarrow> int" where
   "lmin xs = (case xs of [] \<Rightarrow> 0 | x#r \<Rightarrow> fold min r x)"
@@ -103,11 +112,18 @@ datatype f514 = F514
   ("subject_stem_r5": "string option") 
 
 datatype f516 = F516
-  ("factual_v8": bool) 
-  ("def_q16": bool) 
-  ("yesno_q16": bool) 
-  ("r6_ops_free": bool) 
-  ("q_words16": "string list") 
+  ("factual_v8": bool)
+  ("def_q16": bool)
+  ("yesno_q16": bool)
+  ("r6_ops_free": bool)
+  ("q_words16": "string list")
+
+text \<open>w517's weaker factual gate: guard9 re-runs w516's rules (with the
+factual check forced true) on questions w516's own \<open>factual\<close> rejects but
+\<open>factual2\<close> accepts - trivia without a question mark, or a generic-you
+question. One boolean: the whole \<open>factual2\<close> predicate.\<close>
+datatype f517 = F517
+  ("factual2_v17": bool) 
 
 datatype f532 = F532
   ("neg_num_q": bool) 
@@ -148,6 +164,7 @@ datatype feats = Feats
   ("f513": f513)
   ("f514": f514)
   ("f516": f516)
+  ("f517": f517)
   ("f532": f532)
   ("f533": f533)
   ("f534": f534)
@@ -183,11 +200,11 @@ definition code_name :: "gcode \<Rightarrow> string" where
 text \<open>A layer is one guard fold. A reply travels up the fold stack, so the
 DEEPEST layer (largest chain position) judges it first; the order below is
 the order the layers see a reply.\<close>
-datatype layer = L510 | L511 | L513 | L514 | L516 | L532 | L533own | L534
+datatype layer = L510 | L511 | L513 | L514 | L516 | L517 | L532 | L533own | L534
 
 definition layer_name :: "layer \<Rightarrow> string" where
   "layer_name l = (case l of L510 \<Rightarrow> ''w510'' | L511 \<Rightarrow> ''w511'' | L513 \<Rightarrow> ''w513''
-    | L514 \<Rightarrow> ''w514'' | L516 \<Rightarrow> ''w516'' | L532 \<Rightarrow> ''w532'' | L533own \<Rightarrow> ''w533own'' | L534 \<Rightarrow> ''w534'')"
+    | L514 \<Rightarrow> ''w514'' | L516 \<Rightarrow> ''w516'' | L517 \<Rightarrow> ''w517'' | L532 \<Rightarrow> ''w532'' | L533own \<Rightarrow> ''w533own'' | L534 \<Rightarrow> ''w534'')"
 
 text \<open>Which layers see a reply (the replay's strata): a reply routed deep
 in the chain is seen by every layer; a specialist reply produced by a family
@@ -198,8 +215,8 @@ datatype stratum = Head | Family | Deep
 
 definition layers :: "stratum \<Rightarrow> layer list" where
   "layers S = (case S of
-      Head \<Rightarrow> [L510, L511, L513, L514, L516, L532, L533own, L534]
-    | Deep \<Rightarrow> [L510, L511, L513, L514, L516, L532, L533own, L534]
+      Head \<Rightarrow> [L510, L511, L513, L514, L516, L517, L532, L533own, L534]
+    | Deep \<Rightarrow> [L510, L511, L513, L514, L516, L517, L532, L533own, L534]
     | Family \<Rightarrow> [L532, L533own, L534])"
 
 text \<open>Each layer's guard codes in the fold's own checking order.\<close>
@@ -210,6 +227,7 @@ definition codesL :: "layer \<Rightarrow> gcode list" where
     | L513 \<Rightarrow> [Q1_english_as_algebra, Q3_subject_missing]
     | L514 \<Rightarrow> [R1_english_as_algebra, R5_subject_missing]
     | L516 \<Rightarrow> [S1_person_not_human, R2_dump_for_slot_question, R6_math_on_english]
+    | L517 \<Rightarrow> [R2_dump_for_slot_question]
     | L532 \<Rightarrow> [G1_sign_kept, G2_private_state, G3_date_premise]
     | L533own \<Rightarrow> [G5_echo, G6_units_not_variables, G7_word_sense]
     | L534 \<Rightarrow> [G1_sign_kept, G2_private_state, G3_date_premise])"
@@ -240,12 +258,13 @@ definition firesL :: "layer \<Rightarrow> gcode \<Rightarrow> feats \<Rightarrow
   | (L511, P2_no_number) \<Rightarrow> answered F \<and> asks_number_v4 (f511 F) \<and> rest (nums_q F) (nums_resp F) = [] \<and> \<not> numword_resp (f511 F)
   | (L511, P4_lookup_for_compute) \<Rightarrow> answered F \<and> nums_q F \<noteq> [] \<and> asks_number_v4 (f511 F) \<and> (pfx ''corpus_query'' (route F) \<or> pfx ''factoid:'' (route F) \<or> pfx ''arb:'' (route F) \<or> pfx ''compose:'' (route F) \<or> pfx ''deep_reach'' (route F) \<or> pfx ''definitional'' (route F) \<or> pfx ''cube:read'' (route F))
   | (L513, Q1_english_as_algebra) \<Rightarrow> answered F \<and> pfx ''organ:math>evaluate'' (route F) \<and> read_present (f513 F) \<and> read_has_letter (f513 F) \<and> 3 \<le> length (content13 (q_words13 (f513 F))) \<and> q1_ops_free (f513 F)
-  | (L513, Q3_subject_missing) \<Rightarrow> answered F \<and> q3_shape (f513 F) \<and> \<not> (pfx ''organ:math'' (route F) \<or> pfx ''algebra'' (route F) \<or> pfx ''op:'' (route F) \<or> pfx ''compute:'' (route F) \<or> pfx ''network'' (route F) \<or> pfx ''unit:'' (route F) \<or> pfx ''organ:relation'' (route F) \<or> pfx ''cube:'' (route F)) \<and> (case subject_stem_q3 (f513 F) of None \<Rightarrow> False | Some s \<Rightarrow> \<not> covered s (resp_q F))
+  | (L513, Q3_subject_missing) \<Rightarrow> answered F \<and> q3_shape (f513 F) \<and> \<not> (pfx ''organ:math'' (route F) \<or> pfx ''algebra'' (route F) \<or> pfx ''op:'' (route F) \<or> pfx ''compute:'' (route F) \<or> pfx ''network'' (route F) \<or> pfx ''unit:'' (route F) \<or> pfx ''organ:relation'' (route F) \<or> pfx ''cube:'' (route F)) \<and> (case subject_stem_q3 (f513 F) of None \<Rightarrow> False | Some s \<Rightarrow> \<not> covered6 s (resp_q F))
   | (L514, R1_english_as_algebra) \<Rightarrow> answered F \<and> pfx ''organ:math>evaluate'' (route F) \<and> read_present (f513 F) \<and> read_has_letter (f513 F) \<and> 3 \<le> length (content13 (q_words14 (f514 F))) \<and> r1_ops_free (f514 F)
-  | (L514, R5_subject_missing) \<Rightarrow> answered F \<and> r5_shape (f514 F) \<and> \<not> (pfx ''organ:relation'' (route F) \<or> pfx ''cube:'' (route F) \<or> pfx ''network'' (route F) \<or> pfx ''specialist_call'' (route F)) \<and> (case subject_stem_r5 (f514 F) of None \<Rightarrow> False | Some s \<Rightarrow> \<not> covered s (resp_r F))
+  | (L514, R5_subject_missing) \<Rightarrow> answered F \<and> r5_shape (f514 F) \<and> \<not> (pfx ''organ:relation'' (route F) \<or> pfx ''cube:'' (route F) \<or> pfx ''network'' (route F) \<or> pfx ''specialist_call'' (route F)) \<and> (case subject_stem_r5 (f514 F) of None \<Rightarrow> False | Some s \<Rightarrow> \<not> covered6 s (resp_r F))
   | (L516, S1_person_not_human) \<Rightarrow> answered F \<and> factual_v8 (f516 F) \<and> pfx ''verified:weak>PERSON'' (route F) \<and> human F \<noteq> Some True
   | (L516, R2_dump_for_slot_question) \<Rightarrow> answered F \<and> factual_v8 (f516 F) \<and> (pfx ''arb:explain_simply'' (route F) \<or> pfx ''arb:summarize'' (route F) \<or> pfx ''arb:list_n'' (route F) \<or> pfx ''capability:multi_step'' (route F) \<or> pfx ''capability:explain'' (route F) \<or> pfx ''capability:summarize'' (route F)) \<and> \<not> def_q16 (f516 F) \<and> \<not> yesno_q16 (f516 F)
   | (L516, R6_math_on_english) \<Rightarrow> answered F \<and> factual_v8 (f516 F) \<and> pfx ''organ:math>evaluate'' (route F) \<and> r6_ops_free (f516 F) \<and> 4 \<le> length (content16 (q_words16 (f516 F)))
+  | (L517, R2_dump_for_slot_question) \<Rightarrow> answered F \<and> factual2_v17 (f517 F) \<and> \<not> factual_v8 (f516 F) \<and> (pfx ''arb:explain_simply'' (route F) \<or> pfx ''arb:summarize'' (route F) \<or> pfx ''arb:list_n'' (route F) \<or> pfx ''capability:multi_step'' (route F) \<or> pfx ''capability:explain'' (route F) \<or> pfx ''capability:summarize'' (route F)) \<and> \<not> def_q16 (f516 F) \<and> \<not> yesno_q16 (f516 F)
   | (L532, G1_sign_kept) \<Rightarrow> answered F \<and> pfx ''specialist_call>'' (route F) \<and> neg_num_q (f532 F) \<and> \<not> neg_tok_resp (f532 F)
   | (L532, G2_private_state) \<Rightarrow> answered F \<and> pfx ''factoid:'' (route F) \<and> private_g2a (f532 F)
   | (L532, G3_date_premise) \<Rightarrow> fires_G3dp F
@@ -346,7 +365,7 @@ theorem fire_Q3_subject_missing:
      \<not> (pfx ''organ:math'' (route F) \<or> pfx ''algebra'' (route F) \<or> pfx ''op:'' (route F) \<or>
          pfx ''compute:'' (route F) \<or> pfx ''network'' (route F) \<or> pfx ''unit:'' (route F) \<or>
          pfx ''organ:relation'' (route F) \<or> pfx ''cube:'' (route F)) \<and>
-     (case subject_stem_q3 (f513 F) of None \<Rightarrow> False | Some s \<Rightarrow> \<not> covered s (resp_q F))"
+     (case subject_stem_q3 (f513 F) of None \<Rightarrow> False | Some s \<Rightarrow> \<not> covered6 s (resp_q F))"
   by (simp add: firesL_def)
 
 theorem fire_R1_english_as_algebra:
@@ -359,7 +378,7 @@ theorem fire_R5_subject_missing:
   "firesL L514 R5_subject_missing F \<longleftrightarrow> answered F \<and> r5_shape (f514 F) \<and>
      \<not> (pfx ''organ:relation'' (route F) \<or> pfx ''cube:'' (route F) \<or> pfx ''network'' (route F) \<or>
          pfx ''specialist_call'' (route F)) \<and>
-     (case subject_stem_r5 (f514 F) of None \<Rightarrow> False | Some s \<Rightarrow> \<not> covered s (resp_r F))"
+     (case subject_stem_r5 (f514 F) of None \<Rightarrow> False | Some s \<Rightarrow> \<not> covered6 s (resp_r F))"
   by (simp add: firesL_def)
 
 theorem fire_S1_person_not_human:
@@ -379,6 +398,17 @@ theorem fire_R6_math_on_english:
   "firesL L516 R6_math_on_english F \<longleftrightarrow> answered F \<and> factual_v8 (f516 F) \<and>
      pfx ''organ:math>evaluate'' (route F) \<and> r6_ops_free (f516 F) \<and>
      4 \<le> length (content16 (q_words16 (f516 F)))"
+  by (simp add: firesL_def)
+
+text \<open>w517's re-run of w516's R2 rule: only for a question w516's own gate
+rejected but w517's \<open>factual2\<close> accepted.\<close>
+theorem fire_R2_dump_w517:
+  "firesL L517 R2_dump_for_slot_question F \<longleftrightarrow> answered F \<and>
+     factual2_v17 (f517 F) \<and> \<not> factual_v8 (f516 F) \<and>
+     (pfx ''arb:explain_simply'' (route F) \<or> pfx ''arb:summarize'' (route F) \<or> pfx ''arb:list_n'' (route F) \<or>
+      pfx ''capability:multi_step'' (route F) \<or> pfx ''capability:explain'' (route F) \<or>
+      pfx ''capability:summarize'' (route F)) \<and>
+     \<not> def_q16 (f516 F) \<and> \<not> yesno_q16 (f516 F)"
   by (simp add: firesL_def)
 
 theorem fire_G1_sign_kept_w532:
@@ -677,7 +707,7 @@ layer it was modelled on; nothing is modelled that the chain does not
 contain.\<close>
 
 definition modelled :: "gcode list" where
-  "modelled = remdups (concat (map codesL [L510, L511, L513, L514, L516, L532, L533own, L534]))"
+  "modelled = remdups (concat (map codesL [L510, L511, L513, L514, L516, L517, L532, L533own, L534]))"
 
 theorem modelled_codes_in_catalogue:
   "list_all (\<lambda>n. n \<in> set (map (\<lambda>(c, m, p). c) catalogue)) (map code_name modelled)"
