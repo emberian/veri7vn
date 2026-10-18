@@ -70,13 +70,29 @@ separately from policy passes. `project/audits/mythology.audit.json` records a
 partial semantic audit with before/after evidence. Other changed paths are
 `src/extract/humanities/recognizer.sml`, README and project tracking.
 
-Linux and scoped package validation are pending. Exact local evidence and
-current state: `var/root-mythology/integration.json`.
+Linux and scoped packaging also passed. Managed Linux receipt
+`var/linux/receipt-humanities-persvati-humanities-1792326247-5206.json` records
+394/394 correct shipped replies, identical to macOS, including 24 correct invalid
+refusals. Linux native:
+`aaf443ed0977fbe3a3cbc09159632ebc864e5cd957d138ea9ac7861c1e02db63`.
+
+The separate seven-folder macOS/Linux package pins shared consumers to
+`b6119ed`. Both relocated copies pass 394/394 shipped cases and the 197
+Mythology checks, with identical replies (158 right, 39 withheld). Archive:
+`var/root-mythology/portability/package/veri7vn-specialists-2026-10-18.tar.gz`,
+675,135 bytes, SHA256
+`73fe7fcd604992ec4cef96d3d4009a509fae8a4c84a8f24bebd871715a460461`.
+Exact native, consumer and test bindings: `var/root-mythology/portability/delivery.json`;
+integration state: `var/root-mythology/integration.json`. All twelve explicit
+audit records validate; their presence still means partial examination. No jobs
+remain from this bounded change. The full delivery archive is a separate artifact
+and has not been refreshed with the recent corrections.
 
 ## Remaining work
 
 The source has no complete gender, genealogical, era or cultural-variant model.
 Roman domain answers still use the source's Greek-to-Roman mapping, not an
 independently modeled Roman pantheon. A single source row is not evidence of
-exclusive association with a domain. Compound domains, dependency questions,+relationships, fictional retellings and novel phrasings need further work.
+exclusive association with a domain. Compound domains, dependency questions,
+relationships, fictional retellings and novel phrasings need further work.
 This packet is not a completed audit of Mythology or the Humanities family.
