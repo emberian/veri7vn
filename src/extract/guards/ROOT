@@ -6,8 +6,10 @@ session Veri7vn_Guards = HOL +
   options [document = false, threads = 2]
   sessions
     "HOL-Library"
+    Veri7vn_Routing
   theories
     Guards_Catalogue
     Guards
-    Guards_Export
     Guards_Vectors
+    Guards_Narrow
+    Guards_Export

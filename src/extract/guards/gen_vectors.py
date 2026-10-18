@@ -45,7 +45,7 @@ def hbools(bs) -> str:
 
 
 def hrats(pairs) -> str:
-    return "[" + ", ".join("(mk_rat (%d::integer) (%d::integer))" % (a, b) for a, b in pairs) + "]"
+    return "[" + ", ".join("(Fract (%d::int) (%d::int))" % (a, b) for a, b in pairs) + "]"
 
 
 def hchars(s: str) -> str:
@@ -68,7 +68,7 @@ def main() -> int:
     out.append("   item, pinned to the decision the kernel produced on it. The vectors")
     out.append("   are untrusted recognizer output; do not edit, regenerate. *)")
     out.append("theory Guards_Vectors")
-    out.append("  imports Guards_Export")
+    out.append("  imports Guards")
     out.append("begin")
     out.append("")
     rows = []
@@ -118,10 +118,10 @@ def main() -> int:
     out.append("")
     out.append("theorem vectors_pin:")
     out.append('  "list_all (\\<lambda>(v, r). decision_auto v = r) vectors"')
-    out.append("  by eval")
+    out.append("  by code_simp")
     out.append("")
     out.append("theorem vectors_count: \"length vectors = 114\"")
-    out.append("  by eval")
+    out.append("  by code_simp")
     out.append("")
     out.append("end")
     out.append("")

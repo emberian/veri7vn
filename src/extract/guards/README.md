@@ -36,10 +36,10 @@ synthesized replies - and the compiled binary
 (`var/guards/bin/guards`, ~430 KB) reproduces the same 114 codes and fold
 layers through the exported kernel. `Guards_Vectors.thy` (generated) pins
 the kernel's verdict on the recognizer's exact feature vector for each of
-the 114 items, proved by `eval` in the session. `eval` trusts the code
-generator (Isabelle records it as an oracle), and these two theorems are
-outside the marker's oracle scan: read them as a checked computation, not a
-kernel proof.
+the 114 items, proved by `code_simp` (no oracle) before the export theory,
+so the PASS marker's oracle scan covers it. `Guards_Narrow.thy` states the
+guards as a `Narrow` fold of the routing cascade (`Veri7vn_Routing.Fold_Cascade`):
+a guard only ever turns an answer into a withheld reply.
 
 Honest limits: the model covers the 20 codes that fire on the 114 recorded
 items over nine layers (w510-w517, w532-w534); the other 67 catalogue codes

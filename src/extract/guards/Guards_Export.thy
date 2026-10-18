@@ -1,5 +1,5 @@
 theory Guards_Export
-  imports Guards "HOL-Library.Code_Target_Numeral"
+  imports Guards Guards_Vectors Guards_Narrow "HOL-Library.Code_Target_Numeral"
 begin
 
 text \<open>Constructors the untrusted SML recognizer uses to hand what it read
@@ -209,7 +209,9 @@ ML \<open>
      @{thm G6_means_subset}, @{thm G6_letter_outside_units}, @{thm S1_means_not_a_resolved_human},
      @{thm G3s_means_uncovered},
      @{thm decision_iff}, @{thm modelled_codes_in_catalogue}, @{thm modelled_distinct},
-     @{thm catalogue_len}],
+     @{thm catalogue_len},
+     @{thm vectors_pin}, @{thm vectors_count}, @{thm guard_fold_is_narrow}, @{thm guard_withholds},
+     @{thm guard_passes}, @{thm guards_never_add}, @{thm guard_leaves_unanswered}],
     @{thms fire_G3_date_premise},
     @{thms order_distinct},
     @{thms decision_needs_answer}];

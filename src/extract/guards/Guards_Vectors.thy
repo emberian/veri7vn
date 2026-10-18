@@ -3,11 +3,11 @@
    item, pinned to the decision the kernel produced on it. The vectors
    are untrusted recognizer output; do not edit, regenerate. *)
 theory Guards_Vectors
-  imports Guards_Export
+  imports Guards
 begin
 
 definition v66 :: feats where
-  "v66 = Feats True ''compose:bridge'' ''it was painted in 1512. reached through a bridge.'' ''it was painted in 1512. reached through a bridge.'' ''it was painted in 1512. reached through a bridge.'' [] [(mk_rat (1512::integer) (1::integer))] None None
+  "v66 = Feats True ''compose:bridge'' ''it was painted in 1512. reached through a bridge.'' ''it was painted in 1512. reached through a bridge.'' ''it was painted in 1512. reached through a bridge.'' [] [(Fract (1512::int) (1::int))] None None
      (F510 True [''sistine'', ''chapel''] [[''sistine'', ''chapel'']])
      (F511 False False False False False False False False)
      (F513 False False True [''name'', ''the'', ''painter'', ''the'', ''sistine'', ''chapel'', ''ceiling''] False None)
@@ -19,7 +19,7 @@ definition v66 :: feats where
      (F534 False False False)"
 
 definition v72 :: feats where
-  "v72 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3/8. read 3/8; then evaluate.'' ''3/8. read 3/8; then evaluate.'' ''3/8. read 3/8; then evaluate.'' [(mk_rat (3::integer) (1::integer)), (mk_rat (8::integer) (1::integer))] [(mk_rat (3::integer) (1::integer)), (mk_rat (8::integer) (1::integer)), (mk_rat (3::integer) (1::integer)), (mk_rat (8::integer) (1::integer))] None None
+  "v72 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3/8. read 3/8; then evaluate.'' ''3/8. read 3/8; then evaluate.'' ''3/8. read 3/8; then evaluate.'' [(Fract (3::int) (1::int)), (Fract (8::int) (1::int))] [(Fract (3::int) (1::int)), (Fract (8::int) (1::int)), (Fract (3::int) (1::int)), (Fract (8::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 True False False [''what'', ''decimal''] False None)
@@ -31,7 +31,7 @@ definition v72 :: feats where
      (F534 False False False)"
 
 definition v80 :: feats where
-  "v80 = Feats True ''arb:definitional->definitional_encyclopedic|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(mk_rat (15::integer) (1::integer))] [(mk_rat (45359237::integer) (100000000::integer))] None None
+  "v80 = Feats True ''arb:definitional->definitional_encyclopedic|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(Fract (15::int) (1::int))] [(Fract (45359237::int) (100000000::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''pounds'', ''kilograms''] False None)
@@ -43,7 +43,7 @@ definition v80 :: feats where
      (F534 False False True)"
 
 definition v81 :: feats where
-  "v81 = Feats True ''algebra:solved'' ''[ev:derived] x = 2. read 4*x^3; then evaluate.'' ''x = 2. read 4*x^3; then evaluate.'' ''x = 2. read 4*x^3; then evaluate.'' [(mk_rat (4::integer) (1::integer)), (mk_rat (3::integer) (1::integer)), (mk_rat (2::integer) (1::integer))] [(mk_rat (2::integer) (1::integer)), (mk_rat (4::integer) (1::integer)), (mk_rat (3::integer) (1::integer))] None None
+  "v81 = Feats True ''algebra:solved'' ''[ev:derived] x = 2. read 4*x^3; then evaluate.'' ''x = 2. read 4*x^3; then evaluate.'' ''x = 2. read 4*x^3; then evaluate.'' [(Fract (4::int) (1::int)), (Fract (3::int) (1::int)), (Fract (2::int) (1::int))] [(Fract (2::int) (1::int)), (Fract (4::int) (1::int)), (Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False True False False False False False False)
      (F513 True True False [''what'', ''the'', ''derivative''] False None)
@@ -55,7 +55,7 @@ definition v81 :: feats where
      (F534 False False False)"
 
 definition v82 :: feats where
-  "v82 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(mk_rat (3::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v82 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(Fract (3::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''area'', ''circle'', ''with'', ''radius''] False None)
@@ -67,7 +67,7 @@ definition v82 :: feats where
      (F534 False False True)"
 
 definition v83 :: feats where
-  "v83 = Feats True ''corpus_query:property_of'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(mk_rat (4::integer) (1::integer))] [(mk_rat (64::integer) (1::integer))] None None
+  "v83 = Feats True ''corpus_query:property_of'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(Fract (4::int) (1::int))] [(Fract (64::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''the'', ''volume'', ''cube'', ''with'', ''side''] False None)
@@ -79,7 +79,7 @@ definition v83 :: feats where
      (F534 False False True)"
 
 definition v90 :: feats where
-  "v90 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(mk_rat (2::integer) (1::integer)), (mk_rat (5::integer) (1::integer))] [(mk_rat (25::integer) (1::integer))] None None
+  "v90 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(Fract (2::int) (1::int)), (Fract (5::int) (1::int))] [(Fract (25::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''kinetic'', ''energy'', ''ball'', ''moving''] False None)
@@ -91,7 +91,7 @@ definition v90 :: feats where
      (F534 False False True)"
 
 definition v98 :: feats where
-  "v98 = Feats True ''organ:math>evaluate'' ''[ev:derived] 7*m. read 7*m; then evaluate. the perimeter is twenty-two.'' ''7*m. read 7*m; then evaluate. the perimeter is twenty-two.'' ''7*m. read 7*m; then evaluate. the perimeter is twenty-two.'' [(mk_rat (7::integer) (1::integer)), (mk_rat (4::integer) (1::integer))] [(mk_rat (7::integer) (1::integer)), (mk_rat (7::integer) (1::integer))] None None
+  "v98 = Feats True ''organ:math>evaluate'' ''[ev:derived] 7*m. read 7*m; then evaluate. the perimeter is twenty-two.'' ''7*m. read 7*m; then evaluate. the perimeter is twenty-two.'' ''7*m. read 7*m; then evaluate. the perimeter is twenty-two.'' [(Fract (7::int) (1::int)), (Fract (4::int) (1::int))] [(Fract (7::int) (1::int)), (Fract (7::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True True)
      (F513 True True True [''what'', ''the'', ''perimeter'', ''rectangle''] False None)
@@ -103,7 +103,7 @@ definition v98 :: feats where
      (F534 False False True)"
 
 definition v129 :: feats where
-  "v129 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-60::integer) (1::integer)), (mk_rat (2::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v129 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-60::int) (1::int)), (Fract (2::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False False False)
      (F513 False False False [''car'', ''travels'', ''hours'', ''what'', ''its'', ''average'', ''speed''] False None)
@@ -115,7 +115,7 @@ definition v129 :: feats where
      (F534 False False True)"
 
 definition v130 :: feats where
-  "v130 = Feats True ''specialist_call>specialist:densities-r2>mass'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' [(mk_rat (-5::integer) (1::integer))] [(mk_rat (5::integer) (1::integer))] None None
+  "v130 = Feats True ''specialist_call>specialist:densities-r2>mass'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' [(Fract (-5::int) (1::int))] [(Fract (5::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''mass'', ''litres'', ''water''] False None)
@@ -127,7 +127,7 @@ definition v130 :: feats where
      (F534 True False True)"
 
 definition v134 :: feats where
-  "v134 = Feats True ''factoid:page'' ''einstein won it in 1921.'' ''einstein won it in 1921.'' ''einstein won it in 1921.'' [] [(mk_rat (1921::integer) (1::integer))] None None
+  "v134 = Feats True ''factoid:page'' ''einstein won it in 1921.'' ''einstein won it in 1921.'' ''einstein won it in 1921.'' [] [(Fract (1921::int) (1::int))] None None
      (F510 True [''albert'', ''einstein'', ''nobel'', ''prize'', ''literature''] [])
      (F511 False False False False False False False False)
      (F513 False False True [''what'', ''year'', ''did'', ''albert'', ''einstein'', ''win'', ''the'', ''nobel'', ''prize'', ''literature''] False None)
@@ -163,7 +163,7 @@ definition v137 :: feats where
      (F534 False True False)"
 
 definition v140 :: feats where
-  "v140 = Feats True ''factoid:page'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' [] [(mk_rat (2::integer) (1::integer))] None None
+  "v140 = Feats True ''factoid:page'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' [] [(Fract (2::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 False False True [''what'', ''the'', ''boiling'', ''point'', ''nothingness''] True (Some ''nothingness''))
@@ -187,7 +187,7 @@ definition v143 :: feats where
      (F534 False True False)"
 
 definition v144 :: feats where
-  "v144 = Feats True ''specialist_call>specialist:rel-painters>painters'' ''someone painted it long ago.'' ''someone painted it long ago.'' ''someone painted it long ago.'' [(mk_rat (1950::integer) (1::integer))] [] None (Some ('''', (1950::int), [(2013::int)]))
+  "v144 = Feats True ''specialist_call>specialist:rel-painters>painters'' ''someone painted it long ago.'' ''someone painted it long ago.'' ''someone painted it long ago.'' [(Fract (1950::int) (1::int))] [] None (Some ('''', (1950::int), [(2013::int)]))
      (F510 True [''mona'', ''lisa'', ''1950''] [])
      (F511 False False False False False False False False)
      (F513 False False True [''who'', ''painted'', ''the'', ''mona'', ''lisa''] False None)
@@ -199,7 +199,7 @@ definition v144 :: feats where
      (F534 True False False)"
 
 definition v145 :: feats where
-  "v145 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-4::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v145 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-4::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''area'', ''circle'', ''with'', ''radius''] False None)
@@ -211,7 +211,7 @@ definition v145 :: feats where
      (F534 False False True)"
 
 definition v146 :: feats where
-  "v146 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(mk_rat (-200::integer) (1::integer)), (mk_rat (1::integer) (10::integer))] [(mk_rat (20::integer) (1::integer))] None None
+  "v146 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(Fract (-200::int) (1::int)), (Fract (1::int) (10::int))] [(Fract (20::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 False False False [''spring'', ''with'', ''spring'', ''constant'', ''stretched'', ''what'', ''force'', ''does'', ''exert''] False None)
@@ -223,7 +223,7 @@ definition v146 :: feats where
      (F534 True False True)"
 
 definition v222 :: feats where
-  "v222 = Feats True ''organ:math>evaluate'' ''[ev:derived] 7/16. read 7/16; then evaluate.'' ''7/16. read 7/16; then evaluate.'' ''7/16. read 7/16; then evaluate.'' [(mk_rat (7::integer) (1::integer)), (mk_rat (16::integer) (1::integer))] [(mk_rat (7::integer) (1::integer)), (mk_rat (16::integer) (1::integer)), (mk_rat (7::integer) (1::integer)), (mk_rat (16::integer) (1::integer))] None None
+  "v222 = Feats True ''organ:math>evaluate'' ''[ev:derived] 7/16. read 7/16; then evaluate.'' ''7/16. read 7/16; then evaluate.'' ''7/16. read 7/16; then evaluate.'' [(Fract (7::int) (1::int)), (Fract (16::int) (1::int))] [(Fract (7::int) (1::int)), (Fract (16::int) (1::int)), (Fract (7::int) (1::int)), (Fract (16::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 True False False [''what'', ''decimal''] False None)
@@ -235,7 +235,7 @@ definition v222 :: feats where
      (F534 False False False)"
 
 definition v230 :: feats where
-  "v230 = Feats True ''arb:definitional->document_runtime|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(mk_rat (22::integer) (1::integer))] [(mk_rat (45359237::integer) (100000000::integer))] None None
+  "v230 = Feats True ''arb:definitional->document_runtime|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(Fract (22::int) (1::int))] [(Fract (45359237::int) (100000000::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''pounds'', ''kilograms''] False None)
@@ -247,7 +247,7 @@ definition v230 :: feats where
      (F534 False False True)"
 
 definition v231 :: feats where
-  "v231 = Feats True ''algebra:solved'' ''[ev:derived] x = 3. read 4*x^3; then evaluate.'' ''x = 3. read 4*x^3; then evaluate.'' ''x = 3. read 4*x^3; then evaluate.'' [(mk_rat (5::integer) (1::integer)), (mk_rat (2::integer) (1::integer)), (mk_rat (3::integer) (1::integer))] [(mk_rat (3::integer) (1::integer)), (mk_rat (4::integer) (1::integer)), (mk_rat (3::integer) (1::integer))] None None
+  "v231 = Feats True ''algebra:solved'' ''[ev:derived] x = 3. read 4*x^3; then evaluate.'' ''x = 3. read 4*x^3; then evaluate.'' ''x = 3. read 4*x^3; then evaluate.'' [(Fract (5::int) (1::int)), (Fract (2::int) (1::int)), (Fract (3::int) (1::int))] [(Fract (3::int) (1::int)), (Fract (4::int) (1::int)), (Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False True False False False False False False)
      (F513 True True False [''what'', ''the'', ''derivative''] False None)
@@ -259,7 +259,7 @@ definition v231 :: feats where
      (F534 False False False)"
 
 definition v232 :: feats where
-  "v232 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(mk_rat (5::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v232 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(Fract (5::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''area'', ''circle'', ''with'', ''radius''] False None)
@@ -271,7 +271,7 @@ definition v232 :: feats where
      (F534 False False True)"
 
 definition v233 :: feats where
-  "v233 = Feats True ''corpus_query:property_of'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(mk_rat (6::integer) (1::integer))] [(mk_rat (64::integer) (1::integer))] None None
+  "v233 = Feats True ''corpus_query:property_of'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(Fract (6::int) (1::int))] [(Fract (64::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''the'', ''volume'', ''cube'', ''with'', ''side''] False None)
@@ -283,7 +283,7 @@ definition v233 :: feats where
      (F534 False False True)"
 
 definition v234 :: feats where
-  "v234 = Feats True ''specialist_call>specialist:astronomy-v3>mass'' ''mercury has no known moons of that kind.'' ''mercury has no known moons of that kind.'' ''mercury has no known moons of that kind.'' [(mk_rat (5::integer) (10::integer))] [] None None
+  "v234 = Feats True ''specialist_call>specialist:astronomy-v3>mass'' ''mercury has no known moons of that kind.'' ''mercury has no known moons of that kind.'' ''mercury has no known moons of that kind.'' [(Fract (5::int) (10::int))] [] None None
      (F510 True [] [])
      (F511 False False False False False False True True)
      (F513 False False True [''what'', ''the'', ''mass'', ''litres'', ''mercury''] False None)
@@ -295,7 +295,7 @@ definition v234 :: feats where
      (F534 True False True)"
 
 definition v235 :: feats where
-  "v235 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' [] [(mk_rat (3::integer) (1::integer))] None None
+  "v235 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' [] [(Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''density'', ''ethanol''] False None)
@@ -307,7 +307,7 @@ definition v235 :: feats where
      (F534 False False False)"
 
 definition v240 :: feats where
-  "v240 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(mk_rat (4::integer) (1::integer)), (mk_rat (3::integer) (1::integer))] [(mk_rat (25::integer) (1::integer))] None None
+  "v240 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(Fract (4::int) (1::int)), (Fract (3::int) (1::int))] [(Fract (25::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''kinetic'', ''energy'', ''ball'', ''moving''] False None)
@@ -319,7 +319,7 @@ definition v240 :: feats where
      (F534 False False True)"
 
 definition v248 :: feats where
-  "v248 = Feats True ''organ:math>evaluate'' ''[ev:derived] 9*m. read 9*m; then evaluate. the perimeter is twenty-two.'' ''9*m. read 9*m; then evaluate. the perimeter is twenty-two.'' ''9*m. read 9*m; then evaluate. the perimeter is twenty-two.'' [(mk_rat (9::integer) (1::integer)), (mk_rat (5::integer) (1::integer))] [(mk_rat (9::integer) (1::integer)), (mk_rat (9::integer) (1::integer))] None None
+  "v248 = Feats True ''organ:math>evaluate'' ''[ev:derived] 9*m. read 9*m; then evaluate. the perimeter is twenty-two.'' ''9*m. read 9*m; then evaluate. the perimeter is twenty-two.'' ''9*m. read 9*m; then evaluate. the perimeter is twenty-two.'' [(Fract (9::int) (1::int)), (Fract (5::int) (1::int))] [(Fract (9::int) (1::int)), (Fract (9::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True True)
      (F513 True True True [''what'', ''the'', ''perimeter'', ''rectangle''] False None)
@@ -343,7 +343,7 @@ definition v273 :: feats where
      (F534 False True False)"
 
 definition v279 :: feats where
-  "v279 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-120::integer) (1::integer)), (mk_rat (15::integer) (10::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v279 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-120::int) (1::int)), (Fract (15::int) (10::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False False False)
      (F513 False False False [''train'', ''travels'', ''hours'', ''what'', ''its'', ''average'', ''speed''] False None)
@@ -355,7 +355,7 @@ definition v279 :: feats where
      (F534 False False True)"
 
 definition v280 :: feats where
-  "v280 = Feats True ''specialist_call>specialist:densities-r2>mass'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' [(mk_rat (-3::integer) (1::integer))] [(mk_rat (5::integer) (1::integer))] None None
+  "v280 = Feats True ''specialist_call>specialist:densities-r2>mass'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' [(Fract (-3::int) (1::int))] [(Fract (5::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''mass'', ''litres'', ''milk''] False None)
@@ -391,7 +391,7 @@ definition v287 :: feats where
      (F534 False True False)"
 
 definition v290 :: feats where
-  "v290 = Feats True ''factoid:page'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' [] [(mk_rat (2::integer) (1::integer))] None None
+  "v290 = Feats True ''factoid:page'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' [] [(Fract (2::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 False False True [''what'', ''the'', ''melting'', ''point'', ''silence''] True (Some ''silence''))
@@ -403,7 +403,7 @@ definition v290 :: feats where
      (F534 False False False)"
 
 definition v294 :: feats where
-  "v294 = Feats True ''organ:relation>form:author>READ>FRAME>LINK>RELATE:fwd:P50>CHECK:P50>BIND>EXPAND>VERIFY'' ''someone wrote it long ago.'' ''someone wrote it long ago.'' ''someone wrote it long ago.'' [(mk_rat (1850::integer) (1::integer))] [] None (Some ('''', (1850::int), [(1940::int)]))
+  "v294 = Feats True ''organ:relation>form:author>READ>FRAME>LINK>RELATE:fwd:P50>CHECK:P50>BIND>EXPAND>VERIFY'' ''someone wrote it long ago.'' ''someone wrote it long ago.'' ''someone wrote it long ago.'' [(Fract (1850::int) (1::int))] [] None (Some ('''', (1850::int), [(1940::int)]))
      (F510 True [''hamlet'', ''1850''] [])
      (F511 False False False False False False False False)
      (F513 False False True [''who'', ''wrote'', ''hamlet''] False None)
@@ -415,7 +415,7 @@ definition v294 :: feats where
      (F534 False False False)"
 
 definition v295 :: feats where
-  "v295 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-2::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v295 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-2::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''circumference'', ''circle'', ''with'', ''radius''] False None)
@@ -427,7 +427,7 @@ definition v295 :: feats where
      (F534 False False True)"
 
 definition v296 :: feats where
-  "v296 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(mk_rat (-150::integer) (1::integer)), (mk_rat (2::integer) (10::integer))] [(mk_rat (20::integer) (1::integer))] None None
+  "v296 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(Fract (-150::int) (1::int)), (Fract (2::int) (10::int))] [(Fract (20::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 False False False [''spring'', ''with'', ''spring'', ''constant'', ''compressed'', ''what'', ''force'', ''does'', ''exert''] False None)
@@ -451,7 +451,7 @@ definition v299 :: feats where
      (F534 True False False)"
 
 definition v372 :: feats where
-  "v372 = Feats True ''organ:math>evaluate'' ''[ev:derived] 5/8. read 5/8; then evaluate.'' ''5/8. read 5/8; then evaluate.'' ''5/8. read 5/8; then evaluate.'' [(mk_rat (5::integer) (1::integer)), (mk_rat (8::integer) (1::integer))] [(mk_rat (5::integer) (1::integer)), (mk_rat (8::integer) (1::integer)), (mk_rat (5::integer) (1::integer)), (mk_rat (8::integer) (1::integer))] None None
+  "v372 = Feats True ''organ:math>evaluate'' ''[ev:derived] 5/8. read 5/8; then evaluate.'' ''5/8. read 5/8; then evaluate.'' ''5/8. read 5/8; then evaluate.'' [(Fract (5::int) (1::int)), (Fract (8::int) (1::int))] [(Fract (5::int) (1::int)), (Fract (8::int) (1::int)), (Fract (5::int) (1::int)), (Fract (8::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 True False False [''what'', ''decimal''] False None)
@@ -463,7 +463,7 @@ definition v372 :: feats where
      (F534 False False False)"
 
 definition v380 :: feats where
-  "v380 = Feats True ''arb:definitional->definitional_encyclopedic|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(mk_rat (30::integer) (1::integer))] [(mk_rat (45359237::integer) (100000000::integer))] None None
+  "v380 = Feats True ''arb:definitional->definitional_encyclopedic|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(Fract (30::int) (1::int))] [(Fract (45359237::int) (100000000::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''pounds'', ''kilograms''] False None)
@@ -475,7 +475,7 @@ definition v380 :: feats where
      (F534 False False True)"
 
 definition v381 :: feats where
-  "v381 = Feats True ''algebra:solved'' ''[ev:derived] x = 2. read 4*x^3; then evaluate.'' ''x = 2. read 4*x^3; then evaluate.'' ''x = 2. read 4*x^3; then evaluate.'' [(mk_rat (3::integer) (1::integer)), (mk_rat (3::integer) (1::integer)), (mk_rat (2::integer) (1::integer))] [(mk_rat (2::integer) (1::integer)), (mk_rat (4::integer) (1::integer)), (mk_rat (3::integer) (1::integer))] None None
+  "v381 = Feats True ''algebra:solved'' ''[ev:derived] x = 2. read 4*x^3; then evaluate.'' ''x = 2. read 4*x^3; then evaluate.'' ''x = 2. read 4*x^3; then evaluate.'' [(Fract (3::int) (1::int)), (Fract (3::int) (1::int)), (Fract (2::int) (1::int))] [(Fract (2::int) (1::int)), (Fract (4::int) (1::int)), (Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False True False False False False False False)
      (F513 True True False [''what'', ''the'', ''derivative''] False None)
@@ -487,7 +487,7 @@ definition v381 :: feats where
      (F534 False False False)"
 
 definition v382 :: feats where
-  "v382 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(mk_rat (6::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v382 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(Fract (6::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''area'', ''circle'', ''with'', ''radius''] False None)
@@ -499,7 +499,7 @@ definition v382 :: feats where
      (F534 False False True)"
 
 definition v383 :: feats where
-  "v383 = Feats True ''factoid:page'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(mk_rat (7::integer) (1::integer))] [(mk_rat (64::integer) (1::integer))] None None
+  "v383 = Feats True ''factoid:page'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(Fract (7::int) (1::int))] [(Fract (64::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''the'', ''volume'', ''cube'', ''with'', ''side''] False None)
@@ -511,7 +511,7 @@ definition v383 :: feats where
      (F534 False False True)"
 
 definition v385 :: feats where
-  "v385 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' [] [(mk_rat (3::integer) (1::integer))] None None
+  "v385 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' [] [(Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''density'', ''gold''] False None)
@@ -523,7 +523,7 @@ definition v385 :: feats where
      (F534 False False False)"
 
 definition v390 :: feats where
-  "v390 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(mk_rat (6::integer) (1::integer)), (mk_rat (4::integer) (1::integer))] [(mk_rat (25::integer) (1::integer))] None None
+  "v390 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(Fract (6::int) (1::int)), (Fract (4::int) (1::int))] [(Fract (25::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''kinetic'', ''energy'', ''ball'', ''moving''] False None)
@@ -535,7 +535,7 @@ definition v390 :: feats where
      (F534 False False True)"
 
 definition v396 :: feats where
-  "v396 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(mk_rat (10::integer) (1::integer)), (mk_rat (6::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v396 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(Fract (10::int) (1::int)), (Fract (6::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''area'', ''triangle'', ''with'', ''base'', ''and'', ''height''] False None)
@@ -547,7 +547,7 @@ definition v396 :: feats where
      (F534 False False True)"
 
 definition v398 :: feats where
-  "v398 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatistheperimeter; then evaluate.'' ''42. read whatistheperimeter; then evaluate.'' ''42. read whatistheperimeter; then evaluate.'' [(mk_rat (11::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v398 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatistheperimeter; then evaluate.'' ''42. read whatistheperimeter; then evaluate.'' ''42. read whatistheperimeter; then evaluate.'' [(Fract (11::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''perimeter'', ''square'', ''with'', ''side''] False None)
@@ -595,7 +595,7 @@ definition v427 :: feats where
      (F534 False True False)"
 
 definition v429 :: feats where
-  "v429 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-45::integer) (1::integer)), (mk_rat (3::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v429 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-45::int) (1::int)), (Fract (3::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False False False)
      (F513 False False False [''cyclist'', ''rides'', ''hours'', ''what'', ''her'', ''average'', ''speed''] False None)
@@ -607,7 +607,7 @@ definition v429 :: feats where
      (F534 False False True)"
 
 definition v430 :: feats where
-  "v430 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-2::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v430 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-2::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''mass'', ''litres'', ''oil''] False None)
@@ -655,7 +655,7 @@ definition v437 :: feats where
      (F534 False True False)"
 
 definition v444 :: feats where
-  "v444 = Feats True ''specialist_call>specialist:rel-painters>painters'' ''someone painted it long ago.'' ''someone painted it long ago.'' ''someone painted it long ago.'' [(mk_rat (1990::integer) (1::integer))] [] None (Some ('''', (1990::int), [(1889::int)]))
+  "v444 = Feats True ''specialist_call>specialist:rel-painters>painters'' ''someone painted it long ago.'' ''someone painted it long ago.'' ''someone painted it long ago.'' [(Fract (1990::int) (1::int))] [] None (Some ('''', (1990::int), [(1889::int)]))
      (F510 True [''starry'', ''night'', ''1990''] [])
      (F511 False False False False False False False False)
      (F513 False False True [''who'', ''painted'', ''the'', ''starry'', ''night''] False None)
@@ -667,7 +667,7 @@ definition v444 :: feats where
      (F534 True False False)"
 
 definition v445 :: feats where
-  "v445 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-3::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v445 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-3::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''area'', ''square'', ''with'', ''side''] False None)
@@ -679,7 +679,7 @@ definition v445 :: feats where
      (F534 False False True)"
 
 definition v446 :: feats where
-  "v446 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(mk_rat (-80::integer) (1::integer)), (mk_rat (25::integer) (100::integer))] [(mk_rat (20::integer) (1::integer))] None None
+  "v446 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(Fract (-80::int) (1::int)), (Fract (25::int) (100::int))] [(Fract (20::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 False False False [''spring'', ''with'', ''spring'', ''constant'', ''stretched'', ''what'', ''force'', ''does'', ''exert''] False None)
@@ -691,7 +691,7 @@ definition v446 :: feats where
      (F534 True False True)"
 
 definition v522 :: feats where
-  "v522 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3/5. read 3/5; then evaluate.'' ''3/5. read 3/5; then evaluate.'' ''3/5. read 3/5; then evaluate.'' [(mk_rat (3::integer) (1::integer)), (mk_rat (5::integer) (1::integer))] [(mk_rat (3::integer) (1::integer)), (mk_rat (5::integer) (1::integer)), (mk_rat (3::integer) (1::integer)), (mk_rat (5::integer) (1::integer))] None None
+  "v522 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3/5. read 3/5; then evaluate.'' ''3/5. read 3/5; then evaluate.'' ''3/5. read 3/5; then evaluate.'' [(Fract (3::int) (1::int)), (Fract (5::int) (1::int))] [(Fract (3::int) (1::int)), (Fract (5::int) (1::int)), (Fract (3::int) (1::int)), (Fract (5::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 True False False [''what'', ''decimal''] False None)
@@ -703,7 +703,7 @@ definition v522 :: feats where
      (F534 False False False)"
 
 definition v530 :: feats where
-  "v530 = Feats True ''arb:definitional->definitional_encyclopedic|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(mk_rat (45::integer) (1::integer))] [(mk_rat (45359237::integer) (100000000::integer))] None None
+  "v530 = Feats True ''arb:definitional->definitional_encyclopedic|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(Fract (45::int) (1::int))] [(Fract (45359237::int) (100000000::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''pounds'', ''kilograms''] False None)
@@ -715,7 +715,7 @@ definition v530 :: feats where
      (F534 False False True)"
 
 definition v531 :: feats where
-  "v531 = Feats True ''algebra:solved'' ''[ev:derived] x = 1. read 4*x^3; then evaluate.'' ''x = 1. read 4*x^3; then evaluate.'' ''x = 1. read 4*x^3; then evaluate.'' [(mk_rat (2::integer) (1::integer)), (mk_rat (4::integer) (1::integer)), (mk_rat (1::integer) (1::integer))] [(mk_rat (1::integer) (1::integer)), (mk_rat (4::integer) (1::integer)), (mk_rat (3::integer) (1::integer))] None None
+  "v531 = Feats True ''algebra:solved'' ''[ev:derived] x = 1. read 4*x^3; then evaluate.'' ''x = 1. read 4*x^3; then evaluate.'' ''x = 1. read 4*x^3; then evaluate.'' [(Fract (2::int) (1::int)), (Fract (4::int) (1::int)), (Fract (1::int) (1::int))] [(Fract (1::int) (1::int)), (Fract (4::int) (1::int)), (Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False True False False False False False False)
      (F513 True True False [''what'', ''the'', ''derivative''] False None)
@@ -727,7 +727,7 @@ definition v531 :: feats where
      (F534 False False False)"
 
 definition v532 :: feats where
-  "v532 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(mk_rat (7::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v532 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(Fract (7::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''area'', ''circle'', ''with'', ''radius''] False None)
@@ -739,7 +739,7 @@ definition v532 :: feats where
      (F534 False False True)"
 
 definition v533 :: feats where
-  "v533 = Feats True ''factoid:page'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(mk_rat (9::integer) (1::integer))] [(mk_rat (64::integer) (1::integer))] None None
+  "v533 = Feats True ''factoid:page'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(Fract (9::int) (1::int))] [(Fract (64::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''the'', ''volume'', ''cube'', ''with'', ''side''] False None)
@@ -751,7 +751,7 @@ definition v533 :: feats where
      (F534 False False True)"
 
 definition v535 :: feats where
-  "v535 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' [] [(mk_rat (3::integer) (1::integer))] None None
+  "v535 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' [] [(Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''density'', ''silver''] False None)
@@ -763,7 +763,7 @@ definition v535 :: feats where
      (F534 False False False)"
 
 definition v540 :: feats where
-  "v540 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(mk_rat (3::integer) (1::integer)), (mk_rat (6::integer) (1::integer))] [(mk_rat (25::integer) (1::integer))] None None
+  "v540 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(Fract (3::int) (1::int)), (Fract (6::int) (1::int))] [(Fract (25::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''kinetic'', ''energy'', ''ball'', ''moving''] False None)
@@ -775,7 +775,7 @@ definition v540 :: feats where
      (F534 False False True)"
 
 definition v546 :: feats where
-  "v546 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(mk_rat (14::integer) (1::integer)), (mk_rat (5::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v546 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(Fract (14::int) (1::int)), (Fract (5::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''area'', ''triangle'', ''with'', ''base'', ''and'', ''height''] False None)
@@ -787,7 +787,7 @@ definition v546 :: feats where
      (F534 False False True)"
 
 definition v548 :: feats where
-  "v548 = Feats True ''organ:math>evaluate'' ''[ev:derived] 12*m. read 12*m; then evaluate. the perimeter is twenty-two.'' ''12*m. read 12*m; then evaluate. the perimeter is twenty-two.'' ''12*m. read 12*m; then evaluate. the perimeter is twenty-two.'' [(mk_rat (12::integer) (1::integer)), (mk_rat (7::integer) (1::integer))] [(mk_rat (12::integer) (1::integer)), (mk_rat (12::integer) (1::integer))] None None
+  "v548 = Feats True ''organ:math>evaluate'' ''[ev:derived] 12*m. read 12*m; then evaluate. the perimeter is twenty-two.'' ''12*m. read 12*m; then evaluate. the perimeter is twenty-two.'' ''12*m. read 12*m; then evaluate. the perimeter is twenty-two.'' [(Fract (12::int) (1::int)), (Fract (7::int) (1::int))] [(Fract (12::int) (1::int)), (Fract (12::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True True)
      (F513 True True True [''what'', ''the'', ''perimeter'', ''rectangle''] False None)
@@ -823,7 +823,7 @@ definition v577 :: feats where
      (F534 False True False)"
 
 definition v579 :: feats where
-  "v579 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-10::integer) (1::integer)), (mk_rat (50::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v579 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-10::int) (1::int)), (Fract (50::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False False False)
      (F513 False False False [''runner'', ''covers'', ''minutes'', ''what'', ''her'', ''average'', ''speed''] False None)
@@ -835,7 +835,7 @@ definition v579 :: feats where
      (F534 False False True)"
 
 definition v580 :: feats where
-  "v580 = Feats True ''specialist_call>specialist:densities-r2>mass'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' [(mk_rat (-6::integer) (1::integer))] [(mk_rat (5::integer) (1::integer))] None None
+  "v580 = Feats True ''specialist_call>specialist:densities-r2>mass'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' [(Fract (-6::int) (1::int))] [(Fract (5::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''mass'', ''litres'', ''petrol''] False None)
@@ -847,7 +847,7 @@ definition v580 :: feats where
      (F534 True False True)"
 
 definition v582 :: feats where
-  "v582 = Feats True ''factoid:page'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' [] [(mk_rat (2::integer) (1::integer))] None None
+  "v582 = Feats True ''factoid:page'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' [] [(Fract (2::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''the'', ''square'', ''root'', ''happiness''] True (Some ''happiness''))
@@ -883,7 +883,7 @@ definition v587 :: feats where
      (F534 False True False)"
 
 definition v594 :: feats where
-  "v594 = Feats True ''specialist_call>specialist:rel-novels>novels'' ''someone wrote it long ago.'' ''someone wrote it long ago.'' ''someone wrote it long ago.'' [(mk_rat (1950::integer) (1::integer))] [] None (Some ('''', (1950::int), [(1800::int), (1813::int)]))
+  "v594 = Feats True ''specialist_call>specialist:rel-novels>novels'' ''someone wrote it long ago.'' ''someone wrote it long ago.'' ''someone wrote it long ago.'' [(Fract (1950::int) (1::int))] [] None (Some ('''', (1950::int), [(1800::int), (1813::int)]))
      (F510 True [''pride'', ''prejudice'', ''1950''] [])
      (F511 False False False False False False False False)
      (F513 False False True [''who'', ''wrote'', ''pride'', ''and'', ''prejudice''] False None)
@@ -895,7 +895,7 @@ definition v594 :: feats where
      (F534 True False False)"
 
 definition v595 :: feats where
-  "v595 = Feats True ''organ:math>evaluate'' ''[ev:derived] -125. the volume is -125 cm3.'' ''-125. the volume is -125 cm3.'' ''-125. the volume is -125 cm3.'' [(mk_rat (-5::integer) (1::integer))] [(mk_rat (-125::integer) (1::integer)), (mk_rat (-125::integer) (1::integer))] None None
+  "v595 = Feats True ''organ:math>evaluate'' ''[ev:derived] -125. the volume is -125 cm3.'' ''-125. the volume is -125 cm3.'' ''-125. the volume is -125 cm3.'' [(Fract (-5::int) (1::int))] [(Fract (-125::int) (1::int)), (Fract (-125::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False False [''what'', ''the'', ''volume'', ''cube'', ''with'', ''side''] False None)
@@ -907,7 +907,7 @@ definition v595 :: feats where
      (F534 False False True)"
 
 definition v596 :: feats where
-  "v596 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(mk_rat (-450::integer) (1::integer)), (mk_rat (4::integer) (100::integer))] [(mk_rat (20::integer) (1::integer))] None None
+  "v596 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(Fract (-450::int) (1::int)), (Fract (4::int) (100::int))] [(Fract (20::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 False False False [''spring'', ''with'', ''spring'', ''constant'', ''compressed'', ''what'', ''force'', ''does'', ''exert''] False None)
@@ -931,7 +931,7 @@ definition v669 :: feats where
      (F534 False False False)"
 
 definition v672 :: feats where
-  "v672 = Feats True ''organ:math>evaluate'' ''[ev:derived] 7/20. read 7/20; then evaluate.'' ''7/20. read 7/20; then evaluate.'' ''7/20. read 7/20; then evaluate.'' [(mk_rat (7::integer) (1::integer)), (mk_rat (20::integer) (1::integer))] [(mk_rat (7::integer) (1::integer)), (mk_rat (20::integer) (1::integer)), (mk_rat (7::integer) (1::integer)), (mk_rat (20::integer) (1::integer))] None None
+  "v672 = Feats True ''organ:math>evaluate'' ''[ev:derived] 7/20. read 7/20; then evaluate.'' ''7/20. read 7/20; then evaluate.'' ''7/20. read 7/20; then evaluate.'' [(Fract (7::int) (1::int)), (Fract (20::int) (1::int))] [(Fract (7::int) (1::int)), (Fract (20::int) (1::int)), (Fract (7::int) (1::int)), (Fract (20::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 True False False [''what'', ''decimal''] False None)
@@ -943,7 +943,7 @@ definition v672 :: feats where
      (F534 False False False)"
 
 definition v680 :: feats where
-  "v680 = Feats True ''arb:definitional->definitional_encyclopedic|wide_lead|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(mk_rat (64::integer) (1::integer))] [(mk_rat (45359237::integer) (100000000::integer))] None None
+  "v680 = Feats True ''arb:definitional->definitional_encyclopedic|wide_lead|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(Fract (64::int) (1::int))] [(Fract (45359237::int) (100000000::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''pounds'', ''kilograms''] False None)
@@ -955,7 +955,7 @@ definition v680 :: feats where
      (F534 False False True)"
 
 definition v681 :: feats where
-  "v681 = Feats True ''algebra:solved'' ''[ev:derived] x = 3. read 4*x^3; then evaluate.'' ''x = 3. read 4*x^3; then evaluate.'' ''x = 3. read 4*x^3; then evaluate.'' [(mk_rat (4::integer) (1::integer)), (mk_rat (3::integer) (1::integer)), (mk_rat (3::integer) (1::integer))] [(mk_rat (3::integer) (1::integer)), (mk_rat (4::integer) (1::integer)), (mk_rat (3::integer) (1::integer))] None None
+  "v681 = Feats True ''algebra:solved'' ''[ev:derived] x = 3. read 4*x^3; then evaluate.'' ''x = 3. read 4*x^3; then evaluate.'' ''x = 3. read 4*x^3; then evaluate.'' [(Fract (4::int) (1::int)), (Fract (3::int) (1::int)), (Fract (3::int) (1::int))] [(Fract (3::int) (1::int)), (Fract (4::int) (1::int)), (Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False True False False False False False False)
      (F513 True True False [''what'', ''the'', ''derivative''] False None)
@@ -967,7 +967,7 @@ definition v681 :: feats where
      (F534 False False False)"
 
 definition v682 :: feats where
-  "v682 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(mk_rat (8::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v682 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(Fract (8::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''area'', ''circle'', ''with'', ''radius''] False None)
@@ -979,7 +979,7 @@ definition v682 :: feats where
      (F534 False False True)"
 
 definition v683 :: feats where
-  "v683 = Feats True ''factoid:page'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(mk_rat (11::integer) (1::integer))] [(mk_rat (64::integer) (1::integer))] None None
+  "v683 = Feats True ''factoid:page'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(Fract (11::int) (1::int))] [(Fract (64::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''the'', ''volume'', ''cube'', ''with'', ''side''] False None)
@@ -991,7 +991,7 @@ definition v683 :: feats where
      (F534 False False True)"
 
 definition v685 :: feats where
-  "v685 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' [] [(mk_rat (3::integer) (1::integer))] None None
+  "v685 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' [] [(Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''density'', ''copper''] False None)
@@ -1003,7 +1003,7 @@ definition v685 :: feats where
      (F534 False False False)"
 
 definition v690 :: feats where
-  "v690 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(mk_rat (5::integer) (1::integer)), (mk_rat (8::integer) (1::integer))] [(mk_rat (25::integer) (1::integer))] None None
+  "v690 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(Fract (5::int) (1::int)), (Fract (8::int) (1::int))] [(Fract (25::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''kinetic'', ''energy'', ''ball'', ''moving''] False None)
@@ -1015,7 +1015,7 @@ definition v690 :: feats where
      (F534 False False True)"
 
 definition v696 :: feats where
-  "v696 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(mk_rat (16::integer) (1::integer)), (mk_rat (9::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v696 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(Fract (16::int) (1::int)), (Fract (9::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''area'', ''triangle'', ''with'', ''base'', ''and'', ''height''] False None)
@@ -1027,7 +1027,7 @@ definition v696 :: feats where
      (F534 False False True)"
 
 definition v698 :: feats where
-  "v698 = Feats True ''organ:math>evaluate'' ''[ev:derived] 13*m. read 13*m; then evaluate. the perimeter is twenty-two.'' ''13*m. read 13*m; then evaluate. the perimeter is twenty-two.'' ''13*m. read 13*m; then evaluate. the perimeter is twenty-two.'' [(mk_rat (13::integer) (1::integer)), (mk_rat (8::integer) (1::integer))] [(mk_rat (13::integer) (1::integer)), (mk_rat (13::integer) (1::integer))] None None
+  "v698 = Feats True ''organ:math>evaluate'' ''[ev:derived] 13*m. read 13*m; then evaluate. the perimeter is twenty-two.'' ''13*m. read 13*m; then evaluate. the perimeter is twenty-two.'' ''13*m. read 13*m; then evaluate. the perimeter is twenty-two.'' [(Fract (13::int) (1::int)), (Fract (8::int) (1::int))] [(Fract (13::int) (1::int)), (Fract (13::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True True)
      (F513 True True True [''what'', ''the'', ''perimeter'', ''rectangle''] False None)
@@ -1039,7 +1039,7 @@ definition v698 :: feats where
      (F534 False False True)"
 
 definition v729 :: feats where
-  "v729 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-30::integer) (1::integer)), (mk_rat (2::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v729 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-30::int) (1::int)), (Fract (2::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False False False)
      (F513 False False False [''boat'', ''sails'', ''hours'', ''what'', ''its'', ''average'', ''speed''] False None)
@@ -1051,7 +1051,7 @@ definition v729 :: feats where
      (F534 False False True)"
 
 definition v730 :: feats where
-  "v730 = Feats True ''specialist_call>specialist:densities-r2>mass'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' [(mk_rat (-8::integer) (1::integer))] [(mk_rat (5::integer) (1::integer))] None None
+  "v730 = Feats True ''specialist_call>specialist:densities-r2>mass'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' [(Fract (-8::int) (1::int))] [(Fract (5::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''mass'', ''litres'', ''seawater''] False None)
@@ -1099,7 +1099,7 @@ definition v737 :: feats where
      (F534 False True False)"
 
 definition v744 :: feats where
-  "v744 = Feats True ''specialist_call>specialist:rel-composers>composers'' ''someone composed it long ago.'' ''someone composed it long ago.'' ''someone composed it long ago.'' [(mk_rat (1950::integer) (1::integer))] [] None (Some ('''', (1950::int), [(1988::int)]))
+  "v744 = Feats True ''specialist_call>specialist:rel-composers>composers'' ''someone composed it long ago.'' ''someone composed it long ago.'' ''someone composed it long ago.'' [(Fract (1950::int) (1::int))] [] None (Some ('''', (1950::int), [(1988::int)]))
      (F510 True [''moonlight'', ''sonata'', ''1950''] [])
      (F511 False False False False False False False False)
      (F513 False False True [''who'', ''composed'', ''the'', ''moonlight'', ''sonata''] False None)
@@ -1111,7 +1111,7 @@ definition v744 :: feats where
      (F534 True False False)"
 
 definition v745 :: feats where
-  "v745 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-9::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v745 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-9::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''area'', ''circle'', ''with'', ''radius''] False None)
@@ -1123,7 +1123,7 @@ definition v745 :: feats where
      (F534 False False True)"
 
 definition v746 :: feats where
-  "v746 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(mk_rat (-120::integer) (1::integer)), (mk_rat (3::integer) (10::integer))] [(mk_rat (20::integer) (1::integer))] None None
+  "v746 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(Fract (-120::int) (1::int)), (Fract (3::int) (10::int))] [(Fract (20::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 False False False [''spring'', ''with'', ''spring'', ''constant'', ''stretched'', ''what'', ''force'', ''does'', ''exert''] False None)
@@ -1159,7 +1159,7 @@ definition v819 :: feats where
      (F534 True False False)"
 
 definition v822 :: feats where
-  "v822 = Feats True ''organ:math>evaluate'' ''[ev:derived] 9/25. read 9/25; then evaluate.'' ''9/25. read 9/25; then evaluate.'' ''9/25. read 9/25; then evaluate.'' [(mk_rat (9::integer) (1::integer)), (mk_rat (25::integer) (1::integer))] [(mk_rat (9::integer) (1::integer)), (mk_rat (25::integer) (1::integer)), (mk_rat (9::integer) (1::integer)), (mk_rat (25::integer) (1::integer))] None None
+  "v822 = Feats True ''organ:math>evaluate'' ''[ev:derived] 9/25. read 9/25; then evaluate.'' ''9/25. read 9/25; then evaluate.'' ''9/25. read 9/25; then evaluate.'' [(Fract (9::int) (1::int)), (Fract (25::int) (1::int))] [(Fract (9::int) (1::int)), (Fract (25::int) (1::int)), (Fract (9::int) (1::int)), (Fract (25::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 True False False [''what'', ''decimal''] False None)
@@ -1171,7 +1171,7 @@ definition v822 :: feats where
      (F534 False False False)"
 
 definition v830 :: feats where
-  "v830 = Feats True ''arb:definitional->definitional_encyclopedic|wide_lead|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(mk_rat (88::integer) (1::integer))] [(mk_rat (45359237::integer) (100000000::integer))] None None
+  "v830 = Feats True ''arb:definitional->definitional_encyclopedic|wide_lead|substitution_disclosed'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' ''a pound is 0.45359237 kilograms.'' [(Fract (88::int) (1::int))] [(Fract (45359237::int) (100000000::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''pounds'', ''kilograms''] False None)
@@ -1183,7 +1183,7 @@ definition v830 :: feats where
      (F534 False False True)"
 
 definition v831 :: feats where
-  "v831 = Feats True ''algebra:solved'' ''[ev:derived] x = 7. read 4*x^3; then evaluate.'' ''x = 7. read 4*x^3; then evaluate.'' ''x = 7. read 4*x^3; then evaluate.'' [(mk_rat (3::integer) (1::integer)), (mk_rat (2::integer) (1::integer)), (mk_rat (7::integer) (1::integer))] [(mk_rat (7::integer) (1::integer)), (mk_rat (4::integer) (1::integer)), (mk_rat (3::integer) (1::integer))] None None
+  "v831 = Feats True ''algebra:solved'' ''[ev:derived] x = 7. read 4*x^3; then evaluate.'' ''x = 7. read 4*x^3; then evaluate.'' ''x = 7. read 4*x^3; then evaluate.'' [(Fract (3::int) (1::int)), (Fract (2::int) (1::int)), (Fract (7::int) (1::int))] [(Fract (7::int) (1::int)), (Fract (4::int) (1::int)), (Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False True False False False False False False)
      (F513 True True False [''what'', ''the'', ''derivative''] False None)
@@ -1195,7 +1195,7 @@ definition v831 :: feats where
      (F534 False False False)"
 
 definition v832 :: feats where
-  "v832 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(mk_rat (11::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v832 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(Fract (11::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''area'', ''circle'', ''with'', ''radius''] False None)
@@ -1207,7 +1207,7 @@ definition v832 :: feats where
      (F534 False False True)"
 
 definition v833 :: feats where
-  "v833 = Feats True ''factoid:page'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(mk_rat (13::integer) (1::integer))] [(mk_rat (64::integer) (1::integer))] None None
+  "v833 = Feats True ''factoid:page'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' ''a cube with this side has a volume of 64 cm3.'' [(Fract (13::int) (1::int))] [(Fract (64::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''the'', ''volume'', ''cube'', ''with'', ''side''] False None)
@@ -1219,7 +1219,7 @@ definition v833 :: feats where
      (F534 False False True)"
 
 definition v835 :: feats where
-  "v835 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' [] [(mk_rat (3::integer) (1::integer))] None None
+  "v835 = Feats True ''organ:math>evaluate'' ''[ev:derived] 3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' ''3*g*k/m. read density; then evaluate.'' [] [(Fract (3::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''density'', ''aluminium''] False None)
@@ -1231,7 +1231,7 @@ definition v835 :: feats where
      (F534 False False False)"
 
 definition v840 :: feats where
-  "v840 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(mk_rat (7::integer) (1::integer)), (mk_rat (6::integer) (1::integer))] [(mk_rat (25::integer) (1::integer))] None None
+  "v840 = Feats True ''organ:math>evaluate'' ''[ev:derived] 25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' ''25. read whatisthe; then evaluate.'' [(Fract (7::int) (1::int)), (Fract (6::int) (1::int))] [(Fract (25::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True False [''what'', ''the'', ''kinetic'', ''energy'', ''ball'', ''moving''] False None)
@@ -1243,7 +1243,7 @@ definition v840 :: feats where
      (F534 False False True)"
 
 definition v846 :: feats where
-  "v846 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(mk_rat (18::integer) (1::integer)), (mk_rat (11::integer) (1::integer))] [(mk_rat (42::integer) (1::integer))] None None
+  "v846 = Feats True ''organ:math>evaluate'' ''[ev:derived] 42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' ''42. read whatisthearea; then evaluate.'' [(Fract (18::int) (1::int)), (Fract (11::int) (1::int))] [(Fract (42::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 True True True [''what'', ''the'', ''area'', ''triangle'', ''with'', ''base'', ''and'', ''height''] False None)
@@ -1255,7 +1255,7 @@ definition v846 :: feats where
      (F534 False False True)"
 
 definition v848 :: feats where
-  "v848 = Feats True ''organ:math>evaluate'' ''[ev:derived] 15*m. read 15*m; then evaluate. the perimeter is twenty-two.'' ''15*m. read 15*m; then evaluate. the perimeter is twenty-two.'' ''15*m. read 15*m; then evaluate. the perimeter is twenty-two.'' [(mk_rat (15::integer) (1::integer)), (mk_rat (9::integer) (1::integer))] [(mk_rat (15::integer) (1::integer)), (mk_rat (15::integer) (1::integer))] None None
+  "v848 = Feats True ''organ:math>evaluate'' ''[ev:derived] 15*m. read 15*m; then evaluate. the perimeter is twenty-two.'' ''15*m. read 15*m; then evaluate. the perimeter is twenty-two.'' ''15*m. read 15*m; then evaluate. the perimeter is twenty-two.'' [(Fract (15::int) (1::int)), (Fract (9::int) (1::int))] [(Fract (15::int) (1::int)), (Fract (15::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True True)
      (F513 True True True [''what'', ''the'', ''perimeter'', ''rectangle''] False None)
@@ -1279,7 +1279,7 @@ definition v873 :: feats where
      (F534 False False False)"
 
 definition v879 :: feats where
-  "v879 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-2::integer) (1::integer)), (mk_rat (40::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v879 = Feats True ''arb:definitional->definitional_encyclopedic'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-2::int) (1::int)), (Fract (40::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False False False)
      (F513 False False False [''swimmer'', ''covers'', ''minutes'', ''what'', ''her'', ''average'', ''speed''] False None)
@@ -1291,7 +1291,7 @@ definition v879 :: feats where
      (F534 False False True)"
 
 definition v880 :: feats where
-  "v880 = Feats True ''specialist_call>specialist:densities-r2>mass'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' [(mk_rat (-9::integer) (1::integer))] [(mk_rat (5::integer) (1::integer))] None None
+  "v880 = Feats True ''specialist_call>specialist:densities-r2>mass'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' ''the mass is 5 kg.'' [(Fract (-9::int) (1::int))] [(Fract (5::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''mass'', ''litres'', ''diesel''] False None)
@@ -1303,7 +1303,7 @@ definition v880 :: feats where
      (F534 True False True)"
 
 definition v882 :: feats where
-  "v882 = Feats True ''factoid:page'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' [] [(mk_rat (2::integer) (1::integer))] None None
+  "v882 = Feats True ''factoid:page'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' ''it is about 2 in the usual units.'' [] [(Fract (2::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False True False)
      (F513 False False True [''what'', ''the'', ''square'', ''root'', ''curiosity''] True (Some ''curiosity''))
@@ -1339,7 +1339,7 @@ definition v891 :: feats where
      (F534 False False False)"
 
 definition v894 :: feats where
-  "v894 = Feats True ''specialist_call>specialist:rel-composers>composers'' ''someone composed it long ago.'' ''someone composed it long ago.'' ''someone composed it long ago.'' [(mk_rat (1990::integer) (1::integer))] [] None (Some ('''', (1990::int), [(1725::int)]))
+  "v894 = Feats True ''specialist_call>specialist:rel-composers>composers'' ''someone composed it long ago.'' ''someone composed it long ago.'' ''someone composed it long ago.'' [(Fract (1990::int) (1::int))] [] None (Some ('''', (1990::int), [(1725::int)]))
      (F510 True [''four'', ''seasons'', ''1990''] [])
      (F511 False False False False False False False False)
      (F513 False False True [''who'', ''composed'', ''the'', ''four'', ''seasons''] False None)
@@ -1351,7 +1351,7 @@ definition v894 :: feats where
      (F534 True False False)"
 
 definition v895 :: feats where
-  "v895 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(mk_rat (-7::integer) (1::integer))] [(mk_rat (30::integer) (1::integer))] None None
+  "v895 = Feats True ''organ:math>evaluate'' ''it is 30.'' ''it is 30.'' ''it is 30.'' [(Fract (-7::int) (1::int))] [(Fract (30::int) (1::int))] None None
      (F510 True [] [])
      (F511 True False False False False False True False)
      (F513 False False False [''what'', ''the'', ''area'', ''square'', ''with'', ''side''] False None)
@@ -1363,7 +1363,7 @@ definition v895 :: feats where
      (F534 False False True)"
 
 definition v896 :: feats where
-  "v896 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(mk_rat (-90::integer) (1::integer)), (mk_rat (4::integer) (10::integer))] [(mk_rat (20::integer) (1::integer))] None None
+  "v896 = Feats True ''specialist_call>specialist:springs>force'' ''the force is 20 n.'' ''the force is 20 n.'' ''the force is 20 n.'' [(Fract (-90::int) (1::int)), (Fract (4::int) (10::int))] [(Fract (20::int) (1::int))] None None
      (F510 True [] [])
      (F511 False False False False False False False False)
      (F513 False False False [''spring'', ''with'', ''spring'', ''constant'', ''stretched'', ''what'', ''force'', ''does'', ''exert''] False None)
@@ -1492,9 +1492,9 @@ definition vectors :: "(feats * (layer * gcode) option) list" where
 
 theorem vectors_pin:
   "list_all (\<lambda>(v, r). decision_auto v = r) vectors"
-  by eval
+  by code_simp
 
 theorem vectors_count: "length vectors = 114"
-  by eval
+  by code_simp
 
 end
