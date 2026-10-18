@@ -1,50 +1,207 @@
-#!/bin/sh
-# Build an Isabelle session on hbox or persvati instead of this laptop, and bring
-# the generated SML back. The remote Isabelle2026-RC1 lives in
-# ~/tools/isabelle-rc1/Isabelle2026-RC1 on each host (set up by setup.sh there)
-# and every remote build runs under swarm-build (cgroup memory cap).
-#
-#   tools/dev/remote-build <host> <session-dir> <Session> [--expect 'MARKER'] [-d <extra session dir>]...
-#
-# Run from the root of the checkout or worktree you are building. The checkout's
-# src/ and tests/ trees are rsynced to <host>:~/veri7vn-builds/<name>-<pid>/ (a fresh
-# tree per invocation, removed afterwards; concurrent lanes never share a tree), the
-# session is built under a per-session lock on the host (two lanes building the same
-# session wait for each other instead of corrupting one database), the session is built there with -j 1 -o threads=2,
-# its code exports are pulled into var/<session-dir basename>/export-remote/<Session>/,
-# and the build log into var/<...>/remote-build.log. Exit status is the build's;
-# with --expect, a missing marker also fails. The marker is looked for in the
-# WHOLE stored session log on the host (Approximation-heavy sessions push it past any tail), the build output, the stored session log tail (`isabelle log`, which RC1 keeps even when
-# the console log is silent or the session was cached) and the exported assertion files.
-set -eu
-host=$1; sdir=$2; session=$3; shift 3
-expect=""; extra=""
-while [ $# -gt 0 ]; do
-  case $1 in
-    --expect) expect=$2; shift 2;;
-    -d) extra="$extra -d $2"; shift 2;;
-    *) echo "remote-build: unknown argument $1" >&2; exit 2;;
-  esac
-done
-root=$(pwd -P); name=$(basename "$root")-$$
-slug=$(basename "$sdir"); out="$root/var/$slug"; mkdir -p "$out"
-remote=veri7vn-builds/$name
-ssh -o BatchMode=yes "$host" "mkdir -p ~/$remote"
-rsync -a --delete --exclude var --exclude upstream --exclude .git --exclude '*.pyc' "$root/src" "$root/tests" "$host:~/$remote/"
-ssh -o BatchMode=yes "$host" "cd ~/$remote && export USER_HOME=\$HOME/tools/isabelle-rc1/user-state && \
-  exec 9>~/veri7vn-builds/.lock-$session && flock -w 7200 9 && \
-  swarm-build \$HOME/tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle build -v -b -d $sdir $extra -j 1 -o threads=2 $session; rc=\$?; \
-  echo '=== session log (isabelle build_log, tail) ==='; mkdir -p export; \$HOME/tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle build_log -v $session > export/$session.build_log 2>/dev/null; tail -2000 export/$session.build_log; \
-  if [ -n '$expect' ] && grep -qF -- '$expect' export/$session.build_log; then echo \"REMOTE_MARKER_FOUND: $expect\"; fi; \
-  mkdir -p export; rm -rf export/$session; \
-  \$HOME/tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle export -n -d $sdir $extra -O export/$session -x '*:code/**' -x '*:veri7vn/assertions/**' $session >/dev/null 2>&1 || true; \
-  exit \$rc" > "$out/remote-build.log" 2>&1; rc=$?
-mkdir -p "$out/export-remote/$session"
-rsync -a --delete "$host:~/$remote/export/$session/" "$out/export-remote/$session/" || echo "remote-build: export rsync failed" >&2
-ssh -o BatchMode=yes "$host" "rm -rf ~/$remote" 2>/dev/null || true
-tail -5 "$out/remote-build.log"
-if [ -n "$expect" ] && ! grep -qF -- "REMOTE_MARKER_FOUND: $expect" "$out/remote-build.log" && ! grep -rqF -- "$expect" "$out/remote-build.log" "$out/export-remote/$session"; then
-  echo "remote-build: marker not found: $expect" >&2; exit 1
-fi
-echo "remote-build: $host $session exit $rc; exports in $out/export-remote/$session/; log $out/remote-build.log"
-exit $rc
+#!/usr/bin/env python3
+"""Build remotely with isolated shared caches, bounded jobs and immutable receipts."""
+import argparse
+import fcntl
+import hashlib
+import json
+import os
+import random
+from pathlib import Path
+import shlex
+import shutil
+import subprocess
+import sys
+import time
+import uuid
+
+
+def run(args, **kw):
+    return subprocess.run(args, check=True, **kw)
+
+
+def transport(host, command, **kw):
+    # Serialize short connections across local lanes/worktrees, not remote builds.
+    # This avoids sshd's unauthenticated-connection limit during a swarm launch.
+    common = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                            capture_output=True, text=True)
+    base = Path(common.stdout.strip()).parent if common.returncode == 0 else Path.cwd()
+    locks = base / "var/remote-transport"
+    locks.mkdir(parents=True, exist_ok=True)
+    for retry in range(5):
+        try:
+            with (locks / (host + ".lock")).open("a") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                return run(command, **kw)
+        except subprocess.CalledProcessError as exc:
+            if exc.returncode not in (12, 255) or retry == 4:
+                raise
+            time.sleep(min(8, 2 ** retry) + random.random())
+
+
+def ssh(host, command, **kw):
+    return transport(host, ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=15", host, command], **kw)
+
+
+def hashes(root):
+    return {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for top in ("src", "tests") for p in sorted((root / top).rglob("*"))
+            if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"}
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("host", choices=("hbox", "persvati"))
+    ap.add_argument("session_dir")
+    ap.add_argument("session")
+    ap.add_argument("-d", dest="extra", action="append", default=[])
+    ap.add_argument("--expect", default="")
+    ap.add_argument("--no-exports", action="store_true", help="proof-only session; check build/marker without publishing code")
+    ap.add_argument("--timeout", type=int, default=1800)
+    ap.add_argument("--queue-timeout", type=int, default=7200)
+    ap.add_argument("--recover", metavar="ATTEMPT", help="collect an existing attempt without submitting another build")
+    args = ap.parse_args()
+    root = Path.cwd().resolve()
+    for directory in [args.session_dir, *args.extra]:
+        path = Path(directory)
+        if path.is_absolute() or ".." in path.parts or not (root / path / "ROOT").is_file():
+            ap.error("session roots must be checkout-relative directories containing ROOT")
+    if not 30 <= args.timeout <= 7200 or not 1 <= args.queue_timeout <= 14400:
+        ap.error("build timeout must be 30..7200s; queue timeout 1..14400s")
+    if args.recover and (Path(args.recover).name != args.recover or not args.recover.startswith("20")):
+        ap.error("--recover takes the printed attempt ID, not a path")
+    attempt_id = args.recover or time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()) + "-" + uuid.uuid4().hex[:12]
+    out = root / "var" / Path(args.session_dir).name
+    attempt = out / "remote-attempts" / attempt_id
+    if not args.recover:
+        attempt.mkdir(parents=True)
+    receipt = vars(args) | {"attempt": attempt_id, "status": "preparing", "started": time.time(),
+                           "checkout": str(root), "exports_published": False,
+                           "driver_sha256": hashlib.sha256(Path(__file__).resolve().read_bytes()).hexdigest(),
+                           "worker_sha256": hashlib.sha256(Path(__file__).resolve().with_name("remote_build_worker.py").read_bytes()).hexdigest()}
+    receipt_path = attempt / "receipt.json"
+    if args.recover:
+        receipt = json.loads(receipt_path.read_text())
+        if receipt["host"] != args.host or receipt["session"] != args.session:
+            ap.error("recovery host/session differs from the saved receipt")
+        receipt.setdefault("recoveries", []).append({"time": time.time(), "prior_status": receipt["status"]})
+        receipt.pop("error", None)
+    def save():
+        temporary = receipt_path.with_suffix(".tmp")
+        temporary.write_text(json.dumps(receipt, indent=2) + "\n")
+        os.replace(temporary, receipt_path)
+    save()
+    remote = "veri7vn-builds/managed/attempts/" + attempt_id
+    qremote = shlex.quote(remote)
+    started = bool(args.recover)
+    result = 1
+    try:
+        if not args.recover:
+            # This immutable snapshot also makes concurrent edits in the checkout harmless.
+            for snapshot_try in range(5):
+                before = hashes(root)
+                for top in ("src", "tests"):
+                    copied = attempt / top
+                    if copied.exists():
+                        shutil.rmtree(copied)  # Only this attempt's unfinished copy.
+                    shutil.copytree(root / top, copied, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+                snapshot = hashes(attempt)
+                if snapshot == before and hashes(root) == before:
+                    break
+                time.sleep(0.2)
+            else:
+                raise RuntimeError("sources changed during all five snapshot attempts; retry after the edits settle")
+            receipt["snapshot_attempts"] = snapshot_try + 1
+            (attempt / "source-sha256.json").write_text(json.dumps(snapshot, indent=2) + "\n")
+            receipt["source_digest"] = hashlib.sha256(json.dumps(snapshot, sort_keys=True).encode()).hexdigest()
+            shutil.copy2(Path(__file__).resolve().with_name("remote_build_worker.py"), attempt / "worker.py")
+            config = vars(args) | {"attempt": attempt_id, "source_digest": receipt["source_digest"]}
+            (attempt / "config.json").write_text(json.dumps(config))
+            ssh(args.host, "mkdir -p " + qremote)
+            transport(args.host, ["rsync", "-a", str(attempt) + "/", args.host + ":" + remote + "/"])
+            started = True  # Launch outcome may be unknown if the connection drops.
+            ssh(args.host, "cd " + qremote + " || exit; if mkdir started 2>/dev/null; then nohup python3 worker.py >worker.log 2>&1 </dev/null & fi", stdout=subprocess.DEVNULL)
+        receipt["status"] = "running"
+        save()
+        print(f"remote-build: {args.host} queued {args.session}; receipt {receipt_path}", flush=True)
+        deadline = time.monotonic() + args.queue_timeout + args.timeout + 300
+        while time.monotonic() < deadline:
+            try:
+                check = ssh(args.host, "if test -f " + qremote + "/result.json; then cat " + qremote + "/result.json; fi", capture_output=True, text=True)
+            except subprocess.CalledProcessError as exc:
+                if exc.returncode != 255:
+                    raise
+                receipt["transport_retries"] = receipt.get("transport_retries", 0) + 1
+                receipt["last_transport_error"] = (exc.stderr or str(exc))[-2000:]
+                save()
+                time.sleep(10 + random.random() * 5)
+                continue
+            if check.stdout.strip():
+                receipt["remote"] = json.loads(check.stdout)
+                break
+            time.sleep(10 + random.random() * 5)
+        else:
+            raise RuntimeError("remote result deadline exceeded; attempt retained and bounded remote service may still be stopping")
+        # Collect all diagnostics even for a failed build. Never reuse an older export.
+        transport(args.host, ["rsync", "-a", args.host + ":" + remote + "/results/", str(attempt / "results") + "/"])
+        with (attempt / "worker.log").open("wb") as worker_log:
+            ssh(args.host, "cat " + qremote + "/worker.log", stdout=worker_log)
+        result = receipt["remote"]["exit_code"]
+        # Also protect recovery of older workers whose systemd launcher could
+        # report zero after cancellation. Never publish their cached exports.
+        if receipt["remote"].get("cancelled") or receipt["remote"].get("build_completed") is False:
+            result = 1
+            receipt["rejected_remote_success"] = "cancelled or missing build-completion evidence"
+        exports = attempt / "results" / "export" / args.session
+        if result == 0 and not receipt.get("no_exports", False):
+            if not exports.is_dir() or not any(p.is_file() for p in exports.rglob("*")):
+                raise RuntimeError("successful build returned no exports; old published exports were left unchanged")
+            receipt["export_sha256"] = {str(p.relative_to(exports)): hashlib.sha256(p.read_bytes()).hexdigest()
+                                         for p in exports.rglob("*") if p.is_file()}
+            # Serialize publication of the compatibility directory across local processes.
+            import fcntl
+            pub = out / "export-remote"
+            pub.mkdir(exist_ok=True)
+            with (pub / ".publish.lock").open("a") as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                dest = pub / args.session
+                temp = pub / ("." + args.session + "-" + attempt_id)
+                if temp.exists():
+                    shutil.rmtree(temp)  # Our own prior incomplete publication.
+                shutil.copytree(exports, temp)
+                if dest.exists() or dest.is_symlink():
+                    # Preserve previous artifacts; they may belong to another session.
+                    dest.rename(pub / (args.session + ".previous-" + attempt_id + "-" + uuid.uuid4().hex[:6]))
+                os.replace(temp, dest)
+            receipt["exports_published"] = True
+        log = attempt / "results" / "build.log"
+        if log.exists():
+            shutil.copy2(log, out / "remote-build.log")
+            print("\n".join(log.read_text(errors="replace").splitlines()[-8:]))
+        receipt["status"] = "passed" if result == 0 else "failed"
+        # Only the attempt this invocation created is removed, after complete collection.
+        try:
+            ssh(args.host, "rm -rf -- " + qremote)
+        except subprocess.CalledProcessError as exc:
+            receipt["remote_cleanup_error"] = str(exc)
+    except (Exception, KeyboardInterrupt) as exc:
+        receipt["status"] = ("interrupted" if isinstance(exc, KeyboardInterrupt) else
+                             "collection_failed" if "remote" in receipt else
+                             "remote_unknown" if started else "failed")
+        receipt["error"] = str(exc)
+        result = 130 if isinstance(exc, KeyboardInterrupt) else 1
+        if started and "remote" not in receipt and isinstance(exc, KeyboardInterrupt):
+            try:
+                ssh(args.host, "touch " + qremote + "/cancel", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception:
+                pass
+        print("remote-build: " + str(exc), file=sys.stderr)
+    finally:
+        receipt["finished"] = time.time()
+        receipt["exit_code"] = result
+        save()
+        print(f"remote-build: {args.host} {args.session} exit {result}; receipt {receipt_path}", flush=True)
+    return result
+
+
+if __name__ == "__main__":
+    sys.exit(main())

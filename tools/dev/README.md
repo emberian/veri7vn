@@ -81,4 +81,88 @@ Isabelle2026-RC1 for Linux lives on both hosts at `~/tools/isabelle-rc1/Isabelle
 tools/dev/remote-build hbox src/extract/<slug> Veri7vn_<Session> --expect 'VERI7VN_<SESSION> PASS' [-d <extra session dir>]
 ```
 
-rsyncs `src/` and `tests/` to `<host>:~/veri7vn-builds/<checkout name>/`, builds there under `swarm-build` with one job and two threads, reads the stored session log (`isabelle build_log -v`) for the marker, and brings the code exports back to `var/<slug>/export-remote/<Session>/`. The generated SML is byte-identical to a local export (checked on the quantity family), so the MLton step stays local. Remote builds do not take a local build slot.
+The driver takes a stable copy of `src/` and `tests/` (up to five short retries
+if another lane edits during copying) and sends that snapshot to a unique
+remote attempt directory. Work continues against the snapshot, so later local
+edits do not change a queued build. The source files and their SHA256 hashes
+remain with its local receipt.
+
+Each host has one lock at `~/veri7vn-builds/managed/build.lock`. It covers the
+whole build, including any parent sessions, stored logs and exports. Jobs queue
+automatically: the default queue limit is two hours and the default build limit
+is 30 minutes (`--queue-timeout` and `--timeout`, in seconds). This intentionally
+allows one Isabelle build per host; per-session locks did not protect shared
+parent databases. A process that directly uses the managed cache must obey the
+same lock. Remote MLton deployment builds also take this lock to avoid memory
+contention.
+
+The persistent writable cache is `~/veri7vn-builds/managed/user-state`. On first
+use it receives independent copies of the existing warm heaps and consistent
+SQLite backups; any heaps and logs currently being written by an unmanaged
+Isabelle process are excluded. There are no writable hardlinks or symlinks to
+old state, no extra Isabelle distribution, and no copy of heaps per attempt.
+The seed inventory and excluded process IDs are saved in the receipt. Existing
+unmanaged jobs and their caches are left alone. Isabelle checks copied cache
+entries against each build's sources and parents before reusing them.
+
+The driver requires 20 GiB free disk after the initial cache copy, and 18 GiB
+available both on the host and within `swarm.slice` before starting. Each build
+runs in a transient systemd service in that slice with a 16 GiB memory limit,
+no swap, one job and two ML threads. `RuntimeMaxSec` and `KillMode=control-group`
+bound the entire job, including detached Isabelle children. A client interrupt
+requests cancellation of its own attempt; a lost SSH connection cannot remove
+the remote time bound. The detached remote worker keeps the host lock until
+collection finishes. Killing that worker externally is outside this guarantee.
+
+Every attempt retains `var/<slug>/remote-attempts/<id>/receipt.json`, the source
+snapshot, build log, full stored session log and any exports. A failed build
+still collects diagnostics, and an old stored marker cannot turn a nonzero
+build into success. The actual Isabelle exit is recorded by a small launcher
+inside the service; the outer `systemd-run` exit alone is not evidence (it can
+return zero after an explicit stop). Missing completion evidence or any
+cancellation makes the attempt fail, even if old cached logs contain a marker.
+Failed or canceled builds do not export or publish cached code. A requested marker must appear in the build log, stored log
+or current exports. Build, export and marker checks must all succeed before
+publishing a real directory at `var/<slug>/export-remote/<Session>/`; previous
+exports are preserved under a dated name. The familiar `remote-build.log` is a
+mutable convenience copy, not a receipt. Consumers should check the current
+attempt's exit status before compiling its exports.
+
+The remote source/diagnostic directory is removed only after successful local
+collection, including on ordinary build failure. Transport failures retain it
+for diagnosis. The managed cache and other sessions' files are never removed.
+Receipts identify the exact source snapshot, not a claim that the live checkout
+has remained unchanged since submission.
+
+Focused driver checks (no Isabelle build):
+
+```sh
+python3 tools/dev/test_remote_build.py
+```
+
+For proof-only sessions, add `--no-exports`: a successful build and requested
+marker are still required, but no code export is required or published.
+
+Short SSH/rsync operations share a local per-host transport lock under the
+common checkout's `var/remote-transport/`; remote builds do not hold it. Status
+polling waits10–15 seconds with jitter. Transport failures receive five retries;
+a polling connection failure leaves the remote job running and continues within
+the overall deadline. This avoids a burst of clients exhausting sshd's startup
+connection limit. Worker launch is idempotent for each attempt ID.
+
+If a client stopped before collecting its result, recover that exact attempt
+without launching another build:
+
+```sh
+tools/dev/remote-build persvati src/extract/<slug> Veri7vn_<Session> \
+  --recover <printed-attempt-id>
+```
+
+Do this only after the original collector has stopped. `remote_unknown` means
+no terminal remote result has been obtained; `collection_failed` means a result
+is known but its logs/exports were not fully collected. Neither status proves a
+build failure. Recovery uses the original snapshot and expectations. An explicit
+client interrupt requests cancellation through its attempt's `cancel` file;
+the worker either leaves the queue or stops its own exact systemd service.
+If superseding a queued snapshot, request cancellation of that exact attempt
+and collect its terminal result before resubmitting current sources.
