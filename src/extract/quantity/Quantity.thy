@@ -660,6 +660,7 @@ datatype request =
   | VolumeOf material "qty option" qunit
   | Floats material material
   | Convert rat uref uref
+  | ConvertDelta rat uref uref
   | SpringForce "rat option" "qty option"
   | SpringExtension "rat option" "rat option"
   | SpringConstant "rat option" "qty option"
@@ -689,7 +690,7 @@ datatype reason = R_below_absolute_zero | R_nonpositive_stiffness | R_nonpositiv
 
 datatype decline = Underspecified need | Mismatch | Impossible reason | Undecided | Imprecise
 
-datatype kind = K_density | K_mass | K_volume | K_floats | K_convert | K_temperature | K_force
+datatype kind = K_density | K_mass | K_volume | K_floats | K_convert | K_temperature | K_temperature_difference | K_force
   | K_extension | K_spring_constant | K_elastic_energy | K_period | K_frequency
   | K_pressure_gauge | K_pressure_abs | K_buoyant_force | K_submerged_fraction | K_sinks
   | K_energy | K_co2 | K_mass_needed | K_ncv
@@ -705,6 +706,7 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (Floats _ _) = K_floats"
 | "kind_of (Convert _ (Tmp _) (Tmp _)) = K_temperature"
 | "kind_of (Convert _ _ _) = K_convert"
+| "kind_of (ConvertDelta _ _ _) = K_temperature_difference"
 | "kind_of (SpringForce _ _) = K_force"
 | "kind_of (SpringExtension _ _) = K_extension"
 | "kind_of (SpringConstant _ _) = K_spring_constant"
@@ -754,6 +756,8 @@ fun dims_ok :: "request \<Rightarrow> bool" where
 | "dims_ok (Convert x (Lin a) (Lin b)) \<longleftrightarrow> dim_of a = dim_of b"
 | "dims_ok (Convert x (Tmp a) (Tmp b)) \<longleftrightarrow> True"
 | "dims_ok (Convert x _ _) \<longleftrightarrow> False"
+| "dims_ok (ConvertDelta x (Tmp a) (Tmp b)) \<longleftrightarrow> True"
+| "dims_ok (ConvertDelta x _ _) \<longleftrightarrow> False"
 | "dims_ok (SpringForce k x) \<longleftrightarrow> opt_dim x D_length"
 | "dims_ok (SpringConstant f x) \<longleftrightarrow> opt_dim x D_length"
 | "dims_ok (SpringEnergy k x) \<longleftrightarrow> opt_dim x D_length"
@@ -819,6 +823,7 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (VolumeOf m (Some M) u) = siq M / density m / scale u"
 | "qval (Convert x (Lin a) (Lin b)) = x * scale a / scale b"
 | "qval (Convert x (Tmp a) (Tmp b)) = (kelvin a x - toffset b) / tscale b"
+| "qval (ConvertDelta x (Tmp a) (Tmp b)) = tdelta a b x"
 | "qval (SpringForce (Some k) (Some x)) = k * siq x"
 | "qval (SpringExtension (Some k) (Some f)) = f / k"
 | "qval (SpringConstant (Some f) (Some x)) = f / siq x"
@@ -1044,6 +1049,28 @@ qed
 theorem temperature_difference_scales: "tdelta a b x * tscale b = x * tscale a"
   by (simp add: tdelta_def)
 
+text \<open>Interval conversion is total on signed temperature changes. It does not
+add affine offsets or impose an absolute-zero guard on a difference.\<close>
+theorem temperature_delta_exact:
+  "kernel (ConvertDelta x (Tmp a) (Tmp b)) = Exact K_temperature_difference (tdelta a b x)"
+  by (simp add: kernel_def decline_of_def)
+
+theorem temperature_delta_round_trip:
+  "kernel (ConvertDelta (tdelta a b x) (Tmp b) (Tmp a)) = Exact K_temperature_difference x"
+  by (simp add: temperature_delta_exact tdelta_def)
+
+theorem temperature_delta_endpoints:
+  assumes "kernel (Convert x (Tmp a) (Tmp b)) = Exact k u"
+      and "kernel (Convert y (Tmp a) (Tmp b)) = Exact k' v"
+  shows "kernel (ConvertDelta (x - y) (Tmp a) (Tmp b)) = Exact K_temperature_difference (u - v)"
+proof -
+  have u: "u = tdelta a b x + (toffset a - toffset b) / tscale b"
+    using temperature_point_vs_difference[OF assms(1)] .
+  have v: "v = tdelta a b y + (toffset a - toffset b) / tscale b"
+    using temperature_point_vs_difference[OF assms(2)] .
+  show ?thesis by (simp add: temperature_delta_exact u v tdelta_def algebra_simps diff_divide_distrib)
+qed
+
 theorem temperature_linear_mismatch:
   "kernel (Convert x (Lin u) (Tmp t)) = Decline Mismatch"
   "kernel (Convert x (Tmp t) (Lin u)) = Decline Mismatch"
@@ -1224,7 +1251,7 @@ theorem fuel_ncv: "kernel (FuelNCV f) = Exact K_ncv (ncv f)"
 section \<open>Response text (ASCII)\<close>
 
 definition sig_digits :: "kind \<Rightarrow> nat" where
-  "sig_digits k = (if k = K_convert \<or> k = K_temperature then 10 else 4)"
+  "sig_digits k = (if k = K_convert \<or> k = K_temperature \<or> k = K_temperature_difference then 10 else 4)"
 
 definition is_int :: "rat \<Rightarrow> bool" where
   "is_int q \<longleftrightarrow> snd (quotient_of q) = 1"
@@ -1276,6 +1303,8 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + mat_name m + STR ''; rho is a typical value near 20 degrees C).''"
 | "exact_text (Convert x a b) q V = show_input x + STR '' '' + uref_label a + STR '' is '' + V + frac_note q
      + STR '' '' + uref_label b + (case a of Lin _ \<Rightarrow> STR '' (NIST exact factors).'' | Tmp _ \<Rightarrow> STR ''.'')"
+| "exact_text (ConvertDelta x a b) q V = STR ''A temperature difference of '' + show_input x + STR '' '' + uref_label a
+     + STR '' is a difference of '' + V + frac_note q + STR '' '' + uref_label b + STR ''.''"
 | "exact_text (SpringForce (Some k) (Some x)) q V = STR ''The force is about '' + V
      + STR '' N (F = k x = '' + show4 k + STR '' x '' + show4 (siq x) + STR '').''"
 | "exact_text (SpringExtension (Some k) (Some f)) q V = STR ''The extension is about '' + V
@@ -1354,6 +1383,7 @@ fun mismatch_text :: "request \<Rightarrow> String.literal" where
   "mismatch_text (Convert x (Lin a) (Lin b)) = unit_label a + STR '' measures '' + dim_name (dim_of a)
      + STR '' and '' + unit_label b + STR '' measures '' + dim_name (dim_of b) + STR '', so there'' + apos
      + STR ''s no conversion between them.''"
+| "mismatch_text (ConvertDelta x a b) = STR ''A temperature difference needs temperature scales on both sides.''"
 | "mismatch_text (Convert x a b) = uref_label a + STR '' and '' + uref_label b
      + STR '' measure different things, so there'' + apos + STR ''s no conversion between them.''"
 | "mismatch_text r = STR ''The amounts given do not have the units this formula needs.''"
@@ -1382,7 +1412,7 @@ definition decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.l
 definition kind_name :: "kind \<Rightarrow> String.literal" where
   "kind_name k = (case k of K_density \<Rightarrow> STR ''density'' | K_mass \<Rightarrow> STR ''mass''
      | K_volume \<Rightarrow> STR ''volume'' | K_floats \<Rightarrow> STR ''floats'' | K_convert \<Rightarrow> STR ''convert''
-     | K_temperature \<Rightarrow> STR ''temperature'' | K_force \<Rightarrow> STR ''force'' | K_extension \<Rightarrow> STR ''extension''
+     | K_temperature \<Rightarrow> STR ''temperature'' | K_temperature_difference \<Rightarrow> STR ''temperature_difference'' | K_force \<Rightarrow> STR ''force'' | K_extension \<Rightarrow> STR ''extension''
      | K_spring_constant \<Rightarrow> STR ''spring_constant'' | K_elastic_energy \<Rightarrow> STR ''elastic_energy''
      | K_period \<Rightarrow> STR ''period'' | K_frequency \<Rightarrow> STR ''frequency''
      | K_pressure_gauge \<Rightarrow> STR ''pressure_gauge'' | K_pressure_abs \<Rightarrow> STR ''pressure_abs''

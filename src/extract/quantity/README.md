@@ -119,3 +119,11 @@ number. The role recognizer binds the resulting exact fractions to the physical
 request. This improves interpretation but does not make English parsing a proof.
 See [semantic continuation](../../../project/lanes/C-physical-quantity-sound-next.md)
 for domain-specific sign rules, panel results and remaining limitations.
+
+Explicit temperature differences use the checked `ConvertDelta` request and the
+`temperature_difference` reply kind. They scale without an affine offset and
+permit signed differences; ordinary temperature points keep their absolute-zero
+guard. The reader binds interval wording to the stated quantity and refuses
+unbound multiple endpoints or unsupported unit suffixes. See
+`project/lanes/C-physical-quantity-conditions.md` for proofs, scoped scores and
+remaining explicit-condition work.

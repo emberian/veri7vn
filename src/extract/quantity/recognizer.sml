@@ -232,7 +232,9 @@ struct
   (* ---------- units v1, v2, v3 ---------- *)
   val deg = "\194\176"   (* U+00B0 DEGREE SIGN, UTF-8 *)
   (* the organ's TEMP has two non-ASCII names; HOL string literals are ASCII *)
-  val extraNames = [(deg ^ "c", "c"), (deg ^ "f", "f")]
+  val extraNames = [(deg ^ "c", "c"), (deg ^ "f", "f"),
+    ("degree c", "c"), ("degrees c", "c"), ("degree f", "f"), ("degrees f", "f"),
+    ("degree k", "k"), ("degrees k", "k")]
   fun charLen s = size s - (if String.isPrefix deg s then 1 else 0)
   val names =
     let
@@ -243,11 +245,13 @@ struct
     in rev (foldl (fn (x, acc) => rev (ins (x, rev acc))) [] all) end
   fun escape s = String.translate (fn c => if Char.isAlphaNum c then String.str c else "\\" ^ String.str c) s
   val UNIT_RX = "(" ^ String.concatWith "|" (map escape names) ^ ")"
-  val CONV = NUM ^ "\\s*" ^ UNIT_RX ^ "\\s+(?:to|in|into|=|as|comes?\\s+to\\s+in)\\s+" ^ UNIT_RX ^ "\\b"
-  val HOWMANY = "how many\\s+" ^ UNIT_RX ^ "\\s+(?:are\\s+)?(?:in|is|make up)\\s+(?:an?\\s+|one\\s+)?(?:" ^ NUM ^ "\\s*)?"
-    ^ UNIT_RX ^ "\\b"
-  val QTY = NUM ^ "\\s*" ^ UNIT_RX ^ "(?![\\w/])"
-  val TARGET = "\\bhow many\\s+" ^ UNIT_RX ^ "(?![\\w/])"
+  val UNIT_END = "(?![\\w/^]|\194\178|\194\179|\\s+per\\b)"
+  val DELTA_WORD = "(?:temperature\\s+)?(?:difference|interval|change|increase|decrease|rise|drop)"
+  val CONV = NUM ^ "\\s*" ^ UNIT_RX ^ "(?:\\s+" ^ DELTA_WORD ^ ")?\\s+(?:to|in|into|=|as|comes?\\s+to\\s+in)\\s+" ^ UNIT_RX ^ UNIT_END
+  val HOWMANY = "how many\\s+" ^ UNIT_RX ^ "\\s+(?:are\\s+)?(?:in|is|make up)\\s+(?:an?\\s+|one\\s+)?(?:" ^ DELTA_WORD ^ "(?:\\s+of)?\\s+)?(?:" ^ NUM ^ "\\s*)?"
+    ^ UNIT_RX ^ UNIT_END
+  val QTY = NUM ^ "\\s*" ^ UNIT_RX ^ UNIT_END
+  val TARGET = "\\bhow many\\s+" ^ UNIT_RX ^ UNIT_END
   val TWO = "^\\s*(?:i have|we have|there (?:is|are)|it(?:'s| is)|it weighs|it measures|it runs for)\\s+" ^ NUM ^ "\\s*"
     ^ UNIT_RX ^ "\\s*[.!]\\s*(?:how many\\s+" ^ UNIT_RX ^ "\\s+(?:is|are|does)\\s+that|what is that in\\s+" ^ UNIT_RX
     ^ "|convert (?:that|it) to\\s+" ^ UNIT_RX ^ ")\\s*[?.!]?\\s*$"
@@ -256,6 +260,32 @@ struct
     let val n = case List.find (fn (e, _) => e = name) extraNames of SOME (_, a) => a | NONE => name
     in case Q.lookup_unit n of SOME u => u | NONE => raise Fail ("unit name not in HOL table: " ^ name) end
 
+  (* A change is a vector on a temperature scale; a point is affine.  Keep
+     the original operation through the quantity-first and two-sentence paths.
+     Multiple numeral roles need an endpoint reader, not a last-match guess. *)
+  fun temperatureUnit (Q.Tmp _) = true | temperatureUnit _ = false
+  val CHANGE = "(?:difference|interval|change|increase|decrease|rise|drop)"
+  val STEP = "(?:of\\s+|by\\s+|is\\s+|=\\s*)?"
+  fun conversionRequest low (x, a, b) =
+    if not (has ("\\b" ^ CHANGE ^ "\\b|\\bdelta\\b|\206\148|\206\180") low)
+    then SOME (Q.Convert (x,a,b))
+    else let
+      val explicit = has ("\\btemperature\\s+" ^ CHANGE ^ "\\s+" ^ STEP ^ NUM
+        ^ "|\\b" ^ CHANGE ^ "\\s+(?:in|of)\\s+temperature\\s+" ^ STEP ^ NUM
+        ^ "|" ^ NUM ^ "\\s*" ^ UNIT_RX ^ "\\s+temperature\\s+" ^ CHANGE ^ "\\b"
+        ^ "|" ^ CONV ^ "\\s+as\\s+(?:a\\s+)?temperature\\s+" ^ CHANGE ^ "\\b") low
+      val intervalRole = has ("\\b" ^ CHANGE ^ "\\s+(?:of|by)\\s+" ^ NUM
+        ^ "|" ^ NUM ^ "\\s*" ^ UNIT_RX ^ "\\s+" ^ CHANGE ^ "\\b"
+        ^ "|(?:\\bdelta\\s*t|\206\148\\s*t|\206\180\\s*t)\\s*(?:=|of)?\\s*" ^ NUM) low
+      val between = has ("\\b(?:temperature\\s+)?" ^ CHANGE
+        ^ "\\s+(?:(?:in|of)\\s+temperature\\s+)?between\\b") low
+      val temperature = temperatureUnit a andalso temperatureUnit b
+      val change = explicit orelse (temperature andalso intervalRole)
+    in if (temperature andalso between) orelse (change andalso length (!numericValues) > 1)
+       then NONE
+       else SOME (if change then Q.ConvertDelta (x,a,b) else Q.Convert (x,a,b))
+    end
+
   fun trim s = collapse s
 
   fun unitsV1 text =
@@ -263,12 +293,12 @@ struct
       val low = lower (collapse text)
     in
       case search CONV low of
-        SOME m => SOME (Q.Convert (ratOf (g1 low m), unitOf (valOf (grp low m 2)), unitOf (valOf (grp low m 3))))
+        SOME m => conversionRequest low (ratOf (g1 low m), unitOf (valOf (grp low m 2)), unitOf (valOf (grp low m 3)))
       | NONE =>
           (case search HOWMANY low of
              SOME m =>
                let val v = case grp low m 2 of SOME s => ratOf (trim s) | NONE => Q.mk_rat 1 1
-               in SOME (Q.Convert (v, unitOf (valOf (grp low m 3)), unitOf (valOf (grp low m 1)))) end
+               in conversionRequest low (v, unitOf (valOf (grp low m 3)), unitOf (valOf (grp low m 1))) end
            | NONE => NONE)
     end
 
@@ -287,7 +317,7 @@ struct
                    (SOME q, SOME tg) =>
                      if Narrow.sentences t = 1 andalso Narrow.words t <= 12
                         andalso valOf (grp low q 2) <> valOf (grp low tg 1) then
-                       (case unitsV1 ("Convert " ^ g1 low q ^ " " ^ valOf (grp low q 2) ^ " to " ^ g1 low tg) of
+                       (case conversionRequest low (ratOf (g1 low q), unitOf (valOf (grp low q 2)), unitOf (g1 low tg)) of
                           SOME r2 => if Q.answers r2 then SOME r2 else NONE
                         | NONE => NONE)
                      else NONE
@@ -305,7 +335,7 @@ struct
       case search TWO low of
         SOME m =>
           let val target = valOf (firstGroup low m [3, 4, 5])
-          in unitsV2 ("Convert " ^ g1 low m ^ " " ^ valOf (grp low m 2) ^ " to " ^ target) end
+          in conversionRequest low (ratOf (g1 low m), unitOf (valOf (grp low m 2)), unitOf target) end
       | NONE => unitsV2 text
     end
 

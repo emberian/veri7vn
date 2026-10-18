@@ -30,3 +30,11 @@ and `project/lanes/C-physical-quantity-sound.md`.
 To compile a specific successful remote proof export, set
 `GENERATED_SML=/absolute/path/to/quantity.ML` when invoking `build.sh`.
 The script preserves previous exports and replaces the finished binary atomically.
+
+Explicit temperature differences use the checked `ConvertDelta` request and the
+`temperature_difference` reply kind. They scale without an affine offset and
+permit signed differences; ordinary temperature points keep their absolute-zero
+guard. The reader binds interval wording to the stated quantity and refuses
+unbound multiple endpoints or unsupported unit suffixes. See
+`project/lanes/C-physical-quantity-conditions.md` for proofs, scoped scores and
+remaining explicit-condition work.

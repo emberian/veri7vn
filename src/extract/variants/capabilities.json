@@ -23,6 +23,48 @@
           "English interpretation and JSON framing; these contexts describe domains, not proof of an individual interpretation."
         ]
       }
+    },
+    "units-v2": {
+      "accept": {
+        "kinds": [
+          "temperature_difference"
+        ],
+        "declines_in_domain": [
+          "mismatch"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Converts a stated signed temperature difference by exact scale ratio, with no affine offset.",
+        "assumptions": [
+          "One stated temperature difference, with source and target temperature scales.",
+          "Multiple endpoints are not interpreted as a single scalar difference."
+        ],
+        "untrusted": [
+          "English operation and unit recognition; the typed request and arithmetic response are checked by Quantity."
+        ]
+      }
+    },
+    "units-v3-r2": {
+      "accept": {
+        "kinds": [
+          "temperature_difference"
+        ],
+        "declines_in_domain": [
+          "mismatch"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Converts a stated signed temperature difference by exact scale ratio, with no affine offset.",
+        "assumptions": [
+          "One stated temperature difference, with source and target temperature scales.",
+          "Multiple endpoints are not interpreted as a single scalar difference."
+        ],
+        "untrusted": [
+          "English operation and unit recognition; the typed request and arithmetic response are checked by Quantity."
+        ]
+      }
     }
   }
 }

@@ -15,7 +15,7 @@ definition answers :: "request \<Rightarrow> bool" where
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
      kernel (Convert 100 (Tmp T_C) (Tmp T_F)) = Exact K_temperature 212 \<and>
-     tdelta T_C T_F 100 = 180 \<and>
+     kernel (ConvertDelta 100 (Tmp T_C) (Tmp T_F)) = Exact K_temperature_difference 180 \<and>
      kernel (Convert 1 (Lin U_mile) (Lin U_kilometre)) = Exact K_convert (25146 / 15625) \<and>
      kernel (Convert 5 (Lin U_metre) (Lin U_kilogram)) = Decline Mismatch \<and>
      kernel (Convert 5 (Lin U_metre) (Tmp T_C)) = Decline Mismatch \<and>
@@ -41,7 +41,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat self_tes
   dens_vol_units dens_mass_units spring_disp_units spring_mass_units fluid_vol_units
   fuel_mass_units fuel_energy_units
   Lin Tmp U_kilogram U_cubic_metre U_metre U_kilowatt_hour U_megajoule
-  Density MassOf VolumeOf Floats Convert SpringForce SpringExtension SpringConstant
+  Density MassOf VolumeOf Floats Convert ConvertDelta SpringForce SpringExtension SpringConstant
   SpringEnergy SpringPeriod SpringFrequency PressureGauge PressureAbs Buoyant Submerged
   FuelEnergy FuelCO2 FuelMassNeeded FuelNCV
   in SML module_name Quantity file_prefix quantity
@@ -55,6 +55,7 @@ ML \<open>
     @{thm temperature_point}, @{thm temperature_impossible},
     @{thm temperature_point_vs_difference}, @{thm temperature_point_not_difference},
     @{thm temperature_difference_scales}, @{thm temperature_round_trip},
+    @{thm temperature_delta_exact}, @{thm temperature_delta_round_trip}, @{thm temperature_delta_endpoints},
     @{thm spring_energy_force}, @{thm pressure_absolute_gauge},
     @{thm density_value}, @{thm mass_from_volume}, @{thm volume_from_mass},
     @{thm floats_verdict}, @{thm floats_undecided},
