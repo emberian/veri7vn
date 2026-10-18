@@ -3,10 +3,18 @@ import unittest
 import hashlib
 from pathlib import Path
 import tempfile
-from build_receipt import managed_receipt_issues, deployment_receipt_issues, stage_runtime_overlay, validate_export_snapshot
+from build_receipt import managed_receipt_issues, deployment_receipt_issues, stage_runtime_overlay, validate_export_snapshot, stores_runtime_sources
 
 
 class ReceiptTests(unittest.TestCase):
+    def test_stores_recipes_preserve_legacy_and_bind_numeric(self):
+        old = "str(source.parent/'commons/commons.sml')"
+        new = "for n in ('commons.sml','numeric.sml')"
+        self.assertEqual(len(stores_runtime_sources(old)), 4)
+        self.assertIn('src/extract/commons/numeric.sml', stores_runtime_sources(new))
+        for unknown in ('', old + new):
+            with self.assertRaises(ValueError): stores_runtime_sources(unknown)
+
     def good(self):
         return {'status': 'passed', 'session': 'S', 'exit_code': 0, 'source_digest': 'digest',
                 'remote': {'exit_code': 0, 'source_digest': 'digest', 'cancelled': False,

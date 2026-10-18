@@ -8,42 +8,54 @@ untrusted code; registration is not a claim that a current artifact exists.
 ## Current delivery state
 
 The selected immutable inventory is
-`var/C-runtime-package/selected-prepared/selection.json`. It currently covers
-18 specialist families: acoustics, anatomyagri, chemistry, climate, discrete,
-energy, facts, finance, geostats, humanities, life, materials, mechanics,
-quantity, space, stores, trades and variants. Computing, earth and emoptics
-still need final proof/native capture. The complete archive is not yet ready.
-The registry's 21 specialist families own 144 IDs; Math, Wordprob, Guards,
-Relations, Document and Fusion are separate composition components.
+`var/C-runtime-package/selected-prepared/selection.json`. All 21 specialist
+family slots now have captured artifacts. The final delivery cohort remains
+unfrozen while Finance target wording is repaired and the promoted Stores E
+consumer gate completes. Root explicitly selected later Anatomy, Discrete,
+Mechanics and Humanities versions; previous versions remain historical.
+The complete archive is not yet ready. The registry's 21 specialist families
+own 144 IDs; Math, Wordprob, Guards, Relations, Document and Fusion are separate
+composition components.
 
-Latest compiler-bound captures are retained under
+Compiler-bound captures are retained under
 `var/C-runtime-package/bound-prepared/<native-attempt>/<family>/`. Each contains
-the exact native binary, full frozen family metadata, proof dependencies and
-export, original compiler receipt, copied consumed files and rewritten MLB.
-The selected directory also contains earlier complete C captures and the
-immutable Discrete ordinal candidate. Previous versions remain available;
-selection does not overwrite them. Root integration and capture both precede
-release of an owner's source freeze.
+the exact native binary, frozen family metadata, proof dependencies/export,
+original compiler receipt, copied consumed files and rewritten MLB. The selected
+directory also retains earlier complete captures. Root integration and capture
+both precede release of an owner's source freeze.
 
-Current Linux comparisons completed:
+Completed Linux comparisons for currently selected versions:
 
-| Exact captured version | Right / total | Wrong / false yes | Withheld | Receipt under `var/linux/` |
+| Family | Right / total | Wrong / false yes | Withheld | Receipt under `var/linux/` |
 |---|---:|---:|---:|---|
-| Chemistry C | 1,206 / 1,206 | 0 / 0 | 40 | `receipt-chemistry-persvati-chemistry-1792307634-42247.json` |
-| Finance C | 559 / 559 | 0 / 0 | 36 | `receipt-finance-hbox-finance-1792308028-52285.json` |
-| Humanities C | 394 / 394 | 0 / 0 | 24 | `receipt-humanities-persvati-humanities-1792308743-68184.json` |
+| Chemistry D | 1,206 / 1,206 | 0 / 0 | 40 | `receipt-chemistry-persvati-chemistry-1792309954-96122.json` |
+| Climate D | 306 / 306 | 0 / 0 | 26 | `receipt-climate-persvati-climate-1792309482-86478.json` |
+| Facts D | 428 / 428 | 0 / 0 | 46 | `receipt-facts-hbox-facts-1792309704-91133.json` |
+| GeoStats C | 1,456 / 1,456 | 0 / 0 | 44 | `receipt-geostats-hbox-geostats-1792310257-3034.json` |
+| Acoustics | 139 / 139 | 0 / 0 | 8 | `receipt-acoustics-persvati-acoustics-1792310396-6959.json` |
 
 Every comparison includes all that family's specialist IDs and both splits,
-using their original shipped panels/scorers and acceptance rules. Every status
-and response matches the exact frozen Darwin binary. Correct refusals can count
+using original shipped panels/scorers and acceptance rules. Every status and
+response matches the exact frozen Darwin binary. Correct refusals can count
 as right. These are scoped family comparisons, not a whole-package score.
+Earlier C Chemistry 1,206/1,206, C Finance 559/559, C Humanities 394/394 and
+C Facts 428/428 comparisons are preserved, but do not certify their selected
+replacement versions.
 
-One native job is outstanding per host: selected final Climate on persvati and
-the earlier C Facts on hbox. The revised Facts candidate is separately captured;
-completion of the earlier job will not be relabelled as evidence for it. Stores'
-owner has the sole selected D Stores Linux job. Other selected families still
-need their exact Linux refresh. No new Isabelle session is launched by this
-refresh, and no full-head or fleet sweep has been requested or run here.
+Finite local queues keep one submitted native job per host, waiting for each
+receipt before advancing. They use exact captured sources, take/release the
+shared proof lock for every family and stop on failure. Their plans/state are
+`var/C-runtime-package/queue-v2-{hbox,persvati}.{json,state.json}`. Finance is
+explicitly held; no rejected target-grammar candidate was submitted. Stores'
+owner owns its promoted E Linux build, so packaging launches no duplicate.
+No new Isabelle build, full-head sweep or fleet sweep is launched here.
+
+Separate composition snapshots under `composition-prepared/` retain Relations'
+full own adapter/source closure plus direct upstream Python dependencies, and
+Fusion's Python adapters including numeric.py. Relations remains checkout-bound
+with external corpus assets. Fusion explicitly binds its retained passed proof
+snapshot and records nine differing live dependency files; it makes no current-
+theory match claim. These are excluded from the specialist tarball.
 
 ## What the package does
 
@@ -92,15 +104,17 @@ recognizer. Stores' auxiliary `Config.repo` file must contain exactly the single
 constant structure, with its actual hash and MLB edge retained separately from
 source and proved export. Extra code or altered derived bytes fails. Stores
 fetch is separately frozen and checked as a runtime asset, never claimed compiled.
-Eight focused prepared-package tests pass; seven receipt/overlay tests pass.
+Eight focused prepared-package tests pass; eight receipt/overlay tests pass.
 
 Every prepared Linux binary requires a passed matching deployment receipt with
 its exact generated export, complete required runtime/fetch input coverage and
 complete proof dependency coverage. A matching binary hash and a stale or tiny
 source map are insufficient. Historical unprepared receipts remain historical.
 
-The shared Python checker is copied once from the current integration version
-at each final assembly and recorded separately from each family's proof. Family
+The shared Python checker is copied once from a pinned committed HEAD blob
+at assembly and its commit/hash are recorded separately from each family's
+proof. The same approved code generates acceptance; uncommitted next-cohort
+checker edits are excluded. Family
 capabilities come from the captured source, so later owner edits cannot change
 acceptance while a Linux job waits. The same frozen wrappers, manifests, panels
 and smoke runner are used on both platforms. Each baseline is regenerated from
@@ -142,3 +156,19 @@ Changed tooling paths belong to `tools/organs/`, `tools/deploy/` and
 `tools/perf/fleet.py`; user-facing instructions are in
 `tools/organs/package_readme.md` and `docs/handoff/organ-package.md`.
 No archive has been sent to another person.
+
+
+The Stores recipe consumer now distinguishes the captured D recipe from E's
+additional `commons/numeric.sml`, using one shared finite declaration checker.
+Old artifacts remain reproducible; unknown or ambiguous recipes fail. Guards'
+route-only capture has an explicit three-source declaration for its appended
+MLB entries. Neither change adds a specialist family.
+
+The Linux metadata audit found GeoStats' legacy `generated_sha256_macos` field
+had read a newer live D file after waiting. Its actual Linux export and captured
+C native input manifest both bind `bdf2c1dd…`, and all 1,456 replies match.
+The raw receipt is retained with an explicit package note ignoring that legacy
+field. Future jobs read the captured native compiler receipt and separately
+record the immutable expected export. Audit details are in
+`var/C-runtime-package/legacy-macos-metadata-audit.json`; no redundant rebuild
+or panel rerun is needed.

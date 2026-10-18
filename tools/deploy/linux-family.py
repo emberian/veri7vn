@@ -19,7 +19,7 @@ Nothing under upstream/ is written; panels are copied to ~/veri7vn-deploy on the
 """
 import argparse, glob, hashlib, json, os, re, shlex, shutil, subprocess, sys, time
 from pathlib import Path
-from build_receipt import managed_receipt_issues, validate_export_snapshot, stage_runtime_overlay
+from build_receipt import managed_receipt_issues, validate_export_snapshot, stage_runtime_overlay, stores_runtime_sources
 
 REPO = Path(__file__).resolve().parents[2]
 UP = Path(os.environ.get("PARITY_UPSTREAM", REPO / "upstream"))
@@ -154,8 +154,12 @@ if args.runtime_overlay:
     directories = [str(Path(d).relative_to(REPO)) for d in
                    [str(REPO / "src/extract" / slug), str(REPO / "src/extract" / SRCDIR), *EXTRA]]
     runtime_stage = LIN / "runtime" / RUN_ID
+    runtime_files = ["src/extract/commons/commons.sml", "src/extract/families.json", "tools/runtime_contract.py"]
+    if slug == "stores":
+        runtime_files += [name for name in stores_runtime_sources(
+            (SOURCE_REPO / "src/extract/stores/build.sh").read_text()) if '/commons/' in name]
     before = stage_runtime_overlay(SOURCE_REPO, runtime_stage, directories, proof_sources,
-                                   runtime_files=["src/extract/commons/commons.sml", "src/extract/families.json", "tools/runtime_contract.py"])
+                                   runtime_files=runtime_files)
     SNAPSHOT = runtime_stage
     rec["runtime_overlay"] = str(runtime_stage)
     rec["runtime_overlay_input"] = str(SOURCE_REPO)
@@ -177,7 +181,9 @@ if sha(frozen_mac) != before_mac or sha(mb) != before_mac:
     raise SystemExit("macOS binary changed during snapshot")
 rec["macos_binary_sha256"] = before_mac
 rec["macos_binary_snapshot"] = str(frozen_mac)
-native_inputs = REPO / f"var/{slug}/build/compile-inputs.json"
+native_inputs = SOURCE_REPO.parent / "native-compile.json"
+if not native_inputs.is_file():
+    native_inputs = REPO / f"var/{slug}/build/compile-inputs.json"
 if native_inputs.exists():
     binding = json.loads(native_inputs.read_text())
     if binding.get("binary_sha256") == before_mac:
@@ -187,8 +193,8 @@ if native_inputs.exists():
 # 2. MLB from the family's build.sh
 bs = (SNAPSHOT / f"src/extract/{slug}/build.sh").read_text()
 if slug == "stores":
-    body = ["$(SML_LIB)/basis/basis.mlb", "stores_generated.sml", "config.sml",
-            "$REPO/src/extract/commons/commons.sml", "$SRC/json.sml", "$SRC/recognizer.sml", "$SRC/main.sml"]
+    body = ["$(SML_LIB)/basis/basis.mlb", "stores_generated.sml", "config.sml"] + [
+        "$REPO/" + name for name in stores_runtime_sources(bs)]
 else:
     declaration = re.search(r'\.mlb" <<\'?(\w+)\'?\n(.*?)\n\1\n', bs, re.S)
     if not declaration:
@@ -295,8 +301,8 @@ rec["isabelle"] = g("ISABELLE"); rec["mlton"] = g("MLTON"); rec["glibc"] = g("GL
 shas = re.findall(r"^([0-9a-f]{64})  (\S+)", out, re.M)
 rec["binary_sha256"] = [s for s, f in shas if f == f"{D}/build/{RUN_ID}/{slug}"][0]
 rec["generated_sha256"] = [s for s, f in shas if f.endswith("_generated.sml")][0]
-mac_gen = REPO / f"var/{SRCDIR}/build/{gen_local}"
-rec["generated_sha256_macos"] = sha(mac_gen) if mac_gen.exists() else None
+rec["generated_sha256_macos"] = rec.get("macos_compiler_receipt", {}).get("record", {}).get("generated_sha256")
+rec["generated_sha256_expected_baseline"] = sha(generated_export)
 # Every file and acceptance rule is copied identically to the remote run.
 for local, remote in ((panel_root, R + "/specialists"), (smoke, R + "/smoke.py"),
                       (mac_dump, R + "/macos.json")):

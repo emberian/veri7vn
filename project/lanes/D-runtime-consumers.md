@@ -28,6 +28,14 @@ of the interest 205. The owner is repairing target recognition. The successful
 questions and mutation tests above remain exact observations of that candidate;
 they do not establish complete finance interpretation.
 
+The later `0656f46a…d5766` candidate answers passive, possessive and
+how-many-dollars interest requests correctly, but still answers a request for
+an interest breakdown with the single interest amount. Its dual-target request
+falls through instead of retaining an explicit unsupported-model refusal.
+`finance-D-classifier-final.json` records those observations and five rejected
+mutations of its actual retail evidence packet. That candidate is also held;
+the owner is adding a typed unsupported-target refusal.
+
 Three additional Finance questions were checked with the actual final guard
 stage enabled: negative inflation with a positive real rate, conversion of a
 negative monetary amount using positive CPI values, and negative simple
@@ -72,6 +80,22 @@ replacing numeric novelty with actual presence of a numeric response; G5's
 assignment-echo rule remains separate. This check is a pre-repair receipt,
 not evidence for the replacement guard. Zero-duration speed reaches the old
 Fusion validity explanation, whose model repair is also in progress.
+
+That route defect is now repaired in the integrated P2 and Fusion packets.
+`var/wordprob/p2-final-dispatch.json` binds the exact selected Wordprob, Math,
+Guards and Fusion binaries and records seven successful composed checks:
+zero-volume/area/distance answers, a result coinciding with an input, and the
+604 cm, 216 km/hour and 360 m mixed-unit results. The guard now tests absence
+of a numeric answer, while assignment echo remains a separate rule. Fusion's
+own final scoped checks also retain invalid zero-denominator refusals and a
+nonzero 2e-9 kWh result. The earlier failures above remain historical evidence.
+
+Two later family candidates remain held for independently found model/reader
+defects. Climate `b9f2f6df…3af2` handles complete cooling schedules, but accepts
+70.4 F and 41.4 F endpoints using an inherited half-degree tolerance. Materials
+`5feedcfa…8c9eb` exposes inverse CT operations, but treats an explicitly stated
+CT unit of mg/L as mg-min/L. Their owners are repairing these boundaries;
+neither candidate is promoted merely because its authored probes passed.
 
 The selected Stores archive's seven unfulfilled valid cooking-v3 panel cases
 were inspected without rerunning the panel. Five ask for household portions

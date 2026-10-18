@@ -36,7 +36,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import make_organ as mo  # noqa: E402
 sys.path.insert(0, str(HERE.parent / "deploy"))
-from build_receipt import deployment_receipt_issues, managed_receipt_issues, validate_export_snapshot  # noqa: E402
+from build_receipt import deployment_receipt_issues, managed_receipt_issues, validate_export_snapshot, stores_runtime_sources  # noqa: E402
 
 REPO = mo.REPO
 PLATFORMS = ("darwin-arm64", "linux-x86_64")
@@ -149,8 +149,7 @@ def required_native_sources(capture):
     slug = capture['record']['slug']
     build = capture['runtime'] / 'src/extract' / slug / 'build.sh'
     if slug == 'stores':
-        required = ['src/extract/commons/commons.sml', 'src/extract/stores/json.sml',
-                    'src/extract/stores/recognizer.sml', 'src/extract/stores/main.sml']
+        required = stores_runtime_sources(build.read_text())
     elif slug == 'guards':
         # The route-only recipe appends these three files after its heredoc.
         required = ['src/extract/guards/' + name for name in ('regex.sml', 'recognizer.sml', 'main.sml')]
@@ -470,14 +469,21 @@ def main():
     if not slugs:
         raise SystemExit("no families selected")
 
-    consumer_checker = (REPO / "tools/runtime_contract.py").read_bytes()
+    head = sh("git", "rev-parse", "HEAD").strip()
+    consumer_checker = subprocess.check_output(
+        ["git", "show", head + ":tools/runtime_contract.py"], cwd=REPO)
+    # Family owners can have next-cohort checker edits in this shared checkout.
+    # Use the same approved version to generate acceptance and execute replies.
+    approved_contract = {"__file__": str(REPO / "tools/runtime_contract.py")}
+    exec(compile(consumer_checker, approved_contract["__file__"], "exec"), approved_contract)
+    mo.acceptance = approved_contract["acceptance"]
+    mo.validate_capabilities = approved_contract["validate_capabilities"]
     prepared = {slug: load_prepared(a.prepared_dir, slug) for slug in slugs} if a.prepared_dir else {}
     for slug, capture in prepared.items():
         captured_registry = json.loads((capture["runtime"] / "src/extract/families.json").read_text())["families"]
         entry = next((e for e in captured_registry if e["family"] == slug), None)
         if entry != registry[slug]:
             raise SystemExit("prepared registry entry differs from selected package contract: " + slug)
-    head = sh("git", "rev-parse", "HEAD").strip()
     mtime = int(sh("git", "log", "-1", "--format=%ct").strip())
     stage = out / ("stage-" + a.date) / "specialists"
     if stage.parent.exists():
@@ -555,6 +561,12 @@ def main():
                     for matched in b["matching_build_receipts"]:
                         matched["prepared_source_issues"] = prepared_linux_issues(prepared[slug], matched["record"])
                         matched["prepared_relevant_sources_match"] = not matched["prepared_source_issues"]
+                        legacy_mac = matched["record"].get("generated_sha256_macos")
+                        if legacy_mac and legacy_mac != entry["generated_sml_sha256_macos"]:
+                            matched["provenance_note"] = (
+                                "Legacy generated_sha256_macos read a live checkout file and is ignored. "
+                                "The selected capture and this receipt's actual Linux "
+                                "generated_sha256 bind the selected export independently.")
                     if not any(matched["prepared_relevant_sources_match"] for matched in b["matching_build_receipts"]):
                         raise SystemExit("prepared Linux binary lacks a passed receipt covering the exact complete runtime/proof/export inputs: " + slug)
                 stores_runtime = {"src/extract/stores/main.sml", "src/extract/stores/fetch.py",
@@ -588,7 +600,8 @@ def main():
     (shared / "README.md").write_text(readme, encoding="utf-8")
     manifest = {"package": "veri7vn-specialists", "date": a.date, "veri7vn_commit": head, "families": families,
                 "consumer_runtime_contract_sha256": sha256(shared / "runtime_contract.py"),
-                "consumer_runtime_scope": "current shared integration checker; separate from each captured family proof",
+                "consumer_runtime_contract_commit": head,
+                "consumer_runtime_scope": "approved committed integration checker; separate from each captured family proof",
                 "folders": sorted(f["sid"] + "-veri7vn" for f in folders), "platforms": list(platforms),
                 "excluded": excluded, "source_snapshot_only": True}
     (shared / "MANIFEST.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")

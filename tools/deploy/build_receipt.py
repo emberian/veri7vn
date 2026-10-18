@@ -1,6 +1,18 @@
 """Untrusted receipt consistency checks; hashes and markers never override cancellation."""
 
 
+def stores_runtime_sources(build_script):
+    """The two reviewed Stores recipes, selected from the captured declaration."""
+    legacy = "str(source.parent/'commons/commons.sml')" in build_script
+    numeric = "for n in ('commons.sml','numeric.sml')" in build_script
+    if legacy == numeric:
+        raise ValueError('unknown or ambiguous captured Stores native recipe')
+    shared = ['src/extract/commons/commons.sml']
+    if numeric:
+        shared.append('src/extract/commons/numeric.sml')
+    return shared + ['src/extract/stores/' + name for name in ('json.sml', 'recognizer.sml', 'main.sml')]
+
+
 def managed_receipt_issues(receipt, session=None, require_completion=False):
     issues = []
     if not isinstance(receipt, dict):
