@@ -7,6 +7,7 @@ session Veri7vn_Chemistry_Base in base = HOL +
   options [document = false, threads = 2]
   sessions
     "HOL-Decision_Procs"
+    "Veri7vn_Commons"
   theories
     Chem_Util
     Chem_Table

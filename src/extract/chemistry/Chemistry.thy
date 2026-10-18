@@ -23,8 +23,6 @@ definition elem_mass :: "string \<Rightarrow> rat" where
 
 definition sl :: "string \<Rightarrow> String.literal" where "sl = String.implode"
 
-definition show_nat :: "nat \<Rightarrow> String.literal" where "show_nat n = lit (digits n)"
-
 section \<open>Formulas\<close>
 
 text \<open>A formula's element counts, in the order the organ's dictionary holds
