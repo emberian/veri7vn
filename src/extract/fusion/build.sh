@@ -18,8 +18,10 @@ OUT=$REPO/var/fusion
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
-rm -rf "$OUT/export"
-REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
+GEN=${GENERATED_SML:-}
+if [ -z "$GEN" ]; then
+EXPORT_DIR=$(mktemp -d "$OUT/export.XXXXXX")
+REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" EXPORT_DIR="$EXPORT_DIR" python3 -B - <<'EOF'
 import fcntl, os, subprocess
 repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT"]
 with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
@@ -27,11 +29,12 @@ with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
     env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
     subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/quantity", "-d", "src/extract/commons", "-d", "src/extract/energy", "-d", "src/extract/climate",
                     "-d", "src/extract/space", "-d", "src/extract/fusion",
-                    "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Fusion"],
+                    "-O", os.environ["EXPORT_DIR"], "-x", "*:code/**", "Veri7vn_Fusion"],
                    check=True, env=env, cwd=repo)
 EOF
-GEN=$(find "$OUT/export" -type f -name 'fusion*' | head -n 1)
-[ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
+GEN=$(find "$EXPORT_DIR" -type f -name 'fusion*' | head -n 1)
+fi
+[ -n "$GEN" ] && [ -f "$GEN" ] || { echo "no generated SML file: $GEN" >&2; exit 1; }
 cp "$GEN" "$OUT/build/fusion_generated.sml"
 
 cat > "$OUT/build/fusion.mlb" <<EOF
@@ -40,6 +43,15 @@ fusion_generated.sml
 $SRC/../commons/commons.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/fusion" "$OUT/build/fusion.mlb"
+set -- --family fusion --compiler "$MLTON"
+if [ -n "${PROOF_RECEIPT:-}" ]; then
+  set -- "$@" --from-receipt "$PROOF_RECEIPT"
+fi
+if [ "${PROOF_SNAPSHOT:-0}" = 1 ]; then
+  [ -n "${PROOF_RECEIPT:-}" ] || { echo "PROOF_SNAPSHOT requires an explicit PROOF_RECEIPT" >&2; exit 1; }
+  set -- "$@" --proof-snapshot
+fi
+"$REPO/tools/dev/native-compile" "$@" -- \
+  -output "$OUT/bin/fusion" "$OUT/build/fusion.mlb"
 ls -l "$OUT/bin/fusion"
 shasum -a 256 "$OUT/build/fusion_generated.sml" "$OUT/bin/fusion"

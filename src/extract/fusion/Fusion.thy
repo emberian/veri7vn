@@ -216,19 +216,58 @@ proof -
 qed
 
 
-section \<open>Validity of givens (network_v2.valid_given)\<close>
+section \<open>Domain of scalar magnitudes\<close>
 
 definition phys_dims :: "dimv list" where
   "phys_dims = [d_time, d_mass, d_len, d_area, d_vol, d_curr, d_charge, d_freq, d_flow]"
 
-text \<open>Which of network_v2's five validity rules a given breaks, if any.\<close>
+text \<open>The planner models nonnegative scalar magnitudes, not signed flows
+or coordinates. Zero is an ordinary magnitude; division checks belong at the
+operation which uses a denominator. Duty includes the off state (zero).
+Planetary mass and radius ratios describe a nondegenerate body and stay
+strictly positive. Temperature points/differences and money retain their
+separate interpretation. These are model-domain restrictions, not universal
+claims about what is physically possible.\<close>
 definition invalid_why :: "quantity \<Rightarrow> nat option" where
-  "invalid_why q = (if role q = Some Ro_duty \<and> \<not> (0 < amount q \<and> amount q \<le> 1) then Some 1
-     else if qdim q \<in> set phys_dims \<and> amount q \<le> 0 \<and> \<not> is_temp q then Some 2
-     else if qdim q = d_power \<and> amount q \<le> 0 then Some 3
-     else if amount q \<le> 0 \<and> qdim q \<notin> set [d_one, d_temp, d_money] \<and> \<not> is_temp q \<and> role q \<noteq> Some Ro_delta then Some 4
+  "invalid_why q = (if role q = Some Ro_duty \<and> \<not> (0 \<le> amount q \<and> amount q \<le> 1) then Some 1
+     else if qdim q \<in> set phys_dims \<and> amount q < 0 \<and> \<not> is_temp q then Some 2
+     else if qdim q = d_power \<and> amount q < 0 then Some 3
+     else if amount q < 0 \<and> qdim q \<notin> set [d_one, d_temp, d_money] \<and> \<not> is_temp q \<and> role q \<noteq> Some Ro_delta then Some 4
      else if (role q = Some Ro_earth_mass \<or> role q = Some Ro_earth_radius) \<and> amount q \<le> 0 then Some 5
      else None)"
+
+
+text \<open>Zero magnitudes are admitted independently of their dimension;
+only the explicitly nondegenerate body roles exclude zero.\<close>
+theorem zero_magnitude_admitted:
+  assumes "amount q = 0" "role q \<noteq> Some Ro_earth_mass" "role q \<noteq> Some Ro_earth_radius"
+  shows "invalid_why q = None"
+  using assms by (simp add: invalid_why_def)
+
+theorem zero_body_rejected:
+  assumes "amount q = 0" "role q = Some Ro_earth_mass \<or> role q = Some Ro_earth_radius"
+  shows "invalid_why q = Some 5"
+  using assms by (auto simp: invalid_why_def)
+
+theorem duty_outside_closed_interval:
+  "invalid_why q = Some 1 \<longleftrightarrow>
+    role q = Some Ro_duty \<and> (amount q < 0 \<or> 1 < amount q)"
+  by (auto simp: invalid_why_def)
+
+theorem nonnegative_duty_admitted:
+  assumes "role q = Some Ro_duty" "0 \<le> amount q" "amount q \<le> 1"
+  shows "invalid_why q = None"
+  using assms by (auto simp: invalid_why_def)
+
+text \<open>A zero numerator is useful. A zero denominator is rejected by
+core arithmetic, rather than by banning all zero inputs.\<close>
+theorem zero_power_product:
+  "core_eval [(0, d_power), (t, d_time)] d_energy = Some 0"
+  by (simp add: core_eval_def d_power_def d_time_def d_energy_def d_one_def Let_def)
+
+theorem zero_time_denominator:
+  "core_eval [(v, d_len), (0, d_time)] (Dim 1 0 (-1) 0 0 0) = None"
+  by (simp add: core_eval_def d_len_def d_time_def d_one_def Let_def)
 
 
 section \<open>Operations: slots, admission, outputs (network_v3.ops_v3)\<close>
@@ -401,13 +440,20 @@ definition finish :: "goal \<Rightarrow> quantity list \<Rightarrow> st \<Righta
                     Some cm \<Rightarrow> (if amount pq = 0 then FNone else FDone (FVal (cm / amount pq)))
                   | None \<Rightarrow> FNone)
         | _ \<Rightarrow> FNone))
-   | GDim gd fct oponly \<Rightarrow> (if verdict s \<noteq> None then FNone else if oponly \<and> d = 0 then FNone else
+   | GDim gd fct oponly \<Rightarrow> (if fct \<le> 0 \<or> verdict s \<noteq> None then FNone else if oponly \<and> d = 0 then FNone else
        (case core_math (rest_of s) gd of
           None \<Rightarrow> FNone
         | Some cm \<Rightarrow> (if cm / fct < 0 then FNone
             else if d = 0 \<and> length p = 1 then FSingle
             else if d = 0 \<and> (\<exists>q\<in>set p. qdim q = gd \<and> amount q = cm) then FNone
             else FDone (FVal (cm / fct))))))"
+
+text \<open>A target unit must have a positive conversion factor. Isabelle's
+total division at zero must never manufacture an answer from an invalid unit.\<close>
+theorem nonpositive_goal_factor_no_finish:
+  assumes "fct \<le> 0"
+  shows "finish (GDim gd fct oponly) p s d = FNone"
+  using assms by (simp add: finish_def)
 
 text \<open>A plan completes when it runs from the givens and FINISH accepts its
 end state at its own depth; its value is what FINISH gives.\<close>
@@ -1252,6 +1298,7 @@ lemma bfs_single: "list_ex (\<lambda>s. finish g p s d = FSingle) fr \<Longright
 
 theorem single_conversion_not_answer:
   assumes "p = [q]" "g = GDim gd fct False" "core_math [q] gd = Some cm" "0 \<le> cm / fct"
+    "0 < fct"
   shows "decide nd ops m mem g c p = SingleConversion \<or> (\<exists>i w. decide nd ops m mem g c p = Invalid i w)"
 proof -
   have "rest_of (start_st p) = [q]" using assms(1) by (simp add: rest_of_def start_st_def)

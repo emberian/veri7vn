@@ -80,12 +80,24 @@ structure Main =
 struct
   exception Bad of string
 
-  fun int_of (J.Num n) = (case IntInf.fromString n of SOME k => k | NONE => raise Bad ("not an integer: " ^ n))
+  fun int_of (J.Num n) =
+        let val digits = if size n > 0 andalso Char.contains "+-" (String.sub (n, 0))
+                         then String.extract (n, 1, NONE) else n
+            val whole = size digits > 0 andalso
+                        List.all (fn c => c >= #"0" andalso c <= #"9") (String.explode digits)
+        in if whole then
+             (case IntInf.fromString n of SOME k => k | NONE => raise Bad ("not an integer: " ^ n))
+           else raise Bad ("not a whole integer: " ^ n)
+        end
     | int_of _ = raise Bad "expected an integer"
 
   fun rat_of (J.Str s) =
         (case String.fields (fn c => c = #"/") s of
-           [a, b] => Fusion.fz_rat (int_of (J.Num a)) (int_of (J.Num b))
+           [a, b] => let val numerator = int_of (J.Num a)
+                         val denominator = int_of (J.Num b)
+                     in if denominator > 0 then Fusion.fz_rat numerator denominator
+                        else raise Bad "fraction denominator must be positive"
+                     end
          | [a] => Fusion.fz_rat (int_of (J.Num a)) 1
          | _ => raise Bad ("not a fraction: " ^ s))
     | rat_of _ = raise Bad "expected a fraction string"

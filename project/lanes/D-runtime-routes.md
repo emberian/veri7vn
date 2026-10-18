@@ -150,13 +150,15 @@ check. No G3s predicate or proof change is part of this lane.
   zero length/rate/distance duration, zero speed duration, and a correct
   measured value coinciding with an input number.
   Receipt: `var/wordprob/units-final-dispatch.json`.
-- Final P2 dispatcher probe with the same selected configuration: **5/7**
-  valid values reach the consumer (zero cylinder volume, coincident 2 km,
-  604 cm perimeter, 216 km/hour, 360 m). Two zero cases are still intercepted
-  by the old front Fusion binary before these routes: rectangle length 0 m
-  and distance with duration 0 hours. Direct Wordprob+Guards returns zero for
-  both. Fusion owner is repairing those separately; this is not a final
-  all-green dispatcher claim. Receipt: `var/wordprob/p2-final-dispatch.json`.
+- Final combined P2/Fusion dispatcher probe with the same selected
+  configuration: **7/7** valid values reach the consumer with actual guard
+  silence (zero cylinder volume, zero rectangle area, zero-duration distance,
+  coincident 2 km, 604 cm perimeter, 216 km/hour, 360 m). The first P2-only
+  run was 5/7 because the then-current Fusion binary intercepted two zero
+  inputs. After the Fusion owner's repair, the same questions all pass;
+  numeric expectations compare exact values across string/JSON-number output
+  forms. Receipt: `var/wordprob/p2-final-dispatch.json`, including all four
+  current route/network binary hashes.
 - Standalone repaired seven-case replies:
   `var/wordprob/semantic-boundary-repaired.json`.
 - The retained 924-question reference comparison reports 46 answers versus

@@ -5,8 +5,9 @@ UNTRUSTED. This file reads English into typed givens, a typed goal and context f
 verified planner (var/fusion/bin/fusion, the MLton build of Fusion.fdecide) for a decision, and
 renders the decision as Oracle7's network replies read. The reading is a port of
 upstream/root/specialists/_gate/network_v2.py (read_givens, read_goal, normalise, the units table)
-and network_v3.py (its added units and goals, read_flags_v3, attached, depth_attached), with one
-change: amounts are exact fractions (Oracle7 uses floats). Nothing here decides an answer: which
+and network_v3.py (its added units and goals, read_flags_v3, attached, depth_attached), with
+changes: exact typed numeric spans replace partial float captures, and malformed or unread
+numbers stop before the kernel. Nothing here chooses a plan: which
 plan, whether plans agree, whether a given is valid, single-conversion and echo rules, and every
 node value are the binary's. What this file can get wrong is the reading of the question
 (units, roles, which material an amount belongs to) and the layout of the reply text.
@@ -28,6 +29,9 @@ import threading
 import time
 from fractions import Fraction as Fr
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from numeric import MARKER, mask as mask_numbers
 
 REPO = Path(__file__).resolve().parents[2]
 BINARY = REPO / "var" / "fusion" / "bin" / "fusion"
@@ -79,8 +83,9 @@ _u("wh|watt-hour|watt-hours", 3600, ENERGY)
 _u("j|joule|joules", 1, ENERGY)
 _u("kj|kilojoule|kilojoules", 1000, ENERGY)
 _u("mph", Fr("0.44704"), VEL)
-_u("m/s", 1, VEL)
-_u("km/h|kph", 1 / Fr("3.6"), VEL)
+_u("m/s|m/sec|m/second|m/seconds|meters per second|metres per second", 1, VEL)
+_u("km/h|km/hr|km/hour|km/hours|kph|kilometers per hour|kilometres per hour", 1 / Fr("3.6"), VEL)
+_u("km/s|km/sec|km/second|km/seconds", 1000, VEL)
 _u("m/s^2|m/s2|m/s²|metres per second squared|meters per second squared", 1, ACC)
 _u("m|metre|metres|meter|meters", 1, LEN)
 _u("km|kilometre|kilometres|kilometer|kilometers", 1000, LEN)
@@ -110,14 +115,7 @@ _u("cent|cents", Fr("0.01"), MONEY)
 
 NUMW = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
         "twice": 2, "double": 2, "triple": 3, "half": Fr(1, 2)}
-NUM = r"-?\d[\d,]*(?:\.\d+)?(?:\s*(?:x|×)\s*10\^?\s*-?\d+)?"
-
-
-def fnum(s):
-    """network_v2.fnum, exact"""
-    s = s.replace(",", "").replace("×", "x")
-    m = re.match(r"(-?[\d.]+)\s*x\s*10\^?\s*(-?\d+)", s)
-    return Fr(m.group(1)) * Fr(10) ** int(m.group(2)) if m else Fr(s)
+NUM = MARKER
 
 
 def unit_lookup(u):
@@ -133,17 +131,19 @@ class Q:
 
 # regexes compiled at network_v2's import time use v2's unit alternation; network_v3 recompiles RX_QTY and RX_GOAL_UNIT
 UNIT_ALT_V2 = "|".join(sorted((re.escape(k) for k in UNITS), key=len, reverse=True))
-RX_RANGE = re.compile(r"\bfrom\s+(%s)\s*(%s)?\s+(?:up\s+)?to\s+(%s)\s*(%s)(?![a-z])" % (NUM, UNIT_ALT_V2, NUM, UNIT_ALT_V2), re.I)
+# Never reinterpret the numerator of an unsupported rate as an ordinary unit.
+UNIT_END = r"(?![a-z0-9_^²³])(?!\s*(?:/|per\b))"
+RX_RANGE = re.compile(r"\bfrom\s+(%s)\s*(%s)?\s+(?:up\s+)?to\s+(%s)\s*(%s)" % (NUM, UNIT_ALT_V2, NUM, UNIT_ALT_V2) + UNIT_END, re.I)
 RX_MONEY = re.compile(r"\$\s*(%s)" % NUM)
 RX_PRICE = re.compile(r"(?:\$\s*(%s)|(%s)\s*cents?)\s*(?:per|a|/)\s*(kwh|kilowatt-hour|wh)" % (NUM, NUM), re.I)
-RX_TEMP = re.compile(r"(-?\d+(?:\.\d+)?)\s*(?:°\s*|degrees?\s+)?(c|f|celsius|fahrenheit)\b", re.I)
+RX_TEMP = re.compile(r"(%s)\s*(?:°\s*|degrees?\s+)?(c|f|celsius|fahrenheit)\b" % NUM + UNIT_END, re.I)
 RX_PER_DAY = re.compile(r"(%s)\s*(hours?|minutes?|hrs?|mins?)\s+(?:a|per|each|every)\s+(day|week)" % NUM, re.I)
 RX_DAYS_PER_WEEK = re.compile(r"(%s)\s*days?\s+(?:a|per|each)\s+week" % NUM, re.I)
 RX_DAYS_SPAN = re.compile(r"(?:for\s+|a\s+|over\s+)?(%s)[- ]days?(?:\s+month)?" % NUM, re.I)
 RX_YEAR = re.compile(r"\b(?:for|over)\s+a\s+year\b", re.I)
-RX_RATIO = re.compile(r"\b(twice|double|triple|half|\d+(?:\.\d+)?\s*times)\s+(?:the\s+)?earth'?s\s+(mass|radius)", re.I)
-RX_RATIO_UNITS = re.compile(r"\b(\d+(?:\.\d+)?)\s+earth\s+(mass|masses|radius|radii)\b", re.I)
-RX_RATIO_ITS = re.compile(r"\b(twice|double|triple|half|\d+(?:\.\d+)?\s*times)\s+(?:the\s+|its\s+)(mass|radius)", re.I)
+RX_RATIO = re.compile(r"\b(twice|double|triple|half|%s\s*times)\s+(?:the\s+)?earth'?s\s+(mass|radius)" % NUM, re.I)
+RX_RATIO_UNITS = re.compile(r"\b(%s)\s+earth\s+(mass|masses|radius|radii)\b" % NUM, re.I)
+RX_RATIO_ITS = re.compile(r"\b(twice|double|triple|half|%s\s*times)\s+(?:the\s+|its\s+)(mass|radius)" % NUM, re.I)
 RX_EMIT = re.compile(r"(?:each|every|per)\s+kwh\s+(?:releases|emits|produces)\s+(%s)\s*(kg|g|grams?|kilograms?)" % NUM, re.I)
 RX_EMIT2 = re.compile(r"(%s)\s*(kg|g)\s+(?:of\s+)?co2\s+per\s+kwh" % NUM, re.I)
 RX_COEF = re.compile(r"(?:coefficient|expansion)[^.?]*?(%s)\s*(?:per|/)\s*(?:degree|°)\s*c" % NUM, re.I)
@@ -166,19 +166,31 @@ _u("n/m|newtons per metre|newtons per meter", 1, STIFF)
 _u("mj|megajoule|megajoules", 10 ** 6, ENERGY)
 _u("gj|gigajoule|gigajoules", 10 ** 9, ENERGY)
 UNIT_ALT = "|".join(sorted((re.escape(k) for k in UNITS), key=len, reverse=True))
-RX_QTY = re.compile(r"(?<![\w.])(%s)\s*[- ]?\s*(%s)(?![a-z])" % (NUM, UNIT_ALT), re.I)
-RX_GOAL_UNIT = re.compile(r"\b(?:how many|in|into|as|to)\s+(?:us\s+)?(%s)(?![a-z])" % UNIT_ALT, re.I)
+RX_QTY = re.compile(r"(?<![\w.])(%s)\s*[- ]?\s*(%s)" % (NUM, UNIT_ALT) + UNIT_END, re.I)
+RX_GOAL_UNIT_PREFIX = re.compile(r"\b(?:how many|in|into|as|to)\s+(?:us\s+)?(%s)(?![a-z])" % UNIT_ALT, re.I)
+RX_GOAL_UNIT = re.compile(r"\b(?:how many|in|into|as|to)\s+(?:us\s+)?(%s)" % UNIT_ALT + UNIT_END, re.I)
 
 
 def read_givens(text):
     """network_v2.read_givens, exact amounts. Consumed spans are masked so one number is read once."""
-    t = str(text)
+    t, numbers, malformed = mask_numbers(str(text))
+    if malformed:
+        return [], {"malformed_numbers": [
+            {"start": token.start, "stop": token.stop, "literal": str(text)[token.start:token.stop],
+             "reason": token.reason} for token in malformed]}
+
+    def fnum(marker):
+        return numbers[marker.lower()][1]
+
+    def shown(match):
+        return re.sub(NUM, lambda token: numbers.get(token.group().lower(), (token.group(),))[0],
+                      match.group(0), flags=re.I)
     used = [False] * len(t)
     out = []
 
     def take(m, grp=0):
         a, b = m.span(grp)
-        if any(used[a:b]):
+        if any(used[a:b]) or any(token.lower() not in numbers for token in re.findall(NUM, m.group(0), re.I)):
             return False
         for i in range(a, b):
             used[i] = True
@@ -189,100 +201,101 @@ def read_givens(text):
         if not u or u[1] == TEMP or (m.group(2) and unit_lookup(m.group(2)) != u):
             continue
         if take(m):
-            out.append(Q(abs(fnum(m.group(3)) - fnum(m.group(1))) * u[0], u[1], m.group(0), "delta"))
+            out.append(Q(abs(fnum(m.group(3)) - fnum(m.group(1))) * u[0], u[1], shown(m), "delta"))
     for m in RX_PRICE.finditer(t):
         if take(m):
             v = fnum(m.group(1)) if m.group(1) else fnum(m.group(2)) / 100
             per = UNITS[m.group(3).lower()][0]
-            out.append(Q(v / per, dmul(MONEY, ENERGY, -1), m.group(0), "price"))
+            out.append(Q(v / per, dmul(MONEY, ENERGY, -1), shown(m), "price"))
     for rx in (RX_EMIT, RX_EMIT2):
         for m in rx.finditer(t):
             if take(m):
                 f = UNITS[m.group(2).lower().rstrip("s") if m.group(2).lower() not in UNITS else m.group(2).lower()][0]
-                out.append(Q(fnum(m.group(1)) * f / 3600000, dmul(MASS, ENERGY, -1), m.group(0), "emission"))
+                out.append(Q(fnum(m.group(1)) * f / 3600000, dmul(MASS, ENERGY, -1), shown(m), "emission"))
     for m in RX_COEF.finditer(t):
         if take(m, 1):
-            out.append(Q(fnum(m.group(1)), INV_TEMP, m.group(0), "coefficient"))
+            out.append(Q(fnum(m.group(1)), INV_TEMP, shown(m), "coefficient"))
     for m in RX_SPECHEAT.finditer(t):
         if take(m, 1):
-            out.append(Q(fnum(m.group(1)), D(m=2, s=-2, K=-1), m.group(0), "specific_heat"))
+            out.append(Q(fnum(m.group(1)), D(m=2, s=-2, K=-1), shown(m), "specific_heat"))
     for m in RX_PER_DAY.finditer(t):
         if take(m):
             dur = fnum(m.group(1)) * UNITS[m.group(2).lower()][0]
             span = UNITS[m.group(3).lower()][0]
-            out.append(Q(dur / span, DIMLESS, m.group(0), "duty"))
+            out.append(Q(dur / span, DIMLESS, shown(m), "duty"))
     for m in RX_DAYS_PER_WEEK.finditer(t):
         if take(m):
-            out.append(Q(fnum(m.group(1)) / 7, DIMLESS, m.group(0), "duty"))
+            out.append(Q(fnum(m.group(1)) / 7, DIMLESS, shown(m), "duty"))
     for m in RX_RATIO.finditer(t):
         if take(m):
             w = m.group(1).lower()
             v = NUMW.get(w, None) or fnum(w.split()[0])
-            out.append(Q(v, DIMLESS, m.group(0), "earth_" + m.group(2).lower()))
+            out.append(Q(v, DIMLESS, shown(m), "earth_" + m.group(2).lower()))
     for m in RX_RATIO_UNITS.finditer(t):
         if take(m):
             kind = "mass" if m.group(2).lower().startswith("mass") else "radius"
-            out.append(Q(fnum(m.group(1)), DIMLESS, m.group(0), "earth_" + kind))
+            out.append(Q(fnum(m.group(1)), DIMLESS, shown(m), "earth_" + kind))
     for m in RX_RATIO_ITS.finditer(t):
         if take(m):
             w = m.group(1).lower()
             v = NUMW.get(w, None) or fnum(w.split()[0])
-            out.append(Q(v, DIMLESS, m.group(0), "earth_" + m.group(2).lower()))
+            out.append(Q(v, DIMLESS, shown(m), "earth_" + m.group(2).lower()))
     for m in RX_ACH.finditer(t):
         if take(m):
-            out.append(Q(fnum(m.group(1)) / 3600, FREQ, m.group(0), "ach"))
+            out.append(Q(fnum(m.group(1)) / 3600, FREQ, shown(m), "ach"))
     for m in RX_TALL.finditer(t):
         if take(m):
             f = unit_lookup(m.group(2))[0]
-            out.append(Q(fnum(m.group(1)) * f, LEN, m.group(0), "height"))
+            out.append(Q(fnum(m.group(1)) * f, LEN, shown(m), "height"))
     for m in RX_ACROSS.finditer(t):
         if take(m):
             f = unit_lookup(m.group(2))[0]
-            out.append(Q(fnum(m.group(1)) * f, LEN, m.group(0), "diameter"))
+            out.append(Q(fnum(m.group(1)) * f, LEN, shown(m), "diameter"))
     for m in RX_NIGHTS.finditer(t):
         if take(m, 1) and take(m, 2):
-            out.append(Q(fnum(m.group(1)) * UNITS[m.group(2).lower()][0], TIME, m.group(0), "per_unit_" + m.group(3).lower()))
+            out.append(Q(fnum(m.group(1)) * UNITS[m.group(2).lower()][0], TIME, shown(m), "per_unit_" + m.group(3).lower()))
     for m in RX_YEAR.finditer(t):
         if take(m):
-            out.append(Q(365 * 86400, TIME, m.group(0), "span"))
+            out.append(Q(365 * 86400, TIME, shown(m), "span"))
     temps = []
     for m in RX_TEMP.finditer(t):
         a, b = m.span()
-        if any(used[a:b]):
+        if not take(m):
             continue
         u = m.group(2).lower()[0]
         v = fnum(m.group(1))
         k = (v + Fr("273.15")) if u == "c" else ((v - 32) * 5 / 9 + Fr("273.15"))
         for i in range(a, b):
             used[i] = True
-        temps.append(Q(k, TEMP, m.group(0), "temp", temp_point=True))
+        temps.append(Q(k, TEMP, shown(m), "temp", temp_point=True))
     out.extend(temps)
     for m in RX_MONEY.finditer(t):
         if take(m):
-            out.append(Q(fnum(m.group(1)), MONEY, m.group(0), "money"))
+            out.append(Q(fnum(m.group(1)), MONEY, shown(m), "money"))
     for m in RX_QTY.finditer(t):
         a, b = m.span()
-        if any(used[a:b]):
+        if not take(m):
             continue
         u = unit_lookup(m.group(2))
         if not u:
             continue
         for i in range(a, b):
             used[i] = True
-        out.append(Q(fnum(m.group(1)) * u[0], u[1], m.group(0), ""))
+        out.append(Q(fnum(m.group(1)) * u[0], u[1], shown(m), ""))
     for m in RX_DAYS_SPAN.finditer(t):
         a, b = m.span(1)
-        if any(used[a:b]):
+        if not take(m):
             continue
         for i in range(m.start(), m.end()):
             used[i] = True
-        out.append(Q(fnum(m.group(1)) * 86400, TIME, m.group(0), "span"))
+        out.append(Q(fnum(m.group(1)) * 86400, TIME, shown(m), "span"))
     flags = {"toward": bool(TOWARD.search(t)), "away": bool(AWAY.search(t))}
     mm = RX_MATERIAL.search(t)
     flags["material"] = mm.group(1).lower().replace("aluminum", "aluminium") if mm else ""
     flags["gasoline"] = bool(re.search(r"\b(?:gasoline|petrol|gas)\b|\bmpg\b|miles per gallon", t, re.I))
     flags["melt"] = bool(re.search(r"\bmelt\w*\b", t, re.I)) and bool(re.search(r"\bice\b", t, re.I))
-    unread = [m.group(0) for m in re.finditer(r"(?<![A-Za-z^\d.,])\d+(?:[.,]\d+)*", t) if not all(used[m.start():m.end()])]
+    unread = [numbers[m.group().lower()][0] for m in re.finditer(NUM, t, re.I)
+              if m.group().lower() in numbers and not all(used[m.start():m.end()])]
     flags["unread_numbers"] = unread
     return out, flags
 
@@ -322,6 +335,9 @@ def read_goal(text):
     if RX_COLD_BOOL.search(t) and RX_BOOL_ASK.search(t):
         return ("bool", "cold_hold")
     m = RX_GOAL_UNIT.search(ask)
+    prefix = RX_GOAL_UNIT_PREFIX.search(ask)
+    if prefix and (m is None or m.start() != prefix.start()):
+        return None  # A fallback goal phrase must not erase an unsupported rate.
     if m:
         u = unit_lookup(m.group(1))
         if u:
@@ -446,8 +462,11 @@ def fr_of(s):
     return Fr(int(a), int(b))
 
 
-INVALID_TEXT = {1: "a duty of %s is more than the whole day", 2: "%s is not a physical amount",
-                3: "%s is not a physical power", 4: "%s is not a physical amount", 5: "%s is not a physical body"}
+INVALID_TEXT = {1: "a duty of %s is outside zero to the full period",
+                2: "%s is outside this planner's nonnegative-magnitude model",
+                3: "%s is outside this planner's nonnegative-power model",
+                4: "%s is outside this planner's nonnegative-magnitude model",
+                5: "%s does not describe a positive planetary mass or radius"}
 
 
 def nodes_of(plan, goal):
@@ -543,6 +562,13 @@ class Fusion:
         goal = read_goal(text)
         base = {"provenance": {"goal": None if goal is None else [str(x) for x in goal[:3]],
                                "givens": ["%s %s %s" % (q.text, q.role or "-", frac(q.v)) for q in givens]}}
+        if flags.get("malformed_numbers"):
+            base["provenance"]["malformed_numbers"] = flags["malformed_numbers"]
+            return dict(base, status="withheld", response="", path="veri7vn:fusion>declined:malformed_numbers",
+                        kind="malformed_numbers")
+        if flags.get("unread_numbers"):
+            base["provenance"]["unread_numbers"] = flags["unread_numbers"]
+            return dict(base, status="withheld", response="", path="veri7vn:fusion>declined:unread_numbers", kind="unread_numbers")
         if goal is None:
             return dict(base, status="withheld", response="", path="veri7vn:fusion>declined:no_goal", kind="no_goal")
         if not givens:
@@ -555,13 +581,14 @@ class Fusion:
         base["provenance"].update(binary_ms=round(1000 * (time.perf_counter() - t0), 3), decision=out, ctx=ctx,
                                   kernel="Fusion.fdecide", session="Veri7vn_Fusion", agree=self.mode)
         oc = out.get("outcome")
+        if "error" in out or oc == "error":
+            return dict(base, status="withheld", response="", path="veri7vn:fusion>error",
+                        kind="error", error=out.get("error", "planner failed"))
         if oc == "invalid":
             qq = givens[int(out["given"])]
             reason = INVALID_TEXT[int(out["rule"])] % qq.text
             return dict(base, status="withheld", path="veri7vn:fusion>validity", kind="validity",
                         response="I can't work that out as asked: %s." % reason)
-        if flags.get("unread_numbers"):
-            return dict(base, status="withheld", response="", path="veri7vn:fusion>declined:unread_numbers", kind="unread_numbers")
         if oc != "answer":
             return dict(base, status="withheld", response="", path="veri7vn:fusion>declined:%s" % oc, kind=oc or "error")
         plan = out["plan"]
@@ -571,14 +598,21 @@ class Fusion:
             say = "yes" if out["bool"] else "no"
             return dict(base, status="answered", response="%s (path: %s)" % (say, " → ".join(nodes)), path=path, kind="fusion")
         val = fr_of(out["value"])
+        try:
+            numeric_value = float(val)
+        except OverflowError:
+            numeric_value = None
+        if numeric_value is None or (val != 0 and numeric_value == 0):
+            return dict(base, status="withheld", response="", path="veri7vn:fusion>declined:unrepresentable_result",
+                        kind="unrepresentable_result")
         if goal[0] == "count":
-            sentence = "That is %s %s." % (g6(round(float(val), 4)), goal[1])
+            sentence = "That is %s %s." % (g6(numeric_value), goal[1])
         else:
             unit = goal[2]
-            say = ("$%.2f" % float(val)) if unit == "$" else "%s %s" % (g6(round(float(val), 6)), unit)
+            say = ("$%.2f" % numeric_value) if unit == "$" else "%s %s" % (g6(numeric_value), unit)
             sentence = "The answer is %s." % say
         return dict(base, status="answered", response="%s (path: %s)" % (sentence, " → ".join(nodes)), path=path,
-                    value=float(val), kind="fusion")
+                    value=numeric_value, kind="fusion")
 
 
 def main():

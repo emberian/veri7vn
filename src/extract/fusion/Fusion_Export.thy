@@ -152,7 +152,10 @@ export_code fdecide fz_trace fz_rat fz_num fz_dim fz_q fz_ctx v3_material v3_fue
   in SML module_name Fusion file_prefix fusion
 
 ML \<open>
-  val theorems = [@{thm core_eval_sound}, @{thm every_given_used_once},
+  val theorems = [@{thm zero_magnitude_admitted}, @{thm zero_body_rejected},
+    @{thm duty_outside_closed_interval}, @{thm nonnegative_duty_admitted},
+    @{thm zero_power_product}, @{thm zero_time_denominator},
+    @{thm nonpositive_goal_factor_no_finish}, @{thm core_eval_sound}, @{thm every_given_used_once},
     @{thm answer_has_complete_plan}, @{thm depth_bound}, @{thm search_complete},
     @{thm answer_all_shallowest_agree}, @{thm disagreement_never_picked}, @{thm decide_on_search},
     @{thm pairwise_order_independent}, 

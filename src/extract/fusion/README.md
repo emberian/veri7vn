@@ -99,6 +99,25 @@ those theories use the same short names (`rl`, `dec_val`, `outcome`, `Exact`, `r
 
 ## Deliberate differences from Oracle7
 
+The scalar validity model now admits zero magnitudes and zero duty. Duty lies
+between zero and one, including both endpoints; planetary mass/radius ratios
+remain positive. Core arithmetic rejects a zero denominator where it is used,
+and a target unit must have a positive conversion factor. A negative magnitude
+is described as outside this planner's model, rather than physically impossible:
+signed currents and flows exist, but this planner does not model their direction.
+The laws `zero_magnitude_admitted`, `zero_body_rejected`,
+`duty_outside_closed_interval`, `nonnegative_duty_admitted`,
+`zero_power_product`, `zero_time_denominator`, and
+`nonpositive_goal_factor_no_finish` state these boundaries and are included in
+the export's oracle scan. Their current build status is recorded in
+`project/lanes/D-runtime-fusion.md`.
+
+The English reader uses typed numeric spans from `tools/fusion/numeric.py`.
+Decimal, scientific and rational literals are consumed whole: `1/0` is malformed,
+never a new given of `0 m`. Malformed or unread numbers stop before the model
+receives a partial question. Issued markers bind exact values to roles; a marker
+typed by a user cannot supply an amount. This reader remains untrusted Python.
+
 1. **The pairwise agreement rule is the default.** See above.
 2. **Duplicate states.** When two search states are the same, Oracle7 keeps one. It decides
    "the same" by values and dimensions only. The model decides by the whole quantity (role,
@@ -118,15 +137,31 @@ those theories use the same short names (`rl`, `dec_val`, `outcome`, `Exact`, `r
 ## Build and run
 
 ```sh
-python3 tools/dev/check-native --session Veri7vn_Fusion --session-root src/extract/fusion \
-  --session-root src/extract/quantity --expect 'VERI7VN_FUSION PASS' --timeout 600
-sh src/extract/fusion/build.sh            # var/fusion/bin/fusion
+python3 tools/dev/remote-build persvati src/extract/fusion Veri7vn_Fusion \
+  -d src/extract/quantity -d src/extract/commons -d src/extract/energy \
+  -d src/extract/climate -d src/extract/space --expect 'VERI7VN_FUSION PASS'
+PROOF_RECEIPT=/path/to/passed/receipt.json GENERATED_SML=/path/to/checked/fusion.ML \
+  sh src/extract/fusion/build.sh
+# The native helper binds the actual compiler inputs to a managed proof receipt.
 echo '{"id": "1", "q": "How much energy in MJ is released by burning 40 litres of diesel?"}' \
   | python3 tools/fusion/answerer.py
-python3 tools/fusion/measure.py           # var/fusion/measure.json
+python3 -B tools/fusion/test_numeric.py
+python3 -B tools/fusion/test_validity.py --binary var/fusion/bin/fusion
 ```
 
-## Current result
+For an explicitly selected retained dependency snapshot, also set
+`PROOF_SNAPSHOT=1`. The helper checks the complete saved proof source inventory
+and generated export, and records differences from the live source tree. This
+does not claim that current dependency edits were proved. Future Fusion bundles
+must copy `tools/fusion/numeric.py` beside `answerer.py`.
+
+## Earlier comparison and current repair
+
+The figures below are the earlier H/H2 capture. The current numeric and zero-
+magnitude repair, its selected proof inputs and actual checks are reported in
+[D-runtime-fusion](../../../project/lanes/D-runtime-fusion.md). In particular,
+domain-refusal wording now describes the model's restriction, and small nonzero
+answers are no longer rounded to zero before significant-digit formatting.
 
 These are the 102 core-panel questions that Oracle7 answers by fusion. 84 go through its
 `network` route and 18 through `network3`.
@@ -135,11 +170,12 @@ These are the 102 core-panel questions that Oracle7 answers by fusion. 84 go thr
   (60 since lane H; 41 since lane H2: heating and melting with thermo, gasoline CO2 with
   carboncapture, planet weight with planetary).
 - **0 wrong.**
-- **1 declined**: it needs the geometry specialist (a cylinder's volume), which has no verified
-  kernel in this tree yet.
+- **1 declined**: it needs a geometry operation (a cylinder's volume) that is
+  not connected to Fusion's operation catalogue.
 
-The 12 questions that Oracle7's network refuses as impossible (26 hours in a day, a negative
-fall height) are refused with the same text. Fusion never changes a verdict on the 26
-specialist panels of the four families it calls (2,701 items). Details are in the
+In that capture, the 12 questions that Oracle7's network refused as impossible
+(26 hours in a day, a negative fall height) were refused with the same text.
+There were no changed verdicts on the 26 specialist panels of the four families
+it called (2,701 items). Details are in the
 [lane H handoff](../../../project/lanes/H-fusion.md) and the
 [lane H2 handoff](../../../project/lanes/H2-fusion.md).
