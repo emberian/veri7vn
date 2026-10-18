@@ -449,8 +449,15 @@ struct
         let
           val t = collapse text
           val low = lower t
+          (* Prefer an identifier immediately following its own label. The old
+             search could consume the target ISBN-13 label and then read the
+             "10" in the later ISBN-10 label as part of the identifier. *)
+          val isbnMatch =
+            case search "\\b(isbn(?:-1[03])?|issn)\\b\\s*[:#]?\\s*([0-9][0-9 -]{5,20}[0-9x]?)" low of
+              SOME m => SOME m
+            | NONE => search "\\b(isbn(?:-1[03])?|issn)\\b[^0-9x]{0,20}([0-9][0-9 -]{5,20}[0-9x]?)" low
           val isbn =
-            case search "\\b(isbn(?:-1[03])?|issn)\\b[^0-9x]{0,20}([0-9][0-9 -]{5,20}[0-9x]?)" low of
+            case isbnMatch of
               NONE => NONE
             | SOME m =>
                 let
@@ -497,7 +504,9 @@ struct
           val low = lower (collapse text)
           fun topic () =
             if has "\\bwhich amendment\\b|\\bwhat amendment\\b|\\bwhich constitutional amendment\\b|\\bwhat constitutional amendment\\b" low then
-              let val hits = map (fn rx => has rx low) Rules.topics
+              let val hits = ListPair.mapEq (fn (i, rx) => has rx low orelse
+                    (i = 6 andalso has "\\blimit\\w*\\b.*\\bpresident\\b.*\\btwo terms\\b" low))
+                    (List.tabulate (length Rules.topics, fn i => i), Rules.topics)
               in if List.exists (fn x => x) hits then ret (SOME (H.vreply (H.VTopic hits))) else ret NONE end
             else Fall
           fun amend () =
@@ -519,7 +528,23 @@ struct
                 then ret (SOME (H.vreply (H.VArticle (mkNat (roman (g1 low ar)))))) else Fall
             | NONE => Fall
           fun fact () =
-            let val hits = map (fn rx => has rx low) Rules.facts
+            let
+              (* These are alternate statements of the same structural counts;
+                 every selected value still comes from Government.fact_rows. *)
+              val count = has "\\bhow many\\b|\\btotal number\\b|\\bsize of\\b" low
+              val qualified = has "\\b(?:from|representing|france|french|canada|canadian|female|male|democratic|republican)\\b|\\b(?:in|before|after|during) (?:1[0-9]{3}|20[0-9]{2})\\b" low
+              fun extra i = not qualified andalso (case i of
+                  0 => count andalso has "\\b(?:us|united states) senators\\b" low
+                | 1 => count andalso has "\\bhouse of representatives\\b" low
+                | 2 => count andalso has "\\belectors\\b.*\\belectoral college\\b" low
+                | 3 => count andalso has "\\belectoral votes\\b.*\\b(?:become president|win the presidency)\\b" low
+                | 4 => count andalso has "\\bconstitution\\b.*\\bamended\\b" low
+                | 5 => count andalso has "\\bjudges\\b.*\\b(?:us |united states )?supreme court\\b" low
+                | 6 => has "\\bhow many years\\b.*\\bsenator\\b.*\\bper term\\b" low
+                | 9 => has "\\byoungest age\\b.*\\bbecome president\\b" low
+                | _ => false)
+              val hits = ListPair.mapEq (fn (i, rx) => not qualified andalso (has rx low orelse extra i))
+                (List.tabulate (length Rules.facts, fn i => i), Rules.facts)
             in if List.exists (fn x => x) hits then ret (SOME (H.vreply (H.VFact hits))) else ret NONE end
         in
           if has "\\b(?:democrat|republican|biden|trump|obama|should|better|best|worst|vote for|opinion|agree)\\w*\\b" low then NONE

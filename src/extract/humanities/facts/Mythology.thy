@@ -221,6 +221,11 @@ proof
     by blast
 qed
 
+theorem g2r_in_r2g:
+  "r \<in> set g2r_rows \<Longrightarrow> snd (snd (snd r)) \<noteq> fst r \<Longrightarrow>
+     (snd (snd (snd r)), fst (snd (snd r)), fst (snd r)) \<in> set r2g_rows"
+  by (auto simp: r2g_rows_def)
+
 definition pantheon_name :: "pantheon \<Rightarrow> String.literal" where
   "pantheon_name p = (case p of P_greek \<Rightarrow> STR ''Greek'' | P_roman \<Rightarrow> STR ''Roman'' | P_norse \<Rightarrow> STR ''Norse'')"
 

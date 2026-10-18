@@ -22,7 +22,7 @@ ML \<open>
     @{thm relative_value}, @{thm scale_value}, @{thm scale_double_accidental},
     @{thm semitones_named}, @{thm semitones_named_none}, @{thm between_semitones},
     @{thm between_interval}, @{thm midi_note_value}, @{thm midi_note_impossible},
-    @{thm midi_number_value}, @{thm midi_number_underspecified}, @{thm freq_underspecified},
+    @{thm midi_kernel_roundtrip}, @{thm midi_number_value}, @{thm midi_number_underspecified}, @{thm freq_underspecified},
     @{thm freq_value}, @{thm cents_value}, @{thm duration_value},
     @{thm mreply_answered_iff}, @{thm mreply_silent}, @{thm mreply_withheld_names_decline}];
   val oracles = Thm_Deps.all_oracles theorems;

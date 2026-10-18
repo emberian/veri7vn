@@ -4,8 +4,7 @@
 # Precondition: the Isabelle session has passed check-native (that is where the
 # theorems are proved and the code is generated); this script never builds
 # Isabelle sessions. It
-#   1. reads the generated SML out of the session database (isabelle export -n,
-#      no build) while holding the shared native build lock,
+#   1. reads the generated SML from a completed remote build export,
 #   2. compiles generated kernel + untrusted recognizer + driver with the MLton
 #      that ships inside Isabelle,
 #   3. writes var/humanities/bin/humanities and prints its size.
@@ -18,19 +17,9 @@ OUT=$REPO/var/humanities
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
-rm -rf "$OUT/export"
-REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
-import fcntl, os, subprocess
-repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT"]
-with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
-    fcntl.flock(lock, fcntl.LOCK_EX)
-    env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
-    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/humanities", "-d", "src/extract/commons",
-                    "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Humanities"],
-                   check=True, env=env, cwd=repo)
-EOF
-GEN=$(find "$OUT/export" -type f -name 'humanities*' | head -n 1)
-[ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
+# Use the checked remote export; an explicit path pins an immutable receipt.
+GEN=${HUMANITIES_GEN:-$OUT/export-remote/Veri7vn_Humanities/Veri7vn_Humanities.Humanities_Export/code/humanities.ML}
+[ -f "$GEN" ] || { echo "missing checked export: $GEN (run remote-build first)" >&2; exit 1; }
 cp "$GEN" "$OUT/build/humanities_generated.sml"
 
 cat > "$OUT/build/humanities.mlb" <<EOF
@@ -44,3 +33,18 @@ EOF
 "$MLTON" -output "$OUT/bin/humanities" "$OUT/build/humanities.mlb"
 ls -l "$OUT/bin/humanities"
 shasum -a 256 "$OUT/build/humanities_generated.sml" "$OUT/bin/humanities"
+
+REPO="$REPO" SRC="$SRC" OUT="$OUT" GEN="$GEN" python3 -B - <<'PYREC'
+import hashlib, json, os
+from pathlib import Path
+src, out, repo, gen = map(Path, (os.environ[k] for k in ('SRC','OUT','REPO','GEN')))
+def digest(p): return hashlib.sha256(p.read_bytes()).hexdigest()
+inputs = [gen, repo/'src/extract/commons/commons.sml', *sorted(src.glob('*.sml'))]
+theories = [src/'ROOT', *sorted(src.rglob('*.thy'))]
+record = {'binary_sha256':digest(out/'bin'/src.name),
+          'generated_export':str(gen.resolve()),
+          'inputs_sha256':{str(p.resolve()):digest(p) for p in inputs},
+          'theories_sha256':{str(p.relative_to(repo)):digest(p) for p in theories},
+          'note':'Compilation inputs; proof evidence remains the completed remote Isabelle receipt.'}
+(out/'build/compile-inputs.json').write_text(json.dumps(record,indent=2)+'\n')
+PYREC

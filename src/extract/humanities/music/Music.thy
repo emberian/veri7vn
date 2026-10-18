@@ -822,6 +822,20 @@ theorem midi_number_value:
      (\<exists>oct. oc = Some oct \<and> k = midi_num n oct) \<and> 0 \<le> k \<and> k \<le> 127"
   by (auto split: if_splits option.splits)
 
+text \<open>Enharmonic spelling can cross an octave boundary: C-flat4 is B3 and
+B-sharp4 is C5. The inverse returns the canonical spelling with this carry.\<close>
+theorem midi_kernel_roundtrip:
+  assumes "mkernel (MMidiNum n (Some oct)) = OMidiNum k"
+      "mkernel (MMidiNote k) = OMidiNote n' oct'"
+  shows "pcn n' = pcn n \<and> oct' = oct + (nat_pc (fst n) + snd n) div 12"
+proof -
+  have k: "k = midi_num n oct" using midi_number_value[OF assms(1)] by auto
+  have eq: "midi_num n' oct' = k" using midi_note_value[OF assms(2)] by blast
+  have pc: "pcn n' = pcn n" using midi_pitch[of n' oct'] midi_pitch[of n oct] eq k by simp
+  have oct: "oct' = k div 12 - 1" using assms(2) by (auto split: if_splits)
+  show ?thesis using pc oct k by (simp add: midi_num_def add.commute add.left_commute add.assoc)
+qed
+
 theorem midi_number_underspecified: "mkernel (MMidiNum n None) = Decline UnderMidi"
   by simp
 

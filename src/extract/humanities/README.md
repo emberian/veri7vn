@@ -16,3 +16,17 @@ statements and limits: `../../project/lanes/S16-humanities.md`.
 
 Build: see the handoff's reproduce section. The recognizer (`recognizer.sml`, `../commons/commons.sml`, `rules.sml`) and
 `main.sml` are untrusted.
+
+
+The 18 October continuation completes the existing ISBN conversion and government
+structural-count question forms. It keeps the values in the same HOL kernels.
+The MIDI round-trip statement accounts for enharmonic octave crossings: Cb4
+comes back as B3, while B#4 comes back as C5. Grammar silence covers every active
+lookup kind. These statements are checked by the family export's final oracle scan.
+
+`beyond_check.py` runs the shipped generators at caller-selected seed offsets
+under `var`, using the specialists' own scorers. These generators share their
+author's assumptions and fixed phrasings. `check_probes.py` runs the separate
+implementation-author probes in `beyond_probes.json`; these do not establish
+independent language coverage. Current evidence and outstanding work are in
+`project/lanes/C-symbolic-facts-humanities.md`.

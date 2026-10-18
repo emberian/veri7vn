@@ -11,7 +11,7 @@ definition all_self_test :: bool where
   "all_self_test \<longleftrightarrow> music_self_test \<and> grammar_self_test \<and> myth_self_test \<and> us_self_test
                     \<and> library_self_test \<and> gov_self_test"
 
-export_code mreply greply yreply hreply vreply lreply answered reply_kind response stated mk_rat all_self_test
+export_code mreply greply yreply hreply vreply lreply answered reply_kind response stated mk_rat
   integer_of_int int_of_integer nat_of_integer integer_of_nat
   ivl_order g2r_rows r2g_rows greek_domain norse_domain roles presidents events topic_nums fact_rows
   subject_order
@@ -36,14 +36,14 @@ ML \<open>
     @{thm relative_value}, @{thm scale_value}, @{thm scale_double_accidental},
     @{thm semitones_named}, @{thm semitones_named_none}, @{thm between_semitones},
     @{thm between_interval}, @{thm midi_note_value}, @{thm midi_note_impossible},
-    @{thm midi_number_value}, @{thm midi_number_underspecified}, @{thm freq_underspecified},
+    @{thm midi_kernel_roundtrip}, @{thm midi_number_value}, @{thm midi_number_underspecified}, @{thm freq_underspecified},
     @{thm freq_value}, @{thm cents_value}, @{thm duration_value},
     @{thm mreply_answered_iff}, @{thm mreply_silent}, @{thm mreply_withheld_names_decline},
     @{thm first_known_some}, @{thm first_known_none}, @{thm ord_suffix_teens}, @{thm ord_suffix_units},
     @{thm gkernel_row}, @{thm gkernel_first_candidate}, @{thm gkernel_silent_no_flag},
-    @{thm gkernel_silent_unknown}, @{thm greply_answered_iff},
+    @{thm gkernel_silent_unknown}, @{thm gkernel_silent_past}, @{thm gkernel_silent_plural}, @{thm gkernel_silent_comparison}, @{thm greply_answered_iff},
     @{thm g2r_first_match}, @{thm r2g_first_match}, @{thm g2r_no_bit}, @{thm domain_value},
-    @{thm role_value}, @{thm r2g_from_g2r},
+    @{thm role_value}, @{thm r2g_from_g2r}, @{thm g2r_in_r2g},
     @{thm yreply_answered_iff},
     @{thm nth_value}, @{thm numbers_of_iff}, @{thm num_value}, @{thm event_value},
     @{thm event_silent_ambiguous}, @{thm hreply_answered_iff},

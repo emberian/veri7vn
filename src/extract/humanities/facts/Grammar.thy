@@ -272,6 +272,21 @@ theorem gkernel_silent_unknown:
   shows "\<forall>c\<in>set (g_cands r). map_of verbs c = None"
   using assms by (auto simp: gkernel_def dest: first_known_none split: option.splits prod.splits)
 
+theorem gkernel_silent_past:
+  "gkernel r = GSilent \<Longrightarrow> \<not> g_pp r \<Longrightarrow> g_past r \<Longrightarrow>
+     \<forall>c\<in>set (g_cands r). map_of verbs c = None"
+  by (auto simp: gkernel_def dest: first_known_none split: option.splits prod.splits)
+
+theorem gkernel_silent_plural:
+  "gkernel r = GSilent \<Longrightarrow> \<not> g_pp r \<Longrightarrow> \<not> g_past r \<Longrightarrow> g_plural r \<Longrightarrow>
+     \<forall>c\<in>set (g_cands r). map_of plurals c = None"
+  by (auto simp: gkernel_def dest: first_known_none split: option.splits prod.splits)
+
+theorem gkernel_silent_comparison:
+  "gkernel r = GSilent \<Longrightarrow> \<not> g_pp r \<Longrightarrow> \<not> g_past r \<Longrightarrow> \<not> g_plural r \<Longrightarrow> g_cmp r \<Longrightarrow>
+     \<forall>c\<in>set (g_cands r). map_of compares c = None"
+  by (auto simp: gkernel_def dest: first_known_none split: option.splits prod.splits if_splits)
+
 definition gkind_name :: "gkind \<Rightarrow> String.literal" where
   "gkind_name k = (case k of G_past \<Rightarrow> STR ''past_tense'' | G_pp \<Rightarrow> STR ''past_participle''
                    | G_plural \<Rightarrow> STR ''plural'' | G_cmp \<Rightarrow> STR ''comparative'' | G_sup \<Rightarrow> STR ''superlative'')"

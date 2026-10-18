@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "family": "humanities",
+  "specialists": {
+    "music-v2": {
+      "accept": {
+        "kinds": [
+          "frequency",
+          "midi_number",
+          "midi_note",
+          "semitones",
+          "semitones_between",
+          "interval",
+          "key_sig",
+          "relative",
+          "scale",
+          "duration",
+          "cents"
+        ],
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "HOL typed-request kernel; exact lookup or certified numeric enclosure",
+        "assumptions": [
+          "Lookup tables are source assertions; numeric guarantees apply to the recognized typed request."
+        ],
+        "untrusted": [
+          "Natural-language recognition, JSON framing, source transcription."
+        ]
+      }
+    },
+    "music-v2-r2": {
+      "accept": {
+        "kinds": [
+          "frequency",
+          "midi_number",
+          "midi_note",
+          "semitones",
+          "semitones_between",
+          "interval",
+          "key_sig",
+          "relative",
+          "scale",
+          "duration",
+          "cents"
+        ],
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "HOL typed-request kernel; exact lookup or certified numeric enclosure",
+        "assumptions": [
+          "Lookup tables are source assertions; numeric guarantees apply to the recognized typed request."
+        ],
+        "untrusted": [
+          "Natural-language recognition, JSON framing, source transcription."
+        ]
+      }
+    },
+    "grammar": {
+      "accept": {
+        "kinds": [
+          "past_tense",
+          "past_participle",
+          "plural",
+          "comparative",
+          "superlative"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "HOL typed-request kernel; exact lookup or certified numeric enclosure",
+        "assumptions": [
+          "Lookup tables are source assertions; numeric guarantees apply to the recognized typed request."
+        ],
+        "untrusted": [
+          "Natural-language recognition, JSON framing, source transcription."
+        ]
+      }
+    },
+    "mythology": {
+      "accept": {
+        "kinds": [
+          "g2r",
+          "r2g",
+          "domain_god",
+          "role"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "HOL typed-request kernel; exact lookup or certified numeric enclosure",
+        "assumptions": [
+          "Lookup tables are source assertions; numeric guarantees apply to the recognized typed request."
+        ],
+        "untrusted": [
+          "Natural-language recognition, JSON framing, source transcription."
+        ]
+      }
+    },
+    "ushistory": {
+      "accept": {
+        "kinds": [
+          "nth_president",
+          "president_number",
+          "event_year"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "HOL typed-request kernel; exact lookup or certified numeric enclosure",
+        "assumptions": [
+          "Lookup tables are source assertions; numeric guarantees apply to the recognized typed request."
+        ],
+        "untrusted": [
+          "Natural-language recognition, JSON framing, source transcription."
+        ]
+      }
+    },
+    "library": {
+      "accept": {
+        "kinds": [
+          "lcc_class",
+          "lcc_sub",
+          "lcc_for_subject",
+          "isbn13_check",
+          "isbn10_check",
+          "isbn_valid",
+          "isbn_convert",
+          "issn_check",
+          "issn_valid"
+        ],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "HOL typed-request kernel; exact lookup or certified numeric enclosure",
+        "assumptions": [
+          "Lookup tables are source assertions; numeric guarantees apply to the recognized typed request."
+        ],
+        "untrusted": [
+          "Natural-language recognition, JSON framing, source transcription."
+        ]
+      }
+    },
+    "government": {
+      "accept": {
+        "kinds": [
+          "amend_for_topic",
+          "amend_subject",
+          "article_subject",
+          "fact_number"
+        ],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\b(?:senators?|elector(?:s|al)?|supreme court|house of representatives|president)\\b"
+      ],
+      "evidence": {
+        "computation": "HOL typed-request kernel; exact lookup or certified numeric enclosure",
+        "assumptions": [
+          "Lookup tables are source assertions; numeric guarantees apply to the recognized typed request."
+        ],
+        "untrusted": [
+          "Natural-language recognition, JSON framing, source transcription."
+        ]
+      }
+    }
+  }
+}
