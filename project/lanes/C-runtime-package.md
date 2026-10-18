@@ -1,314 +1,144 @@
-# C-runtime-package — make current capabilities usable outside the checkout
+# C-runtime-package — portable specialist consumers
 
-Owner: Codex package deputy, 2026-10-18. Implementation ready; current-source
-Linux release validation remains open. No Isabelle statements changed here.
-The consumer is Oracle7's specialist loader and a person unpacking the archive.
+Owner: Codex package deputy, 2026-10-18. The consumer is Oracle7's specialist
+loader and a person unpacking the archive. No Isabelle theorem statements were
+changed here. Python wrappers, recognizers and evidence consumers remain
+untrusted code; registration is not a claim that a current artifact exists.
 
-## What changed
+## Current delivery state
 
-- `tools/organs/make_organ.py` uses the shared runtime acceptance contract,
-  preserving reviewed new answer kinds in exported manifests. The Python
-  wrapper explicitly says it is untrusted, preserves reply provenance, and
-  retains taken in-domain declines. Existing output folders are not deleted.
-- `tools/organs/package_smoke.py` now applies the manifest acceptance rule
-  before calling the shipped scorer. Previously it bypassed that rule, so a
-  new kind could pass smoke yet disappear in the real specialist loader.
-  Comparing two runs requires matching folders, splits and reply counts.
-- `tools/organs/package.py` supports selected families/platforms. Dirty family
-  sources require explicit `--allow-dirty` and are recorded as snapshots,
-  without asserting the binary was built from them. Missing families and
-  platforms are explicit. Existing stages and archives are not overwritten.
-- Linux receipt records are included only when their binary hash matches the
-  packaged binary. Their old commits and limitations remain visible. The old
-  code labelled arbitrary remote log paths as successful builds. Source and
-  generated-SML hashes alone do not establish a binary's build provenance.
-- Stores packaging is prepared behind `--include-stores`. Layout:
-  `_veri7vn/stores/{fetch.py,nutrition_v1.sqlite3,site_fresh.sqlite3}`. The wrapper
-  passes explicit `--fetch`, `--nutrition`, `--site`, and `--state` paths, with
-  an owned temporary state file removed on close. This requires new stores
-  binaries; the old binaries are not evidence that relocation works.
-- `tools/organs/package_readme.md` and `docs/handoff/organ-package.md` explain
-  actual packaging and evidence boundaries, replacing stale claims that earth
-  and finance are uncommitted or that every package has fresh Linux evidence.
+The selected immutable inventory is
+`var/C-runtime-package/selected-prepared/selection.json`. It currently covers
+18 specialist families: acoustics, anatomyagri, chemistry, climate, discrete,
+energy, facts, finance, geostats, humanities, life, materials, mechanics,
+quantity, space, stores, trades and variants. Computing, earth and emoptics
+still need final proof/native capture. The complete archive is not yet ready.
+The registry's 21 specialist families own 144 IDs; Math, Wordprob, Guards,
+Relations, Document and Fusion are separate composition components.
 
-Registry and capability declarations are owned by the parent runtime lane and
-family owners. The registry lists 144 specialist IDs in 21 specialist families;
-non-specialist roles are not exported as specialist folders. No theorem or
-whole-head correctness claim follows from these packaging changes.
+Latest compiler-bound captures are retained under
+`var/C-runtime-package/bound-prepared/<native-attempt>/<family>/`. Each contains
+the exact native binary, full frozen family metadata, proof dependencies and
+export, original compiler receipt, copied consumed files and rewritten MLB.
+The selected directory also contains earlier complete C captures and the
+immutable Discrete ordinal candidate. Previous versions remain available;
+selection does not overwrite them. Root integration and capture both precede
+release of an owner's source freeze.
 
-## Checks and exact results
+Current Linux comparisons completed:
 
-A warm native artifact was prepared at
-`var/C-runtime-package/native-warm/veri7vn-specialists-2026-10-18.tar.gz` with
-chemistry, earth and finance: 18 folders. This first diagnostic artifact
-predates the final README and later wrapper cleanup; it is not a release.
+| Exact captured version | Right / total | Wrong / false yes | Withheld | Receipt under `var/linux/` |
+|---|---:|---:|---:|---|
+| Chemistry C | 1,206 / 1,206 | 0 / 0 | 40 | `receipt-chemistry-persvati-chemistry-1792307634-42247.json` |
+| Finance C | 559 / 559 | 0 / 0 | 36 | `receipt-finance-hbox-finance-1792308028-52285.json` |
+| Humanities C | 394 / 394 | 0 / 0 | 24 | `receipt-humanities-persvati-humanities-1792308743-68184.json` |
 
-Its acceptance-aware smoke scored three selected specialists using their own
-panels/scorers. Counts below are right / wrong / false yes:
+Every comparison includes all that family's specialist IDs and both splits,
+using their original shipped panels/scorers and acceptance rules. Every status
+and response matches the exact frozen Darwin binary. Correct refusals can count
+as right. These are scoped family comparisons, not a whole-package score.
 
-| Specialist | Dev | Heldout |
-|---|---:|---:|
-| chemistry-v3 | 225 / 0 / 0 (225 items) | 281 / 0 / 0 (281 items) |
-| geography | 9 / 0 / 0 (9 items) | 9 / 0 / 0 (9 items) |
-| retail | 45 / 0 / 0 (45 items) | 51 / 0 / 0 (51 items) |
+One native job is outstanding per host: selected final Climate on persvati and
+the earlier C Facts on hbox. The revised Facts candidate is separately captured;
+completion of the earlier job will not be relabelled as evidence for it. Stores'
+owner has the sole selected D Stores Linux job. Other selected families still
+need their exact Linux refresh. No new Isabelle session is launched by this
+refresh, and no full-head or fleet sweep has been requested or run here.
 
-Total: **620 / 0 / 0 on 620 items**, with 20 withheld replies (correct declines
-count as right). Saved at `var/C-runtime-package/native-warm/smoke-selected.json`.
-No other specialist panels or six-criterion admission checks were run here.
+## What the package does
 
-A deliberately incomplete comparison dump, missing retail, was correctly
-rejected with exit 1: 524 remaining replies compared, one missing-folder error.
-All Python organ-tool files parse, and `git diff --check` passes.
+`tools/organs/make_organ.py` generates specialist folders with the shared runtime
+acceptance contract, original panels/scorers, and preserved typed provenance.
+Accepted extensions therefore survive the real Oracle7 loader. Taken in-domain
+refusals remain decisive. The evidence checker runs before provenance lookup;
+malformed evidence and inconsistent accepted arithmetic yield a non-None
+withheld reply rather than an exception or silent fallthrough.
 
-Actual upstream `exam.Loaded` accepted chemistry's new `percent_composition`
-answer for H2O. It initially rejected retail's `discount_tax`, even though the
-binary answered $64.80, because finance's capability overlay was not yet
-present. Parent runtime/family ownership was notified; this is a consumer
-failure caught by exercising real acceptance rather than raw binary scoring.
+The wrapper bounds request writes and response reads, defaults to 10 seconds,
+and accepts `VERI7VN_REPLY_TIMEOUT_S` up to 300 seconds. It caps messages at 1 MiB,
+checks reply IDs, and kills/reaps only its owned child on transport failure.
+It never automatically retries a request that might already have committed an
+effect. Six real-subprocess wrapper tests pass, including blocked reads/writes,
+lost replies after an effect, malformed provenance/JSON and persistent declines.
 
-## Remaining convergence
+Stores receives explicit packaged fetch/database paths and an owned temporary
+state file. Default wrappers use `--preview`; confirm, ordered and cancelled
+results become truthful `effects_disabled` refusals. Oracle7 Combo speculatively
+asks all organs and reasks during comparison/segmentation, so default packaging
+cannot commit warehouse orders. Explicit `allow_effects=True` is supported only
+for a sequential single-owner host without speculative calls or replay. Its
+private temporary state is not durable. The project's dispatcher has its own
+preview/guards/commit hook; that does not change external Oracle7 Combo.
+Seven actual Combo/state probes covered ask-all, counterfactuals, segmentation,
+disagreement, concurrent calls and explicit single-owner execution. Upstream
+files were only read.
 
-- The scoped package and new-kind probes were repeated successfully; see
-  the convergence update below.
-- Build and check current-source computing on Linux. The existing
-  `var/linux/receipt-computing-persvati.json` explicitly describes commit
-  `32dd0ff`, not the then-current source. Do not relabel it current.
-- Once the stores owner supplies rebuilt binaries, demonstrate explicit asset
-  paths and state isolation in an extracted package on both platforms.
-- Prepare the complete release only after family owners identify the exact
-  current artifacts and receipts. Fleet/head tests need a concrete integration
-  question and root coordination; this lane has not launched them.
+`tools/organs/package_smoke.py` applies the manifest acceptance rule before the
+shipped scorer. Missing folders, splits, count mismatches and empty comparisons
+fail. `tools/perf/fleet.py` filters registry roles to specialist protocols and
+its known Fusion battery; no timing run was launched for this change.
 
-## Convergence update
+## Exact artifact binding
 
-`var/C-runtime-package/native-v2/veri7vn-specialists-2026-10-18.tar.gz`
-contains the shared runtime evidence consumer and finance capability overlay.
-It was unpacked into `var/C-runtime-package/relocated-v2/` and run with
-`env -i PATH=/usr/bin:/bin /usr/bin/python3 -B`: the same selected 620 panel
-items scored **620 right / 0 wrong / 0 false yes**, using packaged binaries.
-Both actual `exam.Loaded` new-kind probes now pass (`percent_composition` and
-`discount_tax`); output is `relocated-v2/consumer-probes.json`.
+`tools/organs/package.py --prepared-dir` refuses changed or missing captures,
+changed native bytes, rejected/cancelled proof receipts and changed exports.
+It derives each required native input closure from the captured recipe and
+checks the actual copied compiler files and rewritten MLB against all declared
+maps. Consistently tiny/generated-only maps and conflicting duplicate maps fail.
 
-The wrapper calls the parent's independent Python computation checker before
-mapping replies. The helper is copied once into a package's shared folder, or
-beside a standalone generated organ. With a real fixture executable emitting
-a discount/tax packet, the relocated wrapper preserved a valid $64.80 value
-and provenance. Mutating the final value to65 while leaving `accepted=true`
-produced a **non-None withheld** reply through actual `exam.Loaded`, preventing
-fallthrough. Results: `relocated-v2/executable-evidence-probes.json`. These are
-consumer boundary probes, not claims that a newly built finance binary emitted
-the packet. The finance producer build is a separate pending check.
+Two finite adapters cover known generated runtime inputs. Variants' derived
+recognizer must equal the reviewed two anchored edits of the captured Quantity
+recognizer. Stores' auxiliary `Config.repo` file must contain exactly the single
+constant structure, with its actual hash and MLB edge retained separately from
+source and proved export. Extra code or altered derived bytes fails. Stores
+fetch is separately frozen and checked as a runtime asset, never claimed compiled.
+Eight focused prepared-package tests pass; seven receipt/overlay tests pass.
 
-`tools/perf/fleet.py` now reads the validated registry and includes only the
-21 specialist families plus the known fusion battery; guard, word-problem,
-relation and document protocols are excluded from specialist timing. Import
-and discovery checks passed; no fleet measurement was launched.
+Every prepared Linux binary requires a passed matching deployment receipt with
+its exact generated export, complete required runtime/fetch input coverage and
+complete proof dependency coverage. A matching binary hash and a stale or tiny
+source map are insufficient. Historical unprepared receipts remain historical.
 
-`tools/deploy/linux-family.py` now accepts `--from-receipt PATH` to compile an
-already passed managed session's immutable source/export snapshot. It uses
-explicit registry IDs, unique remote source/build paths and local output/log/
-receipt paths, and the build owner's shared global lock around capped8GiB
-MLton compilation. It no longer deletes earlier staging/state. Relevant
-family/shared source hashes and the original managed receipt are retained.
-This deployment path has been parsed and inspected but not yet executed;
-computing's current managed build awaits recovery by the build owner.
+The shared Python checker is copied once from the current integration version
+at each final assembly and recorded separately from each family's proof. Family
+capabilities come from the captured source, so later owner edits cannot change
+acceptance while a Linux job waits. The same frozen wrappers, manifests, panels
+and smoke runner are used on both platforms. Each baseline is regenerated from
+the exact captured Darwin binary; old dumps are never assigned a new hash.
 
-## Wrapper liveness and stores relocation
+`tools/deploy/linux-family.py --from-receipt ... --runtime-overlay DIRECTORY`
+uses a unique staging directory, the host-wide managed build lock and an 8 GiB
+MLton cap. One submission per host is paced behind existing proof jobs. It tests
+the exact run binary and records actual compiler input hashes. No shared build
+path is deleted, and older captures or receipts are not overwritten.
 
-Generated wrappers now bound both request writes and reply reads (default10s,
-configurable `VERI7VN_REPLY_TIMEOUT_S`, maximum300s), cap messages at1MiB,
-require matching request IDs, and kill/reap only their own child on failure.
-They never replay a request automatically: a warehouse operation could have
-committed before its reply was lost. `tools/organs/test_wrapper.py` exercises
-five real-subprocess boundaries: hanging replies, a child not reading a large
-request, an effect followed by lost reply (exactly one effect), malformed/ID-
-mismatched replies, and persistent decisive declines. **5tests pass**. Two
-actual new-kind loader probes also pass with the bounded wrapper in
-`var/C-runtime-package/native-v3/loader-probes.json`; its package includes the
-latest shared checker. The620-panel run was not repeated for this change.
+## Retained evidence for earlier artifacts
 
-The stores owner supplied current native binary
-`var/stores/codex-build/stores`, SHA256
-`2218abd6ed13af8abab49e99b3fcbebcefd782c9917c5a02e3564b29fec4f99f`.
-Packaged explicitly with `--darwin-dir var/stores/codex-build`, its archive is
-`var/C-runtime-package/stores-current/veri7vn-specialists-2026-10-18.tar.gz`.
-Clean-environment acceptance-aware panel smoke:
+- The selected warm chemistry-v3/geography/retail smoke was 620/620 right,
+  0 wrong/false yes, after clean-environment relocation. This is the earlier
+  `native-v2` artifact, not a score for the final selected archive.
+- Exact C Finance `079c948a…51b4c` emitted its real checked $64.80 discount/tax
+  packet through a relocated package. A mutated value of 65 with accepted=true
+  produced decisive withheld through actual `exam.Loaded`. Four focused checks
+  passed at `var/C-runtime-package/finance-prepared-native-v2/consumer-check.json`;
+  archive SHA256 `142d3b4e2bc36f975ef5be2b7f69c269f19430412eae0bd94402d9adddfbf631`.
+- The earlier exact C Stores two-platform package scored 811/818 right,
+  0 wrong/false yes, 55 withheld for cooking-v3 and warehouse, with all 818
+  status/response pairs identical after relocation. Receipt dumps are under
+  `var/C-runtime-package/stores-both/`; archive SHA256
+  `85a2042bc7b5842b97df0ebed5f67d8c3440bb643255aa1cafff70fdcd7c7385`.
+  Its Linux binary is 1,380,816 bytes, exceeding the 1 MB aspiration.
+- Strict prepared assembly of that C Stores version succeeded separately at
+  `stores-prepared-both-v2`, SHA256
+  `30b04e27a3dbd152609e6d77d5333c60884b9a90296eba2e5ad5d23ff1289acc`.
+  Assembly alone is not a new panel score.
+- The early unbound D Climate a9a candidate is explicitly rejected because its
+  binary did not consume the captured numeric source. Later exact candidates
+  remain preserved; selected final Climate uses native `682af374…69d55` and
+  final numeric `2f313c77…cc046d`. Its owner's composed-stage limitation remains
+  documented by that lane; packaging does not broaden its correctness claim.
 
-| Specialist | Dev right / wrong / false yes | Heldout right / wrong / false yes |
-|---|---:|---:|
-| cooking-v3 | 190 / 0 / 0 (192items) | 223 / 0 / 0 (228items) |
-| warehouse | 199 / 0 / 0 (199items) | 199 / 0 / 0 (199items) |
-
-Total **811 / 0 / 0 on818items**,55withheld; this is not a perfect-answer
-claim. Results: `var/C-runtime-package/stores-current/smoke-selected.json`.
-The archive was also extracted into an owned temporary directory outside the
-checkout. Both wrappers successfully used explicit packaged fetch/data paths;
-two instances had distinct state paths, removed on close. Results are in
-`stores-current/relocation-probes.json`. Initial probe assertions needed macOS
-`/var` versus `/private/var` path normalization; final probes compare resolved
-paths. An earlier `stores-relocated` diagnostic package accidentally selected
-the not-yet-published default binary and is not the current checked artifact.
-
-Current-source Linux computing and Linux stores package checks remain pending
-family/build convergence. The deployment CLI can reuse their managed receipts
-with `--from-receipt`, so no duplicate Isabelle build is necessary.
-The stores owner confirmed these packaged counts exactly match the direct
-current binary: cooking's valid withheld counts are2dev and5heldout, and the
-other withheld replies include correct refusals of invalid questions.
-
-## External host effect correction
-
-The earlier relocation/state-isolation checks did **not** establish that a
-committed wrapper was safe inside arbitrary Oracle7 composition. Actual
-`upstream/root/specialists/_gate/combo_runtime_v1.py` calls every organ in
-`_ask_all` before choosing, probes an alternative `counterfactual` session in
-`_dependence`, and reasks in `_segment` and `_disagree_text`. Private state and
-no transport retry do not prevent those host-induced effects.
-
-Generated stores wrappers now always pass `--preview` by default, including
-pinned warehouse. Kernel kinds `confirm`, `ordered`, `cancelled` become a
-truthful withheld `effects_disabled` reply; generated warehouse manifests
-accept it as a decline. The stores owner confirmed those three kinds are
-exactly proposal/confirmation/cancellation outcomes. No speculative state is
-persisted, including conversational-reference updates. Explicit
-`allow_effects=True` passes `--commit` only for a caller that owns selection and
-calls sequentially without probes/replays. Unmodified Oracle7 Combo must keep
-the default. The project's dispatcher commit hook is separate.
-
-The current native diagnostic artifact is now
-`var/C-runtime-package/stores-preview/veri7vn-specialists-2026-10-18.tar.gz`,
-using the owner's newly published binary after the not-taken-write fix.
-`tools/organs/check_warehouse_composition.py` passed seven concrete checks
-against actual upstream Combo: all-candidate declines, counterfactual probes,
-segmentation reasks, disagreement reasks, twelve concurrent combo calls plus
-`yes`, no default state files, and a separate explicit sequential opt-in that
-records once and does not record again on repeated `yes`. Receipt:
-`stores-preview/composition-check.json`. This is not a complete-head check.
-
-The changed default was freshly rescored, rather than inheriting old counts:
-cooking-v3 dev190/192, heldout223/228; warehouse199/199 on both splits.
-**811right / 0wrong / 0falseyes on818items**,55withheld, unchanged on these
-particular panels. Receipt: `stores-preview/smoke-selected.json`. Interactive
-orders intentionally differ from the old committed default.
-
-Latest stores native package: `var/C-runtime-package/stores-preview-v2/`
-contains binary `c719f82f6e975e954dc9c2581b846c3a3d0785b6a505e9a83443ba27e7d64e4a`
-and the owner's corrected fetcher, which refuses read/write errors. The seven
-actual Combo/explicit-owner checks passed again on this exact pair. The818
-panel check above belongs to the immediately preceding preview package; no
-panel result is silently relabelled as this latest artifact's measurement.
-
-`tools/deploy/build_receipt.py` now rejects cancelled managed receipts even
-when their exit code is0 or a marker exists, plus failed/unknown status and
-present-but-failed completion sentinels. Package and deployment both use it;
-packaging also rechecks a still-accessible original managed receipt. Genuine
-older receipts without the new sentinel remain historical evidence.
-Three focused validator tests pass. An actual `linux-family.py --from-receipt`
-invocation against a synthetic cancelled/exit0 receipt and a nonexistent host
-was rejected before any SSH call. Linux stores packaging additionally requires
-a matched current-source receipt, preventing an old binary without preview/
-asset-path support from being shipped with the new wrapper.
-
-## Current stores package on both platforms
-
-`var/C-runtime-package/stores-both/veri7vn-specialists-2026-10-18.tar.gz`
-(SHA256 `85a2042bc7b5842b97df0ebed5f67d8c3440bb643255aa1cafff70fdcd7c7385`)
-contains the final Darwin binary `c719f82f...` and Linux binary
-`39b9ca68101d94b936bdc1c3d999182b4d556aa2ed9a61ef1dea61317a3680e3`.
-The Linux artifact comes from
-`var/linux/receipt-stores-hbox-stores-codex-9316b86385.json`, whose relevant
-runtime/theory hashes match current sources and whose verified HOL export is
-byte-identical to Darwin. The family owner separately compared all2476 shipped
-replies and ran its20 probes plus state/failure checks on Linux. That is the
-owner's direct-binary evidence, not this lane's package smoke.
-
-This lane then ran the actual archive's wrappers with clean environments on
-Darwin and hbox Linux, selecting cooking-v3 and warehouse. Both freshly scored
-**811right / 0wrong / 0falseyes on818items**; all818(status,response) pairs
-were identical. Exact dumps: `stores-both/smoke-macos.json` and
-`stores-both/smoke-linux.json`. The remote extraction is owned scratch at
-`/home/hbox/veri7vn-packages/c-runtime-package-stores-20261018/unpack/`.
-
-The latest wrappers validate evidence before dereferencing provenance.
-Real subprocess tests now include malformed non-object provenance, malformed
-evidence and a null computation packet: all become decisive withheld replies
-rather than crashing. **6wrapper tests pass**. The fusion deployment check now
-uses its immutable per-run binary path, avoiding a race with later promotion.
-
-## Current Linux refresh preparation and finance consumer
-
-The current refresh command supports `--from-receipt ... --runtime-overlay`.
-It reuses the proved export and freezes current runtime files only after the
-family's required theory files and dependency ROOT files match the passed,
-uncancelled receipt. The full source inventory digest and exported file set
-must also match. Runtime-only commons code is recorded separately where the
-family does not import the Commons HOL session. Seven focused receipt/overlay
-tests pass, including changed theorem, dependency ROOT and export rejection.
-
-Each comparison now freezes the actual Darwin binary before waiting for a
-compiler slot, then scores that binary and the exact per-run Linux artifact on
-the same copied specialist panels. It records all actual compiler input hashes,
-requires every expected specialist and both splits, and rejects an empty
-comparison. It does not reuse historical Darwin dumps or run head/core/fleet
-sweeps. Non-specialist batteries use their own runners. No new Linux jobs were
-submitted during the build-owner queue hold.
-
-Five families were prepared locally at
-`var/C-runtime-package/linux-prepared-1792307187/`: chemistry, climate, finance,
-humanities and space. These are prepared sources and binaries, not Linux pass
-claims. Computing's corrected proof remains pending; materials was still being
-finalized when this preparation was made. The already-current stores artifact
-needs no duplicate compilation.
-
-The final finance native binary
-`079c948a498522777e71ea59f842cd3f907dd0babef5b1e97bf88ebb19051b4c`
-was packaged and relocated with the current wrapper and checker. Its real
-producer packet for an $80 item, 25% discount and 8% tax was accepted as $64.80
-with consistent consumer evidence. Mutating that same actual packet's value
-to65 while retaining accepted=true produced a decisive withheld reply through
-upstream `exam.Loaded`. Four targeted checks passed; these are not panel
-numbers. Exact receipt: `var/C-runtime-package/finance-final-native/consumer-check.json`.
-The finance-only Darwin archive SHA256 is
-`ee67c35afb9c91abeac531af84a7f8d2d29e7e103b21548b685390e06b95764c`.
-
-The captured-input follow-up adds `--prepared-dir` to archive assembly. Each
-selected family must have a complete capture: native binary, runtime sources,
-capabilities, unchanged proof dependencies, passed uncancelled receipt and its
-exact export. Missing captures or changed source/native/export bytes refuse
-assembly. Specialist acceptance comes from the captured capability file. The
-shared consumer checker is snapshotted once from the current integration
-version and its hash is recorded separately from family proof evidence.
-Four targeted tests pass, including binary/metadata mismatch, changed
-capability/source, missing capture, cancelled receipt and a captured-only
-accepted kind appearing in the generated manifest.
-
-The prepared finance-only archive at
-`var/C-runtime-package/finance-prepared-native-v2/` has SHA256
-`142d3b4e2bc36f975ef5be2b7f69c269f19430412eae0bd94402d9adddfbf631`.
-Its actual relocated producer, current consumer checker and mutated-packet
-check pass all four targeted checks again; no additional panel claim is made.
-The consumer receipt is `finance-prepared-native-v2/consumer-check.json`.
-
-Linux preparation also accepts `--runtime-overlay DIRECTORY` with `MACBIN`
-pinned to the captured native binary. It generates and hashes wrappers,
-acceptance manifests, panels and the smoke runner, then scores the captured
-Darwin binary before submitting the remote compiler job. Both machines use
-those same prepared wrapper files even if the live family is reopened while
-waiting for the lock. The actual five finance manifests generated this way
-were checked against their captured capabilities and exact checker hash.
-
-Prepared Linux binaries now require a passed matching deployment receipt for
-all families, with the exact kernel export and complete required SML runtime,
-Stores fetch, and proof dependency coverage. A tiny or stale source subset is
-rejected. The shared Python consumer version is deliberately separate from
-this native input closure. The tests reject different runtime/proof/export
-versions even when the receipt's session and compilation passed.
-
-The captured Stores C sources were recovered from commit `3f936b7` and checked
-against all 11 hashes in its successful Linux receipt. Its newer D-wave theory
-and recognizer were not included. A two-platform archive using this strict
-prepared path assembled successfully at
-`var/C-runtime-package/stores-prepared-both-v2/` (SHA256
-`30b04e27a3dbd152609e6d77d5333c60884b9a90296eba2e5ad5d23ff1289acc`).
-This is an assembly check; the 811/818 package panel result above remains
-attached to the earlier exact Stores archive and is not relabelled here.
+Changed tooling paths belong to `tools/organs/`, `tools/deploy/` and
+`tools/perf/fleet.py`; user-facing instructions are in
+`tools/organs/package_readme.md` and `docs/handoff/organ-package.md`.
+No archive has been sent to another person.
