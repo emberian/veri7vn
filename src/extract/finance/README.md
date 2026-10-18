@@ -1,10 +1,39 @@
 # The finance family
 
-Five shipped Oracle7 specialists (`finance`, `finance-v2`, `finance-v2-r2`, `economics`, `retail`) as one verified HOL kernel (`Finance.thy`), exported to SML and compiled with Isabelle's MLton into `var/finance/bin/finance`. Same recipe as lane G (`src/extract/quantity/`).
+Five specialists (`finance`, `finance-v2`, `finance-v2-r2`, `economics`, `retail`)
+share a checked HOL arithmetic kernel and an untrusted English reader.
 
-- Exact rationals: loan payments, savings goals, APY with periodic compounding, simple interest, every economics formula, margins, markups, discounts, tax, break-even, reorder point, turnover. Compound growth with a whole number of periods is rounded to cents from an unreduced exact fraction.
-- Through `HOL-Decision_Procs.Approximation` (two builds cap): doubling time (ln), continuous compounding and continuous APY (exp), fractional compounding periods, EOQ (sqrt).
-- Untrusted: `regex.sml`, `recognizer.sml` (hand port of the organs' regexes and narrowing), `main.sml`, reply layout (`show_fmt`, checked by the self test).
-- Check: `python3 src/extract/finance/tables_check.py`. Build: `tools/dev/remote-build persvati src/extract/finance Veri7vn_Finance --expect 'VERI7VN_FINANCE PASS'`, then copy the exported `finance.ML` to `var/finance/build/finance_generated.sml` and run mlton as `build.sh` does. Score: `python3 src/extract/finance/score.py` and `tools/parity/harness.py`.
+The kernel computes exact rational loan, savings, recurring-deposit, simple-
+interest, economics and retail models. Whole-period compound balance and
+interest round exact fractions to cents; continuous/fractional growth uses
+certified approximation bounds. Requested interest, total balance, retail
+savings, tax and final price have distinct typed meanings. The default real
+rate uses the exact purchasing-power relation; explicit approximate requests
+retain nominal minus inflation.
 
-Results and statements: `project/lanes/S13-finance.md`.
+The reader consumes complete signed decimal/scientific/fraction tokens through
+shared `ExactNumeric`. Model domains and refusal decisions are checked by the
+kernel. English interpretation and real-world applicability remain untrusted.
+Unrecognized or conflicting finance targets produce a terminal unsupported-model
+reply. Retail physical inputs are nonnegative; zero values remain valid where
+the formula permits them. With no fixed costs, zero units already break even.
+Recurring-deposit timing and initial balances are still bounded; the next
+cashflow extension is described in the semantic ledger.
+
+Build the scoped proof with the managed driver, including Commons:
+
+```
+python3 tools/dev/remote-build persvati src/extract/finance Veri7vn_Finance -d src/extract/commons --expect 'VERI7VN_FINANCE PASS'
+```
+
+Set `VERI7VN_GENERATED` to that passed attempt's `finance.ML` export and run
+`sh src/extract/finance/build.sh`. The common native helper verifies the proof
+closure and freezes actual compiler inputs before publishing the binary.
+
+Run `tables_check.py`, `score.py`, `d_probes.py`, and the scoped parity harness
+for the relevant consumer. The unchanged shipped score is 553/559: six exact
+real-rate answers disagree with approximation expectations. The report preserves
+those measured labels and explains the model distinction; no scorer was edited.
+
+Current statements, probes, measured limits and artifact bindings:
+`project/lanes/D-finance.md`. Historical C and B reports retain earlier results.

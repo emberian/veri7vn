@@ -26,9 +26,10 @@ cat > "$OUT/build/finance.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 finance_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/finance" "$OUT/build/finance.mlb"
+"$REPO/tools/dev/native-compile" --family finance --compiler "$MLTON" -- -output "$OUT/bin/finance" "$OUT/build/finance.mlb"
 ls -l "$OUT/bin/finance"
 shasum -a 256 "$OUT/build/finance_generated.sml" "$OUT/bin/finance"

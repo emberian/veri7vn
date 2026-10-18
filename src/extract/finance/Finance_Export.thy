@@ -14,6 +14,10 @@ definition answers :: "request \<Rightarrow> bool" where
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
      kernel (F_Savings (Some 1200) (Some 1) None) = Exact K_savings_goal 100 \<and>
+     kernel (F_CompoundInterest (Some 1000) (Some (5 / 100)) (Some 2) (Some Fq_annual)) = Cents K_compound_interest 10250 \<and>
+     kernel (F_SimpleTotal (Some 1000) (Some (5 / 100)) (Some 2)) = Exact K_simple_total 1100 \<and>
+     kernel (E_Fisher 10 5) = Exact K_real_rate (100 / 21) \<and>
+     kernel (F_LoanPayment (Some 1200) (Some (12 / 100)) (Some (1 / 10))) = Decline (Impossible R_term) \<and>
      kernel (F_Simple (Some 5000) (Some (8 / 100)) (Some 10)) = Exact K_simple_interest 4000 \<and>
      kernel (F_LoanPayment (Some 1200) (Some 0) (Some 1)) = Exact K_loan_payment 100 \<and>
      kernel (F_Compound (Some 1000) (Some (1 / 10)) (Some 2) (Some Fq_annual)) = Cents K_compound 121000 \<and>
@@ -56,26 +60,26 @@ definition rat_parts :: "rat \<Rightarrow> integer \<times> integer" where
 
 export_code rat_parts check_discount_tax discount_tax_value reply_of answered reply_kind response stated answers mk_rat
   Fq_annual Fq_semi Fq_quarterly Fq_monthly Fq_weekly Fq_daily Fq_continuous
-  F_Apy F_Doubling F_LoanPayment F_LoanInterest F_Savings F_Simple F_Compound F_Advice F_MultiPhase
-  E_Elasticity E_ElasticityPct E_Inflation E_RealValue E_RealRate E_Growth E_Multiplier
+  F_Apy F_Doubling F_LoanPayment F_LoanInterest F_Savings F_Simple F_SimpleTotal F_Compound F_CompoundInterest F_Advice F_UnknownTarget F_MultiPhase
+  E_Elasticity E_ElasticityPct E_Inflation E_RealValue E_RealRate E_Fisher E_Growth E_Multiplier
   E_TaxMultiplier E_Unemployment E_Participation E_Deflator E_Rule70
   R_BreakEven R_EOQ R_ROP R_Turnover R_Days R_Markup R_Margin R_PriceMarkup R_PriceMargin
   R_Discount R_WithTax R_TaxModel R_TaxQuery RT_Final RT_Tax RT_Saving F_Annuity F_TwoPhase E_RealGdp R_DiscountTax
   in SML module_name Finance file_prefix finance
 
 ML \<open>
-  val theorems = [@{thm kernel_exact_sound}, @{thm kernel_cents_sound}, @{thm kernel_approx_sound},
+  val theorems = [@{thm reorder_point_nonnegative}, @{thm price_from_markup_nonnegative}, @{thm inventory_turnover_nonnegative}, @{thm kernel_exact_sound}, @{thm kernel_cents_sound}, @{thm kernel_approx_sound},
     @{thm kernel_underspecified}, @{thm kernel_impossible}, @{thm kernel_imprecise},
     @{thm reason_of_exact}, @{thm never_even_iff},
     @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm to_dec_at_sound}, @{thm to_dec_g4_sound},
     @{thm enclose_fmt_sound}, @{thm quant_sound}, @{thm round_tie_up}, @{thm round_frac_eq},
-    @{thm compound_frac_props}, @{thm rpow_eq},
+    @{thm compound_frac_props}, @{thm compound_interest_frac_props}, @{thm compound_interest_out_cents}, @{thm compound_interest_out_approx}, @{thm rpow_eq},
     @{thm loan_amortizes}, @{thm savings_reaches_goal}, @{thm loan_interest_is_total_minus_principal},
     @{thm simple_interest_additive}, @{thm apy_compounding}, @{thm apy_at_least_nominal},
     @{thm doubling_model}, @{thm compound_matches_exponential}, @{thm eoq_model},
     @{thm break_even_equation}, @{thm margin_markup_relation}, @{thm price_from_margin_correct},
     @{thm price_from_markup_correct}, @{thm discounts_compose}, @{thm multiplier_equation},
-    @{thm tax_multiplier_relation}, @{thm real_rate_is_fisher_approximation}, @{thm loan_interest_agrees_with_payment}, @{thm price_markup_roundtrip}, @{thm unemployment_in_range},
+    @{thm tax_multiplier_relation}, @{thm real_rate_is_fisher_approximation}, @{thm exact_real_rate_factors}, @{thm loan_interest_agrees_with_payment}, @{thm price_markup_roundtrip}, @{thm unemployment_in_range}, @{thm participation_in_range}, @{thm real_gdp_nonnegative}, @{thm inflation_positive_indices},
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_states_cents},
     @{thm reply_states_approx}, @{thm reply_withheld_names_decline},
     @{thm exact_stated_within_tolerance},
@@ -85,7 +89,9 @@ ML \<open>
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("finance theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "finance self test failed";
-  val _ = writeln ("VERI7VN_FINANCE PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");
+  val marker = "VERI7VN_FINANCE PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0";
+  val _ = writeln marker;
+  val _ = Export.export @{theory} (Path.binding0 (Path.explode "veri7vn/assertions/finance")) [XML.Text marker];
 \<close>
 
 end

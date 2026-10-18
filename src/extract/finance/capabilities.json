@@ -6,20 +6,24 @@
       "accept": {
         "kinds": [
           "annuity",
-          "two_phase"
+          "two_phase",
+          "compound_interest",
+          "simple_total"
         ],
         "declines_in_domain": [
           "impossible",
           "imprecise",
-          "multi_phase"
+          "multi_phase",
+          "unsupported_model"
         ]
       },
       "evidence": {
-        "computation": "Exact ordinary monthly-deposit accumulation and periodic compound growth, with checked money rounding.",
+        "computation": "Exact or certified enclosed growth quantities with explicit interest-versus-balance target; interest is selected before final rounding. Monthly payment and deposit schedules contain exactly twelve times the stated years in whole periods. Existing annuity and two-phase equations remain available.",
         "assumptions": [
           "Deposits occur at the end of each month. The term contains a whole number of months.",
           "Annual rates are nominal fractions; compounding frequency is explicit or uses the documented default.",
-          "Two-phase growth, when supported, has no intervening deposits or withdrawals."
+          "Two-phase growth, when supported, has no intervening deposits or withdrawals.",
+          "Lump-sum growth uses nonnegative principal and duration and a positive periodic growth factor; monthly cashflow amounts are nonnegative."
         ],
         "untrusted": [
           "English recognition and decimal-to-request conversion; mathematical proof does not establish that the sentence was read correctly."
@@ -30,20 +34,24 @@
       "accept": {
         "kinds": [
           "annuity",
-          "two_phase"
+          "two_phase",
+          "compound_interest",
+          "simple_total"
         ],
         "declines_in_domain": [
           "impossible",
           "imprecise",
-          "multi_phase"
+          "multi_phase",
+          "unsupported_model"
         ]
       },
       "evidence": {
-        "computation": "Exact ordinary monthly-deposit accumulation and periodic compound growth, with checked money rounding.",
+        "computation": "Exact or certified enclosed growth quantities with explicit interest-versus-balance target; interest is selected before final rounding. Monthly payment and deposit schedules contain exactly twelve times the stated years in whole periods. Existing annuity and two-phase equations remain available.",
         "assumptions": [
           "Deposits occur at the end of each month. The term contains a whole number of months.",
           "Annual rates are nominal fractions; compounding frequency is explicit or uses the documented default.",
-          "Two-phase growth, when supported, has no intervening deposits or withdrawals."
+          "Two-phase growth, when supported, has no intervening deposits or withdrawals.",
+          "Lump-sum growth uses nonnegative principal and duration and a positive periodic growth factor; monthly cashflow amounts are nonnegative."
         ],
         "untrusted": [
           "English recognition and decimal-to-request conversion; mathematical proof does not establish that the sentence was read correctly."
@@ -54,19 +62,23 @@
       "accept": {
         "kinds": [
           "annuity",
-          "two_phase"
+          "two_phase",
+          "compound_interest",
+          "simple_total"
         ],
         "declines_in_domain": [
           "impossible",
-          "imprecise"
+          "imprecise",
+          "unsupported_model"
         ]
       },
       "evidence": {
-        "computation": "Exact ordinary monthly-deposit accumulation and periodic compound growth, with checked money rounding.",
+        "computation": "Exact or certified enclosed growth quantities with explicit interest-versus-balance target; interest is selected before final rounding. Monthly payment and deposit schedules contain exactly twelve times the stated years in whole periods. Existing annuity and two-phase equations remain available.",
         "assumptions": [
           "Deposits occur at the end of each month. The term contains a whole number of months.",
           "Annual rates are nominal fractions; compounding frequency is explicit or uses the documented default.",
-          "Two-phase growth, when supported, has no intervening deposits or withdrawals."
+          "Two-phase growth, when supported, has no intervening deposits or withdrawals.",
+          "Lump-sum growth uses nonnegative principal and duration and a positive periodic growth factor; monthly cashflow amounts are nonnegative."
         ],
         "untrusted": [
           "English recognition and decimal-to-request conversion; mathematical proof does not establish that the sentence was read correctly."
@@ -80,10 +92,11 @@
         ]
       },
       "evidence": {
-        "computation": "Real GDP satisfies real times deflator = nominal times 100.",
+        "computation": "Exact rational economics arithmetic. Real GDP satisfies C*D=N*100. The default real interest rate preserves nominal purchasing power: (1+real)*(1+inflation)=1+nominal; the subtraction approximation is selected only when explicit.",
         "assumptions": [
           "The deflator is a positive index with base 100.",
-          "Amounts retain the scale named in the question."
+          "Amounts retain the scale named in the question.",
+          "Gross output and population counts are nonnegative; source and destination CPI indices are positive. CPI conversion may preserve a signed money amount, such as a debt."
         ],
         "untrusted": [
           "English recognition, unit-scale selection, and numeric parsing."
@@ -102,7 +115,7 @@
         ]
       },
       "context_regex_additions": [
-        "\\b(?:tax rate|tax)\\b.*\\b(?:off|discount)\\b|\\b(?:off|discount)\\b.*\\b(?:tax rate|tax)\\b"
+        "\\b(?:tax(?:ed|es)?|sales tax)\\b.*\\b(?:off|discount(?:ed|s|ing)?|reduced|reduction|marked down)\\b|\\b(?:off|discount(?:ed|s|ing)?|reduced|reduction|marked down)\\b.*\\b(?:tax(?:ed|es)?|sales tax)\\b"
       ],
       "evidence": {
         "computation": "Apply discounts in sequence, tax the explicitly selected original or discounted price, and answer final price, tax amount, or savings against full price including tax.",

@@ -136,15 +136,19 @@ datatype request =
   | F_Savings "rat option" "rat option" "rat option"
   | F_Simple "rat option" "rat option" "rat option"
   | F_Compound "rat option" "rat option" "rat option" "freq option"
+  | F_CompoundInterest "rat option" "rat option" "rat option" "freq option"
+  | F_SimpleTotal "rat option" "rat option" "rat option"
   | F_Annuity "rat option" "rat option" "rat option"
   | F_TwoPhase "rat option" "rat option" "rat option" "freq option" "rat option" "rat option" "freq option"
   | F_Advice
+  | F_UnknownTarget
   | F_MultiPhase
   | E_Elasticity "(rat \<times> rat) option" "(rat \<times> rat) option"
   | E_ElasticityPct "rat option" "rat option"
   | E_Inflation "(rat \<times> rat) option"
   | E_RealValue rat "rat option" "rat option" rat rat
   | E_RealRate rat rat
+  | E_Fisher rat rat
   | E_Growth rat rat
   | E_Multiplier rat
   | E_TaxMultiplier rat
@@ -183,9 +187,9 @@ datatype need = N_apr_freq | N_pos_rate | N_loan | N_goal | N_simple | N_compoun
 datatype reason = R_term | R_degenerate | R_mpc | R_unemp | R_partic | R_positive
   | R_price_cost | R_margin | R_phase | R_discount
 
-datatype decline = Underspecified need | Impossible reason | Advice | MultiPhase | RetailModel | Imprecise
+datatype decline = Underspecified need | Impossible reason | Advice | MultiPhase | RetailModel | UnknownTarget | Imprecise
 
-datatype kind = K_apy | K_doubling | K_loan_interest | K_loan_payment | K_savings_goal
+datatype kind = K_compound_interest | K_simple_total | K_apy | K_doubling | K_loan_interest | K_loan_payment | K_savings_goal
   | K_simple_interest | K_compound | K_advice | K_multi_phase
   | K_elasticity | K_inflation | K_real_value | K_real_rate | K_growth | K_multiplier
   | K_tax_multiplier | K_unemployment | K_participation | K_deflator | K_rule70
@@ -199,12 +203,16 @@ fun kind_of :: "request \<Rightarrow> kind" where
   "kind_of (F_Apy _ _) = K_apy" | "kind_of (F_Doubling _) = K_doubling"
 | "kind_of (F_LoanPayment _ _ _) = K_loan_payment" | "kind_of (F_LoanInterest _ _ _) = K_loan_interest"
 | "kind_of (F_Savings _ _ _) = K_savings_goal" | "kind_of (F_Simple _ _ _) = K_simple_interest"
+| "kind_of (F_CompoundInterest _ _ _ _) = K_compound_interest"
+| "kind_of (F_SimpleTotal _ _ _) = K_simple_total"
 | "kind_of (F_Compound _ _ _ _) = K_compound" | "kind_of F_Advice = K_advice"
+| "kind_of F_UnknownTarget = K_advice"
 | "kind_of F_MultiPhase = K_multi_phase"
 | "kind_of (F_Annuity _ _ _) = K_annuity" | "kind_of (F_TwoPhase _ _ _ _ _ _ _) = K_two_phase"
 | "kind_of (E_RealGdp _ _ _) = K_real_gdp" | "kind_of (R_DiscountTax _ _ _) = K_discount_tax"
 | "kind_of (E_Elasticity _ _) = K_elasticity" | "kind_of (E_ElasticityPct _ _) = K_elasticity"
 | "kind_of (E_Inflation _) = K_inflation" | "kind_of (E_RealValue _ _ _ _ _) = K_real_value"
+| "kind_of (E_Fisher _ _) = K_real_rate"
 | "kind_of (E_RealRate _ _) = K_real_rate" | "kind_of (E_Growth _ _) = K_growth"
 | "kind_of (E_Multiplier _) = K_multiplier" | "kind_of (E_TaxMultiplier _) = K_tax_multiplier"
 | "kind_of (E_Unemployment _ _) = K_unemployment" | "kind_of (E_Participation _ _) = K_participation"
@@ -224,6 +232,7 @@ fun fmt_of :: "kind \<Rightarrow> fmt" where
   "fmt_of K_apy = Fm_pct4" | "fmt_of K_doubling = Fm_years2"
 | "fmt_of K_loan_interest = Fm_money" | "fmt_of K_loan_payment = Fm_money"
 | "fmt_of K_savings_goal = Fm_money" | "fmt_of K_simple_interest = Fm_money"
+| "fmt_of K_compound_interest = Fm_money" | "fmt_of K_simple_total = Fm_money"
 | "fmt_of K_compound = Fm_money" | "fmt_of K_real_value = Fm_money"
 | "fmt_of K_price_from_markup = Fm_money" | "fmt_of K_price_from_margin = Fm_money"
 | "fmt_of K_discount = Fm_money" | "fmt_of K_with_tax = Fm_money"
@@ -245,6 +254,12 @@ number of periods; continuous compounding and fractional periods are declined
 definition phase_ok :: "rat \<Rightarrow> freq option \<Rightarrow> bool" where
   "phase_ok y fo = (dflt fo \<noteq> Fq_continuous \<and> nat_exp (of_nat (per (dflt fo)) * y) \<noteq> None)"
 
+definition growth_ok :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> freq option \<Rightarrow> bool" where
+  "growth_ok p r y fo \<longleftrightarrow> 0 \<le> p \<and> 0 \<le> y \<and>
+     (dflt fo = Fq_continuous \<or> 0 < 1 + r / of_nat (per (dflt fo)))"
+definition simple_ok :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> bool" where
+  "simple_ok p r y \<longleftrightarrow> 0 \<le> p \<and> 0 \<le> y \<and> 0 \<le> 1 + r * y"
+
 section \<open>Declines\<close>
 
 text \<open>Underspecified: a number the formula needs is absent (the organs' need
@@ -258,6 +273,8 @@ fun missing :: "request \<Rightarrow> need option" where
 | "missing (F_Savings g y r) = (if g = None \<or> y = None then Some N_goal else None)"
 | "missing (F_Simple p r y) = (if p = None \<or> r = None \<or> y = None then Some N_simple else None)"
 | "missing (F_Compound p r y f) = (if p = None \<or> r = None \<or> y = None then Some N_compound else None)"
+| "missing (F_CompoundInterest p r y f) = (if p = None \<or> r = None \<or> y = None then Some N_compound else None)"
+| "missing (F_SimpleTotal p r y) = (if p = None \<or> r = None \<or> y = None then Some N_simple else None)"
 | "missing (F_Annuity d r y) = (if d = None \<or> r = None \<or> y = None then Some N_annuity else None)"
 | "missing (F_TwoPhase p r1 y1 f1 r2 y2 f2) =
      (if p = None \<or> r1 = None \<or> y1 = None \<or> r2 = None \<or> y2 = None then Some N_two_phase else None)"
@@ -280,67 +297,82 @@ fun missing :: "request \<Rightarrow> need option" where
 text \<open>Impossible: the inputs for which the formula divides by zero or leaves
 its range (several are silent declines or exceptions in the organs).\<close>
 fun impossible :: "request \<Rightarrow> bool" where
-  "impossible (F_LoanPayment (Some p) (Some r) (Some y)) \<longleftrightarrow> months y = 0"
-| "impossible (F_LoanInterest (Some p) (Some r) (Some y)) \<longleftrightarrow> months y = 0"
-| "impossible (F_Savings (Some g) (Some y) r) \<longleftrightarrow> months y = 0"
+  "impossible (F_LoanPayment (Some p) (Some r) (Some y)) \<longleftrightarrow> months y = 0 \<or> of_nat (months y) \<noteq> 12 * y \<or> p < 0 \<or> r \<le> -12"
+| "impossible (F_LoanInterest (Some p) (Some r) (Some y)) \<longleftrightarrow> months y = 0 \<or> of_nat (months y) \<noteq> 12 * y \<or> p < 0 \<or> r \<le> -12"
+| "impossible (F_Savings (Some g) (Some y) r) \<longleftrightarrow> months y = 0 \<or> of_nat (months y) \<noteq> 12 * y \<or> g < 0 \<or> rate0 r \<le> -12"
+| "impossible (F_Compound (Some p) (Some r) (Some y) fo) \<longleftrightarrow> \<not> growth_ok p r y fo"
+| "impossible (F_CompoundInterest (Some p) (Some r) (Some y) fo) \<longleftrightarrow> \<not> growth_ok p r y fo"
+| "impossible (F_Simple (Some p) (Some r) (Some y)) \<longleftrightarrow> \<not> simple_ok p r y"
+| "impossible (F_SimpleTotal (Some p) (Some r) (Some y)) \<longleftrightarrow> \<not> simple_ok p r y"
 | "impossible (F_Annuity (Some d) (Some r) (Some y)) \<longleftrightarrow> months y = 0 \<or> of_nat (months y) \<noteq> 12 * y \<or> d < 0 \<or> r \<le> -12"
 | "impossible (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) \<longleftrightarrow>
      \<not> phase_ok y1 f1 \<or> \<not> phase_ok y2 f2"
-| "impossible (E_RealGdp (Some n) (Some d) u) \<longleftrightarrow> d \<le> 0"
-| "impossible (E_Elasticity (Some (p1, p2)) (Some (q1, q2))) \<longleftrightarrow> p1 = p2 \<or> p1 + p2 = 0 \<or> q1 + q2 = 0"
-| "impossible (E_ElasticityPct (Some dp) (Some dq)) \<longleftrightarrow> dp = 0"
-| "impossible (E_Inflation (Some (a, b))) \<longleftrightarrow> a \<le> 0"
-| "impossible (E_RealValue x (Some c0) (Some c1) y0 y1) \<longleftrightarrow> c0 = 0"
-| "impossible (E_Growth a b) \<longleftrightarrow> a \<le> 0"
+| "impossible (E_RealGdp (Some n) (Some d) u) \<longleftrightarrow> n < 0 \<or> d \<le> 0"
+| "impossible (E_Elasticity (Some (p1, p2)) (Some (q1, q2))) \<longleftrightarrow> p1 < 0 \<or> p2 < 0 \<or> q1 < 0 \<or> q2 < 0 \<or> p1 = p2 \<or> p1 + p2 = 0 \<or> q1 + q2 = 0"
+| "impossible (E_ElasticityPct (Some dp) (Some dq)) \<longleftrightarrow> dp < -100 \<or> dq < -100 \<or> dp = 0"
+| "impossible (E_Inflation (Some (a, b))) \<longleftrightarrow> a \<le> 0 \<or> b \<le> 0"
+| "impossible (E_RealValue x (Some c0) (Some c1) y0 y1) \<longleftrightarrow> c0 \<le> 0 \<or> c1 \<le> 0"
+| "impossible (E_Fisher i p) \<longleftrightarrow> p \<le> -100 \<or> i < -100"
+| "impossible (E_Growth a b) \<longleftrightarrow> a \<le> 0 \<or> b < 0"
 | "impossible (E_Multiplier c) \<longleftrightarrow> \<not> (0 < c \<and> c < 1)"
 | "impossible (E_TaxMultiplier c) \<longleftrightarrow> \<not> (0 < c \<and> c < 1)"
-| "impossible (E_Unemployment (Some u) (Some l)) \<longleftrightarrow> l \<le> 0 \<or> l < u"
-| "impossible (E_Participation (Some l) (Some p)) \<longleftrightarrow> p \<le> 0 \<or> p < l"
-| "impossible (E_Deflator (Some n) (Some r)) \<longleftrightarrow> r \<le> 0"
+| "impossible (E_Unemployment (Some u) (Some l)) \<longleftrightarrow> u < 0 \<or> l \<le> 0 \<or> l < u"
+| "impossible (E_Participation (Some l) (Some p)) \<longleftrightarrow> l < 0 \<or> p \<le> 0 \<or> p < l"
+| "impossible (E_Deflator (Some n) (Some r)) \<longleftrightarrow> n < 0 \<or> r \<le> 0"
 | "impossible (E_Rule70 (Some g)) \<longleftrightarrow> g \<le> 0"
-| "impossible (R_EOQ (Some d) (Some s) (Some h)) \<longleftrightarrow> h \<le> 0"
-| "impossible (R_Turnover (Some c) (Some a)) \<longleftrightarrow> a \<le> 0"
-| "impossible (R_Days (Some c) (Some a)) \<longleftrightarrow> a \<le> 0 \<or> c = 0"
-| "impossible (R_Markup c p) \<longleftrightarrow> p \<le> 0 \<or> c \<le> 0"
-| "impossible (R_Margin c p) \<longleftrightarrow> p \<le> 0 \<or> c \<le> 0"
-| "impossible (R_PriceMargin c m) \<longleftrightarrow> 1 \<le> m"
+| "impossible (R_EOQ (Some d) (Some s) (Some h)) \<longleftrightarrow> d < 0 \<or> s < 0 \<or> h \<le> 0"
+| "impossible (R_Turnover (Some c) (Some a)) \<longleftrightarrow> c < 0 \<or> a \<le> 0"
+| "impossible (R_Days (Some c) (Some a)) \<longleftrightarrow> c \<le> 0 \<or> a < 0"
+| "impossible (R_Markup c p) \<longleftrightarrow> p < 0 \<or> c \<le> 0"
+| "impossible (R_Margin c p) \<longleftrightarrow> p \<le> 0 \<or> c < 0"
+| "impossible (R_PriceMargin c m) \<longleftrightarrow> c < 0 \<or> 1 \<le> m"
 | "impossible (R_Discount b os) \<longleftrightarrow> b < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x)"
 | "impossible (R_WithTax b r) \<longleftrightarrow> b < 0 \<or> r < 0"
 | "impossible (R_DiscountTax b os r) \<longleftrightarrow> b < 0 \<or> r < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x)"
 | "impossible (R_TaxQuery b os r _ _) \<longleftrightarrow> b < 0 \<or> r < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x)"
+| "impossible (R_ROP (Some d) (Some l) st) \<longleftrightarrow> d < 0 \<or> l < 0 \<or> st < 0"
+| "impossible (R_PriceMarkup c m) \<longleftrightarrow> c < 0 \<or> m < -1"
+| "impossible (R_BreakEven (Some f) (Some p) (Some v)) \<longleftrightarrow> f < 0 \<or> p < 0 \<or> v < 0"
 | "impossible _ \<longleftrightarrow> False"
 
 fun reason_of :: "request \<Rightarrow> reason option" where
-  "reason_of (F_LoanPayment (Some p) (Some r) (Some y)) = (if months y = 0 then Some R_term else None)"
-| "reason_of (F_LoanInterest (Some p) (Some r) (Some y)) = (if months y = 0 then Some R_term else None)"
-| "reason_of (F_Savings (Some g) (Some y) r) = (if months y = 0 then Some R_term else None)"
+  "reason_of (F_LoanPayment (Some p) (Some r) (Some y)) = (if months y = 0 \<or> of_nat (months y) \<noteq> 12 * y then Some R_term else if p < 0 \<or> r \<le> -12 then Some R_positive else None)"
+| "reason_of (F_LoanInterest (Some p) (Some r) (Some y)) = (if months y = 0 \<or> of_nat (months y) \<noteq> 12 * y then Some R_term else if p < 0 \<or> r \<le> -12 then Some R_positive else None)"
+| "reason_of (F_Savings (Some g) (Some y) r) = (if months y = 0 \<or> of_nat (months y) \<noteq> 12 * y then Some R_term else if g < 0 \<or> rate0 r \<le> -12 then Some R_positive else None)"
+| "reason_of (F_Compound (Some p) (Some r) (Some y) fo) = (if growth_ok p r y fo then None else Some R_positive)"
+| "reason_of (F_CompoundInterest (Some p) (Some r) (Some y) fo) = (if growth_ok p r y fo then None else Some R_positive)"
+| "reason_of (F_Simple (Some p) (Some r) (Some y)) = (if simple_ok p r y then None else Some R_positive)"
+| "reason_of (F_SimpleTotal (Some p) (Some r) (Some y)) = (if simple_ok p r y then None else Some R_positive)"
 | "reason_of (F_Annuity (Some d) (Some r) (Some y)) = (if months y = 0 \<or> of_nat (months y) \<noteq> 12 * y then Some R_term
      else if d < 0 \<or> r \<le> -12 then Some R_positive else None)"
 | "reason_of (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) =
      (if \<not> phase_ok y1 f1 \<or> \<not> phase_ok y2 f2 then Some R_phase else None)"
-| "reason_of (E_RealGdp (Some n) (Some d) u) = (if d \<le> 0 then Some R_positive else None)"
-| "reason_of (E_Elasticity (Some (p1, p2)) (Some (q1, q2))) =
-     (if p1 = p2 \<or> p1 + p2 = 0 \<or> q1 + q2 = 0 then Some R_degenerate else None)"
-| "reason_of (E_ElasticityPct (Some dp) (Some dq)) = (if dp = 0 then Some R_degenerate else None)"
-| "reason_of (E_Inflation (Some (a, b))) = (if a \<le> 0 then Some R_positive else None)"
-| "reason_of (E_RealValue x (Some c0) (Some c1) y0 y1) = (if c0 = 0 then Some R_positive else None)"
-| "reason_of (E_Growth a b) = (if a \<le> 0 then Some R_positive else None)"
+| "reason_of (E_RealGdp (Some n) (Some d) u) = (if n < 0 \<or> d \<le> 0 then Some R_positive else None)"
+| "reason_of (E_Elasticity (Some (p1, p2)) (Some (q1, q2))) = (if p1 < 0 \<or> p2 < 0 \<or> q1 < 0 \<or> q2 < 0 \<or> p1 = p2 \<or> p1 + p2 = 0 \<or> q1 + q2 = 0 then Some R_degenerate else None)"
+| "reason_of (E_ElasticityPct (Some dp) (Some dq)) = (if dp < -100 \<or> dq < -100 \<or> dp = 0 then Some R_degenerate else None)"
+| "reason_of (E_Inflation (Some (a, b))) = (if a \<le> 0 \<or> b \<le> 0 then Some R_positive else None)"
+| "reason_of (E_RealValue x (Some c0) (Some c1) y0 y1) = (if c0 \<le> 0 \<or> c1 \<le> 0 then Some R_positive else None)"
+| "reason_of (E_Fisher i p) = (if p \<le> -100 \<or> i < -100 then Some R_positive else None)"
+| "reason_of (E_Growth a b) = (if a \<le> 0 \<or> b < 0 then Some R_positive else None)"
 | "reason_of (E_Multiplier c) = (if \<not> (0 < c \<and> c < 1) then Some R_mpc else None)"
 | "reason_of (E_TaxMultiplier c) = (if \<not> (0 < c \<and> c < 1) then Some R_mpc else None)"
-| "reason_of (E_Unemployment (Some u) (Some l)) = (if l \<le> 0 \<or> l < u then Some R_unemp else None)"
-| "reason_of (E_Participation (Some l) (Some p)) = (if p \<le> 0 \<or> p < l then Some R_partic else None)"
-| "reason_of (E_Deflator (Some n) (Some r)) = (if r \<le> 0 then Some R_positive else None)"
+| "reason_of (E_Unemployment (Some u) (Some l)) = (if u < 0 \<or> l \<le> 0 \<or> l < u then Some R_unemp else None)"
+| "reason_of (E_Participation (Some l) (Some p)) = (if l < 0 \<or> p \<le> 0 \<or> p < l then Some R_partic else None)"
+| "reason_of (E_Deflator (Some n) (Some r)) = (if n < 0 \<or> r \<le> 0 then Some R_positive else None)"
 | "reason_of (E_Rule70 (Some g)) = (if g \<le> 0 then Some R_positive else None)"
-| "reason_of (R_EOQ (Some d) (Some s) (Some h)) = (if h \<le> 0 then Some R_positive else None)"
-| "reason_of (R_Turnover (Some c) (Some a)) = (if a \<le> 0 then Some R_positive else None)"
-| "reason_of (R_Days (Some c) (Some a)) = (if a \<le> 0 \<or> c = 0 then Some R_positive else None)"
-| "reason_of (R_Markup c p) = (if p \<le> 0 \<or> c \<le> 0 then Some R_price_cost else None)"
-| "reason_of (R_Margin c p) = (if p \<le> 0 \<or> c \<le> 0 then Some R_price_cost else None)"
-| "reason_of (R_PriceMargin c m) = (if 1 \<le> m then Some R_margin else None)"
+| "reason_of (R_EOQ (Some d) (Some s) (Some h)) = (if d < 0 \<or> s < 0 \<or> h \<le> 0 then Some R_positive else None)"
+| "reason_of (R_Turnover (Some c) (Some a)) = (if c < 0 \<or> a \<le> 0 then Some R_positive else None)"
+| "reason_of (R_Days (Some c) (Some a)) = (if c \<le> 0 \<or> a < 0 then Some R_positive else None)"
+| "reason_of (R_Markup c p) = (if p < 0 \<or> c \<le> 0 then Some R_price_cost else None)"
+| "reason_of (R_Margin c p) = (if p \<le> 0 \<or> c < 0 then Some R_price_cost else None)"
+| "reason_of (R_PriceMargin c m) = (if c < 0 \<or> 1 \<le> m then Some R_margin else None)"
 | "reason_of (R_Discount b os) = (if b < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x) then Some R_discount else None)"
 | "reason_of (R_WithTax b r) = (if b < 0 \<or> r < 0 then Some R_discount else None)"
 | "reason_of (R_DiscountTax b os r) = (if b < 0 \<or> r < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x) then Some R_discount else None)"
 | "reason_of (R_TaxQuery b os r _ _) = (if b < 0 \<or> r < 0 \<or> (\<exists>x\<in>set os. x < 0 \<or> 100 < x) then Some R_discount else None)"
+| "reason_of (R_ROP (Some d) (Some l) st) = (if d < 0 \<or> l < 0 \<or> st < 0 then Some R_positive else None)"
+| "reason_of (R_PriceMarkup c m) = (if c < 0 \<or> m < -1 then Some R_positive else None)"
+| "reason_of (R_BreakEven (Some f) (Some p) (Some v)) = (if f < 0 \<or> p < 0 \<or> v < 0 then Some R_positive else None)"
 | "reason_of _ = None"
 
 theorem reason_of_exact: "reason_of r \<noteq> None \<longleftrightarrow> impossible r"
@@ -351,10 +383,10 @@ definition decline_of :: "request \<Rightarrow> decline option" where
      Some w \<Rightarrow> Some (Underspecified w)
    | None \<Rightarrow> (case reason_of r of
        Some why \<Rightarrow> Some (Impossible why)
-     | None \<Rightarrow> (case r of F_Advice \<Rightarrow> Some Advice | F_MultiPhase \<Rightarrow> Some MultiPhase | R_TaxModel \<Rightarrow> Some RetailModel | _ \<Rightarrow> None)))"
+     | None \<Rightarrow> (case r of F_UnknownTarget \<Rightarrow> Some UnknownTarget | F_Advice \<Rightarrow> Some Advice | F_MultiPhase \<Rightarrow> Some MultiPhase | R_TaxModel \<Rightarrow> Some RetailModel | _ \<Rightarrow> None)))"
 
 definition is_refusal :: "request \<Rightarrow> bool" where
-  "is_refusal r = (case r of F_Advice \<Rightarrow> True | F_MultiPhase \<Rightarrow> True | R_TaxModel \<Rightarrow> True | _ \<Rightarrow> False)"
+  "is_refusal r = (case r of F_UnknownTarget \<Rightarrow> True | F_Advice \<Rightarrow> True | F_MultiPhase \<Rightarrow> True | R_TaxModel \<Rightarrow> True | _ \<Rightarrow> False)"
 
 section \<open>Values\<close>
 
@@ -384,6 +416,10 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (F_Compound (Some p) (Some r) (Some y) fo) =
      (case nat_exp (of_nat (per (dflt fo)) * y) of
         Some n \<Rightarrow> p * (1 + r / of_nat (per (dflt fo))) ^ n | None \<Rightarrow> 0)"
+| "qval (F_CompoundInterest (Some p) (Some r) (Some y) fo) =
+     (case nat_exp (of_nat (per (dflt fo)) * y) of
+        Some n \<Rightarrow> p * (1 + r / of_nat (per (dflt fo))) ^ n - p | None \<Rightarrow> 0)"
+| "qval (F_SimpleTotal (Some p) (Some r) (Some y)) = p + p * r * y"
 | "qval (F_Annuity (Some d) (Some r) (Some y)) = fv_ann d (r / 12) (months y)"
 | "qval (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) =
      (case nat_exp (of_nat (per (dflt f1)) * y1) of
@@ -402,6 +438,7 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (E_Inflation (Some (a, b))) = (b - a) / a * 100"
 | "qval (E_RealValue x (Some c0) (Some c1) y0 y1) = x * c1 / c0"
 | "qval (E_RealRate i p) = i - p"
+| "qval (E_Fisher i p) = 100 * (i - p) / (100 + p)"
 | "qval (E_Growth a b) = (b - a) / a * 100"
 | "qval (E_Multiplier c) = 1 / (1 - c)"
 | "qval (E_TaxMultiplier c) = - c / (1 - c)"
@@ -431,6 +468,7 @@ fun phys :: "request \<Rightarrow> real" where
   "phys (F_Apy (Some r) (Some Fq_continuous)) = 100 * (exp (rl r) + - 1)"
 | "phys (F_Doubling (Some r)) = ln 2 / ln (1 + rl r)"
 | "phys (F_Compound (Some p) (Some r) (Some y) fo) = cphys p r y (dflt fo)"
+| "phys (F_CompoundInterest (Some p) (Some r) (Some y) fo) = cphys p r y (dflt fo) - rl p"
 | "phys (R_EOQ (Some d) (Some s) (Some h)) = sqrt (2 * rl d * rl s / rl h)"
 | "phys r = rl (qval r)"
 
@@ -487,6 +525,40 @@ lemma approx_out_not_novalue [simp]: "approx_out c e \<noteq> NoValue k"
 
 lemma approx_out_decline: "approx_out c e = Decline w \<Longrightarrow> w = Imprecise"
   by (auto simp: approx_out_def split: option.splits)
+
+text \<open>Subtract the initial capital before rounding interest. This preserves
+sub-cent principal and avoids normalizing very large powered fractions.\<close>
+definition compound_interest_frac :: "rat \<Rightarrow> rat \<Rightarrow> nat \<Rightarrow> int \<times> int" where
+  "compound_interest_frac p b n = (case compound_frac p b n of (N, D) \<Rightarrow>
+    case quotient_of p of (a, c) \<Rightarrow> (N * c - a * D, D * c))"
+
+lemma compound_interest_frac_props:
+  "0 < snd (compound_interest_frac p b n) \<and>
+   of_int (fst (compound_interest_frac p b n)) / of_int (snd (compound_interest_frac p b n)) = (p * b ^ n - p :: rat)"
+proof -
+  obtain N D where f: "compound_frac p b n = (N, D)" by force
+  obtain a c where p: "quotient_of p = (a, c)" by force
+  have fp: "0 < D" "of_int N / of_int D = (p * b ^ n :: rat)"
+    using compound_frac_props[of p b n] f by simp_all
+  have pp: "p = of_int a / of_int c" by (rule quotient_of_div[OF p])
+  have cp: "0 < c" by (rule quotient_of_denom_pos[OF p])
+  have dn: "(of_int D :: rat) \<noteq> 0" using fp(1) by simp
+  have cn: "(of_int c :: rat) \<noteq> 0" using cp by simp
+  have eq: "(of_int (N * c - a * D) / of_int (D * c) :: rat) = of_int N / of_int D - of_int a / of_int c"
+    using dn cn by (simp add: field_simps)
+  show ?thesis unfolding compound_interest_frac_def f p using fp cp pp eq by simp
+qed
+
+definition cc_interest_fa :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> floatarith" where
+  "cc_interest_fa p r y = floatarith.Add (cc_fa p r y) (floatarith.Minus (Q p))"
+definition cf_interest_fa :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> floatarith" where
+  "cf_interest_fa p m b = floatarith.Add (cf_fa p m b) (floatarith.Minus (Q p))"
+lemma interp_cc_interest [simp]:
+  "interpret_floatarith (cc_interest_fa p r y) xs = rl p * exp (rl r * rl y) - rl p"
+  by (simp add: cc_interest_fa_def)
+lemma interp_cf_interest [simp]:
+  "interpret_floatarith (cf_interest_fa p m b) xs = rl p * exp (rl m * ln (rl b)) - rl p"
+  by (simp add: cf_interest_fa_def)
 
 text \<open>Compound growth: with an integer number of periods the balance is
 rounded to cents from an unreduced exact fraction; otherwise it is enclosed.\<close>
@@ -546,6 +618,68 @@ next
       using compound_frac_props[of p "1 + r / of_nat (per f)" n] cf by simp_all
     have c: "c = round_frac 2 (N, D)" and k: "k = K_compound"
       using assms False Some cf by (simp_all add: compound_out_def)
+    have "round_frac 2 (N, D) = \<lfloor>(of_int N / of_int D) * 10 ^ 2 + 1 / 2 :: rat\<rfloor>"
+      by (rule round_frac_eq[OF pr(1)])
+    then show ?thesis using c k Some False pr(2) by simp
+  qed
+qed
+
+definition compound_interest_out :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> freq \<Rightarrow> outcome" where
+  "compound_interest_out p r y f = (if f = Fq_continuous then approx_out K_compound_interest (cc_interest_fa p r y)
+     else (case nat_exp (of_nat (per f) * y) of
+             Some n \<Rightarrow> Cents K_compound_interest (round_frac 2 (compound_interest_frac p (1 + r / of_nat (per f)) n))
+           | None \<Rightarrow> approx_out K_compound_interest (cf_interest_fa p (of_nat (per f) * y) (1 + r / of_nat (per f)))))"
+
+lemma compound_interest_out_not_exact [simp]: "compound_interest_out p r y f \<noteq> Exact k q"
+  by (auto simp: compound_interest_out_def split: option.splits)
+
+lemma compound_interest_out_not_novalue [simp]: "compound_interest_out p r y f \<noteq> NoValue k"
+  by (auto simp: compound_interest_out_def split: option.splits)
+
+lemma compound_interest_out_decline: "compound_interest_out p r y f = Decline w \<Longrightarrow> w = Imprecise"
+  by (auto simp: compound_interest_out_def dest: approx_out_decline split: option.splits if_splits)
+
+lemma compound_interest_out_approx:
+  assumes "compound_interest_out p r y f = Approx k d"
+  shows "k = K_compound_interest \<and> \<bar>dec_val d - (cphys p r y f - rl p)\<bar> \<le> tol_approx Fm_money ((cphys p r y f - rl p))"
+proof (cases "f = Fq_continuous")
+  case True
+  then have "approx_out K_compound_interest (cc_interest_fa p r y) = Approx k d" using assms by (simp add: compound_interest_out_def)
+  from approx_out_sound[OF this] show ?thesis using True by (simp add: cphys_def)
+next
+  case False
+  show ?thesis
+  proof (cases "nat_exp (of_nat (per f) * y)")
+    case None
+    then have "approx_out K_compound_interest (cf_interest_fa p (of_nat (per f) * y) (1 + r / of_nat (per f))) = Approx k d"
+      using assms False by (simp add: compound_interest_out_def)
+    from approx_out_sound[OF this] show ?thesis using False by (simp add: cphys_def)
+  next
+    case (Some n)
+    then show ?thesis using assms False by (simp add: compound_interest_out_def)
+  qed
+qed
+
+lemma compound_interest_out_cents:
+  assumes "compound_interest_out p r y f = Cents k c"
+  shows "k = K_compound_interest \<and> (\<exists>n. nat_exp (of_nat (per f) * y) = Some n \<and> f \<noteq> Fq_continuous \<and>
+            c = \<lfloor>(p * (1 + r / of_nat (per f)) ^ n - p) * 100 + 1 / 2\<rfloor>)"
+proof (cases "f = Fq_continuous")
+  case True
+  then show ?thesis using assms by (simp add: compound_interest_out_def)
+next
+  case False
+  show ?thesis
+  proof (cases "nat_exp (of_nat (per f) * y)")
+    case None
+    then show ?thesis using assms False by (simp add: compound_interest_out_def)
+  next
+    case (Some n)
+    obtain N D where cf: "compound_interest_frac p (1 + r / of_nat (per f)) n = (N, D)" by force
+    have pr: "0 < D" "of_int N / of_int D = (p * (1 + r / of_nat (per f)) ^ n - p :: rat)"
+      using compound_interest_frac_props[of p "1 + r / of_nat (per f)" n] cf by simp_all
+    have c: "c = round_frac 2 (N, D)" and k: "k = K_compound_interest"
+      using assms False Some cf by (simp_all add: compound_interest_out_def)
     have "round_frac 2 (N, D) = \<lfloor>(of_int N / of_int D) * 10 ^ 2 + 1 / 2 :: rat\<rfloor>"
       by (rule round_frac_eq[OF pr(1)])
     then show ?thesis using c k Some False pr(2) by simp
@@ -631,18 +765,19 @@ fun answer_of :: "request \<Rightarrow> outcome" where
   "answer_of (F_Apy (Some r) (Some Fq_continuous)) = approx_out K_apy (apy_fa r)"
 | "answer_of (F_Doubling (Some r)) = approx_out K_doubling (doubling_fa r)"
 | "answer_of (F_Compound (Some p) (Some r) (Some y) fo) = compound_out p r y (dflt fo)"
+| "answer_of (F_CompoundInterest (Some p) (Some r) (Some y) fo) = compound_interest_out p r y (dflt fo)"
 | "answer_of (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) =
      two_phase_out p r1 y1 (dflt f1) r2 y2 (dflt f2)"
 | "answer_of (R_EOQ (Some d) (Some s) (Some h)) = approx_out K_eoq (eoq_fa d s h)"
 | "answer_of (R_BreakEven (Some f) (Some p) (Some v)) =
-     (if p \<le> v then NoValue K_never_even else Exact K_break_even (f / (p - v)))"
+     (if f = 0 then Exact K_break_even 0 else if p \<le> v then NoValue K_never_even else Exact K_break_even (f / (p - v)))"
 | "answer_of r = Exact (kind_of r) (qval r)"
 
 definition kernel :: "request \<Rightarrow> outcome" where
   "kernel r = (case decline_of r of Some w \<Rightarrow> Decline w | None \<Rightarrow> answer_of r)"
 
 lemma answer_decline: "answer_of r = Decline w \<Longrightarrow> w = Imprecise"
-  by (cases r rule: answer_of.cases) (auto dest: approx_out_decline compound_out_decline two_phase_out_decline split: if_splits)
+  by (cases r rule: answer_of.cases) (auto dest: approx_out_decline compound_out_decline compound_interest_out_decline two_phase_out_decline split: if_splits)
 
 lemma answer_exact: "answer_of r = Exact k q \<Longrightarrow> k = kind_of r \<and> q = qval r"
   by (cases r rule: answer_of.cases) (auto split: if_splits)
@@ -651,14 +786,14 @@ lemma answer_cents:
   assumes "answer_of r = Cents k c"
   shows "k = kind_of r \<and> c = \<lfloor>qval r * 100 + 1 / 2\<rfloor>"
   using assms
-  by (cases r rule: answer_of.cases) (auto split: if_splits dest!: compound_out_cents two_phase_out_cents)
+  by (cases r rule: answer_of.cases) (auto split: if_splits dest!: compound_out_cents compound_interest_out_cents two_phase_out_cents)
 
 lemma answer_approx:
   assumes "answer_of r = Approx k d"
   shows "k = kind_of r \<and> \<bar>dec_val d - phys r\<bar> \<le> tol_approx (fmt_of k) (phys r)"
   using assms
   by (cases r rule: answer_of.cases)
-     (auto split: if_splits dest!: approx_out_sound compound_out_approx)
+     (auto split: if_splits dest!: approx_out_sound compound_out_approx compound_interest_out_approx)
 
 lemma decline_none:
   "decline_of r = None \<Longrightarrow> missing r = None \<and> \<not> impossible r \<and> \<not> is_refusal r"
@@ -699,22 +834,23 @@ qed
 
 theorem kernel_underspecified:
   "kernel r = Decline (Underspecified w) \<longleftrightarrow> missing r = Some w"
-  by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline two_phase_out_decline split: option.splits request.splits)
+  by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline compound_interest_out_decline two_phase_out_decline split: option.splits request.splits)
 
 theorem kernel_impossible:
   "(\<exists>why. kernel r = Decline (Impossible why)) \<longleftrightarrow> missing r = None \<and> impossible r"
 proof -
   have "(\<exists>why. kernel r = Decline (Impossible why)) \<longleftrightarrow> missing r = None \<and> reason_of r \<noteq> None"
-    by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline two_phase_out_decline split: option.splits request.splits)
+    by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline compound_interest_out_decline two_phase_out_decline split: option.splits request.splits)
   then show ?thesis using reason_of_exact by blast
 qed
 
 theorem kernel_refusal:
+  "kernel r = Decline UnknownTarget \<longleftrightarrow> missing r = None \<and> \<not> impossible r \<and> r = F_UnknownTarget"
   "kernel r = Decline Advice \<longleftrightarrow> missing r = None \<and> \<not> impossible r \<and> r = F_Advice"
   "kernel r = Decline MultiPhase \<longleftrightarrow> missing r = None \<and> \<not> impossible r \<and> r = F_MultiPhase"
   "kernel r = Decline RetailModel \<longleftrightarrow> missing r = None \<and> \<not> impossible r \<and> r = R_TaxModel"
   using reason_of_exact[of r]
-  by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline two_phase_out_decline split: option.splits request.splits)
+  by (auto simp: kernel_def decline_of_def dest: answer_decline approx_out_decline compound_out_decline compound_interest_out_decline two_phase_out_decline split: option.splits request.splits)
 
 theorem kernel_imprecise:
   assumes "kernel r = Decline Imprecise"
@@ -728,8 +864,8 @@ qed
 text \<open>The one answer with no number: the price does not cover the variable
 cost, so there is no break-even point.\<close>
 theorem never_even_iff:
-  "kernel (R_BreakEven (Some f) (Some p) (Some v)) = NoValue K_never_even \<longleftrightarrow> p \<le> v"
-  by (simp add: kernel_def decline_of_def)
+  "kernel (R_BreakEven (Some f) (Some p) (Some v)) = NoValue K_never_even \<longleftrightarrow> 0 < f \<and> 0 \<le> p \<and> 0 \<le> v \<and> p \<le> v"
+  by (auto simp: kernel_def decline_of_def)
 
 section \<open>What each kind means\<close>
 
@@ -820,30 +956,30 @@ text \<open>The level payment pays the loan off exactly: after the stated number
 monthly payments at the monthly rate the balance is zero.\<close>
 theorem loan_amortizes:
   assumes "kernel (F_LoanPayment (Some p) (Some r) (Some y)) = Exact k pay" and "0 \<le> r"
-  shows "0 < months y \<and> balance (r / 12) pay p (months y) = 0"
+  shows "0 < months y \<and> of_nat (months y) = 12 * y \<and> balance (r / 12) pay p (months y) = 0"
 proof -
   have nd: "decline_of (F_LoanPayment (Some p) (Some r) (Some y)) = None" and
        a: "answer_of (F_LoanPayment (Some p) (Some r) (Some y)) = Exact k pay"
     using assms(1) by (auto simp: kernel_def split: option.splits)
-  have n0: "months y \<noteq> 0" using decline_none[OF nd] by simp
+  have n0: "months y \<noteq> 0" and exact_term: "of_nat (months y) = 12 * y" using decline_none[OF nd] by auto
   have pay: "pay = pmt p (r / 12) (months y)" using answer_exact[OF a] by simp
   have h: "0 \<le> r / 12" using assms(2) by simp
-  show ?thesis using n0 pmt_amortizes[OF h n0] pay by simp
+  show ?thesis using n0 exact_term pmt_amortizes[OF h n0] pay by simp
 qed
 
 text \<open>The stated monthly deposit, paid at the end of each month at the monthly
 rate, reaches the goal exactly (no stated rate means 0 percent).\<close>
 theorem savings_reaches_goal:
   assumes "kernel (F_Savings (Some g) (Some y) ro) = Exact k dep" and "0 \<le> rate0 ro"
-  shows "0 < months y \<and> accum (rate0 ro / 12) dep (months y) = g"
+  shows "0 < months y \<and> of_nat (months y) = 12 * y \<and> accum (rate0 ro / 12) dep (months y) = g"
 proof -
   have nd: "decline_of (F_Savings (Some g) (Some y) ro) = None" and
        a: "answer_of (F_Savings (Some g) (Some y) ro) = Exact k dep"
     using assms(1) by (auto simp: kernel_def split: option.splits)
-  have n0: "months y \<noteq> 0" using decline_none[OF nd] by simp
+  have n0: "months y \<noteq> 0" and exact_term: "of_nat (months y) = 12 * y" using decline_none[OF nd] by auto
   have dep: "dep = sinking g (rate0 ro / 12) (months y)" using answer_exact[OF a] by simp
   have h: "0 \<le> rate0 ro / 12" using assms(2) by simp
-  show ?thesis using n0 dep sinking_reaches[OF h n0] by simp
+  show ?thesis using n0 exact_term dep sinking_reaches[OF h n0] by simp
 qed
 
 theorem loan_interest_is_total_minus_principal:
@@ -961,17 +1097,55 @@ qed
 
 subsection \<open>Retail\<close>
 
+theorem reorder_point_nonnegative:
+  assumes "kernel (R_ROP (Some d) (Some l) st) = Exact k v"
+  shows "0 \<le> v \<and> v - st = d * l"
+proof -
+  have h: "0 \<le> d" "0 \<le> l" "0 \<le> st" "v = d*l+st"
+    using kernel_exact_sound[OF assms] by auto
+  have "0 \<le> d*l" using h(1,2) by (rule mult_nonneg_nonneg)
+  then show ?thesis using h by auto
+qed
+
+theorem price_from_markup_nonnegative:
+  assumes "kernel (R_PriceMarkup c m) = Exact k v"
+  shows "0 \<le> v"
+proof -
+  have h: "0 \<le> c" "0 \<le> 1+m" "v = c*(1+m)"
+    using kernel_exact_sound[OF assms] by auto
+  show ?thesis unfolding h(3) by (rule mult_nonneg_nonneg[OF h(1,2)])
+qed
+
+theorem inventory_turnover_nonnegative:
+  assumes "kernel (R_Turnover (Some c) (Some a)) = Exact k v"
+  shows "0 \<le> v \<and> v*a=c"
+proof -
+  have h: "0 \<le> c" "0 < a" "v = c/a"
+    using kernel_exact_sound[OF assms] by auto
+  have "0 \<le> c/a" using h(1,2) by (rule divide_nonneg_pos)
+  then show ?thesis using h by auto
+qed
+
 theorem break_even_equation:
   assumes "kernel (R_BreakEven (Some f) (Some p) (Some v)) = Exact k u"
-  shows "v < p \<and> u * (p - v) = f"
+  shows "0 \<le> u \<and> u * (p - v) = f \<and> (f = 0 \<or> v < p)"
 proof -
   have a: "answer_of (R_BreakEven (Some f) (Some p) (Some v)) = Exact k u"
-    using assms by (auto simp: kernel_def split: option.splits)
-  have np: "\<not> p \<le> v" and u: "u = f / (p - v)" using a by (auto split: if_splits)
-  have vp: "v < p" using np by simp
-  have d0: "0 < p - v" using vp by simp
-  have d: "p - v \<noteq> 0" by (rule pos_ne[OF d0])
-  show ?thesis using vp u d by (simp add: field_simps)
+    using assms by (auto simp: kernel_def split: option.splits if_splits)
+  have f0: "0 \<le> f" using kernel_exact_sound[OF assms] by simp
+  show ?thesis
+  proof (cases "f = 0")
+    case True
+    then show ?thesis using a by simp
+  next
+    case False
+    have vp: "v < p" and u: "u = f / (p-v)" using a False by (auto split: if_splits)
+    have nz: "p-v \<noteq> 0" using vp by simp
+    have nonnegative: "0 \<le> f / (p-v)" using f0 vp by (intro divide_nonneg_pos) auto
+    have unon: "0 \<le> u" using u nonnegative by simp
+    have equation: "u * (p-v) = f" using u nz by simp
+    show ?thesis using unon equation vp by blast
+  qed
 qed
 
 text \<open>Margin and markup are different numbers of the same pair: they share the
@@ -1053,6 +1227,19 @@ text \<open>The real rate is the Fisher approximation i - p, and the reply says 
 the exact relation (1 + real)(1 + p) = 1 + i is the product of the two small numbers,
 real * p / 10000 (percent points). This replaces the earlier statement about the exact
 rate, which was about a formula the kernel never computes.\<close>
+text \<open>The exact real return preserves purchasing power factors; the approximation
+is a separate explicit model. Rates here are percentage numbers.\<close>
+theorem exact_real_rate_factors:
+  assumes "kernel (E_Fisher i p) = Exact k v"
+  shows "(1 + v / 100) * (1 + p / 100) = 1 + i / 100"
+proof -
+  have h: "\<not> impossible (E_Fisher i p) \<and> v = qval (E_Fisher i p)"
+    using kernel_exact_sound[OF assms] by blast
+  have lower: "-100 < p" using h by auto
+  have nz: "100 + p \<noteq> 0" using lower by linarith
+  show ?thesis using h nz by (simp add: field_simps)
+qed
+
 theorem real_rate_is_fisher_approximation:
   assumes "kernel (E_RealRate i p) = Exact k v"
   shows "v = i - p \<and> \<bar>(1 + v / 100) * (1 + p / 100) - (1 + i / 100)\<bar> \<le> \<bar>v * p\<bar> / 10000"
@@ -1068,19 +1255,61 @@ proof -
 qed
 
 theorem unemployment_in_range:
-  assumes "kernel (E_Unemployment (Some u) (Some l)) = Exact k v" and "0 \<le> u"
+  assumes "kernel (E_Unemployment (Some u) (Some l)) = Exact k v"
   shows "0 \<le> v \<and> v \<le> 100"
 proof -
   have nd: "decline_of (E_Unemployment (Some u) (Some l)) = None" and
        a: "answer_of (E_Unemployment (Some u) (Some l)) = Exact k v"
     using assms(1) by (auto simp: kernel_def split: option.splits)
-  have c1: "0 < l" and c2: "u \<le> l" using decline_none[OF nd] by auto
+  have c0: "0 \<le> u" and c1: "0 < l" and c2: "u \<le> l" using decline_none[OF nd] by auto
   have v: "v = u / l * 100" using answer_exact[OF a] by simp
-  have h1: "0 \<le> u / l" by (rule divide_nonneg_pos[OF assms(2) c1])
+  have h1: "0 \<le> u / l" by (rule divide_nonneg_pos[OF c0 c1])
   have h2: "u / l \<le> 1" using c1 c2 by (simp add: divide_le_eq_1)
   have a1: "0 \<le> u / l * 100" by (rule mult_nonneg_nonneg[OF h1]) simp
   have a2: "u / l * 100 \<le> 1 * 100" by (rule mult_right_mono[OF h2]) simp
   show ?thesis unfolding v using a1 a2 by auto
+qed
+
+
+text \<open>Counts, gross output and price indices retain their declared model
+ranges after parsing. Negative money values can still represent debts in CPI
+conversion; only the two price indices must be positive.\<close>
+theorem participation_in_range:
+  assumes "kernel (E_Participation (Some l) (Some p)) = Exact k v"
+  shows "0 \<le> v \<and> v \<le> 100"
+proof -
+  have h: "\<not> impossible (E_Participation (Some l) (Some p)) \<and>
+    v = qval (E_Participation (Some l) (Some p))"
+    using kernel_exact_sound[OF assms] by blast
+  have domain: "0 \<le> l" "0 < p" "l \<le> p" using h by auto
+  have lo: "0 \<le> l / p" by (rule divide_nonneg_pos[OF domain(1,2)])
+  have hi: "l / p \<le> 1" using domain by (simp add: divide_le_eq_1)
+  show ?thesis using h lo mult_right_mono[OF hi, of 100]
+    by (auto simp: mult_nonneg_nonneg)
+qed
+
+theorem real_gdp_nonnegative:
+  assumes "kernel (E_RealGdp (Some n) (Some d) u) = Exact k v"
+  shows "0 \<le> n \<and> 0 < d \<and> 0 \<le> v"
+proof -
+  have h: "\<not> impossible (E_RealGdp (Some n) (Some d) u) \<and>
+    v = qval (E_RealGdp (Some n) (Some d) u)"
+    using kernel_exact_sound[OF assms] by blast
+  have domain: "0 \<le> n" "0 < d" using h by auto
+  have "0 \<le> n / d" by (rule divide_nonneg_pos[OF domain])
+  then show ?thesis using h domain by (auto simp: mult_nonneg_nonneg)
+qed
+
+theorem inflation_positive_indices:
+  assumes "kernel (E_Inflation (Some (a,b))) = Exact k v"
+  shows "0 < a \<and> 0 < b \<and> (1 + v / 100) * a = b"
+proof -
+  have h: "\<not> impossible (E_Inflation (Some (a,b))) \<and>
+    v = qval (E_Inflation (Some (a,b)))"
+    using kernel_exact_sound[OF assms] by blast
+  have domain: "0 < a" "0 < b" using h by auto
+  have nz: "a \<noteq> 0" using domain by simp
+  show ?thesis using h domain nz by (auto simp: field_simps)
 qed
 
 subsection \<open>Lane B-finance additions\<close>
@@ -1104,7 +1333,7 @@ proof -
   have nd: "decline_of (F_Annuity (Some d) (Some r) (Some y)) = None" and
        a: "answer_of (F_Annuity (Some d) (Some r) (Some y)) = Exact k fv"
     using assms(1) by (auto simp: kernel_def split: option.splits)
-  have n0: "months y \<noteq> 0" using decline_none[OF nd] by simp
+  have n0: "months y \<noteq> 0" and exact_term: "of_nat (months y) = 12 * y" using decline_none[OF nd] by auto
   have periods: "of_nat (months y) = (12 * y :: rat)" using decline_none[OF nd] by simp
   have fv: "fv = fv_ann d (r / 12) (months y)" using answer_exact[OF a] by simp
   show ?thesis
@@ -1309,82 +1538,90 @@ definition elast_label :: "rat \<Rightarrow> String.literal" where
   "elast_label e = (if 1 + 1 / 2000 < \<bar>e\<bar> then STR ''elastic (|E| > 1)''
      else if \<bar>e\<bar> < 1 - 1 / 2000 then STR ''inelastic (|E| < 1)'' else STR ''unit elastic (|E| = 1)'')"
 
-fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Rightarrow> String.literal" where
-  "exact_text (F_Apy (Some r) (Some f)) q V = STR ''The APY is '' + V + STR ''% (an APR of '' + pc r
+text \<open>This renderer is a nonrecursive case expression. Avoid asking the
+function package to derive a recursion/termination structure for text selection.\<close>
+definition exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Rightarrow> String.literal" where
+  "exact_text rq q V = (case rq of
+     F_Apy (Some r) (Some f) \<Rightarrow> STR ''The APY is '' + V + STR ''% (an APR of '' + pc r
      + STR ''% compounded '' + (if f = Fq_continuous then STR ''continuously''
-         else show_int (int (per f)) + STR '' times a year'') + STR '': (1 + r/n)^n - 1).''"
-| "exact_text (F_Doubling (Some r)) q V = STR ''The doubling time is '' + V + STR '' years at '' + pc r
-     + STR ''% compounded annually (ln 2 / ln(1 + r)); the rule of 72 estimates '' + fix1 (72 / (100 * r)) + STR ''.''"
-| "exact_text (F_LoanPayment (Some p) (Some r) (Some y)) q V = STR ''The monthly payment is '' + V + STR '' (''
+         else show_int (int (per f)) + STR '' times a year'') + STR '': (1 + r/n)^n - 1).''
+   | F_Doubling (Some r) \<Rightarrow> STR ''The doubling time is '' + V + STR '' years at '' + pc r
+     + STR ''% compounded annually (ln 2 / ln(1 + r)); the rule of 72 estimates '' + fix1 (72 / (100 * r)) + STR ''.''
+   | F_LoanPayment (Some p) (Some r) (Some y) \<Rightarrow> STR ''The monthly payment is '' + V + STR '' (''
      + money p + STR '' at '' + pc r + STR ''% APR over '' + ny y
-     + STR '' months: P*i / (1 - (1 + i)^-n), i = r/12); total paid '' + money (of_nat (months y) * q) + STR ''.''"
-| "exact_text (F_LoanInterest (Some p) (Some r) (Some y)) q V = STR ''The total interest is '' + V + STR '' (''
+     + STR '' months: P*i / (1 - (1 + i)^-n), i = r/12); total paid '' + money (of_nat (months y) * q) + STR ''.''
+   | F_LoanInterest (Some p) (Some r) (Some y) \<Rightarrow> STR ''The total interest is '' + V + STR '' (''
      + ny y + STR '' payments of '' + money ((q + p) / of_nat (months y)) + STR '' = '' + money (q + p)
-     + STR '', minus the '' + money p + STR '' borrowed).''"
-| "exact_text (F_Savings (Some g) (Some y) ro) q V = STR ''The monthly deposit is '' + V + STR '' (to reach ''
+     + STR '', minus the '' + money p + STR '' borrowed).''
+   | F_Savings (Some g) (Some y) ro \<Rightarrow> STR ''The monthly deposit is '' + V + STR '' (to reach ''
      + money g + STR '' in '' + ny y + STR '' months at '' + pc (rate0 ro)
-     + STR ''% compounded monthly: FV*i / ((1 + i)^n - 1)).''"
-| "exact_text (F_Simple (Some p) (Some r) (Some y)) q V = STR ''The simple interest is '' + V
+     + STR ''% compounded monthly: FV*i / ((1 + i)^n - 1)).''
+   | F_Simple (Some p) (Some r) (Some y) \<Rightarrow> STR ''The simple interest is '' + V
      + STR '' (I = P*r*t = '' + money p + STR '' x '' + pc r + STR ''% x '' + g6 y + STR '' years); total ''
-     + money (p + q) + STR ''.''"
-| "exact_text (F_Compound (Some p) (Some r) (Some y) fo) q V = STR ''It grows to '' + V + STR '' (''
+     + money (p + q) + STR ''.''
+   | F_CompoundInterest (Some p) (Some r) (Some y) fo \<Rightarrow> STR ''The interest earned is '' + V + STR '' (final balance minus initial principal '' + money p + STR '').''
+   | F_SimpleTotal (Some p) (Some r) (Some y) \<Rightarrow> STR ''The final balance is '' + V + STR '' (principal plus simple interest).''
+   | F_Compound (Some p) (Some r) (Some y) fo \<Rightarrow> STR ''It grows to '' + V + STR '' (''
      + money p + STR '' at '' + pc r + STR ''% compounded '' + freq_word (dflt fo) + STR '' for '' + g6 y
-     + STR '' years; interest earned '' + money (q - p) + STR '').''"
-| "exact_text (E_Elasticity (Some (p1, p2)) (Some (q1, q2))) q V = STR ''The price elasticity of demand is '' + V
+     + STR '' years; interest earned '' + money (q - p) + STR '').''
+   | E_Elasticity (Some (p1, p2)) (Some (q1, q2)) \<Rightarrow> STR ''The price elasticity of demand is '' + V
      + STR '' (midpoint method: %dQ '' + g3 ((q2 - q1) / ((q1 + q2) / 2) * 100)
-     + STR ''% / %dP '' + g3 ((p2 - p1) / ((p1 + p2) / 2) * 100) + STR ''%) - '' + elast_label q + STR ''.''"
-| "exact_text (E_ElasticityPct (Some dp) (Some dq)) q V = STR ''The price elasticity of demand is '' + V
-     + STR '' (%dQ '' + g3 dq + STR ''% / %dP '' + g3 dp + STR ''%) - '' + elast_label q + STR ''.''"
-| "exact_text (E_Inflation (Some (a, b))) q V = STR ''The inflation rate is '' + V + STR ''% (('' + g3 b
-     + STR '' - '' + g3 a + STR '') / '' + g3 a + STR '' x 100).''"
-| "exact_text (E_RealValue x (Some c0) (Some c1) y0 y1) q V = STR ''That is '' + V + STR '' in ''
+     + STR ''% / %dP '' + g3 ((p2 - p1) / ((p1 + p2) / 2) * 100) + STR ''%) - '' + elast_label q + STR ''.''
+   | E_ElasticityPct (Some dp) (Some dq) \<Rightarrow> STR ''The price elasticity of demand is '' + V
+     + STR '' (%dQ '' + g3 dq + STR ''% / %dP '' + g3 dp + STR ''%) - '' + elast_label q + STR ''.''
+   | E_Inflation (Some (a, b)) \<Rightarrow> STR ''The inflation rate is '' + V + STR ''% (('' + g3 b
+     + STR '' - '' + g3 a + STR '') / '' + g3 a + STR '' x 100).''
+   | E_RealValue x (Some c0) (Some c1) y0 y1 \<Rightarrow> STR ''That is '' + V + STR '' in ''
      + show_int (fst (quotient_of y1)) + STR '' dollars ('' + money x + STR '' x CPI '' + g3 c1
-     + STR '' / CPI '' + g3 c0 + STR '').''"
-| "exact_text (E_RealRate i p) q V = STR ''The real interest rate is '' + V
+     + STR '' / CPI '' + g3 c0 + STR '').''
+   | E_Fisher i p \<Rightarrow> STR ''The real interest rate is '' + V
+     + STR ''% ((1 + nominal rate) / (1 + inflation) - 1).''
+   | E_RealRate i p \<Rightarrow> STR ''The real interest rate is '' + V
      + STR ''% (Fisher approximation i - pi = '' + g3 i + STR ''% - '' + g3 p
-     + STR ''%; exact (1+i)/(1+pi) - 1 = '' + g3 (((1 + i / 100) / (1 + p / 100) - 1) * 100) + STR ''%).''"
-| "exact_text (E_Growth a b) q V = STR ''The growth rate is '' + V + STR ''% (('' + g3 b + STR '' - '' + g3 a
-     + STR '') / '' + g3 a + STR '' x 100).''"
-| "exact_text (E_Multiplier c) q V = STR ''The spending multiplier is '' + V + STR '' (1 / (1 - MPC) = 1 / ''
-     + g3 (1 - c) + STR '').''"
-| "exact_text (E_TaxMultiplier c) q V = STR ''The tax multiplier is '' + V + STR '' (-MPC / MPS = -'' + g3 c
-     + STR '' / '' + g3 (1 - c) + STR '').''"
-| "exact_text (E_Unemployment (Some u) (Some l)) q V = STR ''The unemployment rate is '' + V
-     + STR ''% (unemployed '' + g3 u + STR '' / labour force '' + g3 l + STR '').''"
-| "exact_text (E_Participation (Some l) (Some p)) q V = STR ''The labour-force participation rate is '' + V
-     + STR ''% (labour force '' + g3 l + STR '' / working-age population '' + g3 p + STR '').''"
-| "exact_text (E_Deflator (Some n) (Some r)) q V = STR ''The GDP deflator is '' + V
-     + STR '' (nominal / real x 100).''"
-| "exact_text (E_Rule70 (Some g)) q V = STR ''The doubling time is about '' + V
-     + STR '' years (rule of 70: 70 / '' + g3 g + STR ''%; an approximation).''"
-| "exact_text (R_BreakEven (Some f) (Some p) (Some v)) q V = STR ''The break-even point is '' + V
-     + STR '' units ('' + money f + STR '' fixed / ('' + money p + STR '' - '' + money v
-     + STR '') per unit), i.e. '' + show_int (- \<lfloor>- q\<rfloor>) + STR '' whole units.''"
-| "exact_text (R_EOQ (Some d) (Some s) (Some h)) q V = STR ''The EOQ is '' + V + STR '' units (sqrt(2 x ''
-     + g4 d + STR '' x '' + money s + STR '' / '' + money h + STR '')).''"
-| "exact_text (R_ROP (Some d) (Some l) s) q V = STR ''The reorder point is '' + V + STR '' units ('' + g4 d
-     + STR '' a day x '' + g4 l + STR '' days lead time + '' + g4 s + STR '' safety stock).''"
-| "exact_text (R_Days (Some c) (Some a)) q V = STR ''Days of inventory is '' + V + STR '' days (365 / turnover ''
-     + g4 (c / a) + STR '' = '' + money c + STR '' COGS / '' + money a + STR '' average inventory).''"
-| "exact_text (R_Turnover (Some c) (Some a)) q V = STR ''The inventory turnover is '' + V
-     + STR '' times a year ('' + money c + STR '' COGS / '' + money a + STR '' average inventory).''"
-| "exact_text (R_Markup c p) q V = STR ''The markup is '' + V + STR ''% (('' + money p + STR '' - '' + money c
-     + STR '') / cost '' + money c + STR '').''"
-| "exact_text (R_Margin c p) q V = STR ''The gross margin is '' + V + STR ''% (('' + money p + STR '' - '' + money c
-     + STR '') / price '' + money p + STR '').''"
-| "exact_text (R_PriceMarkup c m) q V = STR ''The price is '' + V + STR '' ('' + money c + STR '' cost x (1 + ''
-     + g4 (100 * m) + STR ''% markup)).''"
-| "exact_text (R_PriceMargin c m) q V = STR ''The price is '' + V + STR '' ('' + money c + STR '' cost / (1 - ''
+     + STR ''%; exact (1+i)/(1+pi) - 1 = '' + g3 (((1 + i / 100) / (1 + p / 100) - 1) * 100) + STR ''%).''
+   | E_Growth a b \<Rightarrow> STR ''The growth rate is '' + V + STR ''% (('' + g3 b + STR '' - '' + g3 a
+     + STR '') / '' + g3 a + STR '' x 100).''
+   | E_Multiplier c \<Rightarrow> STR ''The spending multiplier is '' + V + STR '' (1 / (1 - MPC) = 1 / ''
+     + g3 (1 - c) + STR '').''
+   | E_TaxMultiplier c \<Rightarrow> STR ''The tax multiplier is '' + V + STR '' (-MPC / MPS = -'' + g3 c
+     + STR '' / '' + g3 (1 - c) + STR '').''
+   | E_Unemployment (Some u) (Some l) \<Rightarrow> STR ''The unemployment rate is '' + V
+     + STR ''% (unemployed '' + g3 u + STR '' / labour force '' + g3 l + STR '').''
+   | E_Participation (Some l) (Some p) \<Rightarrow> STR ''The labour-force participation rate is '' + V
+     + STR ''% (labour force '' + g3 l + STR '' / working-age population '' + g3 p + STR '').''
+   | E_Deflator (Some n) (Some r) \<Rightarrow> STR ''The GDP deflator is '' + V
+     + STR '' (nominal / real x 100).''
+   | E_Rule70 (Some g) \<Rightarrow> STR ''The doubling time is about '' + V
+     + STR '' years (rule of 70: 70 / '' + g3 g + STR ''%; an approximation).''
+   | R_BreakEven (Some f) (Some p) (Some v) \<Rightarrow>
+    (if f = 0 then STR ''The break-even point is '' + V + STR '' units: with no fixed costs, zero production has zero revenue and zero cost.''
+     else STR ''The break-even point is '' + V + STR '' units ('' + money f + STR '' fixed / ('' + money p + STR '' - '' + money v
+     + STR '') per unit), i.e. '' + show_int (- \<lfloor>- q\<rfloor>) + STR '' whole units.'')
+   | R_EOQ (Some d) (Some s) (Some h) \<Rightarrow> STR ''The EOQ is '' + V + STR '' units (sqrt(2 x ''
+     + g4 d + STR '' x '' + money s + STR '' / '' + money h + STR '')).''
+   | R_ROP (Some d) (Some l) s \<Rightarrow> STR ''The reorder point is '' + V + STR '' units ('' + g4 d
+     + STR '' a day x '' + g4 l + STR '' days lead time + '' + g4 s + STR '' safety stock).''
+   | R_Days (Some c) (Some a) \<Rightarrow> STR ''Days of inventory is '' + V + STR '' days (365 / turnover ''
+     + g4 (c / a) + STR '' = '' + money c + STR '' COGS / '' + money a + STR '' average inventory).''
+   | R_Turnover (Some c) (Some a) \<Rightarrow> STR ''The inventory turnover is '' + V
+     + STR '' times a year ('' + money c + STR '' COGS / '' + money a + STR '' average inventory).''
+   | R_Markup c p \<Rightarrow> STR ''The markup is '' + V + STR ''% (('' + money p + STR '' - '' + money c
+     + STR '') / cost '' + money c + STR '').''
+   | R_Margin c p \<Rightarrow> STR ''The gross margin is '' + V + STR ''% (('' + money p + STR '' - '' + money c
+     + STR '') / price '' + money p + STR '').''
+   | R_PriceMarkup c m \<Rightarrow> STR ''The price is '' + V + STR '' ('' + money c + STR '' cost x (1 + ''
+     + g4 (100 * m) + STR ''% markup)).''
+   | R_PriceMargin c m \<Rightarrow> STR ''The price is '' + V + STR '' ('' + money c + STR '' cost / (1 - ''
      + g4 (100 * m) + STR ''% margin)); note a '' + g4 (100 * m) + STR ''% margin is not a '' + g4 (100 * m)
-     + STR ''% markup.''"
-| "exact_text (R_Discount b os) q V = STR ''The sale price is '' + V + STR '' ('' + money b + STR '' less ''
+     + STR ''% markup.''
+   | R_Discount b os \<Rightarrow> STR ''The sale price is '' + V + STR '' ('' + money b + STR '' less ''
      + join_with (STR '' and '') (map (\<lambda>x. g4 x + STR ''%'') os) + STR '')''
      + (if 1 < length os then STR '' (stacked discounts compound: ''
           + join_with (STR '' then '') (map (\<lambda>x. g4 x + STR ''%'') os) + STR '')'' else STR '''')
-     + STR ''.''"
-| "exact_text (R_WithTax b r) q V = STR ''The total is '' + V + STR '' ('' + money b + STR '' + '' + g4 (100 * r)
-     + STR ''% tax = '' + money (b * r) + STR '').''"
-| "exact_text r q V = V"
+     + STR ''.''
+   | R_WithTax b r \<Rightarrow> STR ''The total is '' + V + STR '' ('' + money b + STR '' + '' + g4 (100 * r)
+     + STR ''% tax = '' + money (b * r) + STR '').''
+   | _ \<Rightarrow> V)"
 
 definition exact_text_b :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Rightarrow> String.literal" where
   "exact_text_b rq q V = (case rq of
@@ -1447,7 +1684,7 @@ definition need_text :: "need \<Rightarrow> String.literal" where
      + apos + STR ''t assume it.''"
 
 fun reason_text :: "reason \<Rightarrow> String.literal" where
-  "reason_text R_term = STR ''A loan or savings term must be at least one month; monthly deposits need a whole number of months.''"
+  "reason_text R_term = STR ''Monthly loan payments and savings deposits require a positive whole number of months.''"
 | "reason_text R_degenerate = STR ''Those figures do not give a defined elasticity.''"
 | "reason_text R_mpc = STR ''The MPC must be between 0 and 1 for a finite multiplier.''"
 | "reason_text R_unemp = STR ''The unemployed cannot outnumber the labour force.''"
@@ -1460,7 +1697,7 @@ fun reason_text :: "reason \<Rightarrow> String.literal" where
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of Underspecified _ \<Rightarrow> STR ''underspecified'' | Impossible _ \<Rightarrow> STR ''impossible''
-     | Advice \<Rightarrow> STR ''advice'' | MultiPhase \<Rightarrow> STR ''multi_phase'' | RetailModel \<Rightarrow> STR ''unsupported_model'' | Imprecise \<Rightarrow> STR ''imprecise'')"
+     | Advice \<Rightarrow> STR ''advice'' | MultiPhase \<Rightarrow> STR ''multi_phase'' | UnknownTarget \<Rightarrow> STR ''unsupported_model'' | RetailModel \<Rightarrow> STR ''unsupported_model'' | Imprecise \<Rightarrow> STR ''imprecise'')"
 
 definition decline_text :: "decline \<Rightarrow> String.literal" where
   "decline_text w = (case w of
@@ -1470,12 +1707,14 @@ definition decline_text :: "decline \<Rightarrow> String.literal" where
        + STR ''t advise. I can compute growth, loan payments, interest or a savings target for any numbers you give me.''
    | MultiPhase \<Rightarrow> STR ''That account changes rate or term partway through; I compute one rate over one term at a time, so I won''
        + apos + STR ''t give a single figure for the whole thing. Ask about each phase separately (the first phase ends with a balance that starts the second).''
+   | UnknownTarget \<Rightarrow> STR ''I need one supported requested quantity: the final balance or the interest amount. A breakdown or multiple requested quantities needs a more specific model.''
    | RetailModel \<Rightarrow> STR ''I need an unambiguous tax base and a request for the final price, tax amount, or savings compared with full price including tax.''
    | Imprecise \<Rightarrow> STR ''The interval arithmetic could not pin the digits; I won'' + apos + STR ''t guess.'')"
 
 definition kind_name :: "kind \<Rightarrow> String.literal" where
   "kind_name k = (case k of
-       K_apy \<Rightarrow> STR ''apy'' | K_doubling \<Rightarrow> STR ''doubling'' | K_loan_interest \<Rightarrow> STR ''loan_interest''
+       K_compound_interest \<Rightarrow> STR ''compound_interest'' | K_simple_total \<Rightarrow> STR ''simple_total''
+     | K_apy \<Rightarrow> STR ''apy'' | K_doubling \<Rightarrow> STR ''doubling'' | K_loan_interest \<Rightarrow> STR ''loan_interest''
      | K_loan_payment \<Rightarrow> STR ''loan_payment'' | K_savings_goal \<Rightarrow> STR ''savings_goal''
      | K_simple_interest \<Rightarrow> STR ''simple_interest'' | K_compound \<Rightarrow> STR ''compound''
      | K_advice \<Rightarrow> STR ''advice'' | K_multi_phase \<Rightarrow> STR ''multi_phase''
