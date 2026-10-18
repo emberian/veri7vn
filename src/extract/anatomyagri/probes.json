@@ -388,7 +388,7 @@
   },
   {
     "specialist": "agriculture-v2",
-    "q": "How many seeds are needed for a target stand of 101 plants at −80% germination?",
+    "q": "How many seeds are needed for a target stand of 101 plants at \u221280% germination?",
     "expect": null,
     "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
     "decline_class": "invalid"
@@ -453,5 +453,457 @@
     "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
     "decline_class": "unsupported",
     "capability_expect": 1263
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How many calories are in -10 grams of protein and 5 grams of fat?",
+    "expect": null,
+    "source": "Sum of supplied nonnegative macronutrient grams with general Atwater factors4/4/9/7; explicit zeros differ from absent roles. Same-author model probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How many calories are in \u221210 grams of protein and 5 grams of fat?",
+    "expect": null,
+    "source": "Sum of supplied nonnegative macronutrient grams with general Atwater factors4/4/9/7; explicit zeros differ from absent roles. Same-author model probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How many calories are in 1.2.3 grams of protein and 5 grams of fat?",
+    "expect": null,
+    "source": "Sum of supplied nonnegative macronutrient grams with general Atwater factors4/4/9/7; explicit zeros differ from absent roles. Same-author model probe.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How many calories are in 1/2 gram of protein and 1/4 gram of fat?",
+    "expect": 4.25,
+    "source": "Sum of supplied nonnegative macronutrient grams with general Atwater factors4/4/9/7; explicit zeros differ from absent roles. Same-author model probe."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How many calories are in 0 grams of protein and 0 grams of fat?",
+    "expect": 0,
+    "source": "Sum of supplied nonnegative macronutrient grams with general Atwater factors4/4/9/7; explicit zeros differ from absent roles. Same-author model probe."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How many calories are in 10 grams of protein and 20 grams of protein?",
+    "expect": null,
+    "source": "Sum of supplied nonnegative macronutrient grams with general Atwater factors4/4/9/7; explicit zeros differ from absent roles. Same-author model probe.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How many calories are in 10 grams of alcohol?",
+    "expect": 70,
+    "source": "Sum of supplied nonnegative macronutrient grams with general Atwater factors4/4/9/7; explicit zeros differ from absent roles. Same-author model probe."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How many calories are in protein and 5 grams of fat?",
+    "expect": null,
+    "source": "Sum of supplied nonnegative macronutrient grams with general Atwater factors4/4/9/7; explicit zeros differ from absent roles. Same-author model probe.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How many calories are in 1e1 grams of protein and 2e1 grams of carbohydrate?",
+    "expect": 120,
+    "source": "Sum of supplied nonnegative macronutrient grams with general Atwater factors4/4/9/7; explicit zeros differ from absent roles. Same-author model probe."
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many total pounds of 10-10-10 fertilizer are needed for 5 acres at 20 lb of nitrogen per acre?",
+    "expect": 1000,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "To supply 20 lb nitrogen per acre over 5 acres, how many total pounds of 10-10-10 fertilizer?",
+    "expect": 1000,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of 10-10-10 fertilizer are needed to supply 20 pounds of nitrogen across 5 acres?",
+    "expect": 200,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of 10-10-10 fertilizer per acre are needed to supply a total of 20 lb nitrogen across 5 acres?",
+    "expect": 40,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How much nitrogen does 200 pounds of 10-10-10 fertilizer per acre supply across 5 acres in total?",
+    "expect": 100,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How much nitrogen per acre is supplied by 200 pounds of 10-10-10 fertilizer across 5 acres?",
+    "expect": 4,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of 10-10-10 fertilizer per acre are needed to supply -20 pounds of nitrogen per acre?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of 10-10-10 fertilizer per acre are needed to supply 1.2.3 pounds of nitrogen per acre?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of nitrogen are in -200 pounds of 10-10-10 fertilizer?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of 10-10-10 fertilizer are needed for 1/2 lb nitrogen?",
+    "expect": 5,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many total pounds of 10-10-10 fertilizer are needed for -5 acres at 20 lb nitrogen per acre?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many total pounds of 10-10-10 fertilizer are needed for 0 acres at 20 lb nitrogen per acre?",
+    "expect": 0,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How much nitrogen per acre is supplied by 200 pounds of 10-10-10 fertilizer across 0 acres?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of 120-10-10 fertilizer are needed to supply 20 lb nitrogen per acre?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of 10-10-10 fertilizer per acre are needed to supply 0 lb nitrogen per acre?",
+    "expect": 0,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How much nitrogen is in 0 pounds of 10-10-10 fertilizer?",
+    "expect": 0,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How much nitrogen is in 200 pounds of 0-10-10 fertilizer?",
+    "expect": 0,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How much elemental phosphorus is in 200 pounds of 10-10-10 fertilizer?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "unsupported"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How much potassium is in 200 pounds of 10-10-10 fertilizer?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "unsupported"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of 10-10-10 fertilizer per hectare are needed to supply 20 lb nitrogen per hectare?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "unsupported"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of -10-10-10 fertilizer per acre are needed to supply 20 lb nitrogen per acre?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of 10-10-10 fertilizer per acre are needed to supply 20 lb nitrogen per acre and 30 lb nitrogen per acre?",
+    "expect": null,
+    "source": "Grade-column mass balance: product times N/P2O5/K2O percentage equals nutrient amount; explicit total/rate/area conversion. Same-author independent arithmetic probe.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of N are in 200 lb of 10-10-10 fertilizer per acre across 5 acres?",
+    "expect": 100,
+    "response_not_contains": [
+      "lb per acre"
+    ],
+    "source": "Nutrient mass equals grade fraction times total product:200 lb/acre times5 acres times0.1."
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many pounds of N per acre are in a total 200 lb of 10-10-10 fertilizer across 5 acres?",
+    "expect": 4,
+    "response_contains": [
+      "lb per acre"
+    ],
+    "source": "Distribute total nutrient:200 lb times0.1 divided by5 acres."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of calories comes from fat in a food with -10 g fat and 200 calories?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of calories comes from fat in a food with 10 g fat and 1.2.3 calories?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of calories comes from fat in a food with 30 g fat and 200 calories?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of calories comes from fat in a food with 1/2 g fat and 200 calories?",
+    "expect": 2.25,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of calories comes from fat in a food with 2e1 g fat and 200 calories?",
+    "expect": 90,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of calories comes from fat in a food with 0 g fat and 200 calories?",
+    "expect": 0,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of calories comes from fat in a food with 10 g fat and 90 calories?",
+    "expect": 100,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of calories comes from fat in a food with 0 g fat and 0 calories?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of calories comes from fat in a food with 5 g fat and 10 g fat and 200 calories?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of the daily value is -500 mg sodium?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of the daily value is 1.2.3 mg sodium?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of the daily value is 1/2 g sodium?",
+    "expect": 21.73913043478261,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of the daily value is 4.6 g sodium?",
+    "expect": 200,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of the daily value is 0 mg sodium?",
+    "expect": 0,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent of the daily value is 5e2 mg sodium?",
+    "expect": 21.73913043478261,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How much of the Daily Value is 6 g of saturated fat, as a percent?",
+    "expect": 30,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What percent daily value is 500 mg sodium and 10 mg iron?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 70 kg adult who is -1.75 m tall?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a -70 kg adult who is 1.75 m tall?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 0 kg adult who is 1.75 m tall?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 70 kg adult who is 0 m tall?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 70 kg adult who is 7/4 m tall?",
+    "expect": 22.857142857142858,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 70 kg adult who is 175 cm tall?",
+    "expect": 22.857142857142858,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 70 kg adult who is 1.2.3 m tall?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 70 kg adult who is 5 feet 9 inches tall?",
+    "expect": 22.789375551445914,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 154 pound adult who is 175 cm tall?",
+    "expect": 22.80921632,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 154 pound adult who is 5 feet 9 inches tall?",
+    "expect": 22.73934047469019,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 70 kg 18-year-old who is 1.75 m tall?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "unsupported",
+    "capability_expect": 22.857142857142858,
+    "response_not_contains": [
+      "CDC adult category"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 70 kg 20-year-old who is 1.75 m tall?",
+    "expect": 22.857142857142858,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "What is the BMI of a 70 kg adult with height 1.75 m and 1.8 m?",
+    "expect": null,
+    "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
+    "decline_class": "underspecified"
   }
 ]

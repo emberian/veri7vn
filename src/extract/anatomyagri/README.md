@@ -70,3 +70,45 @@ same-author policy checks pass; capability is 49 right and 17 valid requests
 withheld, with no wrong answers or false yes. See
 [the E report](../../../project/lanes/E-anatomyagri.md) for model statements,
 compiler binding and the remaining limits.
+
+
+## F: supplied macronutrients and fertilizer dimensions
+
+The general Atwater supplied-component sum preserves signed/fraction/scientific
+amounts, declines negative/malformed/duplicate roles and accepts explicit zero.
+Unlisted components are zero for this supplied-component sum, as shown in the
+response. This is not a food-specific energy or label-rounding model.
+
+Fertilizer requests bind one N-P2O5-K2O grade, one nutrient/product amount and
+an explicit total or per-acre scope. Area multiplies a rate only when a total
+is requested, or divides a total when a rate is requested. Amounts and total
+area are nonnegative, division requires positive area and each grade column is
+at most100 percent. Elemental P/K conversion and hectare/kg requests remain
+unsupported. Negative and malformed values cannot be recovered from suffixes.
+
+F passes156/156 shipped items in both dispatch modes, two development panels
+and new untouched10188029 at156/156 each;99 authored policy assertions pass.
+Capability is79right,0wrong,0false yes,20withheld-valid. The final67-theorem,
+zero-oracle proof and immutable native binding are detailed in
+project/lanes/F-anatomyagri.md. Remaining anatomy, gardening and nutrition
+limits in the existing per-ID ledger still apply.
+
+
+## G: nutrition scalar roles and applicability
+
+Nutrition now binds complete signed/fraction/scientific quantities for fat
+energy share, Daily Value amount, BMI mass and height. Duplicate/malformed roles
+decline. Fat-calorie share uses an unrounded9kcal/g model with positive total
+energy and fat energy between zero and total. Daily Value percentages use the
+fixed reference table and may exceed100%. BMI requires positive mass/height;
+mixed metric/imperial quantities convert exactly, while wholly imperial BMI
+retains the traditional703 coefficient. Explicit ages under20 or child/teen
+contexts decline because the response includes an adult category, not age/sex
+percentiles. Unknown age retains the explicitly described adult model.
+
+This does not implement serving multiplication, label-rounding tolerance,
+food-specific calorie factors, pediatric BMI or individualized intake advice.
+Other per-ID limits above remain open. G passes156/156 shipped in both modes,
+two development panels and untouched10189041. All129 authored policy checks
+pass; capability is108right,0wrong,0false yes,21withheld-valid. The proof scans72
+theorems with zero oracles; see project/lanes/G-anatomyagri.md.

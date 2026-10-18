@@ -406,6 +406,27 @@ datatype iheight = Iin rat | Ftin nat rat
 
 datatype seed_scope = TotalSeeds | PerAcreSeeds
 
+datatype fert_context = TotalFertilizer | PerAcreFertilizer | TotalFromRate rat | RateFromTotal rat
+
+fun fert_amount :: "fert_context \<Rightarrow> rat \<Rightarrow> rat" where
+  "fert_amount TotalFertilizer q = q"
+| "fert_amount PerAcreFertilizer q = q"
+| "fert_amount (TotalFromRate acres) q = q * acres"
+| "fert_amount (RateFromTotal acres) q = q / acres"
+
+fun fert_context_valid :: "fert_context \<Rightarrow> bool" where
+  "fert_context_valid (TotalFromRate acres) = (0 \<le> acres)"
+| "fert_context_valid (RateFromTotal acres) = (0 < acres)"
+| "fert_context_valid x = True"
+
+definition grade_valid :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
+  "grade_valid a b c \<longleftrightarrow> a \<le> 100 \<and> b \<le> 100 \<and> c \<le> 100"
+
+lemma fert_amount_nonnegative:
+  "fert_context_valid ctx \<Longrightarrow> 0 \<le> q \<Longrightarrow> 0 \<le> fert_amount ctx q"
+  by (cases ctx) (auto intro: mult_nonneg_nonneg divide_nonneg_nonneg)
+
+
 datatype request =
     Count count_id
   | CountAt count_id life_stage
@@ -413,6 +434,9 @@ datatype request =
   | Produces made_id
   | FertProduct nutrient nat nat nat rat
   | NutrientLb nutrient nat nat nat rat
+  | FertilizerNeed fert_context nutrient nat nat nat rat
+  | FertilizerHas fert_context nutrient nat nat nat rat
+  | FertUnread
   | SeedsPerAcre rat rat
   | SeedsNeeded rat rat
   | SeedsExpected seed_scope rat rat
@@ -435,6 +459,7 @@ datatype request =
   | PctFatCal rat rat
   | PctDV dvn rat dunit
   | NutUnderspecified
+  | NutAdultOnly
 
 text \<open>In @{text FertProduct} the rate is pounds of the nutrient per acre; in @{text NutrientLb}
 the amount is pounds of product. @{text SeedsNeeded} takes the germination percentage and the
@@ -483,7 +508,7 @@ definition acre_val :: "rat \<Rightarrow> rat option \<Rightarrow> rat" where
 definition kcal_total :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat" where
   "kcal_total p c f a = 4 * p + 4 * c + 9 * f + 7 * a"
 
-datatype reason = R_no_nutrient | R_germination | R_nonpositive | R_unit_pair
+datatype reason = R_no_nutrient | R_germination | R_nonpositive | R_nonnegative | R_fertilizer | R_nutrition_domain | R_unit_pair
 datatype decline = Underspecified | Impossible reason
 datatype outcome = Value rat | Label String.literal | Decline decline
 
@@ -493,16 +518,22 @@ fun underspecified :: "request \<Rightarrow> bool" where
   "underspecified (CountAt c a) = (\<not> age_applicable c a)"
 | "underspecified AgriUnderspecified = True"
 | "underspecified SeedsUnread = True"
+| "underspecified FertUnread = True"
 | "underspecified GardenNeedOrientation = True"
 | "underspecified NutUnderspecified = True"
-| "underspecified (Kcal p c f a) = (p + c + f + a = 0)"
+| "underspecified NutAdultOnly = True"
 | "underspecified r = False"
 
 text \<open>Impossible: the question cannot have an answer (a nutrient the grade lacks, a germination
 rate outside (0, 100], a non-positive spacing, bag size, height or energy, units that do not
 convert).\<close>
 fun impossible :: "request \<Rightarrow> reason option" where
-  "impossible (FertProduct n a b c r) = (if grade_pct n a b c = 0 then Some R_no_nutrient else None)"
+  "impossible (FertProduct n a b c r) = (if grade_pct n a b c = 0 then Some R_no_nutrient
+     else if r < 0 \<or> \<not> grade_valid a b c then Some R_fertilizer else None)"
+| "impossible (NutrientLb n a b c q) = (if q < 0 \<or> \<not> grade_valid a b c then Some R_fertilizer else None)"
+| "impossible (FertilizerNeed ctx n a b c r) = (if grade_pct n a b c = 0 then Some R_no_nutrient
+     else if r < 0 \<or> \<not> grade_valid a b c \<or> \<not> fert_context_valid ctx then Some R_fertilizer else None)"
+| "impossible (FertilizerHas ctx n a b c q) = (if q < 0 \<or> \<not> grade_valid a b c \<or> \<not> fert_context_valid ctx then Some R_fertilizer else None)"
 | "impossible (SeedsPerAcre r s) = (if r \<le> 0 \<or> s \<le> 0 then Some R_nonpositive else None)"
 | "impossible (SeedsNeeded gp t) = (if \<not> (0 < gp \<and> gp \<le> 100) then Some R_germination else if t < 0 then Some R_nonpositive else None)"
 | "impossible (SeedsExpected scope gp t) = (if \<not> (0 < gp \<and> gp \<le> 100) then Some R_germination else if t < 0 then Some R_nonpositive else None)"
@@ -510,10 +541,11 @@ fun impossible :: "request \<Rightarrow> reason option" where
 | "impossible (GardenRectGrid l w rs ps) = (if rs \<le> 0 \<or> ps \<le> 0 \<or> l < 0 \<or> w < 0 then Some R_nonpositive else None)"
 | "impossible (GardenGrid l w s) = (if s \<le> 0 then Some R_nonpositive else None)"
 | "impossible (GardenBags sh d b) = (if b \<le> 0 then Some R_nonpositive else None)"
-| "impossible (BmiMetric kg h c) = (if mheight_m h \<le> 0 then Some R_nonpositive else None)"
-| "impossible (BmiImperial lb h c) = (if iheight_in h \<le> 0 then Some R_nonpositive else None)"
-| "impossible (PctFatCal f k) = (if k \<le> 0 then Some R_nonpositive else None)"
-| "impossible (PctDV d a u) = (if unit_factor u (dv_unit d) = None then Some R_unit_pair else None)"
+| "impossible (BmiMetric kg h c) = (if kg \<le> 0 \<or> mheight_m h \<le> 0 then Some R_nonpositive else None)"
+| "impossible (BmiImperial lb h c) = (if lb \<le> 0 \<or> iheight_in h \<le> 0 then Some R_nonpositive else None)"
+| "impossible (Kcal p c f a) = (if p < 0 \<or> c < 0 \<or> f < 0 \<or> a < 0 then Some R_nonnegative else None)"
+| "impossible (PctFatCal f k) = (if k \<le> 0 then Some R_nonpositive else if f < 0 \<or> k < 9*f then Some R_nutrition_domain else None)"
+| "impossible (PctDV d a u) = (if unit_factor u (dv_unit d) = None then Some R_unit_pair else if a < 0 then Some R_nutrition_domain else None)"
 | "impossible r = None"
 
 definition dv_amount_in :: "dvn \<Rightarrow> rat \<Rightarrow> dunit \<Rightarrow> rat" where
@@ -526,6 +558,9 @@ fun compute :: "request \<Rightarrow> outcome" where
 | "compute (Produces m) = Label (made_organ m)"
 | "compute (FertProduct n a b c r) = Value (r * 100 / of_nat (grade_pct n a b c))"
 | "compute (NutrientLb n a b c q) = Value (q * of_nat (grade_pct n a b c) / 100)"
+| "compute (FertilizerNeed ctx n a b c r) = Value (fert_amount ctx r * 100 / of_nat (grade_pct n a b c))"
+| "compute (FertilizerHas ctx n a b c q) = Value (fert_amount ctx q * of_nat (grade_pct n a b c) / 100)"
+| "compute FertUnread = Decline Underspecified"
 | "compute (SeedsPerAcre r s) = Value (seed_area / (r * s))"
 | "compute (SeedsNeeded gp t) = Value (t / (gp / 100))"
 | "compute (SeedsExpected scope gp t) = Value (t / (gp / 100))"
@@ -550,6 +585,7 @@ fun compute :: "request \<Rightarrow> outcome" where
 | "compute (PctFatCal f k) = Value (9 * f / k * 100)"
 | "compute (PctDV d a u) = Value (dv_amount_in d a u / dv_amount d * 100)"
 | "compute NutUnderspecified = Decline Underspecified"
+| "compute NutAdultOnly = Decline Underspecified"
 
 definition kernel :: "request \<Rightarrow> outcome" where
   "kernel r = (if underspecified r then Decline Underspecified
@@ -671,14 +707,14 @@ theorem fert_product:
   shows "v * (of_nat (grade_pct n a b c) / 100) = r"
 proof -
   have p: "(of_nat (grade_pct n a b c) :: rat) \<noteq> 0" using assms(1) by simp
-  have "v = r * 100 / of_nat (grade_pct n a b c)" using assms by (simp add: kernel_def)
+  have "v = r * 100 / of_nat (grade_pct n a b c)" using kernel_value(3)[OF assms(2)] by simp
   then show ?thesis using p by (simp add: field_simps)
 qed
 
 theorem nutrient_lb:
   assumes "kernel (NutrientLb n a b c q) = Value v"
   shows "v * 100 = q * of_nat (grade_pct n a b c)"
-  using assms by (simp add: kernel_def)
+  using kernel_value(3)[OF assms] by simp
 
 text \<open>Applying the product the organ prescribes supplies exactly the nutrient asked for.\<close>
 theorem fert_roundtrip:
@@ -688,13 +724,61 @@ proof -
   have np: "grade_pct n a b c \<noteq> 0" using assms
     by (cases "grade_pct n a b c = 0") (auto simp: kernel_def)
   have p: "(of_nat (grade_pct n a b c) :: rat) \<noteq> 0" using np by simp
-  have v: "v = r * 100 / of_nat (grade_pct n a b c)" using assms np by (simp add: kernel_def)
-  show ?thesis using v p by (simp add: kernel_def field_simps)
+  have dom: "0 \<le> r" "grade_valid a b c" using assms
+    by (auto simp: kernel_def split: if_splits)
+  have v: "v = r * 100 / of_nat (grade_pct n a b c)" using kernel_value(3)[OF assms] by simp
+  have vn: "0 \<le> v" using dom(1) v by (auto intro: divide_nonneg_nonneg mult_nonneg_nonneg)
+  show ?thesis using v p dom vn by (simp add: kernel_def field_simps)
 qed
 
 theorem fert_no_nutrient:
   "grade_pct n a b c = 0 \<Longrightarrow> kernel (FertProduct n a b c r) = Decline (Impossible R_no_nutrient)"
   by (simp add: kernel_def)
+
+text \<open>The fertilizer grade columns name N, P2O5 and K2O mass
+percentages. An elemental P/K question needs a separate conversion model.
+Context converts an explicitly supplied total or per-acre rate to the requested
+output dimension before the grade relation is solved.\<close>
+theorem fertilizer_need_conserves:
+  assumes "kernel (FertilizerNeed ctx n a b c r) = Value v"
+  shows "0 \<le> r \<and> grade_valid a b c \<and> fert_context_valid ctx \<and>
+    0 < grade_pct n a b c \<and> 0 \<le> v \<and>
+    v * (of_nat (grade_pct n a b c) / 100) = fert_amount ctx r"
+proof -
+  have dom: "0 \<le> r" "grade_valid a b c" "fert_context_valid ctx" "0 < grade_pct n a b c"
+    using assms by (auto simp: kernel_def split: if_splits)
+  have v: "v = fert_amount ctx r * 100 / of_nat (grade_pct n a b c)"
+    using kernel_value(3)[OF assms] by simp
+  have amount: "0 \<le> fert_amount ctx r" using fert_amount_nonnegative dom by blast
+  have vn: "0 \<le> v" using amount v by (auto intro: divide_nonneg_nonneg mult_nonneg_nonneg)
+  show ?thesis using dom v vn by (simp add: field_simps)
+qed
+
+theorem fertilizer_has_conserves:
+  assumes "kernel (FertilizerHas ctx n a b c q) = Value v"
+  shows "0 \<le> q \<and> grade_valid a b c \<and> fert_context_valid ctx \<and>
+    0 \<le> v \<and> v \<le> fert_amount ctx q \<and>
+    v * 100 = fert_amount ctx q * of_nat (grade_pct n a b c)"
+proof -
+  have dom: "0 \<le> q" "grade_valid a b c" "fert_context_valid ctx"
+    using assms by (auto simp: kernel_def split: if_splits)
+  have v: "v = fert_amount ctx q * of_nat (grade_pct n a b c) / 100"
+    using kernel_value(3)[OF assms] by simp
+  have amount: "0 \<le> fert_amount ctx q" using fert_amount_nonnegative dom by blast
+  have pct: "(of_nat (grade_pct n a b c)::rat) \<le> 100"
+    using dom(2) by (cases n) (auto simp: grade_valid_def)
+  have upper: "fert_amount ctx q * of_nat (grade_pct n a b c) \<le> fert_amount ctx q * 100"
+    using mult_left_mono[OF pct amount] .
+  have product: "0 \<le> fert_amount ctx q * of_nat (grade_pct n a b c)"
+    by (rule mult_nonneg_nonneg[OF amount]) simp
+  have vn: "0 \<le> v" using v product by linarith
+  have bound: "v \<le> fert_amount ctx q" using v upper by linarith
+  show ?thesis using dom v vn bound by simp
+qed
+
+theorem fertilizer_scope_inverse:
+  "0 < acres \<Longrightarrow> fert_amount (RateFromTotal acres) (fert_amount (TotalFromRate acres) q) = q"
+  by simp
 
 theorem seeds_per_acre:
   assumes "0 < r" and "0 < s" and "kernel (SeedsPerAcre r s) = Value v"
@@ -934,7 +1018,7 @@ theorem bmi_category_agrees_imperial:
   by (auto simp: kernel_def split: if_splits)
 
 theorem kcal_value:
-  "kernel (Kcal p c f a) = Value v \<Longrightarrow> v = 4 * p + 4 * c + 9 * f + 7 * a"
+  "kernel (Kcal p c f a) = Value v \<Longrightarrow> 0 \<le> p \<and> 0 \<le> c \<and> 0 \<le> f \<and> 0 \<le> a \<and> v = 4 * p + 4 * c + 9 * f + 7 * a"
   by (auto simp: kernel_def kcal_total_def split: if_splits)
 
 theorem kcal_atwater_unit:
@@ -942,10 +1026,23 @@ theorem kcal_atwater_unit:
    kernel (Kcal 0 0 1 0) = Value 9 \<and> kernel (Kcal 0 0 0 1) = Value 7"
   by (simp add: kernel_def kcal_total_def)
 
-theorem kcal_underspecified:
-  "0 \<le> p \<Longrightarrow> 0 \<le> c \<Longrightarrow> 0 \<le> f \<Longrightarrow> 0 \<le> a \<Longrightarrow>
-     kernel (Kcal p c f a) = Decline Underspecified \<longleftrightarrow> p = 0 \<and> c = 0 \<and> f = 0 \<and> a = 0"
+text \<open>Explicit zero amounts are data, not missing information. The reader
+uses NutUnderspecified for absent or ambiguous roles. Unlisted macronutrients
+retain the supplied-amount sum convention, with zeros shown in the response.\<close>
+theorem kcal_explicit_zero:
+  "kernel (Kcal 0 0 0 0) = Value 0"
+  by (simp add: kernel_def kcal_total_def)
+
+theorem kcal_nonnegative_domain:
+  "kernel (Kcal p c f a) = Decline (Impossible R_nonnegative) \<longleftrightarrow>
+    p < 0 \<or> c < 0 \<or> f < 0 \<or> a < 0"
   by (auto simp: kernel_def)
+
+theorem kcal_supplied_sum:
+  assumes "kernel (Kcal p c f a) = Value v" "kernel (Kcal p' c' f' a') = Value v'"
+  shows "kernel (Kcal (p+p') (c+c') (f+f') (a+a')) = Value (v+v')"
+  using kcal_value[OF assms(1)] kcal_value[OF assms(2)]
+  by (auto simp: kernel_def kcal_total_def algebra_simps)
 
 theorem pct_fat_cal:
   assumes "kernel (PctFatCal f k) = Value v"
@@ -964,7 +1061,7 @@ theorem pct_dv:
   shows "v * dv_amount d = 100 * (a * f)"
 proof -
   have "dv_amount d \<noteq> 0" by (cases d) simp_all
-  then show ?thesis using assms by (simp add: kernel_def dv_amount_in_def field_simps)
+  then show ?thesis using kernel_value(3)[OF assms(1)] assms(2) by (simp add: dv_amount_in_def field_simps)
 qed
 
 theorem pct_dv_units:
@@ -975,6 +1072,38 @@ section \<open>Response text (ASCII)\<close>
 
 text \<open>Digits after the decimal point in the stated value and the reply: counts and whole
 numbers none, label arithmetic two, field arithmetic three.\<close>
+text \<open>These domain laws concern unrounded supplied quantities. Percent
+Daily Value may exceed 100; it is not the same bounded share as fat calories.\<close>
+theorem pct_fat_range:
+  assumes "kernel (PctFatCal f k) = Value v"
+  shows "0 \<le> f \<and> 0 < k \<and> 9*f \<le> k \<and> 0 \<le> v \<and> v \<le> 100"
+proof -
+  have dom: "0 \<le> f" "0 < k" "9*f \<le> k" using kernel_value(2)[OF assms]
+    by (auto split: if_splits)
+  have v: "v = 9*f/k*100" using kernel_value(3)[OF assms] by simp
+  have lower: "0 \<le> 9*f/k" using dom by (intro divide_nonneg_nonneg; linarith)
+  have upper: "9*f/k \<le> 1" using dom by (simp add: divide_le_eq)
+  have lo: "0 \<le> v" using v lower by linarith
+  have hi: "v \<le> 100" using v upper by linarith
+  show ?thesis using dom lo hi by blast
+qed
+
+theorem bmi_positive_inputs:
+  "kernel (BmiMetric kg h category) = Value v \<or> kernel (BmiMetric kg h category) = Label label \<Longrightarrow> 0 < kg \<and> 0 < mheight_m h"
+  by (auto simp: kernel_def split: if_splits)
+
+theorem bmi_imperial_positive_inputs:
+  "kernel (BmiImperial lb h category) = Value v \<or> kernel (BmiImperial lb h category) = Label label \<Longrightarrow> 0 < lb \<and> 0 < iheight_in h"
+  by (auto simp: kernel_def split: if_splits)
+
+theorem dv_nonnegative_amount:
+  "kernel (PctDV d a u) = Value v \<Longrightarrow> 0 \<le> a"
+  by (auto simp: kernel_def split: if_splits)
+
+theorem adult_model_declines:
+  "kernel NutAdultOnly = Decline Underspecified"
+  by (simp add: kernel_def)
+
 fun dp :: "request \<Rightarrow> nat" where
   "dp (Count c) = 0"
 | "dp (CountAt c a) = 0"
@@ -1005,6 +1134,12 @@ fun seed_unit :: "seed_scope \<Rightarrow> String.literal" where
   "seed_unit TotalSeeds = STR '' seeds''"
 | "seed_unit PerAcreSeeds = STR '' seeds per acre''"
 
+fun fert_unit :: "fert_context \<Rightarrow> String.literal" where
+  "fert_unit TotalFertilizer = STR '' lb''"
+| "fert_unit (TotalFromRate a) = STR '' lb''"
+| "fert_unit PerAcreFertilizer = STR '' lb per acre''"
+| "fert_unit (RateFromTotal a) = STR '' lb per acre''"
+
 text \<open>The reply text of an answered numeric request (organ wording, ASCII: a slash for the
 divide sign, x for the multiply sign).\<close>
 fun value_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal" where
@@ -1016,6 +1151,14 @@ fun value_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal" where
 | "value_text (NutrientLb n a b c q) v =
      cat [STR ''It contains '', g3 v, STR '' lb of '', nut_name n, STR '' ('', g3 q, STR '' lb x '',
        sn (grade_pct n a b c), STR ''%, grade '', grade_lit a b c, STR '').'']"
+| "value_text (FertilizerNeed ctx n a b c r) v =
+     cat [STR ''The required product is '', g3 v, fert_unit ctx, STR '' (grade '', grade_lit a b c,
+       STR ''; '', g3 (fert_amount ctx r), fert_unit ctx, STR '' of '', nut_name n,
+       STR '' divided by '', sn (grade_pct n a b c), STR ''%).'']"
+| "value_text (FertilizerHas ctx n a b c q) v =
+     cat [STR ''It contains '', g3 v, fert_unit ctx, STR '' of '', nut_name n,
+       STR '' (grade '', grade_lit a b c, STR ''; '', g3 (fert_amount ctx q), fert_unit ctx,
+       STR '' of product times '', sn (grade_pct n a b c), STR ''%).'']"
 | "value_text (SeedsPerAcre r s) v =
      cat [STR ''That is '', g3 v, STR '' seeds per acre (6,272,640 sq in / ('', g3 r, STR '' in rows x '',
        g3 s, STR '' in spacing)).'']"
@@ -1093,33 +1236,37 @@ fun label_text :: "request \<Rightarrow> String.literal \<Rightarrow> String.lit
        bmi_note (BmiImperial lb h c), STR ''; CDC adult screening categories, not a diagnosis).'']"
 | "label_text r l = l"
 
-fun decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.literal" where
-  "decline_text (FertProduct n a b c r) (Impossible w) =
-     cat [STR ''A '', grade_lit a b c, STR '' fertilizer contains no '', nut_name n,
-       STR '', so no amount of it supplies that nutrient.'']"
-| "decline_text (SeedsNeeded gp t) (Impossible w) =
-     STR ''The target stand must be nonnegative and germination must be greater than zero and at most 100%.''"
-| "decline_text (SeedsMinimum scope gp t) (Impossible w) =
-     STR ''The target stand must be nonnegative and germination must be greater than zero and at most 100%.''"
-| "decline_text (SeedsExpected scope gp t) (Impossible w) =
-     STR ''The target stand must be nonnegative and germination must be greater than zero and at most 100%.''"
-| "decline_text SeedsUnread Underspecified =
-     STR ''Supply one complete germination percentage and target stand, with a clear total or per-acre scope; I will not guess malformed or conflicting quantities.''"
-| "decline_text (CountAt c a) Underspecified =
-     STR ''This table has no supported count for that developmental stage; I will not substitute a fully developed skeleton or dentition count.''"
-| "decline_text GardenNeedOrientation Underspecified =
-     STR ''Specify both spacings and which bed side the rows run along; I will not assume a planting orientation.''"
-| "decline_text AgriUnderspecified Underspecified =
-     STR ''I need the amount of product (lb) or the target nutrient rate (lb per acre) to work that out; I will not assume it.''"
-| "decline_text NutUnderspecified Underspecified =
-     STR ''I could not read every amount I need from that; give the grams, calories, weight or height with units and I will work it out.''"
-| "decline_text (Kcal p c f a) Underspecified =
-     STR ''I could not read every amount I need from that; give the grams, calories, weight or height with units and I will work it out.''"
-| "decline_text (PctDV d a u) (Impossible w) =
-     cat [STR ''I cannot convert '', unit_label u, STR '' to '', unit_label (dv_unit d), STR '' for '', dv_name d,
-       STR '' here.'']"
-| "decline_text r (Impossible w) = STR ''The inputs must be positive.''"
-| "decline_text r Underspecified = STR ''I need more information to answer that.''"
+text \<open>Reason-first presentation avoids expanding every request/reason pair.\<close>
+definition decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.literal" where
+  "decline_text r d = (case d of
+    Impossible w \<Rightarrow>
+      (if w = R_fertilizer then
+        STR ''Amounts and total area must be nonnegative; dividing by area requires a positive area. Grade percentages must be between zero and 100.''
+       else if w = R_nutrition_domain then
+        STR ''Nutrient amounts must be nonnegative; under this unrounded calorie model, energy from fat cannot exceed total energy.''
+       else if w = R_nonnegative then
+        STR ''Macronutrient amounts cannot be negative; explicit zero amounts are allowed.''
+       else case r of
+         FertProduct n a b c x \<Rightarrow>
+           cat [STR ''A '', grade_lit a b c, STR '' fertilizer contains no '', nut_name n,
+             STR '', so no amount of it supplies that nutrient.'']
+       | FertilizerNeed ctx n a b c x \<Rightarrow> STR ''This grade has none of the requested nutrient column.''
+       | SeedsNeeded gp t \<Rightarrow> STR ''The target stand must be nonnegative and germination must be greater than zero and at most 100%.''
+       | SeedsMinimum scope gp t \<Rightarrow> STR ''The target stand must be nonnegative and germination must be greater than zero and at most 100%.''
+       | SeedsExpected scope gp t \<Rightarrow> STR ''The target stand must be nonnegative and germination must be greater than zero and at most 100%.''
+       | PctDV dv x u \<Rightarrow>
+           cat [STR ''I cannot convert '', unit_label u, STR '' to '', unit_label (dv_unit dv), STR '' for '', dv_name dv, STR '' here.'']
+       | _ \<Rightarrow> STR ''The inputs must be positive.'')
+  | Underspecified \<Rightarrow> (case r of
+      SeedsUnread \<Rightarrow> STR ''Supply one complete germination percentage and target stand, with a clear total or per-acre scope; I will not guess malformed or conflicting quantities.''
+    | CountAt c age \<Rightarrow> STR ''This table has no supported count for that developmental stage; I will not substitute a fully developed skeleton or dentition count.''
+    | GardenNeedOrientation \<Rightarrow> STR ''Specify both spacings and which bed side the rows run along; I will not assume a planting orientation.''
+    | FertUnread \<Rightarrow> STR ''Supply one complete N-P2O5-K2O grade and one nutrient or product amount, with total/per-acre scope and area when conversion is requested. Elemental phosphorus/potassium requires a separate conversion model.''
+    | AgriUnderspecified \<Rightarrow> STR ''I need the amount of product (lb) or the target nutrient rate (lb per acre) to work that out; I will not assume it.''
+    | NutAdultOnly \<Rightarrow> STR ''This BMI response includes an adult category for ages 20 and older. Child and teen categories require age-specific data not supplied by this table.''
+    | NutUnderspecified \<Rightarrow> STR ''I could not read every amount I need from that; give the grams, calories, weight or height with units and I will work it out.''
+    | Kcal p c f a \<Rightarrow> STR ''I could not read every amount I need from that; give the grams, calories, weight or height with units and I will work it out.''
+    | _ \<Rightarrow> STR ''I need more information to answer that.''))"
 
 fun kind_name :: "request \<Rightarrow> String.literal" where
   "kind_name (Count c) = STR ''count''"
@@ -1128,6 +1275,9 @@ fun kind_name :: "request \<Rightarrow> String.literal" where
 | "kind_name (Produces m) = STR ''produces''"
 | "kind_name (FertProduct n a b c r) = STR ''fert_product''"
 | "kind_name (NutrientLb n a b c q) = STR ''nutrient_lb''"
+| "kind_name (FertilizerNeed ctx n a b c r) = STR ''fert_product''"
+| "kind_name (FertilizerHas ctx n a b c q) = STR ''nutrient_lb''"
+| "kind_name FertUnread = STR ''underspecified''"
 | "kind_name (SeedsPerAcre r s) = STR ''seeds_per_acre''"
 | "kind_name (SeedsNeeded gp t) = STR ''seeds_needed''"
 | "kind_name (SeedsExpected scope gp t) = STR ''seeds_expected''"
@@ -1149,7 +1299,9 @@ fun kind_name :: "request \<Rightarrow> String.literal" where
 | "kind_name (Kcal p c f a) = STR ''kcal_macros''"
 | "kind_name (PctFatCal f k) = STR ''pct_fat_cal''"
 | "kind_name (PctDV d a u) = STR ''pct_dv''"
+| "kind_name SeedsUnread = STR ''underspecified''"
 | "kind_name NutUnderspecified = STR ''underspecified''"
+| "kind_name NutAdultOnly = STR ''underspecified''"
 
 definition decline_kind :: "decline \<Rightarrow> String.literal" where
   "decline_kind w = (case w of Underspecified \<Rightarrow> STR ''underspecified'' | Impossible x \<Rightarrow> STR ''impossible'')"

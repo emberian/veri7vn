@@ -240,7 +240,7 @@ struct
   (* ================= agriculture-v2 ================= *)
   val cropTab = zip3 (["corn", "maize", "soybeans", "soybean", "wheat", "sorghum", "barley", "oats"],
                       Q.crop_order, "crop_order")
-  val gradeRe = "\\b(\\d{1,2})-(\\d{1,2})-(\\d{1,2})\\b"
+  val gradeRe = "(?<![\\w.+\226\136\146-])(\\d{1,3})-(\\d{1,3})-(\\d{1,3})(?![\\d.-])"
 
   fun nutrientOf low =
     let
@@ -260,41 +260,71 @@ struct
     end
 
   fun agriV1 low =
-    let
-      val grade = search gradeRe low
-    in
-      case grade of
-        SOME gm =>
-          if has "\\bfertili[sz]er\\b|\\burea\\b|\\bgrade\\b|\\bproduct\\b|\\blb\\b|\\bpounds\\b|\\bbag\\b|\\bapply\\b" low then
-            let
-              val (ga, gb, gc) = (nat (g1 low gm), nat (valOf (grp low gm 2)), nat (valOf (grp low gm 3)))
-              val stripped = replaceStr (Regex.whole low gm) " " low
-              val rate = search (NUM ^ "\\s*(?:lb|lbs|pounds)\\s*(?:of\\s+)?(?:actual\\s+)?(?:nitrogen|n|phosphate|p2o5|potash|k2o|phosphorus|potassium)?\\s*(?:per|/|an?)\\s*acre\\b") low
-              val qty = case search (NUM ^ "\\s*(?:lb|lbs|pounds)\\s*(?:of\\s+|bag of\\s+)?(?:\\w+\\s+)?(?:\\(?\\d{1,2}-\\d{1,2}-\\d{1,2}\\)?)") low of
-                          SOME m => SOME m
-                        | NONE => search ("\\b(?:bag|sack)\\s+(?:of\\s+)?(?:\\d{1,2}-\\d{1,2}-\\d{1,2}\\s+)?(?:weighs|weighing|is)\\s+" ^ NUM ^ "\\s*(?:lb|lbs|pounds)") low
-            in
-              case nutrientOf stripped of
-                NONE => NONE
-              | SOME ni =>
-                  (case rate of
-                     SOME rm =>
-                       if has "\\bhow (?:much|many pounds)\\b|\\bwhat (?:rate|amount)\\b|\\bproduct\\b|\\bneeded\\b|\\bapply\\b" low
-                          andalso not (has "\\bhow much (?:nitrogen|phosphate|potash|n|p2o5|k2o)\\b(?! per)" low)
-                       then SOME (Q.FertProduct (ni, ga, gb, gc, ratOf (g1 low rm)))
-                       else agriQty low qty ni ga gb gc
-                   | NONE => agriQty low qty ni ga gb gc)
-            end
-          else agriRest low
-      | NONE => agriRest low
-    end
-  and agriQty low qty ni ga gb gc =
-    case qty of
-      SOME qm =>
-        if has "\\bhow (?:much|many pounds)\\b|\\bcontain\\w*\\b|\\bsuppl\\w*\\b|\\bprovide\\w*\\b" low
-        then SOME (Q.NutrientLb (ni, ga, gb, gc, ratOf (g1 low qm)))
-        else NONE
-    | NONE => NONE
+    if not(has "\\bfertili[sz]er\\b|\\burea\\b|\\bgrade\\b|\\bproduct\\b|\\blb\\b|\\bpounds\\b|\\bbag\\b|\\bapply\\b" low) then agriRest low
+    else case findall gradeRe low of
+      [] => if has "[0-9.]+-[0-9.]+-[0-9.]+" low then SOME Q.FertUnread else agriRest low
+    | [gm] =>
+      let
+        val (ga,gb,gc)=(nat(g1 low gm),nat(valOf(grp low gm 2)),nat(valOf(grp low gm 3)))
+        val masked = replaceStr (Regex.whole low gm) "fertilizer_grade" low
+        val tokens = ExactNumeric.scan masked
+        val bad = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+        val nutrientPattern = "(?:nitrogen|n|phosphate|p2o5|potash|k2o)"
+        val nutrients = List.mapPartial (fn(pat,n) => if has pat masked then SOME n else NONE)
+          [("\\bnitrogen\\b|\\b(?:lb(?:s)?\\.?|pounds)\\s+(?:of\\s+)?n\\b|\\bn\\s*(?:per|/)\\s*acre\\b",Q.Nit),
+           ("\\bphosphate\\b|\\bp2o5\\b",Q.Pho),
+           ("\\bpotash\\b|\\bk2o\\b",Q.Pot)]
+        val unsupported = has "\\belemental\\b|\\bphosphorus\\b|\\bpotassium\\b|\\bhectares?\\b|\\bkilograms?\\b|\\bkg\\b" masked
+        fun pick role = List.mapPartial
+          (fn ExactNumeric.Number {start,stop,value,...} =>
+             let val pre=String.substring(masked,0,start)
+                 val post=String.extract(masked,stop,NONE)
+             in case role(pre,post) of SOME perAcre => SOME(start,value,perAcre) | NONE=>NONE end
+           | _ => NONE) tokens
+        val unit = "^\\s*(?:lb|lbs|pounds)\\s*(?:of\\s+)?(?:actual\\s+)?"
+        val rate = pick(fn(_,post) =>
+          if has (unit ^ nutrientPattern ^ "\\b") post
+          then SOME(has(unit ^ nutrientPattern ^ "\\s*(?:per|/|an?)\\s*acre\\b") post)
+          else NONE)
+        val qty = pick(fn(pre,post) =>
+          if has "^\\s*(?:lb|lbs|pounds)\\s*(?:(?:bag|sack)\\s+)?(?:of\\s+)?(?:the\\s+|a\\s+)?(?:fertilizer_grade|fertili[sz]er|urea|product)\\b" post orelse
+             (has "\\b(?:bag|sack)\\s+(?:of\\s+)?(?:fertilizer_grade\\s+)?(?:weighs|weighing|is)\\s*$" pre andalso has "^\\s*(?:lb|lbs|pounds)\\b" post)
+          then SOME(has "^\\s*(?:lb|lbs|pounds)\\s*(?:(?:bag|sack)\\s+)?(?:of\\s+)?(?:the\\s+|a\\s+)?(?:fertilizer_grade|fertili[sz]er|urea|product)(?:\\s+fertili[sz]er)?\\s*(?:per|/)\\s*acre\\b" post)
+          else NONE)
+        val areas = pick(fn(_,post) => if has "^\\s*acres?\\b" post then SOME false else NONE)
+        val queryStart = case rev(findall "\\b(?:how (?:much|many pounds)|what (?:rate|amount))\\b" masked) of
+          m::_ => #start m | [] => 0
+        fun context (position,_,inputRate) =
+          let
+            val query = if queryStart < position then String.substring(masked,queryStart,position-queryStart)
+                        else String.extract(masked,queryStart,NONE)
+            val target = case search "\\b(?:for|at|supply|supplies|supplied|provide|provides|provided|deliver|delivers)\\b" query of
+              SOME m => String.substring(query,0,#start m) | NONE => query
+            val wantsRate = has "\\bper\\s+acre\\b|/\\s*acre\\b|\\bwhat rate\\b" target
+            val wantsTotal = not wantsRate andalso has "\\btotal\\b|\\ball\\b" target
+            fun rat(n,d)=Q.mk_rat n d
+          in case areas of
+            [] => if wantsTotal andalso inputRate then NONE
+                  else if wantsRate andalso not inputRate then NONE
+                  else SOME(if inputRate then Q.PerAcreFertilizer else Q.TotalFertilizer)
+          | [(_,area,_)] =>
+              if inputRate andalso not wantsRate then SOME(Q.TotalFromRate(rat area))
+              else if not inputRate andalso wantsRate then SOME(Q.RateFromTotal(rat area))
+              else SOME(if inputRate then Q.PerAcreFertilizer else Q.TotalFertilizer)
+          | _ => NONE
+          end
+        fun bind constructor n item =
+          case context item of NONE => SOME Q.FertUnread
+          | SOME scope => let val(_, (numerator,denominator),_)=item
+                         in SOME(constructor(scope,n,ga,gb,gc,Q.mk_rat numerator denominator)) end
+      in
+        if bad orelse unsupported then SOME Q.FertUnread
+        else case (nutrients,rate,qty) of
+          ([n],[r],[]) => bind Q.FertilizerNeed n r
+        | ([n],[],[q]) => bind Q.FertilizerHas n q
+        | _ => SOME Q.FertUnread
+      end
+    | _ => SOME Q.FertUnread
   and agriRest low =
     let
       val rs = search ("\\b" ^ NUM ^ "[- ]?(?:inch|in\\.?|\\\")\\s*rows?\\b|\\brows?\\s*(?:spaced\\s*)?(?:at\\s*)?" ^ NUM ^ "\\s*(?:inches|in\\.?|\\\")\\s*(?:apart)?") low
@@ -502,71 +532,86 @@ struct
   fun nutV1 t =
     let
       val low = lower t
+      val tokens = ExactNumeric.scan low
+      val bad = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+      val quantities = List.mapPartial
+        (fn ExactNumeric.Number{start,stop,value,...}=>SOME(value,String.substring(low,0,start),String.extract(low,stop,NONE))|_=>NONE) tokens
+      fun quantitiesWith pattern = List.mapPartial(fn(v,_,post)=>
+        if has pattern post then SOME(v,post)else NONE)quantities
+      fun rat(n,d)=Q.mk_rat n d
+      fun scaled(n,d)(a,b)=(n*a,d*b)
+      fun add((n,d),(a,b))=(n*b+a*d,d*b)
+
     in
       if has personal low then NONE
       else if has "\\bbmi\\b|\\bbody mass index\\b" low then
         let
-          val kg = search (NUM ^ "\\s*(?:kg|kilograms?)\\b") low
-          val m = search (NUM ^ "\\s*(m|meters?|metres?|cm|centimet\\w+)\\b(?!\\s*/)") low
-          val lb = search (NUM ^ "\\s*(?:lb|lbs|pounds)\\b") low
-          val fi = search "\\b(\\d)\\s*(?:ft|feet|foot|')\\s*(\\d{1,2}(?:\\.\\d+)?)\\s*(?:in|inches|\\\")?" low
-          val inch = search (NUM ^ "\\s*(?:in|inches)\\b") low
-          val cat = has "\\bcategory\\b|\\bclass\\w*\\b|\\bwhat (?:range|group)\\b" low
+          val ages=List.mapPartial(fn(v,pre,post)=>if has "^[- ]*(?:years?[- ]old|year[- ]olds?)\\b" post orelse has "\\b(?:aged?|age of)\\s*$" pre then SOME v else NONE)quantities
+          val pediatric=has "\\b(?:child|children|teen|teenager|pediatric|infant|toddler|adolescent|baby)\\b" low orelse List.exists(fn(n,d)=>n<20*d)ages
+          val kg=quantitiesWith "^\\s*(?:kg|kilograms?)\\b"
+          val lb=quantitiesWith "^\\s*(?:lb|lbs|pounds?)\\b"
+          val metres=quantitiesWith "^\\s*(?:m|meters?|metres?|cm|centimet\\w+)\\b(?!\\s*/)"
+          val feet=quantitiesWith "^\\s*(?:ft|feet|foot|')\\b"
+          val inches=quantitiesWith "^\\s*(?:inches|inch|in|\\\")\\b"
+          val cat=has "\\bcategory\\b|\\bclass\\w*\\b|\\bwhat (?:range|group)\\b" low
+          fun metricHeight(v,post)=if has "^\\s*c" post then scaled v (1,100)else v
+          fun inchesHeight() = case(feet,inches)of
+            ([],[(v,_)])=>SOME v
+          | ([(v,_)],[])=>SOME(scaled v(12,1))
+          | ([((fnn,fd),_)],[((inn,id),_)])=>if fnn<0 orelse inn<0 then NONE else SOME(add(scaled(fnn,fd)(12,1),(inn,id)))
+          | _=>NONE
         in
-          case (kg, m) of
-            (SOME km, SOME mm) =>
-              let
-                val hl = g1 low mm
-                val h = if String.isPrefix "c" (valOf (grp low mm 2)) then Q.Mcm (ratOf hl) else Q.Mm (ratOf hl)
-              in if isZero hl then NONE else SOME (Q.BmiMetric (ratOf (g1 low km), h, cat)) end
-          | _ =>
-              (case lb of
-                 SOME lm =>
-                   (case (fi, inch) of
-                      (SOME fm, _) =>
-                        let val f = g1 low fm  val i = valOf (grp low fm 2)
-                        in if f = "0" andalso isZero i then NONE
-                           else SOME (Q.BmiImperial (ratOf (g1 low lm), Q.Ftin (nat f, ratOf i), cat)) end
-                    | (NONE, SOME im) =>
-                        if isZero (g1 low im) then NONE
-                        else SOME (Q.BmiImperial (ratOf (g1 low lm), Q.Iin (ratOf (g1 low im)), cat))
-                    | _ => NONE)
-               | NONE => NONE)
+          if bad then SOME Q.NutUnderspecified
+          else if pediatric then SOME Q.NutAdultOnly
+          else case(kg,lb,metres,inchesHeight())of
+            ([(mass,_)],[],[h],NONE)=>SOME(Q.BmiMetric(rat mass,Q.Mm(rat(metricHeight h)),cat))
+          | ([],[(mass,_)],[],SOME h)=>SOME(Q.BmiImperial(rat mass,Q.Iin(rat h),cat))
+          | ([(mass,_)],[],[],SOME h)=>SOME(Q.BmiMetric(rat mass,Q.Mm(rat(scaled h(127,5000))),cat))
+          | ([],[(mass,_)],[h],NONE)=>SOME(Q.BmiMetric(rat(scaled mass(45359237,100000000)),Q.Mm(rat(metricHeight h)),cat))
+          | _=>SOME Q.NutUnderspecified
         end
-      else if has "\\bcalories\\b|\\bkcal\\b" low andalso has "\\bprotein\\b|\\bcarb\\w*\\b|\\bfat\\b" low
+      else if has "\\bcalories\\b|\\bkcal\\b" low andalso has "\\bprotein\\b|\\bcarb\\w*\\b|\\bfat\\b|\\balcohol\\b" low
               andalso has "\\bhow many calories\\b|\\btotal calories\\b|\\bcalories (?:are )?in\\b|\\bcalories does\\b" low then
         let
+          val tokens = ExactNumeric.scan low
+          val bad = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
           fun grams name =
-            case search (NUM ^ "\\s*g(?:rams?)?\\s*(?:of\\s+)?" ^ name) low of
-              SOME m => g1 low m
-            | NONE => (case search (name ^ "\\s*(?:of|:|=)?\\s*" ^ NUM ^ "\\s*g(?:rams?)?\\b") low of
-                         SOME m => g1 low m
-                       | NONE => "0")
-          val (p, c, f, a) = (grams "protein", grams "carb\\w*", grams "fat", grams "alcohol")
+            let
+              val values = List.mapPartial
+                (fn ExactNumeric.Number {start,stop,value,...} =>
+                  let val pre=String.substring(low,0,start)
+                      val post=String.extract(low,stop,NONE)
+                  in if has ("^\\s*g(?:rams?)?\\s*(?:of\\s+)?(?:" ^ name ^ ")\\b") post orelse
+                        (has ("\\b(?:" ^ name ^ ")\\s*(?:of|:|=)?\\s*$") pre andalso has "^\\s*g(?:rams?)?\\b" post)
+                     then SOME value else NONE end
+                 | _ => NONE) tokens
+            in case values of
+                 [v] => SOME v
+               | [] => if has ("\\b(?:" ^ name ^ ")\\b") low then NONE else SOME(0,1)
+               | _ => NONE
+            end
+          fun rat(n,d)=Q.mk_rat n d
         in
-          if List.all isZero [p, c, f, a] then NONE
-          else SOME (Q.Kcal (ratOf p, ratOf c, ratOf f, ratOf a))
+          if bad then SOME Q.NutUnderspecified
+          else case (grams "protein",grams "carb\\w*",grams "fat",grams "alcohol") of
+            (SOME p,SOME c,SOME f,SOME a) => SOME(Q.Kcal(rat p,rat c,rat f,rat a))
+          | _ => SOME Q.NutUnderspecified
         end
       else if has "\\bpercent\\w*\\b|\\b%\\b|\\bshare\\b|\\bproportion\\b" low
               andalso has "\\bcalories from fat\\b|\\bof (?:the )?calories\\b.*\\bfat\\b|\\bfat\\b.*\\bof (?:the )?calories\\b" low then
-        (case (search (NUM ^ "\\s*g(?:rams?)?\\s*(?:of\\s+)?(?:total\\s+)?fat\\b") low,
-               search (NUM ^ "\\s*(?:calories|kcal)\\b") low) of
-           (SOME fm, SOME km) =>
-             if isZero (g1 low km) then NONE
-             else SOME (Q.PctFatCal (ratOf (g1 low fm), ratOf (g1 low km)))
-         | _ => NONE)
+        (if bad then SOME Q.NutUnderspecified
+         else case(quantitiesWith "^\\s*g(?:rams?)?\\s*(?:of\\s+)?(?:total\\s+)?fat\\b",
+                   quantitiesWith "^\\s*(?:calories|kcal)\\b")of
+           ([(fat,_)],[(energy,_)])=>SOME(Q.PctFatCal(rat fat,rat energy))
+         | _=>SOME Q.NutUnderspecified)
       else if has "\\bdaily value\\b|\\b%\\s*dv\\b|\\bpercent dv\\b|\\bdv\\b" low then
-        (case List.find (fn (p, _) => has p low) dvTab of
-           NONE => NONE
-         | SOME (_, d) =>
-             (case search (NUM ^ "\\s*(mg|g|mcg|" ^ mu ^ "g)\\b") low of
-                NONE => NONE
-              | SOME am =>
-                  let
-                    val u = case valOf (grp low am 2) of
-                              "mg" => Q.U_mg | "g" => Q.U_g | _ => Q.U_mcg
-                    val req = Q.PctDV (d, ratOf (g1 low am), u)
-                  in if Q.answers req then SOME req else NONE end))
+        (if bad then SOME Q.NutUnderspecified
+         else case(List.filter(fn(p,d)=>has p (if p = List.nth(dvPats,2) then replaceStr "saturated fat" "" low else low))dvTab,
+              quantitiesWith ("^\\s*(?:mg|g|mcg|"^mu^"g)\\b"))of
+           ([(_,d)],[(amount,post)])=>
+             let val u=if has "^\\s*mg\\b" post then Q.U_mg else if has "^\\s*g\\b" post then Q.U_g else Q.U_mcg
+             in SOME(Q.PctDV(d,rat amount,u))end
+         | _=>SOME Q.NutUnderspecified)
       else NONE
     end
 
@@ -590,7 +635,7 @@ struct
               else if has "\\bbmi\\b|\\bbody mass index\\b" low
                       orelse (has "\\bpercent\\w*\\b|%|\\bshare\\b|\\bproportion\\b" low andalso has "\\bcalories\\b" low andalso has "\\bfat\\b" low)
                       orelse has "\\bdaily value\\b|%\\s*dv\\b|\\bpercent dv\\b" low
-                      orelse (has "\\bhow many calories\\b|\\btotal calories\\b" low andalso has "\\bprotein\\b|\\bcarb\\w*\\b|\\bfat\\b" low)
+                      orelse (has "\\bhow many calories\\b|\\btotal calories\\b" low andalso has "\\bprotein\\b|\\bcarb\\w*\\b|\\bfat\\b|\\balcohol\\b" low)
               then SOME Q.NutUnderspecified
               else NONE
       end

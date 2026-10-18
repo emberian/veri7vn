@@ -76,14 +76,37 @@
         ]
       },
       "evidence": {
-        "computation": "Exact expected seed requirement, or the least whole seed count whose expected stand meets the target; sufficient and minimal under the stated germination fraction. Total seeds and seeds per acre are separate request scopes.",
+        "computation": "Exact expected seed requirement, or the least whole seed count whose expected stand meets the target; sufficient and minimal under the stated germination fraction. Total seeds and seeds per acre are separate request scopes. Fertilizer grade-column mass balance preserves total versus per-acre scope and applies a separately supplied area only when converting those scopes.",
         "assumptions": [
           "Germination percentage is in (0,100] and target stand is nonnegative. This gives an expected stand, not a guarantee of realized germination.",
           "Whole/minimum purchases and total seed counts use integer ceiling; ordinary per-acre seeding rates retain the rational expectation.",
-          "One target and one germination percentage are supplied, with explicit compatible total or per-acre scope. Hectare conversion and mixed total/area questions are withheld."
+          "One target and one germination percentage are supplied, with explicit compatible total or per-acre scope. Hectare conversion and mixed total/area questions are withheld.",
+          "Fertilizer grade columns are N, P2O5 and K2O percentages in [0,100]; amount and total area are nonnegative, while division by area requires a positive area.",
+          "One grade and one nutrient/product amount are bound. Elemental phosphorus/potassium, hectare conversion, and conflicting multi-observation requests are unsupported."
         ],
         "untrusted": [
           "Shared exact numeric tokenization, English target/germination roles, quantity scope, model applicability and framing."
+        ]
+      }
+    },
+    "nutrition-label-v2": {
+      "evidence": {
+        "computation": "Adds supplied macronutrient energy using general Atwater factors4/4/9/7 kcal per gram. All component amounts must be nonnegative; explicit all-zero amounts give zero. Fat-calorie percentages bind one fat amount and one total energy with0<=9f<=total; daily-value percentages retain units and may exceed100%. BMI inputs preserve whole exact values and require positive mass/height.",
+        "assumptions": [
+          "The question asks for the sum of supplied macronutrient amounts; unlisted macronutrients contribute zero to that sum, as displayed in the response.",
+          "Food-specific factors, label rounding, serving-count conversion and medical dietary advice are outside this model.",
+          "Percent-fat calorie share uses unrounded general9kcal/g energy, without label-rounding tolerance. Daily Values use the fixed FDA2020 reference table, not a personalized recommended intake.",
+          "BMI output includes CDC adult category for ages20+; explicit child/teen/younger ages decline because this kernel does not supply age-specific percentile tables. Unknown age retains the declared adult model.",
+          "Mass and length inputs have unique explicit units; mixed metric/imperial BMI inputs convert exactly, while wholly imperial BMI retains the traditional rounded703 coefficient."
+        ],
+        "untrusted": [
+          "Shared exact numeric tokenization, English macro quantity roles, model applicability and framing."
+        ]
+      },
+      "accept": {
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
         ]
       }
     }
