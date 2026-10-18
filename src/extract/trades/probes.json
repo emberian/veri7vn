@@ -789,6 +789,334 @@
       "policy_withheld_expected": true,
       "policy_decline_kind": "underspecified",
       "source": "Unconsumed explicit group count must not disappear."
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is 2 cm tall with layer height 0.2 mm. How many layers?",
+      "valid": true,
+      "expect": 100
+    },
+    {
+      "specialist": "printing",
+      "q": "A 3D print is 1e2 mm high with layer height 2e-1 mm. How many layers?",
+      "valid": true,
+      "expect": 500
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is .001 m tall with layer height .2 mm. How many layers?",
+      "valid": true,
+      "expect": 5
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is 1 inch tall with layer height 1/10 inch. How many layers?",
+      "valid": true,
+      "expect": 10
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is -2 mm tall with layer height .2 mm. How many layers?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is 0 mm tall with layer height .2 mm. How many layers?",
+      "valid": true,
+      "expect": 0
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is 2 mm tall with layer height 0 mm. How many layers?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is 2 mm tall with layer height -0.2 mm. How many layers?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is 2 mm tall with layer height 0.2 mm/s. How many layers?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is 1.2.3 mm tall with layer height .2 mm. How many layers?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is 2 mm tall with variable layer height 0.2 mm. How many layers?",
+      "valid": true,
+      "expect": 10,
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "printing",
+      "q": "A printed part is 2 mm tall with layer height 200 microns. How many layers?",
+      "valid": true,
+      "expect": 10,
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is 2 cm tall with layer height 0.2 mm. How many layers?",
+      "valid": true,
+      "expect": 100
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A 3D print is 1e2 mm high with layer height 2e-1 mm. How many layers?",
+      "valid": true,
+      "expect": 500
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is .001 m tall with layer height .2 mm. How many layers?",
+      "valid": true,
+      "expect": 5
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is 1 inch tall with layer height 1/10 inch. How many layers?",
+      "valid": true,
+      "expect": 10
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is -2 mm tall with layer height .2 mm. How many layers?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is 0 mm tall with layer height .2 mm. How many layers?",
+      "valid": true,
+      "expect": 0
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is 2 mm tall with layer height 0 mm. How many layers?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is 2 mm tall with layer height -0.2 mm. How many layers?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is 2 mm tall with layer height 0.2 mm/s. How many layers?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is 1.2.3 mm tall with layer height .2 mm. How many layers?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is 2 mm tall with variable layer height 0.2 mm. How many layers?",
+      "valid": true,
+      "expect": 10,
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A printed part is 2 mm tall with layer height 200 microns. How many layers?",
+      "valid": true,
+      "expect": 10,
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards are 36.5 inches of fabric?",
+      "valid": true,
+      "expect": 1.0138888888888888
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards are .5 inches of fabric?",
+      "valid": true,
+      "expect": 0.013888888888888888
+    },
+    {
+      "specialist": "crafts",
+      "q": "Convert 1e2 cm of cloth to yards.",
+      "valid": true,
+      "expect": 1.0936132983377078
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards are .5 ft of ribbon?",
+      "valid": true,
+      "expect": 0.16666666666666666
+    },
+    {
+      "specialist": "crafts",
+      "q": "Convert 1/2 yard of cloth to yards.",
+      "valid": true,
+      "expect": 0.5
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards are 0 m of fabric?",
+      "valid": true,
+      "expect": 0
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards are -36 inches of fabric?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards are 1.2.3 inches of fabric?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards are 36 inches/s of fabric?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards are 36 square inches of fabric?",
+      "valid": false,
+      "expect": null
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards of fabric are needed for two 36 inch strips?",
+      "valid": true,
+      "expect": 2,
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards is 36 inches of fabric with a 10 percent waste allowance?",
+      "valid": true,
+      "expect": 1.1,
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "printing",
+      "q": "How many layers for a part height 17 cm with layer height 0.6 mm?",
+      "valid": true,
+      "expect": 284.0
+    },
+    {
+      "specialist": "printing",
+      "q": "How many layers for a part height 1/2 inch with layer height 0.2 mm?",
+      "valid": true,
+      "expect": 64.0
+    },
+    {
+      "specialist": "printing",
+      "q": "How many layers for a part height 0 mm with layer height 0.2 mm?",
+      "valid": true,
+      "expect": 0.0
+    },
+    {
+      "specialist": "printing",
+      "q": "How many layers for a part height -1 cm with layer height 0.2 mm?",
+      "valid": false
+    },
+    {
+      "specialist": "printing",
+      "q": "How many layers for a part height 1 cm with layer height 0 mm?",
+      "valid": false
+    },
+    {
+      "specialist": "printing",
+      "q": "How many layers for a part height 1 cm with layer height 0.2 mm/s?",
+      "valid": false
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "How many layers for a part height 17 cm with layer height 0.6 mm?",
+      "valid": true,
+      "expect": 284.0
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "How many layers for a part height 1/2 inch with layer height 0.2 mm?",
+      "valid": true,
+      "expect": 64.0
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "How many layers for a part height 0 mm with layer height 0.2 mm?",
+      "valid": true,
+      "expect": 0.0
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "How many layers for a part height -1 cm with layer height 0.2 mm?",
+      "valid": false
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "How many layers for a part height 1 cm with layer height 0 mm?",
+      "valid": false
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "How many layers for a part height 1 cm with layer height 0.2 mm/s?",
+      "valid": false
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards is 0.25 inches of fabric?",
+      "valid": true,
+      "expect": 0.006944
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards is 2.5 m of fabric?",
+      "valid": true,
+      "expect": 2.734
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards is 0.001 mm of fabric?",
+      "valid": true,
+      "expect": 1.094e-06
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards is -0.25 inches of fabric?",
+      "valid": false
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards is 9 feet of fabric?",
+      "valid": true,
+      "expect": 3.0
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many yards is 3 inches per second of fabric?",
+      "valid": false
     }
   ]
 }

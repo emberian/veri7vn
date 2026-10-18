@@ -236,6 +236,71 @@ struct
   val filRx = ["pla", "petg", "abs", "asa", "tpu", "nylon"]
   val filPats = zip3 (filRx, Q.fil_order, "fil_order")
 
+
+  (* Unit/source roles remain untrusted; exact conversions happen in HOL. *)
+  val linearUnits = List.concat (map (fn (tag,aliases) => map (fn alias =>
+    {alias=alias,tag=tag,dimension="length",caseSensitive=false}) aliases)
+    [("mm",["mm","millimeter","millimeters","millimetre","millimetres"]),
+     ("cm",["cm","centimeter","centimeters","centimetre","centimetres"]),
+     ("m",["m","meter","meters","metre","metres"]),
+     ("in",["in","inch","inches","\"",dprime]),
+     ("ft",["ft","foot","feet","'"]), ("yd",["yd","yds","yard","yards"])])
+  fun linearUnit tag = case tag of "mm"=>SOME Q.BU_mm | "cm"=>SOME Q.BU_cm
+    | "m"=>SOME Q.BU_m | "in"=>SOME Q.BU_in | "ft"=>SOME Q.BU_ft
+    | "yd"=>SOME Q.BU_yd | _=>NONE
+  fun linearValue m = case MeasuredInput.bind {expected="length",inheritFrom=NONE} m of
+      MeasuredInput.Bound{unit,...} => Option.map(fn u=>(toQ(#value m),u))(linearUnit(#tag unit))
+    | _=>NONE
+  fun measuredNumbers raw =
+    let val items=MeasuredInput.scan linearUnits raw in
+      if List.exists(fn MeasuredInput.Malformed _=>true | _=>false)items then NONE
+      else SOME(List.mapPartial(fn MeasuredInput.Measurement m=>SOME m | _=>NONE)items)
+    end
+  fun unitStop (m:MeasuredInput.measurement) = case #unitBinding m of
+      MeasuredInput.Explicit{span={stop,...},...}=>stop
+    | _=> #stop(#numberSpan m)
+  fun layersExact raw =
+    let
+      (* Ignore the 3D process name, preserving byte positions for measurements. *)
+      val input=replaceAll "\\b3[dD]\\b" "  " raw
+      val low=lower input
+      fun prefix (m:MeasuredInput.measurement)=String.substring(low,0,#start(#numberSpan m))
+      fun after m=String.extract(low,unitStop m,NONE)
+      fun layerRole m=has "\\blayer (?:height|thickness)\\s*(?:of|is|=|:)?\\s*$" (prefix m)
+        orelse has "^\\s*(?:layers?\\b|layer (?:height|thickness)\\b)" (after m)
+      fun heightRole m=not(layerRole m) andalso
+        (has "\\b(?:height|tall|high)\\s*(?:of|is|=|:)?\\s*$" (prefix m)
+        orelse has "^\\s*(?:tall|high|height)\\b" (after m))
+      fun only [m]=linearValue m | only _=NONE
+      val framing=["a","an","the","part","model","print","printed","printing","printer","is","has","at","with",
+        "of","and","using","uniform","constant","layer","layers","height","thickness","tall","high",
+        "how","many","what","number","count","calculate","for"]
+      fun remainder ms =
+        let fun go pos [] acc=String.concat(rev(String.extract(low,pos,NONE)::acc))
+              | go pos (m::rest) acc=go(unitStop m)rest
+                  (" "::String.substring(low,pos,#start(#numberSpan m)-pos)::acc)
+        in go 0 ms [] end
+      fun parse ms =
+        let val rest=remainder ms
+            val words=map(fn m=>Regex.whole rest m)(findall "[a-z]+" rest)
+            val direct=List.all(fn w=>List.exists(fn f=>f=w)framing)words
+        in if length ms<>2 orelse not direct then Q.Layers(NONE,NONE)
+           else Q.Layers(only(List.filter heightRole ms),only(List.filter layerRole ms)) end
+    in case measuredNumbers input of SOME ms=>parse ms | NONE=>Q.Layers(NONE,NONE) end
+  fun fabricYardsExact raw =
+    let val low=lower raw
+        val framing=["how","many","much","yards","yard","yd","yds","are","is","in","of","convert","to",
+          "fabric","cloth","ribbon","yarn","material","length","long","the","a","an","this","that"]
+        fun parse [m] =
+              let val first= #start(#numberSpan m)
+                  val rest=String.substring(low,0,first)^" "^String.extract(low,unitStop m,NONE)
+                  val words=map(fn x=>Regex.whole rest x)(findall "[a-z]+" rest)
+                  val direct=List.all(fn w=>List.exists(fn f=>w=f)framing)words
+              in if not direct then Q.YardsUnread else
+                (case linearValue m of SOME(v,u)=>Q.Yards(v,u) | NONE=>Q.YardsUnread) end
+          | parse _=Q.YardsUnread
+    in case measuredNumbers raw of SOME ms=>parse ms | NONE=>Q.YardsUnread end
+
   fun printingCore text : Q.request option =
     let
       val low = lower (collapse text)
@@ -265,11 +330,7 @@ struct
             else Next
           fun layers () =
             if has "\\bhow many layers\\b|\\blayer count\\b|\\bnumber of layers\\b" low then
-              let
-                val hm = search (N ^ "\\s*mm\\s*(?:tall|high)|\\b(?:height|tall|high)\\s*(?:of|is)?\\s*" ^ N ^ "\\s*mm") low
-                val lm = search (N ^ "\\s*mm\\s*layer(?:s| height)?|\\blayer height\\s*(?:of|is)?\\s*" ^ N ^ "\\s*mm") low
-                fun v m = Option.map (fn m => ratOf (valOf (firstGroup low m [1, 2]))) m
-              in Take (Q.Layers (v hm, v lm)) end
+              Take (layersExact text)
             else Next
           fun flow () =
             if has ("\\bvolumetric\\b|\\bflow rate\\b|\\bmm3/s\\b|\\bmm" ^ cu3 ^ "/s\\b") low then
@@ -324,7 +385,7 @@ struct
     end
 
   fun printingV1 text : Q.request option =
-    if Narrow.narrative text then NONE
+    if Narrow.narrative (replaceAll "(?<=\\d)\\.(?=\\d)" "" text) then NONE
     else case printingCore (replaceAll "\\bprinted\\b" "printed (printing)" (lower text)) of
            NONE => NONE
          | SOME r => if answered r orelse Narrow.short_direct text then SOME r else NONE
@@ -336,7 +397,7 @@ struct
     in
       case printingV1 t of
         NONE => NONE
-      | SOME r => if replyKind r = "underspecified" andalso numbers text >= 1 then NONE else SOME r
+      | SOME r => (case r of Q.Layers _=>SOME r | _=>if replyKind r = "underspecified" andalso numbers text >= 1 then NONE else SOME r)
     end
 
   (* ---------- safety ---------- *)
@@ -615,7 +676,8 @@ struct
       val low = lower t
       val gauge = has "\\d+(?:\\.\\d+)?\\s*(?:stitches|sts|rows)\\s*(?:per|over|in)\\s*\\d" low andalso Narrow.sentences t <= 2
     in
-      if Narrow.narrative text andalso not gauge then NONE
+      if Narrow.narrative (if has "\\byards?\\b" low andalso has "\\b(?:fabric|cloth|ribbon|yarn|material)\\b" low
+          then replaceAll "(?<=[0-9])\\.(?=[0-9])" "" text else text) andalso not gauge then NONE
       else
         let
           fun colour () =
@@ -718,11 +780,10 @@ struct
               | NONE => Next
             else Next
           fun yards () =
-            case search (M ^ "\\s*(?:inches|in\\b|\\\")\\s*(?:of\\s+)?(?:fabric|cloth|ribbon|yarn|material)") low of
-              SOME ym =>
-                if has "\\byards?\\b" low andalso has "\\bhow many\\b|\\bconvert\\b|\\bin yards\\b" low
-                then Take (Q.Yards (ratOf (g1 low ym))) else Next
-            | NONE => Next
+            if has "\\byards?\\b" low andalso
+               has "\\bhow many\\b|\\bconvert\\b|\\bin yards\\b" low andalso
+               has "\\b(?:fabric|cloth|ribbon|yarn|material)\\b" low
+            then Take (fabricYardsExact text) else Next
           fun mat () =
             if has "\\bmat\\b|\\bframe\\b" low andalso has "\\bborder\\b" low then
               let
@@ -748,7 +809,7 @@ struct
             | NONE => Next
         in
           case run [colour, complement, rows, knit, quilt, cut, yards, mat, clay] of
-            SOME r => (case r of Q.Rows _ => SOME r | Q.MixRgb _ => SOME r | _ => if answered r then SOME r else NONE)
+            SOME r => (case r of Q.Rows _ => SOME r | Q.MixRgb _ => SOME r | Q.Yards _ => SOME r | Q.YardsUnread => SOME r | _ => if answered r then SOME r else NONE)
           | NONE => NONE
         end
     end

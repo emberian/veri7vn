@@ -283,20 +283,22 @@ definition cm_per_inch :: rat where "cm_per_inch = 127 / 50"
 
 section \<open>Requests, outcomes and declines\<close>
 
-datatype board_unit = BU_in | BU_ft | BU_cm | BU_mm
+datatype length_unit = BU_in | BU_ft | BU_cm | BU_mm | BU_m | BU_yd
 
-fun board_inches :: "board_unit \<Rightarrow> rat \<Rightarrow> rat" where
-  "board_inches BU_in x = x"
-| "board_inches BU_ft x = 12*x"
-| "board_inches BU_cm x = 50*x/127"
-| "board_inches BU_mm x = 5*x/127"
+fun length_inches :: "length_unit \<Rightarrow> rat \<Rightarrow> rat" where
+  "length_inches BU_in x = x"
+| "length_inches BU_ft x = 12*x"
+| "length_inches BU_cm x = 50*x/127"
+| "length_inches BU_mm x = 5*x/127"
+| "length_inches BU_m x = 5000*x/127"
+| "length_inches BU_yd x = 36*x"
 
 definition board_domain :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> bool" where
   "board_domain t w l k \<longleftrightarrow> 0 \<le> t \<and> 0 \<le> w \<and> 0 \<le> l \<and>
     0 \<le> k \<and> snd (quotient_of k) = 1"
 
-lemma board_inches_nonnegative:
-  "0 \<le> x \<Longrightarrow> 0 \<le> board_inches u x"
+lemma length_inches_nonnegative:
+  "0 \<le> x \<Longrightarrow> 0 \<le> length_inches u x"
   by (cases u) auto
 
 datatype request =
@@ -307,7 +309,7 @@ datatype request =
   | Egress rat load_src bool          (* area, load factor, stairway? *)
   | Ramp rat bool                     (* rise, given in feet? *)
   | Shrink "rat option"               (* shrinkage in percent *)
-  | Layers "rat option" "rat option"  (* part height, layer height *)
+  | Layers "(rat * length_unit) option" "(rat * length_unit) option"  (* part height, layer height *)
   | Flow "rat option" "rat option" "rat option"  (* layer height, line width, speed *)
   | Cost rat price                    (* grams *)
   | FilLength rat "rat option" dens_src   (* grams, filament diameter mm *)
@@ -320,7 +322,7 @@ datatype request =
       (* H V D A FM CM and the load (kg) when a lifting index is asked *)
   | Judge
   | ActualSize nat nat
-  | BoardFeet rat board_unit rat board_unit rat board_unit rat (* thickness/unit, width/unit, length/unit, integral piece count *)
+  | BoardFeet rat length_unit rat length_unit rat length_unit rat (* thickness/unit, width/unit, length/unit, integral piece count *)
   | BoardUnread
   | Concrete rat rat rat bool         (* length ft, width ft, depth, depth in inches? *)
   | Drywall rat rat sheet             (* area, openings *)
@@ -336,15 +338,16 @@ datatype request =
   | CastOn rat bool rat bool          (* stitches per unit, per inch?, width, in inches? *)
   | Quilt rat rat rat                 (* width, length, block size *)
   | CutSize rat
-  | Yards rat
+  | Yards rat length_unit
+  | YardsUnread
   | Mat rat rat rat                   (* artwork w, h, border *)
   | Clay rat rat cunit                (* shrinkage percent, wet size, unit *)
 
 datatype need = N_shrink | N_height_layer | N_flow_inputs | N_spool_weight | N_filament_diameter
-  | N_board_inputs | N_rgb_model | N_material | N_noise_times | N_ladder_length | N_niosh_geometry | N_niosh_multipliers | N_niosh_load
+  | N_fabric_length | N_board_inputs | N_rgb_model | N_material | N_noise_times | N_ladder_length | N_niosh_geometry | N_niosh_multipliers | N_niosh_load
 
 datatype reason = R_lot_nonpositive | R_factor_nonpositive | R_shrink_range | R_layer_nonpositive
-  | R_board_domain | R_gauge_dimensions | R_spool_nonpositive | R_diameter_nonpositive | R_density_nonpositive | R_negative_duration
+  | R_negative_length | R_board_domain | R_gauge_dimensions | R_spool_nonpositive | R_diameter_nonpositive | R_density_nonpositive | R_negative_duration
   | R_zero_dose | R_niosh_domain | R_zero_rwl | R_nominal_size | R_openings_exceed | R_rise_nonpositive
   | R_few_sides | R_dry_exceeds_wet | R_no_mix | R_block_nonpositive
 
@@ -400,7 +403,8 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (CastOn _ _ _ _) = K_cast_on"
 | "kind_of (Quilt _ _ _) = K_quilt"
 | "kind_of (CutSize _) = K_cut_size"
-| "kind_of (Yards _) = K_yards"
+| "kind_of (Yards _ _) = K_yards"
+| "kind_of YardsUnread = K_yards"
 | "kind_of (Mat _ _ _) = K_mat_outer"
 | "kind_of (Clay _ _ _) = K_clay_fired"
 
@@ -544,6 +548,7 @@ fun missing :: "request \<Rightarrow> need option" where
       else if fm = None \<or> cm = None then Some N_niosh_multipliers
       else if want_li \<and> ld = None then Some N_niosh_load else None)"
 | "missing (MixRgb cs) = (if mix_rgb_many cs = None then Some N_rgb_model else None)"
+| "missing YardsUnread = Some N_fabric_length"
 | "missing BoardUnread = Some N_board_inputs"
 | "missing _ = None"
 
@@ -557,7 +562,8 @@ fun impossible :: "request \<Rightarrow> bool" where
 | "impossible (Occupant _ s) = (load_factor s \<le> 0)"
 | "impossible (Egress _ s _) = (load_factor s \<le> 0)"
 | "impossible (Shrink p) = (the p < 0 \<or> 100 \<le> the p)"
-| "impossible (Layers _ l) = (the l \<le> 0)"
+| "impossible (Layers h l) = (length_inches (snd (the l)) (fst (the l)) \<le> 0 \<or> length_inches (snd (the h)) (fst (the h)) < 0)"
+| "impossible (Yards x _) = (x < 0)"
 | "impossible (Cost _ p) = (case p of Per_spool _ (Some (x, _)) \<Rightarrow> x \<le> 0 | _ \<Rightarrow> False)"
 | "impossible (FilLength _ d s) = (the d \<le> 0 \<or> dens s \<le> 0)"
 | "impossible (FilMass _ d _) = (the d \<le> 0)"
@@ -584,7 +590,8 @@ fun reason_of :: "request \<Rightarrow> reason option" where
 | "reason_of (Occupant _ s) = (if load_factor s \<le> 0 then Some R_factor_nonpositive else None)"
 | "reason_of (Egress _ s _) = (if load_factor s \<le> 0 then Some R_factor_nonpositive else None)"
 | "reason_of (Shrink p) = (if the p < 0 \<or> 100 \<le> the p then Some R_shrink_range else None)"
-| "reason_of (Layers _ l) = (if the l \<le> 0 then Some R_layer_nonpositive else None)"
+| "reason_of (Layers h l) = (if length_inches (snd (the l)) (fst (the l)) \<le> 0 \<or> length_inches (snd (the h)) (fst (the h)) < 0 then Some R_layer_nonpositive else None)"
+| "reason_of (Yards x _) = (if x < 0 then Some R_negative_length else None)"
 | "reason_of (Cost _ p) = (case p of Per_spool _ (Some (x, _)) \<Rightarrow>
      (if x \<le> 0 then Some R_spool_nonpositive else None) | _ \<Rightarrow> None)"
 | "reason_of (FilLength _ d s) = (if the d \<le> 0 then Some R_diameter_nonpositive
@@ -773,7 +780,7 @@ fun answer_of :: "request \<Rightarrow> outcome" where
 | "answer_of (Egress a s st) = Exact K_egress (ceil_rat (a / load_factor s) * egress_per st)"
 | "answer_of (Ramp r ft) = Exact K_ramp (ramp_rise_in r ft * 12 / 12)"
 | "answer_of (Shrink p) = Exact K_shrink (1 / (1 - the p / 100))"
-| "answer_of (Layers h l) = Exact K_layers (ceil_rat (the h / the l))"
+| "answer_of (Layers h l) = Exact K_layers (ceil_rat (length_inches (snd (the h)) (fst (the h)) / length_inches (snd (the l)) (fst (the l))))"
 | "answer_of (Flow a b c) = Exact K_flow (the a * the b * the c)"
 | "answer_of (Cost g p) = Exact K_cost (g * per_kg p / 1000)"
 | "answer_of (FilLength m d s) = approx_out K_length (expr_of (FilLength m d s))"
@@ -788,7 +795,7 @@ fun answer_of :: "request \<Rightarrow> outcome" where
 | "answer_of (ActualSize a b) = (case (actual a, actual b) of
      (Some x, Some y) \<Rightarrow> Duo K_actual_size x y | _ \<Rightarrow> Decline Imprecise)"
 | "answer_of (BoardFeet th tu w wu l lu k) =
-     Exact K_board_feet (board_inches tu th * board_inches wu w * board_inches lu l * k / 144)"
+     Exact K_board_feet (length_inches tu th * length_inches wu w * length_inches lu l * k / 144)"
 | "answer_of (Concrete l w d inch) = Exact K_concrete (l * w * (if inch then d / 12 else d) / 27)"
 | "answer_of (Drywall a ov s) = Exact K_drywall (ceil_rat ((a - ov) / sheet_area s))"
 | "answer_of (Stairs r ft h) =
@@ -805,9 +812,10 @@ fun answer_of :: "request \<Rightarrow> outcome" where
 | "answer_of (CastOn spu u w wi) = Exact K_cast_on (round_he (spu * cast_width u w wi))"
 | "answer_of (Quilt w l s) = Exact K_quilt (floor_rat (w / s) * floor_rat (l / s))"
 | "answer_of (CutSize s) = Exact K_cut_size (s + 1 / 2)"
-| "answer_of (Yards i) = Exact K_yards (i / 36)"
+| "answer_of (Yards i u) = Exact K_yards (length_inches u i / 36)"
 | "answer_of (Mat w h b) = Duo K_mat_outer (w + 2 * b) (h + 2 * b)"
 | "answer_of (Clay p s u) = Exact K_clay_fired (s * (1 - p / 100))"
+| "answer_of YardsUnread = Decline Imprecise"
 | "answer_of BoardUnread = Decline Imprecise"
 | "answer_of Judge = Decline Imprecise"
 
@@ -870,7 +878,7 @@ fun spec_exact :: "request \<Rightarrow> rat \<Rightarrow> bool" where
      (0 < load_factor s \<and> least_cover (a / load_factor s) (q / egress_per st))"
 | "spec_exact (Ramp r ft) q = (q * 12 = ramp_rise_in r ft * 12)"
 | "spec_exact (Shrink p) q = (0 \<le> the p \<and> the p < 100 \<and> (1 - the p / 100) * q = 1)"
-| "spec_exact (Layers h l) q = (0 < the l \<and> least_cover (the h / the l) q)"
+| "spec_exact (Layers h l) q = (0 < length_inches (snd (the l)) (fst (the l)) \<and> 0 \<le> length_inches (snd (the h)) (fst (the h)) \<and> least_cover (length_inches (snd (the h)) (fst (the h)) / length_inches (snd (the l)) (fst (the l))) q)"
 | "spec_exact (Flow a b c) q = (q = the a * the b * the c)"
 | "spec_exact (Cost g p) q = (q * 1000 = g * per_kg p)"
 | "spec_exact (Ladder l u) q = (q * 4 = the l)"
@@ -878,7 +886,7 @@ fun spec_exact :: "request \<Rightarrow> rat \<Rightarrow> bool" where
      (if want_li then 0 < rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm)
           \<and> q * rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) = the ld
       else q = rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm))"
-| "spec_exact (BoardFeet th tu w wu l lu k) q = (q * 144 = board_inches tu th * board_inches wu w * board_inches lu l * k)"
+| "spec_exact (BoardFeet th tu w wu l lu k) q = (q * 144 = length_inches tu th * length_inches wu w * length_inches lu l * k)"
 | "spec_exact (Concrete l w d inch) q = (q * 27 = l * w * (if inch then d / 12 else d))"
 | "spec_exact (Drywall a ov s) q = least_cover ((a - ov) / sheet_area s) q"
 | "spec_exact (Stairs r ft h) q =
@@ -891,7 +899,7 @@ fun spec_exact :: "request \<Rightarrow> rat \<Rightarrow> bool" where
 | "spec_exact (Quilt w l s) q =
      (0 < s \<and> (\<exists>nw nl. most_fit (w / s) nw \<and> most_fit (l / s) nl \<and> q = nw * nl))"
 | "spec_exact (CutSize s) q = (q - 1 / 2 = s)"
-| "spec_exact (Yards i) q = (q * 36 = i)"
+| "spec_exact (Yards i u) q = (0 \<le> i \<and> q * 36 = length_inches u i)"
 | "spec_exact (Clay p s u) q = (q = s * (1 - p / 100))"
 | "spec_exact _ q = False"
 
@@ -941,7 +949,7 @@ next
     show ?thesis unfolding Shrink by (rule conjI[OF K S])
 next
   case (Layers x0 x1)
-    have lp: "0 < the x1" using B Layers by (simp split: if_splits)
+    have lp: "0 < length_inches (snd (the x1)) (fst (the x1))" "0 \<le> length_inches (snd (the x0)) (fst (the x0))" using B Layers by (auto split: if_splits)
     show ?thesis using A lp Layers ceil_rat_cover by auto
 next
   case (Flow x0 x1 x2)
@@ -1054,8 +1062,11 @@ next
   case (CutSize x0)
     show ?thesis using A CutSize by simp
 next
-  case (Yards x0)
-    show ?thesis using A Yards by simp
+  case (Yards x0 x1)
+    show ?thesis using A B Yards by (auto split: if_splits)
+next
+  case YardsUnread
+    show ?thesis using A YardsUnread by simp
 next
   case Mat
     show ?thesis using A Mat by simp
@@ -1174,10 +1185,23 @@ proof -
 qed
 
 theorem layers_cover_height:
-  assumes "kernel (Layers (Some height_value) (Some layer_height)) = Exact k n"
-  shows "k = K_layers \<and> 0 < layer_height \<and>
-    height_value \<le> n * layer_height \<and> (n - 1) * layer_height < height_value"
-  using kernel_exact_sound[OF assms] least_cover_capacity[of layer_height height_value n] by auto
+  assumes "kernel (Layers (Some (height_value, hu)) (Some (layer_height, lu))) = Exact k n"
+  shows "k = K_layers \<and> 0 < length_inches lu layer_height \<and> 0 \<le> length_inches hu height_value \<and>
+    length_inches hu height_value \<le> n * length_inches lu layer_height \<and>
+    (n - 1) * length_inches lu layer_height < length_inches hu height_value"
+  using kernel_exact_sound[OF assms]
+    least_cover_capacity[of "length_inches lu layer_height" "length_inches hu height_value" n] by auto
+
+theorem layers_count_nonnegative:
+  assumes "kernel (Layers (Some (height_value, hu)) (Some (layer_height, lu))) = Exact k n"
+  shows "0 \<le> n"
+proof -
+  have b: "0 < length_inches lu layer_height" "0 \<le> length_inches hu height_value"
+      "length_inches hu height_value \<le> n * length_inches lu layer_height"
+    using layers_cover_height[OF assms] by auto
+  have "0 \<le> n * length_inches lu layer_height" using b(2,3) by linarith
+  then show ?thesis using b(1) by (auto simp: zero_le_mult_iff)
+qed
 
 theorem occupants_cover_area:
   assumes "kernel (Occupant area_value load_source) = Exact k n"
@@ -1310,7 +1334,7 @@ theorem board_feet_volume:
   assumes "kernel (BoardFeet t tu w wu l lu n) = Exact k q"
   shows "k = K_board_feet \<and> 0 \<le> t \<and> 0 \<le> w \<and> 0 \<le> l \<and>
     0 \<le> n \<and> snd (quotient_of n) = 1 \<and>
-    q * 144 = board_inches tu t * board_inches wu w * board_inches lu l * n"
+    q * 144 = length_inches tu t * length_inches wu w * length_inches lu l * n"
   using kernel_exact_sound[OF assms] by (simp add: board_domain_def)
 
 theorem board_feet_nonnegative:
@@ -1319,9 +1343,19 @@ theorem board_feet_nonnegative:
 proof -
   have b: "0 \<le> t" "0 \<le> w" "0 \<le> l" "0 \<le> n"
     using board_feet_volume[OF assms] by auto
-  have p: "0 \<le> board_inches tu t * board_inches wu w * board_inches lu l * n"
-    using b board_inches_nonnegative by (intro mult_nonneg_nonneg) auto
+  have p: "0 \<le> length_inches tu t * length_inches wu w * length_inches lu l * n"
+    using b length_inches_nonnegative by (intro mult_nonneg_nonneg) auto
   show ?thesis using p board_feet_volume[OF assms] by linarith
+qed
+
+theorem fabric_yards_balance:
+  assumes "kernel (Yards x u) = Exact k q"
+  shows "k = K_yards \<and> 0 \<le> x \<and> 0 \<le> q \<and> 36*q = length_inches u x"
+proof -
+  have b: "k = K_yards" "0 \<le> x" "q*36 = length_inches u x"
+    using kernel_exact_sound[OF assms] by auto
+  have "0 \<le> length_inches u x" using length_inches_nonnegative[OF b(2)] .
+  then show ?thesis using b by linarith
 qed
 
 section \<open>Stated values\<close>
@@ -1340,6 +1374,7 @@ fun value_rule :: "kind \<Rightarrow> vrule" where
 | "value_rule K_risers = V_int" | "value_rule K_cast_on = V_int" | "value_rule K_quilt = V_int"
 | "value_rule K_shrink = V_g4c" | "value_rule K_flow = V_g4c"
 | "value_rule K_cost = V_cents"
+| "value_rule K_yards = V_g4"
 | "value_rule K_ladder = V_g4" | "value_rule K_rwl = V_g4" | "value_rule K_li = V_g4"
 | "value_rule _ = V_f3"
 
@@ -1498,8 +1533,8 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
 | "exact_text (Shrink p) q V = STR ''The scale factor is '' + V + STR '' ('' + show4c (the p)
      + STR ''%: 1 / (1 - '' + show4c (the p / 100) + STR '')), i.e. model it ''
      + show4c (100 * (q - 1)) + STR ''% larger.''"
-| "exact_text (Layers h l) q V = STR ''That is '' + V + STR '' layers ('' + show4c (the h) + STR '' mm / ''
-     + show4c (the l) + STR '' mm, rounded up).''"
+| "exact_text (Layers h l) q V = STR ''That is '' + V + STR '' layers ('' + show4c (length_inches (snd (the h)) (fst (the h))) + STR '' in / ''
+     + show4c (length_inches (snd (the l)) (fst (the l))) + STR '' in, rounded up; uniform layer height).''"
 | "exact_text (Flow a b c) q V = STR ''The volumetric flow is '' + V
      + STR '' mm3/s (layer height x line width x speed).''"
 | "exact_text (Cost g p) q V = STR ''The material cost is $'' + V + STR '' ('' + show4c g + STR '' g at $''
@@ -1516,8 +1551,8 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
          + show4 (rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm))
          + STR '' kg; NIOSH lifting equation)''
          + (if 1 < q then STR '' - above 1, the lift is a risk for some workers'' else STR '''') + STR ''.'')"
-| "exact_text (BoardFeet th tu w wu l lu k) q V = STR ''That is '' + V + STR '' board feet ('' + show3 (board_inches tu th)
-     + STR '' in x '' + show3 (board_inches wu w) + STR '' in x '' + show3 (board_inches lu l)
+| "exact_text (BoardFeet th tu w wu l lu k) q V = STR ''That is '' + V + STR '' board feet ('' + show3 (length_inches tu th)
+     + STR '' in x '' + show3 (length_inches wu w) + STR '' in x '' + show3 (length_inches lu l)
      + STR '' in x '' + show3 k + STR '' pieces / 144 cubic inches per board foot; rectangular pieces, no waste allowance).''"
 | "exact_text (Concrete l w d inch) q V = STR ''The volume is '' + V + STR '' cubic yards ('' + show3 l
      + STR '' ft x '' + show3 w + STR '' ft x '' + show3 (if inch then d / 12 else d)
@@ -1546,7 +1581,7 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + STR '' in finished blocks).''"
 | "exact_text (CutSize s) q V = STR ''Cut the squares at '' + V + STR '' in ('' + show3 s
      + STR '' in finished + 1/2 in for a 1/4 in seam allowance on each side).''"
-| "exact_text (Yards i) q V = STR ''That is '' + V + STR '' yards ('' + show3 i + STR '' in / 36).''"
+| "exact_text (Yards i u) q V = STR ''That is '' + V + STR '' yards ('' + show3 (length_inches u i) + STR '' in / 36; continuous fabric length, no whole-yard rounding).''"
 | "exact_text (Clay p s u) q V = STR ''The fired size is '' + V + STR '' '' + cunit_label u + STR '' (''
      + show3 s + STR '' x (1 - '' + show3 p + STR ''%)).''"
 | "exact_text r q V = V"
@@ -1595,7 +1630,8 @@ fun hue_text :: "request \<Rightarrow> colour \<Rightarrow> String.literal" wher
 
 definition need_text :: "need \<Rightarrow> String.literal" where
   "need_text n = (case n of
-       N_board_inputs \<Rightarrow> STR ''I need three unambiguous rectangular dimensions with length units and a whole number of pieces; thickness and width without units use the board-foot inch convention.''
+       N_fabric_length \<Rightarrow> STR ''I need one unambiguous fabric length with a supported source unit to convert to yards; widths, areas and waste allowances need a different model.''
+     | N_board_inputs \<Rightarrow> STR ''I need three unambiguous rectangular dimensions with length units and a whole number of pieces; thickness and width without units use the board-foot inch convention.''
      | N_rgb_model \<Rightarrow> STR ''I can combine named full digital RGB channels; I need the supported colour names and cannot infer brightness or a weighted physical light mixture.''
      | N_shrink \<Rightarrow> STR ''I need the shrinkage percentage to work that out; I won'' + apos + STR ''t assume it.''
      | N_height_layer \<Rightarrow> STR ''I need the part height and the layer height to work that out; I won'' + apos + STR ''t assume it.''
@@ -1611,7 +1647,8 @@ definition need_text :: "need \<Rightarrow> String.literal" where
 
 definition reason_text :: "request \<Rightarrow> reason \<Rightarrow> String.literal" where
   "reason_text r y = (case y of
-       R_board_domain \<Rightarrow> STR ''Board dimensions and piece count must be nonnegative, and the number of complete pieces must be an integer.''
+       R_negative_length \<Rightarrow> STR ''A physical fabric length cannot be negative.''
+     | R_board_domain \<Rightarrow> STR ''Board dimensions and piece count must be nonnegative, and the number of complete pieces must be an integer.''
      | R_niosh_domain \<Rightarrow> STR ''NIOSH inputs need nonnegative distances, angle and load; frequency multiplier from 0 to 1; and coupling multiplier 0.90, 0.95 or 1.00.''
      | R_gauge_dimensions \<Rightarrow> STR ''The gauge span must be positive and row count and target length nonnegative.''
      | R_nominal_size \<Rightarrow> (case r of ActualSize a b \<Rightarrow> show_nat a + STR ''x'' + show_nat b
@@ -1619,7 +1656,7 @@ definition reason_text :: "request \<Rightarrow> reason \<Rightarrow> String.lit
      | R_few_sides \<Rightarrow> STR ''A closed frame needs at least 3 sides.''
      | R_dry_exceeds_wet \<Rightarrow> STR ''The oven-dry mass cannot exceed the wet mass.''
      | R_shrink_range \<Rightarrow> STR ''Shrinkage must be between 0 and 100%.''
-     | R_layer_nonpositive \<Rightarrow> STR ''A layer height must be positive.''
+     | R_layer_nonpositive \<Rightarrow> STR ''The part height must be nonnegative and the uniform layer height positive.''
      | R_no_mix \<Rightarrow> STR ''That colour pair has no mix on this colour wheel.''
      | _ \<Rightarrow> STR ''That cannot be worked out from those numbers.'')"
 

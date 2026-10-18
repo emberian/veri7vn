@@ -23,6 +23,7 @@ struct
     | Trades.Niosh _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"niosh_rwl_bound\"]"
     | Trades.BoardFeet _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"board_feet_volume\",\"board_feet_nonnegative\"]"
     | Trades.MixRgb _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"kernel_rgb_channel_union\"]"
+    | Trades.Yards _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"fabric_yards_balance\"]"
     | Trades.Layers _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"layers_cover_height\"]"
     | Trades.Occupant _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"occupants_cover_area\"]"
     | Trades.Drywall _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"drywall_covers_area\"]"

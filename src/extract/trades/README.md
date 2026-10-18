@@ -99,3 +99,22 @@ Explicit piece counts are never treated as missing: numerals retain exact value,
 word counts from zero through ninety-nine use a finite grammar, and unsupported
 quantifiers or multiple groups are withheld. A plural source without a count
 does not silently become one piece.
+
+
+Printing layer counts preserve the separate length units of the part and each
+uniform layer. The result is the least whole number of layers covering the part:
+a 2 cm part with 0.2 mm layers needs 100 layers. Part height may be zero but
+cannot be negative; layer height must be positive. Adaptive layers, separate
+first-layer heights and rates such as mm/s need a different model.
+
+Fabric conversion treats length as continuous: half an inch is 1/72 yard, not
+five inches or a rounded-up purchase quantity. Inches, feet, yards, millimetres,
+centimetres and metres are supported, including exact fractions and small
+positive lengths. Negative lengths are refused. Width, area, waste allowances
+and strip layouts are not represented by this length-only calculation.
+
+The isolated Crafts reader refuses negative fabric lengths. The full default
+system currently can select a generic signed unit conversion instead; this
+composition gap is tracked by `check_composition.py`, which presently passes
+three of four checks and exits with failure. Signed conversion alone remains
+valid; the missing distinction is the physical fabric constraint.

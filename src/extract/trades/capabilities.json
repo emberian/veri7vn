@@ -17,13 +17,14 @@
         "\\brgb\\b|\\b(?:digital|additive)\\s+(?:colou?r|light)\\b"
       ],
       "evidence": {
-        "computation": "For row-gauge requests, rows equal gauge row count divided by gauge span, times target length after inch/cm conversion, rounded to the nearest integer with ties to even. The kernel refuses a nonpositive gauge span or negative row count or length. Other crafts requests retain their own named convention. Quilt blocks use exact rational floor in both dimensions, so each count fits and one additional block in that direction does not. Named full digital RGB channels combine by channel union; every returned channel occurs in an input and every input channel is retained.",
+        "computation": "For row-gauge requests, rows equal gauge row count divided by gauge span, times target length after inch/cm conversion, rounded to the nearest integer with ties to even. The kernel refuses a nonpositive gauge span or negative row count or length. Other crafts requests retain their own named convention. Quilt blocks use exact rational floor in both dimensions, so each count fits and one additional block in that direction does not. Named full digital RGB channels combine by channel union; every returned channel occurs in an input and every input channel is retained. Continuous fabric length converts exactly to yards without whole-yard purchase rounding.",
         "assumptions": [
           "Row-gauge requests assume uniform gauge across the requested length.",
-          "RGB composition uses saturated full digital channels. It does not predict weighted brightness, spectra or paint mixtures."
+          "RGB composition uses saturated full digital channels. It does not predict weighted brightness, spectra or paint mixtures.",
+          "Fabric conversion assumes one continuous length with no width, waste or discrete cutting model."
         ],
         "untrusted": [
-          "English recognition and framing."
+          "English quantity roles, source unit recognition and output rendering."
         ]
       }
     },
@@ -53,23 +54,35 @@
     },
     "printing": {
       "evidence": {
-        "computation": "For layer counts, exact rational ceiling gives enough layers to cover the stated part height; one fewer layer does not.",
+        "computation": "Exact length conversion followed by the least integral layer count covering a nonnegative part height with positive uniform layer height.",
         "assumptions": [
-          "The stated positive layer height is uniform."
+          "Uniform layer height; no separate first layer, adaptation or machine offset."
         ],
         "untrusted": [
-          "English quantity and unit recognition."
+          "English quantity roles, source unit recognition and output rendering."
+        ]
+      },
+      "accept": {
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
         ]
       }
     },
     "printing-v2": {
       "evidence": {
-        "computation": "For layer counts, exact rational ceiling gives enough layers to cover the stated part height; one fewer layer does not.",
+        "computation": "Exact length conversion followed by the least integral layer count covering a nonnegative part height with positive uniform layer height.",
         "assumptions": [
-          "The stated positive layer height is uniform."
+          "Uniform layer height; no separate first layer, adaptation or machine offset."
         ],
         "untrusted": [
-          "English quantity and unit recognition."
+          "English quantity roles, source unit recognition and output rendering."
+        ]
+      },
+      "accept": {
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
         ]
       }
     },

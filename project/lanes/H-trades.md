@@ -1,6 +1,6 @@
 # H Trades — source units for printing and fabric lengths
 
-Staged HOL proof passed; the reader is not compiled and no final panel result exists.
+**Root adoption update:** H is now integrated and natively compiled. Scoped panels pass, but one negative-fabric default composition gap remains. The following drain account is historical; see the root integration section below.
 Live Trades G remains integrated at e1e9427. Source is staged in
 `var/H-trades/staged`, with a coherent build checkout and ancestry record under
 `var/H-trades`. The final scoped proof passed 51 roots with zero oracles. The display adjustment
@@ -78,3 +78,51 @@ Final staged proof result: **passed**, VERI7VN_TRADES PASS theorems=51 oracles=0
 Export SHA256 `0e688a0e775e626de5113c936714cbb9e8018b00000659dd81060ceaaecebab6`.
 No H native was compiled or published after this proof. The 151-case baseline
 remains a measurement of G, not a measurement of H. H stops here for drain.
+
+
+## Root integration after drain
+
+Root inspected the checked length-conversion, layer-cover/minimality and
+fabric-balance statements and the executable request/reply path. The retained
+51-root/zero-oracle proof was reused; no new proof attempt was needed. The first
+staged native64b0006 compiled successfully and passed357/357 shipped items in
+both isolated and family modes. Independent probes found that the English
+framing vocabulary omitted “for” in ordinary layer questions. Root added that
+word and18 independent regression cases; the original stage and first compiler
+snapshot remain available.
+
+The final live native isce7385b3968464b6f7d101f85628f5b594af1eac4d31f25d72272c6226239193.
+Current-checkout compile20261018T112725Z-1ff3b389f02e matches the repaired staged
+native exactly; the verifier reports no proof/runtime drift. The original G
+live source/native hashes matched before adoption. Root froze the exact inputs
+at `var/C-runtime-package/bound-prepared/20261018T112725Z-1ff3b389f02e/trades`.
+
+Results in both isolated and family modes:
+
+- Shipped:357/357 right, zero wrong/false yes/valid withheld.
+- Fresh-seed mix20261018079:360/360 right, zero wrong/false yes/valid withheld.
+  Five specialists use regenerated panels; Safety retains its shipped panel
+  because no generator is present. This is not360 wholly new questions.
+- Authored169:149 right, zero wrong/false yes,20 valid withheld. The149 comprise
+  95 numerical/colour answers and54 correct invalid refusals. All20 explicit
+  refusal policy assertions pass, but remain capability misses.
+- Root's18 independent layer/fabric cases pass after the framing repair. On the
+  original151 authored cases, H improves G's114 right/4 wrong/4 false yes/29
+  valid withheld to131 right/0 wrong/0 false yes/20 valid withheld.
+- Fourteen actual full-default checks:13 pass, one fails. Layer values, positive
+  fabric conversions, existing board-count and RGB controls work. Negative
+  fabric is answered by units-v3 despite Crafts returning a physical-domain
+  refusal. Both candidates reach arbitration; the generic conversion wins.
+  This is an unresolved composition error, not an isolated-reader failure.
+
+The executable `src/extract/trades/check_composition.py` preserves four focused
+consumer tests:layer count, positive fabric, negative fabric, and valid plain
+signed conversion. It currently passes3/4 and exits1. Changing global arbitration
+or making all signed conversions invalid would exceed this bounded repair and
+would not faithfully represent the two models. A proper cross-model admission/
+arbitration repair remains required; no full-default completion claim is made.
+
+Evidence, consumer hashes and exact source ancestry are in
+`var/root-trades-h/integration.json`. Linux comparison and scoped portable
+packaging remain outstanding. The selected144-specialist delivery is unchanged.
+No native/proof job or implementation deputy remains from this integration.

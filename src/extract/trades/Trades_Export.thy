@@ -11,7 +11,7 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
-     kernel (Layers (Some (1 + 1 / 10000000000)) (Some 1)) = Exact K_layers 2 \<and>
+     kernel (Layers (Some (1 + 1 / 10000000000, BU_mm)) (Some (1, BU_mm))) = Exact K_layers 2 \<and>
      kernel (Quilt (1 - 1 / 10000000000) 1 1) = Exact K_quilt 0 \<and>
      kernel (Drywall (32 + 1 / 100000000000) 0 S32) = Exact K_drywall 2 \<and>
      kernel (Far 36000 12000) = Exact K_far 3 \<and>
@@ -20,7 +20,7 @@ definition self_test :: bool where
      kernel (Occupant 5000 (Given 150)) = Exact K_occupant 34 \<and>
      kernel (Egress 4500 (Table O_business) True) = Exact K_egress 9 \<and>
      kernel (Ramp 30 False) = Exact K_ramp 30 \<and>
-     kernel (Layers (Some 180) (Some (1 / 5))) = Exact K_layers 900 \<and>
+     kernel (Layers (Some (180, BU_mm)) (Some (1 / 5, BU_mm))) = Exact K_layers 900 \<and>
      kernel (Shrink (Some 5)) = Exact K_shrink (20 / 19) \<and>
      kernel (Shrink None) = Decline (Underspecified N_shrink) \<and>
      kernel (Shrink (Some 100)) = Decline (Impossible R_shrink_range) \<and>
@@ -43,6 +43,10 @@ definition self_test :: bool where
      kernel (BoardFeet (1/2) BU_in 6 BU_in 8 BU_ft 1) = Exact K_board_feet 2 \<and>
      kernel (BoardFeet (-2) BU_in 6 BU_in 8 BU_ft 1) = Decline (Impossible R_board_domain) \<and>
      kernel (BoardFeet 2 BU_in 6 BU_in 8 BU_ft (3/2)) = Decline (Impossible R_board_domain) \<and>
+     kernel (Layers (Some (2, BU_cm)) (Some (1/5, BU_mm))) = Exact K_layers 100 \<and>
+     kernel (Layers (Some (-1, BU_mm)) (Some (1/5, BU_mm))) = Decline (Impossible R_layer_nonpositive) \<and>
+     kernel (Yards (1/2) BU_in) = Exact K_yards (1/72) \<and>
+     kernel (Yards (-1) BU_m) = Decline (Impossible R_negative_length) \<and>
      kernel Judge = Decline Judgement \<and>
      kernel (Niosh (Some 25) (Some 75) (Some 25) (Some 0) (Some 1) (Some 1) False None) = Exact K_rwl 23 \<and>
      kernel (Niosh (Some 25) (Some 75) (Some 25) (Some 0) (Some 2) (Some 1) False None) = Decline (Impossible R_niosh_domain) \<and>
@@ -66,14 +70,14 @@ export_code reply_of answered reply_kind response stated mk_rat
   integer_of_int nat_of_integer int_of_integer
   use_order fil_order input_colours
   Far MaxFloor Coverage Occupant Egress Ramp Shrink Layers Flow Cost FilLength FilMass NoiseTime
-  NoiseDose Twa Ladder Niosh Judge ActualSize BoardFeet BoardUnread BU_in BU_ft BU_cm BU_mm Concrete Drywall Stairs Rafter Pitch Miter
-  Moisture MixRyb MixRgb Complement Rows CastOn Quilt CutSize Yards Mat Clay
+  NoiseDose Twa Ladder Niosh Judge ActualSize BoardFeet BoardUnread BU_in BU_ft BU_cm BU_mm BU_m BU_yd Concrete Drywall Stairs Rafter Pitch Miter
+  Moisture MixRyb MixRgb Complement Rows CastOn Quilt CutSize Yards YardsUnread Mat Clay
   C_red C_yellow C_blue C_green C_orange C_purple C_violet C_cyan C_magenta C_white C_black
   Given Table D_given D_typical D_none Per_kg Per_spool L_ft L_m S32 S40 S48 CU_in CU_quote CU_cm CU_mm
   in SML module_name Trades file_prefix trades
 
 ML \<open>
-  val theorems = [@{thm board_feet_volume}, @{thm board_feet_nonnegative}, @{thm niosh_factors_bounded}, @{thm niosh_weight_bound}, @{thm niosh_rwl_bound}, @{thm niosh_index_balance}, @{thm kernel_exact_sound}, @{thm kernel_duo_sound}, @{thm kernel_hue_sound},
+  val theorems = [@{thm fabric_yards_balance}, @{thm layers_count_nonnegative}, @{thm board_feet_volume}, @{thm board_feet_nonnegative}, @{thm niosh_factors_bounded}, @{thm niosh_weight_bound}, @{thm niosh_rwl_bound}, @{thm niosh_index_balance}, @{thm kernel_exact_sound}, @{thm kernel_duo_sound}, @{thm kernel_hue_sound},
     @{thm kernel_approx_sound}, @{thm kernel_underspecified}, @{thm kernel_impossible},
     @{thm kernel_judgement}, @{thm kernel_imprecise}, @{thm reason_of_exact},
     @{thm expr_of_meaning}, @{thm round_he_spec}, @{thm ceil_rat_cover}, @{thm floor_rat_fit},
