@@ -32,7 +32,9 @@ Extra table (harmless, never queried by the shipped code): meta(key, value) reco
 row counts, the proxy formula and its weights, so any consumer can tell a rebuilt names_v1
 from the lost original.
 
-Usage:  python3 build_names.py [--weights sent,in,out]     (stages cache in var/linker/)
+Usage:  python3 build_names.py [--weights sent,in,out] [--primary B] [--out PATH]   (stages cache in var/linker/)
+        Defaults reproduce the evaluated index: weights 0,14,8, primary boost 1.5. Then make_overlay.py.
+        Docstring scale anchors above predate that choice; the built index has US 237, Norway 187, Einstein 105.
 """
 import math
 import os
@@ -52,12 +54,12 @@ OUT = os.path.join(VAR, "names_v1.sqlite3")
 
 # sitelink-like scale: anchors observed 2026-10-17 (see calibrate()) - US indeg 1.27M -> ~320,
 # Norway indeg 45K -> ~115, Einstein (indeg 118, outdeg 114, sent ~350) -> ~160, stubs -> 1-5
-SENT_W, IN_W, OUT_W = 36.0, 14.0, 8.0
+SENT_W, IN_W, OUT_W = 0.0, 14.0, 8.0     # the shipped-data optimum the scout measured (sentence counts made linking worse)
 
 # Wikipedia primary-topic signal: an entity whose enwiki TITLE normalises to the same form as its
 # LABEL is the un-parenthesised topic ("Lord Jim" the novel) while same-named films carry
 # "Lord Jim (1965 film)". 1.0 = off; 1.5 chosen on the panels (see the scout report).
-PRIMARY_BOOST = 1.0
+PRIMARY_BOOST = 1.5
 
 
 def norm(s):

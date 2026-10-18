@@ -23,7 +23,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 UP = "/Users/ember/dev/o7vn/upstream"
 SPEC = UP + "/root/specialists"
-O7ROOT = os.path.join(REPO, "var", "linker", "o7root")
+O7ROOT = os.environ.get("VERI7VN_LINKER_ROOT", os.path.join(REPO, "var", "linker", "o7root"))   # overlay from make_overlay.py
 os.environ["ORACLE7_ROOT"] = O7ROOT
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 sys.path.insert(0, UP + "/root/wander-train")
