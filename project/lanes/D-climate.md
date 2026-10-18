@@ -1,7 +1,7 @@
 # D-climate: model boundaries after the C packet
 
 Status: checked kernel, selected native and exact composed checks pass; immutable
-package capture remains pending. C measurements remain in C-climate.md. Each ledger row
+package capture is complete. This is the historical D checkpoint; later E through H packets are integrated as recorded in the natural-family drain report. C measurements remain in C-climate.md. Each ledger row
 below records an actual boundary probe, not a claim of complete domain coverage.
 Raw initial replies: `var/earth/d-domain/ledger-probes.json`.
 
@@ -77,8 +77,9 @@ Receipts: `var/climate/d-final/report.json`, `var/climate/d-parity/`, and
 `var/climate/d-duration/selected-native.log`. Actual dispatcher receipt
 `var/C-runtime-consumers/climate-D-final.json` binds the selected exact hash and
 passes both negative-duration terminal refusals and the positive single-stage
-1h cooling request. Immutable package capture, relocation and Linux refresh
-remain pending at this report revision.
+1h cooling request. Immutable capture is complete at
+`var/C-runtime-package/bound-prepared/20261018T073846Z-136ebc073cad/climate`.
+Root committed this D packet in `4a68e6e`; Linux refresh is separate and pending.
 
 That composed audit also found an unresolved false yes: “Food cools from135 F to70 F
 in1 hours and then to41 F in9 hours. Does it meet the cooling rule?” evaluates
@@ -90,3 +91,5 @@ Remaining model gaps in carbon capture, airquality interpretation, forcing roles
 and carbon materials stay in the ledger. This repair validates stated elapsed-time
 arithmetic; it does not decide whether a particular food is safe or establish
 applicability of the declared rule to a situation.
+
+The compound-stage repair is tracked in [E-climate.md](E-climate.md).

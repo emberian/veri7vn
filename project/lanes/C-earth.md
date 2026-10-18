@@ -1,8 +1,8 @@
 # C-earth — useful requests and explicit boundaries
 
 Status: checked kernel and exact native pass all shipped panels, fresh panels,
-reserved seed and authored probes. Exact composed acceptance passes; immutable package capture is in progress. Source and selected native are frozen through capture
-and root integration. No failed build export was consumed.
+reserved seed and authored probes. Exact composed acceptance and immutable package capture pass. The C source was committed in `5327e3c`; its exact selected native is retained
+in the package capture. No failed build export was consumed.
 
 Earth covers geography, geology, seismology, hydrology, ocean, meteorology,
 greenhouse and greenhouse-r2. The Gutenberg–Richter reader now accepts both
@@ -112,5 +112,6 @@ impossible, Gutenberg–Richter count100 answers, and both tsunami and generic
 shallow-water zero-depth travel are terminal impossible. These are bound to the
 final native hash. Generic shallow-water refusal currently says “A tsunami
 needs...” despite the broader accepted context; the boundary is correct, while
-that noun remains narrower than the question. Package capture is in progress;
-root integration is also required before source reopens.
+that noun remains narrower than the question. Immutable package capture is
+`var/C-runtime-package/bound-prepared/20261018T075139Z-215e77668727/earth`.
+Root committed `5327e3c`; subsequent D source is separate from this captured C packet.
