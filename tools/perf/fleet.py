@@ -402,8 +402,9 @@ def oracle7_argv(python):
     return [python, str(REPO / "tools" / "parity" / "answerers" / "oracle7.py")]
 
 
-def measure_oracle7(fams, a, scratch, python):
-    """one head process over every panel question, in family order; per-turn latencies per family"""
+def measure_oracle7(fams, a, scratch, python, progress=None):
+    """one head process over every panel question, in family order; per-turn latencies per family.
+    progress(n_done) is called every 100 questions so a long pass can dump partial data."""
     o7 = {"slug": "oracle7-head", "specialists": [], "panels": [], "budgets": [],
           "errors": [], "statuses": {}, "warm_ms": [], "cold_ms_all": []}
     log = scratch / "oracle7.stderr"
@@ -411,15 +412,24 @@ def measure_oracle7(fams, a, scratch, python):
     cold, warm, statuses, errors = [], [], {}, []
     per_fam = {}
     first_done = False
+
+    def count(record):
+        nonlocal first_done
+        if not first_done:
+            cold.append(record)
+            first_done = True
+        else:
+            warm.append(record)
+        if progress and (len(cold) + len(warm)) % 100 == 0:
+            progress(len(cold) + len(warm), {
+                "n": len(cold) + len(warm), "statuses": dict(statuses),
+                "stats": summarise(cold, warm), "peak_rss_kib": run.tree_peak_kib,
+                "per_family": {k: {"n": len(v), **summarise([], v)} for k, v in per_fam.items()}})
     for fam in fams:
         if fam["slug"] == "fusion":
             for battery, q in fusion_questions():
                 r, ms = run.ask("o7:fusion:%s" % battery, q, "perf-o7-fusion")
-                if not first_done:
-                    cold.append(ms)
-                    first_done = True
-                else:
-                    warm.append(ms)
+                count(ms)
                 per_fam.setdefault("fusion", []).append(ms)
                 statuses[str(r.get("status", "error"))] = statuses.get(str(r.get("status", "error")), 0) + 1
                 if "error" in r:
@@ -437,11 +447,7 @@ def measure_oracle7(fams, a, scratch, python):
                 for i, it in enumerate(items):
                     rid = "o7:%s:%s:%d" % (sid, split, i)
                     r, ms = run.ask(rid, it["q"], "perf-%s" % rid)
-                    if not first_done:
-                        cold.append(ms)
-                        first_done = True
-                    else:
-                        warm.append(ms)
+                    count(ms)
                     per_fam.setdefault(fam["slug"], []).append(ms)
                     key = str(r.get("status", "error"))
                     statuses[key] = statuses.get(key, 0) + 1
@@ -485,6 +491,7 @@ def pick_python(a):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--var", default=str(REPO / "var"), help="root holding <slug>/bin/<slug> (and scratch)")
+    ap.add_argument("--scratch", help="where logs and the stores session file go (default <var>/perf)")
     ap.add_argument("--json", default=str(REPO / "docs" / "performance" / "fleet.json"))
     ap.add_argument("--markdown", default=str(REPO / "docs" / "performance" / "fleet.md"))
     ap.add_argument("--families", help="comma-separated slugs (default: every family with a binary)")
@@ -504,7 +511,7 @@ def main():
         return
     a.splits = [s for s in a.splits.split(",") if s]
     var_root = Path(a.var).resolve()
-    scratch = var_root / "perf"
+    scratch = Path(a.scratch).resolve() if a.scratch else var_root / "perf"
     scratch.mkdir(parents=True, exist_ok=True)
     python = pick_python(a)
 
@@ -552,16 +559,29 @@ def main():
             "cold_trials": a.cold_trials, "limit_per_specialist": a.limit_per_specialist,
             "oracle7_python": python if not a.skip_oracle7 else None,
             "families": rows}
+
+    def dump(note=None):
+        """atomic partial write: a killed run leaves the JSON it had earned so far"""
+        d = dict(data)
+        if note:
+            d["partial"] = note
+        Path(a.json).parent.mkdir(parents=True, exist_ok=True)
+        tmp = Path(a.json).with_name(Path(a.json).name + ".tmp")
+        tmp.write_text(json.dumps(d, indent=1, default=str), encoding="utf-8")
+        os.replace(tmp, Path(a.json))
+
     if not a.skip_oracle7:
         t1 = time.time()
-        o7 = measure_oracle7(rows, a, scratch, python)
+        o7 = measure_oracle7(rows, a, scratch, python,
+                             progress=lambda n, snap: (data.__setitem__("oracle7_partial", snap), dump(
+                                 "oracle7 pass stopped at %d questions" % n)))
         data["oracle7"] = o7
         data["loadavg_end"] = os.getloadavg()
         print("[oracle7] %d items, cold %.0f ms, p50 %.1f ms, p95 %.1f ms, peak %.1f MiB (%.0fs)" % (
             o7["n_items"], o7["stats"]["cold_ms"], o7["stats"]["p50_ms"], o7["stats"]["p95_ms"],
             o7["peak_rss_kib"] / 1024, time.time() - t1), flush=True)
-    Path(a.json).parent.mkdir(parents=True, exist_ok=True)
-    Path(a.json).write_text(json.dumps(data, indent=1, default=str), encoding="utf-8")
+    data.pop("oracle7_partial", None)             # the full record replaces the partial one
+    dump()
     write_markdown(data, Path(a.markdown))
     print("wrote %s and %s (%.0fs total)" % (a.json, a.markdown, time.time() - t0))
 
