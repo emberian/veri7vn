@@ -27,7 +27,7 @@ small HOL kernel, but they share one numeric layer, one reply type and one binar
 | Growth, generations, plate counts, dilutions | `Micro.thy` | exact; a real power of two or logarithm is enclosed |
 | Export, self test, oracle check | `Life_Export.thy` | the build fails if any listed theorem uses an oracle or the self test fails |
 | Table transcription check | `tables_check.py` | a Python check of HOL text against the organ files, not a proof |
-| Reading English | `regex.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions |
+| Reading English | `../commons/commons.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions |
 | JSON framing | `main.sml` | **untrusted** |
 
 Enclosed values are rounded to four significant digits from a verified interval (precision 72
