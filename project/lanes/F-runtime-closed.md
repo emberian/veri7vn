@@ -65,8 +65,11 @@ Proof and actual-consumer evidence:
   Receipt `var/mathorgan/closed-final-dispatch.json` binds all stage binaries.
 - Parent's independent replay accepted six actual producer packets and rejected
   six mutations: `var/C-runtime-consumers/closed-native-replay.json`.
-- Dialogue's solve-then-square integration is owned by the dispatcher lane;
-  this report does not claim a completed dialogue test before that evidence.
+- Dialogue's solve-then-square integration subsequently passed in the dispatcher
+  lane's `var/converse/context-first-final.json` (35/35 total controls): x=5
+  squares to 25 and x=-3/2 squares to 9/4, with checked packets and actual guards.
+  The later all-default route check also covers x=-3/2 cubed to -27/8; see
+  `project/lanes/H-runtime-default.md` for its exact newer native cohort.
 
 This is a finite capability extension, not a new specialist-panel score or
 whole-head completion claim. No proof retry was needed; no axiom or oracle was

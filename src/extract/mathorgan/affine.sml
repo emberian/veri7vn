@@ -13,6 +13,12 @@ struct
   fun lower s = String.map Char.toLower s
   fun trim s = String.concatWith " " (String.tokens Char.isSpace s)
   fun reject s = raise Reject s
+  (* A finite task preface, only before a supported imperative. The original
+     request text remains untouched in the reply binding. No inner span search. *)
+  fun commandText text =
+    let val q=trim(lower text)
+        val courtesy=Regex.compile "^(?:please\\s+|(?:can|could|would)\\s+you\\s+(?:please\\s+)?)(?=(?:solve|find|calculate|compute|evaluate)\\b)"
+    in case Regex.search courtesy q of SOME m=>String.extract(q,#stop m,NONE) | NONE=>q end
   fun digits n = size (IntInf.toString (IntInf.abs n))
   fun bounded (n,d) =
     if size(ExactNumeric.canonical(n,1)) <= 256 andalso digits d <= 256 then (n,d)
@@ -105,7 +111,7 @@ struct
                      in(nx+ny+1,Int.max(dx,dy)+1)end
 
   fun request text =
-    let val q=trim(lower text)
+    let val q=commandText text
         fun search pat = Regex.search(Regex.compile pat) q
         val prefix="^(?:solve(?: for x)?|find x(?: if| given| when)?|what is (?:the value of )?x(?: if| given| when)?)\\s*:?\\s*"
         val explicit=search prefix
@@ -143,7 +149,7 @@ struct
     end
 
   fun closedRequest text =
-    let val q=trim(lower text)
+    let val q=commandText text
         fun search pat = Regex.search(Regex.compile pat) q
         val prefix=search "^(?:what is|calculate|compute|evaluate)\\s*:?\\s+"
         val strong=Option.isSome(search "^(?:calculate|compute|evaluate)\\b")

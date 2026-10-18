@@ -354,7 +354,12 @@ fun noEntryGroup s =
    certificate verification. The route consumer checks affine packets before
    invoking guards; the standalone guards program does not check packets. *)
 val solveQuestion = R.compile "^\\s*(?:(?:solve(?: for x)?|find x(?: if| given| when)?|what is (?:the value of )?x(?: if| given| when)?)\\s*:?\\s*)?([0-9xe,+ */().\226\136\146-]+)=([0-9xe,+ */().\226\136\146-]+?)(?:\\s+for x)?[?.]?\\s*$"
-fun completeEquation q = sub1 solveQuestion (lower q)
+val equationCourtesy = R.compile "^(?:please\\s+|(?:can|could|would)\\s+you\\s+(?:please\\s+)?)(?=(?:solve|find|calculate|compute|evaluate)\\b)"
+fun completeEquation q =
+  let val text = lower(collapse q)
+      val body = case R.search equationCourtesy text of
+          SOME m => String.extract(text,#stop m,NONE) | NONE => text
+  in sub1 solveQuestion body end
 
 fun f511Of (q, route, reply, respG3low) =
   let val ql = lower q

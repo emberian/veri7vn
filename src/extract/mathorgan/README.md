@@ -123,3 +123,12 @@ All five focused test methods and eleven selected actual dispatcher probes
 pass. The 52-statement proof/native and exact boundaries are recorded in
 `project/lanes/F-runtime-closed.md`. Run
 `python3 -B src/extract/mathorgan/test_closed.py` for the focused checks.
+
+
+Complete imperative requests also accept one polite preface: “Please solve …”,
+“Could you calculate …”, or “Would you please evaluate …”. The preface is
+recognized only before a supported command; the remaining expression must
+still match completely. The checked reply retains the original full request
+text. `test_request_phrasing.py` covers valid roots/classifications/arithmetic,
+trailing text and incidental assignments. The ordinary all-default dispatcher
+passes 14 focused joint controls; see `project/lanes/H-runtime-default.md`.
