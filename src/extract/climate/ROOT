@@ -11,6 +11,8 @@ session Veri7vn_Climate_Base in base = HOL +
 
 session Veri7vn_Climate = Veri7vn_Climate_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     Climate_Num
     Climate

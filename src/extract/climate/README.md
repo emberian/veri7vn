@@ -14,7 +14,7 @@ climate, carboncapture. Handoff with theorem statements and numbers:
 | Requests, declines, kernel, rounding, reply text | `Climate_Num.thy`, `Climate.thy` | HOL, proved |
 | Logarithm, roots, pi, arctan | `HOL-Decision_Procs.Approximation` | Isabelle library, as in lanes D and G |
 | Export, self test, oracle check | `Climate_Export.thy` | the build fails if a listed theorem uses an oracle or the self test fails |
-| English reading | `regex.sml`, `recognizer.sml` | **untrusted** hand port of the organs' regexes |
+| English reading | `../commons/commons.sml`, `recognizer.sml` | **untrusted** hand port of the organs' regexes |
 | JSON framing | `main.sml` | **untrusted** |
 
 ## Build and run
