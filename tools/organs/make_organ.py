@@ -63,18 +63,27 @@ process and spoken to over the answerer contract: one JSON line per question in,
 Each answer() call is piped through it and the reply mapped to Oracle7's organ shape
 {{kind, status, response, value}}; a question the binary does not take returns None, as the shipped organ does.
 
-The binary is found at ${env}, else bin/{slug} beside this file, else var/{slug}/bin/{slug} in the
+The binary is found at ${env}, else bin/{slug} beside this file, else ../_veri7vn/bin/<os>-<arch>/{slug}
+(the shared folder of the veri7vn package, next to the specialist folders), else var/{slug}/bin/{slug} in the
 veri7vn checkout this file lives in.{argv_note}"""
 from __future__ import annotations
 
 import json
 import os
+import platform
 import subprocess
 import threading
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ARGV = {argv}
+
+
+def platform_dir():
+    """<os>-<arch> as the veri7vn package names its binary folders: darwin-arm64, linux-x86_64"""
+    arch = platform.machine().lower()
+    arch = {{"aarch64": "arm64", "amd64": "x86_64", "x64": "x86_64"}}.get(arch, arch)
+    return platform.system().lower() + "-" + arch
 
 
 def binary_path():
@@ -84,16 +93,20 @@ def binary_path():
     local = HERE / "bin" / "{slug}"
     if local.exists():
         return local
+    shared = HERE.parent / "_veri7vn" / "bin" / platform_dir() / "{slug}"
+    if shared.exists():
+        return shared
     for parent in HERE.parents:
         cand = parent / "var" / "{slug}" / "bin" / "{slug}"
         if cand.exists():
             return cand
-    raise FileNotFoundError("veri7vn {slug} binary not found; set {env}")
+    raise FileNotFoundError("veri7vn {slug} binary not found: looked for %s (this machine is %s); "
+                            "set {env} to a built binary" % (shared, platform_dir()))
 
 
 class {cls}:
     def __init__(self, binary=None):
-        self.binary = str(binary or binary_path())
+        self.binary = str(binary or binary_path())     # where the program was found; the package smoke test reads it
         self.proc = None
         self.lock = threading.Lock()
         self.n = 0
@@ -194,7 +207,9 @@ def find_shipped_file(name):
     return hits
 
 
-def make_organ(out, slug, sid, shipped, quiet=False):
+def make_organ(out, slug, sid, shipped, quiet=False, packaged=False):
+    """packaged=True is tools/organs/package.py's mode: no per-folder NOTICE or README (the package has one of
+    each), and the manifest's veri7vn block names the package's shared binary folder, not a checkout path."""
     m = json.loads((shipped / "manifest.json").read_text(encoding="utf-8"))
     pm = m.get("panel") or {}
     panel_name, scorer = pm.get("path"), pm.get("scorer_module")
@@ -260,11 +275,16 @@ def make_organ(out, slug, sid, shipped, quiet=False):
         "notes": "The shipped %s specialist's behaviour, computed by a standalone binary extracted from a verified "
                  "Isabelle/HOL kernel (veri7vn family %s). Panel and scorer are copies of the shipped %s ones; the "
                  "panel is regrouped into {dev, heldout} lists for workbench/exam.py." % (sid, slug, sid),
-        "veri7vn": {"family": slug, "binary": "var/%s/bin/%s" % (slug, slug), "binary_env": env, "argv": argv,
+        "veri7vn": {"family": slug, "binary": ("../_veri7vn/bin/<os>-<arch>/%s" % slug) if packaged
+                    else "var/%s/bin/%s" % (slug, slug), "binary_env": env, "argv": argv,
                     "source": "src/extract/%s" % slug},
     })
     (folder / "manifest.json").write_text(json.dumps(man, indent=1), encoding="utf-8")
 
+    if packaged:
+        return {"sid": sid, "slug": slug, "folder": folder, "panel": panel_name, "scorer": scorer,
+                "panel_from": src.parent.name, "scorer_from": scorer_src.parent.name,
+                "n": sum(len(v) for v in items.values())}
     (folder / "NOTICE").write_text(
         "%s.py is a verbatim copy of root/specialists/%s/%s.py from Oracle7 (upstream/root/specialists/ in "
         "veri7vn). %s holds the items of root/specialists/%s/%s from Oracle7, unchanged, regrouped from one list "

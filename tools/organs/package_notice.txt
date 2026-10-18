@@ -1,0 +1,34 @@
+NOTICE for the veri7vn specialist package
+
+Copied from Oracle7, and belonging to Oracle7's author
+------------------------------------------------------
+Each <id>-veri7vn folder holds, from Oracle7's root/specialists/:
+  - a scorer: a verbatim copy of the shipped <scorer>.py;
+  - a panel: the items of the shipped panel file, unchanged, regrouped from one list with
+    a "split" field into {"dev": [...], "heldout": [...]} because that is the shape
+    workbench/exam.py reads;
+  - manifest.json: derived from the shipped manifest. accept, budgets, routing cues,
+    core_sample and sources are the shipped ones verbatim. Changed: id (<id>-veri7vn), name,
+    organ and store (the wrapper in the same folder), panel (local copy), notes, one added
+    source entry naming the veri7vn kernel, and an added "veri7vn" block (family, program,
+    argument list).
+Where a shipped manifest names no panel of its own, the panel and scorer named in the
+family's score table are used. Files copied, folder by folder:
+
+@COPIED@
+
+Written by veri7vn
+------------------
+  - the programs in _veri7vn/bin/<os>-<arch>/<family>: generated from Isabelle/HOL models
+    (formulas, declines, rounding), a hand-written Standard ML recognizer and JSON driver,
+    compiled with the MLton compiler shipped inside Isabelle2026-RC1;
+  - the wrapper organ_<id>_veri7vn.py in each folder, _veri7vn/smoke.py, README.md,
+    MANIFEST.json, SHA256SUMS and receipts/.
+Where the proved tables (units, densities, constants) were copied from Oracle7's organs,
+they are the organs' data, checked against them by script.
+
+Third-party parts in the programs
+---------------------------------
+  - The MLton runtime is compiled into each program (MLton: BSD-style licence).
+  - GNU GMP is linked dynamically (LGPL) and is not included; install it from your system.
+  - Isabelle/HOL generated code is the program's own text; Isabelle is BSD-licensed.
