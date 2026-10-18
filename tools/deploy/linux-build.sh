@@ -12,7 +12,7 @@
 #   1. tools/dev/remote-build <host> src/extract/<slug> <session> --expect
 #      '<SESSION> PASS' — proves the session builds on Linux and leaves the
 #      exported SML on the host (and pulls a copy into var/<slug>/export-remote/).
-#   2. on the host: assemble the .mlb (generated SML + regex.sml + recognizer.sml
+#   2. on the host: assemble the .mlb (generated SML + regex.sml, or commons.sml for a ported family, + recognizer.sml
 #      + main.sml from the tree remote-build rsynced there) and compile with the
 #      MLton inside the host's Isabelle2026-RC1, under swarm-build.
 #   3. stage the harness and the panels on the host (tools/parity, each
@@ -61,8 +61,10 @@ per_spec=0
 grep -q -- '--specialist' "$SRC/main.sml" && per_spec=1 # the driver picks the manifest, like the lanes' receipts
 
 # 1. build the session on the host (unless reusing its export)
+commons=""                                              # families ported onto src/extract/commons
+grep -q 'Veri7vn_Commons' "$SRC/ROOT" && commons="-d src/extract/commons"
 if [ "$skip_build" -ne 1 ]; then
-  tools/dev/remote-build "$host" "$SRC" "$session" --expect "$marker"
+  tools/dev/remote-build "$host" "$SRC" "$session" --expect "$marker" $commons
 fi
 
 # 2. compile the binary on the host
@@ -75,10 +77,12 @@ mkdir -p "$D/bin" "$D/build/$slug"
 GEN=$(find "$R/export/$session" -type f -name "$slug*" | head -n 1)
 [ -n "$GEN" ] || { echo "no exported SML under $R/export/$session; run without --skip-build" >&2; exit 1; }
 cp "$GEN" "$D/build/$slug/${slug}_generated.sml"
+LIB=$R/src/extract/$slug/regex.sml                      # a ported family takes Regex/Json from commons
+[ -f "$LIB" ] || LIB=$R/src/extract/commons/commons.sml
 cat > "$D/build/$slug/$slug.mlb" <<MLB
 \$(SML_LIB)/basis/basis.mlb
 ${slug}_generated.sml
-$R/src/extract/$slug/regex.sml
+$LIB
 $R/src/extract/$slug/recognizer.sml
 $R/src/extract/$slug/main.sml
 MLB
