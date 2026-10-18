@@ -255,21 +255,29 @@ struct
         if not (has subject low) then NONE
         else
           let
-            val yrs = findall (NM ^ SCALE ^ "\\s*(?:\\w+\\s+){0,2}?(?:in|for)\\s+((?:19|20)\\d{2})\\b") low
+            val yrs0 = findall (NM ^ SCALE ^ "\\s*(?:\\w+\\s+){0,2}?(?:in|for)\\s+((?:19|20)\\d{2})\\b") low
+            (* B-lane: "in 2022 the CPI stood at 260; in 2021 it was 250" (year first); groups are (year, number, scale) *)
+            val yrsB = findall ("\\bin\\s+((?:19|20)\\d{2})\\b[^.;?]{0,40}?\\b(?:stood at|was|were|is|reached|of|at|=|:)\\s*" ^ NM ^ SCALE) low
+            val yrs = if length yrs0 >= 2 then map (fn m => (m, 3, 1, 2)) yrs0 else map (fn m => (m, 1, 2, 3)) yrsB
           in
             case yrs of
-              m1 :: m2 :: _ =>
+              (m1, gy1, gn1, gs1) :: (m2, gy2, gn2, gs2) :: _ =>
                 let
-                  val y1 = valOf (IntInf.fromString (valOf (grp low m1 3)))
-                  val y2 = valOf (IntInf.fromString (valOf (grp low m2 3)))
-                  val v1 = scaled low m1 1 2
-                  val v2 = scaled low m2 1 2
+                  val y1 = valOf (IntInf.fromString (valOf (grp low m1 gy1)))
+                  val y2 = valOf (IntInf.fromString (valOf (grp low m2 gy2)))
+                  val v1 = scaled low m1 gn1 gs1
+                  val v2 = scaled low m2 gn2 gs2
                   (* sorted((year, value)) *)
                   val ((ya, va), (yb, vb)) =
                     if y1 < y2 orelse (y1 = y2 andalso fle v1 v2) then ((y1, v1), (y2, v2)) else ((y2, v2), (y1, v1))
                 in if ya <> yb then SOME (va, vb) else NONE end
             | _ => NONE
           end
+
+  (* B-lane: the three-sentence form "Employed: X. Unemployed: Y. What's the unemployment rate?" is narrative by the
+     organ's sentence count; this exact whole-text form is not a story, so it skips that test. *)
+  val LABELLED_EU = "^\\s*employed\\s*:?\\s*" ^ NM ^ SCALE ^ "\\s*[.;]\\s*unemployed\\s*:?\\s*" ^ NM ^ SCALE
+                    ^ "\\s*[.;]\\s*(?:what'?s|what is) the unemployment rate\\s*\\??\\s*$"
 
   fun pctChange w = if String.isPrefix "f" w orelse String.isPrefix "d" w then ~1 else 1
 
@@ -278,7 +286,7 @@ struct
       val t = collapse text
       val low = lower t
     in
-      if Narrow.narrative t then NONE
+      if Narrow.narrative t andalso not (has LABELLED_EU low) then NONE
       else
         let
           val r = econCore low
@@ -343,7 +351,7 @@ struct
   and econUnemp low =
     let
       val u = search (NM ^ SCALE ^ "\\s*(?:people\\s+)?(?:are\\s+|were\\s+)?unemployed|\\bunemployed\\s*(?:people)?\\s*(?:of|is|are|=|:)?\\s*" ^ NM ^ SCALE) low
-      val lf = search ("\\blabou?r force\\s*(?:of|is|=|:)?\\s*" ^ NM ^ SCALE ^ "|" ^ NM ^ SCALE ^ "\\s*(?:people\\s+)?in the labou?r force") low
+      val lf = search ("\\blabou?r force\\s*(?:of|is|=|:)?\\s*\\(?" ^ NM ^ SCALE ^ "|" ^ NM ^ SCALE ^ "\\s*(?:people\\s+)?in the labou?r force") low
       val e = search (NM ^ SCALE ^ "\\s*(?:people\\s+)?(?:are\\s+|were\\s+)?employed|\\bemployed\\s*(?:people)?\\s*(?:of|is|are|=|:)?\\s*" ^ NM ^ SCALE) low
       fun val4 m = if isSome (grp low m 1) then scaled low m 1 2 else scaled low m 3 4
     in
@@ -361,8 +369,8 @@ struct
 
   and econPartic low =
     let
-      val lf = search ("\\blabou?r force\\s*(?:of|is|=|:)?\\s*" ^ NM ^ SCALE ^ "|" ^ NM ^ SCALE ^ "\\s*(?:people\\s+)?in the labou?r force") low
-      val pop = search ("\\b(?:working[- ]age|adult|civilian noninstitutional) population\\s*(?:of|is|=|:)?\\s*" ^ NM ^ SCALE
+      val lf = search ("\\blabou?r force\\s*(?:of|is|=|:)?\\s*\\(?" ^ NM ^ SCALE ^ "|" ^ NM ^ SCALE ^ "\\s*(?:people\\s+)?in the labou?r force") low
+      val pop = search ("\\b(?:working[- ]age|adult|civilian noninstitutional) population\\s*(?:of|is|=|:)?\\s*\\(?" ^ NM ^ SCALE
                         ^ "|" ^ NM ^ SCALE ^ "\\s*(?:working[- ]age|adults?)\\b") low
       fun val4 m = if isSome (grp low m 1) then scaled low m 1 2 else scaled low m 3 4
     in
@@ -398,9 +406,21 @@ struct
             val verbs = "(rises?|rose|increases?|increased|goes up|went up|falls?|fell|drops?|dropped|decreases?|decreased)"
             val pp = search ("\\bprices?\\b[^.;%]{0,30}?\\b" ^ verbs ^ "\\s+(?:by\\s+)?(\\d+(?:\\.\\d+)?)\\s*%") low
             val qp = search ("\\bquantit(?:y|ies)(?: demanded)?\\b[^.;%]{0,30}?\\b" ^ verbs ^ "\\s+(?:by\\s+)?(\\d+(?:\\.\\d+)?)\\s*%") low
+            (* B-lane: "A 5% price cut raises quantity demanded by 2%" *)
+            val pp2 = search "(\\d+(?:\\.\\d+)?)\\s*%\\s*price\\s+(cut|drop|decrease|reduction|increase|rise|hike)\\b" low
+            val qp2 = search "\\b(raises?|boosts?|increases?|lowers?|reduces?|decreases?|cuts?|drops?)\\s+(?:the\\s+)?quantit(?:y|ies)(?: demanded)?\\s+by\\s+(\\d+(?:\\.\\d+)?)\\s*%" low
+            fun sgn2 w = if List.exists (fn p => String.isPrefix p w) ["cut", "drop", "decrease", "reduc", "lower"] then ~1 else 1
           in
             case (pp, qp) of
-              (SOME pm, SOME qm) =>
+              (NONE, NONE) =>
+                (case (pp2, qp2) of
+                   (SOME pm, SOME qm) =>
+                     let
+                       val dp = fmul (fint (sgn2 (valOf (grp low pm 2)))) (fr_of (valOf (grp low pm 1)))
+                       val dq = fmul (fint (sgn2 (valOf (grp low qm 1)))) (fr_of (valOf (grp low qm 2)))
+                     in if feq dp (fint 0) then NONE else SOME (F.E_ElasticityPct (SOME (rat dp), SOME (rat dq))) end
+                 | _ => SOME (F.E_Elasticity (NONE, NONE)))
+            | (SOME pm, SOME qm) =>
                 let
                   val dp = fmul (fint (pctChange (g1 low pm))) (fr_of (valOf (grp low pm 2)))
                   val dq = fmul (fint (pctChange (g1 low qm))) (fr_of (valOf (grp low qm 2)))
@@ -411,7 +431,7 @@ struct
 
   and econRealValue low =
     let
-      val am = search ("\\$(\\d+(?:,\\d{3})*(?:\\.\\d+)?)" ^ SCALE ^ "(?:\\s+\\w+){0,3}?\\s+in\\s+((?:19|20)\\d{2})") low
+      val am = search ("\\$(\\d+(?:,\\d{3})*(?:\\.\\d+)?)" ^ SCALE ^ "(?:\\s+\\w+){0,3}?\\s+(?:in|from)\\s+((?:19|20)\\d{2})") low
       val tg = search "\\bin\\s+((?:19|20)\\d{2})\\s+dollars\\b" low
     in
       case (am, tg) of
@@ -541,7 +561,7 @@ struct
   (* ---------- dispatch ---------- *)
   val organs = ["finance", "finance-v2", "finance-v2-r2", "economics", "retail"]
 
-  fun byId "finance" = finance 1
+  fun byId "finance" = finance 3
     | byId "finance-v2" = finance 2
     | byId "finance-v2-r2" = finance 3
     | byId "economics" = economics

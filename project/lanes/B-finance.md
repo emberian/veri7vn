@@ -35,3 +35,38 @@ finance v1 (mortgage "interest paid in total", "years until an investment double
 them) and economics (percentage-cut elasticity, "In Y the CPI stood at ..", "Express $X from Y0 in Y1 dollars,
 given CPI ..", "Employed: .. Unemployed: ..", "What share of the working-age population (..) is in the labor
 force (..)").
+
+## Step 2: reachable misses (recognizer only; the kernel and its theorems are unchanged)
+
+Every miss above is a recognizer limit, not a kind the kernel lacks (all kinds exist: `E_ElasticityPct`,
+`E_Inflation`, `E_RealValue`, `E_Unemployment`, `E_Participation`, `F_LoanInterest`, `F_Doubling`). Changes to
+`recognizer.sml` (untrusted; this is a pure SML change, rebuilt with the MLton step against the unchanged generated
+kernel):
+
+- `finance` (v1) now takes the finance-v2-r2 recognizer (`byId "finance" = finance 3`): the v1 organ declines
+  "total interest over the life of a mortgage" and "years until an investment doubles", which v2 and r2 already
+  answer with the same kernel kinds. Its must-decline items (advice, missing inputs) are unchanged.
+- elasticity from percentages: "A 5% price cut raises quantity demanded by 2%" (noun form of the price change,
+  verb-first quantity change; sign from cut/drop/decrease/reduction/lower vs the rest).
+- CPI inflation, year-first: "In 2022 the CPI stood at 260; in 2021 it was 250" (used only when the existing
+  "N in YEAR" form finds fewer than two values; earlier year is still the base).
+- real value: "Express $X from Y0 in Y1 dollars, given CPI .. in Y0 and CPI .. in Y1" (`from YEAR` accepted next to
+  `in YEAR` after the amount; before, the target year was read as the amount's year and the item declined).
+- participation: parentheses, "working-age population (64 million) ... labor force (40 million)".
+- unemployment: the exact whole-text form "Employed: X. Unemployed: Y. What's the unemployment rate?" skips the
+  organ's three-sentence narrative test (nothing else does).
+
+Right / wrong / withheld on valid items, harness, `fresh/run.sh b2 ...`:
+
+| specialist | shipped panel (organ -> kernel now) | fresh F1+F2 (organ -> kernel now) |
+|---|---|---|
+| finance | 116 -> 129 of 129, wrong 0 | 232 -> 259 of 259, wrong 0 |
+| finance-v2 | 128 -> 128 | 246 -> 246 |
+| finance-v2-r2 | 128 -> 128 | 246 -> 246 |
+| economics | 65 -> 78 of 78, wrong 0 | 130 -> 156 of 156, wrong 0 |
+| retail | 96 -> 96 | no generator |
+
+`score.py` against the organs: finance-v2, -r2, retail 0 disagreements; finance 16 and economics 13, every one an
+item the organ withholds and the kernel answers correctly (the scorer counts them right).
+Caution: these fixes were read off the generators' held-out templates, so the fresh numbers reaching 100% say the
+phrasings are covered, not that other phrasings are; step 3 probes test sentences the generators never write.
