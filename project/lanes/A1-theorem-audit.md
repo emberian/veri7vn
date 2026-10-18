@@ -44,8 +44,8 @@ never computes.
 - `docs/assurance/theorem-audit.md`: summary, method, per-family table, three
   missing binding theorems per family with proposed statements, appendices
   (every vacuous and external statement; every unscanned theorem).
-- `project/swarm/WAVE6.md`, `project/swarm/wave6.json`: 24 fix lanes (18 sonnet,
-  6 opus), each done on "N binding theorems added, vacuous 0, unscanned 0, marker
+- `project/swarm/WAVE6.md`, `project/swarm/wave6.json`: 24 fix lanes (19 sonnet,
+  5 opus), each done on "N binding theorems added, vacuous 0, unscanned 0, marker
   last with oracles=0, panel replies unchanged"; two deferred.
 - Scratch (not in git): `var/audit/extract.py`, `markers.py`, `check_class.py`,
   `aggregate.py`, `dump.py`, and `var/audit/class/<family>.txt` (one class per
