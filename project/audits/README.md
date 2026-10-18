@@ -81,3 +81,8 @@ all deputies drained, without restarting them or submitting a build. The six
 focused coverage-tool tests pass; the actual record ingestion result is in the
 continuation ledger. Remaining coverage spans every unexamined request class,
 all other specialist IDs and all relation readers; there is no completion claim.
+
+The later bounded efficiency implementation is preserved but unproved:
+[attempt and exact resume state](../lanes/G-mechanics-efficiency.md). Both proof
+attempts failed, the final source-only repair is unbuilt, and the observed old
+native remains active. The efficiency findings above therefore remain open.
