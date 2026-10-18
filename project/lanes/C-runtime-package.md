@@ -10,8 +10,8 @@ untrusted code; registration is not a claim that a current artifact exists.
 The selected immutable inventory is
 `var/C-runtime-package/selected-prepared/selection.json`. All 21 specialist
 family slots now have captured artifacts. The final delivery cohort remains
-unfrozen while Finance target wording is repaired and the promoted Stores E
-consumer gate completes. Root explicitly selected later Anatomy, Discrete,
+unfrozen while Finance target wording is repaired. Stores E is selected after
+root integration `4b84d7b` and its eight-case consumer gate. Root explicitly selected later Anatomy, Discrete,
 Mechanics and Humanities versions; previous versions remain historical.
 The complete archive is not yet ready. The registry's 21 specialist families
 own 144 IDs; Math, Wordprob, Guards, Relations, Document and Fusion are separate
@@ -33,6 +33,15 @@ Completed Linux comparisons for currently selected versions:
 | Facts D | 428 / 428 | 0 / 0 | 46 | `receipt-facts-hbox-facts-1792309704-91133.json` |
 | GeoStats C | 1,456 / 1,456 | 0 / 0 | 44 | `receipt-geostats-hbox-geostats-1792310257-3034.json` |
 | Acoustics | 139 / 139 | 0 / 0 | 8 | `receipt-acoustics-persvati-acoustics-1792310396-6959.json` |
+| Trades D | 357 / 357 | 0 / 0 | 30 | `receipt-trades-hbox-trades-1792310799-16374.json` |
+| Life D | 179 / 179 | 0 / 0 | 13 | `receipt-life-persvati-life-1792310850-17570.json` |
+| Materials D | 440 / 440 | 0 / 0 | 36 | `receipt-materials-persvati-materials-1792311080-22421.json` |
+| Quantity | 641 / 641 | 0 / 0 | 34 | `receipt-quantity-hbox-quantity-1792311218-24653.json` |
+| Variants | 402 / 402 | 0 / 0 | 22 | `receipt-variants-hbox-variants-1792311621-31416.json` |
+| AnatomyAgri D | 156 / 156 | 0 / 0 | 18 | `receipt-anatomyagri-hbox-anatomyagri-1792311786-34211.json` |
+| Space C | 1,185 / 1,185 | 0 / 0 | 68 | `receipt-space-hbox-space-1792311912-36631.json` |
+| Energy C | 569 / 569 | 0 / 0 | 42 | `receipt-energy-persvati-energy-1792311455-28776.json` |
+| Mechanics D | 1,264 / 1,264 | 0 / 0 | 46 | `receipt-mechanics-persvati-mechanics-1792311867-35597.json` |
 
 Every comparison includes all that family's specialist IDs and both splits,
 using original shipped panels/scorers and acceptance rules. Every status and
@@ -45,9 +54,14 @@ replacement versions.
 Finite local queues keep one submitted native job per host, waiting for each
 receipt before advancing. They use exact captured sources, take/release the
 shared proof lock for every family and stop on failure. Their plans/state are
-`var/C-runtime-package/queue-v2-{hbox,persvati}.{json,state.json}`. Finance is
+`var/C-runtime-package/queue-v2-persvati.{json,state.json}` and
+`queue-v3-hbox.{json,state.json}`. Hbox resumed only the uncompleted tail after
+a local Earth staging failure, before any remote compile: Earth uses its own
+regex input and declares no Commons file. Shared runtime staging now follows
+the captured MLB declaration. Nine focused receipt tests pass. Finance is
 explicitly held; no rejected target-grammar candidate was submitted. Stores'
-owner owns its promoted E Linux build, so packaging launches no duplicate.
+owner completed E Linux with all 2,476 direct replies identical to its bound
+Darwin binary; packaging launched no duplicate compile.
 No new Isabelle build, full-head sweep or fleet sweep is launched here.
 
 Separate composition snapshots under `composition-prepared/` retain Relations'
@@ -56,6 +70,16 @@ Fusion's Python adapters including numeric.py. Relations remains checkout-bound
 with external corpus assets. Fusion explicitly binds its retained passed proof
 snapshot and records nine differing live dependency files; it makes no current-
 theory match claim. These are excluded from the specialist tarball.
+
+The selected Stores E archive is available at
+`var/C-runtime-package/stores-E-both/veri7vn-specialists-2026-10-18.tar.gz`,
+SHA256 `67c8473efa4d4ad8d6bd7242ea9876601f80fb290166d3d24dcdf9b96878bd53`.
+After relocation, cooking-v3 and warehouse score **811/818 right, 0 wrong,
+0 false yes, 55 withheld** on both platforms; all 818 status/response pairs
+match. Its Linux binary is 1,560,136 bytes. `comparison.json` retains the
+coverage and result; `approved-checker.json` verifies the packaged checker is
+exactly the approved `4bdc14b` blob, excluding the in-flight affine draft.
+This is a scoped six-folder Stores archive, not the complete 144-ID delivery.
 
 ## What the package does
 
@@ -104,7 +128,7 @@ recognizer. Stores' auxiliary `Config.repo` file must contain exactly the single
 constant structure, with its actual hash and MLB edge retained separately from
 source and proved export. Extra code or altered derived bytes fails. Stores
 fetch is separately frozen and checked as a runtime asset, never claimed compiled.
-Eight focused prepared-package tests pass; eight receipt/overlay tests pass.
+Eight focused prepared-package tests pass; nine receipt/overlay tests pass.
 
 Every prepared Linux binary requires a passed matching deployment receipt with
 its exact generated export, complete required runtime/fetch input coverage and

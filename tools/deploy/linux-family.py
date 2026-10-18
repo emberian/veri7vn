@@ -19,7 +19,7 @@ Nothing under upstream/ is written; panels are copied to ~/veri7vn-deploy on the
 """
 import argparse, glob, hashlib, json, os, re, shlex, shutil, subprocess, sys, time
 from pathlib import Path
-from build_receipt import managed_receipt_issues, validate_export_snapshot, stage_runtime_overlay, stores_runtime_sources
+from build_receipt import managed_receipt_issues, validate_export_snapshot, stage_runtime_overlay, stores_runtime_sources, shared_runtime_sources
 
 REPO = Path(__file__).resolve().parents[2]
 UP = Path(os.environ.get("PARITY_UPSTREAM", REPO / "upstream"))
@@ -154,10 +154,9 @@ if args.runtime_overlay:
     directories = [str(Path(d).relative_to(REPO)) for d in
                    [str(REPO / "src/extract" / slug), str(REPO / "src/extract" / SRCDIR), *EXTRA]]
     runtime_stage = LIN / "runtime" / RUN_ID
-    runtime_files = ["src/extract/commons/commons.sml", "src/extract/families.json", "tools/runtime_contract.py"]
-    if slug == "stores":
-        runtime_files += [name for name in stores_runtime_sources(
-            (SOURCE_REPO / "src/extract/stores/build.sh").read_text()) if '/commons/' in name]
+    runtime_files = ["src/extract/families.json", "tools/runtime_contract.py"]
+    runtime_files += shared_runtime_sources(
+        (SOURCE_REPO / f"src/extract/{slug}/build.sh").read_text(), slug)
     before = stage_runtime_overlay(SOURCE_REPO, runtime_stage, directories, proof_sources,
                                    runtime_files=runtime_files)
     SNAPSHOT = runtime_stage

@@ -3,10 +3,21 @@ import unittest
 import hashlib
 from pathlib import Path
 import tempfile
-from build_receipt import managed_receipt_issues, deployment_receipt_issues, stage_runtime_overlay, validate_export_snapshot, stores_runtime_sources
+from build_receipt import managed_receipt_issues, deployment_receipt_issues, stage_runtime_overlay, validate_export_snapshot, stores_runtime_sources, shared_runtime_sources
 
 
 class ReceiptTests(unittest.TestCase):
+    def test_shared_runtime_follows_actual_recipe_without_default_common(self):
+        def recipe(body):
+            return 'cat > "$OUT/build/family.mlb" <<EOF\n' + body + '\nEOF\n'
+        earth = recipe('earth_generated.sml\n$SRC/regex.sml\n$SRC/main.sml')
+        self.assertEqual(shared_runtime_sources(earth, 'earth'), [])
+        common = recipe('$SRC/../commons/commons.sml\n$REPO/src/extract/commons/numeric.sml')
+        self.assertEqual(shared_runtime_sources(common, 'quantity'),
+                         ['src/extract/commons/commons.sml', 'src/extract/commons/numeric.sml'])
+        with self.assertRaises(ValueError):
+            shared_runtime_sources(recipe('$SRC/../commons/../bad.sml'), 'family')
+
     def test_stores_recipes_preserve_legacy_and_bind_numeric(self):
         old = "str(source.parent/'commons/commons.sml')"
         new = "for n in ('commons.sml','numeric.sml')"

@@ -1,6 +1,25 @@
 """Untrusted receipt consistency checks; hashes and markers never override cancellation."""
 
 
+def shared_runtime_sources(build_script, slug):
+    """Shared runtime files explicitly named by the captured flat MLB recipe."""
+    import re
+    if slug == 'stores':
+        return [name for name in stores_runtime_sources(build_script) if '/commons/' in name]
+    declaration = re.search(r'\.mlb" <<\'?(\w+)\'?\n(.*?)\n\1\n', build_script, re.S)
+    if not declaration:
+        raise ValueError('family build layout needs an explicit deployment declaration: ' + slug)
+    shared = []
+    for line in declaration.group(2).splitlines():
+        for prefix in ('$REPO/src/extract/commons/', '$SRC/../commons/'):
+            if line.startswith(prefix):
+                name = line[len(prefix):]
+                if not re.fullmatch(r'[A-Za-z0-9_]+\.sml', name):
+                    raise ValueError('unsupported shared runtime input: ' + line)
+                shared.append('src/extract/commons/' + name)
+    return sorted(set(shared))
+
+
 def stores_runtime_sources(build_script):
     """The two reviewed Stores recipes, selected from the captured declaration."""
     legacy = "str(source.parent/'commons/commons.sml')" in build_script
