@@ -1,0 +1,24 @@
+(* Lane S03-earth: geography, geology, seismology, hydrology, ocean,
+   meteorology, greenhouse (and greenhouse-r2) as one HOL kernel family.
+   The base session only loads Isabelle's verified interval arithmetic
+   (HOL-Decision_Procs.Approximation, no HOL-Analysis). *)
+session Veri7vn_Earth_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Earth_Base
+
+session Veri7vn_Earth = Veri7vn_Earth_Base +
+  options [document = false, threads = 2]
+  theories
+    Earth_Num
+    Earth_Geo
+    Earth_Geol
+    Earth_Seis
+    Earth_Hydro
+    Earth_Ocean
+    Earth_Weather
+    Earth_Green
+    Earth
+    Earth_Export
