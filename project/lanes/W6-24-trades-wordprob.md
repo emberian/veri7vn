@@ -58,8 +58,8 @@ in `main.sml` follow (the answerer's provenance now names the new theorems).
   finish.
 - Audit recount (`tools/audit`): trades B 22 -> 26, vacuous 0, unscanned theorems 0;
   wordprob vacuous 6 -> 0, B 7 -> 17 (counting two helper lemmas as helpers),
-  unscanned theorems 0. Ten new binding theorems across the two families,
-  four of them in trades, ten in wordprob (total 14 against the 6 asked for).
+  unscanned theorems 0. New binding theorems: 4 in trades, 10 in wordprob,
+  14 in all against the 6 asked for.
 - Replies unchanged. Trades: 357 panel items over architecture, printing,
   printing-v2, safety, woodworking, crafts, both splits, harness reply
   compared with the previous run (timing field removed): 0 differences, all
