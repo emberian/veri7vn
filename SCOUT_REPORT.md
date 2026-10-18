@@ -181,6 +181,15 @@ and which carry kernel-provable mathematics:
 
 (Alternated hbox and persvati throughout; both hosts green.)
 
+**Re-verified from the committed tree** (2026-10-17, fresh session, clean
+checkout state): `remote-build hbox src/extract/guards Veri7vn_Guards --expect
+'VERI7VN_GUARDS PASS'` → exit 0, log marker `VERI7VN_GUARDS PASS
+theorems=42 oracles=0`; `tables_check.py` PASS 48; MLton rebuild `self_test=true`;
+binary vs fixtures **114/114** status+code+layer (independent comparison);
+`replay.py --emit-inputs` reproduced 114/114 with regenerated `inputs114.jsonl`
+and `fixtures114.json` byte-identical to the committed copies (`git diff`
+empty). No working-session state was needed for any number above.
+
 ## Changed files (handoff)
 
 `src/extract/guards/` in full (added): `ROOT`, `Guards_Catalogue.thy`,
