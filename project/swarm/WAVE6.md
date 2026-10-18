@@ -66,3 +66,5 @@ vacuous ones, scan every headline theorem, keep the marker last, and leave every
 panel reply unchanged. Box safety is LANE_BRIEF.md's, quoted in every launch.
 
 **Root decision on W6-12 item 2 (2026-10-18):** dropped. In 12 of 417 shipped rows the value is not a substring of the sentence (poetry "five" vs 5, ranges phrased differently, capitalisation). The data is Oracle7's; we do not edit it to make a theorem true. The binding fact for facts stays: reply sentence and value come from the same checked row (`rows_<store>` equalities + `organ_rows_bound`).
+
+**W6-26 (sonnet, S): split `decline_text` in `src/extract/space/Space.thy`** into per-kind functions. W6-22 measured it at ~10 GB during checking, the single reason space and fusion builds die under persvati's shared memory cap. Done when: Veri7vn_Space and Veri7vn_Fusion build fresh with peak memory under 4 GB (swarm-build log), generated SML behaviour unchanged (1,185 space replies and 101/102 fusion identical), oracles=0.
