@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "family": "mechanics",
+  "specialists": {
+    "physics": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The kernel retains its existing equations and additionally refuses inputs outside the declared physical domain. Every answered reply implies the typed physical_domain predicate.",
+        "assumptions": [
+          "The untrusted recognizer assigned each number and unit to the intended request field.",
+          "Mass and elapsed time are magnitudes; force, velocity, displacement and relative potential height may be directed.",
+          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude."
+        ],
+        "untrusted": [
+          "English interpretation and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    },
+    "physics-r2": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The kernel retains its existing equations and additionally refuses inputs outside the declared physical domain. Every answered reply implies the typed physical_domain predicate.",
+        "assumptions": [
+          "The untrusted recognizer assigned each number and unit to the intended request field.",
+          "Mass and elapsed time are magnitudes; force, velocity, displacement and relative potential height may be directed.",
+          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude."
+        ],
+        "untrusted": [
+          "English interpretation and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    },
+    "physics-r3": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The kernel retains its existing equations and additionally refuses inputs outside the declared physical domain. Every answered reply implies the typed physical_domain predicate.",
+        "assumptions": [
+          "The untrusted recognizer assigned each number and unit to the intended request field.",
+          "Mass and elapsed time are magnitudes; force, velocity, displacement and relative potential height may be directed.",
+          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude."
+        ],
+        "untrusted": [
+          "English interpretation and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    },
+    "bodies-v2": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The kernel retains its existing equations and additionally refuses inputs outside the declared physical domain. Every answered reply implies the typed physical_domain predicate.",
+        "assumptions": [
+          "The untrusted recognizer assigned each number and unit to the intended request field.",
+          "Mass and elapsed time are magnitudes; force, velocity, displacement and relative potential height may be directed.",
+          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude."
+        ],
+        "untrusted": [
+          "English interpretation and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    },
+    "fluids-r2": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The kernel retains its existing equations and additionally refuses inputs outside the declared physical domain. Every answered reply implies the typed physical_domain predicate.",
+        "assumptions": [
+          "The untrusted recognizer assigned each number and unit to the intended request field.",
+          "Mass and elapsed time are magnitudes; force, velocity, displacement and relative potential height may be directed.",
+          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude."
+        ],
+        "untrusted": [
+          "English interpretation and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    }
+  }
+}

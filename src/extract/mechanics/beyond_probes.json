@@ -160,6 +160,278 @@
       "expect": 29419.949999999997,
       "source": "Mechanics.thy: gauge_pressure, rho water=1000 kg/m3",
       "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "A lever has effort arm 2 m and load arm 50 cm. What is its mechanical advantage?",
+      "valid": true,
+      "expect": 4,
+      "source": "Mechanics.thy: length_m, exact metric/imperial len_scale, lever_units/lever_effort_units and torque_def",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms-v2",
+      "q": "A lever has effort arm 2 ft and load arm 6 in. What is its mechanical advantage?",
+      "valid": true,
+      "expect": 4,
+      "source": "Mechanics.thy: length_m, exact metric/imperial len_scale, lever_units/lever_effort_units and torque_def",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "A lever has effort arm -2 m and load arm 0.5 m. What is its mechanical advantage?",
+      "valid": false,
+      "expect": null,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does -40 N exert on a 25 cm wrench?",
+      "valid": true,
+      "expect": -10,
+      "source": "Mechanics.thy: length_m, exact metric/imperial len_scale, lever_units/lever_effort_units and torque_def",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does 1e2 N exert on a .5 m wrench?",
+      "valid": true,
+      "expect": 50,
+      "source": "Mechanics.thy: length_m, exact metric/imperial len_scale, lever_units/lever_effort_units and torque_def",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does 1 / 2 N exert on a 2 m wrench?",
+      "valid": true,
+      "expect": 1,
+      "source": "Mechanics.thy: length_m, exact metric/imperial len_scale, lever_units/lever_effort_units and torque_def",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does 1,23 N exert on a 25 cm wrench?",
+      "valid": false,
+      "expect": null,
+      "source": "Shared ExactNumeric.mask token ownership; full literals and marker freshness; no raw unit digits may supply numeric roles",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does - 40 N exert on a 25 cm wrench?",
+      "valid": false,
+      "expect": null,
+      "source": "Shared ExactNumeric.mask token ownership; full literals and marker freshness; no raw unit digits may supply numeric roles",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does QNUM0Q N exert on a 25 cm wrench?",
+      "valid": false,
+      "expect": null,
+      "source": "Shared ExactNumeric.mask token ownership; full literals and marker freshness; no raw unit digits may supply numeric roles",
+      "kind": null
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a -7 kg ball moving at 11 m/s?",
+      "valid": false,
+      "expect": null,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the momentum of a 7 kg object moving at -11 m/s?",
+      "valid": true,
+      "expect": -77,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a 7 kg ball moving at -11 m/s?",
+      "valid": true,
+      "expect": 423.5,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "bodies-v2",
+      "q": "On Mars, how much does a -400 kg crate weigh in newtons?",
+      "valid": false,
+      "expect": null,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the gauge pressure at a depth of -3 m in water?",
+      "valid": false,
+      "expect": null,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the gauge pressure at a depth of 30 cm in water?",
+      "valid": true,
+      "expect": 2941.995,
+      "source": "Mechanics.thy: gauge_pressure, g0=9.80665, density_water=1000 and length_m",
+      "kind": null
+    },
+    {
+      "specialist": "fleet",
+      "q": "Convert -30 mpg to L/100 km.",
+      "valid": false,
+      "expect": null,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "fleet",
+      "q": "What is the stopping distance at 20 m/s with friction coefficient 0.5 and reaction time -1.2 s?",
+      "valid": false,
+      "expect": null,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "sports",
+      "q": "What is the batting average with -5 hits in 20 at-bats?",
+      "valid": false,
+      "expect": null,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "sports",
+      "q": "What is the batting average with 2.5 hits in 20 at-bats?",
+      "valid": false,
+      "expect": null,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "sports",
+      "q": "What is the batting average with 25 hits in 20 at-bats?",
+      "valid": false,
+      "expect": null,
+      "source": "Mechanics.thy: physical_domain and answered_physical_domain; classical magnitudes/counts versus directed fields",
+      "kind": null
+    },
+    {
+      "specialist": "sports",
+      "q": "What is the ERA over 2.1 innings with 1 earned run?",
+      "valid": true,
+      "expect": 3.857142857142857,
+      "source": "Mechanics.thy: era_def; baseball 2.1 innings is 7/3 innings, not decimal2.1",
+      "kind": null
+    },
+    {
+      "specialist": "sports",
+      "q": "What is the winning percentage for a 50-30 record?",
+      "valid": true,
+      "expect": 0.625,
+      "source": "Mechanics.thy: win_pct_def; structured wins/losses record",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "A ramp is 2 m long and 50 cm high. What is its mechanical advantage?",
+      "valid": true,
+      "expect": 4,
+      "source": "Mechanics.thy: length_m, exact metric/imperial len_scale, lever_units/lever_effort_units and torque_def",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "A 80 mm diameter pulley turning at 600 rpm drives a 20 cm diameter pulley by a belt. How fast does the driven pulley turn?",
+      "valid": true,
+      "expect": 240,
+      "source": "Mechanics.thy: belt_speed_def; length_m exact diameter conversion",
+      "kind": null
+    },
+    {
+      "specialist": "sports",
+      "q": "What is the on-base percentage with 0 hits, 0 at-bats and 1 walk?",
+      "valid": true,
+      "expect": 1,
+      "source": "Mechanics.thy: on_base_def; denominator is AB+BB+HBP+SF, not AB alone",
+      "kind": null
+    },
+    {
+      "specialist": "fleet",
+      "q": "What is the fuel cost of a 0 mile trip at 30 mpg with gas at $3.89 per gallon?",
+      "valid": true,
+      "expect": 0,
+      "source": "Mechanics.thy: trip_cost_def; zero distance gives zero fuel times price",
+      "kind": null
+    },
+    {
+      "specialist": "bodies-v2",
+      "q": "What is the weight of a 4 kg object where gravity is 0 m/s^2?",
+      "valid": true,
+      "expect": 0,
+      "source": "Mechanics.thy: body_weight; W=m*g permits zero gravity for weight",
+      "kind": null
+    },
+    {
+      "specialist": "fleet",
+      "q": "What is the fuel cost of a 100 mile trip at 25 mpg with gas at $3.19/gallon?",
+      "valid": true,
+      "expect": 12.76,
+      "source": "Mechanics.thy: trip_cost_def; 100 miles / 25 miles per gallon * $3.19 per gallon. Shared ExactNumeric unit-slash regression.",
+      "kind": null
+    },
+    {
+      "specialist": "sports",
+      "q": "What is the winning percentage for a -50-30 record?",
+      "valid": false,
+      "expect": null,
+      "source": "Structured win-loss records own whole nonnegative integer fields; do not recover 50-30 from signed or fractional syntax.",
+      "kind": null
+    },
+    {
+      "specialist": "sports",
+      "q": "What is the winning percentage for a 50-30.5 record?",
+      "valid": false,
+      "expect": null,
+      "source": "Structured win-loss records own whole nonnegative integer fields; do not recover 50-30 from signed or fractional syntax.",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "A lever has effort arm 2 and load arm 1. What is its mechanical advantage?",
+      "valid": true,
+      "expect": 2,
+      "source": "Mechanics dimension interpretation: common unitless ratios are valid; unsupported explicit units cannot be silently erased.",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "A lever has effort arm 2 yards and load arm 1 mile. What is its mechanical advantage?",
+      "valid": false,
+      "expect": null,
+      "source": "Mechanics dimension interpretation: common unitless ratios are valid; unsupported explicit units cannot be silently erased.",
+      "kind": null
+    },
+    {
+      "specialist": "sports",
+      "q": "Pitcher WHIP with 5 hits and 2 walks over 6.2 IP?",
+      "valid": true,
+      "expect": 1.05,
+      "source": "Mechanics.thy: whip_def; IP notation is case-insensitive, 6.2 innings means 20/3.",
+      "kind": null
+    },
+    {
+      "specialist": "fleet",
+      "q": "Convert 8 L/100 km to US mpg.",
+      "valid": true,
+      "expect": 29.401822916666625,
+      "source": "Mechanics.thy: consumption conversion; L/100 km unit is structural regardless of letter case.",
+      "kind": null
     }
   ]
 }

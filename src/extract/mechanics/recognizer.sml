@@ -57,19 +57,17 @@ struct
             go stop ms (rep :: String.substring (orig, i, start - i) :: acc)
     in go 0 (findall p low) [] end
 
-  (* "1,000.50" -> mk_rat 100050 100, exactly; "-12.5" allowed *)
-  fun ratOf (lit0 : string) : M.rat =
-    let
-      val lit = String.translate (fn #"," => "" | c => String.str c) lit0
-      val (neg, body) = if String.isPrefix "-" lit then (true, String.extract (lit, 1, NONE))
-                        else (false, lit)
-      val (ip, fp) = case String.fields (fn c => c = #".") body of
-                       [a] => (a, "")
-                     | [a, b] => (a, b)
-                     | _ => raise Fail ("bad numeral " ^ lit0)
-      val num = valOf (IntInf.fromString (ip ^ fp))
-      val den = IntInf.pow (10, size fp)
-    in M.mk_rat (if neg then IntInf.~ num else num) den end
+  (* Every arithmetic role resolves to a lexer-issued token. This scoped
+     table is restored before recognize returns; no request retains it. *)
+  exception InvalidNumeric
+  val numericValues : (string * ExactNumeric.rational) list ref = ref []
+  fun rationalOf token =
+    case List.find(fn(key,_)=>key=token)(!numericValues) of
+      SOME(_,value) => value | NONE => raise InvalidNumeric
+  fun ratOf token : M.rat = let val(n,d)=rationalOf token in M.mk_rat n d end
+  (* Only validated structured innings and score fields use raw integers. *)
+  fun rawRat raw : M.rat = case ExactNumeric.parse raw of
+      SOME(n,d)=>M.mk_rat n d | NONE=>raise InvalidNumeric
 
   fun natOf (n : int) = M.nat_of_integer (IntInf.fromInt n)
   fun collapse s = String.concatWith " " (String.tokens Char.isSpace s)
@@ -81,7 +79,8 @@ struct
   fun upperAt orig i = i < size orig andalso Char.isUpper (String.sub (orig, i))
   fun lowerAt orig i = i < size orig andalso Char.isLower (String.sub (orig, i))
   fun groupStart m g = case Regex.group "" m g of _ => (case Vector.sub (#groups m, g) of SOME (a, _) => SOME a | NONE => NONE)
-  fun strZero s = List.all (fn c => c = #"0" orelse c = #"." orelse c = #"-") (String.explode s)
+  fun strZero token = #1(rationalOf token)=0
+  fun rawZero s = case ExactNumeric.parse s of SOME(n,_)=>n=0 | NONE=>false
 
   (* ---------- narrow_v1 ---------- *)
   structure Narrow =
@@ -111,19 +110,20 @@ struct
         | i :: _ => let fun skip j = if j < size s andalso Char.isSpace (String.sub (s, j)) then skip (j + 1) else j
                     in String.extract (s, skip i, NONE) end
       end
-    val RELATION = "\\b(?:\\d+(?:\\.\\d+)?|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,2}"
+    val RELATION = "\\b(?:qnum[0-9]+q|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,2}"
       ^ "(?:more|less|fewer|longer|shorter)\\s+than\\b|\\b(?:twice|three times|half)\\s+(?:as\\s+\\w+\\s+as\\s+)?the\\s+\\w+\\b"
-    val RATE = "\\b\\d+(?:\\.\\d+)?\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:\\d+(?:\\.\\d+)?|a|an|one|each)\\s+[a-z]+"
+    val RATE = "\\bqnum[0-9]+q\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:qnum[0-9]+q|a|an|one|each)\\s+[a-z]+"
     fun narrative t =
       let val low = lower t
       in sentences t >= 3 orelse words t > 40 orelse has RELATION low orelse has RATE low end
     fun short_direct t = sentences t <= 2 andalso words t <= 25 andalso not (narrative t)
-    fun numbers t = length (findall "(?<![\\w.])\\d+(?:\\.\\d+)?(?!\\w|\\.\\d)" t)
+    fun numbers t = length(findall "qnum[0-9]+q" t)
   end
 
-  val NUM = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"      (* bodies, sports, fleet *)
-  val SNUM = "(-?\\d+(?:\\.\\d+)?)"               (* physics *)
-  val UNUM = "(\\d+(?:\\.\\d+)?)"                 (* mechanisms *)
+  (* A numeric role cannot capture a digit from a unit or an identifier. *)
+  val NUM = "(qnum[0-9]+q)"
+  val SNUM = NUM
+  val UNUM = NUM
   val deg = "\194\176"
   val sq2 = "\194\178"
   val cube = "\194\179"
@@ -253,7 +253,7 @@ struct
     case search GIVEN_G low of
       SOME m =>
         let val s = valOf (firstGroup low m [1, 2])
-        in if strZero s then NONE else SOME (M.G_stated (ratOf s)) end
+        in SOME (M.G_stated (ratOf s)) end
     | NONE =>
         let
           val found = List.mapPartial (fn (k, b) =>
@@ -339,27 +339,47 @@ struct
   val tqRx = UNUM ^ "\\s*(?:n\\s*(?:\194\183|\\.)?\\s*m|newton[- ]met(?:er|re)s?|nm)\\b"
 
   (* organ_mechanisms_v1._driver_driven: (driver, driven) from grammar, never from order of mention *)
-  fun driverDriven low u : (string * string) option =
+  fun driverDrivenPair low nu width decode =
     let
-      val nu = UNUM ^ "[- ]?" ^ u
       val m1 = search (nu ^ "[^.?;]*?\\b(?:drives|turns|meshes with and drives|is connected to and drives)\\b[^.?;]*?" ^ nu) low
       val m2 = search (nu ^ "[^.?;]*?\\b(?:is driven by|driven by)\\b[^.?;]*?" ^ nu) low
       val a = search ("\\b(?:driver|driving|input|motor)\\b[^.?;]*?" ^ nu ^ "|" ^ nu ^ "[^.?;]*?\\b(?:driver|driving|input)\\b(?! speed)") low
       val b = search ("\\b(?:driven|output|follower)\\b[^.?;]*?" ^ nu ^ "|" ^ nu ^ "[^.?;]*?\\b(?:driven|output|follower)\\b(?! speed)") low
+      fun pick m = decode m (if isSome(grp low m 1) then 1 else 1+width)
     in
       case m1 of
-        SOME m => SOME (g1 low m, valOf (grp low m 2))
-      | NONE =>
-          (case m2 of
-             SOME m => SOME (valOf (grp low m 2), g1 low m)
-           | NONE =>
-               (case (a, b) of
-                  (SOME ma, SOME mb) => SOME (valOf (firstGroup low ma [1, 2]), valOf (firstGroup low mb [1, 2]))
-                | _ => NONE))
+        SOME m => SOME(decode m 1,decode m (1+width))
+      | NONE => (case m2 of
+          SOME m => SOME(decode m (1+width),decode m 1)
+        | NONE => (case(a,b) of (SOME ma,SOME mb) => SOME(pick ma,pick mb) | _ => NONE))
     end
+  fun driverDriven low u =
+    driverDrivenPair low (UNUM ^ "[- ]?" ^ u) 1 (fn m => fn i => valOf(grp low m i))
 
   fun loadUnit s = if s = "kg" then M.LD_kg else M.LD_n
-  fun lenUnit s = if s = "cm" then M.LU_cm else if s = "mm" then M.LU_mm else M.LU_m
+  val LEN = "(?:millimet(?:er|re)s?|mm|centimet(?:er|re)s?|cm|met(?:er|re)s?|m|feet|foot|ft|inches|inch|in)"
+  fun lenUnit s =
+    if s = "cm" orelse String.isPrefix "centimet" s then M.LU_cm
+    else if s = "mm" orelse String.isPrefix "millimet" s then M.LU_mm
+    else if s = "ft" orelse s = "foot" orelse s = "feet" then M.LU_ft
+    else if s = "in" orelse s = "inch" orelse s = "inches" then M.LU_in else M.LU_m
+  fun lengthPair ((x,u),(y,v)) =
+    case (u,v) of
+      (NONE,NONE) => SOME (x,y)
+    | (SOME a,SOME b) => SOME (M.length_m x a,M.length_m y b)
+    | _ => NONE
+  fun namedLength low name =
+    let
+      (* A missing unit is genuinely absent, never an unsupported unit word. *)
+      val suffix = "(?:\\s*(" ^ LEN ^ ")\\b|\\b(?=\\s*(?:[,.;?!:]|$|and\\b|with\\b|to\\b|from the fulcrum\\b|" ^ name ^ ")))"
+      val a = search (name ^ "\\s*(?:of|is|=)?\\s*" ^ NUM ^ suffix) low
+      val b = search (NUM ^ suffix ^ "\\s*(?:from the fulcrum )?" ^ name) low
+    in
+      case (a,b) of
+        (NONE,NONE) => NONE
+      | _ => let val m = case a of SOME m => m | NONE => valOf b
+             in SOME (ratOf (g1 low m),Option.map lenUnit (grp low m 2)) end
+    end
 
   fun mechV1 text : M.request option =
     let
@@ -387,10 +407,11 @@ struct
                              | NONE => SOME (M.McGearRatio (ra, rb)))
              end)
       else if has "\\bbelt\\b|\\bpulley\\b" low andalso isSome rpm
-              andalso has "\\bdiameter|\\b\\d+(?:\\.\\d+)?\\s*(?:mm|cm|in|inch|inches)\\s+pulley\\b" low then
-        (case driverDriven low "(?:mm|cm|in|inch|inches)" of
+              andalso has ("\\bdiameter|" ^ NUM ^ "\\s*" ^ LEN ^ "\\s+pulley\\b") low then
+        (case driverDrivenPair low (UNUM ^ "[- ]?(" ^ LEN ^ ")\\b") 2
+          (fn m => fn i => M.length_m (ratOf(valOf(grp low m i))) (lenUnit(valOf(grp low m (i+1))))) of
            NONE => need 1
-         | SOME (d1, d2) => SOME (M.McBeltSpeed (ratOf (g1 low (valOf rpm)), ratOf d1, ratOf d2)))
+         | SOME (d1,d2) => SOME(M.McBeltSpeed(ratOf(g1 low(valOf rpm)),d1,d2)))
       else if isSome (search (UNUM ^ "\\s*(?:supporting\\s+)?(?:strands|ropes|rope segments|segments of rope)\\b") low)
               andalso has "\\bpulley" low then
         let
@@ -406,13 +427,13 @@ struct
                 orelse has "\\b(?:effort|load|resistance) arm\\b|\\bfulcrum\\b" low) then
         let
           fun either p1 p2 = case search p1 low of SOME m => SOME m | NONE => search p2 low
-          val ea = either ("\\beffort arm\\s*(?:of|is|=)?\\s*" ^ UNUM) (UNUM ^ "\\s*(?:m|cm|ft)?\\s*(?:from the fulcrum )?(?:effort arm)")
-          val la = either ("\\b(?:load|resistance) arm\\s*(?:of|is|=)?\\s*" ^ UNUM) (UNUM ^ "\\s*(?:m|cm|ft)?\\s*(?:load arm|resistance arm)")
+          val ea = namedLength low "\\beffort arm\\b"
+          val la = namedLength low "\\b(?:load|resistance) arm\\b"
+          val arms = case (ea,la) of (SOME e,SOME l) => lengthPair(e,l) | _ => NONE
         in
-          case (ea, la) of
-            (SOME me, SOME ml) =>
+          case arms of
+            SOME (e,l) =>
               let
-                val e = ratOf (g1 low me) and l = ratOf (g1 low ml)
                 val ld = either ("\\b(?:lift|load of|weighing|move)\\s*(?:a\\s+)?" ^ UNUM ^ "\\s*(n|newtons?|kg)\\b")
                                 (UNUM ^ "\\s*(n|newtons?|kg)\\s*(?:load|rock|weight|object)\\b")
               in
@@ -427,11 +448,12 @@ struct
         end
       else if has "\\bramp\\b|\\binclined plane\\b|\\bincline\\b" low andalso has "\\bmechanical advantage\\b|\\bma\\b" low then
         let
-          val lm = search ("\\b(?:length|long)\\s*(?:of|is)?\\s*" ^ UNUM ^ "|" ^ UNUM ^ "\\s*(?:m|ft)?\\s*long\\b") low
-          val hm = search ("\\b(?:height|high|rises?)\\s*(?:of|is|by)?\\s*" ^ UNUM ^ "|" ^ UNUM ^ "\\s*(?:m|ft)?\\s*(?:high|tall)\\b") low
+          val lm = namedLength low "\\b(?:length|long)\\b"
+          val hm = namedLength low "\\b(?:height|high|tall)\\b"
         in
-          case (lm, hm) of
-            (SOME a, SOME b) => SOME (M.McInclineMA (ratOf (valOf (firstGroup low a [1, 2])), ratOf (valOf (firstGroup low b [1, 2]))))
+          case (lm,hm) of
+            (SOME a,SOME b) =>
+              (case lengthPair(a,b) of SOME(l,h) => SOME(M.McInclineMA(l,h)) | NONE => need 3)
           | _ => need 3
         end
       else if isSome tq andalso isSome rpm andalso has "\\bpower\\b|\\bwatts?\\b|\\bkw\\b|\\bhorsepower\\b" low then
@@ -439,8 +461,8 @@ struct
       else if has "\\btorque\\b" low then
         let
           val f = search (UNUM ^ "\\s*(?:n|newtons?)\\b(?!\\s*(?:\194\183|\\.)?\\s*m)") low
-          val r = search (UNUM ^ "\\s*(m|cm|mm)\\s*(?:long|wrench|lever|arm|from the (?:axis|center|pivot|bolt))|\\b(?:wrench|lever|arm|radius)\\s*(?:of|is)?\\s*"
-                          ^ UNUM ^ "\\s*(m|cm|mm)\\b") low
+          val r = search (UNUM ^ "\\s*(" ^ LEN ^ ")\\s*(?:long|wrench|lever|arm|from the (?:axis|center|pivot|bolt))|\\b(?:wrench|lever|arm|radius)\\s*(?:of|is)?\\s*"
+                          ^ UNUM ^ "\\s*(" ^ LEN ^ ")\\b") low
         in
           case (f, r) of
             (SOME mf, SOME mr) =>
@@ -488,7 +510,7 @@ struct
         | go (n :: ns) = case one n of SOME s => SOME s | NONE => go ns
     in go names end
   fun st low names = Option.map ratOf (stat low names)
-  val zero = ratOf "0"
+  val zero = M.mk_rat 0 1
 
   fun sportsInner text : M.request option =
     let
@@ -506,35 +528,36 @@ struct
            (SOME p, SOME fga, SOME fta) => SOME (M.SpTrueShooting (p, fga, fta))
          | _ => NONE)
       else if has "\\bera\\b|\\bearned run average\\b|\\bwhip\\b" low then
-        (case search "(\\d+)(?:\\.(\\d))?\\s*(?:innings(?: pitched)?|ip)\\b" low of
+        (case search "(?<![\\w.,/+\\-])(\\d+)(?:\\.(\\d+))?\\s*(?:innings(?: pitched)?|ip)\\b" low of
            NONE => NONE
          | SOME m =>
              let
                val wS = g1 low m
                val fS = case grp low m 2 of SOME d => d | NONE => "0"
-               val w = ratOf wS and f = ratOf fS
-               val dead = valOf (Int.fromString fS) >= 3 orelse (strZero wS andalso strZero fS)
+               val w = rawRat wS and f = rawRat fS
+               val dead = valOf (Int.fromString fS) >= 3 orelse (rawZero wS andalso rawZero fS)
              in
                if has "\\bwhip\\b" low then
-                 (case (st low ["walks", "bb"], st low ["hits", "h"]) of
+                 (case (st low ["walks?", "bb"], st low ["hits?", "h"]) of
                     (SOME bb, SOME h) => SOME (M.SpWhip (w, f, bb, h))
                   | _ => if dead then SOME (M.SpWhip (w, f, zero, zero)) else NONE)
                else
-                 (case st low ["earned runs", "er"] of
+                 (case st low ["earned runs?", "er"] of
                     SOME er => SOME (M.SpEra (w, f, er))
                   | NONE => if dead then SOME (M.SpEra (w, f, zero)) else NONE)
              end)
       else
         let
-          val abS = stat low ["at[- ]bats", "ab"]
-          val h = st low ["hits", "h"]
+          val abS = stat low ["at[- ]bats?", "ab"]
+          val h = case st low ["hits?", "h"] of
+            SOME v => SOME v
+          | NONE => if isSome abS andalso strZero (valOf abS) then SOME zero else NONE
         in
           if isSome abS andalso has "\\bbatting average\\b|\\bon[- ]base\\b|\\bobp\\b|\\bslugging\\b|\\bslg\\b" low then
             let val ab = ratOf (valOf abS) in
-              if strZero (valOf abS) then SOME (M.SpAvg (getOpt (h, zero), ab))
-              else if has "\\bslugging\\b|\\bslg\\b" low then
+              if has "\\bslugging\\b|\\bslg\\b" low then
                 (case (st low ["singles", "1b"], st low ["doubles", "2b"], st low ["triples", "3b"],
-                       st low ["home runs", "hr", "homers"]) of
+                       st low ["home runs?", "hr", "homers"]) of
                    (s1, SOME s2, SOME s3, SOME hr) =>
                      (case (s1, h) of
                         (NONE, NONE) => NONE
@@ -544,7 +567,7 @@ struct
                 (case h of
                    NONE => NONE
                  | SOME hh =>
-                     SOME (M.SpObp (hh, getOpt (st low ["walks", "bb"], zero),
+                     SOME (M.SpObp (hh, getOpt (st low ["walks?", "bb"], zero),
                                     getOpt (st low ["hit by pitch(?:es)?", "hbp"], zero),
                                     getOpt (st low ["sacrifice flies", "sac flies", "sf"], zero), ab)))
               else (case h of NONE => NONE | SOME hh => SOME (M.SpAvg (hh, ab)))
@@ -552,24 +575,20 @@ struct
           else if has "\\bgames behind\\b|\\bgames back\\b|\\bgb\\b" low then
             (case findall "\\b(\\d+)\\s*-\\s*(\\d+)\\b" low of
                a :: b :: _ =>
-                 SOME (M.SpGamesBehind (ratOf (g1 low a), ratOf (valOf (grp low a 2)), ratOf (g1 low b), ratOf (valOf (grp low b 2))))
+                 SOME (M.SpGamesBehind (rawRat (g1 low a), rawRat (valOf (grp low a 2)), rawRat (g1 low b), rawRat (valOf (grp low b 2))))
              | _ => NONE)
           else if has "\\bwin(?:ning)? percentage\\b|\\bwin pct\\b|\\bwin rate\\b" low then
             let
               val recm = search "\\b(\\d+)\\s*-\\s*(\\d+)(?:\\s*-\\s*(\\d+))?\\b" low
-              val w = stat low ["wins", "w"] and l = stat low ["losses", "l"]
-              val tie = getOpt (stat low ["ties", "draws", "t"], "0")
-              val (w, l, tie) =
-                (case (w, l, recm) of
-                   (NONE, _, SOME m) => (SOME (g1 low m), SOME (valOf (grp low m 2)), getOpt (grp low m 3, "0"))
-                 | (_, NONE, SOME m) => (SOME (g1 low m), SOME (valOf (grp low m 2)), getOpt (grp low m 3, "0"))
-                 | _ => (w, l, tie))
+              val w = st low ["wins", "w"] and l = st low ["losses", "l"]
+              val tie = getOpt(st low ["ties", "draws", "t"],zero)
+              val totals = case (w,l,recm) of
+                  (SOME ws,SOME ls,_) => SOME(ws,ls,tie)
+                | (_,_,SOME m) => SOME(rawRat(g1 low m),rawRat(valOf(grp low m 2)),
+                    case grp low m 3 of SOME v=>rawRat v | NONE=>zero)
+                | _ => NONE
             in
-              case (w, l) of
-                (SOME ws, SOME ls) =>
-                  if strZero ws andalso strZero ls andalso strZero tie then NONE
-                  else SOME (M.SpWinPct (ratOf ws, ratOf ls, ratOf tie))
-              | _ => NONE
+              Option.map M.SpWinPct totals
             end
           else NONE
         end
@@ -596,7 +615,7 @@ struct
       if has "\\bstopping distance\\b|\\bdistance to stop\\b|\\bhow far .* to stop\\b|\\bbraking distance\\b" low then
         let
           val v = search (NUM ^ "\\s*(km/h|kph|mph|m/s)\\b") low
-          val mu = search ("\\b(?:friction(?: coefficient)?|coefficient of friction|mu|\206\188)\\s*(?:of|is|=)?\\s*(0?\\.\\d+|\\d(?:\\.\\d+)?)") low
+          val mu = search ("\\b(?:friction(?: coefficient)?|coefficient of friction|mu|\206\188)\\s*(?:of|is|=)?\\s*" ^ NUM) low
           val rt = search ("\\breaction time\\s*(?:of|is|=)?\\s*" ^ NUM ^ "\\s*(?:s|sec|seconds?)\\b|" ^ NUM ^ "\\s*(?:s|sec|seconds?)\\s*reaction\\b") low
         in
           case (v, mu) of
@@ -662,7 +681,7 @@ struct
   val fluidPats = zipChecked (fluidRx, M.fluid_order, "fluid_order")
   val solidPats = zipChecked (["ice", "aluminium", "steel", "concrete", "glass", "granite", "iron", "copper", "gold",
                                "lead", "brass"], M.solid_order, "solid_order")
-  val DEPTH = NUM ^ "\\s*(?:m|met(?:re|er)s?)\\b(?!\\s*/|\\s*per|\\s*\\^|\\s*3|" ^ cube ^ ")\\s*(?:deep|down|below|under|beneath|depth)?"
+  val DEPTH = NUM ^ "\\s*(" ^ LEN ^ ")\\b(?!\\s*/|\\s*per|\\s*\\^|\\s*3|" ^ cube ^ ")\\s*(?:deep|down|below|under|beneath|depth)?"
   val fluidVolPats = [(NUM ^ "\\s*(?:m3|m\\^3|m" ^ cube ^ "|cubic met(?:re|er)s?)", M.VU_m3),
                       (NUM ^ "\\s*(?:litres?|liters?|l)\\b", M.VU_l),
                       (NUM ^ "\\s*(?:cm3|cm\\^3|cm" ^ cube ^ "|cubic centimet(?:re|er)s?)", M.VU_cm3)]
@@ -693,7 +712,7 @@ struct
                NONE => NONE
              | SOME f =>
                  let
-                   val ds = map (fn m => ratOf (g1 low m)) (findall DEPTH low)
+                   val ds = map (fn m => M.length_m (ratOf (g1 low m)) (lenUnit (valOf (grp low m 2)))) (findall DEPTH low)
                    val absolute = has "\\b(?:absolute|total)\\b" low
                    val d = one ds
                    val r = if absolute then M.FsAbs (f, d) else M.FsGauge (f, d)
@@ -768,10 +787,52 @@ struct
      Narrow, named-domain organs first; physics-r3 (the broad one) last. *)
   val familyOrder = ["fluids-r2", "bodies-v2", "fleet", "sports", "mechanisms-v2", "physics-r3"]
 
-  fun recognize mode text =
+  (* Structured scores and baseball innings are not decimal quantities.
+     Protect those spans, mask all other complete numeric tokens once,
+     then restore their original notation before semantic parsing. *)
+  fun prepare text =
+    let
+      val low = lower text
+      val innings = "(?<![\\w.,/+\\-])\\d+(?:\\.\\d+)?\\s*(?:innings(?: pitched)?|ip)\\b"
+      val records = "(?<![\\w.,/+\\-])\\d+\\s*-\\s*\\d+(?:\\s*-\\s*\\d+)?(?![\\w/+\\-]|[.,][0-9])"
+      val unitDenominator = "\\b(?:l|liters?|litres?)\\s*(?:/|per)\\s*100\\s*km\\b"
+      val patterns = [unitDenominator] @ (if has "\\bera\\b|\\bwhip\\b|\\bearned run average\\b" low then [innings] else [])
+        @ (if has "\\bgames (?:behind|back)\\b|\\bgb\\b|\\bwin(?:ning)? (?:percentage|pct|rate)\\b" low then [records] else [])
+      fun protect (pattern,(current,saved)) =
+        let
+          val hits = findall pattern (lower current)
+          fun fresh marker = if String.isSubstring (lower marker) (lower text) orelse List.exists(fn (m,_)=>m=marker) saved
+                             then fresh(marker ^ "q") else marker
+          fun go pos [] pairs acc = (String.concat(rev(String.extract(current,pos,NONE)::acc)),pairs)
+            | go pos (({start,stop,...}:Regex.match)::rest) pairs acc =
+                let val marker = fresh("qstructured" ^ Int.toString(length pairs) ^ "q")
+                    val raw = String.substring(current,start,stop-start)
+                in go stop rest ((marker,raw)::pairs)
+                     (marker::String.substring(current,pos,start-pos)::acc) end
+        in go 0 hits saved [] end
+      val (protected,saved) = List.foldl protect (text,[]) patterns
+    in
+      case ExactNumeric.mask protected of
+        NONE => NONE
+      | SOME {text=masked,numbers} => SOME {text=List.foldl(fn((marker,raw),acc)=>substCI marker raw acc) masked saved, numbers=numbers}
+    end
+
+  fun recognizePrepared mode text =
     if mode = "family" then
       let fun go [] = NONE
             | go (id :: ids) = case byId id text of SOME r => SOME (id, r) | NONE => go ids
       in go familyOrder end
     else Option.map (fn r => (mode, r)) (byId mode text)
+    handle InvalidNumeric => NONE
+
+  fun recognize mode text =
+    case prepare text of
+      NONE => NONE
+    | SOME {text=prepared,numbers} =>
+        let val previous = !numericValues
+            val _ = numericValues := numbers
+            val result = (recognizePrepared mode prepared
+              handle e => (numericValues := previous; raise e))
+            val _ = numericValues := previous
+        in result end
 end

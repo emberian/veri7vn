@@ -35,9 +35,20 @@ fun speed_scale :: "speedu \<Rightarrow> rat" where
 | "speed_scale SU_mph = 44704 / 100000"
 | "speed_scale SU_ms = 1"
 
-datatype lenu = LU_m | LU_cm | LU_mm
+datatype lenu = LU_m | LU_cm | LU_mm | LU_ft | LU_in
 fun len_scale :: "lenu \<Rightarrow> rat" where
   "len_scale LU_m = 1" | "len_scale LU_cm = 1 / 100" | "len_scale LU_mm = 1 / 1000"
+| "len_scale LU_ft = 381 / 1250" | "len_scale LU_in = 127 / 5000"
+
+definition length_m :: "rat \<Rightarrow> lenu \<Rightarrow> rat" where
+  "length_m x u = x * len_scale u"
+
+lemma len_scale_pos [simp]: "0 < len_scale u"
+  by (cases u) simp_all
+
+lemma length_m_pos [simp]: "0 < length_m x u \<longleftrightarrow> 0 < x"
+  using len_scale_pos[of u]
+  by (auto simp: length_m_def zero_less_mult_iff; linarith)
 
 datatype volu = VU_m3 | VU_l | VU_cm3
 fun vol_scale :: "volu \<Rightarrow> rat" where
@@ -213,10 +224,10 @@ datatype need = N_speed_angle | N_mass_speed | N_mass_height | N_mass_velocity |
   | N_mc_need nat | N_load | N_speed_friction | N_reaction | N_price | N_depth | N_volume
   | N_unreadable
 
-datatype reason = R_nonpositive_gravity | R_negative_amount | R_zero_time | R_zero_teeth
+datatype reason = R_nonpositive_gravity | R_negative_gravity | R_negative_amount | R_zero_time | R_zero_teeth
   | R_zero_diameter | R_zero_strands | R_zero_arm | R_ramp | R_zero_attempts | R_zero_shooting
   | R_bad_innings | R_zero_innings | R_zero_at_bats | R_zero_games | R_friction
-  | R_zero_economy | R_zero_distance
+  | R_zero_economy | R_zero_obp_chances | R_physical_domain
 
 datatype decline = Underspecified need | Impossible reason | Imprecise
 
@@ -360,132 +371,202 @@ primrec missing :: "request \<Rightarrow> need option" where
 definition econ_zero :: "econ \<Rightarrow> bool" where
   "econ_zero ec = (case ec of E_mpg uk e \<Rightarrow> e = 0 | E_lpk x \<Rightarrow> False)"
 
+text \<open>Physical domains are separate from numerical failure. Signed velocity,
+force, torque, work, potential height and passing yardage retain their one-dimensional
+meaning. Mass, geometry, elapsed time and consumption are magnitudes; event counts
+are nonnegative integers. The kernel consumes this predicate before answering.\<close>
+definition physical_count :: "rat \<Rightarrow> bool" where
+  "physical_count x \<longleftrightarrow> 0 \<le> x \<and> snd (quotient_of x) = 1"
+fun nonnegative_option :: "rat option \<Rightarrow> bool" where
+  "nonnegative_option None = True"
+| "nonnegative_option (Some x) = (0 \<le> x)"
+fun nonnegative_pair :: "(rat * 'a) option \<Rightarrow> bool" where
+  "nonnegative_pair None = True"
+| "nonnegative_pair (Some (x,u)) = (0 \<le> x)"
+fun economy_domain :: "econ \<Rightarrow> bool" where
+  "economy_domain (E_mpg uk x) = (0 < x)"
+| "economy_domain (E_lpk x) = (0 \<le> x)"
+
+fun physical_domain :: "request \<Rightarrow> bool" where
+  "physical_domain (PhRange v a) = nonnegative_option v"
+| "physical_domain (PhKE m v) = nonnegative_option m"
+| "physical_domain (PhPE m h) = nonnegative_option m"
+| "physical_domain (PhMomentum m v) = nonnegative_option m"
+| "physical_domain (PhWeight m) = (0 \<le> m)"
+| "physical_domain (PhForce m a) = nonnegative_option m"
+| "physical_domain (PhPower e t) = (0 < t)"
+| "physical_domain (PhFinalV a t v rest) = nonnegative_option t"
+| "physical_domain (PhDistance a t v rest) = (0 \<le> t)"
+| "physical_domain (BdWeight g m) = nonnegative_option m"
+| "physical_domain (McGearRatio a b) = (physical_count a \<and> physical_count b \<and> 0 < a \<and> 0 < b)"
+| "physical_domain (McGearSpeed n a b) = (physical_count a \<and> physical_count b \<and> 0 < a \<and> 0 < b)"
+| "physical_domain (McGearTorque t a b) = (physical_count a \<and> physical_count b \<and> 0 < a \<and> 0 < b)"
+| "physical_domain (McBeltSpeed n a b) = (0 < a \<and> 0 < b)"
+| "physical_domain (McPulleyMA n) = (physical_count n \<and> 0 < n)"
+| "physical_domain (McPulleyEffort n ld) = (physical_count n \<and> 0 < n \<and> 0 \<le> fst ld)"
+| "physical_domain (McLeverMA e l) = (0 < e \<and> 0 < l)"
+| "physical_domain (McLeverEffort e l ld) = (0 < e \<and> 0 < l \<and> nonnegative_pair ld)"
+| "physical_domain (McTorque f r u) = (0 \<le> r)"
+| "physical_domain (McTorqueAngle f r u a) = (0 \<le> r)"
+| "physical_domain (SpPasser c a y t i) = (physical_count c \<and> physical_count a \<and> physical_count t \<and> physical_count i \<and> c \<le> a \<and> t \<le> c \<and> i \<le> a-c)"
+| "physical_domain (SpTrueShooting p fga fta) = (physical_count p \<and> physical_count fga \<and> physical_count fta)"
+| "physical_domain (SpEra w f er) = (physical_count w \<and> physical_count f \<and> physical_count er)"
+| "physical_domain (SpWhip w f bb h) = (physical_count w \<and> physical_count f \<and> physical_count bb \<and> physical_count h)"
+| "physical_domain (SpAvg h ab) = (physical_count h \<and> physical_count ab \<and> h \<le> ab)"
+| "physical_domain (SpObp h bb hbp sf ab) = (physical_count h \<and> physical_count bb \<and> physical_count hbp \<and> physical_count sf \<and> physical_count ab \<and> h \<le> ab)"
+| "physical_domain (SpSlg s1 h s2 s3 hr ab) = (physical_count h \<and> physical_count s2 \<and> physical_count s3 \<and> physical_count hr \<and> physical_count ab \<and> (case s1 of None \<Rightarrow> s2+s3+hr \<le> h \<and> h \<le> ab | Some s \<Rightarrow> physical_count s \<and> s+s2+s3+hr \<le> ab))"
+| "physical_domain (SpGamesBehind wa la wb lb) = (physical_count wa \<and> physical_count la \<and> physical_count wb \<and> physical_count lb)"
+| "physical_domain (SpWinPct w l t) = (physical_count w \<and> physical_count l \<and> physical_count t)"
+| "physical_domain (FvBraking v mu) = nonnegative_pair v"
+| "physical_domain (FvStopping v mu rt) = (nonnegative_pair v \<and> nonnegative_option rt)"
+| "physical_domain (FvToLpk uk x) = (0 < x)"
+| "physical_domain (FvToMpg uk x) = (0 < x)"
+| "physical_domain (FvCO2 d du ec diesel) = (0 \<le> d \<and> economy_domain ec)"
+| "physical_domain (FvCost d du ec pr) = (0 \<le> d \<and> economy_domain ec \<and> nonnegative_pair pr)"
+| "physical_domain (FvLitres d du ec) = (0 \<le> d \<and> economy_domain ec)"
+| "physical_domain (FvGallons d du ec) = (0 \<le> d \<and> economy_domain ec)"
+| "physical_domain (FsGauge f h) = nonnegative_option h"
+| "physical_domain (FsAbs f h) = nonnegative_option h"
+| "physical_domain (FsBuoyant f v) = nonnegative_pair v"
+| "physical_domain r = True"
+
+
 text \<open>Impossible: the inputs for which the organ divides by zero, takes the
 root of a negative number, or states its own refusal (a ramp that rises more
 than its length, zero attempts, a non-inning figure).\<close>
-primrec impossible :: "request \<Rightarrow> bool" where
-  "impossible (PhImpact h) \<longleftrightarrow> h < 0"
-| "impossible (PhFall h) \<longleftrightarrow> h < 0"
-| "impossible (PhPower e t) \<longleftrightarrow> t = 0"
-| "impossible (BdWeight g m) \<longleftrightarrow> g_of g \<le> 0"
-| "impossible (BdFall g h) \<longleftrightarrow> g_of g \<le> 0 \<or> the h < 0"
-| "impossible (BdImpact g h) \<longleftrightarrow> g_of g \<le> 0 \<or> the h < 0"
-| "impossible (BdPendulum g l) \<longleftrightarrow> g_of g \<le> 0 \<or> the l < 0"
-| "impossible (McGearRatio a b) \<longleftrightarrow> a = 0"
-| "impossible (McGearSpeed n a b) \<longleftrightarrow> a = 0 \<or> b = 0"
-| "impossible (McGearTorque t a b) \<longleftrightarrow> a = 0"
-| "impossible (McBeltSpeed n d1 d2) \<longleftrightarrow> d2 = 0"
-| "impossible (McPulleyEffort n ld) \<longleftrightarrow> n = 0"
-| "impossible (McLeverMA e l) \<longleftrightarrow> l = 0"
-| "impossible (McLeverEffort e l ld) \<longleftrightarrow> e = 0"
-| "impossible (McInclineMA l h) \<longleftrightarrow> h \<le> 0 \<or> l < h"
-| "impossible (SpPasser c a y t i) \<longleftrightarrow> a \<le> 0"
-| "impossible (SpTrueShooting p fga fta) \<longleftrightarrow> 2 * (fga + 11 / 25 * fta) \<le> 0"
-| "impossible (SpEra w f er) \<longleftrightarrow> 3 \<le> f \<or> w + f / 3 \<le> 0"
-| "impossible (SpWhip w f bb h) \<longleftrightarrow> 3 \<le> f \<or> w + f / 3 \<le> 0"
-| "impossible (SpAvg h ab) \<longleftrightarrow> ab \<le> 0"
-| "impossible (SpObp h bb hbp sf ab) \<longleftrightarrow> ab \<le> 0"
-| "impossible (SpSlg s1 h s2 s3 hr ab) \<longleftrightarrow> ab \<le> 0"
-| "impossible (SpWinPct w l t) \<longleftrightarrow> w + l + t \<le> 0"
-| "impossible (FvBraking v mu) \<longleftrightarrow> the mu \<le> 0"
-| "impossible (FvStopping v mu rt) \<longleftrightarrow> the mu \<le> 0"
-| "impossible (FvToLpk uk x) \<longleftrightarrow> x = 0"
-| "impossible (FvToMpg uk x) \<longleftrightarrow> x = 0"
-| "impossible (FvCO2 d du ec dsl) \<longleftrightarrow> econ_zero ec"
-| "impossible (FvCost d du ec pr) \<longleftrightarrow> econ_zero ec \<or> d = 0"
-| "impossible (FvLitres d du ec) \<longleftrightarrow> econ_zero ec"
-| "impossible (FvGallons d du ec) \<longleftrightarrow> econ_zero ec"
-| "impossible (PhRange x1 x2) \<longleftrightarrow> False"
-| "impossible (PhKE x1 x2) \<longleftrightarrow> False"
-| "impossible (PhPE x1 x2) \<longleftrightarrow> False"
-| "impossible (PhMomentum x1 x2) \<longleftrightarrow> False"
-| "impossible (PhWeight x1) \<longleftrightarrow> False"
-| "impossible (PhForce x1 x2) \<longleftrightarrow> False"
-| "impossible (PhWork x1 x2) \<longleftrightarrow> False"
-| "impossible (PhFinalV x1 x2 x3 x4) \<longleftrightarrow> False"
-| "impossible (PhDistance x1 x2 x3 x4) \<longleftrightarrow> False"
-| "impossible (BdUnreadable x1) \<longleftrightarrow> False"
-| "impossible (McPulleyMA x1) \<longleftrightarrow> False"
-| "impossible (McShaftPower x1 x2) \<longleftrightarrow> False"
-| "impossible (McTorque x1 x2 x3) \<longleftrightarrow> False"
-| "impossible (McTorqueAngle x1 x2 x3 x4) \<longleftrightarrow> False"
-| "impossible (McNeed x1) \<longleftrightarrow> False"
-| "impossible (SpGamesBehind x1 x2 x3 x4) \<longleftrightarrow> False"
-| "impossible (FsGauge x1 x2) \<longleftrightarrow> False"
-| "impossible (FsAbs x1 x2) \<longleftrightarrow> False"
-| "impossible (FsBuoyant x1 x2) \<longleftrightarrow> False"
-| "impossible (FsSubmerged x1 x2) \<longleftrightarrow> False"
+primrec impossible_base :: "request \<Rightarrow> bool" where
+  "impossible_base (PhImpact h) \<longleftrightarrow> h < 0"
+| "impossible_base (PhFall h) \<longleftrightarrow> h < 0"
+| "impossible_base (PhPower e t) \<longleftrightarrow> t = 0"
+| "impossible_base (BdWeight g m) \<longleftrightarrow> g_of g < 0"
+| "impossible_base (BdFall g h) \<longleftrightarrow> g_of g \<le> 0 \<or> the h < 0"
+| "impossible_base (BdImpact g h) \<longleftrightarrow> g_of g \<le> 0 \<or> the h < 0"
+| "impossible_base (BdPendulum g l) \<longleftrightarrow> g_of g \<le> 0 \<or> the l < 0"
+| "impossible_base (McGearRatio a b) \<longleftrightarrow> a = 0"
+| "impossible_base (McGearSpeed n a b) \<longleftrightarrow> a = 0 \<or> b = 0"
+| "impossible_base (McGearTorque t a b) \<longleftrightarrow> a = 0"
+| "impossible_base (McBeltSpeed n d1 d2) \<longleftrightarrow> d2 = 0"
+| "impossible_base (McPulleyEffort n ld) \<longleftrightarrow> n = 0"
+| "impossible_base (McLeverMA e l) \<longleftrightarrow> l = 0"
+| "impossible_base (McLeverEffort e l ld) \<longleftrightarrow> e = 0"
+| "impossible_base (McInclineMA l h) \<longleftrightarrow> h \<le> 0 \<or> l < h"
+| "impossible_base (SpPasser c a y t i) \<longleftrightarrow> a \<le> 0"
+| "impossible_base (SpTrueShooting p fga fta) \<longleftrightarrow> 2 * (fga + 11 / 25 * fta) \<le> 0"
+| "impossible_base (SpEra w f er) \<longleftrightarrow> 3 \<le> f \<or> w + f / 3 \<le> 0"
+| "impossible_base (SpWhip w f bb h) \<longleftrightarrow> 3 \<le> f \<or> w + f / 3 \<le> 0"
+| "impossible_base (SpAvg h ab) \<longleftrightarrow> ab \<le> 0"
+| "impossible_base (SpObp h bb hbp sf ab) \<longleftrightarrow> ab + bb + hbp + sf \<le> 0"
+| "impossible_base (SpSlg s1 h s2 s3 hr ab) \<longleftrightarrow> ab \<le> 0"
+| "impossible_base (SpWinPct w l t) \<longleftrightarrow> w + l + t \<le> 0"
+| "impossible_base (FvBraking v mu) \<longleftrightarrow> the mu \<le> 0"
+| "impossible_base (FvStopping v mu rt) \<longleftrightarrow> the mu \<le> 0"
+| "impossible_base (FvToLpk uk x) \<longleftrightarrow> x = 0"
+| "impossible_base (FvToMpg uk x) \<longleftrightarrow> x = 0"
+| "impossible_base (FvCO2 d du ec dsl) \<longleftrightarrow> econ_zero ec"
+| "impossible_base (FvCost d du ec pr) \<longleftrightarrow> econ_zero ec"
+| "impossible_base (FvLitres d du ec) \<longleftrightarrow> econ_zero ec"
+| "impossible_base (FvGallons d du ec) \<longleftrightarrow> econ_zero ec"
+| "impossible_base (PhRange x1 x2) \<longleftrightarrow> False"
+| "impossible_base (PhKE x1 x2) \<longleftrightarrow> False"
+| "impossible_base (PhPE x1 x2) \<longleftrightarrow> False"
+| "impossible_base (PhMomentum x1 x2) \<longleftrightarrow> False"
+| "impossible_base (PhWeight x1) \<longleftrightarrow> False"
+| "impossible_base (PhForce x1 x2) \<longleftrightarrow> False"
+| "impossible_base (PhWork x1 x2) \<longleftrightarrow> False"
+| "impossible_base (PhFinalV x1 x2 x3 x4) \<longleftrightarrow> False"
+| "impossible_base (PhDistance x1 x2 x3 x4) \<longleftrightarrow> False"
+| "impossible_base (BdUnreadable x1) \<longleftrightarrow> False"
+| "impossible_base (McPulleyMA x1) \<longleftrightarrow> False"
+| "impossible_base (McShaftPower x1 x2) \<longleftrightarrow> False"
+| "impossible_base (McTorque x1 x2 x3) \<longleftrightarrow> False"
+| "impossible_base (McTorqueAngle x1 x2 x3 x4) \<longleftrightarrow> False"
+| "impossible_base (McNeed x1) \<longleftrightarrow> False"
+| "impossible_base (SpGamesBehind x1 x2 x3 x4) \<longleftrightarrow> False"
+| "impossible_base (FsGauge x1 x2) \<longleftrightarrow> False"
+| "impossible_base (FsAbs x1 x2) \<longleftrightarrow> False"
+| "impossible_base (FsBuoyant x1 x2) \<longleftrightarrow> False"
+| "impossible_base (FsSubmerged x1 x2) \<longleftrightarrow> False"
 
 text \<open>The executable check, with the reason it reports (in the order the
 organ checks).\<close>
-primrec reason_of :: "request \<Rightarrow> reason option" where
-  "reason_of (PhImpact h) = (if h < 0 then Some R_negative_amount else None)"
-| "reason_of (PhFall h) = (if h < 0 then Some R_negative_amount else None)"
-| "reason_of (PhPower e t) = (if t = 0 then Some R_zero_time else None)"
-| "reason_of (BdWeight g m) = (if g_of g \<le> 0 then Some R_nonpositive_gravity else None)"
-| "reason_of (BdFall g h) =
+primrec reason_base :: "request \<Rightarrow> reason option" where
+  "reason_base (PhImpact h) = (if h < 0 then Some R_negative_amount else None)"
+| "reason_base (PhFall h) = (if h < 0 then Some R_negative_amount else None)"
+| "reason_base (PhPower e t) = (if t = 0 then Some R_zero_time else None)"
+| "reason_base (BdWeight g m) = (if g_of g < 0 then Some R_negative_gravity else None)"
+| "reason_base (BdFall g h) =
      (if g_of g \<le> 0 then Some R_nonpositive_gravity
       else if the h < 0 then Some R_negative_amount else None)"
-| "reason_of (BdImpact g h) =
+| "reason_base (BdImpact g h) =
      (if g_of g \<le> 0 then Some R_nonpositive_gravity
       else if the h < 0 then Some R_negative_amount else None)"
-| "reason_of (BdPendulum g l) =
+| "reason_base (BdPendulum g l) =
      (if g_of g \<le> 0 then Some R_nonpositive_gravity
       else if the l < 0 then Some R_negative_amount else None)"
-| "reason_of (McGearRatio a b) = (if a = 0 then Some R_zero_teeth else None)"
-| "reason_of (McGearSpeed n a b) = (if a = 0 \<or> b = 0 then Some R_zero_teeth else None)"
-| "reason_of (McGearTorque t a b) = (if a = 0 then Some R_zero_teeth else None)"
-| "reason_of (McBeltSpeed n d1 d2) = (if d2 = 0 then Some R_zero_diameter else None)"
-| "reason_of (McPulleyEffort n ld) = (if n = 0 then Some R_zero_strands else None)"
-| "reason_of (McLeverMA e l) = (if l = 0 then Some R_zero_arm else None)"
-| "reason_of (McLeverEffort e l ld) = (if e = 0 then Some R_zero_arm else None)"
-| "reason_of (McInclineMA l h) = (if h \<le> 0 \<or> l < h then Some R_ramp else None)"
-| "reason_of (SpPasser c a y t i) = (if a \<le> 0 then Some R_zero_attempts else None)"
-| "reason_of (SpTrueShooting p fga fta) =
+| "reason_base (McGearRatio a b) = (if a = 0 then Some R_zero_teeth else None)"
+| "reason_base (McGearSpeed n a b) = (if a = 0 \<or> b = 0 then Some R_zero_teeth else None)"
+| "reason_base (McGearTorque t a b) = (if a = 0 then Some R_zero_teeth else None)"
+| "reason_base (McBeltSpeed n d1 d2) = (if d2 = 0 then Some R_zero_diameter else None)"
+| "reason_base (McPulleyEffort n ld) = (if n = 0 then Some R_zero_strands else None)"
+| "reason_base (McLeverMA e l) = (if l = 0 then Some R_zero_arm else None)"
+| "reason_base (McLeverEffort e l ld) = (if e = 0 then Some R_zero_arm else None)"
+| "reason_base (McInclineMA l h) = (if h \<le> 0 \<or> l < h then Some R_ramp else None)"
+| "reason_base (SpPasser c a y t i) = (if a \<le> 0 then Some R_zero_attempts else None)"
+| "reason_base (SpTrueShooting p fga fta) =
      (if 2 * (fga + 11 / 25 * fta) \<le> 0 then Some R_zero_shooting else None)"
-| "reason_of (SpEra w f er) =
+| "reason_base (SpEra w f er) =
      (if 3 \<le> f then Some R_bad_innings
       else if w + f / 3 \<le> 0 then Some R_zero_innings else None)"
-| "reason_of (SpWhip w f bb h) =
+| "reason_base (SpWhip w f bb h) =
      (if 3 \<le> f then Some R_bad_innings
       else if w + f / 3 \<le> 0 then Some R_zero_innings else None)"
-| "reason_of (SpAvg h ab) = (if ab \<le> 0 then Some R_zero_at_bats else None)"
-| "reason_of (SpObp h bb hbp sf ab) = (if ab \<le> 0 then Some R_zero_at_bats else None)"
-| "reason_of (SpSlg s1 h s2 s3 hr ab) = (if ab \<le> 0 then Some R_zero_at_bats else None)"
-| "reason_of (SpWinPct w l t) = (if w + l + t \<le> 0 then Some R_zero_games else None)"
-| "reason_of (FvBraking v mu) = (if the mu \<le> 0 then Some R_friction else None)"
-| "reason_of (FvStopping v mu rt) = (if the mu \<le> 0 then Some R_friction else None)"
-| "reason_of (FvToLpk uk x) = (if x = 0 then Some R_zero_economy else None)"
-| "reason_of (FvToMpg uk x) = (if x = 0 then Some R_zero_economy else None)"
-| "reason_of (FvCO2 d du ec dsl) = (if econ_zero ec then Some R_zero_economy else None)"
-| "reason_of (FvCost d du ec pr) =
-     (if econ_zero ec then Some R_zero_economy
-      else if d = 0 then Some R_zero_distance else None)"
-| "reason_of (FvLitres d du ec) = (if econ_zero ec then Some R_zero_economy else None)"
-| "reason_of (FvGallons d du ec) = (if econ_zero ec then Some R_zero_economy else None)"
-| "reason_of (PhRange x1 x2) = None"
-| "reason_of (PhKE x1 x2) = None"
-| "reason_of (PhPE x1 x2) = None"
-| "reason_of (PhMomentum x1 x2) = None"
-| "reason_of (PhWeight x1) = None"
-| "reason_of (PhForce x1 x2) = None"
-| "reason_of (PhWork x1 x2) = None"
-| "reason_of (PhFinalV x1 x2 x3 x4) = None"
-| "reason_of (PhDistance x1 x2 x3 x4) = None"
-| "reason_of (BdUnreadable x1) = None"
-| "reason_of (McPulleyMA x1) = None"
-| "reason_of (McShaftPower x1 x2) = None"
-| "reason_of (McTorque x1 x2 x3) = None"
-| "reason_of (McTorqueAngle x1 x2 x3 x4) = None"
-| "reason_of (McNeed x1) = None"
-| "reason_of (SpGamesBehind x1 x2 x3 x4) = None"
-| "reason_of (FsGauge x1 x2) = None"
-| "reason_of (FsAbs x1 x2) = None"
-| "reason_of (FsBuoyant x1 x2) = None"
-| "reason_of (FsSubmerged x1 x2) = None"
+| "reason_base (SpAvg h ab) = (if ab \<le> 0 then Some R_zero_at_bats else None)"
+| "reason_base (SpObp h bb hbp sf ab) = (if ab + bb + hbp + sf \<le> 0 then Some R_zero_obp_chances else None)"
+| "reason_base (SpSlg s1 h s2 s3 hr ab) = (if ab \<le> 0 then Some R_zero_at_bats else None)"
+| "reason_base (SpWinPct w l t) = (if w + l + t \<le> 0 then Some R_zero_games else None)"
+| "reason_base (FvBraking v mu) = (if the mu \<le> 0 then Some R_friction else None)"
+| "reason_base (FvStopping v mu rt) = (if the mu \<le> 0 then Some R_friction else None)"
+| "reason_base (FvToLpk uk x) = (if x = 0 then Some R_zero_economy else None)"
+| "reason_base (FvToMpg uk x) = (if x = 0 then Some R_zero_economy else None)"
+| "reason_base (FvCO2 d du ec dsl) = (if econ_zero ec then Some R_zero_economy else None)"
+| "reason_base (FvCost d du ec pr) = (if econ_zero ec then Some R_zero_economy else None)"
+| "reason_base (FvLitres d du ec) = (if econ_zero ec then Some R_zero_economy else None)"
+| "reason_base (FvGallons d du ec) = (if econ_zero ec then Some R_zero_economy else None)"
+| "reason_base (PhRange x1 x2) = None"
+| "reason_base (PhKE x1 x2) = None"
+| "reason_base (PhPE x1 x2) = None"
+| "reason_base (PhMomentum x1 x2) = None"
+| "reason_base (PhWeight x1) = None"
+| "reason_base (PhForce x1 x2) = None"
+| "reason_base (PhWork x1 x2) = None"
+| "reason_base (PhFinalV x1 x2 x3 x4) = None"
+| "reason_base (PhDistance x1 x2 x3 x4) = None"
+| "reason_base (BdUnreadable x1) = None"
+| "reason_base (McPulleyMA x1) = None"
+| "reason_base (McShaftPower x1 x2) = None"
+| "reason_base (McTorque x1 x2 x3) = None"
+| "reason_base (McTorqueAngle x1 x2 x3 x4) = None"
+| "reason_base (McNeed x1) = None"
+| "reason_base (SpGamesBehind x1 x2 x3 x4) = None"
+| "reason_base (FsGauge x1 x2) = None"
+| "reason_base (FsAbs x1 x2) = None"
+| "reason_base (FsBuoyant x1 x2) = None"
+| "reason_base (FsSubmerged x1 x2) = None"
+
+theorem reason_base_exact: "reason_base r \<noteq> None \<longleftrightarrow> impossible_base r"
+  by (cases r) (auto split: if_splits)
+
+definition impossible :: "request \<Rightarrow> bool" where
+  "impossible r \<longleftrightarrow> impossible_base r \<or> \<not> physical_domain r"
+declare impossible_def [simp]
+
+definition reason_of :: "request \<Rightarrow> reason option" where
+  "reason_of r = (case reason_base r of Some why \<Rightarrow> Some why
+     | None \<Rightarrow> (if physical_domain r then None else Some R_physical_domain))"
 
 theorem reason_of_exact: "reason_of r \<noteq> None \<longleftrightarrow> impossible r"
-  by (cases r) (auto split: if_splits)
+  using reason_base_exact[of r]
+  by (auto simp: reason_of_def split: option.splits)
 
 definition decline_of :: "request \<Rightarrow> decline option" where
   "decline_of r = (case missing r of
@@ -1203,6 +1284,7 @@ fun reason_text :: "reason \<Rightarrow> String.literal" where
 | "reason_text R_zero_diameter = STR ''A pulley needs a diameter above zero.''"
 | "reason_text R_zero_strands = STR ''A pulley system needs supporting strands.''"
 | "reason_text R_zero_arm = STR ''A lever arm must be above zero.''"
+| "reason_text R_physical_domain = STR ''The stated magnitudes or event counts are outside the physical domain of this calculation.''"
 | "reason_text R_ramp = STR ''A ramp can'' + apos + STR ''t rise more than its own length.''"
 | "reason_text R_zero_attempts = STR ''A passer rating needs at least one attempt.''"
 | "reason_text R_zero_shooting = STR ''True shooting needs at least one shot attempt.''"
@@ -1212,7 +1294,8 @@ fun reason_text :: "reason \<Rightarrow> String.literal" where
 | "reason_text R_zero_games = STR ''A winning percentage needs at least one game.''"
 | "reason_text R_friction = STR ''A friction coefficient must be above zero.''"
 | "reason_text R_zero_economy = STR ''A fuel economy must be above zero.''"
-| "reason_text R_zero_distance = STR ''A trip distance must be above zero.''"
+| "reason_text R_zero_obp_chances = STR ''On-base percentage needs at least one at-bat, walk, hit-by-pitch, or sacrifice fly.''"
+| "reason_text R_negative_gravity = STR ''A gravity magnitude cannot be negative.''"
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of
@@ -1277,6 +1360,15 @@ theorem reply_states_exact:
 theorem reply_states_approx:
   "kernel r = Approx k d \<Longrightarrow> stated (reply_of r) = Some (render_dec 4 d)"
   by (simp add: reply_of_def)
+
+theorem answered_physical_domain:
+  assumes "answered (reply_of r)"
+  shows "physical_domain r"
+proof -
+  have "decline_of r = None"
+    using assms by (auto simp: reply_of_def kernel_def split: option.splits outcome.splits)
+  then show ?thesis using decline_none by auto
+qed
 
 text \<open>A withheld reply names the kernel's decline.\<close>
 theorem reply_withheld_names_decline:
@@ -1426,7 +1518,7 @@ subsection \<open>Bodies\<close>
 
 theorem body_weight:
   assumes "kernel (BdWeight g (Some m)) = Exact c y"
-  shows "c = K_weight \<and> 0 < g_of g \<and> y = m * g_of g"
+  shows "c = K_weight \<and> 0 \<le> g_of g \<and> 0 \<le> m \<and> y = m * g_of g"
   using exact_facts[OF assms] by simp
 
 theorem body_fall_model:
@@ -1539,6 +1631,29 @@ proof -
   show ?thesis using f d by blast
 qed
 
+text \<open>These are the exact length conversions consumed by the recognizer;
+the response is bound to both original magnitudes and their declared units.\<close>
+theorem lever_units:
+  assumes "kernel (McLeverMA (length_m e eu) (length_m l lu)) = Exact c y"
+  shows "c = K_lever_ma \<and> 0 < e \<and> 0 < l \<and>
+    y * (l * len_scale lu) = e * len_scale eu"
+proof -
+  have domain: "0 < e" "0 < l" using exact_facts[OF assms] by auto
+  show ?thesis using domain lever_ma_def[OF assms] by (simp add: length_m_def)
+qed
+
+theorem lever_effort_units:
+  assumes "kernel (McLeverEffort (length_m e eu) (length_m l lu) (Some ld)) = Exact c y"
+  shows "c = K_lever_effort \<and> 0 < e \<and> 0 < l \<and> 0 \<le> fst ld \<and>
+    y * (e * len_scale eu) = load_n ld * (l * len_scale lu)"
+proof -
+  have good: "physical_domain (McLeverEffort (length_m e eu) (length_m l lu) (Some ld))"
+    using exact_facts[OF assms] by auto
+  have domain: "0 < e \<and> 0 < l \<and> 0 \<le> fst ld"
+    using good by (cases ld) auto
+  show ?thesis using domain lever_effort_def[OF assms] by (simp add: length_m_def)
+qed
+
 theorem incline_ma_def:
   assumes "kernel (McInclineMA l h) = Exact c y"
   shows "c = K_incline_ma \<and> 0 < h \<and> h \<le> l \<and> y * h = l"
@@ -1644,8 +1759,15 @@ qed
 
 theorem on_base_def:
   assumes "kernel (SpObp h bb hbp sf ab) = Exact c y"
-  shows "c = K_obp \<and> 0 < ab \<and> y = (h + bb + hbp) / (ab + bb + hbp + sf)"
-  using exact_facts[OF assms] by simp
+  shows "c = K_obp \<and> 0 < ab + bb + hbp + sf \<and>
+    y * (ab + bb + hbp + sf) = h + bb + hbp"
+proof -
+  have f: "c = K_obp" "0 < ab + bb + hbp + sf"
+    "y = (h + bb + hbp) / (ab + bb + hbp + sf)"
+    using exact_facts[OF assms] by simp_all
+  have nz: "ab + bb + hbp + sf \<noteq> 0" using f(2) by auto
+  show ?thesis using f div_mul[OF nz f(3)] by blast
+qed
 
 theorem slugging_def:
   assumes "kernel (SpSlg s1 h s2 s3 hr ab) = Exact c y"
@@ -1733,7 +1855,7 @@ theorem trip_co2_def:
 
 theorem trip_cost_def:
   assumes "kernel (FvCost d du ec (Some pr)) = Exact c y"
-  shows "c = K_trip_cost \<and> \<not> econ_zero ec \<and> d \<noteq> 0 \<and> y = price_cost (gallons_of d du ec) pr"
+  shows "c = K_trip_cost \<and> \<not> econ_zero ec \<and> 0 \<le> d \<and> y = price_cost (gallons_of d du ec) pr"
   using exact_facts[OF assms] by simp
 
 theorem trip_litres_def:
@@ -1779,6 +1901,6 @@ qed
 
 theorem submerged_sinks:
   "kernel (FsSubmerged s f) = Sinks \<longleftrightarrow> fluid_density f \<le> solid_density s"
-  by (simp add: kernel_def decline_of_def answer_of_def split: if_splits)
+  by (simp add: kernel_def decline_of_def reason_of_def answer_of_def split: if_splits)
 
 end

@@ -10,6 +10,9 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
      kernel (PhKE (Some 5) (Some 2)) = Exact K_ke 10 \<and>
+     kernel (SpObp 0 1 0 0 0) = Exact K_obp 1 \<and>
+     kernel (FvCost 0 DU_mi (E_mpg False 30) (Some (389 / 100, True))) = Exact K_trip_cost 0 \<and>
+     kernel (BdWeight (G_stated 0) (Some 4)) = Exact K_weight 0 \<and>
      kernel (PhFinalV (Some (3 / 2)) (Some 5) None True) = Exact K_final_velocity (15 / 2) \<and>
      kernel (PhFinalV (Some 2) (Some 3) None False) = Decline (Underspecified N_start_speed) \<and>
      kernel (PhPower 1 0) = Decline (Impossible R_zero_time) \<and>
@@ -43,10 +46,10 @@ definition self_test :: bool where
      response (reply_of (PhKE (Some 5) (Some 2))) =
        STR ''The kinetic energy is 10 J (KE = 1/2 m v^2 = 1/2 x 5 x 2^2).''"
 
-export_code reply_of answered reply_kind response stated mk_rat
+export_code reply_of answered reply_kind response stated mk_rat length_m
   integer_of_int nat_of_integer int_of_integer
   fluid_order solid_order body_order
-  SU_kmh SU_mph SU_ms LU_m LU_cm LU_mm VU_m3 VU_l VU_cm3 DU_mi DU_km LD_n LD_kg
+  SU_kmh SU_mph SU_ms LU_m LU_cm LU_mm LU_ft LU_in VU_m3 VU_l VU_cm3 DU_mi DU_km LD_n LD_kg
   E_mpg E_lpk G_body G_stated
   PhRange PhImpact PhFall PhKE PhPE PhMomentum PhWeight PhForce PhWork PhPower PhFinalV
   PhDistance BdWeight BdFall BdImpact BdPendulum BdUnreadable
@@ -77,6 +80,7 @@ ML \<open>
     @{thm gauge_pressure}, @{thm absolute_pressure}, @{thm buoyant_force},
     @{thm submerged_fraction}, @{thm submerged_sinks},
     @{thm kinetic_energy_momentum}, @{thm drop_energy_conserved}, @{thm stopping_is_reaction_plus_braking},
+    @{thm answered_physical_domain}, @{thm lever_units}, @{thm lever_effort_units},
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_states_approx},
     @{thm reply_withheld_names_decline}];
   val oracles = Thm_Deps.all_oracles theorems;

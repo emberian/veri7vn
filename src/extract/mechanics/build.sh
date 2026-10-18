@@ -47,9 +47,11 @@ cat > "$OUT/build/mechanics.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 mechanics_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/mechanics" "$OUT/build/mechanics.mlb"
+python3 "$REPO/tools/dev/native-compile" --family mechanics --compiler "$MLTON" -- \
+  -output "$OUT/bin/mechanics" "$OUT/build/mechanics.mlb"
 ls -l "$OUT/bin/mechanics"
-shasum -a 256 "$OUT/build/mechanics_generated.sml" "$OUT/bin/mechanics"
+shasum -a 256 "$OUT/bin/mechanics"
