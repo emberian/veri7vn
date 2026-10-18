@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""UNTRUSTED default-consumer regression checks, including one known open gap.
+"""UNTRUSTED default-consumer regression checks for physical and signed lengths.
 
-Exit 1 while physical fabric rejection loses to generic signed conversion.
+Exit 1 if physical fabric rejection loses to generic signed conversion.
 These are scoped consumer observations, not shipped specialist panel scores.
 """
 import argparse
@@ -19,15 +19,23 @@ CASES = [
     # Signed algebraic conversion is valid without a physical length claim.
     ("How many yards is -0.25 inches?", -1 / 144),
 ]
+for material in ("fabric", "cloth", "ribbon", "yarn", "material"):
+    for length in (-2, 2):
+        CASES.append((f"How many yards is {length} cm of {material}?",
+                      None if length < 0 else length / 91.44))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--arb", type=Path, help="test a candidate arbitration binary")
     args = parser.parse_args()
     payload = "".join(json.dumps({"id": i, "q": q, "session": "trades-composition-" + str(i)}) + "\n"
                       for i, (q, _) in enumerate(CASES))
-    result = subprocess.run([sys.executable, "-B", str(ROOT / "tools/dispatch/dispatch.py")],
+    command = [sys.executable, "-B", str(ROOT / "tools/dispatch/dispatch.py")]
+    if args.arb:
+        command += ["--arb", str(args.arb.resolve())]
+    result = subprocess.run(command,
                             input=payload, text=True, capture_output=True, check=True, timeout=90)
     replies = [json.loads(line) for line in result.stdout.splitlines()]
     assert len(replies) == len(CASES)
@@ -40,7 +48,7 @@ def main():
             and math.isclose(value, expected, rel_tol=0.00051, abs_tol=1e-12))
         rows.append(dict(question=q, expected=expected, reply=reply, passed=passed))
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps({"scope": "four actual default consumer checks", "cases": rows}, indent=2) + "\n")
+    args.out.write_text(json.dumps({"scope": "fourteen actual default consumer checks", "cases": rows}, indent=2) + "\n")
     print(f"{sum(row['passed'] for row in rows)}/{len(rows)} default consumer checks pass")
     return int(not all(row["passed"] for row in rows))
 

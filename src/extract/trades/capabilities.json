@@ -14,7 +14,8 @@
       },
       "context_regex_additions": [
         "\\b(?:rows|row count)\\b",
-        "\\brgb\\b|\\b(?:digital|additive)\\s+(?:colou?r|light)\\b"
+        "\\brgb\\b|\\b(?:digital|additive)\\s+(?:colou?r|light)\\b",
+        "\\b(?:fabric|cloth|ribbon|yarn|material)\\b"
       ],
       "evidence": {
         "computation": "For row-gauge requests, rows equal gauge row count divided by gauge span, times target length after inch/cm conversion, rounded to the nearest integer with ties to even. The kernel refuses a nonpositive gauge span or negative row count or length. Other crafts requests retain their own named convention. Quilt blocks use exact rational floor in both dimensions, so each count fits and one additional block in that direction does not. Named full digital RGB channels combine by channel union; every returned channel occurs in an input and every input channel is retained. Continuous fabric length converts exactly to yards without whole-yard purchase rounding.",

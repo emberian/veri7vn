@@ -1020,6 +1020,18 @@ SELFTEST = [
     dict(g=0, cands=[dict(ix=0, declined=0, checked=0, dep=0, assumed=0, wording=(0, 0), ctx=0, val=100.0),
                      dict(ix=1, declined=0, checked=0, dep=0, assumed=0, wording=(0, 0), ctx=0, val=100.8)],
          want="DISAGREE 0 1"),                               # tied, answers, values differ by > 0.5%
+    dict(g=1, cands=[dict(ix=0, declined=0, checked=0, dep=1, assumed=0, wording=(0, 0), ctx=1, val=-1.0),
+                     dict(ix=1, declined=1, checked=1, dep=1, assumed=0, wording=(0, 0), ctx=1, val=None)],
+         want="PICK 1"),                                     # contextual physical refusal wins an otherwise equal generic answer
+    dict(g=1, cands=[dict(ix=0, declined=1, checked=1, dep=1, assumed=0, wording=(0, 0), ctx=1, val=None),
+                     dict(ix=1, declined=0, checked=0, dep=1, assumed=0, wording=(0, 0), ctx=1, val=-1.0)],
+         want="PICK 0"),                                     # the same preference is independent of registration order
+    dict(g=1, cands=[dict(ix=0, declined=0, checked=0, dep=1, assumed=0, wording=(0, 0), ctx=1, val=-1.0),
+                     dict(ix=1, declined=1, checked=0, dep=1, assumed=0, wording=(0, 0), ctx=1, val=None)],
+         want="PICK 0"),                                     # an unchecked refusal gains no new preference
+    dict(g=1, cands=[dict(ix=0, declined=0, checked=0, dep=1, assumed=0, wording=(0, 0), ctx=1, val=-1.0),
+                     dict(ix=1, declined=1, checked=1, dep=1, assumed=0, wording=(0, 0), ctx=0, val=None)],
+         want="PICK 0"),                                     # an unrelated refusal cannot use the contextual tie preference
     dict(g=0, cands=[], want="FALLTHROUGH"),
 ]
 

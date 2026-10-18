@@ -3,11 +3,15 @@
 # arbitration (Veri7vn_Gate, from src/isabelle/specialists, session
 # Veri7vn_Specialists) plus tools/dispatch/arb_driver.sml.
 #
-# The export is looked for in this worktree first (var/dispatch/export-remote/,
+# Native compilation freezes inputs and validates a matching managed proof.
+# PROOF_RECEIPT selects an explicit successful receipt. ARB_OUTPUT may
+# select a candidate path without replacing the active dispatcher binary.
+# The export is looked for in this worktree first (var/specialists/export-remote/,
 # filled by tools/dev/remote-build), then in the main checkout's
 # var/gate/export/ (lane C's build of the same committed sources).
-set -e
+set -eu
 cd "$(dirname "$0")/../.."
+: "${PROOF_RECEIPT:?set PROOF_RECEIPT to the successful managed Specialists receipt}"
 MLTON=$(ls /Applications/Isabelle2026-RC1.app/contrib/mlton-*/*/bin/mlton | head -1)
 SRC=""
 for CAND in var/specialists/export-remote/Veri7vn_Specialists/Veri7vn_Specialists.Gate_Export/code/veri7vn_gate.ML \
@@ -18,8 +22,9 @@ done
 echo "export: $SRC"
 mkdir -p var/dispatch/build var/dispatch/bin
 cp "$SRC" var/dispatch/build/veri7vn_gate.sml
-cp tools/dispatch/arb_driver.sml var/dispatch/build/arb_driver.sml
-printf '%s\n' '$(SML_LIB)/basis/basis.mlb' veri7vn_gate.sml arb_driver.sml > var/dispatch/build/arb_check.mlb
-"$MLTON" -output var/dispatch/bin/arb_check var/dispatch/build/arb_check.mlb
-echo "compiled: var/dispatch/bin/arb_check"
-shasum -a 256 "$SRC" var/dispatch/bin/arb_check
+printf '%s\n' '$(SML_LIB)/basis/basis.mlb' veri7vn_gate.sml "$PWD/tools/dispatch/arb_driver.sml" > var/dispatch/build/arb_check.mlb
+set -- tools/dev/native-compile --family arbitration --session Veri7vn_Specialists --compiler "$MLTON" --from-receipt "$PROOF_RECEIPT"
+OUT=${ARB_OUTPUT:-var/dispatch/bin/arb_check}
+python3 "$@" -- -output "$OUT" var/dispatch/build/arb_check.mlb
+echo "compiled: $OUT"
+shasum -a 256 "$SRC" "$OUT"

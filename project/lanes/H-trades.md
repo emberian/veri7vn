@@ -126,3 +126,15 @@ Evidence, consumer hashes and exact source ancestry are in
 `var/root-trades-h/integration.json`. Linux comparison and scoped portable
 packaging remain outstanding. The selected144-specialist delivery is unchanged.
 No native/proof job or implementation deputy remains from this integration.
+
+
+## Default composition repair landed afterward
+
+The negative-fabric default failure above is now repaired by the checked
+contextual refusal tie preference and complete Crafts material context metadata.
+See `K-runtime-domain-tie.md` for the actual candidate readings, new proof and
+composition checks. The expanded default panel passes24/24, and the permanent
+14-case composition regression passes against the live dispatcher. The updated
+metadata/source capture for future Trades portability work is
+`var/root-physical-arbitration/prepared/trades`; the earlier capture remains
+historical. The Trades native and its357/357 shipped result are unchanged.

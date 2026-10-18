@@ -113,8 +113,9 @@ centimetres and metres are supported, including exact fractions and small
 positive lengths. Negative lengths are refused. Width, area, waste allowances
 and strip layouts are not represented by this length-only calculation.
 
-The isolated Crafts reader refuses negative fabric lengths. The full default
-system currently can select a generic signed unit conversion instead; this
-composition gap is tracked by `check_composition.py`, which presently passes
-three of four checks and exits with failure. Signed conversion alone remains
-valid; the missing distinction is the physical fabric constraint.
+The Crafts reader refuses negative fabric lengths. In the default veri7vn
+dispatcher, a checked contextual refusal now wins an otherwise equal ranking
+against a generic conversion. `check_composition.py` covers positive and negative
+fabric, cloth, ribbon, yarn and material, and preserves plain signed conversion.
+Its fourteen current default-consumer checks pass. This is a preference on equal
+scores, not a general proof that every competing model has the right context.

@@ -8,7 +8,11 @@ text \<open>
   Source: \<^verbatim>\<open>upstream/root/specialists/_gate/combo_runtime_v1.py\<close>, \<^verbatim>\<open>Combo._arbitrate\<close>
   (lines 286-314) and the head fall-through in \<^verbatim>\<open>compose\<close> (lines 433-445).
 
-  The code, not the docstring, is modelled.  The ranking key of a reply is the tuple
+  The original code, not its docstring, supplied the first five ranking fields.
+  The current rule adds a final preference for a checked contextual refusal
+  when those fields tie. A physical-domain rejection must not lose an otherwise
+  equal contest against a generic conversion merely because it registered later.
+  The ranking key of a reply starts with the tuple
   \<open>(dependence, not invented, wording, vocabulary)\<close> compared lexicographically, with pick order as the
   last tie-break.  Docstring criterion (c), the checked in-domain decline, is folded into the
   dependence count exactly as the code does it: a checked decline counts as depending on all givens.
@@ -45,7 +49,8 @@ definition invented :: "nat \<Rightarrow> ('v, 'r) cand \<Rightarrow> bool" wher
 
 text \<open>The ranking key on criteria a-d, compared lexicographically, larger is better.\<close>
 definition key :: "nat \<Rightarrow> ('v, 'r) cand \<Rightarrow> nat list" where
-  "key g c = [dep g c, of_bool (\<not> invented g c), fst (wording c), snd (wording c), of_bool (ctx_ask c)]"
+  "key g c = [dep g c, of_bool (\<not> invented g c), fst (wording c), snd (wording c), of_bool (ctx_ask c),
+    of_bool (declined c \<and> checked c \<and> ctx_ask c)]"
 
 text \<open>Python's \<^verbatim>\<open>_same_value\<close> on optional values: two missing values agree, one missing never does.\<close>
 fun same_opt :: "('v \<Rightarrow> 'v \<Rightarrow> bool) \<Rightarrow> 'v option \<Rightarrow> 'v option \<Rightarrow> bool" where
@@ -97,6 +102,19 @@ definition arbitrate :: "('v \<Rightarrow> 'v \<Rightarrow> bool) \<Rightarrow> 
       else (let i = best_ix g cs; j = second_ix g cs i; a = cs ! i; b = cs ! j in
             if key g a = key g b \<and> \<not> declined a \<and> \<not> declined b \<and> \<not> same_opt same (val a) (val b)
             then Disagree a b else Pick a))"
+
+text \<open>With equal dependence, assumption, wording and contextual readings,
+  a checked refusal wins in either input order. These readings are premises;
+  this theorem does not certify the English reader's domain classification.\<close>
+theorem checked_context_refusal_wins_tie:
+  "arbitrate same g [Cand False False g False (wn,wa) True v a,
+      Cand True True 0 False (wn,wa) True None r] =
+    Pick (Cand True True 0 False (wn,wa) True None r)"
+  "arbitrate same g [Cand True True 0 False (wn,wa) True None r,
+      Cand False False g False (wn,wa) True v a] =
+    Pick (Cand True True 0 False (wn,wa) True None r)"
+  by (simp_all add: arbitrate_def agree_shortcut_def best_ix_def second_ix_def
+      argmax_ix_def key_def dep_def invented_def Let_def)
 
 text \<open>The combo in front of the head: the picked reply, both replies labelled on disagreement, and
   the head's own reply, unchanged, when no organ took the turn.\<close>

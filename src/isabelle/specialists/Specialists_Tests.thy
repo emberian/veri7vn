@@ -123,6 +123,7 @@ text \<open>Session check: every theorem of the session, and the example lemmas 
 
 ML \<open>
   val theorems = [
+    ("checked_context_refusal_wins_tie", @{thms checked_context_refusal_wins_tie}),
     ("arbitrate_fallthrough", @{thms arbitrate_fallthrough}),
     ("arbitrate_never_picks_disagreement", @{thms arbitrate_never_picks_disagreement}),
     ("arbitrate_disagree_sound", @{thms arbitrate_disagree_sound}),

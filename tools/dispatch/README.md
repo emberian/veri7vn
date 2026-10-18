@@ -54,6 +54,12 @@ starting programs to guess which flags they accept.
 
 An accepted reply selected by the extracted arbitration ends the turn. This
 includes an in-domain refusal. A reply whose `taken` flag is false falls through.
+When all existing ranking scores tie, a checked refusal with matching question
+context now outranks an answer before registration order is considered. This
+keeps a physical negative-fabric refusal from losing to a generic signed unit
+conversion. It does not change the existing agreement shortcut or certify the
+untrusted context/checked readings. Plain signed conversion remains valid when
+no competing physical refusal is present.
 An explicit `--specialist ID` pin supplies domain context for that ID's declared
 decline kinds only when the reply is a nonanswer. A family filter (`--organs`)
 does not. The reply must still be
@@ -62,6 +68,12 @@ remain rejected. Meaningful clarification text is retained as a terminal nonansw
 The distinction deliberately repairs the old dispatcher, which could replace a
 correct refusal with an answer from a later route. A stage failure is reported
 as a withheld error, not treated as evidence that the question was unrecognized.
+
+Build arbitration with `PROOF_RECEIPT=/absolute/path/to/receipt.json sh
+tools/dispatch/build_arb.sh` after the managed Specialists proof passes. The
+native driver holds the compiler lock and binds the actual generated export
+and driver source. Set `ARB_OUTPUT` to test a candidate without replacing the
+active binary; use `dispatch.py --arb PATH --selftest` to check its protocol.
 
 After specialists and network come any registered arithmetic/algebra and word
 problem stages, the general relation reader, and the document adapter. Captured
