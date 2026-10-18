@@ -135,7 +135,7 @@ struct
           let
             val ips = map (fn m => (g1 t m, startOf m)) (findall IPRE t)
           in
-            if null ips andalso not (has "(?<![\\w.])/\\d{1,2}\\b|\\bprefix(?: length)?\\s*(?:of\\s*)?/?\\d{1,2}\\b|\\bcidr\\b|\\bsubnet" low) then NONE
+            if null ips andalso not (has "(?<![\\w.])/\\d{1,2}\\b|\\bprefix(?: length)?\\s*(?:of\\s*)?/?\\d{1,2}\\b|\\bcidr\\b|\\bsubnet|\\b(?:smallest|which|what) (?:subnet|prefix)\\b" low) then NONE
             else
               let
                 val maskIps = List.filter (fn (s, a) =>
@@ -333,7 +333,7 @@ struct
                   fin (C.CBase64 (natS (g1 low (valOf b6))))
                 else
                   let val lm = search "\\b(\\d{1,3})[- ](?:character|char|digit|letter)\\b|\\blength (?:of )?(\\d{1,3})\\b|\\b(\\d{1,3}) characters? long\\b" low in
-                    if isSome lm andalso has "\\bpassword\\b|\\bpassphrase\\b|\\bpin\\b|\\bkey\\b|\\bcode\\b" low then
+                    if isSome lm andalso has "\\bpasswords?\\b|\\bpassphrases?\\b|\\bpins?\\b|\\bkeys?\\b|\\bcodes?\\b" low then
                       let
                         val L = natS (valOf (gOpt low (valOf lm) [1, 2, 3]))
                         val sm = search "\\b(?:set|alphabet|character set|charset) of (\\d+)\\b|\\b(\\d+)[- ](?:symbol|character) (?:set|alphabet)\\b" low
@@ -550,17 +550,18 @@ struct
     ("\\bdelete\\b.*\\bremote branch\\b|\\bremove\\b.*\\bbranch\\b.*\\bremote\\b", C.G_del_remote),
     ("\\bdelete\\b.*\\b(?:local )?branch\\b", C.G_del_local),
     ("\\b(?:list|show|see)\\b.*\\bremotes?\\b|\\bremote urls?\\b", C.G_remotes),
-    ("\\bstash\\b.*\\b(?:apply|restore|bring back|pop)\\b|\\b(?:apply|restore|bring back)\\b.*\\bstash\\w*\\b", C.G_stash_pop),
-    ("\\bstash\\b|\\bsave\\b.*\\bchanges\\b.*\\bwithout committing\\b|\\bset aside\\b.*\\bchanges\\b", C.G_stash),
+    ("\\b(?:list|show|see)(?:s|ing)?\\b.*\\bstash(?:es)?\\b", C.G_stash_list),
+    ("\\bstash\\b.*\\b(?:appl(?:y|ies|ied|ying)|restor(?:e|es|ed|ing)|bring(?:s|ing)? back|pop(?:s|ped|ping)?)\\b|\\b(?:appl(?:y|ies|ied|ying)|restor(?:e|es|ed|ing)|bring(?:s|ing)? back)\\b.*\\bstash\\w*\\b", C.G_stash_pop),
+    ("\\bstash(?:es|ing)? (?:my|your|the|all|these|our|uncommitted|changes)\\b|\\bsave\\b.*\\bchanges\\b.*\\bwithout committing\\b|\\bset aside\\b.*\\bchanges\\b", C.G_stash),
     ("\\bstaged (?:changes|diff)\\b|\\bdiff\\b.*\\bstaged\\b|\\bwhat (?:is|i'?ve) staged\\b", C.G_diff_staged),
-    ("\\bcommit history\\b|\\bsee (?:the )?history\\b|\\blist (?:of )?commits\\b|\\bshow (?:the )?log\\b", C.G_log),
+    ("\\bcommit history\\b|\\bsee (?:the )?history\\b|\\blist (?:of )?commits\\b|\\bshow(?:s|ing)? (?:the )?log\\b", C.G_log),
     ("\\bclone\\b", C.G_clone),
     ("\\binitiali[sz]e\\b.*\\brepo\\w*\\b|\\bstart a new (?:git )?repo\\w*\\b|\\bcreate a (?:new )?(?:git )?repo\\w*\\b", C.G_init),
     ("\\bset\\b.*\\b(?:user ?name|name)\\b.*\\bgit\\b|\\bconfigure\\b.*\\bname\\b", C.G_config_name),
     ("\\bcurrent status\\b|\\bwhich files (?:have )?changed\\b|\\bsee\\b.*\\bchanged files\\b", C.G_status),
     ("\\bfetch\\b.*\\bwithout merging\\b|\\bdownload\\b.*\\bwithout merging\\b", C.G_fetch),
     ("\\bpull\\b.*\\brebase\\b", C.G_pull_rebase),
-    ("\\bcherry[- ]pick\\b|\\bapply a (?:single|specific) commit\\b|\\bcopy a commit\\b", C.G_cherry_pick),
+    ("\\bcherry[- ]pick(?:s|ed|ing)?\\b|\\bapply a (?:single|specific) commit\\b|\\bcopy a commit\\b", C.G_cherry_pick),
     ("\\bannotated tag\\b", C.G_tag_a),
     ("\\bwho (?:changed|wrote|last modified)\\b.*\\bline\\b|\\bblame\\b", C.G_blame),
     ("\\bundo\\b.*\\bpushed commit\\b|\\bnew commit that undoes\\b|\\breverse a commit\\b|\\brevert a commit\\b", C.G_revert)]
@@ -572,7 +573,10 @@ struct
         if not (has "\\bgit\\b|\\bcommit\\w*\\b|\\bbranch\\w*\\b|\\brepo\\w*\\b|\\bstash\\w*\\b|\\bstag(?:e|ed|ing)\\b" low) then NONE
         else if not (has "\\bhow\\b|\\bwhat (?:command|git command)\\b|\\bwhich command\\b|\\bcommand\\b" low) then NONE
         else case List.find (fn (p, _) => has p low) gitIntents of
-               SOME (_, i) => SOME (C.git_reply i)
+               SOME (_, C.G_stash_pop) =>
+                 SOME (C.git_reply (if has "\\b(?:keep|retain|preserve)\\b|\\bwithout (?:dropping|removing|deleting)\\b" low
+                                      then C.G_stash_apply else C.G_stash_pop))
+             | SOME (_, i) => SOME (C.git_reply i)
              | NONE => NONE
       end
 
@@ -613,7 +617,11 @@ struct
           val c5 = map (fn m => g1 t m)
                      (findallCS "\\b(?:of|does|is|for|provides)\\s+`?([A-Za-z_][A-Za-z0-9_]*)`?\\b" t
                         (fn m => isLowerSpan (String.substring (t, #start m, #1 (valOf (Vector.sub (#groups m, 1))) - #start m))))
-          val cands = map rstripDot (c1 @ c2 @ c3 @ c4 @ c5)
+          (* A bare name after "explain what" is a reference request too. Keep
+             original case and leave unknown/ambiguous resolution to the kernel. *)
+          val c6 = csFind "\\b(?:explain|describe) what ([A-Za-z_][A-Za-z0-9_]*) (?:does|returns)\\b"
+          val c7 = csFind "\\bpython(?:'s|\226\128\153s)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+take\\b"
+          val cands = map rstripDot (c1 @ c2 @ c3 @ c4 @ c5 @ c6 @ c7)
           val pcs = map (fn c => C.PyCand (c, rpartition c, size c > 2)) cands
           val q = if has MODRE low then C.PQ_module else if has SIGRE low then C.PQ_signature else C.PQ_doc
           val r = C.py_reply q pcs
@@ -657,8 +665,6 @@ struct
           | NONE => NONE))
 
   fun robotics text =
-    if Narrow.narrative text then NONE
-    else
       let
         val t = collapse text
         val low = lower t
@@ -666,7 +672,12 @@ struct
         val diff = has "\\bleft\\b" low andalso has "\\bright\\b" low andalso length (findall "m\\s*/\\s*s" low) >= 2
                    andalso has "\\bwheels?\\b|\\brobot\\b|\\bdifferential\\b|\\brover\\b" low
       in
-        if diff then
+        (* The three-sentence wheel-speed form is still a single fully
+           parameterized request. Long/relational stories remain outside it. *)
+        if Narrow.narrative text andalso not
+            (diff andalso Narrow.sentences text <= 3 andalso Narrow.words text <= 40
+             andalso not (has Narrow.RELATION low orelse has Narrow.RATE low)) then NONE
+        else if diff then
           let
             val wantR = has "\\bturning radius\\b|\\bradius of (?:the |its )?turn\\b|\\bturn radius\\b" low
             val wantW = has "\\byaw\\b|\\bangular\\b|\\bturn(?:ing)? rate\\b|\\brotation rate\\b|\\brate of (?:turn|rotation)\\b|\\brad\\s*/\\s*s\\b" low

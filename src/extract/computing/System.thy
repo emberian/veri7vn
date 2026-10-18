@@ -385,13 +385,13 @@ section \<open>Git\<close>
 
 datatype gintent =
     G_reset_soft | G_reset_hard | G_amend | G_switch_c | G_switch | G_unstage | G_restore | G_add_all
-  | G_rename | G_del_remote | G_del_local | G_remotes | G_stash_pop | G_stash | G_diff_staged | G_log
+  | G_rename | G_del_remote | G_del_local | G_remotes | G_stash_pop | G_stash_apply | G_stash_list | G_stash | G_diff_staged | G_log
   | G_clone | G_init | G_config_name | G_status | G_fetch | G_pull_rebase | G_cherry_pick | G_tag_a
   | G_blame | G_revert
 
 definition all_intents :: "gintent list" where
   "all_intents = [G_reset_soft, G_reset_hard, G_amend, G_switch_c, G_switch, G_unstage, G_restore, G_add_all,
-    G_rename, G_del_remote, G_del_local, G_remotes, G_stash_pop, G_stash, G_diff_staged, G_log,
+    G_rename, G_del_remote, G_del_local, G_remotes, G_stash_pop, G_stash_apply, G_stash_list, G_stash, G_diff_staged, G_log,
     G_clone, G_init, G_config_name, G_status, G_fetch, G_pull_rebase, G_cherry_pick, G_tag_a, G_blame, G_revert]"
 
 fun gcmd :: "gintent \<Rightarrow> String.literal" where
@@ -408,6 +408,8 @@ fun gcmd :: "gintent \<Rightarrow> String.literal" where
 | "gcmd G_del_local = STR ''git branch -d <name>''"
 | "gcmd G_remotes = STR ''git remote -v''"
 | "gcmd G_stash_pop = STR ''git stash pop''"
+| "gcmd G_stash_apply = STR ''git stash apply''"
+| "gcmd G_stash_list = STR ''git stash list''"
 | "gcmd G_stash = STR ''git stash''"
 | "gcmd G_diff_staged = STR ''git diff --staged''"
 | "gcmd G_log = STR ''git log''"
@@ -439,6 +441,8 @@ fun gbody :: "gintent \<Rightarrow> String.literal" where
 | "gbody G_del_local = STR ''deletes a merged local branch (-D forces an unmerged one)''"
 | "gbody G_remotes = STR ''lists the remotes and their URLs''"
 | "gbody G_stash_pop = STR ''re-applies the latest stash and drops it''"
+| "gbody G_stash_apply = STR ''re-applies the latest stash and keeps it in the stash list''"
+| "gbody G_stash_list = STR ''lists the saved stashes without changing the working tree''"
 | "gbody G_stash = STR ''saves uncommitted changes and cleans the working tree''"
 | "gbody G_diff_staged = STR ''shows what is staged for the next commit''"
 | "gbody G_log = STR ''shows the commit history (git log --oneline for one line each)''"

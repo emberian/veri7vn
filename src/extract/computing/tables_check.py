@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Transcription check for the computing family's tables (lane S15-computing).
+"""Untrusted transcription check for the computing family's tables.
 
 Compares the HOL text (Networking.thy, System.thy, Numerics.thy, Pyref_Table.thy) and the
 recognizer's tables with the shipped organ files, read-only (no bytecode written):
   networking : RFC 1918 blocks, loopback / link-local / CGNAT numbers, mask and size formulas for /0../32
   cyber      : character set sizes and labels, digest bit sizes, duration unit seconds
   linux-v2   : the 21-entry signal table, cron field ranges
-  git        : the 26 intents: pattern order, command and note text
+  git        : original intent order/commands/notes, unchanged patterns and explicit stash extensions
   python     : Pyref_Table.thy regenerates exactly from pyref_v1.json; python and python-r2 ship the same file
   robotics   : (no tables)
 Exit 1 on any mismatch.   python3 src/extract/computing/tables_check.py
@@ -108,19 +108,40 @@ hol_body = dict(re.findall(r'"gbody (G_\w+) = (.*)"', S))
 hol_warn = set(re.findall(r'"gwarn (G_\w+) = True"', S))
 sml_int = re.search(r"val gitIntents = \[(.*?)\]\n\n  fun git ", rec, re.S).group(1)
 sml_pats = re.findall(r'\("((?:[^"\\]|\\.)*)", C\.(G_\w+)\)', sml_int)
-ok_pat = len(sml_pats) == len(gi.INTENTS) == len(hol_cmd)
-detail = ""
-for (pat, ctor), (rx, cmd, note), (hc, hexpr) in zip(sml_pats, gi.INTENTS, hol_cmd):
-    unesc = pat.replace("\\\\", "\\")
-    if unesc != rx:
-        ok_pat = False; detail += " pattern %s" % ctor
-    if hc != ctor or hol_str(hexpr) != cmd:
-        ok_pat = False; detail += " command %s" % ctor
-    body = hol_str(hol_body[ctor])
+# Beyond parity intentionally changes four recognition patterns. Keep checking
+# every original command/note/warning and unchanged pattern against the organ;
+# recognition behavior for the changed patterns is exercised by probes.py.
+changed_patterns = {"G_stash_pop", "G_stash", "G_log", "G_cherry_pick"}
+extensions = {
+    "G_stash_apply": ("git stash apply", "re-applies the latest stash and keeps it in the stash list"),
+    "G_stash_list": ("git stash list", "lists the saved stashes without changing the working tree"),
+}
+commands = {ctor: hol_str(expr) for ctor, expr in hol_cmd}
+original = {cmd: (rx, note) for rx, cmd, note in gi.INTENTS}
+original_pattern_rows = [(pat, ctor) for pat, ctor in sml_pats if ctor != "G_stash_list"]
+check("git original intent order and complete extension inventory",
+      len(original) == len(gi.INTENTS) and
+      [commands.get(ctor) for _, ctor in original_pattern_rows] == [cmd for _, cmd, _ in gi.INTENTS] and
+      set(commands.values()) == set(original) | {cmd for cmd, _ in extensions.values()} and
+      len(commands) == len(original) + len(extensions) and
+      len(sml_pats) == len(gi.INTENTS) + 1 and
+      [ctor for _, ctor in sml_pats].count("G_stash_list") == 1)
+errors = []
+for pat, ctor in original_pattern_rows:
+    cmd = commands.get(ctor)
+    if cmd not in original:
+        errors.append("unknown command " + ctor)
+        continue
+    rx, note = original[cmd]
+    if ctor not in changed_patterns and pat.replace("\\\\", "\\") != rx:
+        errors.append("unexpected pattern change " + ctor)
     want = note[len("WARNING: "):] if note.startswith("WARNING: ") else note
-    if body != want or (ctor in hol_warn) != note.startswith("WARNING: "):
-        ok_pat = False; detail += " note %s" % ctor
-check("git intents: pattern order, command, note, warning flag", ok_pat, detail)
+    if hol_str(hol_body[ctor]) != want or (ctor in hol_warn) != note.startswith("WARNING: "):
+        errors.append("note/warning " + ctor)
+for ctor, (cmd, note) in extensions.items():
+    if commands.get(ctor) != cmd or hol_str(hol_body.get(ctor, "")) != note or ctor in hol_warn:
+        errors.append("extension " + ctor)
+check("git command/note/warning transcription and unchanged patterns", not errors, "; ".join(errors))
 
 # ---- python
 before = (HERE / "Pyref_Table.thy").read_text()

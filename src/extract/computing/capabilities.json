@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "family": "computing",
+  "specialists": {
+    "networking": {
+      "accept": {"kinds": [], "declines_in_domain": []},
+      "context_regex_additions": ["/\\s*\\d{1,2}\\b.*\\bnetworks?\\b|\\bnetworks?\\b.*/\\s*\\d{1,2}\\b"],
+      "evidence": {
+        "computation": "IPv4 prefix arithmetic checks address and prefix bounds before computing subnet counts; impossible containment is withheld.",
+        "assumptions": ["Recognized parent and child prefixes denote IPv4 blocks"],
+        "untrusted": ["Natural-language recognition and the direction of the requested subdivision"]
+      }
+    },
+    "linux-v2": {
+      "accept": {"kinds": [], "declines_in_domain": []},
+      "context_regex_additions": ["\\bmode\\s+(?:of\\s+)?\\d{3,4}\\b"],
+      "evidence": {
+        "computation": "File-mode conversion validates octal permission digits before converting them to symbolic permissions. Commands are never executed.",
+        "assumptions": ["The recognized mode refers to Unix file permissions"],
+        "untrusted": ["Natural-language recognition and mode extraction"]
+      }
+    },
+    "cyber": {
+      "accept": {"kinds": [], "declines_in_domain": ["impossible", "imprecise"]},
+      "context_regex_additions": ["\\bpasswords?\\b|\\bpassphrases?\\b|\\bpins?\\b|\\bkeys?\\b|\\bcodes?\\b"],
+      "evidence": {
+        "computation": "Exact combinatorial arithmetic; logarithmic entropy is enclosed by verified interval arithmetic. An imprecise result is withheld.",
+        "assumptions": ["Uniform independent characters drawn from the recognized character set", "Guess rate is a constant supplied by the question"],
+        "untrusted": ["Natural-language recognition and numeric parameter extraction", "The declared theorem scope is not a per-answer proof of the question's meaning"]
+      }
+    },
+    "robotics-v2": {
+      "accept": {"kinds": [], "declines_in_domain": ["imprecise"]},
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Differential-drive formulas use exact rational inputs; trigonometric and wheel-circumference results use verified enclosures.",
+        "assumptions": ["Ideal no-slip differential drive and the recognized wheel-speed, separation and unit conventions"],
+        "untrusted": ["Natural-language recognition and unit extraction"]
+      }
+    },
+    "git": {
+      "accept": {"kinds": [], "declines_in_domain": []},
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The checked intent table supplies a distinct canonical command, description and destructive-command warning. Commands are never executed.",
+        "assumptions": ["The selected intent expresses the user's requested action"],
+        "untrusted": ["Intent recognition", "The command reference descriptions; the theorems do not model Git repository transitions"]
+      }
+    },
+    "sql": {
+      "accept": {"kinds": [], "declines_in_domain": []},
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "A HOL SQL subset evaluates supplied CREATE/INSERT/SELECT tokens. SELECT DISTINCT is characterized by canonical SQL-value classes; grouped COUNT(*) counts the WHERE partition.",
+        "assumptions": ["The typed setup and query correspond to the user's text", "REAL arithmetic is exact rational arithmetic, which can differ from SQLite's binary floating point"],
+        "untrusted": ["Tokenization and extraction of setup/query text", "Full SQLite compatibility outside the proved subset", "Grouped SUM/AVG/MIN/MAX correspondence and stable ORDER BY remain outside these new end-to-end theorems"]
+      }
+    }
+  }
+}

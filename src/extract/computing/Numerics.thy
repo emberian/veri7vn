@@ -314,13 +314,13 @@ lemma interp_entropy:
   by (simp add: entropy_fa_def log_def divide_inverse mult_ac)
 
 definition cyb_entropy :: "cset \<Rightarrow> nat \<Rightarrow> (int \<times> int) option" where
-  "cyb_entropy cs L = enclose prec (entropy_fa cs L)"
+  "cyb_entropy cs L = enclose 120 (entropy_fa cs L)"
 
 theorem cyb_entropy_sound:
   assumes "cyb_entropy cs L = Some d"
   shows "\<bar>dec_val d - real L * log 2 (real (csize cs))\<bar> \<le>
          \<bar>real L * log 2 (real (csize cs))\<bar> / 1000 + 1 / 1000000000"
-  using enclose_sound[of prec "entropy_fa cs L"] assms by (simp add: cyb_entropy_def interp_entropy)
+  using enclose_sound[of 120 "entropy_fa cs L"] assms by (simp add: cyb_entropy_def interp_entropy)
 
 definition g_cy :: "rat \<Rightarrow> String.literal" where
   "g_cy x = (if x \<noteq> 0 \<and> (10000000 \<le> \<bar>x\<bar> \<or> \<bar>x\<bar> < 1 / 1000) then sig4_str x else fixed_str 4 x)"

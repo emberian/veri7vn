@@ -685,12 +685,12 @@ lemma find_None_ball: "find P xs = None \<Longrightarrow> \<forall>x \<in> set x
   by (induction xs) (auto split: if_splits)
 
 lemma ungrouped_out:
-  assumes ex: "exec_sq (STable tn to cols rows) (SQ False its tb cnd None ordl lmt) = SRows out"
+  assumes ex: "exec_sq (STable tn to cols rows) (SQ dst its tb cnd None ordl lmt) = SRows out"
     and na: "\<forall>i \<in> set its. \<not> rel_is_agg i"
   shows "(\<forall>p \<in> set ordl. col_index cols (fst (fst p)) \<noteq> None) \<and>
-    out = rel_limit lmt (map (rel_project cols its)
+    out = rel_limit lmt ((if dst then dedup_rows else (\<lambda>xs. xs)) (map (rel_project cols its)
       (isort (\<lambda>x y. keys_cmp (map (\<lambda>o2. (the (col_index cols (fst (fst o2))), snd o2)) ordl) x y \<le> 0)
-        (filter (rel_kept cols cnd) rows)))"
+        (filter (rel_kept cols cnd) rows))))"
 proof (cases "find (\<lambda>c. col_index cols (fst c) = None)
        (item_cols its @ (case cnd of None \<Rightarrow> [] | Some c \<Rightarrow> cond_cols c) @ map fst ordl)")
   case (Some c)
@@ -712,10 +712,10 @@ next
   qed
   note ok = ok1 ok2
   have nh: "\<not> has_agg its" using na by (auto simp: has_agg_def list_ex_iff rel_is_agg_def split: sitem.splits)
-  have "out = rel_limit lmt (map (\<lambda>r. concat (map (\<lambda>i. case i of SI_star \<Rightarrow> r
+  have "out = rel_limit lmt ((if dst then dedup_rows else (\<lambda>xs. xs)) (map (\<lambda>r. concat (map (\<lambda>i. case i of SI_star \<Rightarrow> r
                 | SI_col c \<Rightarrow> [cell r (the (col_index cols (fst c)))] | SI_agg _ _ _ \<Rightarrow> []) its))
       (isort (\<lambda>x y. keys_cmp (map (\<lambda>o2. (the (col_index cols (fst (fst o2))), snd o2)) ordl) x y \<le> 0)
-        (where_rows cols cnd rows)))"
+        (where_rows cols cnd rows))))"
     using ex None nh by (simp add: exec_sq_def Let_def rel_limit_def split: if_splits)
   then show ?thesis using ok proj_relational[OF ok(1)] by (simp add: where_rows_relational)
 qed
@@ -752,6 +752,134 @@ proof -
   moreover have "\<forall>r. count_list srt r = count_list (filter (rel_kept cols cnd) rows) r"
     by (simp add: srt_def count_isort)
   ultimately show ?thesis using out by blast
+qed
+
+
+section \<open>DISTINCT as sets of SQL values\<close>
+
+text \<open>SQL numeric equality identifies an integer and an equal real.
+The relational meaning therefore uses a canonical value, not HOL constructor
+equality: 1 and 1.0 are the same DISTINCT row. NULL compares equal to NULL
+for DISTINCT, although neither satisfies a WHERE equality comparison.\<close>
+
+fun rel_canonical :: "sval \<Rightarrow> sval" where
+  "rel_canonical (SInt i) = SReal (of_int i)"
+| "rel_canonical v = v"
+
+lemma sv_ord_canonical:
+  "sv_ord a b = 0 \<longleftrightarrow> rel_canonical a = rel_canonical b"
+  by (cases a; cases b) (auto simp: sv_ord_def split: if_splits)
+
+lemma row_eq_canonical:
+  "list_all2 (\<lambda>a b. sv_ord a b = 0) r q \<longleftrightarrow>
+    map rel_canonical r = map rel_canonical q"
+  by (induction r arbitrary: q) (case_tac q; auto simp: sv_ord_canonical)+
+
+lemma dedup_canonical_set:
+  "set (map (map rel_canonical) (dedup_rows rs)) = set (map (map rel_canonical) rs)"
+  by (induction rs rule: dedup_rows.induct)
+     (auto simp: row_eq_canonical image_iff)
+
+lemma dedup_canonical_distinct:
+  "distinct (map (map rel_canonical) (dedup_rows rs))"
+proof (induction rs rule: dedup_rows.induct)
+  case 1 then show ?case by simp
+next
+  case (2 r rs)
+  have absent: "map rel_canonical r \<notin> set (map (map rel_canonical)
+      (dedup_rows (filter (\<lambda>q. \<not> list_all2 (\<lambda>a b. sv_ord a b = 0) r q) rs)))"
+    unfolding dedup_canonical_set by (auto simp: row_eq_canonical)
+  show ?case using 2 absent by simp
+qed
+
+text \<open>An executed SELECT DISTINCT returns exactly one representative of
+ each projected SQL-value row satisfying WHERE. This theorem permits ORDER BY
+ but no LIMIT: a limit would intentionally remove some equivalence classes.
+ The result's multiplicity is checked as well as set membership.\<close>
+theorem select_distinct_relational:
+  assumes ex: "exec_sq (STable tn to cols rows) (SQ True its tb cnd None ordl None) = SRows out"
+    and na: "\<forall>i \<in> set its. \<not> rel_is_agg i"
+  shows "set (map (map rel_canonical) out) =
+      set (map (map rel_canonical \<circ> rel_project cols its) (filter (rel_kept cols cnd) rows))
+    \<and> distinct (map (map rel_canonical) out)"
+proof -
+  note u = ungrouped_out[OF ex na]
+  have sets: "\<And>le xs. set (isort le xs) = set xs"
+    by (rule conjunct1[OF isort_perm])
+  show ?thesis using u
+    by (simp add: rel_limit_def dedup_canonical_set[unfolded set_map]
+         dedup_canonical_distinct sets image_image)
+qed
+
+
+section \<open>GROUP BY counts the WHERE partition\<close>
+
+lemma uniq_canonical_set:
+  "set (map rel_canonical (uniq_by_ord vs)) = set (map rel_canonical vs)"
+  by (induction vs rule: uniq_by_ord.induct)
+     (auto simp: sv_ord_canonical image_iff)
+
+lemma uniq_canonical_distinct:
+  "distinct (map rel_canonical (uniq_by_ord vs))"
+proof (induction vs rule: uniq_by_ord.induct)
+  case 1 then show ?case by simp
+next
+  case (2 v vs)
+  have absent: "rel_canonical v \<notin> set (map rel_canonical
+      (uniq_by_ord (filter (\<lambda>w. sv_ord v w \<noteq> 0) vs)))"
+    unfolding uniq_canonical_set by (auto simp: sv_ord_canonical)
+  show ?case using 2 absent by simp
+qed
+
+lemma isort_distinct_map:
+  "distinct (map f xs) \<Longrightarrow> distinct (map f (isort le xs))"
+  using isort_perm[of le xs] distinct_card[of "map f xs"]
+  by (intro card_distinct) simp
+
+definition rel_group :: "(String.literal \<times> aff \<times> bool) list \<Rightarrow> cref \<Rightarrow> sval \<Rightarrow> sval list list \<Rightarrow> sval list list" where
+  "rel_group cols g k rows = filter (\<lambda>r. rel_canonical (rel_val cols r (fst g)) = rel_canonical k) rows"
+
+text \<open>For SELECT g, COUNT(*) GROUP BY g, each SQL-value class surviving
+WHERE occurs once. Its count is the number of source rows in that class,
+including duplicates and NULL keys. This connects the executed grouping to
+an independent partition of source rows rather than assuming the engine
+supplied the right rows to the aggregate.\<close>
+theorem select_group_count_relational:
+  assumes ex: "exec_sq (STable tn to cols rows)
+      (SQ False [SI_col g, SI_agg AF_count False None] tb cnd (Some g) [] None) = SRows out"
+  shows "\<exists>keys.
+      distinct (map rel_canonical keys) \<and>
+      set (map rel_canonical keys) = set (map (rel_canonical \<circ> (\<lambda>r. rel_val cols r (fst g)))
+        (filter (rel_kept cols cnd) rows)) \<and>
+      out = map (\<lambda>k. [k, SInt (int (length (rel_group cols g k (filter (rel_kept cols cnd) rows))))]) keys"
+proof (cases "find (\<lambda>c. col_index cols (fst c) = None)
+       (item_cols [SI_col g, SI_agg AF_count False None] @
+        (case cnd of None \<Rightarrow> [] | Some c \<Rightarrow> cond_cols c) @ [g])")
+  case (Some c)
+  then show ?thesis using ex by (simp add: exec_sq_def Let_def)
+next
+  case None
+  then have "col_index cols (fst g) \<noteq> None"
+    by (auto simp: find_None_iff item_cols_def split: if_splits)
+  then obtain gi where gi: "col_index cols (fst g) = Some gi" by auto
+  define keys where "keys = isort (\<lambda>a b. sv_ord a b \<le> 0)
+       (uniq_by_ord (map (\<lambda>r. cell r gi) (where_rows cols cnd rows)))"
+  have result_rows: "out = map (\<lambda>k. [k, SInt (int (length
+       (filter (\<lambda>r. sv_ord (cell r gi) k = 0) (where_rows cols cnd rows))))]) keys"
+    using ex None gi
+    by (simp add: exec_sq_def Let_def agg_row_def agg_col_vals_def agg_count_star_len
+         item_cols_def comp_def image_iff keys_def)
+  have distinct: "distinct (map rel_canonical keys)"
+    unfolding keys_def by (rule isort_distinct_map[OF uniq_canonical_distinct])
+  have sets: "set (map rel_canonical keys) =
+       set (map rel_canonical (map (\<lambda>r. cell r gi) (where_rows cols cnd rows)))"
+    using isort_perm[of "\<lambda>a b. sv_ord a b \<le> 0"
+      "uniq_by_ord (map (\<lambda>r. cell r gi) (where_rows cols cnd rows))"]
+    by (simp add: keys_def uniq_canonical_set[unfolded set_map] image_image)
+  show ?thesis
+    apply (rule exI[of _ keys])
+    using distinct sets result_rows gi
+    by (simp add: rel_val_def rel_group_def where_rows_relational sv_ord_canonical comp_def)
 qed
 
 section \<open>Setup statements\<close>
@@ -879,22 +1007,22 @@ definition join_sep :: "String.literal \<Rightarrow> String.literal list \<Right
 definition fmt_row :: "sval list \<Rightarrow> String.literal" where
   "fmt_row r = (case r of [v] \<Rightarrow> fmt_val v | _ \<Rightarrow> STR ''('' + join_sep (STR '', '') (map fmt_val r) + STR '')'')"
 
-definition ran_on :: String.literal where "ran_on = STR '' (run in SQLite on the tables you gave).''"
+definition ran_on :: String.literal where "ran_on = STR '' (computed from the tables you gave).''"
 
 definition sql_reply :: "sres \<Rightarrow> reply" where
   "sql_reply r = (case r of
-      SRows [] \<Rightarrow> Reply True (STR ''rows'') (STR ''It returns no rows (run in SQLite on the tables you gave).'') None
+      SRows [] \<Rightarrow> Reply True (STR ''rows'') (STR ''It returns no rows (computed from the tables you gave).'') None
     | SRows [[v]] \<Rightarrow> Reply True (STR ''scalar'') (STR ''It returns '' + fmt_val v + ran_on) (Some (fmt_val v))
     | SRows rows \<Rightarrow> (let more = 20 < length rows; shown = take 20 rows in
         Reply True (STR ''rows'')
           (STR ''It returns '' + (if more then STR ''at least '' else STR '''') + show_int (int (length shown))
             + (if length shown = 1 then STR '' row: '' else STR '' rows: '') + join_sep (STR ''; '') (map fmt_row shown)
             + (if more then STR '' ...'' else STR '''') + ran_on) None)
-    | SErr m \<Rightarrow> Reply True (STR ''error'') (STR ''That query fails in SQLite: '' + m + STR ''.'') None
+    | SErr m \<Rightarrow> Reply True (STR ''error'') (STR ''That query fails in the supported SQL subset: '' + m + STR ''.'') None
     | SNeedData \<Rightarrow> Reply False (STR ''needs_data'')
         (STR ''I can'' + apos + STR ''t know what that returns without the table'' + apos + STR ''s definition and rows; give me the CREATE TABLE and INSERT statements and I'' + apos + STR ''ll run it.'') None
     | SSetupErr m \<Rightarrow> Reply False (STR ''setup_error'')
-        (STR ''Your setup statements fail in SQLite before the query runs: '' + m + STR ''.'') None
+        (STR ''Your setup statements fail in the supported SQL subset before the query runs: '' + m + STR ''.'') None
     | SUnsupported \<Rightarrow> Reply False (STR ''unsupported'') (STR '''') None)"
 
 theorem sql_reply_answered_iff:
@@ -1076,9 +1204,9 @@ definition sql_self_test :: bool where
          sql_run setup q3 = SRows [[SText (STR ''a''), SInt 1], [SText (STR ''b''), SInt 2]] \<and>
          sql_run setup q4 = SRows [[SReal (7 / 2)]] \<and>
          sql_run [] q1 = SNeedData \<and>
-         response (sql_reply (SRows [[SReal (7 / 2)]])) = STR ''It returns 3.5 (run in SQLite on the tables you gave).'' \<and>
+         response (sql_reply (SRows [[SReal (7 / 2)]])) = STR ''It returns 3.5 (computed from the tables you gave).'' \<and>
          response (sql_reply (SRows [[SInt 5, SText (STR ''x'')], [SNull, SText (STR ''y'')]])) =
-           STR ''It returns 2 rows: (5, '' + apos + STR ''x'' + apos + STR ''); (NULL, '' + apos + STR ''y'' + apos + STR '') (run in SQLite on the tables you gave).'' \<and>
+           STR ''It returns 2 rows: (5, '' + apos + STR ''x'' + apos + STR ''); (NULL, '' + apos + STR ''y'' + apos + STR '') (computed from the tables you gave).'' \<and>
          sql_validity [w (STR ''SELEC''), w (STR ''NAME''), w (STR ''FROM''), w (STR ''STOCK'')] = V_no \<and>
          sql_validity [w (STR ''SELECT''), w (STR ''NAME''), w (STR ''FROM''), w (STR ''STOCK''), w (STR ''WHERE''), p (STR ''(''), w (STR ''QTY''), p (STR ''>''), n 3] = V_no \<and>
          sql_validity [w (STR ''SELECT''), p (STR '',''), w (STR ''NAME''), w (STR ''FROM''), w (STR ''STOCK'')] = V_no \<and>

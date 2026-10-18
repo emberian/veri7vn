@@ -7,7 +7,6 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 
 export_code net_reply emb_reply cyb_reply rob_reply lin_reply git_reply py_reply sql_answer validity_reply sql_validity
   mk_rat mask_prefix sig_num sig_name
-  net_self_test emb_self_test cyb_self_test rob_self_test lin_self_test git_self_test py_self_test sql_self_test sql_parse_test
   integer_of_int nat_of_integer int_of_integer integer_of_nat
   IP NReq BMask BPrefix BWildcard BCount BAddr BNeedPrefix BSame BPrivate BSubnets BForHosts
   W_hosts W_network W_broadcast W_first W_last W_range
@@ -18,7 +17,7 @@ export_code net_reply emb_reply cyb_reply rob_reply lin_reply git_reply py_reply
   LSymFromOct LOctFromSym LUmask LCron LCronNoPeriod LSigNum LSigName LExit
   Sym Perm X_no X_x X_sp X_SP UM_file UM_dir UM_both CStar CRange CSingle CI CBad
   G_reset_soft G_reset_hard G_amend G_switch_c G_switch G_unstage G_restore G_add_all G_rename G_del_remote
-  G_del_local G_remotes G_stash_pop G_stash G_diff_staged G_log G_clone G_init G_config_name G_status
+  G_del_local G_remotes G_stash_pop G_stash_apply G_stash_list G_stash G_diff_staged G_log G_clone G_init G_config_name G_status
   G_fetch G_pull_rebase G_cherry_pick G_tag_a G_blame G_revert
   PyCand PQ_module PQ_signature PQ_doc
   TW TI TR TS TP
@@ -57,7 +56,7 @@ ML \<open>
     @{thms lin_chmod_declines_iff}, @{thms lin_umask_declines_iff}, @{thms lin_exit_value},
     @{thms git_all_intents_complete}, @{thms exec_group_keys_strictly_ordered},
     @{thms where_cond_is_relational}, @{thms where_rows_relational}, @{thms keys_cmp_relational},
-    @{thms select_correct_unordered}, @{thms select_correct_ordered}];
+    @{thms select_correct_unordered}, @{thms select_correct_ordered}, @{thms select_distinct_relational}, @{thms select_group_count_relational}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("computing theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code net_self_test} andalso @{code emb_self_test} andalso @{code cyb_self_test} andalso @{code rob_self_test} andalso
