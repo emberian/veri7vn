@@ -3,7 +3,7 @@
 Owner: Codex symbolic/facts_humanities, 18 October 2026. Completed packets have
 fresh proof exports, native panels and dispatcher probes. Humanities packets are
 committed as `45c425b` and `285e963`; Facts packets as `165458a` and `1d8332e`.
-The third Facts packet is frozen and ready below. Further semantic extensions
+The third Facts packet is committed as `83bb150`; a fourth is ready below with the dispatcher clarification regression repaired. Further semantic extensions
 remain explicitly open; family green is not a claim that every specialist is
 finished.
 
@@ -280,15 +280,15 @@ A family score is not evidence that every behavior below has been examined.
 
 | Exact specialist ID | Concrete behavior examined | Status / bounded remaining limit |
 |---|---|---|
-| literature-v2 | Opening-line quotation versus opinion; original authorship/publication versus sequels, adaptations and translations | Quotation fix complete; exact-title author/first-publication grammar implemented in third packet, native consumer complete; stated coverage limits remain; narrator/setting rows still need individual scope work |
+| literature-v2 | Opening-line quotation versus opinion; original authorship/publication versus sequels, adaptations and translations | Quotation fix complete; exact-title author/first-publication grammar implemented in third packet, native consumer complete; stated coverage limits remain; four narrator/two setting rows complete in fourth packet; quotations and remaining attributes still bounded |
 | worldhistory | Winner/signatory requests and destruction/commemoration dates selected original event years | Complete event clauses plus positive/negative probes for all 17 date rows; alternate events and reissues are withheld, not modeled |
 | arthistory | Thief/replica questions selected the original artist; sculpture verbs selected a painting’s artist | Exact-title and medium grammar complete through third packet; mismatched media withhold rather than invent an answer; ambiguous titles remain source assumptions |
 | medicine-r2 | Animal-scoped pulse/pressure and unqualified adult measurements | Shared typed measurement grammar complete in second packet; drug/clinical interpretation outside these rows unexamined |
 | medicine | Axolotl pressure, hummingbird pulse, dog temperature selected human values | Temperature fix complete in first packet; pulse/pressure grammar and useful alternate wording complete in second packet |
-| law | Marbury vote count selected judicial review | Principle-request grammar complete in second packet; other case attributes and non-US legal scope unexamined |
+| law | Marbury vote count selected judicial review | Principle-request grammar complete in second packet; six general definition scopes complete in fourth packet; other case attributes and non-US legal scope remain bounded |
 | psychology | Definitions/criticism of classical conditioning selected its discoverer | Attribution grammar complete for classical/operant rows in second packet; definition values and other concepts remain open |
 | sociology | “What does anomie mean?” returns structured value Emile Durkheim though its sentence says normlessness | Source-bound typed meaning projection implemented; third-packet checked projection and native consumer complete; source truth remains assumed |
-| linguistics | English embedded beside accented letters, digits, underscores or other letters | First-packet byte-boundary fix complete; all 44 source rows covered by literal guard theorem; broader subject disambiguation remains open |
+| linguistics | English embedded beside accented letters, digits, underscores or other letters | First-packet byte-boundary fix complete; all 44 source rows covered by literal guard theorem; full source-language identity and branch projection complete in fourth packet; other language varieties and disputed classification remain unsupported |
 | poetry | Illustrator/sequel questions selected original writer; syllables in a form’s name versus its verse pattern | Exact-title author grammar complete in second packet; all ten form/metric row grammars implemented in third packet, native consumer complete; stated coverage limits remain; total haiku syllables not projected |
 | botany | Bacterial photosynthesis selected plant chloroplasts | Plant/organelle grammar complete in second packet; other taxonomic scope assumptions unexamined |
 | entomology | Spider leg attachment selected insect thorax | Insect-appendage grammar and wing query support complete in second packet; larval/anatomical exceptions unexamined |
@@ -308,7 +308,7 @@ A family score is not evidence that every behavior below has been examined.
 | mythology | Non-identical Greek/Roman forward rows have reverse names in the reverse table | Reverse-table theorem complete; ambiguous cultural attribution and variants unexamined |
 | ushistory | Foreign president, defeated-president relation, and destruction/commemoration dates incorrectly answered US ordinal/event years | Whole president-role grammar and complete clauses for all 19 event rows now pass consumer probes; source chronology/coverage assumptions remain |
 | library | Target ISBN-13 label must not swallow the “10” from a later source ISBN-10 label | Conversion-label fix and independent probes complete; broader bibliographic identity not proved |
-| government | Alternate structural counts versus historical, foreign and state-specific scopes | Typed count forms and scope refusals complete; broader constitutional/temporal questions unexamined |
+| government | Structural membership versus attendance/quorum/vacancies; minimum eligibility versus actual person age | All 13 fact-row request grammars complete in third packet; topic/amendment/article interpretation still bounded and unexamined beyond prior probes |
 
 
 ## Second Humanities packet: president roles and event identity (ready)
@@ -460,3 +460,130 @@ returns the real legal definition. Total haiku syllables are not projected from
 the stored per-line pattern. Artwork names shared by multiple works remain
 source-table ambiguities. These are concrete next interpretation/capability work,
 not covered by completed panels or by this packet's claims.
+
+
+## Fourth Facts packet: language branches and full request scope (ready)
+
+The old consumer answered `Which branch does English belong to?` with the family
+Indo-European, although its source sentence supplied Germanic. A typed table now
+carries the 43 source language/family/branch triples. The real response consumer
+passes the checked source answer into `projected_value LanguageBranch`, returns
+the selected branch as its structured value, and preserves the source sentence.
+Basque has no supplied branch and a branch request withholds. Full language
+identity and requested-family grammars prevent Arabic Sign Language, fictional
+Neo-English and a wrong supplied parent family from being reduced to an embedded
+spoken-language name. Mandarin/Cantonese Chinese are explicit known aliases.
+
+New statements:
+
+- `language_field_bound`: a successful lookup at index i requires 0<i and
+  i≤length language_fields, and returns exactly language_fields[i−1].
+- `language_family_rows`: the complete ordered list of typed family fields equals
+  the actual source-table values after its Basque row. This checks all 43 row
+  correspondences, not just observed probe selections. Branch assertions remain
+  transcribed source data, not proved linguistic truth.
+- `branch_projection_exact`: any successful branch projection requires a checked
+  Answer from the linguistics store at an index whose typed field is precisely
+  the returned branch (along with its source language/family).
+- `projection_requires_source` now includes the linguistics source and bounded
+  positive branch index, while preserving the original sociology/mycelial row-1
+  requirements. The actual `Main.reply` consumer supplies its checked outcome.
+
+Four narrator rows, two settings, ship/squire, seven character-to-work rows and
+six legal definitions also use whole positive requested-relationship grammars.
+A film adaptation no longer inherits a novel's narrator; asking who played Jean
+Valjean no longer returns the work title; fictional legal settings no longer
+inherit real legal definitions. Unsupported meaningful variants remain
+withheld-valid. English interpretation and source assertions remain untrusted.
+
+Proof receipt `var/facts/remote-attempts/20261018T083522Z-0c237f11e22f/receipt.json`
+passed **75 theorem checks, 0 oracles**. First attempt c07182377287 proved the
+projection/source lemmas but did not finish finite quantified correspondence
+simplification. Direct equality of the complete family lists replaced that
+index-heavy presentation without dropping rows or changing their order.
+Export SHA256 `b4550d6fd2b7bb3e710045237b712add64bc5f35c291acaceed8368fc09a6dcf`.
+Actual current native receipt:
+`var/facts/native-attempts/20261018T084027Z-81fcefa97cb0/compile-inputs.json`.
+Binary SHA256 `0a21f97b358e142a72d17747ba5052400c61f64b50f5e8931f4c0cc2a9e122b7`,
+552,808 bytes. The helper binds current SML separately from the earlier proof
+snapshot; proved theories match. `language_fields_check.py` independently reads
+the upstream source AST and verifies all 43 typed triples and order exactly.
+
+All 22 shipped specialist panels and family mode: **221/221 dev, 207/207 heldout,
+0 wrong, 0 false yes, 0 valid omissions**. All **346/346** authored policy
+assertions pass natively and in family mode. Native capability counts:
+**185 supported answers, 158 withheld-valid, 3 syntax refusals, 0 observed
+wrong/false yes**. Family mode has 186 supported answers and 157 withheld-valid
+because the dog-temperature request correctly routes to pets. The new 143 cases
+add 87 supported answers, including branch fields, and 56 withheld-valid cases.
+No JavaScript implementation changed; its previous independent engine evidence
+remains applicable, and its authored native regression cases passed again.
+
+Actual dispatcher initially passed **344/346** original status assertions. A
+new dialogue layer changed two native withheld results to
+`clarify`/`missing_reference`: `When was the United Nations headquarters renovated
+after it was founded?` and `When was the People's Republic of China first
+commemorated after it was founded?`. Runtime's dialogue owner fixed incidental
+pronouns by requiring a complete primary-slot follow-up form. A focused actual
+dispatcher recheck now returns withheld for both self-contained questions.
+All **346/346** composition assertions are therefore cumulatively verified
+(344 original passes plus the two focused rechecks), without changing Facts
+source or relabeling assertions. Dispatcher capability counts match native:
+185 supported answers, 158 withheld-valid, three malformed-syntax refusals,
+0 observed wrong/false yes. Original and repair evidence is preserved in
+`facts-fourth-{panels,probes,dispatch,family-probes}.json` and
+`facts-fourth-dialogue-recheck.json` under `var/c-symbolic-facts-humanities/`.
+The core comparison remains the third packet's 28 differences (24 title
+renderings, four impossible-date refusals); no new core status/value/rendering
+differences appear across each specialist's 924 questions.
+
+Facts files frozen: `ROOT`, `Language_Fields.thy`, `Fact_Projection.thy`,
+`Facts_Export.thy`, `language_fields_check.py`, `projection.sml`, `recognizer.sml`,
+`main.sml`, `capabilities.json`, `beyond_probes.json`, `README.md`, and this report
+section. Remaining: literal quotation/character qualifiers beyond these rows,
+source classification controversies, other legal case attributes and unsupported
+branches/relations. Additional scope challenges still answer six for an injured
+insect's legs and three for an octopus embryo's hearts; these need their own
+model-scope review. Source definitions for xylem color, feather use, hyphae count
+and mycorrhiza age correctly withhold in the separate observed probes.
+
+
+## Third Humanities packet: government requested fields (ready)
+
+`How many voting US senators are present today?` used to return the structural
+membership count 100. All 13 government fact rows now use complete positive
+request forms for structural membership, electoral totals/winning threshold,
+source amendment count, standard term length or minimum eligibility age. They
+reject attendance, vacancies, quorum, votes on a particular bill, particular
+person ages and historical/foreign scope rather than silently discarding those
+requested fields. This is an interpretation repair; those meaningful requests
+remain withheld-valid, not answered capabilities. Topic/amendment/article
+recognition is unchanged and remains a separate interpretation boundary.
+
+No HOL statement changed. The real consumer remains `vreply (VFact hits)` and
+its existing first-matching source fact row/value theorem. The recognizer now
+constructs that ordered mask from exact requested-field grammars. The proof
+receipt `var/humanities/remote-attempts/20261018T065404Z-478dcd4ff9dd/receipt.json`
+passed 115 theorem checks with 0 oracles; current proof dependencies match.
+Actual native receipt:
+`var/humanities/native-attempts/20261018T083507Z-44cac529eda0/compile-inputs.json`.
+Binary SHA256 `05c28101c984b5bb6ee3b11db050596db3a333ec5109f2274bd77b838ff3f70b`,
+598,280 bytes. Current recognizer SHA256
+`3c4016d146c527f5912f0fec3c4423ed95df47b5bf1b4416f1edf0b07ec035e2`.
+All seven shipped panels and family mode: **197/197 dev, 197/197 heldout,
+0 wrong, 0 false yes, 0 valid omissions**. All **89/89** policy assertions pass
+natively, through actual dispatcher and in family mode. Capability counts are
+**46 supported answers, 43 withheld-valid, 0 observed wrong/false yes**; the 19
+new cases comprise eight supported fields and eleven unsupported meaningful
+requests. Evidence: `humanities-government-{panels,probes,dispatch,family-probes}.json`
+under `var/c-symbolic-facts-humanities/`. No broad rerun or new proof submission
+was needed for this recognizer-only change beyond the existing family panels.
+
+Humanities source frozen: `recognizer.sml`, `capabilities.json`,
+`beyond_probes.json`, `README.md`, plus this report section. Facts fourth work
+remains independently active. Remaining music ambiguity: a note in a transposing
+instrument's score needs instrument/key conventions; current generic MIDI
+recognition can still assume direct concert pitch. Independent mythology
+killed/father, surname Child plural and book-title ISBN negatives withheld;
+reclining-lie past tense correctly returned lay. These observations do not imply
+complete review of every Humanities interpretation.

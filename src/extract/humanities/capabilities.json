@@ -174,10 +174,10 @@
       "evidence": {
         "computation": "HOL typed-request kernel; exact lookup or certified numeric enclosure",
         "assumptions": [
-          "Lookup tables are source assertions; numeric guarantees apply to the recognized typed request."
+          "Closed source US constitutional/statutory facts; no attendance, vacancies, quorum, historical snapshots or current-person ages."
         ],
         "untrusted": [
-          "Natural-language recognition, JSON framing, source transcription."
+          "Whole-question classification of source structural counts, term lengths and eligibility thresholds; topic/amendment/article patterns; source assertions, response and JSON framing."
         ]
       }
     }

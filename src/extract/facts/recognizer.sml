@@ -291,7 +291,62 @@ struct
       ^ "|class " ^ c ^ " extinguishers are for fires involving what"
       ^ "|what (?:does a class " ^ c ^ " fire|do class " ^ c ^ " fires) involve)"
       ^ usFireSuffix ^ finish) end
+  (* Exact source-language identity, with only explicit source aliases. The
+     supplied family is checked when the request names it; arbitrary qualifiers
+     cannot be discarded to select a spoken language inside a signed language. *)
+  fun languageScope i q =
+    let val fields = Facts.language_field (Facts.nat_of_integer(IntInf.fromInt i))
+        val (name,family) = case fields of SOME(n,(f,_)) => (n,f) | NONE => ("basque","isolate")
+        val language = "(?:" ^ name ^ (if name="mandarin" orelse name="cantonese" then "(?: chinese)?" else "") ^ ")"
+        val subject = "(?:the language )?[\"'(]?" ^ language ^ "[\"')]?"
+        val familyWord = "(?:language )?family"
+        fun forms attribute =
+          "(?:(?:what|which) " ^ attribute ^ " (?:does " ^ subject ^ " belong to|is " ^ subject ^ " (?:in|part of))"
+          ^ "|to which " ^ attribute ^ " does " ^ subject ^ " belong"
+          ^ "|" ^ subject ^ " belongs to (?:what|which) " ^ attribute ^ ")"
+        val familyRequest = accepts ("^" ^ forms familyWord ^ finish) q
+        val branchRequest = i>0 andalso
+          (accepts ("^" ^ forms "(?:language )?branch" ^ finish) q
+          orelse accepts ("^(?:what|which) branch of " ^ family ^ " (?:is " ^ subject
+            ^ "|does " ^ subject ^ " belong to)" ^ finish) q)
+        val isolateRequest = i=0 andalso accepts
+          ("^(?:is basque (?:a language isolate|related to any other language)(?:\\? what family is it)?)" ^ finish) q
+    in familyRequest orelse branchRequest orelse isolateRequest end
+
+  fun literaryNarrator i =
+    let val titles=["moby[- ]dick","(?:the )?great gatsby","(?:the )?(?:sherlock )?holmes(?: stories)?","great expectations"]
+        val title=List.nth(titles,i)
+    in accepts ("^(?:who (?:narrates|tells the story (?:of|in)) (?:the (?:novel|book) )?" ^ title
+      ^ "|who is the narrator of (?:the (?:novel|book) )?" ^ title ^ ")" ^ finish) end
+  fun literarySetting title = accepts
+    ("^(?:where (?:is|was) " ^ title ^ " set|where does " ^ title ^ " take place"
+     ^ "|what is the setting of " ^ title
+     ^ "|in which (?:country|city) is (?:shakespeare's )?" ^ title ^ " set)" ^ finish)
+  val literaryShip = accepts
+    ("^(?:what (?:is|was) (?:the name of )?(?:captain )?ahab's ship"
+     ^ "|what (?:is|was) the (?:name of the )?ship in moby[- ]dick"
+     ^ "|what ship (?:does|did) (?:captain )?ahab (?:captain|command))" ^ finish)
+  val literarySquire = accepts
+    ("^(?:who (?:is|was) don quixote's squire|what (?:is|was) the name of don quixote's squire)" ^ finish)
+  fun literaryCharacter name = accepts
+    ("^(?:(?:which|what) (?:novel|book|work|story) (?:features|includes|contains) (?:the character )?" ^ name
+     ^ "|(?:which|what) (?:novel|book|work|story) (?:is|does) " ^ name ^ " (?:from|in|appear in)"
+     ^ "|in (?:which|what) (?:novel|book|work|story) (?:does|is) " ^ name ^ " (?:appear|feature|a character)"
+     ^ "|" ^ name ^ " (?:appears|is a character|is the protagonist) in (?:which|what) (?:novel|book|work|story))" ^ finish)
+  val characterNames=["jean valjean","raskolnikov","heathcliff","(?:ebenezer )?scrooge",
+    "(?:abraham )?van helsing","(?:elizabeth bennet|mr\\.? darcy|elizabeth bennet and mr\\.? darcy)","(?:captain )?ahab"]
+  (* These legal definition rows provide general source meanings, not named
+     fictional rules, jurisdictions, remedies or facts about a person's case. *)
+  fun legalDefinition term article = accepts
+    ("^(?:what (?:is|does) " ^ article ^ term ^ "(?: mean)?"
+     ^ "|what is the (?:meaning|definition) of " ^ term
+     ^ "|define " ^ term ^ "|who is " ^ article ^ term ^ ")"
+     ^ "(?: in (?:law|legal terminology|a case))?" ^ finish)
+
   val rowScopeGroups =
+    List.tabulate(4,fn i=>("literature-v2",i,literaryNarrator i)) @
+    List.tabulate(7,fn j=>("literature-v2",j+18,literaryCharacter(List.nth(characterNames,j)))) @
+    List.tabulate(44,fn i=>("linguistics",i,languageScope i)) @
     List.tabulate(6,fn j=>("worldhistory",j+17,historyPerson j)) @
     List.tabulate(6,fn j=>let val i=j+9 in ("literature-v2",i,publicationYear i) end) @
     List.tabulate(5,fn j=>("firesafety-v2",j+2,fireClassFuel j)) @
@@ -303,7 +358,17 @@ struct
 
   val scopedRows : (string * (string -> bool)) list =
     map (fn (sid,i,accept) => (rowGuard sid i,accept))
-      (rowScopeGroups @ [("medicine",0,humanMeasurement "body temperature"),
+      (rowScopeGroups @ [("literature-v2",4,literaryShip),
+       ("literature-v2",8,literarySquire),
+       ("literature-v2",15,literarySetting "romeo and juliet"),
+       ("literature-v2",16,literarySetting "hamlet"),
+       ("law",2,fn q => legalDefinition "habeas corpus" "" q orelse accepts ("^what is the writ of habeas corpus used for" ^ finish) q),
+       ("law",3,legalDefinition "mens rea" ""),
+       ("law",4,legalDefinition "actus reus" ""),
+       ("law",5,legalDefinition "tort" "(?:a )?"),
+       ("law",6,legalDefinition "plaintiff" "(?:a |the )?"),
+       ("law",7,legalDefinition "defendant" "(?:a |the )?"),
+       ("medicine",0,humanMeasurement "body temperature"),
        ("medicine",1,humanMeasurement "resting (?:heart rate|pulse)"),
        ("medicine",2,humanMeasurement "blood pressure"),
        ("pets",6,adultTeeth "(?:dog|canine)" "(?:dogs|canines)"),

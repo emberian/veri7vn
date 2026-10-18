@@ -11,12 +11,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Ordered HOL source-table lookup; literal ASCII words/phrases and boundaries checked over supplied bytes, conjoined with recognizer scope.",
+        "computation": "HOL byte-level literal guard and source-row-bound family/branch projection. Branch table family fields agree with the checked source rows.",
         "assumptions": [
-          "Published table rows are treated as source assertions. ASCII case folding; non-ASCII bytes cannot create a word boundary."
+          "The 43 typed branch assertions are transcribed source data; linguistic truth and classification completeness are not proved. Basque has no supplied branch."
         ],
         "untrusted": [
-          "Typed subject/attribute question grammars, general regex patterns, narrative classification, source transcription and JSON framing."
+          "Whole-question language identity, field recognition and known aliases; source transcription, prose and JSON framing."
         ]
       }
     },

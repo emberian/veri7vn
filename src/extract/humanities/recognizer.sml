@@ -521,6 +521,23 @@ struct
     val AMEND = "\\b(\\d{1,2})(?:st|nd|rd|th)\\s+amendment\\b|\\bamendment\\s+(\\d{1,2})\\b|\\b(" ^ ordAlt ^ ")\\s+amendment\\b"
     fun roman s =
       case s of "i" => 1 | "ii" => 2 | "iii" => 3 | "iv" => 4 | "v" => 5 | "vi" => 6 | "vii" => 7 | d => intOfString d
+    (* Closed requests for the source's structural counts, term lengths and
+       age thresholds. Attendance, vacancy, quorum, particular-person ages and
+       historical/foreign counts are different fields and are not discarded. *)
+    val factRequests = [
+      "^(?:how many (?:us |united states )?senators are there(?: in (?:the )?(?:us|united states|senate))?|what is the total number of (?:us|united states) senators|how many seats (?:are there|are) in the (?:us |united states )?senate)\\s*[?.]?\\s*$",
+      "^(?:how many (?:voting )?(?:members|seats) (?:are )?in the (?:us )?house(?: of representatives)?|how many (?:voting )?(?:representatives|house members|members of the house) are there|what is the (?:size|total number of voting members) of the (?:us )?house of representatives)\\s*[?.]?\\s*$",
+      "^(?:how many electors are there(?: in total| in the electoral college)?|how many electoral votes are there(?: in total)?|what is the total (?:number of )?(?:electors in the electoral college|electoral votes))\\s*[?.]?\\s*$",
+      "^(?:how many electoral votes (?:are )?(?:needed|required|does it take) to (?:win|win the presidency|become president)|a candidate needs how many electoral votes to (?:become president|win the presidency))\\s*[?.]?\\s*$",
+      "^(?:how many amendments does the (?:us |united states )?constitution have|how many times has the (?:us |united states )?constitution been amended)\\s*[?.]?\\s*$",
+      "^(?:how many (?:judges|justices) (?:sit|are) on the (?:us |united states )?supreme court|how many supreme court justices are there)\\s*[?.]?\\s*$",
+      "^(?:how long (?:is a|are) (?:us )?senat\\w* terms?|what is the (?:length of a senate term|term of a senator)|how many years does a senator serve per term)\\s*[?.]?\\s*$",
+      "^(?:how long (?:is a|are) (?:house|representative\\w*) terms?|what is the (?:length of a house term|term of a representative)|how many years does a representative serve per term)\\s*[?.]?\\s*$",
+      "^(?:how long (?:is a|are) presidential terms?|what is the (?:length of a presidential term|term of (?:the|a) president)|how many years does a president serve per term)\\s*[?.]?\\s*$",
+      "^(?:what is the (?:minimum|youngest) age (?:to be|to become|at which someone can become) (?:the )?(?:us )?president|how old (?:must|does) (?:someone|one|a person) (?:be|have to be) to (?:be|become) (?:the )?(?:us )?president)\\s*[?.]?\\s*$",
+      "^(?:what is the minimum age to (?:be|become) (?:a )?(?:us )?senator|how old (?:must|does) (?:someone|one|a person) (?:be|have to be) to (?:be|become) (?:a )?(?:us )?senator)\\s*[?.]?\\s*$",
+      "^(?:what is the minimum age to (?:be|become) (?:a )?(?:us )?representative|how old (?:must|does) (?:someone|one|a person) (?:be|have to be) to (?:be|become) (?:a )?(?:us )?representative)\\s*[?.]?\\s*$",
+      "^(?:how many amendments (?:are |are there )?in the bill of rights|the bill of rights (?:contains|has) how many amendments)\\s*[?.]?\\s*$"]
     fun answer (text : string) : H.reply option =
       if Narrow.narrative text then NONE
       else
@@ -552,23 +569,7 @@ struct
                 then ret (SOME (H.vreply (H.VArticle (mkNat (roman (g1 low ar)))))) else Fall
             | NONE => Fall
           fun fact () =
-            let
-              (* These are alternate statements of the same structural counts;
-                 every selected value still comes from Government.fact_rows. *)
-              val count = has "\\bhow many\\b|\\btotal number\\b|\\bsize of\\b" low
-              val qualified = has "\\b(?:from|representing|france|french|canada|canadian|female|male|democratic|republican)\\b|\\b(?:in|before|after|during) (?:1[0-9]{3}|20[0-9]{2})\\b" low
-              fun extra i = not qualified andalso (case i of
-                  0 => count andalso has "\\b(?:us|united states) senators\\b" low
-                | 1 => count andalso has "\\bhouse of representatives\\b" low
-                | 2 => count andalso has "\\belectors\\b.*\\belectoral college\\b" low
-                | 3 => count andalso has "\\belectoral votes\\b.*\\b(?:become president|win the presidency)\\b" low
-                | 4 => count andalso has "\\bconstitution\\b.*\\bamended\\b" low
-                | 5 => count andalso has "\\bjudges\\b.*\\b(?:us |united states )?supreme court\\b" low
-                | 6 => has "\\bhow many years\\b.*\\bsenator\\b.*\\bper term\\b" low
-                | 9 => has "\\byoungest age\\b.*\\bbecome president\\b" low
-                | _ => false)
-              val hits = ListPair.mapEq (fn (i, rx) => not qualified andalso (has rx low orelse extra i))
-                (List.tabulate (length Rules.facts, fn i => i), Rules.facts)
+            let val hits = map (fn pattern => has pattern low) factRequests
             in if List.exists (fn x => x) hits then ret (SOME (H.vreply (H.VFact hits))) else ret NONE end
         in
           if has "\\b(?:democrat|republican|biden|trump|obama|should|better|best|worst|vote for|opinion|agree)\\w*\\b" low then NONE

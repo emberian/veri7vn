@@ -27,14 +27,18 @@ struct
     else if accepts ("^" ^ setting ^ "(?:" ^ give fungus plant ^ "|" ^ receive plant fungus ^ ")" ^ after ^ finish) q
       then SOME(Facts.ExchangeDirection(Facts.Fungus,Facts.Plant))
     else NONE
-  fun request q = if anomieMeaning q then SOME Facts.AnomieMeaning else direction q
-  fun describe Facts.AnomieMeaning value = "Anomie means " ^ value ^ "."
+  fun languageBranch q = accepts "\\bbranch\\b" q
+  fun request q = if anomieMeaning q then SOME Facts.AnomieMeaning
+    else if languageBranch q then SOME Facts.LanguageBranch else direction q
+  fun describe Facts.LanguageBranch value = "The language belongs to the " ^ value ^ " branch."
+    | describe Facts.AnomieMeaning value = "Anomie means " ^ value ^ "."
     | describe (Facts.ExchangeDirection(Facts.Plant,Facts.Fungus)) value =
         "In a mycorrhiza, the plant supplies the fungus with " ^ value ^ "."
     | describe (Facts.ExchangeDirection(Facts.Fungus,Facts.Plant)) value =
         "In a mycorrhiza, the fungus supplies the plant with " ^ value ^ "."
     | describe _ value = value
-  fun label Facts.AnomieMeaning = "concept_meaning"
+  fun label Facts.LanguageBranch = "language_branch"
+    | label Facts.AnomieMeaning = "concept_meaning"
     | label (Facts.ExchangeDirection(Facts.Plant,Facts.Fungus)) = "plant_to_fungus"
     | label (Facts.ExchangeDirection(Facts.Fungus,Facts.Plant)) = "fungus_to_plant"
     | label _ = "unsupported"

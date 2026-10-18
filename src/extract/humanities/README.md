@@ -40,3 +40,15 @@ interpretation remains untrusted. The shared native compiler binds the actual
 consumed input snapshot to the passed proof export. Current checks: 197/197
 dev and heldout in specialist and family modes, 70/70 native/dispatcher/family
 probes, and US-history 12/12 on both splits at two untouched generator offsets.
+
+
+The third Humanities packet restricts all 13 government fact rows to complete
+requests for structural membership, electoral totals/thresholds, amendment count,
+term length or minimum eligibility age. Attendance, vacancies, quorum and actual
+person ages are different fields and remain unsupported. The existing checked
+source-row selector is unchanged; English interpretation remains untrusted.
+All seven panels and family mode remain 197/197 dev and 197/197 heldout, with no
+wrong answers, false yeses or valid omissions. All 89 authored assertions pass
+natively, through the dispatcher and in family mode: 46 supported answers and
+43 valid requests withheld. These refusal checks do not count as answered
+capabilities. Exact proof/native bindings are in the continuation report.

@@ -135,3 +135,20 @@ Two independent generated JavaScript corpora produce 673 Node-matching answers,
 numbers remain 221/221 dev and 207/207 heldout for specialists and family mode.
 The current binary is 497,864 bytes. See the report for exact receipts, source
 bindings, new theorem statements, corpus seeds and outstanding scope gaps.
+
+The fourth packet adds source-bound language-branch projection: English branch
+questions now return Germanic, while family questions retain Indo-European.
+The 43 typed source records are checked against the source family rows; Basque
+has no invented branch. Full language identity prevents signed/fictional language
+names from falling through to an embedded spoken-language name. Literary and
+legal-definition requests now preserve their requested relationship and scope.
+
+This export passed 75 theorem checks with zero oracles. The current native
+binary is 552,808 bytes. Shipped scores remain 221/221 dev and 207/207 heldout.
+All 346 native/family policy assertions pass; native counts are 185 supported
+answers, 158 withheld-valid and three malformed-expression refusals. The actual
+dispatcher initially passed 344/346; its dialogue owner repaired incidental
+pronoun handling, and both self-contained date questions now withhold on focused
+recheck. All 346 composition assertions are cumulatively verified, with original
+and repair evidence retained in the report. Source transcription is
+checked with `language_fields_check.py`, not asserted as linguistic truth.

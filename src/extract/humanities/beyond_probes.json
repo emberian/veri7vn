@@ -2,351 +2,535 @@
   {
     "specialist": "library",
     "q": "What is the equivalent ISBN-13 for ISBN-10 0306406152?",
-    "expect": "9780306406157"
+    "expect": "9780306406157",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "library",
     "q": "Convert ISBN-10 0140449132 to ISBN-13.",
-    "expect": "9780140449136"
+    "expect": "9780140449136",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "library",
     "q": "What is the equivalent ISBN-13 for ISBN-10 123?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "government",
     "q": "What is the total number of US senators?",
-    "expect": "100"
+    "expect": "100",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "government",
     "q": "What is the total number of United States senators?",
-    "expect": "100"
+    "expect": "100",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "government",
     "q": "What is the size of the House of Representatives?",
-    "expect": "435"
+    "expect": "435",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "government",
     "q": "How many years does a senator serve per term?",
-    "expect": "6"
+    "expect": "6",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "government",
     "q": "What is the youngest age at which someone can become President?",
-    "expect": "35"
+    "expect": "35",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "government",
     "q": "What is the total number of electors in the Electoral College?",
-    "expect": "538"
+    "expect": "538",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "government",
     "q": "How many times has the US Constitution been amended?",
-    "expect": "27"
+    "expect": "27",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "government",
     "q": "How many judges sit on the US Supreme Court?",
-    "expect": "9"
+    "expect": "9",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "government",
     "q": "A candidate needs how many electoral votes to become President?",
-    "expect": "270"
+    "expect": "270",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "government",
     "q": "Which amendment limits the President to two terms?",
-    "expect": "22"
+    "expect": "22",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "music-v2",
     "q": "What is the MIDI note number of Cb4?",
-    "expect": "59"
+    "expect": "59",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "music-v2",
     "q": "What note is MIDI 59?",
-    "expect": "B3"
+    "expect": "B3",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "music-v2",
     "q": "What is the MIDI note number of B#4?",
-    "expect": "72"
+    "expect": "72",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "music-v2",
     "q": "What note is MIDI 72?",
-    "expect": "C5"
+    "expect": "C5",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "grammar",
     "q": "What is the plural of 'qzzq'?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "grammar",
     "q": "What is the comparative of 'qzzq'?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "government",
     "q": "What is the total number of US senators from Vermont?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "government",
     "q": "What is the size of the House of Representatives in 1790?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "government",
     "q": "What is the youngest age at which someone can become President of France?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "government",
     "q": "How many senators are there from Vermont?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "government",
     "q": "How many justices are on the Supreme Court in 1790?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "government",
     "q": "What is the minimum age to be President of France?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "Who was the 1st US president?",
-    "expect": "George Washington"
+    "expect": "George Washington",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "Who served as the 22nd US president?",
-    "expect": "Grover Cleveland"
+    "expect": "Grover Cleveland",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "What number president was Donald Trump in US history?",
-    "expect": "45th and 47th"
+    "expect": "45th and 47th",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the US Declaration of Independence adopted?",
-    "expect": "1776"
+    "expect": "1776",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the US Constitution signed?",
-    "expect": "1787"
+    "expect": "1787",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the US Constitution ratified?",
-    "expect": "1788"
+    "expect": "1788",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the US Bill of Rights ratified?",
-    "expect": "1791"
+    "expect": "1791",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the Louisiana Purchase?",
-    "expect": "1803"
+    "expect": "1803",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When did the US Civil War begin?",
-    "expect": "1861"
+    "expect": "1861",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When did the US Civil War end?",
-    "expect": "1865"
+    "expect": "1865",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the Emancipation Proclamation issued?",
-    "expect": "1863"
+    "expect": "1863",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was Abraham Lincoln assassinated?",
-    "expect": "1865"
+    "expect": "1865",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the transcontinental railroad completed?",
-    "expect": "1869"
+    "expect": "1869",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the 19th Amendment ratified?",
-    "expect": "1920"
+    "expect": "1920",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was Black Tuesday?",
-    "expect": "1929"
+    "expect": "1929",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was Pearl Harbor attacked?",
-    "expect": "1941"
+    "expect": "1941",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was Brown v. Board of Education decided?",
-    "expect": "1954"
+    "expect": "1954",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the Civil Rights Act signed?",
-    "expect": "1964"
+    "expect": "1964",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the Voting Rights Act signed?",
-    "expect": "1965"
+    "expect": "1965",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When did Apollo 11 land on the moon?",
-    "expect": "1969"
+    "expect": "1969",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When did Richard Nixon resign?",
-    "expect": "1974"
+    "expect": "1974",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When did the September 11 attacks occur?",
-    "expect": "2001"
+    "expect": "2001",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ushistory",
     "q": "Who was the 1st president of France?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "Who defeated the 2nd US president?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "Who was the 11st US president?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "What number president was Donald Trump's father?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the US Declaration of Independence destroyed?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the US Constitution signed in this play?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the US Constitution ratified in this novel?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the US Bill of Rights destroyed?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the Louisiana Purchase commemorated?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When did the US Civil War begin in this movie?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When did the US Civil War end in this film?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the Emancipation Proclamation stolen?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was Abraham Lincoln assassinated in this play?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the transcontinental railroad demolished?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the 19th Amendment ratified in this book?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was Black Tuesday commemorated?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was Pearl Harbor discovered?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was Brown v. Board of Education filmed?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the Civil Rights Act repealed?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the Voting Rights Act repealed?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was Apollo 11 designed?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When did Richard Nixon resign in this movie?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ushistory",
     "q": "When was the September 11 memorial opened?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many seats are in the US Senate?",
+    "expect": "100",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many electors are there in the Electoral College?",
+    "expect": "538",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "What is the minimum age to become a US senator?",
+    "expect": "30",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "What is the minimum age to become a US representative?",
+    "expect": "25",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "What is the term of a senator?",
+    "expect": "6",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "What is the term of a representative?",
+    "expect": "2",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "What is the term of a president?",
+    "expect": "4",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many amendments are in the Bill of Rights?",
+    "expect": "10",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many voting US senators are present today?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many senators are absent?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many senators voted on this bill?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many senators make a quorum?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many seats in the US Senate are vacant?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many electors abstained?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many House members were present yesterday?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many justices recused themselves?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How old is the president?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How old is a senator in this photograph?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "government",
+    "q": "How many amendments have been repealed?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   }
 ]

@@ -17,5 +17,6 @@ session Veri7vn_Facts = Veri7vn_Facts_Base +
     Facts_Rows
     Word_Guards
     JS_Expr
+    Language_Fields
     Fact_Projection
     Facts_Export

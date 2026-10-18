@@ -1216,5 +1216,863 @@
     "q": "What is the difference in scope between Let and Var?",
     "status": "withheld",
     "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does English belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does English belong to?",
+    "expect": "Germanic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-English belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does German belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does German belong to?",
+    "expect": "Germanic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-German belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Dutch belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Dutch belong to?",
+    "expect": "Germanic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Dutch belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Swedish belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Swedish belong to?",
+    "expect": "Germanic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Swedish belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Spanish belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Spanish belong to?",
+    "expect": "Romance (Italic)",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Spanish belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does French belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does French belong to?",
+    "expect": "Romance (Italic)",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-French belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Italian belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Italian belong to?",
+    "expect": "Romance (Italic)",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Italian belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Portuguese belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Portuguese belong to?",
+    "expect": "Romance (Italic)",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Portuguese belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Romanian belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Romanian belong to?",
+    "expect": "Romance (Italic)",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Romanian belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Russian belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Russian belong to?",
+    "expect": "Slavic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Russian belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Polish belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Polish belong to?",
+    "expect": "Slavic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Polish belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Hindi belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Hindi belong to?",
+    "expect": "Indo-Aryan",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Hindi belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Bengali belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Bengali belong to?",
+    "expect": "Indo-Aryan",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Bengali belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Persian belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Persian belong to?",
+    "expect": "Iranian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Persian belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Farsi belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Farsi belong to?",
+    "expect": "Iranian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Farsi belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Greek belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Greek belong to?",
+    "expect": "Hellenic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Greek belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Irish belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Irish belong to?",
+    "expect": "Celtic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Irish belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Welsh belong to?",
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Welsh belong to?",
+    "expect": "Celtic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Welsh belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Finnish belong to?",
+    "expect": "Finnic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Finnish belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Estonian belong to?",
+    "expect": "Uralic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Estonian belong to?",
+    "expect": "Finnic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Estonian belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Hungarian belong to?",
+    "expect": "Uralic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Hungarian belong to?",
+    "expect": "Ugric",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Hungarian belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Turkish belong to?",
+    "expect": "Turkic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Turkish belong to?",
+    "expect": "Oghuz",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Turkish belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Arabic belong to?",
+    "expect": "Afro-Asiatic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Arabic belong to?",
+    "expect": "Semitic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Arabic belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Hebrew belong to?",
+    "expect": "Afro-Asiatic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Hebrew belong to?",
+    "expect": "Semitic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Hebrew belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Amharic belong to?",
+    "expect": "Afro-Asiatic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Amharic belong to?",
+    "expect": "Semitic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Amharic belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Swahili belong to?",
+    "expect": "Niger-Congo",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Swahili belong to?",
+    "expect": "Bantu",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Swahili belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Zulu belong to?",
+    "expect": "Niger-Congo",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Zulu belong to?",
+    "expect": "Bantu",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Zulu belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Yoruba belong to?",
+    "expect": "Niger-Congo",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Yoruba belong to?",
+    "expect": "Volta-Niger",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Yoruba belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Mandarin belong to?",
+    "expect": "Sino-Tibetan",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Mandarin belong to?",
+    "expect": "Sinitic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Mandarin belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Cantonese belong to?",
+    "expect": "Sino-Tibetan",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Cantonese belong to?",
+    "expect": "Sinitic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Cantonese belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Tibetan belong to?",
+    "expect": "Sino-Tibetan",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Tibetan belong to?",
+    "expect": "Tibetic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Tibetan belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Japanese belong to?",
+    "expect": "Japonic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Japanese belong to?",
+    "expect": "Japanese",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Japanese belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Korean belong to?",
+    "expect": "Koreanic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Korean belong to?",
+    "expect": "Korean",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Korean belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Tagalog belong to?",
+    "expect": "Austronesian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Tagalog belong to?",
+    "expect": "Malayo-Polynesian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Tagalog belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Indonesian belong to?",
+    "expect": "Austronesian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Indonesian belong to?",
+    "expect": "Malayo-Polynesian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Indonesian belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Malay belong to?",
+    "expect": "Austronesian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Malay belong to?",
+    "expect": "Malayo-Polynesian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Malay belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Hawaiian belong to?",
+    "expect": "Austronesian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Hawaiian belong to?",
+    "expect": "Polynesian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Hawaiian belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Vietnamese belong to?",
+    "expect": "Austroasiatic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Vietnamese belong to?",
+    "expect": "Vietic",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Vietnamese belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Thai belong to?",
+    "expect": "Kra-Dai",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Thai belong to?",
+    "expect": "Tai",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Thai belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Tamil belong to?",
+    "expect": "Dravidian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Tamil belong to?",
+    "expect": "South Dravidian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Tamil belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Telugu belong to?",
+    "expect": "Dravidian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Telugu belong to?",
+    "expect": "South-Central Dravidian",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Telugu belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Quechua belong to?",
+    "expect": "Quechuan",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Quechua belong to?",
+    "expect": "Quechua",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Quechua belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Navajo belong to?",
+    "expect": "Na-Dene",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Navajo belong to?",
+    "expect": "Athabaskan",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does the fictional language Neo-Navajo belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does Arabic Sign Language belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which language family does English Sign Language belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Basque belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch of Uralic does English belong to?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Who narrates the film adaptation of Moby-Dick?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Who narrates the film adaptation of The Great Gatsby?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Where is Hamlet set in this movie?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Who designed Captain Ahab's ship?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Who played Jean Valjean in Les Miserables?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "law",
+    "q": "What is habeas corpus in a video game?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "law",
+    "q": "Who abolished habeas corpus?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "law",
+    "q": "What is mens rea in this novel?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "law",
+    "q": "What does the defendant mean in this scene?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch of Indo-European is French?",
+    "expect": "Romance (Italic)",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which branch does Mandarin Chinese belong to?",
+    "expect": "Sinitic",
+    "capability_case": "answered_valid"
   }
 ]
