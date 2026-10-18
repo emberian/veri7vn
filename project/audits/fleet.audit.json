@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "specialist_id": "fleet",
+  "family": "mechanics",
+  "examined_surface": {
+    "request_types": [
+      "trip fuel with explicit US gallon output",
+      "trip fuel with explicit Imperial gallon output"
+    ],
+    "model_scope": "Output-unit binding for two trip-volume requests; fuel economy input is correctly interpreted in each."
+  },
+  "cases": [
+    {
+      "case_id": "imperial-output",
+      "kind": "counterexample",
+      "request": "A car travels 100 miles at 25 imperial mpg. How many imperial gallons of fuel does it use?",
+      "expected_boundary": "The same Imperial gallon unit appears in efficiency and requested output:100/25=4 Imperial gallons.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"trip_gallons\", \"value\": 4.804, \"response\": \"The trip needs 4.804 US gallons of fuel (18.18 L).\"}; reviewed outcome: wrong_requested_unit"
+    },
+    {
+      "case_id": "us-output",
+      "kind": "independently_checked_case",
+      "request": "A car travels 100 miles at 25 US mpg. How many US gallons of fuel does it use?",
+      "expected_boundary": "The same US gallon unit appears in efficiency and requested output:100/25=4 US gallons.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"trip_gallons\", \"value\": 4, \"response\": \"The trip needs 4 US gallons of fuel (15.14 L).\"}; reviewed outcome: right",
+      "independent_check": "The same US gallon unit appears in efficiency and requested output:100/25=4 US gallons."
+    }
+  ],
+  "actual_receipt": "project/audits/evidence/mechanics-20261018.json",
+  "native_binding": {
+    "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
+    "registered_binary": "var/mechanics/bin/mechanics"
+  },
+  "current_unresolved_limits": [
+    "Open request-contract defect: explicit Imperial gallon output is ignored. The4.804US-gallon answer is equivalent volume but not the requested4Imperial-gallon result.",
+    "Carry requested output-volume unit separately from the economy input unit through the actual request, rendering and accepted-output theorem.",
+    "Braking gradients, varying traction, price volume units and emissions assumptions are not independently audited here."
+  ],
+  "reviewer": "Codex root, direct source/theorem and executed-reader review, 2026-10-18",
+  "owner": "root / physical mechanics backlog; no active deputy",
+  "author_claims": {
+    "audit_scope": "partial; presence is not completion",
+    "theorem_consumer_review": "trip_gallons_def binds the accepted value to gallons_of, whose canonical unit is US gallons. There is no requested-output unit in FvGallons, so this statement cannot establish that an Imperial output request was honored.",
+    "source_paths": [
+      "src/extract/mechanics/Mechanics.thy",
+      "src/extract/mechanics/Mechanics_Export.thy",
+      "src/extract/mechanics/recognizer.sml",
+      "src/extract/mechanics/main.sml"
+    ],
+    "production_change_this_audit": false,
+    "shipped_panel_result": "No shipped panel rerun in this audit. Prior exact-native score1264/1264 for the9-ID family is separately recorded in project/lanes/F-physical-mechanics-gravity.md.",
+    "result_counts": {
+      "right": 1,
+      "wrong_requested_unit": 1
+    }
+  }
+}

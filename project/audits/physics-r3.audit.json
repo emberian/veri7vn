@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "specialist_id": "physics-r3",
+  "family": "mechanics",
+  "examined_surface": {
+    "request_types": [
+      "signed potential-energy change with mixed source units",
+      "zero-gravity weight",
+      "effect of a drag condition on a potential-energy-only question"
+    ],
+    "model_scope": "Constant supplied or named surface gravity; mass and length conversions; partial reader-condition audit."
+  },
+  "cases": [
+    {
+      "case_id": "signed-supplied-gravity",
+      "kind": "independently_checked_case",
+      "request": "What is the potential energy change of a 750 g mass through -40 cm with gravity 2 m/s2?",
+      "expected_boundary": "Independent dimensional arithmetic: (750/1000)*(-40/100)*2 = -0.6 J.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"pe\", \"value\": -0.6, \"response\": \"The gravitational potential energy change is -0.6 J at g = 2 m/s^2 (constant gravity; mass 0.75 kg, signed height change -0.4 m).\"}; reviewed outcome: right",
+      "independent_check": "Independent dimensional arithmetic: (750/1000)*(-40/100)*2 = -0.6 J."
+    },
+    {
+      "case_id": "zero-gravity-weight",
+      "kind": "independently_checked_case",
+      "request": "With gravity 0 m/s2, what is the weight of a 3 kg object?",
+      "expected_boundary": "Constant-field weight m*g with g=0 is zero.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"weight\", \"value\": 0, \"response\": \"The weight is about 0 N at g = 0 m/s^2 (W = m g = 3 kg x 0 m/s^2; the same as 0 kg would weigh on Earth).\"}; reviewed outcome: right",
+      "independent_check": "Constant-field weight m*g with g=0 is zero."
+    },
+    {
+      "case_id": "drag-condition",
+      "kind": "counterexample",
+      "request": "What is the potential energy of a 2 kg object lifted 3 m on Mars with drag?",
+      "expected_boundary": "For gravitational potential energy, the endpoints determine m*g*delta_h=2*3.71*3=22.26 J under the stated constant Mars surface-gravity model. Drag can change required applied work or impact speed, but does not prevent computing this potential-energy change.",
+      "observed_behavior": "{\"status\": \"withheld\", \"kind\": \"unsupported_model\", \"value\": null, \"response\": \"The supplied conditions need a different physical model or an unambiguous gravity value and unit; I will not replace them with Earth or classical defaults.\"}; reviewed outcome: withheld_valid"
+    }
+  ],
+  "actual_receipt": "project/audits/evidence/mechanics-20261018.json",
+  "native_binding": {
+    "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
+    "registered_binary": "var/mechanics/bin/mechanics"
+  },
+  "current_unresolved_limits": [
+    "Open: blanket drag guard withholds potential-energy changes whose gravitational component is determined by endpoints. Narrow the condition dependency per requested quantity; do not remove drag guards from impact-speed/time calculations.",
+    "Only these three request forms were independently examined here; projectile, kinetic-energy, force, power, pendulum-amplitude and other model boundaries remain outside this audit.",
+    "Arbitrary English interpretation and correctness of the finite named-body gravity table are not proved."
+  ],
+  "reviewer": "Codex root, direct source/theorem and executed-reader review, 2026-10-18",
+  "owner": "root / physical mechanics backlog; no active deputy",
+  "author_claims": {
+    "audit_scope": "partial; presence is not completion",
+    "theorem_consumer_review": "supplied_potential_energy and supplied_potential_units bind accepted PhPEAt outputs to mass, gravity and signed height. supplied_drop_energy_conserved connects that energy to the independent impact model for a drop from rest. physics_model_limit_refuses proves refusal, not that every refused condition prevents the requested quantity being computed.",
+    "source_paths": [
+      "src/extract/mechanics/Mechanics.thy",
+      "src/extract/mechanics/Mechanics_Export.thy",
+      "src/extract/mechanics/recognizer.sml",
+      "src/extract/mechanics/main.sml"
+    ],
+    "production_change_this_audit": false,
+    "shipped_panel_result": "No shipped panel rerun in this audit. Prior exact-native score1264/1264 for the9-ID family is separately recorded in project/lanes/F-physical-mechanics-gravity.md.",
+    "result_counts": {
+      "right": 2,
+      "withheld_valid": 1
+    }
+  }
+}

@@ -239,7 +239,7 @@ class CoverageInventoryTests(unittest.TestCase):
         self.assertTrue(output.getvalue().startswith("{\n"))
 
     def test_explicit_audit_records_preserve_claims_and_validate_ids_and_receipts(self):
-        audit_dir = self.repo / "var/coverage/audits"
+        audit_dir = self.repo / "project/audits"
         audit_dir.mkdir(parents=True)
         receipt = self.repo / "var/receipts/example.json"
         self.write_json(receipt, {"source": "test fixture"})

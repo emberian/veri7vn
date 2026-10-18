@@ -31,8 +31,11 @@ The current generated snapshot is in `var/coverage/semantic-audit-backlog.json`:
 24 IDs, grouped under 9 physical and 15 symbolic owner leads, with no unmapped
 families.
 
-Deputies can copy `var/coverage/audits/record-template.json` to
-`var/coverage/audits/<specialist-id>.audit.json` and replace its placeholders.
+The default audit directory is now tracked `project/audits/`. The first nine
+partial records and their compact observations are committed there; see its README
+for scope and actual open defects. `--audit-dir` still accepts a separate directory.
+The original template is `var/coverage/audits/record-template.json`; replace its
+placeholders before saving `<specialist-id>.audit.json` in the selected directory.
 The machine-readable schema is `var/coverage/audits/record.schema.json`. A
 concise record looks like:
 
@@ -74,8 +77,9 @@ nonzero.
 
 The generated inventory has a separate `explicit_audit_records` section and
 Markdown column; these records do not count as ordinary keyword references.
-The current snapshot has **0 explicit audit records**. The template and schema
-are examples, not evidence. Producers should include one file per specialist
+The original tool-only snapshot had **0 explicit audit records**; the later
+root review added nine partial records. The template and schema are examples,
+not evidence. Producers should include one file per specialist
 they examined, keep `author_claims` as their own account, and leave the
 tool-generated `validation` field out of the submitted file.
 

@@ -518,7 +518,7 @@ def build_report(repo: Path = REPO, upstream: Path | None = None, registry_path:
     upstream = (upstream or repo / "upstream").resolve(strict=True)
     registry_path = Path(registry_path or repo / "src/extract/families.json").resolve(strict=True)
     lane_root = Path(lane_root or repo / "project/lanes").resolve(strict=True)
-    audit_dir = Path(audit_dir or "var/coverage/audits")
+    audit_dir = Path(audit_dir or "project/audits")
     if not audit_dir.is_absolute():
         audit_dir = repo / audit_dir
     audit_dir = audit_dir.resolve(strict=False)
@@ -794,7 +794,7 @@ def main() -> int:
     parser.add_argument("--backlog-out", type=Path,
                         help="write ID-level semantic-reference backlog as a separate JSON file")
     parser.add_argument("--audit-dir", type=Path,
-                        help="read optional <specialist-id>.audit.json records from this directory (default var/coverage/audits)")
+                        help="read optional <specialist-id>.audit.json records from this directory (default project/audits)")
     args = parser.parse_args()
     repo = args.repo.resolve(strict=True)
     upstream = (args.upstream or repo / "upstream").resolve(strict=True)

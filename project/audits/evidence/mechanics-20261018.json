@@ -1,0 +1,352 @@
+{
+  "schema": "veri7vn.reviewed-specialist-observations/1",
+  "reviewed_at": "2026-10-18T10:55:37.131019+00:00",
+  "source_commit": "fb966e7ffd6950e3cddf0aa5bf90f3df356ca840",
+  "scope": "22 root-authored pinned-native questions across9 exact IDs; partial model/reader audit, not an exhaustive specialist audit, shipped score, or full-default/portable-package run.",
+  "binary": "var/mechanics/bin/mechanics",
+  "binary_sha256": "bd4012b913766a9fcd25c918fabb47f819353321a67cf2091691d6220e4fb672",
+  "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
+  "raw_local_receipt": "var/root-audit-mechanics/observations.json",
+  "raw_local_receipt_sha256": "fb5bead459329895cf019dddc5bfa25ef665f8b7c22461a617821a3fd6e25fbc",
+  "source_sha256": {
+    "src/extract/mechanics/Mechanics.thy": "86b433334079bdea7816017bc888e1ab187430f9836863cfb001baea1cc9bac0",
+    "src/extract/mechanics/Mechanics_Export.thy": "37f07db2abaefd3c7f87587f7964988f4f1e2ec5eeec43924f727a88696bf457",
+    "src/extract/mechanics/recognizer.sml": "6623d52f44e0c9398cc66e389695e0977bab19c2b6646bd2b0105a902972532d",
+    "src/extract/mechanics/main.sml": "ae355610263625b5b33c5b3e115bb423da89c3e076dcea2f3f887159e3ee56a1"
+  },
+  "observations": [
+    {
+      "specialist_id": "physics",
+      "case_id": "signed-supplied-gravity",
+      "request": "What is the potential energy change of a 750 g mass through -40 cm with gravity 2 m/s2?",
+      "reviewed_expected_value": -0.6,
+      "independent_check": "Independent dimensional arithmetic: (750/1000)*(-40/100)*2 = -0.6 J.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "pe",
+        "value": -0.6,
+        "response": "The gravitational potential energy change is -0.6 J at g = 2 m/s^2 (constant gravity; mass 0.75 kg, signed height change -0.4 m)."
+      }
+    },
+    {
+      "specialist_id": "physics",
+      "case_id": "zero-gravity-weight",
+      "request": "With gravity 0 m/s2, what is the weight of a 3 kg object?",
+      "reviewed_expected_value": 0,
+      "independent_check": "Constant-field weight m*g with g=0 is zero.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "weight",
+        "value": 0,
+        "response": "The weight is about 0 N at g = 0 m/s^2 (W = m g = 3 kg x 0 m/s^2; the same as 0 kg would weigh on Earth)."
+      }
+    },
+    {
+      "specialist_id": "physics",
+      "case_id": "drag-condition",
+      "request": "What is the potential energy of a 2 kg object lifted 3 m on Mars with drag?",
+      "reviewed_expected_value": 22.26,
+      "independent_check": "For gravitational potential energy, the endpoints determine m*g*delta_h=2*3.71*3=22.26 J under the stated constant Mars surface-gravity model. Drag can change required applied work or impact speed, but does not prevent computing this potential-energy change.",
+      "outcome": "withheld_valid",
+      "reply": {
+        "status": "withheld",
+        "kind": "unsupported_model",
+        "value": null,
+        "response": "The supplied conditions need a different physical model or an unambiguous gravity value and unit; I will not replace them with Earth or classical defaults."
+      },
+      "expectation_review": {
+        "initial_expected": null,
+        "initial_reason": "The supplied drag condition exceeds this reader; no unqualified simple-model answer is justified.",
+        "changed_after_inspection": true
+      }
+    },
+    {
+      "specialist_id": "physics-r2",
+      "case_id": "signed-supplied-gravity",
+      "request": "What is the potential energy change of a 750 g mass through -40 cm with gravity 2 m/s2?",
+      "reviewed_expected_value": -0.6,
+      "independent_check": "Independent dimensional arithmetic: (750/1000)*(-40/100)*2 = -0.6 J.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "pe",
+        "value": -0.6,
+        "response": "The gravitational potential energy change is -0.6 J at g = 2 m/s^2 (constant gravity; mass 0.75 kg, signed height change -0.4 m)."
+      }
+    },
+    {
+      "specialist_id": "physics-r2",
+      "case_id": "zero-gravity-weight",
+      "request": "With gravity 0 m/s2, what is the weight of a 3 kg object?",
+      "reviewed_expected_value": 0,
+      "independent_check": "Constant-field weight m*g with g=0 is zero.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "weight",
+        "value": 0,
+        "response": "The weight is about 0 N at g = 0 m/s^2 (W = m g = 3 kg x 0 m/s^2; the same as 0 kg would weigh on Earth)."
+      }
+    },
+    {
+      "specialist_id": "physics-r2",
+      "case_id": "drag-condition",
+      "request": "What is the potential energy of a 2 kg object lifted 3 m on Mars with drag?",
+      "reviewed_expected_value": 22.26,
+      "independent_check": "For gravitational potential energy, the endpoints determine m*g*delta_h=2*3.71*3=22.26 J under the stated constant Mars surface-gravity model. Drag can change required applied work or impact speed, but does not prevent computing this potential-energy change.",
+      "outcome": "withheld_valid",
+      "reply": {
+        "status": "withheld",
+        "kind": "unsupported_model",
+        "value": null,
+        "response": "The supplied conditions need a different physical model or an unambiguous gravity value and unit; I will not replace them with Earth or classical defaults."
+      },
+      "expectation_review": {
+        "initial_expected": null,
+        "initial_reason": "The supplied drag condition exceeds this reader; no unqualified simple-model answer is justified.",
+        "changed_after_inspection": true
+      }
+    },
+    {
+      "specialist_id": "physics-r3",
+      "case_id": "signed-supplied-gravity",
+      "request": "What is the potential energy change of a 750 g mass through -40 cm with gravity 2 m/s2?",
+      "reviewed_expected_value": -0.6,
+      "independent_check": "Independent dimensional arithmetic: (750/1000)*(-40/100)*2 = -0.6 J.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "pe",
+        "value": -0.6,
+        "response": "The gravitational potential energy change is -0.6 J at g = 2 m/s^2 (constant gravity; mass 0.75 kg, signed height change -0.4 m)."
+      }
+    },
+    {
+      "specialist_id": "physics-r3",
+      "case_id": "zero-gravity-weight",
+      "request": "With gravity 0 m/s2, what is the weight of a 3 kg object?",
+      "reviewed_expected_value": 0,
+      "independent_check": "Constant-field weight m*g with g=0 is zero.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "weight",
+        "value": 0,
+        "response": "The weight is about 0 N at g = 0 m/s^2 (W = m g = 3 kg x 0 m/s^2; the same as 0 kg would weigh on Earth)."
+      }
+    },
+    {
+      "specialist_id": "physics-r3",
+      "case_id": "drag-condition",
+      "request": "What is the potential energy of a 2 kg object lifted 3 m on Mars with drag?",
+      "reviewed_expected_value": 22.26,
+      "independent_check": "For gravitational potential energy, the endpoints determine m*g*delta_h=2*3.71*3=22.26 J under the stated constant Mars surface-gravity model. Drag can change required applied work or impact speed, but does not prevent computing this potential-energy change.",
+      "outcome": "withheld_valid",
+      "reply": {
+        "status": "withheld",
+        "kind": "unsupported_model",
+        "value": null,
+        "response": "The supplied conditions need a different physical model or an unambiguous gravity value and unit; I will not replace them with Earth or classical defaults."
+      },
+      "expectation_review": {
+        "initial_expected": null,
+        "initial_reason": "The supplied drag condition exceeds this reader; no unqualified simple-model answer is justified.",
+        "changed_after_inspection": true
+      }
+    },
+    {
+      "specialist_id": "bodies-v2",
+      "case_id": "signed-supplied-gravity",
+      "request": "What is the potential energy change of a 750 g mass through -40 cm with gravity 2 m/s2?",
+      "reviewed_expected_value": -0.6,
+      "independent_check": "Independent dimensional arithmetic: (750/1000)*(-40/100)*2 = -0.6 J.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "pe",
+        "value": -0.6,
+        "response": "The gravitational potential energy change is -0.6 J at g = 2 m/s^2 (constant gravity; mass 0.75 kg, signed height change -0.4 m)."
+      }
+    },
+    {
+      "specialist_id": "bodies-v2",
+      "case_id": "zero-gravity-weight",
+      "request": "With gravity 0 m/s2, what is the weight of a 3 kg object?",
+      "reviewed_expected_value": 0,
+      "independent_check": "Constant-field weight m*g with g=0 is zero.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "weight",
+        "value": 0,
+        "response": "The weight is about 0 N at g = 0 m/s^2 (W = m g = 3 kg x 0 m/s^2; the same as 0 kg would weigh on Earth)."
+      }
+    },
+    {
+      "specialist_id": "bodies-v2",
+      "case_id": "drag-condition",
+      "request": "What is the potential energy of a 2 kg object lifted 3 m on Mars with drag?",
+      "reviewed_expected_value": 22.26,
+      "independent_check": "For gravitational potential energy, the endpoints determine m*g*delta_h=2*3.71*3=22.26 J under the stated constant Mars surface-gravity model. Drag can change required applied work or impact speed, but does not prevent computing this potential-energy change.",
+      "outcome": "withheld_valid",
+      "reply": {
+        "status": "withheld",
+        "kind": "unsupported_model",
+        "value": null,
+        "response": "The supplied conditions need a different physical model or an unambiguous gravity value and unit; I will not replace them with Earth or classical defaults."
+      },
+      "expectation_review": {
+        "initial_expected": null,
+        "initial_reason": "The supplied drag condition exceeds this reader; no unqualified simple-model answer is justified.",
+        "changed_after_inspection": true
+      }
+    },
+    {
+      "specialist_id": "mechanisms",
+      "case_id": "mixed-unit-lever",
+      "request": "A lever has effort arm 40 cm and load arm 0.2 m. What is its ideal mechanical advantage?",
+      "reviewed_expected_value": 2,
+      "independent_check": "Arm-ratio arithmetic: 0.40 m / 0.20 m = 2.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "lever_ma",
+        "value": 2,
+        "response": "The mechanical advantage is 2 (effort arm 0.4 / load arm 0.2)."
+      }
+    },
+    {
+      "specialist_id": "mechanisms",
+      "case_id": "lossy-pulley",
+      "request": "A pulley has 4 supporting strands and a 400 N load. Its efficiency is 50%. What effort is required?",
+      "reviewed_expected_value": 200,
+      "independent_check": "Work efficiency eta = output/input and ideal displacement ratio4 imply effort=400/(4*0.5)=200 N; alternatively withhold unsupported efficiency.",
+      "outcome": "wrong",
+      "reply": {
+        "status": "answered",
+        "kind": "pulley_effort",
+        "value": 100,
+        "response": "The effort is 100 N (load 400 N / 4 supporting strands; ideal, frictionless)."
+      }
+    },
+    {
+      "specialist_id": "mechanisms-v2",
+      "case_id": "mixed-unit-lever",
+      "request": "A lever has effort arm 40 cm and load arm 0.2 m. What is its ideal mechanical advantage?",
+      "reviewed_expected_value": 2,
+      "independent_check": "Arm-ratio arithmetic: 0.40 m / 0.20 m = 2.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "lever_ma",
+        "value": 2,
+        "response": "The mechanical advantage is 2 (effort arm 0.4 / load arm 0.2)."
+      }
+    },
+    {
+      "specialist_id": "mechanisms-v2",
+      "case_id": "lossy-pulley",
+      "request": "A pulley has 4 supporting strands and a 400 N load. Its efficiency is 50%. What effort is required?",
+      "reviewed_expected_value": 200,
+      "independent_check": "Work efficiency eta = output/input and ideal displacement ratio4 imply effort=400/(4*0.5)=200 N; alternatively withhold unsupported efficiency.",
+      "outcome": "wrong",
+      "reply": {
+        "status": "answered",
+        "kind": "pulley_effort",
+        "value": 100,
+        "response": "The effort is 100 N (load 400 N / 4 supporting strands; ideal, frictionless)."
+      }
+    },
+    {
+      "specialist_id": "sports",
+      "case_id": "ties-half-win",
+      "request": "A team has 10 wins, 5 losses and 3 ties. Counting each tie as half a win, what is its win percentage?",
+      "reviewed_expected_value": 0.6388888888888888,
+      "independent_check": "The winning-percentage convention used in this reader returns a fraction, as its displayed formula explicitly says: (10+3/2)/18=23/36, rounded to0.639. The initial probe expected percent-scale63.8889; review corrected the expectation, not the implementation.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "win_pct",
+        "value": 0.639,
+        "response": "The winning percentage is 0.639 ((W + 1/2 T) / G = (10 + 1/2 x 3) / 18)."
+      },
+      "expectation_review": {
+        "initial_expected": 63.888888888888886,
+        "initial_reason": "Explicitly requested convention: (10+3/2)/(10+5+3)*100.",
+        "changed_after_inspection": true
+      }
+    },
+    {
+      "specialist_id": "sports",
+      "case_id": "impossible-hits",
+      "request": "What is the batting average with 12 hits and 10 at-bats?",
+      "reviewed_expected_value": null,
+      "independent_check": "Hits cannot exceed at-bats in the supplied batting line.",
+      "outcome": "right",
+      "reply": {
+        "status": "withheld",
+        "kind": "impossible",
+        "value": null,
+        "response": "The stated magnitudes or event counts are outside the physical domain of this calculation."
+      }
+    },
+    {
+      "specialist_id": "fleet",
+      "case_id": "imperial-output",
+      "request": "A car travels 100 miles at 25 imperial mpg. How many imperial gallons of fuel does it use?",
+      "reviewed_expected_value": 4,
+      "independent_check": "The same Imperial gallon unit appears in efficiency and requested output:100/25=4 Imperial gallons.",
+      "outcome": "wrong_requested_unit",
+      "reply": {
+        "status": "answered",
+        "kind": "trip_gallons",
+        "value": 4.804,
+        "response": "The trip needs 4.804 US gallons of fuel (18.18 L)."
+      }
+    },
+    {
+      "specialist_id": "fleet",
+      "case_id": "us-output",
+      "request": "A car travels 100 miles at 25 US mpg. How many US gallons of fuel does it use?",
+      "reviewed_expected_value": 4,
+      "independent_check": "The same US gallon unit appears in efficiency and requested output:100/25=4 US gallons.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "trip_gallons",
+        "value": 4,
+        "response": "The trip needs 4 US gallons of fuel (15.14 L)."
+      }
+    },
+    {
+      "specialist_id": "fluids-r2",
+      "case_id": "gauge-default",
+      "request": "What is the gauge pressure 2 m below the surface of fresh water?",
+      "reviewed_expected_value": 19613.3,
+      "independent_check": "Under declared table density1000kg/m3 and g=9.80665m/s2, rho*g*h=19613.3Pa.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "pressure_gauge",
+        "value": 19610.0,
+        "response": "The gauge pressure is about 1.961e+04 Pa (19.61 kPa) at 2 m in fresh water (P = rho g h = 1000 x 9.80665 x 2; add 101325 Pa for absolute)."
+      }
+    },
+    {
+      "specialist_id": "fluids-r2",
+      "case_id": "gauge-supplied",
+      "request": "What is the gauge pressure 2 m below the surface of fresh water with gravity 2 m/s2?",
+      "reviewed_expected_value": 4000,
+      "independent_check": "With supplied gravity2 and table density1000, rho*g*h=4000Pa; fixed-gravity reader may withhold instead.",
+      "outcome": "withheld_valid",
+      "reply": {
+        "status": "withheld",
+        "kind": "unsupported_model",
+        "value": null,
+        "response": "The supplied fluid conditions are outside this reader's fixed-property, standard-gravity and atmospheric-pressure model; I will not replace them with defaults."
+      }
+    }
+  ]
+}

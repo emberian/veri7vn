@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "specialist_id": "mechanisms-v2",
+  "family": "mechanics",
+  "examined_surface": {
+    "request_types": [
+      "mixed-unit ideal lever advantage",
+      "pulley effort with explicitly supplied efficiency"
+    ],
+    "model_scope": "Two simple-machine models; original role grammar and finite unit conversions, not the entire mechanism catalogue."
+  },
+  "cases": [
+    {
+      "case_id": "mixed-unit-lever",
+      "kind": "independently_checked_case",
+      "request": "A lever has effort arm 40 cm and load arm 0.2 m. What is its ideal mechanical advantage?",
+      "expected_boundary": "Arm-ratio arithmetic: 0.40 m / 0.20 m = 2.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"lever_ma\", \"value\": 2, \"response\": \"The mechanical advantage is 2 (effort arm 0.4 / load arm 0.2).\"}; reviewed outcome: right",
+      "independent_check": "Arm-ratio arithmetic: 0.40 m / 0.20 m = 2."
+    },
+    {
+      "case_id": "lossy-pulley",
+      "kind": "counterexample",
+      "request": "A pulley has 4 supporting strands and a 400 N load. Its efficiency is 50%. What effort is required?",
+      "expected_boundary": "Work efficiency eta = output/input and ideal displacement ratio4 imply effort=400/(4*0.5)=200 N; alternatively withhold unsupported efficiency.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"pulley_effort\", \"value\": 100, \"response\": \"The effort is 100 N (load 400 N / 4 supporting strands; ideal, frictionless).\"}; reviewed outcome: wrong"
+    }
+  ],
+  "actual_receipt": "project/audits/evidence/mechanics-20261018.json",
+  "native_binding": {
+    "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
+    "registered_binary": "var/mechanics/bin/mechanics"
+  },
+  "current_unresolved_limits": [
+    "Open correctness defect: the pulley reader discards supplied efficiency and returns ideal100 N for a50%-efficient4-strand400 N system; required effort200 N. The ideal qualifier does not discharge the conflicting given.",
+    "Implement a checked efficiency-aware work-balance model with complete input consumption; review gears, belts and levers for the same missing-condition class.",
+    "Remaining mechanism kinds and target grammar are not exhaustively audited."
+  ],
+  "reviewer": "Codex root, direct source/theorem and executed-reader review, 2026-10-18",
+  "owner": "root / physical mechanics backlog; no active deputy",
+  "author_claims": {
+    "audit_scope": "partial; presence is not completion",
+    "theorem_consumer_review": "lever_units binds accepted advantage to both declared length scale factors. pulley_effort_def proves y*n=load for the ideal request. That constructor contains no efficiency, so the proof does not justify answering an efficiency-bearing source question.",
+    "source_paths": [
+      "src/extract/mechanics/Mechanics.thy",
+      "src/extract/mechanics/Mechanics_Export.thy",
+      "src/extract/mechanics/recognizer.sml",
+      "src/extract/mechanics/main.sml"
+    ],
+    "production_change_this_audit": false,
+    "shipped_panel_result": "No shipped panel rerun in this audit. Prior exact-native score1264/1264 for the9-ID family is separately recorded in project/lanes/F-physical-mechanics-gravity.md.",
+    "result_counts": {
+      "right": 1,
+      "wrong": 1
+    }
+  }
+}

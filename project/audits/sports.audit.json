@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "specialist_id": "sports",
+  "family": "mechanics",
+  "examined_surface": {
+    "request_types": [
+      "winning percentage with an explicit half-win tie rule",
+      "impossible batting hit count"
+    ],
+    "model_scope": "Two event-count cases; fraction output convention inspected, no claim about all sporting definitions."
+  },
+  "cases": [
+    {
+      "case_id": "ties-half-win",
+      "kind": "independently_checked_case",
+      "request": "A team has 10 wins, 5 losses and 3 ties. Counting each tie as half a win, what is its win percentage?",
+      "expected_boundary": "The winning-percentage convention used in this reader returns a fraction, as its displayed formula explicitly says: (10+3/2)/18=23/36, rounded to0.639. The initial probe expected percent-scale63.8889; review corrected the expectation, not the implementation.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"win_pct\", \"value\": 0.639, \"response\": \"The winning percentage is 0.639 ((W + 1/2 T) / G = (10 + 1/2 x 3) / 18).\"}; reviewed outcome: right",
+      "independent_check": "The winning-percentage convention used in this reader returns a fraction, as its displayed formula explicitly says: (10+3/2)/18=23/36, rounded to0.639. The initial probe expected percent-scale63.8889; review corrected the expectation, not the implementation."
+    },
+    {
+      "case_id": "impossible-hits",
+      "kind": "independently_checked_case",
+      "request": "What is the batting average with 12 hits and 10 at-bats?",
+      "expected_boundary": "Hits cannot exceed at-bats in the supplied batting line.",
+      "observed_behavior": "{\"status\": \"withheld\", \"kind\": \"impossible\", \"value\": null, \"response\": \"The stated magnitudes or event counts are outside the physical domain of this calculation.\"}; reviewed outcome: right",
+      "independent_check": "Hits cannot exceed at-bats in the supplied batting line."
+    }
+  ],
+  "actual_receipt": "project/audits/evidence/mechanics-20261018.json",
+  "native_binding": {
+    "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
+    "registered_binary": "var/mechanics/bin/mechanics"
+  },
+  "current_unresolved_limits": [
+    "The half-win convention is explicit in this probe; other league-specific tie definitions are outside this audit.",
+    "Missing baseball fields, joint count consistency, passer rating conventions and signed games-behind requests remain to be examined."
+  ],
+  "reviewer": "Codex root, direct source/theorem and executed-reader review, 2026-10-18",
+  "owner": "root / physical mechanics backlog; no active deputy",
+  "author_claims": {
+    "audit_scope": "partial; presence is not completion",
+    "theorem_consumer_review": "win_pct_def establishes y*(w+l+t)=w+t/2 with positive total for accepted replies. physical_domain checks event-count relationships, including hits<=at-bats; the impossible batting line was actually refused.",
+    "source_paths": [
+      "src/extract/mechanics/Mechanics.thy",
+      "src/extract/mechanics/Mechanics_Export.thy",
+      "src/extract/mechanics/recognizer.sml",
+      "src/extract/mechanics/main.sml"
+    ],
+    "production_change_this_audit": false,
+    "shipped_panel_result": "No shipped panel rerun in this audit. Prior exact-native score1264/1264 for the9-ID family is separately recorded in project/lanes/F-physical-mechanics-gravity.md.",
+    "result_counts": {
+      "right": 2
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "specialist_id": "fluids-r2",
+  "family": "mechanics",
+  "examined_surface": {
+    "request_types": [
+      "default freshwater gauge pressure",
+      "freshwater gauge pressure with supplied gravity"
+    ],
+    "model_scope": "Fixed table density and default versus supplied constant gravity; two pressure requests only."
+  },
+  "cases": [
+    {
+      "case_id": "gauge-default",
+      "kind": "independently_checked_case",
+      "request": "What is the gauge pressure 2 m below the surface of fresh water?",
+      "expected_boundary": "Under declared table density1000kg/m3 and g=9.80665m/s2, rho*g*h=19613.3Pa.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"pressure_gauge\", \"value\": 19610.0, \"response\": \"The gauge pressure is about 1.961e+04 Pa (19.61 kPa) at 2 m in fresh water (P = rho g h = 1000 x 9.80665 x 2; add 101325 Pa for absolute).\"}; reviewed outcome: right",
+      "independent_check": "Under declared table density1000kg/m3 and g=9.80665m/s2, rho*g*h=19613.3Pa."
+    },
+    {
+      "case_id": "gauge-supplied",
+      "kind": "counterexample",
+      "request": "What is the gauge pressure 2 m below the surface of fresh water with gravity 2 m/s2?",
+      "expected_boundary": "With supplied gravity2 and table density1000, rho*g*h=4000Pa; fixed-gravity reader may withhold instead.",
+      "observed_behavior": "{\"status\": \"withheld\", \"kind\": \"unsupported_model\", \"value\": null, \"response\": \"The supplied fluid conditions are outside this reader's fixed-property, standard-gravity and atmospheric-pressure model; I will not replace them with defaults.\"}; reviewed outcome: withheld_valid"
+    }
+  ],
+  "actual_receipt": "project/audits/evidence/mechanics-20261018.json",
+  "native_binding": {
+    "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
+    "registered_binary": "var/mechanics/bin/mechanics"
+  },
+  "current_unresolved_limits": [
+    "Open capability: supplied gravity requires a richer pressure request; current reader withholds the computable4000Pa case.",
+    "Temperature-dependent density, surface-pressure frames and buoyancy geometry remain outside this audit."
+  ],
+  "reviewer": "Codex root, direct source/theorem and executed-reader review, 2026-10-18",
+  "owner": "root / physical mechanics backlog; no active deputy",
+  "author_claims": {
+    "audit_scope": "partial; presence is not completion",
+    "theorem_consumer_review": "gauge_pressure binds accepted pressure to fluid_density(f)*g0*h. FsGauge has no supplied-gravity field; fluid_model_limit_refuses prevents the default calculation from substituting for that missing model.",
+    "source_paths": [
+      "src/extract/mechanics/Mechanics.thy",
+      "src/extract/mechanics/Mechanics_Export.thy",
+      "src/extract/mechanics/recognizer.sml",
+      "src/extract/mechanics/main.sml"
+    ],
+    "production_change_this_audit": false,
+    "shipped_panel_result": "No shipped panel rerun in this audit. Prior exact-native score1264/1264 for the9-ID family is separately recorded in project/lanes/F-physical-mechanics-gravity.md.",
+    "result_counts": {
+      "right": 1,
+      "withheld_valid": 1
+    }
+  }
+}
