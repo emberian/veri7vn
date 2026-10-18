@@ -190,10 +190,9 @@ SHA-256 values at the implementation freeze:
 | Generated SML | `53feba7fb5c28c43e8287fca44c017015f6f14c24cd6e3a058df53259a5d621d` |
 | Darwin executable | `c23f3dd5b675cd7f656de255cfbc32212ac956fc29773d3c3a6d5745e03012bc` |
 
-The D Darwin artifact is `var/stores/counts/bound`, 617,048 bytes. The C
-published executable remains untouched while integration finishes. C compile
+The D Darwin artifact is `var/stores/counts/bound`, 617,048 bytes. C compile
 inputs remain in `var/stores/stores-codex-9316b86385/` for immutable packaging.
-Linux results will be appended before handoff.
+Root integrated the producer changes in `64fb502`.
 
 The final Darwin compile uses the common `tools/dev/native-compile` helper.
 Its actual pre-compile frozen-input receipt is
@@ -203,6 +202,18 @@ the generated export and the live passed proof receipt. `build.sh` now uses the
 same helper for future builds. The bound executable passes all 394 targeted and
 20 original/state checks and produces identical replies for all 2,476 shipped
 requests compared with the earlier same-source candidate after removing timing.
+
+Linux compiled the immutable final runtime/export under the normal managed lock
+and 8 GiB cap. Its binary is
+`var/stores/stores-counts-aed8de60f3/stores-linux`, 1,461,752 bytes, SHA-256
+`52aac86783b1af623dc262de658f7289ff90c4a86669038b41f14b1dec7362fb`.
+Receipt: `var/linux/receipt-stores-hbox-stores-counts-aed8de60f3.json`.
+The 394 targeted checks and all original/state tests pass on Linux. All 2,476
+shipped-panel replies equal the final bound Darwin replies after removing only
+`specialist_ms`. The receipt keeps the original candidate comparison and adds
+the directly checked `bound_macos` binding; it does not invent a prior compile
+manifest. Frozen runtime and theory hashes were checked against the live source
+before handoff. The Linux size target remains unmet.
 
 The existing cold-start and Linux size targets remain unmet. This work does not
 claim independent food-ontology correctness or completion of the six composition
