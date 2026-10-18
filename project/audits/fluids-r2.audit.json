@@ -29,7 +29,7 @@
   "actual_receipt": "project/audits/evidence/mechanics-20261018.json",
   "native_binding": {
     "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
-    "registered_binary": "var/mechanics/bin/mechanics"
+    "registered_binary": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/binary"
   },
   "current_unresolved_limits": [
     "Open capability: supplied gravity requires a richer pressure request; current reader withholds the computable4000Pa case.",
@@ -51,6 +51,7 @@
     "result_counts": {
       "right": 1,
       "withheld_valid": 1
-    }
+    },
+    "native_binding_scope": "The optional binary path selects the immutable observed artifact. Current source drift is reported separately; later native promotion must not erase this historical evidence."
   }
 }

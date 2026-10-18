@@ -15,6 +15,9 @@ native hashes; it does not validate the author's semantic judgment. Local
 native/proof receipts under `var/` are required to recheck those bindings. Their
 absence on another checkout is missing evidence, not evidence of correctness.
 The compact observations under `evidence/` remain readable without those assets.
+Historical observations bind the immutable native-attempt binary, not a mutable
+production alias. A later source change is reported as drift and does not erase
+the earlier observation.
 Do not commit corpora, generated heaps or native binaries here.
 
 ## Current reviewed surface

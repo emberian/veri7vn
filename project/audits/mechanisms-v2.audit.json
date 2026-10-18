@@ -60,7 +60,7 @@
   "actual_receipt": "project/audits/evidence/mechanics-20261018.json",
   "native_binding": {
     "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
-    "registered_binary": "var/mechanics/bin/mechanics"
+    "registered_binary": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/binary"
   },
   "current_unresolved_limits": [
     "Open correctness: pulley effort100N instead of200N; lever effort200N instead of400N; gear output torque20N m instead of16N m; actual pulley advantage4instead of2. Every case explicitly supplies efficiency.",
@@ -83,6 +83,7 @@
     "result_counts": {
       "right": 2,
       "wrong": 4
-    }
+    },
+    "native_binding_scope": "The optional binary path selects the immutable observed artifact. Current source drift is reported separately; later native promotion must not erase this historical evidence."
   }
 }
