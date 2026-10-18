@@ -47,10 +47,16 @@ def one_specialist(dirname):
 
     RS2.slot_candidates = rec
 
-    spec = importlib.util.spec_from_file_location(dirname + "_organ", os.path.join(d, "organ_relation_v2.py"))
+    if d not in sys.path:                    # some organs import their own siblings (organ_relation_v2g -> v2)
+        sys.path.insert(0, d)
+    spec = importlib.util.spec_from_file_location(dirname + "_organ", os.path.join(d, man["organ"]["module"] + ".py"))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    organ = getattr(mod, man["organ"]["class"])(**init)
+    try:
+        organ = getattr(mod, man["organ"]["class"])(**init)
+    except Exception as e:  # noqa: BLE001 - an organ that cannot even load is a finding, not a crash
+        return dirname, {"n": 0, "valid": 0, "right": 0, "silent": 0, "wrong": 0, "invalid": 0, "falseyes": 0,
+                         "link_n": 0, "link_top1": 0, "link_top6": 0, "error": repr(e)[:120]}
     scorer_spec = importlib.util.spec_from_file_location(dirname + "_scorer", os.path.join(d, "relspec_scorer.py"))
     scorer = importlib.util.module_from_spec(scorer_spec)
     scorer_spec.loader.exec_module(scorer)
@@ -116,6 +122,9 @@ def main():
             tot[k] += st[k]
     if per:
         for name, st in results:
+            if st.get("error"):
+                print("%-24s LOAD ERROR %s" % (name, st["error"]))
+                continue
             print("%-24s valid %3d right %3d silent %3d wrong %2d | link n %3d top1 %3d top6 %3d" %
                   (name, st["valid"], st["right"], st["silent"], st["wrong"], st["link_n"], st["link_top1"], st["link_top6"]))
     v = tot["valid"]

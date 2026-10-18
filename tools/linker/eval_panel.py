@@ -48,6 +48,16 @@ MANUAL_GOLD = {
     "Who wrote Frankenstein?": 150827,            # P50 -> Mary Shelley (the novel, not the 1931 film)
     "Who wrote Jane Eyre?": 182961,               # P50 -> Charlotte Brontë (the novel)
     "Who composed Swan Lake?": 199786,            # P86 -> Tchaikovsky (the ballet)
+    # nine with two-word connectives the argument extractor missed, each store-verified:
+    "Who painted The Hunters in the Snow?": 500985,        # P170 -> Pieter Brueghel the Elder
+    "Who composed the opera Der Freischütz?": 156435,      # P86 -> Carl Maria von Weber
+    "Who painted The Anatomy Lesson of Dr. Nicolaes Tulp?": 661378,  # P170 -> Rembrandt
+    "Who composed the ballet The Nutcracker?": 193705,     # P86 -> Tchaikovsky
+    "Who wrote The Overcoat?": 402673,                     # P50 -> Nikolai Gogol
+    "Who is the author of The Name of the Wind?": 1195989, # P50 -> Patrick Rothfuss
+    "Who composed the opera Il trovatore?": 203470,        # P86 -> Giuseppe Verdi
+    "Who wrote The Sorrows of Young Werther?": 151883,     # P50 -> Goethe
+    "Who was the father of King Edward VII?": 20875,       # P22 -> Prince Albert
 }
 
 
@@ -93,26 +103,43 @@ def value_of_fact(db, p, o, lit):
     return lit
 
 
+def form_args(item):
+    """the question's entity argument, using the SHIPPED core's own slot extraction
+    (relation_forms_v2.ARG) when a form matches; capitalised runs otherwise"""
+    import relation_forms_v2 as F
+    m = re.search(r">form:([a-z_]+)>", item["path"])
+    args = []
+    if m and m.group(1) in F.ARG:
+        mm = re.search(F.ARG[m.group(1)], item["q"], re.I)
+        if mm and mm.groupdict().get("x"):
+            args.append(mm.group("x").strip(" ?.\"’'"))
+    if not args:
+        args = re.findall(r"\b(?:[A-Z][\w'’:-]+(?:\s+(?:of|the|in|and|a|an|de|du|di|da|le|la|van|von)?\s*[A-Z][\w'’:-]+)*)\b", item["q"])
+    return [a for a in args if a and len(a) > 1]
+
+
 def resolve_answer_gold(item, db):
     """argument + P + published answer -> the unique qid the linker should produce (direction-aware)"""
     direction, p = prop_of(item["path"])
     if not p or not item.get("reply"):
         return None, "no-prop-or-reply"
     val = first_value(item["reply"])
-    args = re.findall(r"\b(?:[A-Z][\w'’-]+(?:\s+(?:of|the|de|van|von|di|da|le|la)?\s*[A-Z][\w'’-]+)*)\b", item["q"])
+    args = form_args(item)
     hits = set()
     for a in args:
-        for qid in [r[0] for r in db.execute(
-                "SELECT qid FROM entity WHERE enwiki=? COLLATE NOCASE UNION SELECT qid FROM entity WHERE label=? COLLATE NOCASE", (a, a))]:
-            if direction == "fwd":
-                for _, o, lit in db.execute("SELECT p, o, lit FROM fact INDEXED BY fact_sp WHERE s=? AND p=?", (qid, p)):
-                    if _same(value_of_fact(db, p, o, lit), val):
+        for t in (a, re.sub(r"^(?:the|a|an)\s+", "", a, flags=re.I)):
+            # exact enwiki-title lookup (indexed); label equality without an index is a 3.6 GB scan,
+            # so a label-only match falls through to the manual-review list instead
+            for qid in [r[0] for r in db.execute("SELECT qid FROM entity WHERE enwiki=?", (t,))]:
+                if direction == "fwd":
+                    for _, o, lit in db.execute("SELECT p, o, lit FROM fact INDEXED BY fact_sp WHERE s=? AND p=?", (qid, p)):
+                        if _same(value_of_fact(db, p, o, lit), val):
+                            hits.add(qid)
+                            break
+                else:
+                    subs = [r[0] for r in db.execute("SELECT s FROM fact INDEXED BY fact_po WHERE p=? AND o=?", (p, qid))]
+                    if any(_same(label_of(db, s), val) for s in subs):
                         hits.add(qid)
-                        break
-            else:
-                subs = [r[0] for r in db.execute("SELECT s FROM fact INDEXED BY fact_po WHERE p=? AND o=?", (p, qid))]
-                if any(_same(label_of(db, s), val) for s in subs):
-                    hits.add(qid)
     if len(hits) == 1:
         return hits.pop(), "answer"
     return None, "ambiguous:%s" % sorted(hits) if hits else "no-match"

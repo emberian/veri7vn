@@ -54,6 +54,11 @@ OUT = os.path.join(VAR, "names_v1.sqlite3")
 # Norway indeg 45K -> ~115, Einstein (indeg 118, outdeg 114, sent ~350) -> ~160, stubs -> 1-5
 SENT_W, IN_W, OUT_W = 36.0, 14.0, 8.0
 
+# Wikipedia primary-topic signal: an entity whose enwiki TITLE normalises to the same form as its
+# LABEL is the un-parenthesised topic ("Lord Jim" the novel) while same-named films carry
+# "Lord Jim (1965 film)". 1.0 = off; 1.5 chosen on the panels (see the scout report).
+PRIMARY_BOOST = 1.0
+
 
 def norm(s):
     s = unicodedata.normalize("NFKD", str(s))
@@ -122,8 +127,10 @@ def stage_names(t0, sent_w=SENT_W, in_w=IN_W, out_w=OUT_W, out=OUT):
     wik = sqlite3.connect(os.path.join(VAR, "wiki_sent.sqlite3"))
     src = ro(REL)
 
-    def links_of(qid, ind_d, outd_d, sent_n):
+    def links_of(qid, ind_d, outd_d, sent_n, primary=False):
         v = sent_w * math.log1p(sent_n) + in_w * math.log1p(ind_d) + out_w * math.log1p(outd_d)
+        if primary and PRIMARY_BOOST != 1.0:
+            v *= PRIMARY_BOOST
         return max(1, int(round(v)))
 
     # join the three side tables in memory is too big (10M x 3); instead pass over entity and
@@ -145,12 +152,12 @@ def stage_names(t0, sent_w=SENT_W, in_w=IN_W, out_w=OUT_W, out=OUT):
         ents += 1
         r = deg.execute("SELECT ind, outd FROM deg WHERE qid=?", (qid,)).fetchone()
         ind, outd = (r[0], r[1]) if r else (0, 0)
-        lk = links_of(qid, ind, outd, sent_of(enwiki))
         k = norm(label) if label else ""
+        t = norm(enwiki)
+        lk = links_of(qid, ind, outd, sent_of(enwiki), primary=bool(t and t == k))
         if k:
             nb.append((k, qid, lk, 0))
         lb.append((qid, label, lk))
-        t = norm(enwiki)
         if t and t != k:
             nb.append((t, qid, lk, 1))
         if len(nb) >= 200000:
@@ -167,6 +174,7 @@ def stage_names(t0, sent_w=SENT_W, in_w=IN_W, out_w=OUT_W, out=OUT):
         ("source_labels", REL + " entity where enwiki is not null (%d entities)" % ents),
         ("source_aliases", "enwiki titles with a normalisation different from the label (NO true Wikidata aliases shipped)"),
         ("source_links", "proxy: round(%.1f*log1p(sent) + %.1f*log1p(indeg) + %.1f*log1p(outdeg)), min 1; sent=%s article sentence counts, deg=%s fact degrees" % (sent_w, in_w, out_w, WIKI, REL)),
+        ("primary_boost", str(PRIMARY_BOOST)),
         ("names_rows", str(nn)),
     ])
     db.commit()
@@ -202,9 +210,16 @@ if __name__ == "__main__":
         calibrate()
         sys.exit(0)
     w = [SENT_W, IN_W, OUT_W]
-    if len(sys.argv) > 2 and sys.argv[1] == "--weights":
-        w = [float(x) for x in sys.argv[2].split(",")]
+    out = OUT
+    args = sys.argv[1:]
+    if "--weights" in args:
+        w = [float(x) for x in args[args.index("--weights") + 1].split(",")]
         print("weights sent,in,out =", w)
+    if "--primary" in args:
+        PRIMARY_BOOST = float(args[args.index("--primary") + 1])
+        print("primary boost =", PRIMARY_BOOST)
+    if "--out" in args:
+        out = args[args.index("--out") + 1]
     stage_wiki(t0)
     stage_deg(t0)
-    stage_names(t0, w[0], w[1], w[2])
+    stage_names(t0, w[0], w[1], w[2], out=out)
