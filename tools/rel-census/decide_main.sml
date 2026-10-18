@@ -116,14 +116,14 @@ structure Main = struct
                 bool (field c "complete"), map row (list (field c "rows")), ())
   fun dir v = case string v of "fwd" => R.Fwd | "inv" => R.Inv | _ => raise Bad "dir"
   fun dirS d = case d of R.Fwd => "fwd" | R.Inv => "inv"
-  fun sub v = case list v of [Num q, b, Str l] => (nat q, bool b, l) | _ => raise Bad "inv_sub"
-  fun drop v = case list v of [Str k, d, Num i] => (k, dir d, nat i) | _ => raise Bad "dropped"
+  fun sub v = case list v of [Num q, b, Str l] => (nat q, (bool b, l)) | _ => raise Bad "inv_sub"
+  fun drop v = case list v of [Str k, d, Num i] => (k, (dir d, nat i)) | _ => raise Bad "dropped"
   fun prop v = case list v of [Str k, Num p] => (k, nat p) | _ => raise Bad "props"
   fun feat v = case list v of [Str a, Str b] => (a, b) | _ => raise Bad "feat"
-  fun pat v = case list v of [Arr [Str d, Str a, Str b], Num p] => ((dir (Str d), a, b), nat p) | _ => raise Bad "pattern"
+  fun pat v = case list v of [Arr [Str d, Str a, Str b], Num p] => ((dir (Str d), (a, b)), nat p) | _ => raise Bad "pattern"
   fun patid v = case list v of [Arr [Str d, Num p], Str s] => ((dir (Str d), nat p), s) | _ => raise Bad "pats"
   fun vword v = case list v of [Str s, Arr ws] => (s, map string ws) | _ => raise Bad "value_words"
-  fun pron v = case list v of [Num q, Str l, b1, b2] => (nat q, l, bool b1, bool b2) | _ => raise Bad "pron"
+  fun pron v = case list v of [Num q, Str l, b1, b2] => (nat q, (l, (bool b1, bool b2))) | _ => raise Bad "pron"
   fun patinv v =
     case list v of
       [Arr [Str d, Num p], Arr subs, Bool capped] => ((dir (Str d), nat p), (map sub subs, capped))
@@ -147,10 +147,10 @@ structure Main = struct
 
   fun showResult r =
     case r of
-      R.Answered p v s pat => Obj [("outcome", Str "answered"), ("prop", unnat p), ("value", Str v),
-                                   ("subject", unnat s), ("pattern", Str pat)]
-    | R.Withheld p s pat => Obj [("outcome", Str "withheld"), ("prop", unnat p), ("subject", unnat s),
-                                 ("pattern", Str pat)]
+      R.Answered (p, v, s, pat) => Obj [("outcome", Str "answered"), ("prop", unnat p), ("value", Str v),
+                                         ("subject", unnat s), ("pattern", Str pat)]
+    | R.Withheld (p, s, pat) => Obj [("outcome", Str "withheld"), ("prop", unnat p), ("subject", unnat s),
+                                     ("pattern", Str pat)]
     | R.Silence => Obj [("outcome", Str "silent")]
 
   fun handle_line line =

@@ -175,6 +175,7 @@ def candidates(norm_span, k=3):
 STORE = ORS.RelStore(os.path.join(UP, "relstore/relations_v1.sqlite3"))
 RS1._rs = lambda: STORE
 L2.candidates = candidates
+L2.label = lambda qid: STORE.label(qid)   # names_v1 never shipped: labels from the store
 X.L = L2
 NI = sqlite3.connect("file:%s?mode=ro&immutable=1" % NORM, uri=True)
 _CURRENT = None
@@ -255,7 +256,7 @@ class Answerer:
                 top = pat_cands[0]["qid"]
                 for p in r.pat_props:
                     subs, capped = r.subs(p, top, 1)
-                    pat_inv.append([["inv", p], [subs, capped]])
+                    pat_inv.append([["inv", p], subs, capped])
                     for s_, _, lab in subs:
                         note_pron(s_)
                         if lab:
@@ -329,8 +330,11 @@ class Answerer:
         out = json.loads(self._call(json.dumps(turn)))
         if out.get("outcome") == "error":
             raise RuntimeError("decide: " + str(out.get("error")))
+        dec = out.get("decision") or {}
+        if dec.get("outcome") == "error":
+            raise RuntimeError("decide: " + str(dec.get("error")))
         s, low = RS2.normalise(q)
-        return self.reply(req, out, low)
+        return self.reply(req, dec, low)
 
 
 def main():
