@@ -64,3 +64,5 @@ Write `SCOUT_REPORT.md` at your worktree root and commit it:
 - Disk pressure is a stop condition: if `df` shows the disk low, stop writing
   and say so in the report. Delete only files you created.
 - Never print or copy credential files (`~/.jesse-key`, `~/.zai-key`).
+
+7. **A build is green only when `remote-build` printed the marker.** Paste the exact command and the receipt line (host, session, exit 0, marker) in the report. A claim without that line is a draft, and triage will rebuild before merging.
