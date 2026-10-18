@@ -2,7 +2,7 @@
 
 This packet owns quantity and its variants, acoustics, electromagnetic and
 optical calculations, energy, geometry and statistics, mechanics, and space.
-The work is still in progress. Nothing here is a final fleet score.
+This drain is complete; the broader work remains unfinished. Nothing here is a final fleet score.
 
 Each completion below describes its frozen source and native packet. Later
 continuations may reopen those paths after runtime captures the earlier
@@ -13,6 +13,65 @@ acoustics; emoptics; energy with geostats; mechanics with space. Their detailed
 receipts and remaining work belong in the corresponding
 `C-physical-*.md` reports. The deputy checks their interaction and keeps them
 connected to dispatch and packaging.
+
+## Current integration status
+
+Root committed the seven-packet physical queue as `3d44920`: the shared measured-
+input reader, weighted statistics, Space domains, circuit models, supplied
+Quantity/Variants conditions, Mechanics units/model limits, and Energy fuel
+ownership. All seven native artifacts have exact immutable package captures.
+The 49 committed file hashes were independently checked against the inventory;
+`var/c-physical-integration/release-record-3d44920.json` binds the commit,
+inventory and capture index. Later ready-queue entries below are historical.
+
+Paired covariance and least-squares statistics are integrated as `61aa3fe` and
+captured as native `ad71e10a...`. The exact internal coefficients satisfy both
+normal equations and globally minimize squared error; the displayed line
+explicitly identifies its rounded coefficients. Exact prediction is evaluated
+before output rounding. The promoted source matches the original proof/native
+inputs without a rebuild.
+
+The adaptive Space packet is integrated as `52de506` and captured as native
+`13151f58...`: checked 32-bit enclosures fall
+back to the original 80-bit computation, with unchanged output-error guarantees
+and preservation of any prior 80-bit success. Details and the current numerical
+limit are in `F-physical-space-adaptive.md`. Quantity and Variants energy units
+are integrated as `02befee`, captured as `75ec0797...` and `68c9d6ea...`;
+full-default dialogue checks also convert 6 kWh to 6000 Wh and 21.6 MJ.
+
+The bounded drain packets below have been integrated separately. No new
+successor is starting during the requested drain; phase-energy work remains a
+recorded follow-up. Supplied Mechanics gravity passed its final proof and native gates and is
+integrated as `05e37e1`: all 1,264 shipped cases pass in both modes, 200 untouched
+unit-bearing cases pass, and six full-default consumers pass. Space logarithms
+stopped after the final attempt failed on real-to-rational bound
+conversion; no G native was published. Its exact unfinished source and resume
+command are preserved in `G-physical-space-log.md`.
+
+The drain has integrated geometry complete-unit/labelled-length repair
+`ad02845`, joint acoustic motion `63432f9`, sensible-heat source units
+`1d4392d`, and optical source/target models plus resistor counts `5198d8c`.
+Their exact final natives are captured separately from the earlier
+fixed delivery selection. Acoustic full-default checks pass 5/5, and final
+Emoptics passes its three bounded full-default controls.
+Those composition receipts do not silently replace the delivery cohort.
+
+Quantity temperature accounting was corrected in `17f85ea`: 236 safe assertions
+are 228 capability successes and eight valid withholdings. A refusal of a
+computable unsupported request is not capability completion. The same distinction
+applies to optical output-frame and large-count limits.
+
+Physical work is now stopped: no proof, compiler or evaluation jobs remain.
+The final Mechanics native `bd4012b9...` has been captured with its actual
+compiler-input and passed-proof closure; root owns the final source integration.
+Space G remains an explicit unfinished source checkpoint and has no new native.
+All four implementation owners have stopped, and no successor was launched.
+
+Full-default dispatch now exercises more families than the earlier scoped
+physical receipts. That uncovered Ocean ignoring an explicitly supplied gravity
+unit, and an identical-resistor count being treated as a single component.
+Their owners are repairing complete model/count interpretation. Scoped receipts
+remain useful evidence but are not relabelled full-default correctness.
 
 ## What the new baselines changed
 
@@ -84,15 +143,14 @@ an unqualified name is also reported to the runtime owner.
 
 ## Current remaining work
 
-The first family packets are integrated and captured except Emoptics, whose
-final source, proof, native and scoped validation are now ready for integration. Quantity,
-variants and acoustics also have their exact-numeral continuation integrated
-as `7073a48`; immutable copies permit the next source work to proceed.
+All first family packets are integrated and captured, including Emoptics
+`e3db8f0`. Quantity, variants and acoustics have their exact-numeral continuation
+integrated as `7073a48`, and the dimensional/domain Mechanics packet is integrated
+as `6d46a9d`. Immutable copies permit the next source work to proceed.
 
 The ongoing finite packets address typed energy domains and zero-output
-endpoints, mixed-unit mechanics and valid zero cases, geometry units and full
-dataset modifiers, temperature intervals, signed space quantities, and named
-circuit/optical input roles. Their source and pending proof jobs are separate
+endpoints, the geometry shared-unit follow-up, temperature intervals, signed
+space quantities, and typed circuit targets and input roles. Their source and pending proof jobs are separate
 from the completed receipts below. Each still needs its own final native
 binding, panel numbers, unused evaluation where available, and consumer checks.
 
@@ -365,3 +423,150 @@ including the root counterexample. The owner's 40 target-role cases and 38
 expanded source-derived probes pass; affected optical panels score 674/674
 in both pinned and family modes, zero wrong, false yes or valid withheld. The earlier 96-case interaction and untouched 104729 results remain
 evidence for final2, not a claim that final3 received a new untouched evaluation.
+
+
+## Dimensional continuation and a caught delivery defect
+
+Mechanics `6d46a9d` passes 1,264/1,264 shipped items in both modes,
+1,159/1,159 on unused seed 20261115, and 54 authored probes. The final
+`09823e492ba380e2d03d5a20cd17ed02be5b29e48c128eb8f3c8801be6729a4b`
+native binds proof `20261018T073841Z-22e7331c1a05` through immutable native
+attempt `20261018T075816Z-4eda2cb20c36`. The proof completed 70 roots with
+zero oracles. Unit-bound lever/effort equations and an accepted-answer domain
+property connect the new checks to the real kernel. Independent twelve-case
+composition passes after repairing a sibling statistics refusal-scope issue.
+
+GeoStats `223516e` adds exact geometry units and dataset exclusion, with actual
+passed proof `20261018T075210Z-7a65e01f5273` (102 roots, no oracles). Immediately
+around integration, the deputy found a new output-unit interaction: a rectangle
+with length 2 m and bare width 3, requested in cm², returned 600 rather than
+60,000 under the documented shared-input-unit convention. The explicit input
+was converted to the output unit while the bare length was left unchanged.
+Fully explicit dimensions worked, which is why preceding checks missed it.
+Root retained the commit and requested an immediate coherent repair; delivery
+selection of native `c999d910...` is held. The follow-up must distinguish bare
+length roles from dimensionless counts and convert shared source units before
+rendering the requested output unit. This packet is not complete for delivery.
+
+The fix-forward candidate now uses the shared source unit for bare length
+roles, retains dimensionless polygon counts, and refuses incompatible angle
+output units. Native `0b34301084dcee43852253631c4e134853f202c763dee294020befeee81890fc`
+is bound by `var/geostats/native-attempts/20261018T081448Z-9953f06acfcd/compile-inputs.json`
+to the actual completed proof `20261018T080751Z-04cafcbc6f29` (102 roots,
+zero oracles). The deputy checked every consumed and proof-source hash and
+15 composed cases, including both directions of bare-source/output conversion.
+All pass their stated answer/refusal policy. Root integrated the repair as
+`e658418` and runtime captured that bound candidate before releasing the reader.
+Postfix weights remained valid
+withheld, not mathematical impossibility; binding them to the existing verified
+weighted-mean kernel is the next packet, now undergoing separate review.
+
+Energy's domain continuation is integrated as `fc35ef2`: actual proof
+`20261018T080629Z-73db2feb985b` completed 105 roots, zero oracles; immutable
+native attempt `20261018T081454Z-76be3d79551d` produced
+`4f6ad21e6027d493462410c52f5afb76441fa4457cd35502ce6c5bfd2cc0e79b`.
+The deputy verified all current compiler and proof inputs, then ten independent
+composed cases. Zero efficiency/depth gives zero runtime at positive load;
+signed sensible heat and exact fractional ice mass retain their values;
+negative physical constituents and zero load are decisive refusals. HVAC's
+new impossible refusal needed an acceptance declaration; the repaired consumer
+now retains it. Three catalogue replies carry their numeric result in the
+answer text rather than the JSON value field; the receipt records the explicit
+result-phrase extraction. The owner reports all shipped panels and untouched
+seed 49118 passing; detailed per-specialist counts remain in its lane report.
+
+A root-authorized shared `MeasuredInput` adapter is being introduced for the
+next physical models and Materials CT consumer. It preserves original numeric
+and unit spans, exact rational values, complete unit expressions and dimensions.
+Requested output units are separate from source units; a bare input inherits
+only a deliberately agreed source unit, and a role label cannot override an
+explicit contradictory dimension. Conversion arithmetic remains in HOL. The
+first 62 focused lexical/binding checks pass (frozen module hash
+`11f703525511191a6e075930191903841d65d158544075845c0142bfc32e2cb7`). This adapter is untrusted and
+not yet a family delivery claim. Unknown separated prose remains for the
+consumer grammar to consume or reject; scanning alone does not prove that
+all supplied physical conditions have been understood.
+
+
+## Current review queue after the resumed work
+
+These are finite checked packets, not claims that every model in a family is
+finished. Actual compiler inputs and required proof-source hashes were checked
+against each listed manifest. Consumer receipts are in
+`var/c-physical-integration/`.
+
+| Packet | Bound native attempt | Independent consumer result | Integration boundary |
+|---|---|---|---|
+| Complete prefix/postfix weighted means | geostats `20261018T083115Z-4e072dd2b1bc` | Seven cases pass; paired exclusion is valid withheld | Immutable capture complete; root integration pending. Paired covariance/least-squares proceeds in a separate new theory. |
+| Space numeric roles and physical domains | space `20261018T083128Z-c4fb9f7098a7` | Ten cases pass, including fractional occupancy and exact byte-prefix scaling | Proof completed 108 roots, zero oracles; root integration/capture pending. Adaptive precision remains a separate checked-fallback project. |
+| Circuit targets and physical connections | emoptics `20261018T083702Z-bdb5929a3232` | Nine cases pass, repairing all four preserved wrong-answer examples | Proof completed 66 roots and scanned 18,375 family facts, zero oracles; immutable capture complete, root integration pending. Optical medium and angle models remain separate. |
+| Mechanics exact mass/length units and explicit fluid model boundary | mechanics `20261018T085742Z-6bd33c350e19` | Final focused mass-unit and fluid composition checks pass; deputy joint eighteen-case consumer passes | Final proof completed 73 roots, zero oracles. Pound-force inputs fall through without an answer, rather than producing a typed dimension refusal. Root integration/capture pending. |
+| Quantity/Variants supplied hydrostatic conditions and useful fuel heat | quantity `20261018T085841Z-a58442a99bcd`, variants `20261018T085848Z-e843e0ddea5a` | Eighteen joint composed controls pass, including repaired legacy calorific-input handling | Actual proof completed 59 roots, zero oracles; final untouched 136 policy checks are 111 right and 25 valid withheld, zero wrong/FY. Root integration/capture pending. |
+| Energy fuel/sensible-heating ownership boundary | energy `20261018T085052Z-6efad3539a4d` | Fuel replies now retain their actual model answer/refusal; independent joint consumer passes | Existing 105-root proof reused; immutable native inputs checked. Root integration/capture pending. |
+
+The requested-output binder now respects its exact supplied span even when
+ordinary prose follows it. Compound expressions are still checked before
+accepting that span. This final shared source is included in the Mechanics
+and Quantity natives above and the final Materials CT candidate; earlier
+shared hashes remain historical and must not be inferred as current inputs.
+
+
+A later Quantity/Mechanics composed check found another actual wrong-answer
+path: Quantity correctly refused gravity stated as `1 gram` or `10 m/s2/s`,
+but Mechanics' `fluids-r2` ignored the supplied condition and won arbitration
+with default Earth gravity. At depth 3 m this returned 29,420 Pa for both
+questions. The earlier Mechanics mass-unit packet is therefore held for a
+coherent fix-forward: its fixed-property fluid model must consume supplied
+density/gravity/surface-pressure conditions and refuse unsupported models
+truthfully, allowing Quantity's variable-condition model to answer supported
+inputs. This needs a small explicit typed model-limit refusal, not a false
+missing-depth message or a duplicate formula implementation.
+
+The same composition exercise found an explanation-ownership defect in Energy:
+fuel combustion requests were being interpreted as ordinary sensible heating,
+so a correct fuel-model refusal could be replaced with a request for specific
+heat. The Energy owner is tightening the actual model boundary while retaining
+real sensible, latent, radiation and ideal-gas operations. These are further
+consumer repairs, not failures of the checked arithmetic laws.
+
+
+The supplied-condition and fuel-ownership defects above are now repaired in the
+final review queue. Mechanics emits a truthful typed model-limit refusal rather
+than silently replacing supplied conditions. Energy leaves fuel-combustion
+requests to the fuel model. A further legacy fuel bug—ignoring a supplied
+calorific value—was repaired by requiring all numeric model inputs to be consumed,
+not by adding one synonym. Supported custom-calorific arithmetic remains a
+future model: current refusal is counted as valid withheld. The final joint
+receipt `quantity-model-final2-composed.json` passes eighteen cases on Quantity
+`d0dbf2a0...`, Variants `d2c6b125...`, Mechanics `5810f082...`, and Energy
+`a720c691...`. Actual compiler and proof-source hashes for these exact artifacts
+match; no earlier candidate's broad panel counts are silently relabelled final.
+
+Shared parser source `11f703...` includes the actually reproduced dot and
+Unicode multiplication continuation fixes as well as bounded output-unit spans.
+It is a lexical adapter, not a proof of English interpretation: recognized unit
+continuations are rejected when they extend a known alias, and consumers must
+still consume the rest of their grammatical fields and supplied conditions.
+The new shared files are `src/extract/commons/measured_input.sml` and
+`src/extract/commons/measured_input_test.sml`; 62 focused checks pass.
+
+Next implementation remains separate from these frozen packets. The staged
+`GeoStats_Paired.thy` production export passed 112 claim-root checks with zero
+oracles. Independent review read the actual-fit normal equations, independent
+residual decomposition/global least-squares minimum, covariance and reply
+connections. Native `db89e33d...` passes 26 independent direct and 26 staged
+GeoStats/Fusion controls (`paired-independent.json`), with exact compiler and
+proof inputs verified. Final staged native `ad71e10a...` explicitly distinguishes
+rounded displayed line coefficients from the exact internal minimizer. Three
+focused controls pass both directly and through staged GeoStats/Fusion
+(`paired-rounded-final.json`), including exact prediction from a slope too
+small to survive the line's displayed precision. Its actual compiler-input
+manifest is `var/geostats/native-attempts/20261018T091800Z-d6a1fb2ebe07/compile-inputs.json`;
+all four staged runtime sources and twelve proof dependencies match. Broader
+numerical and panel counts remain bound to the preceding `db89e33d...` native.
+Live adoption still waits for root integration of the frozen weighted packet.
+A separate optical medium/angle
+theory and parser prototype are being checked without changing circuit D inputs.
+Space's adaptive enclosure experiment and Quantity's SI-case/Wh completion are
+prepared for their next source releases. These preparations are not counted as
+published family capability or new shipped-panel completion.
