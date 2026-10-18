@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
-from code_evidence import validate_code, program_operations, SEMANTICS, SCOPE
+from code_evidence import validate_code, program_operations, deduplication_note, SEMANTICS, SCOPE
 
 
 def fixture():
@@ -88,6 +88,28 @@ class CodeEvidenceTests(unittest.TestCase):
     def test_intermediate_work_bound(self):
         run,_,_=program_operations({'base':{'op':'arg','index':0},'moves':[{'op':'cube'}]*4},1)
         with self.assertRaises(ValueError):run([10**30])
+
+    def test_first_occurrence_composition_and_display_are_bound(self):
+        r,p=fixture()
+        p['program']['moves']=[{'op':op} for op in ('reverse','unique','reverse')]
+        p['examples']=[{'args':[[1,2,1,3,2]],'expected':[1,2,3]},
+                       {'args':[[2,1,2,1]],'expected':[2,1]}]
+        p['results']=[[1,2,3],[2,1]]
+        source="def f(a0):\n    if type(a0) is not list or any(type(v) is not int for v in a0): raise TypeError('Expected integer-list argument a0')\n    v0 = a0\n    v1 = (v0)[::-1]\n    v2 = [v for i, v in enumerate(v1) if v not in (v1)[i + 1:]]\n    v3 = (v2)[::-1]\n    return v3\n"
+        p['program_source']=source
+        r['response']='```python\n'+source+'```\nThis candidate matches all 2 supplied examples. The examples do not determine its behavior on other inputs.'+"\nThe deduplication sequence keeps each value's first occurrence."
+        self.assertEqual(validate_code(r,p)['status'],'consistent')
+        for change in ('last_note','last_result','missing_reverse'):
+            rr,pp=copy.deepcopy(r),copy.deepcopy(p)
+            if change=='last_note':rr['response']=rr['response'].replace('sequence keeps each value\'s first','step keeps each value\'s last')
+            elif change=='last_result':pp['results'][0]=[1,3,2]
+            else:pp['program']['moves'].pop()
+            with self.subTest(change=change),self.assertRaises(ValueError):validate_code(rr,pp)
+
+    def test_mixed_deduplication_note_is_not_global_first_claim(self):
+        for ops in [('unique','reverse','unique','reverse'),('reverse','unique','reverse','unique')]:
+            self.assertEqual(deduplication_note([{'op':op} for op in ops]),"\nThe deduplication step keeps each value's last occurrence.")
+        self.assertEqual(deduplication_note([{'op':'reverse'}]),'')
 
     def test_function_name_cannot_shadow_generated_global_dependencies(self):
         for name in ('sum', 'type', 'math', 'int', 'list', 'sorted', 'zip'):

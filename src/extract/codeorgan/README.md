@@ -24,8 +24,12 @@ reversal, deduplication, integer maps and filters; sums, products, lengths,
 maxima/minima and simple predicates. A program uses one argument, or combines
 two arguments, then applies at most four named operations. Explicit numeric
 phrases also support adding/multiplying each item, threshold filters, taking
-and dropping a prefix. Deduplication keeps each item's **last** occurrence,
-matching HOL `remdups`; the displayed Python implements that order. Maxima and
+and dropping a prefix. The primitive deduplication move keeps each item's **last** occurrence,
+matching HOL `remdups`. For first occurrences or preserving original order,
+the recognizer composes reversal, deduplication and reversal. An unqualified
+request considers both policies and asks for clarification when matching
+programs disagree on extra observations. The reply states which deduplication
+step or sequence appears in its source. Maxima and
 minima of an empty list are undefined and cannot pass an empty-list example.
 Booleans are distinct from integers; emitted functions enforce this with strict
 input-type guards. Function names that shadow globals used by the templates
@@ -60,6 +64,7 @@ python3 src/extract/codeorgan/answerer.py \
   --kernel var/codeorgan/bin/codeorgan-kernel
 python3 src/extract/codeorgan/check.py
 python3 src/extract/codeorgan/check_consumer.py
+python3 src/extract/codeorgan/check_first_unique.py
 python3 -m unittest discover -s src/extract/codeorgan -p test_lifecycle.py -v
 ```
 

@@ -1,0 +1,140 @@
+[
+  {
+    "id": "preserve-first",
+    "q": "Write a function f that removes duplicates preserving original order: f([1,2,1]) == [1,2], f([3,2,3,1]) == [3,2,1]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "keep-order",
+    "q": "Write a function f that removes duplicates keeping order: f([3,1,3,2,1]) == [3,1,2], f([2,0,2,0,-1]) == [2,0,-1]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "explicit-first",
+    "q": "Write a function f that removes duplicates keeping first occurrences: f([1,2,1]) == [1,2], f([3,2,3,1]) == [3,2,1]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "explicit-last",
+    "q": "Write a function f that removes duplicates keeping last occurrences: f([1,2,1]) == [2,1], f([3,2,3,1]) == [2,3,1]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "inferred-first",
+    "q": "Write a function f that removes duplicates: f([1,2,1]) == [1,2], f([3,2,3,1]) == [3,2,1]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "inferred-last",
+    "q": "Write a function f that removes duplicates: f([1,2,1]) == [2,1], f([3,2,3,1]) == [2,3,1]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "ambiguous-order",
+    "q": "Write a function f that removes duplicates: f([1,1]) == [1], f([2,2]) == [2]",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "first-sum",
+    "q": "Write a function f that returns the sum after removing duplicates keeping first occurrences: f([1,2,1]) == 3, f([3,2,3,1]) == 6",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "first-sort",
+    "q": "Write a function f that sorts after removing duplicates keeping first occurrences: f([3,1,3,2]) == [1,2,3], f([-1,2,-1]) == [-1,2]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "name-cube",
+    "q": "Write a function cube that returns the cube: cube(2) == 8, cube(-3) == -27",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "name-square",
+    "q": "Write a function square that returns the square: square(2) == 4, square(-3) == 9",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "name-absolute",
+    "q": "Write a function absolute that returns the absolute value: absolute(-2) == 2, absolute(3) == 3",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "contradictory-policy",
+    "q": "Write a function f that removes duplicates keeping first occurrences and last occurrences: f([1,1]) == [1], f([2,2]) == [2]",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "contradictory-short-policy",
+    "q": "Write a function f that removes duplicates keeping first and last occurrences: f([1,1]) == [1], f([2,2]) == [2]",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "conflicting-order",
+    "q": "Write a function f that removes duplicates preserving original order and keeping last occurrences: f([1,1]) == [1], f([2,2]) == [2]",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "false-first-output",
+    "q": "Write a function f that removes duplicates keeping first occurrences: f([1,2,1]) == [2,1], f([3,2,3,1]) == [2,3,1]",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "mixed-bool-list",
+    "q": "Write a function f that removes duplicates keeping first occurrences: f([1,True,1]) == [1], f([]) == []",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "independent-first",
+    "q": "Write a function f that removes duplicate integers keeping their first occurrences: f([4,2,4,1,2]) == [4,2,1], f([3,1,3]) == [3,1]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "independent-last",
+    "q": "Write a function f that removes duplicate integers keeping their last occurrences: f([4,2,4,1,2]) == [4,1,2], f([3,1,3]) == [1,3]",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "independent-sum",
+    "q": "Write a function f that removes duplicates preserving first occurrence, then sums them: f([4,2,4,1,2]) == 7, f([3,1,3]) == 4",
+    "status": "answered",
+    "valid": true
+  },
+  {
+    "id": "independent-ambiguous",
+    "q": "Write a function f that removes duplicates: f([1,2]) == [1,2], f([4,3]) == [4,3]",
+    "status": "withheld",
+    "valid": true
+  },
+  {
+    "id": "independent-contradictory",
+    "q": "Write a function f that keeps first and last occurrences of duplicates: f([1,2,1]) == [1,2], f([3,2,3]) == [3,2]",
+    "status": "withheld",
+    "valid": false
+  },
+  {
+    "id": "independent-false_examples",
+    "q": "Write a function f that keeps first occurrences while removing duplicates: f([1,2,1]) == [2,1], f([3,2,3]) == [2,3]",
+    "status": "withheld",
+    "valid": false
+  }
+]

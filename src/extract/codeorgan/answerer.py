@@ -116,7 +116,7 @@ def examples(text):
     desc = text[:first]
     desc = re.sub(r'\bassert\s*$', '', desc, flags=re.I)
     desc = re.sub(r'\b' + re.escape(name) + r'\s*\([^)]*\)', ' ', desc)
-    desc = re.sub(r'\b' + re.escape(name) + r'\b', ' ', desc)
+    desc = re.sub(r'(\bfunction\s+)' + re.escape(name) + r'\b', r'\1 ', desc, flags=re.I)
     return name, found, desc, shapes
 
 # The complete renderer is public so a consumer can compare AST and shown source.
@@ -193,8 +193,9 @@ GENERIC = set('write make create build implement code give me a an the function 
 
 def candidates(desc, shapes):
     low = desc.lower()
-    inflections = {'removes':'remove','reverses':'reverse','sorts':'sort','negates':'negate','concatenates':'concatenate','adds':'add','subtracts':'subtract','multiplies':'multiply'}
+    inflections = {'sums':'sum','counts':'count','keeps':'keep','removes':'remove','reverses':'reverse','sorts':'sort','negates':'negate','removing':'remove','concatenates':'concatenate','adds':'add','subtracts':'subtract','multiplies':'multiply'}
     low = re.sub(r'\b(?:'+ '|'.join(inflections) +r')\b',lambda m:inflections[m[0]],low)
+    low = re.sub(r'\bwhile\s+remove\b','remove',low)
     parameter_groups = []
     patterns = [
       ('add_each', r'\badd\s+([-+]?\d+)\s+to\s+each\b'),
@@ -213,9 +214,9 @@ def candidates(desc, shapes):
             parameter_groups.append([{'op':op,'constant':k}])
         low = re.sub(rx,' ',low)
     words = set(re.findall(r'[a-zA-Z_]+', low))
-    unknown = words - GENERIC
+    unknown = words - GENERIC - {'preserve','preserves','preserving','original','after','them'}
     if unknown: raise Unsupported('The bounded code vocabulary does not cover: ' + ', '.join(sorted(unknown)) + '.')
-    if re.search(r'\b(?:first|last)\b', low) and not re.search(r'\blast\s+occurrences?\b', low):
+    if re.search(r'\b(?:first|last)\b', low) and not re.search(r'\b(?:first|last)\s+occurrences?\b', low):
         raise Unsupported('Positional qualifiers need an explicit supported operation.')
     groups = parameter_groups
     def group(*ops): groups.append([{'op':op} for op in ops])
@@ -237,8 +238,20 @@ def candidates(desc, shapes):
     if has(r'\b(maximum|largest|biggest)\b'): group('maximum')
     if has(r'\b(minimum|smallest)\b'): group('minimum')
     if has(r'\b(same|identical)\b'): group('all_same')
-    if has(r'\b(unique|distinct|deduplicate|deduplicated|duplicates)\b'):
-        group('all_unique' if has(r'\b(check|checks|whether)\b') else 'unique')
+    if has(r'\b(unique|distinct|deduplicate|deduplicated|duplicates?)\b'):
+        if has(r'\b(check|checks|whether)\b'): group('all_unique')
+        else:
+            first_requested=has(r'\bfirst\s+occurrences?\b|\b(?:preserv(?:e|es|ing)|keep(?:ing)?)\s+(?:the\s+)?(?:original\s+)?order\b')
+            last_requested=has(r'\blast\s+occurrences?\b')
+            if (first_requested and last_requested) or (has(r'\bfirst\b') and has(r'\blast\b')):
+                raise Unsupported('Choose first-occurrence or last-occurrence deduplication.')
+            first=[{'op':'reverse'},{'op':'unique'},{'op':'reverse'}]
+            last=[{'op':'unique'}]
+            if first_requested:
+                groups.append([{'macro':first}])
+            elif last_requested:
+                groups.append([{'macro':last}])
+            else: groups.append([{'macro':first},{'macro':last}])
     if has(r'\b(sort|sorted|ascending|descending|ordered)\b'):
         group('is_sorted' if has(r'\b(check|checks|whether)\b') else ('sort_desc' if has(r'\bdescending\b') else 'sort'))
     if has(r'\b(reverse|reversed)\b'): group('reverse')
@@ -257,7 +270,9 @@ def candidates(desc, shapes):
     for choice in itertools.product(*groups):
         for moves in itertools.permutations(choice):
             for base in bases:
-                programs.append({'base':base,'moves':list(moves)})
+                expanded=[piece for m in moves for piece in m.get('macro',[m])]
+                if len(expanded)>4: continue
+                programs.append({'base':base,'moves':expanded})
                 if len(programs)>MAX_CANDIDATES: raise Unsupported('The named operation combinations exceed the bounded search budget.')
     return programs
 
@@ -314,6 +329,22 @@ def probe_cases(shapes):
     vals={'int':[-7,-2,0,1,4,9], 'list':[[],[0],[-3,1,2,-3,0,4],[4,1,4,2],[-5,-2],list(range(-3,4))]}
     return [{'args':list(args),'expected':0} for args in itertools.product(*(vals[t] for t in shapes))]
 
+def deduplication_note(moves):
+    """Describe recognized macro steps without mislabeling other primitives."""
+    ops=[m['op'] for m in moves]
+    first_count=bare_count=0
+    i=0
+    while i<len(ops):
+        if ops[i:i+3]==['reverse','unique','reverse']:
+            first_count+=1;i+=3
+        else:
+            bare_count+=ops[i]=='unique';i+=1
+    if bare_count:
+        return "\nThe deduplication step keeps each value's last occurrence."
+    if first_count:
+        return "\nThe deduplication sequence keeps each value's first occurrence."
+    return ''
+
 def answer(request, kernel):
     q=request.get('q')
     rid=request.get('id')
@@ -353,8 +384,7 @@ def answer(request, kernel):
                   'list_type':'finite list of integers','zip':'truncate to shorter input',
                   'unique':'retain last occurrence','maximum_minimum_empty':'undefined; candidate rejected for an empty-list example'}}
         response='```python\n'+source+'```\nThis candidate matches all '+str(len(cases))+' supplied examples. The examples do not determine its behavior on other inputs.'
-        if any(m['op']=='unique' for m in program['moves']):
-            response += "\nThe deduplication step keeps each value's last occurrence."
+        response += deduplication_note(program['moves'])
         if program['base']['op'] in {'zip_add','zip_multiply'}:
             response += '\nPairwise operations stop at the shorter input list.'
         return {'id':rid,'status':'answered','path':'organ:code>checked_examples','kind':'code_program','response':response,

@@ -90,6 +90,25 @@ SEMANTICS = {'integer_type':'unbounded mathematical integer; Boolean is distinct
 SCOPE = 'All supplied examples match. Additional probes do not establish program equivalence or intended behavior on other inputs.'
 
 
+def deduplication_note(moves):
+    """Describe the composed first-occurrence macro, not its inner primitive."""
+    ops = [move['op'] for move in moves]
+    first = last = False
+    i = 0
+    while i < len(ops):
+        if ops[i:i + 3] == ['reverse', 'unique', 'reverse']:
+            first = True
+            i += 3
+        else:
+            last = last or ops[i] == 'unique'
+            i += 1
+    if last:
+        return "\nThe deduplication step keeps each value's last occurrence."
+    if first:
+        return "\nThe deduplication sequence keeps each value's first occurrence."
+    return ''
+
+
 def program_operations(program, arity):
     obj(program, {'base','moves'}, 'code program')
     base, moves = program['base'], program['moves']
@@ -171,8 +190,7 @@ def validate_code(reply, packet):
     lines += [f'    v{i} = {e}' for i,e in enumerate(expressions,1)]
     lines += [f'    return v{len(expressions)}'];rendered='\n'.join(lines)+'\n'
     expected='```python\n'+rendered+'```\nThis candidate matches all '+str(len(cases))+' supplied examples. The examples do not determine its behavior on other inputs.'
-    if any(m['op']=='unique' for m in packet['program']['moves']):
-        expected+="\nThe deduplication step keeps each value's last occurrence."
+    expected += deduplication_note(packet['program']['moves'])
     if packet['program']['base']['op'] in ('zip_add','zip_multiply'):
         expected+='\nPairwise operations stop at the shorter input list.'
     if packet['program_source']!=rendered or reply.get('response')!=expected: raise ValueError('displayed code disagrees with the validated program')
