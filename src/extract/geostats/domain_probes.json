@@ -114,10 +114,11 @@
   {
     "specialist": "geometry-v4",
     "q": "What is the area of a rectangle with length 1\u00d710^3 m and width 2 m?",
-    "valid": false,
-    "expect": null,
+    "valid": true,
+    "expect": 2000,
     "source": "https://www.nist.gov/pml/owm/si-units-length; exact unit factors and elementary shape formula, same-author independently evaluated probe.",
-    "expect_kind": "unsupported_units"
+    "expect_kind": "unsupported_units",
+    "expected_withheld": true
   },
   {
     "specialist": "statistics",
@@ -179,10 +180,11 @@
   {
     "specialist": "statistics-v3",
     "q": "What is the mean of 1, 2, 3 excluding the first observation?",
-    "valid": false,
-    "expect": null,
+    "valid": true,
+    "expect": 2.5,
     "source": "GeoStats_Extensions.thy: remove all equal-valued observations, retain other multiplicities; ordinary statistic independently evaluated, same-author probe.",
-    "expect_kind": "unsupported_modifier"
+    "expect_kind": "unsupported_modifier",
+    "expected_withheld": true
   },
   {
     "specialist": "statistics",
@@ -195,10 +197,11 @@
   {
     "specialist": "statistics-v2",
     "q": "What is the weighted mean of 1, 2, 3 with weights 1, 1, 1 excluding 3?",
-    "valid": false,
-    "expect": null,
+    "valid": true,
+    "expect": 1.5,
     "source": "GeoStats_Extensions.thy: remove all equal-valued observations, retain other multiplicities; ordinary statistic independently evaluated, same-author probe.",
-    "expect_kind": "unsupported_modifier"
+    "expect_kind": "unsupported_modifier",
+    "expected_withheld": true
   },
   {
     "specialist": "statistics-v3",
@@ -273,5 +276,69 @@
     "expect": null,
     "expect_taken": false,
     "source": "Independent parent composition found this domain-ownership collision; outside the finite dataset grammar."
+  },
+  {
+    "specialist": "geometry",
+    "q": "What is the area in square centimetres of a rectangle with length 2 m and width 3?",
+    "valid": true,
+    "expect": 60000,
+    "source": "Independent parent unit-inheritance counterexamples and equivalent/dimensionless controls; exact NIST length factors https://www.nist.gov/pml/owm/si-units-length .",
+    "expect_unit": "cm^2"
+  },
+  {
+    "specialist": "geometry-v3",
+    "q": "What is the area in square metres of a rectangle with length 20 cm and width 30?",
+    "valid": true,
+    "expect": 0.06,
+    "source": "Independent parent unit-inheritance counterexamples and equivalent/dimensionless controls; exact NIST length factors https://www.nist.gov/pml/owm/si-units-length .",
+    "expect_unit": "m^2"
+  },
+  {
+    "specialist": "geometry-v4",
+    "q": "What is the area in square centimetres of a rectangle with length 2 m and width 3 m?",
+    "valid": true,
+    "expect": 60000,
+    "source": "Independent parent unit-inheritance counterexamples and equivalent/dimensionless controls; exact NIST length factors https://www.nist.gov/pml/owm/si-units-length .",
+    "expect_unit": "cm^2"
+  },
+  {
+    "specialist": "geometry",
+    "q": "What is the volume of a box 2 m by 3 by 4 in cubic centimetres?",
+    "valid": true,
+    "expect": 24000000,
+    "source": "Independent parent unit-inheritance counterexamples and equivalent/dimensionless controls; exact NIST length factors https://www.nist.gov/pml/owm/si-units-length .",
+    "expect_unit": "cm^3"
+  },
+  {
+    "specialist": "geometry-v3",
+    "q": "Find the hypotenuse of a right triangle with legs 3 m and 4 in cm.",
+    "valid": true,
+    "expect": 500,
+    "source": "Independent parent unit-inheritance counterexamples and equivalent/dimensionless controls; exact NIST length factors https://www.nist.gov/pml/owm/si-units-length .",
+    "expect_unit": "cm"
+  },
+  {
+    "specialist": "geometry-v4",
+    "q": "What is the sum of the interior angles of a 5-sided polygon with side 1 m?",
+    "valid": true,
+    "expect": 540,
+    "source": "Independent parent unit-inheritance counterexamples and equivalent/dimensionless controls; exact NIST length factors https://www.nist.gov/pml/owm/si-units-length ."
+  },
+  {
+    "specialist": "geometry",
+    "q": "What is the sum of the interior angles of a 5-sided polygon in cm?",
+    "valid": false,
+    "expect": null,
+    "source": "Independent parent unit-inheritance counterexamples and equivalent/dimensionless controls; exact NIST length factors https://www.nist.gov/pml/owm/si-units-length .",
+    "expect_kind": "unsupported_units"
+  },
+  {
+    "specialist": "statistics-v3",
+    "q": "What is the mean of 1, 2, 3 weighted by 1, 1, 2?",
+    "valid": true,
+    "expect": 2.25,
+    "expect_kind": "unsupported_modifier",
+    "source": "Complete dataset-modifier contract: unsupported postfix weighted spelling must not fall back to ordinary mean; native c999 counterexample.",
+    "expected_withheld": true
   }
 ]

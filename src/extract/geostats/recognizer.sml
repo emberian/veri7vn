@@ -152,7 +152,8 @@ struct
           val _ = if isSome outputPhrase andalso not(isSome explicitOutput) then raise BadGeometry else ()
           val requestedPower = if has ("\\b(?:in|into)\\s+(?:square\\s+" ^ unitRx ^ "|" ^ unitRx ^ "(?:2|\\^2|\194\178))") original then SOME 2
               else if has ("\\b(?:in|into)\\s+(?:cubic\\s+" ^ unitRx ^ "|" ^ unitRx ^ "(?:3|\\^3|\194\179))") original then SOME 3 else NONE
-          val operationPower = if has "\\bvolume\\b" t then 3 else if has "\\barea\\b" t then 2 else 1
+          val operationPower = if has "\\b(?:interior )?angles?\\b" t then 0 else if has "\\bvolume\\b" t then 3 else if has "\\barea\\b" t then 2 else 1
+          val _ = if operationPower=0 andalso isSome explicitOutput then raise BadGeometry else ()
           val _ = case requestedPower of SOME n => if n=operationPower then () else raise BadGeometry | NONE => ()
           val target = case explicitOutput of
               SOME m => SOME(unitOf (valOf(Regex.group original m 1)))
@@ -178,7 +179,13 @@ struct
                                 "is","with","has","what","find","compute","calculate","determine","the","a","of",
                                 "rectangle","rectangular","box","cuboid","square","triangle","circle","sphere","cylinder","cone","cube","polygon","legs"]
                                then () else raise BadGeometry end
-                     in (start,stop,String.substring(t,start,stop-start)) end)
+                     in (start,stop,
+                         case (inputUnits,target) of
+                           (source::_,SOME dest) =>
+                             if has "\\b(?:interior )?angles?\\b" t
+                             then String.substring(t,start,stop-start)
+                             else ExactNumeric.canonical (G.converted_parts source dest (toRat value))
+                         | _ => String.substring(t,start,stop-start)) end)
             | replacement _ = raise BadGeometry
           fun rewrite pos [] acc = String.concat(rev(String.extract(t,pos,NONE)::acc))
             | rewrite pos ((a,b,v)::rest) acc = rewrite b rest (v::String.substring(t,pos,a-pos)::acc)
@@ -639,7 +646,7 @@ struct
             [("stdev","\\bstandard deviation\\b|\\bstd\\.? ?dev\\b|\\bsd\\b"),
              ("variance","\\bvariance\\b"),("median","\\bmedian\\b"),("mode","\\bmode\\b"),
              ("range","\\brange\\b"),("mean","\\bmean\\b|\\baverage\\b")]
-          val excludedOtherOperation = has "\\bz[- ]?score\\b|\\bprobability\\b|\\bweighted\\b|\\bchance\\b" t
+          val excludedOtherOperation = has "\\bz[- ]?score\\b" t
           val body = search "\\b(?:of|for|in|data(?:set)?|numbers|values|list)[:\\s]+(.+)$" t
           fun request kind xs = case kind of
               "stdev" => S.S_stdev (has "\\bpopulation\\b" t,xs)

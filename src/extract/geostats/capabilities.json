@@ -101,7 +101,7 @@
         "computation": "Geometry catalogue: lengths, perimeters, areas, surfaces, volumes and polygon angle sums. Explicit length units are converted exactly before the existing shape computation; output names the selected unit and its dimension. Static catalogue, not an interpretation proof.",
         "assumptions": [
           "Supported lengths: mm, cm, m, km, international inch/foot/yard; all shape lengths positive. Requested output unit takes precedence, otherwise first explicit length unit.",
-          "Bare dimensions inherit a common unit only if explicit input units agree; a mixed-unit request with any bare dimension is refused.",
+          "Bare lengths inherit the common explicit input unit before conversion to the output unit; polygon side counts stay dimensionless. A mixed-unit request with any bare length is refused.",
           "Pi and roots use verified intervals rounded to six significant digits."
         ],
         "untrusted": [
@@ -121,7 +121,7 @@
         "computation": "Geometry catalogue: lengths, perimeters, areas, surfaces, volumes and polygon angle sums. Explicit length units are converted exactly before the existing shape computation; output names the selected unit and its dimension. Static catalogue, not an interpretation proof.",
         "assumptions": [
           "Supported lengths: mm, cm, m, km, international inch/foot/yard; all shape lengths positive. Requested output unit takes precedence, otherwise first explicit length unit.",
-          "Bare dimensions inherit a common unit only if explicit input units agree; a mixed-unit request with any bare dimension is refused.",
+          "Bare lengths inherit the common explicit input unit before conversion to the output unit; polygon side counts stay dimensionless. A mixed-unit request with any bare length is refused.",
           "Pi and roots use verified intervals rounded to six significant digits."
         ],
         "untrusted": [
@@ -141,7 +141,7 @@
         "computation": "Geometry catalogue: lengths, perimeters, areas, surfaces, volumes and polygon angle sums. Explicit length units are converted exactly before the existing shape computation; output names the selected unit and its dimension. Static catalogue, not an interpretation proof.",
         "assumptions": [
           "Supported lengths: mm, cm, m, km, international inch/foot/yard; all shape lengths positive. Requested output unit takes precedence, otherwise first explicit length unit.",
-          "Bare dimensions inherit a common unit only if explicit input units agree; a mixed-unit request with any bare dimension is refused.",
+          "Bare lengths inherit the common explicit input unit before conversion to the output unit; polygon side counts stay dimensionless. A mixed-unit request with any bare length is refused.",
           "Pi and roots use verified intervals rounded to six significant digits."
         ],
         "untrusted": [

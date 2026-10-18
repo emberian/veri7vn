@@ -47,7 +47,9 @@ Geometry converts explicit mm, cm, m, km, international inches, feet and yards
 with exact rational factors before applying the existing shape calculation.
 A requested output unit selects the common length base; otherwise the first
 explicit input unit does. Responses label squared/cubed units for areas and
-volumes. Bare dimensions inherit one common input unit, but a mixture of
+volumes. Bare dimensions inherit one common input unit and are then converted to the
+requested output unit together with explicit lengths. Polygon side counts
+remain dimensionless. A mixture of
 explicit units plus a bare dimension is refused. Unsupported units and
 malformed scalar captures cannot donate a numeric suffix to a length role.
 The reader binds complete issued numeric spans; role and unit interpretation

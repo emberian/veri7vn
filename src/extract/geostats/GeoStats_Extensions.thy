@@ -4,8 +4,9 @@ begin
 
 text \<open>Exact length units. A request uses one chosen output length unit;
   each input length is converted before the existing shape kernel runs.
-  Unit and role recognition remains untrusted. Unlabelled dimensions inherit
-  the chosen unit only under the reader's explicit common-unit convention.\<close>
+  Unit and role recognition remains untrusted. Unlabelled lengths inherit
+  the common explicit input unit before conversion to the requested output
+  unit. Polygon side counts remain dimensionless.\<close>
 datatype length_unit = LU_mm | LU_cm | LU_m | LU_km | LU_in | LU_ft | LU_yd
 fun metre_factor :: "length_unit \<Rightarrow> rat" where
   "metre_factor LU_mm = 1/1000"
