@@ -1,0 +1,8 @@
+session Veri7vn_Document = HOL +
+  options [document = false]
+  sessions
+    "HOL-Library"
+  theories
+    Document_Route
+    Document_Route_Export
+    Document_Route_Test
