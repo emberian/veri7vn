@@ -1,95 +1,118 @@
-# The dispatcher: one front door for the family binaries
+# One front door for the extracted programs
 
-An answerer (docs/contracts/answerer.md) that takes a question and routes it the
-way Oracle7's released head does, using veri7vn's verified kernels as the
-organs. It is **untrusted glue** around three verified pieces: the family
-kernels (`var/<slug>/bin/<slug>`, one per family), the fusion planner
-(`var/fusion/bin/fusion`), and the arbitration rule (`var/dispatch/bin/arb_check`).
+The dispatcher accepts JSON lines with `id`, `q`, and `session`, and returns an
+answer or refusal with its route. It is **untrusted Python glue** around the
+extracted programs. Its stage order is a deliberate composition of the lifted
+capabilities; it does not reproduce every fold of Oracle7's released head.
 
-## The order it reproduces
+The registry in `src/extract/families.json` names every program's role and each
+specialist's owner. Files found under `var` are never added automatically.
+Specialist replies must name an ID owned by their family and pass the shared
+acceptance contract: the original manifest plus explicit additions in that
+family's `capabilities.json`. This makes new chemistry and finance kinds usable
+without accepting arbitrary undeclared kinds.
 
-Read from the released chain itself (lane B's catalogue, `audit/folds/folds.json`):
-
-| Stage | Oracle7 fold | What the dispatcher does |
-|---|---|---|
-| network | w508 (pre-route, index 64, fires before the specialists) | the fusion answerer; an answer returns as `network><trace>`; a **validity** decline ("26 hours a day") withholds the turn and stops the cascade, exactly as w508 does; any other decline falls through |
-| specialists | w504 (index 68) then w525's new family (index 28, post-replace on a lacking turn) | every family binary is asked in parallel; replies that pass their manifest's accept rule (combo_runtime_v1's `_Organ.reply`) become candidates; **the exported HOL `arbitrate` picks** — an answer or a Disagree ends the turn, an in-domain decline is only a fallback |
-| relation reader | the head's `organ:relation` route | lane F's reader, only when nothing above answered (the slowest organ) |
-| decline | everything else | `dispatch>declined` |
-
-`--order front` swaps the first two stages: the organ in front of the head,
-which is the composition Oracle7's own shipped verdicts reproduce under, and
-the one to use on a specialist's own exam panel.
-
-With `--order front --specialist ID` the pinned specialist is asked **alone
-first**, as Oracle7's own exam composes it. Only when it does not answer (a
-decline or no take) does the rest of the cascade run: the other families
-through the arbitration, then the network, then the reader. The arbitration
-rule is untouched. Without `--specialist`, or with `--order head`, nothing
-changes. This is what makes "According to NASA, what is the density of
-Mercury?" come out as astronomy-v3's planet (5429) instead of chemistry-v3's
-element: the arbitration ranks wording before the context cue, so the fix is in
-the composition, not the rule.
-
-## Run it
+## Running it
 
 ```sh
-sh tools/dispatch/build_arb.sh     # MLton: exported Arbitration.thy + arb_driver.sml -> var/dispatch/bin/arb_check
-python3 tools/dispatch/dispatch.py --selftest        # five arbitration cases against the HOL tests
-echo '{"id":"1","q":"...","session":"s"}' | python3 tools/dispatch/dispatch.py --order head
+printf '%s\n' '{"id":"1","q":"Who wrote Leaves of Grass?","session":"demo"}' |
+  python3 -B tools/dispatch/dispatch.py
 
-# the 924-item core panel against the recorded status/path (needs PARITY_UPSTREAM for the panel):
-PARITY_UPSTREAM=../../upstream python3 tools/dispatch/measure_core.py -- --order head
+# A specialist's own composition, with just its family and the network:
+python3 -B tools/dispatch/dispatch.py --order front --organs chemistry \
+  --specialist chemistry-v3 --no-reader --no-document --no-routes
 
-# ten whole-family panels, no regression (front composition):
-PARITY_UPSTREAM=../../upstream python3 tools/parity/harness.py \
-  --answerer "python3 tools/dispatch/dispatch.py --order front --specialist {id}" \
-  --specialist springs,units-v3,densities-r2,physics-r2,chemistry-v3,cooking-v3,optics-v5,astronomy-v3,calculus,soil-r2 \
-  --split heldout --out var/dispatch/panels
+python3 -B tools/dispatch/dispatch.py --selftest
+python3 -B tools/dispatch/test_dispatch.py
+python3 -B tools/dispatch/test_routes.py
+python3 -B tools/dispatch/check_state.py
 ```
 
-Binaries are looked up under `--var-root` (default `/Users/ember/dev/o7vn/var`)
-as `<slug>/bin/<slug>`. The reader stage runs the main checkout's
-`tools/reader/answerer.py` (it imports upstream's wander-train modules); `--no-reader`
-drops it. Everything is read-only against `upstream/`.
+`--var-root` relocates registered binary paths. `--arb` selects the arbitration
+binary. The document adapter requires the existing upstream Python dependencies;
+`--adapter-python` defaults to this repository's `.venv/bin/python` when present.
+Imports disable bytecode writes. Stores and source material under `upstream` are
+read-only. Missing configured programs and malformed capability declarations
+stop startup with an explanation.
 
-## Whose rules apply, and refusing to start
+## How a turn proceeds
 
-A family binary holds several versions of a stem (astronomy-v3 and
-astronomy-v3-r2) and, without `--specialist ID`, answers with the family's
-fixed order. `dispatch.py --specialist ID` starts every family binary that
-honours the flag (probed: it must answer for ID and exit non-zero for a bogus
-id) with `--specialist ID`; other families stay in family mode. A family
-without the flag (acoustics) runs in family mode with a note; an ID that is no
-shipped specialist is an error (exit 2). The core panel uses no flag.
+The default asks the network first, then specialist families. `--order front`
+asks specialists first; when `--specialist ID` is supplied, its owning family is
+asked alone before other families. Ownership comes from the registry, without
+starting programs to guess which flags they accept.
 
-At start-up it checks every stage's program (each family binary, the fusion
-binary and its `answerer.py`, the reader's `answerer.py` unless `--no-reader`,
-`arb_check`). Any missing one prints `dispatch: stage <stage> is missing its
-program: <path>` on stderr and exits 2. Before this, a copy without
-`tools/fusion/` lost 58 network answers with the error only in a log.
+An accepted reply selected by the extracted arbitration ends the turn. This
+includes an in-domain refusal. A reply whose `taken` flag is false falls through.
+The distinction deliberately repairs the old dispatcher, which could replace a
+correct refusal with an answer from a later route. A stage failure is reported
+as a withheld error, not treated as evidence that the question was unrecognized.
 
-## What is trusted where
+After specialists and network come any registered arithmetic/algebra and word
+problem stages, the general relation reader, and the document adapter. Captured
+refusals from these routes also stop the turn. Math's reconstructed guard-only
+fallback runs last. Precision guards inspect the **actual selected answer**
+once, after routing. These guards currently model 20 of 87 catalogue codes;
+store-dependent facts are marked unavailable unless supplied by an adapter.
+`--no-routes`, `--no-reader`, and `--no-document` support scoped checks. The
+`stages_run` trace lists invoked stages, not disabled callbacks.
 
-- **Verified**: each family reply's value (proved kernels); the fusion decision
-  (`Fusion.fdecide`); the arbitration outcome (`Arbitration.thy`'s `arbitrate`,
-  called through `arb_check`; `--selftest` pins five cases from
-  `Specialists_Tests.thy`).
-- **Untrusted** (this directory): the reading of a turn into givens, wording,
-  answer values, declines and context matches (a line-by-line port of
-  combo_runtime_v1's oracles, kept in one block in dispatch.py); the
-  counterfactual dependence count (re-asks the organ with each given nudged);
-  the stage order; path relabelling (`veri7vn:fusion>` → `network>`);
-  the `specialist_call>` prefix; the manifest accept gate; the fan-out.
+The general relation adapter asks matching readers through one shared kernel
+and requires agreement across their decisive claims. Its source assertions,
+entity linking and fetched-row completeness remain assumptions; those limits
+travel with its reply. Document composition is still partial: recognizing a
+summary or timeline request does not mean the system can generate it.
 
-## Known divergences from the recorded head
+## State and evidence
 
-Named and counted in `SCOUT_REPORT.md`: the v3-only network (18 `network3>`
-items and ~18 specialist items relabelled/stolen; 17 replies name `densities`
-where the shipped network names `densities-r2`), no precision guards (60
-core-panel answers where the head withheld), the reader's 35-pattern coverage
-(69 of 204 `organ:relation` items), no `rel-*` specialist panels' stores, and
-an alphabetical organ pick order where Oracle7 uses its family order. (The
-Mercury planet/element item is fixed in pinned front order by asking the
-pinned specialist first; head order without `--specialist` still lets the
-arbitration choose the element.)
+A warehouse operation must not commit while merely competing for arbitration.
+A registered stateful family with `preview_flag` runs speculatively with
+`--preview`; this never persists warehouse state. Cooking answers remain usable.
+Unpinned stock, location and sensor reads return their preview answers. If
+arbitration selects an unpinned proposal, order or cancellation, the dispatcher
+withholds and says an explicitly selected warehouse specialist is needed to
+perform that operation.
+
+Warehouse operations require `--order front --specialist warehouse-r2` (or
+`warehouse`) with no competing specialist pin. This creates a preview child and
+one committing child sharing a new private state file. The dispatcher serializes
+the whole turn: preview, acceptance and selection, precision guards, then one
+commit of the exact original request if the preview remains accepted. The
+preview reloads current committed state each time; the committing child is its
+only writer. Other programs must not write that private file.
+
+A guard-blocked proposal or confirmation changes no state. A committing error
+is reported as uncertain and never automatically retried. The actual committing
+reply is compared with its preview for diagnostics and returned without later
+filtering that could hide an already performed operation. Pinned warehouse
+reads also commit once after guards to retain conversation references: a stock
+question can be followed by “Where is it?” in the same session. Unpinned reads
+return the preview without retaining that reference. Cooking needs no warehouse
+state. Each session has separate references and pending confirmation state. Counterfactual ranking never perturbs a stateful candidate.
+`check_state.py` exercises this sequence against real children, including
+injected guard rejection and uncertain commit outcomes.
+
+Kernel declarations and theorem inventories are not proofs that a particular
+English question was understood. The dispatcher keeps a producer's evidence
+packet, adds clearly labelled capability declarations, and invokes the shared
+consumer validator for supported checked-computation packets. That validator's
+independent Python arithmetic is corroboration, not a new HOL theorem. Invalid
+asserted packets are withheld. Original recognition, rendering, source data,
+and Python stage composition remain outside the proof boundary.
+
+## Evidence and remaining limits
+
+The scoped composed run on 18 October scored chemistry-v3's held-out
+panel **281/281 right, 0 wrong, 0 false yes**, and retail's **51/51 right, 0 wrong,
+0 false yes** (`var/dispatch/c-runtime-final/panels`). It used pinned front order,
+chemistry and finance families, with the other registered stages enabled. These
+are specialist-panel results; head comparison, lane/self preservation and the
+full budget criterion were not measured. Later route changes require their own
+scoped consumer checks rather than inheriting these figures as a fleet score.
+
+Cross-family interpretation remains imperfect. For the domain-neutral question
+“What is the density of Mercury?”, chemistry and astronomy both answer; the
+existing arbitration's wording ranking selects the element. A specialist pin
+can choose astronomy explicitly, but the general question has not acquired a
+proved disambiguation rule. Likewise, the precision guards are a partial model,
+not a claim that all head overanswers are eliminated.

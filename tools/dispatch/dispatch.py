@@ -1,60 +1,15 @@
 #!/usr/bin/env python3
-"""dispatch - veri7vn's single front door (docs/contracts/answerer.md): JSON lines in, one reply per line out.
+"""JSONL front door around extracted kernels. UNTRUSTED glue.
 
-UNTRUSTED glue. The dispatcher takes a question and routes it the way Oracle7's
-released head does, using the verified family kernels as the organs:
+The explicit runtime registry names specialist owners and non-specialist stages.
+The shared capability contract accepts upstream kinds plus reviewed extensions.
+An accepted in-domain refusal selected by arbitration ends the turn; an organ
+that did not take the question falls through. This deliberately repairs the old
+composition which could overwrite a correct refusal with a later answer.
 
-  head order (--order head, the core panel's own route order, from lane B's
-  catalogue of the released chain):
-    1. the network (w508, a pre-route fold nearest the tip): the fusion
-       answerer (tools/fusion/answerer.py over the MLton build of
-       Fusion.fdecide). An answer returns as path "network><trace>" (Oracle7
-       names the v2 network "network>" and the v3 network "network3>"; this
-       build is v3 and uses "network>" for both - a named divergence). A
-       VALIDITY decline ("26 hours a day", a negative length) withholds the
-       turn exactly as w508 does and stops the cascade. Any other decline
-       falls through.
-    2. the specialists (w504's standing family, then w525's new family): every
-       family binary is asked; the replies that took the turn go through the
-       VERIFIED arbitration (var/dispatch/bin/arb_check, the MLton build of
-       lane C's exported Arbitration.thy). The winning reply returns with path
-       "specialist_call>" + the binary's own path. A Disagree shows both
-       replies labelled, as combo_runtime_v1 does.
-    3. the relation reader (lane F's answerer over the verified decide binary
-       and relations_v1.sqlite3), the head's organ:relation route. Only asked
-       when nothing above took the turn (it is the slowest organ).
-    4. otherwise the turn is withheld, path "dispatch>declined".
-
-  front order (--order front, the release's composition for a specialist's own
-  exam - the organ in front of the head, which is the composition the shipped
-  verdicts reproduce under): organs, then network, then reader.
-
-What is verified here: the arbitration decision (Pick/Disagree/Fallthrough) is
-made by the exported HOL function; every family reply's value comes from a
-proved kernel. What is NOT: this file's reading of the turn (givens, wording,
-answer values, declines, context matches - a port of combo_runtime_v1's
-oracles), the stage order, and the fan-out plumbing. The counterfactual
-dependence count re-asks the winning-candidate binaries with each given nudged
-(+7%), as combo_runtime_v1._dependence does.
-
-  dispatch.py [--var-root DIR] [--order head|front] [--organs a,b,c] [--no-reader]
-              [--specialist ID[,ID]] [--arb PATH] [--timeout S] [--selftest]
-
---specialist ID says whose rules apply (a specialist's own exam): every family
-binary that accepts `--specialist ID` is started with it, so it asks only that
-manifest's organ; the other families run in family mode. Without it every
-binary runs in family mode and a stem with several versions (astronomy-v3 and
-astronomy-v3-r2) answers by the family's fixed order, so a panel for a
-non-default version must name it. A family whose binary has no such flag
-(acoustics) runs in family mode with a note on stderr; an ID that is no
-shipped specialist at all is an error.
-
-The dispatcher refuses to start (message on stderr naming the stage, exit 2)
-when any stage's program is missing: a family binary, the fusion binary or its
-answerer.py, the reader's answerer.py (unless --no-reader), or arb_check.
-
---var-root (default $VERI7VN_VAR, else /Users/ember/dev/o7vn/var): where the
-family binaries live, as <var-root>/<slug>/bin/<slug>.
+Recognition, manifest matching, stage order, numeric readings used to arbitrate,
+and evidence presentation are untrusted. A listed theorem is a kernel-level
+claim with assumptions, not proof that this particular question was understood.
 """
 from __future__ import annotations
 
@@ -67,12 +22,18 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 WORKTREE_REPO = Path(__file__).resolve().parents[2]
-MAIN_REPO = Path("/Users/ember/dev/o7vn")
+MAIN_REPO = REPO
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(REPO / "tools"))
+from runtime_contract import load_registry, acceptance, capability_for, validate_capabilities, enforce_reply_evidence  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from routes import RouteStages, stage_programs as route_programs  # noqa: E402
 UPSTREAM = Path(os.environ.get("PARITY_UPSTREAM", str(MAIN_REPO / "upstream")))
 
 # ---------------------------------------------------------------- combo oracles
@@ -155,16 +116,13 @@ def manifest(sid: str):
     """declines_in_domain + context_regex of a specialist, read-only from upstream"""
     with _MAN_LOCK:
         if sid not in _MANIFESTS:
-            try:
-                m = json.loads((UPSTREAM / "root" / "specialists" / sid / "manifest.json").read_text(encoding="utf-8"))
-                acc = m.get("accept") or {}
-                _MANIFESTS[sid] = {
-                    "kinds": set(acc.get("kinds", [])),
-                    "declines": set(acc.get("declines_in_domain", [])),
-                    "ctx": re.compile(acc.get("context_regex", r"(?!x)x"), re.I),
-                }
-            except (OSError, ValueError, re.error):
-                _MANIFESTS[sid] = {"declines": set(), "ctx": None}
+            acc = acceptance(REPO, UPSTREAM, sid)
+            _MANIFESTS[sid] = {
+                "kinds": set(acc.get("kinds", [])),
+                "declines": set(acc.get("declines_in_domain", [])),
+                "ctx": re.compile(acc.get("context_regex", r"(?!x)x"), re.I),
+                "declaration": capability_for(REPO, sid).get("evidence", {}),
+            }
     return _MANIFESTS[sid]
 
 
@@ -172,6 +130,27 @@ def specialist_of(path: str):
     """specialist:springs>force -> springs"""
     m = re.match(r"(?:specialist_call>)?specialist:([\w.\-]+)>", str(path or ""))
     return m.group(1) if m else None
+
+
+def reply_shape_error(reply):
+    """Reject malformed metadata; it must never become a no-take fallthrough."""
+    if not isinstance(reply, dict):
+        return "reply must be an object"
+    if "provenance" in reply and not isinstance(reply["provenance"], dict):
+        return "provenance must be an object"
+    if "evidence" in reply and not isinstance(reply["evidence"], dict):
+        return "evidence must be an object"
+    if "error" not in reply and reply.get("status") not in {"answered", "withheld", "clarification"}:
+        return "status must be answered, withheld or clarification"
+    for field in ("response", "path", "kind"):
+        if field in reply and not isinstance(reply[field], str):
+            return field + " must be a string"
+    provenance = reply.get("provenance", {})
+    if "taken" in provenance and type(provenance["taken"]) is not bool:
+        return "provenance.taken must be boolean"
+    if "evidence" in provenance and not isinstance(provenance["evidence"], dict):
+        return "provenance.evidence must be an object"
+    return None
 
 
 # ---------------------------------------------------------------- child processes
@@ -190,17 +169,23 @@ class Child:
                                   text=True, encoding="utf-8", bufsize=1)
         self.q = queue.Queue()
 
+        proc, replies = self.p, self.q
         def pump():
             try:
-                for line in self.p.stdout:
-                    self.q.put(line)
+                for line in proc.stdout:
+                    replies.put(line)
             finally:
-                self.q.put(None)
+                replies.put(None)
         threading.Thread(target=pump, daemon=True).start()
 
     def ask(self, rid, text, session, timeout=None):
         """-> reply dict, or {"error": ...}; never raises"""
-        timeout = timeout or self.timeout
+        return self.ask_payload({"id": rid, "q": text, "session": session}, timeout)
+
+    def ask_payload(self, request, timeout=None):
+        """Send a complete stage-specific request; only its matching reply is read."""
+        rid = request.get("id")
+        timeout = self.timeout if timeout is None else timeout
         with self.lock:
             if self.deaths >= 3:
                 return {"error": "%s exited 3 times without replying" % self.name}
@@ -210,7 +195,7 @@ class Child:
                 except OSError as e:
                     return {"error": "%s: %s" % (self.name, e)}
             try:
-                self.p.stdin.write(json.dumps({"id": rid, "q": text, "session": session}, ensure_ascii=False) + "\n")
+                self.p.stdin.write(json.dumps(request, ensure_ascii=False) + "\n")
                 self.p.stdin.flush()
             except (BrokenPipeError, OSError) as e:
                 self._close()
@@ -231,9 +216,14 @@ class Child:
                 try:
                     r = json.loads(line)
                 except ValueError:
-                    continue
+                    return {"error": "%s returned invalid JSON" % self.name}
+                if not isinstance(r, dict):
+                    return {"error": "%s reply must be an object" % self.name}
                 if r.get("id") != rid:
                     continue
+                problem = reply_shape_error(r)
+                if problem:
+                    return {"error": "%s: %s" % (self.name, problem)}
                 self.deaths = 0
                 return r
 
@@ -243,17 +233,24 @@ class Child:
             return
         try:
             if kill:
-                p.kill()
+                # Give adapters a chance to close their own recorded kernel
+                # processes before forcing this recorded child to stop.
+                p.terminate()
             else:
                 p.stdin.close()
-            p.wait(timeout=30)
-        except Exception:  # noqa: BLE001
+            p.wait(timeout=2 if kill else 10)
+        except (subprocess.TimeoutExpired, BrokenPipeError, OSError):
             p.kill()
             p.wait()
+        finally:
+            for stream in (p.stdin, p.stdout):
+                if stream is not None:
+                    stream.close()
 
     def close(self):
         with self.lock:
             self._close()
+            self.log.close()
 
 
 # ---------------------------------------------------------------- the arbitration binary
@@ -297,105 +294,157 @@ class Arb:
         except Exception:  # noqa: BLE001
             self.p.kill()
             self.p.wait()
+        finally:
+            self.p.stdin.close()
+            self.p.stdout.close()
 
 
 # ---------------------------------------------------------------- the dispatcher
+STATE_TRANSITION_KINDS = frozenset({"confirm", "ordered", "cancelled"})
+
 DISAGREE_FMT = ("Two of the specialists read this differently, so I won't pick one silently. "
                 "%s says: %s %s says: %s")
 
 
 # ---------------------------------------------------------------- start-up checks
-def stage_programs(args, var, slugs):
-    """[(stage, path)] for every program a turn can need"""
-    progs = [("specialists:%s" % s, var / s / "bin" / s) for s in slugs]
-    progs += [("network (fusion binary)", var / "fusion" / "bin" / "fusion"),
-              ("network (fusion answerer)", REPO / "tools" / "fusion" / "answerer.py"),
+def selected_families(args):
+    """Only explicit specialist entries can participate in the family fan-out."""
+    registered = {e["family"]: e for e in load_registry(REPO) if e["role"] == "specialist"}
+    names = [s for s in args.organs.split(",") if s] if args.organs else list(registered)
+    unknown = [s for s in names if s not in registered]
+    if unknown:
+        raise ValueError("not registered specialist families: " + ", ".join(unknown))
+    if len(names) != len(set(names)):
+        raise ValueError("duplicate family in --organs")
+    return [registered[name] for name in names]
+
+
+def binary_path(var, entry):
+    """Relocate the registry's var-relative binary under --var-root."""
+    return var / Path(entry["binary"]).relative_to("var")
+
+
+def enabled_routes(args):
+    if getattr(args, "no_routes", False):
+        return []
+    return [e["family"] for e in load_registry(REPO)
+            if e["role"] in {"math", "word_problem", "guard"}]
+
+
+def enabled_stage(args, role):
+    flag = "no_reader" if role == "relation" else "no_document"
+    return not getattr(args, flag, False) and any(e["role"] == role for e in load_registry(REPO))
+
+
+def stage_programs(args, var, entries):
+    progs = [("specialists:" + e["family"], binary_path(var, e)) for e in entries]
+    progs += [("network (fusion binary)", var / "fusion/bin/fusion"),
+              ("network (fusion answerer)", REPO / "tools/fusion/answerer.py"),
               ("arbitration (arb_check)", Path(args.arb))]
-    if not args.no_reader:
-        progs.append(("reader", MAIN_REPO / "tools" / "reader" / "answerer.py"))
+    progs.extend(route_programs(REPO, var, enabled_routes(args)).items())
+    if enabled_stage(args, "relation"):
+        progs.append(("reader", REPO / "tools/relations/frontdoor.py"))
+        progs.append(("reader kernel", var / "relations/bin/decide"))
+    if enabled_stage(args, "document"):
+        progs.append(("document", REPO / "tools/document/answerer.py"))
+        progs.append(("document kernel", var / "document/bin/document"))
+        progs.append(("document Python environment", Path(args.adapter_python)))
     return progs
 
 
-def preflight(args, var):
-    """refuse to start when a stage's program is missing (a copy without tools/fusion/ once
-    lost the whole network stage silently, 58 answers, with the error only in a log)"""
-    if args.organs:
-        slugs = [s for s in args.organs.split(",") if s]
-    else:
-        slugs = sorted(p.name for p in var.iterdir() if p.is_dir() and p.name not in Dispatcher.EXCLUDE_SLUGS
-                       and (p / "bin" / p.name).is_file() and os.access(p / "bin" / p.name, os.X_OK))
-    missing = [(st, p) for st, p in stage_programs(args, var, slugs) if not p.is_file()]
-    if not slugs:
-        missing.append(("specialists (no family binary under %s)" % var, var / "<slug>" / "bin" / "<slug>"))
-    for st, p in missing:
-        sys.stderr.write("dispatch: stage %s is missing its program: %s\n" % (st, p))
+def preflight(args, var, entries=None):
+    validate_capabilities(REPO)
+    entries = selected_families(args) if entries is None else entries
+    for entry in entries:
+        for sid in entry["specialists"]:
+            manifest(sid)
+    missing = [(st, p) for st, p in stage_programs(args, var, entries) if not p.is_file()]
+    if not entries:
+        raise ValueError("no specialist families selected")
     if missing:
-        sys.exit(2)
+        raise ValueError("; ".join("stage %s is missing its program: %s" % pair for pair in missing))
+    return entries
 
 
-def _probe(binp, sid):
-    try:
-        r = subprocess.run([str(binp), "--specialist", sid], input='{"id": "probe", "q": "", "session": "p"}\n',
-                           capture_output=True, text=True, timeout=60)
-    except (OSError, subprocess.TimeoutExpired):
-        return False
-    return r.returncode == 0 and '"probe"' in r.stdout
-
-
-def accepts_specialist(binp, sid):
-    """True when the family binary honours `--specialist sid`: it starts and answers a probe line
-    for sid, and exits non-zero for an id that does not exist (a binary that ignores its
-    arguments, as acoustics does, would accept anything and is not pinned)"""
-    return _probe(binp, sid) and not _probe(binp, "no-such-specialist")
-
-
-def pin_specialists(var, slugs, spec):
-    """{slug: id} for the families that accept --specialist id; exits 2 if some id has no family"""
+def pin_specialists(entries, spec):
+    """Resolve specialist ownership from the registry without executing probe turns."""
+    owners = {sid: e for e in entries for sid in e["specialists"]}
     pins = {}
     for sid in [x for x in (spec or "").split(",") if x]:
-        owners = [s for s in slugs if s not in pins and accepts_specialist(var / s / "bin" / s, sid)]
-        if not owners:
-            if (UPSTREAM / "root" / "specialists" / sid / "manifest.json").is_file():
-                sys.stderr.write("dispatch: note: no family binary takes --specialist %s; "
-                                 "its family runs in family mode\n" % sid)
-                continue
-            sys.stderr.write("dispatch: no specialist %s (no manifest, no family binary accepts it)\n" % sid)
-            sys.exit(2)
-        for s in owners:
-            pins[s] = sid
+        if sid not in owners:
+            raise ValueError("specialist %s has no selected registered family" % sid)
+        entry = owners[sid]
+        family = entry["family"]
+        if family in pins and pins[family] != sid:
+            raise ValueError("cannot pin two specialists in family %s in one process" % family)
+        pins[family] = sid
     return pins
 
 
-class Dispatcher:
-    EXCLUDE_SLUGS = {"fusion"}                 # the network stage, not an organ
+def effectful_selection(entries, pins, order):
+    """An effectful organ cannot run speculatively against competing candidates.
 
+    Pinned stores use a private preview/commit pair. Unpinned stores can only
+    preview. Other families remain available if the pinned organ does not take
+    the turn.
+    """
+    effectful = {e["family"] for e in entries if e.get("state_flag")}
+    selected = effectful & pins.keys()
+    if selected and (order != "front" or len(pins) != 1):
+        raise ValueError("stateful specialists require --order front and exactly one --specialist")
+    previewable = {e["family"] for e in entries if e.get("preview_flag")}
+    if selected - previewable:
+        raise ValueError("stateful pin requires a registered preview protocol")
+    skipped = effectful - selected - previewable
+    return [e for e in entries if e["family"] not in skipped], sorted(skipped)
+
+
+class Dispatcher:
     def __init__(self, args):
         self.order = args.order
         var = Path(args.var_root)
-        preflight(args, var)
-        log_dir = REPO / "var" / "dispatch" / "logs"
+        entries = preflight(args, var)
+        self.entries = {e["family"]: e for e in entries}
+        log_dir = var / "dispatch" / "logs"
         log_dir.mkdir(parents=True, exist_ok=True)
-        if args.organs:
-            slugs = [s for s in args.organs.split(",") if s]
-        else:
-            slugs = sorted(p.name for p in var.iterdir()
-                           if p.is_dir() and (p / "bin" / p.name).is_file()
-                           and os.access(p / "bin" / p.name, os.X_OK)
-                           and p.name not in self.EXCLUDE_SLUGS)
-        self.organs = []                       # (Child, slug) for the family binaries
-        pins = pin_specialists(var, slugs, args.specialist)
-        self.pinned = set(pins)                # slugs started with --specialist (front order asks them alone first)
-        for slug in slugs:
-            binp = var / slug / "bin" / slug
-            argv = [str(binp)] + (["--specialist", pins[slug]] if slug in pins else [])
+        self.organs = []
+        pins = pin_specialists(entries, args.specialist)
+        self.pins = pins
+        self.pinned = set(pins)
+        active_entries, self.stateful_not_selected = effectful_selection(entries, pins, self.order)
+        self.preview_families = {e["family"] for e in active_entries if e.get("state_flag")}
+        self.commit_organs = {}
+        self.turn_lock = threading.Lock()
+        for slug in self.stateful_not_selected:
+            sys.stderr.write("dispatch: %s needs a sole --specialist pin with --order front; "
+                             "not executed speculatively\n" % slug)
+        for entry in active_entries:
+            slug = entry["family"]
+            argv = [str(binary_path(var, entry))]
+            if slug in pins and entry.get("specialist_flag"):
+                argv += ["--specialist", pins[slug]]
+            if entry.get("state_flag"):
+                state_dir = var / "dispatch/state"
+                state_dir.mkdir(parents=True, exist_ok=True)
+                argv += ["--state", str(state_dir / (slug + "-" + uuid.uuid4().hex + ".json"))]
+                if slug in pins:
+                    self.commit_organs[slug] = Child(slug + "-commit", list(argv), args.timeout, log_dir)
+                argv += ["--preview"]
             self.organs.append((Child(slug, argv, args.timeout, log_dir), slug))
         self.fusion = Child("fusion",
-                            [sys.executable, str(REPO / "tools" / "fusion" / "answerer.py"),
+                            [sys.executable, "-B", str(REPO / "tools" / "fusion" / "answerer.py"),
                              "--binary", str(var / "fusion" / "bin" / "fusion")],
                             max(args.timeout, 30.0), log_dir)
-        self.reader = None if args.no_reader else Child(
-            "reader", [sys.executable, str(MAIN_REPO / "tools" / "reader" / "answerer.py")],
+        self.reader = None if not enabled_stage(args, "relation") else Child(
+            "reader", [sys.executable, "-B", str(REPO / "tools/relations/frontdoor.py"),
+                       "--binary", str(var / "relations/bin/decide")],
             max(args.timeout, 120.0), log_dir)
+        self.document = None if not enabled_stage(args, "document") else Child(
+            "document", [args.adapter_python, "-B", str(REPO / "tools/document/answerer.py"),
+                         "--binary", str(var / "document/bin/document")],
+            max(args.timeout, 30.0), log_dir)
+        self.route_names = set(enabled_routes(args))
+        self.routes = RouteStages(REPO, var, args.timeout, log_dir, Child, self.route_names)
         self.arb = Arb(Path(args.arb))
         self.pool = ThreadPoolExecutor(max_workers=max(8, len(self.organs) + 2))
         self.n = 0
@@ -409,7 +458,8 @@ class Dispatcher:
     def ask_fusion(self, text, session, rid):
         r = self.fusion.ask(rid, text, session)
         if "error" in r:
-            return None, r
+            return {"status": "withheld", "response": "", "path": "dispatch>network_error",
+                    "error": r["error"]}, r
         p = str(r.get("path", ""))
         if r.get("status") == "answered" and p.startswith("veri7vn:fusion>") and "validity" not in p:
             out = dict(r)
@@ -430,7 +480,11 @@ class Dispatcher:
             prov = r.get("provenance") if isinstance(r.get("provenance"), dict) else {}
             if not prov.get("taken"):
                 continue                          # the organ did not take the turn
-            sid = specialist_of(r.get("path", "")) or slug
+            sid = specialist_of(r.get("path", ""))
+            if sid not in self.entries[slug]["specialists"]:
+                continue
+            if slug in self.pins and sid != self.pins[slug]:
+                continue
             man = manifest(sid)
             kind = str(r.get("kind", ""))
             ctx_hit = man["ctx"] is None or bool(man["ctx"].search(text))
@@ -438,7 +492,7 @@ class Dispatcher:
             # only when its kind is one the specialist answers, or it is an in-domain
             # decline whose context matches the turn (a binary's own "taken" is not enough)
             declined = r.get("status") != "answered" and kind in man["declines"] and ctx_hit
-            if kind not in man["kinds"] and not declined:
+            if not ((r.get("status") == "answered" and kind in man["kinds"]) or declined):
                 continue
             cands.append({"ix": len(cands), "slug": slug, "child": child, "sid": sid, "reply": r, "declined": bool(declined),
                           "kind": kind, "checked": bool(declined and CHECKED_DECLINE.search(kind + " " + str(r.get("response", "")))),
@@ -469,6 +523,11 @@ class Dispatcher:
 
     def arbitrate(self, text, session, rid, cands):
         """-> final reply dict for the specialist stage; the decision is the exported HOL rule's"""
+        for candidate in cands:
+            problem = reply_shape_error(candidate["reply"])
+            if problem:
+                return {"status": "withheld", "response": "", "path": "dispatch>specialist_error",
+                        "error": problem}
         givens = _givens(text)
         g = len(givens)
         for c in cands:
@@ -483,7 +542,13 @@ class Dispatcher:
             and all(_same_value(answers[0]["val"], a["val"]) for a in answers[1:]))
         if not shortcut and givens:
             for c in cands:
-                c["dep_raw"] = self._dep(c["child"], c["reply"], text, givens, rid)
+                if self.entries[c["slug"]].get("state_flag"):
+                    # A hypothetical warehouse order changes state. Do not execute it
+                    # merely to rank an answer against another specialist.
+                    c["dep_raw"] = 0
+                    c["dependence_unavailable"] = "stateful organ"
+                else:
+                    c["dep_raw"] = self._dep(c["child"], c["reply"], text, givens, rid)
         else:
             for c in cands:
                 c["dep_raw"] = 0
@@ -493,8 +558,38 @@ class Dispatcher:
         if rule == "PICK":
             r = dict(cands[arg]["reply"])
             r["path"] = "specialist_call>" + str(r.get("path", ""))
-            r.setdefault("provenance", {})["dispatch"] = {"stage": "specialists", "rule": "arbitrate",
-                                                          "cands": [c["sid"] for c in cands]}
+            provenance = dict(r.get("provenance") or {})
+            provenance["dispatch"] = {"stage": "specialists", "rule": "arbitrate",
+                                      "cands": [c["sid"] for c in cands]}
+            if any(c.get("dependence_unavailable") for c in cands):
+                provenance["dispatch"]["dependence_unavailable"] = [
+                    c["sid"] for c in cands if c.get("dependence_unavailable")]
+            declaration = manifest(cands[arg]["sid"])["declaration"]
+            provenance["evidence"] = {
+                **(provenance.get("evidence") or {}),
+                "declaration_scope": "registered kernel capabilities; not a checked proof of this question's interpretation",
+                "untrusted": ["question recognition", "dispatch composition", "answer rendering"],
+                **({"declaration": declaration} if declaration else {}),
+            }
+            if (self.entries[cands[arg]["slug"]].get("state_flag") and
+                    provenance.get("preview") is False and
+                    r.get("kind") in STATE_TRANSITION_KINDS):
+                provenance["dispatch"]["state_transition_report"] = r["kind"]
+            r["provenance"] = provenance
+            r = enforce_reply_evidence(r)
+            if provenance.get("preview") is True:
+                if cands[arg]["slug"] in getattr(self, "commit_organs", {}):
+                    if r.get("status") == "answered":
+                        # A pinned read also retains its conversation reference.
+                        # It still writes only after the preview passes guards.
+                        r["provenance"]["dispatch"]["commit_candidate"] = cands[arg]["slug"]
+                elif r.get("kind") in STATE_TRANSITION_KINDS:
+                    # A speculative proposal without a private committing owner
+                    # cannot be presented as an actual warehouse operation.
+                    r.update(status="withheld", response="Warehouse operations need an explicitly selected warehouse specialist; this preview did not change its state.",
+                             path=str(r.get("path", "")) + ">preview")
+                    r.pop("value", None)
+                    r["provenance"]["dispatch"]["requires_pinned_front"] = True
             return r
         if rule == "DISAGREE":
             a, b = cands[arg[0]], cands[arg[1]]
@@ -507,10 +602,7 @@ class Dispatcher:
         return None
 
     def organs_stage(self, text, session, rid):
-        """-> (answered reply | None, in-domain decline fallback | None): an organ's ANSWER
-        or a Disagree ends the turn; an in-domain decline is kept as the fallback while the
-        head's own routes (the reader) still get the turn, exactly as the released cascade
-        continues past a family decline to organ:relation."""
+        """A selected accepted reply, including a refusal, ends this turn."""
         organs = self.organs
         fallback = None
         if self.order == "front" and self.pinned:
@@ -527,26 +619,88 @@ class Dispatcher:
 
     def _arbitrated(self, text, session, rid, organs):
         replies = self.fan_out(text, session, rid, organs)
+        failures = {}
+        for slug, reply in replies.items():
+            problem = reply_shape_error(reply)
+            if problem:
+                failures[slug] = problem
+            elif "error" in reply:
+                failures[slug] = reply["error"]
+        if failures:
+            return {"status": "withheld", "response": "", "path": "dispatch>specialist_error",
+                    "error": failures}, None, replies
         cands = self.organ_cands(text, session, rid, replies)
         if not cands:
+            # Every stateful organ is still a preview here. An undeclared or
+            # out-of-context reading can safely fall through without effects.
             return None, None, replies
         out = self.arbitrate(text, session, rid, cands)
         if out is None:
             return None, None, replies
-        if out.get("status") == "answered" or ">disagree>" in str(out.get("path", "")):
-            return out, None, replies
-        return None, out, replies
+        out.setdefault("provenance", {}).setdefault("dispatch", {})["decisive"] = True
+        return out, None, replies
 
     def reader_stage(self, text, session, rid):
         if self.reader is None:
             return None
         r = self.reader.ask(rid, text, session)
-        if "error" in r or r.get("status") != "answered":
+        if "error" in r:
+            return r
+        prov = r.get("provenance") or {}
+        return r if r.get("status") == "answered" or prov.get("taken") else None
+
+    def commit_selected(self, slug, rid, text, session, preview, guarded):
+        """Commit one selected, guarded preview against exclusively owned state.
+
+        The preview child reloads the state before each turn, while one committing
+        child is the only writer. No retry is attempted on an uncertain result.
+        """
+        raw = self.commit_organs[slug].ask(rid, text, session)
+        observations = {"attempted": True, "retries": 0,
+                        "preview_kind": preview.get("kind"),
+                        "preview_status": preview.get("status"),
+                        "guards_ran": "precision_guards" in guarded.get("provenance", {}),
+                        "state_ownership": "private file, one writer, serialized turns"}
+        if "error" not in raw and (raw.get("provenance") or {}).get("preview") is not False:
+            raw = {**raw, "error": "committing warehouse reply did not identify committed mode"}
+        if "error" in raw:
+            return {"id": rid, "status": "withheld", "response": "The warehouse operation's result is uncertain; it was not retried.",
+                    "path": "dispatch>commit_error", "error": raw["error"],
+                    "provenance": {"dispatch": {"commit": observations}, "commit_reply": raw}}
+        candidates = self.organ_cands(text, session, rid, {slug: raw})
+        if not candidates:
+            return {"id": rid, "status": "withheld", "response": "The warehouse returned an undeclared result; it was not retried.",
+                    "path": "dispatch>commit_error", "error": "committing reply was not accepted",
+                    "provenance": {"dispatch": {"commit": observations}, "commit_reply": raw}}
+        actual = self.arbitrate(text, session, rid, candidates)
+        observations["matches_preview"] = all(raw.get(key) == preview.get(key)
+                                               for key in ("status", "kind", "response", "value"))
+        provenance = actual.setdefault("provenance", {})
+        if "precision_guards" in guarded.get("provenance", {}):
+            provenance["precision_guards"] = dict(guarded["provenance"]["precision_guards"], checked_before_commit=True)
+        provenance.setdefault("dispatch", {})["commit"] = observations
+        provenance["dispatch"]["decisive"] = True
+        # Report what the committing program actually returned. In particular,
+        # no later narrowing may conceal an already performed state transition.
+        return actual
+
+    def document_stage(self, text, session, rid):
+        if self.document is None:
             return None
-        return r
+        r = self.document.ask(rid, text, session)
+        if "error" in r:
+            return r
+        prov = r.get("provenance") or {}
+        return r if r.get("status") == "answered" or prov.get("taken") else None
 
     # -- one turn
     def turn(self, rid, text, session):
+        # A private state file has one committing child. Serialize the entire
+        # preview -> selection -> guards -> commit path, including API callers.
+        with self.turn_lock:
+            return self._turn(rid, text, session)
+
+    def _turn(self, rid, text, session):
         t0 = time.perf_counter()
         ms = {}
         out = None
@@ -574,8 +728,32 @@ class Dispatcher:
             ms["reader"] = round(1000 * (time.perf_counter() - t), 3)
             return o
 
+        def extra(name, callback):
+            def run():
+                t = time.perf_counter()
+                r = callback()
+                ms[name] = round(1000 * (time.perf_counter() - t), 3)
+                return r
+            run.__name__ = name
+            return run
+
+        math = extra("math", lambda: self.routes.answer_math(rid, text, session))
+        wordprob = extra("wordprob", lambda: self.routes.answer_wordprob(rid, text, session))
+        document = extra("document", lambda: self.document_stage(text, session, rid))
+        math_guard = extra("math_guard", lambda: self.routes.fallback_math_decline(rid, text, session))
         fallback = None
-        seq = ([net, specs, rel] if head_first else [specs, net, rel]) if out is None else []
+        tail = []
+        if "mathorgan" in getattr(self, "route_names", set()):
+            tail.append(math)
+        if "wordprob" in getattr(self, "route_names", set()):
+            tail.append(wordprob)
+        if getattr(self, "reader", None) is not None:
+            tail.append(rel)
+        if getattr(self, "document", None) is not None:
+            tail.append(document)
+        if "mathorgan" in getattr(self, "route_names", set()):
+            tail.append(math_guard)
+        seq = (([net, specs] if head_first else [specs, net]) + tail) if out is None else []
         for stage in seq:
             r = stage()
             if stage is specs:
@@ -587,9 +765,30 @@ class Dispatcher:
                 break
         if out is None:
             out = fallback or {"status": "withheld", "response": "", "path": "dispatch>declined"}
+        out["id"] = rid
+        if "error" in out:
+            out.setdefault("status", "withheld")
+            out.setdefault("response", "")
+            out.setdefault("path", "dispatch>stage_error")
+        preview = out
+        commit_slug = (out.get("provenance", {}).get("dispatch") or {}).get("commit_candidate")
+        if out.get("status") == "answered" and "guards" in getattr(self, "route_names", set()):
+            t = time.perf_counter()
+            out = self.routes.apply_guards(text, out)
+            ms["guards"] = round(1000 * (time.perf_counter() - t), 3)
+            stages.append("guards")
+        if commit_slug and out.get("status") == "answered" and "error" not in out:
+            t = time.perf_counter()
+            out = self.commit_selected(commit_slug, rid, text, session, preview, out)
+            ms["commit"] = round(1000 * (time.perf_counter() - t), 3)
+            stages.append("commit")
+        elif commit_slug:
+            out.setdefault("provenance", {}).setdefault("dispatch", {})["commit"] = "not attempted; preview was withheld"
         prov = out.get("provenance") if isinstance(out.get("provenance"), dict) else {}
         prov["dispatch"] = {**(prov.get("dispatch") or {}), "stages_run": stages,
                             "ms": dict(ms, total=round(1000 * (time.perf_counter() - t0), 3))}
+        if getattr(self, "stateful_not_selected", []):
+            prov["dispatch"]["stateful_not_selected"] = self.stateful_not_selected
         out["provenance"] = prov
         out["id"] = rid
         return out
@@ -597,10 +796,16 @@ class Dispatcher:
     def close(self):
         for ch, _ in self.organs:
             ch.close()
+        for child in self.commit_organs.values():
+            child.close()
         self.fusion.close()
         if self.reader:
             self.reader.close()
+        if self.document:
+            self.document.close()
+        self.routes.close()
         self.arb.close()
+        self.pool.shutdown(wait=True)
 
 
 SELFTEST = [
@@ -628,7 +833,7 @@ def selftest(arb_path):
         got = arb.decide(case["g"], [dict(c) for c in case["cands"]])
         got_s = "%s %d" % (got[0], got[1]) if isinstance(got[1], int) else \
             ("%s %d %d" % (got[0], got[1][0], got[1][1]) if got[1] else got[0])
-        good = got_s.split()[0] == case["want"].split()[0]
+        good = got_s == case["want"]
         print("%s want=%-14s got=%s" % ("ok " if good else "FAIL", case["want"], got_s))
         ok = ok and good
     arb.close()
@@ -637,29 +842,41 @@ def selftest(arb_path):
 
 def main():
     ap = argparse.ArgumentParser(description="veri7vn dispatcher (untrusted glue; see module docstring)")
-    ap.add_argument("--var-root", default=os.environ.get("VERI7VN_VAR", "/Users/ember/dev/o7vn/var"))
+    ap.add_argument("--var-root", default=os.environ.get("VERI7VN_VAR", str(REPO / "var")))
     ap.add_argument("--order", choices=["head", "front"], default="head")
-    ap.add_argument("--organs", help="comma-separated slugs (default: every var/<slug>/bin/<slug> found)")
+    ap.add_argument("--organs", help="comma-separated registered specialist families (default: all)")
     ap.add_argument("--no-reader", action="store_true")
+    ap.add_argument("--no-document", action="store_true")
+    ap.add_argument("--no-routes", action="store_true", help="disable math, word-problem and precision-guard stages")
     ap.add_argument("--specialist", default="",
-                    help="whose rules apply: pass --specialist ID to every family binary that accepts it")
+                    help="pin the registered family owner to this specialist ID")
     ap.add_argument("--arb", default=str(REPO / "var" / "dispatch" / "bin" / "arb_check"))
+    ap.add_argument("--adapter-python", default=str(REPO / ".venv/bin/python")
+                    if (REPO / ".venv/bin/python").is_file() else sys.executable,
+                    help="Python with document adapter dependencies (default: repository .venv when present)")
     ap.add_argument("--timeout", type=float, default=10.0, help="seconds per organ reply")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
     if a.selftest:
         sys.exit(0 if selftest(a.arb) else 1)
-    d = Dispatcher(a)
+    try:
+        d = Dispatcher(a)
+    except (ValueError, OSError) as exc:
+        ap.error(str(exc))
     try:
         for line in sys.stdin:
             if not line.strip():
                 continue
-            req = json.loads(line)
-            rid, q, sess = req.get("id"), str(req.get("q", "")), str(req.get("session", "default"))
+            rid = None
             try:
+                req = json.loads(line)
+                if not isinstance(req, dict):
+                    raise ValueError("request must be a JSON object")
+                rid, q, sess = req.get("id"), str(req.get("q", "")), str(req.get("session", "default"))
                 out = d.turn(rid, q, sess)
             except Exception as e:  # noqa: BLE001 - one broken turn never costs the process
-                out = {"id": rid, "error": "dispatch: %s: %s" % (type(e).__name__, e), "response": "", "path": ""}
+                out = {"id": rid, "status": "withheld", "error": "dispatch: %s: %s" % (type(e).__name__, e),
+                       "response": "", "path": "dispatch>error"}
             sys.stdout.write(json.dumps(out, ensure_ascii=False, default=str) + "\n")
             sys.stdout.flush()
     finally:

@@ -1,25 +1,411 @@
 {
- "comment": "Committed family binaries. Read by tools/perf/fleet.py and tools/organs/make_organ.py. Untracked or unbuilt families (earth, finance) are not listed on purpose; relations, rel-novels and commons are not specialist families.",
- "families": [
-  {"family": "acoustics", "session": "Veri7vn_Acoustics", "binary": "var/acoustics/bin/acoustics", "specialists": ["acoustics"], "specialist_flag": false, "build": "src/extract/acoustics/build.sh", "note": "single specialist, binary takes no --specialist argument"},
-  {"family": "anatomyagri", "session": "Veri7vn_AnatomyAgri", "binary": "var/anatomyagri/bin/anatomyagri", "specialists": ["anatomy", "anatomy-r2", "agriculture-v2", "gardening", "nutrition-label-v2"], "specialist_flag": true, "build": "src/extract/anatomyagri/build.sh"},
-  {"family": "chemistry", "session": "Veri7vn_Chemistry", "binary": "var/chemistry/bin/chemistry", "specialists": ["chemistry", "chemistry-v3", "decay", "labsolutions", "labsolutions-r2"], "specialist_flag": true, "build": "src/extract/chemistry/build.sh"},
-  {"family": "climate", "session": "Veri7vn_Climate", "binary": "var/climate/bin/climate", "specialists": ["carboncapture", "airquality", "climate", "carbonmat", "coldchain", "coldchain-v2"], "specialist_flag": true, "build": "src/extract/climate/build.sh"},
-  {"family": "computing", "session": "Veri7vn_Computing", "binary": "var/computing/bin/computing", "specialists": ["networking", "embedded", "cyber", "linux-v2", "git", "sql", "python", "python-r2", "robotics-v2"], "specialist_flag": true, "build": "src/extract/computing/build.sh"},
-  {"family": "discrete", "session": "Veri7vn_Discrete", "binary": "var/discrete/bin/discrete", "specialists": ["games-v3", "logic-v3", "dataformats", "algorithms", "calculus"], "specialist_flag": true, "build": "src/extract/discrete/build.sh"},
-  {"family": "emoptics", "session": "Veri7vn_Emoptics", "binary": "var/emoptics/bin/emoptics", "specialists": ["electrical", "electronics", "electronics-r2", "wiring", "optics", "optics-v2", "optics-v3", "optics-v5", "optics-v5-r2"], "specialist_flag": true, "build": "src/extract/emoptics/build.sh"},
-  {"family": "energy", "session": "Veri7vn_Energy", "binary": "var/energy/bin/energy", "specialists": ["thermo", "energy-v2", "energy-v3", "hvac", "renewables", "iot"], "specialist_flag": true, "build": "src/extract/energy/build.sh"},
-  {"family": "facts", "session": "Veri7vn_Facts", "binary": "var/facts/bin/facts", "specialists": ["literature-v2", "worldhistory", "arthistory", "medicine-r2", "medicine", "law", "psychology", "sociology", "linguistics", "poetry", "botany", "entomology", "marinebio", "ornithology", "mycology", "mycelial", "pets", "childdev", "etiquette", "firesafety-v2", "firstaid", "javascript"], "specialist_flag": true, "build": "src/extract/facts/build.sh"},
-  {"family": "fusion", "session": "Veri7vn_Fusion", "binary": "var/fusion/bin/fusion", "specialists": [], "specialist_flag": false, "build": "src/extract/fusion/build.sh", "kind": "battery", "note": "planner; no specialist panels, measured on lane H and H2 batteries"},
-  {"family": "geostats", "session": "Veri7vn_GeoStats", "binary": "var/geostats/bin/geostats", "specialists": ["geometry", "geometry-v3", "geometry-v4", "statistics", "statistics-v2", "statistics-v3"], "specialist_flag": true, "build": "src/extract/geostats/build.sh"},
-  {"family": "humanities", "session": "Veri7vn_Humanities", "binary": "var/humanities/bin/humanities", "specialists": ["music-v2-r2", "music-v2", "grammar", "mythology", "ushistory", "library", "government"], "specialist_flag": true, "build": "src/extract/humanities/build.sh"},
-  {"family": "life", "session": "Veri7vn_Life", "binary": "var/life/bin/life", "specialists": ["genetics-v2", "biology", "ecology", "forestry", "wildlife", "microbiology-v2"], "specialist_flag": true, "build": "src/extract/life/build.sh"},
-  {"family": "materials", "session": "Veri7vn_Materials", "binary": "var/materials/bin/materials", "specialists": ["additive-v2", "materials-v2", "soil", "soil-r2", "water", "water-r3"], "specialist_flag": true, "build": "src/extract/materials/build.sh"},
-  {"family": "mechanics", "session": "Veri7vn_Mechanics", "binary": "var/mechanics/bin/mechanics", "specialists": ["physics", "physics-r2", "physics-r3", "mechanisms", "mechanisms-v2", "bodies-v2", "sports", "fleet", "fluids-r2"], "specialist_flag": true, "build": "src/extract/mechanics/build.sh"},
-  {"family": "quantity", "session": "Veri7vn_Quantity", "binary": "var/quantity/bin/quantity", "specialists": ["densities", "units", "units-v3", "springs", "fluids", "fuels"], "specialist_flag": true, "build": "src/extract/quantity/build.sh"},
-  {"family": "space", "session": "Veri7vn_Space", "binary": "var/space/bin/space", "specialists": ["orbits", "planetary", "spacecraft", "spacecomms", "astronomy", "astronomy-v2", "astronomy-v3", "astronomy-v3-r2"], "specialist_flag": true, "build": "src/extract/space/build.sh"},
-  {"family": "stores", "session": "Veri7vn_Stores", "binary": "var/stores/bin/stores", "specialists": ["cooking", "cooking-v2", "cooking-v3", "cooking-v3-r2", "warehouse", "warehouse-r2"], "specialist_flag": true, "build": "src/extract/stores/build.sh", "state_flag": true},
-  {"family": "trades", "session": "Veri7vn_Trades", "binary": "var/trades/bin/trades", "specialists": ["architecture", "printing", "printing-v2", "safety", "woodworking", "crafts"], "specialist_flag": true, "build": "src/extract/trades/build.sh"},
-  {"family": "variants", "session": "Veri7vn_Quantity", "binary": "var/variants/bin/variants", "specialists": ["densities-r2", "units-v2", "units-v3-r2"], "specialist_flag": true, "build": "src/extract/variants/build.sh", "note": "no Isabelle session of its own: build.sh exports Veri7vn_Quantity and adds the variant recognizers"}
- ]
+  "comment": "Explicit executable registry. Specialist entries own unique shipped specialist IDs; other roles are stages with their own request protocols. A registry entry does not certify that a binary is current or that its answers are correct.",
+  "families": [
+    {
+      "family": "acoustics",
+      "session": "Veri7vn_Acoustics",
+      "binary": "var/acoustics/bin/acoustics",
+      "specialists": [
+        "acoustics"
+      ],
+      "specialist_flag": false,
+      "build": "src/extract/acoustics/build.sh",
+      "note": "single specialist, binary takes no --specialist argument",
+      "role": "specialist"
+    },
+    {
+      "family": "anatomyagri",
+      "session": "Veri7vn_AnatomyAgri",
+      "binary": "var/anatomyagri/bin/anatomyagri",
+      "specialists": [
+        "anatomy",
+        "anatomy-r2",
+        "agriculture-v2",
+        "gardening",
+        "nutrition-label-v2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/anatomyagri/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "chemistry",
+      "session": "Veri7vn_Chemistry",
+      "binary": "var/chemistry/bin/chemistry",
+      "specialists": [
+        "chemistry",
+        "chemistry-v3",
+        "decay",
+        "labsolutions",
+        "labsolutions-r2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/chemistry/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "climate",
+      "session": "Veri7vn_Climate",
+      "binary": "var/climate/bin/climate",
+      "specialists": [
+        "carboncapture",
+        "airquality",
+        "climate",
+        "carbonmat",
+        "coldchain",
+        "coldchain-v2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/climate/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "computing",
+      "session": "Veri7vn_Computing",
+      "binary": "var/computing/bin/computing",
+      "specialists": [
+        "networking",
+        "embedded",
+        "cyber",
+        "linux-v2",
+        "git",
+        "sql",
+        "python",
+        "python-r2",
+        "robotics-v2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/computing/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "discrete",
+      "session": "Veri7vn_Discrete",
+      "binary": "var/discrete/bin/discrete",
+      "specialists": [
+        "games-v3",
+        "logic-v3",
+        "dataformats",
+        "algorithms",
+        "calculus"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/discrete/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "document",
+      "role": "document",
+      "session": "Veri7vn_Document",
+      "binary": "var/document/bin/document",
+      "specialists": [],
+      "specialist_flag": false,
+      "build": "tools/document/build.sh"
+    },
+    {
+      "family": "earth",
+      "role": "specialist",
+      "session": "Veri7vn_Earth",
+      "binary": "var/earth/bin/earth",
+      "specialists": [
+        "geography",
+        "geology",
+        "seismology",
+        "hydrology",
+        "ocean",
+        "meteorology",
+        "greenhouse",
+        "greenhouse-r2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/earth/build.sh"
+    },
+    {
+      "family": "emoptics",
+      "session": "Veri7vn_Emoptics",
+      "binary": "var/emoptics/bin/emoptics",
+      "specialists": [
+        "electrical",
+        "electronics",
+        "electronics-r2",
+        "wiring",
+        "optics",
+        "optics-v2",
+        "optics-v3",
+        "optics-v5",
+        "optics-v5-r2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/emoptics/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "energy",
+      "session": "Veri7vn_Energy",
+      "binary": "var/energy/bin/energy",
+      "specialists": [
+        "thermo",
+        "energy-v2",
+        "energy-v3",
+        "hvac",
+        "renewables",
+        "iot"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/energy/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "facts",
+      "session": "Veri7vn_Facts",
+      "binary": "var/facts/bin/facts",
+      "specialists": [
+        "literature-v2",
+        "worldhistory",
+        "arthistory",
+        "medicine-r2",
+        "medicine",
+        "law",
+        "psychology",
+        "sociology",
+        "linguistics",
+        "poetry",
+        "botany",
+        "entomology",
+        "marinebio",
+        "ornithology",
+        "mycology",
+        "mycelial",
+        "pets",
+        "childdev",
+        "etiquette",
+        "firesafety-v2",
+        "firstaid",
+        "javascript"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/facts/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "finance",
+      "role": "specialist",
+      "session": "Veri7vn_Finance",
+      "binary": "var/finance/bin/finance",
+      "specialists": [
+        "finance",
+        "finance-v2",
+        "finance-v2-r2",
+        "economics",
+        "retail"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/finance/build.sh"
+    },
+    {
+      "family": "fusion",
+      "session": "Veri7vn_Fusion",
+      "binary": "var/fusion/bin/fusion",
+      "specialists": [],
+      "specialist_flag": false,
+      "build": "src/extract/fusion/build.sh",
+      "kind": "battery",
+      "note": "planner; no specialist panels, measured on lane H and H2 batteries",
+      "role": "network"
+    },
+    {
+      "family": "geostats",
+      "session": "Veri7vn_GeoStats",
+      "binary": "var/geostats/bin/geostats",
+      "specialists": [
+        "geometry",
+        "geometry-v3",
+        "geometry-v4",
+        "statistics",
+        "statistics-v2",
+        "statistics-v3"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/geostats/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "guards",
+      "role": "guard",
+      "session": "Veri7vn_Guards",
+      "binary": "var/guards/bin/guards",
+      "specialists": [],
+      "specialist_flag": false,
+      "build": "src/extract/guards/build.sh"
+    },
+    {
+      "family": "humanities",
+      "session": "Veri7vn_Humanities",
+      "binary": "var/humanities/bin/humanities",
+      "specialists": [
+        "music-v2-r2",
+        "music-v2",
+        "grammar",
+        "mythology",
+        "ushistory",
+        "library",
+        "government"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/humanities/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "life",
+      "session": "Veri7vn_Life",
+      "binary": "var/life/bin/life",
+      "specialists": [
+        "genetics-v2",
+        "biology",
+        "ecology",
+        "forestry",
+        "wildlife",
+        "microbiology-v2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/life/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "materials",
+      "session": "Veri7vn_Materials",
+      "binary": "var/materials/bin/materials",
+      "specialists": [
+        "additive-v2",
+        "materials-v2",
+        "soil",
+        "soil-r2",
+        "water",
+        "water-r3"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/materials/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "mechanics",
+      "session": "Veri7vn_Mechanics",
+      "binary": "var/mechanics/bin/mechanics",
+      "specialists": [
+        "physics",
+        "physics-r2",
+        "physics-r3",
+        "mechanisms",
+        "mechanisms-v2",
+        "bodies-v2",
+        "sports",
+        "fleet",
+        "fluids-r2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/mechanics/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "quantity",
+      "session": "Veri7vn_Quantity",
+      "binary": "var/quantity/bin/quantity",
+      "specialists": [
+        "densities",
+        "units",
+        "units-v3",
+        "springs",
+        "fluids",
+        "fuels"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/quantity/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "relations",
+      "role": "relation",
+      "session": "Veri7vn_Relations",
+      "binary": "var/relations/bin/decide",
+      "specialists": [],
+      "specialist_flag": false,
+      "build": "src/extract/relations/build.sh"
+    },
+    {
+      "family": "space",
+      "session": "Veri7vn_Space",
+      "binary": "var/space/bin/space",
+      "specialists": [
+        "orbits",
+        "planetary",
+        "spacecraft",
+        "spacecomms",
+        "astronomy",
+        "astronomy-v2",
+        "astronomy-v3",
+        "astronomy-v3-r2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/space/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "stores",
+      "session": "Veri7vn_Stores",
+      "binary": "var/stores/bin/stores",
+      "specialists": [
+        "cooking",
+        "cooking-v2",
+        "cooking-v3",
+        "cooking-v3-r2",
+        "warehouse",
+        "warehouse-r2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/stores/build.sh",
+      "state_flag": true,
+      "role": "specialist",
+      "preview_flag": true
+    },
+    {
+      "family": "trades",
+      "session": "Veri7vn_Trades",
+      "binary": "var/trades/bin/trades",
+      "specialists": [
+        "architecture",
+        "printing",
+        "printing-v2",
+        "safety",
+        "woodworking",
+        "crafts"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/trades/build.sh",
+      "role": "specialist"
+    },
+    {
+      "family": "variants",
+      "session": "Veri7vn_Quantity",
+      "binary": "var/variants/bin/variants",
+      "specialists": [
+        "densities-r2",
+        "units-v2",
+        "units-v3-r2"
+      ],
+      "specialist_flag": true,
+      "build": "src/extract/variants/build.sh",
+      "note": "no Isabelle session of its own: build.sh exports Veri7vn_Quantity and adds the variant recognizers",
+      "role": "specialist"
+    },
+    {
+      "family": "wordprob",
+      "role": "word_problem",
+      "session": "Veri7vn_Wordprob",
+      "binary": "var/wordprob/bin/wordprob",
+      "specialists": [],
+      "specialist_flag": false,
+      "build": "src/extract/wordprob/build.sh"
+    }
+  ],
+  "schema_version": 1
 }

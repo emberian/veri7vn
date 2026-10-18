@@ -21,6 +21,7 @@ import json
 import os
 import queue
 import re
+import signal
 import subprocess
 import sys
 import threading
@@ -470,6 +471,8 @@ class Fusion:
         self._start()
 
     def _start(self):
+        if getattr(self, "proc", None) is not None:
+            self.close(terminate=True)
         self.proc = subprocess.Popen([str(self.binary)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
         self.q = queue.Queue()
         p, q = self.proc, self.q
@@ -478,7 +481,8 @@ class Fusion:
             for line in p.stdout:
                 q.put(line)
             q.put(None)
-        threading.Thread(target=pump, daemon=True).start()
+        self.reader = threading.Thread(target=pump, daemon=True)
+        self.reader.start()
 
     def _rss_kib(self):
         try:
@@ -513,9 +517,25 @@ class Fusion:
                 return {"outcome": "error", "error": "planner exited"}
             return json.loads(line)
 
-    def close(self):
-        self.proc.stdin.close()
-        self.proc.wait()
+    def close(self, terminate=False):
+        """Reap only our own kernel, including one that ignores EOF or SIGTERM."""
+        proc = getattr(self, "proc", None)
+        if proc is None:
+            return
+        if terminate and proc.poll() is None:
+            proc.terminate()
+        try:
+            proc.stdin.close()
+        except (OSError, ValueError):
+            pass
+        try:
+            proc.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=1)
+        self.reader.join(timeout=1)
+        proc.stdout.close()
+        self.proc = None
 
     def reply(self, q):
         text = normalise(q)
@@ -566,18 +586,30 @@ def main():
     ap.add_argument("--binary", default=str(BINARY))
     ap.add_argument("--agree", choices=["pairwise", "anchor"], default="pairwise")
     a = ap.parse_args()
-    fz = Fusion(a.binary, a.agree)
-    for line in sys.stdin:
-        if not line.strip():
-            continue
-        req = json.loads(line)
-        try:
-            out = fz.reply(str(req.get("q", "")))
-        except Exception as e:  # noqa: BLE001 - recorded, scored as withheld
-            out = {"error": "%s: %s" % (type(e).__name__, e), "response": "", "path": ""}
-        out["id"] = req.get("id")
-        sys.stdout.write(json.dumps(out, ensure_ascii=False) + "\n")
-        sys.stdout.flush()
+    fz, stopping = None, False
+
+    def stop(signum, frame):
+        nonlocal stopping
+        stopping = True
+        raise SystemExit(128 + signum)
+
+    signal.signal(signal.SIGTERM, stop)
+    try:
+        fz = Fusion(a.binary, a.agree)
+        for line in sys.stdin:
+            if not line.strip():
+                continue
+            req = json.loads(line)
+            try:
+                out = fz.reply(str(req.get("q", "")))
+            except Exception as e:  # noqa: BLE001 - recorded, scored as withheld
+                out = {"error": "%s: %s" % (type(e).__name__, e), "response": "", "path": ""}
+            out["id"] = req.get("id")
+            sys.stdout.write(json.dumps(out, ensure_ascii=False) + "\n")
+            sys.stdout.flush()
+    finally:
+        if fz is not None:
+            fz.close(terminate=stopping)
 
 
 if __name__ == "__main__":
