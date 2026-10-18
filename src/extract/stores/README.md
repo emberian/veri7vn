@@ -17,7 +17,7 @@ non-relation specialists that read a database and, for the warehouse, remember a
 | The decision over fetched rows: which nutrient row, whether the readings in play disagree, which household portion, grams, the value and its rounding; stock, run-out, freshness, the low list, the session state machine (propose, confirm, cancel); the reply text | `Stores.thy` | HOL, proved; exported to SML |
 | Export, self test, oracle check | `Stores_Export.thy` | the build fails if a listed theorem uses an oracle or the self test fails |
 | Tables: nutrient keys and units, gram factors, cup/tbsp/tsp names, sensor kinds, unit suffixes | `Stores.thy` | HOL constants; `tables_check.py` compares them with the organs and the store |
-| Reading the question: the organs' patterns, the USDA food match (every question word present, then the organ's penalties), pronouns, follow-ups and ellipsis against the session | `recognizer.sml`, `regex.sml` | **untrusted**, hand-ported; every pattern is checked verbatim against the organ by `tables_check.py` |
+| Reading the question: the organs' patterns, the USDA food match (every question word present, then the organ's penalties), pronouns, follow-ups and ellipsis against the session | `recognizer.sml`, `../commons/commons.sml` | **untrusted**, hand-ported; every pattern is checked verbatim against the organ by `tables_check.py` |
 | Store access and the session file | `fetch.py` | **untrusted**; opens the stores read-only, says `complete` only for queries without a limit |
 | JSON, the child process, timestamps | `json.sml`, `main.sml` | **untrusted** |
 | Isabelle code generator, MLton, Python's sqlite3 | toolchain | trusted |

@@ -6,7 +6,8 @@
 # sessions. It
 #   1. reads the generated SML out of the session database (isabelle export -n,
 #      no build) while holding the shared native build lock,
-#   2. compiles generated kernel + untrusted JSON, regex, recognizer and driver
+#   2. compiles generated kernel + commons.sml (Regex) + untrusted JSON, recognizer and driver
+#      (commons.sml comes before json.sml: its Json is shadowed by the stores one on purpose)
 #      with the MLton that ships inside Isabelle,
 #   3. writes var/stores/bin/stores and prints its size.
 # (Lane G's src/extract/quantity/build.sh, with this family's files.)
@@ -39,8 +40,8 @@ cat > "$OUT/build/stores.mlb" <<MLB
 \$(SML_LIB)/basis/basis.mlb
 stores_generated.sml
 config.sml
+$SRC/../commons/commons.sml
 $SRC/json.sml
-$SRC/regex.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 MLB
