@@ -12,6 +12,8 @@ session Veri7vn_Mechanics_Base in base = HOL +
 
 session Veri7vn_Mechanics = Veri7vn_Mechanics_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     Mech_Num
     Mechanics

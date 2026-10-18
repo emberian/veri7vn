@@ -25,7 +25,7 @@ miles per gallon, a depth in water) and applies a short formula. Versions of one
 | Export, self test, oracle check | `Mechanics_Export.thy` | HOL; the build fails if any listed theorem uses an oracle or the self test fails |
 | Square roots, pi, sine (free-fall times and speeds, pendulum, range, shaft power, angled torque) | Isabelle's `HOL-Decision_Procs.Approximation` | Isabelle library, proved there |
 | Table transcription check | `tables_check.py` | a Python check of the HOL text against the organ files; not a proof |
-| Reading numbers and words out of English | `regex.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions |
+| Reading numbers and words out of English | `../commons/commons.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions |
 | JSON framing | `main.sml` | **untrusted** |
 | Isabelle code generator, MLton | toolchain | trusted |
 
