@@ -61,7 +61,8 @@ def run_panel(binary, argv, sid, panel, scorer, organ, tol):
     proc = subprocess.Popen([binary, *argv], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
     out = {"splits": {}, "organ_disagreements": [], "rtt_ms": [], "specialist_ms": []}
     for split in ("dev", "heldout"):
-        t = {"n": 0, "right": 0, "wrong": 0, "withheld_valid": 0, "false_yes": 0, "fails": []}
+        t = {"n": 0, "right": 0, "wrong": 0, "withheld_valid": 0, "false_yes": 0, "fails": [],
+             "organ": {"right": 0, "wrong": 0, "withheld_valid": 0, "false_yes": 0}}
         for i, it in enumerate(x for x in panel if x["split"] == split):
             rid = "%s:%s:%d" % (sid, split, i)
             rep, ms = ask(proc, rid, it["q"])
@@ -82,6 +83,17 @@ def run_panel(binary, argv, sid, panel, scorer, organ, tol):
                 t["fails"].append({"kind": it["kind"], "q": it["q"], "expect": it["expect"],
                                    "status": rep.get("status"), "response": rep.get("response"), "path": rep.get("path")})
             o = organ.answer(it["q"]) or {"kind": None, "status": "withheld", "value": None}
+            ogood, oasserted = scorer.ok(it, o)
+            ot = t["organ"]
+            if not it["valid"]:
+                ot["right"] += ogood
+                ot["false_yes"] += oasserted
+            elif ogood:
+                ot["right"] += 1
+            elif oasserted:
+                ot["wrong"] += 1
+            else:
+                ot["withheld_valid"] += 1
             taken = bool((rep.get("provenance") or {}).get("taken"))
             same_status = (o["status"] == "answered") == (rep.get("status") == "answered")
             same_kind = o["kind"] == rep.get("kind") or (o["kind"] is None and not taken)
@@ -110,6 +122,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--binary", default=str(REPO / "var/chemistry/bin/chemistry"))
     ap.add_argument("--out", default=str(REPO / "var/chemistry/score.json"))
+    ap.add_argument("--panel-dir", help="directory holding <panel file name> per specialist (fresh_panels.py output) instead of the shipped panels")
+    ap.add_argument("--specialist-mode-only", action="store_true", help="skip the family-order pass")
     args = ap.parse_args()
     report = {"binary": args.binary, "size_bytes": Path(args.binary).stat().st_size, "specialists": {}}
     colds = []
@@ -125,12 +139,14 @@ def main():
     for sid, mod, cls, cargs, panel_file, scorer_mod, tol in SPECIALISTS:
         organ = getattr(load(sid, mod), cls)(*cargs)
         scorer = load(sid, scorer_mod)
-        panel = json.loads((SPEC / sid / panel_file).read_text())
+        panel = json.loads(((Path(args.panel_dir) if args.panel_dir else SPEC / sid) / panel_file).read_text())
         budget = json.loads((SPEC / sid / "manifest.json").read_text())["budgets"]["latency_p50_ms"]
         vf = SPEC / sid / "verdict_heldout.json"
         shipped = json.loads((vf if vf.exists() else SPEC / "labsolutions" / "verdict_heldout.json").read_text())["domain"]["spec"]
         entry = {"budget_p50_ms": budget, "shipped_heldout": {k: shipped.get(k) for k in ("correct", "false_yes", "wrong", "n")}}
         for mode, argv in (("specialist", ["--specialist", sid]), ("family", [])):
+            if mode == "family" and args.specialist_mode_only:
+                continue
             r = run_panel(args.binary, argv, sid, panel, scorer, organ, tol)
             r["p50_rtt_ms"] = statistics.median(r.pop("rtt_ms"))
             sm = r.pop("specialist_ms")
@@ -142,11 +158,14 @@ def main():
     print("binary %s, %d bytes; cold start ms (5 runs): %s" % (args.binary, report["size_bytes"], ", ".join("%.1f" % c for c in colds)))
     for sid, e in report["specialists"].items():
         for mode in ("specialist", "family"):
+            if mode not in e:
+                continue
             r = e[mode]
             for split, t in r["splits"].items():
                 print("%-9s %-10s %-7s n=%3d right=%3d wrong=%d withheld_valid=%d false_yes=%d   p50 %.2f ms (in-binary %.2f, budget %d)"
                       % (sid, mode, split, t["n"], t["right"], t["wrong"], t["withheld_valid"], t["false_yes"],
                          r["p50_rtt_ms"], r["p50_specialist_ms"], e["budget_p50_ms"]))
+                print("    organ alone: right=%d wrong=%d withheld_valid=%d false_yes=%d" % tuple(t["organ"][k] for k in ("right", "wrong", "withheld_valid", "false_yes")))
                 for f in t["fails"]:
                     print("    FAIL", f["kind"], "|", f["q"], "| expect", f["expect"], "| got", f["status"], f["response"])
             print("    organ disagreements (%s): %d" % (mode, len(r["organ_disagreements"])))
