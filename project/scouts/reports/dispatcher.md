@@ -37,7 +37,7 @@ sh tools/dispatch/build_arb.sh
 python3 tools/dispatch/dispatch.py --selftest
 PARITY_UPSTREAM=/Users/ember/dev/o7vn/upstream python3 tools/dispatch/measure_core.py -- --order head
 PARITY_UPSTREAM=/Users/ember/dev/o7vn/upstream python3 tools/parity/harness.py \
-  --answerer "python3 tools/dispatch/dispatch.py --order front" \
+  --answerer "python3 tools/dispatch/dispatch.py --order front --specialist {id}" \
   --specialist springs,units-v3,densities-r2,physics-r2,chemistry-v3,cooking-v3,optics-v5,astronomy-v3,calculus,soil-r2 \
   --split heldout --out var/dispatch/panels
 ```
@@ -108,20 +108,25 @@ right default for the core; front order is for specialist exams.
 | chemistry-v3 | 223/0/2 | 223/0/2 | same |
 | cooking-v3 | 224/0/2 | 224/0/2 | same |
 | optics-v5 | 51/0/0 | 51/0/0 | same |
-| astronomy-v3 | 137/0/0 (recorded) | 110/0/4 | see below |
+| astronomy-v3 | 137/0/0 (recorded) | 110/0/4 without `--specialist`; 136/0/1 with it | see below |
 | calculus | 62/0/0 | 62/0/0 | same |
 | soil-r2 | 36/0/0 | 36/0/0 | same |
 
 (ok / false-yes / wrong, held-out.) **9 of 10 reproduce the lane numbers
-exactly.** astronomy-v3 does not, and the control run pins it: the space
-binary ALONE today scores 111/3 on that panel (its recorded lane verdict says
-137/0 — the binary in `var/space/bin/` has drifted past its parity receipt;
-re-run lane S02 or its successor). The dispatcher's extra 1 wrong vs the
-binary alone is a real arbitration event: "The density of Mercury" — chemistry-v3
-(element, 13.5 g/cm³) vs astronomy (planet, 5429 kg/m³); Oracle7's head
-withholds exactly this word-sense case (a G7 guard); our tie breaks on organ
-pick order, which is alphabetical here. Oracle7's own family order would put
-astronomy's ask first. One item, named, fixable with a canonical order.
+exactly.** astronomy-v3 first came out 110/0/4 and a control run of the space
+binary alone gave 111/0/3. **RETRACTED (lane W5-09): the earlier text said the
+space binary "has drifted past its parity receipt". It has not.** Started with
+`--specialist astronomy-v3` the binary scores 137/0/0 on that panel, as lane
+S02 recorded. Neither my control run nor the dispatcher passed that flag, so the
+binary answered with astronomy-v3-r2's rules (the family's fixed order). The
+cause was this dispatcher's, now fixed: `--specialist` is passed through (see
+`tools/dispatch/README.md`). With it the dispatcher scores astronomy-v3 136/0/1:
+one item is left, "According to NASA, what is the density of Mercury?",
+where the verified arbitration picks chemistry-v3 (element, 13.5 g/cm3) over
+astronomy (planet, 5429 kg/m3); Oracle7's head withholds this word-sense
+case (a G7 guard) and the binary alone answers it right. Putting the pinned
+family first in the candidate order did not change the pick, so it is not an
+order effect; it stays open.
 
 **Arbitration activity** (three-panel instrumented pass): 212 turns reached
 the rule, 113 had ≥2 candidates (mostly quantity-vs-variants duplicates with
@@ -180,16 +185,14 @@ byte-identical replies; the Mercury case is the one visible flip).
 ## 4. Dependencies for excellence
 
 - **A canonical organ order** (Oracle7's standing/new family lists) as data
-  the dispatcher reads — fixes the Mercury flip. Owner: root, one afternoon,
+  the dispatcher reads. W5-09 found that moving the pinned family first does not fix the Mercury flip, so a canonical order is not shown to fix it (untested). Owner: root, one afternoon,
   from `standing_net_v1.txt` / `standing_new_v1.txt` + w504's family list.
 - **v2-mode for the fusion answerer** (restrict the node catalogue) — recovers
   18 specialist paths and the network/network3 split. Owner: the fusion lane.
 - **The precision guards as a decision**: port G1/G7-style guards as verified
   narrows over specialist replies, or accept the 60 answers and say so.
   Owner: root (a policy call), then a lane (S/M).
-- **The space binary's drift**: its panel numbers no longer match its receipt;
-  the scoreboard should re-run family binaries against their recorded verdicts
-  (a `--rescore` control exists in the harness). Owner: root.
+- ~~The space binary's drift~~: retracted, see section 2; there was none.
 - **Accept-rule data in the distribution**: the dispatcher reads manifests
   from `upstream/` for kinds/declines/context_regex; a standalone build should
   carry those (small JSON) so it stops depending on the drop.
@@ -256,5 +259,4 @@ untrusted glue and one big SQLite file.
   `var/dispatch/panels2/` (3 panels, arbitration instrumentation),
   `var/dispatch/control-space-binary/` (astronomy-v3 control),
   `var/dispatch/fusion_precheck.jsonl` (fusion over all 924).
-- The space-binary drift (astronomy-v3 111/3 vs recorded 137/0) is in the
-  main checkout's binary, not this branch's code; control run included above.
+- The astronomy-v3 111/3 control was run without `--specialist`; `var/dispatch/control-space-binary/` records that run, not a drifted binary (retracted).

@@ -38,7 +38,20 @@ dependence count re-asks the winning-candidate binaries with each given nudged
 (+7%), as combo_runtime_v1._dependence does.
 
   dispatch.py [--var-root DIR] [--order head|front] [--organs a,b,c] [--no-reader]
-              [--arb PATH] [--timeout S] [--selftest]
+              [--specialist ID[,ID]] [--arb PATH] [--timeout S] [--selftest]
+
+--specialist ID says whose rules apply (a specialist's own exam): every family
+binary that accepts `--specialist ID` is started with it, so it asks only that
+manifest's organ; the other families run in family mode. Without it every
+binary runs in family mode and a stem with several versions (astronomy-v3 and
+astronomy-v3-r2) answers by the family's fixed order, so a panel for a
+non-default version must name it. A family whose binary has no such flag
+(acoustics) runs in family mode with a note on stderr; an ID that is no
+shipped specialist at all is an error.
+
+The dispatcher refuses to start (message on stderr naming the stage, exit 2)
+when any stage's program is missing: a family binary, the fusion binary or its
+answerer.py, the reader's answerer.py (unless --no-reader), or arb_check.
 
 --var-root (default $VERI7VN_VAR, else /Users/ember/dev/o7vn/var): where the
 family binaries live, as <var-root>/<slug>/bin/<slug>.
@@ -291,12 +304,75 @@ DISAGREE_FMT = ("Two of the specialists read this differently, so I won't pick o
                 "%s says: %s %s says: %s")
 
 
+# ---------------------------------------------------------------- start-up checks
+def stage_programs(args, var, slugs):
+    """[(stage, path)] for every program a turn can need"""
+    progs = [("specialists:%s" % s, var / s / "bin" / s) for s in slugs]
+    progs += [("network (fusion binary)", var / "fusion" / "bin" / "fusion"),
+              ("network (fusion answerer)", REPO / "tools" / "fusion" / "answerer.py"),
+              ("arbitration (arb_check)", Path(args.arb))]
+    if not args.no_reader:
+        progs.append(("reader", MAIN_REPO / "tools" / "reader" / "answerer.py"))
+    return progs
+
+
+def preflight(args, var):
+    """refuse to start when a stage's program is missing (a copy without tools/fusion/ once
+    lost the whole network stage silently, 58 answers, with the error only in a log)"""
+    if args.organs:
+        slugs = [s for s in args.organs.split(",") if s]
+    else:
+        slugs = sorted(p.name for p in var.iterdir() if p.is_dir() and p.name not in Dispatcher.EXCLUDE_SLUGS
+                       and (p / "bin" / p.name).is_file() and os.access(p / "bin" / p.name, os.X_OK))
+    missing = [(st, p) for st, p in stage_programs(args, var, slugs) if not p.is_file()]
+    if not slugs:
+        missing.append(("specialists (no family binary under %s)" % var, var / "<slug>" / "bin" / "<slug>"))
+    for st, p in missing:
+        sys.stderr.write("dispatch: stage %s is missing its program: %s\n" % (st, p))
+    if missing:
+        sys.exit(2)
+
+
+def _probe(binp, sid):
+    try:
+        r = subprocess.run([str(binp), "--specialist", sid], input='{"id": "probe", "q": "", "session": "p"}\n',
+                           capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return r.returncode == 0 and '"probe"' in r.stdout
+
+
+def accepts_specialist(binp, sid):
+    """True when the family binary honours `--specialist sid`: it starts and answers a probe line
+    for sid, and exits non-zero for an id that does not exist (a binary that ignores its
+    arguments, as acoustics does, would accept anything and is not pinned)"""
+    return _probe(binp, sid) and not _probe(binp, "no-such-specialist")
+
+
+def pin_specialists(var, slugs, spec):
+    """{slug: id} for the families that accept --specialist id; exits 2 if some id has no family"""
+    pins = {}
+    for sid in [x for x in (spec or "").split(",") if x]:
+        owners = [s for s in slugs if s not in pins and accepts_specialist(var / s / "bin" / s, sid)]
+        if not owners:
+            if (UPSTREAM / "root" / "specialists" / sid / "manifest.json").is_file():
+                sys.stderr.write("dispatch: note: no family binary takes --specialist %s; "
+                                 "its family runs in family mode\n" % sid)
+                continue
+            sys.stderr.write("dispatch: no specialist %s (no manifest, no family binary accepts it)\n" % sid)
+            sys.exit(2)
+        for s in owners:
+            pins[s] = sid
+    return pins
+
+
 class Dispatcher:
     EXCLUDE_SLUGS = {"fusion"}                 # the network stage, not an organ
 
     def __init__(self, args):
         self.order = args.order
         var = Path(args.var_root)
+        preflight(args, var)
         log_dir = REPO / "var" / "dispatch" / "logs"
         log_dir.mkdir(parents=True, exist_ok=True)
         if args.organs:
@@ -307,11 +383,11 @@ class Dispatcher:
                            and os.access(p / "bin" / p.name, os.X_OK)
                            and p.name not in self.EXCLUDE_SLUGS)
         self.organs = []                       # (Child, slug) for the family binaries
+        pins = pin_specialists(var, slugs, args.specialist)
         for slug in slugs:
             binp = var / slug / "bin" / slug
-            if not binp.exists():
-                sys.exit("dispatch: no binary %s" % binp)
-            self.organs.append((Child(slug, [str(binp)], args.timeout, log_dir), slug))
+            argv = [str(binp)] + (["--specialist", pins[slug]] if slug in pins else [])
+            self.organs.append((Child(slug, argv, args.timeout, log_dir), slug))
         self.fusion = Child("fusion",
                             [sys.executable, str(REPO / "tools" / "fusion" / "answerer.py"),
                              "--binary", str(var / "fusion" / "bin" / "fusion")],
@@ -549,6 +625,8 @@ def main():
     ap.add_argument("--order", choices=["head", "front"], default="head")
     ap.add_argument("--organs", help="comma-separated slugs (default: every var/<slug>/bin/<slug> found)")
     ap.add_argument("--no-reader", action="store_true")
+    ap.add_argument("--specialist", default="",
+                    help="whose rules apply: pass --specialist ID to every family binary that accepts it")
     ap.add_argument("--arb", default=str(REPO / "var" / "dispatch" / "bin" / "arb_check"))
     ap.add_argument("--timeout", type=float, default=10.0, help="seconds per organ reply")
     ap.add_argument("--selftest", action="store_true")

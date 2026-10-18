@@ -33,7 +33,7 @@ PARITY_UPSTREAM=../../upstream python3 tools/dispatch/measure_core.py -- --order
 
 # ten whole-family panels, no regression (front composition):
 PARITY_UPSTREAM=../../upstream python3 tools/parity/harness.py \
-  --answerer "python3 tools/dispatch/dispatch.py --order front" \
+  --answerer "python3 tools/dispatch/dispatch.py --order front --specialist {id}" \
   --specialist springs,units-v3,densities-r2,physics-r2,chemistry-v3,cooking-v3,optics-v5,astronomy-v3,calculus,soil-r2 \
   --split heldout --out var/dispatch/panels
 ```
@@ -42,6 +42,22 @@ Binaries are looked up under `--var-root` (default `/Users/ember/dev/o7vn/var`)
 as `<slug>/bin/<slug>`. The reader stage runs the main checkout's
 `tools/reader/answerer.py` (it imports upstream's wander-train modules); `--no-reader`
 drops it. Everything is read-only against `upstream/`.
+
+## Whose rules apply, and refusing to start
+
+A family binary holds several versions of a stem (astronomy-v3 and
+astronomy-v3-r2) and, without `--specialist ID`, answers with the family's
+fixed order. `dispatch.py --specialist ID` starts every family binary that
+honours the flag (probed: it must answer for ID and exit non-zero for a bogus
+id) with `--specialist ID`; other families stay in family mode. A family
+without the flag (acoustics) runs in family mode with a note; an ID that is no
+shipped specialist is an error (exit 2). The core panel uses no flag.
+
+At start-up it checks every stage's program (each family binary, the fusion
+binary and its `answerer.py`, the reader's `answerer.py` unless `--no-reader`,
+`arb_check`). Any missing one prints `dispatch: stage <stage> is missing its
+program: <path>` on stderr and exits 2. Before this, a copy without
+`tools/fusion/` lost 58 network answers with the error only in a log.
 
 ## What is trusted where
 
