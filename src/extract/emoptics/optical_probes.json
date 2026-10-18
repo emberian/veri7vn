@@ -1,0 +1,344 @@
+[
+  {
+    "q": "Light of frequency 200 THz travels in a medium with refractive index 1.5. What is its wavelength?",
+    "expect": 9.993081933333334e-07,
+    "valid": true,
+    "kind": "wavelength",
+    "derivation": "n f lambda = c",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light of frequency 200 THz travels in vacuum. What is its wavelength?",
+    "expect": 1.49896229e-06,
+    "valid": true,
+    "kind": "wavelength",
+    "derivation": "f lambda = c",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light has wavelength 600 nm in a medium with refractive index 1.5. What is its frequency?",
+    "expect": 333102731111111.1,
+    "valid": true,
+    "kind": "frequency",
+    "derivation": "n f lambda = c",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "A photon has wavelength 600 nm in a medium with refractive index 1.5. What is its energy?",
+    "expect": 1.3776022048133363,
+    "valid": true,
+    "kind": "photon_energy",
+    "derivation": "E = h f; n f lambda = c; reported eV",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/6-2-photoelectric-effect"
+  },
+  {
+    "q": "A photon of frequency 200 THz is in a medium with refractive index 1.5. What is its energy?",
+    "expect": 0.8271335393847717,
+    "valid": true,
+    "kind": "photon_energy",
+    "derivation": "E = h f; frequency energy does not depend on medium",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/6-2-photoelectric-effect"
+  },
+  {
+    "q": "Light has a vacuum wavelength of 600 nm. What is its wavelength in a medium of index 1.5?",
+    "expect": 4e-07,
+    "valid": true,
+    "kind": "wavelength",
+    "derivation": "n_source lambda_source = n_target lambda_target",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light has wavelength 400 nm in a medium of index 1.5. What is its vacuum wavelength?",
+    "expect": 6e-07,
+    "valid": true,
+    "kind": "wavelength",
+    "derivation": "n_source lambda_source = n_target lambda_target",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light has wavelength 600 nm in water. What is its frequency?",
+    "expect": 374834281070267.56,
+    "valid": true,
+    "kind": "frequency",
+    "derivation": "n=1.333 fixed phase-index model; n f lambda = c",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light of frequency 200 THz travels through glass of refractive index 1.5. What is its wavelength?",
+    "expect": 9.993081933333334e-07,
+    "valid": true,
+    "kind": "wavelength",
+    "derivation": "explicit phase index supplies medium model",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "A photon in glass has frequency 200 THz. What is its energy?",
+    "expect": 0.8271335393847717,
+    "valid": true,
+    "kind": "photon_energy",
+    "derivation": "E = h f independent of unknown glass index",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/6-2-photoelectric-effect"
+  },
+  {
+    "q": "Light has wavelength 600 nm in glass. What is its frequency?",
+    "expect": null,
+    "valid": false,
+    "kind": "frequency",
+    "derivation": "unspecified glass phase index leaves frequency underdetermined",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light has wavelength 600 nm in a medium with index 1.5 and another medium of index 2. What is its frequency?",
+    "expect": null,
+    "valid": false,
+    "kind": "frequency",
+    "derivation": "source wavelength medium is ambiguous",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light of frequency 0 THz travels in a medium with refractive index 1.5. What is its wavelength?",
+    "expect": null,
+    "valid": false,
+    "kind": "wavelength",
+    "derivation": "zero frequency does not define finite positive wavelength",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light of wavelength 0 nm is in a medium with refractive index 1.5. What is its frequency?",
+    "expect": null,
+    "valid": false,
+    "kind": "frequency",
+    "derivation": "zero wavelength does not define finite positive frequency",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light of frequency 200 THz travels in a medium with refractive index 0. What is its wavelength?",
+    "expect": null,
+    "valid": false,
+    "kind": "wavelength",
+    "derivation": "n=0 is singular in this phase-speed relation",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light of frequency 200 THz travels in a medium with refractive index 0.8. What is its wavelength?",
+    "expect": 1.8737028625e-06,
+    "valid": true,
+    "kind": "wavelength",
+    "derivation": "positive index below one is computable but outside current n>=1 model",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light of frequency 1/3 THz travels in a medium with refractive index 3/2. What is its wavelength?",
+    "expect": 0.000599584916,
+    "valid": true,
+    "kind": "wavelength",
+    "derivation": "exact rational source values; n f lambda = c",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light has wavelength 6e2 nm in a medium with refractive index 3/2. What is its frequency?",
+    "expect": 333102731111111.1,
+    "valid": true,
+    "kind": "frequency",
+    "derivation": "scientific and rational source values; n f lambda = c",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light passes from index 1 to index 1.5 at 30 degrees to the surface. What is the angle of refraction?",
+    "expect": 35.264389682754654,
+    "valid": true,
+    "kind": "refraction_angle",
+    "derivation": "normal incidence angle = 90 - surface angle",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light passes from index 1 to index 1.5 at 60 degrees to the normal. What is the angle of refraction?",
+    "expect": 35.264389682754654,
+    "valid": true,
+    "kind": "refraction_angle",
+    "derivation": "n1 sin(theta1) = n2 sin(theta2)",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light passes from index 1 to index 1.5 at 90 degrees to the surface. What is the angle of refraction?",
+    "expect": 0.0,
+    "valid": true,
+    "kind": "refraction_angle",
+    "derivation": "surface 90 means normal incidence",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light passes from index 1 to index 1.5 at 0 degrees to the surface. What is the angle of refraction?",
+    "expect": 41.810314895778596,
+    "valid": true,
+    "kind": "refraction_angle",
+    "derivation": "grazing incidence: computable limiting Snell angle outside current strict domain",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light passes from index 1 to index 1.5 at -10 degrees to the surface. What is the angle of refraction?",
+    "expect": null,
+    "valid": false,
+    "kind": "refraction_angle",
+    "derivation": "surface angle outside unsigned incident-angle domain",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light passes from index 1.5 to index 1 at 30 degrees to the surface. What happens to the refracted ray?",
+    "expect": "totally internally reflected",
+    "valid": true,
+    "kind": "tir",
+    "derivation": "1.5 sin(60 deg) > 1",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light passes from index 1.5 to index 1.5 at 30 degrees to the surface. What is the angle of refraction?",
+    "expect": 60.0,
+    "valid": true,
+    "kind": "refraction_angle",
+    "derivation": "equal indices preserve normal angle",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light passes from index 1 through index 1.5 into index 2 at 30 degrees. What is the final angle of refraction?",
+    "expect": null,
+    "valid": false,
+    "kind": "refraction_angle",
+    "derivation": "interface orientations absent; final normal angle underdetermined",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light passes through parallel interfaces from index 1 through index 1.5 into index 2 at 30 degrees to the normal. What is the final angle of refraction?",
+    "expect": 14.477512185929925,
+    "valid": true,
+    "kind": "refraction_angle",
+    "derivation": "parallel interfaces preserve n sin(theta) when all stages transmit",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light passes through parallel interfaces from index 1.5 through index 1 into index 2 at 60 degrees to the normal. What happens to the refracted ray?",
+    "expect": "totally internally reflected",
+    "valid": true,
+    "kind": "tir",
+    "derivation": "intermediate index 1 blocks transmission despite possible endpoint angle",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light passes from index 1 to index 1.5 at 0.5235987756 radians to the normal. What is the angle of refraction?",
+    "expect": 19.47122063455038,
+    "valid": true,
+    "kind": "refraction_angle",
+    "derivation": "radian input computable but outside degree-only grammar",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light has wavelength 600 nm in a medium with refractive index 1.5. It is also measured at frequency 500 THz. What is its photon energy?",
+    "expect": null,
+    "valid": false,
+    "kind": "photon_energy",
+    "derivation": "inconsistent redundant wavelength/frequency/index fields",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/6-2-photoelectric-effect",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "Light has wavelength 600 nm in a medium with refractive index 1.5. What is its frequency in Hz?",
+    "expect": 333102731111111.1,
+    "valid": true,
+    "kind": "frequency",
+    "derivation": "output unit cannot be treated as source measurement",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light of frequency 200 THz has refractive index 1.5. What is the wavelength in metres?",
+    "expect": 9.993081933333334e-07,
+    "valid": true,
+    "kind": "wavelength",
+    "derivation": "requested output unit is distinct from frequency input",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "A photon has frequency 200 THz in a medium of index 1.5. What is its energy?",
+    "expect": 0.8271335393847719,
+    "valid": true,
+    "kind": "photon_energy",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/6-2-photoelectric-effect",
+    "derivation": "Photon energy h*f is independent of source index, but an explicitly supplied index is still checked as a model input."
+  },
+  {
+    "q": "A photon has frequency 200 THz in a medium of index 0. What is its energy?",
+    "expect": null,
+    "valid": false,
+    "kind": "photon_energy",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/6-2-photoelectric-effect",
+    "derivation": "Photon energy h*f is independent of source index, but an explicitly supplied index is still checked as a model input."
+  },
+  {
+    "q": "A photon has frequency 200 THz with source index 0 and target index 1.5. What is its energy?",
+    "expect": null,
+    "valid": false,
+    "kind": "photon_energy",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/6-2-photoelectric-effect",
+    "derivation": "Photon energy h*f is independent of source index, but an explicitly supplied index is still checked as a model input."
+  },
+  {
+    "q": "Light has a vacuum wavelength of 600 nm with source index 1.5 and target index 2. What is its wavelength?",
+    "expect": null,
+    "valid": false,
+    "kind": "wavelength",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "Contradictory source descriptions or absent source index do not identify a unique consistent wave."
+  },
+  {
+    "q": "Light has wavelength 600 nm with target index 1.5. What is its frequency?",
+    "expect": null,
+    "valid": false,
+    "kind": "frequency",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "Contradictory source descriptions or absent source index do not identify a unique consistent wave."
+  },
+  {
+    "q": "Light has wavelength 299792458/300000 nm in index 1.5 and frequency 200 THz. What is its photon energy?",
+    "expect": 0.8271335393847719,
+    "valid": true,
+    "kind": "photon_energy",
+    "derivation": "The exact redundant inputs satisfy n*f*wavelength=c.",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light has frequency 1 mHz in vacuum. What is its wavelength?",
+    "expect": 299792458000.0,
+    "valid": true,
+    "kind": "wavelength",
+    "derivation": "mHz is 1/1000 Hz.",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light has frequency 1 MHz in vacuum. What is its wavelength?",
+    "expect": 299.792458,
+    "valid": true,
+    "kind": "wavelength",
+    "derivation": "MHz is 1000000 Hz.",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction"
+  },
+  {
+    "q": "Light passes from index 1 to index 1.5 at 30 degrees to the normal. What is the angle of refraction relative to the surface?",
+    "expect": 70.52877936550931,
+    "valid": true,
+    "kind": "refraction",
+    "assert_status": "withheld",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "Output reference differs from input reference; the current renderer supplies normal angles only."
+  }
+]

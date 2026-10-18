@@ -1,0 +1,155 @@
+[
+  {
+    "q": "What is the equivalent resistance of two 10 ohm resistors connected in parallel?",
+    "expect": 5,
+    "kind": "parallel",
+    "valid": true,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req"
+  },
+  {
+    "q": "What is the equivalent resistance of 3 identical 12 ohm resistors in parallel?",
+    "expect": 4,
+    "kind": "parallel",
+    "valid": true,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req"
+  },
+  {
+    "q": "What is the equivalent resistance of three resistors of 12 ohms each in series?",
+    "expect": 36,
+    "kind": "series",
+    "valid": true,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req"
+  },
+  {
+    "q": "What is the current through two 10 ohm resistors in series across 12 V?",
+    "expect": 0.6,
+    "kind": "current",
+    "valid": true,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req"
+  },
+  {
+    "q": "What is the total power of two 10 ohm resistors in parallel across 12 V?",
+    "expect": 28.8,
+    "kind": "power",
+    "valid": true,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req"
+  },
+  {
+    "q": "What is the equivalent resistance of two 10 ohm and three 20 ohm resistors in series?",
+    "expect": 80,
+    "kind": "series",
+    "valid": true,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req"
+  },
+  {
+    "q": "What is the equivalent resistance of three resistors, 10 ohms, 20 ohms and 30 ohms, in series?",
+    "expect": 60,
+    "kind": "series",
+    "valid": true,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req"
+  },
+  {
+    "q": "What is the equivalent resistance of twenty-one 21 ohm resistors in parallel?",
+    "expect": 1,
+    "kind": "parallel",
+    "valid": true,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req"
+  },
+  {
+    "q": "What is the equivalent resistance of 129 identical 10 ohm resistors in parallel?",
+    "expect": 0.07751937984496124,
+    "kind": "parallel",
+    "valid": true,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "What is the equivalent resistance of several 10 ohm resistors in parallel?",
+    "expect": null,
+    "kind": "parallel",
+    "valid": false,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "What is the equivalent resistance of 2.5 identical 10 ohm resistors in parallel?",
+    "expect": null,
+    "kind": "parallel",
+    "valid": false,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "What is the equivalent resistance of two parallel groups of 10 ohm and 20 ohm resistors?",
+    "expect": null,
+    "kind": "parallel",
+    "valid": false,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "What is the equivalent resistance of two resistors, 10 ohms, 20 ohms and 30 ohms, in series?",
+    "expect": null,
+    "kind": "series",
+    "valid": false,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Series sums all component resistances; parallel sums their reciprocals; source current V/Req and total power V^2/Req",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "What is the equivalent resistance of two 10-ohm resistors in parallel?",
+    "expect": 5,
+    "kind": "parallel",
+    "valid": true
+  },
+  {
+    "q": "What is the equivalent resistance of 10 ohms repeated three times in parallel?",
+    "expect": 3.3333333333333335,
+    "kind": "parallel",
+    "valid": true,
+    "assert_status": "withheld"
+  },
+  {
+    "q": "What is the equivalent resistance of 10 ohms repeated 3 times in parallel?",
+    "expect": 3.3333333333333335,
+    "kind": "parallel",
+    "valid": true,
+    "assert_status": "withheld"
+  },
+  {
+    "q": "What is the equivalent resistance of three resistors: two 10 ohm resistors and one 20 ohm resistor in series?",
+    "expect": 40,
+    "kind": "series",
+    "valid": true,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Complete component count must agree with the expanded list."
+  },
+  {
+    "q": "What is the equivalent resistance of three resistors: two 10 ohm resistors, 20 ohms and 30 ohms in series?",
+    "expect": null,
+    "kind": "series",
+    "valid": false,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Complete component count must agree with the expanded list."
+  },
+  {
+    "q": "What is the equivalent resistance of three resistors: two 10 ohm resistors in series?",
+    "expect": null,
+    "kind": "series",
+    "valid": false,
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Complete component count must agree with the expanded list."
+  }
+]

@@ -297,7 +297,7 @@ struct
 
   (* ExactNumeric issues the only scalar tokens circuit roles may consume.
      This layer is untrusted; typed body fields preserve selected roles. *)
-  val CIRCUIT_Q = "(qnum[0-9]+q)\\s*(p|n|u|m|k)?\\s*(volts?|v|amps?|amperes?|a|ohms?|watts?|w|farads?|f)\\b"
+  val CIRCUIT_Q = "(qnum[0-9]+q)\\s*-?\\s*(p|n|u|m|k)?\\s*(volts?|v|amps?|amperes?|a|ohms?|watts?|w|farads?|f)\\b"
 
   fun circuitsRaw text : E.request option =
     case ExactNumeric.mask (collapse (asciiUnits text)) of NONE => NONE
@@ -320,6 +320,73 @@ struct
         val watts = ofKind E.CQ_W and capacitors = ofKind E.CQ_C
         val vs = values volts and ais = values amps and rs = values resistors
         val ws = values watts and cs = values capacitors
+        (* Bounded source-count recognition. The physical kernel still receives
+           its ordinary explicit resistor list; at most 128 operands are expanded. *)
+        val countWords = [("zero",0),("one",1),("two",2),("three",3),("four",4),("five",5),
+          ("six",6),("seven",7),("eight",8),("nine",9),("ten",10),("eleven",11),("twelve",12),
+          ("thirteen",13),("fourteen",14),("fifteen",15),("sixteen",16),("seventeen",17),
+          ("eighteen",18),("nineteen",19),("twenty",20),("thirty",30),("forty",40),
+          ("fifty",50),("sixty",60),("seventy",70),("eighty",80),("ninety",90)]
+        val countWordRx=String.concatWith "|" (map #1 countWords) ^ "|hundred|thousand|dozen|pair"
+        val countRx="(qnum[0-9]+q|(?:"^countWordRx^")(?:[- ]+(?:and|"^countWordRx^"))*)"
+        fun smallCount [w] = Option.map #2 (List.find(fn(k,_)=>k=w) countWords)
+          | smallCount [a,b] = (case (smallCount[a],smallCount[b]) of
+              (SOME x,SOME y)=>if x>=20 andalso x mod 10=0 andalso y>0 andalso y<10 then SOME(x+y) else NONE
+            | _=>NONE)
+          | smallCount _ = NONE
+        fun wordCount ["dozen"]=SOME 12 | wordCount ["pair"]=SOME 2
+          | wordCount (a::"hundred"::rest) = (case smallCount[a] of
+              SOME n=>if n>0 andalso n<10 then
+                (case (case rest of "and"::ws=>ws|_=>rest) of []=>SOME(n*100)
+                 | ws=>Option.map(fn k=>n*100+k)(smallCount ws)) else NONE
+            | NONE=>NONE)
+          | wordCount ws=smallCount ws
+        fun count text =
+          let val n=case List.find(fn(k,_)=>k=text)numbers of
+                SOME(_, (a,b))=>if b=1 andalso a>=1 andalso a<=128 then SOME(IntInf.toInt a) else NONE
+              | NONE=>wordCount(String.tokens(fn c=>c= #"-" orelse Char.isSpace c)text)
+          in case n of SOME k=>if k>=1 andalso k<=128 then SOME k else NONE|NONE=>NONE end
+        fun localCount (key,_,_) =
+          case List.find(fn m=>g1 low m=key)ms of NONE=>NONE | SOME m=>
+          let val prefix=String.substring(low,0,startOf m)
+          in case search ("\\b"^countRx^"\\s*(?:identical\\s+|equal\\s+)?(?:x\\s*|times\\s*)?$") prefix of
+              SOME c=>Option.map SOME(count(g1 prefix c))
+            | NONE=>if has "\\b(?:several|some|many|few|multiple|numerous)\\s*(?:identical\\s+)?$" prefix then NONE
+                    else SOME NONE end
+        val declaredCounts=findall ("\\b"^countRx^"\\s+(?:identical\\s+|equal\\s+)?resistors?\\b") low
+        fun localMatch (key,_,_) =
+          case List.find(fn m=>g1 low m=key)ms of NONE=>NONE | SOME m=>
+            search ("\\b"^countRx^"\\s*(?:identical\\s+|equal\\s+)?(?:x\\s*|times\\s*)?$")
+              (String.substring(low,0,startOf m))
+        val countMatches=List.mapPartial localMatch resistors @ declaredCounts
+        val countKeys=map(g1 low)countMatches
+        val numbersCovered=List.all(fn(k,_)=>List.exists(fn(a,_,_)=>a=k)amounts orelse
+             List.exists(fn key=>key=k)countKeys)numbers
+        val countWordsCovered=List.all(fn({start,stop,...}:Regex.match)=>
+             List.exists(fn({start=a,stop=b,...}:Regex.match)=>a<=start andalso stop<=b)countMatches)
+          (findall("\\b(?:"^countWordRx^")\\b")low)
+        fun repeated () =
+          let
+            fun expand [] acc=SOME(List.concat(rev acc))
+              | expand (r::rest) acc=(case localCount r of NONE=>NONE
+                | SOME n=>let val k=case n of SOME x=>x|NONE=>1
+                              val value=case r of (_,v,_)=>v
+                          in if List.foldl(fn(xs,total)=>length xs+total)k acc>128 then NONE
+                             else expand rest (List.tabulate(k,fn _=>value)::acc) end)
+          in if not numbersCovered orelse not countWordsCovered then NONE else case declaredCounts of
+              []=>if length rs=1 andalso has "\\bresistors\\b" low andalso
+                      (case resistors of [r]=>localCount r=SOME NONE|_=>false) then NONE else expand resistors []
+            | [m]=>(case count(g1 low m) of NONE=>NONE | SOME n=>
+                case resistors of
+                  [r] => (case localCount r of
+                    SOME NONE=>SOME(List.tabulate(n,fn _=>hd rs))
+                  | SOME(SOME k)=>if k=n then expand resistors [] else NONE
+                  | NONE=>NONE)
+                | _ => (case expand resistors [] of
+                    SOME operands=>if length operands=n then SOME operands else NONE
+                  | NONE=>NONE))
+            | _=>NONE
+          end
         fun singleton [x] = SOME x | singleton _ = NONE
         fun mk b = SOME (E.C_Circ b)
         fun distinct xs = foldl (fn (x,ys) => if List.exists (fn y => y=x) ys then ys else ys @ [x]) [] xs
@@ -376,9 +443,9 @@ struct
         else if has "\\btime constant\\b|\\brc\\b" low then
           (case (singleton rs,singleton cs) of (SOME r,SOME c) => mk(E.CB_Rc(r,c)) | _ => NONE)
         else if series orelse parallel then
-          if series andalso parallel then NONE
+          if (series andalso parallel) orelse has "\\b(?:groups?|banks?|branches|sets?|strings?)\\b" low then NONE
           else let val connection = if parallel then E.Parallel else E.Series
-                   fun network t = mk (E.CB_Network(connection,rs,t))
+                   fun network t = case repeated() of SOME operands=>mk (E.CB_Network(connection,operands,t)) | NONE=>NONE
                in case want of
                  SOME "R" => network E.EquivalentResistance
                | SOME "A" => (case singleton vs of SOME v => if null ais andalso null ws then network(E.SourceCurrent v) else NONE | _ => NONE)
@@ -583,7 +650,7 @@ struct
           end
       end
 
-    fun answer v text : E.request option =
+    fun legacyAnswer v text : E.request option =
       let
         val low0 = lower (collapse text)
         (* All historical wrappers use the corrected direction and phrasing semantics. *)
@@ -612,7 +679,8 @@ struct
       end
   end
 
-  fun optics v text = Optics.answer v text
+  fun optics v text = case OpticalRecognizer.recognize text of
+      SOME r => SOME r | NONE => Optics.legacyAnswer v text
 
   (* ---------- dispatch ---------- *)
   val organs = ["electrical", "electronics", "electronics-r2", "wiring", "optics", "optics-v2", "optics-v3", "optics-v5", "optics-v5-r2"]

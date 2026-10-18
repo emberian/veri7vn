@@ -16,6 +16,15 @@ definition lens_cm :: "rat \<times> lu \<Rightarrow> rat" where
 lemma lens_cm_metres: "lens_cm l / 100 = amt lu_scale l"
   by (simp add: lens_cm_def)
 
+definition optical_frequency_input :: "rat \<times> fu \<Rightarrow> optical_input" where
+  "optical_frequency_input f = OpticalFrequency (amt fu_scale f)"
+definition optical_source_frequency_input :: "rat \<Rightarrow> rat \<times> fu \<Rightarrow> optical_input" where
+  "optical_source_frequency_input ns f = OpticalFrequencyIn ns (amt fu_scale f)"
+definition optical_wavelength_input :: "rat \<Rightarrow> rat \<times> lu \<Rightarrow> optical_input" where
+  "optical_wavelength_input ns l = OpticalWavelength ns (amt lu_scale l)"
+definition optical_redundant_input :: "rat \<Rightarrow> rat \<times> lu \<Rightarrow> rat \<times> fu \<Rightarrow> optical_input" where
+  "optical_redundant_input ns l f = OpticalWavelengthFrequency ns (amt lu_scale l) (amt fu_scale f)"
+
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
      kernel (E_HpKw 5) = Exact K_hp_kw (37285 / 10000) \<and>
@@ -37,7 +46,10 @@ definition self_test :: bool where
      kernel (O_Image (Some 10) (Some 10)) = Verdict K_at_focus \<and>
      stated (reply_of (O_EnergyL (400, L_nm))) = Some (STR ''3.1'')"
 
-export_code reply_of answered reply_kind response stated mk_rat mk_nat lens_cm
+export_code optical_source_frequency_input optical_frequency_input optical_wavelength_input optical_redundant_input optical_snell
+  OpticalFrequencyTarget OpticalWavelengthTarget OpticalEnergyTarget O_Wave O_UnknownOptical
+  AngleToNormal AngleToSurface F_mHz
+  reply_of answered reply_kind response stated mk_rat mk_nat lens_cm
   integer_of_int nat_of_integer int_of_integer lookup
   names_v names_a names_w names_va names_len names_wlen names_freq names_pfx names_cq names_medium
   medium_n
@@ -54,7 +66,11 @@ export_code reply_of answered reply_kind response stated mk_rat mk_nat lens_cm
 
 (* marker block *)
 ML \<open>
-  val theorems = [@{thm lens_cm_metres}, @{thm kernel_exact_sound}, @{thm kernel_approx_sound}, @{thm kernel_reflect_sound},
+  val theorems = [@{thm optical_kernel_model}, @{thm optical_kernel_wavelength}, @{thm optical_kernel_energy},
+    @{thm optical_kernel_redundant_decline}, @{thm surface_snell_consumer_law},
+    @{thm optical_source_frequency_preserved}, @{thm optical_wave_equations}, @{thm optical_wave_positive}, @{thm optical_stationary_frequency_energy},
+    @{thm optical_redundant_inputs_consistent}, @{thm optical_inconsistent_measurements_declined},
+    @{thm optical_surface_sine}, @{thm lens_cm_metres}, @{thm kernel_exact_sound}, @{thm kernel_approx_sound}, @{thm kernel_reflect_sound},
     @{thm kernel_underspecified}, @{thm kernel_impossible}, @{thm kernel_judgement}, @{thm kernel_imprecise},
     @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm stated_dec_sound},
     @{thm hp_kw_value}, @{thm hp_kw_roundtrip}, @{thm transformer_power}, @{thm power_factor_value},
@@ -74,7 +90,7 @@ ML \<open>
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_withheld_names_decline}] @ @{thms power_factor_never_assumed};
   val family_facts = Global_Theory.all_thms_of @{theory} true
     |> filter (fn ((name, _), _) => exists (fn prefix => String.isPrefix prefix name)
-         ["Emoptics.", "Emoptics_Num.", "Emoptics_Export."]);
+         ["Emoptics.", "Emoptics_Num.", "Emoptics_Optical_Model.", "Emoptics_Export."]);
   val family_theorems = map #2 family_facts;
   val oracles = Thm_Deps.all_oracles (theorems @ family_theorems);
   (* The aggregate checks every fact. On failure, locate one witness by
@@ -93,7 +109,9 @@ ML \<open>
           Pretty.writeln (Thm_Deps.pretty_thm_oracles @{context} [th])));
   val _ = if null oracles then () else error ("emoptics theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "emoptics self test failed";
-  val _ = writeln ("VERI7VN_EMOPTICS PASS theorems=" ^ string_of_int (length theorems) ^ " scanned=" ^ string_of_int (length family_theorems) ^ " oracles=0");
+  val marker = "VERI7VN_EMOPTICS PASS theorems=" ^ string_of_int (length theorems) ^ " scanned=" ^ string_of_int (length family_theorems) ^ " oracles=0";
+  val _ = writeln marker;
+  val _ = Export.export @{theory} (Path.binding0 (Path.explode "veri7vn/assertions/emoptics")) [XML.Text marker];
 \<close>
 
 end

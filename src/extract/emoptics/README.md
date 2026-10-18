@@ -37,9 +37,24 @@ R1/R2 use the conventional top/bottom interpretation, and unlabeled lists use
 the listed top-then-bottom order. Circuit numbers are bound to shared exact
 numeric tokens, preserving fractions, signs, scientific notation and SI case.
 
+The optical wave model keeps the source and target media distinct. It computes
+frequency, target-medium wavelength and photon energy from exact unit-bearing
+measurements. Supplied wavelength/frequency/index triples must satisfy
+n*f*wavelength=c; a supplied source index remains checked even for frequency-only
+photon energy. Named media use fixed nominal indices, not dispersion curves.
+Without a medium qualifier, the reader selects the conventional vacuum model.
+
 Photon frequency and wavelength must be positive. Refractive-index calculations
-use the explicitly supported n >= 1 domain and incidence 0 <= theta < 90 degrees.
+use the explicitly supported n >= 1 domain. Surface-relative angles are converted
+to normal-relative degrees in HOL; accepted incidence is 0 <= theta < 90 degrees.
+Radian angles, grazing incidence and multi-interface paths currently withhold.
+Their mathematical availability is distinct from the current solver's coverage.
 Questions about wiring safety or code compliance are declined.
+
+The resistor reader expands explicitly counted identical components, up to 128
+resistor operands. Stated totals must agree with the component groups. Unknown
+counts, larger lists and grouped topologies withhold; 128 is a reader resource
+limit rather than a physical law.
 
 `Emoptics.thy` states the equations and their properties. `Emoptics_Num.thy`
 provides checked enclosures. `Emoptics_Export.thy` exports Standard ML and scans
@@ -97,3 +112,10 @@ The accepted D circuit packet is described in the next model-contract report.
 The D report records its passed proof, bound native inputs, full shipped
 panels, reserved evaluations and independent consumer checks. Four computable
 probe extensions still withhold and are counted separately from safe assertions.
+
+
+The [E optical report](../../../project/lanes/E-physical-emoptics.md) records the
+current medium/angle and counted-resistor packet. `check_optical_model.py` and
+`optical_fresh.py` exercise its physical values and source roles; safe-refusal
+assertions remain separate from capability counts. `circuit_count_probes.json`
+exercises complete component multiplicity through the existing list model.

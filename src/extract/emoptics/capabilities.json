@@ -13,10 +13,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical quantities follow the typed request model: Snell refraction and critical angle, speed c/n, vacuum frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Explicit lens units are normalized to centimetres in HOL.",
+        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical requests use single-interface Snell refraction and critical angle, speed c/n, phase-index-aware frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Wave units and normal/surface angle references are converted in HOL.",
         "assumptions": [
-          "Recognition selected the intended quantities, medium roles and physical model. This declaration does not prove the English interpretation.",
-          "Frequency, wavelength and wavelength-based photon-energy operations currently use the vacuum model; refraction assumes one interface with angles to its normal.",
+          "Recognition selected the intended quantities, source/target media and physical model. Exact source tokens and units do not prove the English interpretation.",
+          "Wave relations use a transparent stationary medium with a supplied phase index at the frequency in question, currently n >= 1. Frequency and photon energy are unchanged across stationary media. Absent a medium qualifier, the conventional vacuum model is selected; explicit unknown media need an index for wavelength conversions.",
+          "Named material indices are fixed nominal table values, not dispersion models. Redundant wavelength/frequency/index inputs are exact and must satisfy n*f*wavelength=c.",
+          "Refraction uses one interface and angles to its normal after checked conversion of surface-relative degrees. The current solver excludes grazing incidence; radians, surface-relative output requests and interface chains are currently withheld.",
           "Lens operations use the ideal paraxial thin-lens model and signed-distance convention."
         ],
         "untrusted": [
@@ -36,10 +38,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical quantities follow the typed request model: Snell refraction and critical angle, speed c/n, vacuum frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Explicit lens units are normalized to centimetres in HOL.",
+        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical requests use single-interface Snell refraction and critical angle, speed c/n, phase-index-aware frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Wave units and normal/surface angle references are converted in HOL.",
         "assumptions": [
-          "Recognition selected the intended quantities, medium roles and physical model. This declaration does not prove the English interpretation.",
-          "Frequency, wavelength and wavelength-based photon-energy operations currently use the vacuum model; refraction assumes one interface with angles to its normal.",
+          "Recognition selected the intended quantities, source/target media and physical model. Exact source tokens and units do not prove the English interpretation.",
+          "Wave relations use a transparent stationary medium with a supplied phase index at the frequency in question, currently n >= 1. Frequency and photon energy are unchanged across stationary media. Absent a medium qualifier, the conventional vacuum model is selected; explicit unknown media need an index for wavelength conversions.",
+          "Named material indices are fixed nominal table values, not dispersion models. Redundant wavelength/frequency/index inputs are exact and must satisfy n*f*wavelength=c.",
+          "Refraction uses one interface and angles to its normal after checked conversion of surface-relative degrees. The current solver excludes grazing incidence; radians, surface-relative output requests and interface chains are currently withheld.",
           "Lens operations use the ideal paraxial thin-lens model and signed-distance convention."
         ],
         "untrusted": [
@@ -59,10 +63,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical quantities follow the typed request model: Snell refraction and critical angle, speed c/n, vacuum frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Explicit lens units are normalized to centimetres in HOL.",
+        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical requests use single-interface Snell refraction and critical angle, speed c/n, phase-index-aware frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Wave units and normal/surface angle references are converted in HOL.",
         "assumptions": [
-          "Recognition selected the intended quantities, medium roles and physical model. This declaration does not prove the English interpretation.",
-          "Frequency, wavelength and wavelength-based photon-energy operations currently use the vacuum model; refraction assumes one interface with angles to its normal.",
+          "Recognition selected the intended quantities, source/target media and physical model. Exact source tokens and units do not prove the English interpretation.",
+          "Wave relations use a transparent stationary medium with a supplied phase index at the frequency in question, currently n >= 1. Frequency and photon energy are unchanged across stationary media. Absent a medium qualifier, the conventional vacuum model is selected; explicit unknown media need an index for wavelength conversions.",
+          "Named material indices are fixed nominal table values, not dispersion models. Redundant wavelength/frequency/index inputs are exact and must satisfy n*f*wavelength=c.",
+          "Refraction uses one interface and angles to its normal after checked conversion of surface-relative degrees. The current solver excludes grazing incidence; radians, surface-relative output requests and interface chains are currently withheld.",
           "Lens operations use the ideal paraxial thin-lens model and signed-distance convention."
         ],
         "untrusted": [
@@ -82,10 +88,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical quantities follow the typed request model: Snell refraction and critical angle, speed c/n, vacuum frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Explicit lens units are normalized to centimetres in HOL.",
+        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical requests use single-interface Snell refraction and critical angle, speed c/n, phase-index-aware frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Wave units and normal/surface angle references are converted in HOL.",
         "assumptions": [
-          "Recognition selected the intended quantities, medium roles and physical model. This declaration does not prove the English interpretation.",
-          "Frequency, wavelength and wavelength-based photon-energy operations currently use the vacuum model; refraction assumes one interface with angles to its normal.",
+          "Recognition selected the intended quantities, source/target media and physical model. Exact source tokens and units do not prove the English interpretation.",
+          "Wave relations use a transparent stationary medium with a supplied phase index at the frequency in question, currently n >= 1. Frequency and photon energy are unchanged across stationary media. Absent a medium qualifier, the conventional vacuum model is selected; explicit unknown media need an index for wavelength conversions.",
+          "Named material indices are fixed nominal table values, not dispersion models. Redundant wavelength/frequency/index inputs are exact and must satisfy n*f*wavelength=c.",
+          "Refraction uses one interface and angles to its normal after checked conversion of surface-relative degrees. The current solver excludes grazing incidence; radians, surface-relative output requests and interface chains are currently withheld.",
           "Lens operations use the ideal paraxial thin-lens model and signed-distance convention."
         ],
         "untrusted": [
@@ -105,10 +113,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical quantities follow the typed request model: Snell refraction and critical angle, speed c/n, vacuum frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Explicit lens units are normalized to centimetres in HOL.",
+        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical requests use single-interface Snell refraction and critical angle, speed c/n, phase-index-aware frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Wave units and normal/surface angle references are converted in HOL.",
         "assumptions": [
-          "Recognition selected the intended quantities, medium roles and physical model. This declaration does not prove the English interpretation.",
-          "Frequency, wavelength and wavelength-based photon-energy operations currently use the vacuum model; refraction assumes one interface with angles to its normal.",
+          "Recognition selected the intended quantities, source/target media and physical model. Exact source tokens and units do not prove the English interpretation.",
+          "Wave relations use a transparent stationary medium with a supplied phase index at the frequency in question, currently n >= 1. Frequency and photon energy are unchanged across stationary media. Absent a medium qualifier, the conventional vacuum model is selected; explicit unknown media need an index for wavelength conversions.",
+          "Named material indices are fixed nominal table values, not dispersion models. Redundant wavelength/frequency/index inputs are exact and must satisfy n*f*wavelength=c.",
+          "Refraction uses one interface and angles to its normal after checked conversion of surface-relative degrees. The current solver excludes grazing incidence; radians, surface-relative output requests and interface chains are currently withheld.",
           "Lens operations use the ideal paraxial thin-lens model and signed-distance convention."
         ],
         "untrusted": [
@@ -129,7 +139,8 @@
           "Recognition selected the intended roles and quantities; exact-number token binding does not prove the English interpretation.",
           "Networks are nonempty, uniformly series or parallel, and use strictly positive ideal resistors. Mixed topology requires a graph and is not inferred. Signed supply is allowed, with passive dissipation nonnegative.",
           "Explicit top/bottom/ground connection roles override names and textual order. Without physical role labels, conventional R1/top and R2/bottom-to-ground labels apply; wholly unlabeled lists mean top then bottom. The response exposes the selected Rtop/Rbottom values.",
-          "LED sizing assumes a positive forward drop and current, with supply above that drop. Real diode temperature/current dependence is outside this constant-drop model."
+          "LED sizing assumes a positive forward drop and current, with supply above that drop. Real diode temperature/current dependence is outside this constant-drop model.",
+          "Counted identical components are expanded only when the complete grouping is recognized, up to 128 resistor operands. This is a reader limit; larger counts and grouped topologies are withheld."
         ],
         "untrusted": [
           "English recognition and role selection",
@@ -150,7 +161,8 @@
           "Recognition selected the intended roles and quantities; exact-number token binding does not prove the English interpretation.",
           "Networks are nonempty, uniformly series or parallel, and use strictly positive ideal resistors. Mixed topology requires a graph and is not inferred. Signed supply is allowed, with passive dissipation nonnegative.",
           "Explicit top/bottom/ground connection roles override names and textual order. Without physical role labels, conventional R1/top and R2/bottom-to-ground labels apply; wholly unlabeled lists mean top then bottom. The response exposes the selected Rtop/Rbottom values.",
-          "LED sizing assumes a positive forward drop and current, with supply above that drop. Real diode temperature/current dependence is outside this constant-drop model."
+          "LED sizing assumes a positive forward drop and current, with supply above that drop. Real diode temperature/current dependence is outside this constant-drop model.",
+          "Counted identical components are expanded only when the complete grouping is recognized, up to 128 resistor operands. This is a reader limit; larger counts and grouped topologies are withheld."
         ],
         "untrusted": [
           "English recognition and role selection",

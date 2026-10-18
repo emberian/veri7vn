@@ -16,5 +16,6 @@ session Veri7vn_Emoptics = Veri7vn_Emoptics_Base +
     "Veri7vn_Commons"
   theories
     Emoptics_Num
+    Emoptics_Optical_Model
     Emoptics
     Emoptics_Export

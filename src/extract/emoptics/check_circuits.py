@@ -11,8 +11,8 @@ sys.dont_write_bytecode=True
 import score
 
 def main():
- ap=argparse.ArgumentParser();ap.add_argument('binary');ap.add_argument('--out',type=Path,required=True);args=ap.parse_args()
- cases=json.loads(Path(__file__).with_name('circuit_probes.json').read_text());out=[]
+ ap=argparse.ArgumentParser();ap.add_argument('binary');ap.add_argument('--cases',type=Path,default=Path(__file__).with_name('circuit_probes.json'));ap.add_argument('--out',type=Path,required=True);args=ap.parse_args()
+ cases=json.loads(args.cases.read_text());out=[]
  for sid in ['electronics','electronics-r2']:
   scorer=score.load(sid,'circuits_scorer')
   for mode,argv in ([('specialist',['--specialist',sid]),('family',[])] if sid=='electronics' else [('specialist',['--specialist',sid])]):

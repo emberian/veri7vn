@@ -1,5 +1,5 @@
 theory Emoptics
-  imports Emoptics_Num
+  imports Emoptics_Optical_Model
 begin
 
 text \<open>
@@ -37,9 +37,9 @@ datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) lu = L_n
 fun lu_scale :: "lu \<Rightarrow> rat" where
   "lu_scale L_nm = 1 / 1000000000" | "lu_scale L_um = 1 / 1000000" | "lu_scale L_mm = 1 / 1000"
 | "lu_scale L_cm = 1 / 100" | "lu_scale L_m = 1" | "lu_scale L_km = 1000" | "lu_scale L_ft = 3048 / 10000"
-datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) fu = F_Hz | F_kHz | F_MHz | F_GHz | F_THz
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) fu = F_mHz | F_Hz | F_kHz | F_MHz | F_GHz | F_THz
 fun fu_scale :: "fu \<Rightarrow> rat" where
-  "fu_scale F_Hz = 1" | "fu_scale F_kHz = 1000" | "fu_scale F_MHz = 1000000"
+  "fu_scale F_mHz = 1 / 1000" | "fu_scale F_Hz = 1" | "fu_scale F_kHz = 1000" | "fu_scale F_MHz = 1000000"
 | "fu_scale F_GHz = 1000000000" | "fu_scale F_THz = 1000000000000"
 datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) pfx = P_p | P_n | P_u | P_m | P_1 | P_k | P_M
 fun pfx_scale :: "pfx \<Rightarrow> rat" where
@@ -128,6 +128,9 @@ datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) cbody =
   | CB_Res "camt option" "camt option"                  \<comment> \<open>V, A\<close>
   | CB_Pow "camt option" "camt option" "camt option"    \<comment> \<open>V, A, R\<close>
 
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) optical_target =
+    OpticalFrequencyTarget | OpticalWavelengthTarget | OpticalEnergyTarget
+
 datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) request =
     E_HpKw rat
   | E_KwHp rat
@@ -144,6 +147,8 @@ datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) request 
   | W_Diam nat
   | W_Cur "rat \<times> pu" rat
   | W_Cur3 "rat \<times> pu" rat "rat option"
+  | O_Wave optical_target rat optical_input
+  | O_UnknownOptical
   | O_EnergyL "rat \<times> lu"
   | O_EnergyF "rat \<times> fu"
   | O_Frequency "rat \<times> lu"
@@ -159,10 +164,10 @@ datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) request 
   | O_Snell "rat option" "rat option" "rat option"      \<comment> \<open>angle in degrees, n1, n2\<close>
 
 datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) need = N_pf_power | N_pf_current | N_c_current | N_c_voltage | N_c_resistance | N_c_power | N_c_network
-  | N_w_vdrop | N_o_focal | N_o_lens | N_o_indices | N_o_index | N_o_snell
+  | N_w_vdrop | N_o_focal | N_o_lens | N_o_indices | N_o_index | N_o_snell | N_o_model
 
 datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) reason = R_pf_over | R_p_over_s | R_pf_range | R_turns | R_zero_div | R_resistor | R_capacitor | R_led
-  | R_c_inconsistent | R_wavelength | R_frequency | R_focal_zero | R_index | R_angle
+  | R_c_inconsistent | R_o_inconsistent | R_wavelength | R_frequency | R_focal_zero | R_index | R_angle
 
 datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) decline = Underspecified need | Judgement | Impossible reason | Imprecise
 
@@ -212,6 +217,10 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (W_Diam _) = K_diameter"
 | "kind_of (W_Cur _ _) = K_wire_current"
 | "kind_of (W_Cur3 _ _ _) = K_current3"
+| "kind_of (O_Wave OpticalFrequencyTarget _ _) = K_frequency"
+| "kind_of (O_Wave OpticalWavelengthTarget _ _) = K_wavelength"
+| "kind_of (O_Wave OpticalEnergyTarget _ _) = K_photon_energy"
+| "kind_of O_UnknownOptical = K_index"
 | "kind_of (O_EnergyL _) = K_photon_energy"
 | "kind_of (O_EnergyF _) = K_photon_energy"
 | "kind_of (O_Frequency _) = K_frequency"
@@ -298,6 +307,31 @@ fun pre_lens :: "rat option \<Rightarrow> rat option \<Rightarrow> decline optio
   "pre_lens (Some f) (Some d) = (if f = 0 \<or> d = 0 then Some (Impossible R_zero_div) else None)"
 | "pre_lens f d = Some (Underspecified N_o_lens)"
 
+fun pre_optical_input :: "optical_input \<Rightarrow> decline option" where
+  "pre_optical_input (OpticalFrequency f) = (if f \<le> 0 then Some (Impossible R_frequency) else None)"
+| "pre_optical_input (OpticalFrequencyIn ns f) = (if ns < 1 then Some (Impossible R_index)
+    else if f \<le> 0 then Some (Impossible R_frequency) else None)"
+| "pre_optical_input (OpticalWavelength ns l) = (if ns < 1 then Some (Impossible R_index)
+    else if l \<le> 0 then Some (Impossible R_wavelength) else None)"
+| "pre_optical_input (OpticalWavelengthFrequency ns l f) = (if ns < 1 then Some (Impossible R_index)
+    else if l \<le> 0 then Some (Impossible R_wavelength)
+    else if f \<le> 0 then Some (Impossible R_frequency)
+    else if ns * f * l \<noteq> light_c then Some (Impossible R_o_inconsistent) else None)"
+
+fun optical_value :: "optical_target \<Rightarrow> optical_wave \<Rightarrow> rat" where
+  "optical_value OpticalFrequencyTarget (OpticalWave v f l e) = f"
+| "optical_value OpticalWavelengthTarget (OpticalWave v f l e) = l"
+| "optical_value OpticalEnergyTarget (OpticalWave v f l e) = e / echarge"
+
+definition optical_computation :: "rat \<Rightarrow> optical_input \<Rightarrow> optical_wave" where
+  "optical_computation nt input = (let f = optical_frequency light_c input
+     in OpticalWave (light_c / nt) f (light_c / (nt * f)) (planck * f))"
+
+text \<open>The exported angle constructor converts the reference direction in
+HOL before the existing Snell solver checks its domain and enclosure.\<close>
+definition optical_snell :: "optical_angle_reference \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> request" where
+  "optical_snell reference a n1 n2 = O_Snell (Some (optical_normal_degrees reference a)) (Some n1) (Some n2)"
+
 text \<open>Why a request is declined, in the order the organs check: the
 underspecified (@{text Underspecified}), the judgement and the impossible
 cases. @{text None} means the request has an answer.\<close>
@@ -318,6 +352,8 @@ fun pre :: "request \<Rightarrow> decline option" where
 | "pre (W_Diam n) = None"
 | "pre (W_Cur p v) = (if v = 0 then Some (Impossible R_zero_div) else None)"
 | "pre (W_Cur3 p v pf) = (if v = 0 \<or> pf = Some 0 then Some (Impossible R_zero_div) else None)"
+| "pre (O_Wave target nt input) = (if nt < 1 then Some (Impossible R_index) else pre_optical_input input)"
+| "pre O_UnknownOptical = Some (Underspecified N_o_model)"
 | "pre (O_EnergyL l) = (if amt lu_scale l \<le> 0 then Some (Impossible R_wavelength) else None)"
 | "pre (O_EnergyF f) = (if amt fu_scale f \<le> 0 then Some (Impossible R_frequency) else None)"
 | "pre (O_Frequency l) = (if amt lu_scale l \<le> 0 then Some (Impossible R_wavelength) else None)"
@@ -370,6 +406,7 @@ fun qval :: "request \<Rightarrow> rat" where
      else ov (ocv v) * ov (ocv v) / ov (ocv r))"
 | "qval (W_Continuous b) = 4 * b / 5"
 | "qval (W_Cur p v) = amt pu_scale p * 1000 / v"
+| "qval (O_Wave target nt input) = optical_value target (optical_computation nt input)"
 | "qval (O_EnergyL l) = planck * light_c / (amt lu_scale l * echarge)"
 | "qval (O_EnergyF f) = planck * amt fu_scale f / echarge"
 | "qval (O_Frequency l) = light_c / amt lu_scale l"
@@ -571,11 +608,14 @@ lemma pre_cb_nj: "pre_cb b \<noteq> Some Judgement"
 lemma pre_lens_nj: "pre_lens f d \<noteq> Some Judgement"
   by (cases f; cases d) (auto split: if_splits)
 
+lemma pre_optical_input_nj: "pre_optical_input input \<noteq> Some Judgement"
+  by (cases input) (auto split: if_splits)
+
 lemma pre_judgement: "pre r = Some Judgement \<longleftrightarrow> r = W_Judgement"
 proof (cases r)
   case (O_LensPower x)
   then show ?thesis by (cases x) auto
-qed (auto simp: pre_tri_nj pre_cb_nj pre_lens_nj split: option.splits if_splits)
+qed (auto simp: pre_tri_nj pre_cb_nj pre_lens_nj pre_optical_input_nj split: option.splits if_splits)
 
 theorem kernel_judgement:
   "kernel r = Decline Judgement \<longleftrightarrow> r = W_Judgement"
@@ -871,6 +911,14 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + show_input b + STR '' A breaker; NEC 210.19(A)(1) / 210.20(A)).''"
 | "exact_text (W_Cur p v) q vl = STR ''The current is '' + vl + STR '' A (I = P / V = '' + show4 (amt pu_scale p * 1000)
      + STR '' W / '' + show4 v + STR '' V, single-phase).''"
+| "exact_text (O_Wave OpticalFrequencyTarget nt input) q vl = STR ''The frequency is '' + vl
+    + STR '' Hz (n_source x f x wavelength_source = c; stationary-medium phase-index model).''"
+| "exact_text (O_Wave OpticalWavelengthTarget nt input) q vl = STR ''The wavelength is '' + vl
+    + STR '' m (n_target x f x wavelength = c; n_target = '' + show6 nt + STR '', f = ''
+    + show6 (optical_frequency light_c input) + STR '' Hz).''"
+| "exact_text (O_Wave OpticalEnergyTarget nt input) q vl = STR ''The photon energy is '' + vl
+    + STR '' eV ('' + show4 (q * echarge) + STR '' J), from E = hf with f = ''
+    + show6 (optical_frequency light_c input) + STR '' Hz in the specified stationary-medium model.''"
 | "exact_text (O_EnergyL l) q vl = STR ''The photon energy is '' + vl + STR '' eV (''
      + show4 (planck * light_c / amt lu_scale l) + STR '' J), from E = hc/lambda with lambda = ''
      + show4 (amt lu_scale l) + STR '' m.''"
@@ -937,7 +985,7 @@ fun approx_text :: "request \<Rightarrow> String.literal \<Rightarrow> String.li
      + STR '')'' + (case pf of None \<Rightarrow> STR ''; power factor taken as 1 - give yours for a motor'' | Some _ \<Rightarrow> STR '''') + STR '').'')"
 | "approx_text (O_Crit a b) vl = Some (STR ''The critical angle is '' + vl + STR '' deg (theta_c = arcsin(n2/n1) = arcsin(''
      + show4 (ov b) + STR ''/'' + show4 (ov a) + STR '')).'')"
-| "approx_text (O_Snell th a b) vl = Some (STR ''The angle of refraction is '' + vl + STR '' deg (n1 sin t1 = n2 sin t2: ''
+| "approx_text (O_Snell th a b) vl = Some (STR ''The angle of refraction is '' + vl + STR '' deg to the normal (n1 sin t1 = n2 sin t2: ''
      + show4 (ov a) + STR '' x sin '' + show4 (ov th) + STR '' deg = '' + show4 (ov b) + STR '' x sin t2).'')"
 | "approx_text r vl = None"
 
@@ -967,6 +1015,7 @@ definition need_text :: "need \<Rightarrow> String.literal" where
    | N_o_lens \<Rightarrow> STR ''I need a focal length and an object distance to compute that; I won'' + apos + STR ''t assume it.''
    | N_o_indices \<Rightarrow> STR ''I need the refractive indices of both media to compute that; I won'' + apos + STR ''t assume it.''
    | N_o_index \<Rightarrow> STR ''I need the medium'' + apos + STR ''s refractive index to compute that; I won'' + apos + STR ''t assume it.''
+   | N_o_model \<Rightarrow> STR ''I need unambiguous optical source quantities, units and medium roles. This model supports one interface; additional interfaces need their orientations and transmission checks.''
    | N_o_snell \<Rightarrow> STR ''I need an angle of incidence and both refractive indices to compute that; I won'' + apos + STR ''t assume it.'')"
 
 definition reason_text :: "reason \<Rightarrow> String.literal" where
@@ -976,6 +1025,7 @@ definition reason_text :: "reason \<Rightarrow> String.literal" where
    | R_pf_range \<Rightarrow> STR ''A power factor must be between 0 and 1.''
    | R_turns \<Rightarrow> STR ''A transformer winding needs a nonzero number of turns.''
    | R_zero_div \<Rightarrow> STR ''That would divide by zero, so there'' + apos + STR ''s no finite answer.''
+   | R_o_inconsistent \<Rightarrow> STR ''The stated wavelength, frequency and source index do not satisfy n x frequency x wavelength = c as exact inputs.''
    | R_c_inconsistent \<Rightarrow> STR ''The stated voltage, current, resistance or power values do not satisfy the same ideal circuit equations.''
    | R_resistor \<Rightarrow> STR ''This passive-resistor model requires strictly positive resistance.''
    | R_capacitor \<Rightarrow> STR ''The passive RC model requires a positive capacitance.''
@@ -983,8 +1033,8 @@ definition reason_text :: "reason \<Rightarrow> String.literal" where
    | R_wavelength \<Rightarrow> STR ''A wavelength must be positive.''
    | R_frequency \<Rightarrow> STR ''A frequency must be positive.''
    | R_focal_zero \<Rightarrow> STR ''A focal length of zero has no finite power.''
-   | R_index \<Rightarrow> STR ''A refractive index below 1 isn'' + apos + STR ''t physical for ordinary media, so I won'' + apos + STR ''t compute with it.''
-   | R_angle \<Rightarrow> STR ''An angle of incidence must be between 0 and 90 degrees.'')"
+   | R_index \<Rightarrow> STR ''This transparent-medium model supports phase indices at least 1.''
+   | R_angle \<Rightarrow> STR ''This refraction solver requires a normal angle from 0 degrees inclusive to 90 degrees exclusive.'')"
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of Underspecified _ \<Rightarrow> STR ''underspecified'' | Judgement \<Rightarrow> STR ''judgement''
@@ -1444,6 +1494,41 @@ theorem vdrop_underspecified:
 
 subsection \<open>Optics\<close>
 
+theorem optical_kernel_model:
+  assumes "kernel (O_Wave target nt input) = Exact k q"
+  shows "optical_wave_at light_c planck nt input = Some (optical_computation nt input) \<and>
+    q = optical_value target (optical_computation nt input)"
+proof -
+  have p: "pre (O_Wave target nt input) = None" and q: "q = qval (O_Wave target nt input)"
+    using kernel_exact_sound[OF assms] by simp_all
+  have valid: "1 \<le> nt" "optical_input_ok light_c input"
+    using p by (cases input; auto split: if_splits)+
+  show ?thesis using valid q
+    by (simp add: optical_wave_at_def optical_computation_def light_c_def planck_def Let_def)
+qed
+
+theorem optical_kernel_wavelength:
+  assumes "kernel (O_Wave OpticalWavelengthTarget nt input) = Exact k l"
+  shows "nt * optical_frequency light_c input * l = light_c"
+proof -
+  have w: "optical_wave_at light_c planck nt input = Some (optical_computation nt input)"
+    and v: "l = optical_value OpticalWavelengthTarget (optical_computation nt input)"
+    using optical_kernel_model[OF assms] by simp_all
+  show ?thesis using optical_wave_equations[OF w[unfolded optical_computation_def Let_def]] v
+    by (simp add: optical_computation_def Let_def)
+qed
+
+theorem optical_kernel_energy:
+  assumes "kernel (O_Wave OpticalEnergyTarget nt input) = Exact k e"
+  shows "e * echarge = planck * optical_frequency light_c input"
+  using optical_kernel_model[OF assms]
+  by (simp add: optical_computation_def Let_def echarge_def)
+
+theorem optical_kernel_redundant_decline:
+  assumes "ns * f * l \<noteq> light_c"
+  shows "\<exists>w. kernel (O_Wave target nt (OpticalWavelengthFrequency ns l f)) = Decline w"
+  using assms by (auto simp: kernel_def split: if_splits)
+
 theorem photon_energy_wavelength:
   assumes "kernel (O_EnergyL l) = Exact k e"
   shows "e * echarge * amt lu_scale l = planck * light_c"
@@ -1550,6 +1635,13 @@ proof -
     by (simp only: ph sa)
   then show ?thesis using y0 by (simp add: of_rat_divide)
 qed
+
+theorem surface_snell_consumer_law:
+  assumes "kernel (optical_snell AngleToSurface a x y) = Approx k d"
+  shows "rl x * cos (pi * rl a / 180) =
+    rl y * sin (pi * phys (optical_snell AngleToSurface a x y) / 180)"
+  using snell_law[OF assms[unfolded optical_snell_def]] optical_surface_sine[of a]
+  by (simp add: optical_snell_def)
 
 theorem critical_angle_law:
   assumes "kernel (O_Crit (Some x) (Some y)) = Approx k d"
