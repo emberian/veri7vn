@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+"""Record the original head's replies on the core panel's mathematics items
+(organ:math, op:, algebra and their precision guards) as ground truth for
+tools/dev/math-diff. Runs upstream oracle7.py once per item (~3.6 s each,
+SymPy import; ~6 min for 93) and writes JSONL:
+
+  python3 tools/dev/math-panel-head-run --out var/mathorgan/panel/head_replies.jsonl
+"""
+import argparse
+import json
+import subprocess
+import time
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
+UPSTREAM = REPO / "upstream"
+CORE_PANEL = UPSTREAM / "workbench" / "data" / "core_panel.json"
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default="var/mathorgan/panel/head_replies.jsonl")
+    a = ap.parse_args()
+    src = json.load(open(CORE_PANEL))["items"]
+    keep = [(i, it) for i, it in enumerate(src)
+            if it.get("path", "").startswith(("organ:math", "op:", "algebra"))
+            or "organ:math" in it.get("path", "") or "algebra" in it.get("path", "")]
+    out = Path(a.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w") as f:
+        for n, (i, it) in enumerate(keep):
+            t0 = time.time()
+            r = subprocess.run(["../.venv/bin/python", "oracle7.py", it["q"]], cwd=UPSTREAM,
+                               capture_output=True, text=True, timeout=300,
+                               env={"PYTHONDONTWRITEBYTECODE": "1"})
+            lines = [l for l in r.stdout.splitlines() if l.strip()]
+            resp, path, status = "", "", ""
+            for l in lines:
+                if l.startswith("  [") and "]" in l:
+                    status = l[3:l.index("]")]
+                    if "path:" in l:
+                        path = l.split("path:", 1)[1].strip()
+                elif not resp:
+                    resp = l
+            f.write(json.dumps({"i": i, "q": it["q"], "want_status": it["status"], "want_path": it["path"],
+                                "head_response": resp, "head_path": path, "head_status": status,
+                                "rc": r.returncode, "s": round(time.time() - t0, 1)},
+                               ensure_ascii=False) + "\n")
+            f.flush()
+            if n % 10 == 0:
+                print(n, i, it["path"], flush=True)
+    print("done", len(keep))
+
+
+if __name__ == "__main__":
+    main()
