@@ -10,6 +10,33 @@ are not specialist folders. Stores needs binaries with the explicit asset-path
 options and is included only with `--include-stores`; its six IDs otherwise
 remain explicitly excluded.
 
+## Selected delivery: 2026-10-18
+
+`var/C-runtime-package/delivery-20261018-a5f10.json` records the selected
+21-family, 144-folder delivery. Root promoted these existing archives after
+Finance source commit `fb5c6ec` and package tooling commit `b26ff69`; their
+candidate filenames remain unchanged:
+
+| Platforms | Archive under `var/C-runtime-package/` | Bytes | SHA256 |
+|---|---|---:|---|
+| Apple Silicon macOS | `candidate-native-a5f10/veri7vn-specialists-2026-10-18.tar.gz` | 8,377,015 | `6d8d5b9a3ede107271662e5f3e07ba2679823b76255e0051ad2e36e2d6f4afa7` |
+| macOS and x86-64 Linux | `candidate-both-a5f10/veri7vn-specialists-2026-10-18.tar.gz` | 17,729,837 | `f7a51fe544a669da9a77684a1d9d2019712c3a673e7bb47e3f91d19f71473791` |
+
+The shared checker is exactly approved commit `105051f`, SHA256
+`11c8ec3ce9c89499811fcc29c7936d115c530208e14fd389ce93b8f43417e029`.
+It was not replaced with newer working-tree code during promotion. Captured
+family versions and their acceptance declarations remain fixed; later family
+and composition packets do not enter this delivery.
+
+All family platform comparisons have matching replies. Finance's original
+scorer reports **553/559 right, six wrong, zero false yes, 36 withheld**; the
+six exact-Fisher versus approximate-scorer disagreements remain recorded, not
+rescored. Two supported-in-principle discount phrasings still withhold. Three
+Finance boundary probes pass identically after extracting each platform archive;
+the report `project/lanes/C-runtime-package.md` links the scoped evidence.
+These checks are not a whole-head admission or timing score. Warehouse defaults
+to preview, and composition roles are excluded. No archive has been sent externally.
+
 ## Layout
 
     specialists/

@@ -7,19 +7,19 @@ untrusted code; registration is not a claim that a current artifact exists.
 
 ## Current delivery state
 
-The selected immutable inventory is
-`var/C-runtime-package/selected-prepared/selection.json`. All 21 specialist
-family slots now have captured artifacts. The final delivery cohort remains
-unfrozen pending the corrected Finance candidate's integration and selection. Stores E is selected after
-root integration `4b84d7b` and its eight-case consumer gate. Root explicitly selected later Anatomy, Discrete,
-Mechanics and Humanities versions; previous versions remain historical.
-All 20 selected non-Finance families now have exact matching Linux artifacts.
-Finance is the only remaining selection gate. An earlier complete candidate
-was held after its relocated Finance probe found a real discount-versus-tax
-parsing error. The corrected complete candidate has passed its platform and
-relocation checks and awaits root integration/selection. The registry's 21 specialist families
-own 144 IDs; Math, Wordprob, Guards, Relations, Document and Fusion are separate
-composition components.
+Root selected and promoted **delivery-20261018-a5f10** after integrating Finance
+`fb5c6ec` and package tooling `b26ff69`. The immutable delivery record is
+`var/C-runtime-package/delivery-20261018-a5f10.json`; the selected family inventory
+is `var/C-runtime-package/selected-prepared/selection.json`. All 21 families and
+144 specialist folders have matching Darwin and Linux artifacts. Archive paths,
+hashes and version limits appear below. Existing candidate filenames are retained;
+the approved bytes were not rebuilt or sent externally.
+
+The Python checker remains pinned to approved commit `105051f`, independently
+of later source commits. Math, Wordprob, Guards, Relations, Document, Fusion,
+Dialogue and Code are separate composition components excluded from this
+specialist archive. Later family captures are also excluded. Earlier rejected
+Finance versions remain diagnostic, including the c937 parsing counterexample.
 
 Compiler-bound captures are retained under
 `var/C-runtime-package/bound-prepared/<native-attempt>/<family>/`. Each contains
@@ -51,8 +51,11 @@ Completed Linux comparisons for currently selected versions:
 | Humanities | 394 / 394 | 0 / 0 | 24 | `receipt-humanities-persvati-humanities-1792312178-44170.json` |
 | Emoptics | 1,253 / 1,253 | 0 / 0 | 52 | `receipt-emoptics-persvati-emoptics-1792312280-45745.json` |
 | Computing C | 1,364 / 1,364 | 0 / 0 | 52 | `receipt-computing-hbox-computing-1792312293-45989.json` |
+| Finance final a5f10 | 553 / 559 | 6 / 0 | 36 | `receipt-finance-hbox-finance-1792316287-2526.json` |
 
-Every comparison includes all that family's specialist IDs and both splits,
+Finance's six official wrong counts are preserved exact-Fisher-versus-approximate
+scorer disagreements; see `project/lanes/D-finance.md` for the original examples.
+They are not silently rescored. Every comparison includes all that family's specialist IDs and both splits,
 using original shipped panels/scorers and acceptance rules. Every status and
 response matches the exact frozen Darwin binary. Correct refusals can count
 as right. These are scoped family comparisons, not a whole-package score.
@@ -81,6 +84,12 @@ Fusion's Python adapters including numeric.py. Relations remains checkout-bound
 with external corpus assets. Fusion explicitly binds its retained passed proof
 snapshot and records nine differing live dependency files; it makes no current-
 theory match claim. These are excluded from the specialist tarball.
+Document's separate capture at
+`composition-prepared/20261018T083135Z-a06176c9879f/document/` retains both
+`6a5bda4e…` anchor and `cd4aea18…` legacy kernels, their consumed compiler
+inputs and proof/export closures, 25 own source/proof files and 26 direct
+upstream Python modules. Its legacy runtime chain and corpus stores remain
+external; this is a checkout-bound composition capture, not a portable bundle.
 
 The selected Stores E archive is available at
 `var/C-runtime-package/stores-E-both/veri7vn-specialists-2026-10-18.tar.gz`,
@@ -240,7 +249,7 @@ Linux comparison completed with every reply identical, official 553/559 right,
 six exact-Fisher scorer disagreements, zero false yes and 36 withheld. Receipt:
 `var/linux/receipt-finance-hbox-finance-1792316287-2526.json`.
 
-The complete corrected candidate is now `candidate-20261018-a5f10`: 21 families,
+The complete corrected delivery is `delivery-20261018-a5f10`: 21 families,
 144 folders, with exact platform bindings. Its Darwin archive under
 `var/C-runtime-package/candidate-native-a5f10/` is 8,377,015 bytes, SHA256
 `6d8d5b9a3ede107271662e5f3e07ba2679823b76255e0051ad2e36e2d6f4afa7`.
@@ -249,5 +258,7 @@ SHA256 `f7a51fe544a669da9a77684a1d9d2019712c3a673e7bb47e3f91d19f71473791`.
 Three Finance boundary probes pass on each extracted platform archive with
 identical responses; `relocation-{darwin,linux}.json` records actual binary,
 wrapper and checker hashes. `candidate-state.json` records the approved checker
-commit `105051f`. Root integration/selection remains pending; this is not yet
-the promoted delivery. No package build jobs remain.
+commit `105051f`. That candidate record preserves its preparation-time state;
+the authoritative promotion record is `delivery-20261018-a5f10.json`. Root
+explicitly selected both exact archives after review. No package build jobs
+remain, and nothing was sent externally.
