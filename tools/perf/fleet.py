@@ -459,6 +459,7 @@ def measure_oracle7(fams, a, scratch, python, progress=None):
     o7.update({"panels": [{"specialist": "(all families' panels)", "split": "-",
                            "n": len(cold) + len(warm), "statuses": statuses, "errors": errors,
                            **summarise(cold, warm)}],
+               "statuses": statuses,
                "warm_ms": warm, "cold_ms_all": [], "cold_trials_ms": [round(cold[0], 3)] if cold else [],
                "n_items": len(cold) + len(warm), "specialists": ["(head over all panels)"],
                "budgets": [], "budget_p50_ms": None, "budget_store_mb": None,
@@ -589,7 +590,7 @@ def main():
 # ---------------------------------------------------------------- markdown
 
 def ms(x):
-    return "-" if x is None else ("%.2f" % x if x < 10 else "%.1f" % x if x < 1000 else "%.0f")
+    return "-" if x is None else ("%.2f" % x if x < 10 else "%.1f" % x if x < 1000 else "%.0f" % x)
 
 
 def write_markdown(data, path):
@@ -671,20 +672,39 @@ def write_markdown(data, path):
 
     # outliers, stated in words
     out = []
+    over_budget = [r for r in fams if r.get("budget_p50_ms") is not None
+                   and r["stats"]["p50_ms"] > r["budget_p50_ms"]]
+    for r in over_budget:
+        out.append("`%s` p50 %.2f ms exceeds the tightest budget %.0f ms." % (
+            r["slug"], r["stats"]["p50_ms"], r["budget_p50_ms"]))
+    slow_cold = sorted((r for r in fams if r["stats"]["cold_ms"] > 100),
+                       key=lambda r: -r["stats"]["cold_ms"])
+    if slow_cold:
+        out.append("Cold starts above 100 ms: %s (everything else is 80 ms or less)."
+                   % ", ".join("`%s` %s ms" % (r["slug"], ms(r["stats"]["cold_ms"])) for r in slow_cold))
+    slow_panels = []
+    for r in fams:
+        for ps in r.get("panels", []):
+            if ps.get("n") and (ps.get("p50_ms") or 0) > 5:
+                slow_panels.append((r["slug"], ps))
+    if slow_panels:
+        out.append("Warm questions above 5 ms p50, all of them interval arithmetic"
+                   " (`HOL-Decision_Procs.Approximation`), everything else in the fleet is"
+                   " 0.05-0.5 ms: %s." % "; ".join(
+                       "`%s` on `%s` %s %s ms" % (f, ps["specialist"], ps["split"], ms(ps["p50_ms"]))
+                       for f, ps in sorted(slow_panels, key=lambda fp: -fp[1]["p50_ms"])))
     for r in fams + ([o7] if o7 else []):
-        st, bud = r["stats"], r.get("budget_p50_ms")
-        if bud is not None and st["p50_ms"] > bud:
-            out.append("`%s` p50 %.2f ms exceeds the tightest budget %.0f ms." % (r["slug"], st["p50_ms"], bud))
-        if st["cold_ms"] > 100:
-            out.append("`%s` cold start %.0f ms (median) is the slowest to come up." % (r["slug"], st["cold_ms"]))
-        if st["max_ms"] > 1000:
-            slowest = ""
-            if r.get("panels"):
-                worst = max((ps for ps in r["panels"] if ps.get("n")), key=lambda ps: ps.get("max_ms") or 0)
-                slowest = " Worst panel: %s %s (%s ms)." % (worst["specialist"], worst["split"], ms(worst["max_ms"]))
-            out.append("`%s` has a question above one second (max %s ms).%s" % (r["slug"], ms(st["max_ms"]), slowest))
-        if r["peak_rss_kib"] > 100 * 1024:
-            out.append("`%s` peaks at %.0f MiB resident." % (r["slug"], r["peak_rss_kib"] / 1024))
+        if r["stats"]["max_ms"] > 1000:
+            worst = ""
+            if r is o7 and o7.get("per_family"):
+                k = max(o7["per_family"], key=lambda k: o7["per_family"][k]["max_ms"])
+                worst = " Slowest family for it: `%s`." % k
+            out.append("`%s` has a question above one second (max %s ms).%s" % (
+                r["slug"], ms(r["stats"]["max_ms"]), worst))
+        if r["peak_rss_kib"] > 50 * 1024:
+            out.append("`%s` peaks at %.0f MiB resident%s." % (
+                r["slug"], r["peak_rss_kib"] / 1024,
+                " (its python fetcher child counts too)" if r["slug"] == "stores" else ""))
         if r.get("errors"):
             out.append("`%s` recorded %d protocol errors (timeouts or exits): %s."
                        % (r["slug"], len(r["errors"]), "; ".join(e["id"] for e in r["errors"][:5])))
@@ -696,7 +716,7 @@ def write_markdown(data, path):
         lines.extend("- " + s for s in out)
     else:
         lines.append("- None: every binary is under its budget, under 100 ms cold, under a second"
-                     " per question and under 100 MiB resident.")
+                     " per question and under 50 MiB resident.")
     lines.append("")
 
     # appendix: per specialist
