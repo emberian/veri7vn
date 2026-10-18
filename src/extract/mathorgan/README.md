@@ -64,10 +64,14 @@ correctness or measure the whole head's six release criteria.
 Before the unsupported assurance sentences were removed, the adopted binary
 matched all 93 recorded cases. The scorer separately reports exact matches
 and the precise suffix-only changes; its optional flag never hides other
-text or value differences. The final binary keeps all 93 status/path results: 52 exact matches and
-41 suffix-only changes. Seven test methods cover 28 boundary cases absent
-from the original panel. Seven selected cases also pass through the real
-dispatcher, including its actual precision guards.
+text or value differences. That initial adoption kept all 93 status/path results:
+52 exact matches and 41 suffix-only changes. The later complete-request repair
+keeps 87 status/path pairs; six derivative questions now correctly fall through
+instead of being misread as linear equations and vetoed. They remain withheld
+in this small route's comparison. Seven test methods cover 28 boundary cases
+absent from the original panel. Eight route test methods exercise complete
+solve requests and the actual precision guard, including a root that equals a
+number in the question.
 
 For composition, `--route algebra` and `--route ops` produce an answer, a
 recognized refusal (`provenance.taken=true`), or no match (`taken=false`). A
