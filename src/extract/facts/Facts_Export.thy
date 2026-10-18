@@ -1,5 +1,5 @@
 theory Facts_Export
-  imports Facts_Tables
+  imports Facts_Rows
 begin
 
 definition organ_by_id :: "String.literal \<Rightarrow> organ option" where
@@ -46,7 +46,29 @@ ML \<open>
     @{thm guard_exact}, @{thm answer_from_table}, @{thm organ_silent}, @{thm no_rule_silent},
     @{thm boundary_narrows}, @{thm boundary_only_silences}, @{thm family_first}, @{thm family_none},
     @{thm literature_order_matters}]
-    @ @{thms order_matters} @ @{thms tables_well_formed};
+    @ @{thms order_matters} @ @{thms tables_well_formed} @
+    [@{thm rows_facts_literature_v2},
+     @{thm rows_facts_worldhistory_v1},
+     @{thm rows_facts_arthistory_v1},
+     @{thm rows_facts_medicine_v1},
+     @{thm rows_facts_law_v1},
+     @{thm rows_facts_psychology_v1},
+     @{thm rows_facts_sociology_v1},
+     @{thm rows_facts_linguistics_v1},
+     @{thm rows_facts_poetry_v1},
+     @{thm rows_facts_botany_v1},
+     @{thm rows_facts_entomology_v1},
+     @{thm rows_facts_marinebio_v1},
+     @{thm rows_facts_ornithology_v1},
+     @{thm rows_facts_mycology_v1},
+     @{thm rows_facts_mycelial_v1},
+     @{thm rows_facts_pets_v1},
+     @{thm rows_facts_childdev_v1},
+     @{thm rows_facts_etiquette_v1},
+     @{thm rows_facts_firesafety_v2},
+     @{thm rows_facts_firstaid_v1},
+     @{thm rows_facts_javascript_v1},
+     @{thm organ_rows_bound}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("facts theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "facts self test failed";

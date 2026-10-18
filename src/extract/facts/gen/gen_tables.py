@@ -163,6 +163,68 @@ w("\nend\n")
 out = "\n".join(L)
 assert "\\<" not in out.split("ML \\<open>\nstructure Facts_Tables_Data")[1].split("\\<close>")[0].replace("\\<open>", ""), "symbol escape in table text"
 (REPO / "src/extract/facts/Facts_Tables.thy").write_text(out)
+
+# --- Facts_Rows.thy: a second, separately serialised copy of every table, and the equalities ----------------
+# The second copy is read from the store files again (same text escape, since the escaped text is what the
+# HOL tables hold) but written as hex digits of the 7-bit text, so it shares no string-literal syntax with
+# Facts_Tables.thy; the theorems below fail to build if either side drifts from the other.
+def hexs(s):
+    return '"' + s.encode("ascii").hex() + '"'
+R = []
+r = R.append
+r("""theory Facts_Rows
+  imports Facts_Tables
+begin
+
+text \\<open>Every shipped store's rule table a second time, as a constant \\<open>organ_rows_<store>\\<close>
+read from the store file by the lane's untrusted generator (\\<open>gen/gen_tables.py\\<close>) and written as
+hex digits of the 7-bit text of each guard, value and sentence (the same escape as Facts_Tables). The theorems
+\\<open>rows_<store>\\<close> state that the table the interpreter runs equals that constant, row by row, so the
+build fails if a table is edited without regenerating, or regenerated from a changed store without review.
+\\<open>tables_check.py\\<close> is the independent Python comparison of the same tables with the store files.\\<close>
+
+ML \\<open>
+structure Facts_Rows_Data =
+struct
+""")
+for name, rec in stores.items():
+    r("  val %s : (string * string * string) list = [" % name)
+    for i, (p_, v, s_) in enumerate(rec["facts"]):
+        r("    (%s,\n     %s,\n     %s)%s" % (hexs(p_), hexs(v), hexs(s_), "," if i + 1 < len(rec["facts"]) else "]"))
+r("""end
+
+structure Facts_Rows_Define =
+struct
+  fun unhex s =
+    String.implode (List.tabulate (String.size s div 2, fn i =>
+      Char.chr (Option.valOf (StringCvt.scanString (Int.scan StringCvt.HEX) (String.substring (s, 2 * i, 2))))))
+  fun rule (g, v, s) =
+    \\<^const>\\<open>Rule\\<close> $ HOLogic.mk_literal (unhex g) $ HOLogic.mk_literal (unhex v) $ HOLogic.mk_literal (unhex s)
+  fun define (name, rows) lthy =
+    let
+      val rhs = HOLogic.mk_list \\<^typ>\\<open>rule\\<close> (map rule rows)
+      val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (Free ("organ_rows_" ^ name, fastype_of rhs), rhs))
+    in snd (Specification.definition {verbose = false} (SOME (Binding.name ("organ_rows_" ^ name), NONE, NoSyn)) [] []
+         (Binding.empty_atts, eq) lthy) end
+end
+\\<close>
+""")
+for name in stores:
+    r("local_setup \\<open>Facts_Rows_Define.define (%s, Facts_Rows_Data.%s)\\<close>" % (sml(name), name))
+r("")
+for name in stores:
+    r("theorem rows_%s: \"%s_rules = organ_rows_%s\"" % (name, name, name))
+    r("  by (rule trans[OF %s_rules_def organ_rows_%s_def[symmetric]])" % (name, name))
+    r("")
+r("text \\<open>The whole family: each of the 22 organs, in family order, runs the table of its shipped store.\\<close>")
+r("theorem organ_rows_bound:")
+r("  \"map (store_rules \\<circ> organ_store) organs =")
+r("    [%s]\"" % ",\n     ".join("organ_rows_" + st for _, st, _ in organs))
+r("  by (simp add: organs_def %s)" % " ".join(["organ_%s_def" % ident(sid) for sid, _, _ in organs] + ["%s_store_def rows_%s" % (n, n) for n in stores]))
+r("")
+r("lemmas rows_bound = %s organ_rows_bound\n" % " ".join("rows_" + n for n in stores))
+r("end\n")
+(REPO / "src/extract/facts/Facts_Rows.thy").write_text("\n".join(R))
 lit = stores["facts_literature_v2"]["facts"]
 for i, (p, v, s) in enumerate(lit):
     if v in ("Pequod", "Moby-Dick"): print(i, v, p[:70])

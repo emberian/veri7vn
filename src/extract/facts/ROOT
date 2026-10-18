@@ -11,4 +11,5 @@ session Veri7vn_Facts = Veri7vn_Facts_Base +
   options [document = false, threads = 2]
   theories
     Facts_Tables
+    Facts_Rows
     Facts_Export
