@@ -1,0 +1,75 @@
+theory Finance_Export
+  imports Finance
+begin
+
+text \<open>Constructor the untrusted SML recognizer uses to build rationals from
+decimal numerals it read off the text.\<close>
+definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
+  "mk_rat a b = Fract (int_of_integer a) (int_of_integer b)"
+
+text \<open>Whether the kernel answers a request.\<close>
+definition answers :: "request \<Rightarrow> bool" where
+  "answers r = answered (reply_of r)"
+
+definition self_test :: bool where
+  "self_test \<longleftrightarrow>
+     kernel (F_Savings (Some 1200) (Some 1) None) = Exact K_savings_goal 100 \<and>
+     kernel (F_Simple (Some 5000) (Some (8 / 100)) (Some 10)) = Exact K_simple_interest 4000 \<and>
+     kernel (F_LoanPayment (Some 1200) (Some 0) (Some 1)) = Exact K_loan_payment 100 \<and>
+     kernel (F_Compound (Some 1000) (Some (1 / 10)) (Some 2) (Some Fq_annual)) = Cents K_compound 121000 \<and>
+     kernel (F_Compound (Some 1000) (Some (1 / 20)) (Some 1) (Some Fq_continuous)) = Approx K_compound (105127, -2) \<and>
+     kernel (F_Compound (Some 1000) (Some (1 / 10)) (Some (1 / 2)) (Some Fq_annual)) = Approx K_compound (104881, -2) \<and>
+     kernel (F_Apy (Some (1 / 20)) (Some Fq_continuous)) = Approx K_apy (51271, -4) \<and>
+     kernel (F_Doubling (Some (8 / 100))) = Approx K_doubling (901, -2) \<and>
+     kernel (F_Doubling None) = Decline (Underspecified N_pos_rate) \<and>
+     kernel (E_Multiplier (3 / 5)) = Exact K_multiplier (5 / 2) \<and>
+     kernel (E_Multiplier (6 / 5)) = Decline (Impossible R_mpc) \<and>
+     kernel (R_Margin 8 10) = Exact K_margin 20 \<and>
+     kernel (R_BreakEven (Some 30000) (Some 24) (Some 4)) = Exact K_break_even 1500 \<and>
+     kernel (R_BreakEven (Some 1) (Some 4) (Some 4)) = NoValue K_never_even \<and>
+     kernel (R_EOQ (Some 1200) (Some 40) (Some 2)) = Approx K_eoq (2191, -1) \<and>
+     kernel F_Advice = Decline Advice \<and>
+     response (reply_of (F_Simple (Some 5000) (Some (8 / 100)) (Some 10))) =
+       STR ''The simple interest is $4,000.00 (I = P*r*t = $5,000.00 x 8% x 10 years); total $9,000.00.'' \<and>
+     stated (reply_of (F_Simple (Some 5000) (Some (8 / 100)) (Some 10))) = Some (STR ''4000.00'') \<and>
+     response (reply_of (F_Compound (Some 1000) (Some (1 / 10)) (Some 2) (Some Fq_annual))) =
+       STR ''It grows to $1,210.00 ($1,000.00 at 10% compounded annually for 2 years; interest earned $210.00).'' \<and>
+     response (reply_of (R_Margin 8 10)) = STR ''The gross margin is 20% (($10.00 - $8.00) / price $10.00).'' \<and>
+     response (reply_of (R_EOQ (Some 1200) (Some 40) (Some 2))) =
+       STR ''The EOQ is 219.1 units (sqrt(2 x 1200 x $40.00 / $2.00)).'' \<and>
+     response (reply_of (E_Multiplier (3 / 5))) = STR ''The spending multiplier is 2.5 (1 / (1 - MPC) = 1 / 0.4).'' \<and>
+     response (reply_of (E_Elasticity (Some (20, 22)) (Some (1000, 980)))) =
+       STR ''The price elasticity of demand is -0.212 (midpoint method: %dQ -2.02% / %dP 9.524%) - inelastic (|E| < 1).''"
+
+export_code reply_of answered reply_kind response stated answers mk_rat self_test
+  Fq_annual Fq_semi Fq_quarterly Fq_monthly Fq_weekly Fq_daily Fq_continuous
+  F_Apy F_Doubling F_LoanPayment F_LoanInterest F_Savings F_Simple F_Compound F_Advice F_MultiPhase
+  E_Elasticity E_ElasticityPct E_Inflation E_RealValue E_RealRate E_Growth E_Multiplier
+  E_TaxMultiplier E_Unemployment E_Participation E_Deflator E_Rule70
+  R_BreakEven R_EOQ R_ROP R_Turnover R_Days R_Markup R_Margin R_PriceMarkup R_PriceMargin
+  R_Discount R_WithTax
+  in SML module_name Finance file_prefix finance
+
+ML \<open>
+  val theorems = [@{thm kernel_exact_sound}, @{thm kernel_cents_sound}, @{thm kernel_approx_sound},
+    @{thm kernel_underspecified}, @{thm kernel_impossible}, @{thm kernel_imprecise},
+    @{thm reason_of_exact}, @{thm never_even_iff},
+    @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm to_dec_at_sound}, @{thm to_dec_g4_sound},
+    @{thm enclose_fmt_sound}, @{thm quant_sound}, @{thm round_tie_up}, @{thm round_frac_eq},
+    @{thm compound_frac_props}, @{thm rpow_eq},
+    @{thm loan_amortizes}, @{thm savings_reaches_goal}, @{thm loan_interest_is_total_minus_principal},
+    @{thm simple_interest_additive}, @{thm apy_compounding}, @{thm apy_at_least_nominal},
+    @{thm doubling_model}, @{thm compound_matches_exponential}, @{thm eoq_model},
+    @{thm break_even_equation}, @{thm margin_markup_relation}, @{thm price_from_margin_correct},
+    @{thm price_from_markup_correct}, @{thm discounts_compose}, @{thm multiplier_equation},
+    @{thm tax_multiplier_relation}, @{thm fisher_relation}, @{thm unemployment_in_range},
+    @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_states_cents},
+    @{thm reply_states_approx}, @{thm reply_withheld_names_decline},
+    @{thm exact_stated_within_tolerance}] @ @{thms kernel_refusal};
+  val oracles = Thm_Deps.all_oracles theorems;
+  val _ = if null oracles then () else error ("finance theorems use oracles: " ^ string_of_int (length oracles));
+  val _ = if @{code self_test} then () else error "finance self test failed";
+  val _ = writeln ("VERI7VN_FINANCE PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");
+\<close>
+
+end

@@ -1,0 +1,18 @@
+(* Lane S13-finance: the Oracle7 finance family (finance, finance-v2,
+   finance-v2-r2, economics, retail) as one HOL kernel, exported to SML.
+   The base session only loads Isabelle's verified interval arithmetic
+   (HOL-Decision_Procs.Approximation, no HOL-Analysis); the kernel session
+   rebuilds quickly on top of it. Pattern: lane G (src/extract/quantity). *)
+session Veri7vn_Finance_Base in base = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+  theories
+    Finance_Base
+
+session Veri7vn_Finance = Veri7vn_Finance_Base +
+  options [document = false, threads = 2]
+  theories
+    Finance_Num
+    Finance
+    Finance_Export
