@@ -9,7 +9,7 @@ dispatch, package and route reports contain their own execution receipts.
 ownership. Earth and finance add the missing 13 IDs: 144 specialist IDs are
 owned by 21 specialist family entries, including variants. Fusion, guards,
 word problems, document and relations have separate stage roles. Mathematics
-has a stage adapter but is awaiting its final build before registration. These are
+now has a registered stage adapter and a freshly checked executable. These are
 not interchangeable request protocols. A registry entry does not certify the
 age or correctness of an executable.
 
@@ -19,6 +19,14 @@ overlay: explicit answer kinds, in-domain refusal kinds and context-pattern
 alternatives. Upstream manifests remain untouched. Unknown fields,
 cross-family specialist claims, malformed regexes and duplicate ownership
 are rejected. The overlay preserves the original manifest's other rules.
+
+Five inherited manifests (decay, fluids, fluids-r2, springs and fuels) encoded
+word boundaries as literal backspace characters. The shared loader repairs
+only those five inspected original patterns, without writing upstream or
+normalizing other escapes. Five actual composed domain refusals now stop at
+the specialist stage; their receipt is
+`var/C-runtime-consumers/context-repair.json`. Other missing subject vocabulary
+still belongs to each family's explicit context additions.
 
 Capability evidence is labelled as a declaration. It is not turned into a
 claim that a theorem was checked for this particular question. The answerer
@@ -47,7 +55,7 @@ and savings requests do not currently emit this replay packet.
 
 ## Checks so far
 
-- `python3 -B tools/test_runtime_contract.py`: 12 tests pass. Tests cover
+- `python3 -B tools/test_runtime_contract.py`: 13 tests pass. Tests cover
   ownership, schema and regex rejection, preserving original acceptance,
   changing packet inputs/results/output while leaving its `accepted` flag
   true, stacked discounts with a half-cent boundary, malformed present
@@ -98,15 +106,22 @@ wrappers therefore default to previews with truthful refusals of effects.
 An explicit sequential owner can enable effects. Actual Combo tests cover
 speculative fan-out, counterfactuals, repeat calls and concurrent calls without
 state writes. Cooking remains usable independently.
-New route adapters must preserve
-the difference between not recognizing a question and refusing a recognized
-request. Math's 93/93 recorded panel exposed signed/noninteger parsing defects
-on additional probes; the corrected recognizer passed 23 further boundary
-probes before initial registry activation. Source review then found unconditional
-claims about a second check and a rendering defect in two-sided equations;
-its owner is correcting those and rebuilding before final completion. The
-math registry entry is held out of the stable core commit until that source
-and its final build land together.
+Route adapters preserve the difference between not recognizing a question and
+refusing a recognized request. The final mathematics packet has a completed
+41-statement/zero-oracle proof build, 28 independent recognizer boundary cases
+and seven actual composed checks. All 93 recorded head cases retain their
+status and path; 52 retain exact text and 41 differ only by removing an
+unsupported assurance sentence. This recorded comparison is not mathematical
+correctness coverage. The typed linear-equation and integer-root laws, source
+receipts and limits are in `C-runtime-routes.md`.
+
+The current word-problem wording packet is also built: 24 recorded cases keep
+their status/path and lose only the unearned assurance suffix; 12 negative-given
+checks withhold. Further investigation found real mixed-unit and unsupported
+unit errors absent from that panel. The next route packet is implementing typed
+unit normalization and removing inherited echo refusals when an actual typed
+equation already establishes the requested solution. Current panel parity is
+not a reason to retain those defects.
 
 No Isabelle theorem was introduced by the shared Python contract. It is
 untrusted runtime glue. No entire-fleet or live-head score is claimed here.

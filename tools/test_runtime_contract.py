@@ -1,5 +1,6 @@
 """Boundary tests for family ownership and acceptance shared by both consumers."""
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -40,6 +41,25 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertEqual(result["context_regex"], "(?:old subject)|(?:new subject)")
         self.assertEqual(result["kept_field"], 17)
         self.assertNotIn("evidence", result)
+
+    def test_only_inspected_broken_word_boundaries_are_repaired(self):
+        from runtime_contract import _BROKEN_CONTEXTS
+        self.registry["families"][0]["specialists"] = ["decay"]
+        self.write("src/extract/families.json", self.registry)
+        self.write("src/extract/example/capabilities.json", {
+            "schema_version": 1, "family": "example", "specialists": {}})
+        def accepted(pattern):
+            self.write("upstream/root/specialists/decay/manifest.json", {"accept": {
+                "kinds": [], "declines_in_domain": ["impossible"], "context_regex": pattern}})
+            return acceptance(self.repo, self.repo / "upstream", "decay")["context_regex"]
+        repaired = accepted(_BROKEN_CONTEXTS["decay"])
+        self.assertTrue(re.search(repaired, "The isotope has negative activity."))
+        self.assertFalse(re.search(repaired, "the word yisotopeology"))
+        self.assertNotIn("\b", repaired)
+        valid = r"\bdecay\b"
+        self.assertEqual(accepted(valid), valid)
+        changed = "\bchanged upstream\b"
+        self.assertEqual(accepted(changed), changed)
 
     def test_cross_family_extension_rejected(self):
         self.cap["specialists"]["foreign"] = {}

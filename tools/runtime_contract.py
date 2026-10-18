@@ -128,11 +128,24 @@ def capability_for(repo, sid):
     raise ContractError(f"unknown specialist {sid!r}")
 
 
+# These five shipped JSON manifests encoded intended regex word boundaries as
+# literal backspace characters. Repair only the inspected original patterns;
+# valid escapes and changed upstream patterns are never normalized globally.
+_BROKEN_CONTEXTS = {
+    "decay": "\b(?:half[- ]?li(?:fe|ves)|decay\\w*|radioactive|isotope)\b",
+    "fluids-r2": "\b(?:pressure|buoyan\\w*|upthrust|submerged|floats?)\b",
+    "springs": "\b(?:springs?|hooke|spring constant)\b",
+    "fluids": "\b(?:pressure|buoyan\\w*|upthrust|submerged|floats?)\b",
+    "fuels": "\b(?:coal|lignite|anthracite|charcoal|wood|lpg|propane|natural gas|kerosene|jet fuel|petrol|gasoline|diesel)\b",
+}
+
+
 def acceptance(repo, upstream, sid):
     """Original accept object plus explicit kinds, declines, and context alternatives.
 
-    Existing fields are preserved. Context additions are regex alternatives,
-    not replacements; families cannot silently loosen another specialist.
+    Existing fields are preserved except five exact shipped backspace-boundary
+    defects documented above. Context additions are regex alternatives, not
+    replacements; families cannot silently loosen another specialist.
     """
     cap = capability_for(repo, sid)
     manifest = _read(Path(upstream) / "root/specialists" / sid / "manifest.json")
@@ -142,6 +155,8 @@ def acceptance(repo, upstream, sid):
     for key, additions in cap.get("accept", {}).items():
         original = _strings(acc.get(key, []), f"{sid}.accept.{key}")
         acc[key] = list(dict.fromkeys(original + additions))
+    if sid in _BROKEN_CONTEXTS and acc.get("context_regex") == _BROKEN_CONTEXTS[sid]:
+        acc["context_regex"] = acc["context_regex"].replace("\b", r"\b")
     patterns = cap.get("context_regex_additions", [])
     if patterns:
         original = acc.get("context_regex")
