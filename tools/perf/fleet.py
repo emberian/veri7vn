@@ -618,7 +618,8 @@ def write_markdown(data, path):
                  " **budget ms** is the tightest `latency_p50_ms` the family's manifests declare;"
                  " **fit** says whether the measured p50 respects it. **store MB** is the tightest"
                  " `store_mb` budget. **a/w/e** are answered / withheld / error counts over the"
-                 " questions asked.")
+                 " questions asked; withheld counts every non-answered reply (stores' `clarify` and"
+                 " Oracle7's `clarification` score as withheld, as the contract says).")
     lines.append("- Questions: every item of the dev and heldout panels of each specialist the family"
                  " serves, asked the way its lane scored it (`--specialist <id>`). Oracle7 answered the"
                  " same questions in the same order through one head process"
@@ -631,8 +632,9 @@ def write_markdown(data, path):
         fit = "-" if bud is None else ("yes" if st["p50_ms"] <= bud else "**NO**")
         statuses = r.get("statuses") or {}
         a_ = statuses.get("answered", 0)
-        w_ = statuses.get("withheld", 0)
-        e_ = statuses.get("error", 0) + sum(1 for k in statuses if k not in ("answered", "withheld"))
+        e_ = statuses.get("error", 0)
+        w_ = sum(v for k, v in statuses.items() if k not in ("answered", "error"))   # any non-answered
+        # reply scores as withheld (stores' "clarify", Oracle7's "clarification")
         size = "-" if r.get("size_bytes") is None else "%d" % (r["size_bytes"] / 1024)
         name = "`%s`" % r["slug"]
         if r["slug"] == "fusion":
@@ -709,10 +711,11 @@ def write_markdown(data, path):
                 continue
             sts = ps.get("statuses") or {}
             e_ = sts.get("error", 0)
+            w_ = sum(v for k, v in sts.items() if k not in ("answered", "error"))
             lines.append("| `%s` | `%s` | %s | %d | %s | %s | %s | %s | %s | %d / %d / %d |" % (
                 r["slug"], ps["specialist"], ps["split"], ps["n"], ms(ps["cold_ms"]), ms(ps["p50_ms"]),
                 ms(ps["p95_ms"]), ms(ps["max_ms"]), ms(budget_by_id.get(ps["specialist"])),
-                sts.get("answered", 0), sts.get("withheld", 0), e_))
+                sts.get("answered", 0), w_, e_))
     if o7:
         lines.append("")
         lines.append("### Oracle7 head, per family (the same questions, one process)")
