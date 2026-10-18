@@ -49,9 +49,9 @@ Commands (from this worktree root):
     python3 tools/dev/math-diff --answerer var/mathorgan/bin/mathorgan
 
 (The head replies it diffs against were produced once by
-`var/mathorgan/panel/run_head.py`, which runs `upstream/oracle7.py` on the 93
-items; `var/` is gitignored, so the replies live in this worktree's var and
-the recipe is in the report.)
+`tools/dev/math-panel-head-run`, which runs `upstream/oracle7.py` on the 93
+items; `var/` is gitignored, so the replies themselves live in this
+worktree's `var/mathorgan/panel/`.)
 
 ## Build receipts
 
@@ -207,9 +207,9 @@ agreement with the panel's recorded statuses and paths.
   from the kernel.
 - 93/93 parity is against a fresh head run recorded in this worktree's
   `var/mathorgan/panel/head_replies.jsonl` (var/ is gitignored; the runner
-  script is `var/mathorgan/panel/run_head.py`, reproduced in the repo as
-  part of this report's recipe). The head itself agreed with the panel
-  93/93 on status+path, so the ground truth is not self-referential.
+  is committed as `tools/dev/math-panel-head-run`). The head itself agreed
+  with the panel 93/93 on status+path, so the ground truth is not
+  self-referential.
 - Not measured: behaviour on adversarial or non-English inputs beyond the
   spot checks; the `want=perfect` sqrt path and the fraction op against the
   live head; long-run memory (single process, streaming, ~4 MB).
