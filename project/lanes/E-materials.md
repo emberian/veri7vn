@@ -1,104 +1,110 @@
 # Completing CT arithmetic, 18 October 2026
 
-Status: corrective native passed; source frozen for runtime capture and
-root integration. Initial E was integrated as b4a0699; its native is delivery-held. Hbox attempt `20261018T075206Z-27ab84a25c41` passed with
-74 theorem roots and zero oracles (build/log/export exit zero).
-D is integrated as 4e51593 and its final native is preserved at
-`var/E-materials/before-bin`.
+Status: final native and consumer checks passed; source frozen for root
+integration and runtime capture. Selected native is 0c693169, bound below.
+Earlier candidates retain their exact immutable snapshots and counterexamples.
 
-The water specialists previously computed only concentration times contact
-time, and could misread signed, fractional or scientific inputs. The current
-source also computes contact time from CT and residual concentration, and
-residual concentration from CT and contact time. Requested targets remain
-separate typed requests. Shared exact numeral spans preserve signs and
-fractions; minutes, hours and seconds convert exactly to minutes.
+The water specialists now calculate contact time from CT and residual
+concentration, and residual concentration from CT and contact time. The requested
+target stays explicit. Inputs use exact signed, fractional and scientific
+numbers. Minutes, hours and seconds convert exactly to minutes. CT,
+concentration and time must be nonnegative, and an inverse requires a strictly
+positive divisor. Zero concentration cannot determine time; zero time cannot
+determine concentration.
 
-CT, residual concentration and contact time must be nonnegative. Each inverse
-needs a strictly positive divisor, so zero concentration does not imply an
-arbitrary contact time and zero time does not imply an arbitrary concentration.
+The model assumes the supplied constant residual throughout the stated contact
+time. ppm follows the inherited dilute-water mg/L convention; density is not
+inferred. It does not choose regulatory CT targets or decide whether water is
+safe to drink. English recognition, unit attachment and framing are untrusted.
 
-The checked independent laws state that an exact inverse time has time kind,
-nonnegative CT/time, positive residual and residual times time equal to CT;
-an exact inverse concentration has concentration kind, nonnegative CT and
-concentration, positive time, and the same balance. The forward law now also
-records its nonnegative input guards.
+Checked independent laws:
 
-The model assumes the supplied constant residual concentration throughout the
-stated contact time. ppm follows the inherited dilute-water mg/L convention;
-no solution density is inferred. It neither chooses a regulatory CT target nor decides
-whether water is safe to drink. English role/unit binding, exact numeral
-lexing and framing remain untrusted.
+- An exact inverse time has time kind, nonnegative CT/time, positive residual,
+  and residual multiplied by time equal to CT.
+- An exact inverse concentration has concentration kind, nonnegative CT and
+  concentration, positive time, and the same balance.
+- The forward CT binding additionally records nonnegative concentration/time.
 
-Twenty new probes join the preceding 46. The D baseline scores 55 right,
-1 wrong, 2 false yes and 8 valid withheld in both modes. Final E scores 66/66,
-zero wrong, false yes or valid withheld. A target-recognition regression in
-“concentration times time” was found during review, repaired, and added as the
-last probe before the untouched sample.
+Hbox proof `20261018T075206Z-27ab84a25c41` passed with 74 theorem roots and zero
+oracles; build, whole-log and export exits are zero. Export SHA256:
+`10d00ef01d669bfcba2aed95e6b15250c3be26e3a07cc4727492bfa874816a55`.
+Later reader corrections reuse this unchanged proven request algebra.
 
-Final mapped shipped panels remain 440/440 in both modes. Official panels have
-347 cases; water-r3 has no own panel and inherits water's cases in the mapped
-total. Fresh seed 20270518 scores 442/442, matching D; untouched seed 20270619
-scores 450/450, also matching D. The official scoped harness confirms 347/347
-with zero wrong or false yes; its verdict remains INCOMPLETE because full-head
-criteria were not run, and water-r3 is explicitly NO PANEL. Fresh sampling uses the original generator pools and templates,
-not independent question design. Fresh was measured before the last target-phrase
-repair; final shipped, probes and untouched checks followed it.
+## Quantity and unit binding
 
-The final native is 807,592 bytes. Its first measured launch took 166.26 ms;
-the next four took 3.18–3.71 ms. Specialist in-binary median replies took
-0.069–0.253 ms. Source-to-table checks pass.
+CT now consumes shared `MeasuredInput` measurements from raw user text. Byte
+spans refer to original text; role matching uses a byte-preserving lowercase
+copy. A label cannot override the actual unit dimension: CT with mg/L, residual
+with minutes, and time with mg/L are refused. Unsupported compound division,
+powers, multiplication, `per`, hyphenated units and adjacent known units cannot
+be shortened to a supported prefix. Prefix and suffix quantity roles must agree.
+Explicit requested targets take priority over incidental trailing input labels.
+Bare labelled CT retains the established mg-min/L convention.
 
-Native SHA256: `5feedcfa8fcaeb036c9bfe9359e0847ece0edb8fb1540cee7a2979752cf8c9eb`.
-Export SHA256: `10d00ef01d669bfcba2aed95e6b15250c3be26e3a07cc4727492bfa874816a55`.
-Actual-input receipt:
-`var/materials/native-attempts/20261018T080533Z-9f177d8ba998/compile-inputs.json`.
-Final source hashes: `var/E-materials/final-hashes.json`.
-The source uses shared numeric hash
+The shared adapter belongs to the physical lane; this lane edited no shared
+file. Its final hash is
+`11f703525511191a6e075930191903841d65d158544075845c0142bfc32e2cb7`.
+The shared exact numeric lexer remains
 `2f313c77fadce09298f0387599e630b04a6551e800f52b6c79a88468b2cc046d`.
-Checks live under `var/E-materials/`: `final.json`, `fresh.json`,
-`untouched.json`, saved-D comparisons, and scoped `parity`.
+The local grammar still checks unknown bare fields; the adapter alone does not
+establish that a whole English request is valid.
 
-New dispatch kinds are `ct_time` and `ct_concentration` for water and water-r3,
-retaining their existing CT domain context. Root repeated all 66 probes in both
-modes and checked both new targets through actual specialist dispatch: CT 60
-with residual 2 gives 30 minutes; CT 60 with half an hour gives concentration 2.
-Both are decisive answers from the specialist stage alone. The exact command,
-replies and binary hash are in `var/E-materials/root-consumer.json`.
-Linux/package capture remains separate; no platform pass is claimed here.
+## Results and exact selected inputs
 
-
-## Dimensional correction after initial integration
-
-The initial E reader accepted “CT 60 mg/L and contact time 30 min” as if CT
-had units mg-min/L and returned concentration 2. That candidate is rejected;
-its actual input snapshot and binary remain preserved. Evidence is
-`var/E-materials/rejected-ct-unit-candidate.json`. The initial measurements and
-hash above describe that rejected candidate, not the delivery selection.
-
-The correction binds units to dimensions before assigning quantity roles.
-Explicit CT, residual and time labels must agree with the supplied units;
-compound units cannot be truncated to mg/L or minutes. Bare labelled CT retains
-the established mg-min/L convention. Explicit requested targets also take
-priority over trailing input labels. This changes only the untrusted reader,
-not the proven request algebra or the 74-root export.
-
-Thirteen new dimensional/role probes give 79/79 right in both modes, with zero
-wrong, false yes or valid withheld. The invalid cases have contradictory
-physical dimensions; they are not unsupported valid conversions relabelled
-as successes. Auditing preceding material probe labels found malformed,
-contradictory, missing or physically impossible input cases, not unsupported
-unit requests. Final shipped mapped panels remain 440/440; official 347/347
-remain complete at the panel level (water-r3 still NO PANEL; overall scoped
-harness INCOMPLETE). Untouched seed 20270919 gives 448/448. Earlier fresh seed
-20270518 remains a pre-correction measurement; it is not claimed as final.
-
-Corrected native SHA256:
-`41eb7ac26ff0d0e3c922616ec016608f7e6e888c16a23158e19a031b927f3a41`.
-It is 825,032 bytes; five measured launches take 3.26–4.25 ms.
+Selected native SHA256:
+`0c693169e8180c7f7cc85d64c0ba87fb53ccf22c5dc31a2d54adccaac8d20d7c`.
 Actual-input receipt:
-`var/materials/native-attempts/20261018T082033Z-f6ee7b94dbf9/compile-inputs.json`.
-Proof/export remain the passed 20261018T075206Z-27ab84a25c41 attempt listed above.
-Final source hashes: `var/E-materials/corrective-final-hashes.json`.
-Final checks: `corrective-final.json`, `corrective-untouched.json`,
-`corrective-probes.json`, and `corrective-parity` under `var/E-materials/`.
-Consumer composition and Linux capture must select this corrective native.
+`var/materials/native-attempts/20261018T090009Z-997e3b5c8ad5/compile-inputs.json`.
+Native size 843688 bytes. No proof definition changed after the passed export.
+
+Both specialist and family modes score 92/92 authored probes: 0 wrong, 0 false yes,
+0 valid withheld. Evidence:`var/E-materials/operator-final-probes.json`.
+The preceding90-probe set measured D 60 right/1 wrong/14 false yes/15 valid
+withheld versus E 90 right; two operator-boundary regressions were then added.
+These are authored regressions, not independently generated questions.
+Malformed or contradictory units count as invalid; unsupported but valid
+mathematics is not relabelled invalid merely because it is withheld.
+
+Actual dispatcher 5/5 passes: mg/L.min, mg/L × min, mg/L·min and mg/L * min
+all stop at specs with terminal underspecified; ordinary residual2mg/L times
+30minutes yields CT60. Receipt:
+`var/C-runtime-consumers/materials-E-operator-final.json`.
+
+Historical scoped measurements retain their exact native attribution:
+720c8a15 scores 440/440 mapped,347/347 official and462/462 untouched seed20271219,
+all with0 wrong/0 false yes. Water-r3 has no own panel; its inherited93 count
+only in mapped totals. Harness remains INCOMPLETE because full-head criteria
+were not run. The following c2c19c80 shared-API-only rebind repeated 440/440 and
+90/90 probes. Initial 5feedcfa scored 442/442 on fresh seed20270518, which is not
+a final-reader fresh result. Fresh sampling uses shipped generator templates.
+Receipts under var/E-materials: selected-final.json, selected-untouched.json,
+selected-parity/, shared-api-final.json. The 720c first launch was 174.75ms and
+next four 3.58–3.93ms; those timings are not assigned to the selected binary.
+
+## Preserved corrections
+
+- Initial 5feedcfa, integrated as b4a0699, accepted CT60mg/L as CT60mg-min/L:
+  rejected-ct-unit-candidate.json.
+- 41eb7ac2, integrated as d64fef4, accepted residual2mg/L per min:
+  compound-word-review.json.
+- b671aa5b accepted residual2mg/L-min and residual2mg/L min:
+  rejected-adjacent-unit-candidate.json.
+- c2c19c80 accepted residual2mg/L.min and residual2mg/L × min:
+  rejected-unit-operator-candidate.json.
+
+All evidence files are under var/E-materials and all candidate binaries remain
+retained. No held candidate is the selected delivery. Reader changes bind
+complete units through the shared adapter rather than adding local unit-tail
+exceptions. Shared owner physical repaired the discovered operator cases.
+
+Changed after d64fef4: build.sh, recognizer.sml, probes.json, README.md in
+src/extract/materials plus this report. Initial E additionally changed
+Materials.thy, Materials_Export.thy, main.sml and capabilities.json.
+New wire kinds ct_time and ct_concentration serve water/water-r3. Linux capture
+and root integration must select the current exact native/inputs; no platform
+result is inferred from local native or dispatcher checks.
+
+The selected 0c693169 native also repeats 440/440 mapped shipped cases in both
+modes, with 0 wrong and 0 false yes. Current evidence:
+`var/E-materials/operator-final-shipped.json`. Five launch times in ms:
+3.57, 3.24, 3.38, 3.92, 3.37; median 3.38 ms.

@@ -586,7 +586,7 @@ struct
   (* ---------- water ---------- *)
   fun wnum low m g = rat (nth low m g)
 
-  fun waterV1 (low : string) : M.request option =
+  fun waterV1 (low : string) (raw : string) : M.request option =
     if has "\\b(?:safe|okay|ok) to drink\\b|\\bdrinkable\\b|\\bpotable\\b" low then SOME M.Potable
     else if has "\\bhardness\\b|\\bgrains? per gallon\\b|\\bgpg\\b" low then
       let
@@ -629,9 +629,23 @@ struct
       end
     else if has "\\bct\\b|\\bct value\\b|\\bconcentration times time\\b" low then
       let
-        val ns = scalars low
-        fun tail n = afterScalar low n
-        fun prefix n = beforeScalar low n
+        (* Case folding is byte-preserving; spans are attached to raw user text. *)
+        val low = lower raw
+        fun units dimension tag aliases = List.map (fn alias =>
+          {alias=alias, tag=tag, dimension=dimension, caseSensitive=false}) aliases
+        val unitTable =
+          units "ct" "ct" ["mg-min/L", "mg-mins/L", "mg-minute/L", "mg-minutes/L",
+            "mg min/L", "mg mins/L", "mg minute/L", "mg minutes/L",
+            "mg\194\183min/L", "mg\194\183mins/L", "mg\194\183minute/L", "mg\194\183minutes/L"] @
+          units "concentration" "concentration" ["mg/L", "ppm"] @
+          units "time" "minutes" ["min", "mins", "minute", "minutes"] @
+          units "time" "hours" ["hr", "hrs", "hour", "hours"] @
+          units "time" "seconds" ["sec", "secs", "second", "seconds"]
+        val scanned = MeasuredInput.scan unitTable raw
+        val malformed = List.exists (fn MeasuredInput.Malformed _ => true | _ => false) scanned
+        val ns = List.mapPartial (fn MeasuredInput.Measurement n => SOME n | _ => NONE) scanned
+        fun tail (n : MeasuredInput.measurement) = String.extract (low, #stop (#numberSpan n), NONE)
+        fun prefix (n : MeasuredInput.measurement) = String.substring (low, 0, #start (#numberSpan n))
         (* Units establish dimensions; an explicit role cannot override them.
            Bare labelled CT retains the established mg-min/L convention. *)
         val ctRole = "(?:target\\s+)?ct(?: value| target)?"
@@ -641,25 +655,20 @@ struct
         fun labelled n = if role ctRole n then SOME 0
                          else if role concentrationRole n then SOME 1
                          else if role timeRole n then SOME 2 else NONE
-        fun unit n =
-          let val t = tail n
-              fun matched pattern dimension factor =
-                case search pattern t of NONE => NONE | SOME m =>
-                  SOME (dimension, factor, String.extract (t, #stop m, NONE))
-          in case matched "^\\s*mg\\s*(?:[- ]|\194\183)\\s*(?:minutes?|mins?)\\s*/\\s*l\\b" 0 (1,1) of
-               SOME x => SOME x | NONE =>
-             (case matched "^\\s*(?:mg\\s*/\\s*l|ppm)\\b" 1 (1,1) of
-               SOME x => SOME x | NONE =>
-             (case search "^\\s*(minutes?|mins?|hours?|hrs?|seconds?|secs?)\\b" t of
-               NONE => NONE | SOME m =>
-                 let val u = valOf (grp t m 1)
-                     val factor : q = if String.isPrefix "h" u then (60,1)
-                                      else if String.isPrefix "s" u then (1,60) else (1,1)
-                 in SOME (2, factor, String.extract (t, #stop m, NONE)) end)) end
+        fun unit (n : MeasuredInput.measurement) = case #unitBinding n of
+            MeasuredInput.Explicit {unit=u,span} =>
+              let val dimension = if #dimension u = "ct" then 0
+                                  else if #dimension u = "concentration" then 1 else 2
+                  val factor : q = if #tag u = "hours" then (60,1)
+                                   else if #tag u = "seconds" then (1,60) else (1,1)
+              in SOME (dimension, factor, String.extract (low, #stop span, NONE)) end
+          | _ => NONE
         fun bareTail t = has "^\\s*(?:$|[,.?!;:]|(?:and|at|with|for)\\b)" t
         fun suffixRole pattern t = has ("^\\s+" ^ pattern ^ "\\b") t
         fun consistent n dimension rest =
-          (case labelled n of NONE => true | SOME r => r = dimension) andalso
+          (case labelled n of NONE => true | SOME r =>
+            (case MeasuredInput.bind {expected=if r=0 then "ct" else if r=1 then "concentration" else "time", inheritFrom=NONE} n of
+               MeasuredInput.Bound _ => true | _ => false)) andalso
           (not (suffixRole ctRole rest) orelse dimension = 0) andalso
           (not (suffixRole concentrationRole rest) orelse dimension = 1) andalso
           (not (suffixRole timeRole rest) orelse dimension = 2) andalso
@@ -670,7 +679,8 @@ struct
                 let val (v,w) = #value n in SOME (dimension, rat (v*a,w*b)) end else NONE
           | NONE => if labelled n = SOME 0 andalso bareTail (tail n)
                     then SOME (0, rat (#value n)) else NONE
-        val conflict = List.exists (fn n =>
+        val conflict = malformed orelse List.exists (fn n =>
+          (case #unitBinding n of MeasuredInput.Unsupported _ => true | _ => false) orelse
           (case unit n of SOME (dimension, _, rest) => not (consistent n dimension rest)
            | NONE => isSome (labelled n) andalso not (labelled n = SOME 0 andalso bareTail (tail n)))) ns
         val quantities = if conflict then [] else List.mapPartial quantity ns
@@ -745,7 +755,7 @@ struct
     in
       if t = "" orelse Narrow.narrative t then NONE
       else
-        case waterV1 (lower t) of
+        case waterV1 (lower t) text of
           NONE => NONE
         | SOME req => if not (answered req) andalso not (Narrow.short_direct t) then NONE else SOME req
     end

@@ -505,6 +505,97 @@
       "valid": false,
       "expect": null,
       "source": "E dimensional quantity-role binding regression. Contradictory dimensions are invalid."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L per min and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "Shared measurement adapter: whole compound-unit and exact original span regression."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L squared and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "Shared measurement adapter: whole compound-unit and exact original span regression."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L^2 and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "Shared measurement adapter: whole compound-unit and exact original span regression."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L\u00b2 and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "Shared measurement adapter: whole compound-unit and exact original span regression."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L * min and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "Shared measurement adapter: whole compound-unit and exact original span regression."
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 60 mg-min/L per minute and residual 2 mg/L?",
+      "valid": false,
+      "expect": null,
+      "source": "Shared measurement adapter: whole compound-unit and exact original span regression."
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 60 MG-MIN/L and residual 2 MG / L?",
+      "valid": true,
+      "expect": 30,
+      "source": "Shared measurement adapter: whole compound-unit and exact original span regression."
+    },
+    {
+      "specialist": "water",
+      "q": "What residual concentration is needed for CT 60 mg\u00b7minutes / L and contact time .5 hours?",
+      "valid": true,
+      "expect": 2,
+      "source": "Shared measurement adapter: whole compound-unit and exact original span regression."
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT   60 MG-MIN/L and residual\t2 MG / L?",
+      "valid": true,
+      "expect": 30,
+      "source": "Raw input byte spans survive whitespace and case-preserving unit attachment."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L-min and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "Contradictory concentration role with second unit; shared whole-unit attachment regression."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L min and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "Contradictory concentration role with second unit; shared whole-unit attachment regression."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L.min and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "Whole-unit operator continuation: concentration cannot include multiplied time."
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L \u00d7 min and contact time 30 min?",
+      "valid": false,
+      "expect": null,
+      "source": "Whole-unit operator continuation: concentration cannot include multiplied time."
     }
   ]
 }

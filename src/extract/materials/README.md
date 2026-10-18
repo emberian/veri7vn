@@ -75,3 +75,9 @@ CT readers bind each explicit unit to its quantity dimension. A CT label cannot
 override mg/L or minutes, and residual/time labels cannot swap their units.
 Compound units are not truncated to a supported prefix. Explicit requested
 targets take priority over incidental trailing input labels.
+
+CT unit attachment now uses shared `MeasuredInput` on raw user text. Role
+matching uses a byte-preserving lowercase copy; supported units have exact
+source spans. Unit powers, multiplication and `per` continuations are rejected
+when the full compound unit is unsupported. Requested outputs never supply
+input units.
