@@ -1,6 +1,6 @@
 theory Math
-  imports "HOL-Library.Code_Target_Numeral" "HOL-Library.Code_Target_Int"
-    "HOL-Library.Code_Abstract_Nat"
+  imports Main "HOL.Rat" "HOL-Library.Code_Target_Numeral"
+    "HOL-Library.Code_Target_Int" "HOL-Library.Code_Abstract_Nat"
 begin
 
 text \<open>
@@ -62,10 +62,18 @@ fun vars :: "expr \<Rightarrow> String.literal set" where
 | "vars (Neg a) = vars a"
 | "vars (Pow a n) = vars a"
 
+text \<open>A closed expression has one value under every reading: prove the two
+readings give the same option, then read the value off it.\<close>
+
+lemma ev_closed_eq:
+  assumes "vars e = {}"
+  shows "ev i e = ev j e"
+  using assms by (induction e) auto
+
 theorem eval_closed_ignores_reading:
   assumes "vars e = {}" "ev i e = Some v" "ev j e = Some w"
   shows "v = w"
-  using assms(2-) by (induction e arbitrary: i j v w) (auto split: option.splits)
+  using ev_closed_eq [OF assms(1), of i j] assms(2-) by simp
 
 section \<open>Units (the two families the panel converts)\<close>
 
@@ -125,86 +133,69 @@ is exactly \<open>m / 10 ^ nat e\<close>. None says the value has no terminating
 \<mdash> the one place an exact rational kernel must refuse a decimal and print
 a fraction instead.\<close>
 
-fun strip_factor :: "int \<Rightarrow> int \<Rightarrow> nat" where
-  "strip_factor p n = (if n \<noteq> 0 \<and> n mod p = 0 then Suc (strip_factor p (n div p)) else 0)"
+text \<open>Find the least \<^term>\<open>e\<close> with \<open>10 ^ e \<cdot> q\<close> an integer, searching up
+from the starting exponent until the fuel runs out. Twenty tries is far past
+anything the routes state; the search makes the expansion canonical (smallest
+exponent) without any divisibility reasoning, and needs no termination proof
+because the fuel argument is structurally smaller.\<close>
 
-lemma strip_factor_dvd:
-  assumes "1 < p"
-  shows "p ^ strip_factor p n dvd n \<or> n = 0"
-  using assms
-  by (induction n rule: strip_factor.induct)
-     (auto simp: dvd_def power_Suc [symmetric] algebra_simps
-       simp del: power_Suc intro!: mult_dvd_mono[of _ p])
+fun dec_search :: "rat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> (int \<times> int) option" where
+  "dec_search q e 0 = None"
+| "dec_search q e (Suc b) =
+     (if snd (quotient_of (of_nat (10 ^ e) * q)) = 1
+      then Some (fst (quotient_of (of_nat (10 ^ e) * q)), int e)
+      else dec_search q (Suc e) b)"
 
-lemma strip_factor_max:
-  assumes "1 < p" "n \<noteq> 0" "p ^ k dvd n"
-  shows "k \<le> strip_factor p n"
+definition dec_expansion :: "rat \<Rightarrow> (int \<times> int) option" where
+  "dec_expansion q = dec_search q 0 20"
+
+lemma dec_search_sound:
+  assumes "dec_search q e b = Some (m, k)"
+  shows "int e \<le> k \<and> k < int e + int b \<and> 10 ^ (nat k) * q = of_int m"
   using assms
-proof (induction n arbitrary: k rule: strip_factor.induct)
-  case (1 p n)
+proof (induction b arbitrary: q e m k)
+  case 0
+  then show ?case by simp
+next
+  case (Suc b)
   show ?case
-  proof (cases "n mod p = 0")
-    case True
-    then have div0: "n div p * p = n" by simp
-    from 1.prems(3) have "p * p ^ k dvd n" by (metis power_Suc mult.commute mult_dvd_mono)
-    with div0 have "p ^ k dvd n div p" by (simp add: dvd_mult_div_cancel)
-    then show ?thesis using 1.IH 1.prems True by auto
+  proof (cases "snd (quotient_of (of_nat (10 ^ e) * q)) = 1")
+    case hit: True
+    from Suc.prems hit
+    have peq: "Some (fst (quotient_of (of_nat (10 ^ e) * q)), int e) = Some (m, k)"
+      by simp
+    from peq have fm: "fst (quotient_of (of_nat (10 ^ e) * q)) = m"
+      and ek: "int e = k" by auto
+    define n where "n = fst (quotient_of (of_nat (10 ^ e) * q))"
+    from fm have mn: "m = n" by (simp add: n_def)
+    from ek have ke: "k = int e" by simp
+    from fm mn hit have qeq: "quotient_of (of_nat (10 ^ e) * q) = (n, 1)"
+      by (metis prod.collapse)
+    from quotient_of_div [OF qeq] have qn: "of_nat (10 ^ e) * q = of_int n" by simp
+    have c1: "int e \<le> k" using ke by simp
+    have c2: "k < int e + int (Suc b)" using ke by simp
+    have c3: "10 ^ (nat k) * q = of_int m" using qn ke mn by simp
+    from c1 c2 c3 show ?thesis by simp
   next
-    case False
-    then have "strip_factor p n = 0" by simp
-    with 1.prems(2-) False show ?thesis
-      by (metis dvd_triv_left mod_0 neq0_conv power_0 zero_less_power)
+    case miss: False
+    from Suc.prems miss have rec: "dec_search q (Suc e) b = Some (m, k)" by simp
+    note ih = Suc.IH [of q "Suc e" m k, OF rec]
+    from ih have "int (Suc e) \<le> k" "k < int (Suc e) + int b" by simp_all
+    then have "int e \<le> k" "k < int e + int (Suc b)" by linarith+
+    moreover from ih have "10 ^ (nat k) * q = of_int m" by simp
+    ultimately show ?thesis by simp
   qed
 qed
 
-definition dec_expansion :: "rat \<Rightarrow> (int \<times> int) option" where
-  "dec_expansion r =
-    (let (n, d) = quotient_of r;
-         a = strip_factor 2 d;
-         b = strip_factor 5 d;
-         L = max a b;
-         s = d div (2 ^ a * 5 ^ b)
-     in if s = 1 then Some (n * (10 ^ L div d), int L) else None)"
-
 theorem dec_expansion_sound:
-  assumes "dec_expansion r = Some (m, e)"
-  shows "r = of_int m / 10 ^ (nat e)"
+  assumes "dec_expansion q = Some (m, e)"
+  shows "0 \<le> e" "q = of_int m / 10 ^ (nat e)"
 proof -
-  obtain n d where nd: "quotient_of r = (n, d)" by (cases "quotient_of r") auto
-  have rd: "r = of_int n / of_int d" using nd by (rule quotient_of_div)
-  have dpos: "0 < d" using nd by (rule quotient_of_denom_pos')
-  define a where "a = strip_factor 2 d"
-  define b where "b = strip_factor 5 d"
-  define L where "L = max a b"
-  have s1: "d div (2 ^ a * 5 ^ b) = 1" and me: "(m, e) = (n * (10 ^ L div d), int L)"
-    using assms nd by (auto simp: dec_expansion_def a_def b_def L_def split: if_splits)
-  have q_dvd: "2 ^ a * 5 ^ b dvd d"
-  proof (cases "d = 0")
-    case False
-    have "2 ^ a dvd d" using strip_factor_dvd[of 2 d] False by (auto simp: a_def)
-    moreover have "5 ^ b dvd d" using strip_factor_dvd[of 5 d] False by (auto simp: b_def)
-    ultimately show ?thesis
-      by (meson coprime_dvd_mult_iff coprime_power_int gcd.commute gcd_nat.eq_iff
-          gcd_nat.left_commute)
-  qed simp
-  have d_eq: "d = 2 ^ a * 5 ^ b"
-    using q_dvd s1 by (metis div_mult_self2 div_mult_self4 int_dvd_int_iff
-      self_division zero_neq_one)
-  have a_le: "a \<le> L" and b_le: "b \<le> L" by (simp_all add: L_def)
-  have dvd10: "d dvd 10 ^ L"
-    unfolding d_eq power_int_dvd_iff
-    using a_le b_le by (auto intro: le_imp_power_dvd)
-  then have "10 ^ L div d * d = 10 ^ L" by (rule dvd_mult_div_cancel)
-  then have split: "10 ^ L = d * (10 ^ L div d)" by (simp add: mult.commute)
-  have "of_int m / 10 ^ (nat e) = of_int n / of_int d"
-  proof (cases "10 ^ L div d = 0")
-    case False
-    have "of_int (n * (10 ^ L div d)) / of_int (10 ^ L) = of_int n / of_int d"
-      unfolding split of_int_mult of_int_div [symmetric]
-      by (metis False div_mult_self2 div_mult_self4 of_int_eq_0_iff split(1))
-    then show ?thesis using me by (simp add: L_def)
-  qed (use me L_def in auto)
-  then show ?thesis using me rd L_def by simp
+  from dec_search_sound [of q 0 20 m e] assms
+  have "0 \<le> e" and eq: "10 ^ (nat e) * q = of_int m" by (auto simp: dec_expansion_def)
+  then show "0 \<le> e" by simp
+  have nz: "(10 ^ (nat e) :: rat) \<noteq> 0" by (rule power_not_zero) simp
+  from eq nz show "q = of_int m / 10 ^ (nat e)" by (simp add: field_simps)
 qed
 
 section \<open>Number rendering (ASCII, exact)\<close>
@@ -263,16 +254,16 @@ fun digs :: "int \<Rightarrow> nat" where
 definition pow10rat :: "int \<Rightarrow> rat" where
   "pow10rat e = (if e \<ge> 0 then of_int (10 ^ nat e) else 1 / of_int (10 ^ nat (- e)))"
 
-text \<open>The decimal exponent of a nonzero rational: \<^term>\<open>10 ^ e \<le> \<bar>q\<bar> <
-10 ^ (e + 1)\<close>. The corrections move e at most two steps off the digit-count
+text \<open>The decimal exponent of a nonzero rational q: the integer e with
+10 ^ e at most the absolute value of q, and that absolute value below
+10 ^ (e + 1). The corrections move e at most two steps off the digit-count
 estimate.\<close>
 
 definition fit_exp :: "rat \<Rightarrow> int \<Rightarrow> int" where
   "fit_exp q e0 =
-    (let e = (if \<bar>q\<bar> < pow10rat (e0 - 1) then
-                (if \<bar>q\<bar> < pow10rat (e0 - 2) then e0 - 2 else e0 - 1)
-              else if \<bar>q\<bar> \<ge> pow10rat e0 then e0 + 1 else e0)
-     in e)"
+    (if \<bar>q\<bar> < pow10rat e0 then e0 - 1
+     else if \<bar>q\<bar> \<ge> pow10rat (e0 + 1) then e0 + 1
+     else e0)"
 
 text \<open>Round a nonnegative rational to an integer, halves away from zero.\<close>
 
@@ -282,28 +273,31 @@ definition round_up :: "rat \<Rightarrow> int" where
 text \<open>\<open>sig6 q = (m, e)\<close> with \<open>q \<approx> m * 10 ^ e\<close>, m carrying one to
 six digits, rounded to six significant digits, trailing zeros stripped.\<close>
 
+fun stripz :: "nat \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<times> int" where
+  "stripz 0 m e = (m, e)"
+| "stripz (Suc f) m e =
+    (if m \<noteq> 0 \<and> m mod 10 = 0 then stripz f (m div 10) (e + 1) else (m, e))"
+
 definition sig6 :: "rat \<Rightarrow> int \<times> int" where
   "sig6 q =
     (let (n, d) = quotient_of q;
-         e0 = int (digs n) - int (digs d);
+         e0 = int (digs n) - int (digs d) - 1;
          e1 = fit_exp q e0;
          m = (if q < 0 then - round_up (\<bar>q\<bar> * pow10rat (5 - e1))
-              else round_up (\<bar>q\<bar> * pow10rat (5 - e1)));
-         strip = (\<lambda>(m, e). if m \<noteq> 0 \<and> m mod 10 = 0 then (m div 10, e + 1) else (m, e));
-         (m1, e2) = strip (m, e1 - 5);
-         (m2, e3) = strip (m1, e2)
-     in (m2, e3))"
+              else round_up (\<bar>q\<bar> * pow10rat (5 - e1)))
+     in stripz 8 m (e1 - 5))"
 
 definition render_g6 :: "rat \<Rightarrow> String.literal" where
   "render_g6 q =
     (if is_int q then show_int (fst (quotient_of q))
      else let (m, e) = sig6 q;
+              sg = (if m < 0 then STR ''-'' else STR '''');
               ds = digits (nat \<bar>m\<bar>);
               p = int (length ds) + e
           in if m = 0 then STR ''0''
-             else if e \<ge> 0 then lit ds + lit (replicate (nat e) 0)
-             else if p > 0 then lit (take (nat p) ds) + STR ''.'' + lit (drop (nat p) ds)
-             else STR ''0.'' + lit (replicate (nat (- p)) 0) + lit ds)"
+             else if e \<ge> 0 then sg + lit ds + lit (replicate (nat e) 0)
+             else if p > 0 then sg + lit (take (nat p) ds) + STR ''.'' + lit (drop (nat p) ds)
+             else sg + STR ''0.'' + lit (replicate (nat (- p)) 0) + lit ds)"
 
 section \<open>The integer square root, and Newton's method that traces it\<close>
 
@@ -313,83 +307,138 @@ methods are independent; the theorem at the end of this section says they return
 the same number, which is exactly the agreement the operator host demands before
 it reports.\<close>
 
-fun isqrt_aux :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
-  "isqrt_aux lo hi n =
+text \<open>The binary search carries its fuel explicitly: every step shrinks the
+interval, and the caller supplies one unit of fuel per possible step. The
+soundness invariant is the pair of bounds \<^term>\<open>lo * lo \<le> n\<close> and
+\<^term>\<open>n < Suc hi * Suc hi\<close>.\<close>
+
+lemma sq_bound: "n < Suc n * Suc n"
+proof -
+  have "Suc n * Suc n = n * n + n + n + 1" by simp
+  moreover have "n \<le> n * n + n + n" by linarith
+  ultimately show ?thesis by linarith
+qed
+
+lemma half_pos: "lo < hi \<Longrightarrow> 0 < (hi - lo + 1) div 2" for lo hi :: nat
+  by presburger
+
+lemma half_le: "lo < hi \<Longrightarrow> lo + (hi - lo + 1) div 2 \<le> hi" for lo hi :: nat
+  by presburger
+
+fun isqrt_aux :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
+  "isqrt_aux 0 lo hi n = lo"
+| "isqrt_aux (Suc f) lo hi n =
     (if lo < hi then
        (let mid = lo + (hi - lo + 1) div 2 in
-        if mid * mid \<le> n then isqrt_aux mid hi n else isqrt_aux lo (mid - 1) n)
+        if mid * mid \<le> n then isqrt_aux f mid hi n else isqrt_aux f lo (mid - 1) n)
      else lo)"
 
-termination isqrt_aux
-  by (relation "measure (\<lambda>(lo, hi, _). hi - lo)")
-     (auto simp: Let_def split: if_splits)
-
 definition isqrt :: "nat \<Rightarrow> nat" where
-  "isqrt n = isqrt_aux 0 n n"
+  "isqrt n = isqrt_aux (n + 1) 0 n n"
 
 lemma isqrt_aux_sound:
-  assumes "lo * lo \<le> n" "n < Suc hi * Suc hi" "lo \<le> hi"
-  shows "isqrt_aux lo hi n * isqrt_aux lo hi n \<le> n \<and>
-         n < Suc (isqrt_aux lo hi n) * Suc (isqrt_aux lo hi n)"
+  assumes lo2: "lo * lo \<le> n" and hi2: "n < Suc hi * Suc hi"
+    and lh: "lo \<le> hi" and fuel: "hi < lo + f"
+  shows "isqrt_aux f lo hi n * isqrt_aux f lo hi n \<le> n \<and>
+         n < Suc (isqrt_aux f lo hi n) * Suc (isqrt_aux f lo hi n)"
   using assms
-proof (induction arbitrary: lo hi rule: isqrt_aux.induct)
-  case (1 n lo hi)
+proof (induction f arbitrary: lo hi)
+  case 0
+  then have False by linarith
+  then show ?case by simp
+next
+  case (Suc f)
   show ?case
   proof (cases "lo < hi")
-    case True
+    case False
+    from False Suc.prems(3) have e: "hi = lo" by linarith
+    then have eq: "isqrt_aux (Suc f) lo hi n = lo" using False by simp
+    show ?thesis using eq Suc.prems(1,2) e by simp
+  next
+    case True: True
     define mid where "mid = lo + (hi - lo + 1) div 2"
-    have mid_ge: "lo < mid" using True by (simp add: mid_def)
-    have mid_le: "mid \<le> hi" using True by (simp add: mid_def)
+    have mid_ge: "lo < mid"
+      unfolding mid_def using half_pos [OF True] by linarith
+    have mid_le: "mid \<le> hi"
+      unfolding mid_def using half_le [OF True] by simp
     show ?thesis
     proof (cases "mid * mid \<le> n")
-      case True
-      then show ?thesis
-        using 1(1)[of mid hi] 1(3,4) mid_ge mid_le True
-        by (auto simp: Let_def mid_def[symmetric])
+      case a: True
+      have eq: "isqrt_aux (Suc f) lo hi n = isqrt_aux f mid hi n"
+        using True a by (simp add: Let_def mid_def)
+      have fuela: "hi < mid + f"
+        using Suc.prems(4) mid_ge by linarith
+      note ih = Suc.IH [of mid hi, OF a Suc.prems(2) mid_le fuela]
+      from eq ih show ?thesis by simp
     next
-      case False
-      then have "n < mid * mid" by simp
-      then have lt: "n < Suc (mid - 1) * Suc (mid - 1)" using mid_ge
-        by (metis Suc_diff_1 antisym not_less_iff_gr_or_eq trans_less_add1
-              less_le_trans mult_le_0_iff not_less0 of_nat_le_0_iff zero_less_mult_iff
-              mid_le le_cases mult_le_mono)
-      have "isqrt_aux lo (mid - 1) n * isqrt_aux lo (mid - 1) n \<le> n \<and>
-            n < Suc (isqrt_aux lo (mid - 1) * Suc (isqrt_aux lo (mid - 1)))"
-        using False 1(2)[of lo "mid - 1"] 1(3,4) mid_le lt False
-        by (simp add: Let_def mid_def[symmetric])
-      then show ?thesis by (simp add: Let_def mid_def[symmetric])
+      case b: False
+      then have nlt: "n < mid * mid" by simp
+      obtain m where meq: "mid = Suc m" using mid_ge by (cases mid) auto
+      have hi2m: "n < Suc m * Suc m" using nlt meq by simp
+      have lhm: "lo \<le> m" using mid_ge meq by simp
+      have fuelb: "m < lo + f" using Suc.prems(4) mid_le meq by linarith
+      have eq: "isqrt_aux (Suc f) lo hi n = isqrt_aux f lo m n"
+        using True b meq by (simp add: Let_def mid_def)
+      note ih = Suc.IH [of lo m, OF Suc.prems(1) hi2m lhm fuelb]
+      from eq ih show ?thesis by simp
     qed
-  qed simp
+  qed
 qed
 
 theorem isqrt_interval: "isqrt n * isqrt n \<le> n \<and> n < Suc (isqrt n) * Suc (isqrt n)"
-  using isqrt_aux_sound[of 0 n n] by (simp add: isqrt_def)
+proof -
+  have p1: "0 * 0 \<le> n" by simp
+  have p2: "n < Suc n * Suc n" by (rule sq_bound)
+  have p3: "0 \<le> n" by simp
+  have p4: "n < 0 + Suc n" by simp
+  note r = isqrt_aux_sound [of 0 n n "Suc n", OF p1 p2 p3 p4]
+  have "isqrt n = isqrt_aux (n + 1) 0 n n" by (simp add: isqrt_def)
+  then show ?thesis using r by simp
+qed
 
 theorem isqrt_unique:
-  assumes "k * k \<le> n" "n < Suc k * Suc k"
+  assumes k: "k * k \<le> n" and lt: "n < Suc k * Suc k"
   shows "k = isqrt n"
-  using isqrt_interval[of n] assms
-  by (metis Suc_eq_plus1_left le_antisym mult_le_mono nat_le_linear
-        not_less_eq_eq nat_le_linear)
+proof (rule linorder_cases)
+  assume "k < isqrt n"
+  then have sk: "Suc k \<le> isqrt n" by simp
+  have sq: "Suc k * Suc k \<le> isqrt n * isqrt n"
+    by (rule mult_le_mono [OF sk sk])
+  from isqrt_interval [of n] have lo: "isqrt n * isqrt n \<le> n" by blast
+  with sq lt show ?thesis by linarith
+next
+  assume "isqrt n < k"
+  then have s1: "Suc (isqrt n) \<le> k" by simp
+  have sq: "Suc (isqrt n) * Suc (isqrt n) \<le> k * k"
+    by (rule mult_le_mono [OF s1 s1])
+  from isqrt_interval [of n] have hi: "n < Suc (isqrt n) * Suc (isqrt n)" by blast
+  with k sq show ?thesis by linarith
+next
+  assume "k = isqrt n"
+  then show ?thesis .
+qed
 
 theorem isqrt_square: "isqrt (k * k) = k"
-  by (rule isqrt_unique) auto
+proof -
+  have le: "k * k \<le> k * k" by simp
+  have lt: "k * k < Suc k * Suc k"
+    by (induction k) (auto simp: algebra_simps)
+  from isqrt_unique [OF le lt] show ?thesis by (rule sym)
+qed
 
-fun newton :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
+function (sequential) newton :: "nat \<Rightarrow> nat \<Rightarrow> nat list" where
   "newton n x =
     (let y = (x + n div x) div 2 in
      if y \<ge> x then [y] else y # newton n y)"
+  by pat_completeness auto
+termination by (relation "measure (\<lambda>(_, x). x)") (auto simp: Let_def split: if_splits)
 
-termination newton
-  by (relation "measure (\<lambda>(_, x). x)") (auto simp: Let_def split: if_splits)
-
-fun newton_last :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
+function (sequential) newton_last :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "newton_last n x =
     (let y = (x + n div x) div 2 in
      if y \<ge> x then x else newton_last n y)"
-
-termination newton_last
-  by (relation "measure (\<lambda>(_, x). x)") (auto simp: Let_def split: if_splits)
+  by pat_completeness auto
+termination by (relation "measure (\<lambda>(_, x). x)") (auto simp: Let_def split: if_splits)
 
 text \<open>The Newton step from a point above the root stays above the root and
 strictly below the point. Both bounds are elementary: if the step landed below
@@ -401,68 +450,137 @@ lemma newton_step_bounds:
     and x: "Suc r \<le> x" "x \<le> n"
   shows "r \<le> (x + n div x) div 2 \<and> (x + n div x) div 2 < x"
 proof
-  have x2: "n < x * x" using x lt by (metis Suc_le_eq less_le_trans mult_le_mono)
-  then have lt1: "n div x < x" using x
-    by (metis div_less_iff_less_mult less_irrefl)
-  then show lt_step: "(x + n div x) div 2 < x"
-    using x2 lt1 by (metis div_if even_Suc even_add even_mult_iff
-          le_div_same_iff le_less mult_2 not_le impE nat_le_linear)
+  have x2: "n < x * x"
+  proof -
+    have "Suc r * Suc r \<le> x * x" by (rule mult_le_mono [OF x(1) x(1)])
+    then show ?thesis using lt by linarith
+  qed
+  have lt1: "n div x < x" using x2 by (rule less_mult_imp_div_less)
+  then have lt_step: "(x + n div x) div 2 < x"
+    by (simp add: div_less_iff_less_mult lt1)
 
   show "r \<le> (x + n div x) div 2"
   proof (rule ccontr)
     assume "\<not> r \<le> (x + n div x) div 2"
     then have small: "(x + n div x) div 2 < r" by simp
-    have xne: "x \<noteq> 0" using x by (metis Suc_le_eq not_less0)
+    have xr: "r < x" using x(1) by simp
     have step_lt: "x + n div x < 2 * r"
-      using small by (metis div_less_iff_less_mult gr_implies_not0
-            mult_eq_0_iff not_less zero_less_mult_iff)
-    have ndv: "n div x < 2 * r - x" using step_lt x
-      by (metis Nat.less_le_trans le_add_diff_inverse2 linordered_semiring_strict
-            mult_2 nat_le_linear plus_1_eq_Suc)
-    have n_lt: "n < x * (2 * r - x)" using ndv x
-      by (metis Suc_leI add_leD1 diff_add_inverse div_mult_mod_eq less_Suc_eq_le
-            less_le_trans mult.commute n_lt_le_div le_div_same_iff)
-    have xr: "r < x" using x by simp
-    have "x * (2 * r - x) \<le> r * r"
-      using xr by (cases "x \<le> 2 * r")
-        (auto simp: algebra_simps
-          intro: le_trans[of _ "r * r" "r * r"])
-    then show False using le n_lt le by linarith
+      using small by (simp add: div_less_iff_less_mult)
+    have xne: "0 < x" using x(1) by linarith
+    have nup: "n < x * (n div x) + x"
+      using xne mult_div_mod_eq [of x n] mod_less_divisor [OF xne, of n] by linarith
+    have key: "n + x * x < 2 * r * x"
+    proof -
+      have le1: "n div x + x + 1 \<le> 2 * r" using step_lt by linarith
+      have "(n div x + x + 1) * x \<le> 2 * r * x"
+        by (rule mult_le_mono1 [OF le1])
+      then have "x * (n div x) + x + x * x \<le> 2 * r * x"
+        by (simp add: algebra_simps)
+      then show ?thesis using nup by linarith
+    qed
+    have "2 * r * x \<le> r * r + x * x"
+    proof -
+      obtain d where xd: "x = r + d" using xr by (metis less_imp_add_positive)
+      show ?thesis unfolding xd by (simp add: algebra_simps)
+    qed
+    then have "n < r * r" using key by linarith
+    with le show False by simp
   qed
+  show "(x + n div x) div 2 < x" using lt_step by simp
+qed
+
+text \<open>One unfolding of the iteration, as an equation the simplifier may use
+without ever touching the recursive call: the function equations themselves are
+in the simp set and loop on a symbolic argument.\<close>
+
+lemma newton_last_step:
+  assumes ylt: "(x + n div x) div 2 < x"
+  shows "newton_last n x = newton_last n ((x + n div x) div 2)"
+proof -
+  have eq: "newton_last n x =
+      (if (x + n div x) div 2 \<ge> x then x else newton_last n ((x + n div x) div 2))"
+    by (rule newton_last.simps [of n x, unfolded Let_def])
+  have cfalse: "((x + n div x) div 2 \<ge> x) = False" using ylt by simp
+  from eq cfalse show ?thesis by (simp del: newton_last.simps)
+qed
+
+lemma newton_last_fix:
+  assumes yge: "(x + n div x) div 2 \<ge> x"
+  shows "newton_last n x = x"
+proof -
+  have eq: "newton_last n x =
+      (if (x + n div x) div 2 \<ge> x then x else newton_last n ((x + n div x) div 2))"
+    by (rule newton_last.simps [of n x, unfolded Let_def])
+  have ctrue: "((x + n div x) div 2 \<ge> x) = True" using yge by simp
+  from eq ctrue show ?thesis by (simp del: newton_last.simps)
 qed
 
 lemma newton_last_sound:
-  assumes "Suc r \<le> x" "x \<le> n" "r * r \<le> n" "n < Suc r * Suc r"
+  assumes "r \<le> x" "x \<le> n" "r * r \<le> n" "n < Suc r * Suc r"
   shows "newton_last n x = r"
   using assms
-proof (induction arbitrary: x rule: measure_induct_rule[where c = x and
-    f = "\<lambda>x::nat. x" and v = x, simplified])
-  case (step x)
-  have x2: "n < x * x" using step.prems(2,1)
-    by (metis Suc_le_eq less_le_trans mult_le_mono)
+proof (induction x rule: less_induct)
+  case (less x)
   show ?case
   proof (cases "x = r")
     case True
-    have "n div r = r" using step.prems(3,4)
-      by (metis Suc_eq_plus1_left div_if div_lediv1 le_div_same_iff
-            mult_Suc linordered_semiring_class.mult_le_mono[where 'a = nat])
-    then have "(r + n div r) div 2 = r" by simp
-    then show ?thesis using True by (simp add: Let_def)
+    have ndr: "r \<le> n div r"
+    proof (rule ccontr)
+      assume "\<not> r \<le> n div r"
+      then have q: "n div r < r" by simp
+      have rpos: "0 < r"
+      proof (rule ccontr)
+        assume "\<not> 0 < r"
+        then have "r = 0" by simp
+        with q show False by simp
+      qed
+      from q have sq: "Suc (n div r) \<le> r" by simp
+      have le2: "r * Suc (n div r) \<le> r * r" by (rule mult_le_mono2 [OF sq])
+      then have le3: "r * (n div r) + r \<le> r * r" by simp
+      from div_mult_mod_eq [of n r]
+      have nsplit: "n = r * (n div r) + n mod r" by simp
+      from mod_less_divisor [OF rpos] have "n mod r < r" by simp
+      from nsplit le3 this less.prems(3) show False by linarith
+    qed
+    have yge: "r \<le> (r + n div r) div 2"
+    proof -
+      have "2 * r \<le> r + n div r" using ndr by simp
+      then have "2 * r div 2 \<le> (r + n div r) div 2" by (rule div_le_mono)
+      then show ?thesis by simp
+    qed
+    then show ?thesis using True newton_last_fix [OF yge]
+      by (simp del: newton_last.simps)
   next
     case False
-    with step.prems(1) have xr: "Suc r \<le> x" by simp
+    from False less.prems(1) have xr: "Suc r \<le> x" by simp
     let ?y = "(x + n div x) div 2"
-    have b: "r \<le> ?y" "?y < x" using newton_step_bounds[OF step.prems(3,4) xr step.prems(2)]
-      by auto
-    have "?y \<le> n" using b(1) step.prems(2) by simp
-    then show ?thesis
-      using step.hyps[of ?y] b step.prems xr by (simp add: Let_def)
+    have b: "r \<le> ?y" "?y < x"
+      using newton_step_bounds [OF less.prems(3,4) xr less.prems(2)] by auto
+    have yle: "?y \<le> n" using b(2) less.prems(2) by linarith
+    have step: "newton_last n x = newton_last n ?y" by (rule newton_last_step [OF b(2)])
+    have ih: "newton_last n ?y = r"
+      using less.IH [of ?y] b yle less.prems xr by blast
+    from step ih show ?thesis by (simp del: newton_last.simps)
   qed
 qed
 
 theorem newton_last_isqrt: "1 < n \<Longrightarrow> newton_last n n = isqrt n"
-  by (metis isqrt_interval newton_last_sound le0 le_refl linorder_neqE_nat
-        not_less_eq_eq not_less0 one_le_mult_iff)
+proof -
+  assume n1: "1 < n"
+  from isqrt_interval [of n]
+  have lo: "isqrt n * isqrt n \<le> n" and hi: "n < Suc (isqrt n) * Suc (isqrt n)" by blast+
+  have lt: "isqrt n < n"
+  proof (rule ccontr)
+    assume "\<not> isqrt n < n"
+    then have nn: "n \<le> isqrt n" by simp
+    then have "n * n \<le> isqrt n * isqrt n" by (auto intro: mult_le_mono)
+    then have "n * n \<le> n" using lo by linarith
+    then show False using n1 by (cases n; simp)
+  qed
+  then have sl: "Suc (isqrt n) \<le> n" by simp
+  then have rl: "isqrt n \<le> n" by simp
+  from newton_last_sound [OF rl order_refl lo hi] show ?thesis .
+qed
 
 section \<open>Euclid's algorithm for gcd, and its trace\<close>
 
@@ -470,20 +588,18 @@ text \<open>The operator host reports a gcd only when Euclid's algorithm and pri
 factorisation agree; the kernel's gcd comes from Isabelle's own, with the trace
 of the division steps the organ prints.\<close>
 
-fun euc_res :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
+function (sequential) euc_res :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "euc_res a b = (if b = 0 then a else euc_res b (a mod b))"
+  by pat_completeness auto
+termination by (relation "measure (\<lambda>(_, b). b)") auto
 
-termination euc_res
-  by (relation "measure (\<lambda>(_, b). b)") auto
-
-fun euc_trace :: "nat \<Rightarrow> nat \<Rightarrow> (nat \<times> nat) list" where
+function (sequential) euc_trace :: "nat \<Rightarrow> nat \<Rightarrow> (nat \<times> nat) list" where
   "euc_trace a b = (if b = 0 then [] else (a, b) # euc_trace b (a mod b))"
-
-termination euc_trace
-  by (relation "measure (\<lambda>(_, b). b)") auto
+  by pat_completeness auto
+termination by (relation "measure (\<lambda>(_, b). b)") auto
 
 theorem euc_res_gcd: "euc_res a b = gcd a b"
-  by (induction a b rule: euc_res.induct) (simp add: gcd_eq_gcd_ab_mod_if)
+  by (induction a b rule: gcd_nat_induct) (simp_all add: gcd_0_nat gcd_non_0_nat)
 
 section \<open>Requests and outcomes\<close>
 
@@ -547,23 +663,40 @@ theorem percent_of_hundred: "kernel (PercentOf 100 w) = Value K_percent w"
   by simp
 
 theorem convert_exact:
-  assumes "kernel (Convert x a b) = Value k y"
+  assumes ke: "kernel (Convert x a b) = Value k y"
   shows "k = K_convert \<and> mdim_of a = mdim_of b \<and> y * mfactor b = x * mfactor a"
-  using assms by (auto simp: field_simps)
+proof (cases "mdim_of a = mdim_of b")
+  case False
+  then have "kernel (Convert x a b) = Decline D_mismatch" by simp
+  with ke show ?thesis by simp
+next
+  case True
+  then have "kernel (Convert x a b) = Value K_convert (x * mfactor a / mfactor b)" by simp
+  with ke have keq: "Value K_convert (x * mfactor a / mfactor b) = Value k y" by simp
+  then have ky: "k = K_convert" "y = x * mfactor a / mfactor b" by simp_all
+  have "y * mfactor b = x * mfactor a"
+    using ky(2) mfactor_positive [of b] by (simp add: field_simps)
+  with ky True show ?thesis by simp
+qed
 
 theorem convert_mismatch:
   "kernel (Convert x a b) = Decline D_mismatch \<longleftrightarrow> mdim_of a \<noteq> mdim_of b"
   by auto
 
 theorem convert_composes:
-  assumes "kernel (Convert x a b) = Value k y" and "kernel (Convert y b c) = Value k' z"
+  assumes k1: "kernel (Convert x a b) = Value k y" and k2: "kernel (Convert y b c) = Value k' z"
   shows "kernel (Convert x a c) = Value K_convert z"
 proof -
-  have ab: "mdim_of a = mdim_of b" using convert_exact assms(1) by blast
-  have bc: "mdim_of b = mdim_of c" using convert_exact assms(2) by blast
-  have "z * mfactor c = x * mfactor a"
-    using convert_exact assms(2) ab by auto
-  then show ?thesis using ab bc by auto
+  from convert_exact [OF k1] have ab: "mdim_of a = mdim_of b" and yb: "y * mfactor b = x * mfactor a" by auto
+  from convert_exact [OF k2] have bc: "mdim_of b = mdim_of c" and zc: "z * mfactor c = y * mfactor b" by auto
+  have ac: "mdim_of a = mdim_of c" using ab bc by simp
+  then have "kernel (Convert x a c) = Value K_convert (x * mfactor a / mfactor c)" by simp
+  moreover have "x * mfactor a / mfactor c = z"
+  proof -
+    have "z * mfactor c = x * mfactor a" using zc yb by simp
+    then show ?thesis using mfactor_positive [of c] by (simp add: field_simps)
+  qed
+  ultimately show ?thesis by simp
 qed
 
 theorem sqrt_negative_decline:
@@ -571,15 +704,31 @@ theorem sqrt_negative_decline:
   by auto
 
 theorem sqrt_of_square:
-  assumes "s * s = nat n" "0 \<le> n"
+  assumes sq: "s * s = nat n" and pos: "0 \<le> n"
   shows "kernel (Sqrt n want) = Value K_sqrt (of_nat s)"
-  using assms by (auto simp: isqrt_square)
+  using pos by (simp add: isqrt_square sq [symmetric])
 
 theorem sqrt_value_is_interval:
-  assumes "kernel (Sqrt n want) = Value k r" "0 \<le> n"
+  assumes ke: "kernel (Sqrt n want) = Value k r" and pos: "0 \<le> n"
   shows "k = K_sqrt \<and> r = of_nat (isqrt (nat n)) \<and>
-         r * r \<le> of_nat n \<and> of_nat n < (r + 1) * (r + 1)"
-  using isqrt_interval[of "nat n"] assms by (auto split: if_splits)
+         r * r \<le> of_nat (nat n) \<and> of_nat (nat n) < (r + 1) * (r + 1)"
+proof -
+  have kv: "k = K_sqrt \<and> r = of_nat (isqrt (nat n))"
+    using ke pos by (auto split: if_splits)
+  then have kv1: "k = K_sqrt" and kv2: "r = of_nat (isqrt (nat n))" by blast+
+  from isqrt_interval [of "nat n"] have lo: "isqrt (nat n) * isqrt (nat n) \<le> nat n"
+    and hi: "nat n < Suc (isqrt (nat n)) * Suc (isqrt (nat n))" by blast+
+  from kv2 have "r * r = of_nat (isqrt (nat n)) * of_nat (isqrt (nat n))" by simp
+  also have "\<dots> = of_nat (isqrt (nat n) * isqrt (nat n))" by simp
+  also have "\<dots> \<le> of_nat (nat n)" by (rule of_nat_mono [OF lo])
+  finally have lo2: "r * r \<le> of_nat (nat n)" .
+  have h1: "of_nat (nat n) < (of_nat (Suc (isqrt (nat n)) * Suc (isqrt (nat n))) :: rat)"
+    by (rule of_nat_less_iff [THEN iffD2, OF hi])
+  also have "\<dots> = (of_nat (isqrt (nat n)) + 1) * (of_nat (isqrt (nat n)) + 1)"
+    by (simp add: algebra_simps)
+  finally have hi2: "of_nat (nat n) < (r + 1) * (r + 1)" using kv2 by simp
+  from kv1 kv2 lo2 hi2 show ?thesis by blast
+qed
 
 text \<open>gcd and lcm, with Euclid's two facts and the identity tying them.\<close>
 
@@ -587,19 +736,36 @@ theorem gcd_value_divides:
   assumes "kernel (GcdLcm a b False) = Value k g"
   shows "k = K_gcd \<and> g = of_nat (gcd a b) \<and> (\<not> (a = 0 \<and> b = 0) \<longrightarrow>
            gcd a b dvd a \<and> gcd a b dvd b \<and> (\<forall>d. d dvd a \<longrightarrow> d dvd b \<longrightarrow> d dvd gcd a b))"
-  using assms gcd_dvd1_nat gcd_dvd2_nat gcd_greatest_nat by (cases "a = 0 \<and> b = 0") auto
+  using assms gcd_dvd1 gcd_dvd2 gcd_greatest by (cases "a = 0 \<and> b = 0") auto
 
 theorem lcm_value_identity:
   assumes "kernel (GcdLcm a b True) = Value k l"
   shows "k = K_lcm \<and> l = of_nat (lcm a b) \<and> (\<not> (a = 0 \<and> b = 0) \<longrightarrow>
            l * of_nat (gcd a b) = of_nat (a * b))"
-  using assms lcm_mult_gcd_nat by (cases "a = 0 \<and> b = 0") auto
+proof (cases "a = 0 \<and> b = 0")
+  case True
+  with assms show ?thesis by simp
+next
+  case False
+  from assms have kv: "k = K_lcm" "l = of_nat (lcm a b)"
+    by (auto split: if_splits)
+  have natl: "lcm a b * gcd a b = a * b"
+    using prod_gcd_lcm_nat [of a b] by (simp add: mult.commute)
+  have key: "of_nat (lcm a b) * of_nat (gcd a b) = of_nat (a * b)"
+    unfolding of_nat_mult [symmetric] natl by (rule refl)
+  have k1: "k = K_lcm" using kv by simp
+  have k2: "l = of_nat (lcm a b)" using kv by simp
+  have k3: "\<not> (a = 0 \<and> b = 0) \<Longrightarrow> l * of_nat (gcd a b) = of_nat (a * b)"
+    using key kv by simp
+  from k1 k2 k3 show ?thesis by blast
+qed
 
 text \<open>Linear equations: the stated root satisfies the equation, it is the only
 such value, and the echo decline fires exactly when that root is one of the
 values the question itself states.\<close>
 
 theorem solve_linear_sound:
+  fixes a b c d :: rat
   assumes "a \<noteq> c"
   defines "x \<equiv> (d - b) / (a - c)"
   shows "kernel (SolveLin a b c d gs) = (if x \<in> set gs then Decline D_echo
@@ -630,14 +796,17 @@ text \<open>Evaluation: a closed expression has a value that no reading can chan
 and declines exactly when it names a letter or divides by zero.\<close>
 
 theorem eval_value_independent:
-  assumes "vars e = {}" and "kernel (EvalExpr e) = Value k v"
+  assumes closed: "vars e = {}" and ke: "kernel (EvalExpr e) = Value k v"
   shows "k = K_eval \<and> ev i e = Some v"
-  using assms eval_closed_ignores_reading[of e "(\<lambda>_. 0)" v i]
-  by (cases "ev (\<lambda>_. 0) e") auto
+proof -
+  have kv: "k = K_eval" "ev (\<lambda>_. 0) e = Some v"
+    using ke by (auto split: if_splits option.splits)
+  from ev_closed_eq [OF closed, of i "\<lambda>_. 0"] kv show ?thesis by simp
+qed
 
 theorem eval_symbolic_decline:
   "kernel (EvalExpr e) = Decline D_symbolic \<longleftrightarrow> vars e \<noteq> {}"
-  by auto
+  by (auto split: option.splits)
 
 theorem eval_undefined_decline:
   "kernel (EvalExpr e) = Decline D_undefined \<longleftrightarrow> vars e = {} \<and> ev (\<lambda>_. 0) e = None"
@@ -701,17 +870,27 @@ text \<open>Justification: such a reply has no determined value. Two readings of
 the letters, both consistent with the question, give different numbers, so
 asserting one number would be choosing a reading.\<close>
 
+lemma mono_prod_one: "mono_prod (\<lambda>_. 1) xs = 1"
+  by (induction xs) simp_all
+
 theorem G6_value_not_determined:
-  assumes "c \<noteq> 0" "xs \<noteq> []"
+  assumes c: "c \<noteq> 0" and ne: "xs \<noteq> []"
   shows "\<not> (\<exists>v. \<forall>i. mono_value c xs i = v)"
 proof -
   have v1: "mono_value c xs (\<lambda>_. 1) = c"
-    using assms(2) by (induction xs) (auto simp: mono_value_def)
-  have v2: "mono_value c xs (\<lambda>_. 2) = c * 2 ^ length xs"
-    using assms(2) by (induction xs) (auto simp: mono_value_def)
-  have ne: "mono_value c xs (\<lambda>_. 1) \<noteq> mono_value c xs (\<lambda>_. 2)"
-    using assms(1) v1 v2 by simp
-  show ?thesis using ne by blast
+    by (simp add: mono_value_def mono_prod_one)
+  have v2: "mono_value c xs (\<lambda>_. 0) = 0"
+    using ne by (cases xs) (simp_all add: mono_value_def)
+  have ne2: "mono_value c xs (\<lambda>_. 1) \<noteq> mono_value c xs (\<lambda>_. 0)"
+    using c v1 v2 by simp
+  show ?thesis
+  proof
+    assume "\<exists>v. \<forall>i. mono_value c xs i = v"
+    then obtain v where v: "\<forall>i. mono_value c xs i = v" ..
+    from v have "mono_value c xs (\<lambda>_. 1) = v" by blast
+    moreover from v have "mono_value c xs (\<lambda>_. 0) = v" by blast
+    ultimately show False using ne2 by simp
+  qed
 qed
 
 text \<open>G5 (fold w533): the question asks for a decimal or a percentage and the
@@ -730,7 +909,7 @@ conversion, states the decimal exactly (\<^const>\<open>dec_expansion\<close>). 
 panel items the decimals all terminate: 3/8 = 0.375, 7/16 = 0.4375, 5/8 =
 0.625, 3/5 = 0.6, 7/20 = 0.35, 9/25 = 0.36 (pinned in the self test). The
 algebra form of the guard is the kernel's own echo decline: it fires exactly
-when the root is one of the question's stated values (\<^const>\<open>solve_echo_iff\<close>).\<close>
+when the root is one of the question's stated values (solve_echo_iff).\<close>
 
 section \<open>Requests the recognizer can ask, and the reply text\<close>
 
@@ -776,14 +955,12 @@ by spaces, the first six only.\<close>
 definition trace_lit :: "String.literal list \<Rightarrow> String.literal" where
   "trace_lit steps = join_lit (STR '' '') (map (\<lambda>s. s + STR ''.'') (take 6 steps))"
 
-text \<open>The w-chains's newline handling keeps one line; pluralise the first
-number-plus-unit the way fold w490 does: a value of one stays singular.\<close>
-
-definition plural :: "String.literal \<Rightarrow> String.literal" where
-  "plural u = u + STR ''s''"
+text \<open>The w-chain keeps the question's own unit word verbatim: the word
+problems ask \<open>how many seconds ...\<close> with the plural already in the
+question, so the reply echoes it unchanged rather than re-numbering it.\<close>
 
 definition pluralise :: "rat \<Rightarrow> String.literal \<Rightarrow> String.literal" where
-  "pluralise v u = (if v = 1 then u else plural u)"
+  "pluralise v u = u"
 
 fun path_of :: "prequest \<Rightarrow> String.literal" where
   "path_of (Ask (PercentOf _ _)) = STR ''organ:math>word:percent_of''"
@@ -798,6 +975,74 @@ fun path_of :: "prequest \<Rightarrow> String.literal" where
 | "path_of (GuardG6 _ _ _) = STR ''precision_guard:G6_units_not_variables|organ:math>evaluate''"
 | "path_of (GuardG5 _ _) = STR ''precision_guard:G5_echo|organ:math>evaluate''"
 
+text \<open>The linear side of an equation, in the algebra fold's own layout:
+\<^verbatim>\<open>5x - 7\<close>, \<^verbatim>\<open>x\<close>, a bare number.\<close>
+
+definition lin_text :: "rat \<Rightarrow> rat \<Rightarrow> String.literal" where
+  "lin_text a b =
+    (if a = 0 then render_rat b
+     else let head = (if a = 1 then STR '''' else if a = -1 then STR ''-'' else render_rat a) + STR ''x''
+          in if b = 0 then head
+             else head + (if b > 0 then STR '' + '' else STR '' - '') + render_rat \<bar>b\<bar>)"
+
+text \<open>The square-root reply's text and value, factored out so that the
+reply itself is constructor-headed: the simplifier never has to walk the
+estimates and the trace to see that the reply is an answer.\<close>
+
+definition sqrt_head :: "int \<Rightarrow> bool \<Rightarrow> String.literal" where
+  "sqrt_head n want =
+     (let r = isqrt (nat n);
+          k = of_nat r :: rat;
+          ests = (if nat n < 2 then [show_int n + STR '' is its own root'']
+                  else map (\<lambda>e. STR ''estimate '' + show_int (of_nat e))
+                        (take 4 (newton (nat n) (nat n))));
+          sq = show_int (of_nat r) + STR '' x '' + show_int (of_nat r)
+               + STR '' = '' + show_int (of_nat (r * r));
+          tail = (if want then [sq]
+                  else [sq + STR '', and '' + show_int (of_nat (Suc r * Suc r))
+                        + STR '' is not a square below it'']);
+          head = (if want
+                  then show_int n + STR '' is ''
+                       + (if r * r = nat n then STR ''a'' else STR ''not a'')
+                       + STR '' perfect square.''
+                  else STR ''The integer square root of '' + show_int n + STR '' is ''
+                       + render_rat k + STR ''.'')
+      in head + STR '' '' + trace_lit (ests @ tail) + STR '' '' + checked_two)"
+
+definition sqrt_value :: "int \<Rightarrow> bool \<Rightarrow> String.literal" where
+  "sqrt_value n want =
+     (let r = isqrt (nat n)
+      in if want then (if r * r = nat n then STR ''yes'' else STR ''no'')
+         else render_rat (of_nat r))"
+
+definition gcd_head :: "nat \<Rightarrow> nat \<Rightarrow> bool \<Rightarrow> String.literal" where
+  "gcd_head a b want =
+     (let g = gcd a b;
+          steps = map (\<lambda>(x, y). show_int (of_nat x) + STR '' mod '' + show_int (of_nat y)
+                      + STR '' = '' + show_int (of_nat (x mod y))) (euc_trace a b)
+             @ (if want then [STR ''gcd is '' + show_int (of_nat g),
+                              show_int (of_nat a) + STR '' x '' + show_int (of_nat b)
+                              + STR '' / '' + show_int (of_nat g) + STR '' = ''
+                              + show_int (of_nat (a * b div g))]
+                        else [STR ''no remainder left, so the divisor is '' + show_int (of_nat g)])
+      in STR ''The '' + (if want then STR ''LCM'' else STR ''GCD'') + STR '' of ''
+         + show_int (of_nat a) + STR '' and '' + show_int (of_nat b) + STR '' is ''
+         + show_int (of_nat (if want then lcm a b else gcd a b)) + STR ''. ''
+         + trace_lit steps + STR '' '' + checked_two)"
+
+definition gcd_value :: "nat \<Rightarrow> nat \<Rightarrow> bool \<Rightarrow> String.literal" where
+  "gcd_value a b want = render_rat (of_nat (if want then lcm a b else gcd a b))"
+
+definition solve_head :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> String.literal" where
+  "solve_head x a b c d =
+     (let da = a - c; db = d - b; lv = a * x + b; rv = c * x + d
+      in STR ''x = '' + render_rat x + STR ''. read it as ''
+         + lin_text a b + STR '' = '' + render_rat d
+         + STR ''; then collect x on the left: '' + lin_text da 0 + STR '' = '' + render_rat db
+         + STR ''; then divide both sides by '' + render_rat da + STR '': x = '' + render_rat x
+         + STR ''; then check by substitution: left gives '' + render_rat lv
+         + STR '', right gives '' + render_rat rv + STR '', equal.'')"
+
 fun reply_of :: "prequest \<Rightarrow> reply" where
   "reply_of (Ask (PercentOf p w)) =
     Answered (STR ''[ev:derived] '' + render_rat (p * w / 100)
@@ -805,62 +1050,29 @@ fun reply_of :: "prequest \<Rightarrow> reply" where
       + STR ''. '' + checked_word) (render_rat (p * w / 100))
       (path_of (Ask (PercentOf p w)))"
 | "reply_of (Ask (Convert x a b)) =
-    Answered (STR ''[ev:derived] '' + render_rat (x * mfactor a / mfactor b)
-      + STR '' '' + pluralise (x * mfactor a / mfactor b) (mlabel b)
-      + STR ''. Read as convert: '' + render_g6 x + STR '' '' + mlabel a
-      + STR '' = '' + render_g6 x + STR '' x '' + render_g6 (mfactor a)
-      + STR '' / '' + render_g6 (mfactor b) + STR '' '' + mlabel b
-      + STR ''. '' + checked_word)
-      (render_rat (x * mfactor a / mfactor b)) (path_of (Ask (Convert x a b)))"
+    (case kernel (Convert x a b) of
+       Value _ v \<Rightarrow>
+         Answered (STR ''[ev:derived] '' + render_rat v
+           + STR '' '' + pluralise v (mlabel b)
+           + STR ''. Read as convert: '' + render_g6 x + STR '' '' + mlabel a
+           + STR '' = '' + render_g6 x + STR '' x '' + render_g6 (mfactor a)
+           + STR '' / '' + render_g6 (mfactor b) + STR '' '' + mlabel b
+           + STR ''. '' + checked_word)
+           (render_rat v) (path_of (Ask (Convert x a b)))
+     | Decline _ \<Rightarrow> Withheld withhold_text (path_of (Ask (Convert x a b))))"
 | "reply_of (Ask (Sqrt n want)) =
     (if n < 0 then Withheld withhold_text (path_of (Ask (Sqrt n want)))
-     else let r = isqrt (nat n);
-              k = of_nat r :: rat;
-              ests = (if nat n < 2 then [show_int n + STR '' is its own root'']
-                      else map (\<lambda>e. STR ''estimate '' + show_int (of_nat e))
-                            (take 4 (newton (nat n) (nat n))));
-              sq = show_int (of_nat r) + STR '' x '' + show_int (of_nat r)
-                   + STR '' = '' + show_int (of_nat (r * r));
-              tail = (if want then [sq]
-                      else [sq + STR '', and '' + show_int (of_nat (Suc r * Suc r))
-                            + STR '' is not a square below it'']);
-              head = (if want
-                      then show_int n + STR '' is ''
-                           + (if r * r = nat n then STR ''a'' else STR ''not a'')
-                           + STR '' perfect square.''
-                      else STR ''The integer square root of '' + show_int n + STR '' is ''
-                           + render_rat k + STR ''.'')
-          in Answered (head + STR '' '' + trace_lit (ests @ tail) + STR '' '' + checked_two)
-             (if want then (if r * r = nat n then STR ''yes'' else STR ''no'')
-              else render_rat k)
-             (path_of (Ask (Sqrt n want))))"
+     else Answered (sqrt_head n want) (sqrt_value n want)
+       (path_of (Ask (Sqrt n want))))"
 | "reply_of (Ask (GcdLcm a b want)) =
-    (let g = gcd a b;
-         steps = map (\<lambda>(x, y). show_int (of_nat x) + STR '' mod '' + show_int (of_nat y)
-                     + STR '' = '' + show_int (of_nat (x mod y))) (euc_trace a b)
-            @ (if want then [STR ''gcd is '' + show_int (of_nat g),
-                             show_int (of_nat a) + STR '' x '' + show_int (of_nat b)
-                             + STR '' / '' + show_int (of_nat g) + STR '' = ''
-                             + show_int (of_nat (a * b div g))]
-                       else [STR ''no remainder left, so the divisor is '' + show_int (of_nat g)]))
-     in Answered (STR ''The '' + (if want then STR ''LCM'' else STR ''GCD'') + STR '' of ''
-        + show_int (of_nat a) + STR '' and '' + show_int (of_nat b) + STR '' is ''
-        + show_int (of_nat (if want then lcm a b else gcd a b)) + STR ''. ''
-        + trace_lit steps + STR '' '' + checked_two)
-        (show_int (of_nat (if want then lcm a b else gcd a b)))
-        (path_of (Ask (GcdLcm a b want))))"
+    (case kernel (GcdLcm a b want) of
+       Value _ v \<Rightarrow> Answered (gcd_head a b want) (gcd_value a b want)
+         (path_of (Ask (GcdLcm a b want)))
+     | Decline _ \<Rightarrow> Withheld withhold_text (path_of (Ask (GcdLcm a b want))))"
 | "reply_of (Ask (SolveLin a b c d gs)) =
     (case kernel (SolveLin a b c d gs) of
-       Value _ x \<Rightarrow>
-         let da = a - c; db = d - b;
-             lv = a * x + b; rv = c * x + d
-         in Answered (STR ''x = '' + render_rat x + STR ''. read it as ''
-            + lin_text a b + STR '' = '' + render_rat d
-            + STR ''; then collect x on the left: '' + lin_text da 0 + STR '' = '' + render_rat db
-            + STR ''; then divide both sides by '' + render_rat da + STR '': x = '' + render_rat x
-            + STR ''; then check by substitution: left gives '' + render_rat lv
-            + STR '', right gives '' + render_rat rv + STR '', equal.'')
-            (render_rat x) (path_of (Ask (SolveLin a b c d gs)))
+       Value _ x \<Rightarrow> Answered (solve_head x a b c d) (render_rat x)
+         (path_of (Ask (SolveLin a b c d gs)))
      | Decline _ \<Rightarrow> Withheld withhold_text (STR ''algebra:out_of_fragment''))"
 | "reply_of (Ask (EvalExpr e)) =
     (case kernel (EvalExpr e) of
@@ -869,20 +1081,26 @@ fun reply_of :: "prequest \<Rightarrow> reply" where
                      (render_rat v) (path_of (Ask (EvalExpr e)))
      | Decline _ \<Rightarrow> Withheld withhold_text (path_of (Ask (EvalExpr e))))"
 | "reply_of (WordConv x a b w) =
-    Answered (STR ''[ev:derived] '' + render_rat (x * mfactor a / mfactor b)
-      + STR '' '' + pluralise (x * mfactor a / mfactor b) w
-      + STR ''. Read as convert: '' + render_g6 x + STR '' '' + mlabel a
-      + STR '' = '' + render_g6 x + STR '' x '' + render_g6 (mfactor a)
-      + STR '' / '' + render_g6 (mfactor b) + STR '' '' + mlabel b
-      + STR ''. '' + checked_word)
-      (render_rat (x * mfactor a / mfactor b)) (path_of (WordConv x a b w))"
+    (case kernel (Convert x a b) of
+       Value _ v \<Rightarrow>
+         Answered (STR ''[ev:derived] '' + render_rat v
+           + STR '' '' + pluralise v w
+           + STR ''. Read as convert: '' + render_g6 x + STR '' '' + mlabel a
+           + STR '' = '' + render_g6 x + STR '' x '' + render_g6 (mfactor a)
+           + STR '' / '' + render_g6 (mfactor b) + STR '' '' + mlabel b
+           + STR ''. '' + checked_word)
+           (render_rat v) (path_of (WordConv x a b w))
+     | Decline _ \<Rightarrow> Withheld withhold_text (path_of (WordConv x a b w)))"
 | "reply_of (OpConv x a b u v) =
-    Answered (render_g6 x + STR '' '' + u + STR '' is '' + render_rat (x * mfactor a / mfactor b)
-      + STR '' '' + v + STR ''. the factor from '' + u + STR '' to '' + v + STR '' is ''
-      + render_rat (mfactor a / mfactor b) + STR ''. '' + render_g6 x + STR '' x ''
-      + render_rat (mfactor a / mfactor b) + STR '' = ''
-      + render_rat (x * mfactor a / mfactor b) + STR ''. '' + checked_two)
-      (render_rat (x * mfactor a / mfactor b)) (path_of (OpConv x a b u v))"
+    (case kernel (Convert x a b) of
+       Value _ c \<Rightarrow>
+         Answered (render_g6 x + STR '' '' + u + STR '' is '' + render_rat c
+           + STR '' '' + v + STR ''. the factor from '' + u + STR '' to '' + v + STR '' is ''
+           + render_rat (mfactor a / mfactor b) + STR ''. '' + render_g6 x + STR '' x ''
+           + render_rat (mfactor a / mfactor b) + STR '' = ''
+           + render_rat c + STR ''. '' + checked_two)
+           (render_rat c) (path_of (OpConv x a b u v))
+     | Decline _ \<Rightarrow> Withheld withhold_text (path_of (OpConv x a b u v)))"
 | "reply_of (GuardP7 n s) =
     (if guard_P7 n s then Withheld withhold_text (path_of (GuardP7 n s))
      else Withheld (STR ''guard P7 does not fire'') (STR ''''))"
@@ -893,17 +1111,6 @@ fun reply_of :: "prequest \<Rightarrow> reply" where
     (if guard_G5 a v then Withheld withhold_text (path_of (GuardG5 a v))
      else Withheld (STR ''guard G5 does not fire'') (STR ''''))"
 
-text \<open>The linear side of an equation, in the algebra fold's own layout:
-\<^term>\<open>5x - 7\<close>, \<^term>\<open>x\<close>, a bare number.\<close>
-
-definition lin_text :: "rat \<Rightarrow> rat \<Rightarrow> String.literal" where
-  "lin_text a b =
-    (if a = 0 then render_rat b
-     else let head = (if a = 1 then STR '''' else if a = -1 then STR ''-'' else render_rat a) + STR ''x''
-          in if b = 0 then head
-             else head + (if b > 0 then STR '' + '' else STR '' - '') + render_rat \<bar>b\<bar>)"
-
-text \<open>One of the requests the recognizer builds for a guard item.\<close>
 
 definition preq_of :: "prequest \<Rightarrow> req option" where
   "preq_of p = (case p of Ask r \<Rightarrow> Some r | _ \<Rightarrow> None)"
@@ -929,17 +1136,82 @@ theorem reply_answered_iff:
         Ask (SolveLin a b c d gs) \<Rightarrow> a - c \<noteq> 0 \<and> (d - b) / (a - c) \<notin> set gs
       | Ask (EvalExpr e) \<Rightarrow> vars e = {} \<and> ev (\<lambda>_. 0) e \<noteq> None
       | Ask (PercentOf _ _) \<Rightarrow> True
-      | Ask (Convert _ _ _) \<Rightarrow> True
-      | Ask (GcdLcm _ _ _) \<Rightarrow> True
-      | Ask (Sqrt n _) \<Rightarrow> n \<ge> 0
-      | _ \<Rightarrow> False)"
-  by (cases p; case_tac x) (auto simp: answered_def split: req.splits outcome.splits)
+      | Ask (Convert _ a b) \<Rightarrow> mdim_of a = mdim_of b
+      | Ask (GcdLcm a b _) \<Rightarrow> \<not> (a = 0 \<and> b = 0)
+      | Ask (Sqrt n _) \<Rightarrow> 0 \<le> n
+      | WordConv _ a b _ \<Rightarrow> mdim_of a = mdim_of b
+      | OpConv _ a b _ _ \<Rightarrow> mdim_of a = mdim_of b
+      | GuardP7 _ _ \<Rightarrow> False
+      | GuardG6 _ _ _ \<Rightarrow> False
+      | GuardG5 _ _ \<Rightarrow> False)"
+proof (cases p)
+  case (Ask x)
+  note pA = \<open>p = Ask x\<close>
+  then show ?thesis
+  proof (cases x)
+    case (PercentOf pc w)
+    then show ?thesis using pA by (simp add: answered_def)
+  next
+    case (Convert y a b)
+    then show ?thesis using pA
+      by (cases "mdim_of a = mdim_of b") (simp_all add: answered_def)
+  next
+    case (Sqrt n want)
+    then show ?thesis using pA
+      by (cases "n < 0") (simp_all add: answered_def)
+  next
+    case (GcdLcm a b want)
+    then show ?thesis using pA
+      by (cases "a = 0 \<and> b = 0") (simp_all add: answered_def)
+  next
+    case (SolveLin a b c d gs)
+    then show ?thesis using pA
+      by (cases "a - c = 0"; cases "(d - b) / (a - c) \<in> set gs")
+         (simp_all add: answered_def)
+  next
+    case (EvalExpr e)
+    then show ?thesis using pA
+      by (cases "vars e = {}"; cases "ev (\<lambda>_. 0) e") (simp_all add: answered_def)
+  qed
+qed (auto simp: answered_def split: if_splits)
 
 theorem reply_states_value:
   assumes "kernel r = Value k q" "answered (reply_of (Ask r))"
     and "\<forall>n. r \<noteq> Sqrt n True"
   shows "value_lit (reply_of (Ask r)) = Some (render_rat q)"
-  using assms by (cases r) (auto simp: answered_def value_lit_def Let_def)
+proof (cases r)
+  case (PercentOf p w)
+  then show ?thesis using assms(1) by (simp add: value_lit_def)
+next
+  case (Convert x a b)
+  then show ?thesis using assms(1)
+    by (simp add: value_lit_def split: if_splits outcome.splits)
+next
+  case (Sqrt n want)
+  have wf: "want = False"
+  proof (cases want)
+    case True
+    then have rs: "r = Sqrt n True" using \<open>r = Sqrt n want\<close> by simp
+    with assms(3) [rule_format, of n] show ?thesis by simp
+  next
+    case False
+    then show ?thesis by simp
+  qed
+  then show ?thesis using assms(1) \<open>r = Sqrt n want\<close>
+    by (cases "n < 0") (simp_all add: value_lit_def sqrt_value_def)
+next
+  case (GcdLcm a b want)
+  then show ?thesis using assms(1)
+    by (cases "a = 0 \<and> b = 0"; cases want)
+       (simp_all add: value_lit_def gcd_value_def)
+next
+  case (SolveLin a b c d gs)
+  then show ?thesis using assms(1) by (simp add: value_lit_def Let_def)
+next
+  case (EvalExpr e)
+  then show ?thesis using assms(1)
+    by (simp add: value_lit_def split: if_splits option.splits)
+qed
 
 text \<open>The perfect-square question instead states a verdict, and the verdict
 is right: yes exactly when the integer square root squares back to \<open>n\<close>.\<close>
@@ -948,12 +1220,35 @@ theorem reply_sqrt_perfect:
   assumes "0 \<le> n"
   shows "value_lit (reply_of (Ask (Sqrt n True))) =
     Some (if isqrt (nat n) * isqrt (nat n) = nat n then STR ''yes'' else STR ''no'')"
-  using assms by (auto simp: value_lit_def Let_def split: if_splits)
+  using assms by (simp add: value_lit_def sqrt_value_def)
 
 theorem reply_withheld_names_decline:
   assumes "kernel r = Decline d"
   shows "\<not> answered (reply_of (Ask r))"
-  using assms by (cases r) (auto simp: answered_def Let_def split: outcome.splits)
+proof (cases r)
+  case (PercentOf p w)
+  then show ?thesis using assms by simp
+next
+  case (Convert x a b)
+  then show ?thesis using assms by (simp add: answered_def)
+next
+  case (Sqrt n want)
+  then show ?thesis using assms
+    by (cases "n < 0") (simp_all add: answered_def)
+next
+  case (GcdLcm a b want)
+  then show ?thesis using assms
+    by (cases "a = 0 \<and> b = 0") (simp_all add: answered_def)
+next
+  case (SolveLin a b c d gs)
+  then show ?thesis using assms
+    by (cases "a - c = 0"; cases "(d - b) / (a - c) \<in> set gs")
+       (simp_all add: answered_def)
+next
+  case (EvalExpr e)
+  then show ?thesis using assms
+    by (cases "vars e = {}"; cases "ev (\<lambda>_. 0) e") (simp_all add: answered_def)
+qed
 
 section \<open>Self test: the core panel's mathematics, pinned\<close>
 
@@ -964,7 +1259,7 @@ questions extract; and one reply text per route. Checked at build time
 
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
-     (* percent of: the 12 word:percent_of items *)
+ 
      kernel (PercentOf 17 2400) = Value K_percent 408 \<and>
      kernel (PercentOf 45 360) = Value K_percent 162 \<and>
      kernel (PercentOf 23 1500) = Value K_percent 345 \<and>
@@ -977,27 +1272,27 @@ definition self_test :: bool where
      kernel (PercentOf 65 920) = Value K_percent 598 \<and>
      kernel (PercentOf 16 3750) = Value K_percent 600 \<and>
      kernel (PercentOf 85 740) = Value K_percent 629 \<and>
-     (* word:convert: seconds in hours *)
+ 
      kernel (Convert (7 / 2) T_hour T_second) = Value K_convert 12600 \<and>
      kernel (Convert (9 / 4) T_hour T_second) = Value K_convert 8100 \<and>
      kernel (Convert (7 / 4) T_hour T_second) = Value K_convert 6300 \<and>
      kernel (Convert (5 / 2) T_hour T_second) = Value K_convert 9000 \<and>
      kernel (Convert (13 / 4) T_hour T_second) = Value K_convert 11700 \<and>
      kernel (Convert (19 / 4) T_hour T_second) = Value K_convert 17100 \<and>
-     (* word:convert: grams and milligrams *)
+ 
      kernel (Convert (19 / 4) M_kilogram M_gram) = Value K_convert 4750 \<and>
      kernel (Convert (13 / 5) M_kilogram M_gram) = Value K_convert 2600 \<and>
      kernel (Convert (17 / 20) M_kilogram M_gram) = Value K_convert 850 \<and>
      kernel (Convert (76 / 25) M_kilogram M_gram) = Value K_convert 3040 \<and>
      kernel (Convert (253 / 50) M_kilogram M_gram) = Value K_convert 5060 \<and>
      kernel (Convert (7 / 2) M_gram M_milligram) = Value K_convert 3500 \<and>
-     (* op:unit_convert: hours in weeks, minutes in days *)
+ 
      kernel (Convert 6 T_week T_hour) = Value K_convert 1008 \<and>
      kernel (Convert 3 T_week T_hour) = Value K_convert 504 \<and>
      kernel (Convert (5 / 2) T_day T_minute) = Value K_convert 3600 \<and>
      kernel (Convert (9 / 2) T_day T_minute) = Value K_convert 6480 \<and>
      kernel (Convert (11 / 2) T_day T_minute) = Value K_convert 7920 \<and>
-     (* op:integer_sqrt: all six are perfect squares *)
+ 
      kernel (Sqrt 1764 False) = Value K_sqrt 42 \<and>
      kernel (Sqrt 2025 False) = Value K_sqrt 45 \<and>
      kernel (Sqrt 3136 False) = Value K_sqrt 56 \<and>
@@ -1005,37 +1300,37 @@ definition self_test :: bool where
      kernel (Sqrt 5329 False) = Value K_sqrt 73 \<and>
      kernel (Sqrt 6889 False) = Value K_sqrt 83 \<and>
      isqrt 1764 * isqrt 1764 = 1764 \<and>
-     (* op:gcd_lcm *)
+ 
      kernel (GcdLcm 91 133 False) = Value K_gcd 7 \<and>
      kernel (GcdLcm 132 198 False) = Value K_gcd 66 \<and>
      kernel (GcdLcm 144 180 False) = Value K_gcd 36 \<and>
      kernel (GcdLcm 96 156 False) = Value K_gcd 12 \<and>
      kernel (GcdLcm 210 330 False) = Value K_gcd 30 \<and>
      kernel (GcdLcm 252 378 False) = Value K_gcd 126 \<and>
-     (* algebra:solved: linear in one unknown *)
+ 
      kernel (SolveLin 5 (- 7) 0 38 []) = Value K_solve 9 \<and>
      kernel (SolveLin 3 11 0 50 []) = Value K_solve 13 \<and>
      kernel (SolveLin 6 (- 12) 0 30 []) = Value K_solve 7 \<and>
      kernel (SolveLin 4 9 0 41 []) = Value K_solve 8 \<and>
      kernel (SolveLin 5 (- 8) 0 47 []) = Value K_solve 11 \<and>
      kernel (SolveLin 8 (- 15) 0 81 []) = Value K_solve 12 \<and>
-     (* the six G5 echoes on the algebra route: the root is the question's own given *)
+ 
      kernel (SolveLin 1 0 0 2 [2]) = Decline D_echo \<and>
      kernel (SolveLin 1 0 0 3 [3]) = Decline D_echo \<and>
      kernel (SolveLin 1 0 0 2 [2, 5]) = Decline D_echo \<and>
      kernel (SolveLin 1 0 0 2 []) = Value K_solve 2 \<and>
-     (* declines *)
+ 
      kernel (Convert 5 T_hour M_gram) = Decline D_mismatch \<and>
      kernel (Sqrt (- 4) False) = Decline D_negative \<and>
      kernel (SolveLin 0 3 0 7 []) = Decline D_zero_slope \<and>
      kernel (GcdLcm 0 0 False) = Decline D_undefined \<and>
      kernel (EvalExpr (V (STR ''x''))) = Decline D_symbolic \<and>
      kernel (EvalExpr (Div (C 1) (C 0))) = Decline D_undefined \<and>
-     (* the two methods behind the square root agree *)
+ 
      newton_last 1764 1764 = 42 \<and>
      newton_last 4624 4624 = 68 \<and>
      newton_last 3 3 = isqrt 3 \<and>
-     (* the exact decimals the six G5 echoes withhold *)
+ 
      dec_expansion (3 / 8) = Some (375, 3) \<and>
      dec_expansion (7 / 16) = Some (4375, 4) \<and>
      dec_expansion (5 / 8) = Some (625, 3) \<and>
@@ -1043,14 +1338,14 @@ definition self_test :: bool where
      dec_expansion (7 / 20) = Some (35, 2) \<and>
      dec_expansion (9 / 25) = Some (36, 2) \<and>
      dec_expansion (1 / 3) = None \<and>
-     (* the guards fire on the panel's features and not otherwise *)
+ 
      guard_P7 True False \<and> \<not> guard_P7 True True \<and> \<not> guard_P7 False False \<and>
      guard_G6 [STR ''m''] [STR ''m''] True \<and>
      guard_G6 [STR ''g'', STR ''k'', STR ''m''] [STR ''k'', STR ''g'', STR ''m'', STR ''3''] True \<and>
      \<not> guard_G6 [STR ''m''] [STR ''m''] False \<and>
      \<not> guard_G6 [STR ''y''] [STR ''m''] True \<and>
      guard_G5 True True \<and> \<not> guard_G5 True False \<and> \<not> guard_G5 False True \<and>
-     (* reply text layout: one per route *)
+ 
      render_rat 408 = STR ''408'' \<and>
      render_rat (19 / 4) = STR ''4.75'' \<and>
      render_rat (1 / 3) = STR ''1/3'' \<and>

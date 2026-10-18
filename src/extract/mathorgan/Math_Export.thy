@@ -17,25 +17,25 @@ export_code reply_of answered response value_lit path_lit self_test mk_rat
   in SML module_name Mathkernel file_prefix mathkernel
 
 ML \<open>
-  val theorems = [@{thm eval_closed_ignores_reading}, @{thm mfactor_positive},
-    @{thm strip_factor_dvd}, @{thm strip_factor_max}, @{thm dec_expansion_sound},
-    @{thm isqrt_interval}, @{thm isqrt_unique}, @{thm isqrt_square},
-    @{thm newton_step_bounds}, @{thm newton_last_sound}, @{thm newton_last_isqrt},
-    @{thm euc_res_gcd},
-    @{thm percent_value}, @{thm percent_of_hundred},
-    @{thm convert_exact}, @{thm convert_mismatch}, @{thm convert_composes},
-    @{thm sqrt_negative_decline}, @{thm sqrt_of_square}, @{thm sqrt_value_is_interval},
-    @{thm gcd_value_divides}, @{thm lcm_value_identity},
-    @{thm solve_linear_sound}, @{thm solve_linear_complete}, @{thm solve_echo_iff},
-    @{thm solve_what_the_echo_withholds}, @{thm solve_zero_slope},
-    @{thm eval_value_independent}, @{thm eval_symbolic_decline},
-    @{thm eval_undefined_decline},
-    @{thm guard_P7_rule}, @{thm P7_no_witness},
-    @{thm P7_area_of_negative_side_ambiguous},
-    @{thm guard_G6_rule}, @{thm G6_value_not_determined},
-    @{thm guard_G5_rule},
-    @{thm reply_answered_iff}, @{thm reply_states_value}, @{thm reply_sqrt_perfect},
-    @{thm reply_withheld_names_decline}];
+  val theorems = @{thms eval_closed_ignores_reading mfactor_positive
+    dec_search_sound dec_expansion_sound
+    isqrt_interval isqrt_unique isqrt_square
+    newton_step_bounds newton_last_sound newton_last_isqrt
+    euc_res_gcd
+    percent_value percent_of_hundred
+    convert_exact convert_mismatch convert_composes
+    sqrt_negative_decline sqrt_of_square sqrt_value_is_interval
+    gcd_value_divides lcm_value_identity
+    solve_linear_sound solve_linear_complete solve_echo_iff
+    solve_what_the_echo_withholds solve_zero_slope
+    eval_value_independent eval_symbolic_decline
+    eval_undefined_decline
+    guard_P7_rule P7_no_witness
+    P7_area_of_negative_side_ambiguous
+    guard_G6_rule G6_value_not_determined
+    guard_G5_rule
+    reply_answered_iff reply_states_value reply_sqrt_perfect
+    reply_withheld_names_decline};
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("mathorgan theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "mathorgan self test failed";
