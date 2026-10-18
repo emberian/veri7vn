@@ -28,6 +28,9 @@ definition self_test :: bool where
      kernel (ActualSize 2 5) = Decline (Impossible R_nominal_size) \<and>
      kernel (Moisture 150 100) = Exact K_wood_mc 50 \<and>
      kernel (MixRyb C_red C_yellow) = Hue K_mix_ryb C_orange \<and>
+     kernel (Rows 28 4 True 12 True) = Exact K_rows 84 \<and>
+     kernel (Rows 28 0 True 12 True) = Decline (Impossible R_gauge_dimensions) \<and>
+     kernel (Rows 5 2 True 1 True) = Exact K_rows 2 \<and>
      kernel (CastOn (9 / 2) True 3 True) = Exact K_cast_on 14 \<and>
      kernel (CastOn (5 / 2) True 1 True) = Exact K_cast_on 2 \<and>
      kernel (Drywall 100 0 S32) = Exact K_drywall 4 \<and>
@@ -52,7 +55,7 @@ export_code reply_of answered reply_kind response stated mk_rat
   use_order fil_order input_colours
   Far MaxFloor Coverage Occupant Egress Ramp Shrink Layers Flow Cost FilLength FilMass NoiseTime
   NoiseDose Twa Ladder Niosh Judge ActualSize BoardFeet Concrete Drywall Stairs Rafter Pitch Miter
-  Moisture MixRyb MixRgb Complement CastOn Quilt CutSize Yards Mat Clay
+  Moisture MixRyb MixRgb Complement Rows CastOn Quilt CutSize Yards Mat Clay
   C_red C_yellow C_blue C_green C_orange C_purple C_violet
   Given Table D_given D_typical D_none Per_kg Per_spool L_ft L_m S32 S40 S48 CU_in CU_quote CU_cm CU_mm
   in SML module_name Trades file_prefix trades
@@ -65,7 +68,7 @@ ML \<open>
     @{thm round_at_error}, @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm to_fixed_sound},
     @{thm enclose_m_sound}, @{thm stated_dec_sound}, @{thm round_tie_up},
     @{thm mix_symmetric}, @{thm complement_involution}, @{thm complement_violet_exception},
-    @{thm actual_below_nominal},
+    @{thm actual_below_nominal}, @{thm rows_unit_invariant}, @{thm rows_nearest},
     @{thm rafter_pythagoras}, @{thm pitch_tan}, @{thm noise_halving}, @{thm egress_widths},
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_states_approx},
     @{thm reply_withheld_names_decline}];

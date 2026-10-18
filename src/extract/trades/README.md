@@ -34,9 +34,28 @@ Statements and numbers: [lane S14 handoff](../../../project/lanes/S14-trades.md)
 ## Build and run
 
 ```sh
-python3 tools/dev/check-native --session Veri7vn_Trades --session-root src/extract/trades \
-  --expect 'VERI7VN_TRADES PASS' --timeout 1800
+tools/dev/remote-build persvati src/extract/trades Veri7vn_Trades \
+  -d src/extract/commons --expect 'VERI7VN_TRADES PASS'
 PYTHONDONTWRITEBYTECODE=1 python3 -B src/extract/trades/tables_check.py
-sh src/extract/trades/build.sh
+VERI7VN_GENERATED=/path/from/successful/receipt/trades.ML sh src/extract/trades/build.sh
 PYTHONDONTWRITEBYTECODE=1 python3 -B src/extract/trades/score.py
 ```
+
+## Completing the intended calculations
+
+The printing specialist recognizes printed parts, and woodworking recognizes
+board footage with inch marks on the thickness and width. Crafts now computes
+rows from a stated row gauge and target length, including inch/cm conversion.
+Its kernel receives gauge row count and gauge span separately, refuses a
+nonpositive span or negative count or length, and rounds to the nearest whole
+row with ties to even. This assumes a uniform gauge throughout the work.
+
+`capabilities.json` adds the `rows` kind and its in-domain refusal to dispatch
+and packaging. Row replies name the selected binding theorem. The English
+reader remains untrusted.
+
+`score.py --fresh-seed 20261018 --out var/trades/fresh-score.json --probes`
+runs fresh samples and authored extension probes. Fresh seeds select from the
+same shipped pools and phrasings; they are not independent question design.
+The safety folder ships no generator, so its original panel is retained and
+explicitly marked as not fresh in `generation.json`.

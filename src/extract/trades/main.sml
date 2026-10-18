@@ -15,6 +15,12 @@ structure Main =
 struct
   val theorems = "[\"kernel_exact_sound\",\"kernel_approx_sound\",\"kernel_duo_sound\",\"kernel_hue_sound\",\"kernel_underspecified\",\"kernel_impossible\",\"kernel_judgement\",\"stated_dec_sound\"]"
 
+  (* The selected request determines the additional model theorem; English recognition remains untrusted. *)
+  fun supporting request =
+    case request of
+      Trades.Rows _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"rows_nearest\"]"
+    | _ => theorems
+
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
     in LargeInt.toString (us div 1000) ^ "." ^ StringCvt.padLeft #"0" 3 (LargeInt.toString (us mod 1000)) end
@@ -49,7 +55,7 @@ struct
           ^ ", \"provenance\": {\"taken\": true, \"organ\": " ^ Json.quote organ
           ^ ", \"specialist_ms\": " ^ ms t0
           ^ ", \"kernel\": \"Trades.reply_of\", \"session\": \"Veri7vn_Trades\", \"theorems\": "
-          ^ theorems ^ "}}"
+          ^ supporting request ^ "}}"
         end
     end
 

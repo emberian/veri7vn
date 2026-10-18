@@ -1,0 +1,154 @@
+{
+  "note": "These authored probes share assumptions with the recognizer; they are not independent panels. Expected numbers use the stated linear model or the shipped organ docstring formula.",
+  "source": "upstream/root/specialists/crafts/organ_crafts_v1.py docstring; woodworking and printing panel formulas",
+  "items": [
+    {
+      "q": "My gauge is 28 rows per 4 inches. How many rows for 12 inches?",
+      "valid": true,
+      "expect": 84,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is 30 rows per 10 cm. How many rows for 25 cm?",
+      "valid": true,
+      "expect": 75,
+      "specialist": "crafts"
+    },
+    {
+      "q": "My gauge is 8 rows per inch. How many rows for 10 cm?",
+      "valid": true,
+      "expect": 31,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is 3 rows per cm. How many rows for 10 inches?",
+      "valid": true,
+      "expect": 76,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is 5 rows per 2 inches. How many rows for 1 inch?",
+      "valid": true,
+      "expect": 2,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is 7 rows per 2 inches. How many rows for 1 inch?",
+      "valid": true,
+      "expect": 4,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is 28 rows in 4 inches. How many rows for 0 inches?",
+      "valid": true,
+      "expect": 0,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is 24 rows over 4 inches. How many rows for 20 inches?",
+      "valid": true,
+      "expect": 120,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is 18 rows per 10 cm. How many rows for 33 cm?",
+      "valid": true,
+      "expect": 59,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is 22 rows per 10 cm. How many rows for 15 cm?",
+      "valid": true,
+      "expect": 33,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is 28 rows per 0 inches. How many rows for 12 inches?",
+      "valid": false,
+      "expect": null,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is -28 rows per 4 inches. How many rows for 12 inches?",
+      "valid": false,
+      "expect": null,
+      "specialist": "crafts"
+    },
+    {
+      "q": "Gauge is 28 rows per 4 inches. How many rows?",
+      "valid": false,
+      "expect": null,
+      "specialist": "crafts"
+    },
+    {
+      "q": "How many rows for 12 inches?",
+      "valid": false,
+      "expect": null,
+      "specialist": "crafts"
+    },
+    {
+      "q": "A part 180 mm high is printed with 0.2 mm layers. What is the layer count?",
+      "valid": true,
+      "expect": 900,
+      "specialist": "printing"
+    },
+    {
+      "q": "A part 20 mm high is printed with 0.12 mm layers. What is the layer count?",
+      "valid": true,
+      "expect": 167,
+      "specialist": "printing"
+    },
+    {
+      "q": "Board footage of one 1\" x 12\" plank 10 feet long?",
+      "valid": true,
+      "expect": 10,
+      "specialist": "woodworking"
+    },
+    {
+      "q": "Board footage of one 2\" x 4\" plank 12 feet long?",
+      "valid": true,
+      "expect": 8,
+      "specialist": "woodworking"
+    },
+    {
+      "q": "Board footage of 3 boards 2\" x 6\" each 8 feet long?",
+      "valid": true,
+      "expect": 24,
+      "specialist": "woodworking"
+    },
+    {
+      "q": "Board footage of one 1\" x 8\" plank 6 feet long?",
+      "valid": true,
+      "expect": 4,
+      "specialist": "woodworking"
+    },
+    {
+      "q": "Gauge is 5 rows per .5 inches. How many rows for 4 inches?",
+      "valid": true,
+      "expect": 40,
+      "specialist": "crafts",
+      "source": "Numeric-token and dimension boundary regression."
+    },
+    {
+      "q": "Gauge is 5.2.3 rows per 2 inches. How many rows for 4 inches?",
+      "valid": false,
+      "expect": null,
+      "specialist": "crafts",
+      "source": "Numeric-token and dimension boundary regression."
+    },
+    {
+      "q": "Gauge is 28 rows per 4 inches. How many rows for 1.2.3 inches?",
+      "valid": false,
+      "expect": null,
+      "specialist": "crafts",
+      "source": "Numeric-token and dimension boundary regression."
+    },
+    {
+      "q": "Gauge is 28 rows per 4 inches. How many rows for -2 inches?",
+      "valid": false,
+      "expect": null,
+      "specialist": "crafts",
+      "source": "Numeric-token and dimension boundary regression."
+    }
+  ]
+}

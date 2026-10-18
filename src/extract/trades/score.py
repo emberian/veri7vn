@@ -18,9 +18,15 @@ own cross-check against the organs. Nothing under upstream/ is written
 from __future__ import annotations
 
 import argparse
+import math
 import importlib
+import importlib.util
 import json
 import statistics
+import random
+import types
+import contextlib
+import io
 import subprocess
 import sys
 import time
@@ -98,11 +104,74 @@ def run_panel(binary, argv, sid, panel, scorer, organ, tol):
     return out
 
 
+def run_probes(binary):
+    fixture = json.loads(Path(__file__).with_name("probes.json").read_text())
+    out = {"note": fixture["note"], "modes": {}}
+    for mode in ("specialist", "family"):
+        summary = dict(right=0, wrong=0, false_yes=0, withheld_valid=0)
+        results = []
+        for item in fixture["items"]:
+            argv = ["--specialist", item["specialist"]] if mode == "specialist" else []
+            proc = subprocess.Popen([binary, *argv], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+            rep, _ = ask(proc, "probe", item["q"])
+            proc.stdin.close()
+            proc.wait()
+            yes = rep.get("status") == "answered"
+            value = rep.get("value")
+            good = not yes if not item["valid"] else (yes and isinstance(value, (int, float)) and
+                math.isclose(value, item["expect"], rel_tol=0.0005, abs_tol=1e-9))
+            bucket = "right" if good else "false_yes" if yes and not item["valid"] else "wrong" if yes else "withheld_valid"
+            summary[bucket] += 1
+            results.append(dict(item, reply=rep, good=good))
+        out["modes"][mode] = dict(summary=summary, items=results)
+    return out
+
+
+def fresh_panels(seed, out):
+    """Run shipped generators with a seed offset, preserving their templates/tables.
+
+    This is fresh sampling, not independent question design. Missing generators
+    are explicitly recorded and use the shipped panel instead.
+    """
+    out.mkdir(parents=True, exist_ok=True)
+    notes = {}
+    for sid, mod, cls, panel, scorer, tol in SPECIALISTS:
+        candidates = sorted(SPEC.glob("*/" + panel.replace(".json", ".py")))
+        src = SPEC / sid / panel.replace(".json", ".py")
+        dest = out / (sid + ".json")
+        if not candidates:
+            dest.write_text((SPEC / sid / panel).read_text())
+            notes[sid] = {"fresh": False, "reason": "No generator shipped; original panel retained."}
+            continue
+        src = src if src.exists() else candidates[0]
+        spec = importlib.util.spec_from_file_location("fresh_generator", src)
+        generator = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(generator)
+        generator.random = types.SimpleNamespace(Random=lambda original: random.Random(original + seed))
+        saved = sys.argv
+        try:
+            sys.argv = [str(src), str(dest)]
+            with contextlib.redirect_stdout(io.StringIO()):
+                generator.main()
+        finally:
+            sys.argv = saved
+        notes[sid] = {"fresh": True, "generator": str(src.relative_to(REPO)), "seed_offset": seed}
+    (out / "generation.json").write_text(json.dumps(notes, indent=2) + "\n")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--binary", default=str(REPO / "var/trades/bin/trades"))
     ap.add_argument("--out", default=str(REPO / "var/trades/score.json"))
+    ap.add_argument("--panel-root", type=Path, help="Optional directory of <specialist>.json panels (for fresh seeds).")
+    ap.add_argument("--fresh-seed", type=int, help="Offset each shipped generator seed; see generation.json for missing generators.")
+    ap.add_argument("--probes", action="store_true", help="Also score the authored extension and boundary probes.")
     args = ap.parse_args()
+    if args.fresh_seed is not None:
+        if args.panel_root:
+            ap.error("choose --panel-root or --fresh-seed")
+        args.panel_root = fresh_panels(args.fresh_seed, Path(args.out).parent / ("fresh-%d" % args.fresh_seed))
     report = {"binary": args.binary, "size_bytes": Path(args.binary).stat().st_size, "specialists": {}}
     colds = []
     first_q = json.loads((SPEC / "architecture/architecture_panel_v1.json").read_text())[0]["q"]
@@ -117,7 +186,8 @@ def main():
     for sid, mod, cls, panel_file, scorer_mod, tol in SPECIALISTS:
         organ = getattr(load(sid, mod), cls)()
         scorer = load(sid, scorer_mod)
-        panel = json.loads((SPEC / sid / panel_file).read_text())
+        panel_path = args.panel_root / (sid + ".json") if args.panel_root else SPEC / sid / panel_file
+        panel = json.loads(panel_path.read_text())
         budget = json.loads((SPEC / sid / "manifest.json").read_text())["budgets"]["latency_p50_ms"]
         shipped = json.loads((SPEC / sid / "verdict_heldout.json").read_text())["domain"]["spec"]
         entry = {"budget_p50_ms": budget, "shipped_heldout": {k: shipped.get(k) for k in ("correct", "false_yes", "wrong", "n")}}
@@ -129,6 +199,10 @@ def main():
             r["max_specialist_ms"] = max(sm)
             entry[mode] = r
         report["specialists"][sid] = entry
+    if args.probes:
+        report["probes"] = run_probes(args.binary)
+        for mode, result in report["probes"]["modes"].items():
+            print("authored probes", mode, result["summary"])
     Path(args.out).write_text(json.dumps(report, indent=1))
     print("binary %s, %d bytes; cold start ms (5 runs): %s" % (args.binary, report["size_bytes"], ", ".join("%.1f" % c for c in colds)))
     for sid, e in report["specialists"].items():

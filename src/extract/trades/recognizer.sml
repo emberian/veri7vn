@@ -325,14 +325,14 @@ struct
 
   fun printingV1 text : Q.request option =
     if Narrow.narrative text then NONE
-    else case printingCore text of
+    else case printingCore (replaceAll "\\bprinted\\b" "printed (printing)" (lower text)) of
            NONE => NONE
          | SOME r => if answered r orelse Narrow.short_direct text then SOME r else NONE
 
   (* v2: "printed" is a print cue, "mm high" reads as "mm tall", and the family numbers rule *)
   fun printingV2 text : Q.request option =
     let
-      val t = replaceAll "\\bmm high\\b" "mm tall" (replaceAll "\\bprinted\\b" "printed (printing)" (lower text))
+      val t = replaceAll "\\bmm high\\b" "mm tall" (lower text)
     in
       case printingV1 t of
         NONE => NONE
@@ -413,11 +413,11 @@ struct
             else Next
         | NONE => Next
       fun boardFeet () =
-        if has "\\bboard[- ]f(?:ee|oo)t\\b|\\bbd\\.? ?ft\\b" low then
+        if has "\\bboard[- ]f(?:ee|oo)t(?:age)?\\b|\\bbd\\.? ?ft\\b" low then
           let
             val p1 = M ^ "\\s*(?:in|inch(?:es)?|\\\"|" ^ dprime ^ ")?\\s*" ^ xby ^ "\\s*" ^ M ^ "\\s*(?:in|inch(?:es)?|\\\"|" ^ dprime
                      ^ ")?\\s*" ^ xby ^ "\\s*" ^ M ^ "\\s*(ft|feet|foot|'|in|inch(?:es)?|\\\"|" ^ dprime ^ ")"
-            val p2 = M ^ "\\s*" ^ xby ^ "\\s*" ^ M ^ "\\b[^.?]*?\\b" ^ M ^ "\\s*(ft|feet|foot|'|in|inch(?:es)?)\\s*(?:long|length)?"
+            val p2 = M ^ "\\s*(?:in|inch(?:es)?|\\\")?\\s*" ^ xby ^ "\\s*" ^ M ^ "\\s*(?:in|inch(?:es)?|\\\")?[^.?]*?\\b" ^ M ^ "\\s*(ft|feet|foot|'|in|inch(?:es)?)\\s*(?:long|length)?"
             val m = case search p1 low of SOME m => SOME m | NONE => search p2 low
           in
             case m of
@@ -537,7 +537,7 @@ struct
     let
       val t = collapse text
       val low = lower t
-      val gauge = has "\\d+(?:\\.\\d+)?\\s*(?:stitches|sts)\\s*(?:per|over|in)\\s*\\d" low andalso Narrow.sentences t <= 2
+      val gauge = has "\\d+(?:\\.\\d+)?\\s*(?:stitches|sts|rows)\\s*(?:per|over|in)\\s*\\d" low andalso Narrow.sentences t <= 2
     in
       if Narrow.narrative text andalso not gauge then NONE
       else
@@ -560,6 +560,26 @@ struct
             case search "\\bcomplement(?:ary)?(?: colou?r)?\\s+(?:of|to|for)\\s+(red|yellow|blue|green|orange|purple|violet)\\b" low of
               SOME m => Take (Q.Complement (colourOf (g1 low m)))
             | NONE => Next
+          fun rows () =
+            let
+              val signed = "(?<![a-z0-9_.,+~-])(-?(?:\\d+(?:\\.\\d+)?|\\.\\d+))(?![0-9_,]|\\.\\d)"
+              val g3 = search (signed ^ "\\s*rows\\s*(?:per|in|over|=|to)\\s*(?:every\\s*)?" ^ signed ^ "\\s*" ^ crUnit) low
+              val g2 = search (signed ^ "\\s*rows\\s*(?:per|an|/)\\s*(inch|in\\b|cm)") low
+              val gm = case g3 of
+                  SOME m => SOME (m, g1 low m, valOf (grp low m 2), valOf (grp low m 3))
+                | NONE => (case g2 of SOME m => SOME (m, g1 low m, "1", valOf (grp low m 2)) | NONE => NONE)
+            in
+              case gm of NONE => Next
+              | SOME (m, count, span, unit) =>
+                  if has "\\bhow many rows\\b|\\brows (?:do i|should i|to)\\b|\\brow count\\b" low then
+                    (let val rest = replaceLit (Regex.whole low m) " " low in
+                       case search (signed ^ "\\s*" ^ crUnit ^ "\\s*(?:long|length|tall|high|scarf|panel)?") rest of
+                         NONE => Stop
+                       | SOME lm => Take (Q.Rows (ratOf count, ratOf span, startsWith "in" unit orelse unit = "\"",
+                           ratOf (g1 rest lm), startsWith "in" (valOf (grp rest lm 2)) orelse valOf (grp rest lm 2) = "\""))
+                     end)
+                  else Next
+            end
           fun knit () =
             let
               val g3 = search (M ^ "\\s*(?:stitches|sts|st)\\s*(?:per|in|over|=|to)\\s*(?:every\\s*)?" ^ M ^ "\\s*" ^ crUnit) low
@@ -629,8 +649,8 @@ struct
                 else Next
             | NONE => Next
         in
-          case run [colour, complement, knit, quilt, cut, yards, mat, clay] of
-            SOME r => if answered r then SOME r else NONE
+          case run [colour, complement, rows, knit, quilt, cut, yards, mat, clay] of
+            SOME r => (case r of Q.Rows _ => SOME r | _ => if answered r then SOME r else NONE)
           | NONE => NONE
         end
     end

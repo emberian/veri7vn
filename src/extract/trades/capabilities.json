@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "family": "trades",
+  "specialists": {
+    "crafts": {
+      "accept": {
+        "kinds": [
+          "rows"
+        ],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\b(?:rows|row count)\\b"
+      ],
+      "evidence": {
+        "computation": "For row-gauge requests, rows equal gauge row count divided by gauge span, times target length after inch/cm conversion, rounded to the nearest integer with ties to even. The kernel refuses a nonpositive gauge span or negative row count or length. Other crafts requests retain their own named convention.",
+        "assumptions": [
+          "Row-gauge requests assume uniform gauge across the requested length."
+        ],
+        "untrusted": [
+          "English recognition and framing."
+        ]
+      }
+    },
+    "woodworking": {
+      "context_regex_additions": [
+        "\\bboard[- ]footage\\b",
+        "\\b(?:actual|nominal)\\s+(?:size|dimensions?)\\b|\\bdimensional\\s+(?:lumber|timber)\\b"
+      ]
+    }
+  }
+}

@@ -238,6 +238,7 @@ datatype request =
   | MixRyb colour colour
   | MixRgb colour colour
   | Complement colour
+  | Rows rat rat bool rat bool        (* gauge rows, gauge span, inches?, target length, inches? *)
   | CastOn rat bool rat bool          (* stitches per unit, per inch?, width, in inches? *)
   | Quilt rat rat rat                 (* width, length, block size *)
   | CutSize rat
@@ -249,7 +250,7 @@ datatype need = N_shrink | N_height_layer | N_flow_inputs | N_spool_weight | N_f
   | N_material | N_noise_times | N_ladder_length | N_niosh_geometry | N_niosh_multipliers
 
 datatype reason = R_lot_nonpositive | R_factor_nonpositive | R_shrink_range | R_layer_nonpositive
-  | R_spool_nonpositive | R_diameter_nonpositive | R_density_nonpositive | R_negative_duration
+  | R_gauge_dimensions | R_spool_nonpositive | R_diameter_nonpositive | R_density_nonpositive | R_negative_duration
   | R_zero_dose | R_zero_rwl | R_nominal_size | R_openings_exceed | R_rise_nonpositive
   | R_few_sides | R_dry_exceeds_wet | R_no_mix | R_block_nonpositive
 
@@ -260,7 +261,7 @@ datatype kind = K_far | K_max_floor | K_coverage | K_occupant | K_egress | K_ram
   | K_noise_time | K_noise_dose | K_twa | K_ladder | K_rwl | K_li
   | K_actual_size | K_board_feet | K_concrete | K_drywall | K_risers | K_riser_height
   | K_rafter | K_pitch | K_miter | K_wood_mc
-  | K_mix_ryb | K_mix_rgb | K_complement | K_cast_on | K_quilt | K_cut_size | K_yards
+  | K_mix_ryb | K_mix_rgb | K_complement | K_rows | K_cast_on | K_quilt | K_cut_size | K_yards
   | K_mat_outer | K_clay_fired
 
 text \<open>An exact rational value, a pair of them, a colour, a decimal
@@ -300,6 +301,7 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (MixRyb _ _) = K_mix_ryb"
 | "kind_of (MixRgb _ _) = K_mix_rgb"
 | "kind_of (Complement _) = K_complement"
+| "kind_of (Rows _ _ _ _ _) = K_rows"
 | "kind_of (CastOn _ _ _ _) = K_cast_on"
 | "kind_of (Quilt _ _ _) = K_quilt"
 | "kind_of (CutSize _) = K_cut_size"
@@ -467,6 +469,7 @@ fun impossible :: "request \<Rightarrow> bool" where
 | "impossible (Moisture w d) = (d \<le> 0 \<or> w < d)"
 | "impossible (MixRyb a b) = (mix_ryb a b = None)"
 | "impossible (MixRgb a b) = (mix_rgb a b = None)"
+| "impossible (Rows row_count gauge_span _ target_len _) = (row_count < 0 \<or> gauge_span \<le> 0 \<or> target_len < 0)"
 | "impossible (Quilt _ _ s) = (s \<le> 0)"
 | "impossible _ = False"
 
@@ -495,6 +498,7 @@ fun reason_of :: "request \<Rightarrow> reason option" where
 | "reason_of (Moisture w d) = (if d \<le> 0 \<or> w < d then Some R_dry_exceeds_wet else None)"
 | "reason_of (MixRyb a b) = (if mix_ryb a b = None then Some R_no_mix else None)"
 | "reason_of (MixRgb a b) = (if mix_rgb a b = None then Some R_no_mix else None)"
+| "reason_of (Rows row_count gauge_span _ target_len _) = (if row_count < 0 \<or> gauge_span \<le> 0 \<or> target_len < 0 then Some R_gauge_dimensions else None)"
 | "reason_of (Quilt _ _ s) = (if s \<le> 0 then Some R_block_nonpositive else None)"
 | "reason_of _ = None"
 
@@ -689,6 +693,7 @@ fun answer_of :: "request \<Rightarrow> outcome" where
 | "answer_of (MixRyb a b) = (case mix_ryb a b of Some c \<Rightarrow> Hue K_mix_ryb c | None \<Rightarrow> Decline Imprecise)"
 | "answer_of (MixRgb a b) = (case mix_rgb a b of Some c \<Rightarrow> Hue K_mix_rgb c | None \<Rightarrow> Decline Imprecise)"
 | "answer_of (Complement c) = Hue K_complement (comp_of c)"
+| "answer_of (Rows row_count gauge_span u l li) = Exact K_rows (round_he (row_count / gauge_span * cast_width u l li))"
 | "answer_of (CastOn spu u w wi) = Exact K_cast_on (round_he (spu * cast_width u w wi))"
 | "answer_of (Quilt w l s) = Exact K_quilt (floor_eps (w / s) * floor_eps (l / s))"
 | "answer_of (CutSize s) = Exact K_cut_size (s + 1 / 2)"
@@ -772,6 +777,7 @@ fun spec_exact :: "request \<Rightarrow> rat \<Rightarrow> bool" where
       else least_cover (rise_in r ft / max_riser) q)"
 | "spec_exact (Miter n) q = (3 \<le> n \<and> q * of_nat n = 180)"
 | "spec_exact (Moisture w d) q = (0 < d \<and> d \<le> w \<and> q * d = (w - d) * 100)"
+| "spec_exact (Rows row_count gauge_span u l li) q = (0 \<le> row_count \<and> 0 < gauge_span \<and> 0 \<le> l \<and> spec_he (row_count / gauge_span * cast_width u l li) q)"
 | "spec_exact (CastOn spu u w wi) q = spec_he (spu * cast_width u w wi) q"
 | "spec_exact (Quilt w l s) q =
      (0 < s \<and> (\<exists>nw nl. most_fit (w / s) nw \<and> most_fit (l / s) nl \<and> q = nw * nl))"
@@ -932,6 +938,9 @@ next
   case Complement
     show ?thesis using A Complement by simp
 next
+  case (Rows row_count gauge_span u l li)
+    show ?thesis using A B Rows round_he_spec by (auto split: if_splits)
+next
   case (CastOn x0 x1 x2 x3)
     show ?thesis using A CastOn round_he_spec by auto
 next
@@ -961,6 +970,15 @@ proof -
   then have a: "answer_of r = Exact k q" using assms by simp
   show ?thesis using d answer_exact_spec[OF a] reason_of_exact[of r] by auto
 qed
+
+lemma rows_unit_invariant:
+  "kernel (Rows row_count gauge_span True inches True) = kernel (Rows row_count gauge_span True (inches * cm_per_inch) False)"
+  by (simp add: kernel_def decline_of_def cast_width_def cm_per_inch_def)
+
+lemma rows_nearest:
+  assumes "kernel (Rows row_count gauge_span u target_len li) = Exact k q"
+  shows "0 \<le> row_count \<and> 0 < gauge_span \<and> 0 \<le> target_len \<and> k = K_rows \<and> spec_he (row_count / gauge_span * cast_width u target_len li) q"
+  using kernel_exact_sound[OF assms] by simp
 
 lemma answer_duo:
   "answer_of r = Duo k x y \<Longrightarrow>
@@ -1060,6 +1078,7 @@ fun value_rule :: "kind \<Rightarrow> vrule" where
   "value_rule K_far = V_f3c" | "value_rule K_max_floor = V_f3c" | "value_rule K_coverage = V_f3c"
 | "value_rule K_egress = V_f3c" | "value_rule K_ramp = V_f3c"
 | "value_rule K_occupant = V_int" | "value_rule K_layers = V_int" | "value_rule K_drywall = V_int"
+| "value_rule K_rows = V_int"
 | "value_rule K_risers = V_int" | "value_rule K_cast_on = V_int" | "value_rule K_quilt = V_int"
 | "value_rule K_shrink = V_g4c" | "value_rule K_flow = V_g4c"
 | "value_rule K_cost = V_cents"
@@ -1259,6 +1278,9 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + STR '' sides).''"
 | "exact_text (Moisture w d) q V = STR ''The moisture content is '' + V + STR ''% (('' + show3 w + STR '' - ''
      + show3 d + STR '') / '' + show3 d + STR '', oven-dry basis; USDA Wood Handbook).''"
+| "exact_text (Rows row_count gauge_span u l li) q V = STR ''Work '' + V + STR '' rows ('' + show3 (row_count / gauge_span)
+     + STR '' rows per '' + (if u then STR ''inch'' else STR ''cm'') + STR '' x ''
+     + show3 (cast_width u l li) + STR '' '' + (if u then STR ''in'' else STR ''cm'') + STR ''; nearest whole row, ties to even).''"
 | "exact_text (CastOn spu u w wi) q V = STR ''Cast on '' + V + STR '' stitches ('' + show3 spu
      + STR '' stitches per '' + (if u then STR ''inch'' else STR ''cm'') + STR '' x ''
      + show3 (cast_width u w wi) + STR '' '' + (if u then STR ''in'' else STR ''cm'') + STR '', rounded).''"
@@ -1329,7 +1351,8 @@ definition need_text :: "need \<Rightarrow> String.literal" where
 
 definition reason_text :: "request \<Rightarrow> reason \<Rightarrow> String.literal" where
   "reason_text r y = (case y of
-       R_nominal_size \<Rightarrow> (case r of ActualSize a b \<Rightarrow> show_nat a + STR ''x'' + show_nat b
+       R_gauge_dimensions \<Rightarrow> STR ''The gauge span must be positive and row count and target length nonnegative.''
+     | R_nominal_size \<Rightarrow> (case r of ActualSize a b \<Rightarrow> show_nat a + STR ''x'' + show_nat b
            + STR '' is outside the standard dimensional-lumber table (PS 20).'' | _ \<Rightarrow> STR ''Not in the lumber table.'')
      | R_few_sides \<Rightarrow> STR ''A closed frame needs at least 3 sides.''
      | R_dry_exceeds_wet \<Rightarrow> STR ''The oven-dry mass cannot exceed the wet mass.''
@@ -1365,6 +1388,7 @@ fun kind_name :: "kind \<Rightarrow> String.literal" where
 | "kind_name K_rafter = STR ''rafter''" | "kind_name K_pitch = STR ''pitch_angle''"
 | "kind_name K_miter = STR ''miter''" | "kind_name K_wood_mc = STR ''wood_mc''"
 | "kind_name K_mix_ryb = STR ''mix_ryb''" | "kind_name K_mix_rgb = STR ''mix_rgb''"
+| "kind_name K_rows = STR ''rows''"
 | "kind_name K_complement = STR ''complement''" | "kind_name K_cast_on = STR ''cast_on''"
 | "kind_name K_quilt = STR ''quilt_blocks''" | "kind_name K_cut_size = STR ''cut_size''"
 | "kind_name K_yards = STR ''yards''" | "kind_name K_mat_outer = STR ''mat_outer''"
