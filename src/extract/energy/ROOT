@@ -11,6 +11,8 @@ session Veri7vn_Energy_Base in base = HOL +
 
 session Veri7vn_Energy = Veri7vn_Energy_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     Energy_Core
     Thermo

@@ -31,7 +31,7 @@ battery life, Nyquist, data rate (iot).
 | Family request type and dispatcher | `Energy_Family.thy` | HOL |
 | Export, self test, oracle check | `Energy_Export.thy` | the build fails if any listed theorem depends on an oracle or the self test fails |
 | Table transcription check | `tables_check.py` | a Python check of the HOL text against the organ files; not a proof |
-| Reading numbers and words out of English | `regex.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions |
+| Reading numbers and words out of English | `../commons/commons.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions |
 | JSON framing | `main.sml` | **untrusted** |
 | Isabelle code generator, MLton | toolchain | trusted |
 
