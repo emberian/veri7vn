@@ -43,7 +43,7 @@ definition self_test :: bool where
      response (reply_of (PhKE (Some 5) (Some 2))) =
        STR ''The kinetic energy is 10 J (KE = 1/2 m v^2 = 1/2 x 5 x 2^2).''"
 
-export_code reply_of answered reply_kind response stated mk_rat self_test
+export_code reply_of answered reply_kind response stated mk_rat
   integer_of_int nat_of_integer int_of_integer
   fluid_order solid_order body_order
   SU_kmh SU_mph SU_ms LU_m LU_cm LU_mm VU_m3 VU_l VU_cm3 DU_mi DU_km LD_n LD_kg

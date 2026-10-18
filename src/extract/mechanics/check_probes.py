@@ -28,3 +28,5 @@ a.out.write_text(json.dumps(results,indent=2))
 for mode in ['specialist','family']:
  rows=[r for r in results if r['mode']==mode]
  print(mode,sum(r['ok'] for r in rows),'/',len(rows))
+
+raise SystemExit(0 if all(r['ok'] for r in results) else 1)

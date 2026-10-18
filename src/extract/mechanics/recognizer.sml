@@ -22,8 +22,7 @@
    case-sensitive organ patterns (newtons "N", joules "J", body names, "MA")
    are applied to the original text. \w and \d are ASCII here.
 
-   Differences from the organs, all in the kernel's favour and none on the
-   panels: inputs the organs divide by zero on or take a square root of a
+   Additional safeguards beyond the original port: inputs the organs divide by zero on or take a square root of a
    negative on reach the kernel, which declines them as impossible (the organs
    raise exceptions); a true-shooting turn with no attempts is a withheld
    reply, where the organ is silent. *)
@@ -402,7 +401,9 @@ struct
             NONE => SOME (M.McPulleyMA n)
           | SOME ld => SOME (M.McPulleyEffort (n, (ratOf (g1 low ld), loadUnit (valOf (grp low ld 2)))))
         end
-      else if has "\\blever\\b|\\bfulcrum\\b|\\bcrowbar\\b|\\bseesaw\\b" low then
+      else if has "\\blever\\b|\\bfulcrum\\b|\\bcrowbar\\b|\\bseesaw\\b" low
+              andalso (not (has "\\btorque\\b" low)
+                orelse has "\\b(?:effort|load|resistance) arm\\b|\\bfulcrum\\b" low) then
         let
           fun either p1 p2 = case search p1 low of SOME m => SOME m | NONE => search p2 low
           val ea = either ("\\beffort arm\\s*(?:of|is|=)?\\s*" ^ UNUM) (UNUM ^ "\\s*(?:m|cm|ft)?\\s*(?:from the fulcrum )?(?:effort arm)")

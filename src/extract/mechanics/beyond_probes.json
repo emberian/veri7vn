@@ -1,0 +1,165 @@
+{
+  "disclosure": "Author-written probes; formula references are existing checked models, not independent linguistic validation.",
+  "probes": [
+    {
+      "specialist": "mechanisms",
+      "q": "Find the torque when a force of 73 N is applied to a 0.4 m lever.",
+      "valid": true,
+      "expect": 29.2,
+      "source": "Mechanics.thy: torque_def, torque_angle_bound; tau=F r sin(theta), metric unit scales",
+      "kind": "torque"
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does 40 N exert on a 25 cm wrench?",
+      "valid": true,
+      "expect": 10,
+      "source": "Mechanics.thy: torque_def, torque_angle_bound; tau=F r sin(theta), metric unit scales",
+      "kind": "torque"
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does 16 N exert on a 125 mm arm?",
+      "valid": true,
+      "expect": 2,
+      "source": "Mechanics.thy: torque_def, torque_angle_bound; tau=F r sin(theta), metric unit scales",
+      "kind": "torque"
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does 40 N exert on a 0.5 m lever at 30 degrees?",
+      "valid": true,
+      "expect": 10,
+      "source": "Mechanics.thy: torque_def, torque_angle_bound; tau=F r sin(theta), metric unit scales",
+      "kind": "torque"
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does 40 N exert on a 0.5 m lever at 90 degrees?",
+      "valid": true,
+      "expect": 20,
+      "source": "Mechanics.thy: torque_def, torque_angle_bound; tau=F r sin(theta), metric unit scales",
+      "kind": "torque"
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a 7 kg ball moving at 11 m/s?",
+      "valid": true,
+      "expect": 423.5,
+      "source": "Mechanics.thy: Newtonian model g0=9.80665; kinetic_energy_momentum/drop_energy_conserved",
+      "kind": null
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the momentum of a 7 kg object moving at 11 m/s?",
+      "valid": true,
+      "expect": 77,
+      "source": "Mechanics.thy: Newtonian model g0=9.80665; kinetic_energy_momentum/drop_energy_conserved",
+      "kind": null
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What force accelerates a 7 kg car at 3 m/s^2?",
+      "valid": true,
+      "expect": 21,
+      "source": "Mechanics.thy: Newtonian model g0=9.80665; kinetic_energy_momentum/drop_energy_conserved",
+      "kind": null
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "A ball is dropped from 17 m. What speed does it hit the ground at?",
+      "valid": true,
+      "expect": 18.259958926569357,
+      "source": "Mechanics.thy: Newtonian model g0=9.80665; kinetic_energy_momentum/drop_energy_conserved",
+      "kind": null
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "A ball is dropped from 17 m. How long does it take to fall?",
+      "valid": true,
+      "expect": 1.8619976165733823,
+      "source": "Mechanics.thy: Newtonian model g0=9.80665; kinetic_energy_momentum/drop_energy_conserved",
+      "kind": null
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the potential energy of a 7 kg box lifted 11 m?",
+      "valid": true,
+      "expect": 755.11205,
+      "source": "Mechanics.thy: Newtonian model g0=9.80665; kinetic_energy_momentum/drop_energy_conserved",
+      "kind": null
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a 7 kg ball?",
+      "valid": false,
+      "expect": null,
+      "source": "Missing speed: kinetic energy is not determined.",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "A lever has effort arm 2 m and load arm 0.5 m. What is its mechanical advantage?",
+      "valid": true,
+      "expect": 4,
+      "source": "Mechanics.thy: lever_ma_def",
+      "kind": null
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "A ramp is 1 m long and 3 m high. What is its mechanical advantage?",
+      "valid": false,
+      "expect": null,
+      "source": "Impossible ramp: rise exceeds length (R_ramp).",
+      "kind": null
+    },
+    {
+      "specialist": "fleet",
+      "q": "What is the braking distance at 20 m/s with friction coefficient 0.5?",
+      "valid": true,
+      "expect": 40.78864851911713,
+      "source": "Mechanics.thy: braking_def v^2/(2 mu g)",
+      "kind": null
+    },
+    {
+      "specialist": "fleet",
+      "q": "What is the stopping distance at 20 m/s with friction coefficient 0.5 and reaction time 1.2 s?",
+      "valid": true,
+      "expect": 64.78864851911713,
+      "source": "Mechanics.thy: stopping_is_reaction_plus_braking",
+      "kind": null
+    },
+    {
+      "specialist": "fleet",
+      "q": "What is the stopping distance at 20 m/s with friction coefficient 0.5?",
+      "valid": false,
+      "expect": null,
+      "source": "Stopping distance requires a reaction time.",
+      "kind": null
+    },
+    {
+      "specialist": "bodies-v2",
+      "q": "On Mars, how much does a 400 kg crate weigh in newtons?",
+      "valid": true,
+      "expect": 1484,
+      "source": "Mechanics.thy: body_weight, Mars surface g=3.71 N/kg",
+      "kind": null
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "A diver is 5 m below the surface of mercury. What pressure does the mercury exert there?",
+      "valid": true,
+      "expect": 663596.3922,
+      "source": "Mechanics.thy: gauge_pressure, rho mercury=13533.6 kg/m3",
+      "kind": null
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the gauge pressure at a depth of 3 m in water?",
+      "valid": true,
+      "expect": 29419.949999999997,
+      "source": "Mechanics.thy: gauge_pressure, rho water=1000 kg/m3",
+      "kind": null
+    }
+  ]
+}

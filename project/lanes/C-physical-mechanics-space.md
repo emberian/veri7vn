@@ -4,7 +4,7 @@ Owner: Codex physical/mechanics_space. No new answer kinds. This packet fixes in
 
 ## Status
 
-Space is ready from a fresh proved export and final compiled binary, including material-phase and case-sensitive SI force-unit boundary fixes. Mechanics warm candidates and both fresh seeds pass; its fresh export is still queued. See receipt/performance section below.
+Space is ready from a fresh proved export and final compiled binary, including material-phase and case-sensitive SI force-unit boundary fixes. Mechanics also has a fresh proved export and final binary: all 1,264 shipped cases and both fresh seeds pass. See receipt/performance section below.
 
 ## What changed
 
@@ -171,7 +171,7 @@ Review after the initial Space commit found that “in N” still received kg-eq
 
 ## Authored probes and composition
 
-Mechanics has 20 and space has 32 committed probes with expected values and sources in beyond_probes.json. They use independent formula calculations but share the recognizer author’s linguistic assumptions. The checker tests both pinned specialist and family mode. Result: mechanics warm candidate 20/20 and space final binary 32/32 in both modes. Before: mechanics17/20 pinned and20/20 family; space 10/20 pinned (3wrong,3falseyes,4withheld) and 13/20 family (3falseyes,4withheld).
+Mechanics has 20 and space has 32 committed probes with expected values and sources in beyond_probes.json. They use independent formula calculations but share the recognizer author’s linguistic assumptions. The checker tests both pinned specialist and family mode. Result: mechanics final binary 20/20 and space final binary 32/32 in both modes. Before: mechanics17/20 pinned and20/20 family; space 10/20 pinned (3wrong,3falseyes,4withheld) and 13/20 family (3falseyes,4withheld).
 
 Physical deputy independently checked a96-case cross-family sample through the revised dispatcher:96/96 after these fixes, including the missing-altitude spacecraft question and mercury-fluid / force-newtons boundaries. Receipts: var/c-physical-integration/warm-candidates.json and var/c-physical-integration/space-final-consumer.json. The final eight composed smokes cover missing-altitude refusal, the 1484 N crate, mercury-fluid pressure, planetary Mercury density, Earth’s year, liquid density and solid/molten mercury refusals; all pass.
 
@@ -237,8 +237,32 @@ Final space shipped totals: pinned 1,185/1,185 right, zero wrong, false yes or
 valid withholds. Family mode 1,183/1,185 right, zero wrong/valid withholds and
 two false yes from the explicitly disclosed planetary-only scope checks.
 
-Mechanics fresh receipt is pending at
-`var/mechanics/remote-attempts/20261018T063133Z-b5102054dc4c/receipt.json`.
+Mechanics fresh receipt passed at
+`var/mechanics/remote-attempts/20261018T063133Z-b5102054dc4c/receipt.json`,
+with `VERI7VN_MECHANICS PASS theorems=67 oracles=0` (110.5 s session).
+Export SHA256: `d867f6daed616e3f434d14589df87bf9a5b123a0ef76c78f2c4ee4c4bab27dd0`.
+Final `var/mechanics/bin/mechanics` is 639,480 bytes, SHA256
+`0af31339422601f34d79ff40b4d32b4799dff259f63906de69a852d89499eb63`.
+The pinned and family shipped panels each give 1,264/1,264 right, zero wrong,
+false yes or valid withholds. Final reserved seed 20261029 is clean for all
+eight specialists with generators; fleet has none. All 20 sourced probes
+pass in each mode. Exact results: `mechanics-final.json`,
+`mechanics-probes-final.json`, and `sealed-mechanics-final/summary.json`
+under `var/c-physical-mechanics-space`.
+
+Mechanics startup-to-first-reply samples were 295.67, 4.46, 4.14, 4.06,
+4.07 ms (median 4.14 ms), versus the old median about 30 ms. The first launch
+of the rebuilt binary is disclosed; repeated process launches do not prove
+a universal cold-start bound. Pinned p50 round trips range 0.096–0.191 ms
+apart from bodies-v2 at 1.97 ms, meeting one-tenth of its 50 ms manifest
+budget. The binary shrank from 655,928 to 639,480 bytes. These runtime
+measurements are macOS; the successful proof build is Linux. Runtime owns
+the separate packaged Linux reply comparison.
+
+This packet's source is frozen for root's commit and runtime capture. The
+next dimensional/domain work is tracked separately in
+`project/lanes/C-physical-mechanics-space-next.md`; its counterexamples do
+not alter the measured first-packet panel claims.
 
 ## Reproduction
 

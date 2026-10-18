@@ -51,7 +51,15 @@ PYTHONDONTWRITEBYTECODE=1 python3 src/extract/mechanics/score.py
 
 ## Current result
 
-Every item of every shipped panel, both splits, is right with 0 wrong and 0 false yes, except
-the `mechanisms` (v1) held-out panel at 57 of 64, exactly the shipped 57: its seven misses are the
-torque-on-a-lever questions that `mechanisms-v2` was written to fix, and `mechanisms-v2` gets all
-of them. Details and numbers per specialist: [lane S01 handoff](../../../project/lanes/S01-mechanics.md).
+The continuation also fixes torque-on-a-lever questions in `mechanisms` v1:
+a simple torque request reaches the existing torque kernel instead of asking
+for two lever-arm lengths. Questions explicitly asking about effort and load
+arms still use the lever model. The held-out panel rises from 57/64 to 64/64;
+all nine specialist panels are now completely right in both splits, with zero
+wrong and zero false yes. No new formula or answer kind was needed.
+
+Build-time self tests still run but are no longer exported as an eager runtime
+constant. The build script accepts a checked remote export or an explicit
+`GENERATED_SML` path and preserves existing export directories. See the
+[continuation report](../../../project/lanes/C-physical-mechanics-space.md) for
+fresh seeds, 20 authored probes, timing and remaining scope limits.
