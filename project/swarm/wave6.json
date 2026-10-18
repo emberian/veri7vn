@@ -1,0 +1,310 @@
+{
+ "wave": 6,
+ "from_audit": "docs/assurance/theorem-audit.md",
+ "snapshot": "e1a3738",
+ "rule": "sonnet unless the proof needs search, interval or real-analysis work",
+ "batches": {
+  "W6-01-quantity-acoustics": {
+   "title": "Cross-kind laws for quantity and acoustics",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/quantity/Quantity.thy",
+    "src/extract/quantity/Quantity_Export.thy",
+    "src/extract/acoustics/Acoustics.thy",
+    "src/extract/acoustics/Acoustics_Export.thy",
+    "project/lanes/W6-01-quantity-acoustics.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: quantity 1-3 (energy/force, absolute/gauge, temperature round trip); acoustics 1-3 (reply end to end, open/closed pipe, dB sum bound).",
+   "done_when": "6 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-02-anatomyagri": {
+   "title": "Exact declines and grounded constants for anatomyagri",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/anatomyagri/",
+    "project/lanes/W6-02-anatomyagri.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: anatomyagri 1-3.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-03-chemistry": {
+   "title": "Parser soundness and cross-kind laws for chemistry",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "dev after lane B-chemistry lands (it is editing src/extract/chemistry/)",
+   "paths": [
+    "src/extract/chemistry/",
+    "project/lanes/W6-03-chemistry.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: chemistry 1-3; the full formula grammar is optional.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-04-climate": {
+   "title": "Climate: drop two vacuous theorems, AQI monotone",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/climate/",
+    "project/lanes/W6-04-climate.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: climate 1-3; delete kernel_deterministic and mass_ppm_inverse.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-05-computing": {
+   "title": "Computing: timer bound, scan the 44",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/computing/",
+    "project/lanes/W6-05-computing.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: computing 1 and 3 (replace emb_ctc_gives and exec_group_order_is_key_order, scan all 44 unscanned theorems, drop cyb_base64_len or tie it to cyb_value).",
+   "done_when": "2 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0) and 44 more theorems in the scan"
+  },
+  "W6-06-computing-sql": {
+   "title": "SQL select against a relational specification",
+   "model": "opus",
+   "size": "L",
+   "start_from": "dev after W6-05 lands (same session)",
+   "paths": [
+    "src/extract/computing/Sql.thy",
+    "project/lanes/W6-06-computing-sql.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: computing 2: exec_sq for an ungrouped select equals project-of-filter over the table; grouped select as a second theorem if time allows.",
+   "done_when": "1 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-07-discrete": {
+   "title": "MST minimality and exact declines for discrete",
+   "model": "opus",
+   "size": "M",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/discrete/",
+    "project/lanes/W6-07-discrete.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: discrete 1-3; scan or delete the five one-line reply_of_* facts.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-08-document": {
+   "title": "Document route: anchor and release computed in HOL",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "dev after W5-18 lands (document captures)",
+   "paths": [
+    "src/isabelle/document/",
+    "tools/document/",
+    "project/lanes/W6-08-document.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: document 1-3: anchor_present and released become HOL functions of the fetched claim fields; the four external theorems then rest on them.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0) and the document's 231 core items unchanged (tools/document/measure.py)"
+  },
+  "W6-09-earth": {
+   "title": "Earth: explicit declines, symmetry, scan the 7",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/earth/",
+    "project/lanes/W6-09-earth.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: earth 1-3.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0) and 7 more theorems in the scan"
+  },
+  "W6-10-emoptics": {
+   "title": "Emoptics: exact resistor decline, parallel bound",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/emoptics/",
+    "project/lanes/W6-10-emoptics.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: emoptics 1-3.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-11-energy": {
+   "title": "Energy: cross-kind laws, one exact-soundness fact per sub-family",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/energy/",
+    "project/lanes/W6-11-energy.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: energy 1-3; collapse the triplicated exact-soundness lemmas; scan or drop the 3 unscanned.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0) and the definitional count down by at least 10"
+  },
+  "W6-12-facts-tables": {
+   "title": "Facts: the organ tables as a checked equality",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/facts/",
+    "project/lanes/W6-12-facts-tables.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: facts 2 and 3 (sentence carries value; generated organ rows proved equal to the HOL tables for all 21 stores). The row generator is untrusted Python under src/extract/facts/ (ask root for a tools/ path if it grows).",
+   "done_when": "22 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0) (21 table equalities plus the sentence theorem)"
+  },
+  "W6-13-facts-guards": {
+   "title": "Facts: guards with a HOL meaning",
+   "model": "opus",
+   "size": "L",
+   "start_from": "dev after W6-12 lands (same session)",
+   "paths": [
+    "src/extract/facts/",
+    "project/lanes/W6-13-facts-guards.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: facts 1: a HOL semantics for rule guards over the question text so the recognizer's matcher is no longer a parameter; at least the literature-v2 store end to end.",
+   "done_when": "1 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0) for at least one store, its panel unchanged"
+  },
+  "W6-14-finance": {
+   "title": "Finance: say what the real-rate kernel computes",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/finance/",
+    "project/lanes/W6-14-finance.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: finance 1-3; delete or re-aim fisher_relation.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-15-geostats": {
+   "title": "Geostats: negative lengths, complete modes",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/geostats/",
+    "project/lanes/W6-15-geostats.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: geostats 1-3; item 1 may need a new decline: measure first how many panel items carry a negative length (expected 0).",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-16-guards": {
+   "title": "Guards: vectors without eval, guards as narrowing folds",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/guards/",
+    "project/lanes/W6-16-guards.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: guards 1-3: vectors by code_simp and before the marker; Narrow encoding; nums_q in HOL.",
+   "done_when": "2 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0) and 114 vectors proved without an oracle, Guards_Vectors before Guards_Export in ROOT"
+  },
+  "W6-17-humanities": {
+   "title": "Humanities: exact silence, round trips",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/humanities/",
+    "project/lanes/W6-17-humanities.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: humanities 1-3.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-18-life": {
+   "title": "Life: explicit declines, model laws tied to e_phys",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/life/",
+    "project/lanes/W6-18-life.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: life 1 and 2 (replace doubling_property and logistic_starts_at_n0); 3 (Shannon bound) only if it closes in two build attempts, else name it in remaining.",
+   "done_when": "2 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-19-materials-mechanics": {
+   "title": "Materials and mechanics: cross-kind laws",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/materials/",
+    "src/extract/mechanics/",
+    "project/lanes/W6-19-materials-mechanics.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: materials 1-3 and mechanics 1-3.",
+   "done_when": "6 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-20-readers": {
+   "title": "Relation readers: coverage against a store snapshot",
+   "model": "opus",
+   "size": "M",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/relations/",
+    "src/extract/rel-novels/",
+    "src/isabelle/reader/",
+    "project/lanes/W6-20-readers.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: readers 1-3: completeness as a HOL relation to a store snapshot, oracle scan in Relation_Reader_Test, selection rule stated.",
+   "done_when": "2 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0) and Veri7vn_Reader's 18 theorems scanned; relations 16,284 right / 0 wrong unchanged"
+  },
+  "W6-21-isabelle-sessions": {
+   "title": "Routing and specialists sessions: scans and eval",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev",
+   "paths": [
+    "src/isabelle/routing/",
+    "src/isabelle/specialists/",
+    "project/lanes/W6-21-isabelle-sessions.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: specialists 1-2, routing 1-2.",
+   "done_when": "2 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0) and Veri7vn_Specialists' 25 theorems scanned with 0 by eval"
+  },
+  "W6-22-space": {
+   "title": "Space: explicit declines, Hohmann delta-v",
+   "model": "opus",
+   "size": "M",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/space/",
+    "project/lanes/W6-22-space.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: space 1-3; delete kernel_deterministic.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-23-stores": {
+   "title": "Stores: completeness computed in HOL",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/stores/",
+    "project/lanes/W6-23-stores.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: stores 1-3: nq_complete and ev_complete become HOL functions of the fetched rows.",
+   "done_when": "3 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  },
+  "W6-24-trades-wordprob": {
+   "title": "Trades and wordprob: symmetry, involution, no vacuous values",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev",
+   "paths": [
+    "src/extract/trades/",
+    "src/extract/wordprob/",
+    "project/lanes/W6-24-trades-wordprob.md"
+   ],
+   "brief": "Read docs/assurance/theorem-audit.md (your family's section and the class rules), project/swarm/LANE_BRIEF.md (box safety, build through tools/dev/remote-build or check-native only), and your family's handoff in project/lanes/. Add the binding theorems the audit proposes for your family (you may restate them if a constant differs, never weaken them to a restatement of the code), replace or delete the vacuous ones it names, put every theorem-keyword fact in the export theory's @{thm} scan, keep the PASS marker the last command. If a proposed statement is false of the current kernel, stop and report it with a counterexample before changing the kernel; a kernel change must leave every panel reply of the family unchanged. Re-run python3 -B var/audit/markers.py and the family's harness; the handoff quotes each new statement verbatim. No sorry, no by eval, no new axioms. Items: trades 1-3 and wordprob 1-3 (replace the six vacuous *_value theorems).",
+   "done_when": "6 binding theorems added (statements as in the audit or stronger), vacuous count 0 in the family, unscanned theorems 0, PASS marker last with oracles=0, panel replies unchanged on every specialist panel of the family (harness diff 0)"
+  }
+ },
+ "deferred": {
+  "fusion-error-propagation": "fusion 1-3 (L, opus): optional; fusion is already among the strongest families",
+  "routing-full-catalogue": "routing 3 (L, opus): needs the 346 folds encoded first (lane B's catalogue)"
+ },
+ "order": "W5-12 has landed; start any lane whose start_from is plain dev. W6-03 waits for lane B-chemistry, W6-06 for W6-05, W6-13 for W6-12, W6-08 for W5-18."
+}
