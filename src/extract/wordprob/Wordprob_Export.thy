@@ -83,7 +83,12 @@ reply_of} through this wrapper instead of building a @{type nat} itself.\<close>
 definition reply_of' :: "integer option \<times> wp list \<Rightarrow> wreply" where
   "reply_of' x = reply_of (map_option nat_of_integer (fst x), snd x)"
 
-export_code reply_of' answered schema response stated mk_rat g6r uname self_test self_failures
+text \<open>Geometry's radius-from-diameter, exported so the untrusted
+recognizer never computes: it halves an exact rational.\<close>
+definition half_rat :: "rat \<Rightarrow> rat" where
+  "half_rat x = x / 2"
+
+export_code reply_of' answered schema response stated mk_rat g6r uname self_test self_failures half_rat
   integer_of_int int_of_integer
   unit_table plural_units
   PercentOf Convert SimpleInterest UnitPrice TotalCost SaleOff SalePct

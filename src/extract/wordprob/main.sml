@@ -3,7 +3,7 @@
    reply per line on stdout, flushes after each, exits on EOF. The JSON reader
    is lane G's (src/extract/quantity/main.sml), copied verbatim below. All
    reply content (status, response, value) comes from the HOL kernel's
-   Wordprob.reply_of' over the untyped recognizer's request list; this file
+   Wordprob.reply_ofa (the generator spelling of reply_of') over the untyped recognizer's request list; this file
    only frames it. The path is the head's own organ path for the word organ
    (fold w488): organ:math>word:<schema>. *)
 (* UNTRUSTED. The answerer-contract driver (docs/contracts/answerer.md): reads
@@ -158,7 +158,7 @@ struct
     let
       val t0 = Time.now ()
       val (rnd, reqs) = Recognizer.answer q
-      val r = Wordprob.reply_of' (rnd, reqs)
+      val r = Wordprob.reply_ofa (rnd, reqs)
       val schema = Wordprob.schema r
     in
       if Wordprob.answered r then
@@ -169,7 +169,7 @@ struct
         ^ (case Wordprob.stated r of SOME v => ", \"value\": " ^ v | NONE => "")
         ^ ", \"provenance\": {\"taken\": true, \"organ\": \"word_problems_v1\""
         ^ ", \"specialist_ms\": " ^ ms t0
-        ^ ", \"kernel\": \"Wordprob.reply_of'\", \"session\": \"Veri7vn_Wordprob\", \"theorems\": ["
+        ^ ", \"kernel\": \"Wordprob.reply_ofa\", \"session\": \"Veri7vn_Wordprob\", \"theorems\": ["
         ^ theorems ^ "]}}"
       else
         "{\"id\": " ^ id ^ ", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\""

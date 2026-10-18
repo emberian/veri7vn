@@ -40,9 +40,11 @@ struct
 
   fun search p s = Regex.search (re p) s
   fun has p s = isSome (search p s)
+  fun findall p s = Regex.findall (re p) s
   fun findallX p s = Regex.findall (reX p) s
   fun grp s m g = Regex.group s m g
   fun g1 s m = valOf (grp s m 1)
+  fun g2 s m = valOf (grp s m 2)
 
   fun collapse s = String.concatWith " " (String.tokens Char.isSpace s)
 
@@ -57,9 +59,6 @@ struct
         val den = IntInf.pow (10, size fp)
     in (num, den) end
   fun ratOf lit = let val (n, d) = parts lit in Q.mk_rat n d end
-  (* half of a numeral: near "diameter" d gives the radius d/2 *)
-  fun halfRat lit = let val (n, d) = parts lit in Q.mk_rat n (2 * d) end
-
   (* U+2212 MINUS SIGN (UTF-8 e2 88 92) -> "-", as the organ's quantities() *)
   val minus = "\226\136\146"
   fun substMinus s =
@@ -95,8 +94,8 @@ struct
   (* unit_of: the organ walks its four tables in order (length, mass, volume,
      time), and for each table tries the word, its minus-s and minus-es forms *)
   fun lookupUnit (cand : string) (k : Q.mkind) : Q.wunit option =
-    case List.find (fn (n, k', u) => n = cand andalso k' = k) Q.unit_table of
-      SOME (_, _, u) => SOME u | NONE => NONE
+    case List.find (fn (n, (k', u)) => n = cand andalso k' = k) Q.unit_table of
+      SOME (_, (_, u)) => SOME u | NONE => NONE
   val MKINDS = [Q.Mlength, Q.Mmass, Q.Mvolume, Q.Mtime]
   fun unitOf (word : string) : (Q.mkind * Q.wunit) option =
     let
@@ -115,7 +114,7 @@ struct
       fun one (m : Regex.match) =
         let
           val pos = #start m
-          val (num, den) = parts (g1 tt m)
+          val (num, den) = parts (g2 tt m)
           val v = Q.mk_rat num den
         in
           if isSome (grp tt m 1) then {tag = TMoney, v = v, num = num, den = den,
@@ -168,7 +167,7 @@ struct
       val chosen = case asking of [] => List.last parts | _ => List.last asking
     in lower chosen end
 
-  fun ofTag f qs = List.filter f qs
+  fun ofTag (f : quant -> bool) qs = List.filter f qs
   val moneyQ = ofTag (fn {tag = TMoney, ...} => true | _ => false)
   val pctQ = ofTag (fn {tag = TPercent, ...} => true | _ => false)
   val rateQ = ofTag (fn {tag = TRate, ...} => true | _ => false)
@@ -184,9 +183,11 @@ struct
     let fun go n = if n < 1000 then [IntInf.toString n]
                    else go (n div 1000) @ [StringCvt.padLeft #"0" 3 (IntInf.toString (n mod 1000))]
     in String.concatWith "," (go n) end
-  fun moneyFmt ({num, den, ...} : quant) : string =
-    if integral {num = num, den = den} then commas0 (num div den)
-    else commas0 (num div den) ^ "." ^ StringCvt.padLeft #"0" 2 (IntInf.toString ((num * 100) div den mod 100))
+  fun moneyFmt (q : quant) : string =
+    let val {num, den, ...} = q in
+      if integral q then commas0 (num div den)
+      else commas0 (num div den) ^ "." ^ StringCvt.padLeft #"0" 2 (IntInf.toString ((num * 100) div den mod 100))
+    end
   fun rxEscape s = String.translate (fn c => if Char.isAlphaNum c then String.str c else "\\" ^ String.str c) s
 
   (* ---------------- the nine schemas, in the organ's order ----------------
@@ -203,7 +204,9 @@ struct
         val yrsDigits = List.filter (fn {tag = TUnit Q.Mtime, unit = SOME u, ...} => Q.uname u = "year"
                                       | _ => false) qs
         (* word-number years: case-sensitive on the original text *)
-        val yrsWords = map (fn m => Q.mk_rat (valOf (List.lookup WORDNUMS (g1 t m))) 1)
+        val yrsWords = map (fn m => case List.find (fn (w', _) => w' = g1 t m) WORDNUMS of
+                                       SOME (_, n) => Q.mk_rat n 1
+                                     | NONE => raise Fail "wordnum")
                            (findallX ("\\b(" ^ WORDNUM_ALT ^ ")\\s+years?") t)
         val yrs = if null yrsDigits then yrsWords else map #v yrsDigits
       in
@@ -270,10 +273,12 @@ struct
                              | {tag = TUnit Q.Mmass, ...} => true
                              | {tag = TUnit Q.Mvolume, ...} => true | _ => false) qs
       in
-        if length nums <> 2 then NONE
-        (* the organ divides by the larger, which raises on two zeros: skip *)
-        else if #num (hd nums) = 0 andalso #num (hd (tl nums)) = 0 then NONE
-        else SOME (Q.PercentOfTotal (#v (hd nums), #v (hd (tl nums))))
+        case nums of
+            (* the organ divides by the larger, which raises on two zeros: skip *)
+            [{num = n1, v = w1, ...}, {num = n2, v = w2, ...}] =>
+              if n1 = 0 andalso n2 = 0 then NONE
+              else SOME (Q.PercentOfTotal (w1, w2))
+          | _ => NONE
       end
 
   fun sPercentOf (t, tl, q, qs) =
@@ -333,7 +338,7 @@ struct
         if has "circle" tl orelse has "circular" tl then
           let val r = case near "radius" of
                         SOME r => SOME r
-                      | NONE => Option.map halfRat (near "diameter")
+                      | NONE => Option.map Q.half_rat (near "diameter")
           in case r of
                SOME r => if has "\\barea\\b" q then SOME (Q.CircleArea (r, pival ()))
                          else if has "circumference" q then SOME (Q.CircleCirc (r, pival ()))
