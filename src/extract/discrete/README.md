@@ -29,3 +29,19 @@ difference (HOL-Analysis is not imported). Statements and numbers:
 Build: remotely, `tools/dev/remote-build persvati src/extract/discrete Veri7vn_Discrete -d src/extract/commons --expect 'VERI7VN_DISCRETE PASS'` (build.sh then uses the returned SML), or locally `python3 tools/dev/check-native --session Veri7vn_Discrete --session-root src/extract/discrete --expect 'VERI7VN_DISCRETE PASS' --timeout 600`, then `python3 src/extract/discrete/tables_check.py`, `sh src/extract/discrete/build.sh`, `PYTHONDONTWRITEBYTECODE=1 python3 src/extract/discrete/score.py`.
 Every panel (both splits, specialist mode and family mode) scores right on every item, 0 wrong,
 0 false yes, 0 disagreements with the organs.
+
+The October continuation expands polynomial requests to derivatives of orders 1–50
+(including evaluated derivatives), and to “primitive” and “anti-derivative”.
+Explicit variable conflicts, zero denominators, malformed numeric qualifiers and
+unsupported orders produce a taken `unsupported` refusal. This matters when the
+family runs in front of another answerer: falling through could repeat the old
+confident wrong answer. The recognizer remains untrusted; none of these changes
+proves that an English question was interpreted correctly. Explicit anagram words
+such as LETTER are accepted rather than mistaken for a request missing its word.
+
+`beyond.py` runs the supplied games, logic and format generators with shifted seeds
+and their own scorers, without writing upstream. The supplied snapshot has no
+calculus or algorithms generator. `probes.py` records 24 calculus development
+probes with exact expectations; its author also changed the recognizer, so it is
+not independent evidence. Current numbers and build receipts belong in
+[the continuation report](../../../project/lanes/C-symbolic-discrete.md).

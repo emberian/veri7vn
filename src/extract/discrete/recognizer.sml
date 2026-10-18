@@ -152,6 +152,8 @@ struct
         | SOME m =>
             let val w = g1 t m
             in if List.exists (fn x => x = lower w) ["word", "letters", "letter", "the", "a", "an"]
+                    andalso not (List.all Char.isUpper (String.explode w))
+                    andalso not (has "\\bthe\\s+word\\s+" low)
                then SOME D.G_anagram_none
                else SOME (D.G_anagram (map (fn c => nat (Char.ord (Char.toUpper c))) (String.explode w)))
             end
@@ -753,7 +755,7 @@ struct
     case search "\\b[fgh]\\s*\\(\\s*[a-z]\\s*\\)\\s*=\\s*(.+?)(?:,|;|\\?|$| at | from | when | for )" low of
       SOME m => SOME (g1 t m)
     | NONE =>
-    case search "(?:\\b(?:derivative|differentiate|antiderivative|integral|integrate|slope of the tangent(?: line)? to)|\\bd/d[a-z])\\s+(?:of\\s+)?(?:y\\s*=\\s*)?(.+?)(?:\\s+(?:with respect to|wrt|at|from|when|for|between|evaluated)\\b|\\s*d[a-z]\\b|,|\\?|$)" low of
+    case search "(?:\\b(?:derivative|differentiate|anti-?derivative|primitive|integral|integrate|slope of the tangent(?: line)? to)|\\bd/d[a-z])\\s+(?:of\\s+)?(?:y\\s*=\\s*)?(.+?)(?:\\s+(?:with respect to|wrt|at|from|when|for|between|evaluated)\\b|\\s*d[a-z]\\b|,|\\?|$)" low of
       SOME m => SOME (g1 t m)
     | NONE => NONE
 
@@ -762,9 +764,11 @@ struct
       val t = collapse text
       val low = lower t
     in
-      if not (has "\\bderivative\\b|\\bdifferentiate\\b|\\bd/d[a-z]\\b|\\bintegral\\b|\\bintegrate\\b|\\bantiderivative\\b|\\bslope of the tangent\\b|\\bf'\\(" low)
+      if not (has "\\bderivative\\b|\\bdifferentiate\\b|\\bd/d[a-z]\\b|\\bintegral\\b|\\bintegrate\\b|\\banti-?derivative\\b|\\bprimitive\\b|\\bslope of the tangent\\b|\\bf'\\(" low)
       then NONE
       else if has "\\bsolve\\b|\\$|\\\\" low then NONE
+      else if has "/0+(?![0-9.])" (replaceStr " " "" low)
+      then SOME (D.RCalc (D.C_need (nat 2)))
       else
         case calcExpr t low of
           NONE =>
@@ -773,40 +777,62 @@ struct
         | SOME e =>
           case parsePoly e of
             NONE => NONE
-          | SOME (poly, var) =>
-              if has "\\bintegra|\\banti-?derivative\\b|\\bprimitive\\b" low then
+          | SOME (poly, parsedVar) =>
+            let
+              (* Recognition is untrusted. Never reinterpret an explicit variable,
+                 order, malformed number, or zero denominator as a simpler request. *)
+              val declared = findall "(?:with respect to|wrt|d/d|\\bat\\s+|\\bwhen\\s+|\\bwhere\\s+)\\s*([a-z])\\b|\\bd([a-z])\\b" low
+              fun declaredVar m = case grp low m 1 of SOME v => v | NONE => valOf (grp low m 2)
+              val vars = map declaredVar declared @ map (g1 low)
+                (findall "\\b(?:from|to)\\s+([a-z])\\s*=" low)
+              val hasVariable = List.exists Char.isAlpha (String.explode e)
+              val var = if hasVariable then parsedVar else (case vars of v :: _ => v | [] => parsedVar)
+            in
+              if List.exists (fn v => v <> var) vars then SOME (D.RCalc (D.C_need (nat 2)))
+              else if has "\\bintegra|\\banti-?derivative\\b|\\bprimitive\\b" low then
                 let
                   val bounds =
-                    case search ("\\bfrom\\s+" ^ NUMRE ^ "\\s+to\\s+" ^ NUMRE) low of
+                    case search ("\\bfrom\\s+" ^ NUMRE ^ "\\s+to\\s+" ^ NUMRE ^ "(?![a-z0-9_/+*^-]|\\.[a-z0-9])") low of
                       SOME m => SOME (g1 low m, valOf (grp low m 2))
                     | NONE =>
-                    case search ("\\bbetween\\s+" ^ NUMRE ^ "\\s+and\\s+" ^ NUMRE) low of
+                    case search ("\\bbetween\\s+" ^ NUMRE ^ "\\s+and\\s+" ^ NUMRE ^ "(?![a-z0-9_/+*^-]|\\.[a-z0-9])") low of
                       SOME m => SOME (g1 low m, valOf (grp low m 2))
                     | NONE =>
-                    case search ("\\b[a-z]\\s*=\\s*" ^ NUMRE ^ "\\s+to\\s+(?:[a-z]\\s*=\\s*)?" ^ NUMRE) low of
+                    case search ("\\b[a-z]\\s*=\\s*" ^ NUMRE ^ "\\s+to\\s+(?:[a-z]\\s*=\\s*)?" ^ NUMRE ^ "(?![a-z0-9_/+*^-]|\\.[a-z0-9])") low of
                       SOME m => SOME (g1 low m, valOf (grp low m 2))
                     | NONE => NONE
                 in
                   case bounds of
                     SOME (a, b) => SOME (D.RCalc (D.C_def (poly, var, fracOf a, fracOf b)))
-                  | NONE => SOME (D.RCalc (D.C_anti (poly, var)))
+                  | NONE => if has "\\bfrom\\b|\\bbetween\\b" low then SOME (D.RCalc (D.C_need (nat 2)))
+                            else SOME (D.RCalc (D.C_anti (poly, var)))
                 end
               else
                 let
-                  val n = case search "\\b(second|third|fourth|2nd|3rd|4th)\\s+derivative\\b" low of
-                            SOME m => (case g1 low m of "second" => 2 | "2nd" => 2 | "third" => 3 | "3rd" => 3 | _ => 4)
-                          | NONE => 1
-                  val pm = case search ("\\b(?:at|when|where)\\s+(?:[a-z]\\s*=\\s*)?" ^ NUMRE ^ "\\b") low of
+                  val orderWords = [("first", 1), ("second", 2), ("third", 3), ("fourth", 4),
+                    ("fifth", 5), ("sixth", 6), ("seventh", 7), ("eighth", 8), ("ninth", 9), ("tenth", 10)]
+                  val n = case search "\\b([a-z0-9]+(?:th|nd|rd|st)|second)\\s+derivative\\b" low of
+                    NONE => 1
+                  | SOME m => let val word = g1 low m in
+                      case List.find (fn (w, _) => w = word) orderWords of
+                        SOME (_, n) => n
+                      | NONE => (case IntInf.fromString word of
+                          SOME n => if n >= 1 andalso n <= 50 then IntInf.toInt n else 0
+                        | NONE => 0)
+                    end
+                  val pm = case search ("\\b(?:at|when|where)\\s+(?:[a-z]\\s*=\\s*)?" ^ NUMRE ^ "(?![a-z0-9_/+*^-]|\\.[a-z0-9])") low of
                              SOME m => SOME (g1 low m)
                            | NONE => (case search ("\\bf'+\\(\\s*" ^ NUMRE ^ "\\s*\\)") low of SOME m => SOME (g1 low m) | NONE => NONE)
                   val tangent = has "tangent" low
                 in
-                  case pm of
+                  if n = 0 then SOME (D.RCalc (D.C_need (nat 2))) else case pm of
                     SOME x0 => SOME (D.RCalc (D.C_deriv_at (poly, var, nat n, fracOf x0, tangent)))
                   | NONE =>
-                      if tangent then SOME (D.RCalc (D.C_need (nat 1)))
+                      if has "\\b(?:at|when|where)\\s+" low then SOME (D.RCalc (D.C_need (nat 2)))
+                      else if tangent then SOME (D.RCalc (D.C_need (nat 1)))
                       else SOME (D.RCalc (D.C_deriv (poly, var, nat n)))
                 end
+            end
     end
 
   (* ====================================================================

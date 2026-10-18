@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "family": "discrete",
+  "specialists": {
+    "calculus": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "unsupported"
+        ]
+      },
+      "context_regex_additions": [
+        "\\bprimitive\\b|\\banti-derivative\\b|\\bd/d[a-z]\\b"
+      ],
+      "evidence": {
+        "computation": "Exact rational polynomial derivatives and antiderivatives. Positive derivative orders up to 50 use repeated differentiation. Definite values are antiderivative endpoint differences. Explicit unsafe or unsupported interpretations produce a taken refusal, so a later route must not substitute a different calculation.",
+        "assumptions": [
+          "A single-variable polynomial with nonnegative integer powers no greater than 50 was parsed correctly.",
+          "Natural-language variables, derivative order, evaluation point and integration bounds denote the typed request."
+        ],
+        "untrusted": [
+          "Natural-language and polynomial recognition; this declaration is not a per-answer certificate."
+        ]
+      }
+    }
+  }
+}

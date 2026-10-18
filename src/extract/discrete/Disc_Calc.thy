@@ -246,7 +246,7 @@ definition show_poly :: "String.literal \<Rightarrow> poly \<Rightarrow> String.
 
 definition deriv_name :: "nat \<Rightarrow> String.literal" where
   "deriv_name n = (if n = 1 then STR ''derivative'' else if n = 2 then STR ''second derivative''
-     else if n = 3 then STR ''third derivative'' else STR ''fourth derivative'')"
+     else if n = 3 then STR ''third derivative'' else if n = 4 then STR ''fourth derivative'' else show_nat n + STR ''-th derivative'')"
 
 definition val_json :: "rat \<Rightarrow> jv" where
   "val_json q = JRaw (if snd (quotient_of q) = 1 then show_int (fst (quotient_of q)) else fmt_g 6 q)"
@@ -274,8 +274,9 @@ definition c_reply :: "creq \<Rightarrow> reply" where
              + STR '' (F('' + show_frac b + STR '') - F('' + show_frac a + STR '') with F = '' + show_poly v q + STR '').'')]
          (val_json val)
    | CNeed k \<Rightarrow>
-       Reply False (STR ''underspecified'')
-         [PS (if k = 0 then STR ''Which function? Give me the expression and I will compute it exactly.''
+       Reply False (if k > 1 then STR ''unsupported'' else STR ''underspecified'')
+         [PS (if k > 1 then STR ''I cannot interpret that polynomial request safely: check the variable, derivative order and finite numeric values.''
+             else if k = 0 then STR ''Which function? Give me the expression and I will compute it exactly.''
              else STR ''The slope of a tangent line depends on the point; tell me where (e.g. at x = 2).'')] JNone)"
 
 theorem c_reply_answered:
