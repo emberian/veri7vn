@@ -605,9 +605,9 @@ struct
 
 
   (* ================= python / python-r2 ================= *)
-  val SIGRE = "\\b(?:parameters?|arguments?|args|signature|what does .* take|how (?:do i|to) call|call signature)\\b"
+  val SIGRE = "\\b(?:parameters?|arguments?|args|signatures?|what does .* take|how (?:do i|to) call|call signature)\\b"
   val DOESRE = "\\bwhat does\\b.*\\b(?:do|return)\\b|\\bwhat is\\b.*\\b(?:for|used for)\\b|\\bexplain\\b|\\bdescribe\\b"
-  val MODRE = "\\bwhich module\\b|\\bwhat module\\b|\\bwhere (?:is|does)\\b.*\\b(?:defined|live|come from)\\b|\\bimport\\b.*\\bfrom\\b"
+  val MODRE = "\\bwhich modules?\\b|\\bwhat modules?\\b|\\bwhere (?:is|does)\\b.*\\b(?:defined|live|come from)\\b|\\bimport\\b.*\\bfrom\\b"
   val PYRE = "\\bpython\\b|`|\\bfunction\\b|\\bmethod\\b|\\bmodule\\b|\\bbuilt-?in\\b|\\bstdlib\\b|\\bstandard library\\b|\\w\\.\\w+|\\(\\)"
 
   fun rstripDot s = if String.isSuffix "." s then rstripDot (String.substring (s, 0, size s - 1)) else s
@@ -620,12 +620,57 @@ struct
        | SOME i => SOME (String.substring (c, 0, i), String.substring (c, i + 1, size c - i - 1))
     end
 
+  (* Bounded complete list/clause grammar. NONE means no batch syntax; SOME NONE
+     means recognized compound syntax with an unsupported residual clause. *)
+  fun pythonBatch text =
+    let
+      val original = collapse text
+      fun cutSuffix p s = case search p (lower s) of NONE => s | SOME m => String.substring (s, 0, #start m)
+      val noEnd = cutSuffix "[?.!]+$" original
+      val noPython = cutSuffix "(?:,)?\\s+in python$" noEnd
+      val body0 = case search "^(?:in python,?\\s+|python:\\s*)" (lower noPython) of
+                   NONE => noPython | SOME m => String.extract (noPython, #stop m, NONE)
+      val body = if has "^explain what\\b" (lower body0) then cutSuffix "\\s+(?:do|does|return|returns)$" body0 else body0
+      val separator = ",\\s*(?:and\\s+)?|\\s+and\\s+|;\\s*"
+      val cuts = findall separator (lower body)
+      fun parts i [] = [String.extract (body,i,NONE)]
+        | parts i ((m : Regex.match)::ms) = String.substring(body,i,#start m-i) :: parts (#stop m) ms
+      val pieces = map collapse (parts 0 cuts)
+      val lead = "^(?:(?:please )?(?:what (?:is|are)|give|show|list) (?:the )?|the )?"
+      val roles = [
+        (lead ^ "(?:signatures?|parameters?|arguments?) (?:of|for) (.+)$", C.PQ_signature),
+        (lead ^ "modules? (?:of|for) (.+)$", C.PQ_module),
+        ("^(?:which|what) modules? (?:contains?|provides?) (.+)$", C.PQ_module),
+        ("^(?:explain what|describe|explain) (.+?)(?: does| do)?$", C.PQ_doc),
+        (lead ^ "descriptions? (?:of|for) (.+)$", C.PQ_doc)]
+      fun role piece =
+        case List.find (fn (p,_) => has p (lower piece)) roles of
+          NONE => NONE
+        | SOME(p,q) => SOME(q,g1 piece (valOf(search p (lower piece))))
+      fun name piece =
+        case search "^`?([A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*)(?:\\(\\))?`?$" (lower piece) of
+          NONE => NONE
+        | SOME m => SOME(g1 piece m)
+      fun jobs _ [] acc = SOME(rev acc)
+        | jobs inherited (piece::rest) acc =
+            let val rq = case role piece of SOME x => SOME x | NONE => Option.map (fn q => (q,piece)) inherited
+            in case rq of NONE => NONE
+             | SOME(q,raw) => (case name raw of NONE => NONE | SOME n =>
+                 jobs (SOME q) rest (C.PyJob(q,C.PyCand(n,rpartition n,size n>2))::acc))
+            end
+    in
+      if null cuts orelse not (isSome (role (hd pieces)) orelse has SIGRE (lower body)
+          orelse has DOESRE (lower body) orelse has MODRE (lower body))
+      then NONE else SOME(jobs NONE pieces [])
+    end
+
   fun python text =
     let
       val t = collapse text
       val low = lower t
+      val batch = pythonBatch t
     in
-      if t = "" orelse not (has SIGRE low orelse has DOESRE low orelse has MODRE low) orelse not (has PYRE low) then NONE
+      if t = "" orelse not (isSome batch orelse has SIGRE low orelse has DOESRE low orelse has MODRE low) orelse not (has PYRE low) then NONE
       else
         let
           (* [A-Za-z_] classes cover both cases, so matching the lower-cased text finds the
@@ -647,7 +692,10 @@ struct
           val cands = map rstripDot (c1 @ c2 @ c3 @ c4 @ c5 @ c6 @ c7)
           val pcs = map (fn c => C.PyCand (c, rpartition c, size c > 2)) cands
           val q = if has MODRE low then C.PQ_module else if has SIGRE low then C.PQ_signature else C.PQ_doc
-          val r = C.py_reply q pcs
+          val r = case batch of
+                    NONE => C.py_reply q pcs
+                  | SOME NONE => C.py_batch_scope_reply
+                  | SOME (SOME jobs) => C.py_batch_reply jobs
         in
           if C.reply_kind r = "not_taken" then NONE else SOME r
         end

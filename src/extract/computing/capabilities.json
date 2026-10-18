@@ -142,12 +142,17 @@
     },
     "python": {
       "accept": {
-        "kinds": [],
-        "declines_in_domain": []
+        "kinds": [
+          "reference_batch"
+        ],
+        "declines_in_domain": [
+          "reference_incomplete",
+          "reference_scope"
+        ]
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Resolves names and states rows from a partial Python 3.12.3 reference, including separately sourced extensions. Missing rows establish reference absence only.",
+        "computation": "Resolves each typed role/name job against the partial Python 3.12.3 reference. A complete batch requires coverage for every requested job; mixed coverage retains named per-item results with withheld status. Missing rows establish reference absence only.",
         "assumptions": [
           "The requested API name and question correspond to the selected reference row"
         ],
@@ -159,12 +164,17 @@
     },
     "python-r2": {
       "accept": {
-        "kinds": [],
-        "declines_in_domain": []
+        "kinds": [
+          "reference_batch"
+        ],
+        "declines_in_domain": [
+          "reference_incomplete",
+          "reference_scope"
+        ]
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Resolves names and states rows from a partial Python 3.12.3 reference, including separately sourced extensions. Missing rows establish reference absence only.",
+        "computation": "Resolves each typed role/name job against the partial Python 3.12.3 reference. A complete batch requires coverage for every requested job; mixed coverage retains named per-item results with withheld status. Missing rows establish reference absence only.",
         "assumptions": [
           "The requested API name and question correspond to the selected reference row"
         ],

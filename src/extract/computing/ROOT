@@ -20,5 +20,6 @@ session Veri7vn_Computing = Veri7vn_Computing_Base +
     Permission_Query
     Pyref_Table
     Pyref
+    Pyref_Batch
     Sql
     Computing_Export

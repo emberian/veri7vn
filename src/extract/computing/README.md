@@ -54,6 +54,13 @@ The answer describes inode mode bits; it does not determine effective access
 through ACLs, privileges or path/mount conditions. Questions explicitly asking
 about those conditions, multiple modes, or another action are withheld.
 
+Python reference questions may name several APIs or give separate role clauses,
+for example: "Give the signature of len and the module of os.remove in Python."
+Each requested name and role is resolved in order. If any requested entry or
+signature is missing, the named partial results are returned with an incomplete,
+withheld status. Unsupported residual clauses are withheld rather than ignored.
+This does not execute the APIs or establish that the reference is complete.
+
 ## Build and run
 
 ```sh
@@ -80,9 +87,10 @@ a stale local Isabelle heap.
 Continuation, panel results and remaining assumptions:
 [C computing continuation](../../../project/lanes/C-symbolic-computing.md) and
 [D model boundaries](../../../project/lanes/D-symbolic-computing.md), and
-[E unset mode bits](../../../project/lanes/E-symbolic-computing.md).
+[E unset mode bits](../../../project/lanes/E-symbolic-computing.md), and
+[F reference batches](../../../project/lanes/F-symbolic-computing.md).
 Historical baseline: [lane S15b handoff](../../../project/lanes/S15b-computing.md).
 Fresh-seed checks: `beyond.py`; explicit and SQLite differential probes:
 `probes.py`; capacity, UART units and reference/distribution boundaries:
-`d_probes.py`; unset-mode questions: `e_probes.py`. These are untrusted test programs and write only to a supplied
+`d_probes.py`; unset-mode questions: `e_probes.py`; complete reference batches: `f_probes.py`. These are untrusted test programs and write only to a supplied
 scratch directory or file.
