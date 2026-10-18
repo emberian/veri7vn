@@ -7,7 +7,8 @@
         "kinds": [],
         "declines_in_domain": [
           "underspecified",
-          "undecided"
+          "undecided",
+          "unsupported_model"
         ]
       },
       "context_regex_additions": [

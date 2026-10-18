@@ -412,10 +412,10 @@
     {
       "specialist": "mechanisms",
       "q": "A lever has effort arm 2 yards and load arm 1 mile. What is its mechanical advantage?",
-      "valid": false,
-      "expect": null,
-      "source": "Mechanics dimension interpretation: common unitless ratios are valid; unsupported explicit units cannot be silently erased.",
-      "kind": null
+      "valid": true,
+      "expect": 0.0011363636363636363,
+      "source": "Mechanics.thy: exact yard/mile scale; lever_units binds original lengths. Previously valid withheld under D.",
+      "kind": "lever_ma"
     },
     {
       "specialist": "sports",
@@ -432,6 +432,300 @@
       "expect": 29.401822916666625,
       "source": "Mechanics.thy: consumption conversion; L/100 km unit is structural regardless of letter case.",
       "kind": null
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a 500 g ball moving at 4 m/s?",
+      "valid": true,
+      "expect": 4,
+      "kind": "ke",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics",
+      "q": "What is the kinetic energy of a 0.5 kg ball moving at 4 m/s?",
+      "valid": true,
+      "expect": 4,
+      "kind": "ke",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r2",
+      "q": "What is the kinetic energy of a 0.0005 tonne ball moving at 4 m/s?",
+      "valid": true,
+      "expect": 4,
+      "kind": "ke",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the momentum of a 2 lb object moving at -3 m/s?",
+      "valid": true,
+      "expect": -2.72155422,
+      "kind": "momentum",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What force accelerates a 1 tonne mass at 2 m/s2?",
+      "valid": true,
+      "expect": 2000,
+      "kind": "force",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the weight of a 500 gram object?",
+      "valid": true,
+      "expect": 4.903325,
+      "kind": "weight",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the potential energy of a 2 pound object at a height of 3 m?",
+      "valid": true,
+      "expect": 26.68932969156,
+      "kind": "pe",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "bodies-v2",
+      "q": "On Mars, how much does a 400 g crate weigh in newtons?",
+      "valid": true,
+      "expect": 1.484,
+      "kind": "weight",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "bodies-v2",
+      "q": "On Mars, how much does a 2 lb crate weigh in newtons?",
+      "valid": true,
+      "expect": 3.3656553854,
+      "kind": "weight",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "bodies-v2",
+      "q": "On Mars, how much does a 0 g crate weigh in newtons?",
+      "valid": true,
+      "expect": 0,
+      "kind": "weight",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a -500 g ball moving at 4 m/s?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "bodies-v2",
+      "q": "On Mars, how much does a -400 g crate weigh in newtons?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a 500 g/s stream moving at 4 m/s?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a 500 g per second stream moving at 4 m/s?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a 500 g squared object moving at 4 m/s?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a 2 pound-force object moving at 4 m/s?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "A lever has effort arm 1 yard and load arm 1 foot. What is its mechanical advantage?",
+      "valid": true,
+      "expect": 3,
+      "kind": "lever_ma",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "mechanisms-v2",
+      "q": "A lever has effort arm 1 mile and load arm 2 yards. What is its mechanical advantage?",
+      "valid": true,
+      "expect": 880,
+      "kind": "lever_ma",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "mechanisms",
+      "q": "What torque does 10 N exert on a 1 yard wrench?",
+      "valid": true,
+      "expect": 9.144,
+      "kind": "torque",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a 1 metric ton mass moving at 2 m/s?",
+      "valid": true,
+      "expect": 2000,
+      "kind": "ke",
+      "source": "Mechanics.thy: mass_kg exact international pound/metric mass scales, body_weight_units and kinetic_energy_units; MeasuredInput complete unit binding; compound rate/force units do not supply mass."
+    },
+    {
+      "specialist": "physics-r3",
+      "q": "What is the kinetic energy of a 2 pound force object moving at 4 m/s?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "MeasuredInput longest full unit alias has force dimension; cannot bind a mass role."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the gauge pressure at depth 3 m in water with gravity 1 gram?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "unsupported_condition",
+      "source": "Mechanics.fluid_model_limit_refuses: the fixed-property reader declines supplied conditions; Quantity owns variable-condition computation. This policy refusal is not a capability answer."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the gauge pressure at depth 3 m in water with gravity 10 m/s2/s?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "unsupported_condition",
+      "source": "Mechanics.fluid_model_limit_refuses: the fixed-property reader declines supplied conditions; Quantity owns variable-condition computation. This policy refusal is not a capability answer."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the gauge pressure at depth 3 m in water with g = 1.62 m/s2?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Mechanics.fluid_model_limit_refuses: the fixed-property reader declines supplied conditions; Quantity owns variable-condition computation. This policy refusal is not a capability answer."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the gauge pressure at depth 3 m in water with density 800 kg/m3?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Mechanics.fluid_model_limit_refuses: the fixed-property reader declines supplied conditions; Quantity owns variable-condition computation. This policy refusal is not a capability answer."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the absolute pressure at depth 3 m in water with surface pressure 150 kPa?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Mechanics.fluid_model_limit_refuses: the fixed-property reader declines supplied conditions; Quantity owns variable-condition computation. This policy refusal is not a capability answer."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the absolute pressure at depth 3 m in water with gravity 0 m/s2 and surface pressure 0 Pa?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Mechanics.fluid_model_limit_refuses: the fixed-property reader declines supplied conditions; Quantity owns variable-condition computation. This policy refusal is not a capability answer."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the buoyant force on 2 m3 submerged in water with gravity 1.62 m/s2?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Mechanics.fluid_model_limit_refuses: the fixed-property reader declines supplied conditions; Quantity owns variable-condition computation. This policy refusal is not a capability answer."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the buoyant force on 2 m3 submerged in water with density 800 kg/m3?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Mechanics.fluid_model_limit_refuses: the fixed-property reader declines supplied conditions; Quantity owns variable-condition computation. This policy refusal is not a capability answer."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What fraction of ice floats submerged in water with density 1100 kg/m3?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Mechanics.fluid_model_limit_refuses: the fixed-property reader declines supplied conditions; Quantity owns variable-condition computation. This policy refusal is not a capability answer."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the gauge pressure at depth 3 m in water with rho = 800 kg/m3?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Every supplied numeric amount must belong to the fixed fluid request; extra density, gravity, pressure or state inputs cannot be silently ignored."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the gauge pressure at depth 3 m in water at 20 C?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Every supplied numeric amount must belong to the fixed fluid request; extra density, gravity, pressure or state inputs cannot be silently ignored."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the gauge pressure at depth 3 m in water at 10 m/s2?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Every supplied numeric amount must belong to the fixed fluid request; extra density, gravity, pressure or state inputs cannot be silently ignored."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the absolute pressure at depth 3 m in water with 150 kPa?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Every supplied numeric amount must belong to the fixed fluid request; extra density, gravity, pressure or state inputs cannot be silently ignored."
+    },
+    {
+      "specialist": "fluids-r2",
+      "q": "What is the buoyant force on 2 m3 submerged in water at 10 m/s2?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "semantic_category": "valid_outside_reader",
+      "source": "Every supplied numeric amount must belong to the fixed fluid request; extra density, gravity, pressure or state inputs cannot be silently ignored."
     }
   ]
 }

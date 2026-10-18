@@ -20,12 +20,12 @@
    Additional safeguards and representation differences from the original port:
    - patterns with the non-ASCII letters delta (dv) are dropped (the engine is
      byte-wise, so \b around them would differ);
-   - miles in an orbit altitude are converted to kilometres here, exactly
-     (x 1.609344), before the kernel sees the number;
+   - complete shared numeric tokens retain signs and exact values; declared
+     path/altitude units are converted by the exported typed distance function;
    - where the organs raise (an exception inside the Oracle7 head, counted as
      "not taken") the recognizer returns NONE: an astronomy ratio of a non-positive
      quotient (log10 of it), a Hohmann question whose second altitude cannot be
-     found, a planetary body with a non-positive mass or radius;
+     found. Planetary non-positive mass/radius reaches the kernel's refusal;
    - orbits and spacecraft/spacecomms narrowing: a withheld reply is returned only
      for a short direct question, as the organs do (answer() in each organ). *)
 structure Recognizer :
@@ -53,35 +53,12 @@ struct
 
   fun collapse s = String.concatWith " " (String.tokens Char.isSpace s)
 
-  (* "1,000.50" -> 100050/100; "4.867e24" and "1.5 x 10^3" through ratSci *)
-  fun parseDec (lit0 : string) : IntInf.int * IntInf.int =
-    let
-      val lit = String.translate (fn #"," => "" | c => String.str c) lit0
-      val (ip, fp) = case String.fields (fn c => c = #".") lit of
-                       [a] => (a, "")
-                     | [a, b] => (a, b)
-                     | _ => raise Fail ("bad numeral " ^ lit0)
-    in (valOf (IntInf.fromString (ip ^ fp)), IntInf.pow (10, size fp)) end
-
-  fun mkQ (n, d) = S.mk_rat n d
-  fun ratOf lit = mkQ (parseDec lit)
-
-  (* mantissa with an optional decimal exponent *)
-  fun ratSci (lit : string) (e : int) : S.rat =
-    let val (n, d) = parseDec lit
-    in if e >= 0 then mkQ (n * IntInf.pow (10, e), d) else mkQ (n, d * IntInf.pow (10, ~e)) end
-
-  fun intOf s =
-    let val s = if String.isPrefix "+" s then String.extract (s, 1, NONE) else s
-        val (neg, b) = if String.isPrefix "-" s then (true, String.extract (s, 1, NONE)) else (false, s)
-        val v = valOf (Int.fromString b)
-    in if neg then ~v else v end
-
-  (* a number that may carry e<digits> (spacecomms rates) *)
-  fun ratE (lit : string) : S.rat =
-    case String.fields (fn c => c = #"e") lit of
-      [m, e] => ratSci m (intOf e)
-    | _ => ratOf lit
+  exception InvalidNumeric
+  val numericValues : (string * ExactNumeric.rational) list ref = ref []
+  fun rationalOf token = case List.find(fn(k,_)=>k=token)(!numericValues) of
+      SOME(_,value)=>value | NONE=>raise InvalidNumeric
+  fun ratOf token = let val(n,d)=rationalOf token in S.mk_rat n d end
+  val ratE = ratOf
 
   (* ---------- narrow_v1 (copied from lane G's recognizer) ---------- *)
   structure Narrow =
@@ -102,16 +79,16 @@ struct
       in (t, go 0 []) end
     fun sentences t =
       let val (s, sp) = splits ".!?" t in if s = "" then 0 else 1 + length sp end
-    val RELATION = "\\b(?:\\d+(?:\\.\\d+)?|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,2}"
+    val RELATION = "\\b(?:qnum[0-9]+q|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,2}"
       ^ "(?:more|less|fewer|longer|shorter)\\s+than\\b|\\b(?:twice|three times|half)\\s+(?:as\\s+\\w+\\s+as\\s+)?the\\s+\\w+\\b"
-    val RATE = "\\b\\d+(?:\\.\\d+)?\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:\\d+(?:\\.\\d+)?|a|an|one|each)\\s+[a-z]+"
+    val RATE = "\\bqnum[0-9]+q\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:qnum[0-9]+q|a|an|one|each)\\s+[a-z]+"
     fun narrative t =
       let val low = lower t
       in sentences t >= 3 orelse words t > 40 orelse has RELATION low orelse has RATE low end
     fun short_direct t = sentences t <= 2 andalso words t <= 25 andalso not (narrative t)
   end
 
-  val N = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
+  val N = "(qnum[0-9]+q)"
 
   (* the organs' answer(): a withheld reply is returned only for a short direct question *)
   (* A successful narrowed recognizer returns exactly the request whose reply
@@ -135,14 +112,15 @@ struct
         | best ((p, b) :: r) = (case best r of SOME (q, c) => if q < p then SOME (q, c) else SOME (p, b) | NONE => SOME (p, b))
     in Option.map #2 (best found) end
 
-  (* altitudes in km in order of mention, with the start of their number *)
+  (* The same typed distance conversion serves paths and orbit altitudes. *)
+  val ORBIT_LEN = "(?:km|kilomet(?:er|re)s?|mi|miles?|m|met(?:er|re)s?)"
+  val LENGTH_END = "\\b(?!\\s*/|\\s*per\\b|\\s*\\^)"
+  fun distanceUnit u = if String.isPrefix "mi" u then S.Db_mile
+    else if u="m" orelse String.isPrefix "met" u then S.Db_m else S.Db_km
   fun orbitAlts low =
-    map (fn m =>
-      let val (n, d) = parseDec (g1 low m)
-          val unit = valOf (grp low m 2)
-          val v = if String.isPrefix "mi" unit then mkQ (n * 1609344, d * 1000000) else mkQ (n, d)
-      in (startOf m, v) end)
-      (findall (N ^ "\\s*(km|kilomet(?:er|re)s?|mi|miles)\\b") low)
+    map (fn m => (startOf m,
+      S.dkm(S.Dist(ratOf(g1 low m),S.Ds_one,distanceUnit(valOf(grp low m 2))))))
+      (findall (N ^ "\\s*(" ^ ORBIT_LEN ^ ")" ^ LENGTH_END) low)
 
   fun orbits text =
     let
@@ -175,22 +153,20 @@ struct
                   in
                     if length alts < 2 then narrowed t (mk NONE)
                     else
-                      (case search ("\\bfrom\\b[^.?]*?" ^ N ^ "\\s*(?:km|kilomet)") low of
+                      (case search ("\\bfrom\\b[^.?]*?" ^ N ^ "\\s*" ^ ORBIT_LEN ^ LENGTH_END) low of
                          SOME fm =>
                            let
-                             val (n, d) = parseDec (g1 low fm)
-                             val a1 = mkQ (n, d)
                              val s1 = case #groups fm of g => (case Vector.sub (g, 1) of SOME (a, _) => a | NONE => ~1)
                            in
-                             case List.find (fn (p, _) => p <> s1) alts of
-                               SOME (_, a2) => narrowed t (mk (SOME (a1, a2)))
-                             | NONE => NONE
+                             case (List.find(fn(p,_)=>p=s1) alts,List.find(fn(p,_)=>p<>s1) alts) of
+                               (SOME(_,a1),SOME(_,a2)) => narrowed t (mk (SOME(a1,a2)))
+                             | _ => NONE
                            end
                        | NONE => narrowed t (mk (SOME (#2 (List.nth (alts, 0)), #2 (List.nth (alts, 1))))))
                   end
                 else if has "\\bescape velocity\\b|\\bescape speed\\b" low then
                   narrowed t (S.OEscape (ob,
-                    if not (null alts) andalso has "\\baltitude\\b|\\babove\\b|\\bfrom (?:an? )?orbit\\b|\\bat \\d" low
+                    if not (null alts) andalso has "\\baltitude\\b|\\babove\\b|\\bfrom (?:an? )?orbit\\b|\\bat qnum" low
                     then SOME (#2 (hd alts)) else NONE))
                 else if has "\\bspeed\\b|\\bvelocity\\b|\\bhow fast\\b|\\bperiod\\b|\\bhow long\\b.*\\borbit\\b|\\btake to orbit\\b" low then
                   let
@@ -203,17 +179,6 @@ struct
     end
 
   (* ---------- planetary ---------- *)
-  val SCI = "(\\d+(?:\\.\\d+)?)\\s*(?:(?:x|\195\151|\\*)\\s*10\\s*\\^?\\s*([+-]?\\d+)|e([+-]?\\d+))?"
-
-  fun sciAt low m i =
-    let val lit = valOf (grp low m i)
-        val e = case firstGroup low m [i + 1, i + 2] of SOME s => intOf s | NONE => 0
-    in ratSci lit e end
-
-  (* literal text of a plain number: is it > 0 ? *)
-  fun litPositive lit = let val (n, _) = parseDec lit in n > 0 end
-  fun sciPositive low m i = litPositive (valOf (grp low m i))
-
   fun planetary text =
     let
       val t = collapse text
@@ -223,29 +188,23 @@ struct
       else if not (has "\\bplanet\\w*\\b|\\bmoon\\b|\\basteroid\\b|\\bexoplanet\\b|\\bdwarf planet\\b|\\bbody\\b|\\bworld\\b|\\bsatellite\\b" low) then NONE
       else
         let
-          val mE = search ("(\\d+(?:\\.\\d+)?)\\s*(?:times (?:the )?earth'?s? mass|earth masses|m_?e\\b|m\226\138\149)") low
-          val rE = search ("(\\d+(?:\\.\\d+)?)\\s*(?:times (?:the )?earth'?s? radius|earth radii|r_?e\\b|r\226\138\149)") low
+          val mE = search (N ^ "\\s*(?:times (?:the )?earth'?s? mass|earth masses|m_?e\\b|m\226\138\149)") low
+          val rE = search (N ^ "\\s*(?:times (?:the )?earth'?s? radius|earth radii|r_?e\\b|r\226\138\149)") low
           val body =
             case (mE, rE) of
               (SOME a, SOME b) =>
-                if litPositive (g1 low a) andalso litPositive (g1 low b)
-                then SOME (S.Pb_earth (ratOf (g1 low a), ratOf (g1 low b)), true) else NONE
+                SOME (S.Pb_earth (ratOf (g1 low a), ratOf (g1 low b)), true)
             | _ =>
               let
-                val mm = search ("\\bmass\\s*(?:of|is|=)?\\s*" ^ SCI ^ "\\s*kg\\b|" ^ SCI ^ "\\s*kg\\b") low
-                val rm = search ("\\bradius\\s*(?:of|is|=)?\\s*" ^ SCI ^ "\\s*(km|m)\\b|" ^ SCI ^ "\\s*(km|m)\\s*(?:in\\s+)?radius\\b") low
+                val mm = search (N ^ "\\s*kg\\b") low
+                val rm = search ("\\bradius\\s*(?:of|is|=)?\\s*" ^ N ^ "\\s*(km|m)" ^ LENGTH_END ^ "|" ^ N ^ "\\s*(km|m)\\s*(?:in\\s+)?radius\\b") low
               in
                 case (mm, rm) of
                   (SOME m, SOME r) =>
-                    let
-                      val mi = if isSome (grp low m 1) then 1 else 4
-                      val ri = if isSome (grp low r 1) then 1 else 5
-                      val unit = valOf (grp low r (ri + 3))
-                    in
-                      if sciPositive low m mi andalso sciPositive low r ri
-                      then SOME (S.Pb_si (sciAt low m mi, sciAt low r ri, if unit = "km" then S.Lu_km else S.Lu_m), false)
-                      else NONE
-                    end
+                    let val ri = if isSome(grp low r 1) then 1 else 3
+                        val unit = valOf(grp low r (ri+1))
+                    in SOME(S.Pb_si(ratOf(g1 low m),ratOf(valOf(grp low r ri)),
+                         if unit="km" then S.Lu_km else S.Lu_m),false) end
                 | _ => NONE
               end
         in
@@ -257,7 +216,7 @@ struct
               else if has "\\bdensity\\b" low then SOME (S.PDensity b)
               else if has "\\bweigh\\w*\\b" low then
                 (if isEarth then
-                   (case (b, search "(\\d+(?:\\.\\d+)?)\\s*(?:kg|kilograms?)\\b" low) of
+                   (case (b, search (N ^ "\\s*(?:kg|kilograms?)\\b") low) of
                       (S.Pb_earth (m, r), SOME wm) => SOME (S.PWeightE (m, r, ratOf (g1 low wm)))
                     | _ => NONE)
                  else NONE)
@@ -361,19 +320,19 @@ struct
     end
 
   (* ---------- spacecomms ---------- *)
-  val NE = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?(?:e\\d+)?)"
+  val NE = N
 
   fun commsDist low : S.dist option =
-    case search (NE ^ "\\s*(au|astronomical units?)\\b") low of
+    case search (NE ^ "\\s*(au|astronomical units?)" ^ LENGTH_END) low of
       SOME m => SOME (S.Dist (ratE (g1 low m), S.Ds_one, S.Db_au))
     | NONE =>
-      (case search (NE ^ "\\s*(million|billion)\\s*(km|kilomet(?:er|re)s?|miles?)\\b") low of
+      (case search (NE ^ "\\s*(million|billion)\\s*(km|kilomet(?:er|re)s?|miles?|m|met(?:er|re)s?)" ^ LENGTH_END) low of
          SOME m =>
            SOME (S.Dist (ratE (g1 low m), if valOf (grp low m 2) = "million" then S.Ds_million else S.Ds_billion,
-                         if String.isPrefix "mi" (valOf (grp low m 3)) then S.Db_mile else S.Db_km))
+                         distanceUnit(valOf(grp low m 3))))
        | NONE =>
-         (case search (NE ^ "\\s*(km|kilomet(?:er|re)s?|miles?)\\b") low of
-            SOME m => SOME (S.Dist (ratE (g1 low m), S.Ds_one, if String.isPrefix "mi" (valOf (grp low m 2)) then S.Db_mile else S.Db_km))
+         (case search (NE ^ "\\s*(km|kilomet(?:er|re)s?|miles?|m|met(?:er|re)s?)" ^ LENGTH_END) low of
+            SOME m => SOME (S.Dist (ratE (g1 low m), S.Ds_one, distanceUnit(valOf(grp low m 2))))
           | NONE => NONE))
 
   fun rateU u =
@@ -482,7 +441,7 @@ struct
   val SIZE = "\\b(?:larger|bigger|wider|large|big|wide|diameter|size)\\b"
   val REF = "\\b(?:relative to|compared? (?:to|with)|than|exceeds?|divided by|versus|vs\\.?|over)\\s+(?:the\\s+)?(?:planet\\s+)?([a-z]+)"
     ^ "|\\bratio of\\s+(?:the\\s+)?[^,?]*?\\bto\\s+(?:the\\s+)?([a-z]+)"
-  val NOT_MINE = "\\b\\d+(?:\\.\\d+)?\\s*(?:x|times)\\s+(?:the\\s+)?(?:earth|jupiter|sun|moon)'?s?\\b|\\ba (?:rocky |gas )?planet with\\b|\\ba moon with\\b"
+  val NOT_MINE = "\\bqnum[0-9]+q\\s*(?:x|times)\\s+(?:the\\s+)?(?:earth|jupiter|sun|moon)'?s?\\b|\\ba (?:rocky |gas )?planet with\\b|\\ba moon with\\b"
 
   fun title s =
     String.concatWith " " (map (fn w =>
@@ -493,9 +452,7 @@ struct
   fun cellSign (c : S.cell) : (bool * bool) option =   (* (negative, zero) *)
     case c of
       S.Cnum (s, _, _) =>
-        let val neg = String.isPrefix "-" s
-            val (n, _) = parseDec (if neg then String.extract (s, 1, NONE) else s)
-        in SOME (neg, n = 0) end
+        (case ExactNumeric.parse s of SOME(n,_)=>SOME(n<0,n=0) | NONE=>NONE)
     | _ => NONE
 
   datatype res = Fall | Take of S.request | Crash
@@ -522,7 +479,7 @@ struct
           NONE => NONE
         | SOME body =>
           let
-            val wm = search "\\b(\\d+(?:\\.\\d+)?)\\s*(kg|kilograms?|lbs?|pounds?)\\b" low
+            val wm = search (N ^ "\\s*(kg|kilograms?|lbs?|pounds?)\\b") low
             val weightHit =
               if isSome wm andalso has "\\bweigh\\b|\\bweight\\b" low then
                 let val tgt = (case bodyOf (SOME S.A_earth) of SOME b => b | NONE => body)
@@ -694,8 +651,55 @@ struct
              if orbitalSubject text r then SOME x else rest ()
            | NONE => rest () end)
 
-  fun recognize mode text =
+  fun recognizePrepared mode text =
     Option.map (fn (id, req, saved) =>
       (id, case saved of SOME reply => reply | NONE => S.reply_of req))
       (if mode = "family" then family text else call mode text)
+
+  (* Scientific multiplication is structured syntax, separate from the shared
+     decimal lexer. Its mantissa is lexer-issued, its exponent is parsed whole,
+     and malformed expressions reject the entire question before role parsing. *)
+  fun scientificText text =
+    let
+      val opRx = "(?:x|\195\151|\\*)\\s*10\\s*\\^\\s*"
+      val operators = length(findall opRx (lower text))
+      fun expression (ExactNumeric.Malformed _) = NONE
+        | expression (ExactNumeric.Number {start,stop,value=(n,d)}) =
+          let val rest = String.extract(text,stop,NONE)
+          in case search ("^\\s*" ^ opRx) (lower rest) of
+               NONE => NONE
+             | SOME ({stop=afterOp,...}:Regex.match) =>
+               let val exponentText = String.extract(rest,afterOp,NONE)
+               in case search "^([+-]?[0-9]+)(?=\\s|$|[?;,]|kg\\b|km\\b|m\\b)" exponentText of
+                    NONE => raise InvalidNumeric
+                  | SOME em =>
+                    let val raw=g1 exponentText em
+                        val exponent=case ExactNumeric.parse raw of
+                          SOME(e,one)=>if one=1 andalso IntInf.abs e<=10000 then IntInf.toInt e else raise InvalidNumeric
+                        | NONE=>raise InvalidNumeric
+                        val scaled=if exponent>=0 then (n*IntInf.pow(10,exponent),d)
+                                   else (n,d*IntInf.pow(10,~exponent))
+                    in SOME(start,stop+afterOp+ #stop em,ExactNumeric.canonical scaled) end
+               end
+          end
+      val expressions=List.mapPartial expression (ExactNumeric.scan text)
+      fun splice pos [] acc = String.concat(rev(String.extract(text,pos,NONE)::acc))
+        | splice pos ((a,b,replacement)::rest) acc =
+          if a<pos then raise InvalidNumeric
+          else splice b rest (replacement::String.substring(text,pos,a-pos)::acc)
+    in if length expressions=operators then SOME(splice 0 expressions []) else NONE end
+    handle InvalidNumeric=>NONE
+
+  fun recognize mode text =
+    case scientificText text of NONE=>NONE
+    | SOME normalized =>
+      (case ExactNumeric.mask normalized of NONE=>NONE
+       | SOME {text=prepared,numbers} =>
+         let val previous= !numericValues
+             val _=numericValues:=numbers
+             val result=(recognizePrepared mode prepared handle InvalidNumeric=>NONE
+                         | e=>(numericValues:=previous;raise e))
+             val _=numericValues:=previous
+         in result end)
+
 end

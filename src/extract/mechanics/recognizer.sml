@@ -129,7 +129,25 @@ struct
   val cube = "\194\179"
 
   (* ---------- physics v1 ---------- *)
-  val Pm = SNUM ^ "\\s*(?:kg|kilograms?)\\b"
+  val MASS_UNIT = "(?:kilograms?|kg|grams?|g|tonnes?|metric tons?|t|pounds?|lbs?)"
+  val Pm = SNUM ^ "\\s*(" ^ MASS_UNIT ^ ")\\b(?!\\s*/|\\s*per\\b|\\s*\\^)"
+  fun massUnit u = if u="g" orelse u="gram" orelse u="grams" then M.MU_g
+    else if u="t" orelse String.isPrefix "tonne" u orelse String.isPrefix "metric ton" u then M.MU_tonne
+    else if String.isPrefix "lb" u orelse String.isPrefix "pound" u then M.MU_lb else M.MU_kg
+  val massSpecs = map (fn alias => {alias=alias,tag=alias,dimension="mass",caseSensitive=false})
+    ["kg","kilogram","kilograms","g","gram","grams","t","tonne","tonnes",
+     "metric ton","metric tons","lb","lbs","pound","pounds"] @
+    map (fn alias => {alias=alias,tag=alias,dimension="force",caseSensitive=false})
+      ["kg force","kilogram force","kilograms force","lb force","lbs force","pound force","pounds force"]
+  fun massValue low (m:Regex.match) =
+    let val (_,numberStop)=valOf(Vector.sub(#groups m,1))
+    in case MeasuredInput.unitAt massSpecs low numberStop of
+         SOME(MeasuredInput.Explicit{unit,...}) =>
+           if #dimension unit = "mass" then M.mass_kg (ratOf(g1 low m)) (massUnit(#tag unit))
+           else raise InvalidNumeric
+       | _ => raise InvalidNumeric
+    end
+  fun firstMass low = Option.map (massValue low) (search Pm low)
   val Pv = SNUM ^ "\\s*(?:m/s|meters? per second|metres? per second)(?!\\s*(?:\\^?2|" ^ sq2 ^ "|squared|per second))"
   val Pa = SNUM ^ "\\s*(?:m/s\\^?2|m/s" ^ sq2 ^ "|meters? per second squared|metres? per second squared|m/s/s)"
   val Pt = SNUM ^ "\\s*(?:s|sec|seconds?)\\b(?!\\s*squared)"
@@ -155,7 +173,7 @@ struct
                    ^ "work|power|projectile|launched|thrown)\\b") low) then NONE
       else
         let
-          val m_ = firstRat Pm low and v_ = firstRat Pv low and a_ = firstRat Pa low
+          val m_ = firstMass low and v_ = firstRat Pv low and a_ = firstRat Pa low
           val t_ = firstRat Pt low and h_ = firstRat Ph low
           val F_ = firstCS PF t low and E_ = firstCS PE t low and d_ = firstRat Pdeg low
           (* Python's "not a_": absent or zero *)
@@ -241,7 +259,7 @@ struct
 
   val GIVEN_G = "\\bg\\s*=\\s*" ^ NUM ^ "\\s*(?:m/s\\^?2|m/s" ^ sq2 ^ "|m/s/s)|\\bgravity\\s+(?:of|is)\\s+" ^ NUM
     ^ "\\s*(?:m/s\\^?2|m/s" ^ sq2 ^ "|m/s/s)"
-  val MASS = NUM ^ "\\s*(?:kg|kilograms?)\\b"
+  val MASS = Pm
   val HEIGHT = NUM ^ "\\s*(?:m|met(?:re|er)s?)\\b(?!\\s*/|\\s*per)"
   val LENGTH = NUM ^ "\\s*(?:m|met(?:re|er)s?)\\s+(?:long|in length)|(?:length|long)\\s+(?:of\\s+)?" ^ NUM
     ^ "\\s*(?:m|met(?:re|er)s?)\\b"
@@ -300,7 +318,7 @@ struct
             NONE => NONE
           | SOME g =>
               let
-                val masses = map (fn m => g1 low m) (findall MASS low)
+                val masses = map (massValue low) (findall MASS low)
                 val heights = map (fn m => g1 low m) (findall HEIGHT low)
                 val falls = has "\\b(?:drop(?:ped)?|falls?|fall(?:ing)?|released)\\b" low
               in
@@ -309,7 +327,7 @@ struct
                      NONE => need (M.BdPendulum (g, NONE))
                    | SOME m => SOME (M.BdPendulum (g, SOME (ratOf (valOf (firstGroup low m [1, 2]))))))
                 else if has "\\bweigh|\\bweight\\b" asklow then
-                  (case masses of [m] => SOME (M.BdWeight (g, SOME (ratOf m))) | _ => need (M.BdWeight (g, NONE)))
+                  (case masses of [m] => SOME (M.BdWeight (g, SOME m)) | _ => need (M.BdWeight (g, NONE)))
                 else if falls andalso has "\\b(?:how long|how many seconds|time)\\b" asklow then
                   (case heights of [h] => SOME (M.BdFall (g, SOME (ratOf h))) | _ => need (M.BdFall (g, NONE)))
                 else if falls andalso has "\\b(?:speed|how fast|velocity)\\b" asklow then
@@ -357,12 +375,14 @@ struct
     driverDrivenPair low (UNUM ^ "[- ]?" ^ u) 1 (fn m => fn i => valOf(grp low m i))
 
   fun loadUnit s = if s = "kg" then M.LD_kg else M.LD_n
-  val LEN = "(?:millimet(?:er|re)s?|mm|centimet(?:er|re)s?|cm|met(?:er|re)s?|m|feet|foot|ft|inches|inch|in)"
+  val LEN = "(?:millimet(?:er|re)s?|mm|centimet(?:er|re)s?|cm|met(?:er|re)s?|m|feet|foot|ft|inches|inch|in|yards?|yd|miles?|mi)"
   fun lenUnit s =
     if s = "cm" orelse String.isPrefix "centimet" s then M.LU_cm
     else if s = "mm" orelse String.isPrefix "millimet" s then M.LU_mm
     else if s = "ft" orelse s = "foot" orelse s = "feet" then M.LU_ft
-    else if s = "in" orelse s = "inch" orelse s = "inches" then M.LU_in else M.LU_m
+    else if s = "in" orelse s = "inch" orelse s = "inches" then M.LU_in
+    else if s="yd" orelse String.isPrefix "yard" s then M.LU_yd
+    else if s="mi" orelse String.isPrefix "mile" s then M.LU_mi else M.LU_m
   fun lengthPair ((x,u),(y,v)) =
     case (u,v) of
       (NONE,NONE) => SOME (x,y)
@@ -696,6 +716,17 @@ struct
                   then List.filter (fn f => f <> fFresh) found else found
     in one found end
 
+  (* These requests carry fixed table density, g0 and (for absolute pressure)
+     p0. Supplied conditions must not be dropped when this simpler reader wins.
+     Richer sibling models may answer; this reader makes its limitation explicit. *)
+  fun suppliedFluidConditions low =
+    has "\\b(?:gravity|density|densities|rho|specific gravity)\\b|\\bg\\s*(?:=|is|of|qnum)" low orelse
+    has "\\b(?:surface|atmospheric|ambient|external|initial) (?:absolute )?pressure\\b|\\bp[ _]?0\\b" low
+  fun fluidOperation ask low =
+    (has "\\bpressure\\b" ask andalso has "\\b(?:deep|depth|below|under|beneath|down)\\b" low) orelse
+    has "\\bbuoyan\\w*\\b|\\bupthrust\\b" ask orelse
+    (has "\\b(?:fraction|percent(?:age)?|how much)\\b.*\\b(?:below|under|submerged|beneath)\\b" ask andalso has "\\bfloat" low)
+
   fun fluidsV1 text : M.request option =
     let val t = collapse text
     in
@@ -707,7 +738,9 @@ struct
           val fl = fluidOf low
           fun need r = if Narrow.short_direct t then SOME r else NONE
         in
-          if has "\\bpressure\\b" ask andalso has "\\b(?:deep|depth|below|under|beneath|down)\\b" low then
+          if isSome fl andalso fluidOperation ask low andalso suppliedFluidConditions low
+          then need M.FsModelLimit
+          else if has "\\bpressure\\b" ask andalso has "\\b(?:deep|depth|below|under|beneath|down)\\b" low then
             (case fl of
                NONE => NONE
              | SOME f =>
@@ -716,7 +749,8 @@ struct
                    val absolute = has "\\b(?:absolute|total)\\b" low
                    val d = one ds
                    val r = if absolute then M.FsAbs (f, d) else M.FsGauge (f, d)
-                 in if length ds = 1 then SOME r else need r end)
+                 in if length(findall NUM low) > length ds then need M.FsModelLimit
+                    else if length ds = 1 then SOME r else need r end)
           else if has "\\bbuoyan\\w*\\b|\\bupthrust\\b" low andalso has "\\bforce\\b|\\bupthrust\\b|\\bhow much\\b" ask then
             (case fl of
                NONE => NONE
@@ -724,12 +758,14 @@ struct
                  let
                    val vs = List.concat (map (fn (p, u) => map (fn m => (ratOf (g1 low m), u)) (findall p low)) fluidVolPats)
                    val r = M.FsBuoyant (f, one vs)
-                 in if length vs = 1 then SOME r else need r end)
+                 in if length(findall NUM low) > length vs then need M.FsModelLimit
+                    else if length vs = 1 then SOME r else need r end)
           else if has "\\b(?:fraction|percent(?:age)?|how much)\\b.*\\b(?:below|under|submerged|beneath)\\b" ask
                   andalso has "\\bfloat" low then
             (case fl of
                NONE => NONE
              | SOME f =>
+                 if not(null(findall NUM low)) then need M.FsModelLimit else
                  (case List.mapPartial (fn (p, s) => if has ("\\b" ^ p ^ "\\b") low then SOME s else NONE) solidPats of
                     [s] => SOME (M.FsSubmerged (s, f))
                   | _ => NONE))

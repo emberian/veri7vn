@@ -46,6 +46,7 @@ cat > "$OUT/build/variants.mlb" <<EOM
 quantity_generated.sml
 $REPO/src/extract/commons/commons.sml
 $REPO/src/extract/commons/numeric.sml
+$REPO/src/extract/commons/measured_input.sml
 recognizer_base.sml
 $SRC/variants.sml
 $Q/main.sml

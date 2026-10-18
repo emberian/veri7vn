@@ -1,8 +1,8 @@
 # Energy and geometry/statistics: next semantic work
 
-Every identity below was examined through its typed kernel, recognizer and shipped cases. This table distinguishes the current packet from further work. These observations do not change the frozen build inputs. Off-panel examples used the preserved baseline binaries; they are counterexamples to broad correctness claims, not additional scored panel rows. Exact replies are in `var/c-physical-energy-geostats/semantic-next-probes.json`.
+The table below is the **historical C baseline audit**, before the D repairs described later in this report. Its negative-mass, mixed-unit and ignored-exclusion counterexamples have now been repaired in the final D packets; they are not current defects. Each identity was examined through its typed kernel, recognizer and shipped cases. Baseline replies are preserved in `var/c-physical-energy-geostats/semantic-next-probes.json`. Current remaining work is complete weighted spelling, paired statistics, and broader explicit physical-unit interpretation; exact current packet receipts and remaining limits appear below.
 
-| Specialist | Examined behavior and current packet | Current limit and coherent next improvement |
+| Specialist | Examined C baseline behavior | Historical defect or continuing model limit |
 |---|---|---|
 | thermo | Temperature, heat, ideal gas, Carnot and radiation guards; existing wave-6 heat reversal law | Negative mass melting returns negative energy; negative ideal-gas volume returns negative pressure. Validate constituent physical domains in the kernel and preserve signed inputs in readers. |
 | energy-v2 | Passive bulb-swap error; latest reader adoption; adjusted battery runtime | Constant load and stated one-way efficiency/depth only. No battery aging, voltage sag or nonlinear discharge model. Verify constituent capacity inputs before multiplying Ah and volts. |
@@ -17,7 +17,7 @@ Every identity below was examined through its typed kernel, recognizer and shipp
 | statistics-v2 | Latest reader recovers dataset phrasing; weighted mean | Same qualifier limit. Available fresh generator exercises base statistics templates only. |
 | statistics-v3 | Current mean/mode/variance/binomial paths; weighted range and equal-weight consequences | Same qualifier limit. Weighted reader is anchored and validates complete finite decimal lists, but this does not repair the older unweighted reader. |
 
-The next coherent work is domain preservation for energy inputs, dimension units for geometry, and full dataset-expression consumption for statistics. A green shipped panel alone cannot close these observed semantic gaps.
+This audit motivated the D physical-domain, exact-unit and complete-dataset changes now verified below. A green shipped panel alone did not close the observed gaps.
 
 The native family reader and shared runtime contract currently duplicate context regexes. This packet synchronizes the supported W abbreviation and running-cost operation context in both locations, so a missing tariff remains a decisive refusal. The next simplification is generating native family eligibility from the shared capability declaration, rather than maintaining parallel regex strings.
 
@@ -166,7 +166,8 @@ Exact Energy files: `Energy_Export.thy`, `Energy_Family.thy`, `Home.thy`,
 `build.sh`, `capabilities.json`, `README.md`, `probes.json`, `domain_probes.json`,
 all under `src/extract/energy/`; this report, plus the shared lane-owned
 `src/extract/geostats/check_probes.py` accounting change. No upstream/shared
-runtime source changed. Independent final consumer and immutable capture pending.
+runtime source changed. Independent semantic consumer checks pass 10/10; root
+integrated `fc35ef2` and runtime captured immutable NEXT, as detailed below.
 
 ## Final GeoStats source-unit repair packet
 
@@ -201,9 +202,63 @@ Final native size 595,032 bytes; cold starts 6.30, 6.11, 6.02, 6.21, 6.16 ms;
 pinned in-binary p50 geometry 2.87–2.92 ms and statistics 0.09–0.10 ms.
 Repair files: `GeoStats_Extensions.thy` (text only), `recognizer.sml`,
 `capabilities.json`, `README.md`, `domain_probes.json`, `check_probes.py` under
-`src/extract/geostats/`; this report. Independent final consumer and immutable
-capture pending; held c999 must not be packaged as the corrected build.
+`src/extract/geostats/`; this report. Independent consumer checks pass 15/15;
+root integrated `e658418` and runtime captured immutable NEXT. Held c999 must
+not be packaged as the corrected build.
 
 Final composed-consumer audit found HVAC’s inherited manifest accepted only underspecified and sizing refusals. The new physical guards correctly returned `hvac>impossible`, but dispatch dropped it. The Energy sidecar now explicitly admits this newly reachable domain refusal; the existing HVAC context already covers CFM and air changes. The native/proof inputs are unchanged. Other physical Energy identities already admitted impossible. Parent consumer rerun pending.
 
 Physical deputy independently audited both final proof targets and actual compiler manifests. The corrected GeoStats binary passes all 15 composed physical-consumer checks in `var/c-physical-integration/geostats-d-repaired-consumer.json`, including source-unit inheritance and incompatible angle/output-unit refusal. Immutable capture remains pending.
+
+Runtime captured corrected GeoStats as NEXT only at `var/C-runtime-package/bound-prepared/20261018T081448Z-9953f06acfcd/geostats`, verifying all five actual compiler inputs. The selected C packet is unchanged. Root integration confirmation is the remaining source-reopening gate before weighted grammar completion.
+
+Root integrated the corrected GeoStats packet as `e658418` and released the source after runtime capture. The weighted grammar follow-up now reuses the complete exact-list parser for both values and weights; it does not change HOL arithmetic or geometry unit handling.
+
+## Weighted grammar completion after corrected D capture
+
+The complete finite-list parser now binds both prefix and postfix weighted mean
+forms, including “with weights” and “using weights”. Values and weights share
+exact fraction/scientific/signed scalar parsing and matched optional brackets.
+The same existing HOL `weighted_reply` checks length equality, nonnegative
+weights and a positive total. Unsupported suffixes cannot fall back to an
+ordinary mean; unsupported statistical operations remain decisive refusals only
+after actual dataset recognition. Geometry and all HOL sources are unchanged.
+
+Final native `099f430bc4cb26405742fcb67f900e4829c8a0db28977f7f248c775496ce6489`
+comes from immutable helper attempt `20261018T083115Z-4e072dd2b1bc`, manifest
+`var/geostats/native-attempts/20261018T083115Z-4e072dd2b1bc/compile-inputs.json`.
+It consumes the existing current 04caf proof/export (102 roots, no oracles).
+No new Isabelle build was needed for this reader-only change.
+
+The 28 weighted probes improve from **12 right / 0 wrong / 0 false yes / 16
+withheld-valid** to **26 / 0 / 0 / 2**; all 28 policy checks pass. The two valid
+unsupported cases are paired exclusion and a trimmed weighted mean. Existing
+44 domain probes now score **41 / 0 / 0 / 3**, with all 44 policy checks passing;
+the earlier 20 probes remain 20 right. Receipts are `weighted-grammar-{before,
+after}.json`, `weighted-domain-after.json` and `weighted-Cprobes.json` in this
+lane's scratch directory. Ordinary average-speed and batting-average controls
+remain untaken; unread weighted tails and unmatched brackets are refused.
+
+All six shipped specialist rows, both pinned and family, remain equal to the
+final D table above, with no wrong/false-yes/withheld-valid cases. New fresh
+offsets 69118 and 79118 score 142 dev / 142 held for each statistics identity,
+before and after, all errors zero. Offset 79118 was first generated after final
+reader/native freeze. There is still no geometry generator. Receipts are
+`weighted-fresh-{69118,79118}-{before,after}/receipt.json`.
+
+Native size is 594,232 bytes, 800 bytes smaller than corrected D. Cold starts
+were 9.93, 10.57, 9.26, 9.17 and 10.26 ms; pinned in-binary p50 was 3.03–3.52 ms
+for geometry and 0.10–0.14 ms for statistics on the shared live host. These are
+observations, not isolated performance improvement claims. Full own-scorer and
+performance receipt: `weighted-score.json`.
+
+Exact files: `src/extract/geostats/recognizer.sml`, `domain_probes.json`,
+`weighted_probes.json` (new), `README.md`, and this report. Independent composed
+consumer checks pass 7/7. Root integration and immutable NEXT capture are pending
+before paired-data statistics work reopens these sources.
+
+Energy D is integrated as `fc35ef2`. The final independent composed receipt is `var/c-physical-integration/energy-d-consumer.json`; where inherited Energy replies omit a scalar value field, the consumer records explicit extraction from the stated result text. The sidecar retains decisive HVAC invalid-dimensions refusal. All ten semantic checks pass; capture is complete as recorded next.
+
+Runtime captured Energy D as NEXT at `var/C-runtime-package/bound-prepared/20261018T081454Z-76be3d79551d/energy`, verifying five actual compiler inputs and the committed sidecar. Both integration and capture gates are complete. Current selected delivery remains the earlier Energy C packet.
+
+Weighted grammar independent composition passes all seven checks in `var/c-physical-integration/weighted-next-consumer.json`, using different observations and weights, quarter fractions, zero/negative/mismatched weight cases, and paired-exclusion refusal. Physical deputy also verified current reader/helper/proof input hashes against native `099f430b…`. Runtime NEXT capture is complete at `var/C-runtime-package/bound-prepared/20261018T083115Z-4e072dd2b1bc/geostats`; root integration remains before paired-statistics source reopening.

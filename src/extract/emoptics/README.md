@@ -22,8 +22,21 @@ asserted when the enclosure establishes it; an unresolved critical boundary is
 declined. This is a guarantee about the selected model and input, not a proof
 that the English question was read correctly or that a real apparatus is ideal.
 
-Series, parallel and RC calculations require positive resistance; RC also
-requires positive capacitance.
+Circuit operations own their inputs. Series and parallel networks require a
+nonempty list of positive resistors and can return equivalent resistance,
+source current or total power. A signed supply produces signed current;
+zero supply produces zero current and power. RC requires positive resistance
+and capacitance. Redundant scalar V/I/R/power inputs must describe the same
+ideal circuit.
+
+The LED sizing model uses explicitly selected supply voltage, forward voltage
+and forward current; it requires positive forward voltage/current and supply
+above that voltage. Divider output uses the selected top and bottom resistors
+and prints their values. Explicit connection roles take precedence; otherwise
+R1/R2 use the conventional top/bottom interpretation, and unlabeled lists use
+the listed top-then-bottom order. Circuit numbers are bound to shared exact
+numeric tokens, preserving fractions, signs, scientific notation and SI case.
+
 Photon frequency and wavelength must be positive. Refractive-index calculations
 use the explicitly supported n >= 1 domain and incidence 0 <= theta < 90 degrees.
 Questions about wiring safety or code compliance are declined.
@@ -77,3 +90,10 @@ source-derived expected values and boundary cases; their author also wrote the
 parser, so they are not independent blind language tests. The generators keep
 the original author's templates and blind spots. These checks support the
 reported domain numbers; they do not establish every head-composition criterion.
+
+The accepted D circuit packet is described in the next model-contract report.
+`check_circuits.py` separates safe-refusal assertions from capability counts;
+`circuit_fresh.py` generates exact equation/role cases with a supplied seed.
+The D report records its passed proof, bound native inputs, full shipped
+panels, reserved evaluations and independent consumer checks. Four computable
+probe extensions still withhold and are counted separately from safe assertions.

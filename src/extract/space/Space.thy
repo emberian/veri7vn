@@ -195,9 +195,9 @@ datatype dscale = Ds_one | Ds_million | Ds_billion
 fun dscale_f :: "dscale \<Rightarrow> rat" where
   "dscale_f Ds_one = 1" | "dscale_f Ds_million = 1000000" | "dscale_f Ds_billion = 1000000000"
 
-datatype dbase = Db_km | Db_mile | Db_au
+datatype dbase = Db_km | Db_mile | Db_au | Db_m
 fun dbase_f :: "dbase \<Rightarrow> rat" where
-  "dbase_f Db_km = 1" | "dbase_f Db_mile = mile_km" | "dbase_f Db_au = au_km"
+  "dbase_f Db_km = 1" | "dbase_f Db_mile = mile_km" | "dbase_f Db_au = au_km" | "dbase_f Db_m = 1 / 1000"
 
 datatype dist = Dist rat dscale dbase
 fun dkm :: "dist \<Rightarrow> rat" where "dkm (Dist a s b) = a * dscale_f s * dbase_f b"
@@ -254,7 +254,7 @@ text \<open>In @{text SProp0} the mass is the initial mass; in @{text SPropF} th
 the one-way light time, or the round trip when the flag is set. CXfer (n, p, bytes, r, u): n units with prefix p (bytes when the flag is set) at rate r u.\<close>
 
 datatype need = N_body | N_alt | N_alts | N_dist_freq | N_dist_rate | N_dist
-datatype reason = R_nonpositive | R_final_exceeds_initial
+datatype reason = R_nonpositive | R_final_exceeds_initial | R_physical_domain
 datatype decline = Underspecified need | NoSync | Impossible reason | Unknown | NoValue | Imprecise
 
 datatype outcome = Exact String.literal rat | Approx String.literal "int \<times> int"
@@ -353,30 +353,56 @@ fun nosync :: "request \<Rightarrow> bool" where
 
 text \<open>Impossible: a quantity that is a divisor, a radius, a logarithm's argument or a
 final mass above the initial mass.\<close>
-fun reason_of :: "request \<Rightarrow> reason option" where
-  "reason_of (PGravity b) = (if ppos b then None else Some R_nonpositive)"
-| "reason_of (PEscape b) = (if ppos b then None else Some R_nonpositive)"
-| "reason_of (POrbV b) = (if ppos b then None else Some R_nonpositive)"
-| "reason_of (PDensity b) = (if ppos b then None else Some R_nonpositive)"
-| "reason_of (PWeightE M R k) = (if 0 < M \<and> 0 < R then None else Some R_nonpositive)"
-| "reason_of (OSpeed ob oa) = (if 0 < rad1 ob oa then None else Some R_nonpositive)"
-| "reason_of (OPeriod ob oa) = (if 0 < rad1 ob oa then None else Some R_nonpositive)"
-| "reason_of (OEscape ob oa) = (if 0 < rad1 ob oa then None else Some R_nonpositive)"
-| "reason_of (OHohDv ob p) = (if 0 < hr1 ob p \<and> 0 < hr2 ob p then None else Some R_nonpositive)"
-| "reason_of (OHohTime ob p) = (if 0 < hr1 ob p \<and> 0 < hr2 ob p then None else Some R_nonpositive)"
-| "reason_of (STwr F fu M mw) = (if 0 < M * massf mw then None else Some R_nonpositive)"
-| "reason_of (SMassFlow F fu v) = (if 0 < ve_of v then None else Some R_nonpositive)"
-| "reason_of (SBurn F fu v P pu) =
+fun reason_base :: "request \<Rightarrow> reason option" where
+  "reason_base (PGravity b) = (if ppos b then None else Some R_nonpositive)"
+| "reason_base (PEscape b) = (if ppos b then None else Some R_nonpositive)"
+| "reason_base (POrbV b) = (if ppos b then None else Some R_nonpositive)"
+| "reason_base (PDensity b) = (if ppos b then None else Some R_nonpositive)"
+| "reason_base (PWeightE M R k) = (if 0 < M \<and> 0 < R then None else Some R_nonpositive)"
+| "reason_base (OSpeed ob oa) = (if 0 < rad1 ob oa then None else Some R_nonpositive)"
+| "reason_base (OPeriod ob oa) = (if 0 < rad1 ob oa then None else Some R_nonpositive)"
+| "reason_base (OEscape ob oa) = (if 0 < rad1 ob oa then None else Some R_nonpositive)"
+| "reason_base (OHohDv ob p) = (if 0 < hr1 ob p \<and> 0 < hr2 ob p then None else Some R_nonpositive)"
+| "reason_base (OHohTime ob p) = (if 0 < hr1 ob p \<and> 0 < hr2 ob p then None else Some R_nonpositive)"
+| "reason_base (STwr F fu M mw) = (if 0 < M * massf mw then None else Some R_nonpositive)"
+| "reason_base (SMassFlow F fu v) = (if 0 < ve_of v then None else Some R_nonpositive)"
+| "reason_base (SBurn F fu v P pu) =
      (if 0 < ve_of v \<and> 0 < F * forcef fu then None else Some R_nonpositive)"
-| "reason_of (SDeltaV v M0 u0 MF uf) =
+| "reason_base (SDeltaV v M0 u0 MF uf) =
      (if M0 * massf u0 < MF * massf uf then Some R_final_exceeds_initial
       else if 0 < ve_of v \<and> 0 < M0 * massf u0 \<and> 0 < MF * massf uf then None else Some R_nonpositive)"
-| "reason_of (SProp0 v dv du M0 u0) = (if 0 < ve_of v then None else Some R_nonpositive)"
-| "reason_of (SPropF v dv du MF uf) = (if 0 < ve_of v then None else Some R_nonpositive)"
-| "reason_of (CFspl d f) = (if 0 < dd d \<and> 0 < ff f then None else Some R_nonpositive)"
-| "reason_of (CXfer n p bytes r u) = (if 0 < r * rate_f u then None else Some R_nonpositive)"
-| "reason_of (ARatio rs b1 b2 p) = (if cell_num (sheet b2 p) \<noteq> 0 then None else Some R_nonpositive)"
-| "reason_of r = None"
+| "reason_base (SProp0 v dv du M0 u0) = (if 0 < ve_of v then None else Some R_nonpositive)"
+| "reason_base (SPropF v dv du MF uf) = (if 0 < ve_of v then None else Some R_nonpositive)"
+| "reason_base (CFspl d f) = (if 0 < dd d \<and> 0 < ff f then None else Some R_nonpositive)"
+| "reason_base (CXfer n p bytes r u) = (if 0 < r * rate_f u then None else Some R_nonpositive)"
+| "reason_base (ARatio rs b1 b2 p) = (if cell_num (sheet b2 p) \<noteq> 0 then None else Some R_nonpositive)"
+| "reason_base r = None"
+
+
+text \<open>Additional scalar-domain conditions. Thrust, exhaust speed, propellant
+and delta-v here are magnitudes. Bits in flight is an average occupancy and may
+be fractional; a transferred file contains a whole number of bits after its
+prefix and byte conversion. Zero path length and zero file size are valid.
+Orbit altitude retains the positive-radius model above, not a blanket sign ban.\<close>
+fun physical_domain :: "request \<Rightarrow> bool" where
+  "physical_domain (PWeightE M R k) = (0 \<le> k)"
+| "physical_domain (SExhaust i) = (0 \<le> i)"
+| "physical_domain (STwr F fu M mw) = (0 \<le> F)"
+| "physical_domain (SMassFlow F fu v) = (0 \<le> F)"
+| "physical_domain (SBurn F fu v P pu) = (0 \<le> P)"
+| "physical_domain (SProp0 v dv du M u) = (0 \<le> dv \<and> 0 \<le> M)"
+| "physical_domain (SPropF v dv du M u) = (0 \<le> dv \<and> 0 \<le> M)"
+| "physical_domain (CLight d rt) = (0 \<le> dd d)"
+| "physical_domain (CBits d r) = (0 \<le> dd d \<and> 0 \<le> rr r)"
+| "physical_domain (CXfer n p bytes r u) =
+    (0 \<le> n \<and> snd (quotient_of (n * dpre_f p * (if bytes then 8 else 1))) = 1)"
+| "physical_domain (AWeight w u b) = (0 \<le> w)"
+| "physical_domain r = True"
+
+definition reason_of :: "request \<Rightarrow> reason option" where
+  "reason_of r = (case reason_base r of Some why \<Rightarrow> Some why
+     | None \<Rightarrow> if physical_domain r then None else Some R_physical_domain)"
+declare reason_of_def [simp]
 
 fun fake :: "request \<Rightarrow> bool" where "fake (AFake n) = True" | "fake r = False"
 
@@ -791,18 +817,25 @@ theorem declines_exact_kinds:
   fixes M R k F P i n r wt :: rat
   shows "kernel (PGravity (Pb_si M R u)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
     and "kernel (PGravity (Pb_earth M R)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
-    and "kernel (PWeightE M R k) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
-    and "kernel (SExhaust i) \<noteq> Decline w"
-    and "kernel (STwr F fu M mw) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> M \<le> 0"
-    and "kernel (SMassFlow F fu v) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> ve_given v \<le> 0"
+    and "kernel (PWeightE M R k) = Decline w \<longleftrightarrow> (w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)) \<or>
+      (w = Impossible R_physical_domain \<and> 0 < M \<and> 0 < R \<and> k < 0)"
+    and "kernel (SExhaust i) = Decline w \<longleftrightarrow> w = Impossible R_physical_domain \<and> i < 0"
+    and "kernel (STwr F fu M mw) = Decline w \<longleftrightarrow> (w = Impossible R_nonpositive \<and> M \<le> 0) \<or>
+      (w = Impossible R_physical_domain \<and> 0 < M \<and> F < 0)"
+    and "kernel (SMassFlow F fu v) = Decline w \<longleftrightarrow> (w = Impossible R_nonpositive \<and> ve_given v \<le> 0) \<or>
+      (w = Impossible R_physical_domain \<and> 0 < ve_given v \<and> F < 0)"
     and "kernel (SBurn F fu v P pu) = Decline w \<longleftrightarrow>
-           w = Impossible R_nonpositive \<and> (ve_given v \<le> 0 \<or> F \<le> 0)"
+           (w = Impossible R_nonpositive \<and> (ve_given v \<le> 0 \<or> F \<le> 0)) \<or>
+      (w = Impossible R_physical_domain \<and> 0 < ve_given v \<and> 0 < F \<and> P < 0)"
     and "kernel (CLight None rt) = Decline w \<longleftrightarrow> w = Underspecified N_dist"
-    and "kernel (CLight (Some d) rt) \<noteq> Decline w"
-    and "kernel (CXfer n pf bytes r ru) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> r \<le> 0"
+    and "kernel (CLight (Some d) rt) = Decline w \<longleftrightarrow> w = Impossible R_physical_domain \<and> dkm d < 0"
+    and "kernel (CXfer n pf bytes r ru) = Decline w \<longleftrightarrow> (w = Impossible R_nonpositive \<and> r \<le> 0) \<or>
+      (w = Impossible R_physical_domain \<and> 0 < r \<and>
+       (n < 0 \<or> snd (quotient_of (n * dpre_f pf * (if bytes then 8 else 1))) \<noteq> 1))"
     and "kernel (CBits None rq) = Decline w \<longleftrightarrow> w = Underspecified N_dist_rate"
     and "kernel (CBits dx None) = Decline w \<longleftrightarrow> w = Underspecified N_dist_rate"
-    and "kernel (CBits (Some d) (Some x)) \<noteq> Decline w"
+    and "kernel (CBits (Some d) (Some x)) = Decline w \<longleftrightarrow>
+       w = Impossible R_physical_domain \<and> (dkm d < 0 \<or> rr (Some x) < 0)"
     and "kernel (AFake nm) = Decline w \<longleftrightarrow> w = Unknown"
     and "kernel (AProp b p) = Decline w \<longleftrightarrow> w = NoValue \<and>
            ((p = P_pressure \<and> (b = A_jupiter \<or> b = A_saturn \<or> b = A_uranus \<or> b = A_neptune)) \<or>
@@ -810,7 +843,7 @@ theorem declines_exact_kinds:
     and "kernel (ARatio rs b1 b2 p) = Decline w \<longleftrightarrow>
            w = Impossible R_nonpositive \<and> cell_num (sheet b2 p) = 0"
     and "kernel (ALight b) \<noteq> Decline w"
-    and "kernel (AWeight wt wu b) \<noteq> Decline w"
+    and "kernel (AWeight wt wu b) = Decline w \<longleftrightarrow> w = Impossible R_physical_domain \<and> wt < 0"
     and "kernel (AYears b) \<noteq> Decline w"
     and "kernel AMoonKm \<noteq> Decline w"
     and "kernel AMoonKkm \<noteq> Decline w"
@@ -850,8 +883,10 @@ theorem declines_enclosed_kinds:
            (w = Impossible R_final_exceeds_initial \<and> M0 * massf u0 < MF * massf uf) \<or>
            (w = Impossible R_nonpositive \<and> MF * massf uf \<le> M0 * massf u0 \<and>
             (ve_given v \<le> 0 \<or> M0 \<le> 0 \<or> MF \<le> 0))"
-    and "kernel (SProp0 v dv du M0 u0) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> ve_given v \<le> 0"
-    and "kernel (SPropF v dv du MF uf) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> ve_given v \<le> 0"
+    and "kernel (SProp0 v dv du M0 u0) = Decline w \<longleftrightarrow> (w = Impossible R_nonpositive \<and> ve_given v \<le> 0) \<or>
+      (w = Impossible R_physical_domain \<and> 0 < ve_given v \<and> (dv < 0 \<or> M0 < 0))"
+    and "kernel (SPropF v dv du MF uf) = Decline w \<longleftrightarrow> (w = Impossible R_nonpositive \<and> ve_given v \<le> 0) \<or>
+      (w = Impossible R_physical_domain \<and> 0 < ve_given v \<and> (dv < 0 \<or> MF < 0))"
     and "kernel (CFspl None f) = Decline w \<longleftrightarrow> w = Underspecified N_dist_freq"
     and "kernel (CFspl d None) = Decline w \<longleftrightarrow> w = Underspecified N_dist_freq"
     and "kernel (CFspl (Some (Dist a sc bs)) (Some (x, fq))) = Decline w \<longleftrightarrow>
@@ -929,7 +964,7 @@ qed
 text \<open>Weight on an Earth-multiple body: weight = the object's mass times g, with
 g R^2 = 9.81 M.\<close>
 theorem weight_model:
-  assumes "0 < M" "0 < R"
+  assumes "0 < M" "0 < R" "0 \<le> k"
   shows "kernel (PWeightE M R k) = Exact (STR ''weight'') (k * pgrav (Pb_earth M R)) \<and>
          k * pgrav (Pb_earth M R) * R ^ 2 = k * (grav_E * M)"
 proof -
@@ -1241,22 +1276,23 @@ qed
 subsection \<open>Spacecraft\<close>
 
 theorem exhaust_model:
-  "kernel (SExhaust i) = Exact (STR ''exhaust_velocity'') (qval (SExhaust i)) \<and>
+  assumes "0 \<le> i"
+  shows "kernel (SExhaust i) = Exact (STR ''exhaust_velocity'') (qval (SExhaust i)) \<and>
    qval (SExhaust i) = i * std_g0"
 proof -
-  have nd: "decline_of (SExhaust i) = None" by (simp add: decl_none_iff)
+  have nd: "decline_of (SExhaust i) = None" using assms by (simp add: decl_none_iff)
   show ?thesis using kernel_exact_of[OF nd] by simp
 qed
 
 text \<open>Thrust to weight: twr (m g0) = F.\<close>
 theorem twr_model:
-  assumes "0 < M * massf mw"
+  assumes "0 < M * massf mw" "0 \<le> F"
   shows "kernel (STwr F fu M mw) = Exact (STR ''twr'') (qval (STwr F fu M mw)) \<and>
          qval (STwr F fu M mw) * (M * massf mw * std_g0) = F * forcef fu"
 proof -
   have nd: "decline_of (STwr F fu M mw) = None" using assms by (simp add: decl_none_iff)
   have g: "std_g0 \<noteq> 0" by (simp add: std_g0_def)
-  have Mp: "0 < M" by (rule zero_less_mult_pos2[OF assms massf_pos])
+  have Mp: "0 < M" by (rule zero_less_mult_pos2[OF assms(1) massf_pos])
   have Mn: "M \<noteq> 0" by (rule pos_ne0[OF Mp])
   have m: "massf mw \<noteq> 0" by (rule pos_ne0[OF massf_pos])
   show ?thesis using kernel_exact_of[OF nd] g m Mn by (simp add: field_simps)
@@ -1264,17 +1300,17 @@ qed
 
 text \<open>Mass flow: mdot ve = F; burn time: t mdot = the propellant mass.\<close>
 theorem mass_flow_model:
-  assumes "0 < ve_of v"
+  assumes "0 < ve_of v" "0 \<le> F"
   shows "kernel (SMassFlow F fu v) = Exact (STR ''mass_flow'') (qval (SMassFlow F fu v)) \<and>
          qval (SMassFlow F fu v) * ve_of v = F * forcef fu"
 proof -
   have nd: "decline_of (SMassFlow F fu v) = None" using assms by (simp add: decl_none_iff)
-  have m: "ve_of v \<noteq> 0" by (rule pos_ne0[OF assms])
+  have m: "ve_of v \<noteq> 0" by (rule pos_ne0[OF assms(1)])
   show ?thesis using kernel_exact_of[OF nd] m by simp
 qed
 
 theorem burn_time_model:
-  assumes "0 < ve_of v" "0 < F * forcef fu"
+  assumes "0 < ve_of v" "0 < F * forcef fu" "0 \<le> P"
   shows "kernel (SBurn F fu v P pu) = Exact (STR ''burn_time'') (qval (SBurn F fu v P pu)) \<and>
          qval (SBurn F fu v P pu) * qval (SMassFlow F fu v) = P * massf pu"
 proof -
@@ -1395,34 +1431,77 @@ subsection \<open>Space communications\<close>
 
 text \<open>Light time: t c = distance; the round trip is twice the one-way time.\<close>
 theorem light_time_model:
-  "kernel (CLight (Some d) False) = Exact (STR ''light_time'') (qval (CLight (Some d) False)) \<and>
+  assumes "0 \<le> dkm d"
+  shows "kernel (CLight (Some d) False) = Exact (STR ''light_time'') (qval (CLight (Some d) False)) \<and>
    qval (CLight (Some d) False) * light_c = dkm d \<and>
    qval (CLight (Some d) True) = 2 * qval (CLight (Some d) False)"
 proof -
-  have nd: "decline_of (CLight (Some d) False) = None" by (simp add: decl_none_iff)
+  have nd: "decline_of (CLight (Some d) False) = None" using assms by (simp add: decl_none_iff dd_def)
   have c: "light_c \<noteq> 0" by (simp add: light_c_def)
   show ?thesis using kernel_exact_of[OF nd] c by (simp add: dd_def)
 qed
 
 text \<open>File transfer: t times the rate = the bits sent; a byte is eight bits.\<close>
 theorem transfer_model:
-  assumes "0 < r * rate_f u"
+  assumes "0 < r * rate_f u" "0 \<le> n"
+    "snd (quotient_of (n * dpre_f p * (if bytes then 8 else 1))) = 1"
   shows "kernel (CXfer n p bytes r u) = Exact (STR ''transfer_time'') (qval (CXfer n p bytes r u)) \<and>
          qval (CXfer n p bytes r u) * (r * rate_f u) = n * dpre_f p * (if bytes then 8 else 1) \<and>
          qval (CXfer n p True r u) = 8 * qval (CXfer n p False r u)"
 proof -
   have nd: "decline_of (CXfer n p bytes r u) = None" using assms by (simp add: decl_none_iff)
-  have m: "r * rate_f u \<noteq> 0" by (rule pos_ne0[OF assms])
+  have m: "r * rate_f u \<noteq> 0" by (rule pos_ne0[OF assms(1)])
   show ?thesis using kernel_exact_of[OF nd] m by (simp add: field_simps)
 qed
 
 text \<open>Bits in flight: the rate times the one-way light time.\<close>
 theorem bits_in_flight_model:
-  "kernel (CBits (Some d) (Some x)) = Exact (STR ''bits_in_flight'') (qval (CBits (Some d) (Some x))) \<and>
+  assumes "0 \<le> dkm d" "0 \<le> rr (Some x)"
+  shows "kernel (CBits (Some d) (Some x)) = Exact (STR ''bits_in_flight'') (qval (CBits (Some d) (Some x))) \<and>
    qval (CBits (Some d) (Some x)) = rr (Some x) * qval (CLight (Some d) False)"
 proof -
-  have nd: "decline_of (CBits (Some d) (Some x)) = None" by (simp add: decl_none_iff)
+  have nd: "decline_of (CBits (Some d) (Some x)) = None" using assms by (simp add: decl_none_iff dd_def)
   show ?thesis using kernel_exact_of[OF nd] by (simp add: dd_def)
+qed
+
+text \<open>Accepted communications values have physical magnitude and balance laws;
+these statements bind the kernel value rather than only an input predicate.\<close>
+theorem light_time_accepted:
+  assumes "kernel (CLight (Some d) rt) = Exact k t"
+  shows "0 \<le> t \<and> t * light_c = (if rt then 2 else 1) * dkm d"
+proof -
+  have f: "0 \<le> dkm d" "t = (if rt then 2 else 1) * dkm d / light_c"
+    using kernel_exact_sound[OF assms] by (auto simp: dd_def split: if_splits)
+  show ?thesis using f by (cases rt) (simp_all add: light_c_def)
+qed
+
+theorem transfer_accepted:
+  assumes "kernel (CXfer n p bytes r u) = Exact k t"
+  shows "0 \<le> t \<and> t * (r * rate_f u) = n * dpre_f p * (if bytes then 8 else 1)"
+proof -
+  have f: "0 \<le> n" "0 < r * rate_f u"
+    "t = n * dpre_f p * (if bytes then 8 else 1) / (r * rate_f u)"
+    using kernel_exact_sound[OF assms] by (auto split: if_splits)
+  have prefix: "0 \<le> dpre_f p" by (rule less_imp_le[OF dpre_f_pos])
+  have first: "0 \<le> n * dpre_f p" by (rule mult_nonneg_nonneg[OF f(1) prefix])
+  have factor: "0 \<le> (if bytes then 8 else 1::rat)" by simp
+  have pn: "0 \<le> n * dpre_f p * (if bytes then 8 else 1)"
+    by (rule mult_nonneg_nonneg[OF first factor])
+  have nonneg: "0 \<le> t" unfolding f(3) by (rule divide_nonneg_pos[OF pn f(2)])
+  have nz: "r * rate_f u \<noteq> 0" using f(2) by linarith
+  have rn: "r \<noteq> 0" and un: "rate_f u \<noteq> 0" using nz by auto
+  show ?thesis using nonneg f(3) rn un by simp
+qed
+
+theorem bits_in_flight_accepted:
+  assumes "kernel (CBits (Some d) (Some x)) = Exact k b"
+  shows "0 \<le> b \<and> b * light_c = rr (Some x) * dkm d"
+proof -
+  have f: "0 \<le> dkm d" "0 \<le> rr (Some x)"
+    "b = rr (Some x) * dkm d / light_c"
+    using kernel_exact_sound[OF assms] by (auto simp: dd_def split: if_splits)
+  have nonneg: "0 \<le> rr (Some x) * dkm d" by (rule mult_nonneg_nonneg[OF f(2) f(1)])
+  show ?thesis using f(3) nonneg by (simp add: light_c_def)
 qed
 
 text \<open>Free-space path loss: the loss L in dB satisfies 10^((L - 32.4478)/20) = d f,
@@ -1466,10 +1545,11 @@ qed
 
 text \<open>Your weight elsewhere scales with surface gravity.\<close>
 theorem weight_elsewhere_model:
-  "kernel (AWeight w u b) = Exact (STR ''weight'') (qval (AWeight w u b)) \<and>
+  assumes "0 \<le> w"
+  shows "kernel (AWeight w u b) = Exact (STR ''weight'') (qval (AWeight w u b)) \<and>
    qval (AWeight w u b) * grav_of A_earth = w * grav_of b"
 proof -
-  have nd: "decline_of (AWeight w u b) = None" by (simp add: decl_none_iff)
+  have nd: "decline_of (AWeight w u b) = None" using assms by (simp add: decl_none_iff)
   have g: "grav_of A_earth \<noteq> 0" by (rule pos_ne0[OF grav_earth_pos])
   show ?thesis using kernel_exact_of[OF nd] g by simp
 qed
@@ -1634,7 +1714,8 @@ definition impossible_text :: "request \<Rightarrow> reason \<Rightarrow> String
              + fmt St_sc (MF * massf uf) + STR '' kg) cannot exceed the initial mass ('' + fmt St_sc (M0 * massf u0)
              + STR '' kg).''
          | _ \<Rightarrow> STR ''The final mass cannot exceed the initial mass.'')
-     | R_nonpositive \<Rightarrow> STR ''A mass, radius, rate, frequency or distance used as a divisor or in a logarithm must be positive.'')"
+     | R_nonpositive \<Rightarrow> STR ''A mass, radius, rate, frequency or distance used as a divisor or in a logarithm must be positive.''
+     | R_physical_domain \<Rightarrow> STR ''The stated magnitudes or file bit count are outside the physical domain of this calculation.'')"
 
 text \<open>One text per decline kind, each a case over the request (not a pattern-matching
 function over every request constructor against every decline: the overlap made the
@@ -1713,6 +1794,16 @@ theorem reply_answered_iff:
         stated_dec (St_sig 6) q = Some dv) \<or>
      (\<exists>k d. kernel r = Approx k d) \<or> (\<exists>k c. kernel r = Fact k c)"
   by (auto simp: reply_of_def split: outcome.splits option.splits)
+
+theorem answered_physical_domain:
+  assumes "answered (reply_of r)"
+  shows "physical_domain r"
+proof -
+  have nd: "decline_of r = None"
+    using assms by (auto simp: reply_of_def kernel_def split: option.splits outcome.splits)
+  have reason: "reason_of r = None" using decl_none[OF nd] by blast
+  show ?thesis using reason by (cases "reason_base r") (auto split: if_splits)
+qed
 
 theorem reply_states_approx:
   "kernel r = Approx k d \<Longrightarrow> stated (reply_of r) = Some (render_plain d)"

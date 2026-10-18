@@ -38,3 +38,9 @@ guard. The reader binds interval wording to the stated quantity and refuses
 unbound multiple endpoints or unsupported unit suffixes. See
 `project/lanes/C-physical-quantity-conditions.md` for proofs, scoped scores and
 remaining explicit-condition work.
+
+The shared quantity reader now consumes explicit unsupported density state
+conditions for `densities-r2`, and its base family supports typed hydrostatic
+inputs and useful fuel heat. The native build includes the shared measurement
+adapter and retains the derived recognizer as a distinct captured compiler input.
+See [the model-input report](../../../project/lanes/C-physical-quantity-model-inputs.md).

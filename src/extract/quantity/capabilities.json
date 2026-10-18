@@ -7,7 +7,8 @@
         "kinds": [],
         "declines_in_domain": [
           "underspecified",
-          "undecided"
+          "undecided",
+          "unsupported_model"
         ]
       },
       "context_regex_additions": [
@@ -47,19 +48,25 @@
     },
     "fuels": {
       "accept": {
-        "kinds": [],
+        "kinds": [
+          "useful_energy",
+          "useful_mass_needed"
+        ],
         "declines_in_domain": [
-          "underspecified"
+          "underspecified",
+          "unsupported_model",
+          "impossible",
+          "mismatch"
         ]
       },
       "context_regex_additions": [
         "(?s:^(?=.*\\b(?:firewood|logs|methane gas|gas oil|jet a-?1)\\b)(?=.*\\b(?:burn\\w*|combust\\w*|energy|heat|co2|carbon dioxide|emission\\w*|emit\\w*|calorific|kwh|mwh|mj|gj)\\b))"
       ],
       "evidence": {
-        "computation": "Fuel energy, required mass and carbon emissions from standard default fuel values.",
+        "computation": "Fuel chemical energy and emissions from default fuel values; useful delivered heat and its inverse fuel mass with a supplied heat-delivery efficiency.",
         "assumptions": [
           "The requested fuel operation establishes domain even without a fuel mass.",
-          "Default net calorific and emission factors; not a model of moisture, boiler efficiency or lifecycle emissions."
+          "Default net calorific and emission factors; supplied useful-heat efficiency is in [0,1] (positive for inverse mass); moisture and calorific-basis changes are unsupported."
         ],
         "untrusted": [
           "English interpretation and JSON framing; these contexts describe domains, not proof of an individual interpretation."
@@ -105,6 +112,28 @@
         ],
         "untrusted": [
           "English operation and unit recognition; the typed request and arithmetic response are checked by Quantity."
+        ]
+      }
+    },
+    "fluids": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "underspecified",
+          "impossible",
+          "mismatch",
+          "unsupported_model"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Incompressible hydrostatic gauge or absolute pressure using typed depth, gravity, density and absolute surface pressure.",
+        "assumptions": [
+          "Supplied density is positive; depth, gravity and absolute surface pressure are nonnegative.",
+          "Reference conditions are defaults only when corresponding inputs are absent; unsupported stated conditions receive a model refusal."
+        ],
+        "untrusted": [
+          "English role recognition and source units are parsed by the untrusted measurement adapter; HOL checks dimensions, domains and conversions."
         ]
       }
     }

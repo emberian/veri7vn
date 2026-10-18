@@ -129,3 +129,10 @@ otherwise valid spellings. Unsupported `1×10^3` notation cannot donate its
 trailing exponent to another quantity role. The adapter and role recognition
 remain untrusted. `domain_probes.json` records examples and counterexamples;
 it is a same-author set, not an independent benchmark.
+
+Thermal operation ownership: fuel combustion, calorific/heating values and useful
+or delivered heat are different models from ordinary sensible or latent material
+heating. Those requests are left to the appropriate fuel/delivery reader instead
+of receiving a misleading request for specific heat. Explicit supported model
+names (Carnot, ideal gas, Stefan/black-body radiation) still select their own
+thermodynamic equations when a fuel is also mentioned.

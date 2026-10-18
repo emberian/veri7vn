@@ -614,30 +614,42 @@ struct
 
     fun norm text = lower (collapse text)
     fun reply f text = Option.map S.s_reply (f (norm text))
-    (* Explicit two-list grammar prevents an ordinary mean from silently
-       discarding a weight list. Arithmetic and validation stay in HOL. *)
-    fun weighted text =
-      let val t = replaceAll "[?.]$" "" (replaceAll "\\band\\b" "," (norm text))
-          val marker = has "\\bweighted (?:mean|average)\\b" t
-          val rx = "\\b(?:of|values)\\s*:?\\s*([0-9., +\\-]+)\\s+(?:with\\s+)?weights\\s*:?\\s*([0-9., +\\-]+)$"
-          fun numbers body =
-            if has ("^\\s*" ^ NUMS ^ "(?:\\s*,?\\s+" ^ NUMS ^ "|\\s*,\\s*" ^ NUMS ^ ")*\\s*$") body
-            then map (fn m => toRat (parseDec (Regex.whole body m))) (findall NUMS body)
-            else []
-      in if not marker then NONE
-         else case search rx t of
-           SOME m => SOME (G.weighted_reply (numbers (g1 t m)) (numbers (valOf (grp t m 2))))
-         | NONE => SOME (G.weighted_reply [] [])
-      end
     (* The list grammar owns commas as observation separators. Each complete
        scalar literal is then parsed exactly; no numeric-prefix extraction. *)
     val LISTNUM = "[+\\-\226\136\146]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?(?:\\s*/\\s*[+\\-\226\136\146]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?)?"
     fun exactList body =
-      let val t = replaceAll "\\band\\b" "," (replaceAll "^\\s*\\[|\\]\\s*$" "" body)
+      let val bare = case search "^\\s*\\[(.*)\\]\\s*$" body of SOME m => g1 body m | NONE => body
+          val t = replaceAll "\\band\\b" "," bare
       in if not(has ("^\\s*" ^ LISTNUM ^ "(?:(?:\\s*,\\s*|\\s+)" ^ LISTNUM ^ ")*\\s*$") t)
          then NONE
          else let val vals = map (fn m => ExactNumeric.parse(Regex.whole t m)) (findall LISTNUM t)
               in if List.all isSome vals then SOME(map (toRat o valOf) vals) else NONE end
+      end
+    fun unsupportedDatasetOperation t = has "\\b(?:trimmed|geometric|harmonic|winsori[sz]ed|rolling|moving|first|last|largest|smallest|distinct|unique)\\b" t
+    (* Both weighted spellings consume complete value and weight lists. Once a
+       dataset has a weight marker it cannot fall back to an unweighted mean. *)
+    fun weighted text =
+      let val t = replaceAll "[?.]$" "" (norm text)
+          val prefix = has "\\bweighted (?:mean|average)\\b" t
+          val tail = "\\s+(?:weighted\\s+by|(?:with|using)\\s+weights|weights)\\s*:?\\s*(.+)$"
+          val body = search "\\b(?:mean|average)\\s+(?:of|for)\\s+(?:(?:the|these)\\s+)?(?:(?:data ?set|data|values|numbers|list)\\s*:?\\s*)?(.+)$" t
+          fun parse b =
+            case search tail b of
+              NONE => if prefix then SOME G.modifier_refusal else NONE
+            | SOME (m as {start,...}) =>
+                let val values = String.substring(b,0,start)
+                    val weights = g1 b m
+                    val owns = prefix orelse isSome(exactList values) orelse
+                      has ("^\\s*\\[?\\s*" ^ LISTNUM ^ "(?:\\s*,\\s*|\\s+)" ^ LISTNUM) values
+                in if not owns then NONE
+                   else if unsupportedDatasetOperation t then SOME G.modifier_refusal
+                   else case (exactList values, exactList weights) of
+                      (SOME xs,SOME ws) => SOME(G.weighted_reply xs ws)
+                    | _ => SOME G.modifier_refusal
+                end
+      in case body of
+           SOME m => parse(g1 t m)
+         | NONE => if prefix then SOME G.modifier_refusal else NONE
       end
     fun dataset text =
       let val t = replaceAll "[?.]$" "" (norm text)
@@ -653,7 +665,7 @@ struct
             | "variance" => S.S_variance (has "\\bpopulation\\b" t,xs)
             | "median" => S.S_median(xs,true) | "mode" => S.S_mode xs
             | "range" => S.S_range xs | _ => S.S_mean(xs,true)
-      val unsupportedPrefix = has "\\b(?:trimmed|geometric|harmonic|winsori[sz]ed|rolling|moving|first|last|largest|smallest|distinct|unique)\\b" t
+      val unsupportedPrefix = unsupportedDatasetOperation t
       in if excludedOtherOperation then NONE
          else case (which,body) of
            (SOME(kind,_),SOME m) =>

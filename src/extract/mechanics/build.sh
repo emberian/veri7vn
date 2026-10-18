@@ -48,6 +48,7 @@ cat > "$OUT/build/mechanics.mlb" <<EOF
 mechanics_generated.sml
 $SRC/../commons/commons.sml
 $SRC/../commons/numeric.sml
+$SRC/../commons/measured_input.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF

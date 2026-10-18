@@ -59,6 +59,7 @@ struct
   (* Every role capture resolves through the current lexer's token table.
      Text that merely looks like a token cannot supply a numeric value. *)
   exception UnboundNumeral
+  val originalInput = ref ""
   val numericValues : (string * ExactNumeric.rational) list ref = ref []
   fun rationalOf token = case List.find (fn (key, _) => key = token) (!numericValues) of
       SOME (_, value) => value | NONE => raise UnboundNumeral
@@ -66,10 +67,13 @@ struct
   fun withNumerals read text = case ExactNumeric.mask text of NONE => NONE
     | SOME {text = masked, numbers} =>
         let val previous = !numericValues
+            val previousInput = !originalInput
+            val _ = originalInput := text
             val _ = numericValues := numbers
             val answer = (read masked handle UnboundNumeral => NONE)
-                handle e => (numericValues := previous; raise e)
+                handle e => (numericValues := previous; originalInput := previousInput; raise e)
             val _ = numericValues := previous
+            val _ = originalInput := previousInput
         in answer end
 
   fun collapse s = String.concatWith " " (String.tokens Char.isSpace s)
@@ -124,6 +128,87 @@ struct
      Linear/affine unit conversions use their own signed-number grammar. *)
   fun negativeMagnitude text = List.exists (fn (_, (n, _)) => n < 0) (!numericValues)
     orelse has ("\\b(?:negative|minus)\\s+" ^ NUM) (lower text)
+
+  (* The shared adapter reads original spans. Marker ids are paired only with
+     the exact scanner sequence that issued them; role regexes cannot invent a
+     second number or reinterpret a requested output as a measured source. *)
+  structure MI = MeasuredInput
+  fun dimension (Q.Tmp _) = "temperature"
+    | dimension (Q.Lin u) =
+        if List.exists (fn v => u=v) [Q.U_metre,Q.U_kilometre,Q.U_centimetre,Q.U_millimetre,Q.U_inch,Q.U_foot,Q.U_yard,Q.U_mile,Q.U_nautical_mile] then "length"
+        else if List.exists (fn v => u=v) [Q.U_kilogram,Q.U_gram,Q.U_milligram,Q.U_pound,Q.U_ounce,Q.U_tonne,Q.U_stone] then "mass"
+        else if List.exists (fn v => u=v) [Q.U_pascal,Q.U_kilopascal,Q.U_bar,Q.U_atmosphere,Q.U_psi,Q.U_mmhg] then "pressure"
+        else if List.exists (fn v => u=v) [Q.U_joule,Q.U_kilojoule,Q.U_megajoule,Q.U_gigajoule,Q.U_calorie,Q.U_kilocalorie,Q.U_kilowatt_hour,Q.U_megawatt_hour,Q.U_btu] then "energy"
+        else "other"
+  fun specs (tag,dim,aliases) = map (fn alias => {alias=alias,tag=tag,dimension=dim,caseSensitive=false}:MI.unitSpec) aliases
+  (* The fuel table already has these units; the legacy general conversion
+     name table predates them. Keep their typed aliases in this model reader. *)
+  val modelEnergyNames = [("mj",Q.U_megajoule),("megajoule",Q.U_megajoule),("megajoules",Q.U_megajoule),
+    ("gj",Q.U_gigajoule),("gigajoule",Q.U_gigajoule),("gigajoules",Q.U_gigajoule),
+    ("mwh",Q.U_megawatt_hour),("megawatt-hour",Q.U_megawatt_hour),("megawatt-hours",Q.U_megawatt_hour)]
+  fun modelUnit tag = case List.find (fn (name,_)=>name=tag) modelEnergyNames of
+      SOME(_,u)=>SOME(Q.Lin u) | NONE=>Q.lookup_unit tag
+  (* Bare "in" is the preposition in these material/condition clauses; inches
+     remain available by their spelled unit names. *)
+  val modelUnits = map (fn (alias,u) => {alias=alias,tag=alias,dimension=dimension u,caseSensitive=List.exists (fn n=>n=alias) ["pa","kpa","j","kj","kwh"]}:MI.unitSpec) (List.filter (fn (name,_)=>name<>"in") Q.unit_names)
+    @ map (fn (alias,_)=>{alias=alias,tag=alias,dimension="energy",caseSensitive=size alias<=3}:MI.unitSpec) modelEnergyNames
+    @ map (fn (alias,tag)=>{alias=alias,tag=tag,dimension="energy",caseSensitive=true}:MI.unitSpec)
+        [("MJ","mj"),("GJ","gj"),("MWh","mwh"),("J","j"),("kJ","kj"),("kWh","kwh")]
+    @ map (fn (alias,tag)=>{alias=alias,tag=tag,dimension="pressure",caseSensitive=true}:MI.unitSpec)
+        [("Pa","pa"),("kPa","kpa")]
+    @ specs ("rho_kg_m3","density",["kg/m3","kg/m^3","kg/m\194\179","kilograms per cubic metre","kilograms per cubic meter"])
+    @ specs ("rho_g_cm3","density",["g/cm3","g/cm^3","g/cm\194\179","grams per cubic centimetre","grams per cubic centimeter"])
+    @ specs ("rho_kg_l","density",["kg/l","kg/litre","kg/liter"])
+    @ specs ("rho_lb_ft3","density",["lb/ft3","lb/ft^3","lb/ft\194\179","lbs/ft3"])
+    @ specs ("g_mps2","acceleration",["m/s2","m/s^2","m/s\194\178","metres per second squared","meters per second squared"])
+    @ specs ("g_fps2","acceleration",["ft/s2","ft/s^2","ft/s\194\178","feet per second squared"])
+    @ specs ("g_standard","acceleration",["standard gravities","standard gravity"])
+    @ specs ("eta_percent","efficiency",["%","percent"])
+    @ specs ("eta_fraction","efficiency",["fraction"])
+    @ specs ("c","temperature",["degrees C","degree C","\194\176C"])
+    @ specs ("f","temperature",["degrees F","degree F","\194\176F"])
+  fun modelInputsUsing table =
+    let val ms = List.mapPartial (fn MI.Measurement m => SOME m | _ => NONE) (MI.scan table (!originalInput))
+    in if length ms = length (!numericValues) then ListPair.zip (map #1 (!numericValues),ms)
+       else raise UnboundNumeral end
+  fun modelInputs () = modelInputsUsing modelUnits
+  fun mDim (_, {unitBinding=MI.Explicit{unit,...},...}:MI.measurement) = #dimension unit
+    | mDim _ = "unbound"
+  fun ofDim d ms = List.filter (fn x => mDim x=d) ms
+  fun mRat (_,m:MI.measurement) = let val(n,d)= #value m in Q.mk_rat n d end
+  fun mTag (_, {unitBinding=MI.Explicit{unit,...},...}:MI.measurement) = #tag unit
+    | mTag _ = raise UnboundNumeral
+  fun measuredQty dim (x as (_,m)) =
+    case MI.bind {expected=dim,inheritFrom=NONE} m of
+      MI.Bound{unit,...} => (case modelUnit (#tag unit) of SOME(Q.Lin u) => (mRat x,u) | _ => raise UnboundNumeral)
+    | _ => raise UnboundNumeral
+  datatype modelOutput = DefaultOutput | Requested of Q.qunit | BadOutput
+  fun requestedModelOutput expected =
+    let val raw= !originalInput
+        val low=lower raw
+        val prefixes=findall "\\b(?:in|how many)\\s+" low
+        fun read ({start,stop,...}:Regex.match) =
+          case MI.unitAt modelUnits raw stop of
+            SOME(MI.Explicit{unit,span}) =>
+              if #dimension unit=expected then
+                (case MI.requested modelUnits raw span of
+                   SOME(MI.RequestedOutput{unit,...}) =>
+                     (case modelUnit (#tag unit) of SOME(Q.Lin u)=>SOME(Requested u) | _=>SOME BadOutput)
+                 | _=>SOME BadOutput)
+              else if #dimension unit="other" then NONE else SOME BadOutput
+          | SOME(MI.Unsupported _) => SOME BadOutput
+          | _ => if has "(?:heat|energy|pressure|answer|result)\\s+in\\s*$" (String.substring(low,0,stop))
+                 then SOME BadOutput else NONE
+        val outs=List.mapPartial read prefixes
+    in case outs of []=>DefaultOutput | [o']=>o' | _=>BadOutput end
+
+  fun hasState low = not(null(ofDim "temperature" (modelInputs())))
+    orelse has ("\\b(?:temperature|heated|cooled)\\s*(?:(?:of|to|is|=|:)\\s*)?" ^ NUM) low
+    orelse has "\\bat\\s+(?:(?:a|the)\\s+)?temperature\\b|\\b(?:compressed|superheated|saturated|heated|cooled)\\s+(?:water|air|mercury|petrol|diesel|ethanol|milk|oil)\\b" low
+    orelse has "\\b(?:temperature dependent|thermal expansion|compressibility)\\b" low
+  fun referenceCondition low = hasState low orelse not(null(ofDim "pressure" (modelInputs())))
+    orelse has ("\\b(?:at|under)\\s+" ^ NUM) low
+  fun unsupported c = SOME(Q.UnsupportedCondition c)
 
   (* ---------- densities ---------- *)
   val matPats = zip3 ([
@@ -189,7 +274,7 @@ struct
     let
       val t = collapse text
     in
-      if t = "" orelse Narrow.narrative t orelse negativeMagnitude t then NONE
+      if t = "" orelse Narrow.narrative t then NONE
       else
         let
           val low = lower t
@@ -209,7 +294,11 @@ struct
                 val masses = amounts massUnitPats low
                 val none = null vols andalso null masses
               in
-                if not (phaseFits m low) then NONE
+                if (densityWord orelse massAsk orelse volAsk) andalso referenceCondition low then unsupported Q.C_reference_state
+                else if (densityWord orelse massAsk orelse volAsk) andalso
+                        length (modelInputs()) > length vols + length masses then unsupported Q.C_unread_input
+                else if negativeMagnitude t then NONE
+                else if not (phaseFits m low) then NONE
                 else if densityWord andalso none andalso List.exists (fn e => e = m) Q.elements
                         andalso not (phaseKnown m low) then NONE
                 else if densityWord andalso none andalso has "\\b(?:what|how|give|tell|find)\\b" ask then
@@ -413,10 +502,51 @@ struct
                   then List.filter (fn f => f <> fFresh) found else found
     in one found end
 
+  val GRAVITY_ROLE = "\\b(?:gravity|gravitational acceleration|acceleration due to gravity)\\b|\\bg\\s*="
+  val SURFACE_ROLE = "\\b(?:surface|ambient|atmospheric|external)\\s+(?:absolute\\s+)?pressure\\b"
+  val DENSITY_ROLE = "\\b(?:density|rho)\\b"
+  fun hydrostatic low =
+    let val gravityUnits = List.filter (fn ({alias,...}:MI.unitSpec)=>lower alias<>"g") modelUnits
+          @ specs ("g_standard","acceleration",["g"])
+        val ms = modelInputsUsing gravityUnits
+        val hs = ofDim "length" ms
+        val gs = ofDim "acceleration" ms
+        val ps = ofDim "pressure" ms
+        val ds = ofDim "density" ms
+        val suppliedG = has GRAVITY_ROLE low
+        val suppliedP = has SURFACE_ROLE low
+        val suppliedD = has DENSITY_ROLE low
+        val fl = fluidOf low
+        val modePhrase = case search ("\\b(?:what(?:'s| is)?|find|calculate|compute|give|determine)\\s+(?:the\\s+)?"
+          ^ "((?:(?:gauge|absolute|total|hydrostatic)\\b|[ ()])*)pressure\\b") low of
+            SOME m=>g1 low m
+          | NONE=> (case search "\\bpressure\\s+(gauge|absolute|total)\\b" low of SOME m=>g1 low m | NONE=>"")
+        val absolute = not(has "\\bgauge\\b" modePhrase) andalso has "\\b(?:absolute|total)\\b" modePhrase
+        fun suppliedDensity x = Q.SuppliedDensity(mRat x,
+          case mTag x of "rho_g_cm3"=>Q.U_gram | "rho_lb_ft3"=>Q.U_pound | _=>Q.U_kilogram,
+          case mTag x of "rho_g_cm3"=>Q.U_cubic_centimetre | "rho_lb_ft3"=>Q.U_cubic_foot | "rho_kg_l"=>Q.U_litre | _=>Q.U_cubic_metre)
+        val rho = case ds of [x]=>SOME(suppliedDensity x) | []=>Option.map Q.ReferenceDensity fl | _=>NONE
+        val g = case gs of [x] => (mRat x,case mTag x of "g_fps2"=>Q.G_fps2 | "g_standard"=>Q.G_standard | _=>Q.G_mps2)
+                         | _ => (Q.mk_rat 1 1,Q.G_standard)
+        val surface = case ps of [x]=>measuredQty "pressure" x | _=>(Q.mk_rat 101325 1,Q.U_pascal)
+        val outputOK = case requestedModelOutput "pressure" of DefaultOutput=>true | Requested u=>u=Q.U_pascal | BadOutput=>false
+        val complete = length ms=length hs+length gs+length ps+length ds
+        val inputs = length hs<=1 andalso length gs<=1 andalso length ps<=1 andalso length ds<=1
+           andalso (not suppliedG orelse length gs=1) andalso (null gs orelse suppliedG)
+           andalso (not suppliedP orelse length ps=1) andalso (null ps orelse suppliedP)
+           andalso (not suppliedD orelse length ds=1) andalso (null ds orelse suppliedD)
+    in if isSome fl orelse suppliedD then
+         if hasState low then unsupported Q.C_reference_state
+         else if not complete orelse not inputs orelse not outputOK then unsupported Q.C_unread_input
+         else case rho of NONE=>unsupported Q.C_unread_input
+              | SOME d=>SOME(Q.Hydrostatic(d,Option.map (measuredQty "length") (one hs),g,surface,absolute))
+       else NONE
+    end
+
   fun fluids text =
     let val t = collapse text
     in
-      if t = "" orelse Narrow.narrative t orelse negativeMagnitude t then NONE
+      if t = "" orelse Narrow.narrative t then NONE
       else
         let
           val low = lower t
@@ -425,14 +555,11 @@ struct
           fun need r = if Narrow.short_direct t then SOME r else NONE
         in
           if has "\\bpressure\\b" ask andalso has "\\b(?:deep|depth|below|under|beneath|down)\\b" low then
-            (case fl of
-               NONE => NONE
-             | SOME f =>
-                 let
-                   val ds = map (fn m => (ratOf (g1 low m), Q.U_metre)) (findall DEPTH low)
-                   val absolute = has "\\b(?:absolute|total)\\b" low
-                   val r = if absolute then Q.PressureAbs (f, one ds) else Q.PressureGauge (f, one ds)
-                 in if length ds = 1 then SOME r else need r end)
+            hydrostatic low
+          else if (has GRAVITY_ROLE low orelse has SURFACE_ROLE low orelse has DENSITY_ROLE low orelse hasState low)
+              andalso isSome fl andalso has "\\b(?:buoyan\\w*|upthrust|submerged|float\\w*)\\b" low
+            then unsupported Q.C_other_operation
+          else if negativeMagnitude t then NONE
           else if has "\\bbuoyan\\w*\\b|\\bupthrust\\b" low andalso has "\\bforce\\b|\\bupthrust\\b|\\bhow much\\b" ask then
             (case fl of
                NONE => NONE
@@ -459,19 +586,44 @@ struct
                         "wood|firewood|logs", "charcoal"], Q.fuel_order, "fuel_order")
   val fCoal = List.nth (Q.fuel_order, 5)
   val fAnthracite = List.nth (Q.fuel_order, 7)
-  val fuelMassPats = zip3 ([NUM ^ "\\s*(?:tonnes?|metric tons?|t)\\b", NUM ^ "\\s*(?:kg|kilograms?|kilos?)\\b",
-                            NUM ^ "\\s*(?:g|grams?)\\b"], Q.fuel_mass_units, "fuel_mass_units")
   val fuelEnergyLabels = zip3 (["kwh|kilowatt[- ]hours?", "mwh|megawatt[- ]hours?",
                                 "mj|megajoules?", "gj|gigajoules?"],
                                Q.fuel_energy_units, "fuel_energy_units")
-  val fuelEnergyPats = map (fn (p, u) => (NUM ^ "\\s*(?:" ^ p ^ ")\\b", u)) fuelEnergyLabels
   fun energyUnitMention text = List.find (fn (p, _) => has ("\\b(?:" ^ p ^ ")\\b") text) fuelEnergyLabels
-  fun energyAnswerUnit text = case energyUnitMention text of SOME (_, u) => u | NONE => Q.U_megajoule
+
+  val EFFICIENCY_ROLE = "\\b(?:efficiency|efficient)\\b"
+  val USEFUL_ROLE = "\\b(?:useful|delivered|deliver|usable)\\s+(?:heat|energy)\\b|\\b(?:heat|energy)\\s+delivered\\b"
+  fun usefulFuel f low ask =
+    let val ms=modelInputs()
+        val masses=ofDim "mass" ms
+        val energies=ofDim "energy" ms
+        val etas=ofDim "efficiency" ms
+        val bare=List.filter (fn (_,m:MI.measurement)=>case #unitBinding m of MI.Bare=>true|_=>false) ms
+        val bareEta=List.filter (fn (token,_) => has ("\\befficiency\\s*(?:(?:of|is|=|:)\\s*)?" ^ token
+             ^ "(?=\\s*(?:[,;?.!)]|$|and\\b|with\\b))") low) bare
+        val es=etas@bareEta
+        val eta=case es of [x]=>SOME(mRat x,if mDim x="efficiency" andalso mTag x="eta_percent" then Q.E_percent else Q.E_fraction) | _=>NONE
+        val complete=length ms=length masses+length energies+length es
+        val inverse=has "\\b(?:need|needed|required|require)\\b" ask
+          andalso has "\\b(?:fuel|mass|how much|how many)\\b" ask andalso not(null energies)
+        val explicit=has EFFICIENCY_ROLE low
+        val output=requestedModelOutput (if inverse then "mass" else "energy")
+    in if has "\\b(?:moisture|wet basis|dry basis|higher heating value|gross calorific)\\b|\\b(?:wet|damp|green)\\s+(?:wood|firewood|logs|coal)\\b" low then unsupported Q.C_moisture
+       else if has "\\bco2\\b|carbon dioxide|emission|emit|\\bchemical\\s+energy\\b|\\breleased\\s+energy\\b" ask then unsupported Q.C_other_operation
+       else if (not explicit andalso not(null es)) orelse output=BadOutput orelse not complete orelse length es>1 orelse (explicit andalso null es) then unsupported Q.C_unread_input
+       else if inverse then
+         if (case output of Requested u=>u<>Q.U_kilogram | _=>false) then unsupported Q.C_other_operation
+         else if length energies=1 andalso null masses then SOME(Q.FuelUsefulMass(f,measuredQty "energy" (hd energies),eta))
+         else unsupported Q.C_unread_input
+       else if length masses<=1 andalso null energies then
+         SOME(Q.FuelUsefulEnergy(f,Option.map (measuredQty "mass") (one masses),(case output of Requested u=>u | _=>Q.U_megajoule),eta))
+       else unsupported Q.C_unread_input
+    end
 
   fun fuels text =
     let val t = collapse text
     in
-      if t = "" orelse Narrow.narrative t orelse negativeMagnitude t then NONE
+      if t = "" orelse Narrow.narrative t then NONE
       else
         let
           val low = lower t
@@ -483,29 +635,41 @@ struct
             [f] =>
               if not (has "\\bburn\\w*|combust\\w*|energy|heat|co2|carbon dioxide|emission|emit\\w*|calorific" low orelse isSome (energyUnitMention low))
               then NONE
+              else if has EFFICIENCY_ROLE low orelse has USEFUL_ROLE low
+                      orelse has "\\b(?:moisture|wet basis|dry basis|higher heating value|gross calorific)\\b|\\b(?:wet|damp|green)\\s+(?:wood|firewood|logs|coal)\\b" low
+                then usefulFuel f low (lower (Narrow.last_sentence t))
+              else if negativeMagnitude t then NONE
               else if has (NUM ^ "\\s*(?:litres?|liters?|l|gallons?|gal|m3|cubic)\\b") low then NONE
               else
                 let
                   val ask = lower (Narrow.last_sentence t)
-                  val masses = amountsRx fuelMassPats low
-                  val energies = amountsRx fuelEnergyPats low
+                  val ms = modelInputs()
+                  val masses = map (measuredQty "mass") (ofDim "mass" ms)
+                  val energies = map (measuredQty "energy") (ofDim "energy" ms)
+                  val complete = length ms = length masses + length energies
                   fun need r = if Narrow.short_direct t then SOME r else NONE
+                  fun kgOutput () = case requestedModelOutput "mass" of
+                    DefaultOutput=>true | Requested u=>u=Q.U_kilogram | BadOutput=>false
                 in
-                  if has "\\bco2\\b|carbon dioxide|emission|emit" ask then
-                    let val r = Q.FuelCO2 (f, one masses)
-                    in if length masses = 1 then SOME r else need r end
+                  if not complete orelse length masses>1 orelse length energies>1 then unsupported Q.C_unread_input
+                  else if has "\\bco2\\b|carbon dioxide|emission|emit" ask then
+                    if not(null energies) orelse not(kgOutput()) then unsupported Q.C_other_operation
+                    else let val r = Q.FuelCO2 (f, one masses)
+                         in if length masses = 1 then SOME r else need r end
                   else if has ("\\bhow (?:much|many kilograms?|many kg|many tonnes?)\\b.*\\b(?:need|needed|required|burn)\\b|"
                                ^ "\\bmass of\\b.*\\bneeded\\b") ask andalso not (null energies) andalso null masses then
-                    SOME (Q.FuelMassNeeded (f, hd energies))
+                    if kgOutput() then SOME (Q.FuelMassNeeded (f, hd energies)) else unsupported Q.C_other_operation
                   else if has "\\b(?:energy|heat)\\b" ask orelse
                           (has "\\bhow many\\b" ask andalso isSome (energyUnitMention ask)) then
-                    if length masses <> 1 then
-                      if has "\\b(?:per kilogram|per kg|calorific|energy content|energy density)\\b" low andalso null masses
-                      then SOME (Q.FuelNCV f)
-                      else need (Q.FuelEnergy (f, NONE, Q.U_megajoule))
-                    else
-                      SOME (Q.FuelEnergy (f, SOME (hd masses),
-                                          energyAnswerUnit ask))
+                    if not(null energies) then unsupported Q.C_other_operation
+                    else case requestedModelOutput "energy" of
+                      BadOutput=>unsupported Q.C_unread_input
+                    | out=>
+                      if length masses <> 1 then
+                        if has "\\b(?:per kilogram|per kg|calorific|energy content|energy density)\\b" low andalso null masses
+                        then if out=DefaultOutput then SOME (Q.FuelNCV f) else unsupported Q.C_other_operation
+                        else need (Q.FuelEnergy (f, NONE, Q.U_megajoule))
+                      else SOME (Q.FuelEnergy (f, SOME (hd masses),case out of Requested u=>u | _=>Q.U_megajoule))
                   else NONE
                 end
           | _ => NONE

@@ -9,6 +9,9 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
+     kernel (CLight (Some (Dist 0 Ds_one Db_m)) False) = Exact (STR ''light_time'') 0 \<and>
+     kernel (CLight (Some (Dist (-1) Ds_one Db_km)) False) = Decline (Impossible R_physical_domain) \<and>
+     kernel (CXfer (1/2) Dp_one False 1 Ru_bps) = Decline (Impossible R_physical_domain) \<and>
      kernel (SExhaust 220) = Exact (STR ''exhaust_velocity'') (2157463 / 1000) \<and>
      kernel (PEscape (Pb_earth 1 1)) = Approx (STR ''escape'') (111857, -4) \<and>
      kernel (OSpeed (Some O_earth) (Some 200)) = Approx (STR ''orbit_speed'') (7784, -3) \<and>
@@ -37,7 +40,7 @@ export_code reply_of answered reply_kind response stated kernel mk_rat
   OSync OSpeed OPeriod OEscape OHohDv OHohTime
   SExhaust STwr SMassFlow SBurn SDeltaV SProp0 SPropF
   Mu_kg Mu_t Fu_n Fu_kn Fu_mn Su_mps Su_kmps Ve_isp Ve_speed
-  CLight CFspl CXfer CBits Dist Ds_one Ds_million Ds_billion Db_km Db_mile Db_au
+  CLight CFspl CXfer CBits dkm Dist Ds_one Ds_million Ds_billion Db_km Db_mile Db_au Db_m
   Fq_hz Fq_khz Fq_mhz Fq_ghz Dp_one Dp_k Dp_m Dp_g Dp_t Ru_bps Ru_kbps Ru_mbps Ru_gbps
   AProp AFake ALight AWeight ARatio AYears AMoonKm AMoonKkm Wu_kg Wu_lb Rs_v1 Rs_v2
   O_earth O_moon O_mars O_sun O_jupiter O_venus
@@ -59,10 +62,11 @@ ML \<open>
     @{thm hohmann_vis_viva}, @{thm hohmann_dv_nonneg}, @{thm sync_model},
     @{thm exhaust_model}, @{thm twr_model}, @{thm mass_flow_model}, @{thm burn_time_model},
     @{thm tsiolkovsky_model}, @{thm propellant_initial_model}, @{thm propellant_final_model},
+    @{thm light_time_accepted}, @{thm transfer_accepted}, @{thm bits_in_flight_accepted},
     @{thm light_time_model}, @{thm transfer_model}, @{thm bits_in_flight_model}, @{thm fspl_model},
     @{thm property_model}, @{thm weight_elsewhere_model}, @{thm sunlight_model},
     @{thm ratio_model}, @{thm years_model},
-    @{thm reply_answered_iff}, @{thm reply_states_approx}, @{thm reply_states_exact},
+    @{thm answered_physical_domain}, @{thm reply_answered_iff}, @{thm reply_states_approx}, @{thm reply_states_exact},
     @{thm reply_states_fact}, @{thm reply_withheld_names_decline},
     @{thm hohmann_dv_vis_viva}, @{thm hohmann_dv_stated}, @{thm unknown_cells}, @{thm ve_of_pos_iff}]
     @ @{thms orbit_escape_model} @ @{thms declines_exact_kinds} @ @{thms declines_enclosed_kinds}

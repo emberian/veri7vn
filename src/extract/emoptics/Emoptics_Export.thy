@@ -22,10 +22,10 @@ definition self_test :: bool where
      kernel (E_Tri (Some (13 / 10)) (T_Kw (400, VU_V) (50, AU_A))) = Decline (Impossible R_pf_over) \<and>
      kernel (E_Tri None (T_Kw (400, VU_V) (50, AU_A))) = Decline (Underspecified N_pf_power) \<and>
      kernel W_Judgement = Decline Judgement \<and>
-     kernel (C_Circ True [(150, P_1)] (CB_Cur (Some (9, P_1)) (Some (150, P_1)) None)) = Exact K_current (6 / 100) \<and>
-     response (reply_of (C_Circ True [(150, P_1)] (CB_Cur (Some (9, P_1)) (Some (150, P_1)) None))) =
+     kernel (C_Circ (CB_Cur (Some (9, P_1)) (Some (150, P_1)) None)) = Exact K_current (6 / 100) \<and>
+     response (reply_of (C_Circ (CB_Cur (Some (9, P_1)) (Some (150, P_1)) None))) =
        STR ''The current is 60 mA (I = V/R = 9 V / 150 @OHM@).'' \<and>
-     kernel (C_Circ True [(0, P_1)] (CB_Cur (Some (9, P_1)) (Some (0, P_1)) None)) = Decline (Impossible R_resistor) \<and>
+     kernel (C_Circ (CB_Cur (Some (9, P_1)) (Some (0, P_1)) None)) = Decline (Impossible R_resistor) \<and>
      stated (reply_of (E_Tri (Some (85 / 100)) (T_Kw (480, VU_V) (100, AU_A)))) = Some (STR ''70.67'') \<and>
      stated (reply_of (W_Diam 12)) = Some (STR ''2.053'') \<and>
      stated (reply_of (O_LensPower (Some (-50, L_cm)))) = Some (STR ''-2'') \<and>
@@ -46,7 +46,7 @@ export_code reply_of answered reply_kind response stated mk_rat mk_nat lens_cm
   P_p P_n P_u P_m P_1 P_k P_M CQ_V CQ_A CQ_R CQ_W CQ_C
   Vacuum Air Water Diamond Copper Aluminium
   T_Wye T_Delta T_Kva T_Kw T_Cur T_Pf T_React
-  CB_Series CB_Parallel CB_Divider CB_Rc CB_Led CB_Cur CB_Volt CB_Res CB_Pow
+  Series Parallel EquivalentResistance SourceCurrent TotalPower CB_Network CB_Divider CB_Rc CB_Led CB_Cur CB_Volt CB_Res CB_Pow
   E_HpKw E_KwHp E_XfmrV E_XfmrI E_PfCorr E_Tri C_Circ W_Judgement W_Continuous W_Vdrop W_Res
   W_Area W_Diam W_Cur W_Cur3 O_EnergyL O_EnergyF O_Frequency O_Wavelength O_LensPower O_Image
   O_Object O_Focal O_Mag O_Crit O_Speed O_Index O_Snell
@@ -63,7 +63,8 @@ ML \<open>
     @{thm pf_correction_tan}, @{thm pf_correction_balance}, @{thm pf_over_one}, 
     @{thm ohm_law}, @{thm power_is_vi}, @{thm parallel_reciprocal}, @{thm series_sum}, @{thm divider_ratio},
     @{thm rc_time_constant}, @{thm led_resistor}, @{thm zero_resistor_declined}, @{thm resistor_decline_exact},
-    @{thm parallel_below_smallest}, @{thm reply_states_approximation}, @{thm inverse_lens_equation},
+    @{thm circuit_resistor_domain}, @{thm network_answer_domain}, @{thm network_current_conservation},
+    @{thm network_power_conservation}, @{thm divider_passive_bounds}, @{thm parallel_below_smallest}, @{thm reply_states_approximation}, @{thm inverse_lens_equation},
     @{thm focal_lens_equation}, @{thm lens_roundtrip},
     @{thm awg_36}, @{thm awg_step}, @{thm wire_resistance_area}, @{thm voltage_drop_is_current_times_loop},
     @{thm continuous_eighty_percent}, @{thm single_phase_current}, @{thm vdrop_underspecified},

@@ -43,6 +43,7 @@ cat > "$OUT/build/quantity.mlb" <<EOF
 quantity_generated.sml
 $SRC/../commons/commons.sml
 $SRC/../commons/numeric.sml
+$REPO/src/extract/commons/measured_input.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF

@@ -9,7 +9,9 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
+     kernel FsModelLimit = Decline (Underspecified N_fluid_conditions) \<and>
      kernel (PhKE (Some 5) (Some 2)) = Exact K_ke 10 \<and>
+     kernel (PhKE (Some (mass_kg 500 MU_g)) (Some 4)) = Exact K_ke 4 \<and>
      kernel (SpObp 0 1 0 0 0) = Exact K_obp 1 \<and>
      kernel (FvCost 0 DU_mi (E_mpg False 30) (Some (389 / 100, True))) = Exact K_trip_cost 0 \<and>
      kernel (BdWeight (G_stated 0) (Some 4)) = Exact K_weight 0 \<and>
@@ -46,13 +48,13 @@ definition self_test :: bool where
      response (reply_of (PhKE (Some 5) (Some 2))) =
        STR ''The kinetic energy is 10 J (KE = 1/2 m v^2 = 1/2 x 5 x 2^2).''"
 
-export_code reply_of answered reply_kind response stated mk_rat length_m
+export_code reply_of answered reply_kind response stated mk_rat length_m mass_kg
   integer_of_int nat_of_integer int_of_integer
   fluid_order solid_order body_order
-  SU_kmh SU_mph SU_ms LU_m LU_cm LU_mm LU_ft LU_in VU_m3 VU_l VU_cm3 DU_mi DU_km LD_n LD_kg
+  SU_kmh SU_mph SU_ms LU_m LU_cm LU_mm LU_ft LU_in LU_yd LU_mi MU_kg MU_g MU_tonne MU_lb VU_m3 VU_l VU_cm3 DU_mi DU_km LD_n LD_kg
   E_mpg E_lpk G_body G_stated
   PhRange PhImpact PhFall PhKE PhPE PhMomentum PhWeight PhForce PhWork PhPower PhFinalV
-  PhDistance BdWeight BdFall BdImpact BdPendulum BdUnreadable
+  PhDistance BdWeight BdFall BdImpact BdPendulum BdUnreadable FsModelLimit
   McGearRatio McGearSpeed McGearTorque McBeltSpeed McPulleyMA McPulleyEffort McLeverMA
   McLeverEffort McInclineMA McShaftPower McTorque McTorqueAngle McNeed
   SpPasser SpTrueShooting SpEra SpWhip SpAvg SpObp SpSlg SpGamesBehind SpWinPct
@@ -68,7 +70,7 @@ ML \<open>
     @{thm kinetic_energy}, @{thm potential_energy}, @{thm momentum_def}, @{thm weight_on_earth},
     @{thm newton_force}, @{thm work_def}, @{thm power_def}, @{thm final_velocity_def},
     @{thm distance_def}, @{thm impact_model}, @{thm fall_model}, @{thm range_model},
-    @{thm body_weight}, @{thm body_fall_model}, @{thm body_impact_model}, @{thm pendulum_model},
+    @{thm body_weight}, @{thm body_weight_units}, @{thm fluid_model_limit_refuses}, @{thm kinetic_energy_units}, @{thm body_fall_model}, @{thm body_impact_model}, @{thm pendulum_model},
     @{thm gear_ratio_def}, @{thm gear_speed_def}, @{thm gear_torque_def}, @{thm belt_speed_def},
     @{thm pulley_ma_def}, @{thm pulley_effort_def}, @{thm lever_ma_def}, @{thm lever_effort_def},
     @{thm incline_ma_def}, @{thm torque_def}, @{thm shaft_power_model}, @{thm torque_angle_bound},

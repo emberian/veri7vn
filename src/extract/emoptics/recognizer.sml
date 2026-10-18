@@ -295,65 +295,103 @@ struct
         in if size str < n then str else go 0 [] end
     in foldl (fn (r, acc) => rep1 r acc) s reps end
 
-  val Q_RX = "(-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?)\\s*(p|n|u|m|k)?\\s*(volts?|v|amps?|amperes?|a|ohms?|watts?|w|farads?|f)\\b"
+  (* ExactNumeric issues the only scalar tokens circuit roles may consume.
+     This layer is untrusted; typed body fields preserve selected roles. *)
+  val CIRCUIT_Q = "(qnum[0-9]+q)\\s*(p|n|u|m|k)?\\s*(volts?|v|amps?|amperes?|a|ohms?|watts?|w|farads?|f)\\b"
 
   fun circuitsRaw text : E.request option =
-    let
-      val t = collapse (asciiUnits text)
-      val low = lower t
-    in
-      if t = "" orelse not (has "\\b(?:resist\\w*|current|voltage|volts?|amps?|ohms?|watts?|power|capacitor|circuit|led|divider|series|parallel|time constant)\\b" low)
-      then NONE
-      else
-        let
-          val ms = findall Q_RX low
-          fun amt m =
-            let
-              val pfxRaw = case grp low m 2 of
-                             SOME _ => (case Regex.group t m 2 of SOME s => s | NONE => "")
-                           | NONE => ""
-              val p = case E.lookup E.names_pfx pfxRaw of SOME p => p | NONE => E.P_1
-              val u = E.lookup E.names_cq (valOf (grp low m 3))
-            in (ratOf (g1 low m), p, valOf u) end
-          val all = map amt ms
-          fun ofKind k = List.mapPartial (fn (x, p, q) => if q = k then SOME (x, p) else NONE) all
-          val vs = ofKind E.CQ_V and as_ = ofKind E.CQ_A and rs = ofKind E.CQ_R
-          val ws = ofKind E.CQ_W and cs = ofKind E.CQ_C
-          val res = has "\\bresist" low
-          (* a zero resistance is a rational compare after scaling; the kernel does it, we ask by value *)
-          fun hd1 l = case l of x :: _ => SOME x | [] => NONE
-          fun mk b = SOME (E.C_Circ (res, rs, b))
-          val zeroR = List.exists (fn m => nonPos (g1 low m) andalso
-                                   (case E.lookup E.names_cq (valOf (grp low m 3)) of SOME E.CQ_R => true | _ => false)) ms
-        in
-          if zeroR andalso res then mk (E.CB_Series rs)
-          else if has "\\b(?:series|parallel)\\b" low andalso length rs >= 2 then
-            (if has "parallel" low then mk (E.CB_Parallel rs) else mk (E.CB_Series rs))
-          else if has "divider" low andalso not (null vs) andalso length rs >= 2 then
-            mk (E.CB_Divider (hd vs, List.nth (rs, 0), List.nth (rs, 1)))
-          else if has "\\btime constant\\b|\\brc\\b" low andalso not (null rs) andalso not (null cs) then
-            mk (E.CB_Rc (hd rs, hd cs))
-          else if has "\\bled\\b" low andalso length vs >= 2 andalso not (null as_) then
-            mk (E.CB_Led (vs, hd as_))
-          else
-            let
-              val want =
-                if has "\\bhow much current\\b|\\bwhat current\\b|\\bcurrent (?:flows|through|draw)\\b|\\bhow many amps\\b|\\bfind the current\\b" low then SOME "A"
-                else if has "\\bwhat voltage\\b|\\bvoltage (?:across|drop)\\b|\\bhow many volts\\b|\\bfind the voltage\\b" low then SOME "V"
-                else if has "\\bwhat resist\\w*\\b|\\bwhich resist\\w*\\b|\\bhow many ohms\\b|\\bfind the resist\\w*\\b|\\bresistance (?:needed|required)\\b" low then SOME "R"
-                else if has "\\bhow much power\\b|\\bwhat power\\b|\\bpower (?:dissipat\\w*|used|consumed)\\b|\\bhow many watts\\b|\\bfind the power\\b" low then SOME "W"
-                else NONE
-              val V = hd1 vs and A = hd1 as_ and R = hd1 rs and W = hd1 ws
-            in
-              case want of
-                SOME "A" => mk (E.CB_Cur (V, R, W))
-              | SOME "V" => mk (E.CB_Volt (A, R, W))
-              | SOME "R" => mk (E.CB_Res (V, A))
-              | SOME "W" => mk (E.CB_Pow (V, A, R))
-              | _ => NONE
-            end
-        end
-    end
+    case ExactNumeric.mask (collapse (asciiUnits text)) of NONE => NONE
+    | SOME {text=t,numbers} =>
+      let
+        val low = lower t
+        val ms = findall CIRCUIT_Q low
+        fun amount m =
+          let val key = g1 low m
+              val value = List.find (fn (k,_) => k = key) numbers
+              val rawPrefix = case Regex.group t m 2 of SOME s => s | NONE => ""
+              val prefix = if rawPrefix = "" then SOME E.P_1 else E.lookup E.names_pfx rawPrefix
+              val unit = E.lookup E.names_cq (valOf (grp low m 3))
+          in case (value,prefix,unit) of (SOME (_, (n,d)),SOME p,SOME u) => SOME (key,(E.mk_rat n d,p),u)
+             | _ => NONE end
+        val amounts = List.mapPartial amount ms
+        fun ofKind kind = List.filter (fn (_,_,u) => u = kind) amounts
+        fun values xs = map (fn (_,v,_) => v) xs
+        val volts = ofKind E.CQ_V and amps = ofKind E.CQ_A and resistors = ofKind E.CQ_R
+        val watts = ofKind E.CQ_W and capacitors = ofKind E.CQ_C
+        val vs = values volts and ais = values amps and rs = values resistors
+        val ws = values watts and cs = values capacitors
+        fun singleton [x] = SOME x | singleton _ = NONE
+        fun mk b = SOME (E.C_Circ b)
+        fun distinct xs = foldl (fn (x,ys) => if List.exists (fn y => y=x) ys then ys else ys @ [x]) [] xs
+        fun role patterns kind =
+          let val keys = distinct (List.concat (map (fn pat => map (g1 low) (findall pat low)) patterns))
+          in List.mapPartial (fn key => List.find (fn (k,_,u) => k=key andalso u=kind) amounts) keys end
+        fun beforeRole name = "\\b(?:" ^ name ^ ")\\s*(?:of|is|=|has)?\\s*" ^ CIRCUIT_Q
+        fun after name = CIRCUIT_Q ^ "\\s*(?:" ^ name ^ ")\\b"
+        val supply = role [beforeRole "supply(?: voltage)?|source(?: voltage)?|battery(?: voltage)?|vs|input voltage",after "supply|source|battery"] E.CQ_V
+        val forward = role [beforeRole "forward(?: voltage| drop)?|vf|led drops?",after "forward(?: voltage| drop)?"] E.CQ_V
+        val namedTop = role [beforeRole "r1"] E.CQ_R
+        val namedBottom = role [beforeRole "r2"] E.CQ_R
+        val physicalTop = role [beforeRole "rtop|top(?: resistor)?|upper(?: resistor)?"] E.CQ_R
+        val physicalBottom = role [beforeRole "rbottom|bottom(?: resistor)?|lower(?: resistor)?",after "(?:to|connected to) ground"] E.CQ_R
+        val (top,bottom) = if null physicalTop andalso null physicalBottom then (namedTop,namedBottom) else (physicalTop,physicalBottom)
+        fun key (k,_,_) = k
+        fun value (_,v,_) = v
+        fun other selected xs = singleton (List.filter (fn x => key x <> key selected) xs)
+        fun pairRoles left right xs =
+          case (left,right) of
+            ([a],[b]) => if key a <> key b then SOME (value a,value b) else NONE
+          | ([a],[]) => Option.map (fn b => (value a,value b)) (other a xs)
+          | ([],[b]) => Option.map (fn a => (value a,value b)) (other b xs)
+          | ([],[]) => (case xs of [a,b] => SOME (value a,value b) | _ => NONE)
+          | _ => NONE
+        fun target noun = has ("\\b(?:what|find|calculate|determine|give)\\s+(?:(?:is|are)\\s+)?(?:(?:the|its|total|source|equivalent|led|series|parallel|output|input)\\s+)*" ^ noun ^ "\\b") low
+        val want =
+          if target "current" orelse has "\\bhow much current\\b|\\bcurrent (?:flows|through|draw)\\b|\\bhow many amps\\b" low then SOME "A"
+          else if target "voltage" orelse has "\\bvoltage (?:across|drop)\\b|\\bhow many volts\\b" low then SOME "V"
+          else if target "resist\\w*" orelse has "\\bwhich resist\\w*\\b|\\bhow many ohms\\b|\\bresistance (?:needed|required)\\b" low then SOME "R"
+          else if target "power" orelse has "\\bhow much power\\b|\\bpower (?:dissipat\\w*|used|consumed)\\b|\\bhow many watts\\b" low then SOME "W"
+          else NONE
+        val series = has "\\bseries\\b" low
+        val parallel = has "\\bparallel\\b" low
+        val context = has "\\b(?:resist\\w*|current|voltage|volts?|amps?|ohms?|watts?|power|capacitor|circuit|led|divider|series|parallel|time constant)\\b" low
+      in
+        if not context orelse length amounts <> length ms then NONE
+        else if not (null cs) andalso not (has "\\btime constant\\b|\\brc\\b" low) then NONE
+        else if has "\\bled\\b" low then
+          if want <> SOME "R" then NONE else
+          (* No unordered fallback for LED voltage roles: sorting would turn
+             an insufficient supply into a different circuit. *)
+          (case (supply,forward,singleton ais) of
+            ([s],[f],SOME i) => if key s <> key f andalso length vs=2 then mk (E.CB_Led(value s,value f,i)) else NONE
+          | _ => NONE)
+        else if has "\\bdivider\\b" low then
+          if want = SOME "A" orelse want = SOME "R" orelse want = SOME "W"
+             orelse length namedTop > 1 orelse length namedBottom > 1 then NONE else
+          (* Conventional unlabeled order is top then bottom; explicit roles
+             override order. R1/R2 mean those roles only in this model. *)
+          (case (singleton vs,pairRoles top bottom resistors) of
+            (SOME v,SOME (a,b)) => if length rs=2 then mk (E.CB_Divider(v,a,b)) else NONE
+          | _ => NONE)
+        else if has "\\btime constant\\b|\\brc\\b" low then
+          (case (singleton rs,singleton cs) of (SOME r,SOME c) => mk(E.CB_Rc(r,c)) | _ => NONE)
+        else if series orelse parallel then
+          if series andalso parallel then NONE
+          else let val connection = if parallel then E.Parallel else E.Series
+                   fun network t = mk (E.CB_Network(connection,rs,t))
+               in case want of
+                 SOME "R" => network E.EquivalentResistance
+               | SOME "A" => (case singleton vs of SOME v => if null ais andalso null ws then network(E.SourceCurrent v) else NONE | _ => NONE)
+               | SOME "W" => (case singleton vs of SOME v => if null ais andalso null ws then network(E.TotalPower v) else NONE | _ => NONE)
+               | _ => NONE end
+        else if length vs>1 orelse length ais>1 orelse length rs>1 orelse length ws>1 then NONE
+        else case want of
+          SOME "A" => if null ais then mk (E.CB_Cur(singleton vs,singleton rs,singleton ws)) else NONE
+        | SOME "V" => if null vs then mk (E.CB_Volt(singleton ais,singleton rs,singleton ws)) else NONE
+        | SOME "R" => if null rs then mk (E.CB_Res(singleton vs,singleton ais)) else NONE
+        | SOME "W" => if null ws then mk (E.CB_Pow(singleton vs,singleton ais,singleton rs)) else NONE
+        | _ => NONE
+      end
 
   fun circuits text = circuitsRaw text
 

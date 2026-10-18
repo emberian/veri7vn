@@ -35,10 +35,11 @@ fun speed_scale :: "speedu \<Rightarrow> rat" where
 | "speed_scale SU_mph = 44704 / 100000"
 | "speed_scale SU_ms = 1"
 
-datatype lenu = LU_m | LU_cm | LU_mm | LU_ft | LU_in
+datatype lenu = LU_m | LU_cm | LU_mm | LU_ft | LU_in | LU_yd | LU_mi
 fun len_scale :: "lenu \<Rightarrow> rat" where
   "len_scale LU_m = 1" | "len_scale LU_cm = 1 / 100" | "len_scale LU_mm = 1 / 1000"
 | "len_scale LU_ft = 381 / 1250" | "len_scale LU_in = 127 / 5000"
+| "len_scale LU_yd = 1143 / 1250" | "len_scale LU_mi = 201168 / 125"
 
 definition length_m :: "rat \<Rightarrow> lenu \<Rightarrow> rat" where
   "length_m x u = x * len_scale u"
@@ -49,6 +50,20 @@ lemma len_scale_pos [simp]: "0 < len_scale u"
 lemma length_m_pos [simp]: "0 < length_m x u \<longleftrightarrow> 0 < x"
   using len_scale_pos[of u]
   by (auto simp: length_m_def zero_less_mult_iff; linarith)
+
+text \<open>Mass magnitudes retain their declared exact unit through conversion to kg.
+The pound is the international avoirdupois pound; tonne means 1000 kg.\<close>
+datatype massu = MU_kg | MU_g | MU_tonne | MU_lb
+fun mass_scale :: "massu \<Rightarrow> rat" where
+  "mass_scale MU_kg = 1" | "mass_scale MU_g = 1 / 1000"
+| "mass_scale MU_tonne = 1000" | "mass_scale MU_lb = 45359237 / 100000000"
+definition mass_kg :: "rat \<Rightarrow> massu \<Rightarrow> rat" where
+  "mass_kg m u = m * mass_scale u"
+lemma mass_scale_pos [simp]: "0 < mass_scale u"
+  by (cases u) simp_all
+lemma mass_kg_nonnegative [simp]: "0 \<le> mass_kg m u \<longleftrightarrow> 0 \<le> m"
+  using mass_scale_pos[of u]
+  by (auto simp: mass_kg_def zero_le_mult_iff; linarith)
 
 datatype volu = VU_m3 | VU_l | VU_cm3
 fun vol_scale :: "volu \<Rightarrow> rat" where
@@ -179,7 +194,7 @@ datatype request =
   | BdFall mgrav "rat option"
   | BdImpact mgrav "rat option"
   | BdPendulum mgrav "rat option"
-  | BdUnreadable mgrav
+  | BdUnreadable mgrav | FsModelLimit
   | McGearRatio rat rat
   | McGearSpeed rat rat rat
   | McGearTorque rat rat rat
@@ -222,7 +237,7 @@ selects the sentence (see @{text need_text}).\<close>
 datatype need = N_speed_angle | N_mass_speed | N_mass_height | N_mass_velocity | N_mass_accel
   | N_accel_time | N_start_speed | N_mass_kg | N_fall_height | N_pendulum_length
   | N_mc_need nat | N_load | N_speed_friction | N_reaction | N_price | N_depth | N_volume
-  | N_unreadable
+  | N_unreadable | N_fluid_conditions
 
 datatype reason = R_nonpositive_gravity | R_negative_gravity | R_negative_amount | R_zero_time | R_zero_teeth
   | R_zero_diameter | R_zero_strands | R_zero_arm | R_ramp | R_zero_attempts | R_zero_shooting
@@ -263,6 +278,7 @@ primrec kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (BdImpact _ _) = K_impact_speed"
 | "kind_of (BdPendulum _ _) = K_pendulum_period"
 | "kind_of (BdUnreadable _) = K_declined"
+| "kind_of FsModelLimit = K_declined"
 | "kind_of (McGearRatio _ _) = K_gear_ratio"
 | "kind_of (McGearSpeed _ _ _) = K_gear_speed"
 | "kind_of (McGearTorque _ _ _) = K_gear_torque"
@@ -326,6 +342,7 @@ primrec missing :: "request \<Rightarrow> need option" where
 | "missing (BdImpact g h) = miss_if (h = None) N_fall_height"
 | "missing (BdPendulum g l) = miss_if (l = None) N_pendulum_length"
 | "missing (BdUnreadable g) = Some N_unreadable"
+| "missing FsModelLimit = Some N_fluid_conditions"
 | "missing (McLeverEffort e l ld) = miss_if (ld = None) N_load"
 | "missing (McNeed n) = Some (N_mc_need n)"
 | "missing (FvBraking v mu) = miss_if (v = None \<or> mu = None) N_speed_friction"
@@ -476,6 +493,7 @@ primrec impossible_base :: "request \<Rightarrow> bool" where
 | "impossible_base (PhFinalV x1 x2 x3 x4) \<longleftrightarrow> False"
 | "impossible_base (PhDistance x1 x2 x3 x4) \<longleftrightarrow> False"
 | "impossible_base (BdUnreadable x1) \<longleftrightarrow> False"
+| "impossible_base FsModelLimit \<longleftrightarrow> False"
 | "impossible_base (McPulleyMA x1) \<longleftrightarrow> False"
 | "impossible_base (McShaftPower x1 x2) \<longleftrightarrow> False"
 | "impossible_base (McTorque x1 x2 x3) \<longleftrightarrow> False"
@@ -542,6 +560,7 @@ primrec reason_base :: "request \<Rightarrow> reason option" where
 | "reason_base (PhFinalV x1 x2 x3 x4) = None"
 | "reason_base (PhDistance x1 x2 x3 x4) = None"
 | "reason_base (BdUnreadable x1) = None"
+| "reason_base FsModelLimit = None"
 | "reason_base (McPulleyMA x1) = None"
 | "reason_base (McShaftPower x1 x2) = None"
 | "reason_base (McTorque x1 x2 x3) = None"
@@ -670,6 +689,7 @@ primrec qval :: "request \<Rightarrow> rat" where
 | "qval (BdImpact x1 x2) = 0"
 | "qval (BdPendulum x1 x2) = 0"
 | "qval (BdUnreadable x1) = 0"
+| "qval FsModelLimit = 0"
 | "qval (McShaftPower x1 x2) = 0"
 | "qval (McTorqueAngle x1 x2 x3 x4) = 0"
 | "qval (McNeed x1) = 0"
@@ -694,6 +714,7 @@ primrec is_real :: "request \<Rightarrow> bool" where
 | "is_real (PhDistance x1 x2 x3 x4) = False"
 | "is_real (BdWeight x1 x2) = False"
 | "is_real (BdUnreadable x1) = False"
+| "is_real FsModelLimit = False"
 | "is_real (McGearRatio x1 x2) = False"
 | "is_real (McGearSpeed x1 x2 x3) = False"
 | "is_real (McGearTorque x1 x2 x3) = False"
@@ -746,6 +767,7 @@ primrec sinks :: "request \<Rightarrow> bool" where
 | "sinks (BdImpact x1 x2) \<longleftrightarrow> False"
 | "sinks (BdPendulum x1 x2) \<longleftrightarrow> False"
 | "sinks (BdUnreadable x1) \<longleftrightarrow> False"
+| "sinks FsModelLimit \<longleftrightarrow> False"
 | "sinks (McGearRatio x1 x2) \<longleftrightarrow> False"
 | "sinks (McGearSpeed x1 x2 x3) \<longleftrightarrow> False"
 | "sinks (McGearTorque x1 x2 x3) \<longleftrightarrow> False"
@@ -802,6 +824,7 @@ primrec phys :: "request \<Rightarrow> real" where
 | "phys (PhDistance x1 x2 x3 x4) = rl (qval (PhDistance x1 x2 x3 x4))"
 | "phys (BdWeight x1 x2) = rl (qval (BdWeight x1 x2))"
 | "phys (BdUnreadable x1) = rl (qval (BdUnreadable x1))"
+| "phys FsModelLimit = rl (qval FsModelLimit)"
 | "phys (McGearRatio x1 x2) = rl (qval (McGearRatio x1 x2))"
 | "phys (McGearSpeed x1 x2 x3) = rl (qval (McGearSpeed x1 x2 x3))"
 | "phys (McGearTorque x1 x2 x3) = rl (qval (McGearTorque x1 x2 x3))"
@@ -876,6 +899,7 @@ primrec fa_of :: "request \<Rightarrow> floatarith" where
 | "fa_of (PhDistance x1 x2 x3 x4) = I 0"
 | "fa_of (BdWeight x1 x2) = I 0"
 | "fa_of (BdUnreadable x1) = I 0"
+| "fa_of FsModelLimit = I 0"
 | "fa_of (McGearRatio x1 x2) = I 0"
 | "fa_of (McGearSpeed x1 x2 x3) = I 0"
 | "fa_of (McGearTorque x1 x2 x3) = I 0"
@@ -1189,6 +1213,7 @@ primrec ok_text :: "request \<Rightarrow> String.literal \<Rightarrow> String.li
      + STR ''%) of a floating piece of '' + solid_name s + STR '' in '' + fluid_name f
      + STR '' (fraction = rho_solid/rho_fluid = '' + show4 (solid_density s) + STR ''/'' + show4 (fluid_density f) + STR '').''"
 | "ok_text (BdUnreadable x1) V = V"
+| "ok_text FsModelLimit V = V"
 | "ok_text (McNeed x1) V = V"
 
 primrec sinks_text :: "request \<Rightarrow> String.literal" where
@@ -1212,6 +1237,7 @@ primrec sinks_text :: "request \<Rightarrow> String.literal" where
 | "sinks_text (BdImpact x1 x2) = STR ''''"
 | "sinks_text (BdPendulum x1 x2) = STR ''''"
 | "sinks_text (BdUnreadable x1) = STR ''''"
+| "sinks_text FsModelLimit = STR ''''"
 | "sinks_text (McGearRatio x1 x2) = STR ''''"
 | "sinks_text (McGearSpeed x1 x2 x3) = STR ''''"
 | "sinks_text (McGearTorque x1 x2 x3) = STR ''''"
@@ -1255,7 +1281,7 @@ definition need_text :: "request \<Rightarrow> need \<Rightarrow> String.literal
    | N_mass_accel \<Rightarrow> STR ''I need a mass and an acceleration to compute that'' + wont
    | N_accel_time \<Rightarrow> STR ''I need an acceleration and a time (and a starting speed, or it starts from rest) to compute that'' + wont
    | N_start_speed \<Rightarrow> STR ''I need a starting speed (or say it starts from rest) to compute that'' + wont
-   | N_mass_kg \<Rightarrow> STR ''I need a mass in kilograms to compute that'' + wont
+   | N_mass_kg \<Rightarrow> STR ''I need a mass with a supported unit to compute that'' + wont
    | N_fall_height \<Rightarrow> STR ''I need the height it falls to compute that'' + wont
    | N_pendulum_length \<Rightarrow> STR ''I need the pendulum length to compute that'' + wont
    | N_mc_need n \<Rightarrow> (if n = 0 then STR ''I need to know which gear drives which (e.g. a 12-tooth gear drives a 36-tooth gear) to work that out'' + wont
@@ -1271,6 +1297,7 @@ definition need_text :: "request \<Rightarrow> need \<Rightarrow> String.literal
         | _ \<Rightarrow> STR ''I need the fuel price.'')
    | N_depth \<Rightarrow> STR ''I need a depth to compute that'' + wont
    | N_volume \<Rightarrow> STR ''I need the submerged volume to compute that'' + wont
+   | N_fluid_conditions \<Rightarrow> STR ''The supplied fluid conditions are outside this reader'' + apos + STR ''s fixed-property, standard-gravity and atmospheric-pressure model; I will not replace them with defaults.''
    | N_unreadable \<Rightarrow> (case r of BdUnreadable g \<Rightarrow> STR ''I recognise a gravity question ''
         + grav_where g + STR '', but I could not read every amount it needs, so I won'' + apos
         + STR ''t assume one (or Earth'' + apos + STR ''s gravity).''
@@ -1300,6 +1327,7 @@ fun reason_text :: "reason \<Rightarrow> String.literal" where
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of
        Underspecified N_price \<Rightarrow> STR ''need_price''
+     | Underspecified N_fluid_conditions \<Rightarrow> STR ''unsupported_model''
      | Underspecified N_unreadable \<Rightarrow> STR ''unreadable''
      | Underspecified _ \<Rightarrow> STR ''underspecified''
      | Impossible _ \<Rightarrow> STR ''impossible''
@@ -1352,6 +1380,12 @@ theorem reply_answered_iff:
      (\<exists>k q d. kernel r = Exact k q \<and> stated_dec k q = Some d) \<or> (\<exists>k d. kernel r = Approx k d) \<or>
      kernel r = Sinks"
   by (auto simp: reply_of_def split: outcome.splits option.splits)
+
+theorem fluid_model_limit_refuses:
+  "kernel FsModelLimit = Decline (Underspecified N_fluid_conditions) \<and>
+   \<not> answered (reply_of FsModelLimit) \<and>
+   reply_kind (reply_of FsModelLimit) = STR ''unsupported_model''"
+  by (simp add: kernel_def decline_of_def reply_of_def decline_name_def)
 
 theorem reply_states_exact:
   "kernel r = Exact k q \<Longrightarrow> stated_dec k q = Some d \<Longrightarrow> stated (reply_of r) = Some (value_lit k d)"
@@ -1520,6 +1554,23 @@ theorem body_weight:
   assumes "kernel (BdWeight g (Some m)) = Exact c y"
   shows "c = K_weight \<and> 0 \<le> g_of g \<and> 0 \<le> m \<and> y = m * g_of g"
   using exact_facts[OF assms] by simp
+
+theorem body_weight_units:
+  assumes "kernel (BdWeight g (Some (mass_kg m u))) = Exact c y"
+  shows "c = K_weight \<and> 0 \<le> g_of g \<and> 0 \<le> m \<and>
+         y = (m * mass_scale u) * g_of g"
+proof -
+  have domain: "0 \<le> m" using body_weight[OF assms] by simp
+  show ?thesis using domain body_weight[OF assms] by (simp add: mass_kg_def)
+qed
+
+theorem kinetic_energy_units:
+  assumes "kernel (PhKE (Some (mass_kg m u)) (Some v)) = Exact c y"
+  shows "c = K_ke \<and> 0 \<le> m \<and> y = (m * mass_scale u) * v ^ 2 / 2"
+proof -
+  have domain: "0 \<le> m" using exact_facts[OF assms] by simp
+  show ?thesis using domain kinetic_energy[OF assms] by (simp add: mass_kg_def)
+qed
 
 theorem body_fall_model:
   assumes "0 < g_of g" "0 \<le> h"

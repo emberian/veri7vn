@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "family": "space",
+  "specialists": {
+    "planetary": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\b(?:asteroid|body|world|satellite)\\b"
+      ],
+      "evidence": {
+        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "assumptions": [
+          "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
+          "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+        ],
+        "untrusted": [
+          "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    },
+    "orbits": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "assumptions": [
+          "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
+          "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+        ],
+        "untrusted": [
+          "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    },
+    "spacecomms": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\bbits? in flight\\b"
+      ],
+      "evidence": {
+        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "assumptions": [
+          "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
+          "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+        ],
+        "untrusted": [
+          "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    },
+    "astronomy": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "assumptions": [
+          "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
+          "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+        ],
+        "untrusted": [
+          "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    },
+    "astronomy-v2": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "assumptions": [
+          "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
+          "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+        ],
+        "untrusted": [
+          "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    },
+    "astronomy-v3": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "assumptions": [
+          "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
+          "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+        ],
+        "untrusted": [
+          "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    },
+    "astronomy-v3-r2": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "assumptions": [
+          "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
+          "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+        ],
+        "untrusted": [
+          "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."
+        ]
+      }
+    }
+  }
+}

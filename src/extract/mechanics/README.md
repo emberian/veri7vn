@@ -87,3 +87,27 @@ See the [domain and dimensions report](../../../project/lanes/C-physical-mechani
 for the passed proof receipt, measurements, and limits. `build.sh` captures
 the actual MLton inputs in `var/mechanics/build/compile-inputs.json`; source
 hashes gathered after compilation are not used as evidence of those inputs.
+
+## Declared mass units
+
+The next unit extension uses exact typed scales for g, kg, metric tonnes and
+international avoirdupois pounds. Physics energy, momentum, force and weight,
+and planetary body weight all consume that same conversion. Negative mass
+remains invalid, while signed velocity and acceleration retain their directed
+meaning. `tonne` and `metric ton` are explicit; bare `ton` is unsupported.
+Yards and miles extend the existing typed length conversion used by mechanism
+geometry and torque.
+
+The untrusted reader binds complete numeric tokens and complete unit spans
+through shared ExactNumeric and MeasuredInput. Compound rates, squared units
+and pound-force do not supply a mass. The accepted body-weight and kinetic-
+energy statements bind the result to the original magnitude and declared unit.
+Current proof and measured readiness are tracked in
+[the unit and performance report](../../../project/lanes/E-physical-mechanics-space.md).
+
+The fixed-property fluids reader explicitly refuses supplied density, gravity,
+surface pressure or extra state quantities through `unsupported_model`. It
+never drops those conditions and substitutes its defaults. In family
+composition, Quantity can answer the richer hydrostatic model when supported.
+The refusal path is proved; assignment of English conditions to that path
+remains untrusted.

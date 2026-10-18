@@ -654,6 +654,34 @@ definition p0 :: rat where "p0 = 101325"
 
 section \<open>Requests and outcomes\<close>
 
+text \<open>Explicit conditions are inputs to an incompressible hydrostatic model.
+Density units remain a mass/volume pair, so their dimensions and conversion are
+checked here. Gravity is a magnitude; surface pressure is absolute.\<close>
+datatype density_input = ReferenceDensity material | SuppliedDensity rat qunit qunit
+datatype gravity_unit = G_mps2 | G_fps2 | G_standard
+datatype efficiency_unit = E_fraction | E_percent
+datatype model_condition = C_reference_state | C_moisture | C_unread_input | C_other_operation
+
+fun input_density :: "density_input \<Rightarrow> rat" where
+  "input_density (ReferenceDensity m) = density m"
+| "input_density (SuppliedDensity x m v) = x * scale m / scale v"
+
+fun density_dims :: "density_input \<Rightarrow> bool" where
+  "density_dims (ReferenceDensity m) = True"
+| "density_dims (SuppliedDensity x m v) = (dim_of m = D_mass \<and> dim_of v = D_volume)"
+
+fun gravity_scale :: "gravity_unit \<Rightarrow> rat" where
+  "gravity_scale G_mps2 = 1"
+| "gravity_scale G_fps2 = scale U_foot"
+| "gravity_scale G_standard = g0"
+
+definition gravity_si :: "rat \<times> gravity_unit \<Rightarrow> rat" where
+  "gravity_si g = fst g * gravity_scale (snd g)"
+
+fun efficiency :: "rat \<times> efficiency_unit \<Rightarrow> rat" where
+  "efficiency (x, E_fraction) = x"
+| "efficiency (x, E_percent) = x / 100"
+
 datatype request =
     Density material
   | MassOf material "qty option" qunit
@@ -675,6 +703,10 @@ datatype request =
   | FuelCO2 fuel "qty option"
   | FuelMassNeeded fuel qty
   | FuelNCV fuel
+  | Hydrostatic density_input "qty option" "rat \<times> gravity_unit" qty bool
+  | FuelUsefulEnergy fuel "qty option" qunit "(rat \<times> efficiency_unit) option"
+  | FuelUsefulMass fuel qty "(rat \<times> efficiency_unit) option"
+  | UnsupportedCondition model_condition
 
 text \<open>In @{text MassOf} the amount is a volume and the unit the answer unit;
 in @{text VolumeOf} the amount is a mass. Springs: stiffness in N/m and force
@@ -683,17 +715,17 @@ in N as plain numbers, stretch a length, the hung mass a mass. Fluids: a depth
 energy), or an energy to release.\<close>
 
 datatype need = N_amount | N_k_stretch | N_k_stretch_or_compression | N_force_stretch | N_k_force
-  | N_mass_k | N_depth | N_volume | N_fuel_mass
+  | N_mass_k | N_depth | N_volume | N_fuel_mass | N_efficiency
 
 datatype reason = R_below_absolute_zero | R_nonpositive_stiffness | R_nonpositive_stretch
-  | R_nonpositive_mass
+  | R_nonpositive_mass | R_hydrostatic_inputs | R_fuel_inputs | R_efficiency | R_inverse_efficiency
 
-datatype decline = Underspecified need | Mismatch | Impossible reason | Undecided | Imprecise
+datatype decline = Underspecified need | Mismatch | Impossible reason | Undecided | Imprecise | UnsupportedModel model_condition
 
 datatype kind = K_density | K_mass | K_volume | K_floats | K_convert | K_temperature | K_temperature_difference | K_force
   | K_extension | K_spring_constant | K_elastic_energy | K_period | K_frequency
   | K_pressure_gauge | K_pressure_abs | K_buoyant_force | K_submerged_fraction | K_sinks
-  | K_energy | K_co2 | K_mass_needed | K_ncv
+  | K_energy | K_co2 | K_mass_needed | K_ncv | K_useful_energy | K_useful_mass_needed | K_model_condition
 
 text \<open>An exact rational value, a decimal @{text "(m, e)"} meaning
 @{text "m * 10^e"} enclosing a real value, a yes/no verdict, or a decline.\<close>
@@ -721,6 +753,10 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (FuelCO2 _ _) = K_co2"
 | "kind_of (FuelMassNeeded _ _) = K_mass_needed"
 | "kind_of (FuelNCV _) = K_ncv"
+| "kind_of (Hydrostatic _ _ _ _ absolute) = (if absolute then K_pressure_abs else K_pressure_gauge)"
+| "kind_of (FuelUsefulEnergy _ _ _ _) = K_useful_energy"
+| "kind_of (FuelUsefulMass _ _ _) = K_useful_mass_needed"
+| "kind_of (UnsupportedCondition _) = K_model_condition"
 
 
 section \<open>Declines\<close>
@@ -741,6 +777,9 @@ fun missing :: "request \<Rightarrow> need option" where
 | "missing (Buoyant f v) = (if v = None then Some N_volume else None)"
 | "missing (FuelEnergy f m u) = (if m = None then Some N_fuel_mass else None)"
 | "missing (FuelCO2 f m) = (if m = None then Some N_fuel_mass else None)"
+| "missing (Hydrostatic d h g p a) = (if h = None then Some N_depth else None)"
+| "missing (FuelUsefulEnergy f m u e) = (if m = None then Some N_fuel_mass else if e = None then Some N_efficiency else None)"
+| "missing (FuelUsefulMass f q e) = (if e = None then Some N_efficiency else None)"
 | "missing _ = None"
 
 fun opt_dim :: "qty option \<Rightarrow> dim \<Rightarrow> bool" where
@@ -769,6 +808,9 @@ fun dims_ok :: "request \<Rightarrow> bool" where
 | "dims_ok (FuelEnergy f m u) \<longleftrightarrow> opt_dim m D_mass \<and> dim_of u = D_energy"
 | "dims_ok (FuelCO2 f m) \<longleftrightarrow> opt_dim m D_mass"
 | "dims_ok (FuelMassNeeded f e) \<longleftrightarrow> dim_of (snd e) = D_energy"
+| "dims_ok (Hydrostatic d h g p a) \<longleftrightarrow> density_dims d \<and> opt_dim h D_length \<and> dim_of (snd p) = D_pressure"
+| "dims_ok (FuelUsefulEnergy f m u e) \<longleftrightarrow> opt_dim m D_mass \<and> dim_of u = D_energy"
+| "dims_ok (FuelUsefulMass f q e) \<longleftrightarrow> dim_of (snd q) = D_energy"
 | "dims_ok _ \<longleftrightarrow> True"
 
 text \<open>Impossible: a temperature below absolute zero (the units organ's
@@ -780,6 +822,12 @@ fun impossible :: "request \<Rightarrow> bool" where
 | "impossible (SpringConstant (Some f) (Some x)) \<longleftrightarrow> fst x * scale (snd x) \<le> 0"
 | "impossible (SpringPeriod (Some k) (Some m)) \<longleftrightarrow> k \<le> 0 \<or> fst m * scale (snd m) \<le> 0"
 | "impossible (SpringFrequency (Some k) (Some m)) \<longleftrightarrow> k \<le> 0 \<or> fst m * scale (snd m) \<le> 0"
+| "impossible (Hydrostatic d (Some h) g p a) \<longleftrightarrow>
+     input_density d \<le> 0 \<or> siq h < 0 \<or> gravity_si g < 0 \<or> siq p < 0"
+| "impossible (FuelUsefulEnergy f (Some m) u (Some e)) \<longleftrightarrow>
+     siq m < 0 \<or> efficiency e < 0 \<or> 1 < efficiency e"
+| "impossible (FuelUsefulMass f q (Some e)) \<longleftrightarrow>
+     siq q < 0 \<or> efficiency e \<le> 0 \<or> 1 < efficiency e"
 | "impossible _ \<longleftrightarrow> False"
 
 text \<open>The executable check, with the reason it reports.\<close>
@@ -794,6 +842,12 @@ fun reason_of :: "request \<Rightarrow> reason option" where
      (if k \<le> 0 then Some R_nonpositive_stiffness else if siq m \<le> 0 then Some R_nonpositive_mass else None)"
 | "reason_of (SpringFrequency (Some k) (Some m)) =
      (if k \<le> 0 then Some R_nonpositive_stiffness else if siq m \<le> 0 then Some R_nonpositive_mass else None)"
+| "reason_of (Hydrostatic d (Some h) g p a) =
+     (if input_density d \<le> 0 \<or> siq h < 0 \<or> gravity_si g < 0 \<or> siq p < 0 then Some R_hydrostatic_inputs else None)"
+| "reason_of (FuelUsefulEnergy f (Some m) u (Some e)) =
+     (if siq m < 0 then Some R_fuel_inputs else if efficiency e < 0 \<or> 1 < efficiency e then Some R_efficiency else None)"
+| "reason_of (FuelUsefulMass f q (Some e)) =
+     (if siq q < 0 then Some R_fuel_inputs else if efficiency e \<le> 0 \<or> 1 < efficiency e then Some R_inverse_efficiency else None)"
 | "reason_of _ = None"
 
 theorem reason_of_exact: "reason_of r \<noteq> None \<longleftrightarrow> impossible r"
@@ -805,13 +859,18 @@ fun undecided :: "request \<Rightarrow> bool" where
   "undecided (Floats s f) \<longleftrightarrow> \<bar>density s - density f\<bar> * 50 < density f"
 | "undecided _ \<longleftrightarrow> False"
 
+fun unsupported_of :: "request \<Rightarrow> model_condition option" where
+  "unsupported_of (UnsupportedCondition c) = Some c"
+| "unsupported_of _ = None"
+
 definition decline_of :: "request \<Rightarrow> decline option" where
   "decline_of r = (case missing r of
      Some w \<Rightarrow> Some (Underspecified w)
    | None \<Rightarrow> if \<not> dims_ok r then Some Mismatch else
        (case reason_of r of
           Some why \<Rightarrow> Some (Impossible why)
-        | None \<Rightarrow> if undecided r then Some Undecided else None))"
+        | None \<Rightarrow> if undecided r then Some Undecided else
+            (case unsupported_of r of Some c \<Rightarrow> Some (UnsupportedModel c) | None \<Rightarrow> None)))"
 
 
 section \<open>Values\<close>
@@ -836,6 +895,11 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (FuelCO2 f (Some m)) = siq m * ncv f * co2_factor f / 1000000"
 | "qval (FuelMassNeeded f e) = siq e / 1000000 / ncv f"
 | "qval (FuelNCV f) = ncv f"
+| "qval (Hydrostatic d (Some h) g p a) =
+     input_density d * gravity_si g * siq h + (if a then siq p else 0)"
+| "qval (FuelUsefulEnergy f (Some m) u (Some e)) =
+     efficiency e * siq m * ncv f * 1000000 / scale u"
+| "qval (FuelUsefulMass f q (Some e)) = siq q / (efficiency e * ncv f * 1000000)"
 | "qval _ = 0"
 
 
@@ -956,8 +1020,8 @@ proof -
   then show ?thesis using reason_of_exact by blast
 qed
 
-text \<open>The only other decline is numerical (the period enclosure too wide), and
-it only happens on requests that are fully specified and possible.\<close>
+text \<open>A numerical decline (the period enclosure too wide)
+only happens on requests that are fully specified and possible.\<close>
 theorem kernel_imprecise:
   assumes "kernel r = Decline Imprecise"
   shows "missing r = None \<and> dims_ok r \<and> \<not> impossible r \<and> \<not> undecided r"
@@ -1248,6 +1312,73 @@ theorem fuel_ncv: "kernel (FuelNCV f) = Exact K_ncv (ncv f)"
   by (simp add: kernel_def decline_of_def)
 
 
+subsection \<open>Explicit model conditions\<close>
+
+theorem hydrostatic_absolute_gauge:
+  assumes "kernel (Hydrostatic d (Some h) g p True) = Exact ca a"
+      and "kernel (Hydrostatic d (Some h) g p False) = Exact cg b"
+  shows "a - b = siq p"
+  using kernel_exact_sound[OF assms(1)] kernel_exact_sound[OF assms(2)] by simp
+
+theorem hydrostatic_nonnegative:
+  assumes "kernel (Hydrostatic d (Some h) g p a) = Exact k y"
+  shows "0 \<le> y"
+proof -
+  have "0 \<le> input_density d" "0 \<le> gravity_si g" "0 \<le> siq h" "0 \<le> siq p"
+    and y: "y = input_density d * gravity_si g * siq h + (if a then siq p else 0)"
+    using kernel_exact_sound[OF assms] by auto
+  then show ?thesis by (auto intro: add_nonneg_nonneg mult_nonneg_nonneg)
+qed
+
+theorem hydrostatic_equivalent_inputs:
+  assumes "input_density d = input_density d'" "siq h = siq h'"
+      "gravity_si g = gravity_si g'" "siq p = siq p'"
+      "kernel (Hydrostatic d (Some h) g p a) = Exact k y"
+      "kernel (Hydrostatic d' (Some h') g' p' a) = Exact k' y'"
+  shows "y = y'"
+  using assms kernel_exact_sound[OF assms(5)] kernel_exact_sound[OF assms(6)] by simp
+
+theorem useful_heat_fraction:
+  assumes "kernel (FuelUsefulEnergy f (Some m) u (Some e)) = Exact ku useful"
+      "kernel (FuelEnergy f (Some m) u) = Exact kr released"
+  shows "useful = efficiency e * released \<and> 0 \<le> useful \<and> useful \<le> released"
+proof -
+  have bounds: "0 \<le> siq m" "0 \<le> efficiency e" "efficiency e \<le> 1"
+    and vals: "useful = efficiency e * (siq m * ncv f * 1000000 / scale u)"
+      "released = siq m * ncv f * 1000000 / scale u"
+    using kernel_exact_sound[OF assms(1)] kernel_exact_sound[OF assms(2)]
+    by (auto simp: algebra_simps)
+  have ncv_nonneg: "0 \<le> ncv f" using ncv_pos[of f] by linarith
+  have product_nonneg: "0 \<le> siq m * ncv f * 1000000"
+    by (intro mult_nonneg_nonneg; simp add: bounds(1) ncv_nonneg)
+  have quotient_nonneg: "0 \<le> siq m * ncv f * 1000000 / scale u"
+    by (rule divide_nonneg_pos[OF product_nonneg scale_pos])
+  have r: "0 \<le> released" using quotient_nonneg vals(2) by simp
+  have eq: "useful = efficiency e * released" using vals by simp
+  have upper: "efficiency e * released \<le> 1 * released"
+    by (rule mult_right_mono[OF bounds(3) r])
+  have lower: "0 \<le> efficiency e * released"
+    by (rule mult_nonneg_nonneg[OF bounds(2) r])
+  show ?thesis using eq upper lower by simp
+qed
+
+theorem useful_heat_inverse:
+  assumes "kernel (FuelUsefulMass f q (Some e)) = Exact k m"
+  shows "m * efficiency e * ncv f * 1000000 = siq q \<and> 0 \<le> m"
+proof -
+  have pos: "0 < efficiency e" and nonneg: "0 \<le> siq q"
+    and m: "m = siq q / (efficiency e * ncv f * 1000000)"
+    using kernel_exact_sound[OF assms] by auto
+  have m_nonneg: "0 \<le> m" using pos nonneg m by (auto intro: divide_nonneg_pos mult_pos_pos)
+  have balance: "m * efficiency e * ncv f * 1000000 = siq q"
+    using pos m by (auto simp: field_simps)
+  show ?thesis using balance m_nonneg by blast
+qed
+
+theorem unsupported_condition_declines:
+  "kernel (UnsupportedCondition c) = Decline (UnsupportedModel c)"
+  by (simp add: kernel_def decline_of_def)
+
 section \<open>Response text (ASCII)\<close>
 
 definition sig_digits :: "kind \<Rightarrow> nat" where
@@ -1339,6 +1470,17 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + STR '' MJ / '' + show4 (ncv f) + STR '' MJ/kg; IPCC 2006 default).''"
 | "exact_text (FuelNCV f) q V = STR ''The net calorific value of '' + fuel_name f + STR '' is about '' + V
      + STR '' MJ/kg ('' + show4 (ncv f * 10 / 36) + STR '' kWh/kg; IPCC 2006 default).''"
+| "exact_text (Hydrostatic d (Some h) g p a) q V =
+     (if a then STR ''The absolute pressure is about '' else STR ''The gauge pressure is about '')
+     + V + STR '' Pa (constant density '' + show4 (input_density d) + STR '' kg/m3, gravity ''
+     + show4 (gravity_si g) + STR '' m/s2, depth '' + show4 (siq h) + STR '' m, absolute surface pressure ''
+     + show4 (siq p) + STR '' Pa).''"
+| "exact_text (FuelUsefulEnergy f (Some m) u (Some e)) q V = STR ''The useful heat is about ''
+     + V + STR '' '' + unit_label u + STR '' from '' + show4 (siq m) + STR '' kg of '' + fuel_name f
+     + STR '' at '' + show4 (100 * efficiency e) + STR ''% heat-delivery efficiency (IPCC default net calorific value).''"
+| "exact_text (FuelUsefulMass f q (Some e)) v V = STR ''About '' + V + STR '' kg of '' + fuel_name f
+     + STR '' is needed to deliver '' + show4 (siq q / 1000000) + STR '' MJ of useful heat at ''
+     + show4 (100 * efficiency e) + STR ''% heat-delivery efficiency (IPCC default net calorific value).''"
 | "exact_text r q V = V"
 
 fun approx_text :: "request \<Rightarrow> String.literal \<Rightarrow> String.literal" where
@@ -1363,6 +1505,7 @@ fun req_material :: "request \<Rightarrow> String.literal" where
 | "req_material (VolumeOf m _ _) = mat_name m"
 | "req_material (FuelEnergy f _ _) = fuel_name f"
 | "req_material (FuelCO2 f _) = fuel_name f"
+| "req_material (FuelUsefulEnergy f _ _ _) = fuel_name f"
 | "req_material r = STR ''''"
 
 definition need_text :: "request \<Rightarrow> need \<Rightarrow> String.literal" where
@@ -1377,7 +1520,8 @@ definition need_text :: "request \<Rightarrow> need \<Rightarrow> String.literal
    | N_mass_k \<Rightarrow> STR ''I need a mass and a spring constant to compute that; I won'' + apos + STR ''t assume it.''
    | N_depth \<Rightarrow> STR ''I need a depth to compute that; I won'' + apos + STR ''t assume it.''
    | N_volume \<Rightarrow> STR ''I need the submerged volume to compute that; I won'' + apos + STR ''t assume it.''
-   | N_fuel_mass \<Rightarrow> STR ''I need a mass of '' + req_material r + STR '' to compute that; I won'' + apos + STR ''t assume it.'')"
+   | N_fuel_mass \<Rightarrow> STR ''I need a mass of '' + req_material r + STR '' to compute that; I won'' + apos + STR ''t assume it.''
+   | N_efficiency \<Rightarrow> STR ''I need the fraction or percentage of released heat delivered as useful heat.'')"
 
 fun mismatch_text :: "request \<Rightarrow> String.literal" where
   "mismatch_text (Convert x (Lin a) (Lin b)) = unit_label a + STR '' measures '' + dim_name (dim_of a)
@@ -1395,10 +1539,20 @@ fun reason_text :: "request \<Rightarrow> reason \<Rightarrow> String.literal" w
 | "reason_text r R_nonpositive_stiffness = STR ''A spring constant must be positive.''"
 | "reason_text r R_nonpositive_stretch = STR ''A stretch must be positive to give a spring constant.''"
 | "reason_text r R_nonpositive_mass = STR ''The mass on the spring must be positive.''"
+| "reason_text r R_hydrostatic_inputs = STR ''Density must be positive; depth, gravity magnitude and absolute surface pressure must be nonnegative.''"
+| "reason_text r R_fuel_inputs = STR ''Fuel mass and required useful heat must be nonnegative.''"
+| "reason_text r R_efficiency = STR ''Heat-delivery efficiency must be between zero and one (0% to 100%).''"
+| "reason_text r R_inverse_efficiency = STR ''Delivering a specified useful heat requires efficiency greater than zero and at most one.''"
+
+fun model_condition_text :: "model_condition \<Rightarrow> String.literal" where
+  "model_condition_text C_reference_state = STR ''The reference density table does not model the stated temperature, pressure or state condition.''"
+| "model_condition_text C_moisture = STR ''The default fuel value does not model the stated moisture or calorific-value basis.''"
+| "model_condition_text C_unread_input = STR ''The stated model input or its units could not be bound unambiguously.''"
+| "model_condition_text C_other_operation = STR ''The requested operation with these explicit conditions is outside this model.''"
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of Underspecified _ \<Rightarrow> STR ''underspecified'' | Mismatch \<Rightarrow> STR ''mismatch''
-     | Impossible _ \<Rightarrow> STR ''impossible'' | Undecided \<Rightarrow> STR ''undecided'' | Imprecise \<Rightarrow> STR ''imprecise'')"
+     | Impossible _ \<Rightarrow> STR ''impossible'' | Undecided \<Rightarrow> STR ''undecided'' | Imprecise \<Rightarrow> STR ''imprecise'' | UnsupportedModel _ \<Rightarrow> STR ''unsupported_model'')"
 
 definition decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.literal" where
   "decline_text r w = (case w of
@@ -1407,7 +1561,8 @@ definition decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.l
    | Impossible why \<Rightarrow> reason_text r why
    | Undecided \<Rightarrow> STR ''The two densities are within 2 percent of each other; I won'' + apos
        + STR ''t call whether it floats.''
-   | Imprecise \<Rightarrow> STR ''The interval arithmetic could not pin four digits; I won'' + apos + STR ''t guess.'')"
+   | Imprecise \<Rightarrow> STR ''The interval arithmetic could not pin four digits; I won'' + apos + STR ''t guess.''
+   | UnsupportedModel c \<Rightarrow> model_condition_text c)"
 
 definition kind_name :: "kind \<Rightarrow> String.literal" where
   "kind_name k = (case k of K_density \<Rightarrow> STR ''density'' | K_mass \<Rightarrow> STR ''mass''
@@ -1418,7 +1573,9 @@ definition kind_name :: "kind \<Rightarrow> String.literal" where
      | K_pressure_gauge \<Rightarrow> STR ''pressure_gauge'' | K_pressure_abs \<Rightarrow> STR ''pressure_abs''
      | K_buoyant_force \<Rightarrow> STR ''buoyant_force'' | K_submerged_fraction \<Rightarrow> STR ''submerged_fraction''
      | K_sinks \<Rightarrow> STR ''sinks'' | K_energy \<Rightarrow> STR ''energy'' | K_co2 \<Rightarrow> STR ''co2''
-     | K_mass_needed \<Rightarrow> STR ''mass_needed'' | K_ncv \<Rightarrow> STR ''ncv'')"
+     | K_mass_needed \<Rightarrow> STR ''mass_needed'' | K_ncv \<Rightarrow> STR ''ncv''
+     | K_useful_energy \<Rightarrow> STR ''useful_energy'' | K_useful_mass_needed \<Rightarrow> STR ''useful_mass_needed''
+     | K_model_condition \<Rightarrow> STR ''model_condition'')"
 
 text \<open>The whole reply: answered or withheld, the kind, the response text and
 the stated value. Withheld replies carry the decline text, as the organs do.\<close>

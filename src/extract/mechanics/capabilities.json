@@ -86,7 +86,8 @@
       "accept": {
         "kinds": [],
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "unsupported_model"
         ]
       },
       "context_regex_additions": [],
@@ -95,7 +96,8 @@
         "assumptions": [
           "The untrusted recognizer assigned each number and unit to the intended request field.",
           "Mass and elapsed time are magnitudes; force, velocity, displacement and relative potential height may be directed.",
-          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude."
+          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude.",
+          "Explicit fluid density, gravity or surface-pressure conditions exceed this fixed-property reader; a model-limit refusal allows a richer family to answer without silently using defaults."
         ],
         "untrusted": [
           "English interpretation and routing metadata are not proofs of the question interpretation."

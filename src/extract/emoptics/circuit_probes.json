@@ -1,0 +1,366 @@
+[
+  {
+    "q": "Two resistors of 10 ohms and 20 ohms are in series across 12 V. What current flows?",
+    "expect": 0.4,
+    "valid": true,
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Ohm law and passive series/parallel equivalent resistance",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "Two resistors of 10 ohms and 10 ohms are in parallel across 12 V. What is the total power?",
+    "expect": 28.8,
+    "valid": true,
+    "kind": "power",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "P=V\u00b2/(1/(1/R1+1/R2))",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "A series circuit has 2 ohms and 4 ohms across -12 V. Find the source current.",
+    "expect": -2,
+    "valid": true,
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Ohm law and passive series/parallel equivalent resistance",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "A series circuit has 2 ohms and 4 ohms across -12 V. Find the total power.",
+    "expect": 24,
+    "valid": true,
+    "kind": "power",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Signed supply still dissipates V\u00b2/Req",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "A parallel circuit has 2 ohms and 6 ohms across 0 V. What is the source current?",
+    "expect": 0,
+    "valid": true,
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Ohm law and passive series/parallel equivalent resistance",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "A parallel circuit has 2 ohms and 6 ohms across 0 V. What is the total power?",
+    "expect": 0,
+    "valid": true,
+    "kind": "power",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "P=VI, zero supply is valid",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "A series circuit has 1/2 kohm and 1.5 kohm across 3 V. Calculate current.",
+    "expect": 0.0015,
+    "valid": true,
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Ohm law and passive series/parallel equivalent resistance",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "A parallel circuit has 1e3 ohms and 1 kohm across 2 V. Calculate power.",
+    "expect": 0.008,
+    "valid": true,
+    "kind": "power",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Exact numeric spellings preserve units and values",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "What is the total resistance of 1 Mohm and 1 kohm in series?",
+    "expect": 1001000,
+    "valid": true,
+    "kind": "series",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Mega/milli prefix case is preserved",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "What is the total resistance of 1 mohm and 1 kohm in series?",
+    "expect": 1000.001,
+    "valid": true,
+    "kind": "series",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Mega/milli prefix case is preserved",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "A voltage divider has R2 = 3 kohms to ground and R1 = 1 kohm from a 12 V supply. What is the output voltage?",
+    "expect": 9,
+    "valid": true,
+    "kind": "divider",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Vout=Vin*Rbottom/(Rtop+Rbottom), explicit roles override order",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "A voltage divider has R2 = 3 kohms to ground and R1 = 1 kohm from a -12 V supply. What is the output voltage?",
+    "expect": -9,
+    "valid": true,
+    "kind": "divider",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "The same divider equation supports signed input",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "A voltage divider has top resistor 1 kohm and bottom resistor 3 kohms with 0 V input. What voltage comes out?",
+    "expect": 0,
+    "valid": true,
+    "kind": "divider",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Zero input gives zero output",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "A voltage divider has 12 V in, 1 kohm and 3 kohms. What is the output?",
+    "expect": 9,
+    "valid": true,
+    "kind": "divider",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Declared conventional ordered model: top then bottom",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "An LED has a forward voltage of 2 V, a supply voltage of 5 V and desired current 20 mA. What series resistor is needed?",
+    "expect": 150,
+    "valid": true,
+    "kind": "led",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Ideal constant forward drop: R=(Vs\u2212Vf)/I",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "An LED has a supply voltage of 5 V, forward voltage 2 V and desired current 20 mA. What series resistor is needed?",
+    "expect": 150,
+    "valid": true,
+    "kind": "led",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Changing textual order must preserve the same physical roles",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "What resistor for an LED with 2 V forward voltage on a 9/2 V supply at 5 mA?",
+    "expect": 500,
+    "valid": true,
+    "kind": "led",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Exact fraction supply and explicit forward drop",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "What is the current through 2 kohms with 0 V applied?",
+    "expect": 0,
+    "valid": true,
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "I=V/R with R>0 allows zero V",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "What voltage is across 2 kohms with 0 A flowing?",
+    "expect": 0,
+    "valid": true,
+    "kind": "voltage",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "V=IR with R>0 allows zero I",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "What resistance is needed with -12 V and -2 A?",
+    "expect": 6,
+    "valid": true,
+    "kind": "resistance",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "R=V/I positive despite signed voltage/current",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "What power is consumed with 12 V, 2 A and 6 ohms?",
+    "expect": 24,
+    "valid": true,
+    "kind": "power",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Redundant givens satisfy V=IR and P=VI",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "What power is consumed with 12 V, 2 A and 5 ohms?",
+    "expect": null,
+    "valid": false,
+    "kind": "power",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Contradictory V/I/R must decline",
+    "classification": "invalid_or_underdetermined"
+  },
+  {
+    "q": "An LED has a forward voltage of 2 V, a supply voltage of 1.8 V and desired current 20 mA. What series resistor is needed?",
+    "expect": null,
+    "valid": false,
+    "kind": "led",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Forward-biased model requires supply above forward drop",
+    "classification": "invalid_or_underdetermined"
+  },
+  {
+    "q": "An LED has a forward voltage of 2 V, a supply voltage of 2 V and desired current 20 mA. What series resistor is needed?",
+    "expect": null,
+    "valid": false,
+    "kind": "led",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Zero resistor cannot set the specified current under this sizing model",
+    "classification": "invalid_or_underdetermined"
+  },
+  {
+    "q": "An LED has forward voltage 2 V, supply voltage 5 V and desired current 0 A. What series resistor is needed?",
+    "expect": null,
+    "valid": false,
+    "kind": "led",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Zero current does not determine a finite sizing resistance",
+    "classification": "invalid_or_underdetermined"
+  },
+  {
+    "q": "A divider has R1 = 1 kohm to ground, R2 = 3 kohms and 12 V input. What voltage comes out?",
+    "expect": 3,
+    "valid": true,
+    "kind": "divider",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Explicit ground connection overrides the conventional label-to-position interpretation; Vout=12*1/(3+1).",
+    "classification": "supported_computable"
+  },
+  {
+    "q": "What is the total resistance of 0 ohm and 10 ohms in parallel?",
+    "expect": 0,
+    "valid": true,
+    "kind": "parallel",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "An ideal short makes equivalent resistance zero; the current strictly positive resistor model safely declines this computable extension.",
+    "classification": "computable_outside_model",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "A series circuit has -2 ohms and 6 ohms across 12 V. What current flows?",
+    "expect": 3,
+    "valid": true,
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "An active negative resistance model would give 12/(-2+6)=3 A; the current strictly positive passive model safely declines.",
+    "classification": "computable_outside_model",
+    "assert_status": "withheld"
+  },
+  {
+    "q": "A network has 10 ohms and 20 ohms in series and parallel across 12 V. What current flows?",
+    "expect": null,
+    "valid": false,
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "A mixed topology cannot be flattened without its graph",
+    "classification": "invalid_or_underdetermined"
+  },
+  {
+    "q": "What is the current with 1.2.3 V across 4 ohms?",
+    "expect": null,
+    "valid": false,
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Malformed numeric run must not yield a suffix scalar",
+    "classification": "invalid_or_underdetermined"
+  },
+  {
+    "q": "What is the current with QNUM0Q V across 4 ohms?",
+    "expect": null,
+    "valid": false,
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Unissued literal marker is not a numeric token",
+    "classification": "invalid_or_underdetermined"
+  },
+  {
+    "q": "What is the current with 12 V and area 2 m^2?",
+    "expect": null,
+    "valid": false,
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Unit exponent is not a resistance input",
+    "classification": "invalid_or_underdetermined"
+  },
+  {
+    "q": "A divider has top resistor 1 kohm to ground, bottom resistor 3 kohms and 12 V input. What voltage comes out?",
+    "expect": null,
+    "valid": false,
+    "classification": "invalid_or_underdetermined",
+    "kind": "divider",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "One operand is explicitly both top and grounded, conflicting roles in the simple divider model."
+  },
+  {
+    "q": "An LED has supply voltage 5 V, forward voltage 2 V and resistance 150 ohms. What is the LED current?",
+    "expect": 0.02,
+    "valid": true,
+    "classification": "computable_outside_model",
+    "assert_status": "withheld",
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/9-4-ohms-law",
+    "derivation": "I=(Vs\u2212Vf)/R=20mA is computable, but this packet only implements LED resistor sizing; refusal is not capability success."
+  },
+  {
+    "q": "A divider has R1 = 1 kohm, R2 = 3 kohms and 12 V input. What is its total power?",
+    "expect": 0.036,
+    "valid": true,
+    "classification": "computable_outside_model",
+    "assert_status": "withheld",
+    "kind": "power",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "P=Vin\u00b2/(Rtop+Rbottom)=36mW; this packet only implements divider output voltage; refusal is not capability success."
+  },
+  {
+    "q": "A series circuit has 10 ohms, 20 ohms and a 1 uF capacitor across 12 V. What current flows?",
+    "expect": null,
+    "valid": false,
+    "classification": "invalid_or_underdetermined",
+    "kind": "current",
+    "split": "circuit-probes",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-5-rc-circuits",
+    "derivation": "Transient current depends on initial capacitor charge/time; a passive resistor-only reduction must not ignore the capacitor."
+  }
+]

@@ -67,3 +67,12 @@ including weighted exclusions, are refused instead of silently ignored.
 New statements connect converted rectangle area to its original physical
 lengths and the filtered mean to the original sum plus excluded observations.
 These verify the typed computations; they do not certify English parsing.
+
+Weighted requests share the ordinary complete-list parser for observations and
+weights. Both “weighted mean of 1, 2, 3 with weights 1, 1, 2” and “mean of 1, 2,
+3 weighted by 1, 1, 2” return 2.25; “using weights” and “average” are equivalent.
+Lists admit exact fractions, scientific notation and signed observations, with
+optional matched brackets. A weight list is never silently dropped. Negative
+weights, unequal lengths and all-zero weights reach the existing kernel refusal;
+zero individual weights remain valid. Weighted exclusions and other statistical
+modifiers such as a trimmed mean remain unsupported, valid-but-withheld requests.

@@ -337,8 +337,7 @@
     "q": "What is the mean of 1, 2, 3 weighted by 1, 1, 2?",
     "valid": true,
     "expect": 2.25,
-    "expect_kind": "unsupported_modifier",
-    "source": "Complete dataset-modifier contract: unsupported postfix weighted spelling must not fall back to ordinary mean; native c999 counterexample.",
-    "expected_withheld": true
+    "expect_kind": "weighted_mean",
+    "source": "Complete weighted dataset grammar: postfix and prefix weight lists construct the same verified weighted_mean request."
   }
 ]

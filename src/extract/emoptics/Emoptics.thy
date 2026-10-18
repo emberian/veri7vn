@@ -114,12 +114,15 @@ datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) tri =
   | T_Pf "rat \<times> pu" "rat \<times> vau"
   | T_React "rat \<times> pu" "rat \<times> vau"
 
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) connection = Series | Parallel
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) circuit_target =
+    EquivalentResistance | SourceCurrent camt | TotalPower camt
+
 datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) cbody =
-    CB_Series "camt list"
-  | CB_Parallel "camt list"
+    CB_Network connection "camt list" circuit_target
   | CB_Divider camt camt camt          \<comment> \<open>Vin, R1, R2\<close>
   | CB_Rc camt camt                    \<comment> \<open>R, C\<close>
-  | CB_Led "camt list" camt            \<comment> \<open>the voltages, the current\<close>
+  | CB_Led camt camt camt               \<comment> \<open>supply, forward drop, forward current\<close>
   | CB_Cur "camt option" "camt option" "camt option"    \<comment> \<open>V, R, W\<close>
   | CB_Volt "camt option" "camt option" "camt option"   \<comment> \<open>A, R, W\<close>
   | CB_Res "camt option" "camt option"                  \<comment> \<open>V, A\<close>
@@ -132,7 +135,7 @@ datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) request 
   | E_XfmrI rat rat rat                \<comment> \<open>Np, Ns, Ip\<close>
   | E_PfCorr "rat \<times> pu" rat rat        \<comment> \<open>P, pf1, pf2\<close>
   | E_Tri "rat option" tri             \<comment> \<open>a power factor mentioned in the question, the formula\<close>
-  | C_Circ bool "camt list" cbody      \<comment> \<open>the word "resist" occurs, every resistance, the formula\<close>
+  | C_Circ cbody                       \<comment> \<open>each operation owns its actual operands\<close>
   | W_Judgement
   | W_Continuous rat
   | W_Vdrop metal "nat option" "rat option" "(rat \<times> lu) option" "rat option"
@@ -155,11 +158,11 @@ datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) request 
   | O_Index medium
   | O_Snell "rat option" "rat option" "rat option"      \<comment> \<open>angle in degrees, n1, n2\<close>
 
-datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) need = N_pf_power | N_pf_current | N_c_current | N_c_voltage | N_c_resistance | N_c_power
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) need = N_pf_power | N_pf_current | N_c_current | N_c_voltage | N_c_resistance | N_c_power | N_c_network
   | N_w_vdrop | N_o_focal | N_o_lens | N_o_indices | N_o_index | N_o_snell
 
 datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) reason = R_pf_over | R_p_over_s | R_pf_range | R_turns | R_zero_div | R_resistor | R_capacitor | R_led
-  | R_wavelength | R_frequency | R_focal_zero | R_index | R_angle
+  | R_c_inconsistent | R_wavelength | R_frequency | R_focal_zero | R_index | R_angle
 
 datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) decline = Underspecified need | Judgement | Impossible reason | Imprecise
 
@@ -190,15 +193,17 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (E_Tri _ (T_Cur _ _)) = K_three_phase_current"
 | "kind_of (E_Tri _ (T_Pf _ _)) = K_pf"
 | "kind_of (E_Tri _ (T_React _ _)) = K_reactive"
-| "kind_of (C_Circ _ _ (CB_Series _)) = K_series"
-| "kind_of (C_Circ _ _ (CB_Parallel _)) = K_parallel"
-| "kind_of (C_Circ _ _ (CB_Divider _ _ _)) = K_divider"
-| "kind_of (C_Circ _ _ (CB_Rc _ _)) = K_rc"
-| "kind_of (C_Circ _ _ (CB_Led _ _)) = K_led"
-| "kind_of (C_Circ _ _ (CB_Cur _ _ _)) = K_current"
-| "kind_of (C_Circ _ _ (CB_Volt _ _ _)) = K_voltage"
-| "kind_of (C_Circ _ _ (CB_Res _ _)) = K_resistance"
-| "kind_of (C_Circ _ _ (CB_Pow _ _ _)) = K_power"
+| "kind_of (C_Circ (CB_Network Series _ EquivalentResistance)) = K_series"
+| "kind_of (C_Circ (CB_Network Parallel _ EquivalentResistance)) = K_parallel"
+| "kind_of (C_Circ (CB_Network _ _ (SourceCurrent _))) = K_current"
+| "kind_of (C_Circ (CB_Network _ _ (TotalPower _))) = K_power"
+| "kind_of (C_Circ (CB_Divider _ _ _)) = K_divider"
+| "kind_of (C_Circ (CB_Rc _ _)) = K_rc"
+| "kind_of (C_Circ (CB_Led _ _ _)) = K_led"
+| "kind_of (C_Circ (CB_Cur _ _ _)) = K_current"
+| "kind_of (C_Circ (CB_Volt _ _ _)) = K_voltage"
+| "kind_of (C_Circ (CB_Res _ _)) = K_resistance"
+| "kind_of (C_Circ (CB_Pow _ _ _)) = K_power"
 | "kind_of W_Judgement = K_continuous"
 | "kind_of (W_Continuous _) = K_continuous"
 | "kind_of (W_Vdrop _ _ _ _ _) = K_vdrop"
@@ -232,7 +237,6 @@ fun nz :: "rat option \<Rightarrow> bool" where "nz None = False" | "nz (Some x)
 definition cv :: "camt \<Rightarrow> rat" where "cv a = amt pfx_scale a"
 fun ocv :: "camt option \<Rightarrow> rat option" where "ocv None = None" | "ocv (Some a) = Some (cv a)"
 fun ola :: "(rat \<times> lu) option \<Rightarrow> rat" where "ola None = 0" | "ola (Some a) = amt lu_scale a"
-fun lmax :: "rat list \<Rightarrow> rat" where "lmax [] = 0" | "lmax [x] = x" | "lmax (x # y # zs) = max x (lmax (y # zs))"
 fun lmin :: "rat list \<Rightarrow> rat" where "lmin [] = 0" | "lmin [x] = x" | "lmin (x # y # zs) = min x (lmin (y # zs))"
 
 fun pre_tri :: "rat option \<Rightarrow> tri \<Rightarrow> decline option" where
@@ -246,20 +250,47 @@ fun pre_tri :: "rat option \<Rightarrow> tri \<Rightarrow> decline option" where
      else if amt vau_scale s = 0 then Some (Impossible R_zero_div) else None)"
 | "pre_tri pf (T_React p s) = (if amt vau_scale s < amt pu_scale p then Some (Impossible R_p_over_s) else None)"
 
+fun network_r :: "connection \<Rightarrow> camt list \<Rightarrow> rat" where
+  "network_r Series rs = sum_list (map cv rs)"
+| "network_r Parallel rs = 1 / sum_list (map (\<lambda>r. 1 / cv r) rs)"
+
+text \<open>Resistance validation reads the operands actually used by the body.
+There is no separate recognizer-supplied coverage list.\<close>
+fun body_resistors :: "cbody \<Rightarrow> camt list" where
+  "body_resistors (CB_Network c rs t) = rs"
+| "body_resistors (CB_Divider v rtop rbottom) = [rtop,rbottom]"
+| "body_resistors (CB_Rc r c) = [r]"
+| "body_resistors (CB_Cur v r p) = (case r of None \<Rightarrow> [] | Some x \<Rightarrow> [x])"
+| "body_resistors (CB_Volt i r p) = (case r of None \<Rightarrow> [] | Some x \<Rightarrow> [x])"
+| "body_resistors (CB_Pow v i r) = (case r of None \<Rightarrow> [] | Some x \<Rightarrow> [x])"
+| "body_resistors (CB_Res v i) = (if hs (ocv v) \<and> nz (ocv i) then [(ov (ocv v) / ov (ocv i), P_1)] else [])"
+| "body_resistors b = []"
+
+fun consistent_vrp :: "camt option \<Rightarrow> camt option \<Rightarrow> camt option \<Rightarrow> bool" where
+  "consistent_vrp (Some v) (Some r) (Some p) = (cv v * cv v = cv p * cv r)"
+| "consistent_vrp v r p = True"
+fun consistent_irp :: "camt option \<Rightarrow> camt option \<Rightarrow> camt option \<Rightarrow> bool" where
+  "consistent_irp (Some i) (Some r) (Some p) = (cv p = cv i * cv i * cv r)"
+| "consistent_irp i r p = True"
+fun consistent_vir :: "camt option \<Rightarrow> camt option \<Rightarrow> camt option \<Rightarrow> bool" where
+  "consistent_vir (Some v) (Some i) (Some r) = (cv v = cv i * cv r)"
+| "consistent_vir v i r = True"
+
 fun pre_cb :: "cbody \<Rightarrow> decline option" where
-  "pre_cb (CB_Series rs) = (if list_ex (\<lambda>r. cv r \<le> 0) rs then Some (Impossible R_resistor) else None)"
-| "pre_cb (CB_Parallel rs) = (if list_ex (\<lambda>r. cv r \<le> 0) rs then Some (Impossible R_resistor) else None)"
-| "pre_cb (CB_Divider vin r1 r2) = (if cv r1 + cv r2 = 0 then Some (Impossible R_zero_div) else None)"
-| "pre_cb (CB_Rc r c) = (if cv r \<le> 0 then Some (Impossible R_resistor)
-    else if cv c \<le> 0 then Some (Impossible R_capacitor) else None)"
-| "pre_cb (CB_Led vs i) = (if cv i = 0 then Some (Impossible R_zero_div)
-     else if (lmax (map cv vs) - lmin (map cv vs)) / cv i \<le> 0 then Some (Impossible R_led) else None)"
-| "pre_cb (CB_Cur v r w) = (if hs (ocv v) \<and> nz (ocv r) then None
+  "pre_cb (CB_Network c rs t) = (if rs = [] then Some (Underspecified N_c_network) else None)"
+| "pre_cb (CB_Divider vin r1 r2) = None"
+| "pre_cb (CB_Rc r c) = (if cv c \<le> 0 then Some (Impossible R_capacitor) else None)"
+| "pre_cb (CB_Led vs vf i) = (if cv i \<le> 0 \<or> cv vf \<le> 0 \<or> cv vs \<le> cv vf
+     then Some (Impossible R_led) else None)"
+| "pre_cb (CB_Cur v r w) = (if \<not> consistent_vrp v r w then Some (Impossible R_c_inconsistent)
+     else if hs (ocv v) \<and> nz (ocv r) then None
      else if hs (ocv w) \<and> nz (ocv v) then None else Some (Underspecified N_c_current))"
-| "pre_cb (CB_Volt a r w) = (if hs (ocv a) \<and> hs (ocv r) then None
+| "pre_cb (CB_Volt a r w) = (if \<not> consistent_irp a r w then Some (Impossible R_c_inconsistent)
+     else if hs (ocv a) \<and> hs (ocv r) then None
      else if hs (ocv w) \<and> nz (ocv a) then None else Some (Underspecified N_c_voltage))"
 | "pre_cb (CB_Res v a) = (if hs (ocv v) \<and> nz (ocv a) then None else Some (Underspecified N_c_resistance))"
-| "pre_cb (CB_Pow v a r) = (if hs (ocv v) \<and> hs (ocv a) then None
+| "pre_cb (CB_Pow v a r) = (if \<not> consistent_vir v a r then Some (Impossible R_c_inconsistent)
+     else if hs (ocv v) \<and> hs (ocv a) then None
      else if hs (ocv a) \<and> hs (ocv r) then None
      else if hs (ocv v) \<and> nz (ocv r) then None else Some (Underspecified N_c_power))"
 
@@ -277,7 +308,7 @@ fun pre :: "request \<Rightarrow> decline option" where
 | "pre (E_XfmrI np ns ip) = (if ns = 0 then Some (Impossible R_turns) else None)"
 | "pre (E_PfCorr p p1 p2) = (if 0 < p1 \<and> p1 \<le> 1 \<and> 0 < p2 \<and> p2 \<le> 1 then None else Some (Impossible R_pf_range))"
 | "pre (E_Tri pf b) = (if (case pf of None \<Rightarrow> False | Some x \<Rightarrow> 1 < x) then Some (Impossible R_pf_over) else pre_tri pf b)"
-| "pre (C_Circ res rall b) = (if list_ex (\<lambda>r. cv r \<le> 0) rall then Some (Impossible R_resistor) else pre_cb b)"
+| "pre (C_Circ b) = (if list_ex (\<lambda>r. cv r \<le> 0) (body_resistors b) then Some (Impossible R_resistor) else pre_cb b)"
 | "pre W_Judgement = Some Judgement"
 | "pre (W_Continuous b) = None"
 | "pre (W_Vdrop m n i l v) = (if n = None \<or> i = None \<or> l = None then Some (Underspecified N_w_vdrop)
@@ -324,15 +355,17 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (E_XfmrV np ns vp) = vp * ns / np"
 | "qval (E_XfmrI np ns ip) = ip * np / ns"
 | "qval (E_Tri pf (T_Pf p s)) = amt pu_scale p / amt vau_scale s"
-| "qval (C_Circ res rall (CB_Series rs)) = sum_list (map cv rs)"
-| "qval (C_Circ res rall (CB_Parallel rs)) = 1 / sum_list (map (\<lambda>r. 1 / cv r) rs)"
-| "qval (C_Circ res rall (CB_Divider vin r1 r2)) = cv vin * cv r2 / (cv r1 + cv r2)"
-| "qval (C_Circ res rall (CB_Rc r c)) = cv r * cv c"
-| "qval (C_Circ res rall (CB_Led vs i)) = (lmax (map cv vs) - lmin (map cv vs)) / cv i"
-| "qval (C_Circ res rall (CB_Cur v r w)) = (if hs (ocv v) \<and> nz (ocv r) then ov (ocv v) / ov (ocv r) else ov (ocv w) / ov (ocv v))"
-| "qval (C_Circ res rall (CB_Volt a r w)) = (if hs (ocv a) \<and> hs (ocv r) then ov (ocv a) * ov (ocv r) else ov (ocv w) / ov (ocv a))"
-| "qval (C_Circ res rall (CB_Res v a)) = ov (ocv v) / ov (ocv a)"
-| "qval (C_Circ res rall (CB_Pow v a r)) = (if hs (ocv v) \<and> hs (ocv a) then ov (ocv v) * ov (ocv a)
+| "qval (C_Circ (CB_Network Series rs EquivalentResistance)) = sum_list (map cv rs)"
+| "qval (C_Circ (CB_Network Parallel rs EquivalentResistance)) = 1 / sum_list (map (\<lambda>r. 1 / cv r) rs)"
+| "qval (C_Circ (CB_Network c rs (SourceCurrent v))) = cv v / network_r c rs"
+| "qval (C_Circ (CB_Network c rs (TotalPower v))) = cv v * (cv v / network_r c rs)"
+| "qval (C_Circ (CB_Divider vin r1 r2)) = cv vin * cv r2 / (cv r1 + cv r2)"
+| "qval (C_Circ (CB_Rc r c)) = cv r * cv c"
+| "qval (C_Circ (CB_Led vs vf i)) = (cv vs - cv vf) / cv i"
+| "qval (C_Circ (CB_Cur v r w)) = (if hs (ocv v) \<and> nz (ocv r) then ov (ocv v) / ov (ocv r) else ov (ocv w) / ov (ocv v))"
+| "qval (C_Circ (CB_Volt a r w)) = (if hs (ocv a) \<and> hs (ocv r) then ov (ocv a) * ov (ocv r) else ov (ocv w) / ov (ocv a))"
+| "qval (C_Circ (CB_Res v a)) = ov (ocv v) / ov (ocv a)"
+| "qval (C_Circ (CB_Pow v a r)) = (if hs (ocv v) \<and> hs (ocv a) then ov (ocv v) * ov (ocv a)
      else if hs (ocv a) \<and> hs (ocv r) then ov (ocv a) * ov (ocv a) * ov (ocv r)
      else ov (ocv v) * ov (ocv v) / ov (ocv r))"
 | "qval (W_Continuous b) = 4 * b / 5"
@@ -806,27 +839,31 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + show_input ip + STR '' x '' + show_input np + STR ''/'' + show_input ns + STR ''; ideal transformer).''"
 | "exact_text (E_Tri pf (T_Pf p s)) q vl = STR ''The power factor is '' + vl + STR '' (P / S = ''
      + show_input (amt pu_scale p) + STR '' kW / '' + show_input (amt vau_scale s) + STR '' kVA).''"
-| "exact_text (C_Circ res rall (CB_Series rs)) q vl = STR ''In series, '' + join (STR '', '') (map (\<lambda>r. fmtu (cv r) u_ohm) rs)
+| "exact_text (C_Circ (CB_Network Series rs EquivalentResistance)) q vl = STR ''In series, '' + join (STR '', '') (map (\<lambda>r. fmtu (cv r) u_ohm) rs)
      + STR '' add to '' + fmtu q u_ohm + STR ''.''"
-| "exact_text (C_Circ res rall (CB_Parallel rs)) q vl = STR ''In parallel, '' + join (STR '', '') (map (\<lambda>r. fmtu (cv r) u_ohm) rs)
+| "exact_text (C_Circ (CB_Network Parallel rs EquivalentResistance)) q vl = STR ''In parallel, '' + join (STR '', '') (map (\<lambda>r. fmtu (cv r) u_ohm) rs)
      + STR '' give '' + fmtu q u_ohm + STR '' (1/R = '' + join (STR '' + '') (map (\<lambda>r. STR ''1/'' + fmtu (cv r) u_ohm) rs) + STR '').''"
-| "exact_text (C_Circ res rall (CB_Divider vin r1 r2)) q vl = STR ''The divider output is '' + fmtu q u_V
-     + STR '' (Vout = Vin x R2/(R1+R2) = '' + fmtu (cv vin) u_V + STR '' x '' + fmtu (cv r2) u_ohm + STR ''/(''
-     + fmtu (cv r1) u_ohm + STR ''+'' + fmtu (cv r2) u_ohm + STR ''), taking the second resistor as R2, to ground).''"
-| "exact_text (C_Circ res rall (CB_Rc r c)) q vl = STR ''The RC time constant is '' + fmtu q u_s
+| "exact_text (C_Circ (CB_Network c rs (SourceCurrent v))) q vl = STR ''The source current is '' + fmtu q u_A
+     + STR '' (I = Vs/Req = '' + fmtu (cv v) u_V + STR '' / '' + fmtu (network_r c rs) u_ohm + STR ''; ideal passive network).''"
+| "exact_text (C_Circ (CB_Network c rs (TotalPower v))) q vl = STR ''The total power is '' + fmtu q u_W
+     + STR '' (P = Vs x I = Vs^2/Req; Vs = '' + fmtu (cv v) u_V + STR '', Req = '' + fmtu (network_r c rs) u_ohm + STR ''; ideal passive network).''"
+| "exact_text (C_Circ (CB_Divider vin r1 r2)) q vl = STR ''The divider output is '' + fmtu q u_V
+     + STR '' (Vout = Vin x Rbottom/(Rtop+Rbottom); Vin = '' + fmtu (cv vin) u_V
+     + STR '', Rtop = '' + fmtu (cv r1) u_ohm + STR '', Rbottom = '' + fmtu (cv r2) u_ohm + STR '' to ground).''"
+| "exact_text (C_Circ (CB_Rc r c)) q vl = STR ''The RC time constant is '' + fmtu q u_s
      + STR '' (tau = R x C = '' + fmtu (cv r) u_ohm + STR '' x '' + fmtu (cv c) u_F + STR '').''"
-| "exact_text (C_Circ res rall (CB_Led vs i)) q vl = STR ''Use about '' + fmtu q u_ohm + STR '' (R = (Vs - Vf)/I = (''
-     + fmtu (lmax (map cv vs)) u_V + STR '' - '' + fmtu (lmin (map cv vs)) u_V + STR '')/'' + fmtu (cv i) u_A
-     + STR ''); pick the next standard value up.''"
-| "exact_text (C_Circ res rall (CB_Cur v r w)) q vl = STR ''The current is '' + fmtu q u_A
+| "exact_text (C_Circ (CB_Led vs vf i)) q vl = STR ''Use about '' + fmtu q u_ohm + STR '' (R = (Vs - Vf)/I = (''
+     + fmtu (cv vs) u_V + STR '' - '' + fmtu (cv vf) u_V + STR '')/'' + fmtu (cv i) u_A
+     + STR ''); forward-biased constant-drop LED model; pick the next standard value up.''"
+| "exact_text (C_Circ (CB_Cur v r w)) q vl = STR ''The current is '' + fmtu q u_A
      + (if hs (ocv v) \<and> nz (ocv r) then STR '' (I = V/R = '' + fmtu (ov (ocv v)) u_V + STR '' / '' + fmtu (ov (ocv r)) u_ohm + STR '').''
         else STR '' (I = P/V = '' + fmtu (ov (ocv w)) u_W + STR '' / '' + fmtu (ov (ocv v)) u_V + STR '').'')"
-| "exact_text (C_Circ res rall (CB_Volt a r w)) q vl = STR ''The voltage is '' + fmtu q u_V
+| "exact_text (C_Circ (CB_Volt a r w)) q vl = STR ''The voltage is '' + fmtu q u_V
      + (if hs (ocv a) \<and> hs (ocv r) then STR '' (V = I x R = '' + fmtu (ov (ocv a)) u_A + STR '' x '' + fmtu (ov (ocv r)) u_ohm + STR '').''
         else STR '' (V = P/I = '' + fmtu (ov (ocv w)) u_W + STR '' / '' + fmtu (ov (ocv a)) u_A + STR '').'')"
-| "exact_text (C_Circ res rall (CB_Res v a)) q vl = STR ''The resistance is '' + fmtu q u_ohm
+| "exact_text (C_Circ (CB_Res v a)) q vl = STR ''The resistance is '' + fmtu q u_ohm
      + STR '' (R = V/I = '' + fmtu (ov (ocv v)) u_V + STR '' / '' + fmtu (ov (ocv a)) u_A + STR '').''"
-| "exact_text (C_Circ res rall (CB_Pow v a r)) q vl = STR ''The power is '' + fmtu q u_W
+| "exact_text (C_Circ (CB_Pow v a r)) q vl = STR ''The power is '' + fmtu q u_W
      + (if hs (ocv v) \<and> hs (ocv a) then STR '' (P = V x I = '' + fmtu (ov (ocv v)) u_V + STR '' x '' + fmtu (ov (ocv a)) u_A + STR '').''
         else if hs (ocv a) \<and> hs (ocv r) then STR '' (P = I^2 R = ('' + show6 (ov (ocv a)) + STR '' A)^2 x '' + fmtu (ov (ocv r)) u_ohm + STR '').''
         else STR '' (P = V^2/R = '' + fmtu (ov (ocv v)) u_V + STR ''^2 / '' + fmtu (ov (ocv r)) u_ohm + STR '').'')"
@@ -923,6 +960,7 @@ definition need_text :: "need \<Rightarrow> String.literal" where
    | N_c_current \<Rightarrow> STR ''I need a voltage and a resistance (or power and voltage) to compute that; I won'' + apos + STR ''t assume the missing value.''
    | N_c_voltage \<Rightarrow> STR ''I need a current and a resistance (or power and current) to compute that; I won'' + apos + STR ''t assume the missing value.''
    | N_c_resistance \<Rightarrow> STR ''I need a voltage and a current to compute that; I won'' + apos + STR ''t assume the missing value.''
+   | N_c_network \<Rightarrow> STR ''I need a nonempty list of resistors and a definite series or parallel connection.''
    | N_c_power \<Rightarrow> STR ''I need two of voltage, current and resistance to compute that; I won'' + apos + STR ''t assume the missing value.''
    | N_w_vdrop \<Rightarrow> STR ''I need the wire gauge (AWG), the current and the one-way run length to work that out; I won'' + apos + STR ''t assume it.''
    | N_o_focal \<Rightarrow> STR ''I need a focal length with its unit to compute that; I won'' + apos + STR ''t assume it.''
@@ -938,9 +976,10 @@ definition reason_text :: "reason \<Rightarrow> String.literal" where
    | R_pf_range \<Rightarrow> STR ''A power factor must be between 0 and 1.''
    | R_turns \<Rightarrow> STR ''A transformer winding needs a nonzero number of turns.''
    | R_zero_div \<Rightarrow> STR ''That would divide by zero, so there'' + apos + STR ''s no finite answer.''
-   | R_resistor \<Rightarrow> STR ''A resistance of zero or less isn'' + apos + STR ''t a real resistor value, so I won'' + apos + STR ''t compute a current from it.''
+   | R_c_inconsistent \<Rightarrow> STR ''The stated voltage, current, resistance or power values do not satisfy the same ideal circuit equations.''
+   | R_resistor \<Rightarrow> STR ''This passive-resistor model requires strictly positive resistance.''
    | R_capacitor \<Rightarrow> STR ''The passive RC model requires a positive capacitance.''
-   | R_led \<Rightarrow> STR ''The supply isn'' + apos + STR ''t above the LED'' + apos + STR ''s forward voltage, so no series resistor can set that current.''
+   | R_led \<Rightarrow> STR ''This forward-biased LED model requires positive current and forward voltage, with supply above the forward voltage.''
    | R_wavelength \<Rightarrow> STR ''A wavelength must be positive.''
    | R_frequency \<Rightarrow> STR ''A frequency must be positive.''
    | R_focal_zero \<Rightarrow> STR ''A focal length of zero has no finite power.''
@@ -1162,7 +1201,7 @@ theorem power_factor_never_assumed:
 subsection \<open>Electronics\<close>
 
 theorem ohm_law:
-  assumes "kernel (C_Circ res rall (CB_Cur (Some v) (Some r) w)) = Exact k i" "cv r \<noteq> 0"
+  assumes "kernel (C_Circ (CB_Cur (Some v) (Some r) w)) = Exact k i" "cv r \<noteq> 0"
   shows "i * cv r = cv v"
 proof -
   have "i = cv v / cv r" using kernel_exact_sound[OF assms(1)] assms(2) by simp
@@ -1170,60 +1209,153 @@ proof -
 qed
 
 theorem power_is_vi:
-  assumes "kernel (C_Circ res rall (CB_Pow (Some v) (Some a) r)) = Exact k y"
+  assumes "kernel (C_Circ (CB_Pow (Some v) (Some a) r)) = Exact k y"
   shows "y = cv v * cv a"
   using kernel_exact_sound[OF assms] by simp
 
 theorem parallel_reciprocal:
-  assumes "kernel (C_Circ res rall (CB_Parallel rs)) = Exact k t"
+  assumes "kernel (C_Circ (CB_Network Parallel rs EquivalentResistance)) = Exact k t"
   shows "1 / t = sum_list (map (\<lambda>r. 1 / cv r) rs)"
   using kernel_exact_sound[OF assms] by (simp add: divide_inverse)
 
 theorem series_sum:
-  assumes "kernel (C_Circ res rall (CB_Series rs)) = Exact k t"
+  assumes "kernel (C_Circ (CB_Network Series rs EquivalentResistance)) = Exact k t"
   shows "t = sum_list (map cv rs)"
   using kernel_exact_sound[OF assms] by simp
 
 theorem divider_ratio:
-  assumes "kernel (C_Circ res rall (CB_Divider vin r1 r2)) = Exact k y"
+  assumes "kernel (C_Circ (CB_Divider vin r1 r2)) = Exact k y"
   shows "y * (cv r1 + cv r2) = cv vin * cv r2"
 proof -
-  have p: "pre (C_Circ res rall (CB_Divider vin r1 r2)) = None" and q: "y = cv vin * cv r2 / (cv r1 + cv r2)"
+  have p: "pre (C_Circ (CB_Divider vin r1 r2)) = None" and q: "y = cv vin * cv r2 / (cv r1 + cv r2)"
     using kernel_exact_sound[OF assms] by simp_all
-  have s0: "cv r1 + cv r2 \<noteq> 0" using p by (auto split: if_splits)
+  have rp: "0 < cv r1" "0 < cv r2" using p by (auto split: if_splits)
+  have s0: "cv r1 + cv r2 \<noteq> 0" using rp by linarith
   show ?thesis using q s0 by simp
 qed
 
 theorem rc_time_constant:
-  assumes "kernel (C_Circ res rall (CB_Rc r c)) = Exact k y"
+  assumes "kernel (C_Circ (CB_Rc r c)) = Exact k y"
   shows "y = cv r * cv c"
   using kernel_exact_sound[OF assms] by simp
 
 theorem led_resistor:
-  assumes "kernel (C_Circ res rall (CB_Led vs i)) = Exact k y"
-  shows "y * cv i = lmax (map cv vs) - lmin (map cv vs) \<and> 0 < y"
+  assumes "kernel (C_Circ (CB_Led vs vf i)) = Exact k y"
+  shows "y * cv i = cv vs - cv vf \<and> 0 < y \<and> 0 < cv i \<and> 0 < cv vf \<and> cv vf < cv vs"
 proof -
-  have p: "pre (C_Circ res rall (CB_Led vs i)) = None" and q: "y = (lmax (map cv vs) - lmin (map cv vs)) / cv i"
+  have p: "pre (C_Circ (CB_Led vs vf i)) = None" and q: "y = (cv vs - cv vf) / cv i"
     using kernel_exact_sound[OF assms] by simp_all
-  have s0: "cv i \<noteq> 0" and s1: "\<not> (lmax (map cv vs) - lmin (map cv vs)) / cv i \<le> 0"
+  have ip: "0 < cv i" and fp: "0 < cv vf" and sp: "cv vf < cv vs"
     using p by (auto split: if_splits)
-  show ?thesis using q s0 s1 by simp
+  show ?thesis using q ip fp sp by (auto simp: divide_pos_pos)
 qed
 
 theorem zero_resistor_declined:
-  assumes "list_ex (\<lambda>r. cv r \<le> 0) rall"
-  shows "kernel (C_Circ True rall b) = Decline (Impossible R_resistor)"
+  assumes "list_ex (\<lambda>r. cv r \<le> 0) (body_resistors b)"
+  shows "kernel (C_Circ b) = Decline (Impossible R_resistor)"
   using assms by (simp add: kernel_def)
 
-
-text \<open>The outer resistor list is supplied by the recognizer. A parallel
-body also checks its own branches, so no coverage premise is silently assumed.\<close>
 theorem resistor_decline_exact:
-  "kernel (C_Circ True rall b) = Decline (Impossible R_resistor) \<longleftrightarrow>
-   list_ex (\<lambda>r. cv r \<le> 0) rall \<or>
-   (\<exists>rs. (b = CB_Parallel rs \<or> b = CB_Series rs) \<and> list_ex (\<lambda>r. cv r \<le> 0) rs) \<or>
-   (\<exists>r c. b = CB_Rc r c \<and> cv r \<le> 0)"
+  "kernel (C_Circ b) = Decline (Impossible R_resistor) \<longleftrightarrow>
+   list_ex (\<lambda>r. cv r \<le> 0) (body_resistors b)"
   by (cases b; auto simp: kernel_impossible reason_of_def split: if_splits option.splits)
+
+theorem circuit_resistor_domain:
+  assumes "kernel (C_Circ b) = Exact k y"
+  shows "list_all (\<lambda>r. 0 < cv r) (body_resistors b)"
+  using kernel_exact_sound[OF assms] by (auto simp: list_all_iff list_ex_iff split: if_splits)
+
+lemma positive_sum_map:
+  fixes f :: "'a \<Rightarrow> rat"
+  assumes "xs \<noteq> []" "list_all (\<lambda>x. 0 < f x) xs"
+  shows "0 < sum_list (map f xs)"
+proof -
+  obtain x ys where xs: "xs = x # ys" using assms(1) by (cases xs) auto
+  have xp: "0 < f x" using assms(2) xs by simp
+  have nonneg: "0 \<le> sum_list (map f ys)"
+    by (rule sum_list_nonneg) (use assms(2) xs in \<open>auto simp: list_all_iff\<close>)
+  show ?thesis using xs xp nonneg by simp
+qed
+
+lemma network_r_positive:
+  assumes "rs \<noteq> []" "list_all (\<lambda>r. 0 < cv r) rs"
+  shows "0 < network_r c rs"
+proof (cases c)
+  case Series
+  then show ?thesis using positive_sum_map[OF assms] by simp
+next
+  case Parallel
+  have recip_pos: "list_all (\<lambda>r. 0 < 1 / cv r) rs" using assms(2) by (simp add: list_all_iff)
+  have "0 < sum_list (map (\<lambda>r. 1 / cv r) rs)"
+    by (rule positive_sum_map[OF assms(1) recip_pos])
+  then show ?thesis using Parallel by simp
+qed
+
+theorem network_answer_domain:
+  assumes "kernel (C_Circ (CB_Network c rs t)) = Exact k y"
+  shows "rs \<noteq> [] \<and> list_all (\<lambda>r. 0 < cv r) rs \<and> 0 < network_r c rs"
+proof -
+  have p: "pre (C_Circ (CB_Network c rs t)) = None" using kernel_exact_sound[OF assms] by simp
+  have nonempty: "rs \<noteq> []" using p by (auto split: if_splits)
+  have positive: "list_all (\<lambda>r. 0 < cv r) rs" using circuit_resistor_domain[OF assms] by simp
+  show ?thesis using nonempty positive network_r_positive[OF nonempty positive] by blast
+qed
+
+theorem network_current_conservation:
+  assumes "kernel (C_Circ (CB_Network c rs (SourceCurrent v))) = Exact k i"
+  shows "i * network_r c rs = cv v"
+proof -
+  have q: "i = cv v / network_r c rs" using kernel_exact_sound[OF assms] by simp
+  have "0 < network_r c rs" using network_answer_domain[OF assms] by blast
+  then show ?thesis using q by simp
+qed
+
+theorem network_power_conservation:
+  assumes "kernel (C_Circ (CB_Network c rs (SourceCurrent v))) = Exact ki i"
+      and "kernel (C_Circ (CB_Network c rs (TotalPower v))) = Exact kp p"
+  shows "p = cv v * i \<and> p = i * i * network_r c rs \<and> 0 \<le> p"
+proof -
+  have iq: "i = cv v / network_r c rs" using kernel_exact_sound[OF assms(1)] by simp
+  have pq: "p = cv v * (cv v / network_r c rs)" using kernel_exact_sound[OF assms(2)] by simp
+  have ohm: "i * network_r c rs = cv v" using network_current_conservation[OF assms(1)] .
+  have pos: "0 < network_r c rs" using network_answer_domain[OF assms(1)] by blast
+  have vi: "p = cv v * i" using iq pq by simp
+  have energy: "p = i * i * network_r c rs"
+  proof -
+    have "p = (i * network_r c rs) * i" using vi ohm by simp
+    then show ?thesis by (simp add: algebra_simps)
+  qed
+  have square: "0 \<le> i * i" by (rule zero_le_square)
+  have nonneg: "0 \<le> i * i * network_r c rs"
+    by (rule mult_nonneg_nonneg[OF square less_imp_le[OF pos]])
+  show ?thesis using vi energy nonneg by simp
+qed
+
+theorem divider_passive_bounds:
+  assumes "kernel (C_Circ (CB_Divider vin rtop rbottom)) = Exact k y"
+  shows "min 0 (cv vin) \<le> y \<and> y \<le> max 0 (cv vin)"
+proof -
+  have positive: "0 < cv rtop" "0 < cv rbottom" using circuit_resistor_domain[OF assms] by simp_all
+  have denom: "0 < cv rtop + cv rbottom" using positive by linarith
+  have ratio: "y = cv vin * cv rbottom / (cv rtop + cv rbottom)" using kernel_exact_sound[OF assms] by simp
+  let ?a = "cv rbottom / (cv rtop + cv rbottom)"
+  have apos: "0 \<le> ?a" using positive denom by simp
+  have aone: "?a \<le> 1" using positive denom by (simp add: divide_le_eq)
+  have y: "y = cv vin * ?a" using ratio by simp
+  show ?thesis
+  proof (cases "0 \<le> cv vin")
+    case True
+    have low: "0 \<le> cv vin * ?a" by (rule mult_nonneg_nonneg[OF True apos])
+    have high: "cv vin * ?a \<le> cv vin * 1" by (rule mult_left_mono[OF aone True])
+    show ?thesis using low high True y by simp
+  next
+    case False
+    then have vn: "cv vin \<le> 0" by simp
+    have low: "cv vin * 1 \<le> cv vin * ?a" by (rule mult_left_mono_neg[OF aone vn])
+    have high: "cv vin * ?a \<le> 0" by (rule mult_nonpos_nonneg[OF vn apos])
+    show ?thesis using low high vn y by simp
+  qed
+qed
 
 lemma parallel_branch_bound:
   assumes positive: "list_all (\<lambda>r. 0 < cv r) rs" and member: "r \<in> set rs"
@@ -1243,7 +1375,7 @@ lemma lower_bound_lmin:
   using assms by (induction xs rule: lmin.induct) auto
 
 theorem parallel_below_smallest:
-  assumes "kernel (C_Circ res rall (CB_Parallel rs)) = Exact k t"
+  assumes "kernel (C_Circ (CB_Network Parallel rs EquivalentResistance)) = Exact k t"
     "rs \<noteq> []" "list_all (\<lambda>r. 0 < cv r) rs"
   shows "t \<le> lmin (map cv rs)"
 proof -

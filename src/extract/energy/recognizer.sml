@@ -176,8 +176,15 @@ struct
       val tms = List.map (fn m => (gq low m, tunit (valOf (grp low m 2)))) (findall TEMP_RX low)
       val tl = List.map (fn (v, u) => E.Temp (mk v, u)) tms
       fun req q = SOME (E.FThermo (E.Thermo (tl, q)))
+      (* Fuel combustion, heating values and useful delivered heat describe
+         different operations from sensible/latent material heating. Explicit supported model names
+         can still select their own thermodynamic equations. *)
+      val fuelProcess = has "\\b(?:burn(?:ing|ed|t|s)?|combust(?:ion|ing|ed|s)?|calorific|heating values?|hhv|lhv|heat of combustion)\\b" low
+      val deliveredHeat = has "\\b(?:useful|usable|delivered)\\s+(?:heat|thermal energy)\\b" low
+      val namedModel = has "\\bcarnot\\b|\\bideal (?:heat )?engine\\b|\\bideal gas\\b|\\bpv ?= ?nrt\\b|\\bstefan|\\bblack ?body\\b|\\bradiat\\w* power\\b|\\bpower radiated\\b" low
     in
-      if List.exists below tms then
+      if (fuelProcess orelse deliveredHeat) andalso not namedModel then NONE
+      else if List.exists below tms then
         (if thermoTrigger low then req E.TAny else NONE)
       else if has "\\bcarnot\\b|\\bmaximum (?:theoretical )?efficiency\\b|\\bideal (?:heat )?engine\\b" low then
         let val hotFirst = not (has "\\bcold\\b[^.?]*\\bhot\\b" low) orelse has "\\bhot\\b[^.?]*\\bcold\\b" low

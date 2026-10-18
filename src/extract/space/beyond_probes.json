@@ -1,5 +1,5 @@
 {
-  "disclosure": "Author-written probes; formula references are existing checked models, not independent linguistic validation.",
+  "disclosure": "Author-written probes; formula references are existing checked models, not independent linguistic validation. The legacy valid flag means expected reader answer, not mathematical validity. semantic_category separates safe policy refusal from capability credit; valid_outside_reader cases count as withheld_valid.",
   "probes": [
     {
       "specialist": "astronomy",
@@ -7,7 +7,8 @@
       "valid": true,
       "expect": 0.24093086926762491,
       "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "astronomy-v2",
@@ -15,7 +16,8 @@
       "valid": true,
       "expect": 0.002565858798735511,
       "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "astronomy-v3",
@@ -23,7 +25,8 @@
       "valid": true,
       "expect": 0.9998631074606433,
       "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "astronomy",
@@ -31,7 +34,8 @@
       "valid": true,
       "expect": 0.047745098039215686,
       "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -39,7 +43,8 @@
       "valid": true,
       "expect": 11.2,
       "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -47,7 +52,8 @@
       "valid": true,
       "expect": 12.675435617529779,
       "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "spacecraft",
@@ -55,7 +61,8 @@
       "valid": true,
       "expect": 3059.6748,
       "source": "Space.thy: exhaust_model, propellant_initial_model; ideal rocket with constant exhaust speed",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "spacecraft",
@@ -63,7 +70,8 @@
       "valid": true,
       "expect": 2033.7504656168826,
       "source": "Space.thy: exhaust_model, propellant_initial_model; ideal rocket with constant exhaust speed",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "spacecraft",
@@ -71,7 +79,8 @@
       "valid": true,
       "expect": 1010.9761225895095,
       "source": "Space.thy: exhaust_model, propellant_initial_model; ideal rocket with constant exhaust speed",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "orbits",
@@ -79,7 +88,8 @@
       "valid": true,
       "expect": 5.0220933535638235,
       "source": "Space_Tables.thy: Mars mu=42828.37 km3/s2 r=3396.19 km; Space.thy orbit_escape_model",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "orbits",
@@ -87,7 +97,8 @@
       "valid": false,
       "expect": null,
       "source": "Satellite speed requires altitude/radius; heliocentric Mars speed is a different quantity.",
-      "kind": null
+      "kind": null,
+      "semantic_category": "underspecified"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -95,7 +106,8 @@
       "valid": false,
       "expect": null,
       "source": "NASA snapshot marks surface pressure unknown.",
-      "kind": null
+      "kind": null,
+      "semantic_category": "underspecified"
     },
     {
       "specialist": "spacecomms",
@@ -103,7 +115,8 @@
       "valid": true,
       "expect": 1.0006922855944562,
       "source": "Space.thy: light_time_model (seconds)",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "spacecomms",
@@ -111,7 +124,8 @@
       "valid": true,
       "expect": 20.013845711889125,
       "source": "Space.thy: light_time_model (seconds)",
-      "kind": null
+      "kind": null,
+      "semantic_category": "answerable"
     },
     {
       "specialist": "spacecraft",
@@ -119,7 +133,8 @@
       "valid": false,
       "expect": null,
       "source": "Final mass exceeds initial mass; ideal rocket decline.",
-      "kind": null
+      "kind": null,
+      "semantic_category": "invalid_domain"
     },
     {
       "specialist": "orbits",
@@ -127,7 +142,8 @@
       "valid": false,
       "expect": null,
       "source": "Space.thy no-sync model for Venus; no supported synchronous orbit.",
-      "kind": null
+      "kind": null,
+      "semantic_category": "scope_refusal"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -135,7 +151,8 @@
       "valid": false,
       "expect": null,
       "source": "NASA kg-equivalent weight must not answer force in newtons; mechanics owns this.",
-      "kind": null
+      "kind": null,
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -143,7 +160,8 @@
       "valid": false,
       "expect": null,
       "source": "Mercury here is the fluid, not the planet; mechanics owns this.",
-      "kind": null
+      "kind": null,
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -151,7 +169,8 @@
       "valid": false,
       "expect": null,
       "source": "Fluid pressure is outside planetary table interpretation.",
-      "kind": null
+      "kind": null,
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "spacecraft",
@@ -159,7 +178,8 @@
       "valid": false,
       "expect": null,
       "source": "Ideal rocket propellant amount requires initial or final mass.",
-      "kind": null
+      "kind": null,
+      "semantic_category": "underspecified"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -167,7 +187,8 @@
       "valid": true,
       "expect": 365.2,
       "kind": "orbital_period",
-      "source": "Space_Tables.thy NASA orbital period; wording supplied independently by physical deputy after initial packet."
+      "source": "Space_Tables.thy NASA orbital period; wording supplied independently by physical deputy after initial packet.",
+      "semantic_category": "answerable"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -175,7 +196,8 @@
       "valid": false,
       "expect": null,
       "kind": null,
-      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable.",
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -183,7 +205,8 @@
       "valid": false,
       "expect": null,
       "kind": null,
-      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable.",
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -191,7 +214,8 @@
       "valid": false,
       "expect": null,
       "kind": null,
-      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable.",
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -199,7 +223,8 @@
       "valid": false,
       "expect": null,
       "kind": null,
-      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable.",
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -207,7 +232,8 @@
       "valid": false,
       "expect": null,
       "kind": null,
-      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable.",
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -215,7 +241,8 @@
       "valid": false,
       "expect": null,
       "kind": null,
-      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable.",
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -223,7 +250,8 @@
       "valid": false,
       "expect": null,
       "kind": null,
-      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable."
+      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable.",
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -231,7 +259,8 @@
       "valid": false,
       "expect": null,
       "kind": null,
-      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable."
+      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable.",
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -239,7 +268,8 @@
       "valid": false,
       "expect": null,
       "kind": null,
-      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable."
+      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable.",
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -247,7 +277,8 @@
       "valid": false,
       "expect": null,
       "kind": null,
-      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable."
+      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable.",
+      "semantic_category": "valid_outside_reader"
     },
     {
       "specialist": "astronomy-v3-r2",
@@ -255,7 +286,242 @@
       "valid": true,
       "expect": 151.0204081632653,
       "kind": "weight",
-      "source": "Space_Tables.thy: NASA kg-equivalent weight with Mars g3.7/Earth g9.8; lowercase n is a label, not the SI newton symbol."
+      "source": "Space_Tables.thy: NASA kg-equivalent weight with Mars g3.7/Earth g9.8; lowercase n is a label, not the SI newton symbol.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long does a light signal take to travel 299792458 m?",
+      "valid": true,
+      "expect": 1,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long does a light signal take to travel -300000 km?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long does a light signal take to travel 0 km?",
+      "valid": true,
+      "expect": 0,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long does a round-trip radio signal take across 149896229 m?",
+      "valid": true,
+      "expect": 1,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How many bits in flight on a 1 bps link across 149896.229 km?",
+      "valid": true,
+      "expect": 0.5,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How many bits in flight on a -1 bps link across 149896.229 km?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How many bits in flight on a 0 bps link across 149896.229 km?",
+      "valid": true,
+      "expect": 0,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long to downlink -1 MB at 1 Mbps?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long to downlink 0 MB at 1 Mbps?",
+      "valid": true,
+      "expect": 0,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long to downlink 0.5 MB at 1 Mbps?",
+      "valid": true,
+      "expect": 4,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long to downlink 0.5 bits at 1 bps?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "What exhaust velocity corresponds to a specific impulse of -300 s?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "What exhaust velocity corresponds to a specific impulse of 0 s?",
+      "valid": true,
+      "expect": 0,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "What is the thrust-to-weight ratio of a rocket with -100 kN thrust and initial mass 5000 kg?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "What is the mass flow of a rocket with -100 kN thrust and Isp 300 s?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "What is the burn time of a rocket with 100 kN thrust, Isp 300 s and -100 kg propellant?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "What is the burn time of a rocket with 100 kN thrust, Isp 300 s and 0 kg propellant?",
+      "valid": true,
+      "expect": 0,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "planetary",
+      "q": "What is the surface gravity of a planet with mass -5.972e24 kg and radius 6371000 m?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "planetary",
+      "q": "What is the surface gravity of a planet with mass 5.972 x 10^24 kg and radius 6371000 m?",
+      "valid": true,
+      "expect": 9.819532032815959,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "planetary",
+      "q": "What is the surface gravity of a planet with mass 5.972 x 10^24.5 kg and radius 6371000 m?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "valid_outside_reader"
+    },
+    {
+      "specialist": "planetary",
+      "q": "What is the surface gravity of a planet with mass QNUM0Q kg and radius 6371000 m?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "malformed_input"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the orbital speed of a satellite 400000 m above Earth?",
+      "valid": true,
+      "expect": 7.668558175407055,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the orbital speed of a satellite -7000 km above Earth?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "What would a -75 kg person weigh on Mars?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Space.thy: physical_domain, exact unit dkm, light_time_accepted/transfer_accepted/bits_in_flight_accepted, spacecraft magnitudes and inherited orbital radius/planetary positivity. Structured numerals bind complete shared tokens.",
+      "semantic_category": "invalid_domain"
+    },
+    {
+      "specialist": "orbits",
+      "q": "A satellite circles Earth at 7800 m/s. What is its orbital speed?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Dimensional role check: a speed in m/s or km/s supplies neither orbit altitude nor light path distance.",
+      "semantic_category": "valid_outside_reader"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long does a light signal traveling at 300000 km/s take?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Dimensional role check: a speed in m/s or km/s supplies neither orbit altitude nor light path distance.",
+      "semantic_category": "underspecified"
     }
   ]
 }

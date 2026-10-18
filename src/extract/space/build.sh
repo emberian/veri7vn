@@ -50,9 +50,11 @@ cat > "$OUT/build/space.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 space_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/space" "$OUT/build/space.mlb"
+python3 "$REPO/tools/dev/native-compile" --family space --compiler "$MLTON" -- \
+  -output "$OUT/bin/space" "$OUT/build/space.mlb"
 ls -l "$OUT/bin/space"
-shasum -a 256 "$OUT/build/space_generated.sml" "$OUT/bin/space"
+shasum -a 256 "$OUT/bin/space"

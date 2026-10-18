@@ -127,3 +127,14 @@ guard. The reader binds interval wording to the stated quantity and refuses
 unbound multiple endpoints or unsupported unit suffixes. See
 `project/lanes/C-physical-quantity-conditions.md` for proofs, scoped scores and
 remaining explicit-condition work.
+
+## Explicit physical conditions
+
+Hydrostatic requests can supply density, gravity and absolute surface pressure.
+The shared measurement reader preserves each number and unit span; HOL converts
+and checks the supplied quantities. Useful delivered fuel heat and its inverse
+fuel mass use a separate bounded delivery efficiency. Stated moisture, reference
+state changes and unread model conditions yield `unsupported_model` rather than
+silently reusing defaults. Existing constructors remain available to Fusion.
+See [the model-input report](../../../project/lanes/C-physical-quantity-model-inputs.md)
+for exact laws, scorer totals, bound native manifests and remaining capabilities.

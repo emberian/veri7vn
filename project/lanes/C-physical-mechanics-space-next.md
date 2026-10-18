@@ -5,8 +5,8 @@ C-physical-mechanics-space.md. Runtime captured the first Mechanics packet
 and released its paths; Space was still frozen at that point. The initial source review and
 executable counterexamples below use those first-packet final binaries.
 Mechanics next packet is complete through local runtime composition; its
-final results are below. Space has reopened as a separate packet and its proof
-is queued. The original completion report remains unchanged. The completed shipped panels
+final results are below. Space has completed its separate signed/unit domain packet;
+its final proof and native results are below. The original completion report remains unchanged. The completed shipped panels
 remain mechanics 1,264/1,264 and space 1,185/1,185 pinned, zero wrong or false
 yes. These panels do not establish completeness outside their templates.
 
@@ -315,12 +315,20 @@ those other categories in both modes.
 | fleet | 54/54 | 54/54 | 0.145 | 0.475 |
 | fluids-r2 | 34/34 | 34/34 | 0.174 | 0.172 |
 
-Final authored probes: **54/54 in both modes**, covering supported mixed
+Final authored policy checks: **54/54 in both modes**, covering supported mixed
 lengths, genuinely unitless ratios, unsupported explicit units, directed
 signs, invalid magnitudes and counts, complete numeric tokens, structured
 sports records, price slashes, and the three valid zero cases. The original
 first-packet binary scored 26/44 before the final ten probes were added;
-that narrower baseline is not presented as a 54-case measurement.
+that narrower baseline is not presented as a 54-case measurement. The legacy
+probe `valid` field specifies whether this reader is expected to answer; it
+is not a mathematical validity judgment. Auditing saved final replies gives
+36 correct answers, 16 appropriate invalid/underspecified refusals, and two
+valid but unsupported requests withheld (yards/miles and a separated negative
+sign in `- 40 N`). Thus capability accounting is **52 right, zero wrong or
+false yes, two valid withheld**; the policy-check total does not erase those
+limits. Shipped and untouched-seed counts above use their own scorers and are
+unchanged.
 
 Untouched seed **20261115**: **1,159/1,159**, zero wrong, false yes or valid
 withheld across all eight available generators; the shipped organs score
@@ -342,6 +350,13 @@ Receipts:
 - `var/c-physical-mechanics-space/next/consumer.json`
 - `var/mechanics/remote-attempts/20261018T073841Z-22e7331c1a05/receipt.json`
 - `var/mechanics/native-attempts/20261018T075816Z-4eda2cb20c36/compile-inputs.json`
+
+Independent parent validation also passes 12/12 through the physical fleet
+and 12/12 in the family-only check. Receipt:
+`var/c-physical-integration/mechanics-d-consumer.json`. A sibling statistics
+refusal initially intercepted fractional batting hits; its scope was repaired,
+and the final run retains the sports `impossible` refusal. Mechanics needed
+no source change.
 
 Mechanics files for integration: `Mechanics.thy`, `Mechanics_Export.thy`,
 `recognizer.sml`, `main.sml`, `build.sh`, `README.md`, `beyond_probes.json`,
@@ -377,12 +392,125 @@ The previously unconditional light-time and bits-in-flight acceptance laws
 have explicit domain premises. New proposed accepted-output consequences bind
 nonnegative time to `time*c = path` (or twice the path for round trips),
 nonnegative transfer time to `time*rate = payload_bits`, and nonnegative
-in-flight occupancy to `bits*c = rate*path`. None is claimed proved yet.
+in-flight occupancy to `bits*c = rate*path`. These statements passed in the final Space receipt below.
 
-Space proof attempt `20261018T075720Z-869604bca375` is queued on persvati.
+Space proof attempt `20261018T075720Z-869604bca375` failed on four proof-script
+obligations and published no export: two unfoldings of the optional-distance
+definition, construction of a nonnegative product, and instantiation of the
+generic accepted-domain consequence. The same statements with those repairs
+were retried on persvati as `20261018T080652Z-149fdaaa01d9`. That attempt
+identified two remaining proof-script steps: deriving a nonnegative prefix
+from strict positivity and splitting the domain conditional. Both have been
+made explicit, with unchanged statements; third attempt
+`20261018T081456Z-e98c8a113a24` then isolated one remaining cancellation
+step in transfer time. Explicit nonzero denominator factors are now supplied
+in `20261018T082658Z-59753e9d3279`; the model statements are unchanged.
+
 The recognizer type-checks using a compile-only signature bridge that is not
-executed and provides no numerical evidence. Development probes currently
-number 56; the first packet scores 42/56 in both modes. Reserved seed
-20261117 is generated and unopened (orbits and spacecomms have no generators).
+executed and provides no numerical evidence. A separate compiled lexical
+harness passes 10 controls against the actual shared module. Development
+probes currently number 58; the first packet scored 42/56 before the two new
+speed-versus-length controls were added. Reserved seed 20261117 is generated
+and unopened (orbits and spacecomms have no generators).
 Table output-unit conversion and adaptive interval precision remain separate
 work; this packet does not claim them.
+
+The Space development generator sample 20261116 scores 1,047/1,047 on the
+first-packet binary, with zero wrong, false yes or valid withheld; the reserved
+20261117 sample was subsequently opened after the parser freeze and also passed. Authored Space probes now record a separate
+semantic category: 25 answerable requests, 15 mathematically valid requests
+outside this reader, 12 domain-invalid requests, four underspecified requests,
+one scope refusal and one malformed-input control. Refusing the 15 valid
+outside-reader cases is a policy success but a capability withholding.
+
+## Next performance and unit work
+
+A scratch-only adaptive precision experiment wraps the existing enclosure
+check: try 32 bits, then use 80 bits whenever the checked decimal cannot be
+established. Modified generated SML is explicitly untrusted experimental code;
+it is not a published export or a proof result. On the first-packet parser,
+it preserves 1,185/1,185 pinned and the same 1,183/1,185 family result (two
+scope false yes, zero numeric wrong or valid withheld). Pinned orbit p50 is
+1.673 ms and spacecraft p50 1.513 ms; every measured family/pinned p50 falls
+below 5 ms. Receipt: `next/adaptive/score32.json` under this lane's scratch
+folder. A real implementation must add a HOL wrapper whose successful branch
+inherits `enclose_sound` for whichever precision passed; its fallback must
+retain the 80-bit cases. It follows the current domain packet.
+
+Mechanics' next unit gap is shared across physics and bodies: both still bind
+only kg. A coherent extension would introduce an exact typed mass scale for
+gram/kg/tonne/lb, apply it to every mass-bearing physics/body constructor, and
+state the accepted-output equation against the original magnitude and unit.
+Adding units only to one English spelling would leave the same model
+inconsistent across wrappers. Yard/mile geometry can extend the existing
+positive length-scale datatype; negative directed force/velocity remains
+separate from mass-domain validation. No such source edit or theorem is
+claimed by the completed Mechanics D packet.
+
+## Space D ready: signed domains and declared lengths
+
+Proof attempt `20261018T082658Z-59753e9d3279` passed the actual Space target,
+with **108 listed theorems, zero oracles**, a 48.161 s session, and build-time
+self tests. It proves the new accepted-domain consequence and the three
+nonnegative communications balance statements described above. Earlier failed
+attempts did not publish exports. The final generated SML is
+`122aaac664d01ea83fffe8a31f83eae5d3168aa127db75b9d09faf9ae00516d2`.
+
+The bound native binary is `var/space/bin/space`, SHA256
+`d05c210ee4491985215c0ff717f89497d7292f97a4c0638e79f47363b0c2dea7`,
+775,640 bytes. Actual compiler inputs, including shared numeric
+`2f313c77fadce09298f0387599e630b04a6551e800f52b6c79a88468b2cc046d`, are captured
+in `var/space/native-attempts/20261018T083128Z-c4fb9f7098a7/compile-inputs.json`.
+The helper confirms current proof closure matches the passed receipt.
+
+Shipped panels remain **1,185/1,185 pinned**, zero wrong, false yes or valid
+withheld. Family mode remains **1,183/1,185**, zero numeric wrong/valid withheld,
+and the same two previously disclosed scope false yes from planetary panel
+questions that the astronomy reader can legitimately answer. This packet does
+not erase that panel-versus-family scope distinction.
+
+Authored policy controls pass **58/58 in both modes**. Their semantic categories
+are explicit: 25 correct answers, 18 appropriate domain/underspecified/scope/
+malformed refusals, and 15 valid requests outside this reader that are withheld.
+Thus capability accounting is **43 right, zero wrong or false yes, 15 valid
+withheld**. Earlier 42/56 is only the saved policy baseline; two dimensional
+controls were added later. The global consumer can answer several of those
+15 cases through other families, which is why routing them away is useful.
+
+Fresh development seed 20261116 passes **1,047/1,047 before and after**, zero
+wrong, false yes or valid withheld. Untouched seed **20261117** passes
+**1,047/1,047** with those same zero counts; it was generated before tuning
+and first read/scored after the final parser freeze. Orbits and spacecomms
+have no generators. No parser edit followed that evaluation.
+
+Own composed checks pass **12/12 pinned plus 12/12 across the physical fleet**,
+including preservation of `impossible` on negative path/rate/mass and fractional
+file payload, and acceptance of zero light path, fractional average bits in
+flight, metre altitude/path, and positive scientific multiplication syntax.
+
+Measured five cold starts were 85.856, 8.199, 9.514, 6.095 and 7.320 ms; median
+8.199 ms. This includes the first launch and concurrent scoped checks, so it
+is not presented as a controlled speedup over C. Pinned orbit p50 is 8.971 ms
+and spacecraft p50 9.153 ms; these still miss the 5 ms target. Other pinned
+p50 values range 0.155–0.564 ms. The separate adaptive experiment above provides
+a concrete next performance change, but is not in this proof/native packet.
+
+Receipts under `var/c-physical-mechanics-space/next/`:
+
+- `space-shipped-final.json` and `space-probes-final.json`
+- `fresh-space-before/summary.json` and `fresh-space-after/summary.json`
+- `sealed-space/summary.json`
+- `space-consumer.json`
+
+Exact Space files for integration: `Space.thy`, `Space_Export.thy`,
+`recognizer.sml`, `main.sml`, `build.sh`, `README.md`, `beyond_probes.json`,
+`capabilities.json`, all under `src/extract/space/`, plus this report.
+Mechanics E work in progress is a separate packet and must not be staged
+with these files. Space D source is frozen pending integration and capture.
+
+Parent independently verified the actual bound compiler/proof inputs and
+passes 10/10 full-physical consumer cases, including fractional bits in flight,
+0.25 MB scaling, zero payload/Isp, negative rate/propellant refusals, and speed
+not supplying a missing distance. Receipt:
+`var/c-physical-integration/space-d-consumer.json`. Its stateless evaluation
+explicitly disables the runtime's newly added dialogue stage.
