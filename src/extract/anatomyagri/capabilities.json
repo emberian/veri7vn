@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "family": "anatomyagri",
+  "specialists": {
+    "gardening": {
+      "accept": {
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\bbed\\b.*\\b(?:plants?|rows?)\\b|\\b(?:plants?|rows?)\\b.*\\bbed\\b"
+      ],
+      "evidence": {
+        "computation": "Whole rectangular spacing cells: floor(row length in inches / plant spacing) times floor(bed width in inches / row spacing). Proved spacing-cell area does not exceed bed area.",
+        "assumptions": [
+          "One full spacing cell per plant, with no border plants, paths or staggered layout.",
+          "For a nonsquare bed with unequal spacings, the question must name the side along which rows run; otherwise the request declines.",
+          "Dimensions are nonnegative and both spacings are positive."
+        ],
+        "untrusted": [
+          "English recognition, physical dimension and row-role parsing, and JSON framing."
+        ]
+      }
+    },
+    "anatomy": {
+      "context_regex_additions": [
+        "\\bartery\\b"
+      ],
+      "evidence": {
+        "computation": "Lookup in the explicit human anatomy table; no inference about other species or individual medical conditions.",
+        "assumptions": [
+          "The question refers to the table\u2019s standard human anatomy context."
+        ],
+        "untrusted": [
+          "Source facts, English recognition and framing."
+        ]
+      }
+    },
+    "anatomy-r2": {
+      "context_regex_additions": [
+        "\\bartery\\b"
+      ],
+      "evidence": {
+        "computation": "Lookup in the explicit human anatomy table; no inference about other species or individual medical conditions.",
+        "assumptions": [
+          "The question refers to the table\u2019s standard human anatomy context."
+        ],
+        "untrusted": [
+          "Source facts, English recognition and framing."
+        ]
+      }
+    }
+  }
+}

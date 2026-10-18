@@ -22,9 +22,9 @@ that manifest's organ does; with none, the family is asked in a fixed order.
 
 Build and run:
 ```sh
-python3 tools/dev/check-native --session Veri7vn_AnatomyAgri --session-root src/extract/anatomyagri --expect 'VERI7VN_ANATOMYAGRI PASS' --timeout 600
+python3 tools/dev/remote-build persvati src/extract/anatomyagri Veri7vn_AnatomyAgri -d src/extract/commons --expect 'VERI7VN_ANATOMYAGRI PASS'
 python3 src/extract/anatomyagri/tables_check.py
-sh src/extract/anatomyagri/build.sh
+VERI7VN_GENERATED=/path/from/successful/receipt/anatomyagri.ML sh src/extract/anatomyagri/build.sh
 PYTHONDONTWRITEBYTECODE=1 python3 src/extract/anatomyagri/score.py     # has an RSS guard
 ```
 The binary is under `var/anatomyagri/bin/` and is not committed. Results and statements:
@@ -34,3 +34,24 @@ The numeric layout helpers (`digits`, `digit_lit`, `lit`, `strip_zeros`) and the
 Regex/Json SML come from the shared `Veri7vn_Commons` session and
 `src/extract/commons/commons.sml` (lane W5-12); the rounding here stays
 nat-based and local.
+
+## Rectangular planting grids
+
+Different row and plant spacings use whole rectangular spacing cells, with no
+plants on the border. If a nonsquare bed has unequal spacings, name the side
+along which rows run; otherwise the answerer asks for that information. For
+example, a 10 by 4 ft bed with 18 inches between rows and 9 inches between
+plants holds 26 plants with rows along the 10 ft side, or 30 along the 4 ft side.
+The proved fit bound relates the returned count to the physical bed area.
+
+Anatomy handles inverted superlative questions and applies its table only in
+the human domain. Source facts and English interpretation remain untrusted.
+`capabilities.json` declares these limits for dispatch and packaging. Current
+work and receipts are in [C-anatomyagri](../../../project/lanes/C-anatomyagri.md).
+
+The current C candidate scores 156/156 shipped items in both specialist and
+family dispatch, versus 154/156 for the re-evaluated shipped organs; all
+wrong and false-yes counts are zero on these panels. Three fresh seeds each
+score 156/156 and 23 targeted probes pass. See
+[C-anatomyagri](../../../project/lanes/C-anatomyagri.md) for assumptions,
+per-specialist numbers, the 54-theorem zero-oracle receipt and performance.

@@ -403,6 +403,8 @@ datatype request =
   | GardenWater shape rat
   | GardenFert rat shape
   | GardenGrid rat rat rat
+  | GardenRectGrid rat rat rat rat
+  | GardenNeedOrientation
   | GardenBags shape depth rat
   | GardenYards shape depth
   | GardenFeet shape depth
@@ -468,6 +470,7 @@ text \<open>Underspecified: a recognised question whose amounts could not be rea
 nutrition v2 decline in-domain), or no macronutrient given.\<close>
 fun underspecified :: "request \<Rightarrow> bool" where
   "underspecified AgriUnderspecified = True"
+| "underspecified GardenNeedOrientation = True"
 | "underspecified NutUnderspecified = True"
 | "underspecified (Kcal p c f a) = (p + c + f + a = 0)"
 | "underspecified r = False"
@@ -479,6 +482,7 @@ fun impossible :: "request \<Rightarrow> reason option" where
   "impossible (FertProduct n a b c r) = (if grade_pct n a b c = 0 then Some R_no_nutrient else None)"
 | "impossible (SeedsPerAcre r s) = (if r \<le> 0 \<or> s \<le> 0 then Some R_nonpositive else None)"
 | "impossible (SeedsNeeded gp t) = (if 0 < gp \<and> gp \<le> 100 then None else Some R_germination)"
+| "impossible (GardenRectGrid l w rs ps) = (if rs \<le> 0 \<or> ps \<le> 0 \<or> l < 0 \<or> w < 0 then Some R_nonpositive else None)"
 | "impossible (GardenGrid l w s) = (if s \<le> 0 then Some R_nonpositive else None)"
 | "impossible (GardenBags sh d b) = (if b \<le> 0 then Some R_nonpositive else None)"
 | "impossible (BmiMetric kg h c) = (if mheight_m h \<le> 0 then Some R_nonpositive else None)"
@@ -500,9 +504,11 @@ fun compute :: "request \<Rightarrow> outcome" where
 | "compute (SeedsNeeded gp t) = Value (t / (gp / 100))"
 | "compute (Yield bu c u) = Value (yield_val bu c u)"
 | "compute (AcreInch i ao) = Value (acre_val i ao)"
+| "compute GardenNeedOrientation = Decline Underspecified"
 | "compute AgriUnderspecified = Decline Underspecified"
 | "compute (GardenWater sh i) = Value (shape_area sh * i * gal_per_sqft_inch)"
 | "compute (GardenFert rate sh) = Value (rate * shape_area sh / 1000)"
+| "compute (GardenRectGrid l w rs ps) = Value (of_nat (fit l ps * fit w rs))"
 | "compute (GardenGrid l w s) = Value (of_nat (fit l s * fit w s))"
 | "compute (GardenBags sh d b) = Value (of_nat (bags_for (garden_vol sh d) b))"
 | "compute (GardenYards sh d) = Value (garden_vol sh d / 27)"
@@ -521,7 +527,7 @@ definition kernel :: "request \<Rightarrow> outcome" where
      else case impossible r of Some w \<Rightarrow> Decline (Impossible w) | None \<Rightarrow> compute r)"
 
 lemma compute_decline:
-  "compute r = Decline w \<Longrightarrow> r = AgriUnderspecified \<or> r = NutUnderspecified"
+  "compute r = Decline w \<Longrightarrow> r = AgriUnderspecified \<or> r = NutUnderspecified \<or> r = GardenNeedOrientation"
   by (cases r) (auto split: if_splits)
 
 lemma kernel_cases:
@@ -536,7 +542,7 @@ next
   proof (cases "impossible r")
     case None
     then have "compute r = Decline w" using assms False by (simp add: kernel_def)
-    then have "r = AgriUnderspecified \<or> r = NutUnderspecified" by (rule compute_decline)
+    then have "r = AgriUnderspecified \<or> r = NutUnderspecified \<or> r = GardenNeedOrientation" by (rule compute_decline)
     then show ?thesis using False by auto
   next
     case (Some x) then show ?thesis using assms False by (simp add: kernel_def)
@@ -711,6 +717,56 @@ theorem garden_grid:
   "kernel (GardenGrid l w s) = Value v \<Longrightarrow> v = of_nat (fit l s) * of_nat (fit w s)"
   by (drule kernel_value(3)) simp
 
+
+text \<open>The number of rectangular spacing cells fits the physical bed.
+The layout reserves one full spacing cell per plant, with no border plants.\<close>
+lemma spacing_cells_fit:
+  assumes "0 < a" "0 < b" "0 \<le> l" "0 \<le> w"
+  shows "of_nat (fit l a) * of_nat (fit w b) * (a * b) \<le> (l * 12) * (w * 12)"
+proof -
+  have x: "of_nat (fit l a) * a \<le> l * 12"
+    using fit_floor[OF assms(1,3)] assms(1) by (simp add: le_divide_eq)
+  have y: "of_nat (fit w b) * b \<le> w * 12"
+    using fit_floor[OF assms(2,4)] assms(2) by (simp add: le_divide_eq)
+  have "(of_nat (fit l a) * a) * (of_nat (fit w b) * b) \<le> (l * 12) * (w * 12)"
+    by (rule mult_mono[OF x y]) (use assms in auto)
+  then show ?thesis by (simp add: algebra_simps)
+qed
+
+theorem garden_grid_fits:
+  assumes "kernel (GardenGrid l w s) = Value v" "0 < s" "0 \<le> l" "0 \<le> w"
+  shows "v * s ^ 2 \<le> (l * 12) * (w * 12)"
+  using garden_grid[OF assms(1)] spacing_cells_fit[OF assms(2,2,3,4)]
+  by (simp add: power2_eq_square)
+
+theorem garden_rect_grid_fits:
+  assumes "kernel (GardenRectGrid l w rs ps) = Value v"
+  shows "0 < rs \<and> 0 < ps \<and> 0 \<le> l \<and> 0 \<le> w \<and>
+    v * (ps * rs) \<le> (l * 12) * (w * 12)"
+proof -
+  have good: "0 < rs" "0 < ps" "0 \<le> l" "0 \<le> w"
+    using assms by (auto simp: kernel_def split: if_splits)
+  have v: "v = of_nat (fit l ps) * of_nat (fit w rs)"
+    using assms by (auto simp: kernel_def split: if_splits)
+  show ?thesis using good spacing_cells_fit[OF good(2,1,3,4)] v by simp
+qed
+
+theorem seeds_needed_declines_iff:
+  "kernel (SeedsNeeded gp t) = Decline (Impossible R_germination)
+    \<longleftrightarrow> \<not> (0 < gp \<and> gp \<le> 100)"
+  by (auto simp: kernel_def)
+
+theorem acre_inch_derived_error:
+  assumes "kernel (AcreInch i (Some a)) = Value v" "0 \<le> i * a"
+  shows "\<bar>v - i * a * (3630 * (748052 / 100000))\<bar> \<le> i * a / 2"
+proof -
+  have v: "v = i * a * 27154" using assms(1) by (simp add: kernel_def acre_val_def gal_per_acre_inch_def)
+  have e: "v - i * a * (3630 * (748052 / 100000)) = (i * a) * (-719 / 2500)"
+    using v by algebra
+  show ?thesis unfolding e using assms(2)
+    by (simp only: abs_le_iff; intro conjI; linarith)
+qed
+
 text \<open>Bags: the number needed covers the volume, and one fewer would not.\<close>
 theorem bags_cover:
   assumes "0 < b" and "0 \<le> vol"
@@ -830,6 +886,7 @@ text \<open>Digits after the decimal point in the stated value and the reply: co
 numbers none, label arithmetic two, field arithmetic three.\<close>
 fun dp :: "request \<Rightarrow> nat" where
   "dp (Count c) = 0"
+| "dp (GardenRectGrid l w rs ps) = 0"
 | "dp (GardenGrid l w s) = 0"
 | "dp (GardenBags sh d b) = 0"
 | "dp (BmiMetric kg h c) = 2"
@@ -883,6 +940,11 @@ fun value_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal" where
 | "value_text (GardenFert rate sh) v =
      cat [STR ''Apply '', g3 v, STR '' lb ('', g3 rate, STR '' lb per 1,000 sq ft x '', g3 (shape_area sh),
        STR '' sq ft / 1,000).'']"
+| "value_text (GardenRectGrid l w rs ps) v =
+     cat [STR ''That is '', sn (rnd 0 v), STR '' plants ('', sn (fit w rs), STR '' rows across the '',
+       g3 w, STR '' ft width, '', sn (fit l ps), STR '' plants along each '', g3 l,
+       STR '' ft row; '', g3 rs, STR '' in between rows and '', g3 ps,
+       STR '' in between plants, one spacing cell per plant).'']"
 | "value_text (GardenGrid l w s) v =
      cat [STR ''That is '', sn (rnd 0 v), STR '' plants (square grid: '', sn (fit l s), STR '' x '',
        sn (fit w s), STR '' at '', g3 s, STR '' in spacing in a '', g3 l, STR '' x '', g3 w, STR '' ft bed).'']"
@@ -932,6 +994,8 @@ fun decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.literal"
        STR '', so no amount of it supplies that nutrient.'']"
 | "decline_text (SeedsNeeded gp t) (Impossible w) =
      STR ''A germination rate must be between 0 and 100%.''"
+| "decline_text GardenNeedOrientation Underspecified =
+     STR ''Specify both spacings and which bed side the rows run along; I will not assume a planting orientation.''"
 | "decline_text AgriUnderspecified Underspecified =
      STR ''I need the amount of product (lb) or the target nutrient rate (lb per acre) to work that out; I will not assume it.''"
 | "decline_text NutUnderspecified Underspecified =
@@ -955,9 +1019,11 @@ fun kind_name :: "request \<Rightarrow> String.literal" where
 | "kind_name (Yield bu c KgHa) = STR ''yield_kgha''"
 | "kind_name (Yield bu c THa) = STR ''yield_tha''"
 | "kind_name (AcreInch i a) = STR ''acre_inch''"
+| "kind_name GardenNeedOrientation = STR ''underspecified''"
 | "kind_name AgriUnderspecified = STR ''underspecified''"
 | "kind_name (GardenWater sh i) = STR ''water_gal''"
 | "kind_name (GardenFert rate sh) = STR ''fert_area''"
+| "kind_name (GardenRectGrid l w rs ps) = STR ''plants_grid''"
 | "kind_name (GardenGrid l w s) = STR ''plants_grid''"
 | "kind_name (GardenBags sh d b) = STR ''bags''"
 | "kind_name (GardenYards sh d) = STR ''cubic_yards''"

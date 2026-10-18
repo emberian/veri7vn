@@ -1,0 +1,140 @@
+[
+  {
+    "specialist": "anatomy",
+    "q": "Which bone is the longest in the human skeleton?",
+    "expect": "femur",
+    "source": "Shipped anatomy fact table; inverted wording."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "Which bone is the smallest in the human skeleton?",
+    "expect": "stapes",
+    "source": "Shipped anatomy fact table; inverted wording."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "Which muscle is the longest in the human body?",
+    "expect": "sartorius",
+    "source": "Shipped anatomy fact table; inverted wording."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "Which internal organ is the largest in the human body?",
+    "expect": "liver",
+    "source": "Shipped anatomy fact table; inverted wording."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "Which artery is the largest in the human body?",
+    "expect": "aorta",
+    "source": "Shipped anatomy fact table; inverted wording."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "Which organ is the largest in the human body?",
+    "expect": "skin",
+    "source": "Shipped anatomy fact table; inverted wording."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "What is the largest organ in cats?",
+    "expect": null,
+    "source": "Human table does not establish cat anatomy."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "Which bone is the longest in a dog?",
+    "expect": null,
+    "source": "Human table does not establish dog anatomy."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "My bone hurts: which bone is the longest?",
+    "expect": null,
+    "source": "Personal symptom question is outside factual table."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 12 by 6 ft bed with 18 inch rows and 12 inch plant spacing, rows along the 12 ft side?",
+    "expect": 48,
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 10 by 4 ft bed with 18 inch rows and 9 inch plant spacing, rows along the 10 ft side?",
+    "expect": 26,
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 8 by 3 ft bed with 12 inch rows and 6 inch plant spacing, rows along the 8 ft side?",
+    "expect": 48,
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 5 by 2 ft bed with 18 inch rows and 10 inch plant spacing, rows along the 5 ft side?",
+    "expect": 6,
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 6 by 2 ft bed with 48 inch rows and 12 inch plant spacing, rows along the 6 ft side?",
+    "expect": 0,
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 12 by 6 ft bed with 12 inch rows and 12 inch plant spacing, rows along the 12 ft side?",
+    "expect": 72,
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 0 by 4 ft bed with 12 inch rows and 12 inch plant spacing, rows along the 0 ft side?",
+    "expect": 0,
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 12 by 6 ft bed with 0 inch rows and 12 inch plant spacing, rows along the 12 ft side?",
+    "expect": null,
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 12 by 6 ft bed with 18 inch rows and 0 inch plant spacing, rows along the 12 ft side?",
+    "expect": null,
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds should I plant for a target stand of 24000 plants per acre at 80% germination?",
+    "expect": 30000,
+    "source": "24000/(80/100)."
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds should I plant for a target stand of 24000 plants per acre at 120% germination?",
+    "expect": null,
+    "source": "Germination percentage exceeds100."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 12 by 6 ft bed with 18 inch rows and 12 inch plant spacing?",
+    "expect": null,
+    "source": "Unequal spacing in a nonsquare bed needs row orientation."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a 10 by 4 ft bed with 18 inch rows and 9 inch plant spacing, rows along the 4 ft side?",
+    "expect": 30,
+    "source": "Six rows across ten feet; five plants along each four-foot row. Reversing rows gives26, so orientation matters."
+  },
+  {
+    "specialist": "gardening",
+    "q": "How many plants fit in a -12 by 6 ft bed with 18 inch rows and 12 inch plant spacing?",
+    "expect": null,
+    "source": "Negative physical dimension is invalid."
+  }
+]

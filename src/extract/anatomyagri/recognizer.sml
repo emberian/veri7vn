@@ -58,14 +58,17 @@ struct
         else go (i + 1) (String.substring (s, i, 1) :: acc)
     in if n = 0 then s else go 0 [] end
 
-  fun ratOf (lit0 : string) : Q.rat =
+  fun decimalParts (lit0 : string) =
     let
       val lit = String.translate (fn #"," => "" | c => String.str c) lit0
       val (ip, fp) = case String.fields (fn c => c = #".") lit of
                        [a] => (a, "")
                      | [a, b] => (a, b)
                      | _ => raise Fail ("bad numeral " ^ lit0)
-    in Q.mk_rat (valOf (IntInf.fromString (ip ^ fp))) (IntInf.pow (10, size fp)) end
+    in (valOf (IntInf.fromString (ip ^ fp)), IntInf.pow (10, size fp)) end
+  fun ratOf lit = let val (n, d) = decimalParts lit in Q.mk_rat n d end
+  fun sameNumber a b = let val (an, ad) = decimalParts a val (bn, bd) = decimalParts b
+    in an * bd = bn * ad end
 
   (* a numeral literal that reads as zero ("0", "0.0", "0,0") *)
   fun isZero lit = List.all (fn c => c = #"0" orelse c = #"." orelse c = #",") (String.explode lit)
@@ -186,12 +189,18 @@ struct
 
   val symptoms = "\\bsymptom\\w*\\b|\\bpain\\b|\\bhurt\\w*\\b|\\bshould i\\b|\\bdiagnos\\w*\\b|\\bdisease\\b|\\bdoctor\\b|\\bmy\\b|\\btreat\\w*\\b|\\bbroken\\b|\\bnormal for\\b"
 
+  val notMine = "\\b(?:dogs?|puppy|puppies|cats?|kittens?|horses?|cows?|pigs?|sheep|goats?|rabbits?|hamsters?|birds?|parrots?|fish|animals?|pets?|canine|feline|equine|veterinar\\w*)\\b"
+  val mine = "\\b(?:humans?|people|person|man|woman|men|women|child|children|baby|babies|adults? human)\\b"
+
   fun anatomy text =
     if Narrow.narrative text then NONE
     else
-      let val low = lower (collapse text)
+      let val low0 = lower (collapse text)
+          val inverted = search "\\b(bone|organ|internal organ|muscle|artery)\\s+(?:is|in (?:the )?(?:human )?(?:body|skeleton) is)\\s+(?:the )?(longest|smallest|largest|biggest)\\b" low0
+          val low = case inverted of NONE => low0 | SOME m =>
+            low0 ^ " " ^ valOf (grp low0 m 2) ^ " " ^ g1 low0 m
       in
-        if has symptoms low then NONE
+        if has symptoms low orelse (has notMine low andalso not (has mine low)) then NONE
         else if has "\\bhow many\\b|\\bnumber of\\b" low then
           Option.map Q.Count (firstMatch countTab low)
         else if has "\\bwhat\\b|\\bwhich\\b|\\bname\\b" low then
@@ -208,8 +217,6 @@ struct
       end
 
   (* anatomy-r2: silent on a turn with another domain's markers and none of its own *)
-  val notMine = "\\b(?:dogs?|puppy|puppies|cats?|kittens?|horses?|cows?|pigs?|sheep|goats?|rabbits?|hamsters?|birds?|parrots?|fish|animals?|pets?|canine|feline|equine|veterinar\\w*)\\b"
-  val mine = "\\b(?:humans?|people|person|man|woman|men|women|child|children|baby|babies|adults? human)\\b"
   fun anatomyR2 text =
     let val low = lower text
     in if has notMine low andalso not (has mine low) then NONE else anatomy text end
@@ -359,7 +366,8 @@ struct
       let
         val low = lower (collapse text)
       in
-        if not (has "\\bgarden\\w*\\b|\\braised bed\\b|\\bbed\\b|\\bmulch\\b|\\bcompost\\b|\\bsoil\\b|\\bplants?\\b|\\blawn\\b|\\bplanting\\b|\\bfertili[sz]er\\b|\\bwater\\w*\\b" low)
+        if has "(?:^|[ (,:])-[0-9]" low then NONE
+        else if not (has "\\bgarden\\w*\\b|\\braised bed\\b|\\bbed\\b|\\bmulch\\b|\\bcompost\\b|\\bsoil\\b|\\bplants?\\b|\\blawn\\b|\\bplanting\\b|\\bfertili[sz]er\\b|\\bwater\\w*\\b" low)
         then NONE
         else
           let
@@ -386,9 +394,26 @@ struct
               SOME (Q.GardenFert (ratOf (g1 low (valOf rate)), valOf areaShape))
             else
               let
+                val rowsp = search (NUM ^ "\\s*[- ]?(?:inch(?:es)?|in)\\s+(?:rows|between rows)\\b") low
+                val plantsp = search (NUM ^ "\\s*[- ]?(?:inch(?:es)?|in)\\s+(?:plant spacing|between plants)\\b") low
+                val along = search ("\\brows?\\s+(?:(?:run|running)\\s+)?along\\s+(?:the\\s+)?" ^ NUM ^ FT ^ "\\s+side\\b") low
+                val rectangular = case (rowsp, plantsp, dims) of
+                    (SOME rm, SOME pm, SOME (l, w)) =>
+                      let val rs = g1 low rm val ps = g1 low pm
+                          val oriented = case along of
+                              SOME am => if sameNumber (g1 low am) l then SOME (l, w)
+                                         else if sameNumber (g1 low am) w then SOME (w, l) else NONE
+                            | NONE => if sameNumber l w orelse sameNumber rs ps then SOME (l, w) else NONE
+                      in Option.map (fn (length, width) => Q.GardenRectGrid
+                           (ratOf length, ratOf width, ratOf rs, ratOf ps)) oriented end
+                  | _ => NONE
                 val sp = search (NUM ^ "\\s*(?:inch(?:es)?|in\\.?|\\\")\\s*(?:apart|spacing|on center)|\\bspac\\w*\\s*(?:of|at)?\\s*" ^ NUM ^ "\\s*(?:inch(?:es)?|in\\.?|\\\")") low
               in
-                case (sp, dims) of
+                if isSome rectangular andalso has "\\bhow many\\b" low andalso has "\\bplants?\\b" low
+                then rectangular
+                else if (isSome rowsp orelse isSome plantsp) andalso isSome dims andalso has "\\bhow many\\b" low andalso has "\\bplants?\\b" low
+                then SOME Q.GardenNeedOrientation
+                else case (sp, dims) of
                   (SOME sm, SOME (l, w)) =>
                     if has "\\bhow many\\b" low andalso has "\\bplants?\\b|\\bseedlings?\\b|\\btransplants?\\b|\\bheads?\\b" low then
                       let val sl = valOf (firstGroup low sm [1, 2])

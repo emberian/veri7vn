@@ -35,7 +35,7 @@ definition self_test :: bool where
 export_code reply_of answered reply_kind response stated answers mk_rat self_test
   nat_of_integer integer_of_nat count_order super_order made_order crop_order dv_order
   Count Superlative Produces FertProduct NutrientLb SeedsPerAcre SeedsNeeded Yield AcreInch
-  AgriUnderspecified GardenWater GardenFert GardenGrid GardenBags GardenYards GardenFeet
+  AgriUnderspecified GardenWater GardenFert GardenGrid GardenRectGrid GardenNeedOrientation GardenBags GardenYards GardenFeet
   BmiMetric BmiImperial Kcal PctFatCal PctDV NutUnderspecified
   Nit Pho Pot KgHa THa Dims Area Inches Feet Mm Mcm Iin Ftin U_mg U_g U_mcg
   in SML module_name AnatomyAgri file_prefix anatomyagri
@@ -49,7 +49,8 @@ ML \<open>
     @{thm fert_product}, @{thm nutrient_lb}, @{thm fert_roundtrip}, @{thm fert_no_nutrient},
     @{thm seeds_per_acre}, @{thm seeds_needed}, @{thm seeds_needed_germination},
     @{thm yield_kgha}, @{thm yield_tha}, @{thm acre_inch(1)}, @{thm acre_inch(2)},
-    @{thm garden_water}, @{thm garden_fert}, @{thm fit_floor}, @{thm garden_grid},
+    @{thm garden_water}, @{thm garden_fert}, @{thm fit_floor}, @{thm garden_grid}, @{thm garden_grid_fits}, @{thm garden_rect_grid_fits},
+    @{thm seeds_needed_declines_iff}, @{thm acre_inch_derived_error},
     @{thm bags_cover}, @{thm garden_bags}, @{thm garden_yards}, @{thm garden_feet},
     @{thm bmi_metric}, @{thm bmi_imperial}, @{thm bmi_category_agrees}, @{thm bmi_category_agrees_imperial},
     @{thm kcal_value}, @{thm kcal_atwater_unit}, @{thm kcal_underspecified},
