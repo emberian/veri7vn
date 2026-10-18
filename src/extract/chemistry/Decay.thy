@@ -273,6 +273,20 @@ theorem time_to_fraction_half:
   "dkernel (TimeToFraction h (Some (1 / 2)) u) = DVal k v \<Longrightarrow> nreal v = rl (hl_T h)"
   using time_to_fraction_value[of h "1 / 2" u k v] by (simp add: time_real_half of_rat_divide)
 
+text \<open>The two kinds agree (audit, chemistry item 3): the amount remaining is the initial
+amount times the decay law at the number of half-lives the half-lives kind states.\<close>
+theorem remaining_halflives_agree:
+  assumes "dkernel (Remaining h (Some p) (Some (a, u))) = DVal k v"
+    "dkernel (HalfLives h (Some p)) = DVal k' n"
+  shows "nreal v = rl a * decay_real (nreal n)"
+proof -
+  from remaining_amount_value[OF assms(1)] have T: "0 < hl_T h" and r: "nreal v = rl a * decay_real (rl (elapsed_s p / hl_T h))" by blast+
+  from half_lives_value[OF assms(2)] have hl: "nreal n * rl (hl_T h) = rl (elapsed_s p)" by blast
+  have T0: "rl (hl_T h) \<noteq> 0" using T by simp
+  have "rl (elapsed_s p / hl_T h) = nreal n" using hl T0 by (simp add: of_rat_divide field_simps)
+  then show ?thesis using r by simp
+qed
+
 text \<open>The declines are exactly the organ's underspecified cases.\<close>
 theorem decay_declines:
   "0 < hl_T h \<Longrightarrow> dkernel (Remaining h el am) = DDecline n \<longleftrightarrow>

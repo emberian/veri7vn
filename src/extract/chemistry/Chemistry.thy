@@ -128,6 +128,53 @@ lemma sum_scale:
   shows "sum_list (map (\<lambda>p. c * g p / m) xs) = c * sum_list (map g xs) / (m::rat)"
   by (induction xs) (simp_all add: algebra_simps add_divide_distrib)
 
+section \<open>Count lists stay well-formed\<close>
+
+text \<open>B-chemistry step 5 (theorem audit, chemistry item 1). A count list is well-formed when
+it names only known elements, each once. (Counts may be zero: @{text "H0"} reads as zero
+hydrogens, which is why a zero-mass formula is a decline. The audit's suggested
+@{text "0 < snd p"} would be false.)\<close>
+definition wf_counts :: "counts \<Rightarrow> bool" where
+  "wf_counts cs \<longleftrightarrow> (\<forall>p \<in> set cs. find_sym (fst p) \<noteq> None) \<and> distinct (map fst cs)"
+
+lemma wf_nil: "wf_counts []"
+  by (simp add: wf_counts_def)
+
+lemma add_count_keys: "fst ` set (add_count s n cs) = insert s (fst ` set cs)"
+  by (induction s n cs rule: add_count.induct) auto
+
+lemma add_count_distinct: "distinct (map fst cs) \<Longrightarrow> distinct (map fst (add_count s n cs))"
+  by (induction s n cs rule: add_count.induct) (auto simp: add_count_keys)
+
+lemma add_count_known:
+  "\<forall>p \<in> set cs. find_sym (fst p) \<noteq> None \<Longrightarrow> find_sym s \<noteq> None \<Longrightarrow>
+   \<forall>p \<in> set (add_count s n cs). find_sym (fst p) \<noteq> None"
+  by (induction s n cs rule: add_count.induct) auto
+
+theorem wf_add: "wf_counts cs \<Longrightarrow> find_sym s \<noteq> None \<Longrightarrow> wf_counts (add_count s n cs)"
+  unfolding wf_counts_def using add_count_distinct add_count_known by blast
+
+lemma wf_fold:
+  "wf_counts base \<Longrightarrow> wf_counts tp \<Longrightarrow>
+   wf_counts (foldl (\<lambda>acc x. add_count (fst x) (snd x * k) acc) base tp)"
+proof (induction tp arbitrary: base)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs)
+  have kx: "find_sym (fst x) \<noteq> None" using Cons.prems(2) by (simp add: wf_counts_def)
+  have wxs: "wf_counts xs" using Cons.prems(2) by (simp add: wf_counts_def)
+  show ?case using Cons.IH[OF wf_add[OF Cons.prems(1) kx] wxs] by simp
+qed
+
+theorem wf_merge: "wf_counts base \<Longrightarrow> wf_counts tp \<Longrightarrow> wf_counts (merge_into tp k base)"
+  unfolding merge_into_def by (rule wf_fold)
+
+text \<open>The parser's own invariant (@{text "parse_formula f = FOk cs \<Longrightarrow> wf_counts cs"}) needs an
+induction over the scanner's fuel and stack; two attempts at it did not close (the second
+looped in fastforce), so it is listed under remaining work, not claimed. What is proved is
+the step the scanner is made of: adding an element and merging a group keep a count list
+well-formed.\<close>
+
 section \<open>Requests and outcomes\<close>
 
 datatype eprop = P_atomic_mass | P_atomic_number | P_electronegativity | P_melting_point
@@ -346,6 +393,18 @@ theorem mass_needed_value:
   assumes "ckernel (MassNeeded f mol v) = CExact k g"
   shows "k = CK_mass_needed \<and> (\<exists>cs. parse_formula f = FOk cs \<and> g = mol * v * mass_total cs)"
   using assms by (cases "parse_formula f") auto
+
+text \<open>Dilution never needs more stock than the final volume (audit, chemistry item 2).\<close>
+theorem dilution_stock_le_final:
+  assumes "ckernel (Dilution a b v2) = CExact k v1" "0 \<le> v2"
+  shows "v1 \<le> v2 * 1000"
+proof -
+  from dilution_value[OF assms(1)] have pos: "0 < max a b" and e: "v1 * max a b = min a b * v2 * 1000" by blast+
+  have mm: "min a b \<le> max a b" by (rule order_trans[OF min.cobounded1 max.cobounded1])
+  have "min a b * (v2 * 1000) \<le> max a b * (v2 * 1000)" by (rule mult_right_mono[OF mm]) (use assms(2) in simp)
+  then have h: "v1 * max a b \<le> (v2 * 1000) * max a b" using e by (simp add: algebra_simps)
+  show ?thesis using pos h by (simp add: mult_le_cancel_right)
+qed
 
 text \<open>Preparing a solution and then measuring its molarity gives back the
 molarity asked for.\<close>
