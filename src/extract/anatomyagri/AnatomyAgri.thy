@@ -172,6 +172,21 @@ theorem anatomy_counts_consistent:
    count_val C_permanent = 4 * 8 \<and> count_val C_primary = 4 * 5"
   by simp
 
+text \<open>These scopes state when the fixed-count table is applicable. They
+are a model-selection policy, not a theorem establishing biological facts.\<close>
+datatype life_stage = AdultStage | DevelopingStage | NewbornStage
+
+fun age_applicable :: "count_id \<Rightarrow> life_stage \<Rightarrow> bool" where
+  "age_applicable C_bones a = (a = AdultStage)"
+| "age_applicable C_skull a = (a = AdultStage)"
+| "age_applicable C_hand a = (a = AdultStage)"
+| "age_applicable C_foot a = (a = AdultStage)"
+| "age_applicable C_carpal a = (a = AdultStage)"
+| "age_applicable C_tarsal a = (a = AdultStage)"
+| "age_applicable C_primary a = (a = DevelopingStage)"
+| "age_applicable C_permanent a = (a = AdultStage)"
+| "age_applicable c a = True"
+
 datatype super_id = S_bone_largest | S_bone_smallest | S_organ_largest | S_muscle_longest
   | S_internal_largest | S_artery_largest
 
@@ -391,6 +406,7 @@ datatype iheight = Iin rat | Ftin nat rat
 
 datatype request =
     Count count_id
+  | CountAt count_id life_stage
   | Superlative super_id
   | Produces made_id
   | FertProduct nutrient nat nat nat rat
@@ -469,7 +485,8 @@ datatype outcome = Value rat | Label String.literal | Decline decline
 text \<open>Underspecified: a recognised question whose amounts could not be read (agriculture v2 and
 nutrition v2 decline in-domain), or no macronutrient given.\<close>
 fun underspecified :: "request \<Rightarrow> bool" where
-  "underspecified AgriUnderspecified = True"
+  "underspecified (CountAt c a) = (\<not> age_applicable c a)"
+| "underspecified AgriUnderspecified = True"
 | "underspecified GardenNeedOrientation = True"
 | "underspecified NutUnderspecified = True"
 | "underspecified (Kcal p c f a) = (p + c + f + a = 0)"
@@ -496,6 +513,7 @@ definition dv_amount_in :: "dvn \<Rightarrow> rat \<Rightarrow> dunit \<Rightarr
 
 fun compute :: "request \<Rightarrow> outcome" where
   "compute (Count c) = Value (of_nat (count_val c))"
+| "compute (CountAt c a) = Value (of_nat (count_val c))"
 | "compute (Superlative s) = Label (super_name s)"
 | "compute (Produces m) = Label (made_organ m)"
 | "compute (FertProduct n a b c r) = Value (r * 100 / of_nat (grade_pct n a b c))"
@@ -608,6 +626,24 @@ section \<open>What the stated values mean\<close>
 subsection \<open>Anatomy\<close>
 
 theorem count_value: "kernel (Count c) = Value (of_nat (count_val c))"
+  by (simp add: kernel_def)
+
+text \<open>Age applicability only narrows a fixed-table answer; it cannot
+invent a different count. This does not prove the source anatomy facts.\<close>
+theorem count_stage_narrows:
+  "kernel (CountAt c a) = Value v \<Longrightarrow> kernel (Count c) = Value v"
+  by (auto simp: kernel_def split: if_splits)
+
+theorem count_stage_declines_iff:
+  "kernel (CountAt c a) = Decline Underspecified \<longleftrightarrow> \<not> age_applicable c a"
+  by (simp add: kernel_def)
+
+theorem newborn_bones_declines:
+  "kernel (CountAt C_bones NewbornStage) = Decline Underspecified"
+  by (simp add: kernel_def)
+
+theorem adult_bones_preserved:
+  "kernel (CountAt C_bones AdultStage) = kernel (Count C_bones)"
   by (simp add: kernel_def)
 
 theorem superlative_label: "kernel (Superlative s) = Label (super_name s)"
@@ -886,6 +922,7 @@ text \<open>Digits after the decimal point in the stated value and the reply: co
 numbers none, label arithmetic two, field arithmetic three.\<close>
 fun dp :: "request \<Rightarrow> nat" where
   "dp (Count c) = 0"
+| "dp (CountAt c a) = 0"
 | "dp (GardenRectGrid l w rs ps) = 0"
 | "dp (GardenGrid l w s) = 0"
 | "dp (GardenBags sh d b) = 0"
@@ -912,6 +949,7 @@ text \<open>The reply text of an answered numeric request (organ wording, ASCII:
 divide sign, x for the multiply sign).\<close>
 fun value_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal" where
   "value_text (Count c) v = cat [STR ''There are '', sn (rnd 0 v), STR '' '', count_desc c, STR ''.'']"
+| "value_text (CountAt c a) v = cat [STR ''There are '', sn (rnd 0 v), STR '' '', count_desc c, STR ''.'']"
 | "value_text (FertProduct n a b c r) v =
      cat [STR ''Apply '', g3 v, STR '' lb of product per acre ('', g3 r, STR '' lb '', nut_name n,
        STR '' / '', sn (grade_pct n a b c), STR ''% '', nut_name n, STR '' in '', grade_lit a b c, STR '').'']"
@@ -994,6 +1032,8 @@ fun decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.literal"
        STR '', so no amount of it supplies that nutrient.'']"
 | "decline_text (SeedsNeeded gp t) (Impossible w) =
      STR ''A germination rate must be between 0 and 100%.''"
+| "decline_text (CountAt c a) Underspecified =
+     STR ''This table has no supported count for that developmental stage; I will not substitute a fully developed skeleton or dentition count.''"
 | "decline_text GardenNeedOrientation Underspecified =
      STR ''Specify both spacings and which bed side the rows run along; I will not assume a planting orientation.''"
 | "decline_text AgriUnderspecified Underspecified =
@@ -1010,6 +1050,7 @@ fun decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.literal"
 
 fun kind_name :: "request \<Rightarrow> String.literal" where
   "kind_name (Count c) = STR ''count''"
+| "kind_name (CountAt c a) = STR ''count''"
 | "kind_name (Superlative s) = STR ''superlative''"
 | "kind_name (Produces m) = STR ''produces''"
 | "kind_name (FertProduct n a b c r) = STR ''fert_product''"

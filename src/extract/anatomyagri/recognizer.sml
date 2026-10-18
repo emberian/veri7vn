@@ -192,6 +192,19 @@ struct
   val notMine = "\\b(?:dogs?|puppy|puppies|cats?|kittens?|horses?|cows?|pigs?|sheep|goats?|rabbits?|hamsters?|birds?|parrots?|fish|animals?|pets?|canine|feline|equine|veterinar\\w*)\\b"
   val mine = "\\b(?:humans?|people|person|man|woman|men|women|child|children|baby|babies|adults? human)\\b"
 
+  (* Explicit developmental context narrows the fixed table. We do not invent
+     a single infant skeleton count; fusion and eruption are outside this table. *)
+  fun scopedCount low c =
+    let val stageText = replaceWith "\\bbaby teeth\\b" (fn _ => "primary teeth") low
+    in
+      if has "\\b(?:newborns?|neonatal|neonates?|infants?|infancy|babies|baby|fetal|foetal|fetus|foetus|embryos?)\\b" stageText
+      then Q.CountAt (c, Q.NewbornStage)
+      else if has "\\b(?:child|children|childhood|adolescents?|juveniles?|toddlers?)\\b" stageText
+      then Q.CountAt (c, Q.DevelopingStage)
+      else if has "\\badults?\\b" stageText then Q.CountAt (c, Q.AdultStage)
+      else Q.Count c
+    end
+
   fun anatomy text =
     if Narrow.narrative text then NONE
     else
@@ -202,7 +215,10 @@ struct
       in
         if has symptoms low orelse (has notMine low andalso not (has mine low)) then NONE
         else if has "\\bhow many\\b|\\bnumber of\\b" low then
-          Option.map Q.Count (firstMatch countTab low)
+          Option.map (scopedCount low)
+            (case firstMatch (tl countTab) low of
+               SOME specific => SOME specific
+             | NONE => firstMatch countTab low)
         else if has "\\bwhat\\b|\\bwhich\\b|\\bname\\b" low then
           (case (if has "\\bbody\\b|\\bhuman\\b|\\bskeleton\\b|\\bmuscle\\b|\\bbone\\b|\\borgan\\b|\\bartery\\b" low
                  then firstMatch superTab low else NONE) of

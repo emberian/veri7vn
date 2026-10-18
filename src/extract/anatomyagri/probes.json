@@ -136,5 +136,161 @@
     "q": "How many plants fit in a -12 by 6 ft bed with 18 inch rows and 12 inch plant spacing?",
     "expect": null,
     "source": "Negative physical dimension is invalid."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many bones are in a newborn human body?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many bones are in the human skeleton of a child?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many bones are in a human infant skull?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many carpal bones are in a baby wrist?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many baby teeth does a newborn human have?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many bones are in the adult human body?",
+    "expect": 206,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many chambers are in a newborn human heart?",
+    "expect": 4,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many primary teeth do human children have?",
+    "expect": 20,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many permanent teeth does a human child have?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many permanent teeth do adult humans have?",
+    "expect": 32,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many bones are in a newborn human body?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many bones are in the human skeleton of a child?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many bones are in a human infant skull?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many carpal bones are in a baby wrist?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many baby teeth does a newborn human have?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many bones are in the adult human body?",
+    "expect": 206,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many chambers are in a newborn human heart?",
+    "expect": 4,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many primary teeth do human children have?",
+    "expect": 20,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many permanent teeth does a human child have?",
+    "expect": null,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many permanent teeth do adult humans have?",
+    "expect": 32,
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many bones are in an adult human skull?",
+    "expect": 22,
+    "source": "The named anatomical part selects its own existing count instead of the general adult-body count; same-author table-scope probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many bones are in an adult human hand?",
+    "expect": 27,
+    "source": "The named anatomical part selects its own existing count instead of the general adult-body count; same-author table-scope probe."
+  },
+  {
+    "specialist": "anatomy",
+    "q": "How many bones are in an adult human foot?",
+    "expect": 26,
+    "source": "The named anatomical part selects its own existing count instead of the general adult-body count; same-author table-scope probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many bones are in an adult human skull?",
+    "expect": 22,
+    "source": "The named anatomical part selects its own existing count instead of the general adult-body count; same-author table-scope probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many bones are in an adult human hand?",
+    "expect": 27,
+    "source": "The named anatomical part selects its own existing count instead of the general adult-body count; same-author table-scope probe."
+  },
+  {
+    "specialist": "anatomy-r2",
+    "q": "How many bones are in an adult human foot?",
+    "expect": 26,
+    "source": "The named anatomical part selects its own existing count instead of the general adult-body count; same-author table-scope probe."
   }
 ]

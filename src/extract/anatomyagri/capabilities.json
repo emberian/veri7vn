@@ -29,12 +29,18 @@
         "\\bartery\\b"
       ],
       "evidence": {
-        "computation": "Lookup in the explicit human anatomy table; no inference about other species or individual medical conditions.",
+        "computation": "Fixed human anatomy table with typed age applicability for counts. The stage-aware request can only preserve the original count or decline; it cannot invent a different count.",
         "assumptions": [
-          "The question refers to the table\u2019s standard human anatomy context."
+          "The source describes standard human anatomy, not an individual medical condition.",
+          "Explicit developmental context is applied to skeletal and dentition counts; an unsupported stage does not inherit the adult count."
         ],
         "untrusted": [
           "Source facts, English recognition and framing."
+        ]
+      },
+      "accept": {
+        "declines_in_domain": [
+          "underspecified"
         ]
       }
     },
@@ -43,12 +49,18 @@
         "\\bartery\\b"
       ],
       "evidence": {
-        "computation": "Lookup in the explicit human anatomy table; no inference about other species or individual medical conditions.",
+        "computation": "Fixed human anatomy table with typed age applicability for counts. The stage-aware request can only preserve the original count or decline; it cannot invent a different count.",
         "assumptions": [
-          "The question refers to the table\u2019s standard human anatomy context."
+          "The source describes standard human anatomy, not an individual medical condition.",
+          "Explicit developmental context is applied to skeletal and dentition counts; an unsupported stage does not inherit the adult count."
         ],
         "untrusted": [
           "Source facts, English recognition and framing."
+        ]
+      },
+      "accept": {
+        "declines_in_domain": [
+          "underspecified"
         ]
       }
     }

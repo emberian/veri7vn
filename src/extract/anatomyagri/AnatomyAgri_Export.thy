@@ -34,7 +34,7 @@ definition self_test :: bool where
 
 export_code reply_of answered reply_kind response stated answers mk_rat self_test
   nat_of_integer integer_of_nat count_order super_order made_order crop_order dv_order
-  Count Superlative Produces FertProduct NutrientLb SeedsPerAcre SeedsNeeded Yield AcreInch
+  Count CountAt AdultStage DevelopingStage NewbornStage Superlative Produces FertProduct NutrientLb SeedsPerAcre SeedsNeeded Yield AcreInch
   AgriUnderspecified GardenWater GardenFert GardenGrid GardenRectGrid GardenNeedOrientation GardenBags GardenYards GardenFeet
   BmiMetric BmiImperial Kcal PctFatCal PctDV NutUnderspecified
   Nit Pho Pot KgHa THa Dims Area Inches Feet Mm Mcm Iin Ftin U_mg U_g U_mcg
@@ -45,7 +45,8 @@ ML \<open>
     @{thm anatomy_counts_consistent}, @{thm agri_constants_grounded}, @{thm water_constant_grounded},
     @{thm unit_factor_inverse}, @{thm bmi_category_exact}, @{thm bmi_const_grounded},
     @{thm kernel_underspecified}, @{thm kernel_impossible}, @{thm kernel_total}, @{thm kernel_decline_iff},
-    @{thm count_value}, @{thm superlative_label}, @{thm produces_label},
+    @{thm count_value}, @{thm count_stage_narrows}, @{thm count_stage_declines_iff},
+    @{thm newborn_bones_declines}, @{thm adult_bones_preserved}, @{thm superlative_label}, @{thm produces_label},
     @{thm fert_product}, @{thm nutrient_lb}, @{thm fert_roundtrip}, @{thm fert_no_nutrient},
     @{thm seeds_per_acre}, @{thm seeds_needed}, @{thm seeds_needed_germination},
     @{thm yield_kgha}, @{thm yield_tha}, @{thm acre_inch(1)}, @{thm acre_inch(2)},

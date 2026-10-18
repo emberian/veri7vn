@@ -105,3 +105,58 @@ The model is bounded: rectangular full spacing cells do not answer arbitrary
 edge planting or staggered layouts, and the anatomy table does not establish
 individual anatomy or other species. The semantic gap ledger for subsequent
 work is `var/life/d-next/semantic-gaps.md`.
+
+## D follow-up: age applicability and named anatomy
+
+Both frozen C anatomy readers answered 206 adult bones for a newborn human
+body. The D request carries an explicit adult, developing or newborn stage.
+A fixed applicability policy withholds unsupported skeletal and dentition
+counts; it does not invent one universally correct infant count. Unspecified
+context retains the existing standard-table interpretation. Standard heart,
+rib and other unaffected facts remain available, subject to the table's
+ordinary model assumptions, not as individualized medical claims.
+
+The new statements bind the interpreter to that policy: a stage-scoped numeric
+answer is also the unscoped table answer; a stage request declines exactly
+when its fact is inapplicable; newborn bone count declines; adult bone count
+is preserved. These prove narrowing and model selection, not the anatomical
+source facts. Twenty new same-author age probes cover both specialist versions;
+the frozen C binary passes 8/20 and gives twelve unsupported answers. Six
+additional probes expose a separate interpretation defect: adult skull, hand
+and foot questions all matched the generic adult skeleton pattern first and
+returned 206. Named anatomical structures now take priority over that general
+pattern, preserving 22, 27 and 26 respectively. The complete 49-probe set scores
+31/49 on frozen C (6 wrong, 12 false yes), and 16/49 on the organ (6 wrong,
+13 false yes, 14 valid withheld).
+
+The first D proof attempt `20261018T072656Z-7f088ce3529c` failed because
+the formatter recursively called an equal-sized request. The current source
+inlines the same formatting expression. Corrected hbox attempt
+`20261018T073918Z-983e6dc0a95c` passed 58 scanned theorems with zero oracles.
+Earlier diagnostic adapters are not deliverables; the final native evidence is
+recorded below. The per-specialist
+semantic gap ledger is `src/extract/anatomyagri/semantic-gaps.md`.
+
+D final native evidence: shipped 156/156 in both pinned and family dispatch;
+development offsets 10181001 and 10182003 and a new untouched offset 10184009
+each score 156/156. All error counts are zero. All 49 same-author probes pass,
+versus frozen C's 31/49 and the organ's 16/49. The table checker and capability
+contract validation pass. The fresh sets change generator samples rather than
+their language templates.
+
+The common native compiler binds the complete successful theory closure,
+generated code, commons, recognizer and main to its actual immutable inputs:
+`var/anatomyagri/native-attempts/20261018T075838Z-f1376d1a2afc/compile-inputs.json`.
+The 427736-byte binary SHA-256 is
+`93272aa788e4e84f6af8007ad582c214dbacca5f7934d99e1613871031a6ee95`;
+the generated ML SHA-256 is
+`00c99403143e382c1d24854824992cf73b66504b8a96a6857662a7823b37d696`.
+Fresh-process starts were 91.6, 9.3, 9.1, 11.1 and 9.7 ms (median 9.7 ms),
+including the first cold filesystem load. Evaluation receipts are
+`var/anatomyagri/d-next/{shipped-bound,probes-bound,probes-c-baseline}.json`
+and `var/anatomyagri/c-beyond/d-bound*.json`. Frozen D artifacts and named-file
+hashes are in `var/anatomyagri/d-delivery/ready.json`.
+
+Consumers keep the count kind. Both anatomy IDs now declare an in-domain
+underspecified refusal for an unsupported developmental stage. This is a
+bounded applicability policy; the values still come from the source table.
