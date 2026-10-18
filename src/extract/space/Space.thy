@@ -1627,26 +1627,45 @@ definition need_text :: "need \<Rightarrow> String.literal" where
      | N_dist \<Rightarrow> STR ''the distance (it changes as the planets move, so I won'' + apos + STR ''t assume one)'')
      + STR '' to work that out; I won'' + apos + STR ''t assume it.''"
 
-fun impossible_text :: "request \<Rightarrow> reason \<Rightarrow> String.literal" where
-  "impossible_text (SDeltaV v M0 u0 MF uf) R_final_exceeds_initial = STR ''The final mass (''
-     + fmt St_sc (MF * massf uf) + STR '' kg) cannot exceed the initial mass ('' + fmt St_sc (M0 * massf u0)
-     + STR '' kg).''"
-| "impossible_text r R_final_exceeds_initial = STR ''The final mass cannot exceed the initial mass.''"
-| "impossible_text r R_nonpositive = STR ''A mass, radius, rate, frequency or distance used as a divisor or in a logarithm must be positive.''"
+definition impossible_text :: "request \<Rightarrow> reason \<Rightarrow> String.literal" where
+  "impossible_text r why = (case why of
+       R_final_exceeds_initial \<Rightarrow> (case r of
+           SDeltaV v M0 u0 MF uf \<Rightarrow> STR ''The final mass (''
+             + fmt St_sc (MF * massf uf) + STR '' kg) cannot exceed the initial mass ('' + fmt St_sc (M0 * massf u0)
+             + STR '' kg).''
+         | _ \<Rightarrow> STR ''The final mass cannot exceed the initial mass.'')
+     | R_nonpositive \<Rightarrow> STR ''A mass, radius, rate, frequency or distance used as a divisor or in a logarithm must be positive.'')"
 
-fun decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.literal" where
-  "decline_text r (Underspecified n) = need_text n"
-| "decline_text (OSync ob) NoSync = bname ob
-     + STR '' has no synchronous orbit I can compute here (no fixed sidereal rotation in my table).''"
-| "decline_text r NoSync = STR ''No synchronous orbit I can compute here.''"
-| "decline_text r (Impossible why) = impossible_text r why"
-| "decline_text (AFake n) Unknown = n + STR '' isn'' + apos + STR ''t in NASA'' + apos
-     + STR ''s Planetary Fact Sheet, so I have no figures for it.''"
-| "decline_text r Unknown = STR ''That body is not in NASA'' + apos + STR ''s Planetary Fact Sheet.''"
-| "decline_text (AProp b p) NoValue = STR ''NASA lists '' + abody_name b + apos + STR ''s '' + prop_name p
-     + STR '' as unknown, so I won'' + apos + STR ''t give a number.''"
-| "decline_text r NoValue = STR ''NASA lists that value as unknown, so I won'' + apos + STR ''t give a number.''"
-| "decline_text r Imprecise = STR ''The interval arithmetic could not pin the digits; I won'' + apos + STR ''t guess.''"
+text \<open>One text per decline kind, each a case over the request (not a pattern-matching
+function over every request constructor against every decline: the overlap made the
+function package's completion blow up to about 10 GB).\<close>
+
+definition nosync_text :: "request \<Rightarrow> String.literal" where
+  "nosync_text r = (case r of
+       OSync ob \<Rightarrow> bname ob
+         + STR '' has no synchronous orbit I can compute here (no fixed sidereal rotation in my table).''
+     | _ \<Rightarrow> STR ''No synchronous orbit I can compute here.'')"
+
+definition unknown_text :: "request \<Rightarrow> String.literal" where
+  "unknown_text r = (case r of
+       AFake n \<Rightarrow> n + STR '' isn'' + apos + STR ''t in NASA'' + apos
+         + STR ''s Planetary Fact Sheet, so I have no figures for it.''
+     | _ \<Rightarrow> STR ''That body is not in NASA'' + apos + STR ''s Planetary Fact Sheet.'')"
+
+definition novalue_text :: "request \<Rightarrow> String.literal" where
+  "novalue_text r = (case r of
+       AProp b p \<Rightarrow> STR ''NASA lists '' + abody_name b + apos + STR ''s '' + prop_name p
+         + STR '' as unknown, so I won'' + apos + STR ''t give a number.''
+     | _ \<Rightarrow> STR ''NASA lists that value as unknown, so I won'' + apos + STR ''t give a number.'')"
+
+definition decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.literal" where
+  "decline_text r w = (case w of
+       Underspecified n \<Rightarrow> need_text n
+     | NoSync \<Rightarrow> nosync_text r
+     | Impossible why \<Rightarrow> impossible_text r why
+     | Unknown \<Rightarrow> unknown_text r
+     | NoValue \<Rightarrow> novalue_text r
+     | Imprecise \<Rightarrow> STR ''The interval arithmetic could not pin the digits; I won'' + apos + STR ''t guess.'')"
 
 definition what_text :: "aprop \<Rightarrow> bool \<Rightarrow> String.literal" where
   "what_text p yes = (case p of
