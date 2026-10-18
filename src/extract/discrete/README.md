@@ -62,3 +62,11 @@ Mixed events and incomplete quantities refuse decisively. Counts are bounded at
 against enumerated dice and combinatorial card counts. The [games report](../../../project/lanes/E-symbolic-discrete.md)
 records the checked statements, panel results, compiler inputs and remaining
 interpretation defects in the other specialists.
+
+The formats continuation preserves literal bytes before hashing, encoding or
+validating JSON, and matches the operation only against command text. Empty
+payloads and repeated whitespace are meaningful. Quotes/backticks delimit raw
+bytes without an extra escape pass; JSON uses its full colon body or backticks.
+Base conversions consume a complete signed integer; fractions and compound
+requests refuse rather than yielding a suffix. The [formats report](../../../project/lanes/F-symbolic-discrete.md)
+records the signed-value theorem, actual build status and byte-level comparisons.

@@ -41,6 +41,27 @@
           "Natural-language recognition and transport. This declaration is not a per-answer proof."
         ]
       }
+    },
+    "dataformats": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "unsupported"
+        ]
+      },
+      "evidence": {
+        "computation": "Exact byte payload hashing, base64 and URL conversion, JSON validation, and signed integer base conversion. Unsupported or ambiguous payloads and numeric requests are taken refusals.",
+        "assumptions": [
+          "Literal delimiters and the requested operation were identified correctly.",
+          "The source and destination bases are among 2, 8, 10 and 16."
+        ],
+        "untrusted": [
+          "Natural-language recognition and transport; the declaration is not a per-answer certificate."
+        ]
+      },
+      "context_regex_additions": [
+        "\\bsha-?1\\b|\\bhexadecimal\\b|\\bpercent[- ]encod"
+      ]
     }
   }
 }

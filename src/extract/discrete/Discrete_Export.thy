@@ -181,7 +181,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat
   FVar FNeg FConj FDisj FImpl FEquiv L_formula L_argument L_form L_bad_formula L_bad_argument
   A_sp A_sp_need A_mst A_mst_need A_bsearch A_bsearch_need A_sort A_complexity
   C_deriv C_deriv_at C_anti C_def C_need
-  F_json F_b64dec F_b64enc F_hash F_urldec F_urlenc F_base F_day
+  F_json F_b64dec F_b64enc F_hash F_urldec F_urlenc F_base F_signed_base F_need F_day
   H_sha256 H_sha1 H_md5
   in SML module_name Discrete file_prefix discrete
 
@@ -205,7 +205,7 @@ ML \<open>
     @{thm c_anti_sound}, @{thm c_def_sound}, @{thm c_reply_answered},
     @{thm from_to_digits}, @{thm to_digits_below}, @{thm base_convert_value}, @{thm b64_roundtrip},
     @{thm pct_roundtrip}, @{thm sha_pad_blocks}, @{thm days_next_day_in_month},
-    @{thm weekday_next_day}, @{thm epoch_is_thursday}, @{thm f_base_sound}, @{thm f_base_declines},
+    @{thm weekday_next_day}, @{thm epoch_is_thursday}, @{thm f_base_sound}, @{thm f_signed_base_sound}, @{thm f_base_declines},
     @{thm f_b64dec_ok}, @{thm f_b64enc_decodes}, @{thm f_url_roundtrip}, @{thm f_day_valid},
     @{thm f_day_invalid}, @{thm f_base_decline_exact}, @{thm sha_pad_shape},
     @{thm mst_cert_minimal}, @{thm mst_cert_spans}, @{thm a_mst_minimal}, @{thm a_mst_disconnected},

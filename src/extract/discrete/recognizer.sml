@@ -939,19 +939,38 @@ struct
   (* ====================================================================
      dataformats
      ==================================================================== *)
-  fun payload (t : string) (low : string) : string option =
-    case search "`([^`]+)`" low of
-      SOME m => SOME (g1 t m)
-    | NONE =>
-    case search "\"([^\"]+)\"" low of
-      SOME m => SOME (g1 t m)
-    | NONE =>
-    case search "'([^']+)'" low of
-      SOME m => SOME (g1 t m)
-    | NONE =>
-    case search ":\\s*(\\S.*?)\\s*\\??$" low of
-      SOME m => SOME (g1 t m)
-    | NONE => NONE
+  (* Payload bytes never pass through whitespace or case normalization. Only
+     the command view is normalized; quoted spans and colon tails are masked.
+     Quotes delimit literal bytes, not a second JSON escape language. *)
+  fun literalView text =
+    let
+      val n = size text
+      fun at i = String.sub (text, i)
+      fun opener i = let val c = at i in
+        c = #"`" orelse c = #"\"" orelse
+        (c = #"'" andalso (i = 0 orelse not (Char.isAlphaNum (at (i-1))))) end
+      fun close q i =
+        if i >= n then NONE
+        else if at i = q then SOME i
+        else if q <> #"`" andalso at i = #"\\" andalso i+1 < n then close q (i+2)
+        else close q (i+1)
+      fun go i start parts literals =
+        if i >= n then (String.concat (rev (String.extract(text,start,NONE)::parts)), rev literals, false)
+        else if opener i then
+          (case close (at i) (i+1) of
+             NONE => (String.concat (rev (String.substring(text,start,i-start)::parts)),rev literals,true)
+           | SOME j => go (j+1) (j+1)
+               (" " :: String.substring(text,start,i-start)::parts)
+               ((at i,String.substring(text,i+1,j-i-1),j+1)::literals))
+        else go (i+1) start parts literals
+    in go 0 0 [] [] end
+
+  fun trimSpace s =
+    let val n=size s
+        fun left i = if i<n andalso Char.isSpace(String.sub(s,i)) then left(i+1) else i
+        fun right i = if i>0 andalso Char.isSpace(String.sub(s,i-1)) then right(i-1) else i
+        val a=left 0 val b=right n
+    in if b<a then "" else String.substring(s,a,b-a) end
 
   fun baseOf "binary" = 2 | baseOf "bin" = 2 | baseOf "octal" = 8 | baseOf "oct" = 8
     | baseOf "decimal" = 10 | baseOf "dec" = 10 | baseOf "hexadecimal" = 16 | baseOf "hex" = 16
@@ -959,63 +978,103 @@ struct
 
   fun formats text =
     let
-      val t = collapse text
-      val low = lower t
-      fun F r = SOME (D.RFormats r)
+      val (masked, spans, malformed) = literalView text
+      val literals = map #2 spans
+      val backticks = List.all (fn (q,_,_) => q = #"`") spans
+      (* A colon outside a literal starts a raw payload. Find its offset in
+         the original prefix, because masking deliberately changes lengths. *)
+      fun colon i = if i >= size text then NONE else
+        if String.sub(text,i) = #":" then SOME i
+        else if List.exists (fn c => String.sub(text,i)=c) [#"`",#"\"",#"'"]
+             andalso not (String.sub(text,i)= #"'" andalso i>0 andalso Char.isAlphaNum(String.sub(text,i-1)))
+             then NONE else colon(i+1)
+      val cp = colon 0
+      val command = case cp of SOME i => String.substring(text,0,i) | NONE => masked
+      val low = lower (collapse command)
+      val raw = Option.map (fn i => trimSpace(String.extract(text,i+1,NONE))) cp
+      val p0 = case literals of [s] => if malformed then NONE else SOME s
+                | [] => if malformed then NONE else raw
+                | _ => NONE
+      fun wrapped body s = List.exists (fn q => body=q^s^q orelse body=q^s^q^"?") ["`","\"","'"]
+      val p = case raw of
+          SOME body =>
+            if List.exists (fn q => String.isPrefix q body) ["`","\"","'"] then
+              (case (literals,malformed) of ([s],false) => if wrapped body s then SOME s else NONE | _ => NONE)
+            else SOME body
+        | NONE => p0
+      val jsonOp = has "\\bvalid json\\b|\\bis this json\\b|\\bparse (?:this )?json\\b" low
+      val b64Op = has "\\bbase ?64\\b" low andalso has "\\bdecode\\b|\\bencode\\b|\\b(?:from|to|in) base ?64\\b" low
+      val urlOp = has "\\burl[- ]?(?:encode|decode|encoding|decoding)\\b|\\bpercent[- ]encod" low
+      val hashes = findall "\\b(sha-?256|sha-?1|md5)\\b" low
+      val hashOp = not(null hashes) andalso has "\\bhash\\b|\\bdigest\\b|\\bchecksum\\b|\\bof\\b" low
+      (* Check the entire command, not just the presence of an operation
+         keyword. Unknown prefixes/suffixes may change the requested bytes. *)
+      val lead = "(?:(?:what is|what's|give me|compute|calculate|find|please) )?"
+      val hashGrammar = "^" ^ lead ^ "(?:the )?(?:sha-?256|sha-?1|md5)(?: (?:hash|digest|checksum))?(?: (?:of|for))?(?: please)? ?[?.!]*$"
+      val b64Grammar = "^" ^ lead ^ "(?:base ?64 (?:encode|decode)(?: (?:this|the string|the text))?|(?:encode|decode)(?: the)?(?: string| text)?(?: (?:in|to|from))? base ?64|(?:in|to|from) base ?64(?: \\((?:encode|decode)\\))?)(?: please)? ?[?.!]*$"
+      val urlGrammar = "^" ^ lead ^ "(?:url[- ]?(?:encode|decode|encoding|decoding)|percent[- ]encoding)(?: (?:this|the string|the text))?(?: please)? ?[?.!]*$"
+      val jsonGrammar = "^(?:is this (?:valid )?json|is (?:this )?json valid|parse (?:this )?json(?: and tell me if it is valid json)?)(?: please)? ?[?.!]*$"
+      val commandOk = if jsonOp then has jsonGrammar low else if hashOp then has hashGrammar low
+                      else if b64Op then has b64Grammar low
+                      else if urlOp then has urlGrammar low else true
+      val tail = case rev spans of [] => "" | (_,_,stop)::_ => lower(collapse(String.extract(text,stop,NONE)))
+      val tailOk = isSome cp orelse
+        has "^(?:[?.!]*|please[?.!]*|(?:in|to|from) base ?64(?: \\((?:encode|decode)\\))?[?.!]*)$" tail
+      val nops = length(List.filter (fn x=>x) [jsonOp,b64Op,urlOp,hashOp])
+      fun F r = SOME(D.RFormats r)
+      fun need () = F D.F_need
+      fun withPayload f = case p of SOME s => F(f(bytes s)) | NONE => need()
     in
-      if has "\\bvalid json\\b|\\bis this json\\b|\\bparse (?:this )?json\\b" low then
-        let
-          val p = case search "`([^`]+)`" low of
-                    SOME m => SOME (g1 t m)
-                  | NONE => (case search "json\\b[^:{\\[]*:\\s*(.+?)\\s*$" low of SOME m => SOME (g1 t m) | NONE => NONE)
-        in case p of NONE => NONE | SOME p => F (D.F_json (bytes p)) end
-      else if has "\\bbase ?64\\b" low andalso
-              (case payload t low of NONE => true | SOME _ => false) then NONE
-      else if has "\\bbase ?64\\b" low andalso has "\\bdecode\\b|\\bfrom base ?64\\b" low then
-        F (D.F_b64dec (bytes (valOf (payload t low))))
-      else if has "\\bbase ?64\\b" low andalso has "\\bencode\\b|\\bto base ?64\\b|\\bin base ?64\\b" low then
-        F (D.F_b64enc (bytes (valOf (payload t low))))
-      else
-        case search "\\b(sha-?256|sha-?1|md5)\\b" low of
-          SOME m =>
-            if has "\\bhash\\b|\\bdigest\\b|\\bchecksum\\b|\\bof\\b" low then
-              (case payload t low of
-                 NONE => NONE
-               | SOME p =>
-                   let val algo = String.translate (fn #"-" => "" | c => String.str c) (g1 low m)
-                       val a = if algo = "sha256" then D.H_sha256 else if algo = "sha1" then D.H_sha1 else D.H_md5
-                   in F (D.F_hash (a, bytes p)) end)
-            else formatsRest t low
-        | NONE => formatsRest t low
+      if nops>1 orelse (nops>0 andalso (not commandOk orelse not tailOk)) then need()
+      else if jsonOp then
+        (* Raw JSON includes its own quotation syntax. Outer backticks alone
+           may delimit JSON; a colon body is otherwise consumed in full. *)
+        (case raw of
+           SOME body =>
+             if String.isPrefix "`" body then
+               (case (literals,malformed) of ([s],false) => if wrapped body s then F(D.F_json(bytes s)) else need() | _ => need())
+             else F(D.F_json(bytes body))
+         | NONE => case (literals,malformed) of ([s],false) => if backticks then F(D.F_json(bytes s)) else need() | _ => need())
+      else if b64Op then
+        if has "\\bdecode\\b|\\bfrom base ?64\\b" low andalso has "\\bencode\\b|\\bto base ?64\\b" low then need()
+        else if has "\\bdecode\\b|\\bfrom base ?64\\b" low then withPayload D.F_b64dec
+        else withPayload D.F_b64enc
+      else if hashOp then
+        (case hashes of
+           [m] => let val algo=String.translate(fn #"-"=>"" | c=>String.str c)(g1 low m)
+                      val a=if algo="sha256" then D.H_sha256 else if algo="sha1" then D.H_sha1 else D.H_md5
+                  in withPayload(fn b=>D.F_hash(a,b)) end
+         | _ => need())
+      else if urlOp then
+        if has "decode|decoding" low andalso has "encode|encoding" low then need()
+        else if has "decode|decoding" low then withPayload D.F_urldec else withPayload D.F_urlenc
+      else formatsRest (collapse text) (subCI "\226\136\146" "-" (lower(collapse text)))
     end
   and formatsRest t low =
-    let fun F r = SOME (D.RFormats r)
+    let
+      fun F r = SOME(D.RFormats r)
+      val bases="(binary|bin|octal|oct|decimal|dec|hexadecimal|hex)"
+      val intent=has "\\bconvert\\b|\\bwhat is\\b" low andalso has ("\\b"^bases^"\\b") low
+      (* No suffix search: the entire numerical request must match. *)
+      val bm=search ("^(?:convert|what is)\\s+([+-]?(?:0x[0-9a-f]+|0b[01]+|0o[0-7]+|[0-9a-f]+))"
+        ^"(?:\\s+\\(?(?:in |from )?"^bases^"\\)?)?\\s+(?:to|in|into|as)\\s+"^bases^"[?.]?$") low
     in
-      if has "\\burl[- ]?(?:encode|decode|encoding|decoding)\\b|\\bpercent[- ]encod" low then
-        (case payload t low of
-           NONE => NONE
-         | SOME p =>
-             if has "decode" low orelse has "decoding" low then F (D.F_urldec (bytes p)) else F (D.F_urlenc (bytes p)))
-      else
-        let
-          val bm = search ("\\b(0x[0-9a-f]+|0b[01]+|0o[0-7]+|[0-9a-f]+)\\b(?:\\s+\\(?(?:in |from )?(binary|bin|octal|oct|decimal|dec|hexadecimal|hex)\\)?)?"
-                           ^ "\\s+(?:to|in|into|as)\\s+(binary|bin|octal|oct|decimal|dec|hexadecimal|hex)\\b") low
-        in
-          case bm of
-            SOME m =>
-              if has "\\bconvert\\b|\\bwhat is\\b|\\bin\\b" low then
-                let
-                  val tok = g1 low m
-                  val src = grp low m 2
-                  val dst = valOf (grp low m 3)
-                  val pre = if size tok >= 2 then String.substring (tok, 0, 2) else ""
-                  val base = if pre = "0x" then 16 else if pre = "0b" then 2 else if pre = "0o" then 8
-                             else (case src of SOME s => baseOf s | NONE => 10)
-                  val digs = if pre = "0x" orelse pre = "0b" orelse pre = "0o" then String.extract (tok, 2, NONE) else tok
-                in F (D.F_base (bytes tok, nat base, nat (baseOf dst), bytes digs)) end
-              else dayOf t low
-          | NONE => dayOf t low
-        end
+      case bm of
+        SOME m =>
+          let val tok=g1 low m
+              val neg=String.isPrefix "-" tok
+              val unsigned=if neg orelse String.isPrefix "+" tok then String.extract(tok,1,NONE) else tok
+              val pre=if size unsigned>=2 then String.substring(unsigned,0,2) else ""
+              val prefix=if pre="0x" then SOME 16 else if pre="0b" then SOME 2 else if pre="0o" then SOME 8 else NONE
+              val src=Option.map baseOf(grp low m 2)
+              val dst=baseOf(valOf(grp low m 3))
+              val base=case prefix of SOME b=>b | NONE=>(case src of SOME b=>b | NONE=>10)
+              val digs=case prefix of SOME _=>String.extract(unsigned,2,NONE) | NONE=>unsigned
+          in if (isSome prefix andalso isSome src andalso prefix<>src)
+                   orelse (base=10 andalso has "^[0-9]+e[0-9]+$" digs) then F D.F_need
+             else if neg then F(D.F_signed_base(bytes tok,nat base,nat dst,true,bytes digs))
+             else F(D.F_base(bytes tok,nat base,nat dst,bytes digs)) end
+      | NONE => if intent then F D.F_need else dayOf t low
     end
   and dayOf t low =
     case search "\\b(\\d{4})-(\\d{2})-(\\d{2})\\b" low of

@@ -799,6 +799,8 @@ datatype freq =
   | F_urldec "nat list"
   | F_urlenc "nat list"
   | F_base "nat list" nat nat "nat list"
+  | F_signed_base "nat list" nat nat bool "nat list"
+  | F_need
   | F_day "nat list" nat nat nat
 
 datatype fout =
@@ -811,6 +813,8 @@ datatype fout =
   | FUrlBad "nat list"
   | FUrlEnc "nat list" "nat list"
   | FBase "nat list" nat nat "nat list" "nat list"
+  | FBaseSigned "nat list" nat nat bool "nat list" "nat list"
+  | FUnsupported
   | FBaseBad "nat list" nat
   | FDay "nat list" nat
   | FDateBad "nat list"
@@ -828,6 +832,9 @@ definition f_kernel :: "freq \<Rightarrow> fout" where
    | F_urlenc p \<Rightarrow> FUrlEnc p (pct_enc p)
    | F_base tok src dst cs \<Rightarrow>
        (case base_convert src dst cs of Some out \<Rightarrow> FBase tok src dst cs out | None \<Rightarrow> FBaseBad tok src)
+   | F_signed_base tok src dst neg cs \<Rightarrow>
+       (case base_convert src dst cs of Some out \<Rightarrow> FBaseSigned tok src dst neg cs out | None \<Rightarrow> FBaseBad tok src)
+   | F_need \<Rightarrow> FUnsupported
    | F_day tok y m d \<Rightarrow> if valid_date y m d then FDay tok (weekday y m d) else FDateBad tok)"
 
 theorem f_base_sound:
@@ -840,6 +847,27 @@ proof -
   then have "\<exists>n. digits_val src cs = Some n" by (auto simp: base_convert_def split: option.splits)
   moreover have "digits_val dst out = digits_val src cs" using base_convert_value[OF a bc] .
   ultimately show ?thesis by blast
+qed
+
+definition signed_digits_value :: "bool \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> int option" where
+  "signed_digits_value neg b cs = map_option (\<lambda>n. if neg then - int n else int n) (digits_val b cs)"
+
+theorem f_signed_base_sound:
+  "2 \<le> dst \<Longrightarrow> dst \<le> 16 \<Longrightarrow>
+   f_kernel (F_signed_base tok src dst neg cs) = FBaseSigned tok' src' dst' neg' cs' out \<Longrightarrow>
+   tok' = tok \<and> src' = src \<and> dst' = dst \<and> neg' = neg \<and> cs' = cs \<and>
+   signed_digits_value neg dst out = signed_digits_value neg src cs \<and>
+   (\<exists>n. signed_digits_value neg src cs = Some n)"
+proof -
+  assume a: "2 \<le> dst" "dst \<le> 16"
+    and k: "f_kernel (F_signed_base tok src dst neg cs) = FBaseSigned tok' src' dst' neg' cs' out"
+  then have bc: "base_convert src dst cs = Some out" and fields:
+    "tok' = tok" "src' = src" "dst' = dst" "neg' = neg" "cs' = cs"
+    by (auto simp: f_kernel_def split: option.splits)
+  have conversion_value: "digits_val dst out = digits_val src cs" using base_convert_value[OF a bc] .
+  have defined_value: "\<exists>n. digits_val src cs = Some n"
+    using bc by (auto simp: base_convert_def split: option.splits)
+  show ?thesis using fields conversion_value defined_value by (auto simp: signed_digits_value_def)
 qed
 
 theorem f_base_declines:
@@ -929,6 +957,14 @@ definition f_reply :: "freq \<Rightarrow> reply" where
        Reply True (STR ''base'')
          ([PB cs] @ [PS (STR '' (base '' + show_nat src + STR '') is '')] @ [PB out]
           @ [PS (STR '' in base '' + show_nat dst + STR ''.'')]) (JStr out)
+   | FBaseSigned tok src dst neg cs out \<Rightarrow>
+       (let signed = (if neg then [45] else []) @ out in
+        Reply True (STR ''base'')
+         ([PB tok] @ [PS (STR '' (base '' + show_nat src + STR '') is '')] @ [PB signed]
+          @ [PS (STR '' in base '' + show_nat dst + STR ''.'')]) (JStr signed))
+   | FUnsupported \<Rightarrow>
+       Reply False (STR ''unsupported'')
+         [PS (STR ''I need one complete literal payload or signed integer and an unambiguous format operation.'')] JNone
    | FBaseBad tok src \<Rightarrow>
        Reply False (STR ''base_invalid'')
          ([PS ((STR '''' + dq + STR ''''))] @ [PB tok] @ [PS ((STR '''' + dq + STR '' has a digit that is not allowed in base '') + show_nat src
