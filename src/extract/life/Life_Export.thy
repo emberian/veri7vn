@@ -158,7 +158,7 @@ export_code bio_input bio_model_reply g_reply b_reply e_reply f_reply w_reply m_
   Hom_dom Het Hom_rec Locus G_Geno G_Pheno G_PRatio G_GRatio G_HW G_Need G_Model
   HK_carrier HK_p2 HK_p HK_q HWq2 HWone HWqs HWps
   NA NC NG NT NU Op_codon Op_gc Op_revcomp Op_complement Op_transcribe Op_translate Op_protlen Bio
-  E_Shannon E_Evenness E_SimpD E_SimpDiv E_SimpInv E_Richness E_LogRate E_LogN E_ExpN E_Doubling E_Geom
+  E_Shannon E_Evenness E_SimpD E_SimpDiv E_SimpInv E_Richness E_LogRate E_LogN E_LogRateAt E_ExpN E_ExpRateAt E_Doubling E_Geom
   F_Doyle F_Smalian F_Tpa F_Height F_BA F_BAPA F_BAm
   W_Lincoln W_Density W_Surv
   M_CFU M_Serial M_GrowthN M_Gens M_GenTime M_Unread
@@ -184,7 +184,8 @@ ML \<open>
     @{thm logistic_rate_at_capacity}, @{thm geometric_exact}, @{thm ecology_approx},
     @{thm doubling_declines_iff}, @{thm logistic_n_declines_iff}, @{thm shannon_declines_iff},
     @{thm evenness_zero_declines_iff}, @{thm doubling_phys}, @{thm logistic_phys_start},
-    @{thm logistic_phys_capacity}, @{thm exp_phys_start}, @{thm shannon_gibbs}, @{thm evenness_range},
+    @{thm logistic_phys_capacity}, @{thm exp_phys_start}, @{thm logistic_future_rate_model}, @{thm exponential_future_rate_model},
+    @{thm logistic_zero_equilibrium}, @{thm logistic_future_rate_start}, @{thm exponential_future_derivative}, @{thm logistic_future_rate_bound}, @{thm shannon_gibbs}, @{thm evenness_range},
     @{thm shannon_kernel_range}, @{thm doubling_kernel_bound},
     @{thm doyle_declines_iff}, @{thm tpa_declines_iff}, @{thm height_declines_iff},
     @{thm cfu_declines_iff}, @{thm gens_declines_iff}, @{thm gentime_final_below_iff}, @{thm gentime_zero_iff},

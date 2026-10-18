@@ -89,3 +89,18 @@ requires nonnegative colony count, dilution in (0,1], and positive volume.
 The D receipt has 110 theorems and zero oracles; all 179 shipped items and
 43 targeted probes pass. See [semantic gaps](semantic-gaps.md)
 for the remaining limits beyond the shipped panels.
+
+## Population and dilution roles
+
+Ecology distinguishes a requested population from its growth rate, and an
+initial rate from the derivative at a stated future time. Zero population is
+an equilibrium. Population and forward time must be nonnegative; carrying
+capacity must be positive. Explicit mismatched time units currently decline.
+Complete dilution tokens retain their signs in colon, fraction, scientific and
+power notation; a negative dilution is never recovered as a positive suffix.
+
+The E artifact passes all 179 shipped items and three fresh panels. Its 80
+same-author policy assertions pass, while capability counts are 73 right and
+seven valid requests withheld, with no wrong answers or false yes. This
+separation preserves visible model limits. The receipt scans 116 theorems with
+zero oracles and binds the native compiler inputs to the successful proof.

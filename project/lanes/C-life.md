@@ -184,3 +184,5 @@ The consumed numeric parser hash is
 Earlier diagnostic compiler snapshots remain in scratch and are not the final
 package. The redundant family-specific snapshot helper was removed after
 migration to the shared driver.
+
+For the subsequent target/time and dilution repair, see [Life E](E-life.md).

@@ -21,24 +21,44 @@
   fun minutesOf lit unit =
     ratTimes lit (if String.isPrefix "h" unit then 60 else if String.isPrefix "d" unit then 1440 else 1)
 
-  fun microDil low : L.rat option =
-    case search ⟦10\s*\^\s*-\s*(\d+)|10\s*\^\s*\(\s*-\s*(\d+)\s*\)|1\s*[:/]\s*10\s*\^\s*(\d+)|1e-(\d+)|1\s*[:/]\s*(\d+(?:,\d{3})*)\b⟧ low of
-      NONE => NONE
-    | SOME m =>
-        (case grp low m 5 of
-           SOME g => SOME (L.mk_rat 1 (bigOf g))
-         | NONE =>
-             let val k = intOf (valOf (firstGroup low m [1, 2, 3, 4]))
-             in SOME (L.mk_rat 1 (IntInf.pow (10, k))) end)
+  (* Dilution powers and colon ratios are domain notation. Normalize only
+     complete powers, then let shared exact tokenization preserve all signs,
+     fractions and malformed runs. Never search a valid-looking numeric tail. *)
+  fun microNotation low =
+    let
+      fun inverseExponent e = if String.isPrefix "-" e then String.extract (e,1,NONE)
+        else "-" ^ (if String.isPrefix "+" e then String.extract(e,1,NONE) else e)
+      val reciprocal = subWith ⟦(?<![\w.,+\-/^−])([+\-]?1)\s*[:/]\s*10\s*\^\s*(?:\(\s*([+-]?\d+)\s*\)|([+-]?\d+))(?![\d.\^\)])⟧
+        (fn t => fn m => g1 t m ^ "e" ^ inverseExponent (valOf (firstGroup t m [2,3]))) low
+      val paren = subWith ⟦(?<![\w.,+\-/^−])10\s*\^\s*\(\s*([+-]?\d+)\s*\)(?![\d.\^])⟧
+                    (fn t => fn m => "1e" ^ g1 t m) reciprocal
+      val power = subWith ⟦(?<![\w.,+\-/^−])10\s*\^\s*([+-]?\d+)(?![\d.\^\)])⟧
+                    (fn t => fn m => "1e" ^ g1 t m) paren
+      val ratio = subWith ⟦(?<=\d)\s*:\s*(?=[+\-−.\d])⟧ (fn _ => fn _ => "/") power
+    in ratio end
+
+  fun microDil low tokens : L.rat option =
+    let
+      fun binding (ExactNumeric.Number {start, stop, value, ...}) =
+            let val prefix = String.substring (low, 0, start)
+                val after = String.extract (low, stop, NONE)
+            in if has ⟦^\s*dilution\b⟧ after orelse
+                  has ⟦\bdilution\s*(?:factor\s*)?(?:of|is|=|:)?\s*$⟧ prefix
+               then SOME value else NONE end
+        | binding _ = NONE
+    in case List.mapPartial binding tokens of
+         [(n,d)] => SOME (L.mk_rat n d)
+       | _ => NONE
+    end
 
   fun microV1 t : L.mreq option =
     let
-      val low = lower t
+      val low = microNotation (lower t)
     in
       if has ⟦\bcfu\b|\bcolon(?:y|ies)\b|\bplate count\b⟧ low andalso has ⟦\bdilution\b|10\s*\^|\b1\s*[:/]\s*\d⟧ low then
         let
           val tokens = ExactNumeric.scan low
-          val malformed = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+          val malformed = has ⟦\^⟧ low orelse List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
           fun role pat = List.mapPartial
             (fn ExactNumeric.Number {stop, value, ...} =>
                   let val rest = String.extract (low, stop, NONE)
@@ -46,7 +66,7 @@
               | _ => NONE) tokens
           val colonies = role ⟦^\s*colon(?:y|ies)\b⟧
           val volumes = role ⟦^\s*(?:ml|µl|ul|microlit\w+|millilit\w+)\b⟧
-          val dil = microDil low
+          val dil = microDil low tokens
         in
           if malformed then SOME L.M_Unread
           else case (colonies, dil, volumes) of

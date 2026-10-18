@@ -37,16 +37,29 @@ datatype ereq =
     E_Shannon "nat list" | E_Evenness "nat list" | E_SimpD "nat list" | E_SimpDiv "nat list"
   | E_SimpInv "nat list" | E_Richness "nat list"
   | E_LogRate rat rat rat
-  | E_LogN rat rat rat rat
-  | E_ExpN rat rat rat
+  | E_LogN rat rat rat rat | E_LogRateAt rat rat rat rat
+  | E_ExpN rat rat rat | E_ExpRateAt rat rat rat
   | E_Doubling rat
   | E_Geom rat rat rat
+
+definition log_pop :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> real" where
+  "log_pop r n k t = (if n = 0 then 0 else rl k / (1 + (rl k - rl n) / rl n * exp (- (rl r * rl t))))"
+
+definition log_fa :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> floatarith" where
+  "log_fa r n k t = (if n = 0 then I 0 else floatarith.Mult (Q k) (floatarith.Inverse (floatarith.Add (I 1)
+     (floatarith.Mult (floatarith.Mult (floatarith.Add (Q k) (floatarith.Minus (Q n))) (floatarith.Inverse (Q n)))
+        (floatarith.Exp (floatarith.Minus (floatarith.Mult (Q r) (Q t))))))))"
+
+lemma log_fa_phys [simp]: "interpret_floatarith (log_fa r n k t) xs = log_pop r n k t"
+  by (simp add: log_fa_def log_pop_def divide_inverse)
 
 text \<open>The real-number model of every enclosed kind.\<close>
 fun e_phys :: "ereq \<Rightarrow> real" where
   "e_phys (E_Shannon cs) = - shan_sum (tot cs) cs"
 | "e_phys (E_Evenness cs) = - shan_sum (tot cs) cs / ln (real (species cs))"
-| "e_phys (E_LogN r n k t) = rl k / (1 + (rl k - rl n) / rl n * exp (- (rl r * rl t)))"
+| "e_phys (E_LogN r n k t) = log_pop r n k t"
+| "e_phys (E_LogRateAt r n k t) = (let v = log_pop r n k t in rl r * v * (1 - v / rl k))"
+| "e_phys (E_ExpRateAt r n t) = rl r * (rl n * exp (rl r * rl t))"
 | "e_phys (E_ExpN r n t) = rl n * exp (rl r * rl t)"
 | "e_phys (E_Doubling r) = ln 2 / rl r"
 | "e_phys (E_Geom l n t) = rl n * rl l powr rl t"
@@ -56,9 +69,11 @@ fun e_fa :: "ereq \<Rightarrow> floatarith" where
   "e_fa (E_Shannon cs) = floatarith.Minus (shan_fa (tot cs) cs)"
 | "e_fa (E_Evenness cs) = floatarith.Mult (floatarith.Minus (shan_fa (tot cs) cs))
      (floatarith.Inverse (floatarith.Ln (I (int (species cs)))))"
-| "e_fa (E_LogN r n k t) = floatarith.Mult (Q k) (floatarith.Inverse (floatarith.Add (I 1)
-     (floatarith.Mult (floatarith.Mult (floatarith.Add (Q k) (floatarith.Minus (Q n))) (floatarith.Inverse (Q n)))
-        (floatarith.Exp (floatarith.Minus (floatarith.Mult (Q r) (Q t)))))))"
+| "e_fa (E_LogN r n k t) = log_fa r n k t"
+| "e_fa (E_LogRateAt r n k t) = (let v = log_fa r n k t in
+    floatarith.Mult (floatarith.Mult (Q r) v)
+      (floatarith.Add (I 1) (floatarith.Minus (floatarith.Mult v (floatarith.Inverse (Q k))))))"
+| "e_fa (E_ExpRateAt r n t) = floatarith.Mult (Q r) (floatarith.Mult (Q n) (floatarith.Exp (floatarith.Mult (Q r) (Q t))))"
 | "e_fa (E_ExpN r n t) = floatarith.Mult (Q n) (floatarith.Exp (floatarith.Mult (Q r) (Q t)))"
 | "e_fa (E_Doubling r) = floatarith.Mult (floatarith.Ln (I 2)) (floatarith.Inverse (Q r))"
 | "e_fa (E_Geom l n t) = floatarith.Mult (Q n) (floatarith.Powr (Q l) (Q t))"
@@ -70,7 +85,11 @@ proof (cases r)
 next
   case (E_Evenness cs) then show ?thesis by (simp add: divide_inverse)
 next
-  case (E_LogN r n k t) then show ?thesis by (simp add: divide_inverse of_rat_divide)
+  case (E_LogN r n k t) then show ?thesis by simp
+next
+  case (E_LogRateAt r n k t) then show ?thesis by (simp add: Let_def divide_inverse)
+next
+  case (E_ExpRateAt r n t) then show ?thesis by simp
 next
   case (E_ExpN r n t) then show ?thesis by simp
 next
@@ -86,11 +105,14 @@ fun e_bad :: "ereq \<Rightarrow> reason option" where
 | "e_bad (E_SimpDiv cs) = (if tot cs < 2 then Some R_zero else None)"
 | "e_bad (E_SimpInv cs) = (if tot cs < 2 \<or> simpD cs = 0 then Some R_zero else None)"
 | "e_bad (E_Richness cs) = None"
-| "e_bad (E_LogRate r n k) = (if k = 0 then Some R_zero else None)"
-| "e_bad (E_LogN r n k t) = (if n = 0 then Some R_zero else None)"
-| "e_bad (E_ExpN r n t) = None"
+| "e_bad (E_LogRate r n k) = (if n < 0 \<or> k \<le> 0 then Some R_population else None)"
+| "e_bad (E_LogN r n k t) = (if n < 0 \<or> k \<le> 0 \<or> t < 0 \<or> (r < 0 \<and> k < n) then Some R_population else None)"
+| "e_bad (E_LogRateAt r n k t) = (if n < 0 \<or> k \<le> 0 \<or> t < 0 \<or> (r < 0 \<and> k < n) then Some R_population else None)"
+| "e_bad (E_ExpRateAt r n t) = (if n < 0 \<or> t < 0 then Some R_population else None)"
+| "e_bad (E_ExpN r n t) = (if n < 0 \<or> t < 0 then Some R_population else None)"
 | "e_bad (E_Doubling r) = (if r \<le> 0 then Some R_rate else None)"
-| "e_bad (E_Geom l n t) = (if nat_of_rat t = None \<and> l \<le> 0 then Some R_zero else None)"
+| "e_bad (E_Geom l n t) = (if n < 0 \<or> l < 0 \<or> t < 0 then Some R_population
+     else if nat_of_rat t = None \<and> l = 0 then Some R_zero else None)"
 
 fun e_answer :: "ereq \<Rightarrow> outcome" where
   "e_answer (E_Shannon cs) = approx_out (STR ''shannon'') (e_fa (E_Shannon cs))"
@@ -101,6 +123,8 @@ fun e_answer :: "ereq \<Rightarrow> outcome" where
 | "e_answer (E_Richness cs) = Exact (STR ''richness'') (of_nat (species cs))"
 | "e_answer (E_LogRate r n k) = Exact (STR ''logistic_rate'') (r * n * (1 - n / k))"
 | "e_answer (E_LogN r n k t) = approx_out (STR ''logistic_n'') (e_fa (E_LogN r n k t))"
+| "e_answer (E_LogRateAt r n k t) = approx_out (STR ''logistic_rate_at'') (e_fa (E_LogRateAt r n k t))"
+| "e_answer (E_ExpRateAt r n t) = approx_out (STR ''exp_rate_at'') (e_fa (E_ExpRateAt r n t))"
 | "e_answer (E_ExpN r n t) = approx_out (STR ''exp_n'') (e_fa (E_ExpN r n t))"
 | "e_answer (E_Doubling r) = approx_out (STR ''doubling'') (e_fa (E_Doubling r))"
 | "e_answer (E_Geom l n t) = (case nat_of_rat t of
@@ -168,30 +192,31 @@ theorem richness_value:
 
 theorem logistic_rate_value:
   assumes "e_kernel (E_LogRate r n k) = Exact c q"
-  shows "k \<noteq> 0 \<and> q = r * n * (1 - n / k)"
+  shows "0 \<le> n \<and> 0 < k \<and> q = r * n * (1 - n / k)"
 proof -
   have nd: "e_bad (E_LogRate r n k) = None" using assms by (cases "e_bad (E_LogRate r n k)") (simp_all add: e_kernel_def)
-  then have "k \<noteq> 0" by (auto split: if_splits)
+  then have "0 \<le> n \<and> 0 < k" by (auto split: if_splits)
   then show ?thesis using assms nd by (simp add: e_kernel_def)
 qed
 
 text \<open>Growth stops at the carrying capacity.\<close>
 theorem logistic_rate_at_capacity:
-  "k \<noteq> 0 \<Longrightarrow> e_kernel (E_LogRate r k k) = Exact (STR ''logistic_rate'') 0"
+  "0 < k \<Longrightarrow> e_kernel (E_LogRate r k k) = Exact (STR ''logistic_rate'') 0"
   by (simp add: e_kernel_def)
 
 theorem geometric_exact:
   assumes "e_kernel (E_Geom l n t) = Exact c q"
-  shows "\<exists>m. t = of_nat m \<and> q = n * l ^ m"
+  shows "0 \<le> n \<and> 0 \<le> l \<and> (\<exists>m. t = of_nat m \<and> q = n * l ^ m)"
 proof -
   have nd: "e_bad (E_Geom l n t) = None" using assms by (cases "e_bad (E_Geom l n t)") (simp_all add: e_kernel_def)
+  have dom: "0 \<le> n \<and> 0 \<le> l" using nd by (auto split: if_splits)
   show ?thesis
   proof (cases "nat_of_rat t")
     case None
     then show ?thesis using assms nd by (simp add: e_kernel_def)
   next
     case (Some m)
-    then show ?thesis using assms nd nat_of_rat_sound by (auto simp: e_kernel_def)
+    then show ?thesis using assms nd dom nat_of_rat_sound by (auto simp: e_kernel_def)
   qed
 qed
 
@@ -224,7 +249,7 @@ theorem doubling_declines_iff:
   by (simp add: e_decl_iff)
 
 theorem logistic_n_declines_iff:
-  "e_kernel (E_LogN r n k t) = Decline (Impossible R_zero) \<longleftrightarrow> n = 0"
+  "e_kernel (E_LogN r n k t) = Decline (Impossible R_population) \<longleftrightarrow> n < 0 \<or> k \<le> 0 \<or> t < 0 \<or> (r < 0 \<and> k < n)"
   by (simp add: e_decl_iff)
 
 theorem shannon_declines_iff:
@@ -254,13 +279,13 @@ theorem logistic_phys_start:
 proof -
   have n: "rl n \<noteq> 0" and k: "rl k \<noteq> 0" using assms by simp_all
   have e: "1 + (rl k - rl n) / rl n = rl k / rl n" using n by (simp add: field_simps)
-  show ?thesis using n k by (simp add: e field_simps)
+  show ?thesis using n k by (simp add: log_pop_def e field_simps)
 qed
 
 theorem logistic_phys_capacity:
   assumes "k \<noteq> 0"
   shows "e_phys (E_LogN r k k t) = rl k"
-  using assms by simp
+  using assms by (simp add: log_pop_def)
 
 theorem exp_phys_start: "e_phys (E_ExpN r n 0) = rl n"
   by simp
@@ -426,6 +451,37 @@ proof -
   ultimately show ?thesis by simp
 qed
 
+text \<open>A future rate uses the population at that time, not its initial value.\<close>
+theorem logistic_future_rate_model:
+  "e_phys (E_LogRateAt r n k t) = rl r * e_phys (E_LogN r n k t) * (1 - e_phys (E_LogN r n k t) / rl k)"
+  by (simp add: Let_def)
+
+theorem exponential_future_rate_model:
+  "e_phys (E_ExpRateAt r n t) = rl r * e_phys (E_ExpN r n t)"
+  by simp
+
+theorem logistic_zero_equilibrium:
+  "e_phys (E_LogN r 0 k t) = 0 \<and> e_phys (E_LogRateAt r 0 k t) = 0"
+  by (simp add: log_pop_def Let_def)
+
+theorem logistic_future_rate_start:
+  assumes "n \<noteq> 0" "k \<noteq> 0"
+  shows "e_phys (E_LogRateAt r n k 0) = rl (r * n * (1 - n / k))"
+  using logistic_phys_start[OF assms, of r]
+  by (simp add: logistic_future_rate_model Let_def of_rat_divide of_rat_mult of_rat_diff)
+
+theorem exponential_future_derivative:
+  "((\<lambda>u. rl n * exp (rl r * u)) has_real_derivative e_phys (E_ExpRateAt r n t)) (at (rl t))"
+  by (auto intro!: derivative_eq_intros simp: algebra_simps)
+
+theorem logistic_future_rate_bound:
+  assumes "e_kernel (E_LogRateAt r n k t) = Approx c d"
+  shows "0 \<le> n \<and> 0 < k \<and> 0 \<le> t \<and> (0 \<le> r \<or> n \<le> k) \<and>
+    \<bar>dec_val d - rl r * e_phys (E_LogN r n k t) * (1 - e_phys (E_LogN r n k t) / rl k)\<bar>
+      \<le> \<bar>rl r * e_phys (E_LogN r n k t) * (1 - e_phys (E_LogN r n k t) / rl k)\<bar> / 1000 + 1 / 1000000000"
+  using ecology_approx[OF assms]
+  by (auto simp: logistic_future_rate_model Let_def split: if_splits)
+
 section \<open>Response text\<close>
 
 definition dnote :: "ereq \<Rightarrow> String.literal" where
@@ -450,9 +506,13 @@ fun e_text :: "ereq \<Rightarrow> outcome \<Rightarrow> String.literal" where
      + STR '' individuals per unit time (dN/dt = r N (1 - N/K) = '' + plain_lit r + STR '' x '' + plain_lit n
      + STR '' x (1 - '' + plain_lit n + STR ''/'' + plain_lit k + STR ''))''
      + (if n > k then STR ''; negative because N is above K'' else STR '''') + STR ''.''"
-| "e_text (E_LogN r n k t) o' = STR ''The population is '' + vtxt o'
+| "e_text (E_LogN r n k t) o' = (if n = 0 then STR ''The population remains zero (the zero-population equilibrium).'' else STR ''The population is '' + vtxt o'
      + STR '' (logistic: K / (1 + ((K - N0)/N0) e^(-rt)) with K '' + plain_lit k + STR '', N0 '' + plain_lit n
-     + STR '', r '' + plain_lit r + STR '', t '' + plain_lit t + STR '').''"
+     + STR '', r '' + plain_lit r + STR '', t '' + plain_lit t + STR '').'')"
+| "e_text (E_LogRateAt r n k t) o' = STR ''The growth rate at t = '' + plain_lit t + STR '' is '' + vtxt o'
+     + STR '' individuals per unit time (r N(t) (1 - N(t)/K), using the logistic population at that time).''"
+| "e_text (E_ExpRateAt r n t) o' = STR ''The growth rate at t = '' + plain_lit t + STR '' is '' + vtxt o'
+     + STR '' individuals per unit time (r N0 exp(r t), continuous exponential growth).''"
 | "e_text (E_ExpN r n t) o' = STR ''The population is '' + vtxt o' + STR '' (N0 e^(r t) = '' + plain_lit n
      + STR '' x e^('' + plain_lit r + STR '' x '' + plain_lit t + STR ''), continuous exponential growth).''"
 | "e_text (E_Doubling r) o' = STR ''The doubling time is '' + vtxt o' + STR '' time units (ln 2 / r = 0.6931 / ''

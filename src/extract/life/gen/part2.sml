@@ -20,58 +20,69 @@
       NONE => NONE
     | SOME m => SOME (ratOf (valOf (firstGroup low m [1, 3])))
 
+  (* Bind quantity roles to full shared numeric tokens. A target clause is
+     independent of the input declarations; a supplied growth rate is not
+     itself a request to return a growth rate. *)
   fun ecoRest low : L.ereq option =
     let
-      val K = search (⟦\bcarrying capacity\s*(?:\(k\)\s*)?(?:of|is|=)?\s*⟧ ^ N ^ ⟦|\bk\s*=\s*⟧ ^ N) low
-      val r_ = search ⟦\b(?:intrinsic |per capita )?(?:growth )?rate\s*(?:\(r\)\s*)?(?:of|is|=)?\s*(-?\d*\.?\d+)\s*(%)?|\br\s*=\s*(-?\d*\.?\d+)⟧ low
-      val n0 = search (⟦\b(?:initial|starting|current) (?:population|size)\s*(?:of|is|=)?\s*⟧ ^ N ^ ⟦|\bn0?\s*=\s*⟧ ^ N ^ ⟦|\bpopulation (?:of|is)\s*⟧ ^ N) low
-      val rlit = Option.map (fn m => valOf (firstGroup low m [1, 3])) r_
-      val rv = case r_ of
-                 NONE => NONE
-               | SOME m =>
-                   (case grp low m 2 of
-                      SOME _ => SOME (ratPercent (valOf rlit))
-                    | NONE => SOME (ratOf (valOf rlit)))
-      val n0lit = Option.map (fn m => valOf (firstGroup low m [1, 2, 3])) n0
-      val n0v = Option.map ratOf n0lit
-      val Kv = Option.map (fn m => ratOf (valOf (firstGroup low m [1, 2]))) K
+      val tokens = ExactNumeric.scan low
+      val malformed = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+      fun fields prefixPat suffixPat = List.mapPartial
+        (fn ExactNumeric.Number {start, stop, value=(n,d)} =>
+              let val prefix = String.substring (low, 0, start)
+                  val suffix = String.extract (low, stop, NONE)
+              in if has prefixPat prefix andalso has suffixPat suffix
+                 then SOME ((n,d),suffix) else NONE end
+          | _ => NONE) tokens
+      fun one rows = case rows of [v] => SOME v | _ => NONE
+      fun rat rows = Option.map (fn ((n,d),_) => L.mk_rat n d) (one rows)
+      val n = rat (fields ⟦\b(?:(?:initial|starting|current) (?:population|size)|population|n0?)\s*(?:of|is|=)?\s*$⟧ ⟦^⟧)
+      val k = rat (fields ⟦\b(?:carrying capacity(?:\s*\(k\))?|k)\s*(?:of|is|=)?\s*$⟧ ⟦^⟧)
+      val rate = one (fields ⟦\b(?:(?:intrinsic |per capita )?(?:growth )?rate(?:\s*\(r\))?|r)\s*(?:of|is|=)?\s*$⟧ ⟦^⟧)
+      val r = Option.map (fn ((num,den),suffix) => L.mk_rat num
+                (if has ⟦^\s*%⟧ suffix then den * 100 else den)) rate
+      val timeEntry = one (fields ⟦\b(?:after|in|at(?:\s+t\s*=)?)\s*$⟧ (⟦^\s*⟧ ^ ecoUnits ^ ⟦\b⟧))
+      val time = Option.map (fn ((num,den),_) => L.mk_rat num den) timeEntry
+      fun namedUnit suffix =
+        let val suffix = subWith ⟦^\s*%\s*⟧ (fn _ => fn _ => "") suffix
+        in case search (⟦^\s*(?:per\s+|/\s*)?⟧ ^ ecoUnits ^ ⟦\b⟧) suffix of
+          SOME m => SOME (String.sub (g1 suffix m, 0)) | NONE => NONE end
+      val mixedUnits = case (rate,timeEntry) of
+        (SOME (_,rs),SOME (_,ts)) =>
+          (case (namedUnit rs,namedUnit ts) of (SOME a,SOME b) => a <> b | _ => false)
+      | _ => false
+      val asks = findall ⟦\b(?:what|how|calculate|find|estimate|predict|determine)\b⟧ low
+      val target = case rev asks of
+          (m : Regex.match) :: _ => String.extract (low, #start m, NONE)
+        | [] => lower (Narrow.last_sentence low)
+      val wantRate = has ⟦\bdn\s*/\s*dt\b|\bhow fast\b|\bgrowth rate\b|\brate of (?:growth|change)\b⟧ target
+      val wantDouble = has ⟦\bdoubling time\b|\bhow long to double\b⟧ target
+      val wantPopulation = has ⟦\bpopulation\b|\bhow many\b|\bsize\b|\b(?:calculate|find|estimate|predict|determine)\s+n\b⟧ target
+      val logistic = has ⟦\blogistic\b|\bcarrying capacity\b⟧ low
+      val exponential = has ⟦\bexponential\w*\b|\bgrow\w*\b⟧ low
+      val lambda = rat (fields ⟦(?:\blambda(?:\s*\(λ\))?|λ|\bfinite rate of increase)\s*(?:of|is|=)?\s*$⟧ ⟦^⟧)
     in
-      if isSome K andalso isSome r_ andalso isSome n0 andalso has ⟦\blogistic\b|\bcarrying capacity\b⟧ low then
-        let
-          val ask = lower (Narrow.last_sentence low)
-          val tm = ecoTime low ecoUnits
-        in
-          if isSome tm andalso has ⟦\bpopulation\b|\bhow many\b|\bsize\b⟧ ask
-             andalso not (has ⟦\bdn/dt\b|\bhow fast\b|\bgrowth rate\b⟧ ask)
-          then
-            (* N0 <= 0 is not taken by the organ *)
-            (if not (litPos (valOf n0lit)) then NONE
-             else SOME (L.E_LogN (valOf rv, valOf n0v, valOf Kv, valOf tm)))
-          else SOME (L.E_LogRate (valOf rv, valOf n0v, valOf Kv))
-        end
-      else if isSome r_ andalso isSome n0 andalso has ⟦\bexponential\w*\b|\bgrow\w*\b⟧ low andalso not (isSome K) then
-        let
-          val tm = ecoTime low ecoUnits
-        in
-          if has ⟦\bdoubling time\b|\bhow long to double\b|\bdouble\b⟧ low then
-            (if not (litPos (valOf rlit)) then NONE else SOME (L.E_Doubling (valOf rv)))
-          else
-            case tm of
-              SOME t => SOME (L.E_ExpN (valOf rv, valOf n0v, t))
-            | NONE => ecoLam low n0v
-        end
-      else ecoLam low n0v
+      if malformed orelse mixedUnits then NONE
+      else if logistic then
+        (case (r,n,k) of
+           (SOME rv,SOME nv,SOME kv) =>
+             if wantRate then (case time of
+                 SOME tv => SOME (L.E_LogRateAt (rv,nv,kv,tv))
+               | NONE => SOME (L.E_LogRate (rv,nv,kv)))
+             else if wantPopulation then Option.map (fn tv => L.E_LogN (rv,nv,kv,tv)) time
+             else NONE
+         | _ => NONE)
+      else if exponential andalso not (isSome k) andalso isSome r then
+        if wantDouble then Option.map L.E_Doubling r
+        else (case (r,n,time) of
+          (SOME rv,SOME nv,SOME tv) =>
+            if wantRate then SOME (L.E_ExpRateAt (rv,nv,tv))
+            else if wantPopulation then SOME (L.E_ExpN (rv,nv,tv)) else NONE
+        | _ => NONE)
+      else case (lambda,n,time) of
+        (SOME lv,SOME nv,SOME tv) => if wantPopulation andalso not wantRate then SOME (L.E_Geom (lv,nv,tv)) else NONE
+      | _ => NONE
     end
-  and ecoLam low n0v : L.ereq option =
-    case search ⟦\blambda\s*(?:\(λ\)\s*)?(?:of|is|=)?\s*(\d*\.?\d+)|\bλ\s*=\s*(\d*\.?\d+)|\bfinite rate of increase\s*(?:of|is)?\s*(\d*\.?\d+)⟧ low of
-      NONE => NONE
-    | SOME lm =>
-        (case n0v of
-           NONE => NONE
-         | SOME n0 =>
-             (case ecoTime low ecoUnits2 of
-                NONE => NONE
-              | SOME t => SOME (L.E_Geom (ratOf (valOf (firstGroup low lm [1, 2, 3])), n0, t))))
 
   fun ecology text : L.reply option =
     if Narrow.narrative text then NONE

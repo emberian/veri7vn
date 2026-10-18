@@ -16,7 +16,7 @@ datatype nuc = NA | NC | NG | NT | NU
 
 datatype reason =
     R_freq | R_zero | R_both | R_rna | R_frame | R_one_species | R_doyle | R_angle
-  | R_no_recapture | R_recapture_exceeds | R_final_below | R_rate | R_survivors | R_plate
+  | R_no_recapture | R_recapture_exceeds | R_final_below | R_rate | R_survivors | R_population | R_plate
 
 datatype decline = Underspecified String.literal | Impossible reason | Imprecise
 
@@ -84,6 +84,7 @@ definition reason_text :: "reason \<Rightarrow> String.literal" where
    | R_final_below \<Rightarrow> STR ''The final count must exceed the starting count for a positive generation time.''
    | R_rate \<Rightarrow> STR ''A growth rate must be positive for a doubling time.''
    | R_survivors \<Rightarrow> STR ''The survivors cannot outnumber the starting number.''
+   | R_population \<Rightarrow> STR ''The population and elapsed time must be nonnegative and carrying capacity positive. This forward logistic model excludes negative intrinsic rates above capacity, where finite-time divergence can occur.''
    | R_plate \<Rightarrow> STR ''The colony count must be nonnegative, the dilution must be in (0,1], and the plated volume must be positive.'')"
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where

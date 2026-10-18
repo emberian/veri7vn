@@ -45,19 +45,23 @@
     "specialist": "genetics-v2",
     "q": "What is the probability of aaaa offspring from AaAa x AaAa?",
     "expect": null,
-    "source": "Repeated locus is not independent; must not multiply it."
+    "source": "Repeated locus is not independent; must not multiply it.",
+    "decline_class": "malformed"
   },
   {
     "specialist": "genetics-v2",
     "q": "For linked genes, what is the probability of aabb offspring from AaBb x AaBb?",
     "expect": null,
-    "source": "Recombination fraction and phase not supplied."
+    "source": "Recombination fraction and phase not supplied.",
+    "decline_class": "underspecified"
   },
   {
     "specialist": "genetics-v2",
     "q": "With incomplete dominance, phenotypic ratio of Aa x Aa?",
     "expect": null,
-    "source": "Complete-dominance phenotype model is inapplicable."
+    "source": "Complete-dominance phenotype model is inapplicable.",
+    "decline_class": "unsupported",
+    "capability_expect": "1:2:1"
   },
   {
     "specialist": "genetics-v2",
@@ -75,13 +79,15 @@
     "specialist": "genetics-v2",
     "q": "q = 1.7 under Hardy-Weinberg. What is p?",
     "expect": null,
-    "source": "Frequency exceeds one."
+    "source": "Frequency exceeds one.",
+    "decline_class": "invalid"
   },
   {
     "specialist": "genetics-v2",
     "q": "q = -0.2 under Hardy-Weinberg. What is p?",
     "expect": null,
-    "source": "Negative frequency."
+    "source": "Negative frequency.",
+    "decline_class": "invalid"
   },
   {
     "specialist": "forestry",
@@ -111,7 +117,8 @@
     "specialist": "wildlife",
     "q": "Mortality rate if 120 of 100 monitored bats survived?",
     "expect": null,
-    "source": "Survivors exceed starting count."
+    "source": "Survivors exceed starting count.",
+    "decline_class": "invalid"
   },
   {
     "specialist": "biology",
@@ -159,23 +166,27 @@
     "specialist": "biology",
     "q": "Translate RNA 5'-AUGUGA-3' using the vertebrate mitochondrial code.",
     "expect": null,
-    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation.",
+    "decline_class": "unsupported",
+    "capability_expect": "MW"
   },
   {
     "specialist": "biology",
     "q": "Translate the DNA coding strand 5'-ATGCCT-5'.",
     "expect": null,
-    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation.",
+    "decline_class": "malformed"
   },
   {
     "specialist": "biology",
     "q": "Translate the DNA template coding strand 3'-TACGGA-5'.",
     "expect": null,
-    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation.",
+    "decline_class": "malformed"
   },
   {
     "specialist": "biology",
-    "q": "Translate RNA 3\u2032-UCCGUA-5\u2032.",
+    "q": "Translate RNA 3′-UCCGUA-5′.",
     "expect": "MP",
     "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
   },
@@ -183,25 +194,30 @@
     "specialist": "biology",
     "q": "Translate ATGCCT in reading frame 2.",
     "expect": null,
-    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation.",
+    "decline_class": "unsupported",
+    "capability_expect": "C"
   },
   {
     "specialist": "microbiology-v2",
     "q": "What is the CFU per mL with 40 colonies at dilution 10^-3?",
     "expect": null,
-    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed."
+    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed.",
+    "decline_class": "underspecified"
   },
   {
     "specialist": "microbiology-v2",
     "q": "Calculate CFU/mL: -40 colonies, dilution 10^-3, 1 mL plated.",
     "expect": null,
-    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed."
+    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed.",
+    "decline_class": "invalid"
   },
   {
     "specialist": "microbiology-v2",
     "q": "Calculate CFU/mL: 40 colonies, dilution 10^-3, -1 mL plated.",
     "expect": null,
-    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed."
+    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed.",
+    "decline_class": "invalid"
   },
   {
     "specialist": "microbiology-v2",
@@ -217,9 +233,10 @@
   },
   {
     "specialist": "microbiology-v2",
-    "q": "Calculate CFU/mL: \u221240 colonies, dilution 10^-3, .1 mL plated.",
+    "q": "Calculate CFU/mL: −40 colonies, dilution 10^-3, .1 mL plated.",
     "expect": null,
-    "source": "Shared exact numeric token roles; no malformed suffix recovery; CFU=c/(d*v)."
+    "source": "Shared exact numeric token roles; no malformed suffix recovery; CFU=c/(d*v).",
+    "decline_class": "invalid"
   },
   {
     "specialist": "microbiology-v2",
@@ -231,7 +248,8 @@
     "specialist": "microbiology-v2",
     "q": "Calculate CFU/mL: 40 colonies, dilution 10^-3, 1.2.3 mL plated.",
     "expect": null,
-    "source": "Shared exact numeric token roles; no malformed suffix recovery; CFU=c/(d*v)."
+    "source": "Shared exact numeric token roles; no malformed suffix recovery; CFU=c/(d*v).",
+    "decline_class": "malformed"
   },
   {
     "specialist": "genetics-v2",
@@ -249,12 +267,258 @@
     "specialist": "genetics-v2",
     "q": "What is the probability of ccaaAa offspring from AaBbCc x AaBbCc?",
     "expect": null,
-    "source": "Independent Mendelian multiplication, matching unique loci by identity rather than text order."
+    "source": "Independent Mendelian multiplication, matching unique loci by identity rather than text order.",
+    "decline_class": "malformed"
   },
   {
     "specialist": "genetics-v2",
     "q": "What is the probability of aabb offspring from BbAa x bbAa?",
     "expect": 0.125,
     "source": "Independent Mendelian multiplication, matching unique loci by identity rather than text order."
+  },
+  {
+    "specialist": "ecology",
+    "q": "With logistic growth rate r = 0.2, initial population N0 = 100 and carrying capacity K = 1000, what is the population after 5 years?",
+    "expect": 231.9693166840739,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Logistic growth: r = 0.2, N0 = 100, K = 1000. What is the growth rate after 5 years?",
+    "expect": 35.63191056023955,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Exponential growth: r = 0.2, N0 = 100. What is the growth rate after 5 years?",
+    "expect": 54.3656365691809,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe."
+  },
+  {
+    "specialist": "ecology",
+    "q": "With logistic growth rate r = 0.2, initial population N0 = 100 and carrying capacity K = 1000, calculate N after 5 years.",
+    "expect": 231.9693166840739,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Logistic growth: r = 0.2, N0 = 0, K = 1000. What is the population after 5 years?",
+    "expect": 0,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Logistic growth: r = 0.2, N0 = 100, K = 0. What is the population after 5 years?",
+    "expect": null,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Logistic growth: r = 0.2, N = -100, K = 1000. What is dN/dt?",
+    "expect": null,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Logistic growth: r = 0.2, N = 100, K = -1000. What is dN/dt?",
+    "expect": null,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Exponential growth: r = -0.2, N0 = 100. What is the population after 5 years?",
+    "expect": 36.787944117144235,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Exponential growth: r = -0.2, N0 = 100. What is the growth rate after 5 years?",
+    "expect": -7.357588823428847,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Exponential growth: r = 0.2, N0 = -100. What is the population after 5 years?",
+    "expect": null,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Logistic growth: r = 0.2, N0 = 1200, K = 1000. What is the population after 5 years?",
+    "expect": 1065.318104846811,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Logistic growth: r = -0.2, N0 = 100, K = 1000. What is the population after 5 years?",
+    "expect": 39.27030055005057,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Logistic growth: r = 0.2, N0 = 1000, K = 1000. What is the growth rate after 5 years?",
+    "expect": 0,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Exponential growth: r = 0.2, N0 = 100. What is the population after -5 years?",
+    "expect": null,
+    "source": "Continuous exponential/logistic equations; explicit requested population or derivative, physical domain and forward time. Same-author counterexample probe.",
+    "decline_class": "unsupported",
+    "capability_expect": 36.787944117144235
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a -1:100 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": null,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a −1:100 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": null,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a 1:-100 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": null,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a 1:100 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": 18000,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a 1/100 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": 18000,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a 1e-2 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": 18000,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a 10^-2 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": 18000,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a 10^(-2) dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": 18000,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a 1/10^2 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": 18000,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a -1/10^2 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": null,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a 1:0 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": null,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a 1:100:100 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": null,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a 1.2.3 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": null,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "A plate has 45 colonies from a -10^-2 dilution with 0.25 ml plated. Calculate CFU/ml.",
+    "expect": null,
+    "source": "CFU = count / (dilution * volume); dilution in (0,1]. Whole numeric role must retain sign or decline.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Logistic growth: r = 0.2, N0 = 100, K = 1000. What is the growth rate after 0 years?",
+    "expect": 18,
+    "source": "Time-zero initial rate; explicit mismatched units and non-global above-capacity negative-rate trajectory decline."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Exponential growth: r = 0.2, N0 = 100. What is the growth rate after 0 years?",
+    "expect": 20,
+    "source": "Time-zero initial rate; explicit mismatched units and non-global above-capacity negative-rate trajectory decline."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Exponential growth: r = 0.2 per year, N0 = 100. What is the population after 5 months?",
+    "expect": null,
+    "source": "Time-zero initial rate; explicit mismatched units and non-global above-capacity negative-rate trajectory decline.",
+    "decline_class": "unsupported",
+    "capability_expect": 108.6904049521229
+  },
+  {
+    "specialist": "ecology",
+    "q": "Logistic growth: r = -0.2, N0 = 1200, K = 1000. What is the population after 5 years?",
+    "expect": null,
+    "source": "Time-zero initial rate; explicit mismatched units and non-global above-capacity negative-rate trajectory decline.",
+    "decline_class": "unsupported",
+    "capability_expect": 1828.3105636650864
+  },
+  {
+    "specialist": "ecology",
+    "q": "A discrete population has initial population 1000 and lambda = 1.05. What is the population growth rate after 5 years?",
+    "expect": null,
+    "source": "A future instantaneous derivative is a continuous-model request; no discrete difference convention supplied.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "ecology",
+    "q": "A discrete population has initial population -1000 and lambda = 1.05. What is the population after 5 years?",
+    "expect": null,
+    "source": "Population, finite growth multiplier and forward elapsed time must be nonnegative.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "A discrete population has initial population 1000 and lambda = -1.05. What is the population after 5 years?",
+    "expect": null,
+    "source": "Population, finite growth multiplier and forward elapsed time must be nonnegative.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "A discrete population has initial population 1000 and lambda = 1.05. What is the population after -5 years?",
+    "expect": null,
+    "source": "Population, finite growth multiplier and forward elapsed time must be nonnegative.",
+    "decline_class": "unsupported",
+    "capability_expect": 783.5261664684589
   }
 ]

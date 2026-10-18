@@ -56,6 +56,25 @@
           "Shared exact numeric tokenization, English quantity-role binding, physical observations and framing."
         ]
       }
+    },
+    "ecology": {
+      "accept": {
+        "kinds": [
+          "logistic_rate_at",
+          "exp_rate_at"
+        ]
+      },
+      "evidence": {
+        "computation": "Certified continuous exponential and logistic population trajectories, and instantaneous rate at a requested time. The rate uses N(t), not the initial N0; interval error is inherited by both quantities.",
+        "assumptions": [
+          "Population and elapsed time are nonnegative; logistic carrying capacity is positive.",
+          "Exponential intrinsic rate may be signed. Forward logistic trajectories permit signed rates at or below capacity; above capacity a negative intrinsic rate is excluded because finite-time divergence can occur.",
+          "Zero initial population is the zero equilibrium. Parameter declarations and requested target are separate roles; rate and time must use compatible units."
+        ],
+        "untrusted": [
+          "English quantity roles, target clause and unit interpretation; shared exact numeric parsing and framing."
+        ]
+      }
     }
   }
 }
