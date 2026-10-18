@@ -63,6 +63,21 @@ lemma dog_plain_template:
      = [cp ''Dog is used for hunting.'']"
   by code_simp
 
+text \<open>A surface whose end label ends in a dot (\<^verbatim>\<open>[[genocide.]]\<close>, a real row of
+the sealed build): the organ's rstrip(".") prints one final dot, and so must
+the kernel.\<close>
+
+definition e_war_genocide :: cedge where
+  "e_war_genocide = \<lparr>c_rel = Causes, c_start = cp ''war'', c_end = cp ''genocide'',
+    c_weight = 1000000, c_surface = cp ''The effect of [[war]] is [[genocide.]].'',
+    c_dataset = cp ''/d/conceptnet/4/en''\<rparr>"
+
+lemma war_inner_dot_single_dot:
+  "map fst (decide_direct \<lparr>c_concept = cp ''war'', c_specs = [(Causes, Fwd)]\<rparr>
+      [e_war_genocide])
+     = [cp ''The effect of war is genocide.'']"
+  by code_simp
+
 subsection \<open>Ties: equal rank keys keep fetch order (the organ's rowid)\<close>
 
 text \<open>Two real rows with the same rel, start, end and weight (finger IsA
@@ -137,6 +152,7 @@ ML \<open>
     @{thm sel_spec_sorted}, @{thm sel_spec_len}, @{thm sel_spec_subset},
     @{thm isort_sorted}, @{thm parse_rel_name_roundtrip},
     @{thm dog_direct}, @{thm dog_direct_dedup}, @{thm dog_plain_template},
+    @{thm war_inner_dot_single_dot},
     @{thm finger_tie_keeps_fetch_order}, @{thm finger_tie_reversed_fetch},
     @{thm kitten_derived}, @{thm unicorn_no_edges_abstains},
     @{thm no_mediators_abstains}];

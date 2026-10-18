@@ -274,10 +274,16 @@ lemma concat_map_nil [simp]: "concat (map (\<lambda>x. []) l) = []"
 
 subsection \<open>Rendering: the adapter's exact surface-text and template rules\<close>
 
-fun drop_last_dots :: "int list \<Rightarrow> int list" where
+primrec drop_last_dots :: "int list \<Rightarrow> int list" where
   "drop_last_dots [] = []"
-| "drop_last_dots [c] = (if c = c_dot then [] else [c])"
-| "drop_last_dots (c1 # c2 # cs) = c1 # drop_last_dots (c2 # cs)"
+| "drop_last_dots (c # cs) =
+     (let r = drop_last_dots cs in if r = [] \<and> c = c_dot then [] else c # r)"
+
+text \<open>That is the organ's \<^verbatim>\<open>rstrip(".")\<close>: drop \<open>all\<close> trailing dots. The
+earlier clause-based scan dropped only the final one, so a surface whose end
+label itself ends in a dot (\<^verbatim>\<open>[[genocide.]]\<close> in the sealed build) rendered as
+\<open>genocide..\<close> where the organ prints \<open>genocide.\<close> - found by the differential
+run on \<open>What does a war cause?\<close>.\<close>
 
 definition strip_ws :: "int list \<Rightarrow> int list" where
   "strip_ws cs = (let l = dropWhile is_ws cs in rev (dropWhile is_ws (rev l)))"
