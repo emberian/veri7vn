@@ -384,6 +384,7 @@ class Dispatcher:
                            and p.name not in self.EXCLUDE_SLUGS)
         self.organs = []                       # (Child, slug) for the family binaries
         pins = pin_specialists(var, slugs, args.specialist)
+        self.pinned = set(pins)                # slugs started with --specialist (front order asks them alone first)
         for slug in slugs:
             binp = var / slug / "bin" / slug
             argv = [str(binp)] + (["--specialist", pins[slug]] if slug in pins else [])
@@ -510,7 +511,22 @@ class Dispatcher:
         or a Disagree ends the turn; an in-domain decline is kept as the fallback while the
         head's own routes (the reader) still get the turn, exactly as the released cascade
         continues past a family decline to organ:relation."""
-        replies = self.fan_out(text, session, rid, self.organs)
+        organs = self.organs
+        fallback = None
+        if self.order == "front" and self.pinned:
+            # the release's exam composition: the pinned specialist alone first; only when it
+            # does not answer does the rest of the cascade (the other families through the
+            # arbitration, then network, reader) get the turn. Arbitration is untouched.
+            first = [(ch, sl) for ch, sl in self.organs if sl in self.pinned]
+            organs = [(ch, sl) for ch, sl in self.organs if sl not in self.pinned]
+            out, fallback, replies = self._arbitrated(text, session, rid, first)
+            if out is not None:
+                return out, None, replies
+        out, dec, replies = self._arbitrated(text, session, rid, organs)
+        return out, dec or fallback, replies
+
+    def _arbitrated(self, text, session, rid, organs):
+        replies = self.fan_out(text, session, rid, organs)
         cands = self.organ_cands(text, session, rid, replies)
         if not cands:
             return None, None, replies

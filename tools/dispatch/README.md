@@ -21,6 +21,16 @@ Read from the released chain itself (lane B's catalogue, `audit/folds/folds.json
 which is the composition Oracle7's own shipped verdicts reproduce under, and
 the one to use on a specialist's own exam panel.
 
+With `--order front --specialist ID` the pinned specialist is asked **alone
+first**, as Oracle7's own exam composes it. Only when it does not answer (a
+decline or no take) does the rest of the cascade run: the other families
+through the arbitration, then the network, then the reader. The arbitration
+rule is untouched. Without `--specialist`, or with `--order head`, nothing
+changes. This is what makes "According to NASA, what is the density of
+Mercury?" come out as astronomy-v3's planet (5429) instead of chemistry-v3's
+element: the arbitration ranks wording before the context cue, so the fix is in
+the composition, not the rule.
+
 ## Run it
 
 ```sh
@@ -79,5 +89,7 @@ items and ~18 specialist items relabelled/stolen; 17 replies name `densities`
 where the shipped network names `densities-r2`), no precision guards (60
 core-panel answers where the head withheld), the reader's 35-pattern coverage
 (69 of 204 `organ:relation` items), no `rel-*` specialist panels' stores, and
-an alphabetical organ pick order where Oracle7 uses its family order (one
-panel item flips on the Mercury planet/element ambiguity).
+an alphabetical organ pick order where Oracle7 uses its family order. (The
+Mercury planet/element item is fixed in pinned front order by asking the
+pinned specialist first; head order without `--specialist` still lets the
+arbitration choose the element.)
