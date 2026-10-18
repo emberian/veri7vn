@@ -43,9 +43,9 @@ interference with other routes, identity handling and latency.
 | Oracle7 as shipped (published) | 15,478 / 14 | the control |
 | Oracle7 as shipped, reproduced here | 14,667 / 17 false yes | the 129 non-relation readers exact; the 161 relation readers run on a reconstructed linker index over the v1 store, and the 811 missing answers sit on properties the shipped store does not contain |
 | veri7vn: all 144 non-relation specialist IDs have implementations | no consolidated current score | individual repairs and extensions are being checked and integrated; see the current continuation |
-| Current space family, eight pinned specialists | 1,185 right / 0 wrong / 0 false yes on shipped dev and held-out panels | fixes astronomy's former errors; broad family routing also answers two questions outside the planetary panel's narrow scope |
-| Current chemistry family, five specialists | 1,206 right / 0 wrong / 0 false yes on shipped dev and held-out panels | parser invariants now reach molar-mass and composition consumers; new kinds pass the dispatcher contract |
-| Current stores family | 2,476 Linux replies identical to Darwin; packaged cooking-v3 and warehouse: 811/818 right, 0 wrong, 0 false yes on each platform | ambiguous servings may require clarification; speculative host calls cannot place orders |
+| Space, mechanics/space packet (18 Oct; `project/lanes/C-physical-mechanics-space.md`) | 1,185 / 1,185 right, 0 wrong, 0 false yes when pinned across eight specialists on shipped dev and held-out panels | the measured binary repairs astronomy and spacecraft cases; family mode scores 1,183 / 1,185, with two false yes outside the planetary panel's narrow scope |
+| Chemistry D (`54c6727`; `project/lanes/D-chemistry.md`) | 1,206 / 1,206 shipped-panel items right, 0 wrong, 0 false yes across five specialists | D's authored capability challenge classified 118 mathematically right, 0 wrong and 20 valid-but-unsupported withholds; its 138/138 direct and composed checks are policy regressions, not newly correct computations |
+| Selected Stores E package (`project/lanes/E-symbolic-stores.md`, `project/lanes/C-runtime-package.md`) | all 2,476 shipped replies match between bound Darwin and Linux binaries; relocated cooking-v3 and warehouse score 811 / 818 right, 0 wrong, 0 false yes, 55 withheld on both platforms | this is the selected E package; ambiguous servings may require clarification, and speculative host calls cannot place orders |
 | veri7vn: one relation kernel, 161 readers | 16,284 / **0** of 18,976 panel items | the shipped organs score 16,261 / 11 on the same store; all panel questions are valid, so this does not measure false yes |
 | veri7vn: fusion (`network_v3`) | 101 of 102 of Oracle7's fusion answers identical | the last needs the geometry kernel |
 | veri7vn beyond parity: chemistry and finance families (B-chemistry, B-finance, 2026-10-18) | chemistry/chemistry-v3 held-out 281 / 0 wrong / 0 withheld against the shipped organ's 223 / 2 / 56, decay 42/42 against 34/42; finance 129/0/0 against 116/0/13, economics 78/0/0 against 65/0/13; same on fresh generator seeds; cold starts 58 and 270 ms → 4 and 3 ms; the shipped retail organ ignores the sales tax it is asked to add (fixed) | the second scoreboard (`project/swarm/BEYOND.md`): 0 wrong stays the law, the other numbers move |
@@ -54,8 +54,8 @@ interference with other routes, identity handling and latency.
 | Dialogue scorer | 236 of 237 recorded Oracle7 verdicts reproduced | this tests the scorer, not veri7vn's dialogue ability; the scout kernel itself scored 161/237 |
 
 The previous summary said every family had zero wrong answers. The underlying
-receipts did not support that claim. Current cooking and astronomy results
-above include repairs; other families are still converging. The
+receipts did not support that claim. The named stores and space snapshots above
+include specific repairs; other families are still converging. The
 [current continuation](project/CODEX-2026-10-18.md) records corrections,
 ownership, completed changes and remaining work.
 
@@ -138,23 +138,27 @@ of theorem names alone does not do that.
 ## Running things
 
 ```sh
-# the original Oracle7, from the 43 GB drop (not in git)
-cd upstream && ../.venv/bin/python -B oracle7.py "Who wrote Leaves of Grass?"
+# the original Oracle7, from the 43 GB drop (not in git); subshell keeps later paths at the checkout root
+(cd upstream && ../.venv/bin/python -B oracle7.py "Who wrote Leaves of Grass?")
 
 # a verified family on its own shipped panels
 PYTHONDONTWRITEBYTECODE=1 python3 tools/parity/harness.py \
   --answerer "var/quantity/bin/quantity" --specialist densities,units --split both --out var/parity/demo
 
-# the relation readers on the reconstructed index
-ORACLE7_ROOT=var/linker/o7root python3 tools/parity/harness.py --answerer "python3 tools/relations/answerer.py" ...
+# one relation reader on the reconstructed index; {id} is supplied by the harness
+ORACLE7_ROOT=var/linker/o7root python3 tools/parity/harness.py \
+  --answerer "python3 -B tools/relations/answerer.py --specialist {id}" \
+  --specialist rel-novels --split both --out var/parity/relations
 
-# a session on hbox, with the generated SML brought back
-tools/dev/remote-build hbox src/extract/quantity Veri7vn_Quantity -d src/extract/commons --expect 'VERI7VN_QUANTITY PASS'
+# a remote Isabelle session, with generated SML and the build receipt brought back
+tools/dev/remote-build hbox src/extract/quantity Veri7vn_Quantity \
+  -d src/extract/commons --expect 'VERI7VN_QUANTITY PASS'
 ```
 
 Read [AGENTS.md](AGENTS.md) before working here. One Isabelle distribution
 locally (`/Applications/Isabelle2026-RC1.app`); nothing writes under
-`upstream/`; every build is green only when a remote-build receipt says so.
+`upstream/`; remote builds use `tools/dev/remote-build`, and a build counts as
+green only when its receipt reports success.
 
 ## What is not done
 
@@ -162,8 +166,12 @@ The 30 properties absent from the shipped relation store (1,814 panel items)
 need data that did not ship. The recognizers are untrusted code in every
 family. Several lanes' theorems restate definitions rather than bind to a
 specification; the audit in `docs/assurance/` lists them and wave 6 fixes
-them. Beyond-parity lanes are only beginning. The code organ has no panel and
-no core-panel question reaches it, so it is parked.
+them. Beyond-parity implementation and integration now span multiple
+specialist families, with scoped measurements recorded in the continuation and
+lane reports; they do not establish a complete refreshed fleet result. The code
+organ remains an authorized capability frontier, but it has no panel and no
+core-panel question reaches it, so there is no measured implementation result
+yet. CAS remains parked.
 
 The audited Oracle7 revision is `c5d6a29d5bc5e2525078e5a53afa1abf659e4d69`.
 Code here is CC0 (`LICENSE.md`); Oracle7 itself is Apache-2.0 code with
