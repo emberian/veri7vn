@@ -138,3 +138,14 @@ state changes and unread model conditions yield `unsupported_model` rather than
 silently reusing defaults. Existing constructors remain available to Fusion.
 See [the model-input report](../../../project/lanes/C-physical-quantity-model-inputs.md)
 for exact laws, scorer totals, bound native manifests and remaining capabilities.
+
+## Energy unit completion
+
+The current continuation adds exact Wh, mJ and mWh units and exposes MJ, GJ
+and MWh to ordinary conversion questions. Symbol case is preserved: mJ and
+MJ differ by a billion, as do mWh and MWh. Spelled unit names remain case
+insensitive; ambiguous lowercase mj/mwh are withheld. Source and target unit
+roles must be complete, so a rate or product suffix cannot be dropped. Values
+are converted in the HOL kernel. See
+[energy-unit report](../../../project/lanes/C-physical-quantity-energy-units.md)
+for the current proof, panel and consumer status.

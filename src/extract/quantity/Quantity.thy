@@ -39,7 +39,7 @@ datatype qunit =
   | U_kilocalorie | U_kilowatt_hour | U_btu | U_watt | U_kilowatt | U_horsepower
   | U_byte | U_kilobyte | U_megabyte | U_gigabyte | U_terabyte | U_kibibyte
   | U_mebibyte | U_gibibyte | U_cubic_centimetre | U_cubic_foot | U_megajoule | U_gigajoule
-  | U_megawatt_hour
+  | U_megawatt_hour | U_watt_hour | U_millijoule | U_milliwatt_hour
 
 fun dim_of :: "qunit \<Rightarrow> dim" where
     "dim_of U_metre = D_length"
@@ -109,6 +109,12 @@ fun dim_of :: "qunit \<Rightarrow> dim" where
 | "dim_of U_megajoule = D_energy"
 | "dim_of U_gigajoule = D_energy"
 | "dim_of U_megawatt_hour = D_energy"
+
+| "dim_of U_watt_hour = D_energy"
+
+| "dim_of U_millijoule = D_energy"
+
+| "dim_of U_milliwatt_hour = D_energy"
 
 text \<open>Exact SI factor of each unit (the organ's exact rationals).\<close>
 fun scale :: "qunit \<Rightarrow> rat" where
@@ -180,6 +186,12 @@ fun scale :: "qunit \<Rightarrow> rat" where
 | "scale U_gigajoule = 1000000000"
 | "scale U_megawatt_hour = 3600000000"
 
+| "scale U_watt_hour = 3600"
+
+| "scale U_millijoule = 1 / 1000"
+
+| "scale U_milliwatt_hour = 18 / 5"
+
 fun unit_label :: "qunit \<Rightarrow> String.literal" where
     "unit_label U_metre = STR ''m''"
 | "unit_label U_kilometre = STR ''km''"
@@ -248,6 +260,12 @@ fun unit_label :: "qunit \<Rightarrow> String.literal" where
 | "unit_label U_megajoule = STR ''MJ''"
 | "unit_label U_gigajoule = STR ''GJ''"
 | "unit_label U_megawatt_hour = STR ''MWh''"
+
+| "unit_label U_watt_hour = STR ''Wh''"
+
+| "unit_label U_millijoule = STR ''mJ''"
+
+| "unit_label U_milliwatt_hour = STR ''mWh''"
 
 lemma scale_pos [simp]: "0 < scale u"
   by (cases u) simp_all
@@ -463,6 +481,30 @@ definition unit_names :: "(String.literal \<times> uref) list" where
     (STR ''kilowatt hours'', Lin U_kilowatt_hour),
     (STR ''kilowatt-hour'', Lin U_kilowatt_hour),
     (STR ''kilowatt-hours'', Lin U_kilowatt_hour),
+    (STR ''Wh'', Lin U_watt_hour),
+    (STR ''watt hour'', Lin U_watt_hour),
+    (STR ''watt hours'', Lin U_watt_hour),
+    (STR ''watt-hour'', Lin U_watt_hour),
+    (STR ''watt-hours'', Lin U_watt_hour),
+    (STR ''mJ'', Lin U_millijoule),
+    (STR ''millijoule'', Lin U_millijoule),
+    (STR ''millijoules'', Lin U_millijoule),
+    (STR ''mWh'', Lin U_milliwatt_hour),
+    (STR ''milliwatt hour'', Lin U_milliwatt_hour),
+    (STR ''milliwatt hours'', Lin U_milliwatt_hour),
+    (STR ''milliwatt-hour'', Lin U_milliwatt_hour),
+    (STR ''milliwatt-hours'', Lin U_milliwatt_hour),
+    (STR ''MJ'', Lin U_megajoule),
+    (STR ''megajoule'', Lin U_megajoule),
+    (STR ''megajoules'', Lin U_megajoule),
+    (STR ''GJ'', Lin U_gigajoule),
+    (STR ''gigajoule'', Lin U_gigajoule),
+    (STR ''gigajoules'', Lin U_gigajoule),
+    (STR ''MWh'', Lin U_megawatt_hour),
+    (STR ''megawatt hour'', Lin U_megawatt_hour),
+    (STR ''megawatt hours'', Lin U_megawatt_hour),
+    (STR ''megawatt-hour'', Lin U_megawatt_hour),
+    (STR ''megawatt-hours'', Lin U_megawatt_hour),
     (STR ''btu'', Lin U_btu),
     (STR ''w'', Lin U_watt),
     (STR ''watt'', Lin U_watt),
@@ -1056,6 +1098,21 @@ proof -
   then have z: "z = x * scale a / scale c" by (simp add: eq_divide_eq)
   show ?thesis using ab(1) bc(1) z by (simp add: kernel_def decline_of_def)
 qed
+
+text \<open>A watt-hour amount records constant power in watts times elapsed
+hours. Converting that amount preserves the same power-times-time energy in
+SI units, for every requested energy unit. Prefix case changes the unit, not
+merely its rendering.\<close>
+theorem watt_hour_power_time:
+  assumes "dim_of u = D_energy"
+  shows "kernel (Convert (p * t) (Lin U_watt_hour) (Lin u)) =
+    Exact K_convert ((p * scale U_watt) * (t * scale U_hour) / scale u)"
+  using assms by (simp add: kernel_def decline_of_def algebra_simps)
+
+theorem energy_prefix_separation:
+  "kernel (Convert x (Lin U_megajoule) (Lin U_millijoule)) = Exact K_convert (x * 1000000000)"
+  "kernel (Convert x (Lin U_megawatt_hour) (Lin U_milliwatt_hour)) = Exact K_convert (x * 1000000000)"
+  by (simp_all add: kernel_def decline_of_def field_simps)
 
 text \<open>A temperature is a point on an affine scale: the converted value names
 the same absolute temperature, and the kernel refuses points below absolute

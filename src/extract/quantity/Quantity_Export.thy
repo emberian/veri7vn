@@ -22,6 +22,10 @@ definition self_test :: bool where
      kernel (FuelUsefulMass F_wood (780, U_megajoule) (Some (50, E_percent))) = Exact K_useful_mass_needed 100 \<and>
      kernel (FuelUsefulEnergy F_wood (Some (100, U_kilogram)) U_megajoule (Some (101, E_percent))) = Decline (Impossible R_efficiency) \<and>
      kernel (UnsupportedCondition C_moisture) = Decline (UnsupportedModel C_moisture) \<and>
+     kernel (Convert 6 (Lin U_kilowatt_hour) (Lin U_watt_hour)) = Exact K_convert 6000 \<and>
+     kernel (Convert 6 (Lin U_kilowatt_hour) (Lin U_megajoule)) = Exact K_convert (108/5) \<and>
+     kernel (Convert 1 (Lin U_millijoule) (Lin U_joule)) = Exact K_convert (1/1000) \<and>
+     kernel (Convert 1 (Lin U_milliwatt_hour) (Lin U_joule)) = Exact K_convert (18/5) \<and>
      kernel (Convert 1 (Lin U_mile) (Lin U_kilometre)) = Exact K_convert (25146 / 15625) \<and>
      kernel (Convert 5 (Lin U_metre) (Lin U_kilogram)) = Decline Mismatch \<and>
      kernel (Convert 5 (Lin U_metre) (Tmp T_C)) = Decline Mismatch \<and>
@@ -60,6 +64,7 @@ ML \<open>
     @{thm kernel_undecided}, @{thm kernel_imprecise}, @{thm reason_of_exact},
     @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm stated_dec_sound},
     @{thm convert_exact}, @{thm convert_mismatch}, @{thm convert_composes},
+    @{thm watt_hour_power_time},
     @{thm temperature_point}, @{thm temperature_impossible},
     @{thm temperature_point_vs_difference}, @{thm temperature_point_not_difference},
     @{thm temperature_difference_scales}, @{thm temperature_round_trip},
@@ -76,7 +81,7 @@ ML \<open>
     @{thm hydrostatic_absolute_gauge}, @{thm hydrostatic_nonnegative}, @{thm hydrostatic_equivalent_inputs},
     @{thm useful_heat_fraction}, @{thm useful_heat_inverse}, @{thm unsupported_condition_declines},
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_states_approx},
-    @{thm reply_withheld_names_decline}] @ @{thms temperature_linear_mismatch};
+    @{thm reply_withheld_names_decline}] @ @{thms temperature_linear_mismatch} @ @{thms energy_prefix_separation};
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("quantity theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "quantity self test failed";

@@ -138,22 +138,16 @@ struct
         if List.exists (fn v => u=v) [Q.U_metre,Q.U_kilometre,Q.U_centimetre,Q.U_millimetre,Q.U_inch,Q.U_foot,Q.U_yard,Q.U_mile,Q.U_nautical_mile] then "length"
         else if List.exists (fn v => u=v) [Q.U_kilogram,Q.U_gram,Q.U_milligram,Q.U_pound,Q.U_ounce,Q.U_tonne,Q.U_stone] then "mass"
         else if List.exists (fn v => u=v) [Q.U_pascal,Q.U_kilopascal,Q.U_bar,Q.U_atmosphere,Q.U_psi,Q.U_mmhg] then "pressure"
-        else if List.exists (fn v => u=v) [Q.U_joule,Q.U_kilojoule,Q.U_megajoule,Q.U_gigajoule,Q.U_calorie,Q.U_kilocalorie,Q.U_kilowatt_hour,Q.U_megawatt_hour,Q.U_btu] then "energy"
+        else if List.exists (fn v => u=v) [Q.U_joule,Q.U_kilojoule,Q.U_megajoule,Q.U_gigajoule,Q.U_calorie,Q.U_kilocalorie,Q.U_kilowatt_hour,Q.U_megawatt_hour,Q.U_watt_hour,Q.U_millijoule,Q.U_milliwatt_hour,Q.U_btu] then "energy"
         else "other"
   fun specs (tag,dim,aliases) = map (fn alias => {alias=alias,tag=tag,dimension=dim,caseSensitive=false}:MI.unitSpec) aliases
-  (* The fuel table already has these units; the legacy general conversion
-     name table predates them. Keep their typed aliases in this model reader. *)
-  val modelEnergyNames = [("mj",Q.U_megajoule),("megajoule",Q.U_megajoule),("megajoules",Q.U_megajoule),
-    ("gj",Q.U_gigajoule),("gigajoule",Q.U_gigajoule),("gigajoules",Q.U_gigajoule),
-    ("mwh",Q.U_megawatt_hour),("megawatt-hour",Q.U_megawatt_hour),("megawatt-hours",Q.U_megawatt_hour)]
-  fun modelUnit tag = case List.find (fn (name,_)=>name=tag) modelEnergyNames of
-      SOME(_,u)=>SOME(Q.Lin u) | NONE=>Q.lookup_unit tag
+  fun modelUnit tag = Q.lookup_unit tag
+  val caseSymbols = ["pa","kpa","j","kj","kwh","Wh","mJ","MJ","GJ","mWh","MWh"]
   (* Bare "in" is the preposition in these material/condition clauses; inches
      remain available by their spelled unit names. *)
-  val modelUnits = map (fn (alias,u) => {alias=alias,tag=alias,dimension=dimension u,caseSensitive=List.exists (fn n=>n=alias) ["pa","kpa","j","kj","kwh"]}:MI.unitSpec) (List.filter (fn (name,_)=>name<>"in") Q.unit_names)
-    @ map (fn (alias,_)=>{alias=alias,tag=alias,dimension="energy",caseSensitive=size alias<=3}:MI.unitSpec) modelEnergyNames
+  val modelUnits = map (fn (alias,u) => {alias=alias,tag=alias,dimension=dimension u,caseSensitive=List.exists (fn n=>n=alias) caseSymbols}:MI.unitSpec) (List.filter (fn (name,_)=>name<>"in") Q.unit_names)
     @ map (fn (alias,tag)=>{alias=alias,tag=tag,dimension="energy",caseSensitive=true}:MI.unitSpec)
-        [("MJ","mj"),("GJ","gj"),("MWh","mwh"),("J","j"),("kJ","kj"),("kWh","kwh")]
+        [("J","j"),("kJ","kj"),("kWh","kwh")]
     @ map (fn (alias,tag)=>{alias=alias,tag=tag,dimension="pressure",caseSensitive=true}:MI.unitSpec)
         [("Pa","pa"),("kPa","kpa")]
     @ specs ("rho_kg_m3","density",["kg/m3","kg/m^3","kg/m\194\179","kilograms per cubic metre","kilograms per cubic meter"])
@@ -327,7 +321,7 @@ struct
   fun charLen s = size s - (if String.isPrefix deg s then 1 else 0)
   val names =
     let
-      val all = map #1 Q.unit_names @ map #1 extraNames
+      val all = map (lower o #1) Q.unit_names @ map #1 extraNames
       (* stable sort by length, longest first, as sorted(..., key=len, reverse=True) *)
       fun ins (x, []) = [x]
         | ins (x, y :: ys) = if charLen x > charLen y then x :: y :: ys else y :: ins (x, ys)
@@ -345,9 +339,30 @@ struct
     ^ UNIT_RX ^ "\\s*[.!]\\s*(?:how many\\s+" ^ UNIT_RX ^ "\\s+(?:is|are|does)\\s+that|what is that in\\s+" ^ UNIT_RX
     ^ "|convert (?:that|it) to\\s+" ^ UNIT_RX ^ ")\\s*[?.!]?\\s*$"
 
+  (* Only the role grammar is case-insensitive. Preserve symbol spelling:
+     mJ and MJ, and mWh and MWh, are different typed units. Ambiguous lowercase
+     mj/mwh is unsupported; spelled aliases remain case-insensitive. *)
   fun unitOf name =
-    let val n = case List.find (fn (e, _) => e = name) extraNames of SOME (_, a) => a | NONE => name
-    in case Q.lookup_unit n of SOME u => u | NONE => raise Fail ("unit name not in HOL table: " ^ name) end
+    let val folded=lower name
+        val sensitive=List.exists (fn n=>n=folded) ["mj","mwh","gj","wh"]
+        val n = case List.find (fn (e, _) => e = folded) extraNames of
+            SOME (_, a) => a | NONE => if sensitive then name else folded
+    in case Q.lookup_unit n of SOME u => u | NONE => raise UnboundNumeral end
+  val conversionUnits = modelUnits
+    @ specs ("k","temperature",["degree k","degrees k"])
+  fun unitRole text ({groups,...}:Regex.match) i =
+    case Vector.sub(groups,i) of
+      NONE=>raise UnboundNumeral
+    | SOME(a,b)=>
+      let val name=String.substring(text,a,b-a)
+          val u=unitOf name
+          (* The preposition in cannot extend another unit. It is added only
+             when this bound role itself spells the inch abbreviation. *)
+          val table=if lower name="in" then
+              {alias="in",tag="in",dimension="length",caseSensitive=false}::conversionUnits
+            else conversionUnits
+      in case MI.requested table text {start=a,stop=b} of
+          SOME _=>u | NONE=>raise UnboundNumeral end
 
   (* A change is a vector on a temperature scale; a point is affine.  Keep
      the original operation through the quantity-first and two-sentence paths.
@@ -379,15 +394,16 @@ struct
 
   fun unitsV1 text =
     let
-      val low = lower (collapse text)
+      val t=collapse text
+      val low = lower t
     in
       case search CONV low of
-        SOME m => conversionRequest low (ratOf (g1 low m), unitOf (valOf (grp low m 2)), unitOf (valOf (grp low m 3)))
+        SOME m => conversionRequest low (ratOf (g1 low m), unitRole t m 2, unitRole t m 3)
       | NONE =>
           (case search HOWMANY low of
              SOME m =>
                let val v = case grp low m 2 of SOME s => ratOf (trim s) | NONE => Q.mk_rat 1 1
-               in conversionRequest low (v, unitOf (valOf (grp low m 3)), unitOf (valOf (grp low m 1))) end
+               in conversionRequest low (v, unitRole t m 3, unitRole t m 1) end
            | NONE => NONE)
     end
 
@@ -406,7 +422,7 @@ struct
                    (SOME q, SOME tg) =>
                      if Narrow.sentences t = 1 andalso Narrow.words t <= 12
                         andalso valOf (grp low q 2) <> valOf (grp low tg 1) then
-                       (case conversionRequest low (ratOf (g1 low q), unitOf (valOf (grp low q 2)), unitOf (g1 low tg)) of
+                       (case conversionRequest low (ratOf (g1 low q), unitRole t q 2, unitRole t tg 1) of
                           SOME r2 => if Q.answers r2 then SOME r2 else NONE
                         | NONE => NONE)
                      else NONE
@@ -419,12 +435,13 @@ struct
     end
 
   fun unitsV3 text =
-    let val low = lower text
+    let val t=text
+        val low = lower t
     in
       case search TWO low of
         SOME m =>
-          let val target = valOf (firstGroup low m [3, 4, 5])
-          in conversionRequest low (ratOf (g1 low m), unitOf (valOf (grp low m 2)), unitOf target) end
+          let val target = valOf (List.find (fn i=>isSome(grp low m i)) [3,4,5])
+          in conversionRequest low (ratOf (g1 low m), unitRole t m 2, unitRole t m target) end
       | NONE => unitsV2 text
     end
 

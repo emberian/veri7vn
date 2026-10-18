@@ -95,8 +95,21 @@ dimname = {"length": "D_length", "mass": "D_mass", "volume": "D_volume", "area":
            "time": "D_time", "pressure": "D_pressure", "energy": "D_energy", "power": "D_power", "data": "D_data"}
 bad = [n for n in v1.U if n not in hol_lin]
 check("every organ unit name is in unit_names", not bad, str(bad))
-extra = [n for n in hol_lin if n not in v1.U]
-check("unit_names has no linear name the organ lacks", not extra, str(extra))
+# Exact finite extensions are checked independently; all legacy names/factors
+# below must still match the shipped organ. No arbitrary new alias is allowed.
+extensions = {
+ "U_watt_hour": (Fr(3600), ["Wh", "watt hour", "watt hours", "watt-hour", "watt-hours"]),
+ "U_millijoule": (Fr(1,1000), ["mJ", "millijoule", "millijoules"]),
+ "U_milliwatt_hour": (Fr(18,5), ["mWh", "milliwatt hour", "milliwatt hours", "milliwatt-hour", "milliwatt-hours"]),
+ "U_megajoule": (Fr(1000000), ["MJ", "megajoule", "megajoules"]),
+ "U_gigajoule": (Fr(1000000000), ["GJ", "gigajoule", "gigajoules"]),
+ "U_megawatt_hour": (Fr(3600000000), ["MWh", "megawatt hour", "megawatt hours", "megawatt-hour", "megawatt-hours"]),
+}
+extension_names = {n:u for u,(_,ns) in extensions.items() for n in ns}
+extra = {n:u for n,u in hol_lin.items() if n not in v1.U}
+check("only the finite documented energy aliases extend shipped names", extra == extension_names, str(extra))
+check("energy extension dimensions and exact factors", all(dim[u]=="D_energy" and scale[u]==factor for u,(factor,_) in extensions.items()))
+check("unit names are unique", len(names)==len({n for n,_,_ in names}))
 bad = [n for n, (q, f) in v1.U.items() if n in hol_lin and dim.get(hol_lin[n]) != dimname[q]]
 check("dimension of every unit name", not bad, str(bad))
 bad = [(n, str(scale.get(hol_lin[n])), str(v2.exact(f))) for n, (q, f) in v1.U.items()

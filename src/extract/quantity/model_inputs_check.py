@@ -51,6 +51,8 @@ for q,kind,valid in [
 ]:c('fluids',q,kind=kind,valid=valid)
 for q,v in [
  ('How much useful heat in kWh comes from burning 100 kg of wood at 50% efficiency?',F(650,3)),
+ ('How much useful heat in mJ comes from burning 100 kg of wood at 50% efficiency?',780000000000),
+ ('How much useful heat in mWh comes from burning 100 kg of wood at 50% efficiency?',F(650000000,3)),
  ('How much useful heat comes from burning 100 kg of wood at efficiency = 1/2?',780),
  ('How much useful heat comes from burning 100 kg of wood at efficiency = 0.5?',780),
  ('How much useful heat comes from burning 100 kg of wood at 0% efficiency?',0),
@@ -77,8 +79,6 @@ for q,kind,valid in [
  ('How much heat comes from burning 2 kg/s of wood?','unsupported_model',False),
  ('How much heat in MJ/s comes from burning 2 kg of wood?','unsupported_model',False),
  ('How much heat comes from burning 2 kg of wood with an energy content of 40 MJ?','unsupported_model',True),
- ('How much useful heat in mJ comes from burning 100 kg of wood at 50% efficiency?','unsupported_model',True),
- ('How much useful heat in mWh comes from burning 100 kg of wood at 50% efficiency?','unsupported_model',True),
  ('How much useful heat in MJ/s comes from burning 100 kg of wood at 50% efficiency?','unsupported_model',False),
 ]:c('fuels',q,kind=kind,valid=valid)
 for sid in ('densities','densities-r2'):
