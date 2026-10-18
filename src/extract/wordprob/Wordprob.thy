@@ -244,7 +244,7 @@ fun wvalue :: "wp \<Rightarrow> rat" where
   | "wvalue (SalePct a r) = a * (1 - r / 100)"
   | "wvalue (PercentOfTotal a b) = min a b / max a b * 100"
   | "wvalue (MotionDist r t u _) = r * (t * scale u)"
-  | "wvalue (MotionSpeed x u t u') = x * scale u / (t * scale u')"
+  | "wvalue (MotionSpeed x u t u') = x / (t * scale u')"
   | "wvalue (RectArea l w) = l * w"
   | "wvalue (RectPerim l w) = 2 * (l + w)"
   | "wvalue (CircleArea r p) = pi_of p * r * r"
@@ -379,14 +379,23 @@ proof -
     using floor_less_iff[of "v * d + 1 / 2" "\<lfloor>v * d + 1 / 2\<rfloor> + 1"] by simp
   have abs: "\<bar>of_int \<lfloor>v * d + 1 / 2\<rfloor> - v * d\<bar> \<le> 1 / 2" using lo hi by linarith
   have dd: "d \<noteq> 0" using dpos by linarith
-  have "\<bar>of_int \<lfloor>v * d + 1 / 2\<rfloor> / d - v\<bar> = \<bar>of_int \<lfloor>v * d + 1 / 2\<rfloor> - v * d\<bar> / d"
+  have bridge: "\<bar>of_int \<lfloor>v * d + 1 / 2\<rfloor> / d - v\<bar> = \<bar>of_int \<lfloor>v * d + 1 / 2\<rfloor> - v * d\<bar> / d"
   proof -
-    have "of_int \<lfloor>v * d + 1 / 2\<rfloor> / d - v = (of_int \<lfloor>v * d + 1 / 2\<rfloor> - v * d) / d"
-      by (simp add: diff_divide_distrib nonzero_mult_div_cancel_right dd)
-    then show ?thesis by (simp add: abs_divide dpos)
+    have half: "of_int \<lfloor>v * d + 1 / 2\<rfloor> / d - v * d / d = (of_int \<lfloor>v * d + 1 / 2\<rfloor> - v * d) / d"
+      by (simp only: diff_divide_distrib)
+    have a2: "v * d / d = v" using dd by (rule nonzero_mult_div_cancel_right)
+    have e: "of_int \<lfloor>v * d + 1 / 2\<rfloor> / d - v = (of_int \<lfloor>v * d + 1 / 2\<rfloor> - v * d) / d"
+      using half a2 by simp
+    have "\<bar>of_int \<lfloor>v * d + 1 / 2\<rfloor> / d - v\<bar> = \<bar>(of_int \<lfloor>v * d + 1 / 2\<rfloor> - v * d) / d\<bar>"
+      using e by simp
+    also have "\<dots> = \<bar>of_int \<lfloor>v * d + 1 / 2\<rfloor> - v * d\<bar> / \<bar>d\<bar>" by (rule abs_divide)
+    also have "\<bar>d\<bar> = d" using dpos by (rule abs_of_pos)
+    finally show ?thesis .
   qed
-  also have "\<dots> \<le> (1 / 2) / d" using abs dpos by (rule divide_right_mono)
-  finally have "\<bar>round_dec n v - v\<bar> \<le> (1 / 2) / d"
+  have dnn: "0 \<le> d" using dpos by linarith
+  have le: "\<bar>of_int \<lfloor>v * d + 1 / 2\<rfloor> - v * d\<bar> / d \<le> (1 / 2) / d" using abs dnn by (rule divide_right_mono)
+  have "\<bar>of_int \<lfloor>v * d + 1 / 2\<rfloor> / d - v\<bar> \<le> (1 / 2) / d" using bridge le by simp
+  then have "\<bar>round_dec n v - v\<bar> \<le> (1 / 2) / d"
     by (simp add: round_dec_def Let_def d_def)
   moreover have "(1 / 2) / d = 1 / (2 * 10 ^ n)" by (simp add: d_def field_simps)
   ultimately show ?thesis by simp
@@ -405,7 +414,7 @@ lemma rl_round_dec_bound: "\<bar>rl (round_dec n v) - rl v\<bar> \<le> 1 / (2 * 
 proof -
   define k :: nat where "k = 10 ^ n"
   define d :: real where "d = of_nat k"
-  have dpos: "(0::real) < d" by (simp add: d_def)
+  have dpos: "(0::real) < d" by (simp add: d_def k_def)
   have kd: "of_nat k = d" by (simp add: d_def)
   have conv: "of_rat (v * of_nat k + 1 / 2) = rl v * d + 1 / 2"
     by (simp add: of_rat_add of_rat_mult of_rat_divide kd)
@@ -421,54 +430,73 @@ proof -
     using floor_less_iff[of "rl v * d + 1 / 2" "\<lfloor>rl v * d + 1 / 2\<rfloor> + 1"] by simp
   have abs: "\<bar>of_int \<lfloor>rl v * d + 1 / 2\<rfloor> - rl v * d\<bar> \<le> 1 / 2" using lo hi by linarith
   have dd: "d \<noteq> 0" using dpos by linarith
-  have "\<bar>of_int \<lfloor>rl v * d + 1 / 2\<rfloor> / d - rl v\<bar> = \<bar>of_int \<lfloor>rl v * d + 1 / 2\<rfloor> - rl v * d\<bar> / d"
+  have bridge: "\<bar>of_int \<lfloor>rl v * d + 1 / 2\<rfloor> / d - rl v\<bar> = \<bar>of_int \<lfloor>rl v * d + 1 / 2\<rfloor> - rl v * d\<bar> / d"
   proof -
-    have "of_int \<lfloor>rl v * d + 1 / 2\<rfloor> / d - rl v = (of_int \<lfloor>rl v * d + 1 / 2\<rfloor> - rl v * d) / d"
-      by (simp add: diff_divide_distrib nonzero_mult_div_cancel_right dd)
-    then show ?thesis by (simp add: abs_divide dpos)
+    have half: "of_int \<lfloor>rl v * d + 1 / 2\<rfloor> / d - rl v * d / d = (of_int \<lfloor>rl v * d + 1 / 2\<rfloor> - rl v * d) / d"
+      by (simp only: diff_divide_distrib)
+    have a2: "rl v * d / d = rl v" using dd by (rule nonzero_mult_div_cancel_right)
+    have e: "of_int \<lfloor>rl v * d + 1 / 2\<rfloor> / d - rl v = (of_int \<lfloor>rl v * d + 1 / 2\<rfloor> - rl v * d) / d"
+      using half a2 by simp
+    have "\<bar>of_int \<lfloor>rl v * d + 1 / 2\<rfloor> / d - rl v\<bar> = \<bar>(of_int \<lfloor>rl v * d + 1 / 2\<rfloor> - rl v * d) / d\<bar>"
+      using e by simp
+    also have "\<dots> = \<bar>of_int \<lfloor>rl v * d + 1 / 2\<rfloor> - rl v * d\<bar> / \<bar>d\<bar>" by (rule abs_divide)
+    also have "\<bar>d\<bar> = d" using dpos by (rule abs_of_pos)
+    finally show ?thesis .
   qed
-  also have "\<dots> \<le> (1 / 2) / d" using abs dpos by (rule divide_right_mono)
-  finally have "\<bar>rl (round_dec n v) - rl v\<bar> \<le> (1 / 2) / d" unfolding eq .
+  have dnn: "0 \<le> d" using dpos by linarith
+  have le: "\<bar>of_int \<lfloor>rl v * d + 1 / 2\<rfloor> - rl v * d\<bar> / d \<le> (1 / 2) / d" using abs dnn by (rule divide_right_mono)
+  have "\<bar>of_int \<lfloor>rl v * d + 1 / 2\<rfloor> / d - rl v\<bar> \<le> (1 / 2) / d" using bridge le by simp
+  then have "\<bar>rl (round_dec n v) - rl v\<bar> \<le> (1 / 2) / d" unfolding eq by simp
   moreover have "(1 / 2) / d = 1 / (2 * 10 ^ n)" by (simp add: d_def k_def field_simps)
   ultimately show ?thesis by simp
 qed
+
+lemma pow10_4_real: "(10::real) ^ 4 = 10000" by eval
+lemma pow10_5_real: "(10::real) ^ 5 = 100000" by eval
+lemma pow10_6_real: "(10::real) ^ 6 = 1000000" by eval
 
 theorem stated6_sound:
   assumes "stated6 v = Some d"
   shows "\<bar>dec_val d - rl v\<bar> \<le> \<bar>rl v\<bar> / 200000 + 1 / 1000000"
 proof -
-  have n5: "(2::real) * 10 ^ 5 = 200000" and n6: "(2::real) * 10 ^ 6 = 2000000"
-    by (simp_all add: eval_nat_numeral)
-  have b: "\<bar>dec_val d - rl (round_dec 6 v)\<bar> \<le> \<bar>rl (round_dec 6 v)\<bar> / 200000"
-    using round_sig_sound[of 6 "rl (round_dec 6 v)" d] assms
-    by (simp add: stated6_def n5[unfolded eval_nat_numeral] eval_nat_numeral)
-  have e: "\<bar>rl (round_dec 6 v) - rl v\<bar> \<le> 1 / 2000000"
-    using rl_round_dec_bound[of 6 v] by (simp add: n6[unfolded eval_nat_numeral] eval_nat_numeral)
-  have "\<bar>rl (round_dec 6 v)\<bar> \<le> \<bar>rl v\<bar> + 1 / 2000000" using e by linarith
-  then have "\<bar>rl (round_dec 6 v)\<bar> / 200000 \<le> (\<bar>rl v\<bar> + 1 / 2000000) / 200000"
-    by (intro divide_right_mono) auto
-  moreover have "\<bar>dec_val d - rl v\<bar> \<le> \<bar>dec_val d - rl (round_dec 6 v)\<bar> + \<bar>rl (round_dec 6 v) - rl v\<bar>"
+  have b: "\<bar>dec_val d - rl (round_dec 6 v)\<bar> \<le> \<bar>rl (round_dec 6 v)\<bar> / (2 * 10 ^ 5)"
+    using round_sig_sound[of 6 "rl (round_dec 6 v)" d] assms by (simp add: stated6_def)
+  have e: "\<bar>rl (round_dec 6 v) - rl v\<bar> \<le> 1 / (2 * 10 ^ 6)"
+    using rl_round_dec_bound[of 6 v] by simp
+  have tri: "\<bar>dec_val d - rl v\<bar> \<le> \<bar>dec_val d - rl (round_dec 6 v)\<bar> + \<bar>rl (round_dec 6 v) - rl v\<bar>"
     by arith
-  ultimately show ?thesis using b e by linarith
+  have s6: "\<bar>rl (round_dec 6 v)\<bar> \<le> \<bar>rl v\<bar> + 1 / (2 * 10 ^ 6)" using e by arith
+  have z5: "(0::real) \<le> 2 * 10 ^ 5" by (simp add: pow10_5_real)
+  have m: "\<bar>rl (round_dec 6 v)\<bar> / (2 * 10 ^ 5) \<le> (\<bar>rl v\<bar> + 1 / (2 * 10 ^ 6)) / (2 * 10 ^ 5)"
+    using s6 z5 by (rule divide_right_mono)
+  have p5: "(2::real) * 10 ^ 5 = 200000" by (simp add: pow10_5_real)
+  have p6: "(2::real) * 10 ^ 6 = 2000000" by (simp add: pow10_6_real)
+  from b have b2: "\<bar>dec_val d - rl (round_dec 6 v)\<bar> \<le> \<bar>rl (round_dec 6 v)\<bar> / 200000" by (simp add: p5)
+  from e have e2: "\<bar>rl (round_dec 6 v) - rl v\<bar> \<le> 1 / 2000000" by (simp add: p6)
+  from m have m2: "\<bar>rl (round_dec 6 v)\<bar> / 200000 \<le> (\<bar>rl v\<bar> + 1 / 2000000) / 200000" by (simp add: p5 p6)
+  show ?thesis using b2 e2 m2 tri by linarith
 qed
 
 theorem stated4_sound:
   assumes "stated4 v = Some d"
   shows "\<bar>dec_val d - rl v\<bar> \<le> \<bar>rl v\<bar> / 200000 + 1 / 10000"
 proof -
-  have n5: "(2::real) * 10 ^ 5 = 200000" and n4: "(2::real) * 10 ^ 4 = 20000"
-    by (simp_all add: eval_nat_numeral)
-  have b: "\<bar>dec_val d - rl (round_dec 4 v)\<bar> \<le> \<bar>rl (round_dec 4 v)\<bar> / 200000"
-    using round_sig_sound[of 6 "rl (round_dec 4 v)" d] assms
-    by (simp add: stated4_def n5[unfolded eval_nat_numeral] eval_nat_numeral)
-  have e: "\<bar>rl (round_dec 4 v) - rl v\<bar> \<le> 1 / 20000"
-    using rl_round_dec_bound[of 4 v] by (simp add: n4[unfolded eval_nat_numeral] eval_nat_numeral)
-  have "\<bar>rl (round_dec 4 v)\<bar> \<le> \<bar>rl v\<bar> + 1 / 20000" using e by linarith
-  then have "\<bar>rl (round_dec 4 v)\<bar> / 200000 \<le> (\<bar>rl v\<bar> + 1 / 20000) / 200000"
-    by (intro divide_right_mono) auto
-  moreover have "\<bar>dec_val d - rl v\<bar> \<le> \<bar>dec_val d - rl (round_dec 4 v)\<bar> + \<bar>rl (round_dec 4 v) - rl v\<bar>"
+  have b: "\<bar>dec_val d - rl (round_dec 4 v)\<bar> \<le> \<bar>rl (round_dec 4 v)\<bar> / (2 * 10 ^ 5)"
+    using round_sig_sound[of 6 "rl (round_dec 4 v)" d] assms by (simp add: stated4_def)
+  have e: "\<bar>rl (round_dec 4 v) - rl v\<bar> \<le> 1 / (2 * 10 ^ 4)"
+    using rl_round_dec_bound[of 4 v] by simp
+  have tri: "\<bar>dec_val d - rl v\<bar> \<le> \<bar>dec_val d - rl (round_dec 4 v)\<bar> + \<bar>rl (round_dec 4 v) - rl v\<bar>"
     by arith
-  ultimately show ?thesis using b e by linarith
+  have s4: "\<bar>rl (round_dec 4 v)\<bar> \<le> \<bar>rl v\<bar> + 1 / (2 * 10 ^ 4)" using e by arith
+  have z5: "(0::real) \<le> 2 * 10 ^ 5" by (simp add: pow10_5_real)
+  have m: "\<bar>rl (round_dec 4 v)\<bar> / (2 * 10 ^ 5) \<le> (\<bar>rl v\<bar> + 1 / (2 * 10 ^ 4)) / (2 * 10 ^ 5)"
+    using s4 z5 by (rule divide_right_mono)
+  have p4: "(2::real) * 10 ^ 4 = 20000" by (simp add: pow10_4_real)
+  have p5: "(2::real) * 10 ^ 5 = 200000" by (simp add: pow10_5_real)
+  from b have b2: "\<bar>dec_val d - rl (round_dec 4 v)\<bar> \<le> \<bar>rl (round_dec 4 v)\<bar> / 200000" by (simp add: p5)
+  from e have e2: "\<bar>rl (round_dec 4 v) - rl v\<bar> \<le> 1 / 20000" by (simp add: p4)
+  from m have m2: "\<bar>rl (round_dec 4 v)\<bar> / 200000 \<le> (\<bar>rl v\<bar> + 1 / 20000) / 200000" by (simp add: p4 p5)
+  show ?thesis using b2 e2 m2 tri by linarith
 qed
 
 
@@ -636,8 +664,8 @@ definition body_text :: "nat option \<Rightarrow> wp \<Rightarrow> String.litera
 text \<open>The whole reply. An empty request list is the organ abstaining with
 no schema reading the problem; two or more is two schemas reading it
 differently, which the organ also abstains on.\<close>
-datatype wreply = WReply (answered :: bool) (schema :: String.literal)
-  (response :: String.literal) (stated :: "String.literal option")
+datatype wreply = WReply (answered: bool) (schema: String.literal)
+  (response: String.literal) (stated: "String.literal option")
 
 definition reply_one :: "nat option \<Rightarrow> wp \<Rightarrow> wreply" where
   "reply_one rnd r = (if wdecline r then WReply False (STR ''impossible'') (STR '''') None
@@ -656,12 +684,20 @@ text \<open>The exactly-one-schema rule: the kernel answers a problem exactly
 when one schema read it and its formula does not divide by zero.\<close>
 theorem reply_answered_iff:
   "answered (reply_of (rnd, rs)) \<longleftrightarrow> (\<exists>r. rs = [r] \<and> \<not> wdecline r)"
-  by (cases rs) (auto simp: reply_one_def split: if_splits)
+proof (cases rs)
+  case Nil
+  then show ?thesis by simp
+next
+  case (Cons a list)
+  then show ?thesis
+    by (cases list) (auto simp: reply_one_def split: if_splits)
+qed
 
 text \<open>Every value satisfies its schema's equation.\<close>
 theorem percent_of_value: "wvalue (PercentOf m r w) = r / 100 * w" by simp
 
-theorem convert_value: "wvalue (Convert x a b) * scale b = x * scale a" by simp
+theorem convert_value:
+  "scale b \<noteq> 0 \<Longrightarrow> wvalue (Convert x a b) * scale b = x * scale a" by simp
 
 theorem simple_interest_value: "wvalue (SimpleInterest P r n) = P * r / 100 * n" by simp
 
@@ -679,7 +715,7 @@ theorem percent_of_total_value:
 theorem motion_dist_value: "wvalue (MotionDist r t u l) = r * (t * scale u)" by simp
 
 theorem motion_speed_value:
-  "t * scale u' \<noteq> 0 \<Longrightarrow> wvalue (MotionSpeed x u t u') * (t * scale u') = x * scale u" by simp
+  "t * scale u' \<noteq> 0 \<Longrightarrow> wvalue (MotionSpeed x u t u') * (t * scale u') = x" by simp
 
 theorem rect_area_value: "wvalue (RectArea l w) = l * w" by simp
 
