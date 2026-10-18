@@ -89,7 +89,8 @@ export_code nreply nkernel answered reply_status reply_kind response stated
   in SML module_name Stores file_prefix stores
 
 ML \<open>
-  val theorems = [@{thm first_min_Some}, @{thm round_dp_sound},
+  val theorems = [@{thm first_min_Some}, @{thm first_min_tie_first}, @{thm round_dp_sound},
+    @{thm nutrient_answer_covered}, @{thm nutrient_portion_real}, @{thm grams_pos}, @{thm stale_mono},
     @{thm nutrient_answer_sound}, @{thm nutrient_requires_complete}, @{thm nutrient_value},
     @{thm nutrient_default_grams}, @{thm nutrient_mass_grams}, @{thm nutrient_measure_portion},
     @{thm nutrient_count_portion}, @{thm nutrient_readings_agree}, @{thm nutrient_unknown_food},

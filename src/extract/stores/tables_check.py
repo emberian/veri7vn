@@ -117,7 +117,7 @@ units = hol_fun("nutrient_unit")
 order = [keys[c] for c in hol_list("nutrient_order")]
 check("nutrient_order", order, [k for k, _ in v1.NUTRIENTS])
 check("nutrient_unit", {keys[c]: u for c, u in units.items()}, {k: u for k, u in KEYS.values()})
-db = sqlite3.connect("file:%s?mode=ro" % (SPEC / "cooking/nutrition_v1.sqlite3"), uri=True)
+db = sqlite3.connect("file:%s?immutable=1" % (SPEC / "cooking/nutrition_v1.sqlite3"), uri=True)
 check("store (key, unit) pairs", sorted(db.execute("SELECT DISTINCT key, unit FROM nut").fetchall()),
       sorted((keys[c], u) for c, u in units.items()))
 # ---- mass and measure units

@@ -2,7 +2,7 @@
 """fetch - UNTRUSTED store and session-state shim for the stores binary (var/stores/bin/stores).
 
 The binary starts this process and speaks JSON lines with it: one request {"op": ...} in, one reply out.
-It opens the two shipped stores read-only (file:...?mode=ro) and never writes them:
+It opens the two shipped stores read-only (file:...?immutable=1) and never writes them:
   nutrition_v1.sqlite3  (USDA SR Legacy, cooking*)       site_fresh.sqlite3 (warehouse*)
 Every row reply carries "complete": true, the shim's claim that the query had no LIMIT and returned every stored
 row it names; the HOL kernel declines without that claim. REAL columns travel as Python's repr of the stored float
@@ -25,7 +25,7 @@ SPEC = REPO / "upstream/root/specialists"
 
 
 def ro(path):
-    return sqlite3.connect("file:%s?mode=ro" % path, uri=True, check_same_thread=False)
+    return sqlite3.connect("file:%s?immutable=1" % path, uri=True, check_same_thread=False)
 
 
 def num(x):

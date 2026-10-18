@@ -1,5 +1,5 @@
 theory Stores
-  imports "Veri7vn_Stores_Base.Stores_Base"
+  imports "Veri7vn_Stores_Base.Stores_Base" "HOL.Real"
 begin
 
 text \<open>
@@ -63,6 +63,40 @@ next
       then have yy: "y = y'" using Cons.prems Some by simp
       have "f y' \<le> f x" using False by (meson linear)
       then show ?thesis using yy ih by simp
+    qed
+  qed
+qed
+
+text \<open>The tie rule: SQL's ORDER BY key LIMIT 1 keeps the first row in store
+order among equals. The chosen row has a strictly larger key at every earlier
+row and a key no larger at every later row, so it is the unique first minimum.\<close>
+theorem first_min_tie_first:
+  "first_min f xs = Some y \<Longrightarrow>
+     \<exists>pre post. xs = pre @ y # post \<and> (\<forall>z\<in>set pre. f y < f z) \<and> (\<forall>z\<in>set post. f y \<le> f z)"
+proof (induction xs arbitrary: y)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs)
+  show ?case
+  proof (cases "first_min f xs")
+    case None
+    then have "xs = []" by simp
+    then show ?thesis using Cons.prems by (auto intro!: exI[of _ "[]"] exI[of _ "[]"])
+  next
+    case (Some y')
+    show ?thesis
+    proof (cases "f x \<le> f y'")
+      case True
+      then have yx: "y = x" using Cons.prems Some by simp
+      have all: "\<forall>z\<in>set xs. f x \<le> f z" using True first_min_Some[OF Some] by (blast intro: order_trans)
+      then show ?thesis using yx all by (intro exI[of _ "[]"] exI[of _ xs]) simp
+    next
+      case False
+      then have yy: "y = y'" using Cons.prems Some by simp
+      obtain pre post where d: "xs = pre @ y' # post" "\<forall>z\<in>set pre. f y' < f z" "\<forall>z\<in>set post. f y' \<le> f z"
+        using Cons.IH[OF Some] by blast
+      have "f y' < f x" using False by simp
+      then show ?thesis using yy d \<open>f y' < f x\<close> by (intro exI[of _ "x # pre"] exI[of _ post] conjI) auto
     qed
   qed
 qed
@@ -283,6 +317,9 @@ definition mass_names :: "(String.literal \<times> mass_unit) list" where
      (STR ''oz'', MU_oz), (STR ''ounce'', MU_oz), (STR ''ounces'', MU_oz),
      (STR ''lb'', MU_lb), (STR ''lbs'', MU_lb), (STR ''pound'', MU_lb), (STR ''pounds'', MU_lb)]"
 
+theorem grams_pos: "0 < grams_per u"
+  by (cases u) simp_all
+
 datatype measure = M_cup | M_tbsp | M_tsp
 
 fun measure_key :: "measure \<Rightarrow> String.literal" where
@@ -331,10 +368,18 @@ definition row_of :: "(int \<times> rat \<times> String.literal) list \<Rightarr
 lemma row_of_Some: "row_of rows f = Some r \<Longrightarrow> (f, r) \<in> set rows"
   by (auto simp: row_of_def dest: map_of_SomeD)
 
-text \<open>The rows are well formed: no negative amount, and the store's unit is the
-nutrient's unit.\<close>
+text \<open>The fetched rows are well formed and agree with the query they answer,
+checked here and not taken from the shim: no negative amount, the store's unit
+is the nutrient's unit, at most one row per food, every row is for a food the
+query named (the reading or one in play), the reading is among those in play,
+and every stored portion weighs something. What the kernel cannot see is a
+row the shim left out; that part stays the shim's claim (@{text nq_complete}).\<close>
 definition rows_ok :: "nquery \<Rightarrow> bool" where
-  "rows_ok e \<longleftrightarrow> (\<forall>r\<in>set (nq_rows e). 0 \<le> fst (snd r) \<and> snd (snd r) = nutrient_unit (nq_nutrient e))"
+  "rows_ok e \<longleftrightarrow> (\<forall>r\<in>set (nq_rows e). 0 \<le> fst (snd r) \<and> snd (snd r) = nutrient_unit (nq_nutrient e))
+     \<and> distinct (map fst (nq_rows e))
+     \<and> (\<forall>r\<in>set (nq_rows e). fst r \<in> set (map fst (nq_near e)))
+     \<and> (case nq_hit e of None \<Rightarrow> True | Some fd \<Rightarrow> fd \<in> set (nq_near e))
+     \<and> (\<forall>p\<in>set (nq_portions e). 0 < snd p)"
 
 text \<open>The values of the readings in play that have a row (with their
 descriptions).\<close>
@@ -481,6 +526,22 @@ qed
 theorem nutrient_requires_complete: "nkernel e = NAnswer g p v pl \<Longrightarrow> nq_complete e"
   using nutrient_answer_sound by blast
 
+text \<open>An answer rests on rows the kernel itself found consistent with the
+query: one row per food, all for foods in play, the reading among them, and the
+reading's own row present.\<close>
+theorem nutrient_answer_covered:
+  assumes "nkernel e = NAnswer g p v pl"
+  shows "distinct (map fst (nq_rows e)) \<and> (\<forall>r\<in>set (nq_rows e). fst r \<in> set (map fst (nq_near e)))
+    \<and> (\<exists>fd. nq_hit e = Some fd \<and> fd \<in> set (nq_near e) \<and> (fst fd, p, nutrient_unit (nq_nutrient e)) \<in> set (nq_rows e))"
+proof -
+  have ok: "rows_ok e" using assms by (auto simp: nkernel_def split: if_splits)
+  obtain f d where h: "nq_hit e = Some (f, d)" and r: "row_of (nq_rows e) f = Some (p, nutrient_unit (nq_nutrient e))"
+    using nutrient_answer_sound[OF assms] by blast
+  have "(f, p, nutrient_unit (nq_nutrient e)) \<in> set (nq_rows e)" using row_of_Some[OF r] by simp
+  moreover have "(f, d) \<in> set (nq_near e)" using ok h by (auto simp: rows_ok_def)
+  ultimately show ?thesis using ok h by (auto simp: rows_ok_def)
+qed
+
 theorem nutrient_value: "nkernel e = NAnswer g p v pl \<Longrightarrow> v = p * g / 100"
   using nutrient_answer_sound by blast
 
@@ -529,6 +590,52 @@ proof -
   then obtain l w where "count_portion (nq_portions e) = Some (l, w)" "g = q * w" "pl = Some l"
     using assms(1) by auto
   then show ?thesis using count_portion_Some by blast
+qed
+
+abbreviation realq :: "rat \<Rightarrow> real" where "realq \<equiv> of_rat"
+
+lemma realq_scale:
+  assumes h: "v = p * (q * w) / 100" shows "realq v = realq p * realq q * realq w / 100"
+proof -
+  have "realq v = realq (p * (q * w) / 100)" by (simp only: h)
+  also have "\<dots> = realq p * realq q * realq w / 100" by (simp add: of_rat_mult of_rat_divide mult.assoc)
+  finally show ?thesis .
+qed
+
+text \<open>The stated value against the real-number model: with the portion row used,
+the answer is (per 100 g) x quantity x (grams of the portion) / 100 as real
+numbers, and for a mass it is the mass in grams (positive units) scaled the
+same way.\<close>
+theorem nutrient_portion_real:
+  assumes "nkernel e = NAnswer g p v pl"
+  shows "(\<forall>q nt ut m. nq_amount e = A_measure q nt ut m \<longrightarrow>
+      (\<exists>l w. pl = Some l \<and> (l, w) \<in> set (nq_portions e) \<and> 0 < w \<and>
+        realq v = realq p * realq q * realq w / 100))
+    \<and> (\<forall>q nt w0. nq_amount e = A_count q nt w0 \<longrightarrow>
+      (\<exists>l w. pl = Some l \<and> (l, w) \<in> set (nq_portions e) \<and> 0 < w \<and>
+        realq v = realq p * realq q * realq w / 100))
+    \<and> (\<forall>q nt u. nq_amount e = A_mass q nt u \<longrightarrow>
+        realq v = realq p * realq q * realq (grams_per u) / 100)"
+proof (intro conjI allI impI)
+  fix q nt ut m assume a: "nq_amount e = A_measure q nt ut m"
+  from nutrient_measure_portion[OF a assms] obtain l w where lw: "pl = Some l" "(l, w) \<in> set (nq_portions e)" "g = q * w" by blast
+  have ok: "rows_ok e" using assms by (auto simp: nkernel_def split: if_splits)
+  then have "0 < w" using lw(2) by (auto simp: rows_ok_def)
+  moreover have "v = p * g / 100" using nutrient_value[OF assms] .
+  ultimately show "\<exists>l w. pl = Some l \<and> (l, w) \<in> set (nq_portions e) \<and> 0 < w \<and> realq v = realq p * realq q * realq w / 100"
+    using lw realq_scale[of v p q w] by (intro exI[of _ l] exI[of _ w]) auto
+next
+  fix q nt w0 assume a: "nq_amount e = A_count q nt w0"
+  from nutrient_count_portion[OF a assms] obtain l w where lw: "pl = Some l" "(l, w) \<in> set (nq_portions e)" "g = q * w" by blast
+  have ok: "rows_ok e" using assms by (auto simp: nkernel_def split: if_splits)
+  then have "0 < w" using lw(2) by (auto simp: rows_ok_def)
+  moreover have "v = p * g / 100" using nutrient_value[OF assms] .
+  ultimately show "\<exists>l w. pl = Some l \<and> (l, w) \<in> set (nq_portions e) \<and> 0 < w \<and> realq v = realq p * realq q * realq w / 100"
+    using lw realq_scale[of v p q w] by (intro exI[of _ l] exI[of _ w]) auto
+next
+  fix q nt u assume a: "nq_amount e = A_mass q nt u"
+  from nutrient_mass_grams[OF a assms] have "v = p * (q * grams_per u) / 100" by (simp add: mult.assoc)
+  from realq_scale[OF this] show "realq v = realq p * realq q * realq (grams_per u) / 100" .
 qed
 
 text \<open>When it answers, any two readings in play differ by at most 15% of the
@@ -820,6 +927,13 @@ definition age_min :: "int \<Rightarrow> int \<Rightarrow> rat" where
 
 definition stale :: "int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> bool" where
   "stale now fresh ts \<longleftrightarrow> of_int fresh < age_min now ts"
+
+theorem stale_mono: "stale now fresh ts \<Longrightarrow> now \<le> now' \<Longrightarrow> stale now' fresh ts"
+proof -
+  assume s: "stale now fresh ts" and le: "now \<le> now'"
+  have "age_min now ts \<le> age_min now' ts" using le by (simp add: age_min_def divide_right_mono)
+  then show ?thesis using s by (simp add: stale_def)
+qed
 
 text \<open>The latest reading (SQL: ORDER BY ts DESC LIMIT 1).\<close>
 definition latest :: "(int \<times> rat) list \<Rightarrow> (int \<times> rat) option" where
