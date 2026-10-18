@@ -64,3 +64,5 @@ section for the family and the class rules, add the proposed theorems (restated 
 a constant differs, never weakened into a restatement of the code), replace the
 vacuous ones, scan every headline theorem, keep the marker last, and leave every
 panel reply unchanged. Box safety is LANE_BRIEF.md's, quoted in every launch.
+
+**Root decision on W6-12 item 2 (2026-10-18):** dropped. In 12 of 417 shipped rows the value is not a substring of the sentence (poetry "five" vs 5, ranges phrased differently, capitalisation). The data is Oracle7's; we do not edit it to make a theorem true. The binding fact for facts stays: reply sentence and value come from the same checked row (`rows_<store>` equalities + `organ_rows_bound`).
