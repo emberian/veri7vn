@@ -120,3 +120,5 @@ exact reason there is none yet.
 
 - The PASS marker and its oracle scan must be the LAST commands of the export theory; any theorem after the scan is unscanned (T4 found two `by eval` lemmas hiding there). `by eval` records an oracle; prefer `by simp`/`code_simp` or put the fact in tables_check.py.
 - Open any sqlite store under `upstream/` with `file:...?immutable=1` (not just `mode=ro`): read-only mode still rewrites the `-shm` side file, which is a write under upstream.
+
+- Any granted Oracle7 head run uses the reconstructed linker index: `ORACLE7_ROOT=/Users/ember/dev/o7vn/var/linker/o7root` (rebuild with `tools/linker/build_names.py` then `make_overlay.py` if absent). Without it the head differs from the recorded core panel on 142 of 924 paths and every `rel-*` specialist is silent (W5-15).
