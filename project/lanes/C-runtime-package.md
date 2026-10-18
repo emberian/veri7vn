@@ -234,3 +234,39 @@ Real subprocess tests now include malformed non-object provenance, malformed
 evidence and a null computation packet: all become decisive withheld replies
 rather than crashing. **6wrapper tests pass**. The fusion deployment check now
 uses its immutable per-run binary path, avoiding a race with later promotion.
+
+## Current Linux refresh preparation and finance consumer
+
+The current refresh command supports `--from-receipt ... --runtime-overlay`.
+It reuses the proved export and freezes current runtime files only after the
+family's required theory files and dependency ROOT files match the passed,
+uncancelled receipt. The full source inventory digest and exported file set
+must also match. Runtime-only commons code is recorded separately where the
+family does not import the Commons HOL session. Seven focused receipt/overlay
+tests pass, including changed theorem, dependency ROOT and export rejection.
+
+Each comparison now freezes the actual Darwin binary before waiting for a
+compiler slot, then scores that binary and the exact per-run Linux artifact on
+the same copied specialist panels. It records all actual compiler input hashes,
+requires every expected specialist and both splits, and rejects an empty
+comparison. It does not reuse historical Darwin dumps or run head/core/fleet
+sweeps. Non-specialist batteries use their own runners. No new Linux jobs were
+submitted during the build-owner queue hold.
+
+Five families were prepared locally at
+`var/C-runtime-package/linux-prepared-1792307187/`: chemistry, climate, finance,
+humanities and space. These are prepared sources and binaries, not Linux pass
+claims. Computing's corrected proof remains pending; materials was still being
+finalized when this preparation was made. The already-current stores artifact
+needs no duplicate compilation.
+
+The final finance native binary
+`079c948a498522777e71ea59f842cd3f907dd0babef5b1e97bf88ebb19051b4c`
+was packaged and relocated with the current wrapper and checker. Its real
+producer packet for an $80 item, 25% discount and 8% tax was accepted as $64.80
+with consistent consumer evidence. Mutating that same actual packet's value
+to65 while retaining accepted=true produced a decisive withheld reply through
+upstream `exam.Loaded`. Four targeted checks passed; these are not panel
+numbers. Exact receipt: `var/C-runtime-package/finance-final-native/consumer-check.json`.
+The finance-only Darwin archive SHA256 is
+`ee67c35afb9c91abeac531af84a7f8d2d29e7e103b21548b685390e06b95764c`.

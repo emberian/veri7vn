@@ -36,3 +36,60 @@ def deployment_receipt_issues(receipt):
     # Older receipts predate managed workers: retain them only as historical evidence,
     # without manufacturing a completion sentinel or current-source claim.
     return issues
+
+
+def validate_export_snapshot(directory, expected):
+    """Reject changed or incomplete exports, regardless of a saved PASS label."""
+    import hashlib
+    from pathlib import Path
+    directory = Path(directory)
+    actual = {str(p.relative_to(directory)): hashlib.sha256(p.read_bytes()).hexdigest()
+              for p in directory.rglob('*') if p.is_file()}
+    if not expected or actual != expected:
+        raise ValueError('managed exports no longer match their receipt')
+
+
+def stage_runtime_overlay(repo, destination, directories, expected_proofs, runtime_files=()):
+    """Copy final runtime inputs only when the session dependency proofs are unchanged."""
+    import hashlib
+    from pathlib import Path
+    import shutil
+    repo, destination = Path(repo), Path(destination)
+    selected = []
+    for directory in sorted(set(directories), key=len):
+        if Path(directory).is_absolute() or '..' in Path(directory).parts:
+            raise ValueError('overlay directories must be repository-relative')
+        if not any(directory == prior or directory.startswith(prior + '/') for prior in selected):
+            selected.append(directory)
+
+    runtime_files = sorted(set(runtime_files))
+    for name in runtime_files:
+        path = Path(name)
+        if path.is_absolute() or '..' in path.parts or path.suffix in ('.thy', '.ML') or path.name == 'ROOT':
+            raise ValueError('runtime-only inputs must be relative non-proof files')
+
+    def hashes(base):
+        result = {str(p.relative_to(base)): hashlib.sha256(p.read_bytes()).hexdigest()
+                for directory in selected for p in sorted((base / directory).rglob('*'))
+                if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc'}
+        result.update({name: hashlib.sha256((base / name).read_bytes()).hexdigest() for name in runtime_files})
+        return result
+
+    before = hashes(repo)
+    current_proofs = {k: v for k, v in before.items()
+                      if Path(k).suffix in ('.thy', '.ML') or Path(k).name == 'ROOT'}
+    if not expected_proofs or current_proofs != expected_proofs:
+        changed = sorted(k for k in set(current_proofs) | set(expected_proofs)
+                         if current_proofs.get(k) != expected_proofs.get(k))
+        raise ValueError('runtime overlay changes proof dependency sources: ' + ', '.join(changed))
+    destination.mkdir(parents=True, exist_ok=False)
+    for directory in selected:
+        shutil.copytree(repo / directory, destination / directory,
+                        ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+    for name in runtime_files:
+        target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(repo / name, target)
+    if hashes(destination) != before or hashes(repo) != before:
+        raise ValueError('runtime sources changed while snapshotting; retry after freeze')
+    return before
