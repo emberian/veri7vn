@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "specialist_id": "spacecraft",
+  "family": "space",
+  "examined_surface": {
+    "request_types": [
+      "ideal constant-exhaust-speed rocket delta-v"
+    ],
+    "model_scope": "Exact logarithm identity and checked interval/decimal binding; partial numerical model audit. English applicability is not established by the theorem."
+  },
+  "cases": [
+    {
+      "case_id": "authored-13",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 1000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected_boundary": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 0 m/s (ve ln(m0/mf) = 2941.995 x ln(1000/1000); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 0}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-14",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 1000.001000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected_boundary": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 0.0029 m/s (ve ln(m0/mf) = 2941.995 x ln(1000.001/1000); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 0.0029}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-15",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 1500.0 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected_boundary": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 1192.8763 m/s (ve ln(m0/mf) = 2941.995 x ln(1500/1000); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 1192.8763}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-16",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 1999.999000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected_boundary": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 2039.2341 m/s (ve ln(m0/mf) = 2941.995 x ln(1999.999/1000); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 2039.2341}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-17",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 2000.001000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected_boundary": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 2039.237 m/s (ve ln(m0/mf) = 2941.995 x ln(2000.001/1000); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 2039.237}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-18",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 1000000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected_boundary": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 20322.5815 m/s (ve ln(m0/mf) = 2941.995 x ln(1,000,000/1000); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 20322.5815}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-19",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 1000000000000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected_boundary": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 60967.7445 m/s (ve ln(m0/mf) = 2941.995 x ln(1,000,000,000,000/1000); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 60967.7445}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-6",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 1234.512345 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected_boundary": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.00005002760040512319605295408533604957816462695795623595802592514127281433",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.00005002760040512319605295408533604957816462695795623595802592514127281433",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 0.0266 m/s (ve ln(m0/mf) = 2660.0538 x ln(1234.5123/1234.5); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 0.0266}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-7",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 2467.7655 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected_boundary": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.001892479440748254687112880290344409699644451344643779745970567702811361",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.001892479440748254687112880290344409699644451344643779745970567702811361",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 1842.4784 m/s (ve ln(m0/mf) = 2660.0538 x ln(2467.7655/1234.5); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 1842.4784}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-8",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 2470.2345 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected_boundary": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.001895139494782425871405225550882348091292282087391908664298009884046929",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.001895139494782425871405225550882348091292282087391908664298009884046929",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 1845.1385 m/s (ve ln(m0/mf) = 2660.0538 x ln(2470.2345/1234.5); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 1845.1385}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-9",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 38685.5265 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected_boundary": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.00921335306463873768242606582459652068854536348314949970709800430714488",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.00921335306463873768242606582459652068854536348314949970709800430714488",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 9163.3521 m/s (ve ln(m0/mf) = 2660.0538 x ln(38685.5265/1234.5); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 9163.3521}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-10",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 1230796.5 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected_boundary": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.01841700960999929852986547052164321936192745447077456793332890530020296",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.01841700960999929852986547052164321936192745447077456793332890530020296",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 18367.0086 m/s (ve ln(m0/mf) = 2660.0538 x ln(1,230,797/1234.5); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 18367.0086}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-11",
+      "kind": "independently_checked_case",
+      "request": "A rocket has an initial mass of 123453703.5 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected_boundary": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.03067508207653976603217680696863491049517048124921492721410321724634068",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.03067508207653976603217680696863491049517048124921492721410321724634068",
+      "observed_behavior": "{\"kind\": \"delta_v\", \"response\": \"The delta-v is 30625.0811 m/s (ve ln(m0/mf) = 2660.0538 x ln(123,453,704/1234.5); Tsiolkovsky).\", \"status\": \"answered\", \"value\": 30625.0811}; numerical-model outcome: right"
+    }
+  ],
+  "actual_receipt": "project/audits/evidence/space-log-20261018.json",
+  "native_binding": {
+    "compile_inputs_manifest": "var/space/native-attempts/20261018T120921Z-eccd2204e2d5/compile-inputs.json",
+    "registered_binary": "var/space/native-attempts/20261018T120921Z-eccd2204e2d5/binary"
+  },
+  "current_unresolved_limits": [
+    "The rocket model assumes constant exhaust speed and excludes gravity/drag losses; richer source conditions and multiple stages need separate semantic examination.",
+    "Other reader operations and arbitrary English inputs remain unaudited; the broader Space authored set retains 15 valid withholds."
+  ],
+  "reviewer": "Codex root, direct theorem/source and native model check, 2026-10-18",
+  "owner": "root; no active deputy",
+  "author_claims": {
+    "audit_scope": "partial numerical-model audit; presence is not completion",
+    "theorem_consumer_review": "log_decomposition, log_mantissa_range and log_identity establish an exact rational reduction; interp_log_expr connects the executable expression to ln. The actual CFspl and SDeltaV consumers use it, preserving their independent physical equations and enclose_adaptive_sound numerical bound. English recognition is unchanged and untrusted.",
+    "source_paths": [
+      "src/extract/space/Space_Log.thy",
+      "src/extract/space/Space.thy",
+      "src/extract/space/Space_Export.thy",
+      "src/extract/space/recognizer.sml",
+      "src/extract/space/main.sml"
+    ],
+    "production_change_this_audit": true,
+    "shipped_panel_result": "Full eight-ID family: 1185/1185 isolated; family 1183 right and two off-domain assertions, explained by Planetary off questions answered by Astronomy.",
+    "result_counts": {
+      "right": 13,
+      "wrong": 0,
+      "false_yes": 0,
+      "withheld_valid": 0
+    },
+    "native_binding_scope": "Immutable currently active compiler artifact."
+  }
+}

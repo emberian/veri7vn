@@ -14,7 +14,7 @@
 
 structure Main =
 struct
-  val theorems = "[\"kernel_exact_sound\",\"kernel_approx_sound\",\"kernel_fact_sound\",\"kernel_underspecified\",\"kernel_impossible\",\"to_dec_sound\",\"enclose_adaptive_sound\",\"enclose_adaptive_fallback\",\"enclose_adaptive_preserves_success\",\"answered_physical_domain\",\"light_time_accepted\",\"transfer_accepted\",\"bits_in_flight_accepted\"]"
+  val theorems = "[\"kernel_exact_sound\",\"kernel_approx_sound\",\"kernel_fact_sound\",\"kernel_underspecified\",\"kernel_impossible\",\"to_dec_sound\",\"enclose_adaptive_sound\",\"enclose_adaptive_fallback\",\"enclose_adaptive_preserves_success\",\"log_decomposition\",\"log_mantissa_range\",\"log_identity\",\"interp_log_expr\",\"answered_physical_domain\",\"light_time_accepted\",\"transfer_accepted\",\"bits_in_flight_accepted\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))

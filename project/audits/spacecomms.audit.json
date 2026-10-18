@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "specialist_id": "spacecomms",
+  "family": "space",
+  "examined_surface": {
+    "request_types": [
+      "free-space path-loss equation"
+    ],
+    "model_scope": "Exact logarithm identity and checked interval/decimal binding; partial numerical model audit. English applicability is not established by the theorem."
+  },
+  "cases": [
+    {
+      "case_id": "authored-0",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 0.000000000001 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is -207.55 dB (20log10(1e-12 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": -207.55}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-1",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 0.0009765625 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is -27.76 dB (20log10(0.0009766 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": -27.76}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-2",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 0.001 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is -27.55 dB (20log10(0.001 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": -27.55}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-3",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 0.5 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 26.43 dB (20log10(0.5 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 26.43}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-4",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 0.75 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 29.95 dB (20log10(0.75 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 29.95}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-5",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 1 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 32.45 dB (20log10(1 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 32.45}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-6",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 1.499999 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 35.97 dB (20log10(1.5 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 35.97}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-7",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 1.5 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 35.97 dB (20log10(1.5 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 35.97}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-8",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 1.999999 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 38.47 dB (20log10(2 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 38.47}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-9",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 2 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 38.47 dB (20log10(2 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 38.47}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-10",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 2.000001 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 38.47 dB (20log10(2 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 38.47}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-11",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 1000 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 92.45 dB (20log10(1000 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 92.45}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "authored-12",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 1 MHz over 1000000000000 km?",
+      "expected_boundary": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 272.45 dB (20log10(1,000,000,000,000 km) + 20log10(1 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 272.45}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-0",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 5.8 GHz over 0.007 km?",
+      "expected_boundary": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005064619320671543882265176038325727684230121133913464555777589186449959",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005064619320671543882265176038325727684230121133913464555777589186449959",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 64.62 dB (20log10(0.007 km) + 20log10(5800 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 64.62}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-1",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 5.8 GHz over 0.0883 km?",
+      "expected_boundary": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005086636573942810117363249820620432802679277279767684678928977706737889",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005086636573942810117363249820620432802679277279767684678928977706737889",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 86.64 dB (20log10(0.0883 km) + 20log10(5800 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 86.64}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-2",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 5.8 GHz over 0.172 km?",
+      "expected_boundary": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005092427928809409723987583032007439124607352778933071457590428573798941",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005092427928809409723987583032007439124607352778933071457590428573798941",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 92.43 dB (20log10(0.172 km) + 20log10(5800 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 92.43}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-3",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 5.8 GHz over 1.2345 km?",
+      "expected_boundary": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005109547181756617767287911648456478439111670814262348886308961480131155",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005109547181756617767287911648456478439111670814262348886308961480131155",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 109.55 dB (20log10(1.235 km) + 20log10(5800 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 109.55}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-4",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 5.8 GHz over 11.299 km?",
+      "expected_boundary": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005128778160044113676312601294981021026864029594380591794485191305713543",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005128778160044113676312601294981021026864029594380591794485191305713543",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 128.78 dB (20log10(11.3 km) + 20log10(5800 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 128.78}; numerical-model outcome: right"
+    },
+    {
+      "case_id": "root-5",
+      "kind": "independently_checked_case",
+      "request": "What is the free-space path loss at 5.8 GHz over 31.337 km?",
+      "expected_boundary": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005137638508223285729571807234977857121899305959397357065487569132321107",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005137638508223285729571807234977857121899305959397357065487569132321107",
+      "observed_behavior": "{\"kind\": \"fspl\", \"response\": \"The free-space path loss is 137.64 dB (20log10(31.34 km) + 20log10(5800 MHz) + 32.45).\", \"status\": \"answered\", \"value\": 137.64}; numerical-model outcome: right"
+    }
+  ],
+  "actual_receipt": "project/audits/evidence/space-log-20261018.json",
+  "native_binding": {
+    "compile_inputs_manifest": "var/space/native-attempts/20261018T120921Z-eccd2204e2d5/compile-inputs.json",
+    "registered_binary": "var/space/native-attempts/20261018T120921Z-eccd2204e2d5/binary"
+  },
+  "current_unresolved_limits": [
+    "Path-loss applicability to real antennas is not guarded: positive distance and frequency alone do not establish the far field. Tiny-distance checks are model arithmetic only.",
+    "Other reader operations and arbitrary English inputs remain unaudited; the broader Space authored set retains 15 valid withholds."
+  ],
+  "reviewer": "Codex root, direct theorem/source and native model check, 2026-10-18",
+  "owner": "root; no active deputy",
+  "author_claims": {
+    "audit_scope": "partial numerical-model audit; presence is not completion",
+    "theorem_consumer_review": "log_decomposition, log_mantissa_range and log_identity establish an exact rational reduction; interp_log_expr connects the executable expression to ln. The actual CFspl and SDeltaV consumers use it, preserving their independent physical equations and enclose_adaptive_sound numerical bound. English recognition is unchanged and untrusted.",
+    "source_paths": [
+      "src/extract/space/Space_Log.thy",
+      "src/extract/space/Space.thy",
+      "src/extract/space/Space_Export.thy",
+      "src/extract/space/recognizer.sml",
+      "src/extract/space/main.sml"
+    ],
+    "production_change_this_audit": true,
+    "shipped_panel_result": "Full eight-ID family: 1185/1185 isolated; family 1183 right and two off-domain assertions, explained by Planetary off questions answered by Astronomy.",
+    "result_counts": {
+      "right": 19,
+      "wrong": 0,
+      "false_yes": 0,
+      "withheld_valid": 0
+    },
+    "native_binding_scope": "Immutable currently active compiler artifact."
+  }
+}

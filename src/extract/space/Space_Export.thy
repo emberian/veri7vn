@@ -60,6 +60,7 @@ ML \<open>
     @{thm kernel_underspecified}, @{thm kernel_nosync}, @{thm kernel_impossible},
     @{thm kernel_unknown}, @{thm kernel_novalue}, @{thm kernel_imprecise},
     @{thm stated_dec_sound}, @{thm to_dec_sound}, @{thm enclose_sound}, @{thm enclose_adaptive_sound}, @{thm enclose_adaptive_fallback},
+    @{thm log_decomposition}, @{thm log_mantissa_range}, @{thm log_identity}, @{thm interp_log_expr},
     @{thm enclose_adaptive_preserves_success}, @{thm round_tie_up},
     @{thm gravity_model}, @{thm weight_model}, @{thm escape_model}, @{thm orbital_velocity_model},
     @{thm escape_vs_orbital}, @{thm density_model},

@@ -61,5 +61,28 @@ exercise the fallback in the build-time self test.
 The [adaptive report](../../../project/lanes/F-physical-space-adaptive.md) records
 the actual native timings and comparisons. The decimal need not be identical
 to the 80-bit answer: both satisfy the proved numerical bound. An existing
-valid refusal for free-space path loss at 1 GHz over 1 km remains visible in
-the authored probes; increasing precision is not a completeness guarantee.
+valid refusal for free-space path loss at 1 GHz over 1 km motivated the
+logarithm reduction below; increasing precision alone is not a completeness
+guarantee.
+
+## Logarithms with smaller arguments
+
+Path-loss and ideal rocket calculations now reduce a positive rational input
+to a mantissa between one half and two and an integer power of two. The checked
+identity `ln(q) = ln(mantissa) + exponent * ln(2)` lets the existing interval
+arithmetic evaluate the smaller argument. The physical equations and accepted
+error bound are unchanged; the exponent comes from terminating bit-length
+arithmetic rather than a bounded search.
+
+All 20 focused model cases now answer correctly in isolated and family modes,
+recovering three numerical withholds. Twelve independent numeric cases also
+pass through full dispatch. The reserved generator seed passes 1,047 cases;
+Orbits and Spacecomms have no generator in the supplied tree. Shipped isolated
+panels remain 1,185/1,185; family mode retains its two disclosed Planetary
+off-domain scores for useful Astronomy answers. The broader authored set has
+63 right and 15 valid withholds in each mode.
+
+These checks establish the stated mathematical models. In particular, positive
+distance/frequency alone does not establish real antenna far-field applicability;
+the tiny-distance probes do not claim it. Source, theorem and native bindings
+are in `project/lanes/G-physical-space-log.md`.

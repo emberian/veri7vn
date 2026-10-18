@@ -1,0 +1,456 @@
+{
+  "schema": "veri7vn.reviewed-specialist-observations/1",
+  "scope": "32 direct numerical-model observations; this is not a proof of English interpretation or real-world applicability. Tiny-distance path-loss cases test only the formula.",
+  "binary_sha256": "56c6aab646490e4ac9f48684db7ce4fce3db5beec299f71e4d135db308c35d23",
+  "compile_inputs_manifest": "var/space/native-attempts/20261018T120921Z-eccd2204e2d5/compile-inputs.json",
+  "observations": [
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-0",
+      "request": "What is the free-space path loss at 1 MHz over 0.000000000001 km?",
+      "expected": -207.5522,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is -207.55 dB (20log10(1e-12 km) + 20log10(1 MHz) + 32.45).",
+        "value": -207.55
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-1",
+      "request": "What is the free-space path loss at 1 MHz over 0.0009765625 km?",
+      "expected": -27.75819913279624,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is -27.76 dB (20log10(0.0009766 km) + 20log10(1 MHz) + 32.45).",
+        "value": -27.76
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-2",
+      "request": "What is the free-space path loss at 1 MHz over 0.001 km?",
+      "expected": -27.5522,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is -27.55 dB (20log10(0.001 km) + 20log10(1 MHz) + 32.45).",
+        "value": -27.55
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-3",
+      "request": "What is the free-space path loss at 1 MHz over 0.5 km?",
+      "expected": 26.427200086720376,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 26.43 dB (20log10(0.5 km) + 20log10(1 MHz) + 32.45).",
+        "value": 26.43
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-4",
+      "request": "What is the free-space path loss at 1 MHz over 0.75 km?",
+      "expected": 29.949025267834,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 29.95 dB (20log10(0.75 km) + 20log10(1 MHz) + 32.45).",
+        "value": 29.95
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-5",
+      "request": "What is the free-space path loss at 1 MHz over 1 km?",
+      "expected": 32.4478,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 32.45 dB (20log10(1 km) + 20log10(1 MHz) + 32.45).",
+        "value": 32.45
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-6",
+      "request": "What is the free-space path loss at 1 MHz over 1.499999 km?",
+      "expected": 35.9696193905186,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 35.97 dB (20log10(1.5 km) + 20log10(1 MHz) + 32.45).",
+        "value": 35.97
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-7",
+      "request": "What is the free-space path loss at 1 MHz over 1.5 km?",
+      "expected": 35.96962518111363,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 35.97 dB (20log10(1.5 km) + 20log10(1 MHz) + 32.45).",
+        "value": 35.97
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-8",
+      "request": "What is the free-space path loss at 1 MHz over 1.999999 km?",
+      "expected": 38.46839557033372,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 38.47 dB (20log10(2 km) + 20log10(1 MHz) + 32.45).",
+        "value": 38.47
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-9",
+      "request": "What is the free-space path loss at 1 MHz over 2 km?",
+      "expected": 38.468399913279626,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 38.47 dB (20log10(2 km) + 20log10(1 MHz) + 32.45).",
+        "value": 38.47
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-10",
+      "request": "What is the free-space path loss at 1 MHz over 2.000001 km?",
+      "expected": 38.46840425622336,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 38.47 dB (20log10(2 km) + 20log10(1 MHz) + 32.45).",
+        "value": 38.47
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-11",
+      "request": "What is the free-space path loss at 1 MHz over 1000 km?",
+      "expected": 92.4478,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 92.45 dB (20log10(1000 km) + 20log10(1 MHz) + 32.45).",
+        "value": 92.45
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "authored-12",
+      "request": "What is the free-space path loss at 1 MHz over 1000000000000 km?",
+      "expected": 272.4478,
+      "independent_check": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 272.45 dB (20log10(1,000,000,000,000 km) + 20log10(1 MHz) + 32.45).",
+        "value": 272.45
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "authored-13",
+      "request": "A rocket has an initial mass of 1000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected": 0.0,
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 0 m/s (ve ln(m0/mf) = 2941.995 x ln(1000/1000); Tsiolkovsky).",
+        "value": 0
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "authored-14",
+      "request": "A rocket has an initial mass of 1000.001000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected": 0.0029419935290034807,
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 0.0029 m/s (ve ln(m0/mf) = 2941.995 x ln(1000.001/1000); Tsiolkovsky).",
+        "value": 0.0029
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "authored-15",
+      "request": "A rocket has an initial mass of 1500.0 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected": 1192.876320728679,
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 1192.8763 m/s (ve ln(m0/mf) = 2941.995 x ln(1500/1000); Tsiolkovsky).",
+        "value": 1192.8763
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "authored-16",
+      "request": "A rocket has an initial mass of 1999.999000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected": 2039.2340684735886,
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 2039.2341 m/s (ve ln(m0/mf) = 2941.995 x ln(1999.999/1000); Tsiolkovsky).",
+        "value": 2039.2341
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "authored-17",
+      "request": "A rocket has an initial mass of 2000.001000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected": 2039.2370104685886,
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 2039.237 m/s (ve ln(m0/mf) = 2941.995 x ln(2000.001/1000); Tsiolkovsky).",
+        "value": 2039.237
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "authored-18",
+      "request": "A rocket has an initial mass of 1000000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected": 20322.58149198905,
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 20322.5815 m/s (ve ln(m0/mf) = 2941.995 x ln(1,000,000/1000); Tsiolkovsky).",
+        "value": 20322.5815
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "authored-19",
+      "request": "A rocket has an initial mass of 1000000000000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expected": 60967.744475967156,
+      "independent_check": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 60967.7445 m/s (ve ln(m0/mf) = 2941.995 x ln(1,000,000,000,000/1000); Tsiolkovsky).",
+        "value": 60967.7445
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "root-0",
+      "request": "What is the free-space path loss at 5.8 GHz over 0.007 km?",
+      "expected": "64.61832067154388226517603832572768423012113391346455577758918644995895",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005064619320671543882265176038325727684230121133913464555777589186449959",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 64.62 dB (20log10(0.007 km) + 20log10(5800 MHz) + 32.45).",
+        "value": 64.62
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "root-1",
+      "request": "What is the free-space path loss at 5.8 GHz over 0.0883 km?",
+      "expected": "86.63557394281011736324982062043280267927727976768467892897770673788921",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005086636573942810117363249820620432802679277279767684678928977706737889",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 86.64 dB (20log10(0.0883 km) + 20log10(5800 MHz) + 32.45).",
+        "value": 86.64
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "root-2",
+      "request": "What is the free-space path loss at 5.8 GHz over 0.172 km?",
+      "expected": "92.42692880940972398758303200743912460735277893307145759042857379894084",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005092427928809409723987583032007439124607352778933071457590428573798941",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 92.43 dB (20log10(0.172 km) + 20log10(5800 MHz) + 32.45).",
+        "value": 92.43
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "root-3",
+      "request": "What is the free-space path loss at 5.8 GHz over 1.2345 km?",
+      "expected": "109.5461817566177672879116484564784391116708142623488863089614801311546",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005109547181756617767287911648456478439111670814262348886308961480131155",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 109.55 dB (20log10(1.235 km) + 20log10(5800 MHz) + 32.45).",
+        "value": 109.55
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "root-4",
+      "request": "What is the free-space path loss at 5.8 GHz over 11.299 km?",
+      "expected": "128.7771600441136763126012949810210268640295943805917944851913057135428",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005128778160044113676312601294981021026864029594380591794485191305713543",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 128.78 dB (20log10(11.3 km) + 20log10(5800 MHz) + 32.45).",
+        "value": 128.78
+      }
+    },
+    {
+      "specialist_id": "spacecomms",
+      "case_id": "root-5",
+      "request": "What is the free-space path loss at 5.8 GHz over 31.337 km?",
+      "expected": "137.6375082232857295718072349778571218993059593973570654875691323211067",
+      "independent_check": "20 log10(distance_km * frequency_MHz) + 32.4478; free-space model equation, not an antenna applicability proof; 70-digit Decimal reference; error bound 0.005137638508223285729571807234977857121899305959397357065487569132321107",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "fspl",
+        "response": "The free-space path loss is 137.64 dB (20log10(31.34 km) + 20log10(5800 MHz) + 32.45).",
+        "value": 137.64
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "root-6",
+      "request": "A rocket has an initial mass of 1234.512345 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected": "0.02660040512319605295408533604957816462695795623595802592514127281432649",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.00005002760040512319605295408533604957816462695795623595802592514127281433",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 0.0266 m/s (ve ln(m0/mf) = 2660.0538 x ln(1234.5123/1234.5); Tsiolkovsky).",
+        "value": 0.0266
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "root-7",
+      "request": "A rocket has an initial mass of 2467.7655 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected": "1842.478440748254687112880290344409699644451344643779745970567702811361",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.001892479440748254687112880290344409699644451344643779745970567702811361",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 1842.4784 m/s (ve ln(m0/mf) = 2660.0538 x ln(2467.7655/1234.5); Tsiolkovsky).",
+        "value": 1842.4784
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "root-8",
+      "request": "A rocket has an initial mass of 2470.2345 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected": "1845.138494782425871405225550882348091292282087391908664298009884046929",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.001895139494782425871405225550882348091292282087391908664298009884046929",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 1845.1385 m/s (ve ln(m0/mf) = 2660.0538 x ln(2470.2345/1234.5); Tsiolkovsky).",
+        "value": 1845.1385
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "root-9",
+      "request": "A rocket has an initial mass of 38685.5265 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected": "9163.352064638737682426065824596520688545363483149499707098004307144880",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.00921335306463873768242606582459652068854536348314949970709800430714488",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 9163.3521 m/s (ve ln(m0/mf) = 2660.0538 x ln(38685.5265/1234.5); Tsiolkovsky).",
+        "value": 9163.3521
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "root-10",
+      "request": "A rocket has an initial mass of 1230796.5 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected": "18367.00860999929852986547052164321936192745447077456793332890530020296",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.01841700960999929852986547052164321936192745447077456793332890530020296",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 18367.0086 m/s (ve ln(m0/mf) = 2660.0538 x ln(1,230,797/1234.5); Tsiolkovsky).",
+        "value": 18367.0086
+      }
+    },
+    {
+      "specialist_id": "spacecraft",
+      "case_id": "root-11",
+      "request": "A rocket has an initial mass of 123453703.5 kg, a final mass of 1234.5 kg and an Isp of 271.25 s. What is its delta-v?",
+      "expected": "30625.08107653976603217680696863491049517048124921492721410321724634068",
+      "independent_check": "Isp * standard gravity * ln(initial_mass/final_mass), ideal constant exhaust speed; 70-digit Decimal reference; error bound 0.03067508207653976603217680696863491049517048124921492721410321724634068",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "delta_v",
+        "response": "The delta-v is 30625.0811 m/s (ve ln(m0/mf) = 2660.0538 x ln(123,453,704/1234.5); Tsiolkovsky).",
+        "value": 30625.0811
+      }
+    }
+  ]
+}

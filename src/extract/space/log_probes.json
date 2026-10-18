@@ -1,0 +1,145 @@
+{
+  "disclosure": "Author-written independent exact-model numerical references, not independent linguistic validation. Some tiny-distance FSPL cases examine the model equation outside a physical far-field interpretation.",
+  "probes": [
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 0.000000000001 km?",
+      "expect": -207.5522,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 0.0009765625 km?",
+      "expect": -27.75819913279624,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 0.001 km?",
+      "expect": -27.5522,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 0.5 km?",
+      "expect": 26.427200086720376,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 0.75 km?",
+      "expect": 29.949025267834,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 1 km?",
+      "expect": 32.4478,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 1.499999 km?",
+      "expect": 35.9696193905186,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 1.5 km?",
+      "expect": 35.96962518111363,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 1.999999 km?",
+      "expect": 38.46839557033372,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 2 km?",
+      "expect": 38.468399913279626,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 2.000001 km?",
+      "expect": 38.46840425622336,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 1000 km?",
+      "expect": 92.4478,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 MHz over 1000000000000 km?",
+      "expect": 272.4478,
+      "source": "Space.thy fspl_model: mathematical free-space power-loss expression20log10(distance_km*frequency_MHz)+32.4478; positive inputs. Independent70-digit Decimal evaluation; this model has no far-field/wavelength applicability guard.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 1000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expect": 0.0,
+      "source": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 1000.001000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expect": 0.0029419935290034807,
+      "source": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 1500.0 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expect": 1192.876320728679,
+      "source": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 1999.999000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expect": 2039.2340684735886,
+      "source": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 2000.001000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expect": 2039.2370104685886,
+      "source": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 1000000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expect": 20322.58149198905,
+      "source": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "semantic_category": "answerable"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 1000000000000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "expect": 60967.744475967156,
+      "source": "Space.thy rocket_model: ideal constant exhaust velocity, initial mass >= final positive mass; ve=300*9.80665. Independent70-digit Decimal evaluation.",
+      "semantic_category": "answerable"
+    }
+  ]
+}

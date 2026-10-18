@@ -1,5 +1,53 @@
 # Space logarithm range reduction — G packet
 
+## Current result after root resumption
+
+The stopped draft below is now proved and active. The final repair transports
+the real endpoint bounds explicitly through `of_rat_less`; it does not weaken
+the mantissa statement. Managed proof `20261018T120744Z-bd4178911454` passes
+115 scanned statements with zero oracles. The actual path-loss and ideal
+rocket expressions use the proved logarithm reduction. Their physical
+equations and accepted decimal error bound are unchanged.
+
+Native `56c6aab646490e4ac9f48684db7ce4fce3db5beec299f71e4d135db308c35d23`
+matches the proof dependencies, generated code and runtime inputs in
+`var/space/native-attempts/20261018T120921Z-eccd2204e2d5/compile-inputs.json`.
+The predecessor remains preserved under `var/root-space-log/predecessor/`.
+
+| Check | Current result |
+|---|---|
+| Shipped isolated panels | 1185 right, 0 wrong, 0 false yes, 0 valid withheld |
+| Shipped family panels | 1183 right, 0 wrong, 2 false yes, 0 valid withheld |
+| Focused logarithm cases, each mode | 20 right; previously 17 right and 3 valid withheld |
+| Broader authored cases, each mode | 63 right, 0 wrong/false yes, 15 valid withheld; previously 62 right and 16 valid withheld |
+| Root's independent numerical cases | 12/12 in isolated, family and full default dispatch |
+| Reserved seed 20261127 | 1047/1047 correct across six generated readers |
+| Fresh Linux shipped comparison | 1185/1185 correct, all replies identical to macOS |
+
+The two family false-yes scores are the Planetary panel's questions about
+Jupiter's gravity and Mars's distance from the Sun: that reader's panel expects
+silence, while family dispatch uses Astronomy's useful table answers. These
+are retained as scorer disagreements, not erased from the totals. Orbits and
+Spacecomms have no supplied generators; neither gets a fresh-generator claim.
+Linux's 68 withheld replies are correct invalid refusals, not capability misses.
+
+Twenty author cases plus twelve separately written root cases have model
+references in the partial Spacecomms and Spacecraft audit records. The new
+records bring explicit audit records to eleven; they do not declare eleven
+specialists fully audited. In particular, positive frequency and distance do
+not establish antenna far-field applicability. Tiny-distance path-loss tests
+check the equation only. The rocket model assumes constant exhaust speed and
+omits drag and gravity losses. Other operations and English interpretation
+remain incompletely examined, and the fifteen broader valid withholds remain.
+
+Evidence: `var/root-space-log/integration.json`; Linux receipt
+`var/linux/receipt-space-persvati-space-1792325697-1754.json`. Portable packaging
+is the remaining step for this bounded change. Changed production files are
+`ROOT`, `Space_Log.thy`, `Space.thy`, `Space_Export.thy`, `main.sml`, the focused
+probe/checker pair and README. The recognizer and tables are unchanged.
+
+## Historical drain checkpoint (superseded above)
+
 Stopped at the final drain boundary. The prior adaptive packet was committed
 as `52de506` and its immutable native capture completed before production
 work reopened. This G packet has no passing proof/native and no new shipped

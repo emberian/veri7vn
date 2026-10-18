@@ -16,5 +16,6 @@ session Veri7vn_Space = Veri7vn_Space_Base +
     "Veri7vn_Commons"
   theories
     Space_Tables
+    Space_Log
     Space
     Space_Export

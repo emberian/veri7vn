@@ -1,5 +1,5 @@
 theory Space
-  imports Space_Tables
+  imports Space_Tables Space_Log
 begin
 
 text \<open>
@@ -531,13 +531,13 @@ fun fa :: "request \<Rightarrow> floatarith" where
                   (fA (I 1) (fN (fS (Q (2 * hr1 ob p / (hr1 ob p + hr2 ob p))))))))"
 | "fa (OHohTime ob p) =
      fM (fM fPi (fS (Q (((hr1 ob p + hr2 ob p) / 2) ^ 3 / mu (obd ob))))) (Q (1 / 3600))"
-| "fa (SDeltaV v M0 u0 MF uf) = fM (Q (ve_of v)) (fL (Q (M0 * massf u0 / (MF * massf uf))))"
+| "fa (SDeltaV v M0 u0 MF uf) = fM (Q (ve_of v)) (log_expr (M0 * massf u0 / (MF * massf uf)))"
 | "fa (SProp0 v dv du M0 u0) =
      fM (Q (M0 * massf u0)) (fA (I 1) (fN (fE (fN (Q (dv * speedf du / ve_of v))))))"
 | "fa (SPropF v dv du MF uf) =
      fM (Q (MF * massf uf)) (fA (fE (Q (dv * speedf du / ve_of v))) (fN (I 1)))"
 | "fa (CFspl d f) =
-     fA (fM (I 20) (fM (fL (Q (dd d * ff f))) (fV (fL (I 10))))) (Q fspl_const)"
+     fA (fM (I 20) (fM (log_expr (dd d * ff f)) (fV (log_expr 10)))) (Q fspl_const)"
 | "fa r = I 0"
 
 definition phys :: "request \<Rightarrow> real" where
