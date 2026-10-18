@@ -216,6 +216,46 @@
       "expect": null,
       "kind": null,
       "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "On Mars, how much does a 400 kg crate weigh in N?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "On Mars, how much does a 400 kg crate weigh in kN?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "On Mars, how much does a 400 kg crate weigh in mN?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "On Mars, how much does a 400 kg crate weigh in MN?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "SI force symbol retains uppercase N; NASA kg-equivalent table weight is dimensionally inapplicable."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "On Mars, how much would a 400 kg crate called n weigh?",
+      "valid": true,
+      "expect": 151.0204081632653,
+      "kind": "weight",
+      "source": "Space_Tables.thy: NASA kg-equivalent weight with Mars g3.7/Earth g9.8; lowercase n is a label, not the SI newton symbol."
     }
   ]
 }

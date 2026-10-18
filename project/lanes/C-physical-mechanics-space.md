@@ -4,7 +4,7 @@ Owner: Codex physical/mechanics_space. No new answer kinds. This packet fixes in
 
 ## Status
 
-Space is ready from a fresh proved export and final compiled binary, including the final material-phase boundary fix. Mechanics warm candidates and both fresh seeds pass; its fresh export is still queued. See receipt/performance section below.
+Space is ready from a fresh proved export and final compiled binary, including material-phase and case-sensitive SI force-unit boundary fixes. Mechanics warm candidates and both fresh seeds pass; its fresh export is still queued. See receipt/performance section below.
 
 ## What changed
 
@@ -137,11 +137,11 @@ Offset 20261031, after the deputy’s additional wording. Same count order: righ
 | astronomy-v3-r2 dev | 138/0/0/0 | 138/0/0/0 | 138/0/0/0 |
 | astronomy-v3-r2 heldout | 137/0/0/1 | 137/0/0/1 | 138/0/0/0 |
 
-The 21st space probe comes from the deputy. Six later material-phase probes extend a second deputy finding; the original 20-probe before/after comparison remains a separate fixed set.
+The 21st space probe comes from the deputy. Six later material-phase probes extend a second deputy finding; five further probes exercise SI force notation and a lower-case label; the original 20-probe before/after comparison remains a separate fixed set.
 
 ### Final untouched astronomy evaluation after material-phase fix
 
-An independent cross-family consumer check found that solid mercury could still receive the planet’s bulk density after liquid mercury had been excluded. The material boundary now covers solid/metallic/molten/gaseous/vaporous mercury and mercury gas/vapour/metal, without broadly excluding a planet’s solid surface. After this final recognizer freeze, offset 20261103 was generated and evaluated untouched. No further semantic edits followed.
+An independent cross-family consumer check found that solid mercury could still receive the planet’s bulk density after liquid mercury had been excluded. The material boundary now covers solid/metallic/molten/gaseous/vaporous mercury and mercury gas/vapour/metal, without broadly excluding a planet’s solid surface. After this final recognizer freeze, offset 20261103 was generated and evaluated untouched. A later source review found the standalone SI symbol N gap; that follow-up is recorded below.
 
 | Specialist / split | Original organ | Kernel before | Kernel final |
 |---|---:|---:|---:|
@@ -154,9 +154,24 @@ An independent cross-family consumer check found that solid mercury could still 
 | astronomy-v3-r2 dev | 138/0/0/0 | 138/0/0/0 | 138/0/0/0 |
 | astronomy-v3-r2 heldout | 137/0/0/1 | 137/0/0/1 | 138/0/0/0 |
 
+### Final untouched astronomy evaluation after SI-symbol fix
+
+Review after the initial Space commit found that “in N” still received kg-equivalent weight even though “in newtons” was rejected. The follow-up explicitly recognizes original-case N, kN, mN and MN as force symbols. Lowercase n remains a possible label, not a silently recased unit. Four refusal probes and a lower-case label control pass. The HOL model and export are unchanged; only the recognizer, probes and this report changed. Offset 20261111 was generated after this parser freeze and was untouched by tuning.
+
+| Specialist / split | Original organ | Kernel before | Kernel final |
+|---|---:|---:|---:|
+| astronomy dev | 61/0/0/0 | 61/0/0/0 | 61/0/0/0 |
+| astronomy heldout | 68/12/0/0 | 68/12/0/0 | 80/0/0/0 |
+| astronomy-v2 dev | 138/0/0/0 | 138/0/0/0 | 138/0/0/0 |
+| astronomy-v2 heldout | 130/8/0/0 | 130/8/0/0 | 138/0/0/0 |
+| astronomy-v3 dev | 138/0/0/0 | 138/0/0/0 | 138/0/0/0 |
+| astronomy-v3 heldout | 137/0/0/1 | 137/0/0/1 | 138/0/0/0 |
+| astronomy-v3-r2 dev | 138/0/0/0 | 138/0/0/0 | 138/0/0/0 |
+| astronomy-v3-r2 heldout | 137/0/0/1 | 137/0/0/1 | 138/0/0/0 |
+
 ## Authored probes and composition
 
-Mechanics has 20 and space has 27 committed probes with expected values and sources in beyond_probes.json. They use independent formula calculations but share the recognizer author’s linguistic assumptions. The checker tests both pinned specialist and family mode. Result: mechanics warm candidate 20/20 and space final binary 27/27 in both modes. Before: mechanics17/20 pinned and20/20 family; space 10/20 pinned (3wrong,3falseyes,4withheld) and 13/20 family (3falseyes,4withheld).
+Mechanics has 20 and space has 32 committed probes with expected values and sources in beyond_probes.json. They use independent formula calculations but share the recognizer author’s linguistic assumptions. The checker tests both pinned specialist and family mode. Result: mechanics warm candidate 20/20 and space final binary 32/32 in both modes. Before: mechanics17/20 pinned and20/20 family; space 10/20 pinned (3wrong,3falseyes,4withheld) and 13/20 family (3falseyes,4withheld).
 
 Physical deputy independently checked a96-case cross-family sample through the revised dispatcher:96/96 after these fixes, including the missing-altitude spacecraft question and mercury-fluid / force-newtons boundaries. Receipts: var/c-physical-integration/warm-candidates.json and var/c-physical-integration/space-final-consumer.json. The final eight composed smokes cover missing-altitude refusal, the 1484 N crate, mercury-fluid pressure, planetary Mercury density, Earth’s year, liquid density and solid/molten mercury refusals; all pass.
 
@@ -198,7 +213,7 @@ is passed, marker `VERI7VN_SPACE PASS theorems=104 oracles=0` in the complete
 session log. Export SHA256:
 `3c154be40ca7ca8ed8fe1ee3315bad1b721725f8c8d17714fdf50b720887e8ae`.
 Final binary `var/space/bin/space` SHA256:
-`af27719cb38cd57ad684fd66c8ac4d8040f83fcc565dc4ad748581d8b0306abd`.
+`357f5c288af269d097e1a1646af1c84af2ec09f1b7c0e31727e2849fee2abbee`.
 The snapshot's HOL source matches the final theory; subsequent recognizer-only
 changes were compiled against that export and checked on all shipped panels,
 the previously reserved evaluation, and the authored probes. The later existing-kind wording patch and material-phase boundary fix only rebuilt the SML recognizer. Each received a further untouched evaluation.

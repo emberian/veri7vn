@@ -605,6 +605,16 @@ struct
   fun astroV3 t low =
     case v3cmp t low of Take r => SOME r | Crash => NONE | Fall => astroV2 t low
 
+  (* SI force symbols keep their case. A standalone lower-case n can be a
+     name or variable and is not silently interpreted as a newton. None of
+     these force requests may use the table's kg-equivalent weight output. *)
+  fun forceUnit original low =
+    has "\\bnewtons?\\b" low orelse
+    List.exists (fn (m : Regex.match) =>
+      let val symbol = String.substring (original, #start m, #stop m - #start m)
+      in List.exists (fn unit => symbol = unit) ["N", "kN", "mN", "MN"] end)
+      (findall "\\b(?:n|kn|mn)\\b" low)
+
   fun astro variant text =
     let val t = collapse text in
       if t = "" then NONE
@@ -615,7 +625,7 @@ struct
              kg-equivalent weight must never answer a force-in-newtons request,
              and a fluid's pressure is not a planet's atmospheric pressure. *)
           if has NOT_MINE low
-             orelse (has "\\bweigh\\w*\\b" low andalso has "\\bnewtons?\\b" low)
+             orelse (has "\\bweigh\\w*\\b" low andalso forceUnit t low)
              orelse (has "\\bmercury\\b" low andalso
                      (has "\\b(?:liquid|fluid|metal|diver|depth|submerged|buoyant)\\b" low orelse
                       has "\\b(?:solid|metallic|molten|gaseous|vaporous) mercury\\b|\\bmercury (?:vapou?r|gas|metal)\\b" low))
