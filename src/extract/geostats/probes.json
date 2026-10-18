@@ -1,0 +1,160 @@
+[
+  {
+    "q": "What is the weighted mean of 10, 20 with weights 1, 3?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 17.5,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 0, 100 with weights 25, 75?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 75.0,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of -4, 8 with weights 1, 1?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 2.0,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 1, 2, 3 with weights 1, 2, 3?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 2.3333333333333335,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 10, 50 with weights 0, 2?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 50.0,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 10, 50 with weights 2, 0?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 10.0,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 2, 8 with weights 0.25, 0.75?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 6.5,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 5 with weights 7?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 5.0,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 1, 9 with weights 100, 300?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 7.0,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of -10, -20 with weights 1, 3?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": -17.5,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 0, 0 with weights 1, 2?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 0.0,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 3, 4, 5 with weights 1, 1, 1?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 4.0,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 2.5, 7.5 with weights 2, 2?",
+    "specialist": "statistics-v3",
+    "valid": true,
+    "expect": 5.0,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 1, 2 with weights 0, 0?",
+    "specialist": "statistics-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 1, 2 with weights -1, 2?",
+    "specialist": "statistics-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 1, 2 with weights 1?",
+    "specialist": "statistics-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 1 with weights 1, 2?",
+    "specialist": "statistics-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 1, 2 with weights 1, -1?",
+    "specialist": "statistics-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html",
+    "note": "Nonnegative-weight restriction is our stated domain; NumPy also allows negative weights."
+  },
+  {
+    "q": "What is the weighted mean of 1, 2 without weights?",
+    "specialist": "statistics-v3",
+    "valid": false,
+    "expect": null,
+    "source": "https://numpy.org/doc/stable/reference/generated/numpy.average.html"
+  },
+  {
+    "q": "What is the volume of a cube with side -3?",
+    "specialist": "geometry-v4",
+    "valid": false,
+    "expect": null,
+    "source": "GeoStats_Geometry.thy: g_lengths_positive"
+  }
+]

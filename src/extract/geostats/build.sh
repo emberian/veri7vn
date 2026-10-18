@@ -18,7 +18,10 @@ OUT=$REPO/var/geostats
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
-rm -rf "$OUT/export"
+GEN=${1:-}
+if [ -z "$GEN" ]; then
+EXPORT="$OUT/export-$(date +%Y%m%d%H%M%S)-$$"
+export EXPORT
 REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
 import fcntl, os, subprocess
 repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT"]
@@ -26,11 +29,12 @@ with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
     fcntl.flock(lock, fcntl.LOCK_EX)
     env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
     subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/geostats", "-d", "src/extract/commons",
-                    "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_GeoStats"],
+                    "-O", os.environ["EXPORT"], "-x", "*:code/**", "Veri7vn_GeoStats"],
                    check=True, env=env, cwd=repo)
 EOF
-GEN=$(find "$OUT/export" -type f -name 'geostats*' | head -n 1)
-[ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
+GEN=$(find "$EXPORT" -type f -name 'geostats*' | head -n 1)
+fi
+[ -n "$GEN" ] && [ -f "$GEN" ] || { echo "pass a checked exported SML file as the first argument" >&2; exit 1; }
 cp "$GEN" "$OUT/build/geostats_generated.sml"
 
 cat > "$OUT/build/geostats.mlb" <<EOF
@@ -40,6 +44,6 @@ $SRC/../commons/commons.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/geostats" "$OUT/build/geostats.mlb"
+"$REPO/tools/dev/native-compile" --family geostats --compiler "$MLTON" -- -output "$OUT/bin/geostats" "$OUT/build/geostats.mlb"
 ls -l "$OUT/bin/geostats"
 shasum -a 256 "$OUT/build/geostats_generated.sml" "$OUT/bin/geostats"

@@ -3,7 +3,7 @@
    reply per line on stdout, flushes after each, exits on EOF. The JSON reader
    is lane G's (src/extract/quantity/main.sml, from lane D). All reply content
    (status, kind, response, value) comes from the HOL kernel's
-   GeoStats.g_reply / s_reply; this file only frames it.
+   GeoStats.g_reply / s_reply / weighted_reply; this file only frames it.
 
    Usage: geostats [--specialist ID]
      ID is one of geometry, geometry-v3, geometry-v4, statistics,
@@ -14,7 +14,8 @@
 
 structure Main =
 struct
-  val theorems = "[\"g_exact_sound\",\"g_approx_value\",\"g_underspecified\",\"g_impossible\",\"s_rat_sound\",\"s_approx_sound\",\"s_impossible\",\"median_halves\",\"choose_value\"]"
+  (* Family declarations, not per-answer proof certificates. *)
+  val theorems = "[\"g_exact_sound\",\"g_approx_value\",\"g_underspecified\",\"g_impossible\",\"s_rat_sound\",\"s_approx_sound\",\"s_impossible\",\"median_halves\",\"choose_value\",\"weighted_balance\",\"weighted_equal_weights\",\"weighted_between\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
@@ -48,7 +49,7 @@ struct
           ^ ", \"kind\": " ^ Json.quote kind ^ value
           ^ ", \"provenance\": {\"taken\": true, \"organ\": " ^ Json.quote organ
           ^ ", \"specialist_ms\": " ^ ms t0
-          ^ ", \"kernel\": \"GeoStats.g_reply/s_reply\", \"session\": \"Veri7vn_GeoStats\", \"theorems\": "
+          ^ ", \"kernel\": \"GeoStats.g_reply/s_reply/weighted_reply\", \"session\": \"Veri7vn_GeoStats\", \"theorems\": "
           ^ theorems ^ "}}"
         end
     end

@@ -97,7 +97,7 @@ struct
     fun short_direct t = sentences t <= 2 andalso words t <= 25 andalso not (narrative t)
   end
 
-  val N = "(\\d+(?:\\.\\d+)?)"
+  val N = "(-?\\d+(?:\\.\\d+)?)"
 
   (* =================== geometry =================== *)
   structure Geo =
@@ -319,8 +319,8 @@ struct
     fun v4 (text : string) : G.grequest option = v3 (replaceAll IMPERATIVE "find " (lower text))
 
     fun reply f text = Option.map G.g_reply (f text)
-    fun byId "geometry" text = Option.map G.g_reply (v1 (lower (collapse text)))
-      | byId "geometry-v3" text = reply v3 text
+    fun byId "geometry" text = reply v4 text
+      | byId "geometry-v3" text = reply v4 text
       | byId "geometry-v4" text = reply v4 text
       | byId _ _ = NONE
   end
@@ -519,9 +519,25 @@ struct
 
     fun norm text = lower (collapse text)
     fun reply f text = Option.map S.s_reply (f (norm text))
-    fun byId "statistics" text = reply v1 text
-      | byId "statistics-v2" text = reply v2 text
-      | byId "statistics-v3" text = reply v3 text
+    (* Explicit two-list grammar prevents an ordinary mean from silently
+       discarding a weight list. Arithmetic and validation stay in HOL. *)
+    fun weighted text =
+      let val t = replaceAll "[?.]$" "" (replaceAll "\\band\\b" "," (norm text))
+          val marker = has "\\bweighted (?:mean|average)\\b" t
+          val rx = "\\b(?:of|values)\\s*:?\\s*([0-9., +\\-]+)\\s+(?:with\\s+)?weights\\s*:?\\s*([0-9., +\\-]+)$"
+          fun numbers body =
+            if has ("^\\s*" ^ NUMS ^ "(?:\\s*,?\\s+" ^ NUMS ^ "|\\s*,\\s*" ^ NUMS ^ ")*\\s*$") body
+            then map (fn m => toRat (parseDec (Regex.whole body m))) (findall NUMS body)
+            else []
+      in if not marker then NONE
+         else case search rx t of
+           SOME m => SOME (G.weighted_reply (numbers (g1 t m)) (numbers (valOf (grp t m 2))))
+         | NONE => SOME (G.weighted_reply [] [])
+      end
+    fun complete text = case weighted text of SOME r => SOME r | NONE => reply v3 text
+    fun byId "statistics" text = complete text
+      | byId "statistics-v2" text = complete text
+      | byId "statistics-v3" text = complete text
       | byId _ _ = NONE
   end
 

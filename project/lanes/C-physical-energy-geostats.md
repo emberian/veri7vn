@@ -1,6 +1,6 @@
 # Physical families: energy and geometry/statistics
 
-Owner: Codex physical/energy_geostats. Energy packet verified through shared consumers; geometry/statistics proof revision pending.
+Owner: Codex physical/energy_geostats. Energy C captured; geometry/statistics C verified through independent consumers.
 
 ## Scope
 
@@ -27,7 +27,7 @@ Measured 18 October with each specialist’s own shipped scorer; columns are rig
 
 Energy-v2 has seven wrong passive bulb-swap replies. Geometry misses eight Heron questions; geometry-v3 misses seven imperative hypotenuse questions; statistics misses fourteen binomial phrasings; statistics-v2 misses fourteen dataset phrasings. Renewables misses three falling-height hydropower questions.
 
-Only statistics-v1, renewables and iot panel generators exist in this upstream snapshot. The statistics-v1 generator can exercise all three statistics versions, but does not reproduce the added v2/v3 templates. Seeds 17118 and 28118 offset each generator’s original seeds. Seed 17118 was inspected during tuning; energy seed 28118 was evaluated only after the final reader freeze. Geometry/statistics seed 28118 remains untouched until its final build. No fresh-generator claim is made for the other seven specialist IDs.
+Only statistics-v1, renewables and iot panel generators exist in this upstream snapshot. The statistics-v1 generator can exercise all three statistics versions, but does not reproduce the added v2/v3 templates. Seeds 17118 and 28118 offset each generator’s original seeds. Seed 17118 was inspected during tuning; energy seed 28118 was evaluated only after the final reader freeze. Geometry/statistics seed 28118 was first evaluated after its final compiled source freeze. No fresh-generator claim is made for the other seven specialist IDs.
 
 Baseline probe counts (right/wrong/false yes/withheld): energy 3/10/9/0 (22 cases); geostats 6/8/5/1. These probes reveal ignored efficiency/depth and weight arguments. They are not independent of the recognizer author.
 
@@ -53,7 +53,25 @@ Energy files: `Home.thy`, `Energy_Export.thy`, `recognizer.sml`, `main.sml`, `bu
 
 Representative consumer questions: “How long will a 1000 Wh battery run a 100 W load at 80% efficiency?” → runtime_adjusted 8 h; unknown efficiency → underspecified; −2 Ah at −12 V → impossible; running-cost request without tariff → need_tariff. Independent shared-runtime consumer capture passed 6/6 on the final binary: adjusted Wh and Ah/V runtime, missing factor, invalid constituent capacity, invalid factor, and missing tariff. All four declines were taken and decisive on energy-v3. Receipt: `var/c-physical-integration/energy-final-consumer.json`. Known unrelated semantic counterexamples and next work are recorded in `C-physical-energy-geostats-next.md`.
 
-## Geometry/statistics validation pending
+## Geometry/statistics C ready
 
-Fresh Isabelle proof revision, MLton compilation, shipped and frozen fresh comparisons, probe checks, performance and runtime consumer verification remain pending. No completion claim yet.
+Fresh receipt `var/geostats/remote-attempts/20261018T071358Z-04af30bae6f5/receipt.json`: actual target finished, marker `VERI7VN_GEOSTATS PASS theorems=94 oracles=0`, fresh export published. Generated SML SHA-256 `bdf2c1dd98d9e1136f6c7be12a41568a3e360365d0cbf74721f493e77528b36a`; native binary SHA-256 `b1513b390114b3e9d63547bbc80e0e358424ae1a66f55b2565d4d809be182f87`.
 
+All six shipped panels are perfect in pinned and family modes. Dev/held-out right totals: geometry 106/97, geometry-v3 100/100, geometry-v4 100/93, statistics 142/142, statistics-v2 144/144, statistics-v3 144/144. Zero wrong, false yes or withheld-valid in every row; 43 former held-out refusals recovered. Receipt `var/c-physical-energy-geostats/geostats-after.json`.
+
+Fresh seeds 17118 and 28118 both give 142/142 dev/held-out right for each statistics identity, zero wrong/false yes/withheld-valid. Before, original statistics had 142/128 with14 withheld; newer statistics identities already scored142/142 on this base generator. These seeds do not exercise unavailable variant-specific templates, and no geometry generators exist in the snapshot. Receipts `var/c-physical-energy-geostats/geostats-fresh-{17118,28118}-{before,after}/receipt.json`.
+
+Weighted/domain probes20/20 right, zero wrong/false yes/withheld, versus6/8/5/1 before. Covers non-normalized weights, zero weights, negative observations, invalid negative/allzero/mismatched weights, missing weights, and negative geometry dimension. Receipt `var/c-physical-energy-geostats/geostats-probes-after.json`. Same-author probes are model examples, not an independent benchmark.
+
+The substantive new consequence: if `weighted_mean xs ws = Some q` and every observation is between lo and hi, then lo ≤ q ≤ hi. Its proof independently bounds the weighted total by induction, then uses the accepted kernel's positive weight sum. Unit weights also equal the existing arithmetic mean. The balance identity and invalid-input equivalence are documented equations, not separate assurance wins.
+
+Size539,736bytes versus613,528. Cold samples103.5,17.1,8.4,9.9,10.4ms versus173.5,34.5,26.2,33.5,26.7ms. Current full-panel p50 geometry3.2–3.6ms and stats0.10–0.11ms; concurrent local work and changed answered-case mix affect comparison with baseline geometry≈1.88ms. No geometry latency improvement is claimed. All remain within shipped budgets.
+
+Files under `src/extract/geostats/`: new `GeoStats_Weighted.thy`, `capabilities.json`, `probes.json`; modified `ROOT`, `GeoStats_Export.thy`, `recognizer.sml`, `main.sml`, `build.sh`, `README.md`. New shared-lane `check_fresh.py` and `check_probes.py` were included with Energy C. Scope remains recognizer completeness and weighted mean, with known off-panel unit/qualifier limits in the next report.
+
+Independent composed consumer verification passed6/6: weighted negative observations and zero weights, decisive negative/mismatched-weight refusals, recovered hypotenuse8/15 and dataset-mean phrasing. Receipt `var/c-physical-integration/geostats-final-consumer.json`, on binaryb1513b39…. Keep the binary/source frozen until runtime captures it. Sidecar evidence describes the whole statistics catalogue and makes weighted assumptions conditional on the operation.
+
+
+
+
+GeoStats final compilation now uses the immutable native helper: `var/geostats/native-attempts/20261018T073840Z-33ca2d511191`, manifest `var/geostats/build/compile-inputs.json`. It binds the actual copied compiler inputs to the checked04af proof/export. Final binary hash is `3d0589cca0ab55b75bd5d952b346c39b1fb021f9299a9e5525fa16502e62aeea`, same539,736bytes. Earlier full-panel/fresh receipts and independent6-case consumer refer to the source-identical b1513 build above; the helper's snapshot paths produce a different binary hash. All20 weighted/domain probes passed again on the final hash (`geostats-immutable-probes.json`); no new HOL or broad-panel run was needed. Independent composed consumers passed6/6 again on final3d0589cc… binary, with actual input manifest included in `var/c-physical-integration/geostats-bound-consumer.json`. The earlier evaluation hashes remain unchanged as historical measurements linked by source-identical recompilation. Runtime capture is the remaining freeze gate.

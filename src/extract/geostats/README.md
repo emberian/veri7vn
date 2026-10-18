@@ -15,3 +15,27 @@ z-scores, combinations, permutations, binomial probability). Same recipe as the 
 - `score.py`: scores each specialist on its panel and compares with the shipped organ.
 
 Statements, results and reproduction: [lane S11 handoff](../../../project/lanes/S11-geometry-stats.md).
+
+## Beyond the shipped versions (Codex, 18 October)
+
+All geometry and statistics version names now use the complete latest reader.
+Geometry passes signed dimensions to the kernel, whose existing positive-length
+guard rejects negative lengths. The new `weighted_mean` reply computes the sum
+of value-weight products divided by the sum of weights, using exact rationals.
+Values and weights must be equally long lists. Zero weights are permitted;
+negative weights and a zero total are refused. Weights need not add to one.
+
+Use an explicit question such as “What is the weighted mean of 10, 20 with
+weights 1, 3?” The answer is 17.5. The theory proves the weighted balance
+identity, exact refusal of invalid inputs, and agreement with the ordinary
+mean when every weight is one. The English reader remains untrusted; malformed
+or unsupported weighted syntax receives a refusal rather than an ordinary
+unweighted mean. `capabilities.json` declares the new kind to the runtime.
+
+`probes.json` and `check_probes.py` check the new behavior. The same author
+wrote the recognizer and probes; the source formula is NumPy's documented
+weighted-average equation, with our explicitly narrower nonnegative domain.
+
+The build-time self-test still runs and the final oracle scan remains mandatory.
+The self-test is no longer exported as an eager startup value. To compile a
+checked remote export, pass its SML path as the first argument to `build.sh`.

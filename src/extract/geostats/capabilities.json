@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "family": "geostats",
+  "specialists": {
+    "statistics": {
+      "accept": {
+        "kinds": [
+          "weighted_mean"
+        ],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\bweighted\\s+(?:mean|average)\\b"
+      ],
+      "evidence": {
+        "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof.",
+        "assumptions": [
+          "Dataset operations use finite rational observations; sample variance/deviation need at least two observations. Population and sample denominators differ.",
+          "For weighted_mean only: equally long lists, nonnegative weights with positive sum; zero individual weights allowed. Mean is sum(value times weight) / sum(weights).",
+          "Combinatorial operations use bounded natural counts; binomial probability requires a valid trial count and probability in [0,1]; z-score requires positive standard deviation.",
+          "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval."
+        ],
+        "untrusted": [
+          "English operation recognition, dataset extraction, decimal parsing and JSON framing; this catalogue does not certify that the recognized request matches the question."
+        ]
+      }
+    },
+    "statistics-v2": {
+      "accept": {
+        "kinds": [
+          "weighted_mean"
+        ],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\bweighted\\s+(?:mean|average)\\b"
+      ],
+      "evidence": {
+        "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof.",
+        "assumptions": [
+          "Dataset operations use finite rational observations; sample variance/deviation need at least two observations. Population and sample denominators differ.",
+          "For weighted_mean only: equally long lists, nonnegative weights with positive sum; zero individual weights allowed. Mean is sum(value times weight) / sum(weights).",
+          "Combinatorial operations use bounded natural counts; binomial probability requires a valid trial count and probability in [0,1]; z-score requires positive standard deviation.",
+          "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval."
+        ],
+        "untrusted": [
+          "English operation recognition, dataset extraction, decimal parsing and JSON framing; this catalogue does not certify that the recognized request matches the question."
+        ]
+      }
+    },
+    "statistics-v3": {
+      "accept": {
+        "kinds": [
+          "weighted_mean"
+        ],
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "\\bweighted\\s+(?:mean|average)\\b"
+      ],
+      "evidence": {
+        "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof.",
+        "assumptions": [
+          "Dataset operations use finite rational observations; sample variance/deviation need at least two observations. Population and sample denominators differ.",
+          "For weighted_mean only: equally long lists, nonnegative weights with positive sum; zero individual weights allowed. Mean is sum(value times weight) / sum(weights).",
+          "Combinatorial operations use bounded natural counts; binomial probability requires a valid trial count and probability in [0,1]; z-score requires positive standard deviation.",
+          "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval."
+        ],
+        "untrusted": [
+          "English operation recognition, dataset extraction, decimal parsing and JSON framing; this catalogue does not certify that the recognized request matches the question."
+        ]
+      }
+    }
+  }
+}
