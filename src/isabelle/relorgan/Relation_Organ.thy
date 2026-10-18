@@ -199,6 +199,9 @@ definition guard :: "turn \<Rightarrow> organ_result \<Rightarrow> organ_result"
       | Withheld P s pat \<Rightarrow> if guard_drops t s then Silence else r
       | Silence \<Rightarrow> Silence)"
 
+lemma guard_Silence [simp]: "guard t Silence = Silence"
+  by (cases "pronoun_guard t") (simp_all add: guard_def)
+
 definition organ_decide :: "turn \<Rightarrow> organ_result" where
   "organ_decide t =
      (if kind_conflict t then Silence
@@ -218,7 +221,7 @@ lemma hd_select_dom: assumes "cs \<noteq> []" shows "hd (select_dom cs) = hd cs"
   using select_dom_cons [OF assms] by auto
 
 lemma set_select_dom: "set (select_dom cs) \<subseteq> set cs"
-  by (cases cs; auto simp: select_dom_def split: if_splits)
+  by (cases cs; auto simp: select_dom_def dominated_def split: if_splits)
 
 lemma mine3_props: "set (mine3 cs) \<subseteq> set cs" "length (mine3 cs) \<le> 3"
   "\<And>c. c \<in> set (mine3 cs) \<Longrightarrow> indomain c"
@@ -253,7 +256,7 @@ lemma agree_Some:
 proof -
   let ?sets = "map (vals P) (mine3 cs)"
   have m: "mine3 cs \<noteq> []"
-    using assms by (cases "mine3 cs = []") simp_all
+    using assms by (cases "mine3 cs = []") (simp_all add: agree_def)
   from assms m have step1:
     "(if \<exists>x \<in> set ?sets. x = [] then None
       else if length (remdups ?sets) \<noteq> 1 then None
@@ -273,7 +276,7 @@ proof -
     and s: "s = qid (hd (mine3 cs))"
     by simp_all
   from len1 have all_eq: "\<forall>y \<in> set ?sets. y = hd ?sets"
-    using remdups_len1 by simp
+    by (rule remdups_len1)
   have hdv: "vals P (hd (mine3 cs)) = hd ?sets"
   proof -
     have "hd (mine3 cs) \<in> set (mine3 cs)" using m by (cases "mine3 cs") simp_all
@@ -296,7 +299,7 @@ proof -
 qed
 
 lemma in_filter_imp: "x \<in> set (filter P xs) \<Longrightarrow> P x"
-  by (induct xs arbitrary: x) auto
+  by simp
 
 lemma inv_read_Some:
   assumes "inv_read subs capped = Some (v, s)"
@@ -383,67 +386,10 @@ proof (induct as arbitrary: dn)
   then show ?case by (cases dn; simp_all split: prod.splits)
 next
   case (Cons a as)
-  show ?case
-  proof (cases "2 \<le> slot_len a")
-    case False
-    with Cons show ?thesis by (auto dest: Cons(1))
-  next
-    case True
-    note len = True
-    show ?thesis
-    proof (cases "cands a = []")
-      case True
-      with Cons len show ?thesis by (auto dest: Cons(1))
-    next
-      case False
-      note cs = False
-      show ?thesis
-      proof (cases "(key a, dir a, idx a) \<in> set (dropped t)")
-        case True
-        with Cons len cs show ?thesis by (auto split: direction.splits dest: Cons(1))
-      next
-        case False
-        note notdrop = False
-        show ?thesis
-        proof (cases "dir a")
-          case Fwd
-          show ?thesis
-          proof (cases "agree (prop_of_key t (key a)) (select_dom (cands a))")
-            case None
-            with Cons len cs notdrop Fwd show ?thesis
-              by (auto dest: Cons(1))
-          next
-            case (Some r)
-            obtain v' s' where r: "r = (v', s')" by (cases r)
-            from Cons len cs notdrop Fwd Some r have
-              fin: "finish t (prop_of_key t (key a)) v' s' (patk a) = Answered P v s pat" by auto
-            from finish_Answered[OF fin] have
-              "prop_of_key t (key a) = P" "v' = v" "s' = s" "patk a = pat"
-              "\<not> restates t v" "\<not> (P \<in> set (time_variant t) \<and> past t)" by auto
-            with len cs notdrop Fwd Some r show ?thesis by auto
-          qed
-        next
-          case Inv
-          show ?thesis
-          proof (cases "inv_read (inv_subs a) (inv_capped a)")
-            case None
-            with Cons len cs notdrop Inv show ?thesis by auto
-          next
-            case (Some r)
-            obtain v' s' where r: "r = (v', s')" by (cases r)
-            from Cons len cs notdrop Inv Some r have
-              fin: "finish t (prop_of_key t (key a)) v' s' (patk a) = Answered P v s pat" by auto
-            from finish_Answered[OF fin] have
-              "prop_of_key t (key a) = P" "v' = v" "s' = s" "patk a = pat"
-              "\<not> restates t v" "\<not> (P \<in> set (time_variant t) \<and> past t)" by auto
-            with len cs notdrop Inv Some r show ?thesis by auto
-          qed
-        qed
-      qed
-    qed
-  qed
+  then show ?case
+    apply (simp add: finish_def split: if_splits option.splits direction.splits prod.splits)
+    using Cons(1) by force+
 qed
-
 text \<open>A withhold comes only from a forward attempt about an in-domain entity whose read failed:
 a phrasing the natural check dropped, or candidates that could not agree on one value.\<close>
 lemma walk_Withheld_inv:
@@ -460,101 +406,22 @@ lemma walk_Withheld_inv:
   using assms
 proof (induct as arbitrary: dn)
   case Nil
-  then show ?case by (cases dn) auto
+  then show ?case by (cases dn; simp_all split: prod.splits)
 next
   case (Cons a as)
-  show ?case
-  proof (cases "2 \<le> slot_len a")
-    case False
-    with Cons show ?thesis by (auto dest: Cons(1))
-  next
-    case True
-    note len = True
-    show ?thesis
-    proof (cases "cands a = []")
-      case True
-      with Cons len show ?thesis by (auto dest: Cons(1))
-    next
-      case False
-      note cs = False
-      show ?thesis
-      proof (cases "(key a, dir a, idx a) \<in> set (dropped t)")
-        case True
-        show ?thesis
-        proof (cases "dir a = Fwd \<and> dn = None \<and> indomain (hd (select_dom (cands a)))")
-          case True
-          with Cons len cs \<open>(key a, dir a, idx a) \<in> set (dropped t)\<close> show ?thesis
-            by (auto simp: hd_select_dom)
-        next
-          case False
-          with Cons len cs True show ?thesis by auto
-        qed
-      next
-        case False
-        note notdrop = False
-        show ?thesis
-        proof (cases "dir a")
-          case Fwd
-          show ?thesis
-          proof (cases "agree (prop_of_key t (key a)) (select_dom (cands a))")
-            case None
-            show ?thesis
-            proof (cases "mine3 (select_dom (cands a)) \<noteq> [] \<and> dn = None")
-              case True
-              with Cons len cs notdrop Fwd None show ?thesis by auto
-            next
-              case False
-              note noguard = False
-              have rec: "walk t as dn = Withheld P s pat"
-              proof (cases "mine3 (select_dom (cands a)) = []")
-                case True
-                with Cons(2) len cs notdrop Fwd
-                  \<open>agree (prop_of_key t (key a)) (select_dom (cands a)) = None\<close>
-                show ?thesis by simp
-              next
-                case False
-                note mine3ne = False
-                from noguard mine3ne have ndn: "dn \<noteq> None" by simp
-                from Cons(2) len cs notdrop Fwd
-                  \<open>agree (prop_of_key t (key a)) (select_dom (cands a)) = None\<close>
-                  mine3ne ndn
-                show ?thesis by simp
-              qed
-              from Cons(1)[OF rec] show ?thesis
-              proof
-                assume "dn = Some (P, s, pat)"
-                then show ?thesis by simp
-              next
-                assume ex: "\<exists>a\<in>set as. 2 \<le> slot_len a \<and> cands a \<noteq> [] \<and> dir a = Fwd
-                    \<and> prop_of_key t (key a) = P
-                    \<and> ((key a, Fwd, idx a) \<in> set (dropped t) \<and> indomain (hd (select_dom (cands a)))
-                          \<and> s = qid (hd (select_dom (cands a)))
-                      \<or> (key a, Fwd, idx a) \<notin> set (dropped t)
-                          \<and> mine3 (select_dom (cands a)) \<noteq> []
-                          \<and> agree P (select_dom (cands a)) = None
-                          \<and> s = qid (hd (mine3 (select_dom (cands a))))))"
-                then show ?thesis by blast
-              qed
-            qed
-          next
-            case (Some r)
-            with Cons len cs notdrop Fwd show ?thesis
-              by (auto simp: finish_def split: if_splits)
-          qed
-        next
-          case Inv
-          with Cons len cs notdrop show ?thesis by auto
-        qed
-      qed
-    qed
-  qed
+  then show ?case
+    apply (simp add: finish_def split: if_splits option.splits direction.splits prod.splits)
+    using Cons(1) by force+
 qed
 
-text \<open>A carried decline (dn = Some) can only become an answer, never silence, and is never
-overwritten: the walk records a decline only when dn = None.\<close>
+
+text \<open>A carried decline (dn = Some) is never overwritten (the walk records one only when
+dn = None); the walk ends in that withhold, an answer, or a silencing restated or past
+time-variant answer.\<close>
 lemma walk_Some_open:
   "walk t as (Some (P, s, pat)) = Withheld P s pat
-    \<or> (\<exists>P' v' s' pat'. walk t as (Some (P, s, pat)) = Answered P' v' s' pat')"
+    \<or> (\<exists>P' v' s' pat'. walk t as (Some (P, s, pat)) = Answered P' v' s' pat')
+    \<or> walk t as (Some (P, s, pat)) = Silence"
   by (induct as arbitrary: P s pat)
      (auto simp: finish_def split: if_splits option.splits direction.splits prod.splits)
 
@@ -573,12 +440,13 @@ next
     using Cons(1) by force+
 qed
 
-text \<open>A withhold stays a withhold or becomes an answer when later attempts carry one; it never
-goes back to silence (a decline, once earned, is only spent on an answer).\<close>
+text \<open>A withhold stays a withhold or becomes an answer when later attempts carry one, unless a
+restating or past time-variant answer silences the walk.\<close>
 lemma walk_append_Withheld:
   assumes "walk t as dn = Withheld P s pat"
   shows "walk t (as @ as') dn = Withheld P s pat
-    \<or> (\<exists>P' v' s' pat'. walk t (as @ as') dn = Answered P' v' s' pat')"
+    \<or> (\<exists>P' v' s' pat'. walk t (as @ as') dn = Answered P' v' s' pat')
+    \<or> walk t (as @ as') dn = Silence"
   using assms
 proof (induct as arbitrary: dn)
   case Nil
@@ -590,14 +458,15 @@ proof (induct as arbitrary: dn)
     case (Some a)
     from Nil(1) Some have eq: "(case a of (P0, s0, pat0) \<Rightarrow> Withheld P0 s0 pat0) = Withheld P s pat"
       by simp
-    from eq have a: "a = (P, s, pat)" by (auto split: prod.splits)
-    from a show ?thesis using walk_Some_open [of t as' P s pat] by simp
+    from eq have aeq: "a = (P, s, pat)" by (auto split: prod.splits)
+    from aeq Some have dns: "dn = Some (P, s, pat)" by simp
+    from dns show ?thesis using walk_Some_open [of t as' P s pat] by simp
   qed
 next
   case (Cons a as)
   then show ?case
     apply (simp add: finish_def split: if_splits option.splits direction.splits prod.splits)
-    using Cons(1) by force+
+    using Cons(1) by blast+
 qed
 
 lemma try_stage_Stop_Answered_inv:
@@ -622,17 +491,19 @@ next
     next
       case False
       note notv = False
+      have cfalse: "(x \<in> set (time_variant t) \<and> past t) = False"
+        using notv by (cases "x \<in> set (time_variant t)"; cases "past t") simp_all
       show ?thesis
       proof (cases d)
         case Fwd
         show ?thesis
         proof (cases "agree x (pat_cands t)")
           case None
-          with assms f1 notv Fwd show ?thesis by (simp add: try_stage_def)
+          with assms f1 cfalse Fwd show ?thesis by (simp add: try_stage_def)
         next
           case (Some r)
           then obtain v' s' where r: "r = (v', s')" by (cases r)
-          from assms f1 notv Fwd Some r have
+          from assms f1 cfalse Fwd Some r have
             fin: "finish t x v' s' (pat_id t Fwd x) = Answered P v s pid"
             by (simp add: try_stage_def)
           from finish_Answered[OF fin] have
@@ -646,11 +517,11 @@ next
         show ?thesis
         proof (cases "pat_inv_read t x")
           case None
-          with assms f1 notv Inv show ?thesis by (simp add: try_stage_def)
+          with assms f1 cfalse Inv show ?thesis by (simp add: try_stage_def)
         next
           case (Some r)
           then obtain v' s' where r: "r = (v', s')" by (cases r)
-          from assms f1 notv Inv Some r have
+          from assms f1 cfalse Inv Some r have
             fin: "finish t x v' s' (pat_id t Inv x) = Answered P v s pid"
             by (simp add: try_stage_def)
           from finish_Answered[OF fin] have
@@ -697,7 +568,7 @@ proof -
   from g have r: "?r = Answered P v s pat"
   proof (cases "?r")
     case Silence
-    with g show ?thesis by (simp add: guard_def)
+    with g show ?thesis by simp
   next
     case (Answered P0 v0 s0 pat0)
     with g show ?thesis
@@ -757,9 +628,9 @@ proof -
        \<or> (patterns t \<noteq> [] \<and> (\<exists>d. try_stage t d = Stop (Answered P v s pat)
             \<and> (d = Fwd \<or> try_stage t Fwd = Continue)))" by blast+
   show "\<not> restates t v"
-    using wit try_stage_Stop_Answered_inv(3) by blast
+    using wit try_stage_Stop_Answered_inv(2, 2, 1) by blast
   show "\<not> (P \<in> set (time_variant t) \<and> past t)"
-    using wit try_stage_Stop_Answered_inv(4) by blast
+    using wit try_stage_Stop_Answered_inv(2, 2, 2, 1) by blast
   show "(\<exists>cs. cs \<noteq> [] \<and> length cs \<le> 3 \<and> s = qid (hd cs)
           \<and> (\<forall>c \<in> set cs. indomain c \<and> complete c \<and> vals P c = [v] \<and> (P, v) \<in> set (rows c)))
      \<or> (\<exists>subs capped. inv_read subs capped = Some (v, s) \<and> \<not> capped)"
@@ -795,7 +666,7 @@ proof -
     assume pat: "patterns t \<noteq> [] \<and> (\<exists>d. try_stage t d = Stop (Answered P v s pat)
             \<and> (d = Fwd \<or> try_stage t Fwd = Continue))"
     then obtain d where d: "try_stage t d = Stop (Answered P v s pat)" by blast
-    from try_stage_Stop_Answered_inv(5)[OF d] show ?thesis
+    from try_stage_Stop_Answered_inv(2, 2, 2, 2)[OF d] show ?thesis
     proof
       assume "d = Fwd \<and> agree P (select_dom (pat_cands t)) = Some (v, s)"
       then have ag: "agree P (select_dom (pat_cands t)) = Some (v, s)" by blast
@@ -839,7 +710,7 @@ proof -
   from g have r: "?r = Withheld P s pat"
   proof (cases "?r")
     case Silence
-    with g show ?thesis by (simp add: guard_def)
+    with g show ?thesis by simp
   next
     case (Answered P0 v0 s0 pat0)
     with g show ?thesis
