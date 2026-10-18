@@ -1,3 +1,5 @@
+> Current state and the open surface: `project/HANDOFF-2026-10-18.md`.
+
 # veri7vn plan (revision 3, 2026-10-16)
 
 veri7vn is Oracle7's sibling with an Isabelle spine. Oracle7 answers from

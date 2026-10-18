@@ -1,6 +1,6 @@
 # Working on veri7vn
 
-Read `project/PLAN.md` first. It names the lanes, the frozen areas and the
+Read `project/HANDOFF-2026-10-18.md` and `project/PLAN.md` first. It names the lanes, the frozen areas and the
 scoreboard. The original Oracle7 lives under `upstream/` (ignored by git, 43 GB)
 and runs: `cd upstream && ../.venv/bin/python oracle7.py "Who wrote Leaves of Grass?"`.
 
