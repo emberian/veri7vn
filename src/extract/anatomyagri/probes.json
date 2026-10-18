@@ -39,19 +39,25 @@
     "specialist": "anatomy",
     "q": "What is the largest organ in cats?",
     "expect": null,
-    "source": "Human table does not establish cat anatomy."
+    "source": "Human table does not establish cat anatomy.",
+    "decline_class": "unsupported",
+    "capability_expect": "skin"
   },
   {
     "specialist": "anatomy-r2",
     "q": "Which bone is the longest in a dog?",
     "expect": null,
-    "source": "Human table does not establish dog anatomy."
+    "source": "Human table does not establish dog anatomy.",
+    "decline_class": "unsupported",
+    "capability_expect": "femur"
   },
   {
     "specialist": "anatomy",
     "q": "My bone hurts: which bone is the longest?",
     "expect": null,
-    "source": "Personal symptom question is outside factual table."
+    "source": "Personal symptom question is outside factual table.",
+    "decline_class": "unsupported",
+    "capability_expect": "femur"
   },
   {
     "specialist": "gardening",
@@ -99,13 +105,15 @@
     "specialist": "gardening",
     "q": "How many plants fit in a 12 by 6 ft bed with 0 inch rows and 12 inch plant spacing, rows along the 12 ft side?",
     "expect": null,
-    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell.",
+    "decline_class": "invalid"
   },
   {
     "specialist": "gardening",
     "q": "How many plants fit in a 12 by 6 ft bed with 18 inch rows and 0 inch plant spacing, rows along the 12 ft side?",
     "expect": null,
-    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell."
+    "source": "Rows explicitly run along the named side; each plant occupies one full rectangular spacing cell.",
+    "decline_class": "invalid"
   },
   {
     "specialist": "agriculture-v2",
@@ -117,13 +125,15 @@
     "specialist": "agriculture-v2",
     "q": "How many seeds should I plant for a target stand of 24000 plants per acre at 120% germination?",
     "expect": null,
-    "source": "Germination percentage exceeds100."
+    "source": "Germination percentage exceeds100.",
+    "decline_class": "invalid"
   },
   {
     "specialist": "gardening",
     "q": "How many plants fit in a 12 by 6 ft bed with 18 inch rows and 12 inch plant spacing?",
     "expect": null,
-    "source": "Unequal spacing in a nonsquare bed needs row orientation."
+    "source": "Unequal spacing in a nonsquare bed needs row orientation.",
+    "decline_class": "underspecified"
   },
   {
     "specialist": "gardening",
@@ -135,37 +145,43 @@
     "specialist": "gardening",
     "q": "How many plants fit in a -12 by 6 ft bed with 18 inch rows and 12 inch plant spacing?",
     "expect": null,
-    "source": "Negative physical dimension is invalid."
+    "source": "Negative physical dimension is invalid.",
+    "decline_class": "invalid"
   },
   {
     "specialist": "anatomy",
     "q": "How many bones are in a newborn human body?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy",
     "q": "How many bones are in the human skeleton of a child?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy",
     "q": "How many bones are in a human infant skull?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy",
     "q": "How many carpal bones are in a baby wrist?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy",
     "q": "How many baby teeth does a newborn human have?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy",
@@ -189,7 +205,8 @@
     "specialist": "anatomy",
     "q": "How many permanent teeth does a human child have?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy",
@@ -201,31 +218,36 @@
     "specialist": "anatomy-r2",
     "q": "How many bones are in a newborn human body?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy-r2",
     "q": "How many bones are in the human skeleton of a child?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy-r2",
     "q": "How many bones are in a human infant skull?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy-r2",
     "q": "How many carpal bones are in a baby wrist?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy-r2",
     "q": "How many baby teeth does a newborn human have?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy-r2",
@@ -249,7 +271,8 @@
     "specialist": "anatomy-r2",
     "q": "How many permanent teeth does a human child have?",
     "expect": null,
-    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe."
+    "source": "Stage-scoped textbook table; unsupported skeletal/dentition development declines rather than asserting a universal age-specific count. Same-author probe.",
+    "decline_class": "unsupported"
   },
   {
     "specialist": "anatomy-r2",
@@ -292,5 +315,143 @@
     "q": "How many bones are in an adult human foot?",
     "expect": 26,
     "source": "The named anatomical part selects its own existing count instead of the general adult-body count; same-author table-scope probe."
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 101 plants at 80% germination?",
+    "expect": 127,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many whole seeds should I buy for an expected stand of 101 plants at 80% germination?",
+    "expect": 127,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "What is the minimum number of seeds to sow for an expected stand of 101 plants with 80% germination?",
+    "expect": 127,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 101 plants per acre at 80% germination?",
+    "expect": 126.25,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "response_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many whole seeds are needed for a target stand of 101 plants per acre at 80% germination?",
+    "expect": 127,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "response_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 100 plants at 80% germination?",
+    "expect": 125,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 0 plants at 80% germination?",
+    "expect": 0,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 101 plants at -80% germination?",
+    "expect": null,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 101 plants at −80% germination?",
+    "expect": null,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of -101 plants at 80% germination?",
+    "expect": null,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 101 plants at 1.2.3% germination?",
+    "expect": null,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 101 plants at 0% germination?",
+    "expect": null,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 101 plants at 120% germination?",
+    "expect": null,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 1.01e2 plants at 8e1% germination?",
+    "expect": 127,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 101 plants at 160/2% germination?",
+    "expect": 127,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "response_not_contains": [
+      "per acre"
+    ]
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many seeds are needed for a target stand of 101 plants per hectare at 80% germination?",
+    "expect": null,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "decline_class": "unsupported"
+  },
+  {
+    "specialist": "agriculture-v2",
+    "q": "How many total seeds are needed for a target stand of 101 plants per acre for 10 acres at 80% germination?",
+    "expect": null,
+    "source": "Expected stand = count * germination fraction; whole count is its least sufficient natural ceiling. Total and per-acre scopes are distinct. Actual germination is stochastic.",
+    "decline_class": "unsupported",
+    "capability_expect": 1263
   }
 ]

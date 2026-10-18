@@ -63,6 +63,29 @@
           "underspecified"
         ]
       }
+    },
+    "agriculture-v2": {
+      "accept": {
+        "kinds": [
+          "seeds_expected",
+          "seeds_minimum"
+        ],
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
+        ]
+      },
+      "evidence": {
+        "computation": "Exact expected seed requirement, or the least whole seed count whose expected stand meets the target; sufficient and minimal under the stated germination fraction. Total seeds and seeds per acre are separate request scopes.",
+        "assumptions": [
+          "Germination percentage is in (0,100] and target stand is nonnegative. This gives an expected stand, not a guarantee of realized germination.",
+          "Whole/minimum purchases and total seed counts use integer ceiling; ordinary per-acre seeding rates retain the rational expectation.",
+          "One target and one germination percentage are supplied, with explicit compatible total or per-acre scope. Hectare conversion and mixed total/area questions are withheld."
+        ],
+        "untrusted": [
+          "Shared exact numeric tokenization, English target/germination roles, quantity scope, model applicability and framing."
+        ]
+      }
     }
   }
 }

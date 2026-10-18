@@ -404,6 +404,8 @@ datatype depth = Inches rat | Feet rat
 datatype mheight = Mm rat | Mcm rat
 datatype iheight = Iin rat | Ftin nat rat
 
+datatype seed_scope = TotalSeeds | PerAcreSeeds
+
 datatype request =
     Count count_id
   | CountAt count_id life_stage
@@ -413,6 +415,9 @@ datatype request =
   | NutrientLb nutrient nat nat nat rat
   | SeedsPerAcre rat rat
   | SeedsNeeded rat rat
+  | SeedsExpected seed_scope rat rat
+  | SeedsMinimum seed_scope rat rat
+  | SeedsUnread
   | Yield rat crop yunit
   | AcreInch rat "rat option"
   | AgriUnderspecified
@@ -487,6 +492,7 @@ nutrition v2 decline in-domain), or no macronutrient given.\<close>
 fun underspecified :: "request \<Rightarrow> bool" where
   "underspecified (CountAt c a) = (\<not> age_applicable c a)"
 | "underspecified AgriUnderspecified = True"
+| "underspecified SeedsUnread = True"
 | "underspecified GardenNeedOrientation = True"
 | "underspecified NutUnderspecified = True"
 | "underspecified (Kcal p c f a) = (p + c + f + a = 0)"
@@ -498,7 +504,9 @@ convert).\<close>
 fun impossible :: "request \<Rightarrow> reason option" where
   "impossible (FertProduct n a b c r) = (if grade_pct n a b c = 0 then Some R_no_nutrient else None)"
 | "impossible (SeedsPerAcre r s) = (if r \<le> 0 \<or> s \<le> 0 then Some R_nonpositive else None)"
-| "impossible (SeedsNeeded gp t) = (if 0 < gp \<and> gp \<le> 100 then None else Some R_germination)"
+| "impossible (SeedsNeeded gp t) = (if \<not> (0 < gp \<and> gp \<le> 100) then Some R_germination else if t < 0 then Some R_nonpositive else None)"
+| "impossible (SeedsExpected scope gp t) = (if \<not> (0 < gp \<and> gp \<le> 100) then Some R_germination else if t < 0 then Some R_nonpositive else None)"
+| "impossible (SeedsMinimum scope gp t) = (if \<not> (0 < gp \<and> gp \<le> 100) then Some R_germination else if t < 0 then Some R_nonpositive else None)"
 | "impossible (GardenRectGrid l w rs ps) = (if rs \<le> 0 \<or> ps \<le> 0 \<or> l < 0 \<or> w < 0 then Some R_nonpositive else None)"
 | "impossible (GardenGrid l w s) = (if s \<le> 0 then Some R_nonpositive else None)"
 | "impossible (GardenBags sh d b) = (if b \<le> 0 then Some R_nonpositive else None)"
@@ -520,8 +528,11 @@ fun compute :: "request \<Rightarrow> outcome" where
 | "compute (NutrientLb n a b c q) = Value (q * of_nat (grade_pct n a b c) / 100)"
 | "compute (SeedsPerAcre r s) = Value (seed_area / (r * s))"
 | "compute (SeedsNeeded gp t) = Value (t / (gp / 100))"
+| "compute (SeedsExpected scope gp t) = Value (t / (gp / 100))"
+| "compute (SeedsMinimum scope gp t) = Value (of_nat (bags_for t (gp / 100)))"
 | "compute (Yield bu c u) = Value (yield_val bu c u)"
 | "compute (AcreInch i ao) = Value (acre_val i ao)"
+| "compute SeedsUnread = Decline Underspecified"
 | "compute GardenNeedOrientation = Decline Underspecified"
 | "compute AgriUnderspecified = Decline Underspecified"
 | "compute (GardenWater sh i) = Value (shape_area sh * i * gal_per_sqft_inch)"
@@ -545,7 +556,7 @@ definition kernel :: "request \<Rightarrow> outcome" where
      else case impossible r of Some w \<Rightarrow> Decline (Impossible w) | None \<Rightarrow> compute r)"
 
 lemma compute_decline:
-  "compute r = Decline w \<Longrightarrow> r = AgriUnderspecified \<or> r = NutUnderspecified \<or> r = GardenNeedOrientation"
+  "compute r = Decline w \<Longrightarrow> underspecified r"
   by (cases r) (auto split: if_splits)
 
 lemma kernel_cases:
@@ -560,7 +571,7 @@ next
   proof (cases "impossible r")
     case None
     then have "compute r = Decline w" using assms False by (simp add: kernel_def)
-    then have "r = AgriUnderspecified \<or> r = NutUnderspecified \<or> r = GardenNeedOrientation" by (rule compute_decline)
+    then have "underspecified r" by (rule compute_decline)
     then show ?thesis using False by auto
   next
     case (Some x) then show ?thesis using assms False by (simp add: kernel_def)
@@ -694,13 +705,13 @@ proof -
   ultimately show ?thesis by (simp add: seed_area_def)
 qed
 
-text \<open>The seeds planted germinate to the target stand.\<close>
+text \<open>Under the supplied germination fraction, the expected stand equals the target.\<close>
 theorem seeds_needed:
   assumes "0 < gp" and "gp \<le> 100" and "kernel (SeedsNeeded gp t) = Value v"
   shows "v * (gp / 100) = t"
 proof -
   have "gp / 100 \<noteq> (0::rat)" using assms(1) by simp
-  moreover have "v = t / (gp / 100)" using assms by (simp add: kernel_def)
+  moreover have "v = t / (gp / 100)" using assms by (auto simp: kernel_def split: if_splits)
   ultimately show ?thesis by simp
 qed
 
@@ -827,6 +838,50 @@ proof -
   show ?thesis unfolding n using fl by linarith
 qed
 
+text \<open>Expected stand, not a guarantee of realized germination. The returned
+whole seed count is sufficient and is the least natural count with that expectation.\<close>
+theorem seeds_minimum:
+  assumes "kernel (SeedsMinimum scope gp t) = Value v"
+  shows "0 < gp \<and> gp \<le> 100 \<and> 0 \<le> t \<and>
+    (\<exists>n. v = of_nat n \<and> t \<le> v * (gp / 100) \<and>
+       (\<forall>m<n. of_nat m * (gp / 100) < t))"
+proof -
+  have dom: "0 < gp" "gp \<le> 100" "0 \<le> t"
+    using assms by (auto simp: kernel_def split: if_splits)
+  have v: "v = of_nat (bags_for t (gp / 100))"
+    using kernel_value(3)[OF assms] by simp
+  let ?p = "gp / 100"
+  let ?n = "bags_for t ?p"
+  have pp: "0 < ?p" using dom by simp
+  have b: "t / ?p \<le> of_nat ?n" "of_nat ?n < t / ?p + 1"
+    using bags_cover[OF pp dom(3)] by blast+
+  have enough: "t \<le> v * ?p" using b(1) v pp by (simp add: divide_le_eq)
+  have least: "of_nat m * ?p < t" if "m < ?n" for m
+  proof -
+    have "(of_nat m :: rat) + 1 \<le> of_nat ?n" using that by simp
+    then have "(of_nat m :: rat) < t / ?p" using b(2) by linarith
+    then show ?thesis using pp by (simp add: less_divide_eq)
+  qed
+  show ?thesis using dom v enough least by blast
+qed
+
+theorem seeds_expected:
+  assumes "kernel (SeedsExpected scope gp t) = Value v"
+  shows "0 < gp \<and> gp \<le> 100 \<and> 0 \<le> t \<and> v * (gp / 100) = t"
+proof -
+  have dom: "0 < gp" "gp \<le> 100" "0 \<le> t"
+    using assms by (auto simp: kernel_def split: if_splits)
+  have v: "v = t / (gp / 100)" using kernel_value(3)[OF assms] by simp
+  show ?thesis using dom v by simp
+qed
+
+theorem seeds_scope_invariant:
+  "kernel (SeedsMinimum a gp t) = kernel (SeedsMinimum b gp t)"
+  by (simp add: kernel_def)
+
+theorem seeds_unread_declines: "kernel SeedsUnread = Decline Underspecified"
+  by (simp add: kernel_def)
+
 theorem garden_bags:
   "kernel (GardenBags sh d b) = Value v \<Longrightarrow> v = of_nat (bags_for (garden_vol sh d) b)"
   by (drule kernel_value(3)) simp
@@ -923,6 +978,7 @@ numbers none, label arithmetic two, field arithmetic three.\<close>
 fun dp :: "request \<Rightarrow> nat" where
   "dp (Count c) = 0"
 | "dp (CountAt c a) = 0"
+| "dp (SeedsMinimum scope gp t) = 0"
 | "dp (GardenRectGrid l w rs ps) = 0"
 | "dp (GardenGrid l w s) = 0"
 | "dp (GardenBags sh d b) = 0"
@@ -945,6 +1001,10 @@ definition bmi_note :: "request \<Rightarrow> String.literal" where
 definition bmi_val :: "request \<Rightarrow> rat" where
   "bmi_val r = (case r of BmiMetric kg h c \<Rightarrow> bmi_m kg h | BmiImperial lb h c \<Rightarrow> bmi_i lb h | _ \<Rightarrow> 0)"
 
+fun seed_unit :: "seed_scope \<Rightarrow> String.literal" where
+  "seed_unit TotalSeeds = STR '' seeds''"
+| "seed_unit PerAcreSeeds = STR '' seeds per acre''"
+
 text \<open>The reply text of an answered numeric request (organ wording, ASCII: a slash for the
 divide sign, x for the multiply sign).\<close>
 fun value_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal" where
@@ -959,6 +1019,13 @@ fun value_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal" where
 | "value_text (SeedsPerAcre r s) v =
      cat [STR ''That is '', g3 v, STR '' seeds per acre (6,272,640 sq in / ('', g3 r, STR '' in rows x '',
        g3 s, STR '' in spacing)).'']"
+| "value_text (SeedsExpected scope gp t) v =
+     cat [STR ''The expected seed requirement is '', g3 v, seed_unit scope,
+       STR '' ('', g3 t, STR '' target / '', g3 gp, STR ''% germination). This is an expectation, not a guaranteed stand.'']"
+| "value_text (SeedsMinimum scope gp t) v =
+     cat [STR ''Plant at least '', sn (rnd 0 v), seed_unit scope,
+       STR '' for an expected stand of '', g3 t, STR '' at '', g3 gp,
+       STR ''% germination. No smaller whole seed count meets that expectation; actual germination can vary.'']"
 | "value_text (SeedsNeeded gp t) v =
      cat [STR ''Plant '', g3 v, STR '' seeds per acre ('', g3 t, STR '' target / '', g3 gp,
        STR ''% germination).'']"
@@ -1031,7 +1098,13 @@ fun decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.literal"
      cat [STR ''A '', grade_lit a b c, STR '' fertilizer contains no '', nut_name n,
        STR '', so no amount of it supplies that nutrient.'']"
 | "decline_text (SeedsNeeded gp t) (Impossible w) =
-     STR ''A germination rate must be between 0 and 100%.''"
+     STR ''The target stand must be nonnegative and germination must be greater than zero and at most 100%.''"
+| "decline_text (SeedsMinimum scope gp t) (Impossible w) =
+     STR ''The target stand must be nonnegative and germination must be greater than zero and at most 100%.''"
+| "decline_text (SeedsExpected scope gp t) (Impossible w) =
+     STR ''The target stand must be nonnegative and germination must be greater than zero and at most 100%.''"
+| "decline_text SeedsUnread Underspecified =
+     STR ''Supply one complete germination percentage and target stand, with a clear total or per-acre scope; I will not guess malformed or conflicting quantities.''"
 | "decline_text (CountAt c a) Underspecified =
      STR ''This table has no supported count for that developmental stage; I will not substitute a fully developed skeleton or dentition count.''"
 | "decline_text GardenNeedOrientation Underspecified =
@@ -1057,6 +1130,8 @@ fun kind_name :: "request \<Rightarrow> String.literal" where
 | "kind_name (NutrientLb n a b c q) = STR ''nutrient_lb''"
 | "kind_name (SeedsPerAcre r s) = STR ''seeds_per_acre''"
 | "kind_name (SeedsNeeded gp t) = STR ''seeds_needed''"
+| "kind_name (SeedsExpected scope gp t) = STR ''seeds_expected''"
+| "kind_name (SeedsMinimum scope gp t) = STR ''seeds_minimum''"
 | "kind_name (Yield bu c KgHa) = STR ''yield_kgha''"
 | "kind_name (Yield bu c THa) = STR ''yield_tha''"
 | "kind_name (AcreInch i a) = STR ''acre_inch''"

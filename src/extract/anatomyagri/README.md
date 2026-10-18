@@ -55,3 +55,18 @@ wrong and false-yes counts are zero on these panels. Three fresh seeds each
 score 156/156 and 23 targeted probes pass. See
 [C-anatomyagri](../../../project/lanes/C-anatomyagri.md) for assumptions,
 per-specialist numbers, the 54-theorem zero-oracle receipt and performance.
+
+## Expected-stand seed planning
+
+A whole-seed purchase now rounds upward to the smallest count whose expected
+stand reaches the target. This does not guarantee how many seeds will actually
+germinate. Rational seeding-rate questions retain their expected requirement.
+Total and per-acre scope are explicit, and malformed or signed percentages
+cannot be recovered as positive suffixes. Unsupported mixed area/total scopes
+and hectare requests decline.
+
+The E artifact passes 156/156 shipped items and three fresh panels. All 66
+same-author policy checks pass; capability is 49 right and 17 valid requests
+withheld, with no wrong answers or false yes. See
+[the E report](../../../project/lanes/E-anatomyagri.md) for model statements,
+compiler binding and the remaining limits.

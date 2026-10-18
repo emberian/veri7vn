@@ -311,17 +311,43 @@ struct
       | _ => agriGerm low
     end
   and agriGerm low =
-    let
-      val germ = search "(\\d+(?:\\.\\d+)?)\\s*%\\s*germination|\\bgermination (?:rate )?(?:of|is)?\\s*(\\d+(?:\\.\\d+)?)\\s*%" low
-      val tgt = search ("\\b(?:target|final|desired)?\\s*(?:stand|population)\\s*(?:of)?\\s*" ^ NUM ^ "|" ^ NUM ^ "\\s*plants\\s*(?:per|an|/)\\s*acre") low
-    in
-      case (germ, tgt) of
-        (SOME gm, SOME tm) =>
-          if has "\\bhow many seeds\\b|\\bseeding rate\\b|\\bseeds? (?:to plant|needed)\\b|\\bplant how many\\b" low
-          then SOME (Q.SeedsNeeded (ratOf (valOf (firstGroup low gm [1, 2])), ratOf (valOf (firstGroup low tm [1, 2]))))
-          else agriYield low
-      | _ => agriYield low
-    end
+    if not (has "\\bgermination\\b" low) then agriYield low
+    else
+      let
+        val tokens = ExactNumeric.scan low
+        val malformed = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+        fun pick pred = List.mapPartial
+          (fn ExactNumeric.Number {start,stop,value,...} =>
+                let val prefix = String.substring (low,0,start)
+                    val suffix = String.extract (low,stop,NONE)
+                in if pred (prefix,suffix) then SOME value else NONE end
+            | _ => NONE) tokens
+        val germs = pick (fn (prefix,suffix) =>
+          has "^\\s*%\\s*germination\\b" suffix orelse
+          (has "\\bgermination\\s*(?:rate\\s*)?(?:of|is|=)?\\s*$" prefix
+           andalso has "^\\s*%" suffix))
+        val targets = pick (fn (prefix,suffix) =>
+          has "\\b(?:(?:expected|target|final|desired)\\s+)?(?:stand|population)\\s*(?:of|is|=)?\\s*$" prefix orelse
+          has "^\\s*plants\\s*(?:per|an|/)\\s*acre\\b" suffix)
+        val perAcre = has "\\b(?:per|an|/)\\s*acre\\b|/\\s*acre\\b" low
+        val unsupportedArea = has "\\b(?:per|an|/)\\s*(?:hectare|ha|square|sq)\\b|/\\s*(?:ha|m2|ft2)\\b" low
+        val mixedScope = perAcre andalso has "\\btotal\\b|\\bfor\\s+[0-9.]+\\s+acres\\b" low
+        val whole = has "\\bwhole\\b|\\bminimum\\b|\\bat least\\b|\\bbuy\\b|\\bpurchase\\b" low
+        val theoretical = has "\\bexpected seed requirement\\b|\\btheoretical\\b|\\bseeding rate\\b" low
+        val asks = has "\\bhow many (?:whole )?seeds\\b|\\bseeding rate\\b|\\bseeds? (?:to plant|needed)\\b|\\bplant how many\\b|\\bminimum number of seeds\\b|\\bexpected seed requirement\\b" low
+        val scope = if perAcre then Q.PerAcreSeeds else Q.TotalSeeds
+      in
+        if not asks then agriYield low
+        else if malformed orelse unsupportedArea orelse mixedScope then SOME Q.SeedsUnread
+        else case (germs,targets) of
+          ([(gn,gd)],[(tn,td)]) =>
+            let val gp = Q.mk_rat gn gd
+                val target = Q.mk_rat tn td
+            in if whole orelse (not perAcre andalso not theoretical)
+               then SOME (Q.SeedsMinimum (scope,gp,target))
+               else SOME (Q.SeedsExpected (scope,gp,target)) end
+        | _ => SOME Q.SeedsUnread
+      end
   and agriYield low =
     let
       val bu = search (NUM ^ "\\s*(?:bu|bushels?)\\s*(?:/|per|an?)\\s*(?:ac|acre)\\b") low

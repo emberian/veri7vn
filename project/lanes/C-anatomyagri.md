@@ -160,3 +160,5 @@ hashes are in `var/anatomyagri/d-delivery/ready.json`.
 Consumers keep the count kind. Both anatomy IDs now declare an in-domain
 underspecified refusal for an unsupported developmental stage. This is a
 bounded applicability policy; the values still come from the source table.
+
+For subsequent expected-stand seed planning, see [Anatomy/agriculture E](E-anatomyagri.md).

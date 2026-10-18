@@ -34,7 +34,7 @@ definition self_test :: bool where
 
 export_code reply_of answered reply_kind response stated answers mk_rat self_test
   nat_of_integer integer_of_nat count_order super_order made_order crop_order dv_order
-  Count CountAt AdultStage DevelopingStage NewbornStage Superlative Produces FertProduct NutrientLb SeedsPerAcre SeedsNeeded Yield AcreInch
+  Count CountAt AdultStage DevelopingStage NewbornStage Superlative Produces FertProduct NutrientLb SeedsPerAcre SeedsNeeded SeedsExpected SeedsMinimum SeedsUnread TotalSeeds PerAcreSeeds Yield AcreInch
   AgriUnderspecified GardenWater GardenFert GardenGrid GardenRectGrid GardenNeedOrientation GardenBags GardenYards GardenFeet
   BmiMetric BmiImperial Kcal PctFatCal PctDV NutUnderspecified
   Nit Pho Pot KgHa THa Dims Area Inches Feet Mm Mcm Iin Ftin U_mg U_g U_mcg
@@ -48,7 +48,8 @@ ML \<open>
     @{thm count_value}, @{thm count_stage_narrows}, @{thm count_stage_declines_iff},
     @{thm newborn_bones_declines}, @{thm adult_bones_preserved}, @{thm superlative_label}, @{thm produces_label},
     @{thm fert_product}, @{thm nutrient_lb}, @{thm fert_roundtrip}, @{thm fert_no_nutrient},
-    @{thm seeds_per_acre}, @{thm seeds_needed}, @{thm seeds_needed_germination},
+    @{thm seeds_per_acre}, @{thm seeds_needed}, @{thm seeds_needed_germination}, @{thm seeds_minimum}, @{thm seeds_expected},
+    @{thm seeds_scope_invariant}, @{thm seeds_unread_declines},
     @{thm yield_kgha}, @{thm yield_tha}, @{thm acre_inch(1)}, @{thm acre_inch(2)},
     @{thm garden_water}, @{thm garden_fert}, @{thm fit_floor}, @{thm garden_grid}, @{thm garden_grid_fits}, @{thm garden_rect_grid_fits},
     @{thm seeds_needed_declines_iff}, @{thm acre_inch_derived_error},
