@@ -10,6 +10,9 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
      kernel FsModelLimit = Decline (Underspecified N_fluid_conditions) \<and>
+     kernel PhModelLimit = Decline (Underspecified N_physics_conditions) \<and>
+     kernel (PhPEAt (G_body MB_mars) (Some 2) (Some 3)) = Exact K_pe (1113/50) \<and>
+     kernel (PhPEAt (G_stated 0) (Some 2) (Some 3)) = Exact K_pe 0 \<and>
      kernel (PhKE (Some 5) (Some 2)) = Exact K_ke 10 \<and>
      kernel (PhKE (Some (mass_kg 500 MU_g)) (Some 4)) = Exact K_ke 4 \<and>
      kernel (SpObp 0 1 0 0 0) = Exact K_obp 1 \<and>
@@ -48,12 +51,12 @@ definition self_test :: bool where
      response (reply_of (PhKE (Some 5) (Some 2))) =
        STR ''The kinetic energy is 10 J (KE = 1/2 m v^2 = 1/2 x 5 x 2^2).''"
 
-export_code reply_of answered reply_kind response stated mk_rat length_m mass_kg
+export_code reply_of answered reply_kind response stated mk_rat length_m mass_kg gravity_si
   integer_of_int nat_of_integer int_of_integer
   fluid_order solid_order body_order
   SU_kmh SU_mph SU_ms LU_m LU_cm LU_mm LU_ft LU_in LU_yd LU_mi MU_kg MU_g MU_tonne MU_lb VU_m3 VU_l VU_cm3 DU_mi DU_km LD_n LD_kg
-  E_mpg E_lpk G_body G_stated
-  PhRange PhImpact PhFall PhKE PhPE PhMomentum PhWeight PhForce PhWork PhPower PhFinalV
+  E_mpg E_lpk G_body G_stated GU_ms2 GU_fts2 GU_standard
+  PhRange PhImpact PhFall PhKE PhPE PhPEAt PhModelLimit PhMomentum PhWeight PhForce PhWork PhPower PhFinalV
   PhDistance BdWeight BdFall BdImpact BdPendulum BdUnreadable FsModelLimit
   McGearRatio McGearSpeed McGearTorque McBeltSpeed McPulleyMA McPulleyEffort McLeverMA
   McLeverEffort McInclineMA McShaftPower McTorque McTorqueAngle McNeed
@@ -67,7 +70,9 @@ ML \<open>
     @{thm kernel_underspecified}, @{thm kernel_impossible}, @{thm kernel_imprecise},
     @{thm reason_of_exact}, @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm stated_dec_sound},
     @{thm round_tie_up},
-    @{thm kinetic_energy}, @{thm potential_energy}, @{thm momentum_def}, @{thm weight_on_earth},
+    @{thm kinetic_energy}, @{thm potential_energy}, @{thm supplied_potential_energy},
+    @{thm supplied_potential_units}, @{thm supplied_potential_additive},
+    @{thm supplied_drop_energy_conserved}, @{thm physics_model_limit_refuses}, @{thm momentum_def}, @{thm weight_on_earth},
     @{thm newton_force}, @{thm work_def}, @{thm power_def}, @{thm final_velocity_def},
     @{thm distance_def}, @{thm impact_model}, @{thm fall_model}, @{thm range_model},
     @{thm body_weight}, @{thm body_weight_units}, @{thm fluid_model_limit_refuses}, @{thm kinetic_energy_units}, @{thm body_fall_model}, @{thm body_impact_model}, @{thm pendulum_model},
@@ -88,7 +93,9 @@ ML \<open>
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("mechanics theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "mechanics self test failed";
-  val _ = writeln ("VERI7VN_MECHANICS PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");
+  val marker = "VERI7VN_MECHANICS PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0";
+  val _ = writeln marker;
+  val _ = Export.export @{theory} (Path.binding0 (Path.explode "veri7vn/assertions/mechanics")) [XML.Text marker];
 \<close>
 
 end

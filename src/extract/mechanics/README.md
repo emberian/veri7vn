@@ -111,3 +111,20 @@ never drops those conditions and substitutes its defaults. In family
 composition, Quantity can answer the richer hydrostatic model when supported.
 The refusal path is proved; assignment of English conditions to that path
 remains untrusted.
+
+## Supplied constant gravity
+
+Potential-energy changes now use a named world's surface gravity or an explicit
+acceleration in m/s², ft/s² or standard g. Weight, free fall and pendulum requests
+use the same source gravity. Complete mass and length units are retained and
+converted in the checked kernel. Zero gravity yields zero potential energy and
+weight; free-fall time needs positive gravity. The constant-field energy change
+is additive and agrees with the independently modelled impact kinetic energy
+for a release from rest.
+
+Recognized incompatible units, unresolved extra inputs, variable gravity,
+resistance and relativistic conditions are withheld. Positive-magnitude lowering
+wording is still unsupported; a signed height change is accepted. English role
+binding is untrusted. See `project/lanes/F-physical-mechanics-gravity.md` for exact
+scope and before/after counts; `check_gravity.py` checks the authored controls or
+an explicitly selected fresh numeric seed.

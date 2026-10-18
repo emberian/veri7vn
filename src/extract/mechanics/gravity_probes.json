@@ -1,0 +1,188 @@
+[
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m on Mars",
+    "expect": 22.26,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m with gravity 1.6 m/s\u00b2",
+    "expect": 9.6,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2000 g object lifted 300 cm with gravity 1.6 m/s^2",
+    "expect": 9.6,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m with g = 10 ft/s2",
+    "expect": 18.288,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m with gravity 1 g",
+    "expect": 58.8399,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted -3 m with gravity 1.6 m/s2",
+    "expect": -9.6,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m with gravity 0 m/s2",
+    "expect": 0,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m with gravity -1 m/s2",
+    "expect": null,
+    "valid": false,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a -2 kg object lifted 3 m on Mars",
+    "expect": null,
+    "valid": false,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m with gravity 1 gram",
+    "expect": null,
+    "valid": false,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m with gravity 1 m/s",
+    "expect": null,
+    "valid": false,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m with gravity 1 m/s2 per second",
+    "expect": null,
+    "valid": false,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m/s on Mars",
+    "expect": null,
+    "valid": false,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m on Vulcan",
+    "expect": null,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m on Mars and on the Moon",
+    "expect": null,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m on Mars with gravity 2 m/s2",
+    "expect": 12,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "What is the weight of a 3 kg object with gravity 1.6 m/s2?",
+    "expect": 4.8,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "What is the weight of a 3000 g object with gravity 10 ft/s2?",
+    "expect": 9.144,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "What is the weight of a 3 kg object with gravity 0 m/s2?",
+    "expect": 0,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "What is the weight of a 3 kg object with gravity 1 gram?",
+    "expect": null,
+    "valid": false,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "What is the weight of a 3 kg object on Mars?",
+    "expect": 11.13,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "Dropped from rest from 8 m with gravity 4 m/s2. What is the impact speed?",
+    "expect": 8,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "Dropped from rest from 8 m with gravity 4 m/s2. What is the fall time?",
+    "expect": 2,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "Dropped from rest from 8 m with gravity 0 m/s2. What is the fall time?",
+    "expect": null,
+    "valid": false,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "Dropped from 8 m with gravity 4 m/s2 and initial speed 2 m/s. What is the impact speed?",
+    "expect": null,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "Dropped from 8 m on Mars with drag. What is the impact speed?",
+    "expect": null,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "Dropped from 8 m with gravity 4 m/s2, ignoring drag. What is the impact speed?",
+    "expect": 8,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "Dropped from 8 m with gravity 4 m/s2, ignoring drag but with wind. What is the impact speed?",
+    "expect": null,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m with variable gravity",
+    "expect": null,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lowered 3 m on Mars",
+    "expect": null,
+    "valid": true,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  },
+  {
+    "q": "potential energy of a 2 kg object lifted 3 m with gravity 1 m/s2 and gravity 2 m/s2",
+    "expect": null,
+    "valid": false,
+    "note": "constant-gravity mgh / mg / release-from-rest model or explicit model-boundary control"
+  }
+]

@@ -168,6 +168,19 @@ fun g_of :: "mgrav \<Rightarrow> rat" where
   "g_of (G_body b) = body_gravity b"
 | "g_of (G_stated x) = x"
 
+datatype gravity_unit = GU_ms2 | GU_fts2 | GU_standard
+fun gravity_scale :: "gravity_unit \<Rightarrow> rat" where
+  "gravity_scale GU_ms2 = 1"
+| "gravity_scale GU_fts2 = 381 / 1250"
+| "gravity_scale GU_standard = g0"
+definition gravity_si :: "rat \<Rightarrow> gravity_unit \<Rightarrow> rat" where
+  "gravity_si x u = x * gravity_scale u"
+lemma gravity_scale_positive [simp]: "0 < gravity_scale u"
+  by (cases u) simp_all
+lemma gravity_si_nonnegative [simp]: "0 \<le> gravity_si x u \<longleftrightarrow> 0 \<le> x"
+  using gravity_scale_positive[of u]
+  by (auto simp: gravity_si_def zero_le_mult_iff; linarith)
+
 fun grav_where :: "mgrav \<Rightarrow> String.literal" where
   "grav_where (G_body b) = STR ''on '' + body_name b"
 | "grav_where (G_stated x) = STR ''at g = '' + show4 x + STR '' m/s^2''"
@@ -183,6 +196,7 @@ datatype request =
   | PhFall rat
   | PhKE "rat option" "rat option"
   | PhPE "rat option" "rat option"
+  | PhPEAt mgrav "rat option" "rat option" | PhModelLimit
   | PhMomentum "rat option" "rat option"
   | PhWeight rat
   | PhForce "rat option" "rat option"
@@ -237,7 +251,7 @@ selects the sentence (see @{text need_text}).\<close>
 datatype need = N_speed_angle | N_mass_speed | N_mass_height | N_mass_velocity | N_mass_accel
   | N_accel_time | N_start_speed | N_mass_kg | N_fall_height | N_pendulum_length
   | N_mc_need nat | N_load | N_speed_friction | N_reaction | N_price | N_depth | N_volume
-  | N_unreadable | N_fluid_conditions
+  | N_unreadable | N_fluid_conditions | N_physics_conditions
 
 datatype reason = R_nonpositive_gravity | R_negative_gravity | R_negative_amount | R_zero_time | R_zero_teeth
   | R_zero_diameter | R_zero_strands | R_zero_arm | R_ramp | R_zero_attempts | R_zero_shooting
@@ -266,6 +280,8 @@ primrec kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (PhFall _) = K_fall_time"
 | "kind_of (PhKE _ _) = K_ke"
 | "kind_of (PhPE _ _) = K_pe"
+| "kind_of (PhPEAt _ _ _) = K_pe"
+| "kind_of PhModelLimit = K_declined"
 | "kind_of (PhMomentum _ _) = K_momentum"
 | "kind_of (PhWeight _) = K_weight"
 | "kind_of (PhForce _ _) = K_force"
@@ -331,6 +347,8 @@ primrec missing :: "request \<Rightarrow> need option" where
   "missing (PhRange v t) = miss_if (v = None \<or> t = None) N_speed_angle"
 | "missing (PhKE m v) = miss_if (m = None \<or> v = None) N_mass_speed"
 | "missing (PhPE m h) = miss_if (m = None \<or> h = None) N_mass_height"
+| "missing (PhPEAt g m h) = miss_if (m = None \<or> h = None) N_mass_height"
+| "missing PhModelLimit = Some N_physics_conditions"
 | "missing (PhMomentum m v) = miss_if (m = None \<or> v = None) N_mass_velocity"
 | "missing (PhForce m a) = miss_if (m = None \<or> a = None) N_mass_accel"
 | "missing (PhFinalV a t u rest) =
@@ -408,6 +426,8 @@ fun physical_domain :: "request \<Rightarrow> bool" where
   "physical_domain (PhRange v a) = nonnegative_option v"
 | "physical_domain (PhKE m v) = nonnegative_option m"
 | "physical_domain (PhPE m h) = nonnegative_option m"
+| "physical_domain (PhPEAt g m h) = nonnegative_option m"
+| "physical_domain PhModelLimit = True"
 | "physical_domain (PhMomentum m v) = nonnegative_option m"
 | "physical_domain (PhWeight m) = (0 \<le> m)"
 | "physical_domain (PhForce m a) = nonnegative_option m"
@@ -486,6 +506,8 @@ primrec impossible_base :: "request \<Rightarrow> bool" where
 | "impossible_base (PhRange x1 x2) \<longleftrightarrow> False"
 | "impossible_base (PhKE x1 x2) \<longleftrightarrow> False"
 | "impossible_base (PhPE x1 x2) \<longleftrightarrow> False"
+| "impossible_base (PhPEAt g m h) \<longleftrightarrow> g_of g < 0"
+| "impossible_base PhModelLimit \<longleftrightarrow> False"
 | "impossible_base (PhMomentum x1 x2) \<longleftrightarrow> False"
 | "impossible_base (PhWeight x1) \<longleftrightarrow> False"
 | "impossible_base (PhForce x1 x2) \<longleftrightarrow> False"
@@ -553,6 +575,8 @@ primrec reason_base :: "request \<Rightarrow> reason option" where
 | "reason_base (PhRange x1 x2) = None"
 | "reason_base (PhKE x1 x2) = None"
 | "reason_base (PhPE x1 x2) = None"
+| "reason_base (PhPEAt g m h) = (if g_of g < 0 then Some R_negative_gravity else None)"
+| "reason_base PhModelLimit = None"
 | "reason_base (PhMomentum x1 x2) = None"
 | "reason_base (PhWeight x1) = None"
 | "reason_base (PhForce x1 x2) = None"
@@ -641,6 +665,8 @@ lemma cl_rating_bounds: "0 \<le> cl_rating x \<and> cl_rating x \<le> 19 / 8"
 primrec qval :: "request \<Rightarrow> rat" where
   "qval (PhKE m v) = the m * the v ^ 2 / 2"
 | "qval (PhPE m h) = the m * g0 * the h"
+| "qval (PhPEAt g m h) = the m * g_of g * the h"
+| "qval PhModelLimit = 0"
 | "qval (PhMomentum m v) = the m * the v"
 | "qval (PhWeight m) = m * g0"
 | "qval (PhForce m a) = the m * the a"
@@ -705,6 +731,8 @@ primrec is_real :: "request \<Rightarrow> bool" where
 | "is_real (McTorqueAngle _ _ _ _) = True"
 | "is_real (PhKE x1 x2) = False"
 | "is_real (PhPE x1 x2) = False"
+| "is_real (PhPEAt g m h) = False"
+| "is_real PhModelLimit = False"
 | "is_real (PhMomentum x1 x2) = False"
 | "is_real (PhWeight x1) = False"
 | "is_real (PhForce x1 x2) = False"
@@ -755,6 +783,8 @@ primrec sinks :: "request \<Rightarrow> bool" where
 | "sinks (PhFall x1) \<longleftrightarrow> False"
 | "sinks (PhKE x1 x2) \<longleftrightarrow> False"
 | "sinks (PhPE x1 x2) \<longleftrightarrow> False"
+| "sinks (PhPEAt g m h) \<longleftrightarrow> False"
+| "sinks PhModelLimit \<longleftrightarrow> False"
 | "sinks (PhMomentum x1 x2) \<longleftrightarrow> False"
 | "sinks (PhWeight x1) \<longleftrightarrow> False"
 | "sinks (PhForce x1 x2) \<longleftrightarrow> False"
@@ -815,6 +845,8 @@ primrec phys :: "request \<Rightarrow> real" where
 | "phys (McTorqueAngle f r u a) = rl (f * r * len_scale u) * sin (rl (a / 180) * pi)"
 | "phys (PhKE x1 x2) = rl (qval (PhKE x1 x2))"
 | "phys (PhPE x1 x2) = rl (qval (PhPE x1 x2))"
+| "phys (PhPEAt g m h) = rl (qval (PhPEAt g m h))"
+| "phys PhModelLimit = 0"
 | "phys (PhMomentum x1 x2) = rl (qval (PhMomentum x1 x2))"
 | "phys (PhWeight x1) = rl (qval (PhWeight x1))"
 | "phys (PhForce x1 x2) = rl (qval (PhForce x1 x2))"
@@ -890,6 +922,8 @@ primrec fa_of :: "request \<Rightarrow> floatarith" where
        (sinfa (floatarith.Mult (Q (a / 180)) floatarith.Pi))"
 | "fa_of (PhKE x1 x2) = I 0"
 | "fa_of (PhPE x1 x2) = I 0"
+| "fa_of (PhPEAt g m h) = I 0"
+| "fa_of PhModelLimit = I 0"
 | "fa_of (PhMomentum x1 x2) = I 0"
 | "fa_of (PhWeight x1) = I 0"
 | "fa_of (PhForce x1 x2) = I 0"
@@ -1214,6 +1248,8 @@ primrec ok_text :: "request \<Rightarrow> String.literal \<Rightarrow> String.li
      + STR '' (fraction = rho_solid/rho_fluid = '' + show4 (solid_density s) + STR ''/'' + show4 (fluid_density f) + STR '').''"
 | "ok_text (BdUnreadable x1) V = V"
 | "ok_text FsModelLimit V = V"
+| "ok_text PhModelLimit V = V"
+| "ok_text (PhPEAt g m h) V = STR ''The gravitational potential energy change is '' + V + STR '' J '' + grav_where g + STR '' (constant gravity; mass '' + show4 (the m) + STR '' kg, signed height change '' + show4 (the h) + STR '' m).''"
 | "ok_text (McNeed x1) V = V"
 
 primrec sinks_text :: "request \<Rightarrow> String.literal" where
@@ -1225,6 +1261,8 @@ primrec sinks_text :: "request \<Rightarrow> String.literal" where
 | "sinks_text (PhFall x1) = STR ''''"
 | "sinks_text (PhKE x1 x2) = STR ''''"
 | "sinks_text (PhPE x1 x2) = STR ''''"
+| "sinks_text (PhPEAt g m h) = STR ''''"
+| "sinks_text PhModelLimit = STR ''''"
 | "sinks_text (PhMomentum x1 x2) = STR ''''"
 | "sinks_text (PhWeight x1) = STR ''''"
 | "sinks_text (PhForce x1 x2) = STR ''''"
@@ -1297,6 +1335,7 @@ definition need_text :: "request \<Rightarrow> need \<Rightarrow> String.literal
         | _ \<Rightarrow> STR ''I need the fuel price.'')
    | N_depth \<Rightarrow> STR ''I need a depth to compute that'' + wont
    | N_volume \<Rightarrow> STR ''I need the submerged volume to compute that'' + wont
+   | N_physics_conditions \<Rightarrow> STR ''The supplied conditions need a different physical model or an unambiguous gravity value and unit; I will not replace them with Earth or classical defaults.''
    | N_fluid_conditions \<Rightarrow> STR ''The supplied fluid conditions are outside this reader'' + apos + STR ''s fixed-property, standard-gravity and atmospheric-pressure model; I will not replace them with defaults.''
    | N_unreadable \<Rightarrow> (case r of BdUnreadable g \<Rightarrow> STR ''I recognise a gravity question ''
         + grav_where g + STR '', but I could not read every amount it needs, so I won'' + apos
@@ -1328,6 +1367,7 @@ definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of
        Underspecified N_price \<Rightarrow> STR ''need_price''
      | Underspecified N_fluid_conditions \<Rightarrow> STR ''unsupported_model''
+     | Underspecified N_physics_conditions \<Rightarrow> STR ''unsupported_model''
      | Underspecified N_unreadable \<Rightarrow> STR ''unreadable''
      | Underspecified _ \<Rightarrow> STR ''underspecified''
      | Impossible _ \<Rightarrow> STR ''impossible''
@@ -1385,6 +1425,12 @@ theorem fluid_model_limit_refuses:
   "kernel FsModelLimit = Decline (Underspecified N_fluid_conditions) \<and>
    \<not> answered (reply_of FsModelLimit) \<and>
    reply_kind (reply_of FsModelLimit) = STR ''unsupported_model''"
+  by (simp add: kernel_def decline_of_def reply_of_def decline_name_def)
+
+theorem physics_model_limit_refuses:
+  "kernel PhModelLimit = Decline (Underspecified N_physics_conditions) \<and>
+   \<not> answered (reply_of PhModelLimit) \<and>
+   reply_kind (reply_of PhModelLimit) = STR ''unsupported_model''"
   by (simp add: kernel_def decline_of_def reply_of_def decline_name_def)
 
 theorem reply_states_exact:
@@ -1459,6 +1505,33 @@ theorem potential_energy:
   assumes "kernel (PhPE (Some m) (Some h)) = Exact c y"
   shows "c = K_pe \<and> y = m * g0 * h"
   using exact_facts[OF assms] by simp
+
+theorem supplied_potential_energy:
+  assumes "kernel (PhPEAt g (Some m) (Some h)) = Exact c y"
+  shows "c = K_pe \<and> 0 \<le> m \<and> 0 \<le> g_of g \<and> y = m * g_of g * h"
+  using exact_facts[OF assms] by simp
+
+theorem supplied_potential_units:
+  assumes "kernel (PhPEAt (G_stated (gravity_si a gu))
+    (Some (mass_kg m mu)) (Some (length_m h lu))) = Exact c y"
+  shows "c = K_pe \<and> 0 \<le> m \<and> 0 \<le> a \<and>
+    y = (m * mass_scale mu) * (a * gravity_scale gu) * (h * len_scale lu)"
+proof -
+  have facts: "c=K_pe \<and> 0 \<le> mass_kg m mu \<and> 0 \<le> gravity_si a gu \<and>
+    y=mass_kg m mu * gravity_si a gu * length_m h lu"
+    using supplied_potential_energy[OF assms] by simp
+  have signs: "0 \<le> m \<and> 0 \<le> a" using facts by simp
+  show ?thesis using facts signs
+    by (simp add: mass_kg_def gravity_si_def length_m_def)
+qed
+
+theorem supplied_potential_additive:
+  assumes "kernel (PhPEAt g (Some m) (Some h)) = Exact c x"
+    "kernel (PhPEAt g (Some m) (Some k)) = Exact d y"
+    "kernel (PhPEAt g (Some m) (Some (h+k))) = Exact e z"
+  shows "z=x+y"
+  using supplied_potential_energy[OF assms(1)] supplied_potential_energy[OF assms(2)]
+    supplied_potential_energy[OF assms(3)] by (simp add: algebra_simps)
 
 theorem momentum_def:
   assumes "kernel (PhMomentum (Some m) (Some v)) = Exact c y"
@@ -1590,6 +1663,23 @@ proof -
     show "0 \<le> h" by (rule assms(2))
   qed
   show ?thesis using sqrt_model[OF p] by simp
+qed
+
+text \<open>The exact potential-energy change accepted at supplied gravity
+matches the independently modelled impact kinetic energy for a drop from rest.\<close>
+theorem supplied_drop_energy_conserved:
+  assumes g: "0 < g_of g" and h: "0 \<le> h"
+    and pe: "kernel (PhPEAt g (Some m) (Some h)) = Exact c e"
+  shows "rl m / 2 * phys (BdImpact g (Some h)) ^ 2 = rl e"
+proof -
+  have en: "e=m*g_of g*h" using supplied_potential_energy[OF pe] by simp
+  have sq: "phys (BdImpact g (Some h)) ^ 2 = rl (2*g_of g*h)"
+    using body_impact_model[OF g h] by simp
+  have step: "rl m / 2 * phys (BdImpact g (Some h)) ^ 2 =
+      rl m / 2 * rl (2*g_of g*h)" by (subst sq, rule refl)
+  have finish: "rl m / 2 * rl (2*g_of g*h) = rl e"
+    by (simp add: en of_rat_mult of_rat_divide algebra_simps)
+  show ?thesis by (rule trans[OF step finish])
 qed
 
 theorem pendulum_model:

@@ -4,18 +4,24 @@
   "specialists": {
     "physics": {
       "accept": {
-        "kinds": [],
+        "kinds": [
+          "pendulum_period"
+        ],
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "unsupported_model"
         ]
       },
-      "context_regex_additions": [],
+      "context_regex_additions": [
+        "\\b(?:potential energy|kinetic energy|momentum|weight|weigh|fall|falls|dropped|pendulum)\\b"
+      ],
       "evidence": {
         "computation": "The kernel retains its existing equations and additionally refuses inputs outside the declared physical domain. Every answered reply implies the typed physical_domain predicate.",
         "assumptions": [
           "The untrusted recognizer assigned each number and unit to the intended request field.",
           "Mass and elapsed time are magnitudes; force, velocity, displacement and relative potential height may be directed.",
-          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude."
+          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude.",
+          "For gravitational potential-energy changes, weight and free fall, the supplied constant gravity or named surface-table gravity is used; explicit unsupported model conditions are refused. Free fall assumes release from rest and no resistance."
         ],
         "untrusted": [
           "English interpretation and routing metadata are not proofs of the question interpretation."
@@ -24,18 +30,24 @@
     },
     "physics-r2": {
       "accept": {
-        "kinds": [],
+        "kinds": [
+          "pendulum_period"
+        ],
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "unsupported_model"
         ]
       },
-      "context_regex_additions": [],
+      "context_regex_additions": [
+        "\\b(?:potential energy|kinetic energy|momentum|weight|weigh|fall|falls|dropped|pendulum)\\b"
+      ],
       "evidence": {
         "computation": "The kernel retains its existing equations and additionally refuses inputs outside the declared physical domain. Every answered reply implies the typed physical_domain predicate.",
         "assumptions": [
           "The untrusted recognizer assigned each number and unit to the intended request field.",
           "Mass and elapsed time are magnitudes; force, velocity, displacement and relative potential height may be directed.",
-          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude."
+          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude.",
+          "For gravitational potential-energy changes, weight and free fall, the supplied constant gravity or named surface-table gravity is used; explicit unsupported model conditions are refused. Free fall assumes release from rest and no resistance."
         ],
         "untrusted": [
           "English interpretation and routing metadata are not proofs of the question interpretation."
@@ -44,18 +56,24 @@
     },
     "physics-r3": {
       "accept": {
-        "kinds": [],
+        "kinds": [
+          "pendulum_period"
+        ],
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "unsupported_model"
         ]
       },
-      "context_regex_additions": [],
+      "context_regex_additions": [
+        "\\b(?:potential energy|kinetic energy|momentum|weight|weigh|fall|falls|dropped|pendulum)\\b"
+      ],
       "evidence": {
         "computation": "The kernel retains its existing equations and additionally refuses inputs outside the declared physical domain. Every answered reply implies the typed physical_domain predicate.",
         "assumptions": [
           "The untrusted recognizer assigned each number and unit to the intended request field.",
           "Mass and elapsed time are magnitudes; force, velocity, displacement and relative potential height may be directed.",
-          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude."
+          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude.",
+          "For gravitational potential-energy changes, weight and free fall, the supplied constant gravity or named surface-table gravity is used; explicit unsupported model conditions are refused. Free fall assumes release from rest and no resistance."
         ],
         "untrusted": [
           "English interpretation and routing metadata are not proofs of the question interpretation."
@@ -64,18 +82,24 @@
     },
     "bodies-v2": {
       "accept": {
-        "kinds": [],
+        "kinds": [
+          "pe"
+        ],
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "unsupported_model"
         ]
       },
-      "context_regex_additions": [],
+      "context_regex_additions": [
+        "\\b(?:potential energy|kinetic energy|momentum|weight|weigh|fall|falls|dropped|pendulum)\\b"
+      ],
       "evidence": {
         "computation": "The kernel retains its existing equations and additionally refuses inputs outside the declared physical domain. Every answered reply implies the typed physical_domain predicate.",
         "assumptions": [
           "The untrusted recognizer assigned each number and unit to the intended request field.",
           "Mass and elapsed time are magnitudes; force, velocity, displacement and relative potential height may be directed.",
-          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude."
+          "Fluid depth is below the surface, and displaced volume is a nonnegative magnitude.",
+          "For gravitational potential-energy changes, weight and free fall, the supplied constant gravity or named surface-table gravity is used; explicit unsupported model conditions are refused. Free fall assumes release from rest and no resistance."
         ],
         "untrusted": [
           "English interpretation and routing metadata are not proofs of the question interpretation."

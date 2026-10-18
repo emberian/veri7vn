@@ -805,15 +805,112 @@ struct
       if not (null words) andalso namedNotMaterial t words then NONE else fluidsV1 text
     end
 
+  (* Constant-field gravity is a typed input. Units attach to complete issued
+     numeric fields; conversion is exclusively in the exported HOL functions.
+     These spans are in the masked reader text, not original-user provenance. *)
+  val gravitySpecs = List.concat(map (fn (aliases,tag) => map(fn alias =>
+      {alias=alias,tag=tag,dimension="gravity",caseSensitive=not(String.isSubstring " " alias)}) aliases)
+    [(["m/s2","m/s^2","m/s\194\178","m/s/s","meters per second squared",
+       "metres per second squared"],"ms2"),
+     (["ft/s2","ft/s^2","ft/s\194\178","ft/s/s","feet per second squared"],"fts2"),
+     (["g","standard gravity"],"standard")])
+  val lengthSpecs = map(fn alias => {alias=alias,tag=alias,dimension="length",caseSensitive=size alias<=2})
+    ["mm","millimeter","millimeters","millimetre","millimetres","cm","centimeter",
+     "centimeters","centimetre","centimetres","m","meter","meters","metre","metres",
+     "ft","feet","foot","in","inch","inches","yd","yard","yards","mi","mile","miles"]
+  val gravityFields = gravitySpecs @ massSpecs @ lengthSpecs
+  fun gravityUnit "fts2" = M.GU_fts2 | gravityUnit "standard" = M.GU_standard
+    | gravityUnit _ = M.GU_ms2
+  fun stopNumber (m:Regex.match) = #2(valOf(Vector.sub(#groups m,1)))
+  fun member x xs = List.exists(fn y=>x=y) xs
+  datatype gravityReading = NoGravity | BadGravity | Gravity of M.mgrav * string list
+  fun readGravity text =
+    let val low=lower text
+        val explicit=findall ("\\b(?:gravity|gravitational acceleration|g)\\s*(?:magnitude\\s*)?(?:of|is|=|:)?\\s*" ^ NUM) low
+        fun fromMatch m =
+          case MeasuredInput.unitAt gravityFields text (stopNumber m) of
+            SOME(MeasuredInput.Explicit{unit,...}) =>
+              if #dimension unit="gravity" then
+                SOME(M.G_stated(M.gravity_si(ratOf(g1 low m))(gravityUnit(#tag unit))),g1 low m)
+              else NONE
+          | _ => NONE
+        val explicitValues=List.mapPartial fromMatch explicit
+        val named=List.mapPartial(fn(k,b)=>
+          let val name=if String.isPrefix "the " k then String.extract(k,4,NONE) else k
+              val p="\\b(?:on|at|of|from)\\s+(?:the\\s+)?(?:surface of\\s+(?:the\\s+)?)?" ^ lower name ^ "\\b|\\b" ^ lower name ^ "['\226\128\153]s\\b"
+          in if has p low then SOME b else NONE end) bodies
+        val unknownWorld=List.exists(fn m=>
+          let val n=g1 low m in not(List.exists(fn(k,_)=>lower k=n orelse lower k="the "^n)bodies) end)
+          (findall "\\b(?:on|at)\\s+(?:planet\\s+|the surface of\\s+)([a-z]+)\\b" low)
+        val unknownProper=List.exists(fn m=>
+          let val (a,b)=valOf(Vector.sub(#groups m,1)); val n=String.substring(text,a,b-a)
+          in Char.isUpper(String.sub(n,0)) andalso
+             not(List.exists(fn(k,_)=>lower k=lower n orelse lower k="the "^lower n)bodies)
+          end)(findall "\\b(?:on|at)\\s+([a-z]+)\\b" low)
+        val mentioned=has "\\b(?:gravity|gravitational acceleration)\\s*(?:of|is|=|:)?\\s*qnum|\\bg\\s*=" low
+    in if not(null explicit) then
+         (case explicitValues of [(g,tok)]=>if length explicit=1 then Gravity(g,[tok]) else BadGravity | _=>BadGravity)
+       else if mentioned orelse unknownWorld orelse unknownProper then BadGravity
+       else case named of [b]=>Gravity(M.G_body b,[])
+         | []=>(case gravityV2 text low of SOME g=>Gravity(g,[])
+              | NONE=>if has "\\bgravity\\b" low then BadGravity else NoGravity)
+         | _=>BadGravity
+    end
+
+  fun suppliedPhysics fallback bodyOnly text =
+    let val low=lower text
+        val ask=lower(Narrow.last_sentence text)
+        val pe=has "\\bpotential energy\\b" low andalso has "\\b(?:potential|energy)\\b" ask
+        val weight=has "\\bweigh(?:s|t)?\\b" ask
+        val fall=has "\\b(?:drop(?:ped)?|fall(?:s|ing)?|released)\\b" low
+        val fallTime=fall andalso has "\\b(?:how long|time|how many seconds)\\b" ask
+        val impact=fall andalso has "\\b(?:speed|velocity|how fast)\\b" ask
+        val pendulum=has "\\bpendulum\\b" low andalso has "\\b(?:period|swing)\\b" ask
+        val operation=pe orelse weight orelse fallTime orelse impact orelse pendulum
+        val classical=has "\\b(?:kinetic energy|momentum)\\b" low
+        val gravity=readGravity text
+        val supplied=case gravity of NoGravity=>false | _=>true
+        val conditionText=substCI "\\b(?:ignore|ignoring|neglect|neglecting|no|without) (?:air resistance|drag|friction)\\b" "" low
+        val unsupported=has "\\b(?:relativistic|relativity|variable gravity|nonuniform gravity|non-uniform gravity|inverse.square|changing gravity|gravity varies)\\b" low
+          orelse (operation andalso has "\\b(?:drag|air resistance|wind|buoyancy|density|friction|centrifugal|rotating|accelerating elevator)\\b" conditionText)
+        fun limit()=SOME M.PhModelLimit
+        fun enhanced g ignored =
+          let val nums=List.filter(fn m=>not(member(g1 low m)ignored))(findall NUM low)
+              fun binding m = MeasuredInput.unitAt (massSpecs @ lengthSpecs @ gravitySpecs) text (stopNumber m)
+              fun mass m = case binding m of SOME(MeasuredInput.Explicit{unit,...})=>
+                 if #dimension unit="mass" then SOME(M.mass_kg(ratOf(g1 low m))(massUnit(#tag unit))) else NONE | _=>NONE
+              fun height m = case binding m of SOME(MeasuredInput.Explicit{unit,...})=>
+                 if #dimension unit="length" then SOME(M.length_m(ratOf(g1 low m))(lenUnit(#tag unit))) else NONE | _=>NONE
+              val masses=List.mapPartial mass nums and heights=List.mapPartial height nums
+              val used=length masses+length heights
+              val m=one masses and h=one heights
+              val extra=used<>length nums orelse length masses>1 orelse length heights>1
+              val movingFall=(fallTime orelse impact) andalso has "\\b(?:thrown|initial speed|initial velocity|moving)\\b" low
+              val directed=pe andalso has "\\b(?:lowered|downward|descends|loses)\\b" low
+          in if extra orelse movingFall orelse directed then limit()
+             else if pe then SOME(M.PhPEAt(g,m,h))
+             else if weight then SOME(M.BdWeight(g,m))
+             else if pendulum then SOME(M.BdPendulum(g,h))
+             else if impact then SOME(M.BdImpact(g,h))
+             else SOME(M.BdFall(g,h)) end
+    in if bodyOnly andalso not supplied then fallback text
+       else if Narrow.narrative text then (if operation andalso supplied then limit() else fallback text)
+       else if (operation orelse classical) andalso unsupported then limit()
+       else if not operation orelse (bodyOnly andalso not supplied) then fallback text
+       else case gravity of BadGravity=>limit()
+          | Gravity(g,ignored)=>enhanced g ignored
+          | NoGravity=>if pe then enhanced(M.G_body bodyEarth)[] else fallback text
+    end
+
   (* ---------- dispatch ---------- *)
   val organs = ["physics", "physics-r2", "physics-r3", "mechanisms", "mechanisms-v2", "bodies-v2", "sports", "fleet", "fluids-r2"]
 
-  fun byId "physics" = physicsV1
-    | byId "physics-r2" = physicsR2
-    | byId "physics-r3" = physicsR3
+  fun byId "physics" = suppliedPhysics physicsV1 false
+    | byId "physics-r2" = suppliedPhysics physicsR2 false
+    | byId "physics-r3" = suppliedPhysics physicsR3 false
     | byId "mechanisms" = mechV1
     | byId "mechanisms-v2" = mechV2
-    | byId "bodies-v2" = bodiesV2
+    | byId "bodies-v2" = suppliedPhysics bodiesV2 true
     | byId "sports" = sports
     | byId "fleet" = fleet
     | byId "fluids-r2" = fluidsR2
