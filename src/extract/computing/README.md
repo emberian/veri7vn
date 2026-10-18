@@ -19,7 +19,7 @@ and the MLton compiler that ships inside Isabelle turns that into one binary,
 | A small SQL engine (CREATE, INSERT, SELECT with WHERE, GROUP BY, ORDER BY, LIMIT, aggregates, SQLite NULL rules) and a syntax checker | `Sql.thy` | HOL, proved in parts (sorting, WHERE, aggregates, unknown columns) |
 | Export, self tests, oracle check | `Computing_Export.thy` | the build fails if any listed theorem uses an oracle or a self test fails |
 | Table transcription check | `tables_check.py` | a Python check, not a proof |
-| Reading numbers and words out of English, the SQL lexer | `regex.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs |
+| Reading numbers and words out of English, the SQL lexer | `../commons/commons.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs |
 | JSON framing | `main.sml` | **untrusted** |
 
 What it cannot do yet: Python's float rounding differs from exact rounding on ties

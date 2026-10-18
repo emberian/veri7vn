@@ -10,6 +10,8 @@ session Veri7vn_Computing_Base in base = HOL +
 
 session Veri7vn_Computing = Veri7vn_Computing_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     Computing_Num
     Networking
