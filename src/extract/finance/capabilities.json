@@ -8,7 +8,9 @@
           "annuity",
           "two_phase",
           "compound_interest",
-          "simple_total"
+          "simple_total",
+          "cashflow_balance",
+          "cashflow_interest"
         ],
         "declines_in_domain": [
           "impossible",
@@ -18,9 +20,9 @@
         ]
       },
       "evidence": {
-        "computation": "Exact or certified enclosed growth quantities with explicit interest-versus-balance target; interest is selected before final rounding. Monthly payment and deposit schedules contain exactly twelve times the stated years in whole periods. Existing annuity and two-phase equations remain available.",
+        "computation": "Exact or certified enclosed growth quantities with explicit interest-versus-balance target; interest is selected before final rounding. Monthly payment and deposit schedules contain exactly twelve times the stated years in whole periods. Existing annuity and two-phase equations remain available. Equal monthly cashflows include an explicit opening balance and start/end deposit timing. The closed form equals a separately defined monthly recurrence; interest excludes all contributions.",
         "assumptions": [
-          "Deposits occur at the end of each month. The term contains a whole number of months.",
+          "Equal deposits occur at the specified start or end of each month, defaulting to end when absent. The term is a nonnegative whole number of months; rate is nominal annual with monthly compounding.",
           "Annual rates are nominal fractions; compounding frequency is explicit or uses the documented default.",
           "Two-phase growth, when supported, has no intervening deposits or withdrawals.",
           "Lump-sum growth uses nonnegative principal and duration and a positive periodic growth factor; monthly cashflow amounts are nonnegative."
@@ -28,7 +30,10 @@
         "untrusted": [
           "English recognition and decimal-to-request conversion; mathematical proof does not establish that the sentence was read correctly."
         ]
-      }
+      },
+      "context_regex_additions": [
+        "\\b(?:borrow\\w*|deposits?|contributions?|initial balance|opening balance)\\b"
+      ]
     },
     "finance-v2": {
       "accept": {
@@ -36,7 +41,9 @@
           "annuity",
           "two_phase",
           "compound_interest",
-          "simple_total"
+          "simple_total",
+          "cashflow_balance",
+          "cashflow_interest"
         ],
         "declines_in_domain": [
           "impossible",
@@ -46,9 +53,9 @@
         ]
       },
       "evidence": {
-        "computation": "Exact or certified enclosed growth quantities with explicit interest-versus-balance target; interest is selected before final rounding. Monthly payment and deposit schedules contain exactly twelve times the stated years in whole periods. Existing annuity and two-phase equations remain available.",
+        "computation": "Exact or certified enclosed growth quantities with explicit interest-versus-balance target; interest is selected before final rounding. Monthly payment and deposit schedules contain exactly twelve times the stated years in whole periods. Existing annuity and two-phase equations remain available. Equal monthly cashflows include an explicit opening balance and start/end deposit timing. The closed form equals a separately defined monthly recurrence; interest excludes all contributions.",
         "assumptions": [
-          "Deposits occur at the end of each month. The term contains a whole number of months.",
+          "Equal deposits occur at the specified start or end of each month, defaulting to end when absent. The term is a nonnegative whole number of months; rate is nominal annual with monthly compounding.",
           "Annual rates are nominal fractions; compounding frequency is explicit or uses the documented default.",
           "Two-phase growth, when supported, has no intervening deposits or withdrawals.",
           "Lump-sum growth uses nonnegative principal and duration and a positive periodic growth factor; monthly cashflow amounts are nonnegative."
@@ -56,7 +63,10 @@
         "untrusted": [
           "English recognition and decimal-to-request conversion; mathematical proof does not establish that the sentence was read correctly."
         ]
-      }
+      },
+      "context_regex_additions": [
+        "\\b(?:borrow\\w*|deposits?|contributions?|initial balance|opening balance)\\b"
+      ]
     },
     "finance-v2-r2": {
       "accept": {
@@ -64,7 +74,9 @@
           "annuity",
           "two_phase",
           "compound_interest",
-          "simple_total"
+          "simple_total",
+          "cashflow_balance",
+          "cashflow_interest"
         ],
         "declines_in_domain": [
           "impossible",
@@ -73,9 +85,9 @@
         ]
       },
       "evidence": {
-        "computation": "Exact or certified enclosed growth quantities with explicit interest-versus-balance target; interest is selected before final rounding. Monthly payment and deposit schedules contain exactly twelve times the stated years in whole periods. Existing annuity and two-phase equations remain available.",
+        "computation": "Exact or certified enclosed growth quantities with explicit interest-versus-balance target; interest is selected before final rounding. Monthly payment and deposit schedules contain exactly twelve times the stated years in whole periods. Existing annuity and two-phase equations remain available. Equal monthly cashflows include an explicit opening balance and start/end deposit timing. The closed form equals a separately defined monthly recurrence; interest excludes all contributions.",
         "assumptions": [
-          "Deposits occur at the end of each month. The term contains a whole number of months.",
+          "Equal deposits occur at the specified start or end of each month, defaulting to end when absent. The term is a nonnegative whole number of months; rate is nominal annual with monthly compounding.",
           "Annual rates are nominal fractions; compounding frequency is explicit or uses the documented default.",
           "Two-phase growth, when supported, has no intervening deposits or withdrawals.",
           "Lump-sum growth uses nonnegative principal and duration and a positive periodic growth factor; monthly cashflow amounts are nonnegative."
@@ -83,7 +95,10 @@
         "untrusted": [
           "English recognition and decimal-to-request conversion; mathematical proof does not establish that the sentence was read correctly."
         ]
-      }
+      },
+      "context_regex_additions": [
+        "\\b(?:borrow\\w*|deposits?|contributions?|initial balance|opening balance)\\b"
+      ]
     },
     "economics": {
       "accept": {

@@ -59,6 +59,7 @@ definition rat_parts :: "rat \<Rightarrow> integer \<times> integer" where
   "rat_parts r = (integer_of_int (fst (quotient_of r)), integer_of_int (snd (quotient_of r)))"
 
 export_code rat_parts check_discount_tax discount_tax_value reply_of answered reply_kind response stated answers mk_rat
+  F_Cashflow CF_Balance CF_Interest At_Start At_End
   Fq_annual Fq_semi Fq_quarterly Fq_monthly Fq_weekly Fq_daily Fq_continuous
   F_Apy F_Doubling F_LoanPayment F_LoanInterest F_Savings F_Simple F_SimpleTotal F_Compound F_CompoundInterest F_Advice F_UnknownTarget F_MultiPhase
   E_Elasticity E_ElasticityPct E_Inflation E_RealValue E_RealRate E_Fisher E_Growth E_Multiplier
@@ -68,7 +69,7 @@ export_code rat_parts check_discount_tax discount_tax_value reply_of answered re
   in SML module_name Finance file_prefix finance
 
 ML \<open>
-  val theorems = [@{thm reorder_point_nonnegative}, @{thm price_from_markup_nonnegative}, @{thm inventory_turnover_nonnegative}, @{thm kernel_exact_sound}, @{thm kernel_cents_sound}, @{thm kernel_approx_sound},
+  val theorems = [@{thm cashflow_recurrence}, @{thm cashflow_due_contribution}, @{thm cashflow_balance_binding}, @{thm cashflow_interest_binding}, @{thm reorder_point_nonnegative}, @{thm price_from_markup_nonnegative}, @{thm inventory_turnover_nonnegative}, @{thm kernel_exact_sound}, @{thm kernel_cents_sound}, @{thm kernel_approx_sound},
     @{thm kernel_underspecified}, @{thm kernel_impossible}, @{thm kernel_imprecise},
     @{thm reason_of_exact}, @{thm never_even_iff},
     @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm to_dec_at_sound}, @{thm to_dec_g4_sound},

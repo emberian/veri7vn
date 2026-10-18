@@ -128,6 +128,8 @@ section \<open>Requests and outcomes\<close>
 
 datatype retail_target = RT_Final | RT_Tax | RT_Saving
 
+datatype deposit_timing = At_Start | At_End
+datatype cashflow_target = CF_Balance | CF_Interest
 datatype request =
     F_Apy "rat option" "freq option"
   | F_Doubling "rat option"
@@ -139,6 +141,7 @@ datatype request =
   | F_CompoundInterest "rat option" "rat option" "rat option" "freq option"
   | F_SimpleTotal "rat option" "rat option" "rat option"
   | F_Annuity "rat option" "rat option" "rat option"
+  | F_Cashflow "rat option" "rat option" "rat option" "rat option" deposit_timing cashflow_target
   | F_TwoPhase "rat option" "rat option" "rat option" "freq option" "rat option" "rat option" "freq option"
   | F_Advice
   | F_UnknownTarget
@@ -180,7 +183,7 @@ numbers (as the organs hold them). Lane B-finance additions: a monthly deposit
 compounding for each phase), real GDP from nominal GDP and the deflator, and a
 discounted price with tax (discounts as percent numbers, tax as a fraction).\<close>
 
-datatype need = N_apr_freq | N_pos_rate | N_loan | N_goal | N_simple | N_compound
+datatype need = N_cashflow | N_apr_freq | N_pos_rate | N_loan | N_goal | N_simple | N_compound
   | N_unemployed | N_labour | N_lf_pop | N_gdps | N_growth | N_elasticity | N_cpi | N_cpi_years
   | N_break_even | N_eoq | N_rop | N_turnover | N_annuity | N_two_phase | N_real_gdp
 
@@ -189,7 +192,7 @@ datatype reason = R_term | R_degenerate | R_mpc | R_unemp | R_partic | R_positiv
 
 datatype decline = Underspecified need | Impossible reason | Advice | MultiPhase | RetailModel | UnknownTarget | Imprecise
 
-datatype kind = K_compound_interest | K_simple_total | K_apy | K_doubling | K_loan_interest | K_loan_payment | K_savings_goal
+datatype kind = K_cashflow_balance | K_cashflow_interest | K_compound_interest | K_simple_total | K_apy | K_doubling | K_loan_interest | K_loan_payment | K_savings_goal
   | K_simple_interest | K_compound | K_advice | K_multi_phase
   | K_elasticity | K_inflation | K_real_value | K_real_rate | K_growth | K_multiplier
   | K_tax_multiplier | K_unemployment | K_participation | K_deflator | K_rule70
@@ -205,6 +208,8 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (F_Savings _ _ _) = K_savings_goal" | "kind_of (F_Simple _ _ _) = K_simple_interest"
 | "kind_of (F_CompoundInterest _ _ _ _) = K_compound_interest"
 | "kind_of (F_SimpleTotal _ _ _) = K_simple_total"
+| "kind_of (F_Cashflow _ _ _ _ _ CF_Balance) = K_cashflow_balance"
+| "kind_of (F_Cashflow _ _ _ _ _ CF_Interest) = K_cashflow_interest"
 | "kind_of (F_Compound _ _ _ _) = K_compound" | "kind_of F_Advice = K_advice"
 | "kind_of F_UnknownTarget = K_advice"
 | "kind_of F_MultiPhase = K_multi_phase"
@@ -244,6 +249,7 @@ fun fmt_of :: "kind \<Rightarrow> fmt" where
 | "fmt_of K_growth = Fm_g3" | "fmt_of K_multiplier = Fm_g3" | "fmt_of K_tax_multiplier = Fm_g3"
 | "fmt_of K_unemployment = Fm_g3" | "fmt_of K_participation = Fm_g3" | "fmt_of K_deflator = Fm_g3"
 | "fmt_of K_rule70 = Fm_g3"
+| "fmt_of K_cashflow_balance = Fm_money" | "fmt_of K_cashflow_interest = Fm_money"
 | "fmt_of K_annuity = Fm_money" | "fmt_of K_two_phase = Fm_money" | "fmt_of K_real_gdp = Fm_g3"
 | "fmt_of K_discount_tax = Fm_money"
 | "fmt_of K_tax_amount = Fm_money" | "fmt_of K_discount_savings = Fm_money"
@@ -275,6 +281,7 @@ fun missing :: "request \<Rightarrow> need option" where
 | "missing (F_Compound p r y f) = (if p = None \<or> r = None \<or> y = None then Some N_compound else None)"
 | "missing (F_CompoundInterest p r y f) = (if p = None \<or> r = None \<or> y = None then Some N_compound else None)"
 | "missing (F_SimpleTotal p r y) = (if p = None \<or> r = None \<or> y = None then Some N_simple else None)"
+| "missing (F_Cashflow p d r y t q) = (if p = None \<or> d = None \<or> r = None \<or> y = None then Some N_cashflow else None)"
 | "missing (F_Annuity d r y) = (if d = None \<or> r = None \<or> y = None then Some N_annuity else None)"
 | "missing (F_TwoPhase p r1 y1 f1 r2 y2 f2) =
      (if p = None \<or> r1 = None \<or> y1 = None \<or> r2 = None \<or> y2 = None then Some N_two_phase else None)"
@@ -304,6 +311,8 @@ fun impossible :: "request \<Rightarrow> bool" where
 | "impossible (F_CompoundInterest (Some p) (Some r) (Some y) fo) \<longleftrightarrow> \<not> growth_ok p r y fo"
 | "impossible (F_Simple (Some p) (Some r) (Some y)) \<longleftrightarrow> \<not> simple_ok p r y"
 | "impossible (F_SimpleTotal (Some p) (Some r) (Some y)) \<longleftrightarrow> \<not> simple_ok p r y"
+| "impossible (F_Cashflow (Some p) (Some d) (Some r) (Some y) t q) \<longleftrightarrow>
+     y < 0 \<or> of_nat (months y) \<noteq> 12 * y \<or> p < 0 \<or> d < 0 \<or> r \<le> -12"
 | "impossible (F_Annuity (Some d) (Some r) (Some y)) \<longleftrightarrow> months y = 0 \<or> of_nat (months y) \<noteq> 12 * y \<or> d < 0 \<or> r \<le> -12"
 | "impossible (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) \<longleftrightarrow>
      \<not> phase_ok y1 f1 \<or> \<not> phase_ok y2 f2"
@@ -343,6 +352,9 @@ fun reason_of :: "request \<Rightarrow> reason option" where
 | "reason_of (F_CompoundInterest (Some p) (Some r) (Some y) fo) = (if growth_ok p r y fo then None else Some R_positive)"
 | "reason_of (F_Simple (Some p) (Some r) (Some y)) = (if simple_ok p r y then None else Some R_positive)"
 | "reason_of (F_SimpleTotal (Some p) (Some r) (Some y)) = (if simple_ok p r y then None else Some R_positive)"
+| "reason_of (F_Cashflow (Some p) (Some d) (Some r) (Some y) t q) =
+     (if y < 0 \<or> of_nat (months y) \<noteq> 12 * y then Some R_term
+      else if p < 0 \<or> d < 0 \<or> r \<le> -12 then Some R_positive else None)"
 | "reason_of (F_Annuity (Some d) (Some r) (Some y)) = (if months y = 0 \<or> of_nat (months y) \<noteq> 12 * y then Some R_term
      else if d < 0 \<or> r \<le> -12 then Some R_positive else None)"
 | "reason_of (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) =
@@ -407,6 +419,17 @@ rate @{text i} (the closed form of @{text accum}).\<close>
 definition fv_ann :: "rat \<Rightarrow> rat \<Rightarrow> nat \<Rightarrow> rat" where
   "fv_ann d i n = (if i = 0 then of_nat n * d else d * (rpow (1 + i) n - 1) / i)"
 
+fun effective_deposit :: "deposit_timing \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat" where
+  "effective_deposit At_Start i d = d * (1 + i)"
+| "effective_deposit At_End i d = d"
+
+definition cashflow_value :: "deposit_timing \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> nat \<Rightarrow> rat" where
+  "cashflow_value t i d p n = p * rpow (1 + i) n + fv_ann (effective_deposit t i d) i n"
+
+fun cashflow_amount :: "cashflow_target \<Rightarrow> deposit_timing \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> nat \<Rightarrow> rat" where
+  "cashflow_amount CF_Balance t i d p n = cashflow_value t i d p n"
+| "cashflow_amount CF_Interest t i d p n = cashflow_value t i d p n - p - of_nat n * d"
+
 fun qval :: "request \<Rightarrow> rat" where
   "qval (F_Apy (Some r) (Some f)) = 100 * (rpow (1 + r / of_nat (per f)) (per f) - 1)"
 | "qval (F_LoanPayment (Some p) (Some r) (Some y)) = pmt p (r / 12) (months y)"
@@ -420,6 +443,7 @@ fun qval :: "request \<Rightarrow> rat" where
      (case nat_exp (of_nat (per (dflt fo)) * y) of
         Some n \<Rightarrow> p * (1 + r / of_nat (per (dflt fo))) ^ n - p | None \<Rightarrow> 0)"
 | "qval (F_SimpleTotal (Some p) (Some r) (Some y)) = p + p * r * y"
+| "qval (F_Cashflow (Some p) (Some d) (Some r) (Some y) t q) = cashflow_amount q t (r / 12) d p (months y)"
 | "qval (F_Annuity (Some d) (Some r) (Some y)) = fv_ann d (r / 12) (months y)"
 | "qval (F_TwoPhase (Some p) (Some r1) (Some y1) f1 (Some r2) (Some y2) f2) =
      (case nat_exp (of_nat (per (dflt f1)) * y1) of
@@ -1326,6 +1350,43 @@ proof -
   show ?thesis using assms h by (simp add: fv_ann_def eq_divide_eq)
 qed
 
+subsection \<open>Initial balances and deposit timing\<close>
+
+fun cashflow_steps :: "deposit_timing \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> nat \<Rightarrow> rat" where
+  "cashflow_steps t i d p 0 = p"
+| "cashflow_steps t i d p (Suc n) = cashflow_steps t i d p n * (1 + i) + effective_deposit t i d"
+
+lemma cashflow_superposition:
+  "cashflow_steps t i d p n = p * (1+i)^n + accum i (effective_deposit t i d) n"
+  by (induction n) (simp_all add: algebra_simps)
+
+lemma fv_ann_all_rates: "fv_ann d i n = accum i d n"
+  by (cases "i = 0") (simp_all add: fv_ann_def accum_zero_rate fv_ann_accum)
+
+theorem cashflow_recurrence:
+  "cashflow_value t i d p n = cashflow_steps t i d p n"
+  by (simp add: cashflow_value_def fv_ann_all_rates cashflow_superposition)
+
+lemma accum_scale: "accum i (d * f) n = accum i d n * f"
+  by (induction n) (simp_all add: algebra_simps)
+
+theorem cashflow_due_contribution:
+  "cashflow_value At_Start i d p n - p * (1+i)^n =
+   (cashflow_value At_End i d p n - p * (1+i)^n) * (1+i)"
+  by (simp add: cashflow_value_def fv_ann_all_rates accum_scale)
+
+theorem cashflow_balance_binding:
+  assumes "kernel (F_Cashflow (Some p) (Some d) (Some r) (Some y) t CF_Balance) = Exact k v"
+  shows "0 \<le> p \<and> 0 \<le> d \<and> -12 < r \<and> 0 \<le> y \<and>
+    of_nat (months y) = 12*y \<and> v = cashflow_steps t (r/12) d p (months y)"
+  using kernel_exact_sound[OF assms] by (simp add: cashflow_recurrence)
+
+theorem cashflow_interest_binding:
+  assumes "kernel (F_Cashflow (Some p) (Some d) (Some r) (Some y) t CF_Interest) = Exact k v"
+  shows "v + p + of_nat (months y) * d = cashflow_steps t (r/12) d p (months y)"
+  using kernel_exact_sound[OF assms] by (simp add: cashflow_recurrence)
+
+
 theorem annuity_accumulates:
   assumes "kernel (F_Annuity (Some d) (Some r) (Some y)) = Exact k fv"
   shows "0 < months y \<and> of_nat (months y) = 12 * y \<and> accum (r / 12) d (months y) = fv"
@@ -1560,6 +1621,12 @@ definition exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal
      + STR '' (I = P*r*t = '' + money p + STR '' x '' + pc r + STR ''% x '' + g6 y + STR '' years); total ''
      + money (p + q) + STR ''.''
    | F_CompoundInterest (Some p) (Some r) (Some y) fo \<Rightarrow> STR ''The interest earned is '' + V + STR '' (final balance minus initial principal '' + money p + STR '').''
+   | F_Cashflow (Some p) (Some d) (Some r) (Some y) t q \<Rightarrow>
+    (case q of CF_Balance \<Rightarrow> STR ''The final balance is '' | CF_Interest \<Rightarrow> STR ''The net interest earned is '') + V
+    + STR '' with an initial balance of '' + money p + STR '', deposits of '' + money d
+    + STR '' at the '' + (case t of At_Start \<Rightarrow> STR ''start'' | At_End \<Rightarrow> STR ''end'')
+    + STR '' of each month, and monthly compounding at a nominal annual rate of '' + pc r + STR ''%.''
+
    | F_SimpleTotal (Some p) (Some r) (Some y) \<Rightarrow> STR ''The final balance is '' + V + STR '' (principal plus simple interest).''
    | F_Compound (Some p) (Some r) (Some y) fo \<Rightarrow> STR ''It grows to '' + V + STR '' (''
      + money p + STR '' at '' + pc r + STR ''% compounded '' + freq_word (dflt fo) + STR '' for '' + g6 y
@@ -1670,6 +1737,7 @@ fun need_what :: "need \<Rightarrow> String.literal" where
 | "need_what N_eoq = STR ''the annual demand, the cost per order and the holding cost per unit per year''"
 | "need_what N_rop = STR ''the daily demand and the lead time''"
 | "need_what N_turnover = STR ''the cost of goods sold and the average inventory''"
+| "need_what N_cashflow = STR ''the initial balance, monthly deposit, annual rate and time''"
 | "need_what N_annuity = STR ''the monthly deposit, the annual rate and the time''"
 | "need_what N_two_phase = STR ''the starting amount and the rate and time of each phase''"
 | "need_what N_real_gdp = STR ''both nominal GDP and the GDP deflator''"
@@ -1727,6 +1795,8 @@ definition kind_name :: "kind \<Rightarrow> String.literal" where
      | K_markup \<Rightarrow> STR ''markup'' | K_margin \<Rightarrow> STR ''margin''
      | K_price_from_markup \<Rightarrow> STR ''price_from_markup'' | K_price_from_margin \<Rightarrow> STR ''price_from_margin''
      | K_discount \<Rightarrow> STR ''discount'' | K_with_tax \<Rightarrow> STR ''with_tax''
+     | K_cashflow_balance \<Rightarrow> STR ''cashflow_balance'' | K_cashflow_interest \<Rightarrow> STR ''cashflow_interest''
+
      | K_annuity \<Rightarrow> STR ''annuity'' | K_two_phase \<Rightarrow> STR ''two_phase'' | K_real_gdp \<Rightarrow> STR ''real_gdp''
      | K_discount_tax \<Rightarrow> STR ''discount_tax'' | K_tax_amount \<Rightarrow> STR ''tax_amount''
      | K_discount_savings \<Rightarrow> STR ''discount_savings'')"

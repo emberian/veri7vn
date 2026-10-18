@@ -159,7 +159,7 @@ struct
   val SIGNED_N = "(?<![\\w.,+\\-])(" ^ DECIMAL ^ ")(?![\\w,]|\\.\\d)"
   val PCT0 = SIGNED_N ^ "\\s*(?:%|percent\\b)"
   val PCT = PCT0
-  val FIN_MONEY = "\\binterest\\b|\\bloan\\b|\\bmortgage\\b|\\bapr\\b|\\bapy\\b|\\bsav(?:e|ings)\\b|\\binvest\\w*\\b|\\bcompound\\w*\\b|\\bdoubl\\w*\\b|\\bdeposit\\b"
+  val FIN_MONEY = "\\bborrow\\w*\\b|" ^ "\\binterest\\b|\\bloan\\b|\\bmortgage\\b|\\bapr\\b|\\bapy\\b|\\bsav(?:e|ings)\\b|\\binvest\\w*\\b|\\bcompound\\w*\\b|\\bdoubl\\w*\\b|\\bdeposit\\b"
   val ADVICE = "\\bshould i\\b|\\bis it (?:a )?(?:good|bad|smart|wise)\\b|\\bworth it\\b|\\bwhich (?:stock|fund|etf|crypto|coin|bank|card)\\b|"
     ^ "\\bbest (?:investment|stock|fund|way to invest)\\b|\\bwhat (?:should|to) (?:i )?(?:buy|invest)\\b|\\brecommend\\b|\\bwill .* go up\\b"
 
@@ -245,6 +245,58 @@ struct
   fun annuityReq low =
     Option.map (fn dep => F.F_Annuity (SOME (rat dep), ratO (frate low), ratO (fyears low))) (monthlyDeposit low)
 
+  (* Forward equal monthly cashflows: separately bind opening balance and
+     deposit, rather than choosing the first currency token. *)
+  fun cashflowReq original = withNumbers original (fn low => fn number =>
+    let
+      val depPattern = "\\$\\s*" ^ QNUM ^ "\\s*(?:(?:at\\s+)?the\\s+(?:beginning|start|end|finish)\\s+of\\s+)?(?:a|each|every|per)\\s+month\\b|\\bmonthly (?:deposits?|contributions?) of\\s*\\$\\s*" ^ QNUM
+      val openingPattern = "\\b(?:initial|starting|opening) (?:balance|principal)(?: of| is| =)?\\s*\\$\\s*" ^ QNUM ^ "|\\b(?:start|begin) with\\s*\\$\\s*" ^ QNUM ^ "|\\balready have\\s*\\$\\s*" ^ QNUM
+      val deposits = findall depPattern low
+      val openings = findall openingPattern low
+      fun selected m groups = Option.map number (firstGroup low m groups)
+      val dep = case deposits of [m] => selected m [1,2] | _ => NONE
+      val opening = case openings of [m] => selected m [1,2,3]
+        | [] => if length (findall "\\$" low) = 1 andalso not (has "\\b(?:initial|starting|opening|already)\\b" low) then SOME (fint 0) else NONE
+        | _ => NONE
+      val openingNamed = has "\\b(?:initial|starting|opening|already|start with|begin with)\\b" low
+      val cashflowTopic = has "\\b(?:deposit|deposits|depositing|contribute|contributes|contributions|save|saving)\\b" low
+        andalso has "\\bmonthly\\b|\\b(?:each|every|per|a) month\\b" low
+      val starts = has "\\b(?:beginning|start)(?: and (?:end|finish))? of (?:each|every|the) month\\b|\\bannuity due\\b" low
+      val ends = has "\\b(?:end|finish)(?: and (?:beginning|start))? of (?:each|every|the) month\\b" low
+      val target = moneyTarget original
+      val frequencyOk = case freqOf original of NONE => true | SOME F.Fq_monthly => true | SOME _ => false
+      val scopeOk = frequencyOk andalso not (starts andalso ends)
+        andalso not (has "\\bwithdraw\\w*\\b|\\b(?:weekly|yearly|annual) deposits?\\b" low)
+        andalso length (findall "\\$" low) = length deposits + length openings
+        andalso length (rates original) <= 1
+        andalso length (findall (QNUM ^ "\\s*(?:years?|months?)\\b") low) <= 1
+        andalso not (has "\\b(?:then|thereafter|withdrawals?|fees?|tax(?:es)?|apy|effective annual)\\b" low)
+    in if null deposits andalso not cashflowTopic then NONE
+       else if null deposits then SOME F.F_UnknownTarget
+       else if not scopeOk orelse target = UnknownTarget orelse (openingNamed andalso not (isSome opening)) then SOME F.F_UnknownTarget
+       else SOME (F.F_Cashflow (ratO opening, ratO dep, ratO (frate original), ratO (fyears original),
+         if starts then F.At_Start else F.At_End,
+         if target = InterestAmount then F.CF_Interest else F.CF_Balance))
+    end)
+  datatype loan_target = LoanPayment | LoanInterest | LoanUnknown
+  fun loanTarget low =
+    let
+      val q = quantityScope low
+      val det = "(?:(?:the|my|our|your|its|their)\\s+)?"
+      val ask = "(?:what(?: is| was| will be| would be)?|calculate|compute|find|determine|work out)\\s+"
+      val endRole = "(?=\\s*(?:[,?!.;:]|$|\\b(?:is|are|was|were|will|would|on|from|for|over|after|if|at|to|of|including|excluding|that)\\b))"
+      val payment = has ("\\b" ^ ask ^ det ^ "(?:monthly\\s+)?payment\\b" ^ endRole) q
+        orelse has "\\bhow much\\s+(?:(?:will|would|must|should|do)\\s+(?:i|we|you)\\s+)?pay\\s+(?:each|every|per|a)\\s+month\\b" q
+        orelse has ("^\\s*" ^ det ^ "monthly\\s+payment\\b" ^ endRole) q
+      val interest = moneyTarget q = InterestAmount
+        orelse has "\\bhow much\\s+(?:total\\s+)?interest\\s+(?:do|will|would|did)\\s+(?:i|we|you)\\s+pay\\b" q
+        orelse has ("^\\s*" ^ det ^ "(?:total\\s+)?interest\\b" ^ endRole) q
+      val multiple = has "\\b(?:interest|payment)\\s+(?:and|plus|as well as)\\s+(?:(?:the|total|monthly)\\s+)*(?:interest|payment)\\b" q
+    in if multiple then LoanUnknown
+       else case (payment, interest) of
+         (true,false) => LoanPayment | (false,true) => LoanInterest | _ => LoanUnknown
+    end
+
   fun finCore low : F.request option =
     if not (has FIN_MONEY low) orelse not (isSome (ExactNumeric.mask low)) then NONE
     else
@@ -261,10 +313,10 @@ struct
             if has "\\bapy\\b|\\beffective annual\\b" low andalso has "\\bapr\\b|\\bnominal\\b|\\bcompounded\\b" low then
               SOME (F.F_Apy (r, freqOf low))
             else if has "\\bdouble\\b|\\bdoubling\\b" low then SOME (F.F_Doubling r)
-            else if has "\\bloan\\b|\\bmortgage\\b|\\bborrow" low
-                    andalso has "\\bpayment\\b|\\bpay (?:each|per|a) month\\b|\\bmonthly\\b|\\btotal interest\\b|\\bhow much interest\\b" low then
-              SOME (if has "\\btotal interest\\b|\\bhow much interest\\b" low then F.F_LoanInterest (P, r, y)
-                    else F.F_LoanPayment (P, r, y))
+            else if has "\\bloan\\b|\\bmortgage\\b|\\bborrow" low then
+              (case loanTarget low of LoanInterest => SOME (F.F_LoanInterest (P,r,y))
+               | LoanPayment => SOME (F.F_LoanPayment (P,r,y))
+               | LoanUnknown => SOME F.F_UnknownTarget)
             else if has ("\\bhow much (?:should|do|would|must) i (?:save|deposit|put)\\b|"
                          ^ "\\bmonthly (?:deposit|saving|contribution)\\b.*\\b(?:reach|goal|have)\\b|\\bto (?:reach|have|save up)\\b") low
                     andalso has "\\bmonth" low then
@@ -272,6 +324,7 @@ struct
             else if has "\\bsimple interest\\b" low then
               (case moneyTarget low of InterestAmount => SOME (F.F_Simple (P, r, y))
                | FinalBalance => SOME (F.F_SimpleTotal (P, r, y)) | UnknownTarget => SOME F.F_UnknownTarget)
+            else if isSome (cashflowReq low) then cashflowReq low
             else if annuityOk low then annuityReq low
             else if isSome (monthlyDeposit low) then
               (if moneyTarget low = UnknownTarget then SOME F.F_UnknownTarget else NONE)

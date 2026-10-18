@@ -37,3 +37,14 @@ those measured labels and explains the model distinction; no scorer was edited.
 
 Current statements, probes, measured limits and artifact bindings:
 `project/lanes/D-finance.md`. Historical C and B reports retain earlier results.
+
+
+Cashflow extension: an opening balance plus equal monthly deposits can request
+either the ending balance or interest after subtracting every contribution.
+Deposits occur at the specified start or end of the month (default end). The
+term must contain a nonnegative whole number of months, amounts are nonnegative,
+and the nominal annual rate gives a positive monthly growth factor. A separate
+monthly recurrence agrees with the executable closed form; zero months returns
+the opening balance and zero earned interest. Tax, fees, withdrawals, effective
+annual yield, and mixed schedules remain unsupported. Explicit loan targets
+select monthly payment or total interest; breakdowns/multiple targets refuse.
