@@ -1,0 +1,147 @@
+[
+  {
+    "specialist": "linguistics",
+    "q": "Which family does ENGLISH belong to?",
+    "expect": "Indo-European"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does (German) belong to?",
+    "expect": "Indo-European"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Finnish belong to?",
+    "expect": "Uralic"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does Basque belong to?",
+    "expect": "isolate"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does xenglish belong to?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does englishx belong to?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does \u00e9english belong to?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does english\u00e9 belong to?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does english_ belong to?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "linguistics",
+    "q": "Which family does 2english belong to?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Which book begins 'It was the best of times, it was the worst of times'?",
+    "expect": "A Tale of Two Cities"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "What is the best book: 'Pride and Prejudice'?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "botany",
+    "q": "Describe the vein pattern in dicot leaves: parallel or net?",
+    "expect": "net"
+  },
+  {
+    "specialist": "botany",
+    "q": "What is the function of stomata in plants?",
+    "expect": "gas exchange"
+  },
+  {
+    "specialist": "botany",
+    "q": "What is the function of my plant?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "marinebio",
+    "q": "Which animal is the biggest that has ever lived?",
+    "expect": "blue whale"
+  },
+  {
+    "specialist": "marinebio",
+    "q": "Which fish is the largest in the ocean?",
+    "expect": "whale shark"
+  },
+  {
+    "specialist": "marinebio",
+    "q": "Which animal is the largest in Loch Ness?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "marinebio",
+    "q": "Which animal is the biggest in my aquarium?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ornithology",
+    "q": "Which bird is the fastest when diving?",
+    "expect": "peregrine falcon"
+  },
+  {
+    "specialist": "ornithology",
+    "q": "Which animals are the only ones with feathers?",
+    "expect": "birds"
+  },
+  {
+    "specialist": "ornithology",
+    "q": "Which bird is the best when diving?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "marinebio",
+    "q": "Which fish is the largest in Loch Ness?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ornithology",
+    "q": "Which bird is the fastest in my garden?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "medicine",
+    "q": "What is normal human body temperature?",
+    "expect": "98.6"
+  },
+  {
+    "specialist": "medicine",
+    "q": "What is the normal body temperature?",
+    "expect": "98.6"
+  },
+  {
+    "specialist": "medicine",
+    "q": "What is a dog's normal body temperature?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "medicine",
+    "q": "What is an axolotl's normal body temperature?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "pets",
+    "q": "What is a dog's normal body temperature?",
+    "expect": "101 to 102.5"
+  }
+]

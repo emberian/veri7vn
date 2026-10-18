@@ -1,7 +1,8 @@
 # Facts and humanities continuation
 
-Owner: Codex symbolic/facts_humanities, 18 October 2026. Work in progress;
-new HOL statements await fresh remote build receipts. No completion claim yet.
+Owner: Codex symbolic/facts_humanities, 18 October 2026. Both families are
+complete with fresh proof exports, native panels and dispatcher probes.
+Humanities is committed as `45c425b`; Facts is frozen and ready for integration.
 
 ## What changes
 
@@ -34,7 +35,7 @@ values. The family build scripts consume remote exports and accept explicit
 `FACTS_GEN`/`HUMANITIES_GEN` paths to pin a completed attempt; they do not delete
 old exports or silently read a stale local session database.
 
-## Measurements so far
+## Baseline and development measurements
 
 Before: humanities specialist dev/heldout right:
 music-v2 64/64, music-v2-r2 64/64, grammar 15/15, mythology 13/13,
@@ -51,11 +52,11 @@ government. The fixed Facts panels have no seed parameter or random generation;
 claiming fresh seeded Facts panels would be misleading.
 
 All 22 Facts specialists measured before: dev 221/221 right, heldout 200/207
-right, zero wrong/false yes; seven omissions remain (literature quotation blocked
+right, zero wrong/false yes; seven baseline omissions (literature quotation blocked
 by `best`/`worst`, botany 2, marine biology 2, ornithology 2). Exact per-specialist
 counts are in `var/c-symbolic-facts-humanities/all-facts-before.json`.
 
-## Statements being checked
+## Proved statements consumed by the implementation
 
 - `word_holds_occurrence`: the executable word matcher succeeds iff an offset
   in the question satisfies `word_at`, which independently spells out substring
@@ -73,16 +74,15 @@ counts are in `var/c-symbolic-facts-humanities/all-facts-before.json`.
 - `g2r_in_r2g`: each forward row with different Greek and Roman keys has its
   reversed names in the reverse table.
 
-## Remaining before integration
+## Remaining scope
 
-Fresh remote proofs, actual exports, authoritative binaries, full affected
-panels and untouched fresh evaluation, timing, composition probes, source freeze.
-Facts also completes the seven reachable question forms. Its warm-export
-recognizer check reaches 221/221 dev and 207/207 heldout, zero wrong/false yes,
-and has no changed replies on each specialist's 924 core questions compared with
-the shipped organ. Its 24 probes pass 22 on the warm old kernel: `éenglish` and
-`englishé` expose old regex false yes; the new HOL word matcher must close them
-in the fresh build. This is deliberately not reported as 24/24 before that run.
+Root integration and cross-platform packaging consume the frozen source and
+receipts below. No Facts or Humanities proof or native-panel work remains.
+These are scoped family results, not all six exam criteria or a full Oracle7
+head comparison. Source assertions, broad natural-language interpretation and
+nonliteral regex guards remain untrusted. Facts has fixed panels rather than
+fresh random generators. No value-substring claim is revived: source values
+need not occur literally in their sentences.
 
 ## Humanities ready for integration (final native evidence)
 
@@ -126,4 +126,61 @@ Humanities changed files (frozen): README.md, Humanities_Export.thy, build.sh,
 recognizer.sml, capabilities.json, beyond_check.py, beyond_probes.json,
 check_probes.py, facts/Grammar.thy, facts/Mythology.thy, facts/Facts_Check.thy,
 music/Music.thy, music/Music_Check.thy, all below `src/extract/humanities/`.
-This report remains open for the Facts byte-input export/test follow-through.
+Humanities source is frozen and committed; no subsequent edits were made.
+
+
+## Facts ready for integration (final native evidence)
+
+Proof/export receipt:
+`var/facts/remote-attempts/20261018T065727Z-84d4fd490a22/receipt.json`,
+passed, export published, exit 0; `VERI7VN_FACTS PASS theorems=62 oracles=0`.
+The executable offset equivalence needed `auto` rather than `simp`; its statement
+was unchanged. The initial literal-string interface rejected non-ASCII input.
+The final interface exports `question_bytes`, decoding actual UTF-8 byte integers
+into HOL characters, and the driver passes that result into both text answerers.
+It does not strip or replace accented characters. Bytes 128 and above count as
+word characters, so accented adjacency cannot masquerade as an English word
+boundary. Unicode punctuation may conservatively prevent a match; this is not
+full Unicode linguistic word segmentation.
+
+All 22 specialist panels: **dev 221/221, heldout 207/207; wrong 0, false yes 0,
+valid omissions 0**. Family mode gives the same counts. Before: specialist
+221/200, family 220/200, with seven heldout omissions and a pre-existing family
+wrong answer for a dog's body temperature. Question normalization closes the
+seven omissions using existing rows. A positive recognition grammar now limits
+the human-temperature row to explicit human or unqualified constructions, so
+animal questions reach pets or remain silent. This narrowing is untrusted.
+The final core comparison has zero differences on each specialist's 924 questions.
+
+The final 29 author-written probes pass **29/29 natively and 29/29 through the
+actual dispatcher**, with specialist pinning, routes/guards enabled and relation/
+document adapters disabled. Three unpinned family probes also pass: dog gets
+101 to 102.5, human gets 98.6, and an axolotl temperature question is withheld.
+The accented prefix/suffix probes now return withheld, without exceptions.
+An accepted English-language family query reports `checked_ascii_word`, word
+`english`, with the other recognizer checks explicitly untrusted.
+
+Binary: 385,480 bytes; median cold start 5.35 ms; specialist p50 round trips
+0.240–1.449 ms, family 0.481–2.843 ms. Tables checker: 0 failures.
+Native inputs: `var/facts/build/compile-inputs.json`.
+Binary SHA256: `fe9ce8e556a1cc1ee31df1c9c214f75c43afaae0d3b10cfcd39cfa97e9c8a74e`.
+Export SHA256: `109a62fb2e6d608a3918f771397390eb24383b509132b99813e0f8c101d1b2bd`.
+Final recognizer SHA256: `f69d79ea390693f6ccc216fae5d40595908b046ea992a0de1a06c26ab0541ea8`.
+
+All own theories, ROOT, main.sml and build.sh match the successful proof snapshot.
+The final recognizer temperature narrowing follows that snapshot and is bound
+by the native compilation receipt; Linux packaging must consume this current
+recognizer, not blindly use the older snapshot. The compiled commons source
+matches the snapshot and has SHA256
+`1cce00aede6c14c3121ccfe8777b5bcdf3618ffcbeb6b6729e05e7b691a93962`.
+
+Final measurements under `var/c-symbolic-facts-humanities/`:
+`all-facts-final.json`, `facts-probes-final.json`, `facts-dispatch-final.json`,
+`facts-family-temperature-final.json`. The earlier `all-facts-ascii-export.json`
+is explicitly an obsolete ASCII-interface result, not final evidence.
+
+Facts changed files (frozen), all below `src/extract/facts/`:
+Facts_Export.thy, ROOT, Word_Guards.thy, main.sml, recognizer.sml, build.sh,
+README.md, capabilities.json, beyond_probes.json. The combined report is also
+ready for integration. No new kinds are added; capability declarations describe
+acceptance/evidence assumptions and are not per-answer proof certificates.

@@ -11,7 +11,7 @@
 
 structure Main =
 struct
-  val theorems = "[\"first_match\",\"no_rule_no_answer\",\"guard_exact\",\"answer_from_table\",\"organ_silent\",\"boundary_narrows\",\"family_first\",\"tables_well_formed\"]"
+  val theorems = "[\"text_answer_word_occurs\",\"text_answer_first_row\",\"first_match\",\"no_rule_no_answer\",\"guard_exact\",\"answer_from_table\",\"organ_silent\",\"boundary_narrows\",\"family_first\",\"tables_well_formed\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
@@ -55,10 +55,11 @@ struct
       val t0 = Time.now ()
       val narr = Recognizer.narrative q
       val m = Recognizer.features q
+      val textBytes = Facts.question_bytes (map (fn c => IntInf.fromInt (Char.ord c)) (String.explode q))
       val result =
         case mode of
-          SOME og => (Facts.organ_id og, Facts.organ_reply narr m og)
-        | NONE => (case Facts.family_reply narr m Facts.organs of
+          SOME og => (Facts.organ_id og, Facts.text_organ_reply narr textBytes m og)
+        | NONE => (case Facts.text_family_reply narr textBytes m Facts.organs of
                      SOME r => r
                    | NONE => ("family", Facts.Silent Facts.No_rule))
     in
@@ -69,6 +70,11 @@ struct
           ^ ", \"silence\": \"" ^ silence_name why ^ "\", \"specialist_ms\": " ^ ms t0 ^ "}}"
       | (organ, Facts.Answer (kind, value, sentence, store, row)) =>
           let val rowS = IntInf.toString (Facts.integer_of_nat row)
+              val guardEvidence = case Facts.organ_by_id organ of
+                  NONE => "null"
+                | SOME og => (case Facts.answer_word_guard og row of
+                    NONE => "{\"row_guard\":\"untrusted_regex\"}"
+                  | SOME word => "{\"row_guard\":\"checked_ascii_word\",\"word\":" ^ Json.quote word ^ ",\"other_checks\":\"untrusted\"}")
           in
           "{\"id\": " ^ id ^ ", \"status\": \"answered\""
           ^ ", \"response\": " ^ Json.quote (decode sentence)
@@ -77,7 +83,8 @@ struct
           ^ ", \"provenance\": {\"taken\": true, \"organ\": " ^ Json.quote organ
           ^ ", \"store\": " ^ Json.quote store ^ ", \"row\": " ^ rowS
           ^ ", \"specialist_ms\": " ^ ms t0
-          ^ ", \"kernel\": \"Facts.organ_reply\", \"session\": \"Veri7vn_Facts\", \"theorems\": "
+          ^ ", \"recognition\": " ^ guardEvidence
+          ^ ", \"kernel\": \"Facts.text_organ_reply\", \"session\": \"Veri7vn_Facts\", \"theorems\": "
           ^ theorems ^ "}}"
           end
     end

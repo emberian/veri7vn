@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "family": "facts",
+  "specialists": {
+    "linguistics": {
+      "accept": {
+        "kinds": [
+          "language_family"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "HOL literal word guard and ordered source-table lookup",
+        "assumptions": [
+          "Published table rows are treated as source assertions. ASCII case folding; non-ASCII bytes cannot create a word boundary."
+        ],
+        "untrusted": [
+          "JSON decoding, gate/block/ask patterns, narrative classifier, other regex patterns, source transcription."
+        ]
+      }
+    },
+    "literature-v2": {
+      "accept": {
+        "kinds": [
+          "literature"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [
+        "\\b(?:book|novel|opening line|begins)\\b"
+      ],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; literal word guards checked over supplied text.",
+        "assumptions": [
+          "Rows are source assertions. Pattern matching does not prove semantic entailment."
+        ],
+        "untrusted": [
+          "Question construction normalization, general regex matching, narrative classification, source transcription and JSON."
+        ]
+      }
+    },
+    "botany": {
+      "accept": {
+        "kinds": [
+          "botany"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; literal word guards checked over supplied text.",
+        "assumptions": [
+          "Rows are source assertions. Pattern matching does not prove semantic entailment."
+        ],
+        "untrusted": [
+          "Question construction normalization, general regex matching, narrative classification, source transcription and JSON."
+        ]
+      }
+    },
+    "marinebio": {
+      "accept": {
+        "kinds": [
+          "marine"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [
+        "\\b(?:animal|creature|fish)\\b"
+      ],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; literal word guards checked over supplied text.",
+        "assumptions": [
+          "Rows are source assertions. Pattern matching does not prove semantic entailment."
+        ],
+        "untrusted": [
+          "Question construction normalization, general regex matching, narrative classification, source transcription and JSON."
+        ]
+      }
+    },
+    "ornithology": {
+      "accept": {
+        "kinds": [
+          "ornithology"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; literal word guards checked over supplied text.",
+        "assumptions": [
+          "Rows are source assertions. Pattern matching does not prove semantic entailment."
+        ],
+        "untrusted": [
+          "Question construction normalization, general regex matching, narrative classification, source transcription and JSON."
+        ]
+      }
+    }
+  }
+}
