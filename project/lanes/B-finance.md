@@ -166,3 +166,79 @@ Panels with this binary (harness): shipped finance 129/129, v2 128/128, r2 128/1
 fresh F1+F2 259/259, 246/246, 246/246, 156/156; wrong 0, false yes 0; probes 26/0/0. Slowest remaining query kinds,
 CPU under a loaded laptop: doubling and continuous growth ~33 ms, a 30-year daily compound ~40 ms (10,950 periods), well
 inside the 50 ms budget but above a tenth of it; typical items are 1 ms.
+
+## Step 5: assurance (A1's audit, `docs/assurance/theorem-audit.md`, finance section; marker `theorems=52 oracles=0`)
+
+The audit named one vacuous statement and three missing binding theorems. All four done:
+
+- Retired `fisher_relation` (it proved the exact Fisher equation about a formula the kernel never computes). Replaced by
+```
+theorem real_rate_is_fisher_approximation:
+  assumes "kernel (E_RealRate i p) = Exact k v"
+  shows "v = i - p /\ |(1 + v / 100) * (1 + p / 100) - (1 + i / 100)| <= |v * p| / 10000"
+```
+- Loan interest against loan payment across kinds:
+```
+theorem loan_interest_agrees_with_payment:
+  assumes "kernel (F_LoanInterest (Some p) (Some r) (Some y)) = Exact k ti"
+    and "kernel (F_LoanPayment (Some p) (Some r) (Some y)) = Exact k' pay"
+  shows "ti = of_nat (months y) * pay - p"
+```
+- Price from markup reads back as that markup:
+```
+theorem price_markup_roundtrip:
+  assumes "kernel (R_PriceMarkup c m) = Exact k v" and "c ~= 0"
+  shows "qval (R_Markup c v) = m * 100"
+```
+Proof effort: the Fisher theorem took three builds (two failed on proof-script details: a `simp` that rewrote `v` away,
+then a trailing `simp` after a goal already closed); the other two passed first time.
+
+## Binding theorems before / after
+
+Before (S13, 44 scanned): kernel_exact_sound, kernel_cents_sound, kernel_approx_sound, kernel_underspecified,
+kernel_impossible, kernel_imprecise, kernel_refusal, reason_of_exact, never_even_iff, the rounding set
+(round_sig_sound, to_dec_sound, to_dec_at_sound, to_dec_g4_sound, enclose_fmt_sound, quant_sound, round_tie_up,
+round_frac_eq, compound_frac_props, rpow_eq), loan_amortizes, savings_reaches_goal, loan_interest_is_total_minus_principal
+(restates pmt), simple_interest_additive, apy_compounding, apy_at_least_nominal, doubling_model,
+compound_matches_exponential, eoq_model, break_even_equation, margin_markup_relation, price_from_margin_correct,
+price_from_markup_correct, discounts_compose, multiplier_equation, tax_multiplier_relation, fisher_relation (vacuous),
+unemployment_in_range, and the reply_* set.
+After (52, counting the scan list): the same minus fisher_relation, plus annuity_accumulates, annuity_inverts_savings, two_phase_chains,
+real_gdp_equation, real_gdp_deflator_roundtrip, discount_tax_chains, real_rate_is_fisher_approximation,
+loan_interest_agrees_with_payment, price_markup_roundtrip. Still restating the code (not binding):
+loan_interest_is_total_minus_principal, simple_interest_additive,
+and the `reply_*` theorems only tie the reply to the kernel.
+
+## Items still withheld, with reasons
+
+On every panel (shipped, F1, F2) and all 26 probes: none valid is withheld. Known limits, from probing, not from panels:
+- Not in the kernel: annuity-due, an initial balance plus deposits, annual (not monthly) deposits, three or more phases,
+  a phase compounded continuously or over a fractional number of periods (declined with a reason).
+- Recognizer coverage is phrase-based: sentences outside the templates above are withheld (safe), never guessed.
+- Retail has no generator, so it has no fresh panel; it is evidenced only by its shipped panel (96/96) and by probes.
+- The generators share their author's blind spots and small value pools; fresh-panel parity says little about
+  sentences nobody wrote.
+- Doubling and continuous growth ~33 ms CPU on a loaded laptop (budget 50 ms): fine, but not within a tenth of budget.
+
+## The BEYOND.md table
+
+(right / wrong / withheld on valid items)
+
+| | shipped panel | fresh panels (F1+F2) | probes (26) |
+|---|---|---|---|
+| shipped organs | finance 116/0/13, v2 128/0/0, r2 128/0/0, economics 65/0/13, retail 96/0/0 | finance 232/0/27, v2 246/0/0, r2 246/0/0, economics 130/0/26 | 11/4/11 |
+| kernel before (S13) | same as the organs | same as the organs | 11/4/11 |
+| kernel after | finance 129/0/0, v2 128/0/0, r2 128/0/0, economics 78/0/0, retail 96/0/0 | finance 259/0/0, v2 246/0/0, r2 246/0/0, economics 156/0/0 | 26/0/0 |
+
+Cold start 270 -> 3.2 ms; p50 13-18 -> ~1 ms; size 644 KB -> 723 KB; theorems 44 -> 52.
+
+## Reproduce
+
+```
+tools/dev/remote-build hbox src/extract/finance Veri7vn_Finance --expect 'VERI7VN_FINANCE PASS' -d src/extract/commons
+sh src/extract/finance/build.sh            # or the MLton step on the exported finance.ML, as var/finance/fastbuild.sh did
+sh src/extract/finance/fresh/make.sh       # fresh panels under var/finance/fresh/
+sh src/extract/finance/fresh/run.sh <tag> $PWD/var/finance/bin/finance && python3 src/extract/finance/fresh/tab.py <tag>
+PYTHONDONTWRITEBYTECODE=1 python3 src/extract/finance/probes.py
+python3 src/extract/finance/tables_check.py
+```

@@ -833,6 +833,18 @@ proof -
   from answer_exact[OF this] show ?thesis by simp
 qed
 
+text \<open>Loan interest agrees with the loan payment kind on the same loan.\<close>
+theorem loan_interest_agrees_with_payment:
+  assumes "kernel (F_LoanInterest (Some p) (Some r) (Some y)) = Exact k ti"
+    and "kernel (F_LoanPayment (Some p) (Some r) (Some y)) = Exact k' pay"
+  shows "ti = of_nat (months y) * pay - p"
+proof -
+  have a: "answer_of (F_LoanPayment (Some p) (Some r) (Some y)) = Exact k' pay"
+    using assms(2) by (auto simp: kernel_def split: option.splits)
+  have "pay = pmt p (r / 12) (months y)" using answer_exact[OF a] by simp
+  then show ?thesis using loan_interest_is_total_minus_principal[OF assms(1)] by simp
+qed
+
 subsection \<open>Interest\<close>
 
 theorem simple_interest_additive:
@@ -978,6 +990,17 @@ proof -
   then show ?thesis using assms(2) by (simp add: field_simps)
 qed
 
+text \<open>The price from a markup has that markup (as a percent) when read back.\<close>
+theorem price_markup_roundtrip:
+  assumes "kernel (R_PriceMarkup c m) = Exact k v" and "c \<noteq> 0"
+  shows "qval (R_Markup c v) = m * 100"
+proof -
+  have a: "answer_of (R_PriceMarkup c m) = Exact k v"
+    using assms(1) by (auto simp: kernel_def split: option.splits)
+  have "v = c * (1 + m)" using answer_exact[OF a] by simp
+  then show ?thesis using assms(2) by (simp add: field_simps)
+qed
+
 text \<open>Stacked discounts compound: applying two lists in turn is applying
 their concatenation.\<close>
 theorem discounts_compose: "disc_val b (xs @ ys) = disc_val (disc_val b xs) ys"
@@ -1004,11 +1027,23 @@ theorem tax_multiplier_relation:
   shows "qval (E_TaxMultiplier c) = 1 - qval (E_Multiplier c)"
   using assms by (simp add: field_simps)
 
-text \<open>The exact real rate satisfies the Fisher relation.\<close>
-theorem fisher_relation:
-  assumes "1 + p / 100 \<noteq> (0 :: rat)"
-  shows "(1 + (((1 + i / 100) / (1 + p / 100) - 1) * 100) / 100) * (1 + p / 100) = 1 + i / 100"
-  using assms by (simp add: field_simps)
+text \<open>The real rate is the Fisher approximation i - p, and the reply says so: how far it is from
+the exact relation (1 + real)(1 + p) = 1 + i is the product of the two small numbers,
+real * p / 10000 (percent points). This replaces the earlier statement about the exact
+rate, which was about a formula the kernel never computes.\<close>
+theorem real_rate_is_fisher_approximation:
+  assumes "kernel (E_RealRate i p) = Exact k v"
+  shows "v = i - p \<and> \<bar>(1 + v / 100) * (1 + p / 100) - (1 + i / 100)\<bar> \<le> \<bar>v * p\<bar> / 10000"
+proof -
+  have a: "answer_of (E_RealRate i p) = Exact k v"
+    using assms by (auto simp: kernel_def split: option.splits)
+  have v: "v = i - p" using answer_exact[OF a] by simp
+  have e: "(1 + v / 100) * (1 + p / 100) - (1 + i / 100) = v * p / 10000"
+    using v by (simp add: field_simps)
+  have h: "\<bar>(1 + v / 100) * (1 + p / 100) - (1 + i / 100)\<bar> = \<bar>v * p\<bar> / 10000"
+    by (simp only: e abs_divide)
+  show ?thesis by (rule conjI[OF v eq_refl[OF h]])
+qed
 
 theorem unemployment_in_range:
   assumes "kernel (E_Unemployment (Some u) (Some l)) = Exact k v" and "0 \<le> u"

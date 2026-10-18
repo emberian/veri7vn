@@ -72,7 +72,7 @@ ML \<open>
     @{thm doubling_model}, @{thm compound_matches_exponential}, @{thm eoq_model},
     @{thm break_even_equation}, @{thm margin_markup_relation}, @{thm price_from_margin_correct},
     @{thm price_from_markup_correct}, @{thm discounts_compose}, @{thm multiplier_equation},
-    @{thm tax_multiplier_relation}, @{thm fisher_relation}, @{thm unemployment_in_range},
+    @{thm tax_multiplier_relation}, @{thm real_rate_is_fisher_approximation}, @{thm loan_interest_agrees_with_payment}, @{thm price_markup_roundtrip}, @{thm unemployment_in_range},
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_states_cents},
     @{thm reply_states_approx}, @{thm reply_withheld_names_decline},
     @{thm exact_stated_within_tolerance},
