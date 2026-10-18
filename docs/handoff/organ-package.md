@@ -10,6 +10,21 @@ are not specialist folders. Stores needs binaries with the explicit asset-path
 options and is included only with `--include-stores`; its six IDs otherwise
 remain explicitly excluded.
 
+## Later chemistry-only successor
+
+The live Chemistry J integration has a separate, tested five-specialist package:
+`var/root-chemistry-j/package/veri7vn-specialists-2026-10-18.tar.gz`.
+It includes Apple Silicon macOS and x86-64 Linux, supports mixed mass/mole
+reaction inventories and requested yield units, and pins shared consumers to
+`3bbe89c`. All1206 freshly scored panel replies match across platforms;360
+relocated capability checks per platform also pass with identical replies.
+Eight of those capability requests remain valid withholds.
+
+The archive is890447 bytes; SHA256
+`0b9d9be5b85b46674f0da3ac2ce9f164a7585d370c75665e3d458b7ba6ab2ee7`.
+`var/root-chemistry-j/package-delivery.json` records its exact bindings and
+receipts. It does not replace the selected144-specialist delivery below.
+
 ## Selected delivery: 2026-10-18 drain
 
 `var/C-runtime-package/delivery-20261018-b0813cc.json` records the selected

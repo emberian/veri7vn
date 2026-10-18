@@ -72,3 +72,28 @@ An immutable source/export/native capture is at
 The current checkout still contains unrelated preserved drafts. These chemistry
 checks do not certify them. Linux comparison and selected portable archive
 refresh remain pending; the fixed-cohort delivery record has not changed.
+
+
+## Scoped Linux and portable completion
+
+The later portability gate is complete. Managed Linux compile/comparison receipt
+`var/linux/receipt-chemistry-persvati-chemistry-1792322506-72664.json` matches the
+frozen J proof/export/runtime inputs. Linux native9ba14316 and macOS1680f709 give
+identical freshly scored replies on all1206 panel items, all correct, with zero
+wrong/false yes. The raw harness reports40 total withholds, including correct
+invalid refusals; this is not40 withheld-valid misses.
+
+A separate five-specialist archive now contains both platforms:
+`var/root-chemistry-j/package/veri7vn-specialists-2026-10-18.tar.gz`,890447 bytes,
+SHA256`0b9d9be5b85b46674f0da3ac2ce9f164a7585d370c75665e3d458b7ba6ab2ee7`.
+The actual shared consumers are pinned to committed3bbe89c, independently
+checked against Git, rather than the dirty checkout consumer draft.
+
+Relocated wrappers pass360 checks on each platform, with identical semantic
+replies:326 numerical answers,26 invalid refusals and8 valid withholds. This
+combines the342 authored unit cases and18 independent methane cases. Neither
+run imports the veri7vn checkout. The exact package/evidence receipt is
+`var/root-chemistry-j/package-delivery.json`. The original selected144-specialist
+archive remains unchanged; this is a usable chemistry-only successor, not a
+claim that the entire final source wave has been repackaged. No jobs remain from
+this gate.
