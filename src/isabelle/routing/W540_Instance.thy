@@ -379,4 +379,61 @@ text \<open>"What is my name?" recalled from the conversation stays answered.\<c
 theorem w540_name: "cascade w540 (\<lambda>_. name_reply) name_q = name_reply"
   using name_guards by (simp add: w540_python_order)
 
+subsection \<open>The cascade against the shipped source, stated apart from the fold machinery\<close>
+
+text \<open>\<open>python_guards\<close> lists the three guards in the order the shipped \<open>chat\<close> tests them (D1, N2, G3), with
+  the shipped names written out as literal strings. \<open>py_chain\<close> is the shipped loop: the first guard that
+  fires on the chain's reply withholds it, and if none fires the reply stands. Neither mentions \<open>w540\<close>,
+  \<open>Narrow\<close> or \<open>cascade\<close>, so the theorem below is a statement about the fold machinery, not a restatement of
+  its definition.\<close>
+
+definition python_guards :: "(string \<times> (string \<Rightarrow> reply \<Rightarrow> bool) \<times> string) list" where
+  "python_guards = [(d1_name, d1_guard, d1_msg), (n2_name, n2_guard, n2_msg), (g3_name, g3_guard, g3_msg)]"
+
+fun py_chain :: "(string \<times> (string \<Rightarrow> reply \<Rightarrow> bool) \<times> string) list \<Rightarrow> string \<Rightarrow> reply \<Rightarrow> reply" where
+  "py_chain [] t r = r"
+| "py_chain ((nm, g, m) # gs) t r = (if g t r then withhold nm m r else py_chain gs t r)"
+
+theorem python_guards_source_order:
+  "map fst python_guards = [''precision_guard:D1_question_direction'', ''precision_guard:N2_number_read_back'',
+                            ''precision_guard:G3_private_on_converse'']"
+  by (simp add: python_guards_def d1_name_def n2_name_def g3_name_def)
+
+theorem w540_is_python_loop: "cascade w540 base t = py_chain python_guards t (base t)"
+  by (simp add: w540_python_order python_guards_def Let_def)
+
+lemma d1_guard_withheld_d1 [simp]: "d1_guard q (withhold d1_name m r) = False"
+  by (simp add: d1_guard_def reader_prop_def withhold_def d1_name_def)
+lemma d1_guard_withheld_n2 [simp]: "d1_guard q (withhold n2_name m r) = False"
+  by (simp add: d1_guard_def reader_prop_def withhold_def n2_name_def)
+lemma d1_guard_withheld_g3 [simp]: "d1_guard q (withhold g3_name m r) = False"
+  by (simp add: d1_guard_def reader_prop_def withhold_def g3_name_def)
+
+text \<open>Running the fold on its own output changes nothing: a withheld reply carries a path that names a
+  guard, and no guard fires on that, so the second pass leaves it; a reply no guard fired on is
+  judged the same again.\<close>
+
+theorem w540_idempotent: "cascade w540 (cascade w540 base) t = cascade w540 base t"
+proof (cases "d1_guard t (base t)")
+  case True
+  then show ?thesis by (simp add: w540_python_order Let_def)
+next
+  case d1: False
+  show ?thesis
+  proof (cases "n2_guard t (base t)")
+    case True
+    with d1 show ?thesis by (simp add: w540_python_order Let_def)
+  next
+    case n2: False
+    show ?thesis
+    proof (cases "g3_guard t (base t)")
+      case True
+      with d1 n2 show ?thesis by (simp add: w540_python_order Let_def)
+    next
+      case False
+      with d1 n2 show ?thesis by (simp add: w540_python_order Let_def)
+    qed
+  qed
+qed
+
 end

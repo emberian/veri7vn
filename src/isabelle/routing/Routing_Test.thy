@@ -3,11 +3,21 @@ theory Routing_Test
 begin
 
 text \<open>Session check: every theorem the lane reports is present, depends on no oracle (no
-  \<open>sorry\<close>, no code-generator evaluation), and then the marker is printed.\<close>
+  \<open>sorry\<close>, no code-generator evaluation), and then the marker is printed.
+
+  The 40 lemmas of \<open>W540_Vectors\<close> and the docstring cases of \<open>W540_Instance\<close> (\<open>orbit_guards\<close> ...
+  \<open>w540_name\<close>) are examples: each fixes one question and reply and records what the shipped guards
+  return. They check the HOL translation of the guards against the Python on those inputs. They do not
+  state a property of the cascade, and no claim should lean on them as one. \<open>W540_Vectors\<close> checks its own
+  forty for oracles; the theorems below carry the general claims.\<close>
 
 ML \<open>
   val reported = [
     ("narrow_never_adds", @{thm narrow_never_adds}),
+    ("narrow_never_adds'", @{thm narrow_never_adds'}),
+    ("python_guards_source_order", @{thm python_guards_source_order}),
+    ("w540_is_python_loop", @{thm w540_is_python_loop}),
+    ("w540_idempotent", @{thm w540_idempotent}),
     ("narrow_preserves_answer_text", @{thm narrow_preserves_answer_text}),
     ("narrow_withheld_path", @{thm narrow_withheld_path}),
     ("non_adding_never_adds", @{thm non_adding_never_adds}),
@@ -33,7 +43,7 @@ ML \<open>
   val _ = if null bad then () else error ("oracle-dependent: " ^ commas (map fst bad));
   val _ = List.app (fn (n, th) => writeln ("VERI7VN_ROUTING_THM " ^ n ^ ": " ^
             Syntax.string_of_term @{context} (Thm.prop_of th))) reported;
-  val _ = writeln ("VERI7VN_ROUTING PASS")
+  val _ = writeln ("VERI7VN_ROUTING PASS theorems=" ^ string_of_int (length reported) ^ " oracles=0")
 \<close>
 
 end

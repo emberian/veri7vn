@@ -340,6 +340,44 @@ proof -
     unfolding i_def[symmetric] j_def[symmetric] by blast
 qed
 
+text \<open>The agreement shortcut is a statement about the first answer only: when it fires and a pick
+  results, the pick has a value, and every non-decline reply of the turn agrees with it under \<open>same\<close>.
+  \<open>same\<close> need not be transitive (it is not for the 0.5\% tolerance); it has to be reflexive, which the
+  first answer's agreement with itself uses. Nothing is said about declined replies.\<close>
+theorem agree_shortcut_pick_agrees:
+  assumes refl: "\<And>x. same x x"
+    and sc: "agree_shortcut same cs" and pick: "arbitrate same g cs = Pick c"
+  shows "val c \<noteq> None \<and> (\<forall>d \<in> set cs. \<not> declined d \<longrightarrow> same_opt same (val c) (val d))"
+proof -
+  define ans where "ans = filter (\<lambda>x. \<not> declined x) cs"
+  have len: "2 \<le> length ans" and v0: "val (hd ans) \<noteq> None"
+    and all: "\<forall>a \<in> set (tl ans). same_opt same (val (hd ans)) (val a)"
+    using sc unfolding agree_shortcut_def ans_def Let_def by auto
+  have lcs: "length ans \<le> length cs" unfolding ans_def by (rule length_filter_le)
+  have cs_ne: "cs \<noteq> []" and cs_len: "length cs \<noteq> 1" using len lcs by auto
+  have c_is: "c = hd ans"
+    using pick sc cs_ne cs_len unfolding arbitrate_def ans_def by (auto split: if_splits)
+  obtain a0 rest where ans_eq: "ans = a0 # rest" using len by (cases ans) auto
+  then have c0: "c = a0" and v0': "val a0 \<noteq> None" and all': "\<forall>a \<in> set rest. same_opt same (val a0) (val a)"
+    using c_is v0 all by auto
+  obtain v where v: "val a0 = Some v" using v0' by auto
+  show ?thesis
+  proof (intro conjI ballI impI)
+    show "val c \<noteq> None" using c0 v by simp
+    fix d assume d: "d \<in> set cs" "\<not> declined d"
+    then have "d \<in> set ans" unfolding ans_def by simp
+    then have "d = a0 \<or> d \<in> set rest" using ans_eq by auto
+    then show "same_opt same (val c) (val d)"
+    proof
+      assume "d = a0"
+      then show ?thesis using c0 v refl by simp
+    next
+      assume "d \<in> set rest"
+      then show ?thesis using c0 all' by simp
+    qed
+  qed
+qed
+
 text \<open>Ties are broken only by pick order: outside the agreement shortcut a pick has the highest key
   on a-d, and among replies with that same key it is the first in pick order.\<close>
 theorem arbitrate_pick_is_first_best:
