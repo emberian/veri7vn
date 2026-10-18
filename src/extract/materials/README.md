@@ -64,3 +64,9 @@ and fractions to the Hooke, soil and dilution readers. Bulk density refuses
 negative dry mass or nonpositive sample volume; volumetric water content also
 requires positive supplied bulk density. These rules check the supplied model
 inputs, not the physical identity or condition of an actual sample.
+
+CT calculations include contact time from CT and residual concentration, and
+residual concentration from CT and contact time. Time inputs may be minutes,
+hours or seconds; output contact time is minutes. The model assumes a constant
+residual concentration. It does not select a treatment target or declare water
+safe. Negative quantities and nonpositive inverse divisors are refused.

@@ -629,9 +629,28 @@ struct
       end
     else if has "\\bct\\b|\\bct value\\b|\\bconcentration times time\\b" low then
       let
-        val cm = search (NUMW ^ "\\s*(?:mg/l|ppm)\\b") low
-        val tm = search (NUMW ^ "\\s*(?:min(?:ute)?s?)\\b") low
-      in SOME (M.CtValue (Option.map (fn m => wnum low m 1) cm, Option.map (fn m => wnum low m 1) tm)) end
+        val ns = scalars low
+        fun tail n = afterScalar low n
+        fun prefix n = beforeScalar low n
+        fun selected test = Option.map (fn n => rat (#value n)) (only (List.filter test ns))
+        val ct = selected (fn n =>
+          has "\\b(?:target\\s+)?ct(?: value| target)?\\s*(?:of|is|=|:)?\\s*$" (prefix n) orelse
+          has "^\\s*mg(?:[- ]min|[- ]minute|[\194\183]min)(?:s)?/l\\b" (tail n))
+        val concentration = selected (fn n => has "^\\s*(?:mg/l|ppm)\\b" (tail n))
+        val time = only (List.mapPartial (fn n =>
+          case search "^\\s*(minutes?|mins?|hours?|hrs?|seconds?|secs?)\\b" (tail n) of NONE => NONE
+          | SOME m => let val u = valOf (grp (tail n) m 1)
+                          val factor : q = if String.isPrefix "h" u then (60,1)
+                                           else if String.isPrefix "s" u then (1,60) else (1,1)
+                      val (numerator, denominator) = #value n
+                          val (scaleNum, scaleDen) = factor
+                      in SOME (rat (numerator * scaleNum, denominator * scaleDen)) end) ns)
+        val wantTime = has "\\bhow (?:long|many minutes|much time)\\b|\\b(?:what|find|calculate|compute)\\s+(?:is\\s+)?(?:the\\s+)?(?:required\\s+)?(?:contact\\s+)?time\\b|\\b(?:contact )?time\\s*\\?$" low
+        val wantConcentration = not (has "\\bconcentration\\s+times\\s+time\\b" low) andalso has "\\b(?:what|find|calculate|compute)\\s+(?:is\\s+)?(?:the\\s+)?(?:required\\s+)?(?:residual(?: concentration)?|concentration)\\b|\\b(?:residual(?: concentration)?|concentration)\\s*\\?$" low
+      in if wantTime andalso wantConcentration then SOME (M.CtValue (NONE,NONE))
+         else if wantTime then SOME (M.CtTime (ct, concentration))
+         else if wantConcentration then SOME (M.CtConcentration (ct, time))
+         else SOME (M.CtValue (concentration, time)) end
     else if has "\\bdemand\\b" low andalso has "\\bresidual\\b" low andalso has "\\bdose\\b|\\bdosage\\b" low then
       let
         fun pick name =

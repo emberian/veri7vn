@@ -158,6 +158,8 @@ datatype request =
   | HardnessMgl rat
   | Pounds "rat option" "rat option" "rat option"
   | CtValue "rat option" "rat option"
+  | CtTime "rat option" "rat option"
+  | CtConcentration "rat option" "rat option"
   | ChlorineDose "rat option" "rat option"
   | Dilution "((rat \<times> cunit) \<times> (rat \<times> cunit)) option" "(rat \<times> wunit) option"
   | PhOf rat
@@ -173,17 +175,17 @@ and an optional percent strength of the product; Dilution takes stock concentrat
 datatype kind = K_scad_volume | K_mesh_vertices | K_mesh_edges | K_mesh_faces | K_scale_amount
   | K_scale_factor | K_extrude_time | K_apf | K_crystal_density | K_porosity | K_stress
   | K_strain | K_modulus | K_expansion | K_texture | K_bulk_density | K_soil_porosity | K_gwc
-  | K_vwc | K_gpg_to_mgl | K_mgl_to_gpg | K_pounds_product | K_pounds | K_ct | K_dose
+  | K_vwc | K_gpg_to_mgl | K_mgl_to_gpg | K_pounds_product | K_pounds | K_ct | K_ct_time | K_ct_concentration | K_dose
   | K_dilution | K_ph | K_h_conc
 
 datatype need = N_extrude | N_scale_factor | N_structure | N_alpha | N_mat_read | N_two_fractions
-  | N_bulk_density | N_wet_dry | N_bulk_for_vwc | N_mass_volume | N_flow_dose | N_ct
+  | N_bulk_density | N_wet_dry | N_bulk_for_vwc | N_mass_volume | N_flow_dose | N_ct | N_ct_time | N_ct_concentration
   | N_demand_residual | N_dilution
 
 datatype reason = R_odd_faces | R_negative_count | R_negative_size | R_nonpositive_flow
   | R_nonpositive_scale | R_nonpositive_denominator | R_bulk_above_skeletal | R_fraction_range
   | R_fractions_total | R_fractions_exceed | R_dry_above_wet | R_bulk_above_particle
-  | R_nonpositive_conc | R_concentrating | R_negative_volume | R_negative_mass
+  | R_nonpositive_conc | R_concentrating | R_negative_volume | R_negative_mass | R_ct_domain
 
 datatype decline = Underspecified need | Impossible reason | Judgement | Unclassified | Imprecise
 
@@ -222,6 +224,8 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (Pounds _ _ None) = K_pounds"
 | "kind_of (Pounds _ _ (Some _)) = K_pounds_product"
 | "kind_of (CtValue _ _) = K_ct"
+| "kind_of (CtTime _ _) = K_ct_time"
+| "kind_of (CtConcentration _ _) = K_ct_concentration"
 | "kind_of (ChlorineDose _ _) = K_dose"
 | "kind_of (Dilution _ _) = K_dilution"
 | "kind_of (PhOf _) = K_ph"
@@ -242,7 +246,8 @@ fun family_of_kind :: "kind \<Rightarrow> family" where
 | "family_of_kind K_vwc = Fam_soil"
 | "family_of_kind K_gpg_to_mgl = Fam_water" | "family_of_kind K_mgl_to_gpg = Fam_water"
 | "family_of_kind K_pounds_product = Fam_water" | "family_of_kind K_pounds = Fam_water"
-| "family_of_kind K_ct = Fam_water" | "family_of_kind K_dose = Fam_water"
+| "family_of_kind K_ct = Fam_water"
+| "family_of_kind K_ct_time = Fam_water" | "family_of_kind K_ct_concentration = Fam_water" | "family_of_kind K_dose = Fam_water"
 | "family_of_kind K_dilution = Fam_water" | "family_of_kind K_ph = Fam_water"
 | "family_of_kind K_h_conc = Fam_water"
 
@@ -323,7 +328,16 @@ fun decline_of :: "request \<Rightarrow> decline option" where
      (if p \<le> 0 then Some (Impossible R_nonpositive_denominator) else None)"
 | "decline_of (CtValue None _) = Some (Underspecified N_ct)"
 | "decline_of (CtValue (Some _) None) = Some (Underspecified N_ct)"
-| "decline_of (CtValue (Some _) (Some _)) = None"
+| "decline_of (CtValue (Some concentration) (Some contact_time)) =
+     (if concentration < 0 \<or> contact_time < 0 then Some (Impossible R_ct_domain) else None)"
+| "decline_of (CtTime None _) = Some (Underspecified N_ct_time)"
+| "decline_of (CtTime (Some _) None) = Some (Underspecified N_ct_time)"
+| "decline_of (CtTime (Some target_ct) (Some concentration)) =
+     (if target_ct < 0 \<or> concentration \<le> 0 then Some (Impossible R_ct_domain) else None)"
+| "decline_of (CtConcentration None _) = Some (Underspecified N_ct_concentration)"
+| "decline_of (CtConcentration (Some _) None) = Some (Underspecified N_ct_concentration)"
+| "decline_of (CtConcentration (Some target_ct) (Some contact_time)) =
+     (if target_ct < 0 \<or> contact_time \<le> 0 then Some (Impossible R_ct_domain) else None)"
 | "decline_of (ChlorineDose None _) = Some (Underspecified N_demand_residual)"
 | "decline_of (ChlorineDose (Some _) None) = Some (Underspecified N_demand_residual)"
 | "decline_of (ChlorineDose (Some _) (Some _)) = None"
@@ -370,6 +384,8 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (Pounds (Some f) (Some d) None) = f * d * lb_gal"
 | "qval (Pounds (Some f) (Some d) (Some p)) = f * d * lb_gal / (p / 100)"
 | "qval (CtValue (Some c) (Some t)) = c * t"
+| "qval (CtTime (Some target_ct) (Some concentration)) = target_ct / concentration"
+| "qval (CtConcentration (Some target_ct) (Some contact_time)) = target_ct / contact_time"
 | "qval (ChlorineDose (Some d) (Some r)) = d + r"
 | "qval (Dilution (Some (ca, cb)) (Some (v, _))) = cval cb * v / cval ca"
 | "qval _ = 0"
@@ -917,8 +933,28 @@ qed
 
 theorem ct_value:
   assumes "kernel (CtValue (Some c) (Some t)) = Exact k v"
-  shows "k = K_ct \<and> v = c * t"
-  using kernel_exact_sound[OF assms] by auto
+  shows "k = K_ct \<and> 0 \<le> c \<and> 0 \<le> t \<and> v = c * t"
+  using kernel_exact_sound[OF assms] by (auto split: if_splits)
+
+theorem ct_time_balance:
+  assumes "kernel (CtTime (Some target_ct) (Some concentration)) = Exact k minutes"
+  shows "k = K_ct_time \<and> 0 \<le> target_ct \<and> 0 < concentration \<and> 0 \<le> minutes
+    \<and> concentration * minutes = target_ct"
+proof -
+  have data: "k = K_ct_time \<and> 0 \<le> target_ct \<and> 0 < concentration \<and> minutes = target_ct / concentration"
+    using kernel_exact_sound[OF assms] by (auto split: if_splits)
+  then show ?thesis by (auto simp: field_simps)
+qed
+
+theorem ct_concentration_balance:
+  assumes "kernel (CtConcentration (Some target_ct) (Some minutes)) = Exact k concentration"
+  shows "k = K_ct_concentration \<and> 0 \<le> target_ct \<and> 0 < minutes \<and> 0 \<le> concentration
+    \<and> concentration * minutes = target_ct"
+proof -
+  have data: "k = K_ct_concentration \<and> 0 \<le> target_ct \<and> 0 < minutes \<and> concentration = target_ct / minutes"
+    using kernel_exact_sound[OF assms] by (auto split: if_splits)
+  then show ?thesis by (auto simp: field_simps)
+qed
 
 theorem dose_value:
   assumes "kernel (ChlorineDose (Some dm) (Some rs)) = Exact k v"
@@ -1052,6 +1088,12 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + STR '' lb/day of chemical, / '' + sw p + STR ''% strength).''"
 | "exact_text (CtValue (Some c) (Some t)) q V = STR ''The CT is '' + V + STR '' mg-min/L ('' + sw c
      + STR '' mg/L x '' + sw t + STR '' min).''"
+| "exact_text (CtTime (Some target_ct) (Some concentration)) q V = STR ''The contact time is '' + V
+     + STR '' min (CT '' + sw target_ct + STR '' mg-min/L / residual '' + sw concentration
+     + STR '' mg/L, assuming constant residual concentration).''"
+| "exact_text (CtConcentration (Some target_ct) (Some minutes)) q V = STR ''The residual concentration is '' + V
+     + STR '' mg/L (CT '' + sw target_ct + STR '' mg-min/L / contact time '' + sw minutes
+     + STR '' min, assuming constant residual concentration).''"
 | "exact_text (ChlorineDose (Some d) (Some r)) q V = STR ''The dose is '' + V + STR '' mg/L (demand ''
      + sw d + STR '' + residual '' + sw r + STR '').''"
 | "exact_text (Dilution (Some (ca, cb)) (Some (v2, u))) q V = STR ''Use '' + V + STR '' '' + wlabel u
@@ -1095,6 +1137,8 @@ definition need_text :: "need \<Rightarrow> String.literal" where
     | N_bulk_for_vwc \<Rightarrow> STR ''I need the bulk density (for volumetric water content) to work that out; I will not assume it.''
     | N_mass_volume \<Rightarrow> STR ''I need the oven-dry mass (g) and the core volume (cm3) to work that out; I will not assume it.''
     | N_flow_dose \<Rightarrow> STR ''I need the flow in MGD and the dose in mg/L to work that out; I will not assume it.''
+    | N_ct_time \<Rightarrow> STR ''I need target CT (mg-min/L) and residual concentration (mg/L) to calculate contact time.''
+    | N_ct_concentration \<Rightarrow> STR ''I need target CT (mg-min/L) and contact time (minutes) to calculate residual concentration.''
     | N_ct \<Rightarrow> STR ''I need the residual concentration (mg/L) and the contact time (minutes) to work that out; I will not assume it.''
     | N_demand_residual \<Rightarrow> STR ''I need the chlorine demand and the target residual to work that out; I will not assume it.''
     | N_dilution \<Rightarrow> STR ''I need the stock strength, the target strength and the final volume to work that out; I will not assume it.'')"
@@ -1124,6 +1168,7 @@ definition reason_text :: "request \<Rightarrow> reason \<Rightarrow> String.lit
     | R_nonpositive_conc \<Rightarrow> STR ''The stock concentration must be positive and target concentration nonnegative.''
     | R_concentrating \<Rightarrow> STR ''Dilution cannot make a target stronger than the supplied stock.''
     | R_negative_volume \<Rightarrow> STR ''The final volume must be nonnegative.''
+    | R_ct_domain \<Rightarrow> STR ''CT, concentration and contact time must be nonnegative, and an inverse calculation needs a positive divisor.''
     | R_negative_mass \<Rightarrow> STR ''The dry mass must be nonnegative.'')"
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
@@ -1150,7 +1195,7 @@ definition kind_name :: "kind \<Rightarrow> String.literal" where
     | K_bulk_density \<Rightarrow> STR ''bulk_density'' | K_soil_porosity \<Rightarrow> STR ''porosity''
     | K_gwc \<Rightarrow> STR ''gwc'' | K_vwc \<Rightarrow> STR ''vwc'' | K_gpg_to_mgl \<Rightarrow> STR ''gpg_to_mgl''
     | K_mgl_to_gpg \<Rightarrow> STR ''mgl_to_gpg'' | K_pounds_product \<Rightarrow> STR ''pounds_product''
-    | K_pounds \<Rightarrow> STR ''pounds'' | K_ct \<Rightarrow> STR ''ct'' | K_dose \<Rightarrow> STR ''dose''
+    | K_pounds \<Rightarrow> STR ''pounds'' | K_ct \<Rightarrow> STR ''ct'' | K_ct_time \<Rightarrow> STR ''ct_time'' | K_ct_concentration \<Rightarrow> STR ''ct_concentration'' | K_dose \<Rightarrow> STR ''dose''
     | K_dilution \<Rightarrow> STR ''dilution'' | K_ph \<Rightarrow> STR ''ph'' | K_h_conc \<Rightarrow> STR ''h_conc'')"
 
 text \<open>The whole reply: answered or withheld, the kind, the response text and

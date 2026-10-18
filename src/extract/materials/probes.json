@@ -1,5 +1,5 @@
 {
-  "note": "These authored probes share assumptions with the recognizer; they are not independent panels. Expected numbers use the stated linear model or the shipped organ docstring formula.",
+  "note": "These authored probes share assumptions with the recognizer; they are not independent panels. Expected numbers use the stated linear model or the shipped organ docstring formula. E CT probes cover inverse targets, exact numeral/unit conversion and physical sign/divisor guards.",
   "source": "Uniaxial stress = E * strain",
   "items": [
     {
@@ -303,6 +303,117 @@
       "valid": false,
       "expect": null,
       "source": "Contradictory quantity roles must withhold."
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 60 mg-min/L and residual 2 mg/L?",
+      "valid": true,
+      "expect": 30
+    },
+    {
+      "specialist": "water-r3",
+      "q": "What residual concentration is needed for CT 60 mg-min/L and contact time 30 min?",
+      "valid": true,
+      "expect": 2
+    },
+    {
+      "specialist": "water",
+      "q": "CT 60 mg-min/L at residual 2 mg/L, contact time?",
+      "valid": true,
+      "expect": 30
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 6e1 mg-min/L and residual 1/2 mg/L?",
+      "valid": true,
+      "expect": 120
+    },
+    {
+      "specialist": "water",
+      "q": "What residual concentration is needed for CT 60 mg-min/L and contact time .5 hours?",
+      "valid": true,
+      "expect": 2
+    },
+    {
+      "specialist": "water",
+      "q": "What residual concentration is needed for CT 60 mg-min/L and contact time 1800 seconds?",
+      "valid": true,
+      "expect": 2
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 0 mg-min/L and residual 2 mg/L?",
+      "valid": true,
+      "expect": 0
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 60 mg-min/L and residual 0 mg/L?",
+      "valid": false
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT -60 mg-min/L and residual 2 mg/L?",
+      "valid": false
+    },
+    {
+      "specialist": "water",
+      "q": "What residual concentration is needed for CT 60 mg-min/L and contact time 0 min?",
+      "valid": false
+    },
+    {
+      "specialist": "water",
+      "q": "What residual concentration is needed for CT 60 mg-min/L and contact time -30 min?",
+      "valid": false
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 1.2.3 mg-min/L and residual 2 mg/L?",
+      "valid": false
+    },
+    {
+      "specialist": "water",
+      "q": "What contact time is needed for CT 60 mg-min/L?",
+      "valid": false
+    },
+    {
+      "specialist": "water",
+      "q": "What residual concentration is needed for CT 60 mg-min/L?",
+      "valid": false
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 1/2 mg/L and contact time 20 min?",
+      "valid": true,
+      "expect": 10
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L and contact time .5 hours?",
+      "valid": true,
+      "expect": 60
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual -2 mg/L and contact time 20 min?",
+      "valid": false
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 2 mg/L and contact time -20 min?",
+      "valid": false
+    },
+    {
+      "specialist": "water",
+      "q": "What is the CT for residual 0 mg/L and contact time 20 min?",
+      "valid": true,
+      "expect": 0
+    },
+    {
+      "specialist": "water",
+      "q": "What is the concentration times time for residual 2 mg/L and contact time 30 min?",
+      "valid": true,
+      "expect": 60
     }
   ]
 }

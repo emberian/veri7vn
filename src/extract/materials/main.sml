@@ -20,6 +20,9 @@ struct
     case request of
       Materials.HookeStress _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"hooke_stress_binding\"]"
     | Materials.HookeStrain _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"hooke_strain_balance\"]"
+    | Materials.CtTime _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"ct_time_balance\"]"
+    | Materials.CtConcentration _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"ct_concentration_balance\"]"
+    | Materials.CtValue _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"ct_value\"]"
     | Materials.Dilution _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"dilution_balance\",\"dilution_volume_bounds\"]"
     | Materials.BulkDensity _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"soil_bulk_density\"]"
     | _ => theorems

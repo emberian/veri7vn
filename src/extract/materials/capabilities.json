@@ -37,25 +37,49 @@
     },
     "water": {
       "evidence": {
-        "computation": "Dilution preserves stated stock and target roles, balances stock concentration times stock volume against target concentration times final volume, and refuses concentration by dilution.",
+        "computation": "Dilution preserves stated stock and target roles, balances stock concentration times stock volume against target concentration times final volume, and refuses concentration by dilution. CT arithmetic supports concentration times time and both inverse directions; inverse divisors must be positive and supplied CT/concentration/time nonnegative.",
         "assumptions": [
           "Additive solution volumes and a diluent with zero concentration of the solute.",
-          "The inherited percent conversion means 1 percent equals 10000 mg/L."
+          "The inherited percent conversion means 1 percent equals 10000 mg/L.",
+          "CT uses a constant stated residual concentration in mg/L multiplied by contact time in minutes; the result does not decide potable safety or select a regulatory target CT.",
+          "ppm follows the inherited dilute-water convention of mg/L; no solution density is inferred."
         ],
         "untrusted": [
           "English quantity roles, units and the shared numeric lexer."
+        ]
+      },
+      "accept": {
+        "kinds": [
+          "ct_time",
+          "ct_concentration"
+        ],
+        "declines_in_domain": [
+          "impossible",
+          "underspecified"
         ]
       }
     },
     "water-r3": {
       "evidence": {
-        "computation": "Dilution preserves stated stock and target roles, balances stock concentration times stock volume against target concentration times final volume, and refuses concentration by dilution.",
+        "computation": "Dilution preserves stated stock and target roles, balances stock concentration times stock volume against target concentration times final volume, and refuses concentration by dilution. CT arithmetic supports concentration times time and both inverse directions; inverse divisors must be positive and supplied CT/concentration/time nonnegative.",
         "assumptions": [
           "Additive solution volumes and a diluent with zero concentration of the solute.",
-          "The inherited percent conversion means 1 percent equals 10000 mg/L."
+          "The inherited percent conversion means 1 percent equals 10000 mg/L.",
+          "CT uses a constant stated residual concentration in mg/L multiplied by contact time in minutes; the result does not decide potable safety or select a regulatory target CT.",
+          "ppm follows the inherited dilute-water convention of mg/L; no solution density is inferred."
         ],
         "untrusted": [
           "English quantity roles, units and the shared numeric lexer."
+        ]
+      },
+      "accept": {
+        "kinds": [
+          "ct_time",
+          "ct_concentration"
+        ],
+        "declines_in_domain": [
+          "impossible",
+          "underspecified"
         ]
       }
     }

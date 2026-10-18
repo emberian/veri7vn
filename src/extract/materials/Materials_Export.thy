@@ -16,6 +16,9 @@ definition self_test :: bool where
      kernel (ScadCube 20 10 5) = Exact K_scad_volume 1000 \<and>
      kernel (ScaleAmount (3 / 2) False 50 BU_g) = Exact K_scale_amount (16875 / 100) \<and>
      kernel (CtValue (Some (1 / 2)) (Some 20)) = Exact K_ct 10 \<and>
+     kernel (CtTime (Some 60) (Some 2)) = Exact K_ct_time 30 \<and>
+     kernel (CtConcentration (Some 60) (Some 30)) = Exact K_ct_concentration 2 \<and>
+     kernel (CtTime (Some 60) (Some 0)) = Decline (Impossible R_ct_domain) \<and>
      kernel (CtValue (Some (1 / 2)) None) = Decline (Underspecified N_ct) \<and>
      kernel (PorosityAerogel (5 / 2) (11 / 5)) = Decline (Impossible R_bulk_above_skeletal) \<and>
      kernel (Expansion None 2 LU_m 40) = Decline (Underspecified N_alpha) \<and>
@@ -43,7 +46,7 @@ export_code reply_of answered reply_kind response stated silent mk_rat
   MeshVertices MeshEdges MeshFaces ScadCube ScadSphere ScadCylinder ScadFrustum ScaleAmount
   ScaleFactor ScaleUnread Extrude PackingFactor CrystalDensity PorosityAerogel Expansion Modulus
   HookeStress HookeStrain Strain Stress MatUnread Texture SoilPorosity WaterContent VolWaterContent BulkDensity
-  HardnessGpg HardnessMgl Pounds CtValue ChlorineDose Dilution PhOf HConc Potable
+  HardnessGpg HardnessMgl Pounds CtValue CtTime CtConcentration ChlorineDose Dilution PhOf HConc Potable
   St_sc St_bcc St_fcc LU_mm LU_cm LU_m AU_mm2 AU_cm2 AU_m2 FU_N FU_kN SU_Pa SU_MPa SU_GPa
   XU_pm XU_nm XU_A VA_mm3 VA_cm3 BU_g BU_kg BU_cm3 BU_mm3 BU_cm2 BU_mm2 BU_ml C_pct C_mgl
   WU_l WU_ml WU_gal
@@ -67,7 +70,7 @@ ML \<open>
     @{thm soil_porosity_decline}, @{thm gravimetric_water}, @{thm volumetric_water},
     @{thm water_content_masses}, @{thm gpg_constant}, @{thm hardness_gpg_to_mgl},
     @{thm hardness_mgl_to_gpg}, @{thm hardness_round_trip}, @{thm pounds_formula},
-    @{thm pounds_product}, @{thm ct_value}, @{thm dose_value}, @{thm dilution_balance}, @{thm dilution_volume_bounds}, @{thm dilution_cannot_concentrate},
+    @{thm pounds_product}, @{thm ct_value}, @{thm ct_time_balance}, @{thm ct_concentration_balance}, @{thm dose_value}, @{thm dilution_balance}, @{thm dilution_volume_bounds}, @{thm dilution_cannot_concentrate},
     @{thm ph_value}, @{thm ph_inverse}, @{thm h_conc_value}, @{thm h_conc_inverse},
     @{thm water_not_potable}, @{thm dilution_nonpositive},
     @{thm classify_total}, @{thm volumetric_is_gravimetric_times_bulk_density},
