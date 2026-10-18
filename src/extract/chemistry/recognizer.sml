@@ -6,17 +6,20 @@
      upstream/root/specialists/labsolutions/organ_labsolutions_v1.py     (LabSolutionsOrgan)
      upstream/root/specialists/labsolutions-r2/organ_labsolutions_r2.py  (boundary)
    and of their shared narrowing rule narrow_v1.py. It reads numbers and words
-   off the question and builds a typed Chemistry.request; it computes nothing.
+   off the question and builds a typed Chemistry.request. ExactNumeric supplies
+   complete signed tokens; role binding, unit scaling and formula selection
+   remain untrusted. No answer arithmetic is performed here.
    Every value, decline and response text comes from the verified kernel
    (Chemistry.reply_of). NONE means the question is not taken.
 
    Matching: patterns the organs compile with re.I run on the lower-cased text
    (Regex.compile folds literals itself); groups whose case matters (formulas)
-   are read back from the original text at the same byte offsets. Patterns the
+   are read back from the case-preserving masked text at the same byte offsets. Patterns the
    organs compile without re.I run case-sensitively on the original text
    (Regex.compileCS). The formula text is normalised: the middle dot and "*"
    become "." (the organ does this inside parse; the reply echoes the
-   normalised formula). *)
+   normalised formula). Matched square bracket groups become parentheses;
+   complete formula tokens prevent partial neutral-species recovery. *)
 structure Recognizer :
 sig
   val organs : string list
@@ -45,23 +48,16 @@ struct
   fun grp s m g = Regex.group s m g
   fun g1 s m = valOf (grp s m 1)
 
-  fun ratOf (lit0 : string) : Q.rat =
-    let
-      val lit = String.translate (fn #"," => "" | c => String.str c) lit0
-      val (ip, fp) = case String.fields (fn c => c = #".") lit of
-                       [a] => (a, "")
-                     | [a, b] => (a, b)
-                     | _ => raise Fail ("bad numeral " ^ lit0)
-      val num = valOf (IntInf.fromString (ip ^ fp))
-      val den = IntInf.pow (10, size fp)
-    in Q.mk_rat num den end
-  fun ratInt (n : int) : Q.rat = Q.mk_rat (IntInf.fromInt n) 1
-  fun ratMul (a : string) (k : int) : Q.rat = (* a decimal numeral times an integer *)
-    let
-      val lit = String.translate (fn #"," => "" | c => String.str c) a
-      val (ip, fp) = case String.fields (fn c => c = #".") lit of
-                       [a] => (a, "") | [a, b] => (a, b) | _ => raise Fail "bad numeral"
-    in Q.mk_rat (IntInf.* (valOf (IntInf.fromString (ip ^ fp)), IntInf.fromInt k)) (IntInf.pow (10, size fp)) end
+  exception UnboundNumeral
+  val originalQuestion = ref ""
+  val numberBindings : (string * ExactNumeric.rational) list ref = ref []
+  fun decPair token =
+    case List.find (fn (marker, _) => marker = token) (!numberBindings) of
+      SOME (_, pair) => pair
+    | NONE => raise UnboundNumeral
+  fun ratOf token = let val (n, d) = decPair token in Q.mk_rat n d end
+  fun ratInt (n : int) = Q.mk_rat (IntInf.fromInt n) 1
+
 
   fun collapse s = String.concatWith " " (String.tokens Char.isSpace s)
 
@@ -72,10 +68,22 @@ struct
   (* the formula as the kernel's character list, "middle dot" and "*" read as "." *)
   fun normFormula s =
     let
+      fun balanced [] [] = true
+        | balanced [] _ = false
+        | balanced (c :: cs) stack =
+            if c = #"(" orelse c = #"[" then balanced cs (c :: stack)
+            else if c = #")" orelse c = #"]" then
+              (case stack of a :: rest =>
+                ((a = #"(" andalso c = #")") orelse (a = #"[" andalso c = #"]"))
+                andalso balanced cs rest | [] => false)
+            else balanced cs stack
+      val brackets = balanced (String.explode s) []
       fun go [] = []
         | go (c1 :: c2 :: r) = if c1 = #"\194" andalso c2 = #"\183" then #"." :: go r else sub c1 (c2 :: r)
         | go [c] = sub c []
-      and sub c r = (if c = #"*" then #"." else c) :: go r
+      and sub c r =
+        (if c = #"*" then #"." else if brackets andalso c = #"[" then #"("
+         else if brackets andalso c = #"]" then #")" else c) :: go r
     in String.implode (go (String.explode s)) end
   fun fchars (s : string) =
     Q.chars_of (map (fn c => IntInf.fromInt (Char.ord c)) (String.explode (normFormula s)))
@@ -84,14 +92,6 @@ struct
   fun zip3 (pats, xs, what) =
     if length pats = length xs then ListPair.zip (pats, xs)
     else raise Fail ("recognizer table length differs from HOL list: " ^ what)
-
-  (* a decimal numeral as (numerator, denominator) *)
-  fun decPair (lit0 : string) : IntInf.int * IntInf.int =
-    let
-      val lit = String.translate (fn #"," => "" | c => String.str c) lit0
-      val (ip, fp) = case String.fields (fn c => c = #".") lit of
-                       [a] => (a, "") | [a, b] => (a, b) | _ => raise Fail ("bad numeral " ^ lit0)
-    in (valOf (IntInf.fromString (ip ^ fp)), IntInf.pow (10, size fp)) end
 
   (* ---------- narrow_v1 ---------- *)
   structure Narrow =
@@ -122,9 +122,9 @@ struct
         | i :: _ => let fun skip j = if j < size s andalso Char.isSpace (String.sub (s, j)) then skip (j + 1) else j
                     in String.extract (s, skip i, NONE) end
       end
-    val RELATION = "\\b(?:\\d+(?:\\.\\d+)?|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,2}"
+    val RELATION = "\\b(?:qnum[0-9]+q|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,2}"
       ^ "(?:more|less|fewer|longer|shorter)\\s+than\\b|\\b(?:twice|three times|half)\\s+(?:as\\s+\\w+\\s+as\\s+)?the\\s+\\w+\\b"
-    val RATE = "\\b\\d+(?:\\.\\d+)?\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:\\d+(?:\\.\\d+)?|a|an|one|each)\\s+[a-z]+"
+    val RATE = "\\bqnum[0-9]+q\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:qnum[0-9]+q|a|an|one|each)\\s+[a-z]+"
     fun narrative t =
       let val low = lower t
       in sentences t >= 3 orelse words t > 40 orelse has RELATION low orelse has RATE low end
@@ -132,7 +132,7 @@ struct
   end
 
 
-  val NUM = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
+  val NUM = "(qnum[0-9]+q)"
 
   fun mk r = Q.RC r
   fun mkD r = Q.RD r
@@ -152,11 +152,8 @@ struct
     ("\\bdiscovered\\b|\\byear (?:of )?discovery\\b", Q.P_year_discovered),
     ("\\b(?:chemical )?symbol\\b", Q.P_symbol)]
 
-  val FORMULA = "\\b((?:[A-Z][a-z]?\\d*|\\((?:[A-Z][a-z]?\\d*)+\\)\\d*)+(?:(?:[.*]|\194\183)\\d*(?:[A-Z][a-z]?\\d*)+)?)\\b"
-  (* the same pattern without its leading \b, for Regex.matchHere at a "(" that begins a token *)
-  val FORMULA_NB = String.extract (FORMULA, 2, NONE)
-  val G2MOL = "\\b(\\d+(?:\\.\\d+)?)\\s*(?:g|grams?)\\s+of\\s+(\\S+)"
-  val MOL2G = "\\b(\\d+(?:\\.\\d+)?)\\s*(?:mol|moles?)\\s+of\\s+(\\S+)"
+  val G2MOL = NUM ^ "\\s*(?:g|grams?)\\s+of\\s+(\\S+)"
+  val MOL2G = NUM ^ "\\s*(?:mol|moles?)\\s+of\\s+(\\S+)"
   val PCT = "\\b(?:percent|percentage|%)\\s+(?:by mass\\s+)?(?:of\\s+)?(\\w+)\\s+in\\s+(\\S+)"
   (* B-chemistry step 2: "percentage by mass of F is E" (the generator's heldout phrasing; the organ's PCT wants "of E in F") *)
   val PCT2 = "\\b(?:percent|percentage)\\s+by\\s+(?:mass|weight)\\s+of\\s+(\\S+)\\s+is\\s+(\\w+)"
@@ -166,25 +163,25 @@ struct
     ^ "|\\bmass\\s+percent(?:age)?s?\\s+of\\s+(?:each|every|all)\\s+(?:the\\s+)?elements?\\b"
   val MOLAR = "\\bmolar mass\\b|\\bmolecular (?:mass|weight)\\b|\\bformula (?:mass|weight)\\b|\\bmass of one mole\\b"
 
-  (* B-chemistry step 2. The organs' FORMULA starts with \b, which does not hold between a space and "(", so a token such as
-     "(NH4)2SO4" was read from its "NH4". Here a match that starts right after a "(" opening a token is re-read from that
-     "(" when the pattern still matches there and reaches at least as far; matches inside an extended one are dropped.
-     This is a deliberate divergence from both organs, whose reading of these tokens is wrong. *)
+  (* A complete formula-shaped token, including brackets and any unsupported
+     charge suffix. Never turn Ca[OH]2 into Ca or OH, or an ion into a neutral
+     prefix. The HOL parser decides whether the entire token is readable. *)
   fun formulaMatches t =
     let
-      fun ext (m : Regex.match) =
-        let val st = #start m in
-          if st >= 1 andalso String.sub (t, st - 1) = #"(" andalso (st = 1 orelse Char.isSpace (String.sub (t, st - 2)))
-          then (case Regex.matchHere (rcs FORMULA_NB) t (st - 1) of
-                  SOME m2 => if #stop m2 >= #stop m then m2 else m
-                | NONE => m)
-          else m
-        end
-      fun go _ [] = []
-        | go lastStop (m :: ms) =
-            let val m' = ext m
-            in if #start m' < lastStop then go lastStop ms else m' :: go (#stop m') ms end
-    in go 0 (Regex.findall (rcs FORMULA) t) end
+      fun part c = Char.isAlphaNum c orelse Char.contains "()[]{}.*+-" c orelse Char.ord c >= 128
+      fun finish i = if i < size t andalso part (String.sub (t, i)) then finish (i + 1) else i
+      fun trim i j = if j > i andalso String.sub (t, j - 1) = #"." then trim i (j - 1) else j
+      fun go i acc =
+        if i >= size t then rev acc
+        else if part (String.sub (t, i)) then
+          let val stop = finish i
+              val last = trim i stop
+              val raw = String.substring (t, i, last - i)
+              val upper = List.exists Char.isUpper (String.explode raw)
+              val m = {start = i, stop = last, groups = Vector.fromList [SOME (i, last)]}
+          in go stop (if upper then m :: acc else acc) end
+        else go (i + 1) acc
+    in go 0 [] end
 
   (* the organ's first formula-shaped token; v1: ChemistryOrgan._formula_in *)
   fun formulaV1 t =
@@ -218,24 +215,40 @@ struct
 
   fun nameSym w = Option.map #2 (List.find (fn (n, _) => n = w) Q.elem_names)
 
+  (* A one-species amount conversion cannot answer a reaction or a mixture
+     by silently selecting its first ingredient. Bind the complete formula
+     token across the question, not just the first number/formula pair. *)
+  fun onlyFormula target t =
+    let
+      fun relevant m =
+        let val f = Regex.whole t m
+            val syms = Regex.findall (rcs "[A-Z][a-z]?") f
+            val shaped = hasCS "\\d|\\(|\\[" f orelse length syms >= 2
+            val object = Q.is_symbol f andalso
+              hasCS "\\b(?:of|for)\\s+$" (String.substring (t, 0, #start m))
+        in (shaped orelse object) andalso fclass f <> 2 end
+    in List.all (fn m => normFormula (Regex.whole t m) = normFormula target)
+         (List.filter relevant (formulaMatches t)) end
+
   (* ChemistryOrgan.answer. fahr: the property reply also gives Fahrenheit (v2/v3) *)
   fun chemV1 reader fahrOn t : Q.request option =
     let
       val low = lower t
       fun massKind (rx, mk') =
-        case search rx low of
-          NONE => NONE
-        | SOME m =>
+        case findall rx low of
+          [m] =>
             if not (has "\\bmol(?:e|es)?\\b|\\bgrams?\\b|\\bhow many\\b|\\bmass\\b" low) then NONE
             else
               let
                 val f = rstrip "?.," (valOf (grp t m 2))
                 val q = ratOf (g1 t m)
               in
-                case fclass f of
-                  2 => NONE                                         (* ValueError: try the next pattern *)
-                | _ => SOME (mk (mk' (q, fchars f)))               (* readable, or a KeyError decline *)
+                if not (onlyFormula f t) then NONE
+                else case fclass f of
+                  2 => NONE
+                | _ => SOME (mk (mk' (q, fchars f)))
               end
+        | _ => NONE
       fun first [] = NONE
         | first (x :: xs) = case massKind x of SOME r => SOME r | NONE => first xs
       fun pct () =
@@ -290,7 +303,8 @@ struct
         if not (has MOLAR low) then NONE
         else case reader t of
                NONE => NONE
-             | SOME f => (case fclass f of 2 => SOME NONE | _ => SOME (SOME (mk (Q.MolarMass (fchars f)))))
+             | SOME f => if not (onlyFormula f t) then SOME NONE
+                         else (case fclass f of 2 => SOME NONE | _ => SOME (SOME (mk (Q.MolarMass (fchars f)))))
       fun prop () =
         case List.find (fn (p, _) => has p low) propPats of
           NONE => NONE
@@ -359,9 +373,6 @@ struct
     ("one eighth", (1, 8)), ("a sixteenth", (1, 16)), ("one sixteenth", (1, 16)), ("a tenth", (1, 10)),
     ("one tenth", (1, 10)), ("a hundredth", (1, 100))]
 
-  (* decimal numeral text of a rational, for comparisons only *)
-  fun isPositive (s : string) = IntInf.> (valOf (IntInf.fromString (String.translate (fn #"." => "" | #"," => "" | c => String.str c) s)), 0)
-
   fun halfLife t low =
     let
       val stated =
@@ -374,14 +385,14 @@ struct
                            | NONE => (valOf (grp t m 3), valOf (grp low m 4))
             in
               case tunitOf u of
-                SOME tu => if isPositive v then SOME (Q.HL_stated (ratOf v, tu), SOME (#start m, #stop m)) else NONE
+                SOME tu => SOME (Q.HL_stated (ratOf v, tu), SOME (#start m, #stop m))
               | NONE => NONE
             end
     in
       case stated of
         SOME x => SOME x
       | NONE =>
-          (case List.filter (fn (p, _) => has ("\\b(?:" ^ p ^ ")\\b") low) isoPats of
+          (case List.filter (fn (p, _) => has ("\\b(?:" ^ p ^ ")\\b") (lower (!originalQuestion))) isoPats of
              [(_, i)] => SOME (Q.HL_iso i, NONE)
            | _ => NONE)
     end
@@ -411,7 +422,7 @@ struct
                           (findall (NUM ^ "\\s*(?:" ^ p ^ ")(?![a-z])") restL)) tpats)
                   val amounts = map (fn m => (g1 restL m, valOf (grp restO m 2))) (findall AMOUNT restL)
                   val frac0 =
-                    case search "\\b(\\d+(?:\\.\\d+)?)\\s*(?:%|percent\\b)" askL of
+                    case search (NUM ^ "\\s*(?:%|percent\\b)") askL of
                       SOME m => let val (n, d) = decPair (g1 askL m) in SOME (Q.mk_rat n (IntInf.* (d, 100))) end
                     | NONE =>
                         (case List.find (fn (w, _) => has ("\\b" ^ w ^ "\\b") askL
@@ -463,7 +474,7 @@ struct
     end
 
   (* ======================= labsolutions ======================= *)
-  val N = "(\\d+(?:\\.\\d+)?)"
+  val N = NUM
   (* VOL and CONC of the organ as exact fractions (numerator, denominator) of a litre / of a molar *)
   fun volFactor w =
     if w = "l" orelse w = "liter" orelse w = "liters" orelse w = "litre" orelse w = "litres" then (1, 1)
@@ -490,10 +501,10 @@ struct
           val concs = map (fn m => scaled (g1 low m) (concFactor (valOf (grp low m 2))))
                          (findall (N ^ "\\s*(m|molar|mol/l|mm|millimolar|mmol/l|um|\194\181m)\\b(?![a-z])") low)
           val f = formulaV2 t
-          val wv = search (N ^ "\\s*%\\s*(?:\\(?w/v\\)?|weight(?:/| per )volume)") low
+          val wv = findall (N ^ "\\s*%\\s*(?:\\(?w/v\\)?|weight(?:/| per )volume)") low
         in
           case (wv, volsMl) of
-            (SOME m, ml :: _) =>
+            ([m], [ml]) =>
               let val (n, d) = decPair (g1 low m)
               in SOME (mk (Q.WvMass (Q.mk_rat n d, ml))) end
           | _ =>
@@ -509,25 +520,27 @@ struct
             then SOME (mk (Q.MolesInSol (List.nth (concs, 0), List.nth (vols, 0))))
             else if has "\\bmolarity\\b|\\bconcentration\\b" low andalso length vols = 1 andalso null concs
                     andalso not (has (N ^ "\\s*(?:g|grams?|mg|milligrams?)\\b") low)
-                    andalso isSome (search (N ^ "\\s*(?:moles?|mol)\\b") low)
+                    andalso length (findall (N ^ "\\s*(?:moles?|mol)\\b") low) = 1
             then
               let val m = valOf (search (N ^ "\\s*(?:moles?|mol)\\b") low)
                   val (n, d) = decPair (g1 low m)
               in SOME (mk (Q.MolarityMoles (Q.mk_rat n d, hd vols))) end
             else
-            if has "\\bdilut\\w*\\b|\\bstock\\b|\\bhow much (?:of )?(?:the )?\\d" low andalso length concs >= 2 andalso not (null vols)
+            if has "\\bdilut\\w*\\b|\\bstock\\b|\\bhow much (?:of )?(?:the )?qnum" low andalso length concs = 2 andalso length vols = 1
             then SOME (mk (Q.Dilution (List.nth (concs, 0), List.nth (concs, 1), List.last vols)))
             else
               case f of
                 NONE => if has "\\bgrams?\\b|\\bmolarity\\b" low then SOME (mk Q.NeedFormula) else NONE
               | SOME f =>
-                  if fclass f <> 0 then SOME (mk (Q.Molarity (fchars f, ratInt 1, ratInt 1)))
+                  if not (onlyFormula f t) then NONE
+                  else if fclass f <> 0 then SOME (mk (Q.Molarity (fchars f, ratInt 1, ratInt 1)))
                   else
                     let
-                      val gramsM = search (N ^ "\\s*(g|grams?|mg|milligrams?)\\b") low
+                      val gramsMatches = findall (N ^ "\\s*(g|grams?|mg|milligrams?)\\b") low
+                      val gramsM = case gramsMatches of [m] => SOME m | _ => NONE
                     in
                       if has "\\bmolarity\\b|\\bconcentration\\b|\\bwhat is the (?:molar )?concentration\\b" low
-                         andalso isSome gramsM andalso not (null vols)
+                         andalso isSome gramsM andalso length vols = 1
                       then
                         let
                           val m = valOf gramsM
@@ -536,7 +549,7 @@ struct
                         in SOME (mk (Q.Molarity (fchars f, grams, hd vols))) end
                       else if has "\\bhow (?:many|much)\\b|\\bmass\\b|\\bweigh\\b|\\bgrams?\\b" low
                               andalso not (has "\\bhow many (?:moles?|mol|millimoles?|mmol)\\b" low)   (* the organ answered grams to a moles question *)
-                              andalso not (null concs) andalso not (null vols)
+                              andalso length concs = 1 andalso length vols = 1
                       then SOME (mk (Q.MassNeeded (fchars f, hd concs, hd vols)))
                       else NONE
                     end
@@ -570,10 +583,25 @@ struct
      labsolutions-r2 stands for both lab manifests (it only adds a boundary). *)
   val familyOrder = ["decay", "labsolutions-r2", "chemistry-v3"]
 
-  fun recognize mode text =
+  fun recognizeMasked mode text =
     if mode = "family" then
       let fun go [] = NONE
             | go (id :: ids) = case byId id text of SOME r => SOME (id, r) | NONE => go ids
       in go familyOrder end
     else Option.map (fn r => (mode, r)) (byId mode text)
+  fun recognize mode text =
+    case ExactNumeric.mask text of
+      NONE => (numberBindings := []; NONE)
+    | SOME {text = masked, numbers} =>
+        let val low = lower masked
+            (* An unissued placeholder must not make one candidate disappear
+               while another quantity is silently selected by fall-through. *)
+            val issued = List.all
+              (fn m => isSome (List.find (fn (key, _) => key = Regex.whole low m) numbers))
+              (findall "qnum[0-9]+q" low)
+        in if not issued then NONE
+           else (originalQuestion := text; numberBindings := numbers;
+                 (recognizeMasked mode masked handle UnboundNumeral => NONE))
+        end
+
 end

@@ -4,9 +4,82 @@ begin
 
 datatype request = RC creq | RD dreq
 
-fun reply_of :: "request \<Rightarrow> reply" where
-  "reply_of (RC r) = reply_c r"
-| "reply_of (RD r) = reply_d r"
+text \<open>The arithmetic functions are total algebraic maps. The public typed
+answer interface additionally checks the physical input domain. In particular a
+negative amount or elapsed time must not become an affirmative physical answer,
+even if an untrusted reader supplies that request directly.\<close>
+fun physical_creq :: "creq \<Rightarrow> bool" where
+  "physical_creq (GramsToMoles q f) = (0 \<le> q)"
+| "physical_creq (MolesToGrams q f) = (0 \<le> q)"
+| "physical_creq (WvMass c v) = (0 \<le> c \<and> 0 \<le> v)"
+| "physical_creq (Dilution a b v) = (0 \<le> a \<and> 0 \<le> b \<and> 0 \<le> v)"
+| "physical_creq (Molarity f q v) = (0 \<le> q \<and> 0 \<le> v)"
+| "physical_creq (MassNeeded f c v) = (0 \<le> c \<and> 0 \<le> v)"
+| "physical_creq (DilutedConc c a b) = (0 \<le> c \<and> 0 \<le> a \<and> 0 \<le> b)"
+| "physical_creq (WaterToAdd a b) = (0 \<le> a \<and> 0 \<le> b)"
+| "physical_creq (MolesInSol c v) = (0 \<le> c \<and> 0 \<le> v)"
+| "physical_creq (MolarityMoles n v) = (0 \<le> n \<and> 0 \<le> v)"
+| "physical_creq (MolarMass f) = (case parse_formula f of FOk cs \<Rightarrow> 0 < mass_total cs | _ \<Rightarrow> True)"
+| "physical_creq _ = True"
+
+fun physical_elapsed :: "(rat \<times> tu) option \<Rightarrow> bool" where
+  "physical_elapsed None = True"
+| "physical_elapsed (Some (t, u)) = (0 \<le> t)"
+
+fun physical_dreq :: "dreq \<Rightarrow> bool" where
+  "physical_dreq (HalfLives h el) = physical_elapsed el"
+| "physical_dreq (Remaining h el am) =
+     (physical_elapsed el \<and> (case am of None \<Rightarrow> True | Some (a, u) \<Rightarrow> 0 \<le> a))"
+| "physical_dreq (RemFraction h el pct) = physical_elapsed el"
+| "physical_dreq (TimeToFraction h f u) = True"
+
+fun physical_request :: "request \<Rightarrow> bool" where
+  "physical_request (RC r) = physical_creq r"
+| "physical_request (RD r) = physical_dreq r"
+
+fun raw_reply :: "request \<Rightarrow> reply" where
+  "raw_reply (RC r) = reply_c r"
+| "raw_reply (RD r) = reply_d r"
+
+fun invalid_request_text :: "request \<Rightarrow> String.literal" where
+  "invalid_request_text (RC (MolarMass f)) = STR ''A molecular formula must have positive mass; zero atoms do not define a molecule.''"
+| "invalid_request_text _ = STR ''Amounts, concentrations, volumes and elapsed times must be nonnegative.''"
+
+definition reply_of :: "request \<Rightarrow> reply" where
+  "reply_of r = (if physical_request r then raw_reply r
+     else Reply False (STR ''impossible'') (invalid_request_text r) None)"
+
+theorem reply_of_physical:
+  "answered (reply_of r) \<Longrightarrow> physical_request r"
+  by (auto simp: reply_of_def split: if_splits)
+
+theorem reply_of_valid_agrees:
+  "physical_request r \<Longrightarrow> reply_of r = raw_reply r"
+  by (simp add: reply_of_def)
+
+theorem reply_of_invalid_declines:
+  "\<not> physical_request r \<Longrightarrow>
+   \<not> answered (reply_of r) \<and> reply_kind (reply_of r) = STR ''impossible''"
+  by (simp add: reply_of_def)
+
+theorem reply_of_grams_nonnegative:
+  "answered (reply_of (RC (GramsToMoles q f))) \<Longrightarrow> 0 \<le> q"
+  using reply_of_physical[of "RC (GramsToMoles q f)"] by simp
+
+theorem reply_of_lab_nonnegative:
+  "answered (reply_of (RC (MassNeeded f c v))) \<Longrightarrow> 0 \<le> c \<and> 0 \<le> v"
+  using reply_of_physical[of "RC (MassNeeded f c v)"] by simp
+
+theorem reply_of_remaining_nonnegative:
+  "answered (reply_of (RD (Remaining h (Some (t, u)) (Some (a, au))))) \<Longrightarrow>
+   0 \<le> t \<and> 0 \<le> a"
+  using reply_of_physical[of "RD (Remaining h (Some (t, u)) (Some (a, au)))"] by simp
+
+theorem reply_of_molar_mass_positive:
+  assumes "answered (reply_of (RC (MolarMass f)))"
+  shows "\<exists>cs. parse_formula f = FOk cs \<and> 0 < mass_total cs"
+  using assms reply_of_physical[OF assms]
+  by (cases "parse_formula f") (auto simp: reply_of_def reply_c_def with_mass_def)
 
 text \<open>Constructors the untrusted SML recognizer uses to build requests from
 numerals and text it read off the question.\<close>
@@ -68,7 +141,12 @@ definition self_checks :: "unit \<Rightarrow> bool list" where
     (\<not> answers (RC (WaterToAdd (100 / 1000) (10 / 1000)))),
     (stated (reply_of (RC (MolesInSol (1 / 2) (250 / 1000)))) = Some (STR ''0.125'')),
     (stated (reply_of (RC (MolarityMoles (1 / 5) (500 / 1000)))) = Some (STR ''0.4'')),
-    (\<not> answers (RC (MolesInSol 0 1)))]"
+    (\<not> answers (RC (MolesInSol 0 1))),
+    (\<not> answers (RC (GramsToMoles (-1) ''H2O''))),
+    (\<not> answers (RC (MassNeeded ''NaCl'' (-1) 1))),
+    (\<not> answers (RC (MolarMass ''H0''))),
+    (\<not> answers (RD (Remaining (HL_iso I_c14) (Some (-1, TU_year)) (Some (1, STR ''g''))))),
+    (\<not> answers (RD (Remaining (HL_iso I_c14) (Some (1, TU_year)) (Some (-1, STR ''g'')))))]"
 
 definition self_test :: "unit \<Rightarrow> bool" where
   "self_test u = list_all id (self_checks u)"
@@ -86,7 +164,9 @@ export_code reply_of answered reply_kind response stated answers mk_rat chars_of
   in SML module_name Chemistry file_prefix chemistry
 
 ML \<open>
-  val theorems = [@{thm round_sig_sound}, @{thm round_tie_up}, @{thm to_dec_sound}, @{thm enclose_sound},
+  val theorems = [@{thm reply_of_physical}, @{thm reply_of_valid_agrees}, @{thm reply_of_invalid_declines},
+    @{thm reply_of_grams_nonnegative}, @{thm reply_of_lab_nonnegative}, @{thm reply_of_remaining_nonnegative},
+    @{thm reply_of_molar_mass_positive}, @{thm round_sig_sound}, @{thm round_tie_up}, @{thm to_dec_sound}, @{thm enclose_sound},
     @{thm ndec_sound}, @{thm fixed_val_error},
     @{thm mass_total_add_count}, @{thm mass_merge}, @{thm molar_mass_value}, @{thm grams_to_moles_value},
     @{thm moles_to_grams_value}, @{thm grams_moles_roundtrip}, @{thm grams_to_moles_declines},

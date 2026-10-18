@@ -89,6 +89,26 @@
           "Natural-language recognition, unit extraction and choice of requested quantity."
         ]
       }
+    },
+    "decay": {
+      "accept": {
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "context_regex_additions": [
+        "(?=.*\\b(?:carbon[- ]?14|c[- ]?14|14c|radiocarbon|uranium[- ]?(?:238|235)|u[- ]?(?:238|235)|iodine[- ]?131|i[- ]?131|cobalt[- ]?60|co[- ]?60|c(?:a)?esium[- ]?137|cs[- ]?137|strontium[- ]?90|sr[- ]?90|radium[- ]?226|ra[- ]?226|plutonium[- ]?239|pu[- ]?239|tritium|hydrogen[- ]?3|h[- ]?3|radon(?:[- ]?222)?|rn[- ]?222|potassium[- ]?40|k[- ]?40|phosphorus[- ]?32|p[- ]?32|technetium[- ]?99m|tc[- ]?99m|fluorine[- ]?18|f[- ]?18|americium[- ]?241|am[- ]?241)\\b)(?=.*\\b(?:remain\\w*|left|still|fraction|proportion|percentage?|half[- ]?lives)\\b)"
+      ],
+      "evidence": {
+        "computation": "Radioactive-decay amounts and fractions use the typed exponential decay law and checked numeric enclosure; missing required quantities produce a decline. The public typed interface rejects negative elapsed times and amounts.",
+        "assumptions": [
+          "The named isotope or stated half-life identifies the intended single-exponential model."
+        ],
+        "untrusted": [
+          "Natural-language intent, isotope-name recognition, unit and quantity-role extraction.",
+          "The supplied isotope half-life table."
+        ]
+      }
     }
   }
 }

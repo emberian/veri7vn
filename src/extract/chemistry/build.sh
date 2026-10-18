@@ -42,9 +42,10 @@ cat > "$OUT/build/chemistry.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 chemistry_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/chemistry" "$OUT/build/chemistry.mlb"
+"$REPO/tools/dev/native-compile" --family chemistry --compiler "$MLTON" -- -output "$OUT/bin/chemistry" "$OUT/build/chemistry.mlb"
 ls -l "$OUT/bin/chemistry"
 shasum -a 256 "$OUT/build/chemistry_generated.sml" "$OUT/bin/chemistry"
