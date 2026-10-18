@@ -151,6 +151,9 @@ def required_native_sources(capture):
     if slug == 'stores':
         required = ['src/extract/commons/commons.sml', 'src/extract/stores/json.sml',
                     'src/extract/stores/recognizer.sml', 'src/extract/stores/main.sml']
+    elif slug == 'guards':
+        # The route-only recipe appends these three files after its heredoc.
+        required = ['src/extract/guards/' + name for name in ('regex.sml', 'recognizer.sml', 'main.sml')]
     else:
         declaration = re.search(r'\.mlb" <<\'?(\w+)\'?\n(.*?)\n\1\n', build.read_text(), re.S)
         if not declaration:
