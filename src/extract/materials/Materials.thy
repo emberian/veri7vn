@@ -913,7 +913,6 @@ theorem dilution_nonpositive:
 
 section \<open>Response text (ASCII)\<close>
 
-definition apos :: String.literal where "apos = String.implode [CHR 0x27]"
 definition dq :: String.literal where "dq = String.implode [CHR 0x22]"
 
 definition sa :: "rat \<Rightarrow> String.literal" where "sa = shw Fam_add"

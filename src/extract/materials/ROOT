@@ -6,6 +6,7 @@ session Veri7vn_Materials_Base in base = HOL +
   options [document = false, threads = 2]
   sessions
     "HOL-Decision_Procs"
+    "Veri7vn_Commons"
   theories
     Materials_Base
     Materials_Numbers

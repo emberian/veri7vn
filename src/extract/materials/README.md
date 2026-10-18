@@ -8,7 +8,7 @@ kernels and differ in the recognizer.
 
 Same recipe as the quantity family (`../quantity/README.md`): the formulas and the decisions to
 decline are HOL with proofs; Isabelle exports them to Standard ML; the MLton inside Isabelle
-builds one standalone binary; the English reader (`recognizer.sml`, `regex.sml`) is
+builds one standalone binary; the English reader (`recognizer.sml`, `../commons/commons.sml`) is
 hand-ported from the organs and is **untrusted**; `tables_check.py` ties the HOL constants and
 the texture rule list to the organ files.
 
