@@ -279,3 +279,76 @@ the scorer misreads it; commons' line totals (regex 4,475 not 4,197; main
 3,782 not ~3,400) and two consumers left broken; perf-envelope's stated load
 (6.0 at start, not 4 to 5.5), a 0.8 MB raw file under `docs/`, and a
 worktree path in the page.
+
+## Triage 4 (2026-10-17)
+
+Log: [`project/scouts/TRIAGE-4.md`](../scouts/TRIAGE-4.md).
+
+| Branch | Merged | Why, or what to fix first |
+|---|---|---|
+| scout/precision-guards | yes, `7c861ab` | new files only; rebuilt fresh on hbox (PASS theorems=42 oracles=0); binary 114/114 recorded core-panel paths identical; README and report corrected: `vectors_pin` is proved `by eval` (an oracle, outside the scan) |
+| scout/word-problems | yes, `93e8aa1` | new files only; rebuilt fresh on persvati (PASS theorems=28 oracles=0), binary sha256 equals the scout's; 24/24 core word items; kernel equals the organ on all 924 core questions |
+| scout/document-route | yes, `0db9328` | new files only; rebuilt fresh on hbox (PASS theorems=31 oracles=0); 30-item measure re-run 27/25/18+7 as reported; store schemas confirmed |
+
+| Lane | Tier | Size | Start from | Done when |
+|---|---|---|---|---|
+| W5-15 Guards: no false withholds, and a proof without eval | opus | M | dev (`src/extract/guards/`), head replies from W5-11's or one granted core-panel head run | on the 810 core items the head did not guard, the binary fires 0 times on the head's own replies; 114/114 held; `vectors_pin` proved without `eval` and inside the oracle scan |
+| W5-16 Word-problem kernel onto commons | sonnet | S | dev (`src/extract/wordprob/`, `src/extract/commons/`) | fresh remote PASS oracles=0 importing `Veri7vn_Commons`; 924/924 agreement with the organ module and 24/24 core items unchanged; tie rule written down |
+| W5-17 Document route over all 231 core items | opus | M | dev (`src/isabelle/document/`, `tools/document/`) | status and path compared against `core_panel.json` on all 231 items with every miss classified; the four arithmetic `arb:definitional` items match the head's status and path |
+
+**W5-15.** The guards kernel is merged with 20 of the 87 codes. Two gaps.
+First, the 114 test replies were synthesized so that the guards fire; nothing
+shows the binary stays silent where the head answered. Take real replies for
+the core panel (W5-11 runs the head through lane A's answerer and can record
+them; otherwise root grants one head run of the 924 core questions, state
+under `var/`), feed the binary (question, recorded route, real reply) for the
+810 items without a guard, and count firings; each firing is a finding (an
+unmodelled earlier rule, a recognizer error, or a stratum mistake). Second,
+`vectors_pin` and `vectors_count` are proved `by eval`, which Isabelle
+records as an oracle, and they sit after the oracle scan. Prove them with
+`code_simp` (or split the vector list) and move the scan to the last theory.
+While there, take `regex.sml` from `src/extract/commons/` as W5-12 does for
+the families. Not in scope: the 67 unmodelled codes (wait for this lane's
+firing count to say which matter).
+
+**W5-16.** `src/extract/wordprob/` restates `pow10`, `dec_val`, `round_at`,
+`round_sig` and the decimal rendering that `Commons_Num.thy` now holds; port
+it the way W5-12 ports a family (import `Veri7vn_Commons`, delete the
+duplicates, `regex.sml` from commons). Replace the three `by eval` lemmas
+(`pow10_4_real` and siblings) with `by simp`. Decide the money tie: keep
+half-up and write it in the README as a stated deviation (one probe, "12.5%
+of $1", differs; no core item), or adopt half-even. Gate: fresh remote PASS
+oracles=0, the binary agrees with `word_problems_v1.answer` (imported
+read-only) on answer-or-decline and schema for all 924 core questions, and
+the 24 core word items keep status, path and text. The scout's "shared
+exact-decimal library" proposal is this port; commons already exists.
+
+**W5-17.** The document kernel was measured on 30 of the 231 core items on
+its paths. Make `measure.py` read `upstream/workbench/data/core_panel.json`
+directly (no `var/scout/` sample files) and compare status and path for all
+231; text needs head replies and stays on the 30-item sample unless W5-11's
+recorded replies cover more. Add the compute gateway the scout named: a
+compute-shaped turn ("What is 9 cubed?", "12!/10!", "15 pounds in
+kilograms") ends in a withheld decline with the math organ's refusal, not
+the clarify terminal. Report every remaining miss by class. The cube CHECK
+port (the scout's lane 1) waits for this lane's count.
+
+Parked from triage 4: guards to all 87 codes (after W5-15 says which fire);
+guards behind the live head (needs W5-15 first); the cube CHECK port and the
+Explain-route benchmark (after W5-17); wordprob's head-level composition
+(the head's fold order around w488) and the recognizer fuzz (no board number
+moves). `capability:*` items are not on the core panel; the Explain branch
+has no panel.
+
+Triage 4, claims not verified: precision-guards' `replay.py` ground truth
+(run against the real Python guards; I compared the binary to the recorded
+paths instead); word-problems' 87-probe head numbers beyond the 24 core items
+and the 75-item organ text diffs; document-route's head replies (taken from
+the scout's one head run, not re-run) and the per-tier Explain claims.
+
+Triage 4, what scouts got wrong: precision-guards says "no oracles in the
+session" while `vectors_pin` is `by eval`; word-problems proposes a shared
+decimal library that commons already is, and does not say its binary answers
+26 core questions the head routes elsewhere (9 with a dropped minus sign);
+document-route quotes the stores' metadata counts as table sizes and places
+the `rel` column in the FTS table (it is in `edges.sqlite`).

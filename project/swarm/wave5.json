@@ -3,7 +3,8 @@
  "from_triage": [
   "project/scouts/TRIAGE-1.md",
   "project/scouts/TRIAGE-2.md",
-  "project/scouts/TRIAGE-3.md"
+  "project/scouts/TRIAGE-3.md",
+  "project/scouts/TRIAGE-4.md"
  ],
  "batches": {
   "W5-01-rel-novels-land": {
@@ -176,6 +177,43 @@
    ],
    "brief": "Both tools find families by parsing each score.py's id list (SPECIALISTS, IDS, VARIANTS, or none). Write src/extract/families.json (family, session, binary, specialists), have both read it, show they get today's lists. Rerun fleet.py once at load below 1 with every committed family (humanities was missing), regenerate fleet.md, and compute or drop the two uncomputed sentences in the generator.",
    "done_when": "both tools read families.json and list exactly what they list today; fleet.md regenerated at load below 1 covering every committed family"
+  },
+  "W5-15-guards-negative-and-no-eval": {
+   "title": "Guards: no false withholds, and a proof without eval",
+   "model": "opus",
+   "size": "M",
+   "start_from": "dev (src/extract/guards/); head replies from W5-11 or one root-granted core-panel head run",
+   "paths": [
+    "src/extract/guards/",
+    "var/guards/"
+   ],
+   "brief": "The 114 test replies were synthesized to make the guards fire. Feed the binary (question, recorded route, real head reply) for the 810 core items without a guard and count firings; classify each. Prove vectors_pin and vectors_count without eval (code_simp or split lists) and move the oracle scan to the last theory. Take regex.sml from src/extract/commons/.",
+   "done_when": "0 firings on the 810 unguarded core items with real replies; 114/114 recorded paths held; vectors_pin inside an oracle scan that reports 0"
+  },
+  "W5-16-wordprob-commons": {
+   "title": "Word-problem kernel onto commons",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev (src/extract/wordprob/, src/extract/commons/)",
+   "paths": [
+    "src/extract/wordprob/",
+    "var/wordprob/"
+   ],
+   "brief": "Port wordprob onto Veri7vn_Commons (pow10, dec_val, round_at, round_sig, rendering, regex.sml). Replace the three by-eval pow10 lemmas with by simp. Write the money tie rule down (half-up as stated deviation, or half-even).",
+   "done_when": "fresh remote PASS oracles=0 importing Veri7vn_Commons; 924/924 agreement with word_problems_v1.answer on answer-or-decline and schema; 24/24 core word items unchanged in status, path and text"
+  },
+  "W5-17-document-route-231": {
+   "title": "Document route over all 231 core items",
+   "model": "opus",
+   "size": "M",
+   "start_from": "dev (src/isabelle/document/, tools/document/)",
+   "paths": [
+    "src/isabelle/document/",
+    "tools/document/",
+    "var/document/"
+   ],
+   "brief": "measure.py reads core_panel.json directly and compares status and path on all 231 items on the route's paths; text stays on the 30-item sample unless recorded head replies cover more. Add a compute gateway: compute-shaped turns end withheld with the math refusal, not clarify. Classify every miss.",
+   "done_when": "status and path counts on 231 items with every miss classified; #75, #80, #92, #99 match the head's status and path"
   }
  },
  "deferred": {
@@ -197,7 +235,11 @@
   "organ-heldout-exam": "organ-wrappers follow-up 5: spends a held-out set; needs root's sign-off.",
   "harness-failure-modes": "commons scout: a missing upstream/ surfaces as a swallowed NoneType.get, and a dirty --out replays an old error. To the lane holding tools/parity (W5-06).",
   "commons-build-driver-and-narrow": "commons follow-ups 3 and 4 (one family-build script, shared narrow_v1 scaffolding): after W5-12.",
-  "render-dec-spec": "commons follow-up 5: render_dec against Python %.pg; optional metatheory, fable tier."
+  "render-dec-spec": "commons follow-up 5: render_dec against Python %.pg; optional metatheory, fable tier.",
+  "guards-all-codes": "precision-guards follow-up 1: the 67 unmodelled codes; after W5-15 says which fire.",
+  "guards-live-head": "precision-guards follow-up 4: after W5-15.",
+  "document-cube-check": "document-route follow-up 1 (cube CHECK port) and 3 (Explain benchmark): after W5-17.",
+  "wordprob-head-composition": "word-problems follow-ups 3 and 4 (fuzz, head fold order around w488): no board number moves."
  },
  "merges": [
   {
@@ -260,6 +302,24 @@
    "merged": true,
    "commit": "90db133",
    "note": "three binaries and the head cold start re-measured; fleet.json kept out of git (var/perf/fleet.json); plain-words paragraph and relative head path added"
+  },
+  {
+   "branch": "scout/precision-guards",
+   "merged": true,
+   "commit": "7c861ab",
+   "note": "fresh hbox build PASS theorems=42 oracles=0; binary 114/114 recorded core-panel paths; vectors_pin is by eval (oracle, outside scan), noted in README and report"
+  },
+  {
+   "branch": "scout/word-problems",
+   "merged": true,
+   "commit": "93e8aa1",
+   "note": "fresh persvati build PASS theorems=28 oracles=0; binary sha256 equals the scout's; 24/24 core word items; 924/924 agreement with the organ module"
+  },
+  {
+   "branch": "scout/document-route",
+   "merged": true,
+   "commit": "0db9328",
+   "note": "fresh hbox build PASS theorems=31 oracles=0; 30-item measure re-run 27/25/18+7; schemas confirmed, counts quoted are metadata's"
   }
  ],
  "unverified": [
