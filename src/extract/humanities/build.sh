@@ -25,7 +25,7 @@ repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT
 with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
     fcntl.flock(lock, fcntl.LOCK_EX)
     env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
-    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/humanities",
+    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/humanities", "-d", "src/extract/commons",
                     "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Humanities"],
                    check=True, env=env, cwd=repo)
 EOF
@@ -36,7 +36,7 @@ cp "$GEN" "$OUT/build/humanities_generated.sml"
 cat > "$OUT/build/humanities.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 humanities_generated.sml
-$SRC/regex.sml
+$SRC/../commons/commons.sml
 $SRC/rules.sml
 $SRC/recognizer.sml
 $SRC/main.sml

@@ -6,7 +6,7 @@ set -eu
 host=${1:-hbox}
 REPO=$(cd "$(dirname "$0")/../.." && pwd -P)
 cd "$REPO"
-tools/dev/remote-build "$host" src/extract/humanities Veri7vn_Humanities --expect 'VERI7VN_HUMANITIES PASS'
+tools/dev/remote-build "$host" src/extract/humanities Veri7vn_Humanities --expect 'VERI7VN_HUMANITIES PASS' -d src/extract/commons
 rroot="veri7vn-builds/$(basename "$REPO")"
 ssh -o BatchMode=yes "$host" sh -s "$rroot" <<'REMOTE'
 set -eu
@@ -21,7 +21,7 @@ S=$R/src/extract/humanities
 cat > "$D/build/humanities/humanities.mlb" <<MLB
 \$(SML_LIB)/basis/basis.mlb
 humanities_generated.sml
-$S/regex.sml
+$R/src/extract/commons/commons.sml
 $S/rules.sml
 $S/recognizer.sml
 $S/main.sml

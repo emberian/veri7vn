@@ -14,5 +14,5 @@ Result: every shipped panel, both splits, 0 wrong and 0 false yes; held-out equa
 (music 64/64 twice, grammar 15/15, mythology 13/13, ushistory 12/12, library 14/15, government 10/14). Details,
 statements and limits: `../../project/lanes/S16-humanities.md`.
 
-Build: see the handoff's reproduce section. The recognizer (`recognizer.sml`, `regex.sml`, `rules.sml`) and
+Build: see the handoff's reproduce section. The recognizer (`recognizer.sml`, `../commons/commons.sml`, `rules.sml`) and
 `main.sml` are untrusted.
