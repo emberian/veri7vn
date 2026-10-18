@@ -153,13 +153,15 @@ def main():
                 "rl (1661 / 100) * log 10"]:
         check("HOL has %r" % lit, lit in THY)
 
-    # --- eps and the round-up form shared by every organ
+    # --- document the inherited floating-point policy; HOL deliberately uses exact counts
     for f, lit in [("architecture/organ_architecture_v1.py", "math.ceil(A / f - 1e-9)"),
                    ("printing/organ_printing_v1.py", "math.ceil(H / L - 1e-9)"),
                    ("woodworking/organ_woodworking_v1.py", "math.ceil((A - O) / sheet - 1e-9)"),
                    ("crafts/organ_crafts_v1.py", "math.floor(W / s + 1e-9)")]:
         check("%s uses %s" % (f.split("/")[0], lit), lit in (SPEC / f).read_text())
-    check("eps = 1e-9", const("eps") == Fr(1, 10**9))
+    check("HOL exact ceiling replaces organ epsilon", r"ceil_rat x = of_int \<lceil>x\<rceil>" in THY)
+    check("HOL exact floor replaces organ epsilon", r"floor_rat x = of_int \<lfloor>x\<rfloor>" in THY)
+    check("no epsilon count policy remains", "ceil_eps" not in THY and "floor_eps" not in THY and "definition eps" not in THY)
 
     print("TABLES_CHECK %s" % ("PASS" if not FAILS else "FAIL " + ", ".join(FAILS)))
     sys.exit(1 if FAILS else 0)

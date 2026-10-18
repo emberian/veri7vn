@@ -200,7 +200,6 @@ round-up and round-down, the IRC maximum riser (7 3/4 in), 2.54 cm per inch.\<cl
 definition egress_per :: "bool \<Rightarrow> rat" where
   "egress_per stair = (if stair then 3 / 10 else 1 / 5)"
 
-definition eps :: rat where "eps = 1 / 1000000000"
 definition max_riser :: rat where "max_riser = 31 / 4"
 definition cm_per_inch :: rat where "cm_per_inch = 127 / 50"
 
@@ -311,41 +310,41 @@ fun kind_of :: "request \<Rightarrow> kind" where
 
 section \<open>Values the organs compute\<close>
 
-text \<open>Round up and round down with the organs' 1e-9 slack, on exact rationals:
-@{text "math.ceil(x - 1e-9)"} and @{text "math.floor(x + 1e-9)"}.\<close>
-definition ceil_eps :: "rat \<Rightarrow> rat" where "ceil_eps x = of_int \<lceil>x - eps\<rceil>"
-definition floor_eps :: "rat \<Rightarrow> rat" where "floor_eps x = of_int \<lfloor>x + eps\<rfloor>"
+text \<open>Exact rational covering and fitting counts. No floating-point slack
+is needed because all input decimals are interpreted as exact fractions.\<close>
+definition ceil_rat :: "rat \<Rightarrow> rat" where "ceil_rat x = of_int \<lceil>x\<rceil>"
+definition floor_rat :: "rat \<Rightarrow> rat" where "floor_rat x = of_int \<lfloor>x\<rfloor>"
 
 text \<open>@{text "least_cover x n"}: @{text n} is the smallest whole number not
-below @{text "x - eps"}. @{text "most_fit x n"}: the largest not above
-@{text "x + eps"}.\<close>
+below @{text "x"}. @{text "most_fit x n"}: the largest not above
+@{text "x"}.\<close>
 definition least_cover :: "rat \<Rightarrow> rat \<Rightarrow> bool" where
-  "least_cover x n \<longleftrightarrow> (\<exists>z::int. n = of_int z) \<and> x - eps \<le> n \<and> n < x - eps + 1"
+  "least_cover x n \<longleftrightarrow> (\<exists>z::int. n = of_int z) \<and> x \<le> n \<and> n < x + 1"
 
 definition most_fit :: "rat \<Rightarrow> rat \<Rightarrow> bool" where
-  "most_fit x n \<longleftrightarrow> (\<exists>z::int. n = of_int z) \<and> n \<le> x + eps \<and> x + eps < n + 1"
+  "most_fit x n \<longleftrightarrow> (\<exists>z::int. n = of_int z) \<and> n \<le> x \<and> x < n + 1"
 
-lemma ceil_eps_cover: "least_cover x (ceil_eps x)"
+lemma ceil_rat_cover: "least_cover x (ceil_rat x)"
 proof -
-  have c: "of_int \<lceil>x - eps\<rceil> - 1 < x - eps \<and> x - eps \<le> (of_int \<lceil>x - eps\<rceil> :: rat)"
+  have c: "of_int \<lceil>x\<rceil> - 1 < x \<and> x \<le> (of_int \<lceil>x\<rceil> :: rat)"
     by (rule ceiling_correct)
-  show ?thesis unfolding least_cover_def ceil_eps_def
+  show ?thesis unfolding least_cover_def ceil_rat_def
   proof (intro conjI)
-    show "\<exists>z::int. (of_int \<lceil>x - eps\<rceil> :: rat) = of_int z" by blast
-    show "x - eps \<le> (of_int \<lceil>x - eps\<rceil> :: rat)" using c by linarith
-    show "(of_int \<lceil>x - eps\<rceil> :: rat) < x - eps + 1" using c by linarith
+    show "\<exists>z::int. (of_int \<lceil>x\<rceil> :: rat) = of_int z" by blast
+    show "x \<le> (of_int \<lceil>x\<rceil> :: rat)" using c by linarith
+    show "(of_int \<lceil>x\<rceil> :: rat) < x + 1" using c by linarith
   qed
 qed
 
-lemma floor_eps_fit: "most_fit x (floor_eps x)"
+lemma floor_rat_fit: "most_fit x (floor_rat x)"
 proof -
-  have c: "(of_int \<lfloor>x + eps\<rfloor> :: rat) \<le> x + eps \<and> x + eps < of_int \<lfloor>x + eps\<rfloor> + 1"
-    using floor_correct[of "x + eps"] by simp
-  show ?thesis unfolding most_fit_def floor_eps_def
+  have c: "(of_int \<lfloor>x\<rfloor> :: rat) \<le> x \<and> x < of_int \<lfloor>x\<rfloor> + 1"
+    using floor_correct[of "x"] by simp
+  show ?thesis unfolding most_fit_def floor_rat_def
   proof (intro conjI)
-    show "\<exists>z::int. (of_int \<lfloor>x + eps\<rfloor> :: rat) = of_int z" by blast
-    show "(of_int \<lfloor>x + eps\<rfloor> :: rat) \<le> x + eps" using c by linarith
-    show "x + eps < (of_int \<lfloor>x + eps\<rfloor> :: rat) + 1" using c by linarith
+    show "\<exists>z::int. (of_int \<lfloor>x\<rfloor> :: rat) = of_int z" by blast
+    show "(of_int \<lfloor>x\<rfloor> :: rat) \<le> x" using c by linarith
+    show "x < (of_int \<lfloor>x\<rfloor> :: rat) + 1" using c by linarith
   qed
 qed
 
@@ -464,7 +463,7 @@ fun impossible :: "request \<Rightarrow> bool" where
      (ld \<noteq> None \<and> rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) \<le> 0)"
 | "impossible (ActualSize a b) = (actual a = None \<or> actual b = None)"
 | "impossible (Drywall a ov _) = (a \<le> ov)"
-| "impossible (Stairs r ft _) = (rise_in r ft / max_riser \<le> eps)"
+| "impossible (Stairs r ft _) = (rise_in r ft / max_riser \<le> 0)"
 | "impossible (Miter n) = (n < 3)"
 | "impossible (Moisture w d) = (d \<le> 0 \<or> w < d)"
 | "impossible (MixRyb a b) = (mix_ryb a b = None)"
@@ -493,7 +492,7 @@ fun reason_of :: "request \<Rightarrow> reason option" where
       then Some R_zero_rwl else None)"
 | "reason_of (ActualSize a b) = (if actual a = None \<or> actual b = None then Some R_nominal_size else None)"
 | "reason_of (Drywall a ov _) = (if a \<le> ov then Some R_openings_exceed else None)"
-| "reason_of (Stairs r ft _) = (if rise_in r ft / max_riser \<le> eps then Some R_rise_nonpositive else None)"
+| "reason_of (Stairs r ft _) = (if rise_in r ft / max_riser \<le> 0 then Some R_rise_nonpositive else None)"
 | "reason_of (Miter n) = (if n < 3 then Some R_few_sides else None)"
 | "reason_of (Moisture w d) = (if d \<le> 0 \<or> w < d then Some R_dry_exceeds_wet else None)"
 | "reason_of (MixRyb a b) = (if mix_ryb a b = None then Some R_no_mix else None)"
@@ -661,11 +660,11 @@ fun answer_of :: "request \<Rightarrow> outcome" where
   "answer_of (Far fa lot) = Exact K_far (fa / lot)"
 | "answer_of (MaxFloor f lot) = Exact K_max_floor (f * lot)"
 | "answer_of (Coverage fp lot) = Exact K_coverage (fp / lot * 100)"
-| "answer_of (Occupant a s) = Exact K_occupant (ceil_eps (a / load_factor s))"
-| "answer_of (Egress a s st) = Exact K_egress (ceil_eps (a / load_factor s) * egress_per st)"
+| "answer_of (Occupant a s) = Exact K_occupant (ceil_rat (a / load_factor s))"
+| "answer_of (Egress a s st) = Exact K_egress (ceil_rat (a / load_factor s) * egress_per st)"
 | "answer_of (Ramp r ft) = Exact K_ramp (ramp_rise_in r ft * 12 / 12)"
 | "answer_of (Shrink p) = Exact K_shrink (1 / (1 - the p / 100))"
-| "answer_of (Layers h l) = Exact K_layers (ceil_eps (the h / the l))"
+| "answer_of (Layers h l) = Exact K_layers (ceil_rat (the h / the l))"
 | "answer_of (Flow a b c) = Exact K_flow (the a * the b * the c)"
 | "answer_of (Cost g p) = Exact K_cost (g * per_kg p / 1000)"
 | "answer_of (FilLength m d s) = approx_out K_length (expr_of (FilLength m d s))"
@@ -682,10 +681,10 @@ fun answer_of :: "request \<Rightarrow> outcome" where
 | "answer_of (BoardFeet th w l inch k) =
      Exact K_board_feet (th * w * (if inch then l / 12 else l) / 12 * of_nat k)"
 | "answer_of (Concrete l w d inch) = Exact K_concrete (l * w * (if inch then d / 12 else d) / 27)"
-| "answer_of (Drywall a ov s) = Exact K_drywall (ceil_eps ((a - ov) / sheet_area s))"
+| "answer_of (Drywall a ov s) = Exact K_drywall (ceil_rat ((a - ov) / sheet_area s))"
 | "answer_of (Stairs r ft h) =
-     (if h then Exact K_riser_height (rise_in r ft / ceil_eps (rise_in r ft / max_riser))
-      else Exact K_risers (ceil_eps (rise_in r ft / max_riser)))"
+     (if h then Exact K_riser_height (rise_in r ft / ceil_rat (rise_in r ft / max_riser))
+      else Exact K_risers (ceil_rat (rise_in r ft / max_riser)))"
 | "answer_of (Rafter x rv ft) = approx_out K_rafter (expr_of (Rafter x rv ft))"
 | "answer_of (Pitch x) = approx_out K_pitch (expr_of (Pitch x))"
 | "answer_of (Miter n) = Exact K_miter (180 / of_nat n)"
@@ -695,7 +694,7 @@ fun answer_of :: "request \<Rightarrow> outcome" where
 | "answer_of (Complement c) = Hue K_complement (comp_of c)"
 | "answer_of (Rows row_count gauge_span u l li) = Exact K_rows (round_he (row_count / gauge_span * cast_width u l li))"
 | "answer_of (CastOn spu u w wi) = Exact K_cast_on (round_he (spu * cast_width u w wi))"
-| "answer_of (Quilt w l s) = Exact K_quilt (floor_eps (w / s) * floor_eps (l / s))"
+| "answer_of (Quilt w l s) = Exact K_quilt (floor_rat (w / s) * floor_rat (l / s))"
 | "answer_of (CutSize s) = Exact K_cut_size (s + 1 / 2)"
 | "answer_of (Yards i) = Exact K_yards (i / 36)"
 | "answer_of (Mat w h b) = Duo K_mat_outer (w + 2 * b) (h + 2 * b)"
@@ -792,9 +791,6 @@ lemma egress_per_nz [simp]: "egress_per st \<noteq> 0"
 lemma max_riser_pos [simp]: "0 < max_riser"
   by (simp add: max_riser_def)
 
-lemma eps_pos [simp]: "0 < eps"
-  by (simp add: eps_def)
-
 lemma answer_exact_spec:
   assumes A: "answer_of r = Exact k q" and B: "reason_of r = None"
   shows "k = kind_of r \<and> spec_exact r q"
@@ -814,11 +810,11 @@ next
 next
   case (Occupant x0 x1)
     have lp: "0 < load_factor x1" using B Occupant by (simp split: if_splits)
-    show ?thesis using A lp Occupant ceil_eps_cover by auto
+    show ?thesis using A lp Occupant ceil_rat_cover by auto
 next
   case (Egress a s st)
     have lp: "0 < load_factor s" using B Egress by (simp split: if_splits)
-    show ?thesis using A Egress lp ceil_eps_cover by auto
+    show ?thesis using A Egress lp ceil_rat_cover by auto
 next
   case (Ramp x0 x1)
     show ?thesis using A Ramp by (simp add: field_simps algebra_simps)
@@ -836,7 +832,7 @@ next
 next
   case (Layers x0 x1)
     have lp: "0 < the x1" using B Layers by (simp split: if_splits)
-    show ?thesis using A lp Layers ceil_eps_cover by auto
+    show ?thesis using A lp Layers ceil_rat_cover by auto
 next
   case (Flow x0 x1 x2)
     show ?thesis using A Flow by simp
@@ -887,26 +883,20 @@ next
     show ?thesis using A Concrete by (simp add: field_simps algebra_simps)
 next
   case (Drywall x0 x1 x2)
-    show ?thesis using A Drywall ceil_eps_cover by auto
+    show ?thesis using A Drywall ceil_rat_cover by auto
 next
   case (Stairs r ft h)
     define x where "x = rise_in r ft / max_riser"
-    have gt: "eps < x" using B Stairs by (auto simp: x_def split: if_splits)
-    have lc: "least_cover x (ceil_eps x)" by (rule ceil_eps_cover)
-    have pos: "0 < ceil_eps x" using lc gt unfolding least_cover_def by linarith
-    have rpos: "0 < rise_in r ft"
-    proof -
-      have e0: "0 < eps * max_riser" by simp
-      have "eps * max_riser < rise_in r ft" using gt unfolding x_def by (simp add: field_simps)
-      then show ?thesis using e0 by linarith
-    qed
+    have gt: "0 < x" using B Stairs by (auto simp: x_def split: if_splits)
+    have lc: "least_cover x (ceil_rat x)" by (rule ceil_rat_cover)
+    have pos: "0 < ceil_rat x" using lc gt unfolding least_cover_def by linarith
     show ?thesis
     proof (cases h)
       case True
-      have nz: "ceil_eps x \<noteq> 0" using pos by simp
-      have kq: "k = K_riser_height \<and> q = rise_in r ft / ceil_eps x"
+      have nz: "ceil_rat x \<noteq> 0" using pos by simp
+      have kq: "k = K_riser_height \<and> q = rise_in r ft / ceil_rat x"
         using A Stairs True by (simp add: x_def)
-      have "q * ceil_eps x = rise_in r ft" using kq nz by (simp add: field_simps algebra_simps)
+      have "q * ceil_rat x = rise_in r ft" using kq nz by (simp add: field_simps algebra_simps)
       then have ex: "\<exists>n. least_cover x n \<and> n \<noteq> 0 \<and> q * n = rise_in r ft" using lc nz by blast
       show ?thesis using kq ex Stairs True by (simp add: x_def)
     next
@@ -946,7 +936,7 @@ next
 next
   case (Quilt w l s)
     have sp: "0 < s" using B Quilt by (simp split: if_splits)
-    show ?thesis using A Quilt sp floor_eps_fit by auto
+    show ?thesis using A Quilt sp floor_rat_fit by auto
 next
   case (CutSize x0)
     show ?thesis using A CutSize by simp
@@ -979,6 +969,68 @@ lemma rows_nearest:
   assumes "kernel (Rows row_count gauge_span u target_len li) = Exact k q"
   shows "0 \<le> row_count \<and> 0 < gauge_span \<and> 0 \<le> target_len \<and> k = K_rows \<and> spec_he (row_count / gauge_span * cast_width u target_len li) q"
   using kernel_exact_sound[OF assms] by simp
+
+text \<open>Covering and fitting have their physical-unit meanings, with no
+slack around an integer boundary. These statements connect the independent
+integer specifications to dimensions supplied to the consumer.\<close>
+lemma least_cover_capacity:
+  assumes "0 < unit_size" "least_cover (amount / unit_size) n"
+  shows "amount \<le> n * unit_size \<and> (n - 1) * unit_size < amount"
+proof -
+  have lo: "amount / unit_size \<le> n" and hi: "n < amount / unit_size + 1"
+    using assms by (auto simp: least_cover_def)
+  have cover: "amount \<le> n * unit_size" using lo assms(1) by (simp add: divide_le_eq)
+  have "n - 1 < amount / unit_size" using hi by linarith
+  then have "(n - 1) * unit_size < amount" using assms(1) by (simp add: less_divide_eq)
+  with cover show ?thesis by simp
+qed
+
+lemma most_fit_capacity:
+  assumes "0 < unit_size" "most_fit (amount / unit_size) n"
+  shows "n * unit_size \<le> amount \<and> amount < (n + 1) * unit_size"
+proof -
+  have lo: "n \<le> amount / unit_size" and hi: "amount / unit_size < n + 1"
+    using assms by (auto simp: most_fit_def)
+  show ?thesis using lo hi assms(1) by (simp add: le_divide_eq divide_less_eq)
+qed
+
+theorem layers_cover_height:
+  assumes "kernel (Layers (Some height_value) (Some layer_height)) = Exact k n"
+  shows "k = K_layers \<and> 0 < layer_height \<and>
+    height_value \<le> n * layer_height \<and> (n - 1) * layer_height < height_value"
+  using kernel_exact_sound[OF assms] least_cover_capacity[of layer_height height_value n] by auto
+
+theorem occupants_cover_area:
+  assumes "kernel (Occupant area_value load_source) = Exact k n"
+  shows "k = K_occupant \<and> 0 < load_factor load_source \<and>
+    area_value \<le> n * load_factor load_source \<and> (n - 1) * load_factor load_source < area_value"
+  using kernel_exact_sound[OF assms] least_cover_capacity[of "load_factor load_source" area_value n] by auto
+
+theorem drywall_covers_area:
+  assumes "kernel (Drywall area_value openings sheet_kind) = Exact k n"
+  shows "k = K_drywall \<and> area_value - openings \<le> n * sheet_area sheet_kind \<and>
+    (n - 1) * sheet_area sheet_kind < area_value - openings"
+  using kernel_exact_sound[OF assms] least_cover_capacity[of "sheet_area sheet_kind" "area_value - openings" n] by auto
+
+theorem quilt_blocks_fit:
+  assumes "kernel (Quilt width_value height_value block_size) = Exact k n"
+  shows "k = K_quilt \<and> 0 < block_size \<and>
+    (\<exists>nw nh. n = nw * nh \<and> nw * block_size \<le> width_value \<and> width_value < (nw + 1) * block_size
+      \<and> nh * block_size \<le> height_value \<and> height_value < (nh + 1) * block_size)"
+proof -
+  have kind: "k = K_quilt" and positive: "0 < block_size"
+    and fits: "\<exists>nw nh. most_fit (width_value / block_size) nw \<and>
+      most_fit (height_value / block_size) nh \<and> n = nw * nh"
+    using kernel_exact_sound[OF assms] by auto
+  obtain nw nh where w: "most_fit (width_value / block_size) nw"
+    and h: "most_fit (height_value / block_size) nh" and count: "n = nw * nh"
+    using fits by blast
+  have wb: "nw * block_size \<le> width_value \<and> width_value < (nw + 1) * block_size"
+    by (rule most_fit_capacity[OF positive w])
+  have hb: "nh * block_size \<le> height_value \<and> height_value < (nh + 1) * block_size"
+    by (rule most_fit_capacity[OF positive h])
+  show ?thesis using kind positive count wb hb by blast
+qed
 
 lemma answer_duo:
   "answer_of r = Duo k x y \<Longrightarrow>
@@ -1231,7 +1283,7 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
 | "exact_text (Occupant a s) q V = STR ''The occupant load is '' + V + STR '' ('' + show3c a
      + STR '' sq ft / '' + show3c (load_factor s) + STR '', rounded up; '' + load_note s + STR '').''"
 | "exact_text (Egress a s st) q V = STR ''The required egress width is '' + V
-     + STR '' in by capacity ('' + show_whole (ceil_eps (a / load_factor s)) + STR '' occupants x ''
+     + STR '' in by capacity ('' + show_whole (ceil_rat (a / load_factor s)) + STR '' occupants x ''
      + per_str st + STR '' in; IBC 1005.3, ''
      + (if st then STR ''stairways'' else STR ''other egress components'') + STR ''; '' + load_note s
      + STR '') - minimum component widths still apply (e.g. stairways 44 in, or 36 in for an occupant load under 50; IBC 1011.2).''"
@@ -1267,11 +1319,11 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + STR '' ft / 27; no waste allowance).''"
 | "exact_text (Drywall a ov s) q V = STR ''You need '' + V + STR '' sheets ('' + show3 (a - ov) + STR '' sq ft''
      + (if ov \<noteq> 0 then STR '' after '' + show3 ov + STR '' sq ft of openings'' else STR '''')
-     + STR '' / '' + show_whole (sheet_area s) + STR '' sq ft per 4x'' + show_whole (sheet_area s / 8)
+     + STR '' / '' + show_whole (sheet_area s) + STR '' sq ft per 4x'' + show_whole (sheet_area s / 4)
      + STR '' sheet, rounded up; no waste allowance).''"
 | "exact_text (Stairs r ft h) q V = (if h
      then STR ''Each riser is '' + V + STR '' in ('' + show3 (rise_in r ft) + STR '' in / ''
-       + show_whole (ceil_eps (rise_in r ft / max_riser)) + STR '' risers; IRC maximum 7 3/4 in).''
+       + show_whole (ceil_rat (rise_in r ft / max_riser)) + STR '' risers; IRC maximum 7 3/4 in).''
      else STR ''You need '' + V + STR '' risers of '' + show3 (rise_in r ft / q) + STR '' in each (''
        + show3 (rise_in r ft) + STR '' in / 7.75 in, rounded up; IRC R311.7.5.1 maximum riser 7 3/4 in).'')"
 | "exact_text (Miter n) q V = STR ''The miter angle is '' + V + STR '' degrees per cut (180 / '' + show_nat n
@@ -1284,8 +1336,8 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
 | "exact_text (CastOn spu u w wi) q V = STR ''Cast on '' + V + STR '' stitches ('' + show3 spu
      + STR '' stitches per '' + (if u then STR ''inch'' else STR ''cm'') + STR '' x ''
      + show3 (cast_width u w wi) + STR '' '' + (if u then STR ''in'' else STR ''cm'') + STR '', rounded).''"
-| "exact_text (Quilt w l s) q V = STR ''You need '' + V + STR '' blocks ('' + show_whole (floor_eps (w / s))
-     + STR '' across x '' + show_whole (floor_eps (l / s)) + STR '' down of '' + show3 s
+| "exact_text (Quilt w l s) q V = STR ''You need '' + V + STR '' blocks ('' + show_whole (floor_rat (w / s))
+     + STR '' across x '' + show_whole (floor_rat (l / s)) + STR '' down of '' + show3 s
      + STR '' in finished blocks).''"
 | "exact_text (CutSize s) q V = STR ''Cut the squares at '' + V + STR '' in ('' + show3 s
      + STR '' in finished + 1/2 in for a 1/4 in seam allowance on each side).''"

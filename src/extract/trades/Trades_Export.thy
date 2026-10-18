@@ -11,6 +11,9 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
+     kernel (Layers (Some (1 + 1 / 10000000000)) (Some 1)) = Exact K_layers 2 \<and>
+     kernel (Quilt (1 - 1 / 10000000000) 1 1) = Exact K_quilt 0 \<and>
+     kernel (Drywall (32 + 1 / 100000000000) 0 S32) = Exact K_drywall 2 \<and>
      kernel (Far 36000 12000) = Exact K_far 3 \<and>
      kernel (Occupant 4500 (Table O_business)) = Exact K_occupant 30 \<and>
      kernel (Occupant 900 (Table O_classroom)) = Exact K_occupant 45 \<and>
@@ -64,7 +67,9 @@ ML \<open>
   val theorems = [@{thm kernel_exact_sound}, @{thm kernel_duo_sound}, @{thm kernel_hue_sound},
     @{thm kernel_approx_sound}, @{thm kernel_underspecified}, @{thm kernel_impossible},
     @{thm kernel_judgement}, @{thm kernel_imprecise}, @{thm reason_of_exact},
-    @{thm expr_of_meaning}, @{thm round_he_spec}, @{thm ceil_eps_cover}, @{thm floor_eps_fit},
+    @{thm expr_of_meaning}, @{thm round_he_spec}, @{thm ceil_rat_cover}, @{thm floor_rat_fit},
+    @{thm least_cover_capacity}, @{thm most_fit_capacity}, @{thm layers_cover_height},
+    @{thm occupants_cover_area}, @{thm drywall_covers_area}, @{thm quilt_blocks_fit},
     @{thm round_at_error}, @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm to_fixed_sound},
     @{thm enclose_m_sound}, @{thm stated_dec_sound}, @{thm round_tie_up},
     @{thm mix_symmetric}, @{thm complement_involution}, @{thm complement_violet_exception},

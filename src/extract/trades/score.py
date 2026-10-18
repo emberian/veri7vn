@@ -120,6 +120,8 @@ def run_probes(binary):
             value = rep.get("value")
             good = not yes if not item["valid"] else (yes and isinstance(value, (int, float)) and
                 math.isclose(value, item["expect"], rel_tol=0.0005, abs_tol=1e-9))
+            if good and item.get("response_contains"):
+                good = item["response_contains"] in rep.get("response", "")
             bucket = "right" if good else "false_yes" if yes and not item["valid"] else "wrong" if yes else "withheld_valid"
             summary[bucket] += 1
             results.append(dict(item, reply=rep, good=good))

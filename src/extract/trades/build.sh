@@ -20,9 +20,10 @@ cat > "$OUT/build/trades.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 trades_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/trades" "$OUT/build/trades.mlb"
+"$REPO/tools/dev/native-compile" --family trades --compiler "$MLTON" -- -output "$OUT/bin/trades" "$OUT/build/trades.mlb"
 ls -l "$OUT/bin/trades"
 shasum -a 256 "$OUT/build/trades_generated.sml" "$OUT/bin/trades"

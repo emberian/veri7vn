@@ -8,7 +8,8 @@ NIOSH lifting limit, board feet and rafters, knitting gauge and colour mixing.
 
 - The formulas, the rounding rules (round up, round down, nearest) and the decisions to
   decline are written in Isabelle/HOL, with proofs. Occupant loads, layers, sheets,
-  risers and blocks are exact rational arithmetic, including the organs' 1e-9 slack.
+  risers and blocks use exact rational ceilings and floors: enough units cover the
+  requested amount, or the largest whole count fits within it.
 - Quantities that need pi, a square root, an arctangent, a power of 2 or a logarithm
   (filament length and mass, rafter length, roof angle, noise time, dose and TWA) are
   enclosed in a verified interval and rounded to the organs' digits.
@@ -26,7 +27,7 @@ NIOSH lifting limit, board feet and rafters, knitting gauge and colour mixing.
 | Tables: occupancy factors, filament densities, lumber sizes, sheets, colour wheels, NIOSH constants | `Trades.thy` | HOL constants, checked against the organs by `tables_check.py` |
 | Requests, declines, kernel, reply text | `Trades.thy` | HOL, proved; exported to SML |
 | Export, self test, oracle check | `Trades_Export.thy` | the build fails if a listed theorem uses an oracle or the self test fails |
-| English recognizer | `../commons/commons.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs |
+| English recognizer | `../commons/commons.sml`, `../commons/numeric.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs |
 | JSON framing | `main.sml` | **untrusted** |
 
 Statements and numbers: [lane S14 handoff](../../../project/lanes/S14-trades.md).
@@ -59,3 +60,8 @@ runs fresh samples and authored extension probes. Fresh seeds select from the
 same shipped pools and phrasings; they are not independent question design.
 The safety folder ships no generator, so its original panel is retained and
 explicitly marked as not fresh in `generation.json`.
+
+The shared numeral reader preserves exact signed decimals, scientific notation
+and fractions in row gauges. Count replies carry the selected model law; the
+English role binding remains untrusted. Boundary probes include amounts just
+above or below an integer, where floating-point epsilon rules gave wrong counts.

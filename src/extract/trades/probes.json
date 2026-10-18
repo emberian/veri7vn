@@ -149,6 +149,84 @@
       "expect": null,
       "specialist": "crafts",
       "source": "Numeric-token and dimension boundary regression."
+    },
+    {
+      "specialist": "architecture",
+      "q": "What is the occupant load of a 150.00000001 sq ft business area?",
+      "valid": true,
+      "expect": 2,
+      "source": "D exact covering/fitting and shared numeral regression."
+    },
+    {
+      "specialist": "printing",
+      "q": "A 3D print is 1.0000000001 mm tall with layer height 1 mm. How many layers?",
+      "valid": true,
+      "expect": 2,
+      "source": "D exact covering/fitting and shared numeral regression."
+    },
+    {
+      "specialist": "printing-v2",
+      "q": "A 3D print is 1.0000000001 mm tall with layer height 1 mm. How many layers?",
+      "valid": true,
+      "expect": 2,
+      "source": "D exact covering/fitting and shared numeral regression."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many 4x8 drywall sheets for 32.000000001 sq ft?",
+      "valid": true,
+      "expect": 2,
+      "source": "D exact covering/fitting and shared numeral regression."
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many 1-inch blocks fit in a 0.9999999999 x 1 inch quilt?",
+      "valid": true,
+      "expect": 0,
+      "source": "D exact covering/fitting and shared numeral regression."
+    },
+    {
+      "specialist": "crafts",
+      "q": "How many 1-inch blocks fit in a 1 x 1 inch quilt?",
+      "valid": true,
+      "expect": 1,
+      "source": "D exact covering/fitting and shared numeral regression."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many risers for a stair with total rise 7.7500000001 inches?",
+      "valid": true,
+      "expect": 2,
+      "source": "D exact covering/fitting and shared numeral regression."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "What is each riser height for stairs with total rise 7.7500000001 inches?",
+      "valid": true,
+      "expect": 3.875,
+      "source": "D exact covering/fitting and shared numeral regression."
+    },
+    {
+      "specialist": "crafts",
+      "q": "Gauge is 1e1 rows per 2 inches. How many rows for 4 inches?",
+      "valid": true,
+      "expect": 20,
+      "source": "D exact covering/fitting and shared numeral regression."
+    },
+    {
+      "specialist": "crafts",
+      "q": "Gauge is 1/2 rows per inch. How many rows for 8 inches?",
+      "valid": true,
+      "expect": 4,
+      "source": "D exact covering/fitting and shared numeral regression."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many 4x8 drywall sheets for 64 sq ft?",
+      "valid": true,
+      "expect": 2,
+      "response_contains": "per 4x8 sheet",
+      "source": "D correct physical sheet dimensions in the explanation."
     }
   ]
 }

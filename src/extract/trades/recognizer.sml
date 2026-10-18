@@ -562,23 +562,35 @@ struct
             | NONE => Next
           fun rows () =
             let
-              val signed = "(?<![a-z0-9_.,+~-])(-?(?:\\d+(?:\\.\\d+)?|\\.\\d+))(?![0-9_,]|\\.\\d)"
-              val g3 = search (signed ^ "\\s*rows\\s*(?:per|in|over|=|to)\\s*(?:every\\s*)?" ^ signed ^ "\\s*" ^ crUnit) low
-              val g2 = search (signed ^ "\\s*rows\\s*(?:per|an|/)\\s*(inch|in\\b|cm)") low
-              val gm = case g3 of
-                  SOME m => SOME (m, g1 low m, valOf (grp low m 2), valOf (grp low m 3))
-                | NONE => (case g2 of SOME m => SOME (m, g1 low m, "1", valOf (grp low m 2)) | NONE => NONE)
+              val tokens = ExactNumeric.scan low
+              val ns = if List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens then []
+                       else List.mapPartial (fn ExactNumeric.Number n => SOME n | _ => NONE) tokens
+              fun after ({stop,...} : {start:int,stop:int,value:lr}) = String.extract (low, stop, NONE)
+              fun unit n = case search ("^\\s*" ^ crUnit) (after n) of
+                NONE => NONE | SOME m => SOME (valOf (grp (after n) m 1))
+              fun inches u = startsWith "in" u orelse u = "\""
+              fun pairs (a::b::rest) = (a,b)::pairs (b::rest) | pairs _ = []
+              fun only [x] = SOME x | only _ = NONE
+              val explicit = List.mapPartial (fn (a,b) =>
+                let val gap = String.substring (low, #stop a, #start b - #stop a)
+                in if has "^\\s*rows\\s*(?:per|in|over|=|to)\\s*(?:every\\s*)?$" gap
+                   then Option.map (fn u => (#start a, #stop b, #value a, #value b, u)) (unit b)
+                   else NONE end) (pairs ns)
+              val implicit = List.mapPartial (fn a =>
+                case search ("^\\s*rows\\s*(?:per|an|/)\\s*" ^ crUnit) (after a) of
+                  NONE => NONE
+                | SOME m => SOME (#start a, #stop a, #value a, (1,1), valOf (grp (after a) m 1))) ns
+              val gauge = only (explicit @ implicit)
             in
-              case gm of NONE => Next
-              | SOME (m, count, span, unit) =>
-                  if has "\\bhow many rows\\b|\\brows (?:do i|should i|to)\\b|\\brow count\\b" low then
-                    (let val rest = replaceLit (Regex.whole low m) " " low in
-                       case search (signed ^ "\\s*" ^ crUnit ^ "\\s*(?:long|length|tall|high|scarf|panel)?") rest of
-                         NONE => Stop
-                       | SOME lm => Take (Q.Rows (ratOf count, ratOf span, startsWith "in" unit orelse unit = "\"",
-                           ratOf (g1 rest lm), startsWith "in" (valOf (grp rest lm 2)) orelse valOf (grp rest lm 2) = "\""))
-                     end)
-                  else Next
+              case gauge of NONE => Next
+              | SOME (gstart,gstop,count,span,u) =>
+                if has "\\bhow many rows\\b|\\brows (?:do i|should i|to)\\b|\\brow count\\b" low then
+                  (case only (List.mapPartial (fn n =>
+                     if #start n >= gstart andalso #stop n <= gstop then NONE
+                     else Option.map (fn tu => (n,tu)) (unit n)) ns) of
+                     NONE => Stop
+                   | SOME (n,tu) => Take (Q.Rows (toQ count,toQ span,inches u,toQ (#value n),inches tu)))
+                else Next
             end
           fun knit () =
             let

@@ -15,7 +15,7 @@
         "\\b(?:rows|row count)\\b"
       ],
       "evidence": {
-        "computation": "For row-gauge requests, rows equal gauge row count divided by gauge span, times target length after inch/cm conversion, rounded to the nearest integer with ties to even. The kernel refuses a nonpositive gauge span or negative row count or length. Other crafts requests retain their own named convention.",
+        "computation": "For row-gauge requests, rows equal gauge row count divided by gauge span, times target length after inch/cm conversion, rounded to the nearest integer with ties to even. The kernel refuses a nonpositive gauge span or negative row count or length. Other crafts requests retain their own named convention. Quilt blocks use exact rational floor in both dimensions, so each count fits and one additional block in that direction does not.",
         "assumptions": [
           "Row-gauge requests assume uniform gauge across the requested length."
         ],
@@ -28,7 +28,49 @@
       "context_regex_additions": [
         "\\bboard[- ]footage\\b",
         "\\b(?:actual|nominal)\\s+(?:size|dimensions?)\\b|\\bdimensional\\s+(?:lumber|timber)\\b"
-      ]
+      ],
+      "evidence": {
+        "computation": "Drywall sheet and stair riser counts use exact rational ceiling. The returned sheet count covers the net area and one fewer sheet does not.",
+        "assumptions": [
+          "The stated area, openings and sheet size are the intended quantities; no waste allowance is inferred."
+        ],
+        "untrusted": [
+          "English quantity/unit recognition and real-project applicability of the stated model."
+        ]
+      }
+    },
+    "printing": {
+      "evidence": {
+        "computation": "For layer counts, exact rational ceiling gives enough layers to cover the stated part height; one fewer layer does not.",
+        "assumptions": [
+          "The stated positive layer height is uniform."
+        ],
+        "untrusted": [
+          "English quantity and unit recognition."
+        ]
+      }
+    },
+    "printing-v2": {
+      "evidence": {
+        "computation": "For layer counts, exact rational ceiling gives enough layers to cover the stated part height; one fewer layer does not.",
+        "assumptions": [
+          "The stated positive layer height is uniform."
+        ],
+        "untrusted": [
+          "English quantity and unit recognition."
+        ]
+      }
+    },
+    "architecture": {
+      "evidence": {
+        "computation": "For occupant counts, exact rational ceiling covers the area under the stated or named table load factor; one fewer occupant allocation does not.",
+        "assumptions": [
+          "The selected load factor and named code-table convention apply to the supplied arithmetic problem."
+        ],
+        "untrusted": [
+          "English recognition and applicability of the selected physical/code convention."
+        ]
+      }
     }
   }
 }
