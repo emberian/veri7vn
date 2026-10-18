@@ -1,0 +1,13 @@
+(* Scout precision-guards: Oracle7's precision guards (the precision_guard:P/G/Q/R
+   declines) as one HOL decision over features of (question, route, organ reply),
+   exported to SML. Pure decision kernel: booleans, lists, strings, ints - no
+   arithmetic engine, so no Approximation base session is needed. *)
+session Veri7vn_Guards = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Library"
+  theories
+    Guards_Catalogue
+    Guards
+    Guards_Export
+    Guards_Vectors

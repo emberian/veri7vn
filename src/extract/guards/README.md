@@ -1,0 +1,59 @@
+# Oracle7's precision guards, as a verified decline
+
+On the 924-question core panel (`upstream/workbench/data/core_panel.json`), 114
+answers end in a withheld reply whose path starts `precision_guard:`. Those
+declines are made by 14 Python folds (w510-w540) whose guard functions decide,
+from the question, the organ reply's route and text, and - for three guards -
+facts from the relation store, that the answer must not be asserted. This
+directory is that decision with a proof: one HOL kernel (`Guards.thy`) that
+decides from a feature record, an untrusted SML recognizer
+(`recognizer.sml`) that computes the features from the raw text, and the
+recorded items replayed through both (`replay.py`, `gen_vectors.py`).
+
+What is proved (the session builds green with `VERI7VN_GUARDS PASS ... oracles=0`):
+
+- one theorem per modelled guard that its predicate fires exactly on the
+  fold's documented condition (the equations of `firesL`, quoted from the
+  Python sources);
+- what a firing means where there is mathematics to state: the date-premise
+  guard fires only when the asked year lies outside every recorded date with
+  the fold's five-before/two-after tolerance, and a year inside it never
+  fires; a reply that states a number the question did not give (outside the
+  `1e-9` tolerance) never fires P2; a number the question gave is never
+  "fresh"; the units guard means the reply's value letters are among the
+  question's unit letters; the person guard means the store did not resolve
+  the offered name to a human;
+- the decision takes the first guard that fires in the chain's checking
+  order (`decision_iff`), never fires on a reply that was already withheld,
+  and every modelled code is one the Python chain can really emit
+  (`modelled_codes_in_catalogue`, against the generated catalogue).
+
+What is checked, not proved: the recognizer mirrors the Python regex work
+fold by fold (each pattern carries its source in a comment); the ground
+truth is the real Python guard functions themselves - `replay.py` imports
+them read-only from `upstream/` and reproduces all 114 recorded codes on
+synthesized replies - and the compiled binary
+(`var/guards/bin/guards`, ~430 KB) reproduces the same 114 codes and fold
+layers through the exported kernel. `Guards_Vectors.thy` (generated) pins
+the kernel's verdict on the recognizer's exact feature vector for each of
+the 114 items, proved by `eval` in the session. `eval` trusts the code
+generator (Isabelle records it as an oracle), and these two theorems are
+outside the marker's oracle scan: read them as a checked computation, not a
+kernel proof.
+
+Honest limits: the model covers the 20 codes that fire on the 114 recorded
+items over nine layers (w510-w517, w532-w534); the other 67 catalogue codes
+(w519, w521, w531, w539, w540 and the rest of the modelled folds' rules)
+are not modelled, so a reply on which one of them fires first would be
+decided differently; the relstore facts (the S1 person check, the G3
+premise dates) are recognizer-side inputs, not read from the store inside
+the kernel; the replies on the recorded items are synthesized minimal
+replies (the panel records only question, status and path - the organ reply
+the guard judged is not in the drop), so the replay exercises the guards'
+decisions, not the organ pipeline that produced those replies.
+
+Build: `tools/dev/remote-build <host> src/extract/guards Veri7vn_Guards --expect 'VERI7VN_GUARDS PASS'` (or `check-native` with the same session and marker), then
+`/Users/ember/dev/o7vn/.venv/bin/python -I src/extract/guards/tables_check.py`,
+`sh src/extract/guards/build.sh`,
+`/Users/ember/dev/o7vn/.venv/bin/python -I src/extract/guards/replay.py --emit-inputs`,
+`python3 src/extract/guards/gen_vectors.py` (after a binary rebuild, then rebuild the session).

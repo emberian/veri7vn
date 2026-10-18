@@ -1,0 +1,187 @@
+[
+ {
+  "module": "oracle_release_runtime_w540",
+  "chain_pos": 0,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w540.py",
+  "codes": [
+   "D1_question_direction",
+   "G3_private_on_converse",
+   "N2_number_read_back"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w539",
+  "chain_pos": 3,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w539.py",
+  "codes": [
+   "C1_composed_misses_request",
+   "N1_name_not_arithmetic"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w534",
+  "chain_pos": 10,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w534.py",
+  "codes": [
+   "G1_sign_kept",
+   "G2_private_state",
+   "G3_date_premise"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w533",
+  "chain_pos": 11,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w533.py",
+  "codes": [
+   "G5_echo",
+   "G6_units_not_variables",
+   "G7_word_sense"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w532",
+  "chain_pos": 12,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w532.py",
+  "codes": [
+   "G1_sign_kept",
+   "G2_private_state",
+   "G3_date_premise"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w531",
+  "chain_pos": 16,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w531.py",
+  "codes": [
+   "R_tex_not_maths_agent"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w521",
+  "chain_pos": 43,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w521.py",
+  "codes": [
+   "Q3_sentence_start_name",
+   "Q4_bare_value",
+   "R_mc_no_option",
+   "R_sci_exponent_dropped"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w519",
+  "chain_pos": 51,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w519.py",
+  "codes": [
+   "R11_not_a_country",
+   "R12_private_detail",
+   "R13_year_from_list_line"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w517",
+  "chain_pos": 53,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w517.py",
+  "codes": [
+   "R10_truncated_sentence",
+   "R3b_desk_reply_to_question",
+   "R3c_chat_reply_to_generic_fact",
+   "R3d_vocative_misread",
+   "R5b_document_runtime_non_answer",
+   "R6b_option_letter_algebra",
+   "R7b_decline_in_words"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w516",
+  "chain_pos": 54,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w516.py",
+  "codes": [
+   "R1_count_answered_by_date",
+   "R2_dump_for_slot_question",
+   "R2_timeline_for_slot_question",
+   "R2b_definition_for_non_definition",
+   "R3_chat_reply_to_fact",
+   "R4_compare_by_birth_year",
+   "R4_not_both_from_absence",
+   "R5_bare_value",
+   "R6_math_on_english",
+   "R6_schema_on_tex",
+   "R7_tool_error",
+   "S1_person_not_human",
+   "S3_event_year_not_in_lead",
+   "S4_premise_verb_unattested"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w514",
+  "chain_pos": 56,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w514.py",
+  "codes": [
+   "R1_english_as_algebra",
+   "R2_no_number",
+   "R3_unit_dimension",
+   "R4_no_year",
+   "R5_subject_missing",
+   "R6_attribute_missing"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w513",
+  "chain_pos": 57,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w513.py",
+  "codes": [
+   "P2b_no_number",
+   "P3b_unit_dimension",
+   "Q1_english_as_algebra",
+   "Q2_period",
+   "Q3_name_missing",
+   "Q3_subject_missing",
+   "Q4_numeral",
+   "Q5_pronoun_who"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w511",
+  "chain_pos": 58,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w511.py",
+  "codes": [
+   "P1_declines_in_words",
+   "P2_no_number",
+   "P3_unit_dimension",
+   "P4_lookup_for_compute",
+   "P5_game_not_asked",
+   "P5_integer_for_decimals",
+   "P6_body_dropped",
+   "P7_direction",
+   "P7_negative_given",
+   "P7_over_24h_a_day",
+   "P7_private",
+   "P7_zero_volume",
+   "P8_generic_you_chat_reply",
+   "P9_math_by_lookup"
+  ]
+ },
+ {
+  "module": "oracle_release_runtime_w510",
+  "chain_pos": 62,
+  "file": "upstream/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w510.py",
+  "codes": [
+   "G1_chat_reply_to_slot_question",
+   "G1_deflect_list",
+   "G1_self_record",
+   "G2_compare_is_a_definition",
+   "G2_definition_for_instance_question",
+   "G2_list_not_asked",
+   "G2_no_premises",
+   "G2_not_an_expression",
+   "G2_time_not_asked",
+   "G3_evidence_misses_question",
+   "G3s_qualifier_dropped",
+   "G4_admitted",
+   "G5_universal",
+   "G6_citizenship_not_asked",
+   "G6_country_for_a_venue",
+   "G6_inception_not_asked"
+  ]
+ }
+]
