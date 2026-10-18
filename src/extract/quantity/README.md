@@ -82,6 +82,20 @@ python3 src/extract/quantity/score.py
 
 The binary is not committed; it lives under `var/quantity/bin/`.
 
+`build.sh` also accepts `GENERATED_SML=/absolute/path/to/a/checked/export`.
+Use the export recorded in the successful remote build receipt. This avoids
+accidentally compiling an older local session; prior exports are preserved.
+
+The Codex continuation adds cross-checking laws: twice elastic energy equals
+force times stretch; absolute pressure equals gauge pressure plus one atmosphere;
+and temperature conversions round-trip through the other scale. It also
+recognizes explicit ordinary-state material cues such as “liquid mercury” and
+“solid copper”. An incompatible phase, such as “liquid copper”, is not answered
+from a solid-density table. These are typical-state densities, not a model of
+thermal expansion or melting. The English interpretation remains untrusted.
+Current continuation receipts and counts are in
+`project/lanes/C-physical-quantity-sound.md`.
+
 ## Current result
 
 On every one of the six shipped panels, both splits, every item is right: 0 wrong and
@@ -89,6 +103,8 @@ On every one of the six shipped panels, both splits, every item is right: 0 wron
 held-out numbers are densities 51/51, units 76/76, units-v3 75/75, springs 42/42,
 fluids 34/34 and fuels 42/42; the binary matches each. Every reply also agrees with the
 shipped organ on the same question: same answered or withheld status, same kind, and
-the same value within the scorer's tolerance. The binary is 545 KB and starts in about
-7 ms. The median time per question is under 0.25 ms, against a budget of 50 ms. Details:
-[lane G handoff](../../../project/lanes/G-quantity.md).
+the same value within the scorer's tolerance. The current binary is 563,632 bytes and starts in about
+7.5 ms. The median time per question is under 0.2 ms, against a budget of 50 ms.
+The final continuation also passes 44 quantity/variant probes and every item in
+fresh panels generated with reserved seeds 2026101891 and 2026101892. Details:
+[continuation report](../../../project/lanes/C-physical-quantity-sound.md).

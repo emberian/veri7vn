@@ -117,6 +117,11 @@ struct
   val NUM = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
   val cube = "\194\179"   (* U+00B3 SUPERSCRIPT THREE, UTF-8 *)
 
+  (* These physical formulas consume nonnegative magnitudes. NUM must not
+     silently turn a stated negative mass, volume, depth or stiffness positive.
+     Linear/affine unit conversions use their own signed-number grammar. *)
+  fun negativeMagnitude text = has "(?:^|[^\\w])(?:-|\226\136\146)\\s*\\d|\\b(?:negative|minus)\\s+\\d" (lower text)
+
   (* ---------- densities ---------- *)
   val matPats = zip3 ([
       "(?:fresh |pure |liquid )?water", "sea ?water|salt water", "ice", "alumin(?:i)?um",
@@ -127,6 +132,21 @@ struct
     Q.material_order, "material_order")
   val mWater = List.nth (Q.material_order, 0)
   val mSea = List.nth (Q.material_order, 1)
+  val mAir = List.nth (Q.material_order, 16)
+
+  (* Explicit phase is a material cue only when it matches this table's
+     ordinary-state entry. This is not a model of melting or thermal
+     expansion: liquid copper and solid mercury must not use these rows. *)
+  fun phaseMention phase m low = List.exists (fn (pat, mat) => mat = m andalso
+      has ("\\b" ^ phase ^ "\\s+(?:" ^ pat ^ ")\\b") low) matPats
+  fun phaseKnown m low = List.exists (fn p => phaseMention p m low)
+      ["liquid", "solid", "gaseous", "metallic"]
+  fun phaseFits m low =
+      (not (phaseMention "liquid" m low) orelse List.exists (fn x => x = m) Q.fluid_order)
+      andalso (not (phaseMention "solid" m low) orelse
+        (m <> mAir andalso not (List.exists (fn x => x = m) Q.fluid_order)))
+      andalso (not (phaseMention "gaseous" m low) orelse m = mAir)
+      andalso (not (phaseMention "metallic" m low) orelse List.exists (fn x => x = m) Q.elements)
 
   fun materials low =
     let val found = List.mapPartial (fn (p, m) => if has ("\\b(?:" ^ p ^ ")\\b") low then SOME m else NONE) matPats
@@ -166,7 +186,7 @@ struct
     let
       val t = collapse text
     in
-      if t = "" orelse Narrow.narrative t then NONE
+      if t = "" orelse Narrow.narrative t orelse negativeMagnitude t then NONE
       else
         let
           val low = lower t
@@ -186,7 +206,9 @@ struct
                 val masses = amounts massUnitPats low
                 val none = null vols andalso null masses
               in
-                if densityWord andalso none andalso List.exists (fn e => e = m) Q.elements then NONE
+                if not (phaseFits m low) then NONE
+                else if densityWord andalso none andalso List.exists (fn e => e = m) Q.elements
+                        andalso not (phaseKnown m low) then NONE
                 else if densityWord andalso none andalso has "\\b(?:what|how|give|tell|find)\\b" ask then
                   SOME (Q.Density m)
                 else if massAsk andalso length vols = 1 andalso null masses then
@@ -218,7 +240,7 @@ struct
     in rev (foldl (fn (x, acc) => rev (ins (x, rev acc))) [] all) end
   fun escape s = String.translate (fn c => if Char.isAlphaNum c then String.str c else "\\" ^ String.str c) s
   val UNIT_RX = "(" ^ String.concatWith "|" (map escape names) ^ ")"
-  val CONV = "(-?\\d+(?:\\.\\d+)?)\\s*" ^ UNIT_RX ^ "\\s+(?:to|in|into|=|as)\\s+" ^ UNIT_RX ^ "\\b"
+  val CONV = "(-?\\d+(?:\\.\\d+)?)\\s*" ^ UNIT_RX ^ "\\s+(?:to|in|into|=|as|comes?\\s+to\\s+in)\\s+" ^ UNIT_RX ^ "\\b"
   val HOWMANY = "how many\\s+" ^ UNIT_RX ^ "\\s+(?:are\\s+)?(?:in|is|make up)\\s+(?:an?\\s+|one\\s+)?(-?\\d+(?:\\.\\d+)?\\s*)?"
     ^ UNIT_RX ^ "\\b"
   val QTY = "(-?\\d+(?:\\.\\d+)?)\\s*" ^ UNIT_RX ^ "(?![\\w/])"
@@ -300,7 +322,7 @@ struct
   fun springs text =
     let val t = collapse text
     in
-      if t = "" orelse Narrow.narrative t orelse not (has "\\bsprings?\\b|\\bhooke\\b|\\bspring constant\\b" (lower t)) then NONE
+      if t = "" orelse Narrow.narrative t orelse negativeMagnitude t orelse not (has "\\bsprings?\\b|\\bhooke\\b|\\bspring constant\\b" (lower t)) then NONE
       else
         let
           val low = lower t
@@ -323,7 +345,7 @@ struct
           else if has "\\b(?:energy|work)\\b" ask then
             let val r = Q.SpringEnergy (k, one disps)
             in if isSome k andalso length disps = 1 then SOME r else need r end
-          else if has "\\bspring constant\\b|\\bstiffness\\b|\\bwhat is k\\b" ask then
+          else if has "\\bspring constant\\b|\\bstiffness\\b|\\bwhat is k\\b" ask andalso not askedForce then
             let val r = Q.SpringConstant (one forces, one disps)
             in if length forces = 1 andalso length disps = 1 then SOME r else need r end
           else if has ("\\b(?:how far|extension|displacement|how much (?:does|will|would) .{0,40}"
@@ -361,7 +383,7 @@ struct
   fun fluids text =
     let val t = collapse text
     in
-      if t = "" orelse Narrow.narrative t then NONE
+      if t = "" orelse Narrow.narrative t orelse negativeMagnitude t then NONE
       else
         let
           val low = lower t
@@ -413,7 +435,7 @@ struct
   fun fuels text =
     let val t = collapse text
     in
-      if t = "" orelse Narrow.narrative t then NONE
+      if t = "" orelse Narrow.narrative t orelse negativeMagnitude t then NONE
       else
         let
           val low = lower t

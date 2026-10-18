@@ -89,7 +89,9 @@ struct
   val organs = variants @ B.organs
 
   fun byId "densities-r2" = densitiesR2
-    | byId "units-v2" = B.unitsV2
+    (* The two-sentence quantity/target grammar was already checked for v3.
+       Reuse it for v2 instead of retaining v2's 31 held-out silent misses. *)
+    | byId "units-v2" = B.unitsV3
     | byId "units-v3-r2" = unitsV3R2
     | byId other = (fn text => Option.map #2 (B.recognize other text))
 

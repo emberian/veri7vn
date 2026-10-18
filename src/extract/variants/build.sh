@@ -15,19 +15,24 @@ OUT=$REPO/var/variants
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
-rm -rf "$OUT/export"
-REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'PY'
+# GENERATED_SML pins a successful remote receipt; otherwise export into a new
+# directory so an old session export cannot be mistaken for this invocation.
+GEN=${GENERATED_SML:-}
+if [ -z "$GEN" ]; then
+EXPORT_DIR=$(mktemp -d "$OUT/export.XXXXXX")
+REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" EXPORT_DIR="$EXPORT_DIR" python3 -B - <<'PY'
 import fcntl, os, subprocess
 repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT"]
 with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
     fcntl.flock(lock, fcntl.LOCK_EX)
     env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
     subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/quantity", "-d", "src/extract/commons",
-                    "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Quantity"],
+                    "-O", os.environ["EXPORT_DIR"], "-x", "*:code/**", "Veri7vn_Quantity"],
                    check=True, env=env, cwd=repo)
 PY
-GEN=$(find "$OUT/export" -type f -name 'quantity*' | head -n 1)
-[ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
+GEN=$(find "$EXPORT_DIR" -type f -name 'quantity*' | head -n 1)
+fi
+[ -n "$GEN" ] && [ -f "$GEN" ] || { echo "no generated SML file: $GEN" >&2; exit 1; }
 cp "$GEN" "$OUT/build/quantity_generated.sml"
 
 sed -e 's/^structure Recognizer :/structure RecognizerBase :/' \
@@ -44,6 +49,8 @@ recognizer_base.sml
 $SRC/variants.sml
 $Q/main.sml
 EOM
-"$MLTON" -output "$OUT/bin/variants" "$OUT/build/variants.mlb"
+BIN_TEMP=$(mktemp "$OUT/bin/.variants.XXXXXX")
+"$MLTON" -output "$BIN_TEMP" "$OUT/build/variants.mlb"
+mv "$BIN_TEMP" "$OUT/bin/variants"
 ls -l "$OUT/bin/variants"
 shasum -a 256 "$OUT/build/quantity_generated.sml" "$OUT/bin/variants"

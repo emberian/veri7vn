@@ -1,0 +1,398 @@
+[
+  {
+    "specialist": "units",
+    "q": "What does 32 F come to in C?",
+    "kind": "temperature",
+    "expect": 0,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "(32-32)*5/9"
+  },
+  {
+    "specialist": "units",
+    "q": "What does 212 F come to in C?",
+    "kind": "temperature",
+    "expect": 100,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "(212-32)*5/9"
+  },
+  {
+    "specialist": "units",
+    "q": "What does -500 C come to in K?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "Below absolute zero"
+  },
+  {
+    "specialist": "units",
+    "q": "What does 2 feet come to in meters?",
+    "kind": "convert",
+    "expect": 0.6096,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "2*0.3048"
+  },
+  {
+    "specialist": "units",
+    "q": "What does 2 meters come to in kg?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "Dimension mismatch"
+  },
+  {
+    "specialist": "units-v2",
+    "q": "What does 32 F come to in C?",
+    "kind": "temperature",
+    "expect": 0,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "(32-32)*5/9"
+  },
+  {
+    "specialist": "units-v2",
+    "q": "What does 212 F come to in C?",
+    "kind": "temperature",
+    "expect": 100,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "(212-32)*5/9"
+  },
+  {
+    "specialist": "units-v2",
+    "q": "What does -500 C come to in K?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "Below absolute zero"
+  },
+  {
+    "specialist": "units-v2",
+    "q": "What does 2 feet come to in meters?",
+    "kind": "convert",
+    "expect": 0.6096,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "2*0.3048"
+  },
+  {
+    "specialist": "units-v2",
+    "q": "What does 2 meters come to in kg?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "Dimension mismatch"
+  },
+  {
+    "specialist": "units-v3",
+    "q": "What does 32 F come to in C?",
+    "kind": "temperature",
+    "expect": 0,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "(32-32)*5/9"
+  },
+  {
+    "specialist": "units-v3",
+    "q": "What does 212 F come to in C?",
+    "kind": "temperature",
+    "expect": 100,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "(212-32)*5/9"
+  },
+  {
+    "specialist": "units-v3",
+    "q": "What does -500 C come to in K?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "Below absolute zero"
+  },
+  {
+    "specialist": "units-v3",
+    "q": "What does 2 feet come to in meters?",
+    "kind": "convert",
+    "expect": 0.6096,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "2*0.3048"
+  },
+  {
+    "specialist": "units-v3",
+    "q": "What does 2 meters come to in kg?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "Dimension mismatch"
+  },
+  {
+    "specialist": "units-v3-r2",
+    "q": "What does 32 F come to in C?",
+    "kind": "temperature",
+    "expect": 0,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "(32-32)*5/9"
+  },
+  {
+    "specialist": "units-v3-r2",
+    "q": "What does 212 F come to in C?",
+    "kind": "temperature",
+    "expect": 100,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "(212-32)*5/9"
+  },
+  {
+    "specialist": "units-v3-r2",
+    "q": "What does -500 C come to in K?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "Below absolute zero"
+  },
+  {
+    "specialist": "units-v3-r2",
+    "q": "What does 2 feet come to in meters?",
+    "kind": "convert",
+    "expect": 0.6096,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "2*0.3048"
+  },
+  {
+    "specialist": "units-v3-r2",
+    "q": "What does 2 meters come to in kg?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "Dimension mismatch"
+  },
+  {
+    "specialist": "units-v2",
+    "q": "I have 1.5 hours. How many minutes is that?",
+    "kind": "convert",
+    "expect": 90,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "1.5*60"
+  },
+  {
+    "specialist": "units-v2",
+    "q": "I have 2 feet. What is that in inches?",
+    "kind": "convert",
+    "expect": 24,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "2*12"
+  },
+  {
+    "specialist": "units-v2",
+    "q": "I have 1 mile. Convert it to feet.",
+    "kind": "convert",
+    "expect": 5280,
+    "valid": true,
+    "source": "upstream/root/specialists/units-v3-r2/units_panel_v2.py (F exact conversion factors and temp affine formula)",
+    "calculation": "1609.344/0.3048"
+  },
+  {
+    "specialist": "springs",
+    "q": "What force does a spring with a spring constant of 120 N/m exert when stretched 0.25 m?",
+    "kind": "force",
+    "expect": 30,
+    "valid": true,
+    "source": "upstream/root/specialists/springs/springs_panel_v1.py (force k*x and elastic energy k*x*x/2)",
+    "calculation": "120*0.25"
+  },
+  {
+    "specialist": "springs",
+    "q": "How much energy is stored in a spring with a spring constant of 120 N/m stretched 0.25 m?",
+    "kind": "elastic_energy",
+    "expect": 3.75,
+    "valid": true,
+    "source": "upstream/root/specialists/springs/springs_panel_v1.py (force k*x and elastic energy k*x*x/2)",
+    "calculation": "120*0.25^2/2"
+  },
+  {
+    "specialist": "fluids",
+    "q": "What is the gauge pressure 10 m below the surface of fresh water?",
+    "kind": "pressure_gauge",
+    "expect": 98066.5,
+    "valid": true,
+    "source": "upstream/root/specialists/fluids/fluids_panel_v1.py (FL, G, ATM)",
+    "calculation": "1000*9.80665*10"
+  },
+  {
+    "specialist": "fluids",
+    "q": "What is the absolute pressure 10 m below the surface of fresh water?",
+    "kind": "pressure_abs",
+    "expect": 199391.5,
+    "valid": true,
+    "source": "upstream/root/specialists/fluids/fluids_panel_v1.py (FL, G, ATM)",
+    "calculation": "101325+1000*9.80665*10"
+  },
+  {
+    "specialist": "densities",
+    "q": "What is the density of liquid mercury in kg/m3?",
+    "kind": "density",
+    "expect": 13533.6,
+    "valid": true,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities",
+    "q": "What is the density of solid copper?",
+    "kind": "density",
+    "expect": 8933,
+    "valid": true,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities",
+    "q": "What is the density of metallic gold?",
+    "kind": "density",
+    "expect": 19282,
+    "valid": true,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities",
+    "q": "What is the density of liquid copper?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities",
+    "q": "What is the density of solid mercury?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities",
+    "q": "What is the mass of 2 litres of liquid copper?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities-r2",
+    "q": "What is the density of liquid mercury in kg/m3?",
+    "kind": "density",
+    "expect": 13533.6,
+    "valid": true,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities-r2",
+    "q": "What is the density of solid copper?",
+    "kind": "density",
+    "expect": 8933,
+    "valid": true,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities-r2",
+    "q": "What is the density of metallic gold?",
+    "kind": "density",
+    "expect": 19282,
+    "valid": true,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities-r2",
+    "q": "What is the density of liquid copper?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities-r2",
+    "q": "What is the density of solid mercury?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities-r2",
+    "q": "What is the mass of 2 litres of liquid copper?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "upstream organ_densities_v1 MATERIALS and Quantity.thy typical-state table; explicit phase may not change the table state",
+    "calculation": "Lookup density when stated phase matches stored ordinary state; otherwise fall through"
+  },
+  {
+    "specialist": "densities",
+    "q": "What is the mass of -2 litres of zinc in kg?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "Nonnegative magnitude grammar; signed quantities must not silently lose their minus sign",
+    "calculation": "Unsupported physical sign; fall through"
+  },
+  {
+    "specialist": "densities-r2",
+    "q": "What is the mass of -2 litres of zinc in kg?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "Nonnegative magnitude grammar; signed quantities must not silently lose their minus sign",
+    "calculation": "Unsupported physical sign; fall through"
+  },
+  {
+    "specialist": "springs",
+    "q": "What force does a spring with a spring constant of -120 N/m exert when stretched 0.25 m?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "Nonnegative magnitude grammar; signed quantities must not silently lose their minus sign",
+    "calculation": "Unsupported physical sign; fall through"
+  },
+  {
+    "specialist": "fluids",
+    "q": "What is the gauge pressure -10 m below the surface of fresh water?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "Nonnegative magnitude grammar; signed quantities must not silently lose their minus sign",
+    "calculation": "Unsupported physical sign; fall through"
+  },
+  {
+    "specialist": "fuels",
+    "q": "How much energy does burning -2 kg of coal release?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "source": "Nonnegative magnitude grammar; signed quantities must not silently lose their minus sign",
+    "calculation": "Unsupported physical sign; fall through"
+  }
+]

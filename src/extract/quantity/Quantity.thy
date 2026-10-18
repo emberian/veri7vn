@@ -1007,6 +1007,20 @@ theorem temperature_impossible:
   "(\<exists>why. kernel (Convert x (Tmp a) (Tmp b)) = Decline (Impossible why)) \<longleftrightarrow> kelvin a x < 0"
   by (simp add: kernel_impossible kelvin_def)
 
+theorem temperature_round_trip:
+  assumes "kernel (Convert x (Tmp a) (Tmp b)) = Exact k y"
+  shows "kernel (Convert y (Tmp b) (Tmp a)) = Exact K_temperature x"
+proof -
+  have nonneg: "0 \<le> kelvin a x" and same: "kelvin b y = kelvin a x"
+    using temperature_point[OF assms] by auto
+  have reverse_value: "(kelvin b y - toffset a) / tscale a = x"
+    by (subst same) (simp add: kelvin_def)
+  have valid_b: "\<not> kelvin b y < 0"
+    using nonneg same by simp
+  show ?thesis using valid_b reverse_value
+    by (simp add: kernel_def decline_of_def)
+qed
+
 text \<open>A temperature point is not a temperature difference: the point
 conversion differs from the difference conversion by the offset between the
 scales' zeros, so it differs whenever the zeros differ (C to F: by 32).\<close>
@@ -1093,6 +1107,13 @@ theorem elastic_energy:
   shows "c = K_elastic_energy \<and> dim_of (snd x) = D_length \<and> y = k * siq x ^ 2 / 2"
   using kernel_exact_sound[OF assms] by (cases x) auto
 
+theorem spring_energy_force:
+  assumes "kernel (SpringEnergy (Some k) (Some x)) = Exact c e"
+    "kernel (SpringForce (Some k) (Some x)) = Exact c' F"
+  shows "2 * e = F * siq x"
+  using elastic_energy[OF assms(1)] hooke_force[OF assms(2)]
+  by (auto simp: power2_eq_square)
+
 text \<open>The defining relation of a mass on an ideal spring,
 @{text "T\<^sup>2 k = 4 pi\<^sup>2 m"}, and @{text "f T = 1"}.\<close>
 theorem spring_period_model:
@@ -1147,6 +1168,12 @@ theorem absolute_pressure:
   assumes "kernel (PressureAbs f (Some h)) = Exact c y"
   shows "c = K_pressure_abs \<and> dim_of (snd h) = D_length \<and> y = p0 + density f * g0 * siq h"
   using kernel_exact_sound[OF assms] by (cases h) auto
+
+theorem pressure_absolute_gauge:
+  assumes "kernel (PressureAbs f (Some h)) = Exact c a"
+    "kernel (PressureGauge f (Some h)) = Exact c' g"
+  shows "a = g + p0"
+  using absolute_pressure[OF assms(1)] gauge_pressure[OF assms(2)] by auto
 
 theorem buoyant_force:
   assumes "kernel (Buoyant f (Some v)) = Exact c y"

@@ -7,8 +7,10 @@ adds one small untrusted SML layer, `variants.sml`, that only withholds.
 
 - `densities-r2` = densities + `names_narrowing_v1` (silent when a material word
   appears only capitalised mid-sentence, "the mass of Mercury").
-- `units-v2` = the `organ_units_v2` organ, which lane G's recognizer already had
-  inside units-v3 (exact rationals, quantity-first phrasing, `narrow_v1`).
+- `units-v2` now also accepts the same explicit two-sentence conversion questions
+  as units-v3 (for example, “I have 2 feet. How many inches is that?”). The shared
+  recognizer accepts “What does 37 K come to in C?” and keeps the exact affine
+  temperature model. These complete 31 previously missed shipped held-out items.
 - `units-v3-r2` = units-v3 + a boundary rule: silent on turns with heat loss /
   R-value / U-value / heating degree days markers and none of units' own.
 
@@ -22,4 +24,9 @@ python3 tools/parity/harness.py --answerer "var/variants/bin/variants --speciali
 
 `build.sh` derives `RecognizerBase` from lane G's `recognizer.sml` with `sed`
 (renames the structure and exposes `densities`, `unitsV2`, `unitsV3`); nothing in
-`src/extract/quantity` is edited. Handoff: `project/lanes/S17-variants.md`.
+the quantity recognizer is copied by hand. Handoffs: `project/lanes/S17-variants.md`
+and `project/lanes/C-physical-quantity-sound.md`.
+
+To compile a specific successful remote proof export, set
+`GENERATED_SML=/absolute/path/to/quantity.ML` when invoking `build.sh`.
+The script preserves previous exports and replaces the finished binary atomically.
