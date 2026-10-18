@@ -2,60 +2,77 @@
 
 **Oracle7's sibling, with an Isabelle spine.**
 
-[Oracle7](https://huggingface.co/psiloceyeben/oracle7) answers from stored,
-sourced records and 267 specialists, says "I can't verify that" instead of
-guessing, and shows the path every answer took. veri7vn keeps that shape and
-adds what Python cannot give it:
+[Oracle7](https://huggingface.co/psiloceyeben/oracle7) answers questions through
+specialists, stored records and an ordered series of routing rules. veri7vn
+turns those specialists' calculations and decisions into functions with
+machine-checked proofs, then compiles them into small programs that can run
+inside Oracle7 or on their own.
 
-- **Assurance.** Each specialist's formulas, the routing cascade, the rule that
-  arbitrates between specialists, the fusion planner and the exam that admits
-  a new specialist are written in Isabelle/HOL with theorems about them. A
-  wrong kernel fails a proof.
-- **Metareflective access.** The running system can state what its own
-  admission, routing and composition mean, and check a claim against that
-  statement instead of only reporting a score.
-- **Both directions.** Every proved kernel compiles to a small binary that
-  drops into Oracle7 as one of its own specialists; an Oracle7 specialist with
-  its panel is lifted into veri7vn and examined there.
+The aim is to answer more questions correctly, make the assumptions behind an
+answer inspectable, and let both systems grow from each other's components.
+There are implementations for all 144 non-relation specialist IDs and one
+kernel serving the 161 relation readers. Connecting every capability through
+the combined runtime, strengthening its proofs and completing the specialists'
+intended algorithms are active work.
 
-Everything veri7vn claims is a number on Oracle7's own specialist panels, with
-Oracle7's own scorers, under the six criteria of Oracle7's own exam. The law
-that makes the project worth anything is **0 wrong**.
+A proof establishes a particular statement about a computation. It can show
+that a result satisfies an equation or a decision follows from supplied rows.
+It does not establish that an English question was read correctly, a physical
+model fits the world, or a fetched record is true. Those boundaries matter as
+much as the calculation.
 
 ## The board
 
 Full table with every run: [`docs/parity/BOARD.md`](docs/parity/BOARD.md).
 
+This table records particular runs, not a single current fleet result.
+Correct refusals count as right. False yes means answering a question that
+requires refusal; wrong means an incorrect answer. A standalone family score
+does not measure all six admission criteria, which also test composition,
+interference with other routes, identity handling and latency.
+
 | Answerer | Right / wrong on the specialists' held-out panels | Notes |
 |---|---|---|
 | Oracle7 as shipped (published) | 15,478 / 14 | the control |
 | Oracle7 as shipped, reproduced here | 14,667 / 17 false yes | the 129 non-relation readers exact; the 161 relation readers run on a reconstructed linker index over the v1 store, and the 811 missing answers sit on properties the shipped store does not contain |
-| veri7vn: 19 family kernels, all 144 non-relation specialists | every panel equal to or better than the shipped organ, **0 wrong, 0 false yes** | each miss is one the shipped organ also makes, named in its lane's handoff |
-| veri7vn: one relation kernel, 161 readers | 16,284 / **0** of 18,976 panel items | the shipped organs score 16,261 / 11 on the same store; the 11 homonym errors are now proved declines |
+| veri7vn: all 144 non-relation specialist IDs have implementations | no consolidated current score | zero wrong remains a target; older variants retain known errors, including optics, astronomy, energy, git and cooking |
+| veri7vn: one relation kernel, 161 readers | 16,284 / **0** of 18,976 panel items | the shipped organs score 16,261 / 11 on the same store; all panel questions are valid, so this does not measure false yes |
 | veri7vn: fusion (`network_v3`) | 101 of 102 of Oracle7's fusion answers identical | the last needs the geometry kernel |
 | veri7vn beyond parity: chemistry and finance families (B-chemistry, B-finance, 2026-10-18) | chemistry/chemistry-v3 held-out 281 / 0 wrong / 0 withheld against the shipped organ's 223 / 2 / 56, decay 42/42 against 34/42; finance 129/0/0 against 116/0/13, economics 78/0/0 against 65/0/13; same on fresh generator seeds; cold starts 58 and 270 ms → 4 and 3 ms; the shipped retail organ ignores the sales tax it is asked to add (fixed) | the second scoreboard (`project/swarm/BEYOND.md`): 0 wrong stays the law, the other numbers move |
-| veri7vn: head routes | word problems 24/24 core items; precision guards 114/114 recorded declines; document route 224/231 status | each with its classified misses |
-| veri7vn: dialogue | 236 of 237 recorded verdicts; tests 2, 4, 5 reproduce the published summaries exactly | the harness has a dialogue mode |
+| Earlier package of 125 specialists, W5-11 | organs alone: 11,802 right / 0 false yes / 46 wrong on 12,247 dev and held-out questions | with w540 behind them: 11,844 / 14 / 71; this predates the chemistry and finance improvements |
+| Separate head-route components | word problems 24/24 core items; precision guards 114/114 recorded declines; document W5-18: 225/231 status | component measurements; full dispatcher integration is unfinished |
+| Dialogue scorer | 236 of 237 recorded Oracle7 verdicts reproduced | this tests the scorer, not veri7vn's dialogue ability; the scout kernel itself scored 161/237 |
 
-Cost of a verified answer: the fleet of 19 binaries is 12 MiB on disk, starts
-in milliseconds, uses 4–10 MiB each, median 0.1 ms per question. Oracle7's head
+The previous summary said every family had zero wrong answers. That was too
+strong: W6-23 records two wrong held-out answers each for cooking-v3 and
+cooking-v3-r2, and W6-06 records one for git. These and the older variant errors
+are being investigated. The [current continuation](project/CODEX-2026-10-18.md)
+records corrections, ownership and work in progress.
+
+In the earlier fleet measurement, 19 binaries occupied 12 MiB on disk, started
+in milliseconds, used 4–10 MiB each, with median 0.1 ms per question. Oracle7's head
 on the same questions: 3.6 s to start, 140 ms median, 1.96 GB resident
 ([`docs/performance/fleet.md`](docs/performance/fleet.md)).
 
-## The gift
+## The Oracle7 package
 
 [`docs/handoff/organ-package.md`](docs/handoff/organ-package.md) describes a
 package Oracle7's author can drop into `root/specialists/` with no veri7vn
-checkout: 125 specialist folders, one verified binary per family for macOS and
+checkout: the existing package has 125 specialist folders, binaries for macOS and
 Linux with hashes and build receipts, and a README written for him. It passed
 its smoke test on both platforms (12,247 panel questions, every reply equal to
-the lane runs). It also tells him, with numbers, what we found in his own
+the lane runs, including their errors). It also records what we found in the
 release: his exam cannot run a shipped panel as written; the release composes
 specialists in front of the head although its constitution says fallback;
 under head-first composition no specialist the head half-covers can be
 admitted; the lane cap was measured on a 400-question sample; no verdict
 carries the file hash the exam promises. The linter at `tools/lint/` says the
 same per folder.
+
+The package is being refreshed. Earth and finance were missing from its
+registry, stores still needs a relocatable fetcher, and new answer kinds need
+acceptance rules shared with the dispatcher. An improved standalone kernel
+does not reach users until its wrapper accepts the new capability.
 
 ## How the pieces fit
 
@@ -73,13 +90,19 @@ A **kernel** is a HOL function from a typed request to a typed outcome, with a
 theorem that the outcome satisfies the defining equation (or that a decline is
 exactly the stated condition). The **recognizer** that turns English into a
 typed request is ordinary code and is labelled untrusted. A **fetch** over a
-store is untrusted too, and a verified decision only answers when the fetch
-asserts it returned every relevant row. Isabelle exports each kernel to
+store is untrusted too. Where a decision needs all relevant rows, its proof
+depends on an explicit completeness premise; checking the rows received cannot
+establish that none were omitted. Isabelle exports each kernel to
 Standard ML; MLton, which ships inside Isabelle, compiles it to a binary that
 speaks the [answerer contract](docs/contracts/answerer.md). No Isabelle process
 runs at answer time; builds run on hbox and persvati through
 `tools/dev/remote-build`. Shared numeric and text machinery lives in
 `src/extract/commons/`.
+
+The runtime already reports routes and some source and theorem metadata. The
+fuller goal—explaining the particular assumptions and guarantees behind each
+answer, and checking claims against them—is still being connected to it. A list
+of theorem names alone does not do that.
 
 ## Layout
 
@@ -103,7 +126,7 @@ runs at answer time; builds run on hbox and persvati through
 
 ```sh
 # the original Oracle7, from the 43 GB drop (not in git)
-cd upstream && ../.venv/bin/python oracle7.py "Who wrote Leaves of Grass?"
+cd upstream && ../.venv/bin/python -B oracle7.py "Who wrote Leaves of Grass?"
 
 # a verified family on its own shipped panels
 PYTHONDONTWRITEBYTECODE=1 python3 tools/parity/harness.py \

@@ -1,4 +1,6 @@
-> Current state and the open surface: `project/HANDOFF-2026-10-18.md`.
+> Current work and corrections: `project/CODEX-2026-10-18.md`.
+> `project/HANDOFF-2026-10-18.md` records the preceding handoff; some of its
+> completion claims were stronger than the receipts support.
 
 # veri7vn plan (revision 3, 2026-10-16)
 
@@ -35,7 +37,7 @@ lane, self stays the core's, within budget.
 | veri7vn `fusion` binary: Oracle7's `network_v3` planner over the quantity, energy, climate and space kernels (2026-10-17) | 101 of the 102 core-panel fusion answers identical to Oracle7's text and route, 0 wrong; the last needs the geometry kernel; 0 verdict changes on 2,701 single-family panel items; 405 KB, 0.9 ms median | fusion proved: shallowest-depth agreement within 0.5% or decline |
 | veri7vn beyond parity: chemistry and finance families (B-chemistry, B-finance, 2026-10-18) | chemistry/chemistry-v3 held-out 281 / 0 wrong / 0 withheld against the shipped organ's 223 / 2 / 56, decay 42/42 against 34/42; finance 129/0/0 against 116/0/13, economics 78/0/0 against 65/0/13; same on fresh generator seeds; cold starts 58 and 270 ms → 4 and 3 ms; the shipped retail organ ignores the sales tax it is asked to add (fixed) | the second scoreboard (`project/swarm/BEYOND.md`): 0 wrong stays the law, the other numbers move |
 | veri7vn `relations` kernel: all 161 relation readers through one verified decision over the reconstructed linker index (2026-10-18) | 16,284 right / 0 wrong on their 18,976 panel items (shipped organs on the same store: 16,261 / 11); 1,814 silences are properties absent from the shipped store; the 11 homonym errors are now proved declines | one kernel, 161 specialists, 0 wrong |
-| veri7vn: all 19 family kernels, 144 of 144 non-relation specialists (2026-10-18, earth last) | every shipped panel equal to or better than the shipped organ, 0 wrong, 0 false yes; misses are the organs' own, named per lane | the lift is complete; the second scoreboard (`project/swarm/BEYOND.md`) takes over |
+| veri7vn: implementations for 144 of 144 non-relation specialist IDs (2026-10-18) | no current consolidated fleet score; W6-23 cooking-v3 and cooking-v3-r2 each retain two wrong held-out answers, W6-06 git retains one, and older optics, astronomy and energy variants retain errors | the family lift provides a foundation; current work repairs these errors, completes algorithms and connects runtime consumers |
 
 The harness must first reproduce Oracle7's own `verdict_heldout.json` numbers
 on a sample of specialists; until it does, it is not a scoreboard.
