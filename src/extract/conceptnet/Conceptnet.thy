@@ -121,11 +121,20 @@ fun rank_sorted :: "cedge list \<Rightarrow> bool" where
 
 fun ins :: "cedge list \<Rightarrow> cedge \<Rightarrow> cedge list" where
   "ins [] e = [e]"
-| "ins (x # xs) e = (if outranks e x then e # x # xs else x # ins xs e)"
+| "ins (x # xs) e =
+     (if outranks e x \<or> same_rank e x then e # x # xs else x # ins xs e)"
 
 fun isort :: "cedge list \<Rightarrow> cedge list" where
   "isort [] = []"
 | "isort (e # es) = ins (isort es) e"
+
+text \<open>\<^const>\<open>isort\<close> folds \<^const>\<open>ins\<close> over the tail, so each step inserts an
+\<open>earlier\<close>-delivered edge into the already-sorted \<open>later\<close>-delivered ones;
+prepending on equal rank is what makes that stable - equal-ranked edges keep
+the fetch order, which is exactly what the organ's SQL delivers on ties
+(SQLite breaks the tie by rowid). The previous walk-past-equals version
+reversed every tie group (found by the differential: finger IsA digit,
+three rows at weight 2.0).\<close>
 
 lemma ins_set [simp]: "set (ins xs e) = insert e (set xs)"
   by (induction xs) auto
@@ -146,22 +155,23 @@ next
   have rs_xs: "rank_sorted xs" using prems rank_sorted_ConsD by blast
   have ih: "rank_sorted (ins xs e)" using IH rs_xs by simp
   show ?case
-  proof (cases "outranks e x")
+  proof (cases "outranks e x \<or> same_rank e x")
     case True
     then show ?thesis using prems by simp
   next
     case False
-    then have f1: "outranks x e \<or> same_rank x e" using outranks_cases[of x e] by blast
+    then have fx: "outranks x e"
+      using outranks_cases[of x e] by (auto simp: outranks_def same_rank_def)
     show ?thesis
     proof (cases xs)
       case Nil
-      then show ?thesis using f1 by simp
+      then show ?thesis using fx by simp
     next
       case (Cons y ys)
-      then show ?thesis
-      proof (cases "outranks e y")
+      show ?thesis
+      proof (cases "outranks e y \<or> same_rank e y")
         case True
-        then show ?thesis using f1 prems \<open>xs = y # ys\<close> by simp
+        then show ?thesis using fx prems \<open>xs = y # ys\<close> by simp
       next
         case False
         then show ?thesis using prems ih \<open>xs = y # ys\<close> by simp

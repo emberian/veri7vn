@@ -63,6 +63,35 @@ lemma dog_plain_template:
      = [cp ''Dog is used for hunting.'']"
   by code_simp
 
+subsection \<open>Ties: equal rank keys keep fetch order (the organ's rowid)\<close>
+
+text \<open>Two real rows with the same rel, start, end and weight (finger IsA
+digit, weight 2.0, rowids 1217391/1217392). The organ's SQL delivers them in
+rowid order and renders in that order; the kernel's sort must not reorder a
+tie group. The empty-surface row falls to the IsA template.\<close>
+
+definition e_finger_digit1 :: cedge where
+  "e_finger_digit1 = \<lparr>c_rel = IsA, c_start = cp ''finger'', c_end = cp ''digit'',
+    c_weight = 2000000, c_surface = cp ''[[a finger]] is [[a digit]]'',
+    c_dataset = cp ''/d/conceptnet/4/en''\<rparr>"
+
+definition e_finger_digit2 :: cedge where
+  "e_finger_digit2 = \<lparr>c_rel = IsA, c_start = cp ''finger'', c_end = cp ''digit'',
+    c_weight = 2000000, c_surface = [],
+    c_dataset = cp ''/d/conceptnet/4/en''\<rparr>"
+
+lemma finger_tie_keeps_fetch_order:
+  "map fst (decide_direct \<lparr>c_concept = cp ''finger'', c_specs = [(IsA, Fwd)]\<rparr>
+      [e_finger_digit1, e_finger_digit2])
+     = [cp ''A finger is a digit.'', cp ''Finger is a kind of digit.'']"
+  by code_simp
+
+lemma finger_tie_reversed_fetch:
+  "map fst (decide_direct \<lparr>c_concept = cp ''finger'', c_specs = [(IsA, Fwd)]\<rparr>
+      [e_finger_digit2, e_finger_digit1])
+     = [cp ''Finger is a kind of digit.'', cp ''A finger is a digit.'']"
+  by code_simp
+
 subsection \<open>Derived route: two hops, both declared\<close>
 
 text \<open>No UsedFor edge of kitten exists, so the direct route abstains; the
@@ -108,6 +137,7 @@ ML \<open>
     @{thm sel_spec_sorted}, @{thm sel_spec_len}, @{thm sel_spec_subset},
     @{thm isort_sorted}, @{thm parse_rel_name_roundtrip},
     @{thm dog_direct}, @{thm dog_direct_dedup}, @{thm dog_plain_template},
+    @{thm finger_tie_keeps_fetch_order}, @{thm finger_tie_reversed_fetch},
     @{thm kitten_derived}, @{thm unicorn_no_edges_abstains},
     @{thm no_mediators_abstains}];
   val oracles = Thm_Deps.all_oracles theorems;
