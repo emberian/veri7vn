@@ -62,6 +62,30 @@
       "context_regex_additions": [
         "\\bsha-?1\\b|\\bhexadecimal\\b|\\bpercent[- ]encod"
       ]
+    },
+    "algorithms": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "unsupported",
+          "imprecise"
+        ]
+      },
+      "context_regex_additions": [
+        "\\bcheapest path\\b|\\bascending\\b|\\bdescending\\b"
+      ],
+      "evidence": {
+        "computation": "Complete exact-rational lists and graph edges. Sorting preserves the full multiset and order; binary search checks sorted input. Spanning trees and shortest paths are returned only when the existing independent certificates pass. Integers remain numeric JSON values; noninteger rationals are exact fraction strings.",
+        "assumptions": [
+          "Every list item, edge, endpoint and weight was parsed correctly.",
+          "The graph nodes are precisely the edge endpoints; additional isolated-node declarations are unsupported.",
+          "Dash and double arrows are undirected; single arrows and the word to are directed.",
+          "Dijkstra is a candidate producer, not a completeness guarantee for negative-edge graphs."
+        ],
+        "untrusted": [
+          "English recognition and transport; declaration is not a per-answer certificate."
+        ]
+      }
     }
   }
 }

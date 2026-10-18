@@ -778,6 +778,7 @@ datatype areq =
   | A_mst_need
   | A_bsearch "rat list" rat
   | A_bsearch_need
+  | A_need
   | A_sort "rat list" bool
   | A_complexity nat bool
 
@@ -793,6 +794,7 @@ datatype aout =
   | ASorted "rat list" bool
   | AComplexity nat bool
   | ANeed nat
+  | AUnsupported
   | AImprecise
 
 definition a_kernel :: "areq \<Rightarrow> aout" where
@@ -818,6 +820,7 @@ definition a_kernel :: "areq \<Rightarrow> aout" where
         else case bsearch xs x of BS_found i p \<Rightarrow> ABs i p | BS_none p \<Rightarrow> ANotFound x p
              | BS_fuel \<Rightarrow> AImprecise)
    | A_bsearch_need \<Rightarrow> ANeed 2
+   | A_need \<Rightarrow> AUnsupported
    | A_sort xs desc \<Rightarrow> ASorted (if desc then rev (isort xs) else isort xs) desc
    | A_complexity i avg \<Rightarrow> AComplexity i avg)"
 
@@ -875,8 +878,16 @@ section \<open>Reply text (ASCII)\<close>
 definition join_with :: "String.literal \<Rightarrow> String.literal list \<Rightarrow> String.literal" where
   "join_with sep xs = (case xs of [] \<Rightarrow> STR '''' | x # r \<Rightarrow> foldl (\<lambda>a b. a + sep + b) x r)"
 
+text \<open>Integers remain JSON numbers. Noninteger rationals are exact fraction
+strings, avoiding a six-digit decimal standing in for an exact sorted element
+or certified graph weight. The quote characters surround only generated digits,
+sign and slash, never input bytes.\<close>
+definition algo_num_json :: "rat \<Rightarrow> String.literal" where
+  "algo_num_json q = (if snd (quotient_of q) = 1 then show_frac q
+    else String.implode [CHR 0x22] + show_frac q + String.implode [CHR 0x22])"
+
 definition edge_text :: "edge \<Rightarrow> String.literal" where
-  "edge_text x = (case x of (a, b, w) \<Rightarrow> a + STR ''-'' + b + STR '' '' + fmt_num w)"
+  "edge_text x = (case x of (a, b, w) \<Rightarrow> a + STR ''-'' + b + STR '' '' + show_frac w)"
 
 definition need_text :: "nat \<Rightarrow> String.literal" where
   "need_text n = (if n = 0 then STR ''the weighted edges (e.g. A-B 4, B-C 1) and the start and end nodes''
@@ -886,9 +897,9 @@ definition a_reply :: "areq \<Rightarrow> reply" where
   "a_reply r = (case a_kernel r of
      AShortest p d n s \<Rightarrow>
        Reply True (STR ''shortest_path'')
-         [PS (STR ''The shortest path length is '' + fmt_num d + STR '', via ''
+         [PS (STR ''The shortest path length is '' + show_frac d + STR '', via ''
              + join_with (STR '' -> '') (s # map (\<lambda>x. fst (snd x)) p)
-             + STR '' (Dijkstra on the '' + show_nat n + STR '' edges you gave).'')] (JRaw (fmt_num d))
+             + STR '' (Dijkstra on the '' + show_nat n + STR '' edges you gave).'')] (JRaw (algo_num_json d))
    | AUnreach s e \<Rightarrow>
        Reply True (STR ''unreachable'')
          [PS (STR ''There is no path from '' + s + STR '' to '' + e + STR '' in the graph you gave.'')] JNone
@@ -897,9 +908,9 @@ definition a_reply :: "areq \<Rightarrow> reply" where
          [PS (x + STR '' is not a node in the edges you gave.'')] JNone
    | AMst t \<Rightarrow>
        Reply True (STR ''mst'')
-         [PS (STR ''The minimum spanning tree weight is '' + fmt_num (wt t) + STR '' (''
+         [PS (STR ''The minimum spanning tree weight is '' + show_frac (wt t) + STR '' (''
              + show_nat (length t) + STR '' edges, Kruskal on the edges you gave). The tree is ''
-             + join_with (STR '', '') (map edge_text t) + STR ''.'')] (JRaw (fmt_num (wt t)))
+             + join_with (STR '', '') (map edge_text t) + STR ''.'')] (JRaw (algo_num_json (wt t)))
    | ADisconnected \<Rightarrow>
        Reply True (STR ''disconnected'')
          [PS (STR ''The graph you gave is not connected, so it has no spanning tree (only a spanning forest).'')] JNone
@@ -909,15 +920,15 @@ definition a_reply :: "areq \<Rightarrow> reply" where
          (JRaw (show_nat i))
    | ANotFound x p \<Rightarrow>
        Reply True (STR ''not_found'')
-         [PS (fmt_num x + STR '' is not in the list (binary search ended after '' + show_nat p + STR '' probes).'')] JNone
+         [PS (show_frac x + STR '' is not in the list (binary search ended after '' + show_nat p + STR '' probes).'')] JNone
    | AUnsorted \<Rightarrow>
        Reply False (STR ''unsorted'')
          [PS (STR ''That list is not sorted, so binary search would give a wrong answer; sort it first.'')] JNone
    | ASorted ys d \<Rightarrow>
        Reply True (STR ''sorted'')
          [PS (STR ''Sorted '' + (if d then STR ''descending'' else STR ''ascending'') + STR '': ''
-             + join_with (STR '', '') (map fmt_num ys) + STR ''.'')]
-         (JRaw (STR ''['' + join_with (STR '', '') (map fmt_num ys) + STR '']''))
+             + join_with (STR '', '') (map show_frac ys) + STR ''.'')]
+         (JRaw (STR ''['' + join_with (STR '', '') (map algo_num_json ys) + STR '']''))
    | AComplexity i avg \<Rightarrow>
        (case complexity_table ! i of (nm, worst, av) \<Rightarrow>
           Reply True (STR ''complexity'')
@@ -929,6 +940,9 @@ definition a_reply :: "areq \<Rightarrow> reply" where
    | ANeed n \<Rightarrow>
        Reply False (STR ''underspecified'')
          [PS (STR ''I need '' + need_text n + STR '' to run that; I will not assume it.'')] JNone
+   | AUnsupported \<Rightarrow>
+       Reply False (STR ''unsupported'')
+         [PS (STR ''I need one complete list or graph with exact numeric entries and an unambiguous operation.'')] JNone
    | AImprecise \<Rightarrow>
        Reply False (STR ''imprecise'')
          [PS (STR ''I could not certify a result for that input, so I will not state one.'')] JNone)"
@@ -936,7 +950,7 @@ definition a_reply :: "areq \<Rightarrow> reply" where
 theorem a_reply_answered:
   "answered (a_reply r) \<longleftrightarrow>
      (case a_kernel r of ANoNode _ \<Rightarrow> False | AUnsorted \<Rightarrow> False | ANeed _ \<Rightarrow> False
-        | AImprecise \<Rightarrow> False | _ \<Rightarrow> True)"
+        | AImprecise \<Rightarrow> False | AUnsupported \<Rightarrow> False | _ \<Rightarrow> True)"
   by (auto simp: a_reply_def split: aout.splits prod.splits)
 
 end

@@ -634,19 +634,83 @@ struct
   (* ====================================================================
      algorithms
      ==================================================================== *)
-  val EDGE = "\\b([a-z0-9]{1,3})\\s*(->|-|<->|to)\\s*([a-z0-9]{1,3})\\b\\s*(?:\\(|:|=|weight|w|cost)?\\s*(\\d+(?:\\.\\d+)?)\\)?"
+  val ALGNUM = "[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:/[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+))?"
+  fun algoNumber raw =
+    let val s=strip raw
+        val ds=String.fields (fn c=>c= #"/") s
+        fun nonzero d=List.exists(fn c=> #"1"<=c andalso c<= #"9")(String.explode d)
+        val denominatorOk=case ds of [_]=>true | [_,d]=>nonzero d | _=>false
+        val unsignedPlus=if String.isPrefix "+" s then String.extract(s,1,NONE) else s
+    in if has ("^"^ALGNUM^"$") s andalso denominatorOk then SOME(fracOf unsignedPlus) else NONE end
 
-  (* the edges in order: (a, op, b, weight) with the names as written *)
-  fun edgesOf (t : string) : (string * string * string * D.rat) list =
-    map (fn m => (valOf (grp t m 1), valOf (grp t m 2), valOf (grp t m 3), fracOf (valOf (grp t m 4))))
-        (findall EDGE (lower t))
+  fun algoList s =
+    if strip s="" then SOME [] else
+    let val xs=map algoNumber(String.fields(fn c=>c= #",") s)
+    in if List.all isSome xs then SOME(map valOf xs) else NONE end
 
-  fun dirEdges edges =
-    List.concat (map (fn (a, op_, b, w) => if op_ = "->" then [(a, (b, w))] else [(a, (b, w)), (b, (a, w))]) edges)
+  fun oneList text =
+    let val ms=findall "\\[([^\\[\\]]*)\\]" text
+        val brackets=List.filter(fn c=>c= #"[" orelse c= #"]")(String.explode text)
+    in case (ms,brackets) of
+      ([m],[#"[",#"]"])=>SOME(g1 text m, String.substring(text,0,#start m)^"#list#"^String.extract(text,#stop m,NONE))
+      | _=>NONE end
 
-  fun mkEdge (a, (b, w)) = (a, (b, w))
+  fun algoEdges body =
+    let
+      val chunks=String.fields(fn c=>c= #"," orelse c= #";") body
+      val node="([a-z][a-z0-9_]*|[0-9]+)"
+      val edge="^\\s*"^node^"\\s*(<->|->|-|to)\\s*"^node^"\\s*(?:\\(\\s*("^ALGNUM^")\\s*\\)|(?:[:=]|weight|cost|w)?\\s*("^ALGNUM^"))\\s*$"
+      fun parse chunk = case search edge (lower chunk) of
+        NONE=>NONE
+      | SOME m=>let val w=case grp chunk m 4 of SOME s=>SOME s | NONE=>grp chunk m 5
+                in case Option.mapPartial algoNumber w of NONE=>NONE
+                   | SOME v=>SOME(g1 chunk m,valOf(grp chunk m 2),valOf(grp chunk m 3),v) end
+      val es=map parse chunks
+    in if null es orelse not(List.all isSome es) then NONE else SOME(map valOf es) end
 
-  val NUMLIST = "\\[?\\s*(-?\\d+(?:\\.\\d+)?(?:\\s*,\\s*-?\\d+(?:\\.\\d+)?){2,})\\s*\\]?"
+  fun graphParts t =
+    case search "(?:\\b(?:edges|graph)\\s*:\\s*|^(?:graph with weighted edges|for the graph with edges)\\s+)" (lower t) of
+      NONE=>NONE
+    | SOME m=>
+      let val prefixCommand=strip(String.substring(t,0,#start m))
+          val after=String.extract(t,#stop m,NONE)
+          val split=search "\\.?\\s+(?=(?:what|find|calculate|compute|give)\\b)" (lower after)
+          val (body,command)=case split of
+            SOME sm=>(String.substring(after,0,#start sm),String.extract(after,#stop sm,NONE))
+          | NONE=>(after,prefixCommand)
+          val body=subCI "[?.;,]$" "" (strip body)
+      in if isSome split andalso prefixCommand<>"" then NONE
+         else SOME(body,strip command) end
+
+  fun algoListRequest t low =
+    let
+      fun need()=SOME(D.RAlgos D.A_need)
+      val isSort=has "\\bsort\\b|\\bsorted\\b|\\bascending\\b|\\bdescending\\b" low
+      val isSearch=has "\\bbinary search\\b" low
+      val payload=case oneList t of SOME p=>SOME p | NONE=>
+        if has "[\\[\\]]" t then NONE else
+        case search ":\\s*" t of NONE=>NONE
+        | SOME m=>SOME(subCI "[?.]$" "" (String.extract(t,#stop m,NONE)),String.substring(t,0,#start m)^" #list#")
+    in
+      case payload of NONE=>if isSort orelse isSearch then need() else NONE
+      | SOME(body,cmd0)=>
+        let val cmd=lower(collapse cmd0)
+            val xs=algoList body
+            val sortGrammar="^(?:sort(?: these numbers| the list| numbers)?(?: in (?:ascending|descending) order)? #list#(?: in (?:ascending|descending) order)?|put these in sorted order, ascending #list#|list these from largest to smallest \\(descending\\) #list#)[?.]?$"
+            val searchGrammar="^(?:using )?binary search (?:for|find|target) ("^ALGNUM^") in (?:the )?(?:sorted )?list #list#(?:,? what index is it at)?[?.]?$"
+            val searchAlt="^binary search (?:the )?list #list# for ("^ALGNUM^")\\. at which index \\(0-based\\)\\?$"
+            val target=case search searchGrammar cmd of SOME m=>SOME m | NONE=>search searchAlt cmd
+        in
+          if isSearch then case (xs,target) of
+              (SOME ns,SOME m)=>(case algoNumber(g1 cmd m) of SOME x=>SOME(D.RAlgos(D.A_bsearch(ns,x))) | NONE=>need())
+            | _=>need()
+          else if isSort andalso has sortGrammar cmd andalso not(has "ascending" cmd andalso has "descending" cmd) then
+            (case xs of SOME ns=>SOME(D.RAlgos(D.A_sort(ns,has "descending" cmd))) | NONE=>need())
+          else if isSort then need() else NONE
+        end
+    end
+
+  fun dirEdges edges = List.concat(map(fn(a,op_,b,w)=>if op_="->" orelse op_="to" then [(a,(b,w))] else [(a,(b,w)),(b,(a,w))])edges)
 
   val complexityNames = D.complexity_names
   (* sorted(COMPLEXITY, key=len, reverse=True): stable, longest first *)
@@ -660,62 +724,35 @@ struct
 
   fun algorithms text =
     let
-      val t = collapse text
-      val low = lower t
-      fun finish r = r
-      val shortDirect = Narrow.short_direct text
+      val t=subCI "\226\136\146" "-" (collapse text)
+      val low=lower t
+      fun need()=SOME(D.RAlgos D.A_need)
+      val graphIntent=has "\\bshortest path\\b|\\bshortest distance\\b|\\bdijkstra\\b|\\bcheapest path\\b|\\bminimum spanning tree\\b|\\bmst\\b" low
+      val mst=has "\\bminimum spanning tree\\b|\\bmst\\b" low
+      val sp=has "\\bshortest path\\b|\\bshortest distance\\b|\\bdijkstra\\b|\\bcheapest path\\b" low
+      val lead="(?:(?:what is|find|calculate|compute|give me) )?(?:the )?"
+      val mstGrammar="^"^lead^"(?:(?:total )?weight of (?:the |its )?)?(?:minimum spanning tree|mst)(?: (?:weight|of|for|with))?[?.]?$"
+      val spGrammar="^"^lead^"(?:shortest path|shortest distance|cheapest path)(?: (?:length|distance))? from ([a-z0-9_]+) to ([a-z0-9_]+)(?: (?:in|for|with))?(?: \\(dijkstra\\))?[?.]?$"
     in
-      if has "\\bwrite\\b|\\bfunction\\b|\\bimplement\\w*\\b|\\bcode\\b|\\bprogram\\b|\\bpython\\b|\\bjavascript\\b|\\bjava\\b|\\bc\\+\\+" low
-      then NONE
-      else
-        let
-          val need = fn k => if shortDirect then SOME (D.RAlgos k) else NONE
-        in
-          if has "\\bshortest path\\b|\\bshortest distance\\b|\\bdijkstra\\b|\\bcheapest path\\b" low then
-            let
-              val edges = edgesOf t
-              val m = search "\\bfrom\\s+([a-z0-9]{1,3})\\s+to\\s+([a-z0-9]{1,3})\\b" low
-            in
-              case (edges, m) of
-                ([], _) => need D.A_sp_need
-              | (_, NONE) => need D.A_sp_need
-              | (_, SOME m) =>
-                  let
-                    val s = valOf (grp t m 1) val e = valOf (grp t m 2)
-                    val es = map (fn (a, (b, w)) => (a, (b, w))) (dirEdges edges)
-                  in SOME (D.RAlgos (D.A_sp (es, nat (length edges), s, e))) end
-            end
-          else if has "\\bminimum spanning tree\\b|\\bmst\\b" low then
-            let val edges = edgesOf t
-            in if length edges < 2 then need D.A_mst_need
-               else SOME (D.RAlgos (D.A_mst (map (fn (a, _, b, w) => (a, (b, w))) edges)))
-            end
-          else
-            let
-              val nl = search NUMLIST t
-              fun numbers m = map (fn x => fracOf (strip x)) (String.fields (fn c => c = #",") (g1 t m))
-              val lowNl = lower t
-            in
-              if has "\\bbinary search\\b" low andalso isSome nl then
-                let
-                  val m = valOf nl
-                  val rest = String.substring (lowNl, 0, #start m) ^ " " ^ String.extract (lowNl, #stop m, NONE)
-                in
-                  case search "\\b(?:for|find|search for|target|looking for)\\s+(-?\\d+(?:\\.\\d+)?)\\b" rest of
-                    NONE => need D.A_bsearch_need
-                  | SOME tm => SOME (D.RAlgos (D.A_bsearch (numbers m, fracOf (g1 rest tm))))
-                end
-              else if has "\\bsort\\b|\\bsorted\\b|\\bascending\\b|\\bdescending\\b|\\bin order\\b" low andalso isSome nl
-                      andalso not (has "\\bcomplexity\\b|\\bbig[- ]o\\b" low) then
-                let val desc = has "\\bdescending\\b|\\blargest (?:to|first)\\b|\\bhigh(?:est)? to low" low
-                in SOME (D.RAlgos (D.A_sort (numbers (valOf nl), desc))) end
-              else if has "\\btime complexity\\b|\\bbig[- ]o\\b|\\bcomplexity of\\b|\\bhow fast is\\b" low then
-                (case List.find (fn (nm, _) => has ("\\b" ^ nm ^ "\\b") low) complexityOrder of
-                   NONE => NONE
-                 | SOME (_, i) => SOME (D.RAlgos (D.A_complexity (nat i, has "\\baverage\\b" low))))
-              else NONE
-            end
-        end
+      if has "\\bwrite\\b|\\bfunction\\b|\\bimplement\\w*\\b|\\bcode\\b|\\bprogram\\b|\\bpython\\b|\\bjavascript\\b|\\bjava\\b|\\bc\\+\\+" low then NONE
+      else if graphIntent then
+        if mst andalso sp then need() else
+        (case graphParts t of NONE=>need()
+        | SOME(body,command)=>
+          case algoEdges body of NONE=>need()
+          | SOME es=>
+            if mst then
+              if has mstGrammar (lower command) andalso List.all(fn (_,op_,_,_)=>op_<>"->" andalso op_<>"to") es
+              then SOME(D.RAlgos(D.A_mst(map(fn(a,_,b,w)=>(a,(b,w)))es)))
+              else need()
+            else case search spGrammar (lower command) of NONE=>need()
+              | SOME m=>
+                let val s=g1 command m val e=valOf(grp command m 2)
+                in SOME(D.RAlgos(D.A_sp(dirEdges es,nat(length es),s,e))) end)
+      else if has "\\btime complexity\\b|\\bbig[- ]o\\b|\\bcomplexity of\\b|\\bhow fast is\\b" low then
+        (case List.find(fn(nm,_)=>has("\\b"^nm^"\\b")low) complexityOrder of NONE=>NONE
+         | SOME(_,i)=>SOME(D.RAlgos(D.A_complexity(nat i,has "\\baverage\\b" low))))
+      else algoListRequest t low
     end
 
   (* ====================================================================

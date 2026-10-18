@@ -179,7 +179,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat
   RGames RLogic RAlgos RCalc RFormats
   G_poker G_dice G_atleast G_atleast_unknown G_need G_card_one G_card_k G_anagram G_anagram_none
   FVar FNeg FConj FDisj FImpl FEquiv L_formula L_argument L_form L_bad_formula L_bad_argument
-  A_sp A_sp_need A_mst A_mst_need A_bsearch A_bsearch_need A_sort A_complexity
+  A_sp A_sp_need A_mst A_mst_need A_bsearch A_bsearch_need A_need A_sort A_complexity
   C_deriv C_deriv_at C_anti C_def C_need
   F_json F_b64dec F_b64enc F_hash F_urldec F_urlenc F_base F_signed_base F_need F_day
   H_sha256 H_sha1 H_md5

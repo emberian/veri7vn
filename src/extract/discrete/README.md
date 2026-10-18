@@ -70,3 +70,11 @@ bytes without an extra escape pass; JSON uses its full colon body or backticks.
 Base conversions consume a complete signed integer; fractions and compound
 requests refuse rather than yielding a suffix. The [formats report](../../../project/lanes/F-symbolic-discrete.md)
 records the signed-value theorem, actual build status and byte-level comparisons.
+
+The algorithms continuation consumes complete rational lists and signed graph
+edges. It preserves node case and edge direction, and keeps shortest-path and
+spanning-tree answers behind the existing certificate checks. Exact fractions
+appear in reply text and as JSON strings for noninteger results; integers stay
+numeric. Unsupported grammar and uncertified candidates refuse. The
+[algorithms report](../../../project/lanes/G-symbolic-discrete.md) records current
+build status, independent small-graph checks and remaining limits.
