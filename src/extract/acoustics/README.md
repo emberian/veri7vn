@@ -37,7 +37,8 @@ an expression for Isabelle's verified interval arithmetic, which returns a small
 interval of binary floats guaranteed to contain the true real value. The kernel
 rounds the middle of that interval to four significant digits and refuses
 (`imprecise`) if the interval is too wide for that; the theorem covers the
-rounding. The one comparison that involves a square root, "is the source at or
+rounding. The kernel first tries 32-bit intervals, then retries at 64 bits
+when that guard refuses; both paths have the same proved error bound. The one comparison that involves a square root, "is the source at or
 above the speed of sound", is decided exactly with rational arithmetic
 (`reach_iff`).
 
@@ -63,10 +64,29 @@ echo '{"id": "1", "q": "What is the speed of sound in air at 0 degrees C?", "ses
 
 The binary is not committed; it lives under `var/acoustics/bin/`.
 
+For a remote build, compile its recorded export with
+`GENERATED_SML=/absolute/path/to/the/checked/export sh src/extract/acoustics/build.sh`.
+The script preserves earlier exports. The self-test runs during the proof export,
+and is no longer exported as a startup computation.
+
+The Codex continuation fixes inverse frequency questions and keeps stated sound
+speed separate from mover speed and pipe length. Explicit Celsius temperature
+reaches each dry-air calculation. Unsupported speed or temperature units, mixed
+feet/metres distance queries, and water conditions outside the fixed 20 C speed
+model fall through instead of silently substituting air at 20 C. This does not
+make the recognizer verified. Additional laws connect the printed decimal to
+the model, relate open and closed pipe frequencies, and show that adding a sound
+source cannot make the combined level lower. Continuation receipts and probes:
+`project/lanes/C-physical-quantity-sound.md`.
+
 ## Current result
 
 Held-out panel: 69 of 69 right, 0 wrong, 0 false yes (the shipped organ: 69 of 69);
-practice panel 70 of 70. Binary 428 KB, cold start about 15 ms, median 12 ms per
-question, every kind under the 50 ms budget. The folder `oracle7-organ/` wraps the
+practice panel 70 of 70. The final continuation binary is 428,720 bytes, with
+a measured 4.25 ms median cold start and 1.99 ms shipped-panel median per question.
+All 45 additional probes and a reserved 180-case numerical challenge pass.
+The numerical challenge has an 8.18 ms median and 76.95 ms maximum; the earlier
+regression seed includes an 89.02 ms retry, exceeding the 50 ms aspiration.
+The folder `oracle7-organ/` wraps the
 binary as an Oracle7 specialist (`acoustics-veri7vn`). Details, theorem
-statements and remaining work: [lane D handoff](../../../project/lanes/D-acoustics.md).
+statements and remaining work: [continuation report](../../../project/lanes/C-physical-quantity-sound.md).

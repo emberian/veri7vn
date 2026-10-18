@@ -1,0 +1,407 @@
+[
+  {
+    "q": "What is the frequency of sound with wavelength 0.5 m in air at -40 degrees C?",
+    "kind": "frequency",
+    "expect": 612.1650612497419,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/0.5"
+  },
+  {
+    "q": "What is the wavelength of 800 Hz sound in air at -40 degrees C?",
+    "kind": "wavelength",
+    "expect": 0.38260316328108873,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/800"
+  },
+  {
+    "q": "What is the fundamental frequency of an open pipe 50 cm long in air at -40 degrees C?",
+    "kind": "pipe_open",
+    "expect": 306.08253062487097,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/(2*0.5)"
+  },
+  {
+    "q": "What is the third harmonic frequency of a closed pipe 75 cm long in air at -40 degrees C?",
+    "kind": "pipe_closed",
+    "expect": 306.08253062487097,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "3*331.3*sqrt(1+T/273.15)/(4*0.75)"
+  },
+  {
+    "q": "What is the frequency of sound with wavelength 0.5 m in air at 0 degrees C?",
+    "kind": "frequency",
+    "expect": 662.6,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/0.5"
+  },
+  {
+    "q": "What is the wavelength of 800 Hz sound in air at 0 degrees C?",
+    "kind": "wavelength",
+    "expect": 0.414125,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/800"
+  },
+  {
+    "q": "What is the fundamental frequency of an open pipe 50 cm long in air at 0 degrees C?",
+    "kind": "pipe_open",
+    "expect": 331.3,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/(2*0.5)"
+  },
+  {
+    "q": "What is the third harmonic frequency of a closed pipe 75 cm long in air at 0 degrees C?",
+    "kind": "pipe_closed",
+    "expect": 331.3,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "3*331.3*sqrt(1+T/273.15)/(4*0.75)"
+  },
+  {
+    "q": "What is the frequency of sound with wavelength 0.5 m in air at 35 degrees C?",
+    "kind": "frequency",
+    "expect": 703.7718881583452,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/0.5"
+  },
+  {
+    "q": "What is the wavelength of 800 Hz sound in air at 35 degrees C?",
+    "kind": "wavelength",
+    "expect": 0.4398574300989657,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/800"
+  },
+  {
+    "q": "What is the fundamental frequency of an open pipe 50 cm long in air at 35 degrees C?",
+    "kind": "pipe_open",
+    "expect": 351.8859440791726,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/(2*0.5)"
+  },
+  {
+    "q": "What is the third harmonic frequency of a closed pipe 75 cm long in air at 35 degrees C?",
+    "kind": "pipe_closed",
+    "expect": 351.8859440791726,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "3*331.3*sqrt(1+T/273.15)/(4*0.75)"
+  },
+  {
+    "q": "What is the frequency of sound with wavelength 0.5 m in air at 80 degrees C?",
+    "kind": "frequency",
+    "expect": 753.4083591056045,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/0.5"
+  },
+  {
+    "q": "What is the wavelength of 800 Hz sound in air at 80 degrees C?",
+    "kind": "wavelength",
+    "expect": 0.4708802244410028,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/800"
+  },
+  {
+    "q": "What is the fundamental frequency of an open pipe 50 cm long in air at 80 degrees C?",
+    "kind": "pipe_open",
+    "expect": 376.70417955280226,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "331.3*sqrt(1+T/273.15)/(2*0.5)"
+  },
+  {
+    "q": "What is the third harmonic frequency of a closed pipe 75 cm long in air at 80 degrees C?",
+    "kind": "pipe_closed",
+    "expect": 376.70417955280226,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "3*331.3*sqrt(1+T/273.15)/(4*0.75)"
+  },
+  {
+    "q": "The speed of sound is 340 m/s. A siren emits 500 Hz and is moving toward you at 20 m/s. What frequency is heard?",
+    "kind": "doppler",
+    "expect": 531.25,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "500*340/(340-20)"
+  },
+  {
+    "q": "A siren emits 500 Hz and is moving away from you at 20 m/s. The speed of sound is 340 m/s. What frequency is heard?",
+    "kind": "doppler",
+    "expect": 472.22222222222223,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "500*340/(340+20)"
+  },
+  {
+    "q": "The speed of sound is 340 m/s. A listener is moving toward a 500 Hz siren at 20 m/s. What frequency is heard?",
+    "kind": "doppler",
+    "expect": 529.4117647058823,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "500*(340+20)/340"
+  },
+  {
+    "q": "What is the fundamental frequency of an open pipe with sound speed 340 m/s and length 2 m?",
+    "kind": "pipe_open",
+    "expect": 85,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "340/(2*2)"
+  },
+  {
+    "q": "What is the third harmonic frequency of a closed pipe with sound speed 340 m/s and length 2 m?",
+    "kind": "pipe_closed",
+    "expect": 127.5,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "3*340/(4*2)"
+  },
+  {
+    "q": "What is the frequency of sound with a 50 cm wavelength and sound speed 340 m/s?",
+    "kind": "frequency",
+    "expect": 680,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "340/0.5"
+  },
+  {
+    "q": "What is the beat frequency of tuning forks at 440 Hz and 443 Hz?",
+    "kind": "beat",
+    "expect": 3,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "abs(440-443)"
+  },
+  {
+    "q": "What is the total sound level of 40 dB, 50 dB and 60 dB combined?",
+    "kind": "db_sum",
+    "expect": 60.453229787866576,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "10*log10(10^4+10^5+10^6)"
+  },
+  {
+    "q": "A sound level is 60 dB at 2 m. What is it at 4 m?",
+    "kind": "db_distance",
+    "expect": 53.979400086720375,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "60-20*log10(4/2)"
+  },
+  {
+    "q": "What is the wavelength of 800 Hz sound in air at -274 degrees C?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "Outside model domain or direction missing"
+  },
+  {
+    "q": "What is the second harmonic frequency of a closed pipe 1 m long in air at 20 degrees C?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "Outside model domain or direction missing"
+  },
+  {
+    "q": "A 500 Hz siren is moving at 20 m/s. What is the Doppler frequency?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "Outside model domain or direction missing"
+  },
+  {
+    "q": "What is the frequency of sound with wavelength 0 m in air at 20 degrees C?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "Outside model domain or direction missing"
+  },
+  {
+    "q": "What is the fundamental frequency of an open pipe 0 cm long in air at 20 degrees C?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1, chapter 17 (manifest source): https://openstax.org/details/books/university-physics-volume-1",
+    "calculation": "Outside model domain or direction missing"
+  },
+  {
+    "q": "A sound level is 60 dB at 2 feet. What is it at 4 m?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "Declared model boundary: only Celsius dry-air and m/s speeds; water speed only fixed at20C; distance ratio needs common units.",
+    "calculation": "Unsupported stated conditions must not be replaced with defaults"
+  },
+  {
+    "q": "What is the wavelength of 500 Hz sound with sound speed 1100 ft/s?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "Declared model boundary: only Celsius dry-air and m/s speeds; water speed only fixed at20C; distance ratio needs common units.",
+    "calculation": "Unsupported stated conditions must not be replaced with defaults"
+  },
+  {
+    "q": "A 500 Hz siren is moving toward you at 40 ft/s. What is the Doppler frequency?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "Declared model boundary: only Celsius dry-air and m/s speeds; water speed only fixed at20C; distance ratio needs common units.",
+    "calculation": "Unsupported stated conditions must not be replaced with defaults"
+  },
+  {
+    "q": "What is the wavelength of 500 Hz sound in air at 68 degrees F?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "Declared model boundary: only Celsius dry-air and m/s speeds; water speed only fixed at20C; distance ratio needs common units.",
+    "calculation": "Unsupported stated conditions must not be replaced with defaults"
+  },
+  {
+    "q": "What is the speed of sound in water at 40 degrees C?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "Declared model boundary: only Celsius dry-air and m/s speeds; water speed only fixed at20C; distance ratio needs common units.",
+    "calculation": "Unsupported stated conditions must not be replaced with defaults"
+  },
+  {
+    "q": "What is the wavelength of 500 Hz sound in water?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "Declared model boundary: only Celsius dry-air and m/s speeds; water speed only fixed at20C; distance ratio needs common units.",
+    "calculation": "Unsupported stated conditions must not be replaced with defaults"
+  },
+  {
+    "q": "What is the wavelength of 500 Hz sound in air at 68 degrees Fahrenheit?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "Declared Celsius / m/s model boundary",
+    "calculation": "Unsupported stated conditions must not be replaced with defaults"
+  },
+  {
+    "q": "What is the wavelength of 500 Hz sound with sound speed 34000 cm/s?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "Declared Celsius / m/s model boundary",
+    "calculation": "Unsupported stated conditions must not be replaced with defaults"
+  },
+  {
+    "q": "What is the speed of sound in sea water?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "Fixed1481m/s model is for fresh water at20C, not a salinity model",
+    "calculation": "Unsupported stated conditions must not be replaced with defaults"
+  },
+  {
+    "q": "The speed of sound is 340 m/s. A sound level is 60 dB at 2 m. What is it at 4 m?",
+    "kind": "db_distance",
+    "expect": 53.979400086720375,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume1 chapter17 (upstream acoustics manifest)",
+    "calculation": "60-20*log10(4/2); speed is not a radius"
+  },
+  {
+    "q": "A siren emits 500 Hz, and a listener is moving toward it at 20 m/s. The speed of sound is 340 m/s. What frequency is heard?",
+    "kind": "doppler",
+    "expect": 529.4117647058823,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume1 chapter17 (upstream acoustics manifest)",
+    "calculation": "500*(340 +/- 20)/340 for a moving listener"
+  },
+  {
+    "q": "A stationary siren emits 500 Hz and an observer is moving away from it at 20 m/s. The speed of sound is 340 m/s. What frequency is heard?",
+    "kind": "doppler",
+    "expect": 470.5882352941176,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume1 chapter17 (upstream acoustics manifest)",
+    "calculation": "500*(340 +/- 20)/340 for a moving listener"
+  },
+  {
+    "q": "A 500 Hz siren is moving toward a listener at 10 m/s and the listener is moving toward it at 20 m/s. What is the heard frequency?",
+    "kind": "decline",
+    "expect": "decline",
+    "valid": false,
+    "split": "probe",
+    "source": "Declared single-moving-actor Doppler request model",
+    "calculation": "Both moving actors require a different request model"
+  },
+  {
+    "q": "What is the frequency of sound with wavelength 0.5 m and speed 330 m/s?",
+    "kind": "frequency",
+    "expect": 660,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1 chapter 17; parent independent composed probe",
+    "calculation": "330/0.5"
+  },
+  {
+    "q": "What is the wavelength of sound with frequency 825 Hz and speed 330 m/s?",
+    "kind": "wavelength",
+    "expect": 0.4,
+    "valid": true,
+    "split": "probe",
+    "source": "OpenStax University Physics volume 1 chapter 17; parent independent composed probe",
+    "calculation": "330/825"
+  }
+]

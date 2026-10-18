@@ -33,7 +33,7 @@ definition self_test :: bool where
      kernel (Beat (Some 440) None) = Decline (Underspecified Both_Frequencies) \<and>
      kernel (Beat (Some 440) (Some 442)) = Value K_beat (2000, -3)"
 
-export_code reply_of answered reply_kind response stated mk_rat mk_nat self_test debug_enclosure debug_approx integer_of_int nat_of_integer int_of_integer Float floatarith.Num floatarith.Mult floatarith.Add floatarith.Inverse floatarith.Ln floatarith.Sqrt floatarith.Powr floatarith.Exp expr_of
+export_code reply_of answered reply_kind response stated mk_rat mk_nat debug_enclosure debug_approx integer_of_int nat_of_integer int_of_integer Float floatarith.Num floatarith.Mult floatarith.Add floatarith.Inverse floatarith.Ln floatarith.Sqrt floatarith.Powr floatarith.Exp expr_of
   Beat Doppler DbSum DbTwoEqual DbDistance DbRatio IntensityRatio StringHarmonic
   PipeClosed PipeOpen Wavelength Frequency SpeedAir SpeedWater
   Toward Away Unclear Source Listener Metre Centimetre Hz KHz Stated AirAt AirDefault
@@ -50,7 +50,9 @@ ML \<open>
     @{thm db_ratio_intensity}, @{thm intensity_ratio_levels}, @{thm string_harmonic},
     @{thm pipe_closed_harmonic}, @{thm pipe_open_harmonic}, @{thm pipe_closed_answers_odd},
     @{thm wavelength_relation}, @{thm frequency_relation}, @{thm speed_air_square},
-    @{thm speed_air_freezing}, @{thm reply_answered_iff}, @{thm reply_states_kernel_value}];
+    @{thm speed_air_freezing}, @{thm reply_answered_iff}, @{thm reply_states_kernel_value},
+    @{thm answered_reply_model_bound}, @{thm pipe_open_closed_consistent},
+    @{thm db_sum_not_quieter}, @{thm enclose_retry_sound}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("acoustics theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "acoustics self test failed";

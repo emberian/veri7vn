@@ -391,22 +391,35 @@ text \<open>Turn a float interval enclosing a value into a four-significant-digi
 decimal, or refuse when the interval is too wide to say four digits.\<close>
 section \<open>The kernel\<close>
 
-definition prec :: nat where "prec = 64"
+definition prec :: nat where "prec = 32"
 
-text \<open>Precision in bits per kind: the decibel kinds use logarithms and powers,
-which are costly at 64 bits; 40 bits leaves ample margin for the width test.\<close>
+text \<open>Precision in bits per kind: the decibel kinds use logarithms and powers.
+The enclosure width test, not this precision choice, guarantees the error bound.
+32 bits avoids spending time computing digits the four-digit reply cannot show.\<close>
 fun prec_of :: "request \<Rightarrow> nat" where
-  "prec_of (DbSum _) = 40"
-| "prec_of (DbTwoEqual _) = 40"
-| "prec_of (DbDistance _ _ _) = 40"
-| "prec_of (DbRatio _) = 40"
-| "prec_of (IntensityRatio _ _) = 40"
+  "prec_of (DbSum _) = 32"
+| "prec_of (DbTwoEqual _) = 32"
+| "prec_of (DbDistance _ _ _) = 32"
+| "prec_of (DbRatio _) = 32"
+| "prec_of (IntensityRatio _ _) = 32"
 | "prec_of _ = prec"
+
+text \<open>Close cancellation, especially a sum of sound levels near zero,
+can need more bits than ordinary inputs. Retry only when the first verified
+enclosure cannot support the printed digits. Both paths obey the same bound.\<close>
+definition enclose_retry :: "nat \<Rightarrow> floatarith \<Rightarrow> (int \<times> int) option" where
+  "enclose_retry p e = (case enclose p e of None \<Rightarrow> enclose (2 * p) e | Some d \<Rightarrow> Some d)"
+
+lemma enclose_retry_sound:
+  assumes "enclose_retry p e = Some d"
+  shows "\<bar>dec_val d - interpret_floatarith e []\<bar> \<le>
+    \<bar>interpret_floatarith e []\<bar> / 1000 + 1 / 1000000000"
+  using assms by (auto simp: enclose_retry_def split: option.splits dest: enclose_sound)
 
 definition kernel :: "request \<Rightarrow> outcome" where
   "kernel r = (case decline_of r of
      Some w \<Rightarrow> Decline w
-   | None \<Rightarrow> (case enclose (prec_of r) (expr_of r) of
+   | None \<Rightarrow> (case enclose_retry (prec_of r) (expr_of r) of
        None \<Rightarrow> Decline Imprecise
      | Some d \<Rightarrow> Value (kind_of r) d))"
 
@@ -418,13 +431,13 @@ theorem kernel_value_sound:
   shows "missing r = None \<and> \<not> impossible r \<and> k = kind_of r \<and>
          \<bar>dec_val d - phys r\<bar> \<le> \<bar>phys r\<bar> / 1000 + 1 / 1000000000"
 proof -
-  have nd: "decline_of r = None" and en: "enclose (prec_of r) (expr_of r) = Some d" and k: "k = kind_of r"
+  have nd: "decline_of r = None" and en: "enclose_retry (prec_of r) (expr_of r) = Some d" and k: "k = kind_of r"
     using assms by (auto simp: kernel_def split: option.splits)
   have mi: "missing r = None" and ro: "reason_of r = None"
     using nd by (auto simp: decline_of_def split: option.splits)
   have "\<not> impossible r" using reason_of_exact[OF mi] ro by simp
   moreover have "\<bar>dec_val d - phys r\<bar> \<le> \<bar>phys r\<bar> / 1000 + 1 / 1000000000"
-    using enclose_sound[OF en] by (simp add: expr_of_meaning[OF mi \<open>\<not> impossible r\<close>])
+    using enclose_retry_sound[OF en] by (simp add: expr_of_meaning[OF mi \<open>\<not> impossible r\<close>])
   ultimately show ?thesis using mi k by simp
 qed
 
@@ -567,6 +580,43 @@ proof -
   then show ?thesis by simp
 qed
 
+theorem pipe_open_closed_consistent:
+  "phys (PipeOpen n (Some L) s) = 2 * phys (PipeClosed n (Some L) s)"
+  by (simp add: field_simps)
+
+lemma intensity_member_le_sum:
+  "l \<in> set ls \<Longrightarrow> 10 powr (rl l / 10) \<le> (\<Sum>x\<leftarrow>ls. 10 powr (rl x / 10) :: real)"
+proof (induction ls)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons a ls)
+  have tail: "0 \<le> (\<Sum>x\<leftarrow>ls. 10 powr (rl x / 10) :: real)"
+    by (rule intensity_sum_nonneg)
+  have head: "0 \<le> (10 powr (rl a / 10) :: real)" by simp
+  show ?case
+  proof (cases "l = a")
+    case True
+    then show ?thesis using tail by simp
+  next
+    case False
+    then have "l \<in> set ls" using Cons.prems by simp
+    have "10 powr (rl l / 10) \<le> 10 powr (rl a / 10) + (\<Sum>x\<leftarrow>ls. 10 powr (rl x / 10) :: real)"
+      using Cons.IH[OF \<open>l \<in> set ls\<close>] head by linarith
+    then show ?thesis by simp
+  qed
+qed
+
+theorem db_sum_not_quieter:
+  assumes "l \<in> set ls"
+  shows "rl l \<le> phys (DbSum ls)"
+proof -
+  have nonempty: "ls \<noteq> []" using assms by auto
+  have "10 powr (rl l / 10) \<le> 10 powr (phys (DbSum ls) / 10)"
+    using intensity_member_le_sum[OF assms] db_sum_intensities[OF nonempty] by simp
+  then show ?thesis by simp
+qed
+
 text \<open>A pipe closed at one end is only ever answered for odd harmonics.\<close>
 theorem pipe_closed_answers_odd:
   assumes "kernel (PipeClosed n L s) = Value k d"
@@ -614,7 +664,7 @@ definition show_rat :: "rat \<Rightarrow> String.literal" where
   "show_rat q = show_real (rl q)"
 
 definition speed_text :: "medium \<Rightarrow> String.literal" where
-  "speed_text s = (case enclose prec (speed_fa s) of Some d \<Rightarrow> render_dec 4 d | None \<Rightarrow> STR ''?'')"
+  "speed_text s = (case enclose_retry prec (speed_fa s) of Some d \<Rightarrow> render_dec 4 d | None \<Rightarrow> STR ''?'')"
 
 fun medium_note :: "medium \<Rightarrow> String.literal" where
   "medium_note (Stated v) = STR ''v = '' + show_rat v + STR '' m/s''"
@@ -722,5 +772,12 @@ theorem reply_answered_iff: "answered (reply_of r) \<longleftrightarrow> (\<exis
 theorem reply_states_kernel_value:
   "kernel r = Value k d \<Longrightarrow> stated (reply_of r) = Some (render_dec 4 d)"
   by (simp add: reply_of_def)
+
+theorem answered_reply_model_bound:
+  assumes "answered (reply_of r)"
+  shows "\<exists>k d. kernel r = Value k d \<and>
+    stated (reply_of r) = Some (render_dec 4 d) \<and>
+    \<bar>dec_val d - phys r\<bar> \<le> \<bar>phys r\<bar> / 1000 + 1 / 1000000000"
+  using assms reply_answered_iff reply_states_kernel_value kernel_value_sound by blast
 
 end

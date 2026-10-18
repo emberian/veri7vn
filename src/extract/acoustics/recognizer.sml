@@ -65,12 +65,20 @@ struct
 
   (* speed(low): a stated speed of sound, else air at a stated temperature,
      else air at 20 C *)
+  val statedSpeed = "\\b(?:speed of sound|sound speed|wave speed)\\s*(?:is|of|=)?\\s*" ^ N ^ "\\s*m/s"
+  val trailingSpeed = N ^ "\\s*m/s\\s*(?:speed of sound|sound speed)"
+  val bareSpeed = "\\bspeed\\s*(?:is|of|=)?\\s*" ^ N ^ "\\s*m/s"
+  val motionContext = "\\bdoppler\\b|\\bmoving\\b|\\bapproach|\\brecede|\\btoward|\\baway from\\b|\\bdriving\\b"
+  fun labelledSpeedMatch low = case search statedSpeed low of SOME m => SOME m | NONE => search trailingSpeed low
+  (* In a wave equation a plain stated speed denotes propagation speed.
+     With moving actors it is ambiguous; require the explicit sound/wave label. *)
+  fun speedMatch low = case labelledSpeedMatch low of SOME m => SOME m
+      | NONE => if has motionContext low then NONE else search bareSpeed low
+
   fun speed (low : string) : A.medium =
     let
       val stated =
-        case search ("\\b(?:speed of sound|sound speed|wave speed)\\s*(?:is|of|=)?\\s*" ^ N ^ "\\s*m/s") low of
-          SOME m => SOME m
-        | NONE => search (N ^ "\\s*m/s\\s*(?:speed of sound|sound speed)") low
+        speedMatch low
     in
       case stated of
         SOME m => A.Stated (ratOf (valOf (grp low m 1)))
@@ -97,8 +105,23 @@ struct
       val sound = has ("\\bsound\\b|\\bacoustic|\\bdecibel|\\bdb\\b|\\bdoppler\\b|\\bsiren\\b|\\bhorn\\b|"
                        ^ "\\bpipe\\b|\\bstring\\b|\\bharmonic|\\bbeats?\\b|\\btuning fork\\b|\\bpitch\\b|"
                        ^ "\\bhonk\\w*|\\bwhistle\\b|\\bhear\\b") low
+      (* These inputs state a physical condition for which this recognizer
+         has no unit/model conversion. Do not silently replace it by air
+         at 20 C or interpret feet per second as metres per second. *)
+      val unsupportedSpeed = has (N ^ "\\s*(?:ft/s|feet(?:/|\\s+per\\s+)second|fps|mph|km/h|km/s|cm/s|mm/s|miles?\\s+per\\s+hour|met(?:er|re)s?\\s+per\\s+second)\\b") low
+      val unsupportedTemperature = has (N ^ "\\s*(?:" ^ deg ^ "\\s*[fk]|degrees?\\s*(?:f(?:ahrenheit)?|k(?:elvin)?)|fahrenheit|kelvin)\\b") low
+      val ambiguousSpeed = has motionContext low andalso isSome (search bareSpeed low)
+          andalso not (isSome (labelledSpeedMatch low))
+      val water = has "\\bwater\\b" low
+      val waterTemperature = search (N ^ "\\s*(?:" ^ deg ^ "\\s*c|degrees? c(?:elsius)?|" ^ celsius ^ "|c\\b)") low
+      val waterAtOtherTemperature = case waterTemperature of NONE => false
+          | SOME m => not (has "^20(?:\\.0+)?$" (valOf (grp low m 1)))
+      val unsupportedWater = not (isSome (speedMatch low)) andalso
+          (has "\\b(?:sea|salt)\\s*water\\b" low orelse
+           (water andalso (waterAtOtherTemperature orelse
+             not (has "\\bspeed of sound\\b|\\bhow fast (?:does|is) sound\\b" low))))
     in
-      if not sound then NONE
+      if not sound orelse unsupportedSpeed orelse unsupportedTemperature orelse unsupportedWater orelse ambiguousSpeed then NONE
       else if has "\\bbeat frequency\\b|\\bbeats? per second\\b" low
               orelse (has "\\bbeats?\\b" low andalso length (findall "\\d\\s*hz\\b" low) >= 2) then
         let val fs = map (fn m => ratOf (valOf (grp low m 1))) (findall (N ^ "\\s*hz\\b") low)
@@ -107,30 +130,47 @@ struct
            | [a] => SOME (A.Beat (SOME a, NONE))
            | [] => SOME (A.Beat (NONE, NONE))
         end
-      else if has "\\bdoppler\\b|\\bmoving\\b|\\bapproach|\\brecede|\\btoward|\\baway from\\b|\\bdriving\\b" low
+      else if has motionContext low
               andalso has "\\bfrequency\\b|\\bpitch\\b|\\bhear\\b|\\bheard\\b|\\bobserved\\b" low then
         let
           val fm = search (N ^ "\\s*hz\\b") low
-          val vm = search (N ^ "\\s*m/s\\b(?!\\s*(?:speed of sound|sound speed))") low
+          (* Remove the labelled medium speed before looking for a mover's
+             speed. Its position in the sentence must not change the model. *)
+          val movingText = case speedMatch low of
+              SOME m => replaceAll (low, Regex.whole low m, " ") | NONE => low
+          val vm = search (N ^ "\\s*m/s\\b") movingText
         in
           case (fm, vm) of
             (SOME fm, SOME vm) =>
               let
                 val f = ratOf (valOf (grp low fm 1))
-                val u = ratOf (valOf (grp low vm 1))
-                val medium = speed (replaceAll (low, Regex.whole low vm, " "))
+                val u = ratOf (valOf (grp movingText vm 1))
+                val medium = speed low
                 val toward = has "\\btoward|\\bapproach" low
                 val away = has "\\baway from\\b|\\brecede|\\bmoving away\\b" low
-                val listener =
-                  has "\\b(?:listener|observer|you|i)\\b[^.?]*\\b(?:move|moving|drive|driving|run|running|walk|walking)" low
-                  andalso not (has "\\b(?:source|siren|car|train|ambulance|horn)\\b[^.?]*\\bmoving\\b" low)
+                (* Assign each motion phrase to its nearest preceding named
+                   actor. A source mentioned in an earlier clause must not
+                   turn a moving listener into a moving source. The kernel
+                   models one moving actor, so two moving actors fall through. *)
+                val motions = findall "\\b(?:moves?|moving|drives?|driving|runs?|running|walks?|walking|approach\\w*|reced\\w*)\\b" low
+                fun actor ({start, ...} : Regex.match) =
+                  let val prefix = String.substring (low, 0, start)
+                  in case rev (findall "\\b(listener|observer|you|i|source|siren|car|train|ambulance|horn)\\b" prefix) of
+                       [] => NONE
+                     | m :: _ => SOME (List.exists (fn x => grp prefix m 1 = SOME x)
+                                                ["listener", "observer", "you", "i"])
+                  end
+                val actors = List.mapPartial actor motions
+                val listener = List.exists (fn x => x) actors
+                val bothMoving = listener andalso List.exists (fn x => not x) actors
                 val dir = if toward = away then A.Unclear else if toward then A.Toward else A.Away
               in
-                SOME (A.Doppler (SOME f, SOME u, if listener then A.Listener else A.Source, dir, medium))
+                if bothMoving then NONE else
+                  SOME (A.Doppler (SOME f, SOME u, if listener then A.Listener else A.Source, dir, medium))
               end
           | (fm, vm) =>
               SOME (A.Doppler (Option.map (fn m => ratOf (valOf (grp low m 1))) fm,
-                               Option.map (fn m => ratOf (valOf (grp low m 1))) vm,
+                               Option.map (fn m => ratOf (valOf (grp movingText m 1))) vm,
                                A.Source, A.Unclear, A.AirDefault))
         end
       else if has "\\bdecibel|\\bdb\\b" low then
@@ -138,7 +178,9 @@ struct
           val ls = map (fn m => ratOf (valOf (grp low m 1))) (findall (N ^ "\\s*(?:db|decibels?)\\b") low)
           val combined = has "\\btogether\\b|\\bcombined\\b|\\bboth\\b|\\btotal\\b" low
           val dm = map (fn m => ratOf (valOf (grp low m 1)))
-                       (findall (N ^ "\\s*(?:m|meters?|metres?|ft|feet)\\b") low)
+                       (findall (N ^ "\\s*(?:m|meters?|metres?|ft|feet)\\b(?!\\s*/)") low)
+          val mixedDistances = has (N ^ "\\s*(?:m|meters?|metres?)\\b(?!\\s*/)") low
+                               andalso has (N ^ "\\s*(?:ft|feet)\\b(?!\\s*/)") low
           val rm = search ("\\b(?:intensity|power)\\b[^.?]*?\\b" ^ N ^ "\\s*times\\b|\\b" ^ N
                            ^ "\\s*times (?:the |as )?(?:intensity|intense|power|more intense)") low
         in
@@ -146,7 +188,7 @@ struct
           else if combined andalso length ls = 1 andalso has "\\btwo\\b|\\bidentical\\b|\\bsame\\b" low then
             SOME (A.DbTwoEqual (hd ls))
           else if length ls = 1 andalso length dm >= 2 then
-            SOME (A.DbDistance (hd ls, hd dm, hd (tl dm)))
+            if mixedDistances then NONE else SOME (A.DbDistance (hd ls, hd dm, hd (tl dm)))
           else case rm of
             SOME m => SOME (A.DbRatio (ratOf (valOf (grpOr low m [1, 2]))))
           | NONE =>
@@ -162,7 +204,7 @@ struct
         in
           if (isSome pm orelse sm) andalso has "\\bfrequency\\b|\\bharmonic\\b|\\bfundamental\\b|\\bovertone\\b" low then
             let
-              val lm = search (N ^ "\\s*(m|cm)\\b(?:\\s*(?:long|length))?") low
+              val lm = search (N ^ "\\s*(m|cm)\\b(?!\\s*/)(?:\\s*(?:long|length))?") low
               val len = Option.map (fn m => (ratOf (valOf (grp low m 1)),
                                              if grp low m 2 = SOME "cm" then A.Centimetre else A.Metre)) lm
               val om = search "\\b(first|second|third|fourth|fifth|sixth|seventh|fundamental)\\b(?:\\s+harmonic)?" low
@@ -191,7 +233,10 @@ struct
                   else SOME (A.PipeOpen (hn, len, medium))
                 end
             end
-          else if has "\\bwavelength\\b" low then
+          else if has "\\bwavelength\\b" low
+                  andalso not (has "\\bfrequency\\b" low andalso
+                    (has ("\\bwavelength\\s*(?:of|is|=)?\\s*" ^ N ^ "\\s*(?:m|cm)\\b(?!\\s*/)") low
+                     orelse has (N ^ "\\s*(?:m|cm)\\s*wavelength\\b") low)) then
             (case search (N ^ "\\s*(k?hz)\\b") low of
                NONE => SOME (A.Wavelength (NONE, A.AirDefault))
              | SOME m =>
@@ -201,7 +246,7 @@ struct
           else
             let
               val lm = if has "\\bfrequency\\b" low then
-                         (case search ("\\bwavelength\\s*(?:of|is|=)?\\s*" ^ N ^ "\\s*(m|cm)\\b") low of
+                         (case search ("\\bwavelength\\s*(?:of|is|=)?\\s*" ^ N ^ "\\s*(m|cm)\\b(?!\\s*/)") low of
                             SOME m => SOME m
                           | NONE => search (N ^ "\\s*(m|cm)\\s*wavelength\\b") low)
                        else NONE
