@@ -63,6 +63,37 @@ class AffineEvidenceTests(unittest.TestCase):
                 self.assertEqual(actual["provenance"]["evidence"]["consumer_validation"]["status"], "consistent")
                 self.assertNotIn("consumer_validation", reply["provenance"]["evidence"])
 
+    def test_selected_variable_binds_ast_and_each_solution_class(self):
+        def rename(node, name):
+            if node['op']=='var':node['name']=name
+            for key in ('left','right','arg'):
+                if key in node:rename(node[key],name)
+        for name in ('t','e','z'):
+            for classification in ('unique','all','none'):
+                reply=fixture(classification)
+                inputs=reply['provenance']['evidence']['checked_computation']['inputs']
+                inputs['variable']=name
+                rename(inputs['left'],name);rename(inputs['right'],name)
+                reply['response']=reply['response'].replace('x',name)
+                with self.subTest(name=name,classification=classification):
+                    self.assertEqual(enforce_reply_evidence(reply)['status'],'answered')
+                    wrong=copy.deepcopy(reply)
+                    wrong['response']=wrong['response'].replace(f'] {name} =','] x =').replace(f'value of {name} ', 'value of x ')
+                    self.assert_rejected(wrong)
+
+    def test_target_mismatch_and_cancelled_foreign_variables_rejected(self):
+        for change in ('target_only','foreign_cancelled','foreign_zero'):
+            reply=fixture();inputs=reply['provenance']['evidence']['checked_computation']['inputs']
+            if change=='target_only':inputs['variable']='t'
+            else:
+                y={'op':'var','name':'y'}
+                zero=op('sub',y,copy.deepcopy(y)) if change=='foreign_cancelled' else op('mul',const(0),y)
+                inputs['left']=op('add',inputs['left'],zero)
+            with self.subTest(change=change):self.assert_rejected(reply)
+        for name in ('','xy','X','α',True,None):
+            reply=fixture();reply['provenance']['evidence']['checked_computation']['inputs']['variable']=name
+            with self.subTest(name=name):self.assert_rejected(reply)
+
     def test_constant_division_and_negation(self):
         reply = fixture()
         packet = reply["provenance"]["evidence"]["checked_computation"]

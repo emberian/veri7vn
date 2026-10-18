@@ -26,19 +26,27 @@ question needs an exact integer root; otherwise the route refuses rather
 than silently returning the floor. Explicit integer-root questions still
 return the floor with its defining bounds.
 
-The affine route accepts complete equations in the single variable `x`:
+The affine route accepts complete equations in one selected scalar letter (`a`
+to `z`, case-folded to lowercase):
 exact decimal, grouped, fractional and scientific coefficients; parentheses;
 sums, differences, negation; multiplication by a normalized constant; and
 division by a normalized nonzero constant. It preserves the expression tree
 and sends it to the kernel. HOL normalization proves that each accepted tree
-has value `a*x+b`, including its definedness. The result distinguishes one
+has value `a*i(name)+b` under every variable reading `i`, including definedness.
+A second theorem ensures that the accepted tree contains only the chosen name. The result distinguishes one
 exact rational root, every rational value, and no rational solution. For a
 unique root, the actual checker also evaluates both original typed sides at
 that root. Nonlinear products, variable divisors, division by zero, powers,
-malformed numbers, other variables and oversized requests are explicit
+malformed numbers, additional unknowns and oversized requests are explicit
 refusals. A missed English pattern does not become a partial equation.
 
-Each affine answer includes the original typed tree, its normalized sides,
+The target may be named before or after the equation, as in “Solve for t
+3t+2=11” or “Solve 3t+2=11 for t”. Without a target, the sole variable is inferred;
+constant-only equations retain x by default. Conflicting targets and a second
+unknown refuse, even when the second unknown cancels. `2*e` explicitly names e;
+malformed scientific `2e` is not reinterpreted as multiplication.
+
+Each affine answer includes the chosen variable, original typed tree, normalized sides,
 classification, exact root when unique, and the actual checker outcome in
 `provenance.evidence.checked_computation`. The route consumer independently
 replays that bounded arithmetic and checks the displayed result. It also

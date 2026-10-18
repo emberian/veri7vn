@@ -74,7 +74,7 @@ class AffineTests(unittest.TestCase):
     def test_finite_rejections_are_taken_without_claimed_certificate(self):
         questions = ["Solve x*x=4", "Solve 1/x=2", "Solve x/(x-x)=1", "Solve x^2=4",
                      "Solve 1e+x=3", "Solve 1,23x=2", "Solve 1.2.3x=2", "Solve x=1=2",
-                     "Solve y=2", "Solve x*x-x*x=0", "Solve x/0=2",
+                     "Solve y=2 for x", "Solve x*x-x*x=0", "Solve x/0=2",
                      "Solve " + "(" * 34 + "x" + ")" * 34 + "=1",
                      "Solve " + "9" * 257 + "x=1", "Solve 1e10001x=2"]
         for q, out in zip(questions, self.ask(questions)):

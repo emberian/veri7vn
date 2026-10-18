@@ -115,13 +115,16 @@ An answer without a packet receives no such claim.
 The affine equation route reserves `kind: "affine_equation"` for replies with
 a checked-computation packet. Missing packets are refused. Its version-1 packet
 names `Mathkernel.check_affine` and contains the original typed left and right
-expression trees, their claimed affine coefficients and constants, and a
+expression trees, the selected single lowercase ASCII variable, their claimed
+affine coefficients and constants, and a
 `unique`, `all` or `none` solution classification. Rational constants use the
 same numerator/denominator representation. A unique result includes its exact
 root; the other classes contain a null root and omit the reply's numeric value.
 
 The consumer independently normalizes those trees, checks the classification
-and any root, and requires the displayed result to agree. It accepts addition,
+and any root, and requires the displayed result and variable name to agree.
+Every variable node must name the selected variable, including nodes whose
+coefficients would cancel or be multiplied by zero. It accepts addition,
 subtraction, negation, multiplication with a constant affine operand and
 division by a nonzero constant affine operand, within explicit size bounds.
 The route also compares the producer's `provenance.request_text` with the
@@ -144,9 +147,10 @@ Code synthesis reserves `kind: "code_program"` for a mandatory version-1
 examples and results, and the displayed Python source. The consumer replays
 the closed integer/list operation language and independently reconstructs the
 exact source, including type guards; it never executes producer-supplied code.
-Boolean values are distinct from integers. Deduplication keeps the last
-occurrence and pairwise list operations stop at the shorter input, with those
-choices stated in affected replies. Examples and intermediate calculations
+Boolean values are distinct from integers. The primitive deduplication keeps
+the last occurrence; reversing before and after it keeps the first occurrence.
+Replies describe the selected composition. Pairwise list operations stop at
+the shorter input, with that choice stated in affected replies. Examples and intermediate calculations
 have explicit bounds. Accepted examples establish those examples only: finite
 ambiguity probes establish neither program equivalence nor intended behavior
 on other inputs. The source renderer and independent replay remain untrusted.

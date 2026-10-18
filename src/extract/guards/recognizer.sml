@@ -353,13 +353,17 @@ fun noEntryGroup s =
    P2 answer-type reconstruction. This is untrusted text recognition, not
    certificate verification. The route consumer checks affine packets before
    invoking guards; the standalone guards program does not check packets. *)
-val solveQuestion = R.compile "^\\s*(?:(?:solve(?: for x)?|find x(?: if| given| when)?|what is (?:the value of )?x(?: if| given| when)?)\\s*:?\\s*)?([0-9xe,+ */().\226\136\146-]+)=([0-9xe,+ */().\226\136\146-]+?)(?:\\s+for x)?[?.]?\\s*$"
+val solveQuestion = R.compile "^\\s*(?:(?:solve(?: for [a-z])?|find [a-z](?: if| given| when)?|what is (?:the value of )?[a-z](?: if| given| when)?)\\s*:?\\s*)?([0-9a-z,+ */().\226\136\146-]+)=([0-9a-z,+ */().\226\136\146-]+?)(?:\\s+for [a-z])?[?.]?\\s*$"
 val equationCourtesy = R.compile "^(?:please\\s+|(?:can|could|would)\\s+you\\s+(?:please\\s+)?)(?=(?:solve|find|calculate|compute|evaluate)\\b)"
 fun completeEquation q =
   let val text = lower(collapse q)
       val body = case R.search equationCourtesy text of
           SOME m => String.extract(text,#stop m,NONE) | NONE => text
-  in sub1 solveQuestion body end
+  in case R.search solveQuestion body of NONE => false | SOME m =>
+       List.all (fn i => case R.group body m i of NONE => false | SOME side =>
+         not(sub1 (R.compile "[a-z]{2,}") side)) [1,2]
+  end
+val affineClassification = R.compile "^(?:every|no) rational value of [a-z] satisfies this equation[.]$"
 
 fun f511Of (q, route, reply, respG3low) =
   let val ql = lower q
@@ -369,8 +373,7 @@ fun f511Of (q, route, reply, respG3low) =
           | SOME g => (true, sub1 attr g, not (sub1 punct g))
       val classification = collapse(stripEv(lower(collapse reply)))
       val solutionSet = route = "algebra:solved" andalso completeEquation ql andalso
-        (classification = "every rational value of x satisfies this equation." orelse
-         classification = "no rational value of x satisfies this equation.")
+        sub1 affineClassification classification
       val asksNum = (sub1 numq ql orelse matchAt0 whatThe ql) andalso not solutionSet
       val numwordHit = sub1 numword (lower (collapse reply))
   in Guards.F511 (sub1 negPhys q,        (* neg_phys_given *)

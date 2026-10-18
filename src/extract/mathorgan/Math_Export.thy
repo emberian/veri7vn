@@ -23,7 +23,7 @@ export_code closed_value check_closed closed_response
 ML \<open>
   val theorems = @{thms closed_shape_no_variables closed_candidate_checked
     closed_checked_original_value closed_checked_kernel_value closed_undefined_refuses
-    affine_norm_sound affine_equation_normalized
+    affine_norm_sound affine_norm_only_chosen affine_equation_normalized
     affine_unique_checked affine_all_checked affine_none_checked affine_candidate_checked
     eval_closed_ignores_reading mfactor_positive
     dec_search_sound dec_expansion_sound

@@ -198,7 +198,8 @@ def _validate_affine_evidence(reply, packet):
         raise ContractError("affine packet is attached to a different decision")
     inputs = packet.get("inputs")
     _object(inputs, {"variable", "left", "right"}, "affine inputs")
-    if inputs.get("variable") != "x":
+    variable = inputs.get("variable")
+    if not isinstance(variable, str) or not re.fullmatch(r"[a-z]", variable):
         raise ContractError("unsupported affine variable")
     remaining = 128
 
@@ -220,7 +221,7 @@ def _validate_affine_evidence(reply, packet):
             return Fraction(0), _evidence_rational(node.get("value"))
         if op == "var":
             _object(node, {"op", "name"}, "variable AST node")
-            if node.get("name") != "x":
+            if node.get("name") != variable:
                 raise ContractError("unsupported variable in affine AST")
             return Fraction(1), Fraction(0)
         if op == "neg":
@@ -262,14 +263,14 @@ def _validate_affine_evidence(reply, packet):
         if a * root + b != c * root + d:
             raise ContractError("affine root does not satisfy the typed equation")
         value = str(root.numerator) if root.denominator == 1 else f"{root.numerator}/{root.denominator}"
-        if reply.get("value") != value or reply.get("response") != f"[ev:derived] x = {value}.":
+        if reply.get("value") != value or reply.get("response") != f"[ev:derived] {variable} = {value}.":
             raise ContractError("affine displayed solution disagrees with the checked root")
-        explanation = f"Both typed sides normalize to affine expressions; substituting x = {value} makes them equal, and their different coefficients give one solution."
+        explanation = f"Both typed sides normalize to affine expressions; substituting {variable} = {value} makes them equal, and their different coefficients give one solution."
     else:
         if result["root"] is not None or "value" in reply:
             raise ContractError("nonunique affine result must not assert one numeric root")
-        expected = ("Every rational value of x satisfies this equation." if classification == "all"
-                    else "No rational value of x satisfies this equation.")
+        expected = (f"Every rational value of {variable} satisfies this equation." if classification == "all"
+                    else f"No rational value of {variable} satisfies this equation.")
         if reply.get("response") != "[ev:derived] " + expected:
             raise ContractError("affine displayed classification disagrees with the checked equation")
         explanation = ("The typed sides have equal coefficients and constants." if classification == "all"

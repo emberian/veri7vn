@@ -111,7 +111,7 @@ class Ground:
             result = packet.get('result', {})
             root = result.get('root')
             value = exact(str(root.get('num')) + '/' + str(root.get('den'))) if isinstance(root, dict) else None
-            if result.get('classification') == 'unique' and value is not None and variable in ('x', 'y', 'z'):
+            if result.get('classification') == 'unique' and value is not None and isinstance(variable,str) and re.fullmatch('[a-z]',variable):
                 solved[variable] = value
         slot = c.get('slot_surface')
         if not isinstance(slot, str) or not slot or standalone.count(slot) != 1:
@@ -223,7 +223,7 @@ class Dialogue:
         if ground and ground.native_owner in self.native_owners and native_followup:
             return Plan(q, 'native_warehouse_context', ground.source_turn)
         # A complete finite request is recognized before any replacement occurs.
-        variable = re.fullmatch(r'(?:what is|calculate)\s+([xyz])\s+(squared|cubed)[?.!]*', q, re.I)
+        variable = re.fullmatch(r'(?i:what is|calculate)\s+([a-z])\s+((?i:squared|cubed))[?.!]*', q)
         cost = re.fullmatch(r'(?:what does|how much does)\s+(that|it)\s+cost\s+(at\s+.+?)[?.!]*', q, re.I)
         convert = re.fullmatch(r'convert\s+(that|it|the result)\s+to\s+([A-Za-z][A-Za-z0-9/^ .-]{0,40})[?.!]*', q, re.I)
         predicates = {

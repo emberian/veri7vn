@@ -65,6 +65,36 @@ class StateTests(unittest.TestCase):
         self.assertIsNone(ledger.ground['a'])
         self.assertEqual(len(ledger.turns['a']), 2)
 
+    def test_named_variable_ground_uses_checked_unique_root_only(self):
+        from test_affine_evidence import fixture
+        from runtime_contract import enforce_reply_evidence
+        class Policy:
+            def ask_payload(self, request):
+                return {'resolution': 'variable' if request['variable'] else 'missing',
+                        'interpretation': 'context' if request['variable'] else 'clarify'}
+        def rename(node):
+            if node.get('op') == 'var': node['name'] = 't'
+            for key in ('left', 'right', 'arg'):
+                if key in node: rename(node[key])
+        for classification in ('unique', 'all', 'none'):
+            r=fixture(classification)
+            inputs=r['provenance']['evidence']['checked_computation']['inputs']
+            inputs['variable']='t'
+            rename(inputs['left']); rename(inputs['right'])
+            r['response']=r['response'].replace('x','t')
+            q='Solve 2t + 3 = 0.'
+            r['provenance']['request_text']=q
+            d=Dialogue(Policy());d.ledger.append('s',q,q,enforce_reply_evidence(r))
+            with self.subTest(classification=classification):
+                if classification == 'unique':
+                    self.assertEqual(d.plan('s','What is t squared?').question,'What is (-3/2)^2?')
+                    self.assertEqual(d.plan('s','Calculate t cubed.').question,'What is (-3/2)^3?')
+                else:
+                    self.assertEqual(d.plan('s','What is t squared?').construction,'missing_reference')
+                self.assertEqual(d.plan('s','What is z squared?').construction,'missing_reference')
+                self.assertEqual(d.plan('other','What is t squared?').construction,'missing_reference')
+                self.assertIsNone(d.plan('s','What is T squared?'))
+
     def test_recall_quotes_final_reply_and_does_not_overwrite_ground(self):
         ledger = Ledger()
         ledger.append('a', 'q', 'standalone', reply(provenance={'conversation': {'query_entity': entity()}}))

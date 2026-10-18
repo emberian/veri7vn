@@ -61,11 +61,11 @@ struct
       ^ ", \"path\": \"mathorgan>unsupported_input\", \"provenance\": {\"taken\": true,"
       ^ "\"recognizer_rejection\": true, \"recognition_trusted\": false}}"
 
-  fun affineReply id q (left,right) =
+  fun affineReply id q (variable,left,right) =
     let val l=AffineParser.kernel left
         val r=AffineParser.kernel right
-        val result=K.affine_candidate l r
-        val accepted=K.check_affine l r result
+        val result=K.affine_candidate variable l r
+        val accepted=K.check_affine variable l r result
         fun rat q = AffineParser.ratJson(AffineParser.bounded(K.affine_rat_components q))
         fun pair (a,b) = "{\"coefficient\":" ^ rat a ^ ",\"constant\":" ^ rat b ^ "}"
         val (classification,root,value) = case result of
@@ -75,17 +75,17 @@ struct
           | K.AffineUnsupported => ("unsupported","null","")
     in if not accepted then
       "{\"id\":" ^ id ^ ",\"status\":\"withheld\",\"path\":\"mathorgan>unsupported_affine\",\"response\":" ^
-      Json.quote(K.affine_response K.AffineUnsupported) ^
+      Json.quote(K.affine_response variable K.AffineUnsupported) ^
       ",\"provenance\":{\"taken\":true,\"recognition_trusted\":false,\"kernel\":\"Mathkernel.affine_candidate\"}}"
     else
       "{\"id\":" ^ id ^ ",\"status\":\"answered\",\"kind\":\"affine_equation\",\"path\":\"algebra:solved\",\"response\":" ^
-      Json.quote(K.affine_response result) ^ value ^
+      Json.quote(K.affine_response variable result) ^ value ^
       ",\"provenance\":{\"request_text\":" ^ Json.quote q ^ ",\"taken\":true,\"recognition_trusted\":false,\"kernel\":\"Mathkernel.check_affine\",\"session\":\"Veri7vn_MathOrgan\",\"evidence\":{\"checked_computation\":{" ^
       "\"schema_version\":1,\"kind\":\"affine_equation\",\"checker\":\"Mathkernel.check_affine\",\"accepted\":true," ^
       "\"assumptions\":[\"The typed equation represents the requested equation.\"]," ^
-      "\"inputs\":{\"variable\":\"x\",\"left\":" ^ AffineParser.json left ^ ",\"right\":" ^ AffineParser.json right ^ "}," ^
+      "\"inputs\":{\"variable\":" ^ Json.quote variable ^ ",\"left\":" ^ AffineParser.json left ^ ",\"right\":" ^ AffineParser.json right ^ "}," ^
       "\"result\":{\"classification\":" ^ Json.quote classification ^ ",\"root\":" ^ root ^
-      ",\"left_affine\":" ^ pair(valOf(K.affine_norm l)) ^ ",\"right_affine\":" ^ pair(valOf(K.affine_norm r)) ^ "}}}}}"
+      ",\"left_affine\":" ^ pair(valOf(K.affine_norm variable l)) ^ ",\"right_affine\":" ^ pair(valOf(K.affine_norm variable r)) ^ "}}}}}"
     end
 
   fun closedReply id q expression =

@@ -5,10 +5,10 @@ structure AffineParser =
 struct
   exception Reject of string
   type rational = ExactNumeric.rational
-  datatype expression = Const of rational | Var | Neg of expression
+  datatype expression = Const of rational | Var of string | Neg of expression
     | Add of expression * expression | Sub of expression * expression
     | Mul of expression * expression | Div of expression * expression | Pow of expression * int
-  datatype token = Number of rational | X | Plus | Minus | Times | Slash | LP | RP | Power
+  datatype token = Number of rational | Name of string | Plus | Minus | Times | Slash | LP | RP | Power
 
   fun lower s = String.map Char.toLower s
   fun trim s = String.concatWith " " (String.tokens Char.isSpace s)
@@ -45,16 +45,16 @@ struct
                in go j (Number(numeric(String.substring(s,i,j-i)))::acc) end
              else if i+3<=n andalso String.substring(s,i,3)="\226\136\146"
                   then go(i+3)(Minus::acc)
+             else if c >= #"a" andalso c <= #"z" then go(i+1)(Name(String.str c)::acc)
              else case c of
-               #"x" => go(i+1)(X::acc)
-             | #"+" => go(i+1)(Plus::acc)
+               #"+" => go(i+1)(Plus::acc)
              | #"-" => go(i+1)(Minus::acc)
              | #"*" => go(i+1)(Times::acc)
              | #"/" => go(i+1)(Slash::acc)
              | #"^" => go(i+1)(Power::acc)
              | #"(" => go(i+1)(LP::acc)
              | #")" => go(i+1)(RP::acc)
-             | _ => reject "Only x, exact numbers, +, -, *, / and parentheses are supported."
+             | _ => reject "Only single-letter variables, exact numbers, +, -, *, / and parentheses are supported."
           end
     in go 0 [] end
 
@@ -73,7 +73,7 @@ struct
           let val(first,rest)=unary d ts
               fun more(a,Times::tail) = let val(b,r)=unary d tail in more(node(Mul(a,b)),r) end
                 | more(a,Slash::tail) = let val(b,r)=unary d tail in more(node(Div(a,b)),r) end
-                | more(a,tail as X::_) = let val(b,r)=unary d tail in more(node(Mul(a,b)),r) end
+                | more(a,tail as Name _::_) = let val(b,r)=unary d tail in more(node(Mul(a,b)),r) end
                 | more(a,tail as LP::_) = let val(b,r)=unary d tail in more(node(Mul(a,b)),r) end
                 | more pair=pair
           in more(first,rest) end
@@ -92,7 +92,7 @@ struct
           | _ => (e,rest) end
         and atom d ts = (depth d; case ts of
             Number q::tail => (node(Const q),tail)
-          | X::tail => (node Var,tail)
+          | Name name::tail => (node(Var name),tail)
           | LP::tail => (case sum(d+1) tail of
               (e,RP::rest)=>(e,rest) | _=>reject "A closing parenthesis is missing.")
           | _ => reject "An expression operand is missing.")
@@ -102,7 +102,7 @@ struct
   fun parseSide s = parseExpression false s
 
   fun limits e =
-    case e of Const _ => (1,1) | Var => (1,1)
+    case e of Const _ => (1,1) | Var _ => (1,1)
     | Neg x => let val(n,d)=limits x in(n+1,d+1)end
     | Pow(x,_) => let val(n,d)=limits x in(n+1,d+1)end
     | Add(x,y)=>pairLimits(x,y) | Sub(x,y)=>pairLimits(x,y)
@@ -110,27 +110,51 @@ struct
   and pairLimits(x,y)=let val(nx,dx)=limits x val(ny,dy)=limits y
                      in(nx+ny+1,Int.max(dx,dy)+1)end
 
+  fun names e =
+    let fun merge xs ys = List.foldl (fn (v,acc)=>if List.exists(fn w=>v=w)acc then acc else v::acc) xs ys
+    in case e of Const _=>[] | Var v=>[v] | Neg x=>names x | Pow(x,_)=>names x
+      | Add(x,y)=>merge(names x)(names y) | Sub(x,y)=>merge(names x)(names y)
+      | Mul(x,y)=>merge(names x)(names y) | Div(x,y)=>merge(names x)(names y)
+    end
+
+  fun bareSurface s =
+    List.all (fn c=>Char.isDigit c orelse Char.isSpace c orelse
+      (c >= #"a" andalso c <= #"z") orelse Char.contains ".,+-*/^()=" c orelse Char.ord c>=128) (String.explode s)
+    andalso not(Option.isSome(Regex.search(Regex.compile "[a-z]{2,}")s))
+
   fun request text =
     let val q=commandText text
         fun search pat = Regex.search(Regex.compile pat) q
-        val prefix="^(?:solve(?: for x)?|find x(?: if| given| when)?|what is (?:the value of )?x(?: if| given| when)?)\\s*:?\\s*"
+        val prefix="^(?:solve(?:\\s+for\\s+([a-z])\\b)?|find\\s+([a-z])\\b(?=\\s*(?:(?:if|given|when)\\b|[:0-9(.+*/-]|[a-z](?![a-z])))(?: if| given| when)?|what is (?:the value of )?([a-z])\\b(?=\\s*(?:(?:if|given|when)\\b|[:0-9(.+*/-]|[a-z](?![a-z])))(?: if| given| when)?)\\s*:?\\s*"
         val explicit=search prefix
+        fun group source m i = case Regex.group source m i of SOME ""=>NONE | x=>x
+        val target0=case explicit of NONE=>NONE | SOME m=>
+          List.find (fn x=>Option.isSome x) (map (group q m) [1,2,3])
+        val prefixTarget=case target0 of SOME x=>x | NONE=>NONE
         val body0=case explicit of SOME m=>String.extract(q,#stop m,NONE) | NONE=>q
         fun unpunct s = if size s>0 andalso Char.contains "?." (String.sub(s,size s-1))
                          then trim(String.substring(s,0,size s-1)) else s
         val body1=unpunct body0
-        val body=if String.isSuffix " for x" body1 then trim(String.substring(body1,0,size body1-6)) else body1
-        fun bareChar c = Char.isDigit c orelse Char.isSpace c orelse
-          Char.contains "xyze.,+-*/^()=" c orelse Char.ord c>=128
-        val complete = Option.isSome explicit orelse List.all bareChar (String.explode body)
+        val suffix=Regex.search(Regex.compile "\\s+for\\s+([a-z])$")body1
+        val suffixTarget=case suffix of SOME m=>group body1 m 1 | NONE=>NONE
+        val body=case suffix of SOME m=>trim(String.substring(body1,0,#start m)) | NONE=>body1
+        val complete=Option.isSome explicit orelse bareSurface body
     in if not complete orelse not(String.isSubstring "=" body) then NONE
        else if size body>8192 then reject "The equation text exceeds the input limit."
        else case String.fields(fn c=>c = #"=") body of
          [l,r] => let val left=parseSide l val right=parseSide r
                       val(nl,dl)=limits left val(nr,dr)=limits right
+                      val allNames=names(Add(left,right))
+                      val target=case (prefixTarget,suffixTarget) of
+                          (SOME a,SOME b)=>if a=b then SOME a else reject "The requested variable names conflict."
+                        | (SOME a,_)=>SOME a | (_,SOME b)=>SOME b | _=>NONE
+                      val chosen=case target of SOME v=>v | NONE=>
+                        (case allNames of []=>"x" | [v]=>v | _=>reject "Only one unknown variable is supported.")
+                      val _=if List.all(fn v=>v=chosen)allNames then ()
+                            else reject "The equation contains a different unknown from the requested variable."
                   in if nl+nr>128 orelse Int.max(dl,dr)>32
                      then reject "The equation exceeds its syntax-tree resource limit."
-                     else SOME(left,right) end
+                     else SOME(chosen,left,right) end
        | _ => reject "An equation must contain exactly one equals sign."
     end
 
@@ -141,7 +165,7 @@ struct
     let fun cap n = if n>8192 then reject "The expression exceeds the arithmetic work limit." else n
         fun both x y extra = cap(closedWork x + closedWork y + extra)
     in case e of Const(n,d)=>cap(4*Int.max(digits n,digits d))
-      | Var=>reject "A closed expression cannot contain an unbound variable."
+      | Var _=>reject "A closed expression cannot contain an unbound variable."
       | Neg x=>closedWork x
       | Add(x,y)=>both x y 1 | Sub(x,y)=>both x y 1
       | Mul(x,y)=>both x y 0 | Div(x,y)=>both x y 0
@@ -164,9 +188,10 @@ struct
         fun mathChar c = Char.isDigit c orelse Char.isSpace c orelse
               Char.contains "xe.,+-*/^()" c orelse Char.ord c>=128
         val startsMath=size base>0 andalso
-          (Char.isDigit(String.sub(base,0)) orelse Char.contains "x(.+-" (String.sub(base,0))
+          (Char.isDigit(String.sub(base,0)) orelse Char.contains "(.+-" (String.sub(base,0))
+           orelse (Char.isAlpha(String.sub(base,0)) andalso (size base=1 orelse not(Char.isAlpha(String.sub(base,1)))))
            orelse Char.ord(String.sub(base,0))>=128)
-        val finite=List.all mathChar (String.explode base)
+        val finite=bareSurface base
         val powerCue=String.isSubstring " squared" body orelse String.isSubstring " cubed" body
     in if String.isSubstring "=" body orelse not startsMath orelse
           not(finite orelse strong orelse powerCue) then NONE
@@ -181,7 +206,7 @@ struct
     end
 
   fun kernel e = case e of
-      Const(n,d)=>Mathkernel.C(Mathkernel.mk_rat n d) | Var=>Mathkernel.V "x"
+      Const(n,d)=>Mathkernel.C(Mathkernel.mk_rat n d) | Var name=>Mathkernel.V name
     | Neg x=>Mathkernel.Neg(kernel x)
     | Pow(x,n)=>Mathkernel.Pow(kernel x,Mathkernel.Int_of_integer(IntInf.fromInt n))
     | Add(x,y)=>Mathkernel.Add(kernel x,kernel y)
@@ -194,7 +219,7 @@ struct
 
   fun json e = case e of
       Const q=>"{\"op\":\"const\",\"value\":" ^ ratJson q ^ "}"
-    | Var=>"{\"op\":\"var\",\"name\":\"x\"}"
+    | Var name=>"{\"op\":\"var\",\"name\":" ^ Json.quote name ^ "}"
     | Neg x=>"{\"op\":\"neg\",\"arg\":" ^ json x ^ "}"
     | Pow(x,n)=>"{\"op\":\"pow\",\"base\":" ^ json x ^ ",\"exponent\":" ^ Int.toString n ^ "}"
     | Add(x,y)=>binary "add" (x,y) | Sub(x,y)=>binary "sub" (x,y)
