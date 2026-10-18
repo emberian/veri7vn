@@ -4,7 +4,9 @@
 
    Byte spans are half-open [start, stop). scan reports malformed numeric runs
    as a whole and never retries their tails. Units may immediately follow a
-   token (.5m, 2MPa, 1e3kg); numbers embedded in identifiers or isotope names
+   token (.5m, 2MPa, 1e3kg); a slash before a letter belongs to the following
+   unit/text, not a numeric denominator (3.19/gallon). Callers validate units.
+   Numbers embedded in identifiers or isotope names
    (H2O, carbon-14) are not tokens. A trailing period/comma is punctuation.
    parse accepts only a whole numeric literal, without surrounding whitespace.
 
@@ -137,7 +139,9 @@ struct
           if j >= size s then j
           else if minusAt s j then go (j + 3)
           else let val c = String.sub (s, j)
-               in if c = #"-" andalso j > i andalso j + 1 < size s
+               in if c = #"/" andalso skipSpace s (j + 1) < size s
+                     andalso alpha (String.sub (s, skipSpace s (j + 1))) then j
+                  else if c = #"-" andalso j > i andalso j + 1 < size s
                      andalso alpha (String.sub (s, j + 1)) then j
                   else if digit c orelse Char.contains ".,+-/_" c then go (j + 1)
                   else if c = #"e" orelse c = #"E" then
@@ -162,7 +166,8 @@ struct
            else if slash < size s andalso String.sub (s, slash) = #"/"
            then let val rhs = skipSpace s (slash + 1)
                     val finish = runEnd s rhs
-                in if finish > rhs then fractions finish else rhs end
+                in if rhs < size s andalso alpha (String.sub (s, rhs)) then stop
+                   else if finish > rhs then fractions finish else rhs end
            else stop end
       val first = if signAt s i then skipSpace s (i + signWidth s i) else i
       val spacedSign = signAt s i andalso first <> i + signWidth s i

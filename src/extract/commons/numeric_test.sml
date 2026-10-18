@@ -69,5 +69,20 @@ struct
   val _ = number "1/ -2" ~1 2
   val _ = norm "1/ 2 g" (SOME "1/2 g")
   val _ = norm "1/ 2 / 3 g" NONE
+  val _ = assert "price unit slash preserves numeric span"
+    (ExactNumeric.mask "fuel at $3.19/gallon" = SOME
+      {text = "fuel at $qnum0q/gallon", numbers = [("qnum0q", (319,100))]})
+  val _ = norm "3.19 / gallon" (SOME "319/100 / gallon")
+  val _ = norm "3.19/ gallon" (SOME "319/100/ gallon")
+  val _ = norm "100mg/dL and 3kg/m3" (SOME "100mg/dL and 3kg/m3")
+  val _ = norm "1/2% and 1/2kg" (SOME "1/2% and 1/2kg")
+  val _ = norm "1/2/gallon" (SOME "1/2/gallon")
+  val _ = norm "1/2e-3kg" (SOME "500kg")
+  val _ = norm "1/0/gallon" NONE
+  val _ = norm "1/" NONE
+  val _ = norm "1/ / gallon" NONE
+  val _ = norm "1/2.3.4kg" NONE
+  val _ = invalid "1/foo"
+  val _ = norm "1/foo" (SOME "1/foo")
   val _ = print ("EXACT_NUMERIC PASS " ^ Int.toString (!checks) ^ " checks\n")
 end
