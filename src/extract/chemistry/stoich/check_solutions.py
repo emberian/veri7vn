@@ -54,11 +54,11 @@ def cases():
    'What is the concentration after diluting 100 mL of 1 M NaCl to 50 mL?',
    'How many liters of water must I add to dilute 100 mL of 1 M NaCl to 50 mL?',
   ]:yield sid,q,None,'invalid',None
+  yield sid,'What is the molarity in mM of 1 gram of NaCl in 500 mL of solution?',float(Fraction(1000)/(Fraction('58.44')/2)),'answer','mM'
   for q in [
    'How many nanomoles are in 500 mL of 1 M NaCl solution?',
    'How many tablespoons are in 500 mL of 1 M NaCl solution?',
    'How many gallons of water must I add to dilute 50 mL of 1 M NaCl to 100 mL?',
-   'What is the molarity in mM of 1 gram of NaCl in 500 mL of solution?',
    'How many liters and mL of water must I add to dilute 50 mL of 1 M NaCl to 100 mL?',
    'How much solution is needed using 2 M and 1 M with 100 mL?',
   ]:yield sid,q,None,'withheld-valid',None

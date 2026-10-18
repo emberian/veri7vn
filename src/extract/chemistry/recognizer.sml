@@ -754,8 +754,6 @@ struct
                 NONE => if has "\\bgrams?\\b|\\bmolarity\\b" low then SOME (mk Q.NeedFormula) else NONE
               | SOME f =>
                   if not (onlyFormula f t) then NONE
-                  else if (has "\\bmolarity\\b|\\bconcentration\\b" low) andalso
-                    (case solutionTarget CONC_UNIT Q.SolBase low of SOME Q.SolBase => false | _ => true) then NONE
                   else if fclass f <> 0 then SOME (mk (Q.Molarity (fchars f, ratInt 1, ratInt 1)))
                   else
                     let
@@ -769,7 +767,7 @@ struct
                           val m = valOf gramsM
                           val unit = massUnit (valOf (grp low m 2))
                         in case unit of
-                          SOME u => SOME (Q.RM (Q.MeasuredMolarity (fchars f,ratOf (g1 low m),u,hd vols)))
+                          SOME u => solutionResult (Q.MassSolutionMolarity (fchars f,ratOf (g1 low m),u,hd vols)) CONC_UNIT Q.SolBase low
                         | NONE => NONE end
                       else if (has "\\bmass\\b|\\bweigh\\w*\\b|\\bgrams?\\b" low orelse (case massTarget low of SOME (SOME _) => true | _ => false))
                               andalso not (has "\\bhow many (?:moles?|mol|millimoles?|mmol)\\b" low)   (* the organ answered grams to a moles question *)

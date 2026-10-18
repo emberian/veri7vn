@@ -206,6 +206,9 @@ definition self_checks :: "unit \<Rightarrow> bool list" where
     (stated (reply_of (RC (WaterToAdd 0 1))) = Some (STR ''1000'')),
     (\<not> answers (RC (MolarityMoles 0 0))),
     (\<not> answers (RC (DilutedConc 2 0 0))),
+    (stated (reply_of (RL (MassSolutionMolarity ''H2O'' 18.015 MassMilligram 1) SolMilli)) = Some (STR ''1'')),
+    (stated (reply_of (RL (StockVolume 0 0 0) SolMilli)) = Some (STR ''0'')),
+    (\<not> answers (RL (MassSolutionMolarity ''H2O'' 1 MassGram 0) SolMilli)),
     (reply_kind (reply_of (RL (SoluteAmount 1 1) SolBase)) = STR ''moles_in_solution''),
     (reply_kind (reply_of (RL (AddSolvent 1 0 1) SolMilli)) = STR ''water_to_add''),
     (reply_kind (reply_of (RL (SolutionMolarity 1 1) SolBase)) = STR ''molarity_from_moles''),
@@ -243,7 +246,7 @@ definition self_test :: "unit \<Rightarrow> bool" where
 export_code reply_of answered reply_kind response stated answers mk_rat chars_of self_test
   self_checks fclass elem_names is_symbol iso_order
   integer_of_int nat_of_integer int_of_integer
-  RL StockVolume AddSolvent SoluteAmount SolutionMolarity DilutedMolarity SolBase SolMilli SolMicro
+  RL StockVolume AddSolvent SoluteAmount SolutionMolarity DilutedMolarity MassSolutionMolarity SolBase SolMilli SolMicro
   RM MeasuredMoles MeasuredMass MeasuredRemaining MeasuredDecayTime
   MeasuredMolarMass MeasuredSolutionMass MeasuredMolarity
   MassGram MassMilligram MassKilogram MassMicrogram
@@ -259,7 +262,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat chars_of
   in SML module_name Chemistry file_prefix chemistry
 
 ML \<open>
-  val theorems = [@{thm reply_of_solution_value}, @{thm solution_reply_value}, @{thm directed_stock_conserves_solute}, @{thm directed_stock_unique}, @{thm solvent_volume_conservation}, @{thm solution_amount_conservation}, @{thm solution_molarity_conservation}, @{thm solution_dilution_conservation}, @{thm measured_molar_mass_value}, @{thm measured_solution_mass_value}, @{thm measured_molarity_value}, @{thm measured_moles_value}, @{thm grams_per_unit_positive}, @{thm convert_mass_conserves_grams}, @{thm convert_mass_composes}, @{thm convert_mass_nonnegative}, @{thm mass_fraction_value}, @{thm measured_mass_value}, @{thm measured_remaining_kernel_value}, @{thm measured_remaining_answered}, @{thm measured_decay_time_answered}, @{thm reply_of_measured_mass}, @{thm net_inventory_atom_conservation}, @{thm checked_net_inventory_conservation}, @{thm species_coefficient_append}, @{thm species_coefficient_other}, @{thm species_coefficient_same}, @{thm prepared_species_bindings}, @{thm prepared_species_names}, @{thm spectator_zero_net}, @{thm spectator_excluded_from_consumers}, @{thm spectator_does_not_limit}, @{thm spectator_inventory_unchanged}, @{thm net_inventory_nonnegative}, @{thm checked_net_certificate}, @{thm checked_net_conservation}, @{thm checked_net_limiting_extent}, @{thm reply_net_answered_certificate}, @{thm reply_of_net_reaction_certificate},
+  val theorems = [@{thm mass_solution_conservation}, @{thm zero_stock_zero_final}, @{thm reply_of_solution_value}, @{thm solution_reply_value}, @{thm directed_stock_conserves_solute}, @{thm directed_stock_unique}, @{thm solvent_volume_conservation}, @{thm solution_amount_conservation}, @{thm solution_molarity_conservation}, @{thm solution_dilution_conservation}, @{thm measured_molar_mass_value}, @{thm measured_solution_mass_value}, @{thm measured_molarity_value}, @{thm measured_moles_value}, @{thm grams_per_unit_positive}, @{thm convert_mass_conserves_grams}, @{thm convert_mass_composes}, @{thm convert_mass_nonnegative}, @{thm mass_fraction_value}, @{thm measured_mass_value}, @{thm measured_remaining_kernel_value}, @{thm measured_remaining_answered}, @{thm measured_decay_time_answered}, @{thm reply_of_measured_mass}, @{thm net_inventory_atom_conservation}, @{thm checked_net_inventory_conservation}, @{thm species_coefficient_append}, @{thm species_coefficient_other}, @{thm species_coefficient_same}, @{thm prepared_species_bindings}, @{thm prepared_species_names}, @{thm spectator_zero_net}, @{thm spectator_excluded_from_consumers}, @{thm spectator_does_not_limit}, @{thm spectator_inventory_unchanged}, @{thm net_inventory_nonnegative}, @{thm checked_net_certificate}, @{thm checked_net_conservation}, @{thm checked_net_limiting_extent}, @{thm reply_net_answered_certificate}, @{thm reply_of_net_reaction_certificate},
     @{thm balanced_reaction_conserves_every_element}, @{thm parsed_reaction_side_known},
     @{thm reaction_extent_feasible}, @{thm reaction_extent_greatest}, @{thm reaction_extent_exhausts_a_feed},
     @{thm reaction_leftovers_nonnegative}, @{thm reaction_leftovers_contains_zero},
