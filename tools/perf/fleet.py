@@ -48,6 +48,8 @@ sys.dont_write_bytecode = True
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "tools" / "parity"))
 import panels  # noqa: E402
+sys.path.insert(0, str(REPO / "tools"))
+from runtime_contract import load_registry as runtime_registry  # noqa: E402
 
 DARWIN = sys.platform == "darwin"
 LIST_NAMES = ("SPECIALISTS", "IDS", "VARIANTS")   # where a family's score.py names its specialists (check only)
@@ -85,7 +87,9 @@ REGISTRY = REPO / "src" / "extract" / "families.json"
 
 def load_registry():
     """src/extract/families.json: the committed families, their specialists and flags"""
-    return json.loads(REGISTRY.read_text(encoding="utf-8"))["families"]
+    return [entry for entry in runtime_registry(REPO)
+            if entry["role"] == "specialist" or
+            (entry["role"] == "network" and entry["family"] == "fusion")]
 
 
 def discover(var_root: Path):

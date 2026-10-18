@@ -4,7 +4,7 @@
 Shipped inside the package as specialists/_veri7vn/smoke.py (source: tools/organs/package_smoke.py in veri7vn).
 Standard library only. It needs no veri7vn checkout, no environment variables and no Oracle7 install: it loads
 each <id>-veri7vn folder next to it the way Oracle7's workbench/exam.py does (manifest -> organ module -> class),
-calls the organ's answer() for every question of the folder's panel (dev and heldout), scores each reply with the
+applies the manifest acceptance rule to the organ's answer() for every question of the folder's panel (dev and heldout), scores each reply with the
 folder's own shipped scorer, and prints per folder and split the same three numbers Oracle7's exam keeps:
 
   ok     right answers, and correct declines of questions marked invalid
@@ -27,6 +27,7 @@ import importlib.util
 import json
 import os
 import platform
+import re
 import sys
 import time
 from pathlib import Path
@@ -50,6 +51,10 @@ def run_folder(folder, dump):
     sys.path.insert(0, str(folder))
     mod = load_py("smoke_organ_%s" % sid.replace("-", "_"), folder / (m["organ"]["module"] + ".py"))
     organ = getattr(mod, m["organ"]["class"])(**dict(m["organ"].get("init", {})))
+    accept = m["accept"]
+    kinds = set(accept["kinds"])
+    declines = set(accept.get("declines_in_domain", []))
+    context = re.compile(accept.get("context_regex", r"(?!x)x"), re.I)
     pm = m["panel"]
     scorer = getattr(load_py("smoke_scorer_%s" % sid.replace("-", "_"), folder / (pm["scorer_module"] + ".py")),
                      pm.get("scorer_fn", "ok"))
@@ -61,6 +66,9 @@ def run_folder(folder, dump):
         replies = []
         for i, it in enumerate(items):
             a = organ.answer(it["q"], "exam-%s-%s-%d" % (sid.replace("-veri7vn", ""), split, i))
+            if a and not (a.get("kind") in kinds or
+                          (a.get("kind") in declines and context.search(it["q"]))):
+                a = None
             rep = {"status": "withheld", "response": ""} if a is None else {
                 "status": a.get("status", "withheld"), "response": a.get("response", ""), "kind": a.get("kind"),
                 "value": a.get("value")}
@@ -84,7 +92,7 @@ def main():
     ap.add_argument("--dump", help="write every (status, response) per folder and split to this JSON file")
     ap.add_argument("--compare", help="another machine's --dump; exit 1 if any reply differs")
     a = ap.parse_args()
-    root = Path(a.root)
+    root = Path(a.root).resolve()
     folders = sorted(p.parent for p in root.glob("*-veri7vn/manifest.json"))
     if a.ids:
         want = {x if x.endswith("-veri7vn") else x + "-veri7vn" for x in a.ids.split(",")}
@@ -92,6 +100,8 @@ def main():
         missing = want - {f.name for f in folders}
         if missing:
             raise SystemExit("no such folder: %s" % ", ".join(sorted(missing)))
+    if not folders:
+        raise SystemExit("no specialist folders selected")
     print("machine %s-%s, python %s, root %s, %d folders" % (platform.system().lower(), platform.machine(),
           platform.python_version(), root, len(folders)))
     dump, rows, bad = {}, [], 0
@@ -113,7 +123,8 @@ def main():
     print("columns: ok/wrong/fy (right / wrong / false yes). total over %d folders: n %d ok %d wrong %d fy %d withheld %d  (%.1f s)" % (
         len(rows), tot["n"], tot["ok"], tot["wrong"], tot["fy"], tot["withheld"], time.time() - t0))
     if SHARED:
-        stray = [r["id"] for r in rows if "_veri7vn" not in r["binary"] and not os.environ.get("VERI7VN_SMOKE_ANY_BINARY")]
+        stray = [r["id"] for r in rows if not Path(r["binary"]).resolve().is_relative_to(root / "_veri7vn" / "bin")
+                 and not os.environ.get("VERI7VN_SMOKE_ANY_BINARY")]
         if stray:
             print("NOTE: these folders used a binary from outside the package: %s" % ", ".join(stray))
             bad += 1
@@ -123,14 +134,26 @@ def main():
     if a.compare:
         other = json.loads(Path(a.compare).read_text(encoding="utf-8"))["replies"]
         diffs = total = 0
-        for sid, sp in dump.items():
-            for split, reps in sp.items():
-                for i, rep in enumerate(reps):
+        for sid in sorted(set(dump) | set(other)):
+            if sid not in dump or sid not in other:
+                print("MISSING FOLDER %s on one side" % sid)
+                diffs += 1
+                continue
+            for split in sorted(set(dump[sid]) | set(other[sid])):
+                if split not in dump[sid] or split not in other[sid]:
+                    print("MISSING SPLIT %s %s on one side" % (sid, split))
+                    diffs += 1
+                    continue
+                reps, prior = dump[sid][split], other[sid][split]
+                if len(reps) != len(prior):
+                    print("LENGTH DIFFERS %s %s: %d vs %d" % (sid, split, len(reps), len(prior)))
+                    diffs += 1
+                for i, (rep, prev) in enumerate(zip(reps, prior)):
                     total += 1
-                    if sid in other and other[sid][split][i] != rep:
+                    if prev != rep:
                         diffs += 1
                         if diffs <= 5:
-                            print("DIFFERS %s %s #%d: %r vs %r" % (sid, split, i, rep, other[sid][split][i]))
+                            print("DIFFERS %s %s #%d: %r vs %r" % (sid, split, i, rep, prev))
         print("compared %d replies with %s: %d differ" % (total, a.compare, diffs))
         bad += int(diffs > 0)
     return 1 if bad else 0

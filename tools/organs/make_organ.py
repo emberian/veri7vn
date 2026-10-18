@@ -9,7 +9,7 @@ specialist, in the shape lane D established for acoustics (src/extract/acoustics
   manifest.json              the shipped manifest with id <sid>-veri7vn, organ/store pointing at the
                              wrapper module here, panel.path local, a veri7vn source entry and a
                              veri7vn block naming the family binary; accept, budgets, routing cues and
-                             core_sample stay the shipped ones verbatim
+                             core_sample stay shipped; accept includes the reviewed runtime extensions
   organ_<sid>_veri7vn.py     starts the binary once, pipes each answer() call through it, maps the
                              reply to Oracle7's organ shape or None
   <panel>.json               the shipped panel, regrouped from one list with a "split" field into
@@ -47,12 +47,17 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 UPSTREAM = Path(os.environ.get("PARITY_UPSTREAM", str(REPO / "upstream")))   # the Oracle7 drop, read-only
+sys.path.insert(0, str(REPO / "tools"))
+from runtime_contract import acceptance, validate_capabilities
+
+validate_capabilities(REPO)
+
 SPECIALISTS = UPSTREAM / "root/specialists"
 STD = {"re", "json", "math", "sys", "os", "statistics", "unicodedata", "hashlib", "datetime", "random",
        "itertools", "functools", "collections", "textwrap", "time", "fractions"}
 
 # src/extract/families.json lists the committed families, their specialists and whether the binary
-# takes --specialist. Families not in it (untracked earth, finance) are not packaged.
+# takes --specialist. Only registered specialist families are packaged.
 REGISTRY = {e["family"]: e for e in json.loads((REPO / "src/extract/families.json").read_text(encoding="utf-8"))["families"]
             if e["specialists"]}
 # acoustics has no score.py table: one specialist, and its binary takes no --specialist argument
@@ -64,7 +69,8 @@ WRAPPER = '''#!/usr/bin/env python3
 
 The binary (built from a verified Isabelle/HOL kernel, see veri7vn src/extract/{slug}) is started once per
 process and spoken to over the answerer contract: one JSON line per question in, one JSON line per reply out.
-Each answer() call is piped through it and the reply mapped to Oracle7's organ shape
+This Python wrapper is untrusted. Stores defaults to read-only preview; allow_effects=True is only
+for a sequential single-owner host that never speculates or probes. Each answer() call is piped through it and the reply mapped to Oracle7's organ shape
 {{kind, status, response, value}}; a question the binary does not take returns None, as the shipped organ does.
 
 The binary is found at ${env}, else bin/{slug} beside this file, else ../_veri7vn/bin/<os>-<arch>/{slug}
@@ -72,15 +78,26 @@ The binary is found at ${env}, else bin/{slug} beside this file, else ../_veri7v
 veri7vn checkout this file lives in.{argv_note}"""
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import platform
+import selectors
+import time
 import subprocess
+import tempfile
+import shutil
 import threading
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ARGV = {argv}
+_contract_path = HERE.parent / "_veri7vn" / "runtime_contract.py"
+if not _contract_path.exists():
+    _contract_path = HERE / "runtime_contract.py"
+_spec = importlib.util.spec_from_file_location("veri7vn_runtime_contract", _contract_path)
+_contract = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_contract)
 
 
 def platform_dir():
@@ -109,44 +126,117 @@ def binary_path():
 
 
 class {cls}:
-    def __init__(self, binary=None):
+    def __init__(self, binary=None, allow_effects=False):
         self.binary = str(binary or binary_path())     # where the program was found; the package smoke test reads it
         self.proc = None
         self.lock = threading.Lock()
+        if type(allow_effects) is not bool:
+            raise TypeError("allow_effects must be a boolean")
+        self.allow_effects = allow_effects
         self.n = 0
+        self.state_dir = None
 
     def _start(self):
-        self.proc = subprocess.Popen([self.binary, *ARGV], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        argv = [self.binary, *ARGV]
+        assets = HERE.parent / "_veri7vn" / "stores"
+        if "{slug}" == "stores":
+            if self.state_dir is None:
+                self.state_dir = tempfile.mkdtemp(prefix="veri7vn-stores-")
+            argv += ["--commit" if self.allow_effects else "--preview",
+                     "--state", str(Path(self.state_dir) / "sessions.json")]
+            if assets.exists():
+                argv += ["--fetch", str(assets / "fetch.py"), "--nutrition", str(assets / "nutrition_v1.sqlite3"),
+                         "--site", str(assets / "site_fresh.sqlite3")]
+        self.proc = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.DEVNULL, text=True, encoding="utf-8", bufsize=1)
+
+    def _stop(self):
+        proc, self.proc = self.proc, None
+        if proc is not None:
+            if proc.poll() is None:
+                proc.kill()                 # this wrapper owns exactly this child
+            proc.wait()
+            for pipe in (proc.stdin, proc.stdout):
+                if pipe is not None:
+                    pipe.close()
 
     def _ask(self, text, session_id):
         with self.lock:
-            for attempt in (0, 1):                      # one restart if the binary died
-                if self.proc is None or self.proc.poll() is not None:
-                    self._start()
-                self.n += 1
-                try:
-                    self.proc.stdin.write(json.dumps({{"id": str(self.n), "q": text, "session": session_id}}) + "\\n")
-                    self.proc.stdin.flush()
-                    line = self.proc.stdout.readline()
-                except (BrokenPipeError, OSError):
-                    line = ""
-                if line:
-                    return json.loads(line)
-                self.proc = None
-            return None
+            if self.proc is None or self.proc.poll() is not None:
+                self._stop()
+                self._start()
+            self.n += 1
+            request_id = str(self.n)
+            try:
+                timeout = float(os.environ.get("VERI7VN_REPLY_TIMEOUT_S", "10"))
+                if not 0 < timeout <= 300:
+                    raise ValueError("VERI7VN_REPLY_TIMEOUT_S must be between 0 and 300")
+                request = (json.dumps({{"id": request_id, "q": text, "session": session_id}}) + "\\n").encode("utf-8")
+                if len(request) > 1048576:
+                    raise ValueError("veri7vn request exceeds 1 MiB")
+                deadline, data = time.monotonic() + timeout, b""
+                os.set_blocking(self.proc.stdin.fileno(), False)
+                with selectors.DefaultSelector() as ready:
+                    ready.register(self.proc.stdin, selectors.EVENT_WRITE)
+                    while request:
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0 or not ready.select(remaining):
+                            raise TimeoutError("veri7vn request deadline exceeded")
+                        try:
+                            written = os.write(self.proc.stdin.fileno(), request)
+                            request = request[written:]
+                        except BlockingIOError:
+                            pass
+                    ready.unregister(self.proc.stdin)
+                    ready.register(self.proc.stdout, selectors.EVENT_READ)
+                    while b"\\n" not in data:
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0 or not ready.select(remaining):
+                            raise TimeoutError("veri7vn reply deadline exceeded")
+                        chunk = os.read(self.proc.stdout.fileno(), 65536)
+                        if not chunk:
+                            raise EOFError("veri7vn child ended before replying")
+                        data += chunk
+                        if len(data) > 1048576:
+                            raise ValueError("veri7vn reply exceeds 1 MiB")
+                line, tail = data.split(b"\\n", 1)
+                if tail.strip():
+                    raise ValueError("veri7vn child emitted unsolicited replies")
+                reply = json.loads(line)
+                if not isinstance(reply, dict) or reply.get("id") != request_id:
+                    raise ValueError("veri7vn reply id does not match its request")
+                return reply
+            except (OSError, EOFError, ValueError):
+                self._stop()
+                # Never retry: a stateful request may have committed before its reply was lost.
+                raise
 
     def answer(self, text, session_id="default"):
-        rep = self._ask(str(text or ""), str(session_id))
+        rep = _contract.enforce_reply_evidence(self._ask(str(text or ""), str(session_id)))
         if not rep or "error" in rep or not (rep.get("provenance") or {{}}).get("taken", True):
             return None
+        if "{slug}" == "stores" and not self.allow_effects and rep.get("kind") in ("confirm", "ordered", "cancelled"):
+            rep = dict(rep, kind="effects_disabled", status="withheld", value=None,
+                       response="This read-only specialist cannot create, confirm, or cancel a reorder. It has not changed warehouse state.")
+            rep["provenance"] = dict(rep.get("provenance") or {{}}, taken=True,
+                                     effects_disabled=True, preview=True)
         return {{"kind": rep.get("kind"), "status": rep.get("status", "withheld"),
-                "response": rep.get("response", ""), "value": rep.get("value")}}
+                "response": rep.get("response", ""), "value": rep.get("value"),
+                "provenance": rep.get("provenance", {{}})}}
 
     def close(self):
-        if self.proc is not None and self.proc.poll() is None:
-            self.proc.stdin.close()
-            self.proc.wait(timeout=5)
+        if self.proc is not None:
+            if self.proc.poll() is None:
+                self.proc.stdin.close()
+                try:
+                    self.proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self.proc.kill()
+                    self.proc.wait()
+            self._stop()
+        if self.state_dir is not None:
+            shutil.rmtree(self.state_dir)
+            self.state_dir = None
 '''
 
 
@@ -248,7 +338,7 @@ def make_organ(out, slug, sid, shipped, quiet=False, packaged=False):
 
     folder = out / (sid + "-veri7vn")
     if folder.exists():
-        shutil.rmtree(folder)
+        raise FileExistsError("refusing to overwrite existing organ folder: %s" % folder)
     folder.mkdir(parents=True)
 
     items = json.loads(src.read_text(encoding="utf-8"))
@@ -270,6 +360,7 @@ def make_organ(out, slug, sid, shipped, quiet=False, packaged=False):
     man = {k: v for k, v in m.items() if k not in ("number", "panel", "notes")}
     man.update({
         "id": sid + "-veri7vn",
+        "accept": acceptance(REPO, UPSTREAM, sid),
         "name": name + " (veri7vn verified kernel)",
         "store": {"path": "__ORACLE7_ROOT__/specialists/%s-veri7vn/%s.py" % (sid, module)},
         "organ": {"dir": "__ORACLE7_ROOT__/specialists/%s-veri7vn" % sid, "module": module, "class": cls, "init": {}},
@@ -286,8 +377,15 @@ def make_organ(out, slug, sid, shipped, quiet=False, packaged=False):
                     else "var/%s/bin/%s" % (slug, slug), "binary_env": env, "argv": argv,
                     "source": "src/extract/%s" % slug},
     })
+    if slug == "stores" and sid.startswith("warehouse"):
+        # Both lists matter: accept without a lexical context match, and tell Combo this is a decline.
+        for key in ("kinds", "declines_in_domain"):
+            man["accept"][key] = list(dict.fromkeys(man["accept"].get(key, []) + ["effects_disabled"]))
+        man["veri7vn"]["effects"] = "disabled by default; allow_effects=True requires a sequential single-owner host"
     (folder / "manifest.json").write_text(json.dumps(man, indent=1), encoding="utf-8")
 
+    if not packaged:
+        shutil.copyfile(REPO / "tools/runtime_contract.py", folder / "runtime_contract.py")
     if packaged:
         return {"sid": sid, "slug": slug, "folder": folder, "panel": panel_name, "scorer": scorer,
                 "panel_from": src.parent.name, "scorer_from": scorer_src.parent.name,

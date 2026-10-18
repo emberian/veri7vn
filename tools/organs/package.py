@@ -12,9 +12,9 @@ smoke test. It needs no veri7vn checkout once built. Layout and rules: docs/hand
         [--pull-linux HOST]  first copy ~/veri7vn-deploy/bin/* and their facts from HOST into --linux-dir
         [--allow-missing]    a platform without a program for some family is a warning, not an error
 
-What goes in: the committed families of src/extract/families.json except `stores` (its program spawns a
-python fetcher by checkout path), i.e. only families whose directory is tracked and unmodified in git.
-Untracked directories (earth, finance today) are never read. Nothing is written under upstream/."""
+What goes in: selected registered specialist families. Modified source directories fail unless
+--allow-dirty is explicit; their files and hashes are recorded without claiming a fresh binary build.
+Stores requires --include-stores and binaries supporting explicit asset paths. Nothing is written under upstream/."""
 from __future__ import annotations
 
 import argparse
@@ -34,9 +34,10 @@ sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import make_organ as mo  # noqa: E402
+sys.path.insert(0, str(HERE.parent / "deploy"))
+from build_receipt import deployment_receipt_issues, managed_receipt_issues  # noqa: E402
 
 REPO = mo.REPO
-EXCLUDE_FAMILIES = {"stores"}                       # the binary needs the checkout path and a python fetcher
 PLATFORMS = ("darwin-arm64", "linux-x86_64")
 README_SRC = HERE / "package_readme.md"
 NOTICE_SRC = HERE / "package_notice.txt"
@@ -101,11 +102,45 @@ def check_native_receipt(session, slug):
             "theory_files_changed_since": changed}
 
 
+def matching_linux_receipts(slug, binary_hash):
+    """Historical checks are evidence only for the exact binary they hashed."""
+    found = []
+    for path in sorted((REPO / "var/linux").glob("receipt-%s-*.json" % slug)):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if data.get("binary_sha256") == binary_hash:
+            issues = deployment_receipt_issues(data)
+            original = data.get("session_receipt", {}).get("path")
+            if original and Path(original).is_file():
+                live = json.loads(Path(original).read_text(encoding="utf-8"))
+                issues.extend(managed_receipt_issues(live, data.get("session")))
+            if issues:
+                raise ValueError("refusing binary with rejected matched receipt %s: %s" % (path, "; ".join(issues)))
+            sources = {name: value for name, value in data.get("source_sha256", {}).items()
+                       if Path(name).suffix in (".thy", ".ML", ".sml", ".py") or Path(name).name == "ROOT"}
+            changed = [name for name, expected in sources.items()
+                       if not (REPO / name).is_file() or sha256(REPO / name) != expected]
+            found.append({"path": str(path.relative_to(REPO)), "sha256": sha256(path), "record": data,
+                          "current_relevant_sources_match": not changed if sources else None,
+                          "changed_relevant_sources": changed,
+                          "relevant_source_count": len(sources),
+                          "runtime_sources_covered": sorted(sources)})
+    return found
+
+
+def source_snapshot(slug):
+    files = sh("git", "ls-files", "--cached", "--others", "--exclude-standard", "--", *source_dirs(slug),
+               "src/extract/families.json", "tools/runtime_contract.py").splitlines()
+    return {name: sha256(REPO / name) for name in files if (REPO / name).is_file()}
+
+
 def generated_sml(slug, darwin_dir=None):
     """the exported kernel SML the macOS program was compiled from (kept by each family's build.sh, or beside
     the program as <slug>.generated.sml when tools/organs/macos-from-export.sh made it)"""
-    if darwin_dir and (Path(darwin_dir) / (slug + ".generated.sml")).exists():
-        return Path(darwin_dir) / (slug + ".generated.sml")
+    if darwin_dir:
+        for name in (slug + ".generated.sml", slug + "_generated.sml"):
+            if (Path(darwin_dir) / name).exists():
+                return Path(darwin_dir) / name
+        return None
     b = REPO / "var" / slug / "build"
     for name in ("%s_generated.sml" % slug, "quantity_generated.sml"):
         if (b / name).exists():
@@ -168,6 +203,10 @@ def main():
     ap.add_argument("--linux-dir", default=str(REPO / "var/organs/linux-x86_64"))
     ap.add_argument("--pull-linux", metavar="HOST")
     ap.add_argument("--allow-missing", action="store_true")
+    ap.add_argument("--family", help="comma-separated family names; default all specialist families")
+    ap.add_argument("--platform", action="append", choices=PLATFORMS, help="repeat to select platforms")
+    ap.add_argument("--allow-dirty", action="store_true", help="record modified source state; does not certify binary freshness")
+    ap.add_argument("--include-stores", action="store_true", help="requires stores binaries with explicit asset-path options")
     a = ap.parse_args()
     os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 
@@ -180,23 +219,39 @@ def main():
 
     registry = {e["family"]: e for e in json.loads((REPO / "src/extract/families.json").read_text(encoding="utf-8"))["families"]}
     tables = mo.family_tables()
-    slugs = []
+    selected = set(a.family.split(",")) if a.family else set(tables)
+    unknown = selected - set(tables)
+    if unknown:
+        raise SystemExit("unknown specialist families: " + ", ".join(sorted(unknown)))
+    platforms = tuple(a.platform or PLATFORMS)
+    slugs, excluded = [], {}
     for slug in sorted(tables):
-        if slug in EXCLUDE_FAMILIES:
-            print("skip %s: its program needs the checkout path (stores)" % slug)
-        elif not committed_family(slug):
-            print("skip %s: not committed (untracked or modified in git)" % slug)
+        if slug not in selected:
+            excluded[slug] = "not selected"
+        elif slug == "stores" and not a.include_stores:
+            excluded[slug] = "requires explicit asset-path binaries and --include-stores"
+        elif not committed_family(slug) and not a.allow_dirty:
+            raise SystemExit("%s source is untracked or modified; use --allow-dirty to record a working snapshot" % slug)
         else:
             slugs.append(slug)
+    if not slugs:
+        raise SystemExit("no families selected")
 
     head = sh("git", "rev-parse", "HEAD").strip()
     mtime = int(sh("git", "log", "-1", "--format=%ct").strip())
     stage = out / ("stage-" + a.date) / "specialists"
     if stage.parent.exists():
-        shutil.rmtree(stage.parent)
+        raise SystemExit("refusing to overwrite existing stage: %s" % stage.parent)
     shared = stage / "_veri7vn"
     shared.mkdir(parents=True)
 
+    if "stores" in slugs:
+        assets = shared / "stores"
+        assets.mkdir()
+        for src in (REPO / "src/extract/stores/fetch.py",
+                    mo.UPSTREAM / "root/specialists/cooking/nutrition_v1.sqlite3",
+                    mo.UPSTREAM / "root/specialists/warehouse/site_fresh.sqlite3"):
+            shutil.copyfile(src, assets / src.name)
     idx = mo.shipped_index()
     folders, errors = [], []
     for slug in slugs:
@@ -214,10 +269,14 @@ def main():
         e = registry[slug]
         entry = {"family": slug, "session": e["session"], "specialists": tables[slug], "source_commit": sh(
             "git", "log", "-1", "--format=%H %cI", "--", *source_dirs(slug)).strip(), "binaries": {}}
+        entry["source_snapshot_sha256"] = source_snapshot(slug)
+        entry["source_snapshot_scope"] = "family sources, known shared source directories, registry and runtime contract"
+        entry["source_modified"] = not committed_family(slug)
+        entry["binary_source_binding"] = "not established by packaging; inspect matched build receipts"
         gen = generated_sml(slug, a.darwin_dir)
         entry["generated_sml_sha256_macos"] = sha256(gen) if gen else None
         entry["session_receipt_macos"] = check_native_receipt(e["session"], slug)
-        for plat in PLATFORMS:
+        for plat in platforms:
             if plat == "darwin-arm64":
                 src = Path(a.darwin_dir) / slug if a.darwin_dir else REPO / e["binary"]
             else:
@@ -238,11 +297,13 @@ def main():
                 b["built"] = (li or {}).get("built")
                 b["generated_sml_sha256"] = (li or {}).get("generated_sml_sha256")
                 b["shared_libraries"] = (li or {}).get("shared_libraries")
-                rb = REPO / "var" / slug / "remote-build.log"
-                marker = ("%s PASS" % e["session"]).upper().replace("-", "_")
-                b["session_receipt"] = {"kind": "remote-build on %s, exit 0 with marker found" % (linux_info.get("session_built_on", {}).get(slug) or linux_info.get("host")),
-                                        "marker": marker, "log": str(rb.relative_to(REPO)) if rb.exists() else None,
-                                        "log_sha256": sha256(rb) if rb.exists() else None}
+                b["matching_build_receipts"] = matching_linux_receipts(slug, b["sha256"])
+                stores_runtime = {"src/extract/stores/main.sml", "src/extract/stores/fetch.py",
+                                  "src/extract/stores/recognizer.sml", "src/extract/commons/commons.sml"}
+                if slug == "stores" and not any(r["current_relevant_sources_match"] is True and
+                                                  stores_runtime <= set(r["runtime_sources_covered"])
+                                                  for r in b["matching_build_receipts"]):
+                    raise SystemExit("stores Linux binary requires a matched current-source receipt for its explicit preview/asset-path CLI")
                 if b["generated_sml_sha256"] and entry["generated_sml_sha256_macos"] and \
                         b["generated_sml_sha256"] != entry["generated_sml_sha256_macos"]:
                     problems.append("%s: the Linux and macOS kernels were generated from different SML" % slug)
@@ -258,6 +319,7 @@ def main():
         (shared / "receipts").mkdir(exist_ok=True)
         (shared / "receipts" / (slug + ".json")).write_text(json.dumps(entry, indent=1), encoding="utf-8")
     shutil.copyfile(SMOKE_SRC, shared / "smoke.py")
+    shutil.copyfile(REPO / "tools/runtime_contract.py", shared / "runtime_contract.py")
     notice = NOTICE_SRC.read_text(encoding="utf-8")
     copied = ["%-24s panel %s (from %s), scorer %s.py (from %s)" % (f["sid"] + "-veri7vn", f["panel"], f["panel_from"], f["scorer"], f["scorer_from"])
               for f in folders]
@@ -266,9 +328,8 @@ def main():
         "@NFAMILIES@", str(len(families))).replace("@COMMIT@", head[:12])
     (shared / "README.md").write_text(readme, encoding="utf-8")
     manifest = {"package": "veri7vn-specialists", "date": a.date, "veri7vn_commit": head, "families": families,
-                "folders": sorted(f["sid"] + "-veri7vn" for f in folders), "platforms": list(PLATFORMS),
-                "excluded": {"stores": "its program spawns a python fetcher by checkout path",
-                             "untracked": "earth and finance were never committed, so not packaged"}}
+                "folders": sorted(f["sid"] + "-veri7vn" for f in folders), "platforms": list(platforms),
+                "excluded": excluded, "source_snapshot_only": True}
     (shared / "MANIFEST.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
 
     sums = []
@@ -278,7 +339,7 @@ def main():
     (shared / "SHA256SUMS").write_text("\n".join(sums) + "\n", encoding="utf-8")
 
     tarpath = out / ("veri7vn-specialists-%s.tar.gz" % a.date)
-    with open(tarpath, "wb") as raw, gzip.GzipFile(fileobj=raw, mode="wb", mtime=0, filename="") as gz, \
+    with open(tarpath, "xb") as raw, gzip.GzipFile(fileobj=raw, mode="wb", mtime=0, filename="") as gz, \
             tarfile.open(fileobj=gz, mode="w", format=tarfile.PAX_FORMAT) as tar:
         for p in sorted(stage.rglob("*")):
             rel = p.relative_to(stage.parent).as_posix()

@@ -1,59 +1,86 @@
-# The organ package for Oracle7's author
+# The organ package
 
-A tarball, `var/organs/veri7vn-specialists-<date>.tar.gz` (never committed), that Oracle7's author unpacks
-into his own `root/` with no veri7vn checkout. It holds every committed veri7vn family as ready-made Oracle7
-specialist folders plus the built programs behind them. Built by `tools/organs/package.py`.
+`tools/organs/package.py` prepares a tarball for an Oracle7 installation. It
+copies specialist panels and scorers, native programs and their available
+receipts. It sends nothing to anyone and writes nothing under `upstream/`.
+
+The registry now includes 144 specialist IDs in 21 specialist families.
+Earth and finance are registered. Roles such as guard, word problem and math
+are not specialist folders. Stores needs binaries with the explicit asset-path
+options and is included only with `--include-stores`; its six IDs otherwise
+remain explicitly excluded.
 
 ## Layout
 
     specialists/
-      _veri7vn/                      shared, not a specialist (no manifest.json, like _gate and _cards)
-        README.md                    written for him: what this is, proved and not, why exam.py says WOULD FAIL
-        NOTICE                       the one NOTICE: what is Oracle7's, what is ours, third-party parts
-        MANIFEST.json                families, specialists, commit, program hashes
-        SHA256SUMS                   every file in the package
-        smoke.py                     asks every folder its own panel; stdlib only, no head
-        bin/darwin-arm64/<family>    one program per family and platform
-        bin/linux-x86_64/<family>
-        receipts/<family>.json       what produced each program (below)
-      <id>-veri7vn/                  one per specialist, 125 today
+      _veri7vn/
+        README.md  NOTICE  MANIFEST.json  SHA256SUMS  smoke.py
+        bin/<platform>/<family>
+        receipts/<family>.json
+        stores/                       # only when explicitly included
+      <id>-veri7vn/
         manifest.json  organ_<id>_veri7vn.py  <panel>.json  <scorer>.py
 
-A folder holds no program and no NOTICE or README of its own: the wrapper finds the program by this order,
-`$VERI7VN_<FAMILY>_BIN`, `bin/<family>` beside it, `../_veri7vn/bin/<os>-<arch>/<family>`, then
-`var/<family>/bin/<family>` up the tree (a checkout). `<os>-<arch>` is `platform.system().lower()` and the
-normalised `platform.machine()`. A machine with no program gets an error naming the path it looked for.
+`make_organ.py` uses `tools/runtime_contract.py` to merge reviewed family
+capabilities into the original acceptance rules. Wrapper replies retain their
+provenance and their decisive declines. `smoke.py` applies the acceptance rule
+before scoring, so a new answer kind filtered out by the manifest cannot pass
+unnoticed. Cross-platform comparison rejects missing folders or splits and
+unequal reply counts as well as changed replies.
 
-## What goes in
+## Prepare and check a selected package
 
-- Families from `src/extract/families.json` whose directory is tracked by git and unmodified. Untracked
-  `earth` and `finance` are never read. `stores` is left out: its program starts a Python fetcher by checkout
-  path (`state_flag` in the registry). `fusion` has no specialists. That leaves 18 families, 125 specialists.
-- The folder shape is `make_organ.py`'s (`packaged=True`): panel and scorer are copies of the shipped ones.
+    python3 -B tools/organs/package.py --family chemistry,earth,finance \
+      --platform darwin-arm64 --out var/my-package
+    python3 -B var/my-package/stage-2026-10-18/specialists/_veri7vn/smoke.py \
+      --ids chemistry-v3,geography,retail --dump var/my-package/smoke.json
 
-## Receipts
+Omit `--family` and `--platform` for all registered specialist families and
+both supported platforms. Use a fresh output directory: existing stages and
+archives are not overwritten. Modified family sources are an error unless
+`--allow-dirty` explicitly requests a source snapshot. It does not certify that
+the copied binary contains those changes.
 
-`receipts/<family>.json`, per platform: sha256 and size of the program; for macOS the newest passed check-native
-receipt of the family's session (path, attempt, Isabelle version) and the list of theory files that changed since
-that receipt (non-empty for families ported onto commons after their receipt: the evidence for them is the
-fresh Linux build and equal generated SML); for Linux the host, glibc, MLton, the remote-build log with its PASS
-marker, the generated-SML hash and the libraries the program links. `package.py` refuses a package whose Linux
-and macOS kernels were generated from different SML.
+Builds remain governed by the project's designated build hosts and controls.
+`--pull-linux HOST` copies existing deployed programs; it does not build them.
+A package may contain an old binary, so a current-source release also requires
+fresh build evidence from the family owner. In particular, the historical
+computing Linux receipt at `var/linux/receipt-computing-persvati.json` states
+that it built commit `32dd0ff`, not the then-current source.
 
-## Build it
+## Evidence boundaries
 
-    tools/deploy/linux-build.sh <family> <Session>        # per family, on hbox (variants: tools/organs/linux-variants.sh)
-    python3 -B tools/organs/package.py --pull-linux hbox  # copies the Linux programs, writes the tarball
-    tools/organs/smoke_root.sh var/organs/veri7vn-specialists-<date>.tar.gz var/organs/smoke-mac
-    cd var/organs/smoke-mac && env -i PATH=/usr/bin:/bin /usr/bin/python3 -B root/specialists/_veri7vn/smoke.py --dump ../smoke-mac-dump.json
-    python3 -B tools/organs/package_compare.py var/organs/smoke-mac-dump.json    # against the lanes' harness runs
+Each receipt contains artifact hashes, the packaging-time source snapshot,
+any older native session receipt and Linux receipt records matched by binary
+hash. Packaging no longer describes an arbitrary log file as a successful
+build. A source snapshot and generated-SML hash are useful diagnostics but do
+not prove which source produced a binary. The original receipt's commit and
+notes remain visible. Missing evidence stays missing.
 
-The macOS programs are each family's `var/<family>/bin/<family>` from its `build.sh`; rebuild any that predate
-the commons port (quantity, acoustics, variants were) before packaging.
+Smoke counts are per specialist and split. A full head exam and fleet timing
+are separate checks; do not infer them from archive creation or a narrow smoke.
+GMP is dynamically linked, only Apple Silicon macOS and x86-64 Linux programs
+are supported, and compatibility with older Linux libraries remains untested.
 
-## Limits
+## Warehouse effects in an external Oracle7 host
 
-- The programs link GMP dynamically (`/opt/homebrew/opt/gmp` on macOS, `libgmp.so.10` on Linux). Not shipped.
-- Two platforms. Linux programs were built on one host (glibc 2.40); older glibc is untested.
-- The head is never run by this tooling. The Oracle7 `exam.py` verdicts and the front-composition numbers in the
-  README are from the organ-wrappers scout for five folders; the all-folder board is W5-11.
+Generated warehouse wrappers default to read-only preview. The original
+Oracle7 Combo calls every candidate, probes counterfactuals, and reasks during
+segmentation and disagreement handling. It has no post-selection commit hook.
+Consequently a candidate may not mutate even its private session/order log.
+The wrapper maps kernel `confirm`, `ordered`, and `cancelled` preview outcomes
+to truthful `effects_disabled` refusals. The generated manifest accepts this
+kind and marks it as a decline. Other read-only queries remain useful; preview
+also suppresses conversational-reference updates, limiting followups.
+
+Only a sequential single-owner host may explicitly construct the wrapper with
+`allow_effects=True`, after choosing it and without speculative calls or
+replays. Its state is temporary and process-local. This is not general safety
+for a committed wrapper inside arbitrary hosts. The veri7vn dispatcher's
+separate post-selection commit protocol does not change external Combo.
+
+`tools/organs/check_warehouse_composition.py` runs the actual upstream Combo
+against generated folders, including counterfactual/segmentation/disagreement
+reasks and concurrent calls. It checks no default state file appears, plus a
+separate direct explicit opt-in proposal/confirmation sequence. It does not run
+the complete head. Use current stores binaries with preview support.

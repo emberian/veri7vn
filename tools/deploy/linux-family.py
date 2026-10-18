@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build one veri7vn family on a Linux host, score it there, compare with macOS.
 
-  tools/deploy/linux-family.py <slug> <host>
+  tools/deploy/linux-family.py <slug> <host> [--from-receipt PATH]
 
 Generalises tools/deploy/linux-build.sh to the families whose build.sh differs
 (humanities rules.sml, stores config.sml and fetch shim, variants reusing the
@@ -9,23 +9,42 @@ quantity export, fusion with extra session dirs and no per-specialist panels).
 The MLB is read from the family's own build.sh. UNTRUSTED tooling: it decides
 nothing about answers; it runs the family binary and diffs replies.
 
-Inputs:  var/linux/specialists.json (ids per family), a macOS baseline harness
+Inputs:  src/extract/families.json (explicit family registry), a macOS baseline harness
 run in var/linux/macos/<slug> (see var/linux/macos-baseline.sh).
-Outputs: var/linux/linux/<slug>/ (verdicts, items), var/linux/receipt-<slug>.json.
+Outputs: var/linux/linux/<run-id>/ (verdicts, items), a unique receipt and log.
+Isabelle and MLton use the same managed host lock; MLton has an 8 GiB cap.
+Source/build staging is unique per invocation. No earlier staging is deleted.
 Nothing under upstream/ is written; panels are copied to ~/veri7vn-deploy on the host.
 """
-import glob, hashlib, json, os, re, shlex, subprocess, sys, time
+import argparse, glob, hashlib, json, os, re, shlex, subprocess, sys, time
 from pathlib import Path
+from build_receipt import managed_receipt_issues
 
 REPO = Path(__file__).resolve().parents[2]
 UP = Path(os.environ.get("PARITY_UPSTREAM", REPO / "upstream"))
-slug, host = sys.argv[1], sys.argv[2]
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("slug")
+parser.add_argument("host")
+parser.add_argument("--from-receipt", type=Path, help="reuse a passed managed session receipt and its immutable sources/export")
+args = parser.parse_args()
+slug, host = args.slug, args.host
 LIN = REPO / "var/linux"
-OUT = LIN / "linux" / slug
-LOG = open(LIN / f"run-{slug}-{host}.log", "w")
-SPEC = json.load(open(LIN / "specialists.json")).get(slug, [])
-SESSION = {"humanities": "Veri7vn_Humanities", "anatomyagri": "Veri7vn_AnatomyAgri", "geostats": "Veri7vn_GeoStats",
-           "variants": "Veri7vn_Quantity"}.get(slug, "Veri7vn_" + slug.capitalize())
+RUN_ID = f"{slug}-{int(time.time())}-{os.getpid()}"
+LIN.mkdir(parents=True, exist_ok=True)
+OUT = LIN / "linux" / RUN_ID
+LOG = open(LIN / f"run-{RUN_ID}-{host}.log", "x")
+sys.path.insert(0, str(REPO / "tools"))
+from runtime_contract import load_registry
+ENTRY = next((e for e in load_registry(REPO) if e["family"] == slug), None)
+if ENTRY is None:
+    raise SystemExit("unknown registered family: " + slug)
+SPEC = ENTRY["specialists"]
+SESSION = ENTRY["session"]
+if args.from_receipt:
+    initial_receipt = json.loads(args.from_receipt.read_text())
+    issues = managed_receipt_issues(initial_receipt, SESSION)
+    if issues:
+        raise SystemExit("refusing managed receipt: " + "; ".join(issues))
 SRCDIR = "quantity" if slug == "variants" else slug
 
 
@@ -54,7 +73,7 @@ def extra_dirs(own):
 EXTRA = extra_dirs(str(REPO / "src/extract" / SRCDIR))
 RROOT = "veri7vn-builds/" + REPO.name
 t_all = time.time()
-rec = {"slug": slug, "host": host, "session": SESSION, "specialists": SPEC}
+rec = {"slug": slug, "host": host, "session": SESSION, "specialists": SPEC, "run_id": RUN_ID, "local_output": str(OUT)}
 
 
 def run(cmd, **kw):
@@ -74,7 +93,7 @@ def sha(p):
 
 home = ssh('echo "$HOME"').stdout.strip().splitlines()[-1]
 D = home + "/veri7vn-deploy"
-R = D + "/stage"   # sources and the fetched export are staged here; remote-build deletes its own tree
+R = D + "/stage/" + RUN_ID   # sources and the fetched export are staged here; managed snapshot is retained for evidence
 
 # 1. session build on the host
 marker = None
@@ -86,31 +105,55 @@ t0 = time.time()
 cmd = ["tools/dev/remote-build", host, f"src/extract/{SRCDIR}", SESSION, "--expect", marker]
 for e in EXTRA:
     cmd += ["-d", os.path.relpath(e, REPO)]
-for attempt in range(4):  # other lanes share the host's Isabelle user state; a concurrent build of the same session collides in sqlite
+if args.from_receipt:
+    receipt_path = args.from_receipt.resolve()
+    build_rc = 0
+    rec["reused_session_receipt"] = True
+else:
+    if marker is None:
+        raise SystemExit("no expected session marker found")
     p = run(cmd)
-    blog = (REPO / f"var/{SRCDIR}/remote-build.log").read_text(errors="replace")
-    got = any((REPO / f"var/{SRCDIR}/export-remote/{SESSION}").rglob("*.ML")) or any((REPO / f"var/{SRCDIR}/export-remote/{SESSION}").rglob("*.sml"))
-    if p.returncode == 0 and got:
-        break
-    if p.returncode != 0 and "SQLITE" not in blog and "MISSING" not in blog:
-        break  # a real session failure, not a collision with another lane's build
-    rec["retries"] = attempt + 1
-    time.sleep(90)
+    build_rc = p.returncode
+    match = re.search(r"remote-build: .*; receipt (.+)$", p.stdout, re.M)
+    receipt_path = Path(match.group(1).strip()) if match else None
 rec["session_build_s"] = round(time.time() - t0, 1)
 rec["marker"] = marker
-rec["session_build_ok"] = p.returncode == 0
-if p.returncode == 0:
-    # The PASS marker is only visible on a fresh build; record whether this run saw it.
-    found = marker in (REPO / f"var/{SRCDIR}/remote-build.log").read_text(errors="replace")
-    rec["marker_found"] = found  # false on a cached session: RC1 keeps no messages of a successful build
-if p.returncode:
-    json.dump(rec, open(LIN / f"receipt-{slug}-{host}.json", "w"), indent=1); sys.exit("session build failed")
-exp = REPO / f"var/{SRCDIR}/export-remote/{SESSION}"
+build_receipt = json.loads(receipt_path.read_text()) if receipt_path and receipt_path.exists() else {}
+rec["receipt_issues"] = managed_receipt_issues(build_receipt, SESSION)
+rec["session_build_ok"] = build_rc == 0 and not rec["receipt_issues"]
+rec["session_receipt"] = {"path": str(receipt_path), "record": build_receipt}
+rec["marker"] = build_receipt.get("expect", marker)
+if not rec["session_build_ok"]:
+    json.dump(rec, open(LIN / f"receipt-{slug}-{host}-{RUN_ID}.json", "w"), indent=1)
+    sys.exit("session build failed or produced no managed receipt")
+SNAPSHOT = receipt_path.parent
+exp = SNAPSHOT / "results/export" / SESSION
+source_hashes = json.loads((SNAPSHOT / "source-sha256.json").read_text())
+prefixes = tuple(str(Path(d).relative_to(REPO)) + "/" for d in [str(REPO / "src/extract" / slug), str(REPO / "src/extract" / SRCDIR), *EXTRA])
+rec["source_sha256"] = {k: v for k, v in source_hashes.items() if k.startswith(prefixes)}
+for name, expected in rec["source_sha256"].items():
+    if sha(SNAPSHOT / name) != expected:
+        raise SystemExit("managed snapshot source changed: " + name)
+exports = build_receipt.get("export_sha256", {})
+if not exports:
+    raise SystemExit("managed receipt has no exported-file hashes")
+actual = {str(p.relative_to(exp)): sha(p) for p in exp.rglob("*") if p.is_file()}
+if actual != exports:
+    raise SystemExit("managed exports no longer match their receipt")
 
 # 2. MLB from the family's build.sh
-bs = (REPO / f"src/extract/{slug}/build.sh").read_text()
-genpat = re.search(r"-name '([^']+)'", bs).group(1)
-body = re.search(r'\.mlb" <<\'?(\w+)\'?\n(.*?)\n\1\n', bs, re.S).group(2).splitlines()
+bs = (SNAPSHOT / f"src/extract/{slug}/build.sh").read_text()
+if slug == "stores":
+    genpat = "stores*"
+    body = ["$(SML_LIB)/basis/basis.mlb", "stores_generated.sml", "config.sml",
+            "$REPO/src/extract/commons/commons.sml", "$SRC/json.sml", "$SRC/recognizer.sml", "$SRC/main.sml"]
+else:
+    pattern = re.search(r"-name '([^']+)'", bs)
+    declaration = re.search(r'\.mlb" <<\'?(\w+)\'?\n(.*?)\n\1\n', bs, re.S)
+    if not pattern or not declaration:
+        raise SystemExit("family build layout needs an explicit deployment declaration: " + slug)
+    genpat = pattern.group(1)
+    body = declaration.group(2).splitlines()
 gen_local = [l for l in body if l.endswith("_generated.sml")][0]
 Q = f"{R}/src/extract/quantity"
 lines = []
@@ -121,7 +164,7 @@ mlb = "\n".join(lines) + "\n"
 build_script = f'''set -eu
 D={D}; R={R}; slug={slug}
 MLTON=$(ls -d "$HOME"/tools/isabelle-rc1/Isabelle2026-RC1/contrib/mlton-*/x86_64-linux/bin/mlton | head -n 1)
-B=$D/build/$slug; mkdir -p $D/bin $B; rm -f $B/*
+B=$D/build/{RUN_ID}; mkdir -p "$D/bin" "$B"
 GEN=$R/gen/{gen_local}
 cp "$GEN" "$B/{gen_local}"
 cat > $B/$slug.mlb <<'MLBEOF'
@@ -135,7 +178,14 @@ if slug == "variants":
         f"{Q}/recognizer.sml > $B/recognizer_base.sml\n")
 build_script += f'''cd $B
 s=$(date +%s)
-swarm-build "$MLTON" -output $D/bin/$slug $slug.mlb
+mkdir -p "$HOME/veri7vn-builds/managed"
+(
+  flock -x 9
+  SWARM_MEM_MAX=8G swarm-build "$MLTON" -output "$B/$slug" "$slug.mlb"
+  cp "$B/$slug" "$D/bin/$slug"
+  mkdir -p "$D/build/$slug"
+  cp "$B/{gen_local}" "$D/build/$slug/{gen_local}"
+) 9>"$HOME/veri7vn-builds/managed/build.lock"
 echo COMPILE_S=$(( $(date +%s)-s ))
 sha256sum $D/bin/$slug $B/{gen_local}
 stat -c 'SIZE=%s' $D/bin/$slug
@@ -146,12 +196,15 @@ echo KERNEL=$(uname -srm)
 echo PYTHON=$(python3 --version)
 '''
 run(["ssh", "-o", "BatchMode=yes", host, f"mkdir -p {R}/gen"])
-run(["rsync", "-a", "--delete", "--exclude", "__pycache__", f"{REPO}/src/", f"{host}:{R}/src/"])
+run(["rsync", "-a", "--exclude", "__pycache__", f"{SNAPSHOT}/src/", f"{host}:{R}/src/"])
 _g = [x for x in exp.rglob(genpat)][0]
 run(["rsync", "-a", str(_g), f"{host}:{R}/gen/{gen_local}"])
 p = ssh(build_script)
 if p.returncode:
+    rec["compile_ok"] = False
+    json.dump(rec, open(LIN / f"receipt-{slug}-{host}-{RUN_ID}.json", "w"), indent=1)
     sys.exit("mlton step failed")
+rec["compile_ok"] = True
 out = p.stdout
 g = lambda k: re.search(k + r"=(.*)", out).group(1).strip()
 rec["compile_s"] = int(g("COMPILE_S")); rec["size"] = int(g("SIZE"))
@@ -177,33 +230,35 @@ if slug == "stores":
     run(["ssh", host, f"mkdir -p {D}/stores-repo/upstream/root/specialists/cooking {D}/stores-repo/upstream/root/specialists/warehouse"])
     for rel in ("cooking/nutrition_v1.sqlite3", "warehouse/site_fresh.sqlite3"):
         run(["rsync", "-a", f"{UP}/root/specialists/{rel}", f"{host}:{D}/stores-repo/upstream/root/specialists/{rel}"])
-    run(["ssh", host, f"mkdir -p {D}/stores-repo/src/extract/stores {D}/stores-repo/var/stores/state; rm -f {D}/stores-repo/var/stores/state/*"])
-    run(["rsync", "-a", f"{REPO}/src/extract/stores/fetch.py", f"{host}:{D}/stores-repo/src/extract/stores/"])
+    run(["ssh", host, f"mkdir -p {D}/stores-repo/src/extract/stores {D}/stores-repo/var/stores/state"])
+    run(["rsync", "-a", f"{SNAPSHOT}/src/extract/stores/fetch.py", f"{host}:{D}/stores-repo/src/extract/stores/"])
 
 # 4. score on the host
-mainsml = (REPO / f"src/extract/{SRCDIR}/main.sml").read_text()
+mainsml = (SNAPSHOT / f"src/extract/{SRCDIR}/main.sml").read_text()
 per_spec = "--specialist" in mainsml
-cmdline = f"{D}/bin/{slug}" + (" --specialist {id}" if per_spec else "")
+cmdline = f"{D}/build/{RUN_ID}/{slug}" + (" --specialist {id}" if per_spec else "")
+if slug == "stores":
+    cmdline += f" --state {D}/stores-repo/var/stores/state/{RUN_ID}.json"
 t0 = time.time()
 if slug == "fusion":
     qs = json.load(open(UP / "workbench/data/core_panel.json"))["items"]
     inp = "\n".join(json.dumps({"id": "c%d" % i, "q": x["q"], "session": "c%d" % i}) for i, x in enumerate(qs)) + "\n"
     (LIN / "fusion-core.jsonl").write_text(inp)
     run(["rsync", "-a", f"{REPO}/tools/fusion/answerer.py", f"{LIN}/fusion-core.jsonl", f"{host}:{D}/"])
-    p = ssh(f"cd {D} && mkdir -p out/fusion && PYTHONDONTWRITEBYTECODE=1 python3 -B answerer.py --binary {D}/bin/fusion < fusion-core.jsonl > out/fusion/core.replies.jsonl")
+    p = ssh(f"cd {D} && mkdir -p out/{RUN_ID} && PYTHONDONTWRITEBYTECODE=1 python3 -B answerer.py --binary {D}/build/{RUN_ID}/fusion < fusion-core.jsonl > out/{RUN_ID}/core.replies.jsonl")
 else:
     p = ssh(f'''set -eu
 cd {D}; export PARITY_UPSTREAM={D}/upstream PYTHONDONTWRITEBYTECODE=1
-rm -rf out/{slug}
-python3 -B parity/harness.py --answerer "{cmdline}" --lane-answerer "{cmdline}" --specialist "{",".join(SPEC)}" --split both --out out/{slug}
-python3 -B coldstart.py {D}/bin/{slug} {D}/upstream/root/specialists {SPEC[0]}
+mkdir -p out/{RUN_ID}
+python3 -B parity/harness.py --answerer "{cmdline}" --lane-answerer "{cmdline}" --specialist "{",".join(SPEC)}" --split both --out out/{RUN_ID}
+python3 -B coldstart.py {D}/build/{RUN_ID}/{slug} {D}/upstream/root/specialists {SPEC[0]}
 ''')
 rec["score_s"] = round(time.time() - t0, 1)
 rec["harness_rc"] = p.returncode
 m = re.search(r"cold.*", p.stdout, re.I | re.S)
 rec["coldstart_text"] = p.stdout.strip().splitlines()[-1] if p.stdout.strip() else ""
 os.makedirs(OUT, exist_ok=True)
-run(["rsync", "-a", "--delete", f"{host}:{D}/out/{slug}/", f"{OUT}/"])
+run(["rsync", "-a", f"{host}:{D}/out/{RUN_ID}/", f"{OUT}/"])
 
 # 5. compare with macOS
 TIMING = ("ms", "rtt_ms", "specialist_ms", "binary_ms")
@@ -266,5 +321,7 @@ else:
         rec["fusion_answered_" + tag] = sum(1 for r in rs if r.get("status") == "answered")
 rec["wall_s"] = round(time.time() - t_all, 1)
 rec["git_head"] = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO, text=True, stdout=subprocess.PIPE).stdout.strip()
-json.dump(rec, open(LIN / f"receipt-{slug}-{host}.json", "w"), indent=1)
+json.dump(rec, open(LIN / f"receipt-{slug}-{host}-{RUN_ID}.json", "w"), indent=1)
 print(slug, host, "replies", total, "divergent", diffs, "verdicts_equal", rec.get("verdicts_equal"), "panel", rec.get("panel_ok"), "/", rec.get("panel_items"))
+
+sys.exit(0 if rec["harness_rc"] == 0 and diffs == 0 and rec.get("verdicts_equal", True) else 1)

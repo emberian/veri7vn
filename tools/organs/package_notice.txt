@@ -7,11 +7,17 @@ Each <id>-veri7vn folder holds, from Oracle7's root/specialists/:
   - a panel: the items of the shipped panel file, unchanged, regrouped from one list with
     a "split" field into {"dev": [...], "heldout": [...]} because that is the shape
     workbench/exam.py reads;
-  - manifest.json: derived from the shipped manifest. accept, budgets, routing cues,
-    core_sample and sources are the shipped ones verbatim. Changed: id (<id>-veri7vn), name,
+  - manifest.json: derived from the shipped manifest. Budgets, routing cues and
+    core_sample are retained. Acceptance includes reviewed family extensions and, for
+    warehouse, the wrapper's read-only effects_disabled decline. Changed: id (<id>-veri7vn), name,
     organ and store (the wrapper in the same folder), panel (local copy), notes, one added
     source entry naming the veri7vn kernel, and an added "veri7vn" block (family, program,
     argument list).
+When stores is included, _veri7vn/stores/ also contains byte-for-byte copies of
+root/specialists/cooking/nutrition_v1.sqlite3 and warehouse/site_fresh.sqlite3
+from the Oracle7 drop. Their source data and original attribution remain those
+of the shipped stores; inclusion does not establish their factual completeness.
+
 Where a shipped manifest names no panel of its own, the panel and scorer named in the
 family's score table are used. Files copied, folder by folder:
 
@@ -22,8 +28,9 @@ Written by veri7vn
   - the programs in _veri7vn/bin/<os>-<arch>/<family>: generated from Isabelle/HOL models
     (formulas, declines, rounding), a hand-written Standard ML recognizer and JSON driver,
     compiled with the MLton compiler shipped inside Isabelle2026-RC1;
-  - the wrapper organ_<id>_veri7vn.py in each folder, _veri7vn/smoke.py, README.md,
-    MANIFEST.json, SHA256SUMS and receipts/.
+  - the wrapper organ_<id>_veri7vn.py in each folder, _veri7vn/smoke.py,
+    runtime_contract.py, README.md, MANIFEST.json, SHA256SUMS and receipts/;
+  - when stores is included, its untrusted Python fetch.py.
 Where the proved tables (units, densities, constants) were copied from Oracle7's organs,
 they are the organs' data, checked against them by script.
 
