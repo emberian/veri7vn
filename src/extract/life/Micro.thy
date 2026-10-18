@@ -233,6 +233,27 @@ theorem gentime_declines_shrinking:
   "nf \<le> n0 \<Longrightarrow> m_kernel (M_GenTime n0 nf t) = Decline (Impossible R_final_below)"
   by (simp add: m_kernel_def)
 
+section \<open>Declines stated apart from the code\<close>
+
+lemma m_decl_iff: "w \<noteq> Imprecise \<Longrightarrow> m_kernel r = Decline w \<longleftrightarrow> m_bad r = Some w"
+  by (cases "m_bad r") (auto simp: m_kernel_def dest: m_answer_decline)
+
+theorem cfu_declines_iff:
+  "m_kernel (M_CFU c d v) = Decline (Impossible R_zero) \<longleftrightarrow> d \<le> 0 \<or> v \<le> 0"
+  by (simp add: m_decl_iff)
+
+theorem gens_declines_iff:
+  "m_kernel (M_Gens t g) = Decline (Impossible R_zero) \<longleftrightarrow> g \<le> 0"
+  by (simp add: m_decl_iff)
+
+theorem gentime_final_below_iff:
+  "m_kernel (M_GenTime n0 nf t) = Decline (Impossible R_final_below) \<longleftrightarrow> nf \<le> n0"
+  by (simp add: m_decl_iff)
+
+theorem gentime_zero_iff:
+  "m_kernel (M_GenTime n0 nf t) = Decline (Impossible R_zero) \<longleftrightarrow> n0 < nf \<and> n0 \<le> 0"
+  by (auto simp: m_decl_iff)
+
 section \<open>Response text\<close>
 
 definition mnum :: "outcome \<Rightarrow> String.literal" where

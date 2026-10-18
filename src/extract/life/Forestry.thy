@@ -178,6 +178,29 @@ theorem height_angle_range:
   shows "0 < a \<and> a < 90"
   using assms by (cases "f_bad (F_Height ds a eye ft)") (auto simp: f_kernel_def split: if_splits)
 
+section \<open>Declines stated apart from the code\<close>
+
+lemma f_decl_iff: "f_kernel r = Decline (Impossible w) \<longleftrightarrow> f_bad r = Some w"
+proof (cases "f_bad r")
+  case None
+  then show ?thesis by (auto simp: f_kernel_def dest: f_answer_decline)
+next
+  case (Some x)
+  then show ?thesis by (auto simp: f_kernel_def)
+qed
+
+theorem doyle_declines_iff:
+  "f_kernel (F_Doyle d l) = Decline (Impossible R_doyle) \<longleftrightarrow> d \<le> 4"
+  by (simp add: f_decl_iff doyle_floor_def)
+
+theorem tpa_declines_iff:
+  "f_kernel (F_Tpa a b) = Decline (Impossible R_zero) \<longleftrightarrow> a \<le> 0 \<or> b \<le> 0"
+  by (simp add: f_decl_iff)
+
+theorem height_declines_iff:
+  "f_kernel (F_Height ds a eye ft) = Decline (Impossible R_angle) \<longleftrightarrow> a \<le> 0 \<or> 90 \<le> a"
+  by (auto simp: f_decl_iff)
+
 section \<open>Response text\<close>
 
 fun f_text :: "freq \<Rightarrow> outcome \<Rightarrow> String.literal" where

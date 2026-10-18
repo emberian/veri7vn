@@ -208,22 +208,222 @@ proof -
   from approx_out_sound[OF this] show ?thesis using nd e_fa_phys[of r "[]"] by simp
 qed
 
-text \<open>The doubling time doubles the population.\<close>
-theorem doubling_property:
+section \<open>Declines stated apart from the code\<close>
+
+lemma e_decl_iff: "e_kernel r = Decline (Impossible w) \<longleftrightarrow> e_bad r = Some w"
+proof (cases "e_bad r")
+  case None
+  then show ?thesis by (auto simp: e_kernel_def dest: e_answer_decline)
+next
+  case (Some x)
+  then show ?thesis by (auto simp: e_kernel_def)
+qed
+
+theorem doubling_declines_iff:
+  "e_kernel (E_Doubling r) = Decline (Impossible R_rate) \<longleftrightarrow> r \<le> 0"
+  by (simp add: e_decl_iff)
+
+theorem logistic_n_declines_iff:
+  "e_kernel (E_LogN r n k t) = Decline (Impossible R_zero) \<longleftrightarrow> n = 0"
+  by (simp add: e_decl_iff)
+
+theorem shannon_declines_iff:
+  "e_kernel (E_Shannon cs) = Decline (Impossible R_zero) \<longleftrightarrow> (\<forall>c \<in> set cs. c = 0)"
+  by (simp add: e_decl_iff tot_def sum_list_eq_0_iff)
+
+theorem evenness_zero_declines_iff:
+  "e_kernel (E_Evenness cs) = Decline (Impossible R_zero) \<longleftrightarrow> (\<forall>c \<in> set cs. c = 0)"
+  by (auto simp: e_decl_iff tot_def sum_list_eq_0_iff split: if_splits)
+
+section \<open>Model laws of the real-number model\<close>
+
+text \<open>The doubling time doubles the population in the real model.\<close>
+theorem doubling_phys:
   assumes "0 < r"
-  shows "exp (r * (ln 2 / r)) = (2::real)"
+  shows "exp (rl r * e_phys (E_Doubling r)) = 2"
 proof -
-  have "r * (ln 2 / r) = ln 2" using assms by (simp add: field_simps)
+  have ne: "rl r \<noteq> 0" using assms by simp
+  have "rl r * (ln 2 / rl r) = ln 2" using ne by (simp add: field_simps)
   then show ?thesis by simp
 qed
 
-text \<open>Logistic growth starts at the initial population.\<close>
-theorem logistic_starts_at_n0:
-  assumes "k \<noteq> 0" "n \<noteq> 0"
-  shows "(k::real) / (1 + (k - n) / n * exp (- (r * 0))) = n"
+text \<open>Logistic growth starts at the initial population, and a population at carrying capacity stays there.\<close>
+theorem logistic_phys_start:
+  assumes "n \<noteq> 0" "k \<noteq> 0"
+  shows "e_phys (E_LogN r n k 0) = rl n"
 proof -
-  have e: "1 + (k - n) / n = k / n" using assms by (simp add: field_simps)
-  show ?thesis using assms by (simp add: e field_simps)
+  have n: "rl n \<noteq> 0" and k: "rl k \<noteq> 0" using assms by simp_all
+  have e: "1 + (rl k - rl n) / rl n = rl k / rl n" using n by (simp add: field_simps)
+  show ?thesis using n k by (simp add: e field_simps)
+qed
+
+theorem logistic_phys_capacity:
+  assumes "k \<noteq> 0"
+  shows "e_phys (E_LogN r k k t) = rl k"
+  using assms by simp
+
+theorem exp_phys_start: "e_phys (E_ExpN r n 0) = rl n"
+  by simp
+
+lemma tot_ge: "c \<in> set cs \<Longrightarrow> c \<le> tot cs"
+  unfolding tot_def by (induct cs) (auto intro: trans_le_add2)
+
+lemma species_cons: "0 < c \<Longrightarrow> species (c # r) = Suc (species r)"
+  by (simp add: species_def)
+
+lemma species_cons0: "species (0 # r) = species r"
+  by (simp add: species_def)
+
+lemma sum_list_all_zero: "\<forall>c \<in> set cs. c = (0::nat) \<Longrightarrow> sum_list cs = 0"
+  by (induct cs) auto
+
+lemma tot_pos_species: "0 < tot cs \<Longrightarrow> 0 < species cs"
+proof (rule ccontr)
+  assume t: "0 < tot cs" and "\<not> 0 < species cs"
+  then have "filter (\<lambda>c. 0 < c) cs = []" by (simp add: species_def)
+  then have z: "\<forall>c \<in> set cs. c = 0" by (simp add: filter_empty_conv)
+  have "tot cs = 0" unfolding tot_def by (rule sum_list_all_zero[OF z])
+  then show False using t by simp
+qed
+
+lemma species_tot_pos: "0 < species cs \<Longrightarrow> 0 < tot cs"
+proof -
+  assume "0 < species cs"
+  then have "filter (\<lambda>c. 0 < c) cs \<noteq> []" by (auto simp: species_def)
+  then obtain c where c: "c \<in> set cs" "0 < c" by (auto simp: filter_empty_conv)
+  then show ?thesis using tot_ge[OF c(1)] by simp
+qed
+
+lemma shan_sum_nonpos:
+  assumes "\<forall>c \<in> set cs. c \<le> t" "0 < t"
+  shows "shan_sum t cs \<le> 0"
+using assms
+proof (induct cs)
+  case Nil then show ?case by simp
+next
+  case (Cons c r)
+  have ih: "shan_sum t r \<le> 0" using Cons by simp
+  show ?case
+  proof (cases "0 < c")
+    case True
+    have tp: "(0::real) < real t" using Cons(3) by simp
+    have p0: "0 < real c / real t" using True tp by simp
+    have p1: "real c / real t \<le> 1" using Cons(2) tp by (simp add: divide_le_eq_1_pos)
+    have "ln (real c / real t) \<le> ln 1" using p0 p1 by (subst ln_le_cancel_iff) simp_all
+    then have "(real c / real t) * ln (real c / real t) \<le> 0"
+      using p0 by (intro mult_nonneg_nonpos) simp_all
+    then show ?thesis using ih True by simp
+  next
+    case False then show ?thesis using ih by simp
+  qed
+qed
+
+lemma gibbs_term:
+  assumes "0 < p" "0 < (S::real)"
+  shows "- (p * ln p) \<le> 1 / S + (ln S - 1) * p"
+proof -
+  have pS: "0 < p * S" using assms by simp
+  have ip: "0 < inverse (p * S)" using pS by (rule positive_imp_inverse_positive)
+  have h: "ln (inverse (p * S)) \<le> inverse (p * S) - 1" by (rule ln_le_minus_one[OF ip])
+  have e: "ln (inverse (p * S)) = - ln p - ln S" using assms pS by (simp add: ln_inverse ln_mult)
+  have "p * (- ln p - ln S) \<le> p * (inverse (p * S) - 1)"
+    using h e assms(1) by (intro mult_left_mono) simp_all
+  moreover have "p * (inverse (p * S) - 1) = 1 / S - p" using assms by (simp add: inverse_eq_divide field_simps)
+  ultimately show ?thesis by (simp add: algebra_simps)
+qed
+
+lemma gibbs_aux:
+  assumes "0 < t" "0 < (S::real)"
+  shows "- shan_sum t cs \<le> real (species cs) / S + (ln S - 1) * (real (sum_list cs) / real t)"
+proof (induct cs)
+  case Nil then show ?case by (simp add: species_def)
+next
+  case (Cons c r)
+  show ?case
+  proof (cases "0 < c")
+    case True
+    have tp: "(0::real) < real t" using assms by simp
+    have p0: "0 < real c / real t" using True tp by simp
+    have t1: "- ((real c / real t) * ln (real c / real t)) \<le> 1 / S + (ln S - 1) * (real c / real t)"
+      using gibbs_term[OF p0 assms(2)] .
+    have hs: "shan_sum t (c # r) = (real c / real t) * ln (real c / real t) + shan_sum t r" using True by simp
+    have eq: "real (species (c # r)) / S + (ln S - 1) * (real (sum_list (c # r)) / real t)
+        = (1 / S + (ln S - 1) * (real c / real t))
+          + (real (species r) / S + (ln S - 1) * (real (sum_list r) / real t))"
+      using True by (simp add: species_cons add_divide_distrib distrib_left)
+    show ?thesis using t1 Cons eq hs by linarith
+  next
+    case False
+    then have c0: "c = 0" by simp
+    show ?thesis using Cons c0 by (simp add: species_cons0)
+  qed
+qed
+
+text \<open>Shannon diversity lies between 0 and ln S (Gibbs): entropy is non-negative and
+at most that of the uniform distribution over the S species present.\<close>
+theorem shannon_gibbs:
+  assumes "0 < tot cs"
+  shows "0 \<le> e_phys (E_Shannon cs) \<and> e_phys (E_Shannon cs) \<le> ln (real (species cs))"
+proof -
+  have sp: "0 < species cs" by (rule tot_pos_species[OF assms])
+  have lo: "shan_sum (tot cs) cs \<le> 0"
+    using shan_sum_nonpos[of cs "tot cs"] tot_ge assms by blast
+  have sp': "(0::real) < real (species cs)" using sp by simp
+  have tp: "(0::real) < real (tot cs)" using assms by simp
+  have "- shan_sum (tot cs) cs \<le> real (species cs) / real (species cs)
+      + (ln (real (species cs)) - 1) * (real (sum_list cs) / real (tot cs))"
+    using gibbs_aux[OF assms sp'] .
+  moreover have "real (sum_list cs) / real (tot cs) = 1"
+  proof -
+    have ne: "real (tot cs) \<noteq> 0" using tp by simp
+    show ?thesis using ne by (simp add: tot_def[symmetric])
+  qed
+  moreover have "real (species cs) / real (species cs) = 1" using sp' by simp
+  ultimately show ?thesis using lo by simp
+qed
+
+text \<open>Pielou evenness lies between 0 and 1.\<close>
+theorem evenness_range:
+  assumes "2 \<le> species cs"
+  shows "0 \<le> e_phys (E_Evenness cs) \<and> e_phys (E_Evenness cs) \<le> 1"
+proof -
+  have t: "0 < tot cs" using species_tot_pos assms by simp
+  have g: "0 \<le> - shan_sum (tot cs) cs" "- shan_sum (tot cs) cs \<le> ln (real (species cs))"
+    using shannon_gibbs[OF t] by simp_all
+  have s: "(1::real) < real (species cs)" using assms by simp
+  then have l: "0 < ln (real (species cs))" by simp
+  have ev: "e_phys (E_Evenness cs) = (- shan_sum (tot cs) cs) / ln (real (species cs))" by simp
+  have a: "0 \<le> (- shan_sum (tot cs) cs) / ln (real (species cs))" using g(1) l by (rule divide_nonneg_pos)
+  have b: "(- shan_sum (tot cs) cs) / ln (real (species cs)) \<le> 1"
+    using g(2) l by (simp only: divide_le_eq_1_pos)
+  show ?thesis using ev a b by simp
+qed
+
+text \<open>The kernel's enclosure of Shannon diversity respects the same range, up to its stated error.\<close>
+theorem shannon_kernel_range:
+  assumes "e_kernel (E_Shannon cs) = Approx k d"
+  shows "- (1 / 1000000000) \<le> dec_val d \<and>
+         dec_val d \<le> ln (real (species cs)) + ln (real (species cs)) / 1000 + 1 / 1000000000"
+proof -
+  have nd: "tot cs \<noteq> 0" using assms by (auto simp: e_kernel_def split: if_splits)
+  then have t: "0 < tot cs" by simp
+  have a: "\<bar>dec_val d - e_phys (E_Shannon cs)\<bar> \<le> \<bar>e_phys (E_Shannon cs)\<bar> / 1000 + 1 / 1000000000"
+    using ecology_approx[OF assms] by simp
+  have g: "0 \<le> e_phys (E_Shannon cs)" "e_phys (E_Shannon cs) \<le> ln (real (species cs))"
+    using shannon_gibbs[OF t] by simp_all
+  then show ?thesis using a by (auto simp: abs_le_iff)
+qed
+
+text \<open>The enclosed doubling time is the model value ln 2 / r, and the rate must be positive.\<close>
+theorem doubling_kernel_bound:
+  assumes "e_kernel (E_Doubling r) = Approx k d"
+  shows "0 < r \<and> \<bar>dec_val d - ln 2 / rl r\<bar> \<le> \<bar>ln 2 / rl r\<bar> / 1000 + 1 / 1000000000"
+proof -
+  have "e_bad (E_Doubling r) = None" using ecology_approx[OF assms] by simp
+  then have "0 < r" by (auto split: if_splits)
+  moreover have "\<bar>dec_val d - e_phys (E_Doubling r)\<bar> \<le> \<bar>e_phys (E_Doubling r)\<bar> / 1000 + 1 / 1000000000"
+    using ecology_approx[OF assms] by blast
+  ultimately show ?thesis by simp
 qed
 
 section \<open>Response text\<close>

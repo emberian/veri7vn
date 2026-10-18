@@ -254,6 +254,27 @@ lemma g_kernel_hw:
   "g_kernel (G_HW k s) = (case hw_bad s of Some r \<Rightarrow> Decline (Impossible r) | None \<Rightarrow> hw_answer k s)"
   by (cases "hw_bad s") (simp_all add: g_kernel_def)
 
+section \<open>Hardy-Weinberg declines stated apart from the code\<close>
+
+lemma g_hw_decl: "g_kernel (G_HW k s) = Decline (Impossible w) \<longleftrightarrow> hw_bad s = Some w"
+  by (cases "hw_bad s") (auto simp: g_kernel_hw dest: hw_answer_decline)
+
+theorem hw_q2_declines_iff:
+  "g_kernel (G_HW k (HWq2 v)) = Decline (Impossible R_freq) \<longleftrightarrow> v < 0 \<or> 1 < v"
+  by (auto simp: g_hw_decl)
+
+theorem hw_qs_declines_iff:
+  "g_kernel (G_HW k (HWqs q)) = Decline (Impossible R_freq) \<longleftrightarrow> q < 0 \<or> 1 < q"
+  by (auto simp: g_hw_decl)
+
+theorem hw_ps_declines_iff:
+  "g_kernel (G_HW k (HWps p)) = Decline (Impossible R_freq) \<longleftrightarrow> p < 0 \<or> 1 < p"
+  by (auto simp: g_hw_decl)
+
+theorem hw_one_declines_iff:
+  "g_kernel (G_HW k (HWone n)) = Decline (Impossible R_zero) \<longleftrightarrow> n = 0"
+  by (auto simp: g_hw_decl)
+
 theorem geno_prob_value:
   "g_kernel (G_Geno xs) = Exact (STR ''genotype_prob'') (gprob xs)"
   by (simp add: g_kernel_def)
