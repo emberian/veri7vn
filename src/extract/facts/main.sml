@@ -11,7 +11,7 @@
 
 structure Main =
 struct
-  val theorems = "[\"text_answer_word_occurs\",\"checked_feature_narrows\",\"text_answer_first_row\",\"first_match\",\"no_rule_no_answer\",\"guard_exact\",\"answer_from_table\",\"organ_silent\",\"boundary_narrows\",\"family_first\",\"tables_well_formed\",\"projection_requires_source\",\"branch_projection_exact\",\"language_field_bound\",\"language_family_rows\",\"transferred_exact\",\"exchange_reverse_disjoint\"]"
+  val theorems = "[\"text_answer_word_occurs\",\"checked_feature_narrows\",\"text_answer_first_row\",\"first_match\",\"no_rule_no_answer\",\"guard_exact\",\"answer_from_table\",\"organ_silent\",\"boundary_narrows\",\"family_first\",\"tables_well_formed\",\"projection_requires_source\",\"attribute_projection_exact\",\"source_attribute_lookup_sound\",\"source_attributes_unique\",\"branch_projection_exact\",\"language_field_bound\",\"language_family_rows\",\"transferred_exact\",\"exchange_reverse_disjoint\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
@@ -104,12 +104,13 @@ struct
                   (SOME scope,_) => scope ^ ": " ^ sourceSentence
                 | (_,SOME title) => title ^ ": " ^ sourceSentence
                 | _ => sourceSentence
-              val projection = case Projection.request q of NONE=>NONE | SOME request=>
+              val requestedProjection = Projection.requestFor organ q
+              val projection = case requestedProjection of NONE=>NONE | SOME request=>
                 (case Facts.projected_value request (Facts.Answer(kind,value,sentence,store,row)) of
                   NONE=>NONE | SOME projected=>SOME(request,projected))
               val (valueText,response,field) = case projection of
                   NONE => (decode value,baseResponse,"null")
-                | SOME(request,projected) => (projected,(case request of Facts.LanguageBranch => sourceSentence | _ => Projection.describe request projected),
+                | SOME(request,projected) => (projected,(case request of Facts.LanguageBranch => sourceSentence | Facts.SourceAttribute _ => sourceSentence | _ => Projection.describe request projected),
                                               Json.quote(Projection.label request))
               val guardEvidence = case Facts.organ_by_id organ of
                   NONE => "null"
@@ -117,6 +118,10 @@ struct
                     NONE => "{\"row_guard\":\"untrusted_regex\"}"
                   | SOME word => "{\"row_guard\":\"checked_ascii_literal\",\"literal\":" ^ Json.quote word ^ ",\"other_checks\":\"untrusted\"}")
           in
+          if Option.isSome requestedProjection andalso not(Option.isSome projection) then
+            "{\"id\":" ^ id ^ ",\"status\":\"withheld\",\"response\":\"\",\"path\":\"\",\"provenance\":{\"taken\":false,\"organ\":"
+            ^ Json.quote organ ^ ",\"silence\":\"unsupported_source_field\"}}"
+          else
           "{\"id\": " ^ id ^ ", \"status\": \"answered\""
           ^ ", \"response\": " ^ Json.quote response
           ^ ", \"path\": " ^ Json.quote ("specialist:" ^ organ ^ ">" ^ kind ^ ">" ^ store ^ "#" ^ rowS)

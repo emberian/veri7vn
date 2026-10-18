@@ -106,11 +106,6 @@ struct
     ("^(?:(?:what|which)(?: (?:power|principle|doctrine))? did marbury(?: v\\.? madison)? "
      ^ "(?:establish|established)|(?:what|which) (?:power|principle|doctrine) "
      ^ "(?:was established by|came from) marbury(?: v\\.? madison)?)" ^ finish)
-  val objectPermanenceStage = accepts
-    ("^(?:(?:in |at )?(?:which|what)(?: piaget| developmental| cognitive)? stage "
-     ^ "(?:does|did) object permanence (?:develop|emerge|appear)"
-     ^ "|object permanence (?:develops|emerges|appears) (?:in|at) (?:which|what) stage)" ^ finish)
-
   val globalRange = "(?: (?:in the world|on earth|alive|alive today|living today))?"
   val oceanRange = "(?: (?:in the world|on earth|in the ocean|in the seas?|alive))?"
   val largestFish = accepts
@@ -343,7 +338,73 @@ struct
      ^ "|define " ^ term ^ "|who is " ^ article ^ term ^ ")"
      ^ "(?: in (?:law|legal terminology|a case))?" ^ finish)
 
+  val hierarchy = "(?:maslow's (?:hierarchy(?: of needs)?)|the hierarchy of needs)"
+  fun hierarchyLevel position = accepts
+    ("^what (?:is|are) (?:at )?the " ^ position ^ "(?: (?:level|need|needs))? (?:of|in) " ^ hierarchy ^ finish)
+  val pavlovAnimals = accepts
+    ("^(?:what|which) animals? (?:did|does) pavlov (?:use|study)(?: in (?:his )?(?:conditioning )?experiments)?" ^ finish)
+  val obedienceActor = accepts
+    ("^who (?:conducted|led|performed|ran) (?:the )?(?:famous )?(?:obedience(?:-to-authority)? (?:experiments|study)|milgram's obedience experiments)" ^ finish)
+  val stanfordActor = accepts
+    ("^who (?:conducted|led|performed|ran) (?:the )?stanford prison experiment" ^ finish)
+  val boboActor = accepts
+    ("^who (?:conducted|led|performed|ran) (?:the )?bobo doll experiment" ^ finish)
+  val bigFiveList = accepts
+    ("^(?:what are|name|list) the big five(?: personality)? traits" ^ finish)
+  val millerCapacity = accepts
+    ("^(?:what (?:is|was) the (?:estimated )?capacity of short-term memory"
+      ^ "|how many items can short-term memory hold)(?: according to (?:george )?miller)?" ^ finish)
+  val freudModel = accepts
+    ("^(?:who (?:proposed|developed) (?:the )?(?:model of the )?id,? ego and superego"
+      ^ "|whose (?:model|theory) (?:includes|contains) the id,? ego and superego)" ^ finish)
+  val laboratoryFounder = accepts
+    ("^(?:who (?:founded|established) the first (?:experimental )?psychology laboratory|who is known as the father of (?:experimental|modern) psychology)" ^ finish)
+  val harlowAnimals = accepts
+    ("^(?:what|which) animals? did (?:harry )?harlow study(?: (?:in his attachment research|for attachment))?" ^ finish)
+  fun studyRow i actor q = actor q orelse
+    (case Projection.studyRequest q of SOME(row,_)=>row=i | NONE=>false)
+  val childdevRequests = [
+    "^(?:how many (?:stages|cognitive stages|stages of cognitive development) did piaget (?:describe|propose|identify)|how many stages are in piaget's (?:theory|model)(?: of cognitive development)?)\\s*[?.]?\\s*$",
+    "^(?:(?:what is piaget's (?:first|earliest) (?:stage|stage of cognitive development)|which stage comes first in piaget's theory)|what is the (?:first|earliest) of piaget's stages)\\s*[?.]?\\s*$",
+    "^(?:what is piaget's (?:last|final|fourth) (?:stage|stage of cognitive development)|which stage comes last in piaget's theory)\\s*[?.]?\\s*$",
+    "^(?:(?:in |at )?(?:which|what) (?:piaget|developmental|cognitive)? ?stage (?:does|did) object permanence (?:develop|emerge|appear)|object permanence (?:develops|emerges|appears) (?:in|at) (?:which|what) stage)\\s*[?.]?\\s*$",
+    "^(?:(?:(?:in |at )?(?:which|what) (?:piaget's? )?stage (?:do children master|is) conservation(?: mastered)?|(?:in |at )?(?:which|what) stage of piaget's theory (?:is conservation mastered|do children master conservation))|(?:conservation(?: of (?:volume|mass|number))? is mastered in which of piaget's stages|which stage of piaget's includes (?:understanding|mastering) conservation(?: of (?:volume|mass|number))?))\\s*[?.]?\\s*$",
+    "^(?:what (?:is|are) the (?:age|ages|age range) (?:of|for) the sensorimotor stage|when (?:is|does) the sensorimotor stage (?:occur|take place)?|how long does the sensorimotor stage last)\\s*[?.]?\\s*$",
+    "^(?:(?:what (?:is|are) the (?:age|ages|age range) (?:of|for) the preoperational stage|when does the preoperational stage (?:occur|take place))|at what ages is a child in the preoperational stage)\\s*[?.]?\\s*$",
+    "^(?:how many (?:psychosocial )?stages did erikson (?:describe|propose|identify)|how many stages are in erikson's (?:theory|model))\\s*[?.]?\\s*$",
+    "^(?:(?:what is erikson's (?:first|infancy|infant) stage|which erikson stage occurs in infancy)|what is erikson's first stage of psychosocial development)\\s*[?.]?\\s*$",
+    "^(?:(?:what is erikson's (?:adolescent|teenage) stage|which erikson stage occurs (?:during|in) adolescence)|which erikson stage belongs to adolescence)\\s*[?.]?\\s*$",
+    "^(?:who (?:proposed|developed|introduced) (?:the (?:concept|idea) of )?(?:the )?zone of proximal development|the zone of proximal development comes from which theorist)\\s*[?.]?\\s*$",
+    "^who (?:devised|developed|created) the strange situation(?: procedure|test)?\\s*[?.]?\\s*$",
+    "^who (?:developed|proposed|introduced) attachment theory\\s*[?.]?\\s*$",
+    "^(?:(?:what (?:sleeping|sleep) position is recommended for (?:infants|babies)|(?:in )?what position should (?:infants|babies) be placed to sleep|how should (?:infants|babies) be positioned for sleep)|(?:how should (?:infants|babies) be placed to sleep|should (?:infants|babies) sleep on their backs? or their stomachs?))\\s*[?.]?\\s*$"];
+  val anniversaryOrdinals = ["(?:1st|first)","(?:5th|fifth)","(?:10th|tenth)",
+    "(?:15th|fifteenth)","(?:20th|twentieth)","(?:25th|twenty-fifth)","(?:30th|thirtieth)",
+    "(?:35th|thirty-fifth)","(?:40th|fortieth)","(?:45th|forty-fifth)","(?:50th|fiftieth)",
+    "(?:55th|fifty-fifth)","(?:60th|sixtieth)"]
+  fun weddingGift i =
+    let val ordinal=List.nth(anniversaryOrdinals,i)
+        val anniversary="(?:a |the )?" ^ ordinal ^ " (?:wedding )?anniversary"
+    in accepts ("^(?:what is the (?:traditional )?(?:gift|material|present) for " ^ anniversary
+      ^ "|what is the (?:traditional )?" ^ ordinal ^ " (?:wedding )?anniversary (?:gift|material|present)"
+      ^ "|which material is traditional for " ^ anniversary
+      ^ "|what gift marks " ^ anniversary ^ ")(?: traditionally)?" ^ finish) end
+  fun utensilPlace utensil = accepts
+    ("^(?:which side of the plate (?:do|does) the " ^ utensil ^ " go on"
+      ^ "|where (?:do|does|should) the " ^ utensil ^ " go(?: in a (?:formal )?place setting)?)" ^ finish)
+  val glassPlace = accepts
+    ("^where (?:do|does) the (?:glass|glasses|drinks) go in a (?:formal )?place setting" ^ finish)
+  val unknownLetterClose = accepts
+    ("^(?:how do you sign off a letter that starts dear sir or madam"
+     ^ "|how (?:do|should) you sign (?:off )?a formal letter to an (?:unnamed|unknown) recipient"
+     ^ "|what (?:closing|sign-off) is used (?:for|in) a formal letter to an (?:unnamed|unknown) recipient)" ^ finish)
+  val namedLetterClose = accepts
+    ("^(?:if you know the recipient's name,? how should you sign a formal letter"
+     ^ "|how (?:do|should) you sign (?:off )?a formal letter to a named recipient"
+     ^ "|what (?:closing|sign-off) is used (?:for|in) a formal letter to a named recipient)" ^ finish)
   val rowScopeGroups =
+    List.tabulate(13,fn i=>("etiquette",i,weddingGift i)) @
+    List.tabulate(14,fn i=>("childdev",i,accepts(List.nth(childdevRequests,i)))) @
     List.tabulate(4,fn i=>("literature-v2",i,literaryNarrator i)) @
     List.tabulate(7,fn j=>("literature-v2",j+18,literaryCharacter(List.nth(characterNames,j)))) @
     List.tabulate(44,fn i=>("linguistics",i,languageScope i)) @
@@ -358,7 +419,23 @@ struct
 
   val scopedRows : (string * (string -> bool)) list =
     map (fn (sid,i,accept) => (rowGuard sid i,accept))
-      (rowScopeGroups @ [("literature-v2",4,literaryShip),
+      (rowScopeGroups @ [("etiquette",13,utensilPlace "forks?"),
+       ("etiquette",14,utensilPlace "(?:knife|knives)"),
+       ("etiquette",16,glassPlace),
+       ("etiquette",17,unknownLetterClose),
+       ("etiquette",18,namedLetterClose),("psychology",0,hierarchyLevel "(?:top|highest|peak)"),
+       ("psychology",1,hierarchyLevel "(?:base|bottom|lowest)"),
+       ("psychology",4,pavlovAnimals),
+       ("psychology",5,studyRow 5 obedienceActor),
+       ("psychology",6,studyRow 6 stanfordActor),
+       ("psychology",7,studyRow 7 boboActor),
+       ("psychology",8,bigFiveList),
+       ("psychology",9,millerCapacity),
+       ("psychology",10,freudModel),
+       ("psychology",11,studyRow 11 laboratoryFounder),
+       ("psychology",12,fn q => attribution "cognitive dissonance(?: theory)?" q orelse
+          accepts ("^who is the psychologist behind cognitive dissonance(?: theory)?" ^ finish) q),
+       ("psychology",13,studyRow 13 harlowAnimals),("literature-v2",4,literaryShip),
        ("literature-v2",8,literarySquire),
        ("literature-v2",15,literarySetting "romeo and juliet"),
        ("literature-v2",16,literarySetting "hamlet"),
@@ -376,7 +453,6 @@ struct
        ("law",8,marburyPrinciple),
        ("psychology",2,attribution "classical conditioning"),
        ("psychology",3,attribution "operant conditioning"),
-       ("childdev",3,objectPermanenceStage),
        ("marinebio",1,largestFish),
        ("ornithology",2,largestBird),
        ("ornithology",3,smallestBird),

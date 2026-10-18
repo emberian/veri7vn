@@ -2074,5 +2074,227 @@
     "q": "Which branch does Mandarin Chinese belong to?",
     "expect": "Sinitic",
     "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "When was the first psychology laboratory founded?",
+    "expect": "1879",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "Where was the first psychology laboratory founded?",
+    "expect": "Leipzig",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "In which city was the first psychology laboratory established?",
+    "expect": "Leipzig",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "What did the Bobo doll experiment demonstrate?",
+    "expect": "observational learning",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "When was the Stanford prison experiment conducted?",
+    "expect": "1971",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "When were Milgram's obedience experiments conducted?",
+    "expect": "1960s",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "What did Harlow's attachment experiments demonstrate?",
+    "expect": "importance of contact comfort",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "When was the first psychology laboratory demolished?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "Who criticized the Bobo doll experiment?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "Where was the Stanford prison experiment filmed?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "When were the obedience experiments replicated?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "childdev",
+    "q": "How many children did Piaget have?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "childdev",
+    "q": "Who criticized the zone of proximal development?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "etiquette",
+    "q": "What is the traditional gift for the first anniversary of a company?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "etiquette",
+    "q": "What is the modern gift for a first wedding anniversary?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "What did Milgram study?",
+    "expect": "obedience to authority",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "What did Harlow study?",
+    "expect": "attachment",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "Who criticized the Stanford prison experiment?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "What is the meaning of cognitive dissonance?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "How old were the animals in Pavlov's experiments?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "childdev",
+    "q": "Who funded the Strange Situation?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "childdev",
+    "q": "How many children did Erikson have?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "childdev",
+    "q": "Who was Piaget's first student?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "etiquette",
+    "q": "Where do the forks go in a picture of a battlefield?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "etiquette",
+    "q": "How do you sign off a formal letter to an unnamed recipient in the US?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "Who ran the Stanford prison experiment?",
+    "expect": "Philip Zimbardo",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "Who conducted the Bobo doll experiment?",
+    "expect": "Albert Bandura",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "childdev",
+    "q": "What is Piaget's final stage of cognitive development?",
+    "expect": "formal operational",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "childdev",
+    "q": "How many psychosocial stages did Erikson propose?",
+    "expect": "eight",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "childdev",
+    "q": "The zone of proximal development comes from which theorist?",
+    "expect": "Vygotsky",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "etiquette",
+    "q": "Which material is traditional for a fifth wedding anniversary?",
+    "expect": "wood",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "etiquette",
+    "q": "What is the traditional 50th anniversary gift?",
+    "expect": "gold",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "When did Wilhelm Wundt establish the first psychology lab?",
+    "expect": "1879",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "In which city did Wundt found the first psychology laboratory?",
+    "expect": "Leipzig",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "What does the Bobo doll study show?",
+    "expect": "observational learning",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "When was the Bobo doll experiment conducted?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "psychology",
+    "q": "Where were the obedience experiments conducted?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   }
 ]

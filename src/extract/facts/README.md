@@ -152,3 +152,17 @@ pronoun handling, and both self-contained date questions now withhold on focused
 recheck. All 346 composition assertions are cumulatively verified, with original
 and repair evidence retained in the report. Source transcription is
 checked with `language_fields_check.py`, not asserted as linguistic truth.
+
+The fifth packet consolidates typed source attributes for psychology study
+dates, places, findings and topics, retaining actors in the original source rows.
+It also preserves requested relationships in child-development and etiquette
+questions. Exact source-portion associations in `source_attributes.json` are
+checked by `source_attributes_check.py`; they remain interpretation premises.
+
+The checked export passed 78 theorem checks with zero oracles. The bound native
+binary is 589,448 bytes. Shipped scores remain 221/221 dev and 207/207 heldout in
+specialist and family mode. All 383 native/dispatcher/family policy assertions
+pass: pinned counts are 204 supported answers, 176 withheld-valid and three
+malformed-expression refusals. Another 38 explicit unsupported-scope probes
+withhold as expected. Exact statements, receipts and remaining limits are in
+[the source-field report](../../../project/lanes/F-symbolic-facts-fields.md).

@@ -177,12 +177,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "computation": "HOL lookup of a typed source attribute keyed by actual selected store, row and requested attribute; original actor values remain source-table answers.",
         "assumptions": [
-          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+          "Exact source statements and reviewed actor/date/place/finding/topic interpretations are transcribed assertions, not proved English entailment or world truth."
         ],
         "untrusted": [
-          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+          "Whole-question actor/date/place/finding/topic grammar, source transcription, response and JSON framing."
         ]
       }
     },
@@ -304,7 +304,7 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "HOL source-row-bound requested-field projection distinguishes the meaning of anomie from its attributed author.",
+        "computation": "HOL typed source-attribute lookup binds anomie meaning to the actual selected source store and row.",
         "assumptions": [
           "The typed concept meaning is transcribed from source prose; source identity is checked, world truth is not proved."
         ],

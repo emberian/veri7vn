@@ -1,5 +1,5 @@
 theory Fact_Projection
-  imports Language_Fields
+  imports Language_Fields Source_Attributes
 begin
 
 text \<open>Typed projections from explicitly transcribed source assertions. The
@@ -38,25 +38,33 @@ fun join_resources :: "resource list \<Rightarrow> String.literal" where
 text \<open>The request identifies the source field; it is supplied by an
 untrusted whole-question parser. Projection only applies after the checked
 Facts answer selected the corresponding source row. It preserves row identity.\<close>
-datatype field_request = AnomieMeaning | ExchangeDirection partner partner | LanguageBranch
+datatype field_request = AnomieMeaning | ExchangeDirection partner partner | LanguageBranch | SourceAttribute source_attribute
 
 definition projected_value :: "field_request \<Rightarrow> outcome \<Rightarrow> String.literal option" where
   "projected_value req answer = (case answer of Silent _ \<Rightarrow> None
     | Answer k v s name i \<Rightarrow> (case req of
-      AnomieMeaning \<Rightarrow> if name=STR ''facts_sociology_v1'' \<and> i=1
-         then Some (STR ''normlessness'') else None
+      AnomieMeaning \<Rightarrow> source_attribute_lookup name i ConceptMeaning
     | ExchangeDirection a b \<Rightarrow> if name=STR ''facts_mycelial_v1'' \<and> i=1 \<and> a\<noteq>b
          then Some (join_resources (transferred a b)) else None
     | LanguageBranch \<Rightarrow> if name=STR ''facts_linguistics_v1'' then
         (case language_field i of None \<Rightarrow> None | Some (language,family,branch) \<Rightarrow> Some branch)
-        else None))"
+        else None
+    | SourceAttribute attribute \<Rightarrow> source_attribute_lookup name i attribute))"
 
 theorem projection_requires_source:
   "projected_value req answer = Some value \<Longrightarrow>
     (\<exists>k v s name i. answer=Answer k v s name i \<and>
-      ((i=1 \<and> (name=STR ''facts_sociology_v1'' \<or> name=STR ''facts_mycelial_v1'')) \<or>
-       (name=STR ''facts_linguistics_v1'' \<and> 0<i \<and> i \<le> length language_fields)))"
-  by (auto simp: projected_value_def language_field_def split: outcome.splits field_request.splits option.splits prod.splits if_splits)
+      ((i=1 \<and> name=STR ''facts_mycelial_v1'') \<or>
+       (name=STR ''facts_linguistics_v1'' \<and> 0<i \<and> i \<le> length language_fields) \<or>
+       (\<exists>attribute. ((name,i,attribute),value) \<in> set source_attribute_fields)))"
+  by (auto simp: projected_value_def language_field_def dest: source_attribute_lookup_sound
+      split: outcome.splits field_request.splits option.splits prod.splits if_splits)
+
+theorem attribute_projection_exact:
+  "projected_value (SourceAttribute attribute) answer = Some value \<Longrightarrow>
+    (\<exists>k v s name i. answer=Answer k v s name i \<and>
+       ((name,i,attribute),value) \<in> set source_attribute_fields)"
+  by (auto simp: projected_value_def dest: source_attribute_lookup_sound split: outcome.splits)
 
 theorem branch_projection_exact:
   "projected_value LanguageBranch answer = Some branch \<Longrightarrow>

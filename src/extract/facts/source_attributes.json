@@ -1,0 +1,92 @@
+[
+  {
+    "specialist": "sociology",
+    "row": 1,
+    "attribute": "ConceptMeaning",
+    "value": "normlessness",
+    "source_sentence": "Anomie - normlessness - is Emile Durkheim's concept.",
+    "source_span": "normlessness",
+    "store": "facts_sociology_v1",
+    "interpretation": "Transcribed requested attribute of this exact source statement; no general entailment claim."
+  },
+  {
+    "specialist": "psychology",
+    "row": 5,
+    "attribute": "StudyDate",
+    "value": "1960s",
+    "source_sentence": "The obedience-to-authority experiments were conducted by Stanley Milgram in the 1960s.",
+    "source_span": "1960s",
+    "store": "facts_psychology_v1",
+    "interpretation": "Transcribed requested attribute of this exact source statement; no general entailment claim."
+  },
+  {
+    "specialist": "psychology",
+    "row": 6,
+    "attribute": "StudyDate",
+    "value": "1971",
+    "source_sentence": "The Stanford prison experiment (1971) was led by Philip Zimbardo.",
+    "source_span": "1971",
+    "store": "facts_psychology_v1",
+    "interpretation": "Transcribed requested attribute of this exact source statement; no general entailment claim."
+  },
+  {
+    "specialist": "psychology",
+    "row": 7,
+    "attribute": "StudyFinding",
+    "value": "observational learning",
+    "source_sentence": "The Bobo doll experiment was conducted by Albert Bandura, demonstrating observational learning.",
+    "source_span": "observational learning",
+    "store": "facts_psychology_v1",
+    "interpretation": "Transcribed requested attribute of this exact source statement; no general entailment claim."
+  },
+  {
+    "specialist": "psychology",
+    "row": 11,
+    "attribute": "StudyDate",
+    "value": "1879",
+    "source_sentence": "Wilhelm Wundt founded the first psychology laboratory, in Leipzig in 1879.",
+    "source_span": "1879",
+    "store": "facts_psychology_v1",
+    "interpretation": "Transcribed requested attribute of this exact source statement; no general entailment claim."
+  },
+  {
+    "specialist": "psychology",
+    "row": 11,
+    "attribute": "StudyPlace",
+    "value": "Leipzig",
+    "source_sentence": "Wilhelm Wundt founded the first psychology laboratory, in Leipzig in 1879.",
+    "source_span": "Leipzig",
+    "store": "facts_psychology_v1",
+    "interpretation": "Transcribed requested attribute of this exact source statement; no general entailment claim."
+  },
+  {
+    "specialist": "psychology",
+    "row": 13,
+    "attribute": "StudyFinding",
+    "value": "importance of contact comfort",
+    "source_sentence": "Harry Harlow studied attachment in rhesus monkeys, showing the importance of contact comfort.",
+    "source_span": "importance of contact comfort",
+    "store": "facts_psychology_v1",
+    "interpretation": "Transcribed requested attribute of this exact source statement; no general entailment claim."
+  },
+  {
+    "specialist": "psychology",
+    "row": 5,
+    "attribute": "StudyTopic",
+    "value": "obedience to authority",
+    "source_span": "obedience-to-authority",
+    "source_sentence": "The obedience-to-authority experiments were conducted by Stanley Milgram in the 1960s.",
+    "store": "facts_psychology_v1",
+    "interpretation": "Transcribed requested attribute of this exact source statement; no general entailment claim."
+  },
+  {
+    "specialist": "psychology",
+    "row": 13,
+    "attribute": "StudyTopic",
+    "value": "attachment",
+    "source_span": "attachment",
+    "source_sentence": "Harry Harlow studied attachment in rhesus monkeys, showing the importance of contact comfort.",
+    "store": "facts_psychology_v1",
+    "interpretation": "Transcribed requested attribute of this exact source statement; no general entailment claim."
+  }
+]
