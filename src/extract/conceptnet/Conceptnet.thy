@@ -1,0 +1,612 @@
+theory Conceptnet
+  imports Main "HOL-Library.Code_Target_Numeral" "HOL-Library.Code_Target_Int"
+    "HOL-Library.Product_Order" "HOL-Library.List_Lexorder"
+begin
+
+text \<open>Oracle7's ConceptNet adapter (upstream/root/wander-train/oracle_release_conceptnet.py)
+as a HOL decision over fetched typed edges, plus the derived two-hop route the
+release's own standing gaps declare missing (\<^verbatim>\<open>route:conceptnet_isa_derived\<close>,
+\<^verbatim>\<open>route:conceptnet_partof_derived\<close>, carried by 82 shipped folds).
+
+The fetch is untrusted (tools/conceptnet/answerer.py): it supplies typed edge
+rows from the sealed build m13e5_conceptnet_build_a_v1 and the routed request.
+Everything between those rows and the reply lines - filtering to the routed
+relation and direction, ranking, selection, deduplication, rendering and
+provenance - is decided here.
+
+Text is a code-point list (\<^typ>\<open>int list\<close>), not a literal: HOL \<^typ>\<open>char\<close>
+is 8-bit and the code generator's \<^const>\<open>String.explode\<close> fails on
+non-ASCII literals, while ConceptNet surface texts carry accented letters.
+Code-point order equals UTF-8 byte order, which is SQLite's BINARY collation,
+so ranking on \<^typ>\<open>int list\<close> matches the adapter's ORDER BY.\<close>
+
+subsection \<open>Code points and constant strings\<close>
+
+definition cp :: "char list \<Rightarrow> int list" where
+  "cp cs = map (\<lambda>c. of_char c) cs"
+
+definition c_dot :: int where [simp]: "c_dot = 46"
+definition c_star :: int where [simp]: "c_star = 42"
+definition c_open :: int where [simp]: "c_open = 91"
+definition c_close :: int where [simp]: "c_close = 93"
+
+definition is_ws :: "int \<Rightarrow> bool" where [simp]:
+  "is_ws c \<longleftrightarrow> c = 32 \<or> c = 9 \<or> c = 10 \<or> c = 13 \<or> c = 11 \<or> c = 12"
+
+subsection \<open>Relations, directions, edges, requests\<close>
+
+datatype relation =
+  IsA | PartOf | HasA | UsedFor | CapableOf | AtLocation | Causes |
+  HasSubevent | HasPrerequisite | MotivatedByGoal | Desires | MadeOf |
+  ReceivesAction | HasProperty | Synonym | Antonym | DistinctFrom |
+  SimilarTo | RelatedTo
+
+definition rel_name :: "relation \<Rightarrow> int list" where
+  "rel_name r = (case r of
+     IsA \<Rightarrow> cp ''IsA'' | PartOf \<Rightarrow> cp ''PartOf'' | HasA \<Rightarrow> cp ''HasA''
+   | UsedFor \<Rightarrow> cp ''UsedFor'' | CapableOf \<Rightarrow> cp ''CapableOf''
+   | AtLocation \<Rightarrow> cp ''AtLocation'' | Causes \<Rightarrow> cp ''Causes''
+   | HasSubevent \<Rightarrow> cp ''HasSubevent'' | HasPrerequisite \<Rightarrow> cp ''HasPrerequisite''
+   | MotivatedByGoal \<Rightarrow> cp ''MotivatedByGoal'' | Desires \<Rightarrow> cp ''Desires''
+   | MadeOf \<Rightarrow> cp ''MadeOf'' | ReceivesAction \<Rightarrow> cp ''ReceivesAction''
+   | HasProperty \<Rightarrow> cp ''HasProperty'' | Synonym \<Rightarrow> cp ''Synonym''
+   | Antonym \<Rightarrow> cp ''Antonym'' | DistinctFrom \<Rightarrow> cp ''DistinctFrom''
+   | SimilarTo \<Rightarrow> cp ''SimilarTo'' | RelatedTo \<Rightarrow> cp ''RelatedTo'')"
+
+definition parse_relation :: "int list \<Rightarrow> relation option" where
+  "parse_relation s =
+     (if s = cp ''IsA'' then Some IsA else if s = cp ''PartOf'' then Some PartOf else
+      if s = cp ''HasA'' then Some HasA else if s = cp ''UsedFor'' then Some UsedFor else
+      if s = cp ''CapableOf'' then Some CapableOf else if s = cp ''AtLocation'' then Some AtLocation else
+      if s = cp ''Causes'' then Some Causes else if s = cp ''HasSubevent'' then Some HasSubevent else
+      if s = cp ''HasPrerequisite'' then Some HasPrerequisite else
+      if s = cp ''MotivatedByGoal'' then Some MotivatedByGoal else
+      if s = cp ''Desires'' then Some Desires else if s = cp ''MadeOf'' then Some MadeOf else
+      if s = cp ''ReceivesAction'' then Some ReceivesAction else
+      if s = cp ''HasProperty'' then Some HasProperty else if s = cp ''Synonym'' then Some Synonym else
+      if s = cp ''Antonym'' then Some Antonym else if s = cp ''DistinctFrom'' then Some DistinctFrom else
+      if s = cp ''SimilarTo'' then Some SimilarTo else if s = cp ''RelatedTo'' then Some RelatedTo
+      else None)"
+
+lemma parse_rel_name [simp]: "parse_relation s = Some r \<Longrightarrow> rel_name r = s"
+  by (cases r) (auto split: if_splits simp: parse_relation_def rel_name_def)
+
+datatype direction = Fwd | Rev
+
+record cedge =
+  c_rel :: relation
+  c_start :: "int list"
+  c_end :: "int list"
+  c_weight :: int          \<comment> \<open>the store's REAL weight scaled by 10^6; ranking only\<close>
+  c_surface :: "int list"
+  c_dataset :: "int list"
+
+record crequest =
+  c_concept :: "int list"  \<comment> \<open>already trimmed and lowercased by the untrusted router, as the adapter's SQL parameter is\<close>
+  c_specs :: "(relation \<times> direction) list"
+
+subsection \<open>Ranking: weight descending, then start, then end (the adapter's ORDER BY)\<close>
+
+definition rank_key :: "cedge \<Rightarrow> int \<times> int list \<times> int list" where
+  "rank_key e = (- c_weight e, c_start e, c_end e)"
+
+definition outranks :: "cedge \<Rightarrow> cedge \<Rightarrow> bool" where
+  "outranks e f \<longleftrightarrow> rank_key e < rank_key f"
+
+definition same_rank :: "cedge \<Rightarrow> cedge \<Rightarrow> bool" where
+  "same_rank e f \<longleftrightarrow> rank_key e = rank_key f"
+
+lemma outranks_cases: "outranks a b \<or> same_rank a b \<or> outranks b a"
+  unfolding outranks_def same_rank_def by (rule less_linear)
+
+lemma outranks_trans: "outranks a b \<Longrightarrow> outranks b c \<Longrightarrow> outranks a c"
+  unfolding outranks_def by (rule less_trans)
+
+lemma same_rank_outranks_left [simp]:
+  "same_rank a b \<Longrightarrow> outranks b c \<Longrightarrow> outranks a c"
+  unfolding outranks_def same_rank_def by simp
+
+lemma same_rank_outranks_right [simp]:
+  "same_rank b c \<Longrightarrow> outranks a b \<Longrightarrow> outranks a c"
+  unfolding outranks_def same_rank_def by simp
+
+fun rank_sorted :: "cedge list \<Rightarrow> bool" where
+  "rank_sorted (e # f # es) \<longleftrightarrow> (outranks e f \<or> same_rank e f) \<and> rank_sorted (f # es)"
+| "rank_sorted _ \<longleftrightarrow> True"
+
+fun ins :: "cedge list \<Rightarrow> cedge \<Rightarrow> cedge list" where
+  "ins [] e = [e]"
+| "ins (x # xs) e = (if outranks e x then e # x # xs else x # ins xs e)"
+
+fun isort :: "cedge list \<Rightarrow> cedge list" where
+  "isort [] = []"
+| "isort (e # es) = ins (isort es) e"
+
+lemma ins_set [simp]: "set (ins xs e) = insert e (set xs)"
+  by (induction xs) auto
+
+lemma isort_set [simp]: "set (isort es) = set es"
+  by (induction es) auto
+
+lemma rank_sorted_ConsD: "rank_sorted (x # xs) \<Longrightarrow> rank_sorted xs"
+  by (cases xs) simp_all
+
+lemma ins_sorted: "rank_sorted xs \<Longrightarrow> rank_sorted (ins xs e)"
+proof (induction xs arbitrary: e)
+  case Nil show ?case by simp
+next
+  case (Cons x xs)
+  have rs_xs: "rank_sorted xs" using Cons.prems rank_sorted_ConsD by blast
+  have ih: "rank_sorted (ins xs e)" using Cons.IH rs_xs by simp
+  show ?case
+  proof (cases "outranks e x")
+    case True
+    with Cons.prems show ?thesis by simp
+  next
+    case False
+    have f1: "outranks x e \<or> same_rank x e" using outranks_cases[of e x] False by blast
+    show ?thesis
+    proof (cases xs)
+      case Nil
+      with f1 show ?thesis by simp
+    next
+      case (Cons y ys)
+      show ?thesis
+      proof (cases "outranks e y")
+        case True
+        show ?thesis
+        proof (cases "outranks x e")
+          case True
+          with \<open>outranks e y\<close> Cons.prems show ?thesis by simp
+        next
+          case False2
+          then have srx: "same_rank x e" using f1 by blast
+          have "outranks x y" using srx \<open>outranks e y\<close> same_rank_outranks_left by blast
+          with srx \<open>outranks e y\<close> Cons.prems show ?thesis by simp
+        qed
+      next
+        case False2
+        with Cons.prems ih \<open>xs = y # ys\<close> show ?thesis by simp
+      qed
+    qed
+  qed
+qed
+
+lemma isort_sorted: "rank_sorted (isort es)"
+  by (induction es) (simp_all add: ins_sorted)
+
+lemma rank_sorted_take: "rank_sorted l \<Longrightarrow> rank_sorted (take n l)"
+proof (induction n arbitrary: l)
+  case 0 show ?case by simp
+next
+  case (Suc n)
+  show ?case
+  proof (cases l)
+    case Nil thus ?thesis by simp
+  next
+    case (Cons x xs)
+    note lx = this
+    show ?thesis
+    proof (cases "take n xs")
+      case Nil
+      with lx show ?thesis by simp
+    next
+      case (Cons z zs)
+      note tz = this
+      from Suc lx have rsn: "rank_sorted (take n xs)" by simp
+      show ?thesis
+      proof (cases xs)
+        case Nil
+        with tz show ?thesis by simp
+      next
+        case (Cons y ys)
+        with tz have zy: "z = y" by (cases n) simp_all
+        with lx \<open>xs = y # ys\<close> show ?thesis using rsn by simp
+      qed
+    qed
+  qed
+qed
+
+subsection \<open>Selection: the adapter's LIMIT 6 per routed spec\<close>
+
+definition edge_matches :: "direction \<Rightarrow> int list \<Rightarrow> relation \<Rightarrow> cedge \<Rightarrow> bool" where
+  "edge_matches d c r e \<longleftrightarrow>
+     c_rel e = r \<and> (case d of Fwd \<Rightarrow> c_start e = c | Rev \<Rightarrow> c_end e = c)"
+
+definition sel_spec :: "cedge list \<Rightarrow> relation \<times> direction \<Rightarrow> int list \<Rightarrow> cedge list" where
+  "sel_spec es rd c = take 6 (isort [e \<leftarrow> es. edge_matches (snd rd) c (fst rd) e])"
+
+lemma sel_spec_subset:
+  "set (sel_spec es rd c) \<subseteq> {e \<in> set es. edge_matches (snd rd) c (fst rd) e}"
+  unfolding sel_spec_def by auto
+
+lemma sel_spec_len: "length (sel_spec es rd c) \<le> 6" by (simp add: sel_spec_def)
+
+lemma sel_spec_nil [simp]: "sel_spec [] rd c = []" by (simp add: sel_spec_def)
+
+lemma sel_spec_sorted: "rank_sorted (sel_spec es rd c)"
+  unfolding sel_spec_def using isort_sorted rank_sorted_take by simp
+
+lemma concat_map_nil [simp]: "concat (map (\<lambda>x. []) l) = []"
+  by (induction l) simp_all
+
+subsection \<open>Rendering: the adapter's exact surface-text and template rules\<close>
+
+fun drop_last_dots :: "int list \<Rightarrow> int list" where
+  "drop_last_dots [] = []"
+| "drop_last_dots [c] = (if c = c_dot then [] else [c])"
+| "drop_last_dots (c1 # c2 # cs) = c1 # drop_last_dots (c2 # cs)"
+
+definition strip_ws :: "int list \<Rightarrow> int list" where
+  "strip_ws cs = (let l = dropWhile is_ws cs in rev (dropWhile is_ws (rev l)))"
+
+fun strip_doubled :: "int \<Rightarrow> int list \<Rightarrow> int list" where
+  "strip_doubled b (c # d # cs) =
+     (if c = b \<and> d = b then strip_doubled b cs else c # strip_doubled b (d # cs))"
+| "strip_doubled b cs = cs"
+
+definition clean_surface :: "int list \<Rightarrow> int list" where
+  "clean_surface cs =
+     strip_ws (dropWhile (\<lambda>c. c = c_star)
+       (strip_doubled c_open (strip_doubled c_close (strip_ws cs))))"
+
+definition upper :: "int \<Rightarrow> int" where
+  "upper c = (if 97 \<le> c \<and> c \<le> 122 then c - 32 else c)"
+
+fun cap_chars :: "int list \<Rightarrow> int list" where
+  "cap_chars [] = []"
+| "cap_chars (c # cs) = upper c # cs"
+
+lemma cap_chars_Nil [simp]: "cap_chars xs = [] \<longleftrightarrow> xs = []"
+  by (cases xs) simp_all
+
+fun template_chars :: "relation \<Rightarrow> int list \<Rightarrow> int list \<Rightarrow> int list" where
+  "template_chars IsA s t = s @ cp '' is a kind of '' @ t"
+| "template_chars PartOf s t = s @ cp '' is part of '' @ t"
+| "template_chars HasA s t = s @ cp '' has '' @ t"
+| "template_chars UsedFor s t = s @ cp '' is used for '' @ t"
+| "template_chars CapableOf s t = s @ cp '' can '' @ t"
+| "template_chars AtLocation s t = s @ cp '' is typically found at '' @ t"
+| "template_chars Causes s t = s @ cp '' causes '' @ t"
+| "template_chars HasSubevent s t = s @ cp '' involves '' @ t"
+| "template_chars HasPrerequisite s t = s @ cp '' requires '' @ t"
+| "template_chars MotivatedByGoal s t = s @ cp '' is motivated by '' @ t"
+| "template_chars Desires s t = s @ cp '' desires '' @ t"
+| "template_chars MadeOf s t = s @ cp '' is made of '' @ t"
+| "template_chars ReceivesAction s t = s @ cp '' can be '' @ t"
+| "template_chars HasProperty s t = s @ cp '' is '' @ t"
+| "template_chars Synonym s t = s @ cp '' is a synonym of '' @ t"
+| "template_chars Antonym s t = s @ cp '' is an antonym of '' @ t"
+| "template_chars DistinctFrom s t = s @ cp '' is distinct from '' @ t"
+| "template_chars SimilarTo s t = s @ cp '' is similar to '' @ t"
+| "template_chars RelatedTo s t = s @ cp '' is related to '' @ t"
+
+lemma template_chars_neq_Nil [simp]: "template_chars r s t \<noteq> []"
+  by (cases r) simp_all
+
+definition render_chars :: "cedge \<Rightarrow> int list" where
+  "render_chars e =
+     (let t = clean_surface (c_surface e) in
+      if t \<noteq> [] then upper (hd t) # drop_last_dots (tl t) @ [c_dot]
+      else cap_chars (template_chars (c_rel e) (c_start e) (c_end e)) @ [c_dot])"
+
+definition render_edge :: "cedge \<Rightarrow> int list" where
+  "render_edge e = render_chars e"
+
+lemma append_dot_last: "xs \<noteq> [] \<Longrightarrow> last (xs @ [c_dot]) = c_dot"
+  by (induction xs) auto
+
+lemma render_edge_sentence:
+  "render_edge e \<noteq> [] \<and> last (render_edge e) = c_dot"
+  unfolding render_edge_def render_chars_def
+  by (auto simp: Let_def append_dot_last)
+
+subsection \<open>Claims (provenance)\<close>
+
+type_synonym claim = "int list \<times> int \<times> int list"
+
+definition claim_of :: "cedge \<Rightarrow> claim" where
+  "claim_of e = (cp ''conceptnet57:'' @ rel_name (c_rel e) @ cp '':'' @ c_start e @ cp ''->'' @ c_end e,
+                 c_weight e, c_dataset e)"
+
+lemma claim_of_shape:
+  "claim_of e = (cp ''conceptnet57:'' @ rel_name (c_rel e) @ cp '':'' @ c_start e @ cp ''->'' @ c_end e,
+                 c_weight e, c_dataset e)"
+  by (rule claim_of_def)
+
+subsection \<open>The direct decision (the adapter's answer path)\<close>
+
+definition declared_witness :: "crequest \<Rightarrow> cedge \<Rightarrow> bool" where
+  "declared_witness req e \<longleftrightarrow>
+     (\<exists>r d. (r, d) \<in> set (c_specs req) \<and> c_rel e = r \<and>
+       (d = Fwd \<and> c_start e = c_concept req \<or> d = Rev \<and> c_end e = c_concept req))"
+
+definition collect_edges :: "crequest \<Rightarrow> cedge list \<Rightarrow> cedge list" where
+  "collect_edges req es = concat (map (\<lambda>rd. sel_spec es rd (c_concept req)) (c_specs req))"
+
+lemma collect_edges_empty [simp]: "collect_edges req [] = []"
+  unfolding collect_edges_def by (induction "c_specs req") auto
+
+fun add_line :: "(int list \<times> claim) list \<Rightarrow> cedge \<Rightarrow> (int list \<times> claim) list" where
+  "add_line acc e =
+     (if length acc < 5 then
+        let l = render_edge e in
+        if l \<in> fst ` set acc then acc else acc @ [(l, claim_of e)]
+      else acc)"
+
+definition decide_direct :: "crequest \<Rightarrow> cedge list \<Rightarrow> (int list \<times> claim) list" where
+  "decide_direct req es = foldl add_line [] (collect_edges req es)"
+
+lemma collect_edges_witnessed:
+  "e \<in> set (collect_edges req es) \<Longrightarrow> e \<in> set es \<and> declared_witness req e"
+proof -
+  assume "e \<in> set (collect_edges req es)"
+  then obtain rd where rd: "rd \<in> set (c_specs req)"
+    "e \<in> set (sel_spec es rd (c_concept req))"
+    unfolding collect_edges_def by auto
+  from rd(2) sel_spec_subset have
+    "e \<in> set es" and m: "edge_matches (snd rd) (c_concept req) (fst rd) e" by blast+
+  from rd(1) m show "e \<in> set es \<and> declared_witness req e"
+    unfolding declared_witness_def edge_matches_def
+    by (cases "snd rd") auto
+qed
+
+lemma fold_add_line_new:
+  "\<forall>x \<in> set (foldl add_line acc l). x \<in> set acc \<or> (\<exists>e \<in> set l. x = (render_edge e, claim_of e))"
+  by (induction l arbitrary: acc) (auto simp: Let_def)
+
+lemma fold_add_line_bound: "length acc \<le> 5 \<Longrightarrow> length (foldl add_line acc l) \<le> 5"
+  by (induction l arbitrary: acc) auto
+
+theorem decide_direct_witnessed:
+  "\<forall>(l, cl) \<in> set (decide_direct req es).
+     \<exists>e \<in> set es. declared_witness req e \<and> render_edge e = l \<and> claim_of e = cl"
+proof (unfold decide_direct_def, rule ballI)
+  fix x assume x: "x \<in> set (foldl add_line [] (collect_edges req es))"
+  then obtain l cl where lc: "x = (l, cl)" by (cases x) auto
+  from x lc fold_add_line_new[of "[]"] obtain e where
+    e: "e \<in> set (collect_edges req es)" and
+    parts: "l = render_edge e" "cl = claim_of e"
+    by blast
+  from e collect_edges_witnessed have "e \<in> set es" "declared_witness req e" by blast+
+  with parts show "\<exists>e \<in> set es. declared_witness req e \<and> render_edge e = l \<and> claim_of e = cl"
+    by blast
+qed
+
+theorem decide_direct_bounded: "length (decide_direct req es) \<le> 5"
+  unfolding decide_direct_def by (rule fold_add_line_bound) simp
+
+subsection \<open>The derived decision (two hops through a declared mediator)\<close>
+
+text \<open>The adapter has only one-hop routes. The release's standing gaps name
+\<^verbatim>\<open>conceptnet_isa_derived\<close> and \<^verbatim>\<open>conceptnet_partof_derived\<close> as missing
+complements; this is that route: concept - mediator -\<guillemotright> parent - relation -\<guillemotright> answer.
+Every rendered line names the parent it was derived through, and the reply
+carries the provenance of both hops.\<close>
+
+record dline =
+  d_via :: "int list"       \<comment> \<open>the parent concept the line was derived through\<close>
+  d_line :: "int list"
+  d_hop1 :: claim           \<comment> \<open>the mediator edge (concept - mediator -\<guillemotright> parent)\<close>
+  d_hop2 :: claim           \<comment> \<open>the answered edge (parent - relation -\<guillemotright> answer)\<close>
+
+definition parent_edges :: "relation \<Rightarrow> int list \<Rightarrow> cedge list \<Rightarrow> cedge list" where
+  "parent_edges med c es = take 3 (isort [e \<leftarrow> es. c_rel e = med \<and> c_start e = c])"
+
+lemma parent_edges_witnessed:
+  "e \<in> set (parent_edges med c es) \<Longrightarrow> e \<in> set es \<and> c_rel e = med \<and> c_start e = c"
+  unfolding parent_edges_def by auto (metis (no_types, lifting) CollectD fst_conv snd_conv)
+
+lemma parent_edges_nil [simp]: "parent_edges med c [] = []"
+  by (simp add: parent_edges_def)
+
+definition fwd_specs :: "crequest \<Rightarrow> relation list" where
+  "fwd_specs req = map fst [rd \<leftarrow> c_specs req. snd rd = Fwd]"
+
+definition derived_pairs :: "relation \<Rightarrow> crequest \<Rightarrow> cedge list \<Rightarrow> (int list \<times> cedge \<times> cedge) list" where
+  "derived_pairs med req es =
+     concat (map
+       (\<lambda>e1. concat (map
+          (\<lambda>r. map (\<lambda>e2. (c_end e1, e1, e2))
+                       (take 3 (isort [e \<leftarrow> es. c_rel e = r \<and> c_start e = c_end e1])))
+          (fwd_specs req)))
+       (parent_edges med (c_concept req) es))"
+
+lemma derived_pairs_nil [simp]: "derived_pairs med req [] = []"
+  by (simp add: derived_pairs_def)
+
+lemma derived_pairs_witnessed:
+  assumes "(p, e1, e2) \<in> set (derived_pairs med req es)"
+  shows "e1 \<in> set es" "c_rel e1 = med" "c_start e1 = c_concept req" "c_end e1 = p"
+    and "e2 \<in> set es" "c_start e2 = p" "c_rel e2 \<in> set (fwd_specs req)"
+proof -
+  from assms obtain e1' r e2' where
+    p1: "e1' \<in> set (parent_edges med (c_concept req) es)" and
+    p2: "r \<in> set (fwd_specs req)" and
+    p3: "e2' \<in> set (take 3 (isort [x \<leftarrow> es. c_rel x = r \<and> c_start x = c_end e1']))" and
+    pe: "p = c_end e1'" "e1 = e1'" "e2 = e2'"
+    unfolding derived_pairs_def by auto
+  from p1 parent_edges_witnessed have
+    w1: "e1' \<in> set es" "c_rel e1' = med" "c_start e1' = c_concept req" by blast+
+  from p3 have w2: "e2' \<in> set es" "c_rel e2' = r" "c_start e2' = c_end e1'" by auto
+  from pe w1 w2 p2 show
+    "e1 \<in> set es" "c_rel e1 = med" "c_start e1 = c_concept req" "c_end e1 = p"
+    "e2 \<in> set es" "c_start e2 = p" "c_rel e2 \<in> set (fwd_specs req)"
+    by auto
+qed
+
+fun add_dline :: "dline list \<Rightarrow> int list \<times> cedge \<times> cedge \<Rightarrow> dline list" where
+  "add_dline acc (p, e1, e2) =
+     (if length acc < 4 then
+        let l = cp ''(via '' @ p @ cp '') '' @ render_edge e2 in
+        if l \<in> d_line ` set acc then acc
+        else acc @ [\<lparr>d_via = p, d_line = l, d_hop1 = claim_of e1, d_hop2 = claim_of e2\<rparr>]
+      else acc)"
+
+definition decide_derived :: "relation \<Rightarrow> crequest \<Rightarrow> cedge list \<Rightarrow> dline list" where
+  "decide_derived med req es = foldl add_dline [] (derived_pairs med req es)"
+
+lemma fold_add_dline_new:
+  "\<forall>dl \<in> set (foldl add_dline acc l).
+     dl \<in> set acc \<or>
+     (\<exists>x \<in> set l. d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge (snd (snd x))
+                \<and> d_hop2 dl = claim_of (snd (snd x)) \<and> d_hop1 dl = claim_of (fst (snd x))
+                \<and> d_via dl = fst x)"
+  by (induction l arbitrary: acc) (auto simp: Let_def)
+
+lemma fold_add_dline_bound: "length acc \<le> 4 \<Longrightarrow> length (foldl add_dline acc l) \<le> 4"
+  by (induction l arbitrary: acc) auto
+
+theorem decide_derived_witnessed:
+  "\<forall>dl \<in> set (decide_derived med req es).
+     \<exists>e1 e2. e1 \<in> set es \<and> e2 \<in> set es \<and>
+       c_rel e1 = med \<and> c_start e1 = c_concept req \<and> c_end e1 = d_via dl \<and>
+       c_rel e2 \<in> set (fwd_specs req) \<and> c_start e2 = d_via dl \<and>
+       d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge e2 \<and>
+       d_hop1 dl = claim_of e1 \<and> d_hop2 dl = claim_of e2"
+proof (unfold decide_derived_def, rule ballI)
+  fix dl assume dl: "dl \<in> set (foldl add_dline [] (derived_pairs med req es))"
+  from dl fold_add_dline_new[of "[]"] obtain x where
+    x: "x \<in> set (derived_pairs med req es)" and
+    parts: "d_via dl = fst x" "d_hop1 dl = claim_of (fst (snd x))"
+           "d_hop2 dl = claim_of (snd (snd x))"
+           "d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge (snd (snd x))"
+    by blast
+  obtain p e1 e2 where pe: "x = (p, e1, e2)" by (cases x) auto
+  from x pe have w: "(p, e1, e2) \<in> set (derived_pairs med req es)" by simp
+  note ws = derived_pairs_witnessed[OF w]
+  from pe have sel: "fst x = p" "fst (snd x) = e1" "snd (snd x) = e2" by simp_all
+  show "\<exists>e1 e2. e1 \<in> set es \<and> e2 \<in> set es \<and>
+    c_rel e1 = med \<and> c_start e1 = c_concept req \<and> c_end e1 = d_via dl \<and>
+    c_rel e2 \<in> set (fwd_specs req) \<and> c_start e2 = d_via dl \<and>
+    d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge e2 \<and>
+    d_hop1 dl = claim_of e1 \<and> d_hop2 dl = claim_of e2"
+    using parts sel ws(1,2,3,4,5,6,7) by blast
+qed
+
+theorem decide_derived_bounded: "length (decide_derived med req es) \<le> 4"
+  unfolding decide_derived_def by (rule fold_add_dline_bound) simp
+
+subsection \<open>The decision\<close>
+
+datatype creply =
+  C_answer "(int list \<times> claim) list"
+| C_derived "dline list"
+| C_abstain
+
+fun first_derived :: "relation list \<Rightarrow> crequest \<Rightarrow> cedge list \<Rightarrow> dline list" where
+  "first_derived [] _ _ = []"
+| "first_derived (m # ms) req es =
+     (let ds = decide_derived m req es in if ds \<noteq> [] then ds else first_derived ms req es)"
+
+definition decide :: "relation list \<Rightarrow> crequest \<Rightarrow> cedge list \<Rightarrow> creply" where
+  "decide meds req es =
+     (let out = decide_direct req es in
+      if out \<noteq> [] then C_answer out
+      else (case first_derived meds req es of [] \<Rightarrow> C_abstain | ds \<Rightarrow> C_derived ds))"
+
+theorem decide_empty_is_abstain: "decide meds req [] = C_abstain"
+  by (simp add: decide_def decide_direct_def decide_derived_def)
+
+theorem decide_no_meds_iff:
+  "decide [] req es = C_abstain \<longleftrightarrow> decide_direct req es = []"
+  by (simp add: decide_def)
+
+theorem answer_nonempty_bounded:
+  "decide meds req es = C_answer out \<Longrightarrow> out \<noteq> [] \<and> length out \<le> 5"
+  by (auto simp: decide_def decide_direct_bounded split: list.splits)
+
+theorem derived_nonempty_bounded:
+  "decide meds req es = C_derived ds \<Longrightarrow> ds \<noteq> [] \<and> length ds \<le> 4"
+  by (auto simp: decide_def decide_derived_bounded split: list.splits)
+
+theorem decide_abstain_iff:
+  "decide meds req es = C_abstain \<longleftrightarrow>
+     decide_direct req es = [] \<and> (\<forall>m \<in> set meds. decide_derived m req es = [])"
+proof (induction meds)
+  case Nil thus ?case by (simp add: decide_def)
+next
+  case (Cons m ms)
+  show ?case
+  proof (cases "decide_direct req es = []")
+    case False thus ?thesis by (simp add: decide_def)
+  next
+    case True
+    show ?thesis
+    proof (cases "decide_derived m req es = []")
+      case True
+      with Cons.IH True show ?thesis by (simp add: decide_def)
+    next
+      case False
+      with True show ?thesis by (simp add: decide_def)
+    qed
+  qed
+qed
+
+text \<open>The explicit abstention rule, plainly: if the fetch brought no edge the
+request declares (no direct witness, and no mediator-parent pair whose second
+hop is a declared forward relation), the decision abstains - it never invents a
+line.\<close>
+
+text \<open>Obtains-forms of the two witnessed theorems, stated as standalone lemmas
+so their small final blast steps run in a clean context (a blast in the context
+of the no_matching_edges_abstains premises below diverges).\<close>
+
+lemma decide_direct_nonemptyE:
+  assumes ne: "decide_direct req es \<noteq> []"
+  obtains e where "e \<in> set es" "declared_witness req e"
+proof -
+  from ne obtain x where x: "x \<in> set (decide_direct req es)"
+    by (cases "decide_direct req es") auto
+  obtain l cl where lc: "x = (l, cl)" by (cases x) auto
+  from x lc have mem: "(l, cl) \<in> set (decide_direct req es)" by simp
+  from decide_direct_witnessed[of req es, THEN bspec, OF mem] have
+    "\<exists>e \<in> set es. declared_witness req e \<and> render_edge e = l \<and> claim_of e = cl"
+    by simp
+  then show ?thesis by blast
+qed
+
+lemma decide_derived_nonemptyE:
+  assumes ne: "decide_derived med req es \<noteq> []"
+  obtains e1 e2 where
+    "e1 \<in> set es" "e2 \<in> set es" "c_rel e1 = med" "c_start e1 = c_concept req"
+    "c_rel e2 \<in> set (fwd_specs req)" "c_start e2 = c_end e1"
+proof -
+  from ne obtain dl where dl: "dl \<in> set (decide_derived med req es)"
+    by (cases "decide_derived med req es") auto
+  with decide_derived_witnessed[of med req es] show ?thesis by blast
+qed
+
+corollary no_matching_edges_abstains:
+  assumes dir: "\<forall>e \<in> set es. \<not> declared_witness req e"
+    and der: "\<And>m e1 e2. m \<in> set meds \<Longrightarrow> e1 \<in> set es \<Longrightarrow> e2 \<in> set es \<Longrightarrow>
+      c_rel e1 = m \<Longrightarrow> c_start e1 = c_concept req \<Longrightarrow>
+      c_rel e2 \<in> set (fwd_specs req) \<Longrightarrow> c_start e2 = c_end e1 \<Longrightarrow> False"
+  shows "decide meds req es = C_abstain"
+proof -
+  have d1: "decide_direct req es = []"
+  proof (rule ccontr)
+    assume ne: "decide_direct req es \<noteq> []"
+    from decide_direct_nonemptyE[OF ne] obtain e where
+      e: "e \<in> set es" and w: "declared_witness req e" .
+    from dir[THEN bspec, OF e] have n: "\<not> declared_witness req e" .
+    from n w have False by (rule notE)
+    then show ?thesis ..
+  qed
+  have d2: "\<forall>m \<in> set meds. decide_derived m req es = []"
+  proof (rule ballI)
+    fix m assume m: "m \<in> set meds"
+    show "decide_derived m req es = []"
+    proof (rule ccontr)
+      assume ne: "decide_derived m req es \<noteq> []"
+      from decide_derived_nonemptyE[OF ne] obtain e1 e2 where
+        e1: "e1 \<in> set es" and e2: "e2 \<in> set es" and
+        r1: "c_rel e1 = m" and s1: "c_start e1 = c_concept req" and
+        r2: "c_rel e2 \<in> set (fwd_specs req)" and s2: "c_start e2 = c_end e1" .
+      from der[OF m e1 e2 r1 s1 r2 s2] show False .
+    qed
+  qed
+  from iffD2[OF decide_abstain_iff conjI[OF d1 d2]] show "decide meds req es = C_abstain" .
+qed
+
+end

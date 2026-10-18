@@ -1,0 +1,11 @@
+(* Scout conceptnet: Oracle7's ConceptNet adapter as a verified decision over
+   fetched typed edges, plus the derived two-hop route the release's own
+   standing gaps declare missing. *)
+session Veri7vn_Conceptnet = HOL +
+  options [document = false]
+  sessions
+    "HOL-Library"
+  theories
+    Conceptnet
+    Conceptnet_Export
+    Conceptnet_Test
