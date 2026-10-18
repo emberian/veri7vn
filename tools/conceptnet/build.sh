@@ -9,10 +9,11 @@ GEN="$REPO/var/conceptnet/gen/Conceptnet_Code.ML"
 REMOTE="$REPO/var/conceptnet/export-remote/Veri7vn_Conceptnet"
 OUT="$REPO/var/conceptnet/bin"
 mkdir -p "$OUT"
-if [ ! -f "$GEN" ] && [ -d "$REMOTE" ]; then
-  # a remote build brought the export back; use the freshest copy
-  src=$(ls -t "$REMOTE"/*.ML "$REMOTE"/**/*.ML 2>/dev/null | head -n 1 || true)
-  [ -n "$src" ] && cp "$src" "$GEN"
+if [ -d "$REMOTE" ]; then
+  # a remote build brought the export back; prefer it whenever it is newer than the
+  # locally generated copy (the local gen/ is only written by a local session build)
+  src=$(ls -t $(find "$REMOTE" -name '*.ML' 2>/dev/null) 2>/dev/null | head -n 1 || true)
+  if [ -n "$src" ] && { [ ! -f "$GEN" ] || [ "$src" -nt "$GEN" ]; }; then cp "$src" "$GEN"; fi
 fi
 test -f "$GEN" || { echo "missing $GEN: build the Veri7vn_Conceptnet session first" >&2; exit 1; }
 printf '$(SML_LIB)/basis/basis.mlb\n%s\n%s\n' "$GEN" "$REPO/tools/conceptnet/decide_main.sml" > "$OUT/decide.mlb"

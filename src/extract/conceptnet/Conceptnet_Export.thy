@@ -109,7 +109,7 @@ definition self_test :: bool where
 export_code decide decide_direct decide_derived parse_relation rel_name all_rels
   template_chars render_edge claim_of mk_cedge mk_crequest
   c_rel c_start c_end c_weight c_surface c_dataset c_concept c_specs
-  d_via d_line d_hop1 d_hop2
+  d_via d_line d_hop1 d_hop2 int_of_integer integer_of_int
   Fwd Rev IsA PartOf HasA UsedFor CapableOf AtLocation
   Causes HasSubevent HasPrerequisite MotivatedByGoal Desires MadeOf ReceivesAction
   HasProperty Synonym Antonym DistinctFrom SimilarTo RelatedTo
@@ -128,6 +128,7 @@ local
     @{const_name c_rel}, @{const_name c_start}, @{const_name c_end}, @{const_name c_weight},
     @{const_name c_surface}, @{const_name c_dataset}, @{const_name c_concept}, @{const_name c_specs},
     @{const_name d_via}, @{const_name d_line}, @{const_name d_hop1}, @{const_name d_hop2},
+    @{const_name int_of_integer}, @{const_name integer_of_int},
     @{const_name Fwd}, @{const_name Rev},
     @{const_name C_answer}, @{const_name C_derived}, @{const_name C_abstain}, @{const_name self_test}]
   val (files, _) = Code_Target.produce_code @{context} false consts "SML" "Conceptnet_Code" NONE []

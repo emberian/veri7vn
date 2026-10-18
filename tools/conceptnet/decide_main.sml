@@ -108,17 +108,23 @@ structure Main = struct
   structure C = Conceptnet_Code
   open Json
 
-  fun cps v = map int (list v)                                (* JSON int array -> code points *)
-  fun emit l = String.concat (map (utf8 o IntInf.toInt) l)    (* code points -> UTF-8 *)
+  (* the kernel's int is the code-generated integer type (Code_Target_Int); these are the
+     exported bridges between it and IntInf, which the JSON layer speaks *)
+  fun ci i = C.Int_of_integer i          (* the exported int constructor itself *)
+  val ui = C.integer_of_int : C.int -> IntInf.int
+  fun nums l = Arr (map (Num o ui) l)
 
-  fun claimOf (p, w, ds) =
-    Obj [("provenance", Arr (map Num p)), ("weight", Num w), ("dataset", Arr (map Num ds))]
+  fun cps v = map (ci o int) (list v)                                 (* JSON int array -> code points *)
+  fun emit l = String.concat (map (utf8 o IntInf.toInt o ui) l) (* code points -> UTF-8 *)
+
+  fun claimOf (p, (w, ds)) = (* HOL products nest right: claim = p * (w * ds) *)
+    Obj [("provenance", nums p), ("weight", Num (ui w)), ("dataset", nums ds)]
 
   fun parseRel cpv = case C.parse_relation cpv of SOME r => r | NONE => raise Bad "unknown relation"
 
   fun edge e =
     let val rel = parseRel (cps (field e "rel"))
-    in (rel, cps (field e "start"), cps (field e "end"), int (field e "w"),
+    in (rel, cps (field e "start"), cps (field e "end"), ci (int (field e "w")),
         cps (field e "surface"), cps (field e "dataset")) end
 
   fun spec s = case list s of
@@ -126,9 +132,9 @@ structure Main = struct
     | _ => raise Bad "spec"
 
   fun tablesReply () =
-    Obj [("rels", Arr (map (fn r => Arr (map Num (C.rel_name r))) C.all_rels)),
+    Obj [("rels", Arr (map (fn r => nums (C.rel_name r)) C.all_rels)),
          ("templates", Obj (map (fn r => (emit (C.rel_name r),
-                Arr (map Num (C.template_chars r [83] [84])))) C.all_rels))]
+                nums (C.template_chars r [ci 83] [ci 84]))) C.all_rels))]
 
   fun handle_line line =
     if line = "tables" then tablesReply ()
@@ -137,18 +143,18 @@ structure Main = struct
         val e = parse line
         val req = C.mk_crequest (cps (field e "concept")) (map spec (list (field e "specs")))
         val meds = map parseRel (map cps (list (field e "meds")))
-        val edges = map (fn (r, s0, e0, w, sf, ds) => C.mk_cedge (r, s0, e0, w, sf, ds))
+        val edges = map (fn (r, s0, e0, w, sf, ds) => C.mk_cedge r s0 e0 w sf ds)
                         (map edge (list (field e "edges")))
       in
         case C.decide meds req edges of
           C.C_answer out =>
             Obj [("status", Str "answered"), ("operation", Str "conceptnet_commonsense"),
-                 ("lines", Arr (map (fn (l, _) => Arr (map Num l)) out)),
+                 ("lines", Arr (map (fn (l, _) => nums l) out)),
                  ("claims", Arr (map (fn (_, cl) => claimOf cl) out))]
         | C.C_derived ds =>
             Obj [("status", Str "answered"), ("operation", Str "conceptnet_derived"),
-                 ("lines", Arr (map (fn dl => Arr (map Num (C.d_line dl))) ds)),
-                 ("via", Arr (map (fn dl => Arr (map Num (C.d_via dl))) ds)),
+                 ("lines", Arr (map (fn dl => nums (C.d_line dl)) ds)),
+                 ("via", Arr (map (fn dl => nums (C.d_via dl)) ds)),
                  ("claims", Arr (map (fn dl => Arr [claimOf (C.d_hop1 dl), claimOf (C.d_hop2 dl)]) ds))]
         | C.C_abstain =>
             Obj [("status", Str "withheld"), ("operation", Str "conceptnet_no_admitted_edges")]
