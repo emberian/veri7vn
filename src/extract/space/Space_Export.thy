@@ -9,6 +9,10 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
+     enclose St_orb 32 (fa (OHohDv (Some O_earth) (Some (400, 400001/1000)))) = None \<and>
+     kernel (OHohDv (Some O_earth) (Some (400, 400001/1000))) \<noteq> Decline Imprecise \<and>
+     enclose_adaptive St_orb (fa (OHohDv (Some O_earth) (Some (400, 400001/1000)))) =
+       enclose St_orb prec (fa (OHohDv (Some O_earth) (Some (400, 400001/1000)))) \<and>
      kernel (CLight (Some (Dist 0 Ds_one Db_m)) False) = Exact (STR ''light_time'') 0 \<and>
      kernel (CLight (Some (Dist (-1) Ds_one Db_km)) False) = Decline (Impossible R_physical_domain) \<and>
      kernel (CXfer (1/2) Dp_one False 1 Ru_bps) = Decline (Impossible R_physical_domain) \<and>
@@ -55,7 +59,8 @@ ML \<open>
   val theorems = [@{thm kernel_exact_sound}, @{thm kernel_approx_sound}, @{thm kernel_fact_sound},
     @{thm kernel_underspecified}, @{thm kernel_nosync}, @{thm kernel_impossible},
     @{thm kernel_unknown}, @{thm kernel_novalue}, @{thm kernel_imprecise},
-    @{thm stated_dec_sound}, @{thm to_dec_sound}, @{thm enclose_sound}, @{thm round_tie_up},
+    @{thm stated_dec_sound}, @{thm to_dec_sound}, @{thm enclose_sound}, @{thm enclose_adaptive_sound}, @{thm enclose_adaptive_fallback},
+    @{thm enclose_adaptive_preserves_success}, @{thm round_tie_up},
     @{thm gravity_model}, @{thm weight_model}, @{thm escape_model}, @{thm orbital_velocity_model},
     @{thm escape_vs_orbital}, @{thm density_model},
     @{thm orbit_speed_model}, @{thm orbit_period_model}, @{thm hohmann_time_model},

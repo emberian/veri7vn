@@ -522,6 +522,206 @@
       "kind": null,
       "source": "Dimensional role check: a speed in m/s or km/s supplies neither orbit altitude nor light path distance.",
       "semantic_category": "underspecified"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the Hohmann transfer delta-v from 400 km to 400.1 km above Earth?",
+      "valid": true,
+      "expect": 5.6567706759592754e-05,
+      "source": "Space.thy: hohmann_dv_vis_viva; independent 70-digit Decimal evaluation of two burns, circular point-mass model with Earth mu=398600.4418 km3/s2 and radius=6378.137 km",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the Hohmann transfer delta-v from 400 km to 400.001 km above Earth?",
+      "valid": true,
+      "expect": 5.656832642127298e-07,
+      "source": "Space.thy: hohmann_dv_vis_viva; independent 70-digit Decimal evaluation of two burns, circular point-mass model with Earth mu=398600.4418 km3/s2 and radius=6378.137 km",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the Hohmann transfer delta-v from 400 km to 400.00001 km above Earth?",
+      "valid": true,
+      "expect": 5.656833261795833e-09,
+      "source": "Space.thy: hohmann_dv_vis_viva; independent 70-digit Decimal evaluation of two burns, circular point-mass model with Earth mu=398600.4418 km3/s2 and radius=6378.137 km",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the Hohmann transfer delta-v from 400 km to 400.0000001 km above Earth?",
+      "valid": true,
+      "expect": 5.6568332679925194e-11,
+      "source": "Space.thy: hohmann_dv_vis_viva; independent 70-digit Decimal evaluation of two burns, circular point-mass model with Earth mu=398600.4418 km3/s2 and radius=6378.137 km",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the Hohmann transfer delta-v from 400 km to 401 km above Earth?",
+      "valid": true,
+      "expect": 0.0005656207409421834,
+      "source": "Space.thy: hohmann_dv_vis_viva; independent 70-digit Decimal evaluation of two burns, circular point-mass model with Earth mu=398600.4418 km3/s2 and radius=6378.137 km",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the Hohmann transfer delta-v from 400 km to 4000 km above Earth?",
+      "valid": true,
+      "expect": 1.4547406808664403,
+      "source": "Space.thy: hohmann_dv_vis_viva; independent 70-digit Decimal evaluation of two burns, circular point-mass model with Earth mu=398600.4418 km3/s2 and radius=6378.137 km",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the Hohmann transfer delta-v from 400 km to 40000 km above Earth?",
+      "valid": true,
+      "expect": 3.9125723492892197,
+      "source": "Space.thy: hohmann_dv_vis_viva; independent 70-digit Decimal evaluation of two burns, circular point-mass model with Earth mu=398600.4418 km3/s2 and radius=6378.137 km",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the Hohmann transfer delta-v from 400 km to 4000000 km above Earth?",
+      "valid": true,
+      "expect": 3.4643487090022234,
+      "source": "Space.thy: hohmann_dv_vis_viva; independent 70-digit Decimal evaluation of two burns, circular point-mass model with Earth mu=398600.4418 km3/s2 and radius=6378.137 km",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the orbital speed of a satellite 0 km above Earth?",
+      "valid": true,
+      "expect": 7.905365719014348,
+      "source": "Space.thy: orbit_speed_model, v\u00b2r=mu, circular point-mass orbit",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the orbital speed of a satellite 10 km above Earth?",
+      "valid": true,
+      "expect": 7.899175759476102,
+      "source": "Space.thy: orbit_speed_model, v\u00b2r=mu, circular point-mass orbit",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the orbital speed of a satellite 100000 km above Earth?",
+      "valid": true,
+      "expect": 1.9357207153414135,
+      "source": "Space.thy: orbit_speed_model, v\u00b2r=mu, circular point-mass orbit",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the orbital speed of a satellite 10000000 km above Earth?",
+      "valid": true,
+      "expect": 0.1995861646074731,
+      "source": "Space.thy: orbit_speed_model, v\u00b2r=mu, circular point-mass orbit",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 1001 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "valid": true,
+      "expect": 2.9405249824297655,
+      "source": "Space.thy: delta_v_model; ideal constant exhaust velocity rocket, ve=Isp*9.80665",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 2000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "valid": true,
+      "expect": 2039.2355394714561,
+      "source": "Space.thy: delta_v_model; ideal constant exhaust velocity rocket, ve=Isp*9.80665",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 100000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "valid": true,
+      "expect": 13548.387661326036,
+      "source": "Space.thy: delta_v_model; ideal constant exhaust velocity rocket, ve=Isp*9.80665",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "A rocket has an initial mass of 1000000000 kg, a final mass of 1000 kg and an Isp of 300 s. What is its delta-v?",
+      "valid": true,
+      "expect": 40645.1629839781,
+      "source": "Space.thy: delta_v_model; ideal constant exhaust velocity rocket, ve=Isp*9.80665",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 1 GHz over 1 km?",
+      "valid": true,
+      "expect": 92.4478,
+      "source": "Space.thy: pathloss_model; power loss in dB, isotropic free-space propagation, exact model20log10(distance_km*frequency_MHz)+32.4478",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 8.4 GHz over 400000000 km?",
+      "valid": true,
+      "expect": 282.9745855477969,
+      "source": "Space.thy: pathloss_model; power loss in dB, isotropic free-space propagation, exact model20log10(distance_km*frequency_MHz)+32.4478",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 32 GHz over 780000000 km?",
+      "valid": true,
+      "expect": 300.39269162020776,
+      "source": "Space.thy: pathloss_model; power loss in dB, isotropic free-space propagation, exact model20log10(distance_km*frequency_MHz)+32.4478",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "What is the free-space path loss at 100 GHz over 10000000000 km?",
+      "valid": true,
+      "expect": 332.44780000000003,
+      "source": "Space.thy: pathloss_model; power loss in dB, isotropic free-space propagation, exact model20log10(distance_km*frequency_MHz)+32.4478",
+      "kind": null,
+      "semantic_category": "answerable",
+      "packet": "adaptive"
     }
   ]
 }

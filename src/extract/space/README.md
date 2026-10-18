@@ -22,7 +22,7 @@ The recognizer remains untrusted. It passes the exact checked reply used by
 its narrowing decision to the driver, so interval arithmetic runs once for
 that request. Build-time self tests remain enabled; they no longer become an
 eager runtime constant. That first continuation added no formulas or accepted answer kinds.
-The existing 80-bit interval precision is unchanged.
+That continuation retained the existing 80-bit interval precision.
 
 Measured panels, authored probes and limitations are recorded in
 [the continuation report](../../../project/lanes/C-physical-mechanics-space.md).
@@ -52,5 +52,14 @@ English role assignment remains untrusted.
 The [domain report](../../../project/lanes/C-physical-mechanics-space-next.md)
 records proof status, actual measurements and remaining limits. Build scripts
 use immutable compiler-input capture. Requested astronomy output-unit
-conversion and interval-performance work are separate outstanding items;
-the 80-bit precision remains unchanged.
+conversion remains outstanding. Interval evaluation now tries 32-bit precision
+and retries at 80 bits if the same checked-decimal predicate rejects the first
+enclosure. Either accepted branch satisfies the original error bound, and every
+successful 80-bit enclosure remains answerable. Near-equal Hohmann transfers
+exercise the fallback in the build-time self test.
+
+The [adaptive report](../../../project/lanes/F-physical-space-adaptive.md) records
+the actual native timings and comparisons. The decimal need not be identical
+to the 80-bit answer: both satisfy the proved numerical bound. An existing
+valid refusal for free-space path loss at 1 GHz over 1 km remains visible in
+the authored probes; increasing precision is not a completeness guarantee.

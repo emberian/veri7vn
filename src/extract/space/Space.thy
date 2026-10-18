@@ -126,6 +126,34 @@ proof -
   then show ?thesis using to_dec_sound d by blast
 qed
 
+text \<open>The inexpensive enclosure is accepted only by the same checked-decimal
+predicate. Failure retries the existing high-precision computation.\<close>
+definition enclose_adaptive :: "style \<Rightarrow> floatarith \<Rightarrow> (int \<times> int) option" where
+  "enclose_adaptive st e = (case enclose st 32 e of Some d \<Rightarrow> Some d
+     | None \<Rightarrow> enclose st prec e)"
+
+lemma enclose_adaptive_sound:
+  assumes "enclose_adaptive st e = Some d"
+  shows "\<bar>dec_val d - interpret_floatarith e []\<bar> \<le>
+     pow10 (snd d) / 2 + \<bar>interpret_floatarith e []\<bar> / 1000000 + 1 / 1000000000"
+proof (cases "enclose st 32 e")
+  case None
+  then have "enclose st prec e = Some d" using assms by (simp add: enclose_adaptive_def)
+  then show ?thesis by (rule enclose_sound)
+next
+  case (Some a)
+  then have "enclose st 32 e = Some d" using assms by (simp add: enclose_adaptive_def)
+  then show ?thesis by (rule enclose_sound)
+qed
+
+lemma enclose_adaptive_fallback:
+  "enclose st 32 e = None \<Longrightarrow> enclose_adaptive st e = enclose st prec e"
+  by (simp add: enclose_adaptive_def)
+
+lemma enclose_adaptive_preserves_success:
+  "enclose st prec e = Some d \<Longrightarrow> enclose_adaptive st e \<noteq> None"
+  by (cases "enclose st 32 e") (simp_all add: enclose_adaptive_def)
+
 section \<open>Response text: digits\<close>
 
 text \<open>Thousands commas, by fuel on the number of digits.\<close>
@@ -596,7 +624,7 @@ definition qshown :: "request \<Rightarrow> rat \<Rightarrow> rat" where
 
 definition answer_gen :: "request \<Rightarrow> outcome" where
   "answer_gen r = (if is_approx r then
-     (case enclose (style_of r) prec (fa r) of None \<Rightarrow> Decline Imprecise
+     (case enclose_adaptive (style_of r) (fa r) of None \<Rightarrow> Decline Imprecise
       | Some d \<Rightarrow> Approx (kind_of r) d)
      else Exact (kind_of r) (qval r))"
 
@@ -645,10 +673,10 @@ proof (cases "is_fact r")
   then show ?thesis using fact_shape[OF True] assms by (auto simp: answer_of_def)
 next
   case False
-  have e: "is_approx r" and en: "enclose (style_of r) prec (fa r) = Some d" and k: "k = kind_of r"
+  have e: "is_approx r" and en: "enclose_adaptive (style_of r) (fa r) = Some d" and k: "k = kind_of r"
     using answer_nonfact[OF False] assms by (auto simp: answer_gen_def split: if_splits option.splits)
   have "phys r = interpret_floatarith (fa r) []" using e by (simp add: phys_def)
-  then show ?thesis using enclose_sound[OF en] e k by simp
+  then show ?thesis using enclose_adaptive_sound[OF en] e k by simp
 qed
 
 lemma answer_fact:
