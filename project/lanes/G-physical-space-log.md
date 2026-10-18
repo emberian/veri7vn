@@ -42,9 +42,22 @@ remain incompletely examined, and the fifteen broader valid withholds remain.
 
 Evidence: `var/root-space-log/integration.json`; Linux receipt
 `var/linux/receipt-space-persvati-space-1792325697-1754.json`. Portable packaging
-is the remaining step for this bounded change. Changed production files are
+also passed, as recorded below. Changed production files are
 `ROOT`, `Space_Log.thy`, `Space.thy`, `Space_Export.thy`, `main.sml`, the focused
 probe/checker pair and README. The recognizer and tables are unchanged.
+
+## Portable result
+
+The separate eight-folder package contains the new macOS and Linux natives
+and pins shared consumers to `1d2856b`. After extraction outside the checkout,
+both platforms pass all 1185 shipped cases and all 32 numerical model checks
+with identical replies. The 68 shipped refusals are correct invalid cases.
+Archive: `var/root-space-log/portability/package/veri7vn-specialists-2026-10-18.tar.gz`
+(799,895 bytes), SHA256
+`580d399afefabdb378abcd216f955bb25ef1d5371ade29cb15d8d0848f788680`.
+Exact native, consumer and test bindings: `var/root-space-log/portability/delivery.json`.
+No jobs remain from this bounded change. The full 144-folder archive has not
+been rebuilt with the recent corrections.
 
 ## Historical drain checkpoint (superseded above)
 
