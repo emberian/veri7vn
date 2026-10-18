@@ -1,5 +1,54 @@
 # Requested professions in relation questions
 
+## Root integration at wrap-up
+
+The profession parser is now connected to the existing checked
+`QueryPropertyClass 106 roots` interpreter. It retains all earlier city roots
+(the parked parser had an older city list), the complete remaining entity name,
+and suffixes in question frames such as “born” and “play”. Explicit composer
+and journalist constraints retain the narrower roots described below.
+
+Ordinary unqualified birthplace, death-place and instrument questions remain
+on the original reader path. An initial normalization of those questions caused
+60 extra shipped refusals because individual reader forms are deliberately
+dropped in some specs. The final repair preserves the original forms. All
+2,797 panel replies across the fourteen readers now have identical status,
+value, response and path to the pre-change baseline: **2,623 right, zero wrong,
+zero false yes, 174 remaining withholds**. The other harness criteria were not
+fully measured; this is not a whole-system completion claim.
+
+All fourteen profession-qualified source questions were rerun. The five
+reference answers below now pass through the actual relation front door and
+full default dispatcher. The other nine remain withheld. Seven wrong-role,
+compound or qualified-name controls also withhold. Thus the 21 source questions
+produce five correct answers and sixteen withholds, not 21 answered capabilities.
+
+Fourteen direct kernel evidence controls pass, including wrong profession,
+missing alternative closure/rows, unrelated closure identity, literal versus
+entity occupation rows, and conflicting eligible locations. The first composer
+positive fixture mistakenly used a P19 form explicitly dropped by that reader;
+the retained diagnostic correctly declined it. The final fixtures use enabled
+P20. All 39 relation unit tests and 41 prior identity checks pass.
+
+No new theorem or native was needed. The actual unchanged native is
+`bdacf372cae82d237e3cba0f3d5b95746f40d84c4d8a5fa7fb2a438653170c38`,
+bound to `var/relations/native-attempts/20261018T104204Z-b3051c0bc9f0/compile-inputs.json`.
+The verifier confirms current proof/runtime source consistency. The consumed
+`queried_forward_answer` theorem requires the accepted candidate's exact stored
+answer and query predicate, and classification coverage for every original
+candidate. `query_genre_witness`, despite its historical name, is generic in the
+property and supplies the exact P106 occupation/object-ancestry witness here.
+English profession interpretation and source ontology meaning/completeness
+remain assumptions; missing alternative evidence never creates uniqueness.
+
+Changed files: `tools/relations/query_request.py`, `test_query_request.py`,
+`profession_probes.py`, this report and project tracking. Evidence is under
+`var/root-relation-professions/`; `integration.json` binds the checks and source.
+Relations still depends on external stores and checkout imports. No standalone
+package or new Linux-native claim is made. No jobs remain from this change.
+
+## Historical staged proposal (superseded above)
+
 Owner: Codex symbolic deputy. Staged successor to Relations F; no new native or shipped-panel result yet.
 
 The actual source/whole-front-door review asks about each of 14 domains a named person’s birthplace, then asks the same whole question with an explicit profession. All 14 typed questions currently withhold. Five unqualified questions answer; the other nine have multiple stored locations, unresolved senses or a decisive reader refusal. The proposed parser preserves the whole name and turns the profession into a checked P106 row plus source ancestry constraint. It does not invent missing biographies.

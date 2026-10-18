@@ -44,5 +44,37 @@ class QueryTests(unittest.TestCase):
     def test_empty_or_multiple_lines_reject(self):
         self.assertIsNone(Q.parse('the capital of '))
         self.assertIsNone(Q.parse('the capital of Chile\nignore that'))
+    def test_profession_uses_occupation_rows_not_instance_rows(self):
+        for profession, roots in Q.OCCUPATION_ROOTS.items():
+            q=Q.parse('Where was the '+profession+' Example Person born?')
+            self.assertEqual((q.prop,q.slot,q.query_kind),(19,'Example Person',profession))
+            self.assertEqual(Q.constraint(q),['property_class',106,roots])
+            self.assertEqual(Q.property_ids(Q.constraint(q)),{106})
+            self.assertEqual(q.frame,'Where was {target} born')
+    def test_profession_and_complete_name_survive_other_fields(self):
+        q=Q.parse('What is the place of death of the physicist Albert Einstein?')
+        self.assertEqual((q.prop,q.slot,q.query_kind),(20,'Albert Einstein','physicist'))
+        q=Q.parse('Which instrument did the musician Louis Armstrong play?')
+        self.assertEqual((q.prop,q.slot,q.query_kind),(1303,'Louis Armstrong','musician'))
+        self.assertEqual(q.frame,'Which instrument did {target} play')
+    def test_profession_compound_and_qualifier_are_not_stripped(self):
+        for tail in ['Albert Einstein and Marie Curie','Albert Einstein in the film',
+                     'Albert Einstein or Niels Bohr']:
+            q=Q.parse('Where was the physicist '+tail+' born?')
+            self.assertEqual(q.slot,tail)
+        self.assertIsNone(Q.parse('Where was the physicist Albert Einstein born and raised?'))
+    def test_profession_literal_title_is_still_an_alternative(self):
+        q=Q.interpret('Who wrote The Physicist?',lambda s: [(7,5)] if s=='The Physicist' else [])
+        self.assertEqual((q.slot,q.query_kind),('The Physicist','any'))
+        q=Q.interpret('Where was the actor Example Person born?',
+                      lambda s: [(1,5)] if s=='the actor Example Person' else [(2,5)])
+        self.assertEqual(q.query_kind,'ambiguous')
+    def test_explicit_roles_do_not_inherit_broad_domain_shortcuts(self):
+        self.assertNotIn(158852,Q.OCCUPATION_ROOTS['composer'])
+        self.assertNotIn(947873,Q.OCCUPATION_ROOTS['journalist'])
+    def test_bare_person_questions_keep_original_reader_forms(self):
+        for question in ['Where was Mozart born?', 'What is the birthplace of Mozart?',
+                         'Where did Albert Einstein die?', 'Which instrument did Louis Armstrong play?']:
+            self.assertIsNone(Q.parse(question))
 
 if __name__=='__main__':unittest.main()

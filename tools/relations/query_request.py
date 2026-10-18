@@ -16,6 +16,10 @@ class Query:
     literal_slot: str
 
 FIELDS = {
+    'birthplace': (19, 'Where was {} born?'),
+    'place of birth': (19, 'Where was {} born?'),
+    'place of death': (20, 'Where did {} die?'),
+    'instrument': (1303, 'What instrument did {} play?'),
     'capital': (36, 'What is the capital of {}?'),
     'author': (50, 'Who wrote {}?'),
     'director': (57, 'Who directed {}?'),
@@ -33,7 +37,22 @@ TYPE_ROOTS = {'film': [11424], 'novel': [8261], 'book': [571],
               # not invented subclass rows. Town/national-capital alone is absent.
               'city': [515,1549591,2264924,1093829,25412763,494721,11422368,1749269], 'song': [7366],
               'album': [482994], 'painting': [3305213]}
+# Source ontology IDs are interpretation premises. Explicit composer and
+# journalist requests are narrower than the inherited reader domains, which
+# also admit conductors and television presenters respectively.
+OCCUPATION_ROOTS = {
+    'actor': [33999], 'chemist': [593644], 'composer': [36834],
+    'graphic artist': [1925963], 'journalist': [1930187],
+    'musician': [386854, 1259917, 855091, 639669, 486748],
+    'painter': [1028181], 'philosopher': [4964182],
+    'photographer': [33231], 'physician': [39631],
+    'physicist': [169470], 'poet': [49757],
+    'sculptor': [1281618], 'singer': [177220],
+}
 DIRECT = {
+    19: r'where (?:is|was) (?P<slot>.+) born',
+    20: r'where did (?P<slot>.+) die',
+    1303: r'(?:what|which) instrument (?:does|did) (?P<slot>.+) play',
     36: r'what is the capital(?: city)? of (?P<slot>.+)',
     50: r'who (?:wrote|penned) (?P<slot>.+)',
     57: r'who directed (?P<slot>.+)',
@@ -63,14 +82,18 @@ def parse(text):
         for p,pattern in DIRECT.items():
             match=re.fullmatch(pattern,s,re.I)
             if match:
-                prop=p;slot=match['slot'];frame=s[:match.start('slot')]+'{target}'
+                prop=p;slot=match['slot'];frame=s[:match.start('slot')]+'{target}'+s[match.end('slot'):]
                 template=next(t for pp,t in FIELDS.values() if pp==p);break
     if slot is None:return None
     literal_slot=slot
-    typed=re.fullmatch(r'(?:the )?(?P<kind>'+ '|'.join(TYPE_ROOTS)+r') (?P<name>.+)',slot,re.I)
+    typed=re.fullmatch(r'(?:the )?(?P<kind>'+ '|'.join((*TYPE_ROOTS,*OCCUPATION_ROOTS))+r') (?P<name>.+)',slot,re.I)
     kind='any'
     if typed:
         kind=typed['kind'].lower();slot=typed['name']
+    # Existing person readers distinguish and sometimes deliberately drop
+    # individual surface forms. Canonicalizing a bare birthplace/death/instrument
+    # question would change that decision. Only explicit types use this new path.
+    if prop in (19,20,1303) and kind == 'any':return None
     # Empty quoted names and adjacent punctuation cannot become a slot.
     if not slot.strip() or not any(c.isalnum() for c in slot):return None
     return Query(prop,slot,kind,template.format(slot),frame,literal_slot)
@@ -98,6 +121,8 @@ def constraint(query):
     if query is None or query.query_kind == 'any':
         return ['any']
     if query.query_kind=='ambiguous':return ['unknown']
+    if query.query_kind in OCCUPATION_ROOTS:
+        return ['property_class',106,OCCUPATION_ROOTS[query.query_kind]]
     roots=TYPE_ROOTS[query.query_kind]
     if query.query_kind == 'novel':
         return ['either',['instance',roots],['property_class',136,roots]]
