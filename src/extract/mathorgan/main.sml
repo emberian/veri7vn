@@ -133,11 +133,11 @@ end
 
 structure Main =
 struct
-  val theorems = "[\"eval_closed_ignores_reading\",\"dec_expansion_sound\",\"isqrt_interval\",\"isqrt_unique\",\
-\"isqrt_square\",\"newton_last_isqrt\",\"euc_res_gcd\",\"percent_value\",\"convert_exact\",\"convert_composes\",\
-\"sqrt_of_square\",\"sqrt_value_is_interval\",\"gcd_value_divides\",\"lcm_value_identity\",\"solve_linear_sound\",\
-\"solve_linear_complete\",\"solve_echo_iff\",\"eval_value_independent\",\"guard_P7_rule\",\"guard_G6_rule\",\
-\"guard_G5_rule\",\"guard_english_rule\",\"reply_answered_iff\",\"reply_states_value\",\"reply_withheld_names_decline\"]"
+  val theorems = "[\"eval_closed_ignores_reading\",\"dec_expansion_sound\",\"isqrt_interval\",\"isqrt_unique\"," ^
+    "\"isqrt_square\",\"newton_last_isqrt\",\"euc_res_gcd\",\"percent_value\",\"convert_exact\",\"convert_composes\"," ^
+    "\"sqrt_of_square\",\"sqrt_value_is_interval\",\"gcd_value_divides\",\"lcm_value_identity\",\"solve_linear_sound\"," ^
+    "\"solve_linear_complete\",\"solve_echo_iff\",\"eval_value_independent\",\"guard_P7_rule\",\"guard_G6_rule\"," ^
+    "\"guard_G5_rule\",\"guard_english_rule\",\"reply_answered_iff\",\"reply_states_value\",\"reply_withheld_names_decline\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
@@ -154,7 +154,7 @@ struct
   (* the kind: the route segment of the path, as the harness reports it *)
   fun kindOf path =
     let
-      fun afterPipe s = case String.fields (fn c => c = #"|") s of [_; r] => r | _ => s
+      fun afterPipe s = case String.fields (fn c => c = #"|") s of [_, r] => r | _ => s
       val p = afterPipe path
     in case rev (String.fields (fn c => c = #">") p) of
          k :: _ => k

@@ -910,7 +910,7 @@ panel items the decimals all terminate: 3/8 = 0.375, 7/16 = 0.4375, 5/8 =
 0.625, 3/5 = 0.6, 7/20 = 0.35, 9/25 = 0.36 (pinned in the self test). The
 algebra form of the guard is the kernel's own echo decline: it fires exactly
 when the root is one of the question's stated values (solve_echo_iff), and
-\<^const>\<open>reply_of\<close> reports it under the guard's own name.\<close>
+the reply layer reports it under the guard's own name.\<close>
 
 text \<open>Q1, R1, R6 (folds w513, w514, w516): the evaluator read an English
 question as a product of variables and letters. The three rules are the same
@@ -927,8 +927,8 @@ theorem guard_english_rule: "guard_english f a \<longleftrightarrow> f \<and> a"
 
 text \<open>Justification is G6's, made explicit: the reply such a question pulls
 out of the evaluator is a coefficient times a product of the question's own
-letters, and \<^theorem>\<open>G6_value_not_determined\<close> shows no number is
-determined that way.\<close>
+letters, and G6_value_not_determined shows no number is determined that
+way.\<close>
 
 section \<open>Requests the recognizer can ask, and the reply text\<close>
 
@@ -1139,13 +1139,13 @@ fun reply_of :: "prequest \<Rightarrow> reply" where
      else Withheld (STR ''guard G6 does not fire'') (STR ''''))"
 | "reply_of (GuardG5 a v) =
     (if guard_G5 a v then Withheld withhold_text (path_of (GuardG5 a v))
-     else Withheld (STR ''guard G5 does not fire'') (STR ''''))
+     else Withheld (STR ''guard G5 does not fire'') (STR ''''))"
 | "reply_of (GuardQ1 f a) =
     (if guard_english f a then Withheld withhold_text (path_of (GuardQ1 f a))
-     else Withheld (STR ''guard Q1 does not fire'') (STR ''''))
+     else Withheld (STR ''guard Q1 does not fire'') (STR ''''))"
 | "reply_of (GuardR1 f a) =
     (if guard_english f a then Withheld withhold_text (path_of (GuardR1 f a))
-     else Withheld (STR ''guard R1 does not fire'') (STR ''''))
+     else Withheld (STR ''guard R1 does not fire'') (STR ''''))"
 | "reply_of (GuardR6 f a) =
     (if guard_english f a then Withheld withhold_text (path_of (GuardR6 f a))
      else Withheld (STR ''guard R6 does not fire'') (STR ''''))"
@@ -1182,7 +1182,10 @@ theorem reply_answered_iff:
       | OpConv _ a b _ _ \<Rightarrow> mdim_of a = mdim_of b
       | GuardP7 _ _ \<Rightarrow> False
       | GuardG6 _ _ _ \<Rightarrow> False
-      | GuardG5 _ _ \<Rightarrow> False)"
+      | GuardG5 _ _ \<Rightarrow> False
+      | GuardQ1 _ _ \<Rightarrow> False
+      | GuardR1 _ _ \<Rightarrow> False
+      | GuardR6 _ _ \<Rightarrow> False)"
 proof (cases p)
   case (Ask x)
   note pA = \<open>p = Ask x\<close>

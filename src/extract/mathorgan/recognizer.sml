@@ -56,7 +56,7 @@ struct
       val ms = rev (findall THOUSANDS s)
       fun stripCommas t = String.translate (fn #"," => "" | c => String.str c) t
       fun go [] s = s
-        | go ({start, stop, ...} : Regex.match :: ms) s =
+        | go (({start, stop, ...} : Regex.match) :: ms) s =
             go ms (String.substring (s, 0, start) ^ stripCommas (String.substring (s, start, stop - start))
                    ^ String.extract (s, stop, NONE))
     in go ms s end
@@ -93,7 +93,7 @@ struct
      - a 2-3 letter run is a product only when GLUED to mathematics;
      - a word longer than 3 letters is English;
      - a number or an operator is mathematics; a bare sentence '.' is not. *)
-  datatype tok = Word of string | Digits of string | Sp of string | Punct of string
+  datatype tok = Word of string | Digits of string | Sp of string | Punct of char
   fun toks low =
     let
       val ms = findall "([a-z]+)|(\\d+(?:\\.\\d+)?)|(\\s+)|(.)" low
@@ -158,9 +158,17 @@ struct
   fun okChar c =
     Char.isDigit c orelse Char.contains "+-*/^(). " c
     orelse c = #"x" orelse c = #"y" orelse c = #"z"
+  (* index of the first '=' (Basis has no String.index) *)
+  fun findEq s =
+    let
+      fun go i = if i >= size s then NONE
+                 else if String.sub (s, i) = #"=" then SOME i
+                 else go (i + 1)
+    in go 0 end
+
   (* scan outward from the first '=' over okChar only (w55._extract) *)
   fun extractEq low =
-    case String.index (low, #"=") of
+    case findEq low of
       NONE => NONE
     | SOME e =>
         let
@@ -176,35 +184,69 @@ struct
           if lhs = "" orelse rhs = "" then NONE else SOME (lhs, rhs)
         end
 
-  (* "a x + b" with rational a b: [num]x, [num]x + num, a bare number, x *)
+  (* "a x + b" with rational a b: a sum of terms, each a number or a number
+     times x (like-term folding, as the host's own parser does); anything else
+     (brackets, products, a second unknown) is outside the shape *)
   datatype lin = Lin of K.rat * K.rat
+  type rr = IntInf.int * IntInf.int
+  fun rrAdd ((a, b) : rr, (c, d) : rr) : rr =
+    if b = d then (a + c, b) else (a * d + c * b, b * d)
+  fun rrOf (s : string) : rr =
+    let
+      val (neg, body) = if String.isPrefix "-" s then (true, String.extract (s, 1, NONE)) else (false, s)
+      val (ip, fp) = case String.fields (fn c => c = #".") body of
+                       [a] => (a, "") | [a, b] => (a, b) | _ => raise Fail ("bad numeral " ^ s)
+      val num = valOf (IntInf.fromString (ip ^ fp))
+      val den = IntInf.pow (10, size fp)
+    in (if neg then IntInf.~ num else num, den) end
+  fun rrRat ((a, b) : rr) : K.rat = K.mk_rat a b
+
   fun parseLin t =
     let
-      fun rat s = ratOf (String.translate (fn #"*" => "" | c => String.str c) s)
+      val t = collapse t
+      (* split at a +/- that FOLLOWS a term (digit or x); a leading sign stays
+         with its numeral *)
+      val ms = findall "(?<=[\\dx])\\s*[+-]" t
+      val signs = map (fn m => String.translate (fn c => if c = #"+" orelse c = #"-" then String.str c else "")
+                            (Regex.whole t m)) ms
+      val segs =
+        let
+          fun go i [] acc = rev (String.extract (t, i, NONE) :: acc)
+            | go i (({start, stop, ...} : Regex.match) :: ms) acc =
+                go stop ms (String.substring (t, i, start - i) :: acc)
+        in go 0 ms [] end
+      val pieces = case segs of
+                     [] => []
+                   | b0 :: bs => b0 :: ListPair.map (fn (s, b) => s ^ b) (signs, bs)
+      (* each piece contributes (dx, db) *)
+      fun parsePiece p =
+        case search "^\\s*([-+])?\\s*(\\d+\\.?\\d*)?\\s*x\\s*$" p of
+          SOME m =>
+            let val c = case grp p m 2 of
+                          SOME s => rrOf ((case grp p m 1 of SOME "-" => "-" | _ => "") ^ s)
+                        | NONE => (1, 1)
+            in SOME (c, (0, 1)) end
+        | NONE =>
+            (case search "^\\s*([-+])?\\s*(\\d+\\.?\\d*)\\s*$" p of
+               SOME m => SOME ((0, 1), rrOf ((case grp p m 1 of SOME "-" => "-" | _ => "")
+                                             ^ valOf (grp p m 2)))
+             | NONE => NONE)
+      fun foldPieces ([], a, b) = SOME (a, b)
+        | foldPieces (p :: ps, a, b) =
+            (case parsePiece p of
+               SOME (dx, db) => foldPieces (ps, rrAdd (a, dx), rrAdd (b, db))
+             | NONE => NONE)
     in
-      case search "^\\s*(-?\\d+\\.?\\d*)?\\s*x\\b" t of
-        SOME m =>
-          let
-            val a = case grp t m 1 of SOME s => rat s | NONE => K.mk_rat 1 1
-            val rest = String.extract (t, #stop m, NONE)
-          in
-            case search "^\\s*([+-])\\s*(\\d+\\.?\\d*)" rest of
-              SOME m2 =>
-                let val mag = valOf (grp rest m2 2)
-                in SOME (Lin (a, rat (if g1 rest m2 = "-" then "-" ^ mag else mag))) end
-            | NONE => if collapse rest = "" then SOME (Lin (a, K.mk_rat 0 1)) else NONE
-          end
-      | NONE =>
-          (case search "^\\s*(-?\\d+\\.?\\d*)\\s*$" t of
-             SOME m => SOME (Lin (K.mk_rat 0 1, rat (g1 t m)))
-           | NONE => NONE)
+      case foldPieces (pieces, (0, 1), (0, 1)) of
+        SOME (a, b) => SOME (Lin (rrRat a, rrRat b))
+      | NONE => NONE
     end
 
   fun algebraRoute low =
     let
       val hasVar = has "(?<![a-z])[xyz](?![a-z])" low
       val ask = has "\\b(?:solve|simplify|collect|expand|what is [xyz]\\b|find [xyz]\\b|value of [xyz]\\b)" low
-      val looksAlgebraic = hasVar andalso (isSome (String.index (low, #"=")) orelse ask)
+      val looksAlgebraic = hasVar andalso (isSome (findEq low) orelse ask)
       val hasDigit = has "\\d" low
     in
       if not (looksAlgebraic andalso hasDigit) then NONE
@@ -219,7 +261,7 @@ struct
                  let
                    val gs = map ratOf (List.mapPartial (fn m => grp low m 1)
                                        (findall "(?<![a-z])x\\s*=\\s*(-?\\d+\\.?\\d*)" low))
-                 in SOME (K.Ask (K.SolveLin a b c d gs)) end
+                 in SOME (K.Ask (K.SolveLin (a, b, c, d, gs))) end
              | _ => NONE)
     end
 
@@ -335,8 +377,8 @@ struct
   val AS_DECIMAL = "^\\s*what is (\\d+)\\s*/\\s*(\\d+) as an? (?:decimal|percentage|percent)\\s*\\?\\s*$"
 
   fun unitLetters low =
-    List.concat (map (fn m => List.mapPartial (fn s => Option.map String.explode s) [grp low m 1, grp low m 2])
-                      (findall UNIT_TOK low))
+    List.concat (List.mapPartial (fn m => Option.map String.explode (grp low m 1)) (findall UNIT_TOK low))
+    @ List.concat (List.mapPartial (fn m => Option.map String.explode (grp low m 2)) (findall UNIT_TOK low))
 
   fun guardRoute low =
     if has FORMULA_Q low then
@@ -351,7 +393,7 @@ struct
           SOME (K.GuardP7 (true, false))
         else if not (has "[+\\-*/^=]" low) andalso length cq >= 3 andalso spanHasLetter low then
           SOME (K.GuardQ1 (true, true))
-        else if not (isSome (String.index (low, #"="))) andalso length cqn >= 3 andalso spanHasLetter low then
+        else if not (isSome (findEq low)) andalso length cqn >= 3 andalso spanHasLetter low then
           SOME (K.GuardR1 (true, true))
         else if not (has "[=+*/^]" low) andalso not (has COMPUTE_RX low) andalso length cq >= 4 then
           SOME (K.GuardR6 (true, true))
@@ -395,13 +437,13 @@ struct
     in
       if t = "" then NONE
       else case route ("algebra", algebraRoute) of
-             SOME r => r
+             SOME r => SOME r
            | NONE =>
                (case route ("ops", opsRoute) of
-                  SOME r => r
+                  SOME r => SOME r
                 | NONE =>
                     (case route ("word", wordRoute) of
-                       SOME r => r
+                       SOME r => SOME r
                      | NONE => route ("guards", guardRoute)))
     end
 end
