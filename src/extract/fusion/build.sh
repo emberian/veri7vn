@@ -25,7 +25,7 @@ repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT
 with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
     fcntl.flock(lock, fcntl.LOCK_EX)
     env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
-    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/quantity", "-d", "src/extract/energy", "-d", "src/extract/climate",
+    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/quantity", "-d", "src/extract/commons", "-d", "src/extract/energy", "-d", "src/extract/climate",
                     "-d", "src/extract/space", "-d", "src/extract/fusion",
                     "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Fusion"],
                    check=True, env=env, cwd=repo)
