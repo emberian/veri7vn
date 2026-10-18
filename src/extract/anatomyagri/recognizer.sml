@@ -591,10 +591,60 @@ struct
                | _ => NONE
             end
           fun rat(n,d)=Q.mk_rat n d
+          (* A label basis and a requested portion are distinct roles. All
+             quantities use complete shared exact tokens; grams/servings stay
+             typed until the extracted kernel has a serving-mass conversion. *)
+          val asks=findall "\\b(?:how|what|calculate|find)\\b" low
+          val askStart=case rev asks of (m:Regex.match)::_ => #start m | []=>size low
+          val prefix=String.substring(low,0,askStart)
+          val query=String.extract(low,askStart,NONE)
+          fun fields text=List.mapPartial(fn ExactNumeric.Number{start,stop,value,...}=>
+            SOME(value,String.substring(text,0,start),String.extract(text,stop,NONE))|_=>NONE)(ExactNumeric.scan text)
+          fun mul((n,d),(a,b))=(n*a,d*b)
+          fun extent ((n,d),post)=
+            if has "^\\s*kg\\b|^\\s*kilograms?\\b" post then SOME(Q.GramPortion(rat(mul((n,d),(1000,1)))))
+            else if has "^\\s*mg\\b|^\\s*milligrams?\\b" post then SOME(Q.GramPortion(rat(mul((n,d),(1,1000)))))
+            else if has "^\\s*g(?:rams?)?\\b" post then SOME(Q.GramPortion(rat(n,d)))
+            else if has "^\\s*servings?\\b|^\\s*portions?\\b" post then SOME(Q.ServingPortion(rat(n,d))) else NONE
+          fun reference text=List.mapPartial(fn(v,pre,post)=>
+            if has "\\bper\\s*$|/\\s*$" pre then extent(v,post)else NONE)(fields text)
+          fun implicit text=if has "\\bper\\s+(?:a\\s+|one\\s+)?serving\\b" text then [Q.ServingPortion(rat(1,1))]
+            else if has "\\bper\\s+(?:a\\s+|one\\s+)?gram\\b" text then [Q.GramPortion(rat(1,1))]else []
+          val preRefs=reference prefix @ implicit prefix
+          val refs=if null preRefs then reference low @ implicit low else preRefs
+          fun isMacro post=has "^\\s*g(?:rams?)?\\s*(?:of\\s+)?(?:protein|carb\\w*|fat|alcohol)\\b" post
+          fun isMacroBefore pre=has "\\b(?:protein|carb\\w*|fat|alcohol)\\s*(?:of|:|=)?\\s*$" pre
+          fun isSize pre=has "\\bserving size\\s*(?:is|of|:|=)?\\s*$|\\beach serving (?:is|weighs)\\s*$" pre
+          val sizes=List.mapPartial(fn(v,pre,post)=>if isSize pre then
+              (if has "^\\s*kg\\b|^\\s*kilograms?\\b" post then SOME(rat(mul(v,(1000,1))))
+               else if has "^\\s*mg\\b|^\\s*milligrams?\\b" post then SOME(rat(mul(v,(1,1000))))
+               else if has "^\\s*g(?:rams?)?\\b" post then SOME(rat v)else NONE)
+            else NONE)(fields low)
+          val targetFields=List.filter(fn(v,pre,post)=>
+            not (isMacro post orelse isMacroBefore pre orelse isSize pre orelse
+               (null preRefs andalso has "\\bper\\s*$|/\\s*$" pre)))(fields query)
+          val targets=List.mapPartial(fn(v,_,post)=>extent(v,post))targetFields
+          val unreadTarget=length targets <> length targetFields
+          val targetImplicit=if not(null preRefs) then implicit query else []
+          val requested=targets@targetImplicit
+          val hasPortion=not(null refs) orelse not(null sizes) orelse not(null requested) orelse has "\\bper\\b|/\\s*(?:g|serving)\\b" low
+          fun one xs=case xs of [x]=>SOME x|_=>NONE
+          fun calorieRequest(p,c,f,a)=
+            if unreadTarget orelse (not(null preRefs) andalso null requested andalso
+                 has "\\b(?:in|for|per|whole|entire|package|container|bottle)\\b" query)
+            then SOME Q.NutUnderspecified
+            else if not hasPortion then SOME(Q.Kcal(rat p,rat c,rat f,rat a))
+            else case (one refs,requested,sizes)of
+              (SOME basis,[],[])=>SOME(Q.KcalPortion(rat p,rat c,rat f,rat a,basis,basis,NONE))
+            | (SOME basis,[],[sz])=>SOME(Q.KcalPortion(rat p,rat c,rat f,rat a,basis,basis,SOME sz))
+            | (SOME basis,[target],[])=>SOME(Q.KcalPortion(rat p,rat c,rat f,rat a,basis,target,NONE))
+            | (SOME basis,[target],[sz])=>SOME(Q.KcalPortion(rat p,rat c,rat f,rat a,basis,target,SOME sz))
+            | _=>SOME Q.NutUnderspecified
+
         in
           if bad then SOME Q.NutUnderspecified
           else case (grams "protein",grams "carb\\w*",grams "fat",grams "alcohol") of
-            (SOME p,SOME c,SOME f,SOME a) => SOME(Q.Kcal(rat p,rat c,rat f,rat a))
+            (SOME p,SOME c,SOME f,SOME a) => calorieRequest(p,c,f,a)
           | _ => SOME Q.NutUnderspecified
         end
       else if has "\\bpercent\\w*\\b|\\b%\\b|\\bshare\\b|\\bproportion\\b" low
@@ -616,7 +666,16 @@ struct
     end
 
   fun nutrition text =
-    if Narrow.narrative text then NONE
+    let val raw = lower (collapse text)
+        (* A structured label can legitimately use one sentence for its basis,
+           one for serving mass, and one for the target. These exact roles are
+           checked together below instead of being cut off by sentence count. *)
+        val portionContext = has "\\bper\\s+(?:[-+0-9.]|a\\s+serving|one\\s+serving|serving\\b|gram\\b)" raw
+          andalso has "\\bprotein\\b|\\bcarb\\w*\\b|\\bfat\\b|\\balcohol\\b" raw
+          andalso has "\\bhow many calories\\b|\\btotal calories\\b" raw
+          andalso not (has Narrow.RELATION raw) andalso Narrow.words raw <= 80
+    in
+    if Narrow.narrative text andalso not portionContext then NONE
     else
       let
         val t = lower (collapse text)
@@ -639,6 +698,7 @@ struct
               then SOME Q.NutUnderspecified
               else NONE
       end
+    end
 
   (* ================= dispatch ================= *)
   val organs = ["anatomy", "anatomy-r2", "agriculture-v2", "gardening", "nutrition-label-v2"]

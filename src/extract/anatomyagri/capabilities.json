@@ -91,13 +91,11 @@
     },
     "nutrition-label-v2": {
       "evidence": {
-        "computation": "Adds supplied macronutrient energy using general Atwater factors4/4/9/7 kcal per gram. All component amounts must be nonnegative; explicit all-zero amounts give zero. Fat-calorie percentages bind one fat amount and one total energy with0<=9f<=total; daily-value percentages retain units and may exceed100%. BMI inputs preserve whole exact values and require positive mass/height.",
+        "computation": "Adds supplied macronutrient energy using general Atwater factors4/4/9/7 kcal per gram. All component amounts must be nonnegative; explicit all-zero amounts give zero. Explicit calorie label portions scale the Atwater sum by the requested/reference extent; grams and serving counts retain separate dimensions until a serving-mass declaration connects them.",
         "assumptions": [
           "The question asks for the sum of supplied macronutrient amounts; unlisted macronutrients contribute zero to that sum, as displayed in the response.",
           "Food-specific factors, label rounding, serving-count conversion and medical dietary advice are outside this model.",
-          "Percent-fat calorie share uses unrounded general9kcal/g energy, without label-rounding tolerance. Daily Values use the fixed FDA2020 reference table, not a personalized recommended intake.",
-          "BMI output includes CDC adult category for ages20+; explicit child/teen/younger ages decline because this kernel does not supply age-specific percentile tables. Unknown age retains the declared adult model.",
-          "Mass and length inputs have unique explicit units; mixed metric/imperial BMI inputs convert exactly, while wholly imperial BMI retains the traditional rounded703 coefficient."
+          "Explicit macro label amounts belong to the stated reference portion. Requested grams or serving counts scale that reference; converting between them needs a supplied positive serving mass. This is the general Atwater model, not food-specific digestibility or label-rounding adjustment."
         ],
         "untrusted": [
           "Shared exact numeric tokenization, English macro quantity roles, model applicability and framing."

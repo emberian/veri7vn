@@ -68,3 +68,34 @@ Other per-ID limits above remain open. G passes156/156 shipped in both modes,
 two development panels and untouched10189041. All129 authored policy checks
 pass; capability is108right,0wrong,0false yes,21withheld-valid. The proof scans72
 theorems with zero oracles; see project/lanes/G-anatomyagri.md.
+
+
+## H: calorie reference portions
+
+The observed G error is concrete: a label with 10 g protein, 20 g carbohydrate
+and 5 g fat per 100 g returned 165 kcal when asked about a 250 g portion.
+The supplied-component general Atwater model requires 412.5 kcal.
+
+H carries reference and requested portions into the kernel as grams or serving
+counts. Kilograms and milligrams convert exactly to grams in the reader.
+Serving counts and mass convert only with a stated positive mass per serving.
+Reference quantity must be positive; requested quantity and all supplied macro
+amounts must be nonnegative. Zero requested quantity returns zero energy.
+Duplicate, malformed or conflicting roles decline; an explicit unsupported
+reference cannot silently fall back to the unscaled nutrient sum.
+
+This is a linear, homogeneous-portion model, using general 4/4/9/7 kcal per gram
+factors for the supplied protein/carbohydrate/fat/alcohol amounts. Omitted
+components contribute zero. Food-specific factors, label-rounding intervals,
+fiber/polyol treatment, volume portions and mixture heterogeneity remain open.
+A milliliter reference and milliliter target are mathematically sufficient for
+same-unit scaling, but that valid capability remains withheld in this packet.
+The anatomy/anatomy-r2 stage coverage, agriculture expected-stand limits and
+gardening layout assumptions above are unchanged. See project/lanes/H-anatomyagri.md
+for final proof, panel and consumer evidence.
+
+H verification: 77 theorems, zero oracles; shipped 156/156 in both dispatch
+modes; two development seeds and untouched 10192063 each 156/156. All 158
+policy assertions pass; capability is 136 right, zero wrong/false yes and
+22 withheld-valid. Frozen G on the same questions is 112 right, 9 wrong,
+10 false yes and 27 withheld-valid. The finite drain ends with this packet.

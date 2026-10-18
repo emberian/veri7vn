@@ -427,6 +427,32 @@ lemma fert_amount_nonnegative:
   by (cases ctx) (auto intro: mult_nonneg_nonneg divide_nonneg_nonneg)
 
 
+
+datatype portion = GramPortion rat | ServingPortion rat
+fun portion_qty :: "portion \<Rightarrow> rat" where
+  "portion_qty (GramPortion q) = q"
+| "portion_qty (ServingPortion q) = q"
+fun portion_same_unit :: "portion \<Rightarrow> portion \<Rightarrow> bool" where
+  "portion_same_unit (GramPortion a) (GramPortion b) = True"
+| "portion_same_unit (ServingPortion a) (ServingPortion b) = True"
+| "portion_same_unit a b = False"
+fun portion_weight :: "rat option \<Rightarrow> portion \<Rightarrow> rat" where
+  "portion_weight sz (GramPortion q) = q"
+| "portion_weight sz (ServingPortion q) = q * (case sz of None \<Rightarrow> 1 | Some s \<Rightarrow> s)"
+definition portion_size_valid :: "rat option \<Rightarrow> bool" where
+  "portion_size_valid sz \<longleftrightarrow> (case sz of None \<Rightarrow> True | Some s \<Rightarrow> 0 < s)"
+definition portion_compatible :: "portion \<Rightarrow> portion \<Rightarrow> rat option \<Rightarrow> bool" where
+  "portion_compatible reference target sz \<longleftrightarrow> portion_same_unit reference target \<or> sz \<noteq> None"
+lemma portion_weight_positive:
+  "0 < portion_qty extent \<Longrightarrow> portion_size_valid sz \<Longrightarrow> 0 < portion_weight sz extent"
+  by (cases extent; cases sz) (auto simp: portion_size_valid_def intro: mult_pos_pos)
+lemma portion_weight_nonnegative:
+  "0 \<le> portion_qty extent \<Longrightarrow> portion_size_valid sz \<Longrightarrow> 0 \<le> portion_weight sz extent"
+  by (cases extent; cases sz) (auto simp: portion_size_valid_def intro: mult_nonneg_nonneg)
+fun portion_text :: "portion \<Rightarrow> String.literal" where
+  "portion_text (GramPortion q) = g3 q + STR '' g''"
+| "portion_text (ServingPortion q) = g3 q + STR '' servings''"
+
 datatype request =
     Count count_id
   | CountAt count_id life_stage
@@ -456,6 +482,7 @@ datatype request =
   | BmiMetric rat mheight bool
   | BmiImperial rat iheight bool
   | Kcal rat rat rat rat
+  | KcalPortion rat rat rat rat portion portion "rat option"
   | PctFatCal rat rat
   | PctDV dvn rat dunit
   | NutUnderspecified
@@ -522,6 +549,7 @@ fun underspecified :: "request \<Rightarrow> bool" where
 | "underspecified GardenNeedOrientation = True"
 | "underspecified NutUnderspecified = True"
 | "underspecified NutAdultOnly = True"
+| "underspecified (KcalPortion p c f a reference target sz) = (\<not> portion_compatible reference target sz)"
 | "underspecified r = False"
 
 text \<open>Impossible: the question cannot have an answer (a nutrient the grade lacks, a germination
@@ -543,6 +571,9 @@ fun impossible :: "request \<Rightarrow> reason option" where
 | "impossible (GardenBags sh d b) = (if b \<le> 0 then Some R_nonpositive else None)"
 | "impossible (BmiMetric kg h c) = (if kg \<le> 0 \<or> mheight_m h \<le> 0 then Some R_nonpositive else None)"
 | "impossible (BmiImperial lb h c) = (if lb \<le> 0 \<or> iheight_in h \<le> 0 then Some R_nonpositive else None)"
+| "impossible (KcalPortion p c f a reference target sz) =
+     (if p < 0 \<or> c < 0 \<or> f < 0 \<or> a < 0 \<or> portion_qty target < 0 then Some R_nonnegative
+      else if portion_qty reference \<le> 0 \<or> \<not> portion_size_valid sz then Some R_nonpositive else None)"
 | "impossible (Kcal p c f a) = (if p < 0 \<or> c < 0 \<or> f < 0 \<or> a < 0 then Some R_nonnegative else None)"
 | "impossible (PctFatCal f k) = (if k \<le> 0 then Some R_nonpositive else if f < 0 \<or> k < 9*f then Some R_nutrition_domain else None)"
 | "impossible (PctDV d a u) = (if unit_factor u (dv_unit d) = None then Some R_unit_pair else if a < 0 then Some R_nutrition_domain else None)"
@@ -581,6 +612,8 @@ fun compute :: "request \<Rightarrow> outcome" where
      (if c then Label (cat_name (bmi_category (bmi_m kg h))) else Value (bmi_m kg h))"
 | "compute (BmiImperial lb h c) =
      (if c then Label (cat_name (bmi_category (bmi_i lb h))) else Value (bmi_i lb h))"
+| "compute (KcalPortion p c f a reference target sz) =
+     Value (kcal_total p c f a * portion_weight sz target / portion_weight sz reference)"
 | "compute (Kcal p c f a) = Value (kcal_total p c f a)"
 | "compute (PctFatCal f k) = Value (9 * f / k * 100)"
 | "compute (PctDV d a u) = Value (dv_amount_in d a u / dv_amount d * 100)"
@@ -1021,6 +1054,48 @@ theorem kcal_value:
   "kernel (Kcal p c f a) = Value v \<Longrightarrow> 0 \<le> p \<and> 0 \<le> c \<and> 0 \<le> f \<and> 0 \<le> a \<and> v = 4 * p + 4 * c + 9 * f + 7 * a"
   by (auto simp: kernel_def kcal_total_def split: if_splits)
 
+
+theorem kcal_portion_domain:
+  assumes "kernel (KcalPortion p c f a reference target sz) = Value v"
+  shows "0 \<le> p \<and> 0 \<le> c \<and> 0 \<le> f \<and> 0 \<le> a \<and>
+    0 < portion_qty reference \<and> 0 \<le> portion_qty target \<and>
+    portion_size_valid sz \<and> portion_compatible reference target sz"
+  using assms by (auto simp: kernel_def split: if_splits)
+
+theorem kcal_portion_conservation:
+  assumes "kernel (KcalPortion p c f a reference target sz) = Value v"
+  shows "v * portion_weight sz reference = (4*p + 4*c + 9*f + 7*a) * portion_weight sz target"
+proof -
+  have d: "0 < portion_qty reference" "portion_size_valid sz"
+    using kcal_portion_domain[OF assms] by auto
+  have pos: "0 < portion_weight sz reference" by (rule portion_weight_positive[OF d])
+  have v: "v = kcal_total p c f a * portion_weight sz target / portion_weight sz reference"
+    using assms by (auto simp: kernel_def split: if_splits)
+  show ?thesis unfolding v using pos by (simp add: kcal_total_def)
+qed
+
+theorem kcal_portion_same_extent:
+  assumes "0 \<le> p" "0 \<le> c" "0 \<le> f" "0 \<le> a"
+      "0 < portion_qty extent" "portion_size_valid sz"
+  shows "kernel (KcalPortion p c f a extent extent sz) = kernel (Kcal p c f a)"
+proof -
+  have pos: "0 < portion_weight sz extent" using assms by (intro portion_weight_positive) auto
+  have same: "portion_same_unit extent extent" by (cases extent) simp_all
+  show ?thesis using assms pos same by (simp add: kernel_def portion_compatible_def)
+qed
+
+theorem kcal_portion_zero_target:
+  assumes "0 \<le> p" "0 \<le> c" "0 \<le> f" "0 \<le> a"
+      "0 < portion_qty reference" "portion_qty target = 0"
+      "portion_size_valid sz" "portion_compatible reference target sz"
+  shows "kernel (KcalPortion p c f a reference target sz) = Value 0"
+  using assms by (cases target; cases sz) (auto simp: kernel_def)
+
+theorem kcal_portion_missing_dimension:
+  "kernel (KcalPortion p c f a (GramPortion r) (ServingPortion t) None) = Decline Underspecified \<and>
+   kernel (KcalPortion p c f a (ServingPortion r) (GramPortion t) None) = Decline Underspecified"
+  by (simp add: kernel_def portion_compatible_def)
+
 theorem kcal_atwater_unit:
   "kernel (Kcal 1 0 0 0) = Value 4 \<and> kernel (Kcal 0 1 0 0) = Value 4 \<and>
    kernel (Kcal 0 0 1 0) = Value 9 \<and> kernel (Kcal 0 0 0 1) = Value 7"
@@ -1212,6 +1287,10 @@ fun value_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal" where
 | "value_text (BmiImperial lb h c) v =
      cat [STR ''The BMI is '', g2 v, STR '' ('', bmi_note (BmiImperial lb h c), STR ''; CDC adult category: '',
        cat_name (bmi_category v), STR '' - a screening measure, not a diagnosis).'']"
+| "value_text (KcalPortion p c f a reference target sz) v =
+     cat [STR ''The total is '', g2 v, STR '' kcal for '', portion_text target,
+       STR '' (Atwater energy '', g2 (kcal_total p c f a), STR '' kcal per '', portion_text reference,
+       (case sz of None \<Rightarrow> STR '''' | Some q \<Rightarrow> STR ''; serving size '' + g3 q + STR '' g''), STR '').'']"
 | "value_text (Kcal p c f a) v =
      cat [STR ''The total is '', g2 v, STR '' kcal (4 x '', g2 p, STR '' g protein + 4 x '', g2 c,
        STR '' g carbohydrate + 9 x '', g2 f, STR '' g fat'',
@@ -1264,6 +1343,7 @@ definition decline_text :: "request \<Rightarrow> decline \<Rightarrow> String.l
     | FertUnread \<Rightarrow> STR ''Supply one complete N-P2O5-K2O grade and one nutrient or product amount, with total/per-acre scope and area when conversion is requested. Elemental phosphorus/potassium requires a separate conversion model.''
     | AgriUnderspecified \<Rightarrow> STR ''I need the amount of product (lb) or the target nutrient rate (lb per acre) to work that out; I will not assume it.''
     | NutAdultOnly \<Rightarrow> STR ''This BMI response includes an adult category for ages 20 and older. Child and teen categories require age-specific data not supplied by this table.''
+    | KcalPortion p c f a reference target sz \<Rightarrow> STR ''A conversion between grams and serving counts needs a stated positive serving mass. Supply the label reference portion and requested portion.''
     | NutUnderspecified \<Rightarrow> STR ''I could not read every amount I need from that; give the grams, calories, weight or height with units and I will work it out.''
     | Kcal p c f a \<Rightarrow> STR ''I could not read every amount I need from that; give the grams, calories, weight or height with units and I will work it out.''
     | _ \<Rightarrow> STR ''I need more information to answer that.''))"
@@ -1296,6 +1376,7 @@ fun kind_name :: "request \<Rightarrow> String.literal" where
 | "kind_name (GardenFeet sh d) = STR ''cubic_feet''"
 | "kind_name (BmiMetric kg h c) = (if c then STR ''bmi_category'' else STR ''bmi'')"
 | "kind_name (BmiImperial lb h c) = (if c then STR ''bmi_category'' else STR ''bmi'')"
+| "kind_name (KcalPortion p c f a reference target sz) = STR ''kcal_macros''"
 | "kind_name (Kcal p c f a) = STR ''kcal_macros''"
 | "kind_name (PctFatCal f k) = STR ''pct_fat_cal''"
 | "kind_name (PctDV d a u) = STR ''pct_dv''"

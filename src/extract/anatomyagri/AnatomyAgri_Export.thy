@@ -36,7 +36,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat self_tes
   nat_of_integer integer_of_nat count_order super_order made_order crop_order dv_order
   Count CountAt AdultStage DevelopingStage NewbornStage Superlative Produces FertProduct NutrientLb FertilizerNeed FertilizerHas FertUnread TotalFertilizer PerAcreFertilizer TotalFromRate RateFromTotal SeedsPerAcre SeedsNeeded SeedsExpected SeedsMinimum SeedsUnread TotalSeeds PerAcreSeeds Yield AcreInch
   AgriUnderspecified GardenWater GardenFert GardenGrid GardenRectGrid GardenNeedOrientation GardenBags GardenYards GardenFeet
-  BmiMetric BmiImperial Kcal PctFatCal PctDV NutUnderspecified NutAdultOnly
+  BmiMetric BmiImperial KcalPortion GramPortion ServingPortion Kcal PctFatCal PctDV NutUnderspecified NutAdultOnly
   Nit Pho Pot KgHa THa Dims Area Inches Feet Mm Mcm Iin Ftin U_mg U_g U_mcg
   in SML module_name AnatomyAgri file_prefix anatomyagri
 
@@ -56,14 +56,16 @@ ML \<open>
     @{thm seeds_needed_declines_iff}, @{thm acre_inch_derived_error},
     @{thm bags_cover}, @{thm garden_bags}, @{thm garden_yards}, @{thm garden_feet},
     @{thm bmi_metric}, @{thm bmi_imperial}, @{thm bmi_category_agrees}, @{thm bmi_category_agrees_imperial},
-    @{thm kcal_value}, @{thm kcal_atwater_unit}, @{thm kcal_explicit_zero}, @{thm kcal_nonnegative_domain}, @{thm kcal_supplied_sum},
+    @{thm kcal_value}, @{thm kcal_portion_domain}, @{thm kcal_portion_conservation}, @{thm kcal_portion_same_extent}, @{thm kcal_portion_zero_target}, @{thm kcal_portion_missing_dimension}, @{thm kcal_atwater_unit}, @{thm kcal_explicit_zero}, @{thm kcal_nonnegative_domain}, @{thm kcal_supplied_sum},
     @{thm pct_fat_cal}, @{thm pct_fat_range}, @{thm bmi_positive_inputs}, @{thm bmi_imperial_positive_inputs}, @{thm dv_nonnegative_amount}, @{thm adult_model_declines}, @{thm pct_dv}, @{thm pct_dv_units},
     @{thm reply_answered_iff}, @{thm reply_states_value}, @{thm reply_states_label},
     @{thm count_stated_exact}, @{thm reply_withheld_names_decline}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("anatomyagri theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "anatomyagri self test failed";
-  val _ = writeln ("VERI7VN_ANATOMYAGRI PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");
+  val marker = "VERI7VN_ANATOMYAGRI PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0";
+  val _ = writeln marker;
+  val _ = Export.export @{theory} (Path.binding0 (Path.explode "veri7vn/assertions/anatomyagri")) [XML.Text marker];
 \<close>
 
 end

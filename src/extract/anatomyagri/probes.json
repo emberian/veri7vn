@@ -905,5 +905,239 @@
     "expect": null,
     "source": "Exact supplied-quantity roles. General9kcal/g fat share requires0<=9f<=total>0; fixed FDA daily-value table is amount/reference and may exceed100%; BMI adult model needs positive mass/height. Same-author model probes; CDC adult category is20+.",
     "decline_class": "underspecified"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in a 250 g serving?",
+    "expect": 412.5,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per serving. How many calories are in 2 servings?",
+    "expect": 330,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 2 servings. How many calories are in 1 serving?",
+    "expect": 82.5,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in a 1/2 kg serving?",
+    "expect": 825,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in 250000 mg?",
+    "expect": 412.5,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. Serving size is 50 g. How many calories are in 2 servings?",
+    "expect": 165,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per serving. Serving size is 50 g. How many calories are in 125 g?",
+    "expect": 412.5,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. Serving size is 50 g. How many calories per serving?",
+    "expect": 82.5,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in 2 servings?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per serving. How many calories are in 125 g?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in 0 g?",
+    "expect": 0,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in -250 g?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per -100 g. How many calories are in 250 g?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 0 g. How many calories are in 250 g?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per serving. Serving size is -50 g. How many calories are in 125 g?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in 2.5e2 g?",
+    "expect": 412.5,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in 2.5.1 g?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g and per 200 g. How many calories are in 250 g?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in 250 g and 300 g?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 ml. How many calories are in 250 ml?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "unsupported",
+    "capability_expect": 412.5
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists -10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in 250 g?",
+    "expect": null,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food has 10 g protein, 20 g carbohydrate and 5 g fat. How many total calories?",
+    "expect": 165,
+    "source": "General Atwater4/4/9/7 model scaled by explicit reference/target extent; grams/servings conversion needs stated serving mass. Same-author dimensional expectations.",
+    "response_contains": [
+      "kcal"
+    ]
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "How many calories are in 250 g if the label lists protein: 10 g, carbohydrate: 20 g and fat: 5 g per 100 g?",
+    "expect": 412.5,
+    "response_contains": [
+      "kcal"
+    ],
+    "source": "General Atwater 4/4/9/7 energy times requested/reference extent; same-author dimensional and role controls."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 1/2 kg. How many calories are in 250 g?",
+    "expect": 82.5,
+    "response_contains": [
+      "kcal"
+    ],
+    "source": "General Atwater 4/4/9/7 energy times requested/reference extent; same-author dimensional and role controls."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. Serving size is 0.05 kg. How many calories are in 1/2 serving?",
+    "expect": 41.25,
+    "response_contains": [
+      "kcal"
+    ],
+    "source": "General Atwater 4/4/9/7 energy times requested/reference extent; same-author dimensional and role controls."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 2 servings. Serving size is 50 g. How many calories are in 150 g?",
+    "expect": 247.5,
+    "response_contains": [
+      "kcal"
+    ],
+    "source": "General Atwater 4/4/9/7 energy times requested/reference extent; same-author dimensional and role controls."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in 250 ml?",
+    "expect": null,
+    "decline_class": "underspecified",
+    "source": "Reference nutrient amounts do not determine an unspecified target mass or unknown mass/volume conversion."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in the whole package?",
+    "expect": null,
+    "decline_class": "underspecified",
+    "source": "Reference nutrient amounts do not determine an unspecified target mass or unknown mass/volume conversion."
+  },
+  {
+    "specialist": "nutrition-label-v2",
+    "q": "A food label lists 10 g protein, 20 g carbohydrate and 5 g fat per 100 g. How many calories are in a serving?",
+    "expect": null,
+    "decline_class": "underspecified",
+    "source": "Reference nutrient amounts do not determine an unspecified target mass or unknown mass/volume conversion."
   }
 ]
