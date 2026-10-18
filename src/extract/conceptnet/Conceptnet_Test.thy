@@ -4,8 +4,11 @@ begin
 
 text \<open>Fixtures are rows read from the sealed build m13e5_conceptnet_build_a_v1
 (dog UsedFor; kitten IsA cat; cat UsedFor). Each lemma states the whole reply
-the kernel produces and is proved by the simplifier from the definitions
-(kernel-checked, no evaluation oracle).\<close>
+the kernel produces and is proved by \<^text>\<open>code_simp\<close> - plain kernel
+rewriting with the code equations, no evaluation oracle (the marker block at
+the end of this theory checks the theorems carry none). Raw \<^text>\<open>simp\<close> over
+\<^text>\<open>kernel_defs\<close> diverges here: the int-list order unfolds through
+\<^const>\<open>lexord\<close> faster than the simplifier can close the comparison chain.\<close>
 
 lemmas kernel_defs =
   decide_def decide_direct_def decide_derived_def first_derived.simps
@@ -31,7 +34,7 @@ lemma dog_direct:
                  (cp ''conceptnet57:UsedFor:dog->guarding property'', 2828000, cp ''/d/conceptnet/4/en'')),
                (cp ''A dog is for a pet.'',
                  (cp ''conceptnet57:UsedFor:dog->pet'', 2828000, cp ''/d/conceptnet/4/en''))]"
-  by (simp add: kernel_defs fixture_defs)
+  by code_simp
 
 definition e_dog_comp2 :: cedge where
   "e_dog_comp2 = \<lparr>c_rel = UsedFor, c_start = cp ''dog'', c_end = cp ''companionship'',
@@ -48,7 +51,7 @@ lemma dog_direct_dedup:
                  (cp ''conceptnet57:UsedFor:dog->guarding property'', 2828000, cp ''/d/conceptnet/4/en'')),
                (cp ''A dog is for a pet.'',
                  (cp ''conceptnet57:UsedFor:dog->pet'', 2828000, cp ''/d/conceptnet/4/en''))]"
-  by (simp add: kernel_defs fixture_defs e_dog_comp2_def)
+  by code_simp
 
 definition e_dog_plain :: cedge where
   "e_dog_plain = \<lparr>c_rel = UsedFor, c_start = cp ''dog'', c_end = cp ''hunting'',
@@ -58,7 +61,7 @@ text \<open>An empty surface text falls to the relation template.\<close>
 lemma dog_plain_template:
   "map fst (decide_direct \<lparr>c_concept = cp ''dog'', c_specs = [(UsedFor, Fwd)]\<rparr> [e_dog_plain])
      = [cp ''Dog is used for hunting.'']"
-  by (simp add: kernel_defs e_dog_plain_def)
+  by code_simp
 
 subsection \<open>Derived route: two hops, both declared\<close>
 
@@ -77,7 +80,7 @@ lemma kitten_derived:
                  d_line = cp ''(via cat) A cat is for companionship.'',
                  d_hop1 = (cp ''conceptnet57:IsA:kitten->cat'', 4472000, cp ''/d/conceptnet/4/en''),
                  d_hop2 = (cp ''conceptnet57:UsedFor:cat->companionship'', 4000000, cp ''/d/conceptnet/4/en'')\<rparr>]"
-  by (simp add: kernel_defs fixture_defs)
+  by code_simp
 
 subsection \<open>Abstention\<close>
 
@@ -88,11 +91,11 @@ lemma dog_empty_abstains:
 lemma unicorn_no_edges_abstains:
   "decide [IsA, PartOf] \<lparr>c_concept = cp ''unicorn'', c_specs = [(UsedFor, Fwd)]\<rparr> kitten_edges
      = C_abstain"
-  by (simp add: kernel_defs fixture_defs)
+  by code_simp
 
 lemma no_mediators_abstains:
   "decide [] req_kitten kitten_edges = C_abstain"
-  by (simp add: kernel_defs fixture_defs)
+  by code_simp
 
 subsection \<open>Marker\<close>
 

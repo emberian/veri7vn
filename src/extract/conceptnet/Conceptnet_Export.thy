@@ -14,7 +14,7 @@ lemma all_rels_complete: "r \<in> set all_rels" by (cases r) (simp_all add: all_
 
 lemma parse_rel_name_roundtrip:
   "r \<in> set all_rels \<Longrightarrow> parse_relation (rel_name r) = Some r"
-  using parse_rel_name by auto
+  by (cases r) (auto simp: parse_relation_def rel_name_def all_rels_def)
 
 subsection \<open>Monomorphic constructors for the generated code\<close>
 

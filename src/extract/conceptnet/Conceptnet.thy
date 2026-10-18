@@ -141,37 +141,30 @@ proof (induction xs arbitrary: e)
   case Nil show ?case by simp
 next
   case (Cons x xs)
-  have rs_xs: "rank_sorted xs" using Cons.prems rank_sorted_ConsD by blast
-  have ih: "rank_sorted (ins xs e)" using Cons.IH rs_xs by simp
+  note prems = Cons.prems
+  note IH = Cons.IH
+  have rs_xs: "rank_sorted xs" using prems rank_sorted_ConsD by blast
+  have ih: "rank_sorted (ins xs e)" using IH rs_xs by simp
   show ?case
   proof (cases "outranks e x")
     case True
-    with Cons.prems show ?thesis by simp
+    then show ?thesis using prems by simp
   next
     case False
-    have f1: "outranks x e \<or> same_rank x e" using outranks_cases[of x e] False by blast
+    then have f1: "outranks x e \<or> same_rank x e" using outranks_cases[of x e] by blast
     show ?thesis
     proof (cases xs)
       case Nil
-      with f1 show ?thesis by simp
+      then show ?thesis using f1 by simp
     next
       case (Cons y ys)
-      show ?thesis
+      then show ?thesis
       proof (cases "outranks e y")
         case True
-        show ?thesis
-        proof (cases "outranks x e")
-          case True
-          with \<open>outranks e y\<close> Cons.prems show ?thesis by simp
-        next
-          case False2
-          then have srx: "same_rank x e" using f1 by blast
-          have "outranks x y" using srx \<open>outranks e y\<close> same_rank_outranks_left by blast
-          with srx \<open>outranks e y\<close> Cons.prems show ?thesis by simp
-        qed
+        then show ?thesis using f1 prems \<open>xs = y # ys\<close> by simp
       next
-        case False2
-        with Cons.prems ih \<open>xs = y # ys\<close> show ?thesis by simp
+        case False
+        then show ?thesis using prems ih \<open>xs = y # ys\<close> by simp
       qed
     qed
   qed
@@ -181,7 +174,7 @@ lemma isort_sorted: "rank_sorted (isort es)"
   by (induction es) (simp_all add: ins_sorted)
 
 text \<open>A ranked list stays ranked over any prefix: a take is a prefix
-(\<^const>\<open>append_take_drop_id\<close>), and the head condition of a concatenation
+(\<open>take n l @ drop n l = l\<close>), and the head condition of a concatenation
 already relates each element to its successor inside the left part.\<close>
 
 lemma rank_sorted_appendL: "rank_sorted (l @ m) \<Longrightarrow> rank_sorted l"
@@ -233,10 +226,18 @@ next
   case (Cons y ys)
   show ?case
   proof (cases n)
-    case 0 thus ?thesis by simp
+    case 0
+    with Cons show ?thesis by simp
   next
     case (Suc m)
-    with Cons show ?thesis by simp
+    with Cons have p: "x = y \<or> x \<in> set (take m ys)" by simp
+    then show ?thesis
+    proof
+      assume xy: "x = y" then show "x \<in> set (y # ys)" by simp
+    next
+      assume t: "x \<in> set (take m ys)"
+      from Cons.IH[OF t] show "x \<in> set (y # ys)" by simp
+    qed
   qed
 qed
 
@@ -376,15 +377,113 @@ proof -
     "e \<in> set (sel_spec es rd (c_concept req))"
     unfolding collect_edges_def by auto
   from rd(2) sel_spec_subset have
-    "e \<in> set es" and m: "edge_matches (snd rd) (c_concept req) (fst rd) e" by blast+
-  from rd(1) m show "e \<in> set es \<and> declared_witness req e"
+    ee: "e \<in> set es" and m: "edge_matches (snd rd) (c_concept req) (fst rd) e" by blast+
+  obtain r d where rdp: "rd = (r, d)" by (cases rd)
+  with rd(1) have pe: "(fst rd, snd rd) \<in> set (c_specs req)" by simp
+  from pe m ee show "e \<in> set es \<and> declared_witness req e"
     unfolding declared_witness_def edge_matches_def
     by (cases "snd rd") auto
 qed
 
+lemma add_line_skip:
+  "\<not> (length acc < 5 \<and> render_edge a \<notin> fst ` set acc) \<Longrightarrow> add_line acc a = acc"
+  by (cases "length acc < 5") (auto simp: Let_def)
+
+lemma add_line_add:
+  "length acc < 5 \<Longrightarrow> render_edge a \<notin> fst ` set acc \<Longrightarrow>
+     add_line acc a = acc @ [(render_edge a, claim_of a)]"
+  by (auto simp: Let_def)
+
+lemma ex_line_witness:
+  "x = (render_edge e, claim_of e) \<Longrightarrow> e \<in> set l \<Longrightarrow>
+     \<exists>e' \<in> set (a # l). x = (render_edge e', claim_of e')"
+proof -
+  assume xeq: "x = (render_edge e, claim_of e)" and e: "e \<in> set l"
+  from e have ec: "e \<in> set (a # l)" by simp
+  from ec xeq show ?thesis by blast
+qed
+
+text \<open>Every line the fold emits is either older than the batch or exactly the
+rendering of a batch edge. Proved elementarily: an \<open>auto\<close> induction loses
+the dedup branch's set image.\<close>
+
 lemma fold_add_line_new:
   "\<forall>x \<in> set (foldl add_line acc l). x \<in> set acc \<or> (\<exists>e \<in> set l. x = (render_edge e, claim_of e))"
-  by (induction l arbitrary: acc) (auto simp: Let_def)
+proof (induction l arbitrary: acc)
+  case Nil thus ?case by simp
+next
+  case (Cons a l)
+  note IH = Cons.IH
+  show ?case
+  proof (cases "length acc < 5 \<and> render_edge a \<notin> fst ` set acc")
+    case True
+    then have p1: "length acc < 5" and p2: "render_edge a \<notin> fst ` set acc" by simp_all
+    from p1 p2 have al: "add_line acc a = acc @ [(render_edge a, claim_of a)]"
+      by (rule add_line_add)
+    show ?thesis
+    proof (rule ballI)
+      fix x
+      assume x: "x \<in> set (foldl add_line acc (a # l))"
+      then have xr: "x \<in> set (foldl add_line (add_line acc a) l)"
+        by (simp only: foldl.simps(2))
+      from IH[of "add_line acc a"] xr have
+        d: "x \<in> set (add_line acc a) \<or> (\<exists>e \<in> set l. x = (render_edge e, claim_of e))" by blast
+      from d show "x \<in> set acc \<or> (\<exists>e \<in> set (a # l). x = (render_edge e, claim_of e))"
+      proof
+        assume xa: "x \<in> set (add_line acc a)"
+        with al have ap: "x \<in> set (acc @ [(render_edge a, claim_of a)])" by simp
+        then have s: "x = (render_edge a, claim_of a) \<or> x \<in> set acc" by simp
+        then show ?thesis
+        proof
+          assume xeq: "x = (render_edge a, claim_of a)"
+          have aw: "a \<in> set (a # l)" by simp
+          from aw xeq have b: "\<exists>e' \<in> set (a # l). x = (render_edge e', claim_of e')"
+            by blast
+          show ?thesis by (rule disjI2[OF b])
+        next
+          assume s1: "x \<in> set acc" then show ?thesis by (rule disjI1)
+        qed
+      next
+        assume ex: "\<exists>e \<in> set l. x = (render_edge e, claim_of e)"
+        then show ?thesis
+        proof
+          fix e
+          assume xeq: "x = (render_edge e, claim_of e)" and e: "e \<in> set l"
+          from xeq e have b: "\<exists>e' \<in> set (a # l). x = (render_edge e', claim_of e')"
+            by (rule ex_line_witness)
+          show ?thesis by (rule disjI2[OF b])
+        qed
+      qed
+    qed
+  next
+    case False
+    then have al: "add_line acc a = acc" by (rule add_line_skip)
+    show ?thesis
+    proof (rule ballI)
+      fix x
+      assume x: "x \<in> set (foldl add_line acc (a # l))"
+      then have xr: "x \<in> set (foldl add_line (add_line acc a) l)"
+        by (simp only: foldl.simps(2))
+      from IH[of "add_line acc a"] xr have
+        d: "x \<in> set (add_line acc a) \<or> (\<exists>e \<in> set l. x = (render_edge e, claim_of e))" by blast
+      from d show "x \<in> set acc \<or> (\<exists>e \<in> set (a # l). x = (render_edge e, claim_of e))"
+      proof
+        assume xa: "x \<in> set (add_line acc a)"
+        with al show ?thesis by simp
+      next
+        assume ex: "\<exists>e \<in> set l. x = (render_edge e, claim_of e)"
+        then show ?thesis
+        proof
+          fix e
+          assume xeq: "x = (render_edge e, claim_of e)" and e: "e \<in> set l"
+          from xeq e have b: "\<exists>e' \<in> set (a # l). x = (render_edge e', claim_of e')"
+            by (rule ex_line_witness)
+          show ?thesis by (rule disjI2[OF b])
+        qed
+      qed
+    qed
+  qed
+qed
 
 lemma fold_add_line_new0:
   "x \<in> set (foldl add_line [] l) \<Longrightarrow> \<exists>e \<in> set l. x = (render_edge e, claim_of e)"
@@ -395,8 +494,38 @@ proof -
   then show ?thesis by simp
 qed
 
+lemma add_line_len:
+  "length (add_line acc e) = length acc \<or> length (add_line acc e) = length acc + 1"
+  by (cases "length acc < 5") (auto simp: Let_def)
+
 lemma fold_add_line_bound: "length acc \<le> 5 \<Longrightarrow> length (foldl add_line acc l) \<le> 5"
-  by (induction l arbitrary: acc) auto
+proof (induction l arbitrary: acc)
+  case Nil thus ?case by simp
+next
+  case (Cons a l)
+  have step: "foldl add_line acc (a # l) = foldl add_line (add_line acc a) l"
+    by (rule foldl.simps(2))
+  from add_line_len[of acc a] show ?case
+  proof (elim disjE)
+    assume e1: "length (add_line acc a) = length acc"
+    then have lt: "length (add_line acc a) \<le> 5" using Cons.prems by simp
+    from Cons.IH[OF lt] step show ?case by simp
+  next
+    assume e2: "length (add_line acc a) = length acc + 1"
+    have lt: "length (add_line acc a) \<le> 5"
+    proof (cases "length acc < 5")
+      case True
+      then have "length acc + 1 \<le> 5" by arith
+      with e2 show ?thesis by simp
+    next
+      case False
+      then have n5: "\<not> (length acc < 5 \<and> render_edge a \<notin> fst ` set acc)" by simp
+      from n5 have sk: "add_line acc a = acc" by (rule add_line_skip)
+      with e2 show ?thesis by simp
+    qed
+    from Cons.IH[OF lt] step show ?case by simp
+  qed
+qed
 
 text \<open>Stated over \<^const>\<open>fst\<close>/\<^const>\<open>snd\<close> rather than a pair pattern: a
 \<^theory_text>\<open>cases\<close> split of a reply line gives its four components (the claim is
@@ -415,8 +544,11 @@ proof (unfold decide_direct_def, rule ballI)
     parts: "x = (render_edge e, claim_of e)"
     by blast
   from parts have px: "fst x = render_edge e" "snd x = claim_of e" by simp_all
-  from e collect_edges_witnessed have "e \<in> set es" "declared_witness req e" by blast+
-  with px show "\<exists>e \<in> set es. declared_witness req e \<and> render_edge e = fst x \<and> claim_of e = snd x"
+  from e collect_edges_witnessed have
+    ee: "e \<in> set es" and dw: "declared_witness req e" by blast+
+  from ee dw px have w: "e \<in> set es \<and> declared_witness req e \<and>
+    render_edge e = fst x \<and> claim_of e = snd x" by simp
+  from w show "\<exists>e \<in> set es. declared_witness req e \<and> render_edge e = fst x \<and> claim_of e = snd x"
     by blast
 qed
 
@@ -442,7 +574,16 @@ definition parent_edges :: "relation \<Rightarrow> int list \<Rightarrow> cedge 
 
 lemma parent_edges_witnessed:
   "e \<in> set (parent_edges med c es) \<Longrightarrow> e \<in> set es \<and> c_rel e = med \<and> c_start e = c"
-  unfolding parent_edges_def by auto (metis (no_types, lifting) CollectD fst_conv snd_conv)
+proof -
+  assume x: "e \<in> set (parent_edges med c es)"
+  then have t: "e \<in> set (take 3 (isort [z \<leftarrow> es. c_rel z = med \<and> c_start z = c]))"
+    by (simp add: parent_edges_def)
+  from set_take_mem[OF t]
+  have i: "e \<in> set (isort [z \<leftarrow> es. c_rel z = med \<and> c_start z = c])" .
+  from i have f: "e \<in> set [z \<leftarrow> es. c_rel z = med \<and> c_start z = c]" by simp
+  then have ee: "e \<in> set es" and mm: "c_rel e = med" and ss: "c_start e = c" by auto
+  from ee mm ss show ?thesis by simp
+qed
 
 lemma parent_edges_nil [simp]: "parent_edges med c [] = []"
   by (simp add: parent_edges_def)
@@ -475,7 +616,10 @@ proof -
     unfolding derived_pairs_def by auto
   from p1 parent_edges_witnessed have
     w1: "e1' \<in> set es" "c_rel e1' = med" "c_start e1' = c_concept req" by blast+
-  from p3 have w2: "e2' \<in> set es" "c_rel e2' = r" "c_start e2' = c_end e1'" by auto
+  from set_take_mem[OF p3]
+  have i3: "e2' \<in> set (isort [x \<leftarrow> es. c_rel x = r \<and> c_start x = c_end e1'])" .
+  from i3 have f3: "e2' \<in> set [x \<leftarrow> es. c_rel x = r \<and> c_start x = c_end e1']" by simp
+  from f3 have w2: "e2' \<in> set es" "c_rel e2' = r" "c_start e2' = c_end e1'" by auto
   from pe w1 w2 p2 show
     "e1 \<in> set es" "c_rel e1 = med" "c_start e1 = c_concept req" "c_end e1 = p"
     "e2 \<in> set es" "c_start e2 = p" "c_rel e2 \<in> set (fwd_specs req)"
@@ -493,31 +637,151 @@ fun add_dline :: "dline list \<Rightarrow> int list \<times> cedge \<times> cedg
 definition decide_derived :: "relation \<Rightarrow> crequest \<Rightarrow> cedge list \<Rightarrow> dline list" where
   "decide_derived med req es = foldl add_dline [] (derived_pairs med req es)"
 
-lemma fold_add_dline_new:
-  "\<forall>dl \<in> set (foldl add_dline acc l).
-     dl \<in> set acc \<or>
+definition dline_of :: "int list \<times> cedge \<times> cedge \<Rightarrow> dline" where
+  "dline_of x = \<lparr>d_via = fst x, d_line = cp ''(via '' @ fst x @ cp '') '' @ render_edge (snd (snd x)),
+     d_hop1 = claim_of (fst (snd x)), d_hop2 = claim_of (snd (snd x))\<rparr>"
+
+lemma dline_of_simps [simp]:
+  "d_via (dline_of x) = fst x"
+  "d_line (dline_of x) = cp ''(via '' @ fst x @ cp '') '' @ render_edge (snd (snd x))"
+  "d_hop1 (dline_of x) = claim_of (fst (snd x))"
+  "d_hop2 (dline_of x) = claim_of (snd (snd x))"
+  by (simp_all add: dline_of_def)
+
+lemma add_dline_skip:
+  "\<not> (length acc < 4 \<and> cp ''(via '' @ fst x @ cp '') '' @ render_edge (snd (snd x)) \<notin> d_line ` set acc) \<Longrightarrow>
+     add_dline acc x = acc"
+  by (cases x) (auto simp: Let_def)
+
+lemma add_dline_add:
+  "length acc < 4 \<Longrightarrow> cp ''(via '' @ fst x @ cp '') '' @ render_edge (snd (snd x)) \<notin> d_line ` set acc \<Longrightarrow>
+     add_dline acc x = acc @ [dline_of x]"
+  by (cases x) (auto simp: Let_def dline_of_def)
+
+definition dline_new :: "dline \<Rightarrow> (int list \<times> cedge \<times> cedge) list \<Rightarrow> bool" where
+  "dline_new dl l \<longleftrightarrow>
      (\<exists>x \<in> set l. d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge (snd (snd x))
                 \<and> d_hop2 dl = claim_of (snd (snd x)) \<and> d_hop1 dl = claim_of (fst (snd x))
                 \<and> d_via dl = fst x)"
-  by (induction l arbitrary: acc) (auto simp: Let_def)
 
-lemma fold_add_dline_new0:
-  "dl \<in> set (foldl add_dline [] l) \<Longrightarrow>
-     \<exists>x \<in> set l. d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge (snd (snd x))
+lemma dline_new_mono: "dline_new dl l \<Longrightarrow> dline_new dl (a # l)"
+proof -
+  assume h: "dline_new dl l"
+  then obtain x where x: "x \<in> set l"
+    and P: "d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge (snd (snd x))
                 \<and> d_hop2 dl = claim_of (snd (snd x)) \<and> d_hop1 dl = claim_of (fst (snd x))
                 \<and> d_via dl = fst x"
+    unfolding dline_new_def by blast
+  from x have xa: "x \<in> set (a # l)" by simp
+  from xa P show ?thesis unfolding dline_new_def by blast
+qed
+
+lemma fold_add_dline_new:
+  "\<forall>dl \<in> set (foldl add_dline acc l). dl \<in> set acc \<or> dline_new dl l"
+proof (induction l arbitrary: acc)
+  case Nil thus ?case by simp
+next
+  case (Cons a l)
+  note IH = Cons.IH
+  show ?case
+  proof (cases "length acc < 4 \<and> cp ''(via '' @ fst a @ cp '') '' @ render_edge (snd (snd a)) \<notin> d_line ` set acc")
+    case True
+    then have p1: "length acc < 4"
+      and p2: "cp ''(via '' @ fst a @ cp '') '' @ render_edge (snd (snd a)) \<notin> d_line ` set acc" by simp_all
+    from p1 p2 have al: "add_dline acc a = acc @ [dline_of a]" by (rule add_dline_add)
+    show ?thesis
+    proof (rule ballI)
+      fix dl
+      assume x: "dl \<in> set (foldl add_dline acc (a # l))"
+      then have xr: "dl \<in> set (foldl add_dline (add_dline acc a) l)"
+        by (simp only: foldl.simps(2))
+      from IH[of "add_dline acc a"] xr have
+        d: "dl \<in> set (add_dline acc a) \<or> dline_new dl l" by blast
+      from d show "dl \<in> set acc \<or> dline_new dl (a # l)"
+      proof
+        assume xa: "dl \<in> set (add_dline acc a)"
+        with al have ap: "dl \<in> set (acc @ [dline_of a])" by simp
+        then have s: "dl = dline_of a \<or> dl \<in> set acc" by simp
+        then show ?thesis
+        proof
+          assume dre: "dl = dline_of a"
+          have am: "a \<in> set (a # l)" by simp
+          from am dre have nn: "dline_new dl (a # l)"
+            unfolding dline_new_def by simp
+          from nn show ?thesis by (rule disjI2)
+        next
+          assume s1: "dl \<in> set acc" then show ?thesis by (rule disjI1)
+        qed
+      next
+        assume dnew: "dline_new dl l"
+        from dline_new_mono[OF dnew] show ?thesis by (rule disjI2)
+      qed
+    qed
+  next
+    case False
+    then have al: "add_dline acc a = acc" by (rule add_dline_skip)
+    show ?thesis
+    proof (rule ballI)
+      fix dl
+      assume x: "dl \<in> set (foldl add_dline acc (a # l))"
+      then have xr: "dl \<in> set (foldl add_dline (add_dline acc a) l)"
+        by (simp only: foldl.simps(2))
+      from IH[of "add_dline acc a"] xr have
+        d: "dl \<in> set (add_dline acc a) \<or> dline_new dl l" by blast
+      from d show "dl \<in> set acc \<or> dline_new dl (a # l)"
+      proof
+        assume xa: "dl \<in> set (add_dline acc a)"
+        with al show ?thesis by simp
+      next
+        assume dnew: "dline_new dl l"
+        from dline_new_mono[OF dnew] show ?thesis by (rule disjI2)
+      qed
+    qed
+  qed
+qed
+
+lemma fold_add_dline_new0:
+  "dl \<in> set (foldl add_dline [] l) \<Longrightarrow> dline_new dl l"
 proof -
   assume "dl \<in> set (foldl add_dline [] l)"
   from fold_add_dline_new[of "[]" l] this have
-    "dl \<in> set [] \<or>
-     (\<exists>x \<in> set l. d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge (snd (snd x))
-                \<and> d_hop2 dl = claim_of (snd (snd x)) \<and> d_hop1 dl = claim_of (fst (snd x))
-                \<and> d_via dl = fst x)" by blast
+    "dl \<in> set [] \<or> dline_new dl l" by blast
   then show ?thesis by simp
 qed
 
+lemma add_dline_len:
+  "length (add_dline acc x) = length acc \<or> length (add_dline acc x) = length acc + 1"
+  by (cases x) (cases "length acc < 4"; auto simp: Let_def)
+
 lemma fold_add_dline_bound: "length acc \<le> 4 \<Longrightarrow> length (foldl add_dline acc l) \<le> 4"
-  by (induction l arbitrary: acc) (auto simp: Let_def, arith)
+proof (induction l arbitrary: acc)
+  case Nil thus ?case by simp
+next
+  case (Cons a l)
+  have step: "foldl add_dline acc (a # l) = foldl add_dline (add_dline acc a) l"
+    by (rule foldl.simps(2))
+  from add_dline_len[of acc a] show ?case
+  proof (elim disjE)
+    assume e1: "length (add_dline acc a) = length acc"
+    then have lt: "length (add_dline acc a) \<le> 4" using Cons.prems by simp
+    from Cons.IH[OF lt] step show ?case by simp
+  next
+    assume e2: "length (add_dline acc a) = length acc + 1"
+    have lt: "length (add_dline acc a) \<le> 4"
+    proof (cases "length acc < 4")
+      case True
+      then have "length acc + 1 \<le> 4" by arith
+      with e2 show ?thesis by simp
+    next
+      case False
+      then have n4: "\<not> (length acc < 4 \<and>
+        cp ''(via '' @ fst a @ cp '') '' @ render_edge (snd (snd a)) \<notin> d_line ` set acc)" by simp
+      from n4 have sk: "add_dline acc a = acc" by (rule add_dline_skip)
+      with e2 show ?thesis by simp
+    qed
+    from Cons.IH[OF lt] step show ?case by simp
+  qed
+qed
 
 theorem decide_derived_witnessed:
   "\<forall>dl \<in> set (decide_derived med req es).
@@ -528,27 +792,37 @@ theorem decide_derived_witnessed:
        d_hop1 dl = claim_of e1 \<and> d_hop2 dl = claim_of e2"
 proof (unfold decide_derived_def, rule ballI)
   fix dl assume dl: "dl \<in> set (foldl add_dline [] (derived_pairs med req es))"
-  from fold_add_dline_new0[where l="derived_pairs med req es"] dl obtain x where
+  from dl have fldl: "dl \<in> set (foldl add_dline [] (derived_pairs med req es))"
+    by (simp add: decide_derived_def)
+  note dn = fold_add_dline_new0[where l="derived_pairs med req es", OF fldl]
+  then obtain x where
     x: "x \<in> set (derived_pairs med req es)" and
-    parts: "d_via dl = fst x" "d_hop1 dl = claim_of (fst (snd x))"
-           "d_hop2 dl = claim_of (snd (snd x))"
-           "d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge (snd (snd x))"
-    by blast
+    dl_line: "d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge (snd (snd x))" and
+    dl_hop2: "d_hop2 dl = claim_of (snd (snd x))" and
+    dl_hop1: "d_hop1 dl = claim_of (fst (snd x))" and
+    dl_via: "d_via dl = fst x"
+    unfolding dline_new_def by blast
   obtain p e1 e2 where pe: "x = (p, e1, e2)" by (cases x) auto
   from x pe have w: "(p, e1, e2) \<in> set (derived_pairs med req es)" by simp
   note ws = derived_pairs_witnessed[OF w]
   from pe have sel: "fst x = p" "fst (snd x) = e1" "snd (snd x) = e2" by simp_all
-  from parts sel have
-    dv: "d_via dl = p" and
-    hl: "d_hop1 dl = claim_of e1" "d_hop2 dl = claim_of e2" and
-    ll: "d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge e2"
-    by simp_all
+  from dl_via sel have dv: "d_via dl = p" by simp
+  from dl_hop1 sel have h1: "d_hop1 dl = claim_of e1" by simp
+  from dl_hop2 sel have h2: "d_hop2 dl = claim_of e2" by simp
+  from dl_line sel have ll: "d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge e2" by simp
   show "\<exists>e1 e2. e1 \<in> set es \<and> e2 \<in> set es \<and>
     c_rel e1 = med \<and> c_start e1 = c_concept req \<and> c_end e1 = d_via dl \<and>
     c_rel e2 \<in> set (fwd_specs req) \<and> c_start e2 = d_via dl \<and>
     d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge e2 \<and>
     d_hop1 dl = claim_of e1 \<and> d_hop2 dl = claim_of e2"
-    using ws(1) ws(2) ws(3) ws(4) ws(5) ws(6) ws(7) dv hl ll by simp
+  proof (rule exI[where x=e1], rule exI[where x=e2])
+    show "e1 \<in> set es \<and> e2 \<in> set es \<and>
+      c_rel e1 = med \<and> c_start e1 = c_concept req \<and> c_end e1 = d_via dl \<and>
+      c_rel e2 \<in> set (fwd_specs req) \<and> c_start e2 = d_via dl \<and>
+      d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge e2 \<and>
+      d_hop1 dl = claim_of e1 \<and> d_hop2 dl = claim_of e2"
+      using ws(1) ws(2) ws(3) ws(4) ws(5) ws(6) ws(7) dv h1 h2 ll by simp
+  qed
 qed
 
 theorem decide_derived_bounded: "length (decide_derived med req es) \<le> 4"
@@ -577,42 +851,170 @@ theorem decide_empty_is_abstain: "decide meds req [] = C_abstain"
 
 theorem decide_no_meds_iff:
   "decide [] req es = C_abstain \<longleftrightarrow> decide_direct req es = []"
-proof (cases "decide_direct req es = []")
-  case True then show ?thesis by (simp add: decide_def)
+proof
+  assume h: "decide [] req es = C_abstain"
+  then show "decide_direct req es = []"
+  proof (cases "decide_direct req es = []")
+    case True then show ?thesis .
+  next
+    case False
+    then have ca: "decide [] req es = C_answer (decide_direct req es)"
+      by (simp add: decide_def)
+    with h have "C_answer (decide_direct req es) = C_abstain" by simp
+    then have False by simp
+    then show ?thesis by simp
+  qed
 next
-  case False then show ?thesis by (simp add: decide_def)
+  assume h: "decide_direct req es = []"
+  then show "decide [] req es = C_abstain" by (simp add: decide_def)
 qed
 
-theorem answer_nonempty_bounded:
-  "decide meds req es = C_answer out \<Longrightarrow> out \<noteq> [] \<and> length out \<le> 5"
-  by (auto simp: decide_def decide_direct_bounded split: list.splits if_splits)
-
-theorem derived_nonempty_bounded:
-  "decide meds req es = C_derived ds \<Longrightarrow> ds \<noteq> [] \<and> length ds \<le> 4"
-  by (auto simp: decide_def decide_derived_bounded split: list.splits if_splits)
+lemma first_derived_nil_iff:
+  "first_derived meds req es = [] \<longleftrightarrow> (\<forall>m \<in> set meds. decide_derived m req es = [])"
+proof (induction meds)
+  case Nil show ?case by simp
+next
+  case (Cons m ms)
+  show "first_derived (m # ms) req es = [] \<longleftrightarrow>
+      (\<forall>mm \<in> set (m # ms). decide_derived mm req es = [])"
+  proof (cases "decide_derived m req es = []")
+    case True
+    then show "first_derived (m # ms) req es = [] \<longleftrightarrow>
+        (\<forall>mm \<in> set (m # ms). decide_derived mm req es = [])"
+      using Cons.IH by simp
+  next
+    case False
+    then show "first_derived (m # ms) req es = [] \<longleftrightarrow>
+        (\<forall>mm \<in> set (m # ms). decide_derived mm req es = [])" by simp
+  qed
+qed
 
 theorem decide_abstain_iff:
   "decide meds req es = C_abstain \<longleftrightarrow>
      decide_direct req es = [] \<and> (\<forall>m \<in> set meds. decide_derived m req es = [])"
-proof (induction meds)
-  case Nil thus ?case by (simp add: decide_def)
-next
-  case (Cons m ms)
-  show ?case
+proof
+  assume h: "decide meds req es = C_abstain"
+  then show "decide_direct req es = [] \<and> (\<forall>m \<in> set meds. decide_derived m req es = [])"
   proof (cases "decide_direct req es = []")
-    case False thus ?thesis by (simp add: decide_def)
-  next
     case True
-    show ?thesis
-    proof (cases "decide_derived m req es = []")
-      case True
-      with Cons.IH True show ?thesis by (simp add: decide_def)
+    then have dd: "decide meds req es =
+        (case first_derived meds req es of [] \<Rightarrow> C_abstain | ds \<Rightarrow> C_derived ds)"
+      by (simp add: decide_def)
+    with h have ce: "(case first_derived meds req es of
+        [] \<Rightarrow> C_abstain | ds \<Rightarrow> C_derived ds) = C_abstain" by simp
+    have fde: "first_derived meds req es = []"
+    proof (cases "first_derived meds req es")
+      case Nil then show ?thesis .
     next
-      case False
-      with True show ?thesis by (simp add: decide_def)
+      case (Cons d dsx)
+      with ce have "C_derived (d # dsx) = C_abstain" by simp
+      then have False by simp
+      then show ?thesis by simp
+    qed
+    with first_derived_nil_iff[of meds req es] True show ?thesis by simp
+  next
+    case False
+    then have ca: "decide meds req es = C_answer (decide_direct req es)"
+      by (simp add: decide_def)
+    with h have "C_answer (decide_direct req es) = C_abstain" by simp
+    then have False by simp
+    then show ?thesis by simp
+  qed
+next
+  assume h: "decide_direct req es = [] \<and> (\<forall>m \<in> set meds. decide_derived m req es = [])"
+  then have hd: "decide_direct req es = []"
+    and ha: "\<forall>m \<in> set meds. decide_derived m req es = []" by simp_all
+  from ha first_derived_nil_iff[of meds req es] have fe: "first_derived meds req es = []" by simp
+  from hd have dd: "decide meds req es =
+      (case first_derived meds req es of [] \<Rightarrow> C_abstain | ds \<Rightarrow> C_derived ds)"
+    by (simp add: decide_def)
+  with fe show "decide meds req es = C_abstain" by simp
+qed
+theorem answer_nonempty_bounded:
+  "decide meds req es = C_answer out \<Longrightarrow> out \<noteq> [] \<and> length out \<le> 5"
+proof (unfold decide_def)
+  assume eq: "(let o0 = decide_direct req es in
+      if o0 \<noteq> [] then C_answer o0
+      else case first_derived meds req es of [] \<Rightarrow> C_abstain | ds \<Rightarrow> C_derived ds) = C_answer out"
+  show "out \<noteq> [] \<and> length out \<le> 5"
+  proof (cases "decide_direct req es \<noteq> []")
+    case True
+    with eq have cc: "C_answer (decide_direct req es) = C_answer out" by simp
+    then have oq: "out = decide_direct req es" by simp
+    from True oq have nz: "out \<noteq> []" by simp
+    from oq decide_direct_bounded[of req es] have lb: "length out \<le> 5" by simp
+    from nz lb show ?thesis ..
+  next
+    case False
+    with eq have fc: "(case first_derived meds req es of
+        [] \<Rightarrow> C_abstain | ds \<Rightarrow> C_derived ds) = C_answer out" by simp
+    then show ?thesis
+    proof (cases "first_derived meds req es")
+      case Nil
+      with fc have "C_abstain = C_answer out" by simp
+      then have False by simp
+      then show ?thesis by simp
+    next
+      case (Cons d dsx)
+      with fc have "C_derived (d # dsx) = C_answer out" by simp
+      then have False by simp
+      then show ?thesis by simp
     qed
   qed
 qed
+
+lemma first_derived_bounded: "length (first_derived meds req es) \<le> 4"
+proof (induction meds)
+  case Nil show ?case by simp
+next
+  case (Cons m ms)
+  show ?case
+  proof (cases "decide_derived m req es \<noteq> []")
+    case True
+    then show "length (first_derived (m # ms) req es) \<le> 4"
+      using decide_derived_bounded[of m req es] by simp
+  next
+    case False
+    then show "length (first_derived (m # ms) req es) \<le> 4" using Cons.IH by simp
+  qed
+qed
+
+theorem derived_nonempty_bounded:
+  "decide meds req es = C_derived ds \<Longrightarrow> ds \<noteq> [] \<and> length ds \<le> 4"
+proof (unfold decide_def)
+  assume eq: "(let o0 = decide_direct req es in
+      if o0 \<noteq> [] then C_answer o0
+      else case first_derived meds req es of [] \<Rightarrow> C_abstain | dsl \<Rightarrow> C_derived dsl) = C_derived ds"
+  show "ds \<noteq> [] \<and> length ds \<le> 4"
+  proof (cases "decide_direct req es \<noteq> []")
+    case True
+    with eq have "C_answer (decide_direct req es) = C_derived ds" by simp
+    then have False by simp
+    then show ?thesis by simp
+  next
+    case False
+    with eq have fc: "(case first_derived meds req es of
+        [] \<Rightarrow> C_abstain | dsl \<Rightarrow> C_derived dsl) = C_derived ds" by simp
+    then show ?thesis
+    proof (cases "first_derived meds req es")
+      case Nil
+      with fc have "C_abstain = C_derived ds" by simp
+      then have False by simp
+      then show ?thesis by simp
+    next
+      case (Cons d dsx)
+      with fc have cde: "C_derived (d # dsx) = C_derived ds" by simp
+      then have dsq: "ds = d # dsx" by simp
+      then have nz: "ds \<noteq> []" by simp
+      from dsq have len: "length ds = Suc (length dsx)" by simp
+      from first_derived_bounded[of meds req es] \<open>first_derived meds req es = d # dsx\<close>
+      have fb: "Suc (length dsx) \<le> 4" by simp
+      from len fb have lb: "length ds \<le> 4" by simp
+      from nz lb show ?thesis ..
+    qed
+  qed
+qed
+
 
 text \<open>The explicit abstention rule, plainly: if the fetch brought no edge the
 request declares (no direct witness, and no mediator-parent pair whose second
@@ -645,12 +1047,14 @@ proof -
     by (cases "decide_derived med req es") auto
   from dl have fldl: "dl \<in> set (foldl add_dline [] (derived_pairs med req es))"
     by (simp add: decide_derived_def)
-  from fold_add_dline_new0[where l="derived_pairs med req es"] fldl obtain x where
+  note dn = fold_add_dline_new0[where l="derived_pairs med req es", OF fldl]
+  then obtain x where
     x: "x \<in> set (derived_pairs med req es)" and
-    parts: "d_via dl = fst x" "d_hop1 dl = claim_of (fst (snd x))"
-           "d_hop2 dl = claim_of (snd (snd x))"
-           "d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge (snd (snd x))"
-    by blast
+    dl_line: "d_line dl = cp ''(via '' @ d_via dl @ cp '') '' @ render_edge (snd (snd x))" and
+    dl_hop2: "d_hop2 dl = claim_of (snd (snd x))" and
+    dl_hop1: "d_hop1 dl = claim_of (fst (snd x))" and
+    dl_via: "d_via dl = fst x"
+    unfolding dline_new_def by blast
   obtain p e1 e2 where pe: "x = (p, e1, e2)" by (cases x) auto
   from x pe have w: "(p, e1, e2) \<in> set (derived_pairs med req es)" by simp
   note ws = derived_pairs_witnessed[OF w]
@@ -671,7 +1075,7 @@ proof -
     from decide_direct_nonemptyE[OF ne] obtain e where
       e: "e \<in> set es" and w: "declared_witness req e" by blast
     from dir[THEN bspec, OF e] have n: "\<not> declared_witness req e" .
-    from n w show ?thesis by (rule notE)
+    from n w show False by (rule notE)
   qed
   have d2: "\<forall>m \<in> set meds. decide_derived m req es = []"
   proof (rule ballI)
