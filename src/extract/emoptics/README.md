@@ -16,7 +16,7 @@ the way that one manifest's organ does; without it the family is asked in a fixe
 | Requests, declines, kernel, rounding, reply text | `Emoptics.thy` | HOL, proved, exported to SML |
 | Enclosures for square roots, the AWG power law, sine, arc sine | `Emoptics_Num.thy` over Isabelle's `Approximation` | proved there; this lane adds sine in degrees, arc sine and the sign test |
 | Export, self test, oracle check | `Emoptics_Export.thy` | the build fails if a listed theorem uses an oracle or the self test fails |
-| Reading English | `regex.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions and branch order |
+| Reading English | `../commons/commons.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions and branch order |
 | JSON framing, ohm and micro signs | `main.sml` | **untrusted** |
 | Table transcription check | `tables_check.py` | a Python check, not a proof |
 
