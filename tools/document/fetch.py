@@ -9,20 +9,29 @@ the exported kernel (Document_Route_Code, from src/isabelle/document/Document_Ro
 
 What this fetch assumes, and the kernel takes on trust:
 
-  1. Turn classification (which route the head would take) follows the cascade's order
-     as observed on the core panel: the corpus-query rules (base runtime b) before the
-     factoid route (w420); the converse organ (w494) speaks where the chain could not
-     parse the turn; everything else is the clarify terminal. The head's own guard --
-     w420 fires only over a parent decline -- is NOT modelled: where the head clarified
-     because something earlier had answered, this fetch may still propose a factoid.
-  2. The independent cube CHECK of verified_retrieval_v1 is not ported; `checked` is
-     always False, so a weak-route candidate is shown as an unverified passage and
-     never asserted. On the measured sample every weak-route reply the head released
-     had been downgraded to unverified, so this matches; a port of the cube would be
-     the way to also earn `verified:weak|` replies.
-  3. Stores: the bench build (m13e7) answers the corpus-query rules; the deep build
-     (m13e8) feeds the factoid route and the converse organ. Both are the paths
-     oracle7.py sets (ORACLE_BENCH_BUILD / ORACLE_DEEP_BUILD).
+  1. Turn classification follows the head's cascade order as read from its sources: the
+     corpus-query rules (base runtime b), their decline included; else runtime S's arbiter capture (arbiter v3, family
+     "definitional", canonical surface "What is a <topic>?" over the bench anchor store, the
+     redispatch read with runtime c / w193's own _definitional_turn); then w420's factoid
+     route; then the converse organ (w494) where nothing spoke; else the clarify terminal.
+     The base chain's other organs (relation reader, specialists, maths) are not consulted:
+     a turn they would have taken is not a document-route turn.
+  2. When the arb redispatch is not a definitional lead, the head's document_runtime answered
+     it with text this fetch cannot see; the candidate is then empty and the path label is
+     "arb:definitional->document_runtime|substitution_disclosed" (runtime z discloses the
+     substitution whenever the turn is a what-is question, which is what the recorded panel
+     shows on every such item).
+  3. The cube CHECK of verified_retrieval_v1 is not ported, and no flag stands in for it: the
+     kernel asserts a weak-route sentence only by the definition test it reads off the text.
+  4. Flags the kernel cannot read itself: the DEF_Q shape of the question and its asked term
+     (verified_reach_v1.DEF_Q / RELATIVE), w468's pointer phrase (DEICTIC, then POINTER),
+     w511's P4 shape (the question gives numbers and asks for a number, and the route that took
+     it is a lookup that answered), and the displaced path label. The kernel re-checks what it
+     can: the pointer must occur in the question, the P4 question must carry a numeral, and
+     the computation gateway reads the question itself, whatever this fetch says.
+  5. Stores: the bench build (m13e7) answers the corpus-query rules and holds the arbiter's
+     anchor titles; the deep build (m13e8) feeds the factoid route and the converse organ.
+     Every store is opened read-only with immutable=1 by the organs' own classes.
 """
 from __future__ import annotations
 
@@ -60,6 +69,14 @@ import oracle_release_runtime_w517 as W517         # noqa: E402
 import oracle_release_runtime_w518 as W518         # noqa: E402
 import oracle_release_runtime_w519 as W519         # noqa: E402
 import oracle_release_runtime_w520 as W520         # noqa: E402
+import oracle_release_runtime_d as RD              # noqa: E402  (the anchor store)
+import oracle_release_runtime_q as RQ              # noqa: E402  (the canonical surface)
+import oracle_release_runtime_z as RZ              # noqa: E402  (substitution disclosure)
+import oracle_release_runtime_w193 as W193         # noqa: E402  (the head's _definitional_turn)
+import oracle_release_runtime_w468 as W468         # noqa: E402  (the door's pointer)
+import oracle_release_runtime_w511 as W511         # noqa: E402  (P4's number shapes)
+import stage5m17_release_arbiter_v3 as ARB         # noqa: E402  (runtime S's arbiter)
+import verified_reach_v1 as VREACH                 # noqa: E402  (DEF_Q, RELATIVE)
 
 PH = UPSTREAM / "root" / "fable-content" / "oracle-m-series-2026-08-15"
 BENCH = PH / "m13e7_dbpedia_openstax_full_fable_bench_a_v1" / "wikipedia_specialist.sqlite3"
@@ -67,6 +84,11 @@ DEEP = PH / "m13e8_dbpedia_enslot_openstax_full_fable_bench_a_v1" / "wikipedia_s
 
 PROPERTY_OF = next(pat for rid, pat, _ in BF.RULES if rid == "property_of")
 FRAGMENT = re.compile(r"^\s*(?:[a-z]|\d{1,4}\s*[)\]])")   # oracle_release_runtime_aa.FRAGMENT, copied
+# w511 guard(): the second half of asks_number, inline there (copied verbatim)
+WHAT_NUMBER = re.compile(
+    r"^\s*what(?:'s| is| was) the (?:kinetic |potential )?(?:area|volume|circumference|perimeter|energy|momentum|force|speed|"
+    r"velocity|density|mass|weight|power|resistance|current|pressure|work|cost|price|average|mean|hypotenuse|ph|"
+    r"square root|cube root|sum|product|value)\b", re.I)
 
 
 class Fetch:
@@ -82,6 +104,14 @@ class Fetch:
         w420._s244_deep = self.deep
         self.w420 = w420
         self._declined_res = {"status": "clarification", "path": "act:clarify|vessel:receipt"}
+        self.anchors = RD.AnchorStore(self.bench.connection)      # runtime d: titles of the bench build
+        q = object.__new__(RQ.OracleReleaseRuntimeQ)               # statics + anchors only
+        q.anchors = self.anchors
+        self.arb_q = q
+        c = object.__new__(W193.OracleReleaseRuntimeW193)          # _definitional_turn through the head's MRO
+        c.bench_query = self.bench
+        c.anchors = self.anchors
+        self.defn = c
 
     # ---- helpers ---------------------------------------------------------------------------
 
@@ -92,10 +122,27 @@ class Fetch:
                 "year": bool(W420.YEAR.search(str(sentence))), "tier": None}
 
     def _base(self, turn, q, topic=""):
+        m = VREACH.DEF_Q.match(q)
+        x = ((m.group(1) or m.group(2) or "").strip()) if m else ""
+        point = W468.DEICTIC.search(q) or W468.POINTER.search(q)
         return {"turn": turn, "topic": topic, "asked": q, "future": False,
                 "pool": {"resolved": False, "conjunctive": 0, "claims": []},
-                "tiers": [], "checked": False, "subject_defines": False,
-                "disambiguates": False, "covered": [], "candidate": None}
+                "tiers": [], "candidate": None,
+                "term": x, "def_question": bool(x) and not VREACH.RELATIVE.search(x),
+                "pointer": point.group(0) if point else None,
+                "lookup_for_compute": False, "displaced": ""}
+
+    @staticmethod
+    def _p4_shape(q):
+        """w511's P4 question side: the question gives numbers, and asks for a number."""
+        return bool(W511._nums(q)) and bool(W511.NUMQ.search(q) or WHAT_NUMBER.match(q))
+
+    def _answered_by(self, ev, path):
+        """the lookup route answered in the head (before verified retrieval): name its path, and
+        mark P4's shape"""
+        ev["displaced"] = path
+        ev["lookup_for_compute"] = self._p4_shape(ev["asked"])
+        return ev
 
     # ---- the routes -----------------------------------------------------------------------
 
@@ -111,7 +158,7 @@ class Fetch:
             return ev
         cid, fact = result
         ev["candidate"] = self._claim(cid, fact)
-        return ev
+        return self._answered_by(ev, "corpus_query:property_of")
 
     def factoid_turn(self, q):
         """w420's own _f420_try over the same two stores, with a synthetic declined parent reply."""
@@ -123,7 +170,36 @@ class Fetch:
         via = prov.get("via", "page")
         ev = self._base("fts" if via == "fts" else "page", q, topic=str(prov.get("entity") or ""))
         ev["candidate"] = self._claim(_cid_of(out), _sentence_of(out), page=str(prov.get("page") or ""))
-        return ev
+        return self._answered_by(ev, "factoid:fts" if via == "fts" else "factoid:page")
+
+    def arb_turn(self, q):
+        """runtime S's capture: arbiter v3 bids "definitional" with a clean margin, the canonical
+        surface "What is a <topic>?" names a bench title, and the redispatch is read with the
+        head's own _definitional_turn (runtime c, widened by w193). Runtime z's disclosure is
+        applied to the lead it found."""
+        rec = ARB.arbitrate(" ".join(q.split()))
+        if rec.clarification_floor_applied or rec.winner != "definitional":
+            return None
+        canonical = self.arb_q._canonical_surface("definitional", q)
+        if not canonical:
+            return None
+        try:
+            d = self.defn._definitional_turn(canonical)
+        except Exception:                        # noqa: BLE001 - no lead: the document runtime answers
+            d = None
+        ev = self._base("arbdef", q)
+        asked = RZ.ASK_WHAT_IS.match(" ".join(q.strip().split()))
+        if d:
+            path = "arb:definitional->" + str(d.get("path"))
+            body = str(d.get("response") or "")
+            found = RZ.DEFINED_TERM.match(body.strip())
+            if asked and found and RZ._norm(found.group("term")) != RZ._norm(asked.group("t")):
+                path += "|substitution_disclosed"
+            prov = d.get("provenance") or {}
+            ev["candidate"] = self._claim(prov.get("claim_id") or "", VR._sentence(body), page=str(prov.get("page") or ""))
+        else:
+            path = "arb:definitional->document_runtime" + ("|substitution_disclosed" if asked else "")
+        return self._answered_by(ev, path)
 
     def converse_turn(self, q):
         """organ_converse_v1's own answer(): the statement move with its definition and citation."""
@@ -151,9 +227,7 @@ class Fetch:
         claim = self._claim(cid, sentence)
         ev["pool"] = {"resolved": True, "conjunctive": 0, "claims": [claim]}
         ev["candidate"] = claim
-        ev["subject_defines"] = True             # the organ's definition(): the page's own defining sentence
-        ev["disambiguates"] = bool(re.search(r"may refer to|can refer to|disambiguation", sentence, re.I))
-        ev["covered"] = [w.lower() in sentence.lower() for w in about.split()]
+        ev["term"] = about                       # the kernel checks it is named by the question and the sentence
         return ev
 
     def _factoid_eligible(self, q):
@@ -168,12 +242,18 @@ class Fetch:
         return W420._numbers(s) < 3
 
     def evidence(self, q):
-        """The cascade order as the head runs it: the corpus rules of the base runtime, then
-        w420's factoid route over a decline, then the converse organ on an unparseable turn."""
+        """The cascade order as the head runs it (see the module docstring, item 1)."""
         q = " ".join(str(q).split())
         ev = self.corpus_turn(q)
         if ev is not None:
+            # w420 fires over a parent decline, and a corpus decline is one; but on the core panel the head
+            # keeps the corpus decline on 21 of the 25 such items (the four it does not are cube volumes
+            # with a number, guarded by P4 over a factoid:page). Which fold makes the difference was not
+            # found; the decline is kept, and those four are named misses.
             return ev, "corpus_query:property_of"
+        ev = self.arb_turn(q)
+        if ev is not None:
+            return ev, "arb:definitional"
         if self._factoid_eligible(q):
             ev = self.factoid_turn(q)
             if ev is not None:

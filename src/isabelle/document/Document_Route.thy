@@ -1,41 +1,221 @@
 theory Document_Route
-  imports Main
+  imports Main "HOL-Library.Code_Target_Numeral"
 begin
 
 text \<open>Oracle7's document route as one decision over fetched evidence.
 
-Four engine rules are lifted:
+Six engine rules are lifted:
 
 - the anchored claim pool of @{text stage5m13d2_anchored_general_document}: a turn with
-  neither an exact-title page nor a conjunctive full-text match has NO claims at all --
-  lexical-context sentences are discarded without a query anchor;
+  neither an exact-title page nor a conjunctive full-text match has NO claims at all;
 - the tiered cue pick of @{text oracle_release_runtime_aa} / @{text oracle_release_runtime_y}:
   among the usable (non-fragment) claims of the pool, the answer is the hits of the FIRST
-  cue tier that any of them matches; a fragment (a sentence starting mid-parenthetical or
-  lower-case) is skipped unless every sentence is one; a when-question only answers
-  sentences that carry a year;
+  cue tier that any of them matches; a when-question only answers sentences with a year;
 - the weak-route admission law of @{text verified_retrieval_v1} / @{text verified_reach_v1}:
-  a sentence a weak route retrieved (full-text search, page reading, corpus lookup) is
-  ASSERTED only when the independent checker passed it, or it defines the very term that
-  was asked about; otherwise it is shown as an unverified passage and the reply is withheld;
-- the clarify terminal of @{text oracle_release_runtime_u}: a turn nothing could read ends
-  in a typed clarify that asserts nothing.
+  a sentence a weak route retrieved is ASSERTED only when it defines the very term that was
+  asked about (@{text defines_asked}: every content word of the asked term opens a word in
+  the sentence); otherwise it is shown as an unverified passage and the reply is withheld.
+  The independent cube CHECK that the head also accepts is not ported, so no flag stands
+  in for it: the kernel reads the definition test off the sentence text itself;
+- the computation gateway of @{text oracle_release_runtime_w458}: a question that names an
+  arithmetic operation and carries the numbers to apply it to is refused with a receipt,
+  never answered from a page and never sent to the clarify terminal; the kernel reads the
+  operation and the numerals off the question text itself;
+- the clarify terminal of @{text oracle_release_runtime_u}, and the door of
+  @{text oracle_release_runtime_w468}: a terminal clarify on a turn that points ("that",
+  "the thing ...") asks what the pointer refers to, naming the phrase verbatim.
 
-The fetch (sqlite/FTS), title resolution, the cue regexes, the checker and the WordNet
-senses stay outside HOL: their results arrive as flags and claim lists, exactly as lane F's
-reader took the linker's rows. The theorems say what an answer means about that evidence,
-and only that: an answer always cites claims of the anchored, admitted pool, taken at the
-first tier that matched, never a fragment where a whole sentence existed, never without a
-year when a year was asked for; an unverified sentence is never asserted; a clarify cites
-nothing.\<close>
+The fetch (sqlite/FTS), title resolution, the cue regexes, the arbiter and the WordNet
+senses stay outside HOL: their results arrive as flags, claim lists and strings, exactly as
+lane F's reader took the linker's rows. What the kernel reads itself is text: the question,
+the asked term and the cited sentence. All texts are HOL strings (8-bit characters), so a
+sentence is checked and quoted as the same bytes.\<close>
+
+section \<open>Text\<close>
+
+definition byte_of :: "char \<Rightarrow> integer" where "byte_of c = integer_of_char c"
+
+definition is_digit :: "char \<Rightarrow> bool" where
+  "is_digit c \<longleftrightarrow> 48 \<le> byte_of c \<and> byte_of c \<le> 57"
+
+definition is_upper :: "char \<Rightarrow> bool" where
+  "is_upper c \<longleftrightarrow> 65 \<le> byte_of c \<and> byte_of c \<le> 90"
+
+definition is_letter :: "char \<Rightarrow> bool" where
+  "is_letter c \<longleftrightarrow> is_upper c \<or> (97 \<le> byte_of c \<and> byte_of c \<le> 122)"
+
+definition is_alnum :: "char \<Rightarrow> bool" where
+  "is_alnum c \<longleftrightarrow> is_letter c \<or> is_digit c"
+
+text \<open>Python's word characters: ASCII letters and digits, the underscore, and every byte
+of a non-ASCII character (Python counts accented letters as word characters).\<close>
+definition is_word :: "char \<Rightarrow> bool" where
+  "is_word c \<longleftrightarrow> is_alnum c \<or> c = CHR ''_'' \<or> 128 \<le> byte_of c"
+
+definition lower_char :: "char \<Rightarrow> char" where
+  "lower_char c = (if is_upper c then char_of_integer (byte_of c + 32) else c)"
+
+definition lowercase :: "string \<Rightarrow> string" where
+  "lowercase s = map lower_char s"
+
+fun starts :: "string \<Rightarrow> string \<Rightarrow> bool" where
+  "starts [] _ = True"
+| "starts (a # as) [] = False"
+| "starts (a # as) (b # bs) = (a = b \<and> starts as bs)"
+
+lemma starts_append: "starts w s \<Longrightarrow> \<exists>r. s = w @ r"
+  by (induct w s rule: starts.induct) auto
+
+text \<open>@{text "\\b w"}: @{term w} opens at a position where the previous character is not a
+word character (or at the start).\<close>
+fun word_at :: "string \<Rightarrow> bool \<Rightarrow> string \<Rightarrow> bool" where
+  "word_at w b [] = (b \<and> w = [])"
+| "word_at w b (c # cs) = ((b \<and> starts w (c # cs)) \<or> word_at w (\<not> is_word c) cs)"
+
+definition word_in :: "string \<Rightarrow> string \<Rightarrow> bool" where
+  "word_in w s = word_at w True s"
+
+lemma word_at_sound: "word_at w b s \<Longrightarrow> \<exists>pre suf. s = pre @ suf \<and> starts w suf"
+proof (induct s arbitrary: b)
+  case Nil thus ?case by auto
+next
+  case (Cons c cs)
+  show ?case
+  proof (cases "b \<and> starts w (c # cs)")
+    case True
+    hence "c # cs = [] @ (c # cs) \<and> starts w (c # cs)" by simp
+    thus ?thesis by blast
+  next
+    case False
+    hence "word_at w (\<not> is_word c) cs" using Cons.prems by auto
+    then obtain pre suf where "cs = pre @ suf" "starts w suf" using Cons.hyps by blast
+    hence "c # cs = (c # pre) @ suf \<and> starts w suf" by simp
+    thus ?thesis by blast
+  qed
+qed
+
+lemma word_in_sound: "word_in w s \<Longrightarrow> \<exists>pre suf. s = pre @ suf \<and> starts w suf"
+  unfolding word_in_def by (rule word_at_sound)
+
+text \<open>@{text "\\b w \\b"}: a whole word or phrase.\<close>
+definition ends_word :: "string \<Rightarrow> string \<Rightarrow> bool" where
+  "ends_word w s \<longleftrightarrow> starts w s \<and> (case drop (length w) s of [] \<Rightarrow> True | d # _ \<Rightarrow> \<not> is_word d)"
+
+fun whole_at :: "string \<Rightarrow> bool \<Rightarrow> string \<Rightarrow> bool" where
+  "whole_at w b [] = False"
+| "whole_at w b (c # cs) = ((b \<and> ends_word w (c # cs)) \<or> whole_at w (\<not> is_word c) cs)"
+
+text \<open>The content words of a term, as @{text verified_reach_v1.defines_asked} takes them:
+maximal runs of ASCII letters and digits of the lower-cased term, at least three long, cut
+to their first six characters.\<close>
+fun wsplit :: "string \<Rightarrow> string \<Rightarrow> string list" where
+  "wsplit acc [] = (if acc = [] then [] else [rev acc])"
+| "wsplit acc (c # cs) = (if is_alnum c then wsplit (c # acc) cs
+     else if acc = [] then wsplit [] cs else rev acc # wsplit [] cs)"
+
+definition words_of :: "string \<Rightarrow> string list" where
+  "words_of t = map (take 6) (filter (\<lambda>w. 3 \<le> length w) (wsplit [] (lowercase t)))"
+
+section \<open>The computation gateway (w458): operations and numerals read off the question\<close>
+
+text \<open>w458's OPERATION alternatives, in its order (the regex takes the first alternative that
+matches at the leftmost position), and its UNARY ones.\<close>
+definition operations :: "string list" where
+  "operations = [''percent'', ''per cent'', ''area'', ''perimeter'', ''circumference'', ''volume'',
+    ''hypotenuse'', ''square root'', ''cube root'', ''logarithm'', ''log base'', ''to the power'',
+    ''squared'', ''cubed'', ''times'', ''multiplied by'', ''plus'', ''minus'', ''divided by'',
+    ''remainder'', ''solve for'', ''factorise'', ''factorize'', ''factorial'', ''prime factor'']"
+
+definition unary_ops :: "string list" where
+  "unary_ops = [''square root'', ''cube root'', ''logarithm'', ''log base'', ''squared'', ''cubed'',
+    ''factorial'', ''prime'', ''factorise'', ''factorize'', ''prime factor'']"
+
+text \<open>The leftmost operation, as w458's naming step reads it: a word operation at a word
+boundary, or a per-cent sign (named "percentage").\<close>
+fun op_scan :: "bool \<Rightarrow> string \<Rightarrow> string option" where
+  "op_scan b [] = None"
+| "op_scan b (c # cs) = (if c = CHR ''%'' then Some ''percentage''
+     else (case (if b then find (\<lambda>w. ends_word w (c # cs)) operations else None) of
+             Some w \<Rightarrow> Some w
+           | None \<Rightarrow> op_scan (\<not> is_word c) cs))"
+
+text \<open>w458's NUMERAL, @{text "(?<![A-Za-z])\\d+(?:\\.\\d+)?"}, counted left to right without
+overlap, as a five-state scan.\<close>
+datatype nstate = NFree | NLetter | NInt | NDot | NFrac
+
+fun numerals :: "nstate \<Rightarrow> string \<Rightarrow> nat" where
+  "numerals s [] = 0"
+| "numerals s (c # cs) =
+     (if is_digit c then
+        (case s of NFree \<Rightarrow> Suc (numerals NInt cs)
+         | NLetter \<Rightarrow> numerals NFree cs
+         | NInt \<Rightarrow> numerals NInt cs
+         | NDot \<Rightarrow> numerals NFrac cs
+         | NFrac \<Rightarrow> numerals NFrac cs)
+      else if is_letter c then numerals NLetter cs
+      else if c = CHR ''.'' \<and> s = NInt then numerals NDot cs
+      else numerals NFree cs)"
+
+definition compute_op :: "string \<Rightarrow> string option" where
+  "compute_op q = (let t = lowercase q in
+     case op_scan True t of
+       None \<Rightarrow> None
+     | Some op \<Rightarrow>
+         if 2 \<le> numerals NFree t \<or> CHR ''%'' \<in> set t
+            \<or> (1 \<le> numerals NFree t \<and> list_ex (\<lambda>u. whole_at u True t) unary_ops)
+         then Some op else None)"
+
+lemma op_scan_sound:
+  "op_scan b t = Some op \<Longrightarrow>
+     (op = ''percentage'' \<and> CHR ''%'' \<in> set t) \<or> (op \<in> set operations \<and> (\<exists>pre suf. t = pre @ suf \<and> starts op suf))"
+proof (induct t arbitrary: b)
+  case Nil thus ?case by simp
+next
+  case (Cons c cs)
+  show ?case
+  proof (cases "c = CHR ''%''")
+    case True thus ?thesis using Cons.prems by simp
+  next
+    case F: False
+    define x where "x = (if b then find (\<lambda>w. ends_word w (c # cs)) operations else None)"
+    have eq: "op_scan b (c # cs) = (case x of Some w \<Rightarrow> Some w | None \<Rightarrow> op_scan (\<not> is_word c) cs)"
+      using F by (simp add: x_def)
+    show ?thesis
+    proof (cases x)
+      case None
+      have "op_scan b (c # cs) = op_scan (\<not> is_word c) cs" using eq None by simp
+      hence "op_scan (\<not> is_word c) cs = Some op" using Cons.prems by simp
+      from Cons.hyps[OF this] show ?thesis
+      proof
+        assume "op = ''percentage'' \<and> CHR ''%'' \<in> set cs" thus ?thesis by simp
+      next
+        assume "op \<in> set operations \<and> (\<exists>pre suf. cs = pre @ suf \<and> starts op suf)"
+        then obtain pre suf where "op \<in> set operations" "cs = pre @ suf" "starts op suf" by blast
+        hence "op \<in> set operations \<and> c # cs = (c # pre) @ suf \<and> starts op suf" by simp
+        thus ?thesis by blast
+      qed
+    next
+      case (Some w)
+      have "op_scan b (c # cs) = Some w" using eq Some by simp
+      hence ow: "op = w" using Cons.prems by simp
+      have fw: "find (\<lambda>w. ends_word w (c # cs)) operations = Some w"
+        using Some by (cases b) (auto simp: x_def)
+      have "w \<in> set operations \<and> ends_word w (c # cs)"
+        using fw by (auto simp: find_Some_iff nth_mem)
+      hence "op \<in> set operations \<and> c # cs = [] @ (c # cs) \<and> starts op (c # cs)"
+        using ow by (simp add: ends_word_def)
+      thus ?thesis by blast
+    qed
+  qed
+qed
 
 section \<open>Evidence\<close>
 
 record claim =
-  claim_id :: String.literal
-  page :: String.literal
-  sentence :: String.literal
-  fragment :: bool        \<comment> \<open> starts mid-parenthetical or lower-case (aa's FRAGMENT) \<close>
+  claim_id :: string
+  page :: string
+  sentence :: string
+  fragment :: bool        \<comment> \<open> starts mid-parenthetical or lowercase-case (aa's FRAGMENT) \<close>
   has_year :: bool        \<comment> \<open> carries a 19xx/20xx year (aa's YEAR) \<close>
   tier :: "natural option"    \<comment> \<open> the first cue tier whose regex matched, if any \<close>
 
@@ -46,15 +226,16 @@ record pool =
 
 record evidence =
   pool_e :: pool
-  tiers :: "natural list"           \<comment> \<open> cue tier order; specific forms first, broad last \<close>
-  checked :: bool               \<comment> \<open> the independent checker passed the candidate \<close>
-  subject_defines :: bool       \<comment> \<open> the candidate's subject is the asked term (DEFINED_TERM) \<close>
-  disambiguates :: bool         \<comment> \<open> the candidate's page is a disambiguation ("may refer to") \<close>
-  covered :: "bool list"        \<comment> \<open> per content word of the asked term: it occurs in the candidate \<close>
+  tiers :: "natural list"       \<comment> \<open> cue tier order; specific forms first, broad last \<close>
   candidate :: "claim option"   \<comment> \<open> the sentence the route retrieved; None: nothing was found \<close>
-  topic :: String.literal       \<comment> \<open> the asked topic, as the organ prints it \<close>
-  asked :: String.literal       \<comment> \<open> the question in the organ's own phrasing \<close>
+  asked_term :: string                \<comment> \<open> the asked term (DEF_Q's definiendum; the statement's topic) \<close>
+  def_question :: bool          \<comment> \<open> the question has DEF_Q's what-is shape (untrusted regex) \<close>
+  topic :: string               \<comment> \<open> the asked topic, as the organ prints it \<close>
+  asked :: string               \<comment> \<open> the question, verbatim \<close>
   future :: bool                \<comment> \<open> the statement speaks of tomorrow-ish time (converse ack) \<close>
+  pointer :: "string option"    \<comment> \<open> w468's first pointer phrase in the question (untrusted regex) \<close>
+  lookup_for_compute :: bool    \<comment> \<open> w511's P4 shape: asks a number, the route is a lookup (untrusted) \<close>
+  displaced :: String.literal   \<comment> \<open> the path the head's lookup route would print (a label only) \<close>
 
 datatype cue_kind = Cause \<comment> \<open> what causes X / why does X happen \<close>
   | Process \<comment> \<open> how does X work \<close>
@@ -70,6 +251,43 @@ datatype turn =
   | Weak weak_route
   | Statement \<comment> \<open> organ_converse_v1's statement move: acknowledge + one grounded sentence \<close>
   | Fallback \<comment> \<open> nothing read the turn; runtime U's clarify terminal speaks \<close>
+
+text \<open>The definition test of @{text verified_reach_v1.defines_asked}, read off the text: the
+asked term has content words, and each opens a word both in the question and in the first
+200 characters of the cited sentence.\<close>
+definition names_term :: "evidence \<Rightarrow> claim \<Rightarrow> bool" where
+  "names_term ev c \<longleftrightarrow> words_of (asked_term ev) \<noteq> []
+     \<and> list_all (\<lambda>w. word_in w (lowercase (asked ev)) \<and> word_in w (lowercase (take 200 (sentence c))))
+                (words_of (asked_term ev))"
+
+lemma names_term_sound:
+  assumes "names_term ev c"
+  shows "words_of (asked_term ev) \<noteq> []
+    \<and> (\<forall>w\<in>set (words_of (asked_term ev)).
+         (\<exists>pre suf. lowercase (asked ev) = pre @ suf \<and> starts w suf)
+       \<and> (\<exists>pre suf. lowercase (take 200 (sentence c)) = pre @ suf \<and> starts w suf))"
+proof -
+  have A: "words_of (asked_term ev) \<noteq> []" using assms by (simp add: names_term_def)
+  have B: "\<forall>w\<in>set (words_of (asked_term ev)).
+         (\<exists>pre suf. lowercase (asked ev) = pre @ suf \<and> starts w suf)
+       \<and> (\<exists>pre suf. lowercase (take 200 (sentence c)) = pre @ suf \<and> starts w suf)"
+  proof
+    fix w assume w: "w \<in> set (words_of (asked_term ev))"
+    have "word_in w (lowercase (asked ev))" "word_in w (lowercase (take 200 (sentence c)))"
+      using assms w by (auto simp: names_term_def list_all_iff)
+    thus "(\<exists>pre suf. lowercase (asked ev) = pre @ suf \<and> starts w suf)
+       \<and> (\<exists>pre suf. lowercase (take 200 (sentence c)) = pre @ suf \<and> starts w suf)"
+      using word_in_sound by blast
+  qed
+  show ?thesis using A B by blast
+qed
+
+definition released :: "evidence \<Rightarrow> claim \<Rightarrow> bool" where
+  "released ev c \<longleftrightarrow> def_question ev \<and> names_term ev c"
+
+definition disambiguation :: "claim \<Rightarrow> bool" where
+  "disambiguation c \<longleftrightarrow> list_ex (\<lambda>p. word_in p (lowercase (sentence c)))
+     [''may refer to'', ''can refer to'', ''disambiguation'']"
 
 section \<open>The anchored pool (m13d2: no query anchor, no claims)\<close>
 
@@ -153,84 +371,131 @@ section \<open>The decision\<close>
 datatype decline = NoAnchor \<comment> \<open> no page and no conjunctive match anchored the query \<close>
   | NoAdmittedStatement \<comment> \<open> the pool holds no statement of the asked form \<close>
 
+datatype refusal = OutOfFragment string \<comment> \<open> w458: a named operation, outside the arithmetic carried out \<close>
+  | LookupForCompute \<comment> \<open> w511 P4: a lookup cannot compute with the asker's numbers \<close>
+
 datatype outcome =
     Answer claim "claim option"  \<comment> \<open> lead sentence cited, plus at most one more (aa's hits[:2]) \<close>
-  | UnverifiedPassage weak_route String.literal  \<comment> \<open> shown, never asserted (verified_retrieval) \<close>
+  | UnverifiedPassage weak_route string  \<comment> \<open> shown, never asserted (verified_retrieval) \<close>
   | Declined decline
+  | Refused refusal \<comment> \<open> the computation gateway; asserts nothing \<close>
   | Clarify \<comment> \<open> the typed clarify terminal; asserts nothing \<close>
+  | AskWhich string \<comment> \<open> w468's door: what does this phrase of yours refer to? \<close>
 
 definition need_year :: "cue_kind \<Rightarrow> bool" where
   "need_year k \<longleftrightarrow> k = When"
 
-text \<open>Which weak routes withhold with their own text when they find nothing; the factoid
-routes pass the turn through to the chain instead (w420 returns the parent's reply).\<close>
+text \<open>Which weak routes withhold with their own text when they find nothing; the others pass
+the turn through to the chain instead (w420 returns the parent's reply).\<close>
 definition withholds_empty :: "weak_route \<Rightarrow> bool" where
   "withholds_empty r \<longleftrightarrow> r = CorpusQuery"
 
-definition definitional_release :: "evidence \<Rightarrow> bool" where
-  "definitional_release ev \<longleftrightarrow> subject_defines ev \<and> list_all id (covered ev)"
-
-fun decide :: "turn \<Rightarrow> evidence \<Rightarrow> outcome" where
-  "decide (Explain k) ev =
+text \<open>The route's own decision, before the gateway and the door.\<close>
+fun route :: "turn \<Rightarrow> evidence \<Rightarrow> outcome" where
+  "route (Explain k) ev =
      (if \<not> anchor_present (pool_e ev) then Declined NoAnchor
       else case first_tier (tiers ev) (need_year k) (usable (admitted (pool_e ev))) of
              [] \<Rightarrow> Declined NoAdmittedStatement
            | h # r \<Rightarrow> Answer h (if r = [] then None else Some (hd r)))"
-| "decide (Weak r) ev =
+| "route (Weak r) ev =
      (case candidate ev of
         None \<Rightarrow> (if withholds_empty r then Declined NoAdmittedStatement else Clarify)
-      | Some c \<Rightarrow> if checked ev then Answer c None
-                  else if definitional_release ev then Answer c None
-                  else UnverifiedPassage r (sentence c))"
-| "decide Statement ev =
+      | Some c \<Rightarrow> if released ev c then Answer c None else UnverifiedPassage r (sentence c))"
+| "route Statement ev =
      (case candidate ev of
         None \<Rightarrow> Clarify
-      | Some c \<Rightarrow> if anchor_present (pool_e ev) \<and> definitional_release ev \<and> \<not> disambiguates ev
+      | Some c \<Rightarrow> if anchor_present (pool_e ev) \<and> names_term ev c \<and> \<not> disambiguation c
                   then Answer c None else Clarify)"
-| "decide Fallback ev = Clarify"
+| "route Fallback ev = Clarify"
+
+fun occurs :: "string \<Rightarrow> string \<Rightarrow> bool" where
+  "occurs p [] = (p = [])"
+| "occurs p (c # cs) = (starts p (c # cs) \<or> occurs p cs)"
+
+lemma occurs_sound: "occurs p s \<Longrightarrow> \<exists>pre suf. s = pre @ suf \<and> starts p suf"
+proof (induct s)
+  case Nil thus ?case by auto
+next
+  case (Cons c cs)
+  show ?case
+  proof (cases "starts p (c # cs)")
+    case True
+    hence "c # cs = [] @ (c # cs) \<and> starts p (c # cs)" by simp
+    thus ?thesis by blast
+  next
+    case False
+    hence "occurs p cs" using Cons.prems by simp
+    then obtain pre suf where "cs = pre @ suf" "starts p suf" using Cons.hyps by blast
+    hence "c # cs = (c # pre) @ suf \<and> starts p suf" by simp
+    thus ?thesis by blast
+  qed
+qed
+
+text \<open>w468's door, on a fresh conversation (no thread to bind to): a terminal clarify on a
+turn that points asks what the phrase refers to, and only for a phrase the question holds.\<close>
+fun door :: "evidence \<Rightarrow> outcome \<Rightarrow> outcome" where
+  "door ev Clarify = (case pointer ev of
+       Some p \<Rightarrow> if p \<noteq> [] \<and> occurs p (asked ev) then AskWhich p else Clarify
+     | None \<Rightarrow> Clarify)"
+| "door ev x = x"
+
+definition lookup_refused :: "evidence \<Rightarrow> bool" where
+  "lookup_refused ev \<longleftrightarrow> lookup_for_compute ev \<and> 0 < numerals NFree (lowercase (asked ev))"
+
+definition decide :: "turn \<Rightarrow> evidence \<Rightarrow> outcome" where
+  "decide t ev = (case compute_op (asked ev) of
+       Some op \<Rightarrow> Refused (OutOfFragment op)
+     | None \<Rightarrow> if lookup_refused ev then Refused LookupForCompute else door ev (route t ev))"
 
 section \<open>The reply (status, path, text; rendered so the citation is manifest)\<close>
 
-definition apos :: String.literal where "apos = String.implode [CHR 0x27]"
+definition apos :: string where "apos = [CHR 0x27]"
+definition dq :: string where "dq = [CHR 0x22]"
 
-definition cite :: "claim \<Rightarrow> String.literal" where
-  "cite c = STR ''['' + claim_id c + STR '']''"
+definition cite :: "claim \<Rightarrow> string" where
+  "cite c = ''['' @ claim_id c @ '']''"
 
-definition render_lead :: "claim \<Rightarrow> String.literal" where
-  "render_lead c = STR ''According to '' + page c + STR '', '' + sentence c + STR '' '' + cite c"
+definition render_lead :: "claim \<Rightarrow> string" where
+  "render_lead c = ''According to '' @ page c @ '', '' @ sentence c @ '' '' @ cite c"
 
-definition render_extra :: "claim \<Rightarrow> String.literal" where
-  "render_extra e = page e + STR '' also records: '' + sentence e + STR '' '' + cite e"
+definition render_extra :: "claim \<Rightarrow> string" where
+  "render_extra e = page e @ '' also records: '' @ sentence e @ '' '' @ cite e"
 
-fun render_answer :: "claim \<Rightarrow> claim option \<Rightarrow> String.literal" where
+fun render_answer :: "claim \<Rightarrow> claim option \<Rightarrow> string" where
   "render_answer c None = render_lead c"
-| "render_answer c (Some e) = render_lead c + STR '' '' + render_extra e"
+| "render_answer c (Some e) = render_lead c @ '' '' @ render_extra e"
 
-definition no_anchor_text :: "evidence \<Rightarrow> String.literal" where
-  "no_anchor_text ev = STR ''I have no admitted entry for '' + topic ev + STR ''.''
-     + STR '' The record I hold has no page of its own for it, and no passage that carries every word of the question, so there is nothing to anchor an answer on.''"
+definition no_anchor_text :: "evidence \<Rightarrow> string" where
+  "no_anchor_text ev = ''I have no admitted entry for '' @ topic ev @ ''.''
+     @ '' The record I hold has no page of its own for it, and no passage that carries every word of the question, so there is nothing to anchor an answer on.''"
 
-definition no_statement_text :: "evidence \<Rightarrow> String.literal" where
-  "no_statement_text ev = STR ''The admitted record for '' + topic ev + STR '' contains no statement that answers '' + asked ev + STR ''. I will not infer one.''"
+definition no_statement_text :: "evidence \<Rightarrow> string" where
+  "no_statement_text ev = ''The admitted record for '' @ topic ev @ '' contains no statement that answers '' @ asked ev @ ''. I will not infer one.''"
 
-definition dq :: String.literal where "dq = String.implode [CHR 0x22]"
+definition unverified_text :: "string \<Rightarrow> string" where
+  "unverified_text s = ''I found a passage that may be related, but I can'' @ apos @
+    ''t verify it answers your question: '' @ dq @ s @ dq"
 
-definition unverified_text :: "String.literal \<Rightarrow> String.literal" where
-  "unverified_text s = STR ''I found a passage that may be related, but I can'' + apos +
-    STR ''t verify it answers your question: '' + dq + s + dq"
+definition no_corpus_text :: string where
+  "no_corpus_text = ''No provenance-admitted sentence in the abstracts corpus answers that.''"
 
-definition no_corpus_text :: String.literal where
-  "no_corpus_text = STR ''No provenance-admitted sentence in the abstracts corpus answers that.''"
+definition ack_text :: "evidence \<Rightarrow> string" where
+  "ack_text ev = (if future ev then ''Good luck with it!'' else ''Got it.'')"
 
-definition ack_text :: "evidence \<Rightarrow> String.literal" where
-  "ack_text ev = (if future ev then STR ''Good luck with it!'' else STR ''Got it.'')"
+definition statement_text :: "evidence \<Rightarrow> claim \<Rightarrow> string" where
+  "statement_text ev c = ack_text ev @ '' Since you mention '' @ topic ev @ '': ''
+     @ sentence c @ '' '' @ cite c @ '' Want to know more about it?''"
 
-definition statement_text :: "evidence \<Rightarrow> claim \<Rightarrow> String.literal" where
-  "statement_text ev c = ack_text ev + STR '' Since you mention '' + topic ev + STR '': ''
-     + sentence c + STR '' '' + cite c + STR '' Want to know more about it?''"
+definition clarify_text :: string where
+  "clarify_text = ''I didn'' @ apos @ ''t fully parse that, so I won'' @ apos @ ''t guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.''"
 
-definition clarify_text :: String.literal where
-  "clarify_text = STR ''I didn'' + apos + STR ''t fully parse that, so I won'' + apos + STR ''t guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.''"
+definition ask_text :: "string \<Rightarrow> string" where
+  "ask_text p = ''What does '' @ dq @ p @ dq @ '' refer to? Nothing earlier in this conversation names it. Tell me the name.''"
+
+fun refusal_text :: "refusal \<Rightarrow> string" where
+  "refusal_text (OutOfFragment op) = ''That asks me to work out '' @ (if op = ''percentage'' then op else ''the '' @ op)
+     @ '', and I compute exactly or not at all. It is outside the arithmetic I can carry out, so rather than answer it from a page about the words in your question, I am telling you I cannot do it yet.''"
+| "refusal_text LookupForCompute = ''I can'' @ apos @ ''t verify an answer to that exact question, so I won'' @ apos @ ''t guess.''"
 
 definition cue_path :: "cue_kind \<Rightarrow> String.literal" where
   "cue_path k = (case k of Cause \<Rightarrow> STR ''capability:what_causes''
@@ -244,28 +509,39 @@ fun status_of :: "outcome \<Rightarrow> String.literal" where
   "status_of (Answer _ _) = STR ''answered''"
 | "status_of (UnverifiedPassage _ _) = STR ''withheld''"
 | "status_of (Declined _) = STR ''withheld''"
+| "status_of (Refused _) = STR ''withheld''"
 | "status_of Clarify = STR ''clarification''"
+| "status_of (AskWhich _) = STR ''clarification''"
 
-fun path_of :: "turn \<Rightarrow> outcome \<Rightarrow> String.literal" where
-  "path_of (Explain k) (Answer _ _) = cue_path k"
-| "path_of (Explain k) (Declined _) = cue_path k"
-| "path_of (Weak r) (Answer _ _) = STR ''verified:weak|'' + route_name r"
-| "path_of (Weak r) (UnverifiedPassage _ _) = STR ''unverified:'' + route_name r"
-| "path_of (Weak r) (Declined _) = route_name r"
-| "path_of Statement (Answer _ _) = STR ''organ:converse>statement''"
-| "path_of _ Clarify = STR ''act:clarify''"
-| "path_of _ _ = STR ''''"
+text \<open>A refusal's path names the lookup route it displaced, as the head prints it; that label
+is the fetch's, and it decides nothing.\<close>
+fun path_of :: "turn \<Rightarrow> evidence \<Rightarrow> outcome \<Rightarrow> String.literal" where
+  "path_of t ev (Refused (OutOfFragment _)) =
+     (if displaced ev = STR '''' then STR ''math:out_of_fragment|vessel:receipt''
+      else displaced ev + STR ''|math:out_of_fragment|vessel:receipt'')"
+| "path_of t ev (Refused LookupForCompute) = STR ''precision_guard:P4_lookup_for_compute|'' + displaced ev"
+| "path_of t ev (AskWhich _) = STR ''act:clarify_specific''"
+| "path_of t ev Clarify = STR ''act:clarify''"
+| "path_of (Explain k) ev (Answer _ _) = cue_path k"
+| "path_of (Explain k) ev (Declined _) = cue_path k"
+| "path_of (Weak r) ev (Answer _ _) = route_name r"
+| "path_of (Weak r) ev (UnverifiedPassage _ _) = STR ''unverified:'' + route_name r"
+| "path_of (Weak r) ev (Declined _) = route_name r"
+| "path_of Statement ev (Answer _ _) = STR ''organ:converse>statement''"
+| "path_of _ _ _ = STR ''''"
 
-fun response_of :: "turn \<Rightarrow> evidence \<Rightarrow> outcome \<Rightarrow> String.literal" where
-  "response_of (Explain k) ev (Answer c e) = render_answer c e"
+fun response_of :: "turn \<Rightarrow> evidence \<Rightarrow> outcome \<Rightarrow> string" where
+  "response_of t ev (Refused g) = refusal_text g"
+| "response_of t ev (AskWhich p) = ask_text p"
+| "response_of t ev Clarify = clarify_text"
+| "response_of (Explain k) ev (Answer c e) = render_answer c e"
 | "response_of (Explain k) ev (Declined NoAnchor) = no_anchor_text ev"
 | "response_of (Explain k) ev (Declined NoAdmittedStatement) = no_statement_text ev"
 | "response_of (Weak r) ev (Answer c None) = render_lead c"
 | "response_of (Weak r) ev (UnverifiedPassage _ s) = unverified_text s"
 | "response_of (Weak r) ev (Declined NoAdmittedStatement) = no_corpus_text"
 | "response_of Statement ev (Answer c None) = statement_text ev c"
-| "response_of t ev Clarify = clarify_text"
-| "response_of t ev _ = STR ''''"
+| "response_of t ev _ = []"
 
 text \<open>The claims a reply puts in brackets: the assertion's witnesses.\<close>
 fun cited_claims :: "outcome \<Rightarrow> claim list" where
@@ -273,22 +549,22 @@ fun cited_claims :: "outcome \<Rightarrow> claim list" where
 | "cited_claims (Answer c None) = [c]"
 | "cited_claims _ = []"
 
-section \<open>What an answer means about the evidence\<close>
+section \<open>What a route answer means about the evidence\<close>
 
 text \<open>No answer without an anchor: m13d2's rule as a theorem. The claim-pool routes (Explain,
 and the statement move, which asks for the anchor in its own guard) never answer unanchored;
 the weak factoid routes read a single fetched sentence, not the pool, and their law is the
-check-or-definition rule of weak\_answer\_needs\_check\_or\_definition below.\<close>
+definition rule of weak\_answer\_quotes\_the\_term below.\<close>
 theorem no_answer_unanchored:
-  "\<not> anchor_present (pool_e ev) \<Longrightarrow> decide (Explain k) ev \<noteq> Answer c e"
+  "\<not> anchor_present (pool_e ev) \<Longrightarrow> route (Explain k) ev \<noteq> Answer c e"
   by simp
 
 theorem statement_never_unanchored:
-  "\<not> anchor_present (pool_e ev) \<Longrightarrow> decide Statement ev \<noteq> Answer c e"
+  "\<not> anchor_present (pool_e ev) \<Longrightarrow> route Statement ev \<noteq> Answer c e"
   by (simp split: option.splits)
 
 theorem explain_answer_witnessed:
-  assumes "decide (Explain k) ev = Answer c e"
+  assumes "route (Explain k) ev = Answer c e"
   shows "anchor_present (pool_e ev)" and "c \<in> set (admitted (pool_e ev))"
     and "e = None \<or> the e \<in> set (admitted (pool_e ev))"
     and "c \<in> set (usable (admitted (pool_e ev)))"
@@ -316,7 +592,7 @@ qed
 
 text \<open>The pick came from the first tier that matched, after a prefix of tiers with no hits.\<close>
 theorem explain_tier_precedence:
-  assumes "decide (Explain k) ev = Answer c e"
+  assumes "route (Explain k) ev = Answer c e"
   shows "\<exists>pre t suf. tiers ev = pre @ t # suf
     \<and> (\<forall>t'\<in>set pre. tier_hits t' (need_year k) (usable (admitted (pool_e ev))) = [])
     \<and> c \<in> set (tier_hits t (need_year k) (usable (admitted (pool_e ev))))"
@@ -334,7 +610,7 @@ proof -
 qed
 
 theorem explain_needs_the_cue:
-  assumes "decide (Explain k) ev = Answer c e"
+  assumes "route (Explain k) ev = Answer c e"
   shows "\<exists>t. tier c = Some t" and "need_year k \<Longrightarrow> has_year c"
   and "need_year k \<Longrightarrow> e = None \<or> has_year (the e)"
 proof -
@@ -355,7 +631,7 @@ qed
 
 text \<open>Fragments never lead while a whole sentence is available (aa's FRAGMENT skip).\<close>
 theorem explain_not_fragment_when_whole_exists:
-  assumes "decide (Explain k) ev = Answer c e"
+  assumes "route (Explain k) ev = Answer c e"
     and "\<exists>d\<in>set (admitted (pool_e ev)). \<not> fragment d"
   shows "\<not> fragment c" and "e = None \<or> \<not> fragment (the e)"
 proof -
@@ -378,36 +654,107 @@ qed
 
 text \<open>The explain declines are exactly their conditions.\<close>
 theorem explain_no_anchor_iff:
-  "decide (Explain k) ev = Declined NoAnchor \<longleftrightarrow> \<not> anchor_present (pool_e ev)"
+  "route (Explain k) ev = Declined NoAnchor \<longleftrightarrow> \<not> anchor_present (pool_e ev)"
   by (auto split: if_splits list.splits)
 
 theorem explain_no_statement_iff:
-  "decide (Explain k) ev = Declined NoAdmittedStatement \<longleftrightarrow>
+  "route (Explain k) ev = Declined NoAdmittedStatement \<longleftrightarrow>
     anchor_present (pool_e ev) \<and> first_tier (tiers ev) (need_year k) (usable (admitted (pool_e ev))) = []"
   by (auto simp: first_tier_nil_iff[symmetric] split: if_splits list.splits)
 
+section \<open>The decision: gateway, route, door\<close>
+
+lemma door_eq:
+  "door ev x = (if x = Clarify then (case pointer ev of
+       Some p \<Rightarrow> if p \<noteq> [] \<and> occurs p (asked ev) then AskWhich p else Clarify
+     | None \<Rightarrow> Clarify) else x)"
+  by (cases x) auto
+
+lemma route_not_refused [simp]: "route t ev \<noteq> Refused g"
+  by (cases t) (auto split: option.splits if_splits list.splits)
+
+lemma route_not_ask [simp]: "route t ev \<noteq> AskWhich p"
+  by (cases t) (auto split: option.splits if_splits list.splits)
+
+text \<open>A question that names an operation and carries its numbers is refused, whatever route
+the fetch proposed; and only such a question is refused that way.\<close>
+theorem compute_gateway:
+  "compute_op (asked ev) = Some op \<Longrightarrow> decide t ev = Refused (OutOfFragment op)"
+  by (simp add: decide_def)
+
+theorem compute_gateway_iff:
+  "decide t ev = Refused (OutOfFragment op) \<longleftrightarrow> compute_op (asked ev) = Some op"
+  by (auto simp: decide_def door_eq split: option.splits if_splits)
+
+text \<open>What the refusal read: the operation it names opens a word of the question (or the
+question holds a per-cent sign), and the question carries a numeral (or a per-cent sign).\<close>
+theorem refusal_reads_the_question:
+  assumes "decide t ev = Refused (OutOfFragment op)"
+  shows "((op = ''percentage'' \<and> CHR ''%'' \<in> set (lowercase (asked ev)))
+           \<or> (op \<in> set operations \<and> (\<exists>pre suf. lowercase (asked ev) = pre @ suf \<and> starts op suf)))
+         \<and> (1 \<le> numerals NFree (lowercase (asked ev)) \<or> CHR ''%'' \<in> set (lowercase (asked ev)))"
+proof -
+  have co: "compute_op (asked ev) = Some op" using assms compute_gateway_iff by blast
+  then obtain op' where sc: "op_scan True (lowercase (asked ev)) = Some op'"
+    and cond: "2 \<le> numerals NFree (lowercase (asked ev)) \<or> CHR ''%'' \<in> set (lowercase (asked ev))
+       \<or> (1 \<le> numerals NFree (lowercase (asked ev))
+          \<and> list_ex (\<lambda>u. whole_at u True (lowercase (asked ev))) unary_ops)"
+    and eq: "op' = op"
+    by (auto simp: compute_op_def Let_def split: option.splits if_splits)
+  show ?thesis using op_scan_sound[OF sc] cond eq by auto
+qed
+
+theorem lookup_refusal_iff:
+  "decide t ev = Refused LookupForCompute \<longleftrightarrow>
+     compute_op (asked ev) = None \<and> lookup_for_compute ev \<and> 0 < numerals NFree (lowercase (asked ev))"
+  by (auto simp: decide_def lookup_refused_def door_eq split: option.splits if_splits)
+
+text \<open>Every answer is the route's own answer, on a question the gateway let through.\<close>
+theorem answer_comes_from_route:
+  "decide t ev = Answer c e \<Longrightarrow>
+     compute_op (asked ev) = None \<and> \<not> lookup_refused ev \<and> route t ev = Answer c e"
+  by (auto simp: decide_def door_eq split: option.splits if_splits)
+
+theorem no_answer_to_a_computation:
+  "compute_op (asked ev) \<noteq> None \<Longrightarrow> decide t ev \<noteq> Answer c e"
+  using answer_comes_from_route[of t ev c e] by auto
+
 section \<open>The weak-route law (verified_retrieval: shown is not asserted)\<close>
+
+theorem weak_answer_iff:
+  "decide (Weak r) ev = Answer c e \<longleftrightarrow>
+     compute_op (asked ev) = None \<and> \<not> lookup_refused ev \<and> e = None
+     \<and> candidate ev = Some c \<and> released ev c"
+  by (auto simp: decide_def door_eq split: option.splits if_splits)
+
+text \<open>A weak route asserts a sentence only when the question is a what-is question and every
+content word of the asked term opens a word in the question and in the cited sentence (its
+first 200 characters), the sentence the reply quotes. No flag of the fetch can stand in for
+this: it is read off the two texts.\<close>
+theorem weak_answer_quotes_the_term:
+  assumes "decide (Weak r) ev = Answer c e"
+  shows "def_question ev \<and> words_of (asked_term ev) \<noteq> []
+    \<and> (\<forall>w\<in>set (words_of (asked_term ev)).
+         (\<exists>pre suf. lowercase (asked ev) = pre @ suf \<and> starts w suf)
+       \<and> (\<exists>pre suf. lowercase (take 200 (sentence c)) = pre @ suf \<and> starts w suf))"
+proof -
+  have r: "released ev c" using assms weak_answer_iff by blast
+  have "def_question ev" "names_term ev c" using r by (simp_all add: released_def)
+  thus ?thesis using names_term_sound[of ev c] by blast
+qed
 
 theorem weak_unverified_iff:
   "decide (Weak r) ev = UnverifiedPassage r' s \<longleftrightarrow>
-     (\<exists>c. candidate ev = Some c \<and> \<not> checked ev \<and> \<not> definitional_release ev
-       \<and> r' = r \<and> s = sentence c)"
-  by (auto split: option.splits if_splits)
-
-theorem weak_answer_needs_check_or_definition:
-  assumes "decide (Weak r) ev = Answer c e"
-  shows "e = None \<and> candidate ev = Some c
-    \<and> (checked ev \<or> definitional_release ev)"
-  using assms by (auto split: option.splits if_splits)
+     compute_op (asked ev) = None \<and> \<not> lookup_refused ev
+     \<and> (\<exists>c. candidate ev = Some c \<and> \<not> released ev c \<and> r' = r \<and> s = sentence c)"
+  by (auto simp: decide_def door_eq split: option.splits if_splits)
 
 theorem weak_declined_iff:
-  "decide (Weak r) ev = Declined NoAdmittedStatement \<longleftrightarrow>
-     candidate ev = None \<and> withholds_empty r"
+  "route (Weak r) ev = Declined NoAdmittedStatement \<longleftrightarrow> candidate ev = None \<and> withholds_empty r"
   by (auto split: option.splits if_splits)
 
 theorem weak_pass_through_iff:
-  "decide (Weak r) ev = Clarify \<longleftrightarrow>
-     candidate ev = None \<and> \<not> withholds_empty r"
+  "route (Weak r) ev = Clarify \<longleftrightarrow> candidate ev = None \<and> \<not> withholds_empty r"
   by (auto split: option.splits if_splits)
 
 text \<open>The unverified reply: withheld, the weak route's path prefixed, the passage quoted
@@ -415,71 +762,73 @@ verbatim and nothing asserted over it.\<close>
 theorem unverified_reply_shape:
   assumes "decide (Weak r) ev = UnverifiedPassage r s"
   shows "status_of (decide (Weak r) ev) = STR ''withheld''"
-    and "path_of (Weak r) (decide (Weak r) ev) = STR ''unverified:'' + route_name r"
+    and "path_of (Weak r) ev (decide (Weak r) ev) = STR ''unverified:'' + route_name r"
     and "response_of (Weak r) ev (decide (Weak r) ev) = unverified_text s"
-    and "s = sentence (the (candidate ev)) \<and> \<not> checked ev \<and> \<not> definitional_release ev"
+    and "s = sentence (the (candidate ev)) \<and> \<not> released ev (the (candidate ev))"
     and "cited_claims (decide (Weak r) ev) = []"
-  using assms weak_unverified_iff by auto
+  using assms weak_unverified_iff[of r ev r s] by auto
 
 section \<open>The statement move (organ_converse: only the subject's own definition)\<close>
 
 theorem statement_answer_iff:
-  "decide Statement ev = Answer c None \<longleftrightarrow>
-     candidate ev = Some c \<and> anchor_present (pool_e ev)
-       \<and> definitional_release ev \<and> \<not> disambiguates ev"
-  by (cases "candidate ev") (auto split: if_splits)
+  "decide Statement ev = Answer c e \<longleftrightarrow>
+     compute_op (asked ev) = None \<and> \<not> lookup_refused ev \<and> e = None
+     \<and> candidate ev = Some c \<and> anchor_present (pool_e ev) \<and> names_term ev c \<and> \<not> disambiguation c"
+  by (auto simp: decide_def door_eq split: option.splits if_splits)
 
-theorem statement_clarify_iff:
-  "decide Statement ev = Clarify \<longleftrightarrow> \<not> (\<exists>c. candidate ev = Some c \<and> anchor_present (pool_e ev)
-       \<and> definitional_release ev \<and> \<not> disambiguates ev)"
-  by (cases "candidate ev") (auto split: if_splits)
+theorem statement_quotes_the_topic:
+  assumes "decide Statement ev = Answer c e"
+  shows "words_of (asked_term ev) \<noteq> []
+    \<and> (\<forall>w\<in>set (words_of (asked_term ev)).
+         (\<exists>pre suf. lowercase (asked ev) = pre @ suf \<and> starts w suf)
+       \<and> (\<exists>pre suf. lowercase (take 200 (sentence c)) = pre @ suf \<and> starts w suf))
+    \<and> \<not> disambiguation c"
+proof -
+  have "names_term ev c" and "\<not> disambiguation c" using assms statement_answer_iff by blast+
+  thus ?thesis using names_term_sound[of ev c] by blast
+qed
 
-section \<open>The clarify terminal asserts nothing\<close>
+section \<open>The terminal, the door and the refusals assert nothing\<close>
+
+theorem door_asks_only_what_was_said:
+  assumes "decide t ev = AskWhich p"
+  shows "route t ev = Clarify \<and> pointer ev = Some p \<and> p \<noteq> []
+    \<and> (\<exists>pre suf. asked ev = pre @ suf \<and> starts p suf)"
+proof -
+  have "compute_op (asked ev) = None" "\<not> lookup_refused ev" "door ev (route t ev) = AskWhich p"
+    using assms by (auto simp: decide_def split: option.splits if_splits)
+  hence "route t ev = Clarify \<and> pointer ev = Some p \<and> p \<noteq> [] \<and> occurs p (asked ev)"
+    by (auto simp: door_eq split: option.splits if_splits)
+  thus ?thesis using occurs_sound by blast
+qed
 
 theorem clarify_shape:
-  "decide Fallback ev = Clarify"
+  "route Fallback ev = Clarify"
   and "status_of Clarify = STR ''clarification''"
-  and "path_of t Clarify = STR ''act:clarify''"
+  and "path_of t ev Clarify = STR ''act:clarify''"
   and "response_of t ev Clarify = clarify_text"
   and "cited_claims Clarify = []"
+  and "status_of (AskWhich p) = STR ''clarification''"
+  and "response_of t ev (AskWhich p) = ask_text p"
+  and "cited_claims (AskWhich p) = []"
+  by auto
+
+theorem refusal_shape:
+  "status_of (Refused g) = STR ''withheld''"
+  and "cited_claims (Refused g) = []"
+  and "response_of t ev (Refused g) = refusal_text g"
   by auto
 
 lemma cited_ne_nil_iff:
   "cited_claims x \<noteq> [] \<longleftrightarrow> (\<exists>c e. x = Answer c e)"
 proof (cases x)
   case C: (Answer c e)
-  show ?thesis
-  proof (cases e)
-    case N: None
-    show ?thesis by (simp add: C N)
-  next
-    case S: (Some a)
-    show ?thesis by (simp add: C S)
-  qed
-next
-  case C: (UnverifiedPassage r s)
-  show ?thesis by (simp add: C)
-next
-  case C: (Declined d)
-  show ?thesis by (simp add: C)
-next
-  case C: Clarify
-  show ?thesis by (simp add: C)
-qed
+  show ?thesis by (cases e) (simp_all add: C)
+qed simp_all
 
 theorem cited_iff_answer:
   "cited_claims (decide t ev) \<noteq> [] \<longleftrightarrow> (\<exists>c e. decide t ev = Answer c e)"
   by (rule cited_ne_nil_iff)
-
-lemma cited_answer_shape:
-  "cited_claims (Answer c e) = (case e of None \<Rightarrow> [c] | Some d \<Rightarrow> [c, d])"
-proof (cases e)
-  case N: None
-  show ?thesis by (simp add: N)
-next
-  case S: (Some a)
-  show ?thesis by (simp add: S)
-qed
 
 text \<open>Every answer's reply names its witnesses in brackets: the render and the citation
 list agree, so the reply carries its citation by construction.\<close>
@@ -490,18 +839,34 @@ theorem answer_reply_carries_citation:
        else if (\<exists>r. t = Weak r) then render_lead c
        else render_answer c e)"
     and "cited_claims (decide t ev) = (case e of None \<Rightarrow> [c] | Some d \<Rightarrow> [c, d])"
-    and "STR ''['' + claim_id c + STR '']'' = cite c"
 proof -
+  have r: "route t ev = Answer c e" using answer_comes_from_route[OF ans] by blast
   show "cited_claims (decide t ev) = (case e of None \<Rightarrow> [c] | Some d \<Rightarrow> [c, d])"
-    by (simp add: ans cited_answer_shape)
-  show "STR ''['' + claim_id c + STR '']'' = cite c" by (simp add: cite_def)
+    by (cases e) (simp_all add: ans)
   show "response_of t ev (decide t ev) =
       (if t = Statement then statement_text ev c
        else if (\<exists>r. t = Weak r) then render_lead c
        else render_answer c e)"
-    using ans by (cases t; cases e; cases "candidate ev")
-      (auto split: if_splits list.splits option.splits simp: cite_def)
+  proof (cases t)
+    case (Explain k) thus ?thesis using ans by simp
+  next
+    case (Weak w)
+    have "e = None" using r Weak by (auto split: option.splits if_splits)
+    thus ?thesis using Weak ans by simp
+  next
+    case Statement
+    have "e = None" using r Statement by (auto split: option.splits if_splits)
+    thus ?thesis using Statement ans by simp
+  next
+    case Fallback thus ?thesis using r by simp
+  qed
 qed
+
+text \<open>The evidence of a turn nothing was fetched for; fixtures and the self test update it.\<close>
+definition blank :: "string \<Rightarrow> evidence" where
+  "blank q = \<lparr> pool_e = \<lparr> resolved = False, conjunctive = 0, claims = [] \<rparr>, tiers = [],
+     candidate = None, asked_term = [], def_question = False, topic = [], asked = q,
+     future = False, pointer = None, lookup_for_compute = False, displaced = STR '''' \<rparr>"
 
 section \<open>Determinism\<close>
 
