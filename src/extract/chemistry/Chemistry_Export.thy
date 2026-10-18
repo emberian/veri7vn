@@ -31,8 +31,11 @@ definition elem_names :: "(String.literal \<times> String.literal) list" where
 definition is_symbol :: "String.literal \<Rightarrow> bool" where
   "is_symbol s = (\<exists>e \<in> set ptable. sl (psym e) = s)"
 
-definition self_checks :: "bool list" where
-  "self_checks = [
+text \<open>B-chemistry step 4: the self test is a function of unit. As a plain constant the code
+generator makes it a top-level SML value, so the binary ran every check (decay enclosures
+included) before it read its first request: 58 ms of cold start for nothing.\<close>
+definition self_checks :: "unit \<Rightarrow> bool list" where
+  "self_checks _ = [
     (ckernel (MolarMass ''H2O'') = CExact CK_molar_mass (18015 / 1000)),
     (ckernel (MolarMass ''Ca(OH)2'') = CExact CK_molar_mass (74094 / 1000)),
     ((case parse_formula ''CuSO4.5H2O'' of FOk _ \<Rightarrow> True | _ \<Rightarrow> False)),
@@ -67,8 +70,8 @@ definition self_checks :: "bool list" where
     (stated (reply_of (RC (MolarityMoles (1 / 5) (500 / 1000)))) = Some (STR ''0.4'')),
     (\<not> answers (RC (MolesInSol 0 1)))]"
 
-definition self_test :: bool where
-  "self_test = list_all id self_checks"
+definition self_test :: "unit \<Rightarrow> bool" where
+  "self_test u = list_all id (self_checks u)"
 
 export_code reply_of answered reply_kind response stated answers mk_rat chars_of self_test
   self_checks fclass elem_names is_symbol iso_order
@@ -102,9 +105,9 @@ ML \<open>
     @ [@{thm ge_dec_true}, @{thm ge_dec_false}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("chemistry theorems use oracles: " ^ string_of_int (length oracles));
-  val _ = if @{code self_test} then () else
+  val _ = if @{code self_test} () then () else
     error ("chemistry self test failed at " ^ String.concatWith "," (List.mapPartial I
-      (map_index (fn (i, b) => if b then NONE else SOME (string_of_int i)) @{code self_checks})));
+      (map_index (fn (i, b) => if b then NONE else SOME (string_of_int i)) (@{code self_checks} ()))));
   val _ = writeln ("VERI7VN_CHEMISTRY PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");
 \<close>
 
