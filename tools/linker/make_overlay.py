@@ -6,11 +6,14 @@ their stores as $ORACLE7_ROOT/relstore/<file>. This script makes <out>/relstore/
   names_v1.sqlite3          symlink to the index built by build_names.py (--names)
   relations_v1.sqlite3      symlink to the shipped store
   relations_v2.sqlite3      symlink to the shipped relations_v1 (v2 did not ship; same schema, fewer facts)
-  prop_labels.tsv, relation_domains_v1.json, router_patterns_v4.json   symlinks to the shipped files
+  every other shipped relstore file          symlinks (prop_labels.tsv, router_patterns_v4.json, lexicon_v1.json, ...)
   relation_domains_v2.json  a WRITTEN file: the shipped 125 entries unchanged, plus one entry per rel-*
                             specialist whose domain the shipped file lacks (52), taken from that
                             specialist's manifest `domain` block (roots, occupations -> occ), sorted by id.
                             This is a reconstruction; the file the release ran with was not exported.
+and every other top-level entry of upstream/root except state/ (specialists, wander-train, fable-content, ...) as a
+symlink, so <out> is a complete ORACLE7_ROOT for the Oracle7 head as well as for the bare organs. Engine
+state must still go elsewhere (lane A's answerer sets ORACLE7_STATE under var/).
 Nothing is written under upstream/. Untrusted glue.
 
 Usage: python3 tools/linker/make_overlay.py [--out DIR] [--names PATH]
@@ -23,7 +26,7 @@ import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 UP = "/Users/ember/dev/o7vn/upstream/root"
-LINKS = ["prop_labels.tsv", "relation_domains_v1.json", "relations_v1.sqlite3", "router_patterns_v4.json"]
+WRITTEN = {"names_v1.sqlite3", "relations_v2.sqlite3", "relation_domains_v2.json"}
 
 
 def merged_domains():
@@ -64,8 +67,12 @@ def main():
     rs = os.path.join(out, "relstore")
     os.makedirs(rs, exist_ok=True)
     link(names, os.path.join(rs, "names_v1.sqlite3"))
-    for f in LINKS:
-        link(os.path.join(UP, "relstore", f), os.path.join(rs, f))
+    for f in sorted(os.listdir(os.path.join(UP, "relstore"))):
+        if f not in WRITTEN:
+            link(os.path.join(UP, "relstore", f), os.path.join(rs, f))
+    for f in sorted(os.listdir(UP)):
+        if f not in ("relstore", "state"):     # state is not linked: a stray write lands in var/, not upstream
+            link(os.path.join(UP, f), os.path.join(out, f))
     link(os.path.join(UP, "relstore", "relations_v1.sqlite3"), os.path.join(rs, "relations_v2.sqlite3"))
     doms, n_ship, n_add = merged_domains()
     with open(os.path.join(rs, "relation_domains_v2.json"), "w") as f:
