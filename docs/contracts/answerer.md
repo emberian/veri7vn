@@ -31,7 +31,7 @@ Fields:
 | Field | Required | Meaning |
 |---|---|---|
 | `id` | yes | echoed from the request |
-| `status` | yes | `answered` or `withheld`; anything else counts as withheld |
+| `status` | yes | a string: `answered` is an answer; every other status counts as withheld (including clarification prompts) |
 | `response` | yes | the reply text the scorer reads; a withheld reply may explain the refusal or use an empty string |
 | `path` | yes | the route trace, in Oracle7's `organ:...>STEP>STEP` style when there is one |
 | `value` | no | a machine-readable result when the reply states one |
@@ -48,8 +48,10 @@ own exam.
 Extracted specialists set `provenance.taken` to `false` when they did not
 recognize the question. That reply can fall through to another stage. They
 set it to `true` when they recognized a request, including a request whose
-inputs the kernel refuses. A refusal accepted by that specialist's
-`declines_in_domain` rule ends its turn. Trying another answerer after such a
+inputs the kernel refuses. A refusal accepted by that specialist's declared operation kinds, or by its
+`declines_in_domain` rule with matching context, ends its turn. A normal
+operation kind remains accepted when its kernel withholds; clarification text
+is preserved as a non-answer. Trying another answerer after such a
 refusal can turn a correct refusal into a false answer.
 
 The dispatcher applies the specialist's acceptance rule before arbitration.

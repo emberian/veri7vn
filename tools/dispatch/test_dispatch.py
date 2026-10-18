@@ -107,6 +107,26 @@ class DispatchContractTests(unittest.TestCase):
         self.assertEqual(obj.organ_cands('Tell me a joke.', '', '1', reply('unknown', 'withheld')), [])
         self.assertEqual(obj.organ_cands('molar mass of Xx2?', '', '1', reply('invented_kind', 'withheld')), [])
 
+    def test_clarify_status_is_a_meaningful_nonanswer(self):
+        obj = self.bare()
+        obj.entries = {'stores': {'specialists': ['cooking-v2'], 'state_flag': True}}
+        obj.pins = {'stores': 'cooking-v2'}
+        obj.pinned = {'stores'}
+        obj.organs = [(object(), 'stores')]
+        obj.order = 'front'
+        obj.arb = types.SimpleNamespace(decide=lambda *a: ('PICK', 0))
+        reply = {'status': 'clarify', 'kind': 'clarify',
+                 'path': 'specialist:cooking-v2>clarify',
+                 'response': 'Several food entries disagree. Which one do you mean?',
+                 'provenance': {'taken': True}}
+        self.assertIsNone(D.reply_shape_error(reply))
+        obj.fan_out = lambda *a: {'stores': reply}
+        obj.ask_fusion = lambda *a: self.fail('network ran after clarification')
+        out = obj.turn('clarify', 'What is the calcium value for 100 g of pound fat cake?', 's')
+        self.assertEqual(out['status'], 'clarify')
+        self.assertEqual(out['response'], reply['response'])
+        self.assertTrue(out['provenance']['dispatch']['decisive'])
+
     def test_normal_kind_withheld_survives_arbitration_and_stops_cascade(self):
         obj = self.bare()
         obj.order = 'front'

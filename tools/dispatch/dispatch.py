@@ -140,8 +140,10 @@ def reply_shape_error(reply):
         return "provenance must be an object"
     if "evidence" in reply and not isinstance(reply["evidence"], dict):
         return "evidence must be an object"
-    if "error" not in reply and reply.get("status") not in {"answered", "withheld", "clarification"}:
-        return "status must be answered, withheld or clarification"
+    # The answerer contract treats every status other than "answered" as
+    # non-answering; shipped organs use both "clarify" and "clarification".
+    if "error" not in reply and not isinstance(reply.get("status"), str):
+        return "status must be a string"
     for field in ("response", "path", "kind"):
         if field in reply and not isinstance(reply[field], str):
             return field + " must be a string"
