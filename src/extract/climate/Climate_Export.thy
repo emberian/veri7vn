@@ -70,7 +70,7 @@ export_code reply_of answered reply_kind response stated answers not_taken
   Cl_forcing Cl_warming Cl_ppm_to_gtc Cl_ppm_to_gtco2 Cl_mass_to_ppm Cl_eff_temp Cl_co2e
   Cm_diameter Cm_angle Cm_type Cm_kind Cm_layers Cm_mass
   Temp Dur Cook_poultry Cook_ground Cook_whole
-  Cd_cool Cd_cold Cd_hot Cd_cook Cd_reheat Cd_tphc Cd_date Cd_danger
+  Cd_cool Cd_schedule Cd_schedule_unknown Cd_cold Cd_hot Cd_cook Cd_reheat Cd_tphc Cd_date Cd_danger
   Monday Tuesday Wednesday Thursday Friday Saturday Sunday
   in SML module_name Climate file_prefix climate
 
@@ -94,6 +94,10 @@ ML \<open>
     @{thm graphene_layers_model}, @{thm graphene_areal_mass}, @{thm graphene_mass_is_area_times_areal},
     @{thm cooling_verdict}, @{thm cooling_not_a_stage}, @{thm cooling_negative_time},
     @{thm cooling_pass_elapsed_bound}, @{thm tphc_negative_time}, @{thm tphc_pass_elapsed_bound},
+    @{thm cooling_schedule_clock_law}, @{thm cooling_schedule_negative_time},
+    @{thm cooling_schedule_shorter}, @{thm cooling_schedule_missing},
+    @{thm cooling_schedule_temperature_bounds}, @{thm cooling_schedule_above_limit},
+    @{thm cooling_schedule_nominal_units(1)}, @{thm cooling_schedule_nominal_units(2)},
     @{thm cool_stage1}, @{thm cool_stage2},
     @{thm cool_stage3}, @{thm cold_hold_verdict(1)}, @{thm cold_hold_verdict(2)}, @{thm cooking_minimums(1)}, @{thm cooking_minimums(2)}, @{thm cooking_minimums(3)}, @{thm tphc_limit(1)}, @{thm tphc_limit(2)},
     @{thm date_marking}, @{thm date_marking_kernel}, @{thm celsius_to_fahrenheit},

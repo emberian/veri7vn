@@ -29,7 +29,7 @@ datatype cat = Cat_good | Cat_moderate | Cat_usg | Cat_unhealthy | Cat_very_unhe
 datatype tube = T_armchair | T_zigzag | T_chiral
 datatype weekday = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
 
-datatype need = N_gwp | N_conc | N_sens | N_solar_albedo
+datatype need = N_gwp | N_conc | N_sens | N_solar_albedo | N_cooling_schedule
 
 datatype reason = R_rate_over_100 | R_zero_mpg
   | R_pm_hourly | R_beyond pol | R_o3_above_8h | R_so2_above_1h | R_between pol | R_aqi_out_of_scale
@@ -1145,6 +1145,8 @@ datatype cookclass = Cook_poultry | Cook_ground | Cook_whole
 
 datatype cdreq =
     Cd_cool temp temp dur
+  | Cd_schedule temp temp temp dur dur
+  | Cd_schedule_unknown
   | Cd_cold temp
   | Cd_hot temp
   | Cd_cook cookclass
@@ -1166,6 +1168,29 @@ definition cool_limit :: "rat \<Rightarrow> rat \<Rightarrow> rat option" where
      else if \<bar>a - 70\<bar> \<le> 1 / 2 \<and> b \<le> 83 / 2 then Some 4
      else if 269 / 2 \<le> a \<and> b \<le> 83 / 2 then Some 6 else None)"
 
+text \<open>A complete two-stage schedule records incremental durations. The independent
+clock model uses the first checkpoint deadline and the total elapsed deadline:
+FDA Food Code 2022, 3-501.14(A)(1)-(2), https://www.fda.gov/media/164194/download.
+It does not assume that the second stage always consumes exactly four hours.\<close>
+definition cooling_deadlines :: "rat \<Rightarrow> rat \<Rightarrow> bool" where
+  "cooling_deadlines t_first t_total \<longleftrightarrow>
+    0 \<le> t_first \<and> t_first \<le> 2 \<and> t_first \<le> t_total \<and> t_total \<le> 6"
+
+text \<open>Use the published nominal threshold pairs in the supplied temperature
+unit: 57 C / 135 F, 21 C / 70 F, and 5 C / 41 F. The Celsius labels are not
+obtained by rounding an exact Fahrenheit conversion. No endpoint tolerance is
+allowed in a complete schedule.\<close>
+fun schedule_start :: "temp \<Rightarrow> bool" where
+  "schedule_start (Temp v celsius) = (if celsius then 57 \<le> v else 135 \<le> v)"
+fun schedule_middle :: "temp \<Rightarrow> bool" where
+  "schedule_middle (Temp v celsius) = (if celsius then v \<le> 21 else v \<le> 70)"
+fun schedule_final :: "temp \<Rightarrow> bool" where
+  "schedule_final (Temp v celsius) = (if celsius then v \<le> 5 else v \<le> 41)"
+
+definition schedule_endpoints :: "temp \<Rightarrow> temp \<Rightarrow> temp \<Rightarrow> bool" where
+  "schedule_endpoints a b c \<longleftrightarrow>
+    schedule_start a \<and> schedule_middle b \<and> schedule_final c"
+
 fun cook_f :: "cookclass \<Rightarrow> rat" where
   "cook_f Cook_poultry = 165" | "cook_f Cook_ground = 155" | "cook_f Cook_whole = 145"
 
@@ -1183,6 +1208,11 @@ definition cd_kernel :: "cdreq \<Rightarrow> outcome" where
       Cd_cool a b d \<Rightarrow> (if hours d < 0 then Decline (Impossible R_negative_duration)
         else case cool_limit (f_of a) (f_of b) of None \<Rightarrow> Decline Not_taken
                         | Some lm \<Rightarrow> Verdict K_cooling_check (hours d \<le> lm))
+    | Cd_schedule a b c d e \<Rightarrow>
+        (if hours d < 0 \<or> hours e < 0 then Decline (Impossible R_negative_duration)
+         else if \<not> schedule_start a then Decline (Underspecified N_cooling_schedule)
+         else Verdict K_cooling_check (schedule_middle b \<and> schedule_final c \<and> hours d \<le> 2 \<and> hours d + hours e \<le> 6))
+    | Cd_schedule_unknown \<Rightarrow> Decline (Underspecified N_cooling_schedule)
     | Cd_cold t \<Rightarrow> Verdict K_cold_hold (f_of t \<le> 41)
     | Cd_hot t \<Rightarrow> Verdict K_hot_hold (135 \<le> f_of t)
     | Cd_cook c \<Rightarrow> Exact K_cook_temp (cook_f c)
@@ -1213,6 +1243,44 @@ theorem cooling_pass_elapsed_bound:
   shows "0 \<le> hours d \<and> hours d \<le> 6"
   using cooling_verdict[OF assms]
   by (auto simp: cool_limit_def split: if_splits; linarith)
+
+theorem cooling_schedule_clock_law:
+  "cd_kernel (Cd_schedule a b c d e) = Verdict K_cooling_check True \<longleftrightarrow>
+    schedule_endpoints a b c \<and> cooling_deadlines (hours d) (hours d + hours e)"
+  by (auto simp: cd_kernel_def cooling_deadlines_def schedule_endpoints_def; linarith)
+
+theorem cooling_schedule_negative_time:
+  "cd_kernel (Cd_schedule a b c d e) = Decline (Impossible R_negative_duration) \<longleftrightarrow>
+    hours d < 0 \<or> hours e < 0"
+  by (auto simp: cd_kernel_def)
+
+theorem cooling_schedule_shorter:
+  assumes "cd_kernel (Cd_schedule a b c d e) = Verdict K_cooling_check True"
+    "0 \<le> hours d'" "hours d' \<le> hours d"
+    "0 \<le> hours e'" "hours e' \<le> hours e"
+  shows "cd_kernel (Cd_schedule a b c d' e') = Verdict K_cooling_check True"
+  using assms by (auto simp: cooling_schedule_clock_law cooling_deadlines_def; linarith)
+
+theorem cooling_schedule_temperature_bounds:
+  assumes "cd_kernel (Cd_schedule (Temp a ua) (Temp b ub) (Temp c uc) d e) = Verdict K_cooling_check True"
+  shows "(if ua then 57 else 135) \<le> a \<and>
+    b \<le> (if ub then 21 else 70) \<and> c \<le> (if uc then 5 else 41)"
+  using assms by (auto simp: cooling_schedule_clock_law schedule_endpoints_def split: if_splits)
+
+theorem cooling_schedule_above_limit:
+  assumes "schedule_start a" "0 \<le> hours d" "0 \<le> hours e"
+    "\<not> schedule_middle b \<or> \<not> schedule_final c"
+  shows "cd_kernel (Cd_schedule a b c d e) = Verdict K_cooling_check False"
+  using assms by (auto simp: cd_kernel_def)
+
+theorem cooling_schedule_nominal_units:
+  "schedule_endpoints (Temp 135 False) (Temp 70 False) (Temp 41 False)"
+  "schedule_endpoints (Temp 57 True) (Temp 21 True) (Temp 5 True)"
+  by (simp_all add: schedule_endpoints_def)
+
+theorem cooling_schedule_missing:
+  "cd_kernel Cd_schedule_unknown = Decline (Underspecified N_cooling_schedule)"
+  by (simp add: cd_kernel_def)
 
 theorem cool_stage1:
   assumes "269 / 2 \<le> a" "\<bar>b - 70\<bar> \<le> 1 / 2"
@@ -1474,6 +1542,10 @@ definition cd_text :: "cdreq \<Rightarrow> outcome \<Rightarrow> String.literal"
            (if ok then STR ''Yes, that meets the limit'' else STR ''No, that misses the limit'')
              + STR '' for the total: 135 F to 41 F must take no more than 6 hours (and the first stage, to 70 F, no more than 2); ''
              + h + STR '' hours '' + (if ok then STR ''is within 6'' else STR ''exceeds 6'') + STR '' [3-501.14(A)].'')
+   | (Cd_schedule a b c d e, Verdict _ ok) \<Rightarrow>
+       yes_no ok + STR '': the first cooling stage took '' + pct_g (hours d)
+       + STR '' hours and the complete schedule took '' + pct_g (hours d + hours e)
+       + STR '' hours. Both checkpoint readings must meet their limits: at most 70 F (21 C) within 2 hours and at most 41 F (5 C) within 6 hours total [Food Code 2022 3-501.14(A)].''
    | (Cd_cold t, Verdict _ ok) \<Rightarrow> yes_no ok + STR '': cold holding must be at or below 41 F (5 C); '' + pct_g (f_of t)
         + STR '' F '' + (if ok then STR ''meets it'' else STR ''is too warm'') + STR '' [3-501.16(A)(2)].''
    | (Cd_hot t, Verdict _ ok) \<Rightarrow> yes_no ok + STR '': hot holding must be at or above 135 F (57 C); '' + pct_g (f_of t)
@@ -1499,7 +1571,8 @@ definition need_text :: "need \<Rightarrow> String.literal" where
      N_gwp \<Rightarrow> STR ''the global warming potential (GWP) to use - values differ between IPCC reports''
    | N_conc \<Rightarrow> STR ''the starting and final CO2 concentrations (ppm)''
    | N_sens \<Rightarrow> STR ''the climate sensitivity (C per doubling) or the feedback parameter lambda - it is uncertain, so I will not assume one''
-   | N_solar_albedo \<Rightarrow> STR ''the solar constant (W/m2) and the albedo'')"
+   | N_solar_albedo \<Rightarrow> STR ''the solar constant (W/m2) and the albedo''
+   | N_cooling_schedule \<Rightarrow> STR ''a complete supported cooling schedule: from 135 F to 70 F with its elapsed time, then to 41 F with its additional elapsed time'')"
 
 definition reason_text :: "reason \<Rightarrow> String.literal" where
   "reason_text w = (case w of

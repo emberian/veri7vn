@@ -5,13 +5,14 @@
     "coldchain": {
       "accept": {
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "underspecified"
         ]
       },
       "evidence": {
-        "computation": "Cooling and time-without-temperature-control verdicts reject negative elapsed durations; a passing verdict is bound to a nonnegative duration within the declared stage limit.",
+        "computation": "Cooling rejects negative elapsed durations. A complete two-stage schedule checks the first stage within two hours and the sum within six; ambiguous compound timing is withheld.",
         "assumptions": [
-          "The question maps to the declared cooling stage or four-hour timing model.",
+          "The question supplies supported stage endpoints and incremental elapsed durations for the declared Food Code 2022 timing model.",
           "These computations concern the stated numbers and do not determine whether a specific food is safe."
         ],
         "untrusted": [
@@ -22,13 +23,14 @@
     "coldchain-v2": {
       "accept": {
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "underspecified"
         ]
       },
       "evidence": {
-        "computation": "Cooling and time-without-temperature-control verdicts reject negative elapsed durations; a passing verdict is bound to a nonnegative duration within the declared stage limit.",
+        "computation": "Cooling rejects negative elapsed durations. A complete two-stage schedule checks the first stage within two hours and the sum within six; ambiguous compound timing is withheld.",
         "assumptions": [
-          "The question maps to the declared cooling stage or four-hour timing model.",
+          "The question supplies supported stage endpoints and incremental elapsed durations for the declared Food Code 2022 timing model.",
           "These computations concern the stated numbers and do not determine whether a specific food is safe."
         ],
         "untrusted": [

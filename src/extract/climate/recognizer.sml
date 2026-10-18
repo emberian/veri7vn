@@ -502,8 +502,46 @@ struct
     end handle UnknownColdNumber => NONE
 
   val foodish = "\\btime as a (?:public health )?control\\b|\\bsandwich\\w*|\\bsalad\\b|\\bmeat\\b|\\bchicken\\b|\\bdish\\b|\\bstock\\b|\\bmeals?\\b|\\bbeans\\b|\\bpasta\\b"
+  val durationRx = "(qnum[0-9]+q)\\s*(hours?|hrs?|minutes?)\\b"
+  val scheduleRx = "\\bfrom\\s+" ^ TEMP ^ "\\s+(?:down\\s+)?to\\s+" ^ TEMP
+    ^ "\\s+(?:in|over)\\s+" ^ durationRx
+    ^ "\\s*(?:,\\s*)?(?:and\\s+)?then\\s+(?:down\\s+)?to\\s+" ^ TEMP
+    ^ "\\s+(?:in|over)\\s+(?:another\\s+|an additional\\s+)?" ^ durationRx
+
+  (* This route consumes every temperature and elapsed duration in a supported
+     schedule. Ambiguous compound input cannot fall through to a first-stage Yes. *)
+  fun compoundCooling text =
+    case ExactNumeric.mask (lower (collapse text)) of
+      NONE => NONE
+    | SOME {text = low, numbers} =>
+      let
+        val temps = findall cdTempFull low
+        val durations = findall durationRx low
+        val compound = has "\\bcool\\w*\\b" low andalso
+          (length temps > 2 orelse length durations > 1 orelse
+           has "\\bthen\\b|\\badditional\\b|\\banother\\b|\\bstages\\b" low)
+        fun value marker =
+          case List.find (fn (name, _) => name = marker) numbers of
+            SOME (_, (n,d)) => Q.mk_rat n d
+          | NONE => raise UnknownColdNumber
+        val unknown = SOME (Q.Req_cd Q.Cd_schedule_unknown)
+      in
+        if not compound then NONE
+        else if length temps <> 3 orelse length durations <> 2 orelse length numbers <> 5
+          orelse has "\\btotal\\b|\\bwithin\\b|\\bby\\b|\\bafter\\b|\\bfrom the start\\b" low then unknown
+        else case search scheduleRx low of
+          NONE => unknown
+        | SOME m =>
+          let fun g i = valOf (grp low m i)
+              fun temp i = Q.Temp (value (g i), String.isPrefix "c" (g (i+1)))
+              fun dur i = Q.Dur (value (g i), String.isPrefix "min" (g (i+1)))
+          in SOME (Q.Req_cd (Q.Cd_schedule (temp 1, temp 3, temp 7, dur 5, dur 9))) end
+      end handle UnknownColdNumber => SOME (Q.Req_cd Q.Cd_schedule_unknown)
+
   fun coldchainV2 text =
-    let
+    case compoundCooling text of
+      SOME req => SOME req
+    | NONE => let
       val t0 = collapse text
       val t1 = replaceAll "\\bhamburgers\\b" "hamburger" t0
     in

@@ -36,5 +36,15 @@ wrappers recognize decimal durations and the same food vocabulary. See
 `project/lanes/C-climate.md` for the measured comparison, build state and limits.
 
 `python3 -B src/extract/climate/beyond.py --seeds 701,1701 --out var/climate/beyond`
-runs the shipped panels, fresh numeric samples and 20 authored boundary probes.
+runs the shipped panels, fresh numeric samples and the authored boundary probes.
 Self-tests execute during the checked build, not at binary startup.
+
+Two-stage cooling schedules now retain both elapsed times. For example, cooling
+135 F→70 F in one hour and then to 41 F in nine hours fails; one hour plus five
+hours passes the declared two-checkpoint model. The reader preserves signed
+fractions, decimals and minute units through the shared exact numeric lexer.
+The complete schedule uses exact published nominal F/C thresholds without
+half-degree slack; above-limit checkpoint readings fail. Negative elapsed times are impossible; missing or ambiguous compound timing is
+underspecified. This does not judge a particular food safe. The inherited
+single-stage/partial-information limitations and exact checked evidence are in
+[the E report](../../../project/lanes/E-climate.md).

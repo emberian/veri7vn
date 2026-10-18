@@ -6,350 +6,850 @@
       "q": "CO measured at 2.1 ppm over 8 hours. What is the AQI?",
       "expected": 24,
       "status": "answered",
-      "kind": "aqi"
+      "kind": "aqi",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "airquality",
       "q": "Nitrogen dioxide reads 20 ppb. What is the AQI?",
       "expected": 19,
       "status": "answered",
-      "kind": "aqi"
+      "kind": "aqi",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "airquality",
       "q": "What is the AQI for CO measured at 4.4 ppm over 8 hours?",
       "expected": 50,
       "status": "answered",
-      "kind": "aqi"
+      "kind": "aqi",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "airquality",
       "q": "Nitrogen dioxide reads 53 ppb. What is the AQI?",
       "expected": 50,
       "status": "answered",
-      "kind": "aqi"
+      "kind": "aqi",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "After reaching 70 F, the rice took 3.5 hours to cool to 41 F. Is that within the limit?",
       "expected": true,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "After reaching 70 F, the rice took 4 hours to cool to 41 F. Is that within the limit?",
       "expected": true,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "After reaching 70 F, the rice took 4.1 hours to cool to 41 F. Is that within the limit?",
       "expected": false,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "After reaching 70 F, the rice took 3.5 hours to cool to 41 F. Is that within the limit?",
       "expected": true,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "After reaching 70 F, the rice took 4 hours to cool to 41 F. Is that within the limit?",
       "expected": true,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "After reaching 70 F, the rice took 4.1 hours to cool to 41 F. Is that within the limit?",
       "expected": false,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "Soup went from 135 F down to 70 F over 2.5 hours while cooling. Does that meet the Food Code?",
       "expected": false,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "What is the Food Code cooking temperature for hamburgers?",
       "expected": 155,
       "status": "answered",
-      "kind": "cook_temp"
+      "kind": "cook_temp",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "airquality",
       "q": "What is the AQI for nitrogen dioxide measured at 20 ppm?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
     },
     {
       "specialist": "airquality",
       "q": "What is the AQI for PM2.5 at 10 ppm?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
     },
     {
       "specialist": "airquality",
       "q": "Should I exercise with my asthma if the AQI is 150?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "outside_computational_domain"
     },
     {
       "specialist": "coldchain",
       "q": "Is 38 F cold for a winter day?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "outside_computational_domain"
     },
     {
       "specialist": "coldchain",
       "q": "After reaching 80 F, rice took 3.5 hours to cool to 60 F. Does it meet the Food Code?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
     },
     {
       "specialist": "climate",
       "q": "What is the effective temperature of a planet with a solar constant of 1361 W/m2 and albedo 1.2?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "climate",
       "q": "How much warming results from CO2 rising from 280 to 420 ppm?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "missing_required_input"
     },
     {
       "specialist": "carboncapture",
       "q": "How much CO2 is captured from 100 tonnes with a capture rate of 101%?",
       "expected": null,
-      "status": "withheld"
+      "status": "withheld",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in -1 hours. Does it meet the cooling rule?",
       "expected": null,
       "status": "withheld",
-      "kind": "impossible"
+      "kind": "impossible",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 0 hours. Does it meet the cooling rule?",
       "expected": true,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 2 hours. Does it meet the cooling rule?",
       "expected": true,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 2.1 hours. Does it meet the cooling rule?",
       "expected": false,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "Food has been without temperature control for -1 hours. Is it within the limit?",
       "expected": null,
       "status": "withheld",
-      "kind": "impossible"
+      "kind": "impossible",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "coldchain",
       "q": "Food has been without temperature control for 0 hours. Is it within the limit?",
       "expected": true,
       "status": "answered",
-      "kind": "tphc"
+      "kind": "tphc",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "Food has been without temperature control for 4 hours. Is it within the limit?",
       "expected": true,
       "status": "answered",
-      "kind": "tphc"
+      "kind": "tphc",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "Food has been without temperature control for 4.1 hours. Is it within the limit?",
       "expected": false,
       "status": "answered",
-      "kind": "tphc"
+      "kind": "tphc",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in -1 hours. Does it meet the cooling rule?",
       "expected": null,
       "status": "withheld",
-      "kind": "impossible"
+      "kind": "impossible",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 0 hours. Does it meet the cooling rule?",
       "expected": true,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 2 hours. Does it meet the cooling rule?",
       "expected": true,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 2.1 hours. Does it meet the cooling rule?",
       "expected": false,
       "status": "answered",
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food has been without temperature control for -1 hours. Is it within the limit?",
       "expected": null,
       "status": "withheld",
-      "kind": "impossible"
+      "kind": "impossible",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food has been without temperature control for 0 hours. Is it within the limit?",
       "expected": true,
       "status": "answered",
-      "kind": "tphc"
+      "kind": "tphc",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food has been without temperature control for 4 hours. Is it within the limit?",
       "expected": true,
       "status": "answered",
-      "kind": "tphc"
+      "kind": "tphc",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food has been without temperature control for 4.1 hours. Is it within the limit?",
       "expected": false,
       "status": "answered",
-      "kind": "tphc"
+      "kind": "tphc",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
-      "q": "Food cools from 135 F to 70 F in \u2212.5 hours. Does it meet the cooling rule?",
+      "q": "Food cools from 135 F to 70 F in −.5 hours. Does it meet the cooling rule?",
       "status": "withheld",
       "expected": null,
-      "kind": "impossible"
+      "kind": "impossible",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in .5 hours. Does it meet the cooling rule?",
       "status": "answered",
       "expected": true,
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 1/2 hours. Does it meet the cooling rule?",
       "status": "answered",
       "expected": true,
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 5e-1 hours. Does it meet the cooling rule?",
       "status": "answered",
       "expected": true,
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 1.2.3 hours. Does it meet the cooling rule?",
       "status": "withheld",
-      "expected": null
+      "expected": null,
+      "capability_class": "malformed_input"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in qnum0q hours. Does it meet the cooling rule?",
       "status": "withheld",
-      "expected": null
+      "expected": null,
+      "capability_class": "malformed_input"
     },
     {
       "specialist": "coldchain-v2",
-      "q": "Food cools from 135 F to 70 F in \u2212.5 hours. Does it meet the cooling rule?",
+      "q": "Food cools from 135 F to 70 F in −.5 hours. Does it meet the cooling rule?",
       "status": "withheld",
       "expected": null,
-      "kind": "impossible"
+      "kind": "impossible",
+      "capability_class": "impossible_input"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in .5 hours. Does it meet the cooling rule?",
       "status": "answered",
       "expected": true,
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 1/2 hours. Does it meet the cooling rule?",
       "status": "answered",
       "expected": true,
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 5e-1 hours. Does it meet the cooling rule?",
       "status": "answered",
       "expected": true,
-      "kind": "cooling_check"
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 1.2.3 hours. Does it meet the cooling rule?",
       "status": "withheld",
-      "expected": null
+      "expected": null,
+      "capability_class": "malformed_input"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in qnum0q hours. Does it meet the cooling rule?",
       "status": "withheld",
-      "expected": null
+      "expected": null,
+      "capability_class": "malformed_input"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from QNUM0Q F to 70 F in 1 hours. Does it meet the cooling rule?",
       "status": "withheld",
-      "expected": null
+      "expected": null,
+      "capability_class": "malformed_input"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from QNUM0Q F to 70 F in 1 hours. Does it meet the cooling rule?",
       "status": "withheld",
-      "expected": null
+      "expected": null,
+      "capability_class": "malformed_input"
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 1/ 2 hours. Does it meet the cooling rule?",
       "status": "answered",
       "kind": "cooling_check",
-      "expected": true
+      "expected": true,
+      "capability_class": "answerable_model_case"
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 1/ 2 hours. Does it meet the cooling rule?",
       "status": "answered",
       "kind": "cooling_check",
-      "expected": true
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in 9 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": false,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in 5 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 2 hours and then to 41 F in 4 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 2.1 hours and then to 41 F in 3 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": false,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in 5.1 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": false,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 0 hours and then to 41 F in 6 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in -1 hours and then to 41 F in 4 hours. Does it meet the cooling rule?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in −.5 hours. Does it meet the cooling rule?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 1/2 hours and then to 41 F in 11/2 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 60 minutes, then to 41 F in another 300 minutes. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 57.5 C to 70 F in .5 hours and then to 5 C in 5.5 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 1 hour then to 41 F in 5 hours total. Is it okay?",
+      "status": "withheld",
+      "kind": "underspecified",
+      "expected": null,
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 1 hour and then to 41 F. Does it meet the rule?",
+      "status": "withheld",
+      "kind": "underspecified",
+      "expected": null,
+      "capability_class": "missing_required_input"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 1 hour then to 41 F in 4 hours then to 35 F in 1 hour. Is it okay?",
+      "status": "withheld",
+      "kind": "underspecified",
+      "expected": null,
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 80 F in 1 hour and then to 41 F in 4 hours. Does it meet the rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": false,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 1 hour and then to 41 F within 4 hours. Does it meet the rule?",
+      "status": "withheld",
+      "kind": "underspecified",
+      "expected": null,
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in 9 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": false,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in 5 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 2 hours and then to 41 F in 4 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 2.1 hours and then to 41 F in 3 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": false,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in 5.1 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": false,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 0 hours and then to 41 F in 6 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in -1 hours and then to 41 F in 4 hours. Does it meet the cooling rule?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in −.5 hours. Does it meet the cooling rule?",
+      "status": "withheld",
+      "kind": "impossible",
+      "expected": null,
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 1/2 hours and then to 41 F in 11/2 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 60 minutes, then to 41 F in another 300 minutes. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 57.5 C to 70 F in .5 hours and then to 5 C in 5.5 hours. Does it meet the cooling rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": true,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 1 hour then to 41 F in 5 hours total. Is it okay?",
+      "status": "withheld",
+      "kind": "underspecified",
+      "expected": null,
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 1 hour and then to 41 F. Does it meet the rule?",
+      "status": "withheld",
+      "kind": "underspecified",
+      "expected": null,
+      "capability_class": "missing_required_input"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 1 hour then to 41 F in 4 hours then to 35 F in 1 hour. Is it okay?",
+      "status": "withheld",
+      "kind": "underspecified",
+      "expected": null,
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 80 F in 1 hour and then to 41 F in 4 hours. Does it meet the rule?",
+      "status": "answered",
+      "kind": "cooling_check",
+      "expected": false,
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 1 hour and then to 41 F within 4 hours. Does it meet the rule?",
+      "status": "withheld",
+      "kind": "underspecified",
+      "expected": null,
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70.4 F in 2 hours, then to 41.4 F in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70.0001 F in 2 hours, then to 41 F in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 2 hours, then to 41.0001 F in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 70 F in 2 hours, then to 41 F in 4 hours. Does this meet the cooling limits?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 57 C to 21 C in 2 hours, then to 5 C in 4 hours. Does this meet the cooling limits?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 57 C to 21.1 C in 2 hours, then to 5 C in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 57 C to 21.0001 C in 2 hours, then to 5 C in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 57 C to 21 C in 2 hours, then to 5.0001 C in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 57 C to 70 F in 2 hours, then to 5 C in 4 hours. Does this meet the cooling limits?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 21 C in 2 hours, then to 41 F in 4 hours. Does this meet the cooling limits?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 135 F to 69 F in 2 hours, then to 40 F in 4 hours. Does this meet the cooling limits?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain",
+      "q": "Food cools from 134.6 F to 70 F in 2 hours, then to 41 F in 4 hours. Does this meet the cooling limits?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70.4 F in 2 hours, then to 41.4 F in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70.0001 F in 2 hours, then to 41 F in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 2 hours, then to 41.0001 F in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 70 F in 2 hours, then to 41 F in 4 hours. Does this meet the cooling limits?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 57 C to 21 C in 2 hours, then to 5 C in 4 hours. Does this meet the cooling limits?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 57 C to 21.1 C in 2 hours, then to 5 C in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 57 C to 21.0001 C in 2 hours, then to 5 C in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 57 C to 21 C in 2 hours, then to 5.0001 C in 4 hours. Does this meet the cooling limits?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 57 C to 70 F in 2 hours, then to 5 C in 4 hours. Does this meet the cooling limits?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 21 C in 2 hours, then to 41 F in 4 hours. Does this meet the cooling limits?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 135 F to 69 F in 2 hours, then to 40 F in 4 hours. Does this meet the cooling limits?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "coldchain-v2",
+      "q": "Food cools from 134.6 F to 70 F in 2 hours, then to 41 F in 4 hours. Does this meet the cooling limits?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
     }
   ]
 }
