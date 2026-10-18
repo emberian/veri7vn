@@ -1,0 +1,410 @@
+{
+  "schema_version": 1,
+  "specialist_id": "mythology",
+  "family": "humanities",
+  "examined_surface": {
+    "request_types": [
+      "Greek/Roman counterpart",
+      "domain association",
+      "named role",
+      "compound or qualified relationships",
+      "explicit goddess qualification"
+    ],
+    "model_scope": "Partial interpretation audit against existing cultural source assertions; no claim that the tables exhaust or prove mythology."
+  },
+  "cases": [
+    {
+      "case_id": "148",
+      "kind": "counterexample",
+      "request": "What is the Roman name of Zeus's father?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Zeus is Jupiter.\", \"value\": \"Jupiter\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "149",
+      "kind": "counterexample",
+      "request": "What is the Greek equivalent of the son of Jupiter?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"r2g\", \"response\": \"The Greek equivalent of Jupiter is Zeus.\", \"value\": \"Zeus\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "150",
+      "kind": "counterexample",
+      "request": "Who is Zeus married to?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Zeus is the king of the gods, god of the sky and thunder.\", \"value\": \"king of the gods, god of the sky and thunder\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "151",
+      "kind": "counterexample",
+      "request": "Who was Thor killed by?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Thor is the Norse god of thunder.\", \"value\": \"Norse god of thunder\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "152",
+      "kind": "counterexample",
+      "request": "Who is Zeus in the film Hercules?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Zeus is the king of the gods, god of the sky and thunder.\", \"value\": \"king of the gods, god of the sky and thunder\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "153",
+      "kind": "counterexample",
+      "request": "Who is Loki in Marvel?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Loki is the Norse trickster god.\", \"value\": \"Norse trickster god\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "154",
+      "kind": "counterexample",
+      "request": "Who is the Greek god of war married to?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of war is Ares.\", \"value\": \"Ares\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "155",
+      "kind": "counterexample",
+      "request": "Which Greek goddess of wisdom is older than Hera?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of wisdom is Athena.\", \"value\": \"Athena\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "156",
+      "kind": "counterexample",
+      "request": "What is the Roman name for Athena in this video game?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Athena is Minerva.\", \"value\": \"Minerva\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "157",
+      "kind": "counterexample",
+      "request": "What is the Greek equivalent of Mars and Juno?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"r2g\", \"response\": \"The Greek equivalent of Juno is Hera.\", \"value\": \"Hera\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "158",
+      "kind": "counterexample",
+      "request": "Who is the Greek god of sea and war?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of sea is Poseidon.\", \"value\": \"Poseidon\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "159",
+      "kind": "counterexample",
+      "request": "Who is the Roman and Greek god of war?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Roman deity of war is Mars.\", \"value\": \"Mars\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "160",
+      "kind": "counterexample",
+      "request": "Who is the Norse god of thunder in the film?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Norse deity of thunder is Thor.\", \"value\": \"Thor\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "161",
+      "kind": "counterexample",
+      "request": "Who is the Greek god of wisdom according to this novel?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of wisdom is Athena.\", \"value\": \"Athena\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "162",
+      "kind": "counterexample",
+      "request": "Who is the Greek god of war after Ares?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of war is Ares.\", \"value\": \"Ares\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "164",
+      "kind": "counterexample",
+      "request": "Who is Zeus not?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Zeus is the king of the gods, god of the sky and thunder.\", \"value\": \"king of the gods, god of the sky and thunder\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "165",
+      "kind": "counterexample",
+      "request": "What is the Roman name for not Zeus?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Zeus is Jupiter.\", \"value\": \"Jupiter\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "166",
+      "kind": "counterexample",
+      "request": "What is the Roman name for Zeus or Hera?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Zeus is Jupiter.\", \"value\": \"Jupiter\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "167",
+      "kind": "counterexample",
+      "request": "Who is the Egyptian god of war in Greek mythology?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of war is Ares.\", \"value\": \"Ares\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "169",
+      "kind": "counterexample",
+      "request": "What is the Roman name for the father of Zeus?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Zeus is Jupiter.\", \"value\": \"Jupiter\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "170",
+      "kind": "counterexample",
+      "request": "Who was Zeus before becoming king?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Zeus is the king of the gods, god of the sky and thunder.\", \"value\": \"king of the gods, god of the sky and thunder\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "171",
+      "kind": "counterexample",
+      "request": "Who is the Greek god of sea near Athens?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of sea is Poseidon.\", \"value\": \"Poseidon\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "172",
+      "kind": "counterexample",
+      "request": "What is the Roman name for Zeus, and who is his wife?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Zeus is Jupiter.\", \"value\": \"Jupiter\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "173",
+      "kind": "counterexample",
+      "request": "Who is the Greek god of music and the Roman god of war?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Roman deity of music is Apollo.\", \"value\": \"Apollo\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "174",
+      "kind": "counterexample",
+      "request": "What is the Roman name for Zeus in the fifth century BCE?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Zeus is Jupiter.\", \"value\": \"Jupiter\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "175",
+      "kind": "counterexample",
+      "request": "What is the Greek equivalent of Jupiter in astronomy?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"r2g\", \"response\": \"The Greek equivalent of Jupiter is Zeus.\", \"value\": \"Zeus\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "179",
+      "kind": "counterexample",
+      "request": "Who is the Greek goddess of war?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of war is Ares.\", \"value\": \"Ares\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "180",
+      "kind": "counterexample",
+      "request": "Who is the Roman goddess of war?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Roman deity of war is Mars.\", \"value\": \"Mars\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "181",
+      "kind": "counterexample",
+      "request": "Who is the Norse goddess of thunder?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Norse deity of thunder is Thor.\", \"value\": \"Thor\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "182",
+      "kind": "counterexample",
+      "request": "Which Roman goddess is the counterpart of Zeus?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Zeus is Jupiter.\", \"value\": \"Jupiter\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "183",
+      "kind": "counterexample",
+      "request": "Which Greek goddess is the counterpart of Mars?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"r2g\", \"response\": \"The Greek equivalent of Mars is Ares.\", \"value\": \"Ares\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "184",
+      "kind": "counterexample",
+      "request": "What is the Roman name for the Greek goddess Ares?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Ares is Mars.\", \"value\": \"Mars\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "185",
+      "kind": "counterexample",
+      "request": "What is Thor the goddess of?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Thor is the Norse god of thunder.\", \"value\": \"Norse god of thunder\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "0",
+      "kind": "independently_checked_case",
+      "request": "Who is the Roman counterpart of Zeus?",
+      "expected_boundary": "Source assertion for the requested relationship: Jupiter",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Zeus is Jupiter.\", \"value\": \"Jupiter\"}; after {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Zeus is Jupiter.\", \"value\": \"Jupiter\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "1",
+      "kind": "independently_checked_case",
+      "request": "Who is the Greek counterpart of Jupiter?",
+      "expected_boundary": "Source assertion for the requested relationship: Zeus",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"r2g\", \"response\": \"The Greek equivalent of Jupiter is Zeus.\", \"value\": \"Zeus\"}; after {\"status\": \"answered\", \"kind\": \"r2g\", \"response\": \"The Greek equivalent of Jupiter is Zeus.\", \"value\": \"Zeus\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "60",
+      "kind": "independently_checked_case",
+      "request": "Which deity is associated with sky in Greek mythology?",
+      "expected_boundary": "Source assertion for the requested relationship: Zeus",
+      "observed_behavior": "Before {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; after {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of sky is Zeus.\", \"value\": \"Zeus\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "100",
+      "kind": "independently_checked_case",
+      "request": "Which deity is associated with fire in Roman mythology?",
+      "expected_boundary": "Source assertion for the requested relationship: Vulcan",
+      "observed_behavior": "Before {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; after {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Roman deity of fire is Vulcan.\", \"value\": \"Vulcan\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "127",
+      "kind": "independently_checked_case",
+      "request": "What is the mythological role of Zeus?",
+      "expected_boundary": "Source assertion for the requested relationship: king of the gods, god of the sky and thunder",
+      "observed_behavior": "Before {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; after {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Zeus is the king of the gods, god of the sky and thunder.\", \"value\": \"king of the gods, god of the sky and thunder\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "150",
+      "kind": "counterexample",
+      "request": "Who is Zeus married to?",
+      "expected_boundary": "The source row does not answer this requested relationship or qualification; withhold rather than drop part of the question.",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Zeus is the king of the gods, god of the sky and thunder.\", \"value\": \"king of the gods, god of the sky and thunder\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld"
+    },
+    {
+      "case_id": "186",
+      "kind": "independently_checked_case",
+      "request": "Who is the Greek goddess of victory?",
+      "expected_boundary": "Source assertion for the requested relationship: Nike",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of victory is Nike.\", \"value\": \"Nike\"}; after {\"status\": \"withheld\", \"kind\": null, \"response\": \"\", \"value\": null}; current outcome valid_withheld",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "187",
+      "kind": "independently_checked_case",
+      "request": "Who is the Greek goddess of love?",
+      "expected_boundary": "Source assertion for the requested relationship: Aphrodite",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of love is Aphrodite.\", \"value\": \"Aphrodite\"}; after {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Greek deity of love is Aphrodite.\", \"value\": \"Aphrodite\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "188",
+      "kind": "independently_checked_case",
+      "request": "Who is the Roman goddess of wisdom?",
+      "expected_boundary": "Source assertion for the requested relationship: Minerva",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Roman deity of wisdom is Minerva.\", \"value\": \"Minerva\"}; after {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Roman deity of wisdom is Minerva.\", \"value\": \"Minerva\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "189",
+      "kind": "independently_checked_case",
+      "request": "Who is the Norse goddess of love?",
+      "expected_boundary": "Source assertion for the requested relationship: Freya",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Norse deity of love is Freya.\", \"value\": \"Freya\"}; after {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Norse deity of love is Freya.\", \"value\": \"Freya\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "190",
+      "kind": "independently_checked_case",
+      "request": "Which Roman goddess is the counterpart of Hera?",
+      "expected_boundary": "Source assertion for the requested relationship: Juno",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Hera is Juno.\", \"value\": \"Juno\"}; after {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Hera is Juno.\", \"value\": \"Juno\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "191",
+      "kind": "independently_checked_case",
+      "request": "Which Greek goddess is the counterpart of Venus?",
+      "expected_boundary": "Source assertion for the requested relationship: Aphrodite",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"r2g\", \"response\": \"The Greek equivalent of Venus is Aphrodite.\", \"value\": \"Aphrodite\"}; after {\"status\": \"answered\", \"kind\": \"r2g\", \"response\": \"The Greek equivalent of Venus is Aphrodite.\", \"value\": \"Aphrodite\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "192",
+      "kind": "independently_checked_case",
+      "request": "Give the Roman name for Hermes.",
+      "expected_boundary": "Source assertion for the requested relationship: Mercury",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Hermes is Mercury.\", \"value\": \"Mercury\"}; after {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Hermes is Mercury.\", \"value\": \"Mercury\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "193",
+      "kind": "independently_checked_case",
+      "request": "What is Aphrodite called in Roman mythology?",
+      "expected_boundary": "Source assertion for the requested relationship: Venus",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Aphrodite is Venus.\", \"value\": \"Venus\"}; after {\"status\": \"answered\", \"kind\": \"g2r\", \"response\": \"The Roman equivalent of Aphrodite is Venus.\", \"value\": \"Venus\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "194",
+      "kind": "independently_checked_case",
+      "request": "What is Neptune's Greek name?",
+      "expected_boundary": "Source assertion for the requested relationship: Poseidon",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"r2g\", \"response\": \"The Greek equivalent of Neptune is Poseidon.\", \"value\": \"Poseidon\"}; after {\"status\": \"answered\", \"kind\": \"r2g\", \"response\": \"The Greek equivalent of Neptune is Poseidon.\", \"value\": \"Poseidon\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "195",
+      "kind": "independently_checked_case",
+      "request": "Who was Heimdall?",
+      "expected_boundary": "Source assertion for the requested relationship: watchman of the Norse gods, guardian of the Bifrost",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Heimdall is the watchman of the Norse gods, guardian of the Bifrost.\", \"value\": \"watchman of the Norse gods, guardian of the Bifrost\"}; after {\"status\": \"answered\", \"kind\": \"role\", \"response\": \"Heimdall is the watchman of the Norse gods, guardian of the Bifrost.\", \"value\": \"watchman of the Norse gods, guardian of the Bifrost\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    },
+    {
+      "case_id": "196",
+      "kind": "independently_checked_case",
+      "request": "Name the Scandinavian deity of thunder.",
+      "expected_boundary": "Source assertion for the requested relationship: Thor",
+      "observed_behavior": "Before {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Norse deity of thunder is Thor.\", \"value\": \"Thor\"}; after {\"status\": \"answered\", \"kind\": \"domain_god\", \"response\": \"The Norse deity of thunder is Thor.\", \"value\": \"Thor\"}; current outcome right",
+      "independent_check": "Direct comparison with the pre-existing source table and whole requested relationship; authored by root, not independent language evidence."
+    }
+  ],
+  "actual_receipt": "project/audits/evidence/mythology-relationships-20261018.json",
+  "native_binding": {
+    "compile_inputs_manifest": "var/humanities/native-attempts/20261018T122248Z-15040bac7611/compile-inputs.json",
+    "registered_binary": "var/humanities/native-attempts/20261018T122248Z-15040bac7611/binary"
+  },
+  "current_unresolved_limits": [
+    "39 meaningful/unknown requests withheld in the authored set; source gender coverage is incomplete and loses one previously correct Nike classification answer.",
+    "Genealogical, cultural-variant and historical relationships, compound domains and fictional retellings are not modeled.",
+    "Roman domain projection assumes the transcribed Greek/Roman correspondence; source assertions are not proved historical truth.",
+    "English grammar is finite, authored with the implementation and untrusted."
+  ],
+  "reviewer": "Codex root, actual reader and source-table review, 2026-10-18",
+  "owner": "root; no active deputy",
+  "author_claims": {
+    "audit_scope": "partial semantic audit, not completion",
+    "theorem_consumer_review": "yreply invokes ykernel; first-match, domain_value and role_value bind accepted values to actual selected table rows; English matching and source qualification are untrusted. No theorem changed.",
+    "source_paths": [
+      "src/extract/humanities/recognizer.sml",
+      "src/extract/humanities/facts/Mythology.thy"
+    ],
+    "production_change_this_audit": true,
+    "shipped_panel_result": "Mythology 26/26; Humanities 394/394 isolated and family; fresh mythology 26/26",
+    "result_counts": {
+      "right": 158,
+      "valid_withheld": 39
+    }
+  }
+}

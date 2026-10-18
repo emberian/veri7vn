@@ -1,0 +1,4355 @@
+{
+  "schema": "veri7vn.reviewed-specialist-observations/1",
+  "scope": "197 root-authored requested-relationship checks; source assertions and language interpretation are not proved",
+  "source": "upstream/root/specialists/mythology/organ_mythology_v1.py; transcribed G2R, DOMAIN and ROLE assertions",
+  "before_binary_sha256": "05c28101c984b5bb6ee3b11db050596db3a333ec5109f2274bd77b838ff3f70b",
+  "binary_sha256": "48d2d4f957ad9215b3ee872f0041e18ed63c9d66c024086e9f28febaf7e613fc",
+  "compile_inputs_manifest": "var/humanities/native-attempts/20261018T122248Z-15040bac7611/compile-inputs.json",
+  "counts": {
+    "before": {
+      "right": 71,
+      "valid_withheld": 93,
+      "wrong": 33
+    },
+    "after": {
+      "right": 158,
+      "valid_withheld": 39
+    }
+  },
+  "observations": [
+    {
+      "case_id": "0",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Zeus?",
+      "expected_source_value": "Jupiter",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Zeus is Jupiter.",
+        "value": "Jupiter"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Zeus is Jupiter.",
+        "value": "Jupiter"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "1",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Jupiter?",
+      "expected_source_value": "Zeus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Jupiter is Zeus.",
+        "value": "Zeus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Jupiter is Zeus.",
+        "value": "Zeus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "2",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Hera?",
+      "expected_source_value": "Juno",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hera is Juno.",
+        "value": "Juno"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hera is Juno.",
+        "value": "Juno"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "3",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Juno?",
+      "expected_source_value": "Hera",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Juno is Hera.",
+        "value": "Hera"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Juno is Hera.",
+        "value": "Hera"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "4",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Poseidon?",
+      "expected_source_value": "Neptune",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Poseidon is Neptune.",
+        "value": "Neptune"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Poseidon is Neptune.",
+        "value": "Neptune"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "5",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Neptune?",
+      "expected_source_value": "Poseidon",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Neptune is Poseidon.",
+        "value": "Poseidon"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Neptune is Poseidon.",
+        "value": "Poseidon"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "6",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Demeter?",
+      "expected_source_value": "Ceres",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Demeter is Ceres.",
+        "value": "Ceres"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Demeter is Ceres.",
+        "value": "Ceres"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "7",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Ceres?",
+      "expected_source_value": "Demeter",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Ceres is Demeter.",
+        "value": "Demeter"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Ceres is Demeter.",
+        "value": "Demeter"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "8",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Athena?",
+      "expected_source_value": "Minerva",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Athena is Minerva.",
+        "value": "Minerva"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Athena is Minerva.",
+        "value": "Minerva"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "9",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Minerva?",
+      "expected_source_value": "Athena",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Minerva is Athena.",
+        "value": "Athena"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Minerva is Athena.",
+        "value": "Athena"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "10",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Apollo?",
+      "expected_source_value": "Apollo",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Apollo is Apollo.",
+        "value": "Apollo"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Apollo is Apollo.",
+        "value": "Apollo"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "11",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Apollo?",
+      "expected_source_value": "Apollo",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Apollo is Apollo.",
+        "value": "Apollo"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Apollo is Apollo.",
+        "value": "Apollo"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "12",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Artemis?",
+      "expected_source_value": "Diana",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Artemis is Diana.",
+        "value": "Diana"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Artemis is Diana.",
+        "value": "Diana"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "13",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Diana?",
+      "expected_source_value": "Artemis",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Diana is Artemis.",
+        "value": "Artemis"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Diana is Artemis.",
+        "value": "Artemis"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "14",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Ares?",
+      "expected_source_value": "Mars",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Ares is Mars.",
+        "value": "Mars"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Ares is Mars.",
+        "value": "Mars"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "15",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Mars?",
+      "expected_source_value": "Ares",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Mars is Ares.",
+        "value": "Ares"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Mars is Ares.",
+        "value": "Ares"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "16",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Aphrodite?",
+      "expected_source_value": "Venus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Aphrodite is Venus.",
+        "value": "Venus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Aphrodite is Venus.",
+        "value": "Venus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "17",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Venus?",
+      "expected_source_value": "Aphrodite",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Venus is Aphrodite.",
+        "value": "Aphrodite"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Venus is Aphrodite.",
+        "value": "Aphrodite"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "18",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Hephaestus?",
+      "expected_source_value": "Vulcan",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hephaestus is Vulcan.",
+        "value": "Vulcan"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hephaestus is Vulcan.",
+        "value": "Vulcan"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "19",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Vulcan?",
+      "expected_source_value": "Hephaestus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Vulcan is Hephaestus.",
+        "value": "Hephaestus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Vulcan is Hephaestus.",
+        "value": "Hephaestus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "20",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Hermes?",
+      "expected_source_value": "Mercury",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hermes is Mercury.",
+        "value": "Mercury"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hermes is Mercury.",
+        "value": "Mercury"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "21",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Mercury?",
+      "expected_source_value": "Hermes",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Mercury is Hermes.",
+        "value": "Hermes"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Mercury is Hermes.",
+        "value": "Hermes"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "22",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Hestia?",
+      "expected_source_value": "Vesta",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hestia is Vesta.",
+        "value": "Vesta"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hestia is Vesta.",
+        "value": "Vesta"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "23",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Vesta?",
+      "expected_source_value": "Hestia",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Vesta is Hestia.",
+        "value": "Hestia"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Vesta is Hestia.",
+        "value": "Hestia"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "24",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Dionysus?",
+      "expected_source_value": "Bacchus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Dionysus is Bacchus.",
+        "value": "Bacchus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Dionysus is Bacchus.",
+        "value": "Bacchus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "25",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Bacchus?",
+      "expected_source_value": "Dionysus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Bacchus is Dionysus.",
+        "value": "Dionysus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Bacchus is Dionysus.",
+        "value": "Dionysus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "26",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Hades?",
+      "expected_source_value": "Pluto",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hades is Pluto.",
+        "value": "Pluto"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hades is Pluto.",
+        "value": "Pluto"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "27",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Pluto?",
+      "expected_source_value": "Hades",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Pluto is Hades.",
+        "value": "Hades"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Pluto is Hades.",
+        "value": "Hades"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "28",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Persephone?",
+      "expected_source_value": "Proserpina",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Persephone is Proserpina.",
+        "value": "Proserpina"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Persephone is Proserpina.",
+        "value": "Proserpina"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "29",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Proserpina?",
+      "expected_source_value": "Persephone",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Proserpina is Persephone.",
+        "value": "Persephone"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Proserpina is Persephone.",
+        "value": "Persephone"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "30",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Eros?",
+      "expected_source_value": "Cupid",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Eros is Cupid.",
+        "value": "Cupid"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Eros is Cupid.",
+        "value": "Cupid"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "31",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Cupid?",
+      "expected_source_value": "Eros",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Cupid is Eros.",
+        "value": "Eros"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Cupid is Eros.",
+        "value": "Eros"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "32",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Cronus?",
+      "expected_source_value": "Saturn",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Cronus is Saturn.",
+        "value": "Saturn"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Cronus is Saturn.",
+        "value": "Saturn"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "33",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Saturn?",
+      "expected_source_value": "Cronus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Saturn is Cronus.",
+        "value": "Cronus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Saturn is Cronus.",
+        "value": "Cronus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "34",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Gaia?",
+      "expected_source_value": "Terra",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Gaia is Terra.",
+        "value": "Terra"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Gaia is Terra.",
+        "value": "Terra"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "35",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Terra?",
+      "expected_source_value": "Gaia",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Terra is Gaia.",
+        "value": "Gaia"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Terra is Gaia.",
+        "value": "Gaia"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "36",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Nike?",
+      "expected_source_value": "Victoria",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Nike is Victoria.",
+        "value": "Victoria"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Nike is Victoria.",
+        "value": "Victoria"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "37",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Victoria?",
+      "expected_source_value": "Nike",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Victoria is Nike.",
+        "value": "Nike"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Victoria is Nike.",
+        "value": "Nike"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "38",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Hypnos?",
+      "expected_source_value": "Somnus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hypnos is Somnus.",
+        "value": "Somnus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hypnos is Somnus.",
+        "value": "Somnus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "39",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Somnus?",
+      "expected_source_value": "Hypnos",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Somnus is Hypnos.",
+        "value": "Hypnos"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Somnus is Hypnos.",
+        "value": "Hypnos"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "40",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Pan?",
+      "expected_source_value": "Faunus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Pan is Faunus.",
+        "value": "Faunus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Pan is Faunus.",
+        "value": "Faunus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "41",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Faunus?",
+      "expected_source_value": "Pan",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Faunus is Pan.",
+        "value": "Pan"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Faunus is Pan.",
+        "value": "Pan"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "42",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Asclepius?",
+      "expected_source_value": "Aesculapius",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Asclepius is Aesculapius.",
+        "value": "Aesculapius"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Asclepius is Aesculapius.",
+        "value": "Aesculapius"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "43",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Aesculapius?",
+      "expected_source_value": "Asclepius",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Aesculapius is Asclepius.",
+        "value": "Asclepius"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Aesculapius is Asclepius.",
+        "value": "Asclepius"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "44",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Heracles?",
+      "expected_source_value": "Hercules",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Heracles is Hercules.",
+        "value": "Hercules"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Heracles is Hercules.",
+        "value": "Hercules"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "45",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Hercules?",
+      "expected_source_value": "Heracles",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Hercules is Heracles.",
+        "value": "Heracles"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Hercules is Heracles.",
+        "value": "Heracles"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "46",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Odysseus?",
+      "expected_source_value": "Ulysses",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Odysseus is Ulysses.",
+        "value": "Ulysses"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Odysseus is Ulysses.",
+        "value": "Ulysses"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "47",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Ulysses?",
+      "expected_source_value": "Odysseus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Ulysses is Odysseus.",
+        "value": "Odysseus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Ulysses is Odysseus.",
+        "value": "Odysseus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "48",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Rhea?",
+      "expected_source_value": "Ops",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Rhea is Ops.",
+        "value": "Ops"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Rhea is Ops.",
+        "value": "Ops"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "49",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Ops?",
+      "expected_source_value": "Rhea",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Ops is Rhea.",
+        "value": "Rhea"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Ops is Rhea.",
+        "value": "Rhea"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "50",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Uranus?",
+      "expected_source_value": "Caelus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Uranus is Caelus.",
+        "value": "Caelus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Uranus is Caelus.",
+        "value": "Caelus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "51",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Caelus?",
+      "expected_source_value": "Uranus",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Caelus is Uranus.",
+        "value": "Uranus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Caelus is Uranus.",
+        "value": "Uranus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "52",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Eos?",
+      "expected_source_value": "Aurora",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Eos is Aurora.",
+        "value": "Aurora"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Eos is Aurora.",
+        "value": "Aurora"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "53",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Aurora?",
+      "expected_source_value": "Eos",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Aurora is Eos.",
+        "value": "Eos"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Aurora is Eos.",
+        "value": "Eos"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "54",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Selene?",
+      "expected_source_value": "Luna",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Selene is Luna.",
+        "value": "Luna"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Selene is Luna.",
+        "value": "Luna"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "55",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Luna?",
+      "expected_source_value": "Selene",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Luna is Selene.",
+        "value": "Selene"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Luna is Selene.",
+        "value": "Selene"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "56",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Helios?",
+      "expected_source_value": "Sol",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Helios is Sol.",
+        "value": "Sol"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Helios is Sol.",
+        "value": "Sol"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "57",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Sol?",
+      "expected_source_value": "Helios",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Sol is Helios.",
+        "value": "Helios"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Sol is Helios.",
+        "value": "Helios"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "58",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman counterpart of Tyche?",
+      "expected_source_value": "Fortuna",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Tyche is Fortuna.",
+        "value": "Fortuna"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Tyche is Fortuna.",
+        "value": "Fortuna"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "59",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek counterpart of Fortuna?",
+      "expected_source_value": "Tyche",
+      "category": "supported",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Fortuna is Tyche.",
+        "value": "Tyche"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Fortuna is Tyche.",
+        "value": "Tyche"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "60",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with sky in Greek mythology?",
+      "expected_source_value": "Zeus",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of sky is Zeus.",
+        "value": "Zeus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "61",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with thunder in Greek mythology?",
+      "expected_source_value": "Zeus",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of thunder is Zeus.",
+        "value": "Zeus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "62",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with sea in Greek mythology?",
+      "expected_source_value": "Poseidon",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of sea is Poseidon.",
+        "value": "Poseidon"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "63",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with underworld in Greek mythology?",
+      "expected_source_value": "Hades",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of underworld is Hades.",
+        "value": "Hades"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "64",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with wisdom in Greek mythology?",
+      "expected_source_value": "Athena",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of wisdom is Athena.",
+        "value": "Athena"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "65",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with war in Greek mythology?",
+      "expected_source_value": "Ares",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of war is Ares.",
+        "value": "Ares"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "66",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with love in Greek mythology?",
+      "expected_source_value": "Aphrodite",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of love is Aphrodite.",
+        "value": "Aphrodite"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "67",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with beauty in Greek mythology?",
+      "expected_source_value": "Aphrodite",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of beauty is Aphrodite.",
+        "value": "Aphrodite"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "68",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with music in Greek mythology?",
+      "expected_source_value": "Apollo",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of music is Apollo.",
+        "value": "Apollo"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "69",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with prophecy in Greek mythology?",
+      "expected_source_value": "Apollo",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of prophecy is Apollo.",
+        "value": "Apollo"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "70",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with hunt in Greek mythology?",
+      "expected_source_value": "Artemis",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of hunt is Artemis.",
+        "value": "Artemis"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "71",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with hunting in Greek mythology?",
+      "expected_source_value": "Artemis",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of hunting is Artemis.",
+        "value": "Artemis"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "72",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with messenger in Greek mythology?",
+      "expected_source_value": "Hermes",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of messenger is Hermes.",
+        "value": "Hermes"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "73",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with fire in Greek mythology?",
+      "expected_source_value": "Hephaestus",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of fire is Hephaestus.",
+        "value": "Hephaestus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "74",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with forge in Greek mythology?",
+      "expected_source_value": "Hephaestus",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of forge is Hephaestus.",
+        "value": "Hephaestus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "75",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with blacksmiths in Greek mythology?",
+      "expected_source_value": "Hephaestus",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of blacksmiths is Hephaestus.",
+        "value": "Hephaestus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "76",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with harvest in Greek mythology?",
+      "expected_source_value": "Demeter",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of harvest is Demeter.",
+        "value": "Demeter"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "77",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with agriculture in Greek mythology?",
+      "expected_source_value": "Demeter",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of agriculture is Demeter.",
+        "value": "Demeter"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "78",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with wine in Greek mythology?",
+      "expected_source_value": "Dionysus",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of wine is Dionysus.",
+        "value": "Dionysus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "79",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with marriage in Greek mythology?",
+      "expected_source_value": "Hera",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of marriage is Hera.",
+        "value": "Hera"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "80",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with hearth in Greek mythology?",
+      "expected_source_value": "Hestia",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of hearth is Hestia.",
+        "value": "Hestia"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "81",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with victory in Greek mythology?",
+      "expected_source_value": "Nike",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of victory is Nike.",
+        "value": "Nike"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "82",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with sleep in Greek mythology?",
+      "expected_source_value": "Hypnos",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of sleep is Hypnos.",
+        "value": "Hypnos"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "83",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with medicine in Greek mythology?",
+      "expected_source_value": "Asclepius",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of medicine is Asclepius.",
+        "value": "Asclepius"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "84",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with dawn in Greek mythology?",
+      "expected_source_value": "Eos",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of dawn is Eos.",
+        "value": "Eos"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "85",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with moon in Greek mythology?",
+      "expected_source_value": "Selene",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of moon is Selene.",
+        "value": "Selene"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "86",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with sun in Greek mythology?",
+      "expected_source_value": "Helios",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of sun is Helios.",
+        "value": "Helios"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "87",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with sky in Roman mythology?",
+      "expected_source_value": "Jupiter",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of sky is Jupiter.",
+        "value": "Jupiter"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "88",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with thunder in Roman mythology?",
+      "expected_source_value": "Jupiter",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of thunder is Jupiter.",
+        "value": "Jupiter"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "89",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with sea in Roman mythology?",
+      "expected_source_value": "Neptune",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of sea is Neptune.",
+        "value": "Neptune"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "90",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with underworld in Roman mythology?",
+      "expected_source_value": "Pluto",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of underworld is Pluto.",
+        "value": "Pluto"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "91",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with wisdom in Roman mythology?",
+      "expected_source_value": "Minerva",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of wisdom is Minerva.",
+        "value": "Minerva"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "92",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with war in Roman mythology?",
+      "expected_source_value": "Mars",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of war is Mars.",
+        "value": "Mars"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "93",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with love in Roman mythology?",
+      "expected_source_value": "Venus",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of love is Venus.",
+        "value": "Venus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "94",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with beauty in Roman mythology?",
+      "expected_source_value": "Venus",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of beauty is Venus.",
+        "value": "Venus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "95",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with music in Roman mythology?",
+      "expected_source_value": "Apollo",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of music is Apollo.",
+        "value": "Apollo"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "96",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with prophecy in Roman mythology?",
+      "expected_source_value": "Apollo",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of prophecy is Apollo.",
+        "value": "Apollo"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "97",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with hunt in Roman mythology?",
+      "expected_source_value": "Diana",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of hunt is Diana.",
+        "value": "Diana"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "98",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with hunting in Roman mythology?",
+      "expected_source_value": "Diana",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of hunting is Diana.",
+        "value": "Diana"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "99",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with messenger in Roman mythology?",
+      "expected_source_value": "Mercury",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of messenger is Mercury.",
+        "value": "Mercury"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "100",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with fire in Roman mythology?",
+      "expected_source_value": "Vulcan",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of fire is Vulcan.",
+        "value": "Vulcan"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "101",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with forge in Roman mythology?",
+      "expected_source_value": "Vulcan",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of forge is Vulcan.",
+        "value": "Vulcan"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "102",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with blacksmiths in Roman mythology?",
+      "expected_source_value": "Vulcan",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of blacksmiths is Vulcan.",
+        "value": "Vulcan"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "103",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with harvest in Roman mythology?",
+      "expected_source_value": "Ceres",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of harvest is Ceres.",
+        "value": "Ceres"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "104",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with agriculture in Roman mythology?",
+      "expected_source_value": "Ceres",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of agriculture is Ceres.",
+        "value": "Ceres"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "105",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with wine in Roman mythology?",
+      "expected_source_value": "Bacchus",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of wine is Bacchus.",
+        "value": "Bacchus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "106",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with marriage in Roman mythology?",
+      "expected_source_value": "Juno",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of marriage is Juno.",
+        "value": "Juno"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "107",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with hearth in Roman mythology?",
+      "expected_source_value": "Vesta",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of hearth is Vesta.",
+        "value": "Vesta"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "108",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with victory in Roman mythology?",
+      "expected_source_value": "Victoria",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of victory is Victoria.",
+        "value": "Victoria"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "109",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with sleep in Roman mythology?",
+      "expected_source_value": "Somnus",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of sleep is Somnus.",
+        "value": "Somnus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "110",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with medicine in Roman mythology?",
+      "expected_source_value": "Aesculapius",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of medicine is Aesculapius.",
+        "value": "Aesculapius"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "111",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with dawn in Roman mythology?",
+      "expected_source_value": "Aurora",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of dawn is Aurora.",
+        "value": "Aurora"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "112",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with moon in Roman mythology?",
+      "expected_source_value": "Luna",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of moon is Luna.",
+        "value": "Luna"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "113",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with sun in Roman mythology?",
+      "expected_source_value": "Sol",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of sun is Sol.",
+        "value": "Sol"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "114",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with thunder in Norse mythology?",
+      "expected_source_value": "Thor",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of thunder is Thor.",
+        "value": "Thor"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "115",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with wisdom in Norse mythology?",
+      "expected_source_value": "Odin",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of wisdom is Odin.",
+        "value": "Odin"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "116",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with war in Norse mythology?",
+      "expected_source_value": "Tyr",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of war is Tyr.",
+        "value": "Tyr"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "117",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with mischief in Norse mythology?",
+      "expected_source_value": "Loki",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of mischief is Loki.",
+        "value": "Loki"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "118",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with trickery in Norse mythology?",
+      "expected_source_value": "Loki",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of trickery is Loki.",
+        "value": "Loki"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "119",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with love in Norse mythology?",
+      "expected_source_value": "Freya",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of love is Freya.",
+        "value": "Freya"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "120",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with fertility in Norse mythology?",
+      "expected_source_value": "Freyr",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of fertility is Freyr.",
+        "value": "Freyr"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "121",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with underworld in Norse mythology?",
+      "expected_source_value": "Hel",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of underworld is Hel.",
+        "value": "Hel"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "122",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with death in Norse mythology?",
+      "expected_source_value": "Hel",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of death is Hel.",
+        "value": "Hel"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "123",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with sea in Norse mythology?",
+      "expected_source_value": "Njord",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of sea is Njord.",
+        "value": "Njord"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "124",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with light in Norse mythology?",
+      "expected_source_value": "Baldr",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of light is Baldr.",
+        "value": "Baldr"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "125",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with bifrost in Norse mythology?",
+      "expected_source_value": "Heimdall",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of bifrost is Heimdall.",
+        "value": "Heimdall"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "126",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with watchman in Norse mythology?",
+      "expected_source_value": "Heimdall",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of watchman is Heimdall.",
+        "value": "Heimdall"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "127",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Zeus?",
+      "expected_source_value": "king of the gods, god of the sky and thunder",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Zeus is the king of the gods, god of the sky and thunder.",
+        "value": "king of the gods, god of the sky and thunder"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "128",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Poseidon?",
+      "expected_source_value": "god of the sea, earthquakes and horses",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Poseidon is the god of the sea, earthquakes and horses.",
+        "value": "god of the sea, earthquakes and horses"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "129",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Hades?",
+      "expected_source_value": "god of the underworld",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Hades is the god of the underworld.",
+        "value": "god of the underworld"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "130",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Athena?",
+      "expected_source_value": "goddess of wisdom and strategic war",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Athena is the goddess of wisdom and strategic war.",
+        "value": "goddess of wisdom and strategic war"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "131",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Ares?",
+      "expected_source_value": "god of war",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Ares is the god of war.",
+        "value": "god of war"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "132",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Aphrodite?",
+      "expected_source_value": "goddess of love and beauty",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Aphrodite is the goddess of love and beauty.",
+        "value": "goddess of love and beauty"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "133",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Apollo?",
+      "expected_source_value": "god of music, prophecy, healing and the sun",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Apollo is the god of music, prophecy, healing and the sun.",
+        "value": "god of music, prophecy, healing and the sun"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "134",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Artemis?",
+      "expected_source_value": "goddess of the hunt and the moon",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Artemis is the goddess of the hunt and the moon.",
+        "value": "goddess of the hunt and the moon"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "135",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Hermes?",
+      "expected_source_value": "messenger of the gods, god of travel and thieves",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Hermes is the messenger of the gods, god of travel and thieves.",
+        "value": "messenger of the gods, god of travel and thieves"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "136",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Hephaestus?",
+      "expected_source_value": "god of fire and the forge",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Hephaestus is the god of fire and the forge.",
+        "value": "god of fire and the forge"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "137",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Demeter?",
+      "expected_source_value": "goddess of the harvest",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Demeter is the goddess of the harvest.",
+        "value": "goddess of the harvest"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "138",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Dionysus?",
+      "expected_source_value": "god of wine and revelry",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Dionysus is the god of wine and revelry.",
+        "value": "god of wine and revelry"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "139",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Hera?",
+      "expected_source_value": "queen of the gods, goddess of marriage",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Hera is the queen of the gods, goddess of marriage.",
+        "value": "queen of the gods, goddess of marriage"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "140",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Hestia?",
+      "expected_source_value": "goddess of the hearth",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Hestia is the goddess of the hearth.",
+        "value": "goddess of the hearth"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "141",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Thor?",
+      "expected_source_value": "Norse god of thunder",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Thor is the Norse god of thunder.",
+        "value": "Norse god of thunder"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "142",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Odin?",
+      "expected_source_value": "chief of the Norse gods, god of wisdom",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Odin is the chief of the Norse gods, god of wisdom.",
+        "value": "chief of the Norse gods, god of wisdom"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "143",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Loki?",
+      "expected_source_value": "Norse trickster god",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Loki is the Norse trickster god.",
+        "value": "Norse trickster god"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "144",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Freya?",
+      "expected_source_value": "Norse goddess of love and fertility",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Freya is the Norse goddess of love and fertility.",
+        "value": "Norse goddess of love and fertility"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "145",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Tyr?",
+      "expected_source_value": "Norse god of war and law",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Tyr is the Norse god of war and law.",
+        "value": "Norse god of war and law"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "146",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Heimdall?",
+      "expected_source_value": "watchman of the Norse gods, guardian of the Bifrost",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Heimdall is the watchman of the Norse gods, guardian of the Bifrost.",
+        "value": "watchman of the Norse gods, guardian of the Bifrost"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "147",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Hel?",
+      "expected_source_value": "Norse ruler of the underworld",
+      "category": "new_form",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Hel is the Norse ruler of the underworld.",
+        "value": "Norse ruler of the underworld"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "148",
+      "specialist_id": "mythology",
+      "request": "What is the Roman name of Zeus's father?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Zeus is Jupiter.",
+        "value": "Jupiter"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "149",
+      "specialist_id": "mythology",
+      "request": "What is the Greek equivalent of the son of Jupiter?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Jupiter is Zeus.",
+        "value": "Zeus"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "150",
+      "specialist_id": "mythology",
+      "request": "Who is Zeus married to?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Zeus is the king of the gods, god of the sky and thunder.",
+        "value": "king of the gods, god of the sky and thunder"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "151",
+      "specialist_id": "mythology",
+      "request": "Who was Thor killed by?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Thor is the Norse god of thunder.",
+        "value": "Norse god of thunder"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "152",
+      "specialist_id": "mythology",
+      "request": "Who is Zeus in the film Hercules?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Zeus is the king of the gods, god of the sky and thunder.",
+        "value": "king of the gods, god of the sky and thunder"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "153",
+      "specialist_id": "mythology",
+      "request": "Who is Loki in Marvel?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Loki is the Norse trickster god.",
+        "value": "Norse trickster god"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "154",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek god of war married to?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of war is Ares.",
+        "value": "Ares"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "155",
+      "specialist_id": "mythology",
+      "request": "Which Greek goddess of wisdom is older than Hera?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of wisdom is Athena.",
+        "value": "Athena"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "156",
+      "specialist_id": "mythology",
+      "request": "What is the Roman name for Athena in this video game?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Athena is Minerva.",
+        "value": "Minerva"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "157",
+      "specialist_id": "mythology",
+      "request": "What is the Greek equivalent of Mars and Juno?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Juno is Hera.",
+        "value": "Hera"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "158",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek god of sea and war?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of sea is Poseidon.",
+        "value": "Poseidon"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "159",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman and Greek god of war?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of war is Mars.",
+        "value": "Mars"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "160",
+      "specialist_id": "mythology",
+      "request": "Who is the Norse god of thunder in the film?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of thunder is Thor.",
+        "value": "Thor"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "161",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek god of wisdom according to this novel?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of wisdom is Athena.",
+        "value": "Athena"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "162",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek god of war after Ares?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of war is Ares.",
+        "value": "Ares"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "163",
+      "specialist_id": "mythology",
+      "request": "What is Zeus the god of in a video game?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "164",
+      "specialist_id": "mythology",
+      "request": "Who is Zeus not?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Zeus is the king of the gods, god of the sky and thunder.",
+        "value": "king of the gods, god of the sky and thunder"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "165",
+      "specialist_id": "mythology",
+      "request": "What is the Roman name for not Zeus?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Zeus is Jupiter.",
+        "value": "Jupiter"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "166",
+      "specialist_id": "mythology",
+      "request": "What is the Roman name for Zeus or Hera?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Zeus is Jupiter.",
+        "value": "Jupiter"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "167",
+      "specialist_id": "mythology",
+      "request": "Who is the Egyptian god of war in Greek mythology?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of war is Ares.",
+        "value": "Ares"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "168",
+      "specialist_id": "mythology",
+      "request": "Which deity is associated with thunder in Egyptian mythology?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "169",
+      "specialist_id": "mythology",
+      "request": "What is the Roman name for the father of Zeus?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Zeus is Jupiter.",
+        "value": "Jupiter"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "170",
+      "specialist_id": "mythology",
+      "request": "Who was Zeus before becoming king?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Zeus is the king of the gods, god of the sky and thunder.",
+        "value": "king of the gods, god of the sky and thunder"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "171",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek god of sea near Athens?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of sea is Poseidon.",
+        "value": "Poseidon"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "172",
+      "specialist_id": "mythology",
+      "request": "What is the Roman name for Zeus, and who is his wife?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Zeus is Jupiter.",
+        "value": "Jupiter"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "173",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek god of music and the Roman god of war?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of music is Apollo.",
+        "value": "Apollo"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "174",
+      "specialist_id": "mythology",
+      "request": "What is the Roman name for Zeus in the fifth century BCE?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Zeus is Jupiter.",
+        "value": "Jupiter"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "175",
+      "specialist_id": "mythology",
+      "request": "What is the Greek equivalent of Jupiter in astronomy?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Jupiter is Zeus.",
+        "value": "Zeus"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "176",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman equivalent of SpongeBob?",
+      "expected_source_value": null,
+      "category": "unsupported_or_unknown",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "177",
+      "specialist_id": "mythology",
+      "request": "What is the mythological role of Qwerty?",
+      "expected_source_value": null,
+      "category": "unsupported_or_unknown",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "178",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek god of telephones?",
+      "expected_source_value": null,
+      "category": "unsupported_or_unknown",
+      "before_outcome": "valid_withheld",
+      "before": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "179",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek goddess of war?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of war is Ares.",
+        "value": "Ares"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "180",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman goddess of war?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of war is Mars.",
+        "value": "Mars"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "181",
+      "specialist_id": "mythology",
+      "request": "Who is the Norse goddess of thunder?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of thunder is Thor.",
+        "value": "Thor"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "182",
+      "specialist_id": "mythology",
+      "request": "Which Roman goddess is the counterpart of Zeus?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Zeus is Jupiter.",
+        "value": "Jupiter"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "183",
+      "specialist_id": "mythology",
+      "request": "Which Greek goddess is the counterpart of Mars?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Mars is Ares.",
+        "value": "Ares"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "184",
+      "specialist_id": "mythology",
+      "request": "What is the Roman name for the Greek goddess Ares?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Ares is Mars.",
+        "value": "Mars"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "185",
+      "specialist_id": "mythology",
+      "request": "What is Thor the goddess of?",
+      "expected_source_value": null,
+      "category": "unsupported_meaningful",
+      "before_outcome": "wrong",
+      "before": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Thor is the Norse god of thunder.",
+        "value": "Norse god of thunder"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "186",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek goddess of victory?",
+      "expected_source_value": "Nike",
+      "category": "missing_role_evidence",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of victory is Nike.",
+        "value": "Nike"
+      },
+      "outcome": "valid_withheld",
+      "reply": {
+        "status": "withheld",
+        "kind": null,
+        "response": "",
+        "value": null
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "187",
+      "specialist_id": "mythology",
+      "request": "Who is the Greek goddess of love?",
+      "expected_source_value": "Aphrodite",
+      "category": "source_gender_or_alternate_form",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of love is Aphrodite.",
+        "value": "Aphrodite"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Greek deity of love is Aphrodite.",
+        "value": "Aphrodite"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "188",
+      "specialist_id": "mythology",
+      "request": "Who is the Roman goddess of wisdom?",
+      "expected_source_value": "Minerva",
+      "category": "source_gender_or_alternate_form",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of wisdom is Minerva.",
+        "value": "Minerva"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Roman deity of wisdom is Minerva.",
+        "value": "Minerva"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "189",
+      "specialist_id": "mythology",
+      "request": "Who is the Norse goddess of love?",
+      "expected_source_value": "Freya",
+      "category": "source_gender_or_alternate_form",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of love is Freya.",
+        "value": "Freya"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of love is Freya.",
+        "value": "Freya"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "190",
+      "specialist_id": "mythology",
+      "request": "Which Roman goddess is the counterpart of Hera?",
+      "expected_source_value": "Juno",
+      "category": "source_gender_or_alternate_form",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hera is Juno.",
+        "value": "Juno"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hera is Juno.",
+        "value": "Juno"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "191",
+      "specialist_id": "mythology",
+      "request": "Which Greek goddess is the counterpart of Venus?",
+      "expected_source_value": "Aphrodite",
+      "category": "source_gender_or_alternate_form",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Venus is Aphrodite.",
+        "value": "Aphrodite"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Venus is Aphrodite.",
+        "value": "Aphrodite"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "192",
+      "specialist_id": "mythology",
+      "request": "Give the Roman name for Hermes.",
+      "expected_source_value": "Mercury",
+      "category": "source_gender_or_alternate_form",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hermes is Mercury.",
+        "value": "Mercury"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Hermes is Mercury.",
+        "value": "Mercury"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "193",
+      "specialist_id": "mythology",
+      "request": "What is Aphrodite called in Roman mythology?",
+      "expected_source_value": "Venus",
+      "category": "source_gender_or_alternate_form",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Aphrodite is Venus.",
+        "value": "Venus"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "g2r",
+        "response": "The Roman equivalent of Aphrodite is Venus.",
+        "value": "Venus"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "194",
+      "specialist_id": "mythology",
+      "request": "What is Neptune's Greek name?",
+      "expected_source_value": "Poseidon",
+      "category": "source_gender_or_alternate_form",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Neptune is Poseidon.",
+        "value": "Poseidon"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "r2g",
+        "response": "The Greek equivalent of Neptune is Poseidon.",
+        "value": "Poseidon"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "195",
+      "specialist_id": "mythology",
+      "request": "Who was Heimdall?",
+      "expected_source_value": "watchman of the Norse gods, guardian of the Bifrost",
+      "category": "source_gender_or_alternate_form",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Heimdall is the watchman of the Norse gods, guardian of the Bifrost.",
+        "value": "watchman of the Norse gods, guardian of the Bifrost"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "role",
+        "response": "Heimdall is the watchman of the Norse gods, guardian of the Bifrost.",
+        "value": "watchman of the Norse gods, guardian of the Bifrost"
+      },
+      "policy_passed": true
+    },
+    {
+      "case_id": "196",
+      "specialist_id": "mythology",
+      "request": "Name the Scandinavian deity of thunder.",
+      "expected_source_value": "Thor",
+      "category": "source_gender_or_alternate_form",
+      "before_outcome": "right",
+      "before": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of thunder is Thor.",
+        "value": "Thor"
+      },
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "domain_god",
+        "response": "The Norse deity of thunder is Thor.",
+        "value": "Thor"
+      },
+      "policy_passed": true
+    }
+  ]
+}

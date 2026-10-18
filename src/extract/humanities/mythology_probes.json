@@ -1,0 +1,1185 @@
+[
+  {
+    "q": "Who is the Roman counterpart of Zeus?",
+    "kind": "g2r",
+    "expect": "Jupiter",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Jupiter?",
+    "kind": "r2g",
+    "expect": "Zeus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Hera?",
+    "kind": "g2r",
+    "expect": "Juno",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Juno?",
+    "kind": "r2g",
+    "expect": "Hera",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Poseidon?",
+    "kind": "g2r",
+    "expect": "Neptune",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Neptune?",
+    "kind": "r2g",
+    "expect": "Poseidon",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Demeter?",
+    "kind": "g2r",
+    "expect": "Ceres",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Ceres?",
+    "kind": "r2g",
+    "expect": "Demeter",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Athena?",
+    "kind": "g2r",
+    "expect": "Minerva",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Minerva?",
+    "kind": "r2g",
+    "expect": "Athena",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Apollo?",
+    "kind": "g2r",
+    "expect": "Apollo",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Apollo?",
+    "kind": "r2g",
+    "expect": "Apollo",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Artemis?",
+    "kind": "g2r",
+    "expect": "Diana",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Diana?",
+    "kind": "r2g",
+    "expect": "Artemis",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Ares?",
+    "kind": "g2r",
+    "expect": "Mars",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Mars?",
+    "kind": "r2g",
+    "expect": "Ares",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Aphrodite?",
+    "kind": "g2r",
+    "expect": "Venus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Venus?",
+    "kind": "r2g",
+    "expect": "Aphrodite",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Hephaestus?",
+    "kind": "g2r",
+    "expect": "Vulcan",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Vulcan?",
+    "kind": "r2g",
+    "expect": "Hephaestus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Hermes?",
+    "kind": "g2r",
+    "expect": "Mercury",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Mercury?",
+    "kind": "r2g",
+    "expect": "Hermes",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Hestia?",
+    "kind": "g2r",
+    "expect": "Vesta",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Vesta?",
+    "kind": "r2g",
+    "expect": "Hestia",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Dionysus?",
+    "kind": "g2r",
+    "expect": "Bacchus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Bacchus?",
+    "kind": "r2g",
+    "expect": "Dionysus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Hades?",
+    "kind": "g2r",
+    "expect": "Pluto",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Pluto?",
+    "kind": "r2g",
+    "expect": "Hades",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Persephone?",
+    "kind": "g2r",
+    "expect": "Proserpina",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Proserpina?",
+    "kind": "r2g",
+    "expect": "Persephone",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Eros?",
+    "kind": "g2r",
+    "expect": "Cupid",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Cupid?",
+    "kind": "r2g",
+    "expect": "Eros",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Cronus?",
+    "kind": "g2r",
+    "expect": "Saturn",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Saturn?",
+    "kind": "r2g",
+    "expect": "Cronus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Gaia?",
+    "kind": "g2r",
+    "expect": "Terra",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Terra?",
+    "kind": "r2g",
+    "expect": "Gaia",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Nike?",
+    "kind": "g2r",
+    "expect": "Victoria",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Victoria?",
+    "kind": "r2g",
+    "expect": "Nike",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Hypnos?",
+    "kind": "g2r",
+    "expect": "Somnus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Somnus?",
+    "kind": "r2g",
+    "expect": "Hypnos",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Pan?",
+    "kind": "g2r",
+    "expect": "Faunus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Faunus?",
+    "kind": "r2g",
+    "expect": "Pan",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Asclepius?",
+    "kind": "g2r",
+    "expect": "Aesculapius",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Aesculapius?",
+    "kind": "r2g",
+    "expect": "Asclepius",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Heracles?",
+    "kind": "g2r",
+    "expect": "Hercules",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Hercules?",
+    "kind": "r2g",
+    "expect": "Heracles",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Odysseus?",
+    "kind": "g2r",
+    "expect": "Ulysses",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Ulysses?",
+    "kind": "r2g",
+    "expect": "Odysseus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Rhea?",
+    "kind": "g2r",
+    "expect": "Ops",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Ops?",
+    "kind": "r2g",
+    "expect": "Rhea",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Uranus?",
+    "kind": "g2r",
+    "expect": "Caelus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Caelus?",
+    "kind": "r2g",
+    "expect": "Uranus",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Eos?",
+    "kind": "g2r",
+    "expect": "Aurora",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Aurora?",
+    "kind": "r2g",
+    "expect": "Eos",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Selene?",
+    "kind": "g2r",
+    "expect": "Luna",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Luna?",
+    "kind": "r2g",
+    "expect": "Selene",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Helios?",
+    "kind": "g2r",
+    "expect": "Sol",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Sol?",
+    "kind": "r2g",
+    "expect": "Helios",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Roman counterpart of Tyche?",
+    "kind": "g2r",
+    "expect": "Fortuna",
+    "category": "supported"
+  },
+  {
+    "q": "Who is the Greek counterpart of Fortuna?",
+    "kind": "r2g",
+    "expect": "Tyche",
+    "category": "supported"
+  },
+  {
+    "q": "Which deity is associated with sky in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Zeus",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with thunder in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Zeus",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with sea in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Poseidon",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with underworld in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Hades",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with wisdom in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Athena",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with war in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Ares",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with love in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Aphrodite",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with beauty in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Aphrodite",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with music in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Apollo",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with prophecy in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Apollo",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with hunt in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Artemis",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with hunting in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Artemis",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with messenger in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Hermes",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with fire in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Hephaestus",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with forge in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Hephaestus",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with blacksmiths in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Hephaestus",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with harvest in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Demeter",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with agriculture in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Demeter",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with wine in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Dionysus",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with marriage in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Hera",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with hearth in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Hestia",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with victory in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Nike",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with sleep in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Hypnos",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with medicine in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Asclepius",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with dawn in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Eos",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with moon in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Selene",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with sun in Greek mythology?",
+    "kind": "domain_god",
+    "expect": "Helios",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with sky in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Jupiter",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with thunder in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Jupiter",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with sea in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Neptune",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with underworld in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Pluto",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with wisdom in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Minerva",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with war in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Mars",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with love in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Venus",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with beauty in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Venus",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with music in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Apollo",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with prophecy in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Apollo",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with hunt in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Diana",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with hunting in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Diana",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with messenger in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Mercury",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with fire in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Vulcan",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with forge in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Vulcan",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with blacksmiths in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Vulcan",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with harvest in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Ceres",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with agriculture in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Ceres",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with wine in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Bacchus",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with marriage in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Juno",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with hearth in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Vesta",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with victory in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Victoria",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with sleep in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Somnus",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with medicine in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Aesculapius",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with dawn in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Aurora",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with moon in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Luna",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with sun in Roman mythology?",
+    "kind": "domain_god",
+    "expect": "Sol",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with thunder in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Thor",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with wisdom in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Odin",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with war in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Tyr",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with mischief in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Loki",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with trickery in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Loki",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with love in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Freya",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with fertility in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Freyr",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with underworld in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Hel",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with death in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Hel",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with sea in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Njord",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with light in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Baldr",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with bifrost in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Heimdall",
+    "category": "new_form"
+  },
+  {
+    "q": "Which deity is associated with watchman in Norse mythology?",
+    "kind": "domain_god",
+    "expect": "Heimdall",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Zeus?",
+    "kind": "role",
+    "expect": "king of the gods, god of the sky and thunder",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Poseidon?",
+    "kind": "role",
+    "expect": "god of the sea, earthquakes and horses",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Hades?",
+    "kind": "role",
+    "expect": "god of the underworld",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Athena?",
+    "kind": "role",
+    "expect": "goddess of wisdom and strategic war",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Ares?",
+    "kind": "role",
+    "expect": "god of war",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Aphrodite?",
+    "kind": "role",
+    "expect": "goddess of love and beauty",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Apollo?",
+    "kind": "role",
+    "expect": "god of music, prophecy, healing and the sun",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Artemis?",
+    "kind": "role",
+    "expect": "goddess of the hunt and the moon",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Hermes?",
+    "kind": "role",
+    "expect": "messenger of the gods, god of travel and thieves",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Hephaestus?",
+    "kind": "role",
+    "expect": "god of fire and the forge",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Demeter?",
+    "kind": "role",
+    "expect": "goddess of the harvest",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Dionysus?",
+    "kind": "role",
+    "expect": "god of wine and revelry",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Hera?",
+    "kind": "role",
+    "expect": "queen of the gods, goddess of marriage",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Hestia?",
+    "kind": "role",
+    "expect": "goddess of the hearth",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Thor?",
+    "kind": "role",
+    "expect": "Norse god of thunder",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Odin?",
+    "kind": "role",
+    "expect": "chief of the Norse gods, god of wisdom",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Loki?",
+    "kind": "role",
+    "expect": "Norse trickster god",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Freya?",
+    "kind": "role",
+    "expect": "Norse goddess of love and fertility",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Tyr?",
+    "kind": "role",
+    "expect": "Norse god of war and law",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Heimdall?",
+    "kind": "role",
+    "expect": "watchman of the Norse gods, guardian of the Bifrost",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the mythological role of Hel?",
+    "kind": "role",
+    "expect": "Norse ruler of the underworld",
+    "category": "new_form"
+  },
+  {
+    "q": "What is the Roman name of Zeus's father?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is the Greek equivalent of the son of Jupiter?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is Zeus married to?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who was Thor killed by?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is Zeus in the film Hercules?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is Loki in Marvel?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Greek god of war married to?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Which Greek goddess of wisdom is older than Hera?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is the Roman name for Athena in this video game?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is the Greek equivalent of Mars and Juno?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Greek god of sea and war?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Roman and Greek god of war?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Norse god of thunder in the film?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Greek god of wisdom according to this novel?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Greek god of war after Ares?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is Zeus the god of in a video game?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is Zeus not?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is the Roman name for not Zeus?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is the Roman name for Zeus or Hera?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Egyptian god of war in Greek mythology?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Which deity is associated with thunder in Egyptian mythology?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is the Roman name for the father of Zeus?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who was Zeus before becoming king?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Greek god of sea near Athens?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is the Roman name for Zeus, and who is his wife?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Greek god of music and the Roman god of war?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is the Roman name for Zeus in the fifth century BCE?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is the Greek equivalent of Jupiter in astronomy?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Roman equivalent of SpongeBob?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_or_unknown"
+  },
+  {
+    "q": "What is the mythological role of Qwerty?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_or_unknown"
+  },
+  {
+    "q": "Who is the Greek god of telephones?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_or_unknown"
+  },
+  {
+    "q": "Who is the Greek goddess of war?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Roman goddess of war?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Norse goddess of thunder?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Which Roman goddess is the counterpart of Zeus?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Which Greek goddess is the counterpart of Mars?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is the Roman name for the Greek goddess Ares?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "What is Thor the goddess of?",
+    "kind": null,
+    "expect": null,
+    "category": "unsupported_meaningful"
+  },
+  {
+    "q": "Who is the Greek goddess of victory?",
+    "kind": "domain_god",
+    "expect": "Nike",
+    "category": "missing_role_evidence",
+    "policy_withheld": true
+  },
+  {
+    "q": "Who is the Greek goddess of love?",
+    "kind": "domain_god",
+    "expect": "Aphrodite",
+    "category": "source_gender_or_alternate_form"
+  },
+  {
+    "q": "Who is the Roman goddess of wisdom?",
+    "kind": "domain_god",
+    "expect": "Minerva",
+    "category": "source_gender_or_alternate_form"
+  },
+  {
+    "q": "Who is the Norse goddess of love?",
+    "kind": "domain_god",
+    "expect": "Freya",
+    "category": "source_gender_or_alternate_form"
+  },
+  {
+    "q": "Which Roman goddess is the counterpart of Hera?",
+    "kind": "g2r",
+    "expect": "Juno",
+    "category": "source_gender_or_alternate_form"
+  },
+  {
+    "q": "Which Greek goddess is the counterpart of Venus?",
+    "kind": "r2g",
+    "expect": "Aphrodite",
+    "category": "source_gender_or_alternate_form"
+  },
+  {
+    "q": "Give the Roman name for Hermes.",
+    "kind": "g2r",
+    "expect": "Mercury",
+    "category": "source_gender_or_alternate_form"
+  },
+  {
+    "q": "What is Aphrodite called in Roman mythology?",
+    "kind": "g2r",
+    "expect": "Venus",
+    "category": "source_gender_or_alternate_form"
+  },
+  {
+    "q": "What is Neptune's Greek name?",
+    "kind": "r2g",
+    "expect": "Poseidon",
+    "category": "source_gender_or_alternate_form"
+  },
+  {
+    "q": "Who was Heimdall?",
+    "kind": "role",
+    "expect": "watchman of the Norse gods, guardian of the Bifrost",
+    "category": "source_gender_or_alternate_form"
+  },
+  {
+    "q": "Name the Scandinavian deity of thunder.",
+    "kind": "domain_god",
+    "expect": "Thor",
+    "category": "source_gender_or_alternate_form"
+  }
+]

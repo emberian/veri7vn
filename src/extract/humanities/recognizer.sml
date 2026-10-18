@@ -364,42 +364,83 @@ struct
   (* ====================== mythology ====================== *)
   structure Myth =
   struct
-    val cmdWords = "\\b(?:name|equivalent|counterpart|called|known as)\\b"
+    (* Complete requests keep a known name from swallowing a different relation,
+       another figure, a cultural qualifier or a second requested attribute.
+       These finite English forms remain untrusted; the kernel owns all values. *)
+    val endQuestion = "[?.]?$"
     fun answer (text : string) : H.reply option =
       if Narrow.narrative text then NONE
       else
         let
-          val low = lower (collapse text)
+          val low = lower (collapse (trim text))
+          fun whole p = has ("^(?:" ^ p ^ ")" ^ endQuestion) low
+          (* An explicit goddess qualifier requires a supporting role row.
+             The source's generic "god" forms include deities of either sex.
+             Missing role evidence withholds instead of inventing a category. *)
+          fun goddessCompatible name =
+            not (has "\\bgoddess\\b" low) orelse
+            (case List.find (fn (key, _) => key = lower name) H.roles of
+               SOME (_, (_, description)) => has "\\bgoddess\\b" (lower description)
+             | NONE => false)
+          fun equivalent target source name =
+            let
+              val subject = "(?:the )?(?:" ^ source ^ " (?:(?:god|goddess|deity|figure|hero) )?)?" ^ name
+              val relation = "(?:name|equivalent|counterpart)"
+            in List.exists whole [
+              "(?:what|who) is (?:the )?" ^ target ^ " " ^ relation ^ " (?:of|for) " ^ subject,
+              "which " ^ target ^ " (?:god|goddess|deity|figure|hero) is (?:the )?(?:equivalent|counterpart) of " ^ subject,
+              subject ^ " is (?:known as|called) what in " ^ target ^ " mythology",
+              "what is " ^ subject ^ " (?:called|known as) in " ^ target ^ " mythology",
+              "what is " ^ name ^ "'s " ^ target ^ " " ^ relation,
+              "(?:give|name) (?:the )?" ^ target ^ " " ^ relation ^ " (?:of|for) " ^ subject
+            ] end
           fun g2r () =
-            if has "\\broman\\b" low andalso has cmdWords low then
-              let val hits = map (fn (gl, _) => has ("\\b" ^ gl ^ "\\b") low) H.g2r_rows
-              in if List.exists (fn x => x) hits then ret (SOME (H.yreply (H.YG2R hits))) else Fall end
-            else Fall
+            let val hits = map (fn (name, _) => equivalent "roman" "greek" name andalso goddessCompatible name) H.g2r_rows
+            in if List.exists (fn x => x) hits then ret (SOME (H.yreply (H.YG2R hits))) else Fall end
           fun r2g () =
-            if has "\\bgreek\\b" low andalso has cmdWords low then
-              let val hits = map (fn (rl, _) => has ("\\b" ^ rl ^ "\\b") low) H.r2g_rows
-              in if List.exists (fn x => x) hits then ret (SOME (H.yreply (H.YR2G hits))) else Fall end
-            else Fall
+            let val hits = map (fn (name, (_, greek)) => equivalent "greek" "roman" name andalso goddessCompatible greek) H.r2g_rows
+            in if List.exists (fn x => x) hits then ret (SOME (H.yreply (H.YR2G hits))) else Fall end
           fun domain () =
-            case search "\\b(?:god|goddess|deity)\\s+of\\s+(?:the\\s+)?([a-z]+)\\b" low of
-              SOME dm =>
-                if has "\\bwho\\b|\\bwhich\\b|\\bwhat\\b|\\bname\\b" low then
-                  let val pan = if has "\\bnorse\\b|\\bviking\\b|\\bscandinavian\\b" low then SOME H.P_norse
-                                else if has "\\broman\\b" low then SOME H.P_roman
-                                else if has "\\bgreek\\b" low then SOME H.P_greek else NONE
-                  in case pan of NONE => ret NONE | SOME p => ret (SOME (H.yreply (H.YDomain (p, g1 low dm)))) end
-                else Fall
-            | NONE => Fall
+            let
+              fun findDomain (label, pantheon) =
+                let
+                  val deity = "(?:god|goddess|deity)"
+                  val domain = "(?:the )?([a-z]+)"
+                  val patterns = [
+                    "(?:who|what) is (?:the )?" ^ label ^ " " ^ deity ^ " of " ^ domain,
+                    "(?:name|identify) (?:the )?" ^ label ^ " " ^ deity ^ " of " ^ domain,
+                    "in " ^ label ^ " mythology,? (?:who is|which deity is) (?:the )?" ^ deity ^ " of " ^ domain,
+                    "which deity is associated with " ^ domain ^ " in " ^ label ^ " mythology"
+                  ]
+                  fun seek [] = NONE
+                    | seek (pattern :: rest) =
+                        (case search ("^(?:" ^ pattern ^ ")" ^ endQuestion) low of
+                           NONE => seek rest
+                         | SOME m =>
+                             let
+                               val d = g1 low m
+                               val sourceRows = case pantheon of H.P_norse => H.norse_domain | _ => H.greek_domain
+                               val compatible = case List.find (fn (key, _) => key = d) sourceRows of
+                                   SOME (_, name) => goddessCompatible name | NONE => false
+                             in if compatible then SOME (H.yreply (H.YDomain (pantheon, d))) else NONE end)
+                in seek patterns end
+              fun seek [] = Fall
+                | seek (p :: rest) = (case findDomain p of NONE => seek rest | SOME r => ret (SOME r))
+            in seek [("greek", H.P_greek), ("roman", H.P_roman),
+                     ("norse", H.P_norse), ("viking", H.P_norse), ("scandinavian", H.P_norse)] end
           fun role () =
-            case search "\\bwho (?:is|was)\\s+([a-z]+)\\b|\\bwhat (?:is|was)\\s+([a-z]+)\\s+the (?:god|goddess) of\\b" low of
-              SOME m =>
-                let val n = case grp low m 1 of SOME x => x | NONE => valOf (grp low m 2)
-                in ret (SOME (H.yreply (H.YRole n))) end
-            | NONE => Fall
-        in
-          if has "\\bdo you believe\\b|\\bis .* real\\b|\\bshould i\\b|\\bworship\\b|\\bpray\\b" low then NONE
-          else finish text (chain [g2r, r2g, domain, role])
-        end
+            let
+              val patterns = ["who (?:is|was) ([a-z]+)",
+                "what (?:is|was) ([a-z]+) the (?:god|goddess|deity) of",
+                "what is the mythological role of ([a-z]+)"]
+              fun seek [] = Fall
+                | seek (p :: rest) =
+                    (case search ("^(?:" ^ p ^ ")" ^ endQuestion) low of
+                       NONE => seek rest
+                     | SOME m => if goddessCompatible (g1 low m)
+                         then ret (SOME (H.yreply (H.YRole (g1 low m)))) else ret NONE)
+            in seek patterns end
+        in finish text (chain [g2r, r2g, domain, role]) end
   end
 
   (* ====================== ushistory ====================== *)

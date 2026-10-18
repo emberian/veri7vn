@@ -52,3 +52,20 @@ wrong answers, false yeses or valid omissions. All 89 authored assertions pass
 natively, through the dispatcher and in family mode: 46 supported answers and
 43 valid requests withheld. These refusal checks do not count as answered
 capabilities. Exact proof/native bindings are in the continuation report.
+
+Mythology now recognizes complete requests for a counterpart, a deity associated
+with a domain, or a named figure's role. A question about Zeus's father no longer
+selects Zeus's own Roman name; questions about a spouse, a film or several figures
+do not silently become a single table lookup. Direct association and role
+questions have additional supported forms. An explicit goddess qualification
+must also be supported by the existing role description. Missing descriptions
+remain a coverage gap: even Nike's otherwise known victory association withholds
+when the question explicitly requires a goddess classification.
+
+The 197 authored mythology requests have 158 correct answers, zero wrong answers
+and 39 meaningful/unknown requests withheld. The previous native had 71 correct,
+33 wrong and 93 withheld on the same requests. These are partial interpretation
+checks, not proof of the cultural identifications or exhaustive language coverage.
+The unchanged checked kernel binds each answer to its selected source row;
+English interpretation and the source-based qualification check remain untrusted.
+See `project/lanes/M-humanities-mythology.md` for bindings and remaining limits.
