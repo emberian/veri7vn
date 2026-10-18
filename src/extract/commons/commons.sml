@@ -38,8 +38,18 @@
    meaning (\d \D \s \S \w \W \b \B). Do not lower-case the pattern
    string first: that turns \S into \s (lane S17 fix; previously every
    caller did, so upper-case escapes silently changed meaning).
-   Text is matched byte by byte; \w and \d are ASCII-only (Python's are
-   Unicode-aware, which differs only for non-ASCII letters and digits). *)
+   Text and pattern are read as UTF-8 codepoints (lane W6-25): a literal
+   multi-byte character matches as a unit, a [...] class may hold multi-byte
+   members and ranges, `.` and negated classes consume one whole character, and
+   an unanchored search only starts on character boundaries. Match positions
+   (start, stop, groups) stay BYTE offsets into the string. A byte sequence that
+   is not valid UTF-8 is read as one character per byte (outside every class
+   range and never equal to a codepoint literal), so invalid input degrades to
+   the old byte behaviour. Case folding stays ASCII-only: Lower, Fold and the
+   class folding change A-Z / a-z and nothing else, so non-ASCII letters (E-acute,
+   Greek, Cyrillic) are matched exactly. \w, \d, \s and \b are ASCII-only
+   (Python's are Unicode-aware, which differs only for non-ASCII letters,
+   digits and spaces; every non-ASCII character is a non-word, non-space). *)
 structure Regex :
 sig
   type regex
@@ -56,9 +66,9 @@ sig
 end =
 struct
   datatype node =
-      Lit of char
+      Lit of int                            (* a codepoint (W6-25) *)
     | Any
-    | Cls of bool * (char -> bool)          (* negated, member *)
+    | Cls of bool * (int -> bool)           (* negated, member over codepoints *)
     | Grp of int option * node list list    (* capture index, alternatives *)
     | Look of bool * node list list         (* positive?, alternatives *)
     | Behind of bool * node list list       (* positive?, alternatives *)
@@ -76,6 +86,42 @@ struct
   fun isSpace c = c = #" " orelse c = #"\t" orelse c = #"\n" orelse c = #"\r"
                   orelse c = #"\f" orelse c = #"\v"
 
+  (* UTF-8 decoding (W6-25). decode s i = (codepoint, byte length). Overlong
+     forms, surrogates, values above U+10FFFF and truncated sequences are
+     invalid: they decode as (0x110000 + byte, 1). *)
+  fun decode (s : string) (i : int) : int * int =
+    let
+      val n = size s
+      fun b j = Char.ord (String.sub (s, j))
+      fun cont j = j < n andalso b j div 64 = 2
+      val c = b i
+      val bad = (0x110000 + c, 1)
+    in
+      if c < 0x80 then (c, 1)
+      else if c >= 0xC2 andalso c < 0xE0 then
+        (if cont (i + 1) then ((c - 0xC0) * 64 + (b (i + 1) - 0x80), 2) else bad)
+      else if c >= 0xE0 andalso c < 0xF0 then
+        (if cont (i + 1) andalso cont (i + 2) then
+           let val cp = (c - 0xE0) * 4096 + (b (i + 1) - 0x80) * 64 + (b (i + 2) - 0x80)
+           in if cp < 0x800 orelse (cp >= 0xD800 andalso cp < 0xE000) then bad else (cp, 3) end
+         else bad)
+      else if c >= 0xF0 andalso c < 0xF5 then
+        (if cont (i + 1) andalso cont (i + 2) andalso cont (i + 3) then
+           let val cp = (c - 0xF0) * 262144 + (b (i + 1) - 0x80) * 4096
+                        + (b (i + 2) - 0x80) * 64 + (b (i + 3) - 0x80)
+           in if cp < 0x10000 orelse cp > 0x10FFFF then bad else (cp, 4) end
+         else bad)
+      else bad
+    end
+
+  (* ASCII-only helpers over codepoints *)
+  fun asciiLower cp = if cp >= 65 andalso cp <= 90 then cp + 32 else cp
+  fun asciiUpper cp = if cp >= 97 andalso cp <= 122 then cp - 32 else cp
+  fun isAsciiAlpha cp = (cp >= 65 andalso cp <= 90) orelse (cp >= 97 andalso cp <= 122)
+  fun cpDigit cp = cp >= 48 andalso cp <= 57
+  fun cpSpace cp = cp < 128 andalso isSpace (Char.chr cp)
+  fun cpWord cp = cp < 128 andalso isWord (Char.chr cp)
+
   exception Bad of string
 
   (* How literals and class members meet case. Lower: the caller lower-cases the
@@ -89,26 +135,28 @@ struct
   fun compileWith (m0 : mode) (p : string) : regex =
     let
       fun fold m f = case m of
-                       Fold => (fn c => f c orelse f (Char.toLower c) orelse f (Char.toUpper c))
+                       Fold => (fn c => f c orelse f (asciiLower c) orelse f (asciiUpper c))
                      | _ => f
       fun lit m c = case m of
-                      Lower => Lit (Char.toLower c)
-                    | Fold => if Char.isAlpha c
-                              then Cls (false, fn x => Char.toLower x = Char.toLower c)
+                      Lower => Lit (asciiLower c)
+                    | Fold => if isAsciiAlpha c
+                              then Cls (false, fn x => asciiLower x = asciiLower c)
                               else Lit c
                     | Exact => Lit c
-      fun nm m c = case m of Lower => Char.toLower c | _ => c
+      fun nm m c = case m of Lower => asciiLower c | _ => c
       val n = size p
       val count = ref 0
       fun peek i = if i < n then SOME (String.sub (p, i)) else NONE
+      (* the codepoint at pattern index i and the index after it *)
+      fun cpAt i = let val (cp, l) = decode p i in (cp, i + l) end
       fun escClass c =
         case c of
-          #"d" => SOME Char.isDigit
-        | #"s" => SOME isSpace
-        | #"w" => SOME isWord
-        | #"D" => SOME (not o Char.isDigit)
-        | #"S" => SOME (not o isSpace)
-        | #"W" => SOME (not o isWord)
+          #"d" => SOME cpDigit
+        | #"s" => SOME cpSpace
+        | #"w" => SOME cpWord
+        | #"D" => SOME (not o cpDigit)
+        | #"S" => SOME (not o cpSpace)
+        | #"W" => SOME (not o cpWord)
         | _ => NONE
       fun parseAlt m i =
         let val (s, i) = parseSeq m i []
@@ -191,9 +239,9 @@ struct
                else if c = #"B" then (NotWordB, i + 2)
                else case escClass c of
                       SOME f => (Cls (false, f), i + 2)
-                    | NONE => (lit m c, i + 2)
+                    | NONE => let val (cp, j) = cpAt (i + 1) in (lit m cp, j) end
             end
-        | c => (lit m c, i + 1)
+        | _ => let val (cp, j) = cpAt i in (lit m cp, j) end
       and group m idx i =
         let val (alts, j) = parseAlt m i
         in if peek j = SOME #")" then (Grp (idx, alts), j + 1)
@@ -218,15 +266,19 @@ struct
                 let val c = String.sub (p, i + 1)
                 in case escClass c of
                      SOME f => (f, i + 2)
-                   | NONE => (let val c = nm m c in fn x => x = c end, i + 2)
+                   | NONE => let val (cp, j) = cpAt (i + 1)
+                                 val c = nm m cp
+                             in (fn x => x = c, j) end
                 end
-            | c0 =>
-                let val c = nm m c0 in
-                if peek (i + 1) = SOME #"-" andalso peek (i + 2) <> SOME #"]"
-                   andalso peek (i + 2) <> NONE
-                then let val d = nm m (String.sub (p, i + 2))
-                     in (fn x => c <= x andalso x <= d, i + 3) end
-                else (fn x => x = c, i + 1)
+            | _ =>
+                let val (c0, j) = cpAt i
+                    val c = nm m c0 in
+                if peek j = SOME #"-" andalso peek (j + 1) <> SOME #"]"
+                   andalso peek (j + 1) <> NONE
+                then let val (d0, k) = cpAt (j + 1)
+                         val d = nm m d0
+                     in (fn x => c <= x andalso x <= d, k) end
+                else (fn x => x = c, j)
                 end
           fun loop i fs first =
             if not first andalso peek i = SOME #"]" then (fs, i + 1)
@@ -254,9 +306,11 @@ struct
         | mSeq (a :: rest) i caps k = mNode a i caps (fn (j, c) => mSeq rest j c k)
       and mNode node i caps k =
         case node of
-          Lit c => i < n andalso String.sub (s, i) = c andalso k (i + 1, caps)
-        | Any => i < n andalso String.sub (s, i) <> #"\n" andalso k (i + 1, caps)
-        | Cls (neg, f) => i < n andalso (f (String.sub (s, i)) <> neg) andalso k (i + 1, caps)
+          Lit c => i < n andalso (let val (cp, l) = decode s i in cp = c andalso k (i + l, caps) end)
+        | Any => i < n andalso String.sub (s, i) <> #"\n"
+                 andalso (let val (_, l) = decode s i in k (i + l, caps) end)
+        | Cls (neg, f) => i < n andalso
+                 (let val (cp, l) = decode s i in (f cp <> neg) andalso k (i + l, caps) end)
         | WordB => (wordAt (i - 1) <> wordAt i) andalso k (i, caps)
         | NotWordB => (wordAt (i - 1) = wordAt i) andalso k (i, caps)
         | Back g =>
@@ -270,7 +324,8 @@ struct
         | Eol => (i = n orelse (i = n - 1 andalso String.sub (s, i) = #"\n")) andalso k (i, caps)
         | Behind (pos, alts) =>
             let
-              fun from j = j <= i andalso (mAlts alts j caps (fn (e, _) => e = i) orelse from (j + 1))
+              fun step j = if j < n then j + #2 (decode s j) else j + 1
+              fun from j = j <= i andalso (mAlts alts j caps (fn (e, _) => e = i) orelse from (step j))
               val found = from 0
             in found = pos andalso k (i, caps) end
         | Look (pos, alts) =>
@@ -300,11 +355,14 @@ struct
       if mAlts alts start [] finish then !result else NONE
     end
 
+  (* the index after the character at i (one past the end when i is the end) *)
+  fun nextPos s i = if i < size s then i + #2 (decode s i) else i + 1
+
   fun matchHere re s pos = matchAt re s pos
 
   fun searchFrom re s from =
     let fun go i = if i > size s then NONE
-                   else case matchAt re s i of SOME m => SOME m | NONE => go (i + 1)
+                   else case matchAt re s i of SOME m => SOME m | NONE => go (nextPos s i)
     in go from end
 
   fun search re s = searchFrom re s 0
@@ -314,7 +372,7 @@ struct
           case searchFrom re s i of
             NONE => rev acc
           | SOME (m as {start, stop, ...}) =>
-              go (if stop = start then stop + 1 else stop) (m :: acc)
+              go (if stop = start then nextPos s stop else stop) (m :: acc)
     in go 0 [] end
 
   fun group s ({groups, ...} : match) g =
