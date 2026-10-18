@@ -31,11 +31,14 @@ requires refusal; wrong means an incorrect answer. A standalone family score
 does not measure all six admission criteria, which also test composition,
 interference with other routes, identity handling and latency.
 
-| Answerer | Right / wrong on the specialists' held-out panels | Notes |
+| Answerer | Recorded measurement | Scope and limits |
 |---|---|---|
 | Oracle7 as shipped (published) | 15,478 / 14 | the control |
 | Oracle7 as shipped, reproduced here | 14,667 / 17 false yes | the 129 non-relation readers exact; the 161 relation readers run on a reconstructed linker index over the v1 store, and the 811 missing answers sit on properties the shipped store does not contain |
-| veri7vn: all 144 non-relation specialist IDs have implementations | no consolidated current score | zero wrong remains a target; older variants retain known errors, including optics, astronomy, energy, git and cooking |
+| veri7vn: all 144 non-relation specialist IDs have implementations | no consolidated current score | individual repairs and extensions are being checked and integrated; see the current continuation |
+| Current space family, eight pinned specialists | 1,185 right / 0 wrong / 0 false yes on shipped dev and held-out panels | fixes astronomy's former errors; broad family routing also answers two questions outside the planetary panel's narrow scope |
+| Current chemistry family, five specialists | 1,206 right / 0 wrong / 0 false yes on shipped dev and held-out panels | parser invariants now reach molar-mass and composition consumers; new kinds pass the dispatcher contract |
+| Current stores family | 2,476 Linux replies identical to Darwin; packaged cooking-v3 and warehouse: 811/818 right, 0 wrong, 0 false yes on each platform | ambiguous servings may require clarification; speculative host calls cannot place orders |
 | veri7vn: one relation kernel, 161 readers | 16,284 / **0** of 18,976 panel items | the shipped organs score 16,261 / 11 on the same store; all panel questions are valid, so this does not measure false yes |
 | veri7vn: fusion (`network_v3`) | 101 of 102 of Oracle7's fusion answers identical | the last needs the geometry kernel |
 | veri7vn beyond parity: chemistry and finance families (B-chemistry, B-finance, 2026-10-18) | chemistry/chemistry-v3 held-out 281 / 0 wrong / 0 withheld against the shipped organ's 223 / 2 / 56, decay 42/42 against 34/42; finance 129/0/0 against 116/0/13, economics 78/0/0 against 65/0/13; same on fresh generator seeds; cold starts 58 and 270 ms → 4 and 3 ms; the shipped retail organ ignores the sales tax it is asked to add (fixed) | the second scoreboard (`project/swarm/BEYOND.md`): 0 wrong stays the law, the other numbers move |
@@ -43,11 +46,11 @@ interference with other routes, identity handling and latency.
 | Separate head-route components | word problems 24/24 core items; precision guards 114/114 recorded declines; document W5-18: 225/231 status | component measurements; full dispatcher integration is unfinished |
 | Dialogue scorer | 236 of 237 recorded Oracle7 verdicts reproduced | this tests the scorer, not veri7vn's dialogue ability; the scout kernel itself scored 161/237 |
 
-The previous summary said every family had zero wrong answers. That was too
-strong: W6-23 records two wrong held-out answers each for cooking-v3 and
-cooking-v3-r2, and W6-06 records one for git. These and the older variant errors
-are being investigated. The [current continuation](project/CODEX-2026-10-18.md)
-records corrections, ownership and work in progress.
+The previous summary said every family had zero wrong answers. The underlying
+receipts did not support that claim. Current cooking and astronomy results
+above include repairs; other families are still converging. The
+[current continuation](project/CODEX-2026-10-18.md) records corrections,
+ownership, completed changes and remaining work.
 
 In the earlier fleet measurement, 19 binaries occupied 12 MiB on disk, started
 in milliseconds, used 4–10 MiB each, with median 0.1 ms per question. Oracle7's head
@@ -69,10 +72,13 @@ admitted; the lane cap was measured on a 400-question sample; no verdict
 carries the file hash the exam promises. The linter at `tools/lint/` says the
 same per folder.
 
-The package is being refreshed. Earth and finance were missing from its
-registry, stores still needs a relocatable fetcher, and new answer kinds need
-acceptance rules shared with the dispatcher. An improved standalone kernel
-does not reach users until its wrapper accepts the new capability.
+The refreshed registry includes earth and finance, and dispatch and packaging
+share explicit rules for new answer kinds. Stores now has a relocatable fetcher
+tested on both platforms. Warehouse wrappers default to read-only previews
+because Oracle7 may query several candidates before selecting an answer.
+The project dispatcher can preview, apply guards, then commit a selected
+warehouse turn once. A refreshed complete archive awaits the remaining family
+builds; the older archive's measurements are kept separate.
 
 ## How the pieces fit
 
