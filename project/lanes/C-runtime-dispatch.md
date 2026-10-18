@@ -9,7 +9,10 @@ The dispatcher uses the explicit runtime registry, resolves specialist owners
 without executing probes, and shares the manifest-plus-extension acceptance
 contract with packaging. Accepted refusals selected by arbitration end the turn. Acceptance follows the
 shipped loader: a declared normal operation kind remains accepted when its
-status is withheld, while a decline-only kind requires matching domain context.
+status is withheld, while a decline-only kind requires matching domain context
+or, for a nonanswer, an explicit CLI specialist pin. The pin applies only to the owned ID's
+declared kinds and never overrides `taken=false`. A family filter does not
+supply domain context. Meaningful `clarify` responses stay terminal nonanswers.
 Every accepted non-answered reply is classified as a decline for arbitration. Unrecognized questions fall through; stage failures withhold with
 an error instead of silently disappearing.
 
@@ -28,8 +31,8 @@ Its arithmetic is unverified Python corroboration, not a theorem.
 Stateful families are not allowed to commit as speculative arbitration
 candidates. Stores supports `--preview`, declared by `preview_flag` in the
 registry. The dispatcher uses preview for unpinned fan-out, keeps cooking
-answers usable, and withholds a selected unpinned warehouse preview with an
-explanation that an explicit pin is needed.
+answers and pure warehouse reads usable, and withholds a selected unpinned
+proposal, order or cancellation with an explanation that an explicit pin is needed.
 
 Pinned warehouse uses two long-lived children sharing a private state file:
 one preview child and one committing owner. The whole turn is serialized.
@@ -43,7 +46,7 @@ transaction protocol for independently writing processes.
 
 ## Checks and observed numbers
 
-- `python3 -B tools/dispatch/test_dispatch.py`: 12 tests passed. These exercise
+- `python3 -B tools/dispatch/test_dispatch.py`: 13 tests passed. These exercise
   registry roles, owner pins, acceptance, refusal composition, relation silence,
   preview/pinned state selection, skipped stateful perturbations, malformed
   subprocess and direct-call malformed metadata failing closed, and guard rejection
@@ -79,7 +82,10 @@ answers and receives guards; pinned reorder plus confirmation
 places exactly one order; repeat/cross-session confirmation adds none; an
 injected guard blocks proposal with no file and blocks confirmation with the
 pending-state bytes unchanged; a simulated uncertain commit is attempted once
-and never retried. The receipt records the stores binary hash in
+and never retried. An unknown-item request is terminal when pinned and falls
+through when unpinned; neither creates state. With an existing order and
+reference state, the same unknown-item request in a fresh session leaves the
+whole state file byte-identical. The receipt records the stores binary hash in
 `var/dispatch/c-runtime-final/state-transaction.json`. Injected failures test
 consumer sequencing, not completeness of the guard recognizer.
 
@@ -98,6 +104,12 @@ Unpinned warehouse previews do not persist conversation-reference state. Pinned
 reads commit after guards and retain same-session references. Document summary/timeline composition is unfinished. Relation evidence still
 assumes recognition, entity linking, complete fetches and source assertions.
 A successful kernel call cannot establish those assumptions.
+
+The current stores producer can resolve an explicit unknown item to a prior
+same-session reference: after M4 valve stock/location queries, “purple widgets
+count?” returns the M4 count. This newly observed producer defect is assigned
+to the stores owner; the consumer's no-write test uses a fresh session against
+a meaningful existing file. It does not claim to repair noun recognition.
 
 Changes owned here: `tools/dispatch/dispatch.py`, `tools/dispatch/test_dispatch.py`,
 `tools/dispatch/README.md`, `tools/dispatch/check_state.py`, and this report. The runtime deputy owns the shared

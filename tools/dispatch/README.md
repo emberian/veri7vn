@@ -44,6 +44,11 @@ starting programs to guess which flags they accept.
 
 An accepted reply selected by the extracted arbitration ends the turn. This
 includes an in-domain refusal. A reply whose `taken` flag is false falls through.
+An explicit `--specialist ID` pin supplies domain context for that ID's declared
+decline kinds only when the reply is a nonanswer. A family filter (`--organs`)
+does not. The reply must still be
+taken, name the owned pinned ID, and declare an allowed kind; unknown kinds
+remain rejected. Meaningful clarification text is retained as a terminal nonanswer.
 The distinction deliberately repairs the old dispatcher, which could replace a
 correct refusal with an answer from a later route. A stage failure is reported
 as a withheld error, not treated as evidence that the question was unrecognized.

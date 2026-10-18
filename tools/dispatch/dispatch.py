@@ -489,17 +489,25 @@ class Dispatcher:
                 continue
             man = manifest(sid)
             kind = str(r.get("kind", ""))
-            ctx_hit = man["ctx"] is None or bool(man["ctx"].search(text))
+            # A CLI specialist pin supplies explicit domain context. A family
+            # filter alone does not: the family can contain unrelated readers.
+            explicit_pin = self.pins.get(slug) == sid
+            declined = r.get("status") != "answered"
+            pin_context = explicit_pin and declined
+            question_context = man["ctx"] is None or bool(man["ctx"].search(text))
+            ctx_hit = pin_context or question_context
             # Loaded.reply and Combo's _Organ.reply admit declared normal kinds
             # regardless of status. Refusing a recognized operation must not
             # turn it into fallthrough merely because its kind stayed the same.
             if kind not in man["kinds"] and not (kind in man["declines"] and ctx_hit):
                 continue
-            declined = r.get("status") != "answered"
             cands.append({"ix": len(cands), "slug": slug, "child": child, "sid": sid, "reply": r, "declined": bool(declined),
                           "kind": kind, "checked": bool(declined and CHECKED_DECLINE.search(kind + " " + str(r.get("response", "")))),
                           "assumed": bool(ASSUMED.search(str(r.get("response", "")))),
-                          "ctx": bool(man["ctx"] and man["ctx"].search(_last_sentence(text)))})
+                          "context_source": ("not_required" if kind in man["kinds"] else
+                                             "explicit_specialist_pin" if pin_context else "question"),
+                          "ctx": bool((declined and kind in man["declines"] and explicit_pin) or
+                                      (man["ctx"] and man["ctx"].search(_last_sentence(text))))})
         return cands
 
     @staticmethod
@@ -562,7 +570,8 @@ class Dispatcher:
             r["path"] = "specialist_call>" + str(r.get("path", ""))
             provenance = dict(r.get("provenance") or {})
             provenance["dispatch"] = {"stage": "specialists", "rule": "arbitrate",
-                                      "cands": [c["sid"] for c in cands]}
+                                      "cands": [c["sid"] for c in cands],
+                                      "acceptance_context": cands[arg].get("context_source", "not_recorded")}
             if any(c.get("dependence_unavailable") for c in cands):
                 provenance["dispatch"]["dependence_unavailable"] = [
                     c["sid"] for c in cands if c.get("dependence_unavailable")]

@@ -104,7 +104,19 @@ class DispatchContractTests(unittest.TestCase):
         held = obj.organ_cands('H2O?', '', '1', reply('percent_composition', 'withheld'))
         self.assertEqual(len(held), 1)
         self.assertTrue(held[0]['declined'])
+        obj.pins = {}
         self.assertEqual(obj.organ_cands('Tell me a joke.', '', '1', reply('unknown', 'withheld')), [])
+        self.assertEqual(obj.organ_cands('Tell me a joke.', '', '1', reply('unknown', 'answered')), [])
+        obj.pins = {'chemistry': 'chemistry-v3'}
+        self.assertEqual(obj.organ_cands('Tell me a joke.', '', '1', reply('unknown', 'answered')), [])
+        self.assertEqual(len(obj.organ_cands('molar mass of Xx2?', '', '1', reply('unknown', 'answered'))), 1)
+        pinned = obj.organ_cands('Tell me a joke.', '', '1', reply('unknown', 'withheld'))
+        self.assertEqual(len(pinned), 1)
+        self.assertEqual(pinned[0]['context_source'], 'explicit_specialist_pin')
+        self.assertTrue(pinned[0]['declined'])
+        untaken = reply('unknown', 'withheld')
+        untaken['chemistry']['provenance']['taken'] = False
+        self.assertEqual(obj.organ_cands('Tell me a joke.', '', '1', untaken), [])
         self.assertEqual(obj.organ_cands('molar mass of Xx2?', '', '1', reply('invented_kind', 'withheld')), [])
 
     def test_clarify_status_is_a_meaningful_nonanswer(self):

@@ -39,6 +39,9 @@ def main():
              'Reorder M4 valve. What is the molar mass of H2O?'])]
         assert all('error' not in r for r in replies), replies
         assert not state.exists()
+        unknown = d.turn('unknown', 'purple widgets count?', 'preview')
+        assert unknown['status'] == 'withheld' and unknown['path'] == 'dispatch>declined', unknown
+        assert not state.exists()
         for r in replies[2:]:
             assert 'warehouse-r2' in r['provenance']['dispatch']['cands']
             assert 'specialist:warehouse' not in r['path']
@@ -52,13 +55,18 @@ def main():
         assert 'guards' in cooking['provenance']['dispatch']['stages_run']
         assert not state.exists()
         receipts.append(dict(case='unpinned_preview_and_losing_candidates', state_path=str(state),
-                             replies=replies, stock=stock, cooking=cooking, state_exists=False))
+                             replies=replies, stock=stock, cooking=cooking, unknown=unknown, state_exists=False))
     finally:
         d.close()
 
     d = driver(a.var_root, 'warehouse-r2')
     state = state_path(d)
     try:
+        unknown = d.turn('unknown', 'purple widgets count?', 'order')
+        assert unknown['status'] == 'withheld' and unknown['kind'] == 'unknown_item', unknown
+        assert unknown['provenance']['dispatch']['stages_run'] == ['specs'], unknown
+        assert unknown['provenance']['dispatch']['acceptance_context'] == 'explicit_specialist_pin'
+        assert not state.exists()
         replies = [d.turn(str(i), q, session) for i, (q, session) in enumerate([
             ('Reorder 5 M4 valve', 'order'), ('yes', 'order'), ('yes', 'order'), ('yes', 'other')])]
         assert all('error' not in r for r in replies), replies
@@ -75,9 +83,16 @@ def main():
         assert follow['kind'] == 'where' and 'A5-05' in follow['response'], follow
         assert fresh['status'] == 'withheld' and 'error' not in fresh, fresh
         assert len(json.loads(state.read_text())['orders']) == 1
+        before_unknown = state.read_bytes()
+        unknown_existing = d.turn('unknown-existing', 'purple widgets count?', 'unknown-existing')
+        assert unknown_existing['kind'] == 'unknown_item', unknown_existing
+        assert unknown_existing['provenance']['dispatch']['stages_run'] == ['specs']
+        assert state.read_bytes() == before_unknown
         replies += [read, follow, fresh]
         receipts.append(dict(case='private_preview_guard_commit', state_path=str(state),
-                             state=json.loads(state.read_text()), replies=replies))
+                             state=json.loads(state.read_text()), replies=replies,
+                             unknown=unknown, unknown_existing=unknown_existing,
+                             unknown_existing_state_unchanged=True))
     finally:
         d.close()
 
