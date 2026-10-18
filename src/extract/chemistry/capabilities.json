@@ -5,48 +5,66 @@
     "chemistry": {
       "accept": {
         "kinds": [
-          "percent_composition"
+          "percent_composition",
+          "reaction_yield_moles",
+          "reaction_yield_grams",
+          "reaction_leftover_moles",
+          "reaction_leftover_grams"
         ],
         "declines_in_domain": [
           "impossible"
         ]
       },
       "context_regex_additions": [
-        "\\bpercent(?:age)?\\s+composition\\b|\\belemental\\s+composition\\b|\\bcomposition\\s+by\\s+(?:mass|weight)\\b"
+        "\\bpercent(?:age)?\\s+composition\\b|\\belemental\\s+composition\\b|\\bcomposition\\s+by\\s+(?:mass|weight)\\b",
+        "(?=[\\s\\S]*->)(?=[\\s\\S]*\\b(?:yield|leftover|remaining|produced|form|remain)\\b)(?=[\\s\\S]*\\b(?:mol|moles|mmol|millimoles)\\b)"
       ],
       "evidence": {
-        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding.",
+        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding. For an explicit reaction, the kernel checks positive coefficients and conservation of every element, then computes the greatest feasible extent, an exhausted reactant, and exact theoretical yield or leftovers.",
         "assumptions": [
-          "The question denotes one molecular formula, not a solution, mixture, alloy or sample.",
-          "Embedded atomic masses are the supplied PubChem decimals, not independently established physical facts."
+          "Percent-composition requests denote one molecular formula, not a solution, mixture, alloy or sample.",
+          "Embedded atomic masses are the supplied PubChem decimals, not independently established physical facts.",
+          "Reaction calculations model complete conversion of the limiting reactant under the supplied stoichiometry; they do not establish reaction occurrence, equilibrium, kinetics, or measured yield.",
+          "Every reactant has one explicitly supplied mole amount, and the requested species and output unit were assigned to the intended typed query.",
+          "This initial consumer withholds duplicate element-count compositions or compositions present on both sides; catalysts, spectators and ambiguous isomers require a separate species-identity model."
         ],
         "untrusted": [
           "Natural-language recognition and selection of a formula from the question.",
-          "The original periodic-table source and its import."
+          "The original periodic-table source and its import.",
+          "Reaction-clause recognition, coefficient and reactant-amount binding, formula normalization, and requested species/unit selection."
         ]
       }
     },
     "chemistry-v3": {
       "accept": {
         "kinds": [
-          "percent_composition"
+          "percent_composition",
+          "reaction_yield_moles",
+          "reaction_yield_grams",
+          "reaction_leftover_moles",
+          "reaction_leftover_grams"
         ],
         "declines_in_domain": [
           "impossible"
         ]
       },
       "context_regex_additions": [
-        "\\bpercent(?:age)?\\s+composition\\b|\\belemental\\s+composition\\b|\\bcomposition\\s+by\\s+(?:mass|weight)\\b"
+        "\\bpercent(?:age)?\\s+composition\\b|\\belemental\\s+composition\\b|\\bcomposition\\s+by\\s+(?:mass|weight)\\b",
+        "(?=[\\s\\S]*->)(?=[\\s\\S]*\\b(?:yield|leftover|remaining|produced|form|remain)\\b)(?=[\\s\\S]*\\b(?:mol|moles|mmol|millimoles)\\b)"
       ],
       "evidence": {
-        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding.",
+        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding. For an explicit reaction, the kernel checks positive coefficients and conservation of every element, then computes the greatest feasible extent, an exhausted reactant, and exact theoretical yield or leftovers.",
         "assumptions": [
-          "The question denotes one molecular formula, not a solution, mixture, alloy or sample.",
-          "Embedded atomic masses are the supplied PubChem decimals, not independently established physical facts."
+          "Percent-composition requests denote one molecular formula, not a solution, mixture, alloy or sample.",
+          "Embedded atomic masses are the supplied PubChem decimals, not independently established physical facts.",
+          "Reaction calculations model complete conversion of the limiting reactant under the supplied stoichiometry; they do not establish reaction occurrence, equilibrium, kinetics, or measured yield.",
+          "Every reactant has one explicitly supplied mole amount, and the requested species and output unit were assigned to the intended typed query.",
+          "This initial consumer withholds duplicate element-count compositions or compositions present on both sides; catalysts, spectators and ambiguous isomers require a separate species-identity model."
         ],
         "untrusted": [
           "Natural-language recognition and selection of a formula from the question.",
-          "The original periodic-table source and its import."
+          "The original periodic-table source and its import.",
+          "Reaction-clause recognition, coefficient and reactant-amount binding, formula normalization, and requested species/unit selection."
         ]
       }
     },

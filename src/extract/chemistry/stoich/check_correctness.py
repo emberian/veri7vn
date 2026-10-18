@@ -9,6 +9,7 @@ import argparse
 import json
 import math
 import subprocess
+from collections import Counter
 from pathlib import Path
 
 
@@ -57,6 +58,20 @@ def cases():
     yield "decay", "What fraction of iodine-131 remains?", "withheld", None
 
 
+def expectation_class(question, expected):
+    if expected is not None:
+        return "answer"
+    # These are useful, mathematically valid capabilities the narrow reader
+    # still lacks. Withholding passes the false-answer regression, but does
+    # not count as a mathematically correct answer or completed capability.
+    valid_unhandled = (
+        "form from 4 mol", "can be made from 4 mol", "mixed with", "[Fe(CN)6]4-",
+        "10 g of NaCl plus 5 g", "500 mL of 1 M solution and 200 mL",
+        "5% w/v solution with 100 mL and 200 mL",
+    )
+    return "withheld_valid" if any(part in question for part in valid_unhandled) else "invalid_or_underspecified"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--binary", default="var/chemistry/bin/chemistry")
@@ -78,12 +93,13 @@ def main():
                     good = good and math.isclose(float(reply["value"]), value, rel_tol=6e-4, abs_tol=1e-8)
                 except (KeyError, TypeError, ValueError):
                     good = False
-            rows.append({"specialist": sid, "q": question, "expected_status": status, "expected_value": value, "pass": good, "reply": reply})
+            rows.append({"specialist": sid, "q": question, "expected_status": status, "expected_value": value, "expectation_class": expectation_class(question, value), "pass": good, "reply": reply})
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n")
     failed = [row for row in rows if not row["pass"]]
-    print(f"chemistry interpretation: {len(rows) - len(failed)}/{len(rows)} passed")
+    print(f"chemistry policy regressions: {len(rows) - len(failed)}/{len(rows)} passed")
+    print("Expectation classes:", dict(Counter(row["expectation_class"] for row in rows)))
     for row in failed:
         print(row["specialist"], row["q"], "=>", row["reply"])
     raise SystemExit(bool(failed))

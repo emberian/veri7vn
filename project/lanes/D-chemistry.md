@@ -12,7 +12,17 @@ The next investigation covered all five specialist IDs directly. It found affirm
 | labsolutions | 28/28; 27/27 | Negative concentration/moles became positive; `.5 mol` became 5 mol; `1e3 mol` became 3 mol. | Measured quantity roles consume issued exact tokens. Public typed guard checked. Physically valid zero-concentration/zero-mole cases remain an extension gap in some newer kinds. |
 | labsolutions-r2 | 28/28; 27/27 | Same numeric failures as labsolutions. Reversed dilution and zero final volume already decline. | Same repair, preserving existing boundary narrowing. No claim that correct declines are newly supported computations. |
 
-The final D native binary scores all 1,206 shipped questions correctly, with zero wrong answers and zero false affirmatives. Exact per-specialist dev/held-out counts are in the table above and `var/chemistry/stoich/final-panels.json`. The final development challenge passes 138/138 directly (`var/chemistry/stoich/final-correctness.json`) and 138/138 through the scoped front dispatcher (`var/chemistry/stoich/final-composed.json`). These authored challenges are not an independent held-out benchmark.
+The final D native binary scores all 1,206 shipped questions correctly, with zero wrong answers and zero false affirmatives. Exact per-specialist dev/held-out counts are in the table above and `var/chemistry/stoich/final-panels.json`. The final development challenge passes 138/138 directly (`var/chemistry/stoich/final-correctness.json`) and 138/138 through the scoped front dispatcher (`var/chemistry/stoich/final-composed.json`). These are policy-regression passes, not 138 newly correct computations. Retrospective expectation review separates 37 answered computations, 81 invalid/underspecified refusals, and 20 valid-but-unsupported withholds: **118 mathematically right / 0 wrong / 20 withheld-valid**. The charged-species mass question is valid but unsupported, as are the recorded reaction/mixture aggregation questions. The classification is recorded in `var/chemistry/stoich/d-expectation-review.json`; the original receipts are unchanged. These authored challenges are not an independent held-out benchmark.
+
+The authored capability breakdown by exact ID is:
+
+| Specialist | Right | Wrong | Withheld valid | Policy passes |
+|---|---:|---:|---:|---:|
+| chemistry | 25 | 0 | 5 | 30/30 |
+| chemistry-v3 | 25 | 0 | 5 | 30/30 |
+| decay | 24 | 0 | 0 | 24/24 |
+| labsolutions | 22 | 0 | 5 | 27/27 |
+| labsolutions-r2 | 22 | 0 | 5 | 27/27 |
 
 ## Shared numeric reader
 

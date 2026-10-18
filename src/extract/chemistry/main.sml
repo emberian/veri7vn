@@ -13,7 +13,7 @@
 
 structure Main =
 struct
-  val theorems = "[\"molar_mass_value\",\"grams_to_moles_value\",\"percent_value\",\"property_value\",\"mass_needed_value\",\"dilution_value\",\"remaining_amount_value\",\"time_to_fraction_value\",\"ndec_sound\"]"
+  val theorems = "[\"molar_mass_value\",\"grams_to_moles_value\",\"percent_value\",\"property_value\",\"mass_needed_value\",\"dilution_value\",\"remaining_amount_value\",\"time_to_fraction_value\",\"ndec_sound\",\"reply_of_reaction_certificate\",\"balanced_reaction_conserves_every_element\",\"reaction_extent_greatest\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))

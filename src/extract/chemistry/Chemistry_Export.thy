@@ -1,8 +1,9 @@
 theory Chemistry_Export
-  imports Chemistry Decay
+  imports "stoich/Stoichiometry" Decay
 begin
 
 datatype request = RC creq | RD dreq
+  | RS "(string \<times> nat) list" "(string \<times> nat) list" "rat list" stoich_query
 
 text \<open>The arithmetic functions are total algebraic maps. The public typed
 answer interface additionally checks the physical input domain. In particular a
@@ -36,10 +37,12 @@ fun physical_dreq :: "dreq \<Rightarrow> bool" where
 fun physical_request :: "request \<Rightarrow> bool" where
   "physical_request (RC r) = physical_creq r"
 | "physical_request (RD r) = physical_dreq r"
+| "physical_request (RS lhs rhs amounts query) = True"
 
 fun raw_reply :: "request \<Rightarrow> reply" where
   "raw_reply (RC r) = reply_c r"
 | "raw_reply (RD r) = reply_d r"
+| "raw_reply (RS lhs rhs amounts query) = reply_s lhs rhs amounts query"
 
 fun invalid_request_text :: "request \<Rightarrow> String.literal" where
   "invalid_request_text (RC (MolarMass f)) = STR ''A molecular formula must have positive mass; zero atoms do not define a molecule.''"
@@ -80,6 +83,16 @@ theorem reply_of_molar_mass_positive:
   shows "\<exists>cs. parse_formula f = FOk cs \<and> 0 < mass_total cs"
   using assms reply_of_physical[OF assms]
   by (cases "parse_formula f") (auto simp: reply_of_def reply_c_def with_mass_def)
+
+theorem reply_of_reaction_certificate:
+  "answered (reply_of (RS lhs rhs amounts query)) \<Longrightarrow>
+     \<exists>ls rs fs x q. checked_reaction lhs rhs amounts = Some (ReactionResult ls rs fs x) \<and>
+       stoich_value (ReactionResult ls rs fs x) query = Some q \<and>
+       (\<forall>e. side_atoms e ls = side_atoms e rs) \<and>
+       feasible_extent fs x \<and> (\<forall>y. feasible_extent fs y \<longrightarrow> y \<le> x) \<and>
+       0 \<in> set (reaction_leftovers fs)"
+  using reply_s_answered_certificate[of lhs rhs amounts query]
+  by (simp add: reply_of_def)
 
 text \<open>Constructors the untrusted SML recognizer uses to build requests from
 numerals and text it read off the question.\<close>
@@ -146,7 +159,15 @@ definition self_checks :: "unit \<Rightarrow> bool list" where
     (\<not> answers (RC (MassNeeded ''NaCl'' (-1) 1))),
     (\<not> answers (RC (MolarMass ''H0''))),
     (\<not> answers (RD (Remaining (HL_iso I_c14) (Some (-1, TU_year)) (Some (1, STR ''g''))))),
-    (\<not> answers (RD (Remaining (HL_iso I_c14) (Some (1, TU_year)) (Some (-1, STR ''g'')))))]"
+    (\<not> answers (RD (Remaining (HL_iso I_c14) (Some (1, TU_year)) (Some (-1, STR ''g''))))),
+    (stated (reply_of (RS [(''H2'', 2), (''O2'', 1)] [(''H2O'', 2)] [4, 1] (YieldMoles 0))) = Some (STR ''2'')),
+    (stated (reply_of (RS [(''H2'', 2), (''O2'', 1)] [(''H2O'', 2)] [4, 1] (YieldGrams 0))) = Some (STR ''36.03'')),
+    (stated (reply_of (RS [(''H2'', 2), (''O2'', 1)] [(''H2O'', 2)] [4, 1] (LeftMoles 0))) = Some (STR ''2'')),
+    (stated (reply_of (RS [(''H2'', 2), (''O2'', 1)] [(''H2O'', 2)] [0, 1] (YieldMoles 0))) = Some (STR ''0'')),
+    (\<not> answers (RS [(''H2'', 1), (''O2'', 1)] [(''H2O'', 1)] [4, 1] (YieldMoles 0))),
+    (\<not> answers (RS [(''H2'', 2), (''O2'', 1)] [(''H2O'', 2)] [4] (YieldMoles 0))),
+    (\<not> answers (RS [(''H2'', 2), (''O2'', 1), (''Pt'', 1)] [(''H2O'', 2), (''Pt'', 1)] [4, 1, 1/10] (YieldMoles 0))),
+    (\<not> answers (RS [(''H2O'', 2)] [(''OH2'', 2)] [4] (YieldMoles 0)))]"
 
 definition self_test :: "unit \<Rightarrow> bool" where
   "self_test u = list_all id (self_checks u)"
@@ -155,6 +176,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat chars_of
   self_checks fclass elem_names is_symbol iso_order
   integer_of_int nat_of_integer int_of_integer
   RC RD MolarMass GramsToMoles MolesToGrams Percent Property NoSuchElement WvMass Dilution
+  RS YieldMoles YieldGrams LeftMoles LeftGrams
   Molarity MassNeeded NeedFormula PercentComp DilutedConc WaterToAdd MolesInSol MolarityMoles
   P_atomic_mass P_atomic_number P_electronegativity P_melting_point P_boiling_point P_density
   P_electron_configuration P_ionization_energy P_standard_state P_group_block
@@ -164,7 +186,12 @@ export_code reply_of answered reply_kind response stated answers mk_rat chars_of
   in SML module_name Chemistry file_prefix chemistry
 
 ML \<open>
-  val theorems = [@{thm reply_of_physical}, @{thm reply_of_valid_agrees}, @{thm reply_of_invalid_declines},
+  val theorems = [@{thm balanced_reaction_conserves_every_element}, @{thm parsed_reaction_side_known},
+    @{thm reaction_extent_feasible}, @{thm reaction_extent_greatest}, @{thm reaction_extent_exhausts_a_feed},
+    @{thm reaction_leftovers_nonnegative}, @{thm reaction_leftovers_contains_zero},
+    @{thm checked_reaction_certificate}, @{thm checked_reaction_conservation}, @{thm checked_reaction_bottleneck},
+    @{thm reply_s_answered_certificate}, @{thm reaction_yield_value}, @{thm reply_of_reaction_certificate},
+    @{thm reply_of_physical}, @{thm reply_of_valid_agrees}, @{thm reply_of_invalid_declines},
     @{thm reply_of_grams_nonnegative}, @{thm reply_of_lab_nonnegative}, @{thm reply_of_remaining_nonnegative},
     @{thm reply_of_molar_mass_positive}, @{thm round_sig_sound}, @{thm round_tie_up}, @{thm to_dec_sound}, @{thm enclose_sound},
     @{thm ndec_sound}, @{thm fixed_val_error},

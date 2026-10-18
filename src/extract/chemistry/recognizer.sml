@@ -342,9 +342,104 @@ struct
     (* organ_chemistry_v2 / labsolutions: a decline is only given to a short direct question *)
     not narrow orelse Q.answers r orelse Narrow.short_direct t
 
+  (* Explicit reaction clauses: reaction; named mole amounts; requested yield
+     or remainder. Every quantity and formula must be claimed exactly once.
+     Coefficients and amounts are checked again by the extracted kernel. *)
+  fun reactionRequest text =
+    let
+      fun sequence [] = SOME []
+        | sequence (NONE :: _) = NONE
+        | sequence (SOME x :: xs) = Option.map (fn rest => x :: rest) (sequence xs)
+      fun distinct [] = true
+        | distinct (x :: xs) = not (List.exists (fn y => y = x) xs) andalso distinct xs
+      fun term s =
+        case searchCS "^\\s*([0-9]*)\\s*([^\\s]+)\\s*$" s of
+          NONE => NONE
+        | SOME m =>
+            let val digits = g1 s m
+                val f = valOf (grp s m 2)
+                val start = String.sub (f, 0)
+            in if not (Char.isUpper start orelse start = #"(" orelse start = #"[") then NONE
+               else case ExactNumeric.parse (if digits = "" then "1" else digits) of
+                 SOME (n, 1) => SOME (normFormula f, Q.nat_of_integer n)
+               | _ => NONE end
+      fun side s =
+        case sequence (map term (String.fields (fn c => c = #"+") s)) of
+          SOME xs => if distinct (map #1 xs) then SOME xs else NONE
+        | NONE => NONE
+      fun index name xs =
+        let fun go _ [] = NONE
+              | go i ((f, _) :: rest) = if f = name then SOME i else go (i + 1) rest
+        in go 0 xs end
+      fun amounts source lhs =
+        case ExactNumeric.mask source of
+          NONE => NONE
+        | SOME {text = masked, numbers} =>
+            let
+              val low = lower masked
+              val matches = findall (NUM ^ "\\s*(mol|moles?|mmol|millimoles?)\\b\\s+(?:of\\s+)?([^\\s,;]+)") low
+              fun pair m =
+                let val marker = g1 low m
+                    val unit = valOf (grp low m 2)
+                    val f = normFormula (valOf (grp masked m 3))
+                in case List.find (fn (key, _) => key = marker) numbers of
+                     NONE => NONE
+                   | SOME (_, (n, d)) =>
+                       SOME (f, Q.mk_rat n (d * (if unit = "mmol" orelse String.isPrefix "milli" unit then 1000 else 1)))
+                end
+              fun gaps pos first [] = has "^\\s*$" (String.extract (low, pos, NONE))
+                | gaps pos first (m :: ms) =
+                    let val gap = String.substring (low, pos, #start m - pos)
+                        val pattern = if first then "^\\s*(?:(?:amounts?|initial(?:ly)?|with|starting)\\s*:?\\s*)?$"
+                                      else "^\\s*(?:,|and|,\\s*and)\\s*$"
+                    in has pattern gap andalso gaps (#stop m) false ms end
+            in
+              if null matches orelse length matches <> length lhs orelse not (gaps 0 true matches)
+              then NONE
+              else case sequence (map pair matches) of
+                NONE => NONE
+              | SOME xs =>
+                  if not (distinct (map #1 xs)) then NONE
+                  else sequence (map (fn (f, _) => Option.map #2 (List.find (fn (name, _) => name = f) xs)) lhs)
+            end
+      fun query source lhs rhs =
+        let val s = rstrip "?." (collapse source)
+            fun make left grams f =
+              Option.map (fn i =>
+                let val n = Q.nat_of_integer (IntInf.fromInt i)
+                in if left then (if grams then Q.LeftGrams n else Q.LeftMoles n)
+                   else (if grams then Q.YieldGrams n else Q.YieldMoles n) end)
+                (index (normFormula f) (if left then lhs else rhs))
+        in
+          case search "^(?:(?:what is|calculate) (?:the )?)?(?:theoretical )?(yield|leftover|remaining)(?: (?:amount|mass))?(?: of)?\\s+([^\\s]+)\\s+in\\s+(mol|moles|g|grams)$" (lower s) of
+            SOME m => make (g1 (lower s) m <> "yield") (String.isPrefix "g" (valOf (grp (lower s) m 3))) (valOf (grp s m 2))
+          | NONE =>
+              (case search "^how many (mol|moles|g|grams) of ([^\\s]+) (form|are produced|remain|are left)$" (lower s) of
+                 SOME m => make (List.exists (fn word => word = valOf (grp (lower s) m 3)) ["remain", "are left"])
+                   (String.isPrefix "g" (g1 (lower s) m)) (valOf (grp s m 2))
+               | NONE => NONE)
+        end
+    in
+      case String.fields (fn c => c = #";") text of
+        [equation, given, wanted] =>
+          (case search "^\\s*(?:(?:reaction|for)\\s*:?\\s*)?(.+?)\\s*->\\s*(.+?)\\s*$" (lower equation) of
+             NONE => NONE
+           | SOME m =>
+               (case (side (g1 equation m), side (valOf (grp equation m 2))) of
+                  (SOME lhs, SOME rhs) =>
+                    (case (amounts given lhs, query wanted lhs rhs) of
+                       (SOME values, SOME wanted) =>
+                         SOME (Q.RS (map (fn (f, k) => (fchars f, k)) lhs,
+                                     map (fn (f, k) => (fchars f, k)) rhs, values, wanted))
+                     | _ => NONE)
+                | _ => NONE))
+      | _ => NONE
+    end
+
   fun chemistry (narrow, fahr, reader) text =
     let val t = collapse text in
-      if t = "" then NONE
+      if has "->" (!originalQuestion) then reactionRequest (!originalQuestion)
+      else if t = "" then NONE
       else if narrow andalso Narrow.narrative t then NONE
       else case chemV1 reader fahr t of
              NONE => NONE
@@ -590,7 +685,14 @@ struct
       in go familyOrder end
     else Option.map (fn r => (mode, r)) (byId mode text)
   fun recognize mode text =
-    case ExactNumeric.mask text of
+    if has "->" text then
+      (* Reaction '+' separates species; it must not be read as a spaced unary
+         sign before the next coefficient. Mask only the amount clause. *)
+      if mode = "family" orelse mode = "chemistry" orelse mode = "chemistry-v3"
+      then Option.map (fn request => (if mode = "family" then "chemistry-v3" else mode, request))
+                      (reactionRequest text)
+      else NONE
+    else case ExactNumeric.mask text of
       NONE => (numberBindings := []; NONE)
     | SOME {text = masked, numbers} =>
         let val low = lower masked
