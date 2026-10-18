@@ -397,7 +397,13 @@ struct
 
   (* NutritionOrgan.answer up to the store lookups. NONE = the organ returns None. *)
   fun v1 (foods : unit -> food vector) (text : string) : recog option =
-    let
+    (* Establish the nutrition domain before the exact quantity parser. An
+       unrelated algebra token such as 3x must not become a Stores failure. *)
+    if not (List.exists (fn (_, _, p) => Rx.has p text) nutPats) orelse
+       not (Rx.has (Pats.get "nutrition_v1.ASK") text orelse
+            Rx.has (Pats.get "nutrition_v1.in") text)
+    then NONE
+    else let
       val original = Rx.collapse text
       val {text = t, numbers} = case ExactNumeric.mask original of
           SOME masked => masked | NONE => raise Fail "malformed numeric token"

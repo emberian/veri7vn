@@ -44,6 +44,25 @@ def main():
     base=ROOT/'var/stores/verify'
     base.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='state-',dir=base) as tmp:
+        # Domain routing precedes numeric parsing. These are not cooking or
+        # warehouse requests; their numbers belong to another specialist.
+        unrelated = ['Solve 3x - 4 = 11.', 'What is 2x + 1?',
+                     'Differentiate x^2 + 3x.', 'Convert 2e3 meters to kilometers.']
+        for mode in ('family', 'cooking', 'cooking-v2', 'cooking-v3', 'cooking-v3-r2'):
+            state=Path(tmp)/('numeric-domain-'+mode+'.json')
+            options=[] if mode=='family' else ['--specialist',mode]
+            p=Answerer(a.binary.resolve(),*options,'--state',state)
+            try:
+                for q in unrelated:
+                    r=p.ask(q)
+                    assert r.get('provenance',{}).get('taken') is False and 'error' not in r,r
+                    assert not state.exists()
+                for q in ('How much protein is in 1/0 kg of raw chayote?',
+                          'How much protein is in 3x g of raw chayote?'):
+                    r=p.ask(q)
+                    assert r.get('status')=='withheld' and 'value' not in r,r
+                assert not state.exists()
+            finally:p.close()
         references=Path(tmp)/'references.json'
         p=Answerer(a.binary.resolve(),'--specialist','warehouse-r2','--state',references)
         try:

@@ -232,3 +232,43 @@ This capture is the **next candidate**, not a claim that the selected E delivery
 was already replaced. Root integration controls promotion; E remains selected
 until that step. The final matching F Linux receipt is available for the same
 candidate cohort.
+
+## F reader-domain repair, before the sensor successor
+
+The actual full dispatcher found that F `08d3ac3e…` returns `Fail: malformed
+numeric token` for `Solve 3x - 4 = 11.`. Cooking's exact-number masking ran before
+its nutrient/request domain check, so unrelated algebra could stop the family
+chain. The repair checks that domain before masking. Recognized nutrition still
+rejects malformed quantities, while unrelated equations return notTaken. No
+shared crash fallback or HOL change is involved.
+
+The separable artifact uses the original F generated kernel, main driver, JSON,
+commons and numeric inputs retained by the actual F compiler, plus only this
+recognizer guard. It deliberately excludes the in-progress G sensor kernel and
+sidecar. `native-compile --proof-snapshot` binds the old passed F proof closure
+and reports the difference from the live successor theories.
+
+* Native: `var/stores/domain-fix/bound`, SHA256
+  `dc4c756b8d524216f12db05065342f20aa093f6737d2bd7c774841dd08b6931b`.
+* Compiler receipt:
+  `var/stores/native-attempts/20261018T102244Z-c94002ccab1a/compile-inputs.json`.
+* Proof: the original 45-theorem F receipt
+  `20261018T082752Z-8c5a397fcf00`; all theorem statements above are unchanged.
+* Recognizer SHA256:
+  `2bbaf5b8a93ed2e1f8ceb346df3bc1463dbb1add826cb492378973ef455c491a`.
+* Original F capability sidecar SHA256:
+  `b9bb327a06bfea47bcae79c8b89e06de5ef8f7dd543aba669a7eea6d8e64c20e`;
+  retained separately at `var/stores/domain-fix/capabilities.json`.
+
+Native checks pass for four unrelated queries under family and every cooking
+version (20 notTaken results without errors), two malformed nutrition questions
+under those five modes (10 refusals), the prior 20 quantity probes and the
+existing isolated state/persistence checks. These routing/refusal passes are not
+additional answered capability. All six shipped panels remain 2,448 right of
+2,476, zero wrong, zero false yes, 28 withheld-valid. Per split: cooking 200/202
+and 214/218; cooking-v2 207/210 and 205/210; cooking-v3 and cooking-v3-r2 each
+190/192 and 223/228; both warehouse IDs 199/199 in each split. Receipt:
+`var/stores/domain-fix/shipped.json`. No new general fresh-seed panel run is
+claimed for this lexical-only change. Actual dispatcher and package consumers
+are coordinating against this exact artifact and original sidecar; G remains a
+separate successor until its own proof and checks complete.
