@@ -5,7 +5,7 @@
      - the feature map: for a pattern string from the organ's HOL tables,
        whether Python `re.search(pattern, t, re.I)` would find a match in the
        whitespace-normalised turn t (" ".join(text.split())), computed with the
-       backtracking matcher in regex.sml (case-insensitive inside the engine;
+       backtracking matcher in commons.sml (Regex.compileI: case-insensitive inside the engine;
        patterns are used exactly as written, never lower-cased, so (?-i:...)
        and \S \D \W \B keep their meaning).
    medicine-r2's boundary patterns are matched against the same normalised text
@@ -16,11 +16,11 @@ struct
   fun normalize (t : string) : string = String.concatWith " " (String.tokens Char.isSpace t)
 
   (* narrow_v1, verbatim patterns *)
-  val relation = Regex.compile
+  val relation = Regex.compileI
     ("\\b(?:\\d+(?:\\.\\d+)?|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,2}(?:more|less|fewer|longer|shorter)\\s+than\\b|"
      ^ "\\b(?:twice|three times|half)\\s+(?:as\\s+\\w+\\s+as\\s+)?the\\s+\\w+\\b")
-  val rate = Regex.compile "\\b\\d+(?:\\.\\d+)?\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:\\d+(?:\\.\\d+)?|a|an|one|each)\\s+[a-z]+"
-  val sentence_break = Regex.compile "(?<=[.!?])\\s+"
+  val rate = Regex.compileI "\\b\\d+(?:\\.\\d+)?\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:\\d+(?:\\.\\d+)?|a|an|one|each)\\s+[a-z]+"
+  val sentence_break = Regex.compileI "(?<=[.!?])\\s+"
 
   fun strip s = normalize s   (* only emptiness and sentence breaks matter below *)
 
@@ -40,7 +40,7 @@ struct
     let val i = hash p
     in case List.find (fn (q, _) => q = p) (Array.sub (buckets, i)) of
          SOME (_, r) => r
-       | NONE => let val r = Regex.compile p
+       | NONE => let val r = Regex.compileI p
                  in Array.update (buckets, i, (p, r) :: Array.sub (buckets, i)); r end
     end
 

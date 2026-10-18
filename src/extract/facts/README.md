@@ -20,7 +20,7 @@ etiquette, firesafety-v2, firstaid, javascript.
 | The 21 stores and 22 organs (417 rows) | `Facts_Tables.thy` | HOL constants, defined from ML string literals. `tables_check.py` checks them against each specialist's own store file |
 | Well-formedness of every table; table order changes an answer in literature-v2 | `Facts_Tables.thy` | HOL, proved by simp over the literal tables |
 | Export, self test, oracle check | `Facts_Export.thy` | the build fails if a listed theorem depends on an oracle or the self test fails |
-| Python `re` (search, re.I, `(?-i:...)`, lookaround, `\b \w \s \d` and their negations) and `narrow_v1` | `regex.sml`, `recognizer.sml` | **untrusted**. Checked by differential test against Python on every pattern and panel question |
+| Python `re` (search, re.I, `(?-i:...)`, lookaround, `\b \w \s \d` and their negations) and `narrow_v1` | `../commons/commons.sml`, `recognizer.sml` | **untrusted**. Checked by differential test against Python on every pattern and panel question |
 | JSON framing; decoding the tables' `\uXXXX` text escape to UTF-8 | `main.sml` | **untrusted** |
 | Isabelle code generator, MLton | toolchain | trusted |
 
@@ -63,10 +63,11 @@ The binary is not committed. It lives under `var/facts/bin/`.
 (`gen/gen_tables.py`, not trusted), and the output is byte-identical to the committed file.
 `tables_check.py` is the independent check.
 
-`regex.sml` deliberately differs from `src/extract/quantity/regex.sml`. Do not "fix" it back. It folds
-case inside the matcher, as Python's re.I does, and supports the case-sensitive group `(?-i:...)`.
-firesafety-v2's `(?-i:\bPASS\b)` and firstaid's `(?-i:\bRICE\b)` need that group: with the shared
-file's convention of lower-casing the text, those patterns could never match.
+The recognizer calls `Regex.compileI` from `../commons/commons.sml`, not the plain `Regex.compile`.
+`compileI` folds case inside the matcher, as Python's re.I does, and supports the case-sensitive group
+`(?-i:...)`. firesafety-v2's `(?-i:\bPASS\b)` and firstaid's `(?-i:\bRICE\b)` need that group: with
+`compile`'s convention of lower-casing the text, those patterns could never match. (Until lane W5-12 this
+family carried its own `regex.sml` for that; the case modes now live in commons.)
 
 ## Current result
 
