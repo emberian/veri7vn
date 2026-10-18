@@ -5,8 +5,24 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import package
+
+
+class ApprovedConsumerTests(unittest.TestCase):
+    def test_sibling_is_pinned_to_the_same_commit_and_missing_is_fatal(self):
+        blobs = {'runtime_contract.py': b"load('code_evidence.py')", 'code_evidence.py': b'approved code'}
+        def read(argv, **kwargs):
+            self.assertEqual(argv[:2], ['git', 'show'])
+            self.assertTrue(argv[2].startswith('approved:tools/'))
+            return blobs[argv[2].split('/')[-1]]
+        with patch.object(package.subprocess, 'check_output', side_effect=read):
+            self.assertEqual(package.approved_consumer_files('approved'), blobs)
+            del blobs['code_evidence.py']
+            with self.assertRaises(KeyError): package.approved_consumer_files('approved')
+            blobs['runtime_contract.py'] = b'old approved checker'
+            self.assertEqual(package.approved_consumer_files('approved'), blobs)
 
 
 class PreparedTests(unittest.TestCase):
@@ -24,6 +40,8 @@ class PreparedTests(unittest.TestCase):
                      'specialists': {'retail': {'accept': {'kinds': ['captured_kind']}}}}),
                  'src/extract/families.json': (package.REPO / 'src/extract/families.json').read_text(),
                  'tools/runtime_contract.py': (package.REPO / 'tools/runtime_contract.py').read_text()}
+        if 'code_evidence.py' in files['tools/runtime_contract.py']:
+            files['tools/code_evidence.py'] = (package.REPO / 'tools/code_evidence.py').read_text()
         for name, text in files.items():
             target = self.runtime / name
             target.parent.mkdir(parents=True, exist_ok=True)

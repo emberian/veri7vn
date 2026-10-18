@@ -155,6 +155,8 @@ if args.runtime_overlay:
                    [str(REPO / "src/extract" / slug), str(REPO / "src/extract" / SRCDIR), *EXTRA]]
     runtime_stage = LIN / "runtime" / RUN_ID
     runtime_files = ["src/extract/families.json", "tools/runtime_contract.py"]
+    if 'code_evidence.py' in (SOURCE_REPO / 'tools/runtime_contract.py').read_text():
+        runtime_files.append('tools/code_evidence.py')
     runtime_files += shared_runtime_sources(
         (SOURCE_REPO / f"src/extract/{slug}/build.sh").read_text(), slug)
     before = stage_runtime_overlay(SOURCE_REPO, runtime_stage, directories, proof_sources,

@@ -10,10 +10,14 @@ untrusted code; registration is not a claim that a current artifact exists.
 The selected immutable inventory is
 `var/C-runtime-package/selected-prepared/selection.json`. All 21 specialist
 family slots now have captured artifacts. The final delivery cohort remains
-unfrozen while Finance target wording is repaired. Stores E is selected after
+unfrozen pending the corrected Finance candidate's integration and selection. Stores E is selected after
 root integration `4b84d7b` and its eight-case consumer gate. Root explicitly selected later Anatomy, Discrete,
 Mechanics and Humanities versions; previous versions remain historical.
-The complete archive is not yet ready. The registry's 21 specialist families
+All 20 selected non-Finance families now have exact matching Linux artifacts.
+Finance is the only remaining selection gate. An earlier complete candidate
+was held after its relocated Finance probe found a real discount-versus-tax
+parsing error. The corrected complete candidate has passed its platform and
+relocation checks and awaits root integration/selection. The registry's 21 specialist families
 own 144 IDs; Math, Wordprob, Guards, Relations, Document and Fusion are separate
 composition components.
 
@@ -42,6 +46,11 @@ Completed Linux comparisons for currently selected versions:
 | Space C | 1,185 / 1,185 | 0 / 0 | 68 | `receipt-space-hbox-space-1792311912-36631.json` |
 | Energy C | 569 / 569 | 0 / 0 | 42 | `receipt-energy-persvati-energy-1792311455-28776.json` |
 | Mechanics D | 1,264 / 1,264 | 0 / 0 | 46 | `receipt-mechanics-persvati-mechanics-1792311867-35597.json` |
+| Discrete E | 508 / 508 | 0 / 0 | 22 | `receipt-discrete-persvati-discrete-1792311986-38665.json` |
+| Earth C | 554 / 554 | 0 / 0 | 38 | `receipt-earth-hbox-earth-1792312058-41022.json` |
+| Humanities | 394 / 394 | 0 / 0 | 24 | `receipt-humanities-persvati-humanities-1792312178-44170.json` |
+| Emoptics | 1,253 / 1,253 | 0 / 0 | 52 | `receipt-emoptics-persvati-emoptics-1792312280-45745.json` |
+| Computing C | 1,364 / 1,364 | 0 / 0 | 52 | `receipt-computing-hbox-computing-1792312293-45989.json` |
 
 Every comparison includes all that family's specialist IDs and both splits,
 using original shipped panels/scorers and acceptance rules. Every status and
@@ -58,8 +67,10 @@ shared proof lock for every family and stop on failure. Their plans/state are
 `queue-v3-hbox.{json,state.json}`. Hbox resumed only the uncompleted tail after
 a local Earth staging failure, before any remote compile: Earth uses its own
 regex input and declares no Commons file. Shared runtime staging now follows
-the captured MLB declaration. Nine focused receipt tests pass. Finance is
-explicitly held; no rejected target-grammar candidate was submitted. Stores'
+the captured MLB declaration. Nine focused receipt tests pass. Both queues
+have completed. Finance a5f10's subsequent Linux candidate job also completed
+after its consumer gate passed; no candidate already under a hold was submitted, and
+c937's completed comparison is now historical. Stores'
 owner completed E Linux with all 2,476 direct replies identical to its bound
 Darwin binary; packaging launched no duplicate compile.
 No new Isabelle build, full-head sweep or fleet sweep is launched here.
@@ -94,7 +105,7 @@ The wrapper bounds request writes and response reads, defaults to 10 seconds,
 and accepts `VERI7VN_REPLY_TIMEOUT_S` up to 300 seconds. It caps messages at 1 MiB,
 checks reply IDs, and kills/reaps only its owned child on transport failure.
 It never automatically retries a request that might already have committed an
-effect. Six real-subprocess wrapper tests pass, including blocked reads/writes,
+effect. Seven real-subprocess wrapper tests pass, including blocked reads/writes,
 lost replies after an effect, malformed provenance/JSON and persistent declines.
 
 Stores receives explicit packaged fetch/database paths and an owned temporary
@@ -128,7 +139,7 @@ recognizer. Stores' auxiliary `Config.repo` file must contain exactly the single
 constant structure, with its actual hash and MLB edge retained separately from
 source and proved export. Extra code or altered derived bytes fails. Stores
 fetch is separately frozen and checked as a runtime asset, never claimed compiled.
-Eight focused prepared-package tests pass; nine receipt/overlay tests pass.
+Nine focused prepared-package tests pass; nine receipt/overlay tests pass.
 
 Every prepared Linux binary requires a passed matching deployment receipt with
 its exact generated export, complete required runtime/fetch input coverage and
@@ -138,8 +149,13 @@ source map are insufficient. Historical unprepared receipts remain historical.
 The shared Python checker is copied once from a pinned committed HEAD blob
 at assembly and its commit/hash are recorded separately from each family's
 proof. The same approved code generates acceptance; uncommitted next-cohort
-checker edits are excluded. Family
-capabilities come from the captured source, so later owner edits cannot change
+checker edits are excluded. The finite code-program replay dependency is copied
+from that same approved commit when required, with its own hash; a missing
+committed sibling stops assembly. A generated-wrapper test in a fresh isolated
+Python process accepts a valid packet, rejects altered displayed code and
+returns a decisive refusal if the sibling is missing. This focused check covers
+the integration source; the earlier Stores archive predates that dependency.
+Family capabilities come from the captured source, so later owner edits cannot change
 acceptance while a Linux job waits. The same frozen wrappers, manifests, panels
 and smoke runner are used on both platforms. Each baseline is regenerated from
 the exact captured Darwin binary; old dumps are never assigned a new hash.
@@ -196,3 +212,42 @@ field. Future jobs read the captured native compiler receipt and separately
 record the immutable expected export. Audit details are in
 `var/C-runtime-package/legacy-macos-metadata-audit.json`; no redundant rebuild
 or panel rerun is needed.
+
+The unpromoted 144-folder candidate archives are retained diagnostically:
+Darwin `b5b47ea4c40860c24c2c7cbf26184a2a464c01d83a9886cedf4147f5df245763`
+and both platforms `de84e313a0bb9d8caacaed3bc4e194c41f3f1e47ac37756188f0e81d2b692dbe`.
+Finance c937's Linux comparison was 553/559, six official Fisher-formula scorer
+disagreements, zero false yes, 36 withheld, with all replies identical. However,
+the relocated actual wrapper returned $100 for an $80 item "discounted 25%,
+then 8% sales tax" instead of $64.80. This is a genuine interpretation error,
+separate from those six model disagreements. Neither archive is promoted. The
+exact binary/wrapper/checker/loader receipt is
+`var/C-runtime-package/candidate-native-20261018T0903-v2/finance-consumer/discount-wording-counterexample.json`.
+The later 08c864 candidate was not captured or compiled here: an independent
+consumer probe found that "25% discount, meaning it is 25% off" was counted as
+two discounts. Consistent arithmetic evidence alone cannot establish that two
+phrases describe distinct price changes.
+
+The corrected `a5f10a53…641c9` candidate passed 25 actual dispatcher controls
+and five evidence mutations, then six relocated package checks. The original
+discount/tax question returns $64.80; the ambiguous alias is decisively withheld;
+an explicit second 25% discount returns $48.60. Two independently phrased
+successive/stacked requests remain valid-withheld capability misses. The capture
+and approved-commit integration clone retain exact native/proof inputs; its
+five-folder Darwin archive is `finance-a5f10-native/` under the package scratch
+directory, SHA256 `671f7e2b5a8c99c537d11abac5703bf340ee3fab1c0b04c056585d0903f00265`.
+Linux comparison completed with every reply identical, official 553/559 right,
+six exact-Fisher scorer disagreements, zero false yes and 36 withheld. Receipt:
+`var/linux/receipt-finance-hbox-finance-1792316287-2526.json`.
+
+The complete corrected candidate is now `candidate-20261018-a5f10`: 21 families,
+144 folders, with exact platform bindings. Its Darwin archive under
+`var/C-runtime-package/candidate-native-a5f10/` is 8,377,015 bytes, SHA256
+`6d8d5b9a3ede107271662e5f3e07ba2679823b76255e0051ad2e36e2d6f4afa7`.
+The both-platform archive under `candidate-both-a5f10/` is 17,729,837 bytes,
+SHA256 `f7a51fe544a669da9a77684a1d9d2019712c3a673e7bb47e3f91d19f71473791`.
+Three Finance boundary probes pass on each extracted platform archive with
+identical responses; `relocation-{darwin,linux}.json` records actual binary,
+wrapper and checker hashes. `candidate-state.json` records the approved checker
+commit `105051f`. Root integration/selection remains pending; this is not yet
+the promoted delivery. No package build jobs remain.

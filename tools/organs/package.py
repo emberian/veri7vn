@@ -57,6 +57,18 @@ def sha256(path):
     return h.hexdigest()
 
 
+def approved_consumer_files(head):
+    """Pin the checker and its finite sibling dependency to one approved commit."""
+    def blob(name):
+        return subprocess.check_output(['git', 'show', head + ':tools/' + name], cwd=REPO)
+    files = {'runtime_contract.py': blob('runtime_contract.py')}
+    if b'code_evidence.py' in files['runtime_contract.py']:
+        # Required when that checker has the lazy code-program replay branch.
+        # A missing committed module fails assembly, never falls back to live code.
+        files['code_evidence.py'] = blob('code_evidence.py')
+    return files
+
+
 def committed_family(slug):
     """True when src/extract/<slug>/ is tracked by git and has no local modification"""
     d = "src/extract/%s" % slug
@@ -470,8 +482,8 @@ def main():
         raise SystemExit("no families selected")
 
     head = sh("git", "rev-parse", "HEAD").strip()
-    consumer_checker = subprocess.check_output(
-        ["git", "show", head + ":tools/runtime_contract.py"], cwd=REPO)
+    consumer_files = approved_consumer_files(head)
+    consumer_checker = consumer_files['runtime_contract.py']
     # Family owners can have next-cohort checker edits in this shared checkout.
     # Use the same approved version to generate acceptance and execute replies.
     approved_contract = {"__file__": str(REPO / "tools/runtime_contract.py")}
@@ -590,7 +602,8 @@ def main():
         (shared / "receipts").mkdir(exist_ok=True)
         (shared / "receipts" / (slug + ".json")).write_text(json.dumps(entry, indent=1), encoding="utf-8")
     shutil.copyfile(SMOKE_SRC, shared / "smoke.py")
-    (shared / "runtime_contract.py").write_bytes(consumer_checker)
+    for name, content in consumer_files.items():
+        (shared / name).write_bytes(content)
     notice = NOTICE_SRC.read_text(encoding="utf-8")
     copied = ["%-24s panel %s (from %s), scorer %s.py (from %s)" % (f["sid"] + "-veri7vn", f["panel"], f["panel_from"], f["scorer"], f["scorer_from"])
               for f in folders]
@@ -601,6 +614,8 @@ def main():
     manifest = {"package": "veri7vn-specialists", "date": a.date, "veri7vn_commit": head, "families": families,
                 "consumer_runtime_contract_sha256": sha256(shared / "runtime_contract.py"),
                 "consumer_runtime_contract_commit": head,
+                "consumer_files_sha256": {name: hashlib.sha256(content).hexdigest()
+                                          for name, content in consumer_files.items()},
                 "consumer_runtime_scope": "approved committed integration checker; separate from each captured family proof",
                 "folders": sorted(f["sid"] + "-veri7vn" for f in folders), "platforms": list(platforms),
                 "excluded": excluded, "source_snapshot_only": True}

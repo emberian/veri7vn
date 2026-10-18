@@ -386,6 +386,8 @@ def make_organ(out, slug, sid, shipped, quiet=False, packaged=False):
 
     if not packaged:
         shutil.copyfile(REPO / "tools/runtime_contract.py", folder / "runtime_contract.py")
+        if 'code_evidence.py' in (folder / 'runtime_contract.py').read_text():
+            shutil.copyfile(REPO / 'tools/code_evidence.py', folder / 'code_evidence.py')
     if packaged:
         return {"sid": sid, "slug": slug, "folder": folder, "panel": panel_name, "scorer": scorer,
                 "panel_from": src.parent.name, "scorer_from": scorer_src.parent.name,

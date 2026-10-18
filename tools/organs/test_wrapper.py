@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -89,6 +90,44 @@ class WrapperTests(unittest.TestCase):
             organ.answer('x' * 200000)
         self.assertLess(time.monotonic() - start, 2)
         self.assertIsNone(organ.proc)
+
+    def test_relocated_code_replay_uses_only_sibling_dependency(self):
+        fixture_path = make_organ.REPO / 'tools/test_code_evidence.py'
+        spec = importlib.util.spec_from_file_location('code_fixture', fixture_path)
+        fixture = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(fixture)
+        reply, packet = fixture.fixture()
+        reply['provenance'] = {'taken': True, 'evidence': {'checked_computation': packet}}
+        fixture_file = self.root / 'reply.json'
+        fixture_file.write_text(json.dumps(reply))
+        sibling = self.root / '_veri7vn/code_evidence.py'
+        shutil.copyfile(make_organ.REPO / 'tools/code_evidence.py', sibling)
+        self.fake.write_text('#!' + sys.executable + '\nimport json,sys\nfrom pathlib import Path\n'
+                            'for line in sys.stdin:\n q=json.loads(line)\n'
+                            ' r=json.loads(Path(__file__).with_name("reply.json").read_text())\n'
+                            ' r["id"]=q["id"]\n print(json.dumps(r),flush=True)\n')
+        self.fake.chmod(0o755)
+        driver = self.root / 'driver.py'
+        driver.write_text('import importlib.util,json,sys\nfrom pathlib import Path\n'
+                          'base=Path(__file__).parent\n'
+                          'assert not any("/dev/o7vn" in p for p in sys.path)\n'
+                          's=importlib.util.spec_from_file_location("organ",base/"retail-veri7vn/organ.py")\n'
+                          'm=importlib.util.module_from_spec(s);s.loader.exec_module(m)\n'
+                          'o=m.Example(binary=base/"child.py")\n'
+                          'try: print(json.dumps(o.answer("code request")))\n'
+                          'finally: o.close()\n')
+        def ask():
+            return json.loads(subprocess.check_output([sys.executable, '-I', str(driver)], cwd=self.root))
+        self.assertEqual(ask()['status'], 'answered')
+        reply['response'] = reply['response'].replace('return v3', 'return 999')
+        fixture_file.write_text(json.dumps(reply))
+        rejected = ask()
+        self.assertEqual(rejected['status'], 'withheld')
+        self.assertTrue(rejected['provenance']['taken'])
+        sibling.unlink()
+        missing = ask()
+        self.assertEqual(missing['status'], 'withheld')
+        self.assertIn('unavailable', missing['provenance']['evidence']['consumer_validation']['reason'])
 
 
 if __name__ == '__main__':
