@@ -30,21 +30,11 @@ $SRC/rules.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/humanities" "$OUT/build/humanities.mlb"
+# Bind the frozen inputs actually consumed by MLton to a passed proof receipt.
+if [ -n "${HUMANITIES_RECEIPT:-}" ]; then
+  "$REPO/tools/dev/native-compile" --family humanities --compiler "$MLTON" --from-receipt "$HUMANITIES_RECEIPT" -- -output "$OUT/bin/humanities" "$OUT/build/humanities.mlb"
+else
+  "$REPO/tools/dev/native-compile" --family humanities --compiler "$MLTON" -- -output "$OUT/bin/humanities" "$OUT/build/humanities.mlb"
+fi
 ls -l "$OUT/bin/humanities"
 shasum -a 256 "$OUT/build/humanities_generated.sml" "$OUT/bin/humanities"
-
-REPO="$REPO" SRC="$SRC" OUT="$OUT" GEN="$GEN" python3 -B - <<'PYREC'
-import hashlib, json, os
-from pathlib import Path
-src, out, repo, gen = map(Path, (os.environ[k] for k in ('SRC','OUT','REPO','GEN')))
-def digest(p): return hashlib.sha256(p.read_bytes()).hexdigest()
-inputs = [gen, repo/'src/extract/commons/commons.sml', *sorted(src.glob('*.sml'))]
-theories = [src/'ROOT', *sorted(src.rglob('*.thy'))]
-record = {'binary_sha256':digest(out/'bin'/src.name),
-          'generated_export':str(gen.resolve()),
-          'inputs_sha256':{str(p.resolve()):digest(p) for p in inputs},
-          'theories_sha256':{str(p.relative_to(repo)):digest(p) for p in theories},
-          'note':'Compilation inputs; proof evidence remains the completed remote Isabelle receipt.'}
-(out/'build/compile-inputs.json').write_text(json.dumps(record,indent=2)+'\n')
-PYREC

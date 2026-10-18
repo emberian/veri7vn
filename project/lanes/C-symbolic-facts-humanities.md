@@ -3,7 +3,8 @@
 Owner: Codex symbolic/facts_humanities, 18 October 2026. Both families are
 complete with fresh proof exports, native panels and dispatcher probes.
 Humanities is committed as `45c425b`; the first Facts packet is committed as
-`165458a`. A second Facts packet is complete below. Further semantic extensions remain
+`165458a`. The second Facts packet is committed as `1d8332e`. A further Facts packet is
+active and a second Humanities packet is ready below. Further semantic extensions remain
 explicitly open; family green is not a claim that every specialist is finished.
 
 ## What changes
@@ -305,6 +306,61 @@ A family score is not evidence that every behavior below has been examined.
 | music-v2 | Same MIDI boundary and source panel/fresh-seed checks | Humanities packet complete; no separate claim that every musical convention was reviewed |
 | grammar | Unknown candidates in past/plural/comparison forms must stay silent under the active priority flags | Humanities packet complete; word-formation rules remain closed source tables |
 | mythology | Non-identical Greek/Roman forward rows have reverse names in the reverse table | Reverse-table theorem complete; ambiguous cultural attribution and variants unexamined |
-| ushistory | Own shipped panels and three generator offsets exercised | No new semantic counterexample review beyond those panels; explicit bounded unexamined area |
+| ushistory | Foreign president, defeated-president relation, and destruction/commemoration dates incorrectly answered US ordinal/event years | Whole president-role grammar and complete clauses for all 19 event rows now pass consumer probes; source chronology/coverage assumptions remain |
 | library | Target ISBN-13 label must not swallow the “10” from a later source ISBN-10 label | Conversion-label fix and independent probes complete; broader bibliographic identity not proved |
 | government | Alternate structural counts versus historical, foreign and state-specific scopes | Typed count forms and scope refusals complete; broader constitutional/temporal questions unexamined |
+
+
+## Second Humanities packet: president roles and event identity (ready)
+
+The shipped US-history recognizer answered `Who was the 1st president of France?`
+with George Washington, `Who defeated the 2nd US president?` with John Adams,
+and `When was the US Bill of Rights destroyed?` with 1791. Full question forms
+now bind the requested president role, US scope, complete source name and valid
+ordinal suffix. Full event clauses pair every one of the 19 existing date rows
+with its actual source event. Foreign scope, changed events and trailing movie/
+novel qualifications do not match. These are positive grammars, not a list of
+forbidden verbs. Source assertions and English interpretation remain untrusted.
+
+No HOL statement changed. The consumer is the existing `hreply` kernel:
+`nth_value` binds an accepted ordinal to the corresponding president list entry;
+`num_value` binds a name to its ordinal positions; `event_value` binds an accepted
+ordered event mask to its stored date and text, with the existing US/other-country
+scope preconditions. This does not prove that the recognizer understood English.
+
+The existing proof receipt `var/humanities/remote-attempts/20261018T065404Z-478dcd4ff9dd/receipt.json`
+passed 115 theorem checks with 0 oracles. Current proof dependencies are identical.
+New immutable consumed-input receipt:
+`var/humanities/native-attempts/20261018T075229Z-40f92d862903/compile-inputs.json`.
+Binary SHA256 `9ed6ff9b607d5a370ccb38ada66ab4a34ce2e5c25ae1e01f7c8c76c4934a69dc`,
+598,472 bytes. Recognizer SHA256
+`425f0ad967e587bbb14b5f1e65964bcfac10647c4084f29076097d49f18e18ab`.
+The new shared `native-compile` wrapper freezes actual MLB inputs and validates
+the proof/export binding before atomically publishing. It consumes this current
+recognizer, not the older recognizer in the proof snapshot.
+
+All seven specialist panels and family mode: **197/197 dev, 197/197 heldout,
+0 wrong, 0 false yes, 0 valid omissions**. All **70/70** authored probes pass
+natively, through the actual dispatcher, and in unpinned family mode. The new
+45 probes cover president-role positives/negatives and every event row with a
+positive and an unrelated-event/scope negative. Two previously untouched
+US-history generator offsets, 1310023 and 1410029, each score **12/12 dev and
+12/12 heldout**, 0 wrong/false yes/omissions. Generator phrasings are still the
+source author's fixed templates, not independent language coverage.
+
+Evidence under `var/c-symbolic-facts-humanities/`:
+`humanities-scope-panels.json`, `humanities-scope-probes.json`,
+`humanities-scope-dispatch.json`, `humanities-scope-family-probes.json`,
+`ushistory-fresh-report.json`. Humanities files frozen:
+recognizer.sml, build.sh, capabilities.json, beyond_probes.json, README.md,
+plus this report. No new kinds, source rows or proof claims.
+
+## Third Facts packet (active; no final panel numbers yet)
+
+A finite typed JavaScript AST/evaluator, directional mycorrhizal source-field
+projection and anomie definition projection are implemented and await a fresh
+proof export. Art creator grammar now distinguishes painting/sculpture/print
+verbs and roles using untrusted source-medium metadata. The fresh proof job is
+`var/facts/remote-attempts/20261018T075111Z-447864ed0f5f/receipt.json` on hbox.
+There are no new final native/panel numbers for these changes yet; the completed
+second packet's receipts above remain the current established evidence.

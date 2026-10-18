@@ -118,12 +118,13 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "HOL typed-request kernel; exact lookup or certified numeric enclosure",
+        "computation": "HOL ordinal/name lookup and event-table selection; unchanged kernel",
         "assumptions": [
-          "Lookup tables are source assertions; numeric guarantees apply to the recognized typed request."
+          "Source table fixes the president sequence and historical event dates; it is not a live officeholder service.",
+          "A question must match the supported president role or specific event relation."
         ],
         "untrusted": [
-          "Natural-language recognition, JSON framing, source transcription."
+          "Anchored subject/role/event grammar, ordinal suffix validation, source assertions and JSON framing."
         ]
       }
     },

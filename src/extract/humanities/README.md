@@ -30,3 +30,13 @@ author's assumptions and fixed phrasings. `check_probes.py` runs the separate
 implementation-author probes in `beyond_probes.json`; these do not establish
 independent language coverage. Current evidence and outstanding work are in
 `project/lanes/C-symbolic-facts-humanities.md`.
+
+A second continuation narrows US-history requests to complete president-role
+and historical-event clauses. A foreign president, someone who defeated a
+president, or a destruction/commemoration question no longer receives a US
+ordinal or an unrelated event year. All 19 event rows have positive and
+unrelated-event probes. The HOL lookup statements are unchanged; English
+interpretation remains untrusted. The shared native compiler binds the actual
+consumed input snapshot to the passed proof export. Current checks: 197/197
+dev and heldout in specialist and family modes, 70/70 native/dispatcher/family
+probes, and US-history 12/12 on both splits at two untouched generator offsets.

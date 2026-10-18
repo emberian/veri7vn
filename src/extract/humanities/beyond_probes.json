@@ -123,5 +123,230 @@
     "specialist": "government",
     "q": "What is the minimum age to be President of France?",
     "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "Who was the 1st US president?",
+    "expect": "George Washington"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "Who served as the 22nd US president?",
+    "expect": "Grover Cleveland"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "What number president was Donald Trump in US history?",
+    "expect": "45th and 47th"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the US Declaration of Independence adopted?",
+    "expect": "1776"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the US Constitution signed?",
+    "expect": "1787"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the US Constitution ratified?",
+    "expect": "1788"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the US Bill of Rights ratified?",
+    "expect": "1791"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the Louisiana Purchase?",
+    "expect": "1803"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When did the US Civil War begin?",
+    "expect": "1861"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When did the US Civil War end?",
+    "expect": "1865"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the Emancipation Proclamation issued?",
+    "expect": "1863"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was Abraham Lincoln assassinated?",
+    "expect": "1865"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the transcontinental railroad completed?",
+    "expect": "1869"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the 19th Amendment ratified?",
+    "expect": "1920"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was Black Tuesday?",
+    "expect": "1929"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was Pearl Harbor attacked?",
+    "expect": "1941"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was Brown v. Board of Education decided?",
+    "expect": "1954"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the Civil Rights Act signed?",
+    "expect": "1964"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the Voting Rights Act signed?",
+    "expect": "1965"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When did Apollo 11 land on the moon?",
+    "expect": "1969"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When did Richard Nixon resign?",
+    "expect": "1974"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When did the September 11 attacks occur?",
+    "expect": "2001"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "Who was the 1st president of France?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "Who defeated the 2nd US president?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "Who was the 11st US president?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "What number president was Donald Trump's father?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the US Declaration of Independence destroyed?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the US Constitution signed in this play?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the US Constitution ratified in this novel?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the US Bill of Rights destroyed?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the Louisiana Purchase commemorated?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When did the US Civil War begin in this movie?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When did the US Civil War end in this film?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the Emancipation Proclamation stolen?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was Abraham Lincoln assassinated in this play?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the transcontinental railroad demolished?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the 19th Amendment ratified in this book?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was Black Tuesday commemorated?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was Pearl Harbor discovered?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was Brown v. Board of Education filmed?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the Civil Rights Act repealed?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the Voting Rights Act repealed?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was Apollo 11 designed?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When did Richard Nixon resign in this movie?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ushistory",
+    "q": "When was the September 11 memorial opened?",
+    "status": "withheld"
   }
 ]

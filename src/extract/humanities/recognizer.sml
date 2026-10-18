@@ -408,35 +408,59 @@ struct
     fun escape s = String.translate (fn #"." => "\\." | c => String.str c) s
     val OTHER = "\\b(?:canad\\w*|russi\\w*|english|england|britain|british|french|france|spanish|spain|mexic\\w*|irish|chin\\w*|"
       ^ "india\\w*|greek|finnish|nigeria\\w*|lebanese|syrian|korean|bolshevik\\w*)\\b"
+    val endQuestion = "\\s*[?.]?\\s*$"
+    val usPrefix = "(?:(?:us|u\\.s\\.|american|united states) )?"
+    val usAfter = "(?: (?:of|in) the united states| in us history)?"
+    val eventClauses = [
+      "was the " ^ usPrefix ^ "declaration of independence (?:adopted|signed)",
+      "was the " ^ usPrefix ^ "constitution signed",
+      "was the " ^ usPrefix ^ "constitution ratified",
+      "was the " ^ usPrefix ^ "bill of rights (?:ratified|adopted)",
+      "(?:was the louisiana purchase|did the louisiana purchase (?:take place|occur))",
+      "did the " ^ usPrefix ^ "civil war (?:begin|start)",
+      "did the " ^ usPrefix ^ "civil war (?:end|finish)",
+      "was the emancipation proclamation issued",
+      "was (?:abraham )?lincoln assassinated",
+      "was the (?:first )?(?:us )?transcontinental railroad completed",
+      "(?:was the (?:us )?19th amendment ratified|did (?:us |american )?women (?:gain|get) the right to vote)",
+      "(?:was (?:the )?(?:us )?(?:stock market crash|black tuesday)|did the (?:us )?stock market crash)",
+      "(?:was the attack on pearl harbor|was pearl harbor attacked)",
+      "was brown v\\.? board(?: of education)? decided",
+      "was the (?:us )?civil rights act (?:signed|passed)",
+      "was the (?:us )?voting rights act (?:signed|passed)",
+      "(?:was the (?:apollo 11 |first )?moon landing|did apollo 11 land on the moon)",
+      "did (?:richard )?nixon resign",
+      "(?:were the (?:september 11|9/11) attacks|did the (?:september 11|9/11) attacks (?:occur|happen|take place))"]
+    fun ordinalSuffix n = if n mod 100 >= 11 andalso n mod 100 <= 13 then "th"
+      else case n mod 10 of 1=>"st"|2=>"nd"|3=>"rd"|_=>"th"
     fun answer (text : string) : H.reply option =
       if Narrow.narrative text then NONE
       else
         let
           val low = lower (collapse text)
           fun nth () =
-            case search "\\b(\\d{1,2})(?:st|nd|rd|th)\\s+(?:us\\s+|u\\.s\\.\\s+)?president\\b" low of
+            case search ("^who (?:was|is|served as) (?:the )?(\\d{1,2})(st|nd|rd|th) "
+              ^ usPrefix ^ "president" ^ usAfter ^ endQuestion) low of
               SOME pm =>
-                if has "\\bwho\\b" low then ret (SOME (H.hreply (H.HNth (mkNat (intOfString (g1 low pm))))))
-                else Fall
+                let val n=intOfString(g1 low pm)
+                    val ending=valOf(Regex.group low pm 2)
+                in if ending=ordinalSuffix n then ret(SOME(H.hreply(H.HNth(mkNat n)))) else ret NONE end
             | NONE => Fall
           fun num () =
-            if has "\\bwhich number\\b|\\bwhat number\\b|\\bwhich president (?:number|was)\\b|\\bwhat number president\\b" low then
-              let val hits = map (fn name => has ("\\b" ^ escape (lower name) ^ "\\b") low) H.presidents
-              in if List.exists (fn x => x) hits then ret (SOME (H.hreply (H.HNum hits))) else ret NONE end
-            else Fall
+            let val hits = map (fn name =>
+                  has ("^(?:(?:which|what) number (?:us )?president (?:was|is) " ^ escape(lower name)
+                   ^ "|what (?:was|is) " ^ escape(lower name) ^ "'s (?:us )?presidential number)"
+                   ^ "(?: in us history| of the united states)?" ^ endQuestion) low) H.presidents
+            in if List.exists (fn x => x) hits then ret(SOME(H.hreply(H.HNum hits))) else Fall end
           fun event () =
-            if has "\\bwhat year\\b|\\bwhen\\b|\\bin which year\\b|\\bwhich year\\b" low then
-              let
-                val us = has "\\bus\\b|\\bu\\.s\\.|\\bamerican?\\b|\\bunited states\\b" low
-                val other = has OTHER low
-                val hits = map (fn rx => has rx low) Rules.events
-              in ret (SOME (H.hreply (H.HEvent (hits, us, other)))) end
-            else Fall
-        in
-          if has "\\bbest\\b|\\bworst\\b|\\bgreatest\\b|\\bshould\\b|\\bopinion\\b|\\bgood president\\b|\\bbad president\\b|\\brank\\w*\\b" low
-          then NONE
-          else chain [nth, num, event] |> (fn r => finish text r)
-        end
+            let
+              val us = has "\\bus\\b|\\bu\\.s\\.|\\bamerican?\\b|\\bunited states\\b" low
+              val other = has OTHER low
+              val hits = ListPair.mapEq (fn (rx,clause) => has rx low andalso
+                has ("^(?:when|(?:in )?(?:what|which) year) " ^ clause ^ usAfter ^ endQuestion) low)
+                (Rules.events,eventClauses)
+            in if List.exists (fn x=>x) hits then ret(SOME(H.hreply(H.HEvent(hits,us,other)))) else Fall end
+        in finish text (chain [nth,num,event]) end
   end
 
   (* ====================== library ====================== *)
