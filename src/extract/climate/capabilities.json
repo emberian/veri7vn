@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "family": "climate",
+  "specialists": {
+    "coldchain": {
+      "accept": {
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "evidence": {
+        "computation": "Cooling and time-without-temperature-control verdicts reject negative elapsed durations; a passing verdict is bound to a nonnegative duration within the declared stage limit.",
+        "assumptions": [
+          "The question maps to the declared cooling stage or four-hour timing model.",
+          "These computations concern the stated numbers and do not determine whether a specific food is safe."
+        ],
+        "untrusted": [
+          "Natural-language stage selection, elapsed-time parsing, and the applicability of the declared rule to the situation."
+        ]
+      }
+    },
+    "coldchain-v2": {
+      "accept": {
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "evidence": {
+        "computation": "Cooling and time-without-temperature-control verdicts reject negative elapsed durations; a passing verdict is bound to a nonnegative duration within the declared stage limit.",
+        "assumptions": [
+          "The question maps to the declared cooling stage or four-hour timing model.",
+          "These computations concern the stated numbers and do not determine whether a specific food is safe."
+        ],
+        "untrusted": [
+          "Natural-language stage selection, elapsed-time parsing, and the applicability of the declared rule to the situation."
+        ]
+      }
+    }
+  }
+}

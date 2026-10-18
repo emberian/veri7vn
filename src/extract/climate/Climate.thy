@@ -33,7 +33,7 @@ datatype need = N_gwp | N_conc | N_sens | N_solar_albedo
 
 datatype reason = R_rate_over_100 | R_zero_mpg
   | R_pm_hourly | R_beyond pol | R_o3_above_8h | R_so2_above_1h | R_between pol | R_aqi_out_of_scale
-  | R_nonpositive_conc | R_albedo_range | R_negative_solar | R_bad_chirality
+  | R_nonpositive_conc | R_albedo_range | R_negative_solar | R_bad_chirality | R_negative_duration
 
 datatype decline = Underspecified need | Impossible reason | Imprecise | Not_taken
 
@@ -1180,26 +1180,39 @@ fun wd_idx :: "weekday \<Rightarrow> nat" where
 
 definition cd_kernel :: "cdreq \<Rightarrow> outcome" where
   "cd_kernel r = (case r of
-      Cd_cool a b d \<Rightarrow> (case cool_limit (f_of a) (f_of b) of None \<Rightarrow> Decline Not_taken
+      Cd_cool a b d \<Rightarrow> (if hours d < 0 then Decline (Impossible R_negative_duration)
+        else case cool_limit (f_of a) (f_of b) of None \<Rightarrow> Decline Not_taken
                         | Some lm \<Rightarrow> Verdict K_cooling_check (hours d \<le> lm))
     | Cd_cold t \<Rightarrow> Verdict K_cold_hold (f_of t \<le> 41)
     | Cd_hot t \<Rightarrow> Verdict K_hot_hold (135 \<le> f_of t)
     | Cd_cook c \<Rightarrow> Exact K_cook_temp (cook_f c)
     | Cd_reheat \<Rightarrow> Exact K_reheat 165
     | Cd_tphc None \<Rightarrow> Exact K_tphc_rule 4
-    | Cd_tphc (Some h) \<Rightarrow> Verdict K_tphc (h \<le> 4)
+    | Cd_tphc (Some h) \<Rightarrow> (if h < 0 then Decline (Impossible R_negative_duration)
+                                    else Verdict K_tphc (h \<le> 4))
     | Cd_date None \<Rightarrow> Exact K_date_rule 7
     | Cd_date (Some d) \<Rightarrow> Weekday (last_day d)
     | Cd_danger \<Rightarrow> Interval K_danger_zone 41 135)"
 
 theorem cooling_verdict:
   assumes "cd_kernel (Cd_cool a b d) = Verdict k ok"
-  shows "k = K_cooling_check \<and> (\<exists>lm. cool_limit (f_of a) (f_of b) = Some lm \<and> (ok \<longleftrightarrow> hours d \<le> lm))"
-  using assms by (auto simp: cd_kernel_def split: option.splits)
+  shows "k = K_cooling_check \<and> 0 \<le> hours d \<and> (\<exists>lm. cool_limit (f_of a) (f_of b) = Some lm \<and> (ok \<longleftrightarrow> hours d \<le> lm))"
+  using assms by (auto simp: cd_kernel_def split: option.splits if_splits)
 
 theorem cooling_not_a_stage:
-  "cd_kernel (Cd_cool a b d) = Decline w \<longleftrightarrow> cool_limit (f_of a) (f_of b) = None \<and> w = Not_taken"
-  by (auto simp: cd_kernel_def split: option.splits)
+  "cd_kernel (Cd_cool a b d) = Decline Not_taken \<longleftrightarrow>
+    0 \<le> hours d \<and> cool_limit (f_of a) (f_of b) = None"
+  by (auto simp: cd_kernel_def split: option.splits if_splits)
+
+theorem cooling_negative_time:
+  "cd_kernel (Cd_cool a b d) = Decline (Impossible R_negative_duration) \<longleftrightarrow> hours d < 0"
+  by (auto simp: cd_kernel_def split: option.splits if_splits)
+
+theorem cooling_pass_elapsed_bound:
+  assumes "cd_kernel (Cd_cool a b d) = Verdict k True"
+  shows "0 \<le> hours d \<and> hours d \<le> 6"
+  using cooling_verdict[OF assms]
+  by (auto simp: cool_limit_def split: if_splits; linarith)
 
 theorem cool_stage1:
   assumes "269 / 2 \<le> a" "\<bar>b - 70\<bar> \<le> 1 / 2"
@@ -1246,9 +1259,18 @@ theorem cooking_minimums:
   by (simp_all add: cd_kernel_def)
 
 theorem tphc_limit:
-  "cd_kernel (Cd_tphc (Some h)) = Verdict K_tphc (h \<le> 4)"
+  "0 \<le> h \<Longrightarrow> cd_kernel (Cd_tphc (Some h)) = Verdict K_tphc (h \<le> 4)"
   "cd_kernel (Cd_tphc None) = Exact K_tphc_rule 4"
   by (simp_all add: cd_kernel_def)
+
+theorem tphc_negative_time:
+  "cd_kernel (Cd_tphc (Some h)) = Decline (Impossible R_negative_duration) \<longleftrightarrow> h < 0"
+  by (auto simp: cd_kernel_def)
+
+theorem tphc_pass_elapsed_bound:
+  "cd_kernel (Cd_tphc (Some h)) = Verdict k True \<longleftrightarrow>
+    k = K_tphc \<and> 0 \<le> h \<and> h \<le> 4"
+  by (auto simp: cd_kernel_def)
 
 text \<open>Date marking: the day of preparation is day 1 and the food is discarded at
 the end of day 7, which is the day before the weekday of preparation.\<close>
@@ -1492,7 +1514,8 @@ definition reason_text :: "reason \<Rightarrow> String.literal" where
    | R_nonpositive_conc \<Rightarrow> STR ''CO2 concentrations must be positive.''
    | R_albedo_range \<Rightarrow> STR ''An albedo must be between 0 and 1.''
    | R_negative_solar \<Rightarrow> STR ''A solar constant cannot be negative.''
-   | R_bad_chirality \<Rightarrow> STR ''Chiral indices are written (n, m) with n >= m >= 0 and not both zero.'')"
+   | R_bad_chirality \<Rightarrow> STR ''Chiral indices are written (n, m) with n >= m >= 0 and not both zero.''
+   | R_negative_duration \<Rightarrow> STR ''Elapsed time cannot be negative.'')"
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of Underspecified _ \<Rightarrow> STR ''underspecified'' | Impossible _ \<Rightarrow> STR ''impossible''

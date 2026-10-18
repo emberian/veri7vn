@@ -437,30 +437,36 @@ struct
     end
 
   (* ---------- coldchain, coldchain-v2 ---------- *)
-  val TEMP = "(-?\\d+(?:\\.\\d+)?)\\s*(?:\194\176\\s*|degrees?\\s*)?(f|c)\\b"
+  val TEMP = "(qnum[0-9]+q)\\s*(?:\194\176\\s*|degrees?\\s*)?(f|c)\\b"
   val foodWords = "\\bfood\\b|\\bhold\\w*\\b|\\bcool\\w*\\b|\\breheat\\w*\\b|\\bcook\\w*\\b|\\bfridge\\b|\\brefrigerat\\w*\\b|\\bcooler\\b|\\bdate mark\\w*\\b|\\bdiscard\\b|\\bdanger zone\\b|\\btcs\\b|\\bleftovers?\\b|\\bsoup\\b|\\bchili\\b|\\brice\\b"
-  val cdTempFull = "(-?\\d+(?:\\.\\d+)?)\\s*(?:\194\176\\s*|degrees?\\s*)?(f|c|fahrenheit|celsius)\\b"
-  val coolRx = "\\bcool\\w*\\b.*?\\bfrom\\s+" ^ TEMP ^ ".*?\\bto\\s+" ^ TEMP ^ ".*?\\b(?:in|within|over|took)\\s+(-?\\d+(?:\\.\\d+)?)\\s*(hours?|hrs?|minutes?)"
+  val cdTempFull = "(qnum[0-9]+q)\\s*(?:\194\176\\s*|degrees?\\s*)?(f|c|fahrenheit|celsius)\\b"
+  val coolRx = "\\bcool\\w*\\b.*?\\bfrom\\s+" ^ TEMP ^ ".*?\\bto\\s+" ^ TEMP ^ ".*?\\b(?:in|within|over|took)\\s+(qnum[0-9]+q)\\s*(hours?|hrs?|minutes?)"
   val days = [("monday", Q.Monday), ("tuesday", Q.Tuesday), ("wednesday", Q.Wednesday), ("thursday", Q.Thursday),
               ("friday", Q.Friday), ("saturday", Q.Saturday), ("sunday", Q.Sunday)]
 
-  fun tempOf v u = Q.Temp (ratOf v, String.isPrefix "c" u)
+  exception UnknownColdNumber
 
   fun coldchainCore text =
     let val t = collapse text
     in
       if Narrow.narrative t andalso not (has "\\bfood code\\b" (lower t)) then NONE
-      else
+      else case ExactNumeric.mask (lower t) of
+        NONE => NONE
+      | SOME {text = low, numbers} =>
         let
-          val low = lower t
+          fun quantity marker =
+            case List.find (fn (name, _) => name = marker) numbers of
+              SOME (_, (n, d)) => Q.mk_rat n d
+            | NONE => raise UnknownColdNumber
+          fun tempOf v u = Q.Temp (quantity v, String.isPrefix "c" u)
           val ts = map (fn m => tempOf (g1 low m) (valOf (grp low m 2))) (findall cdTempFull low)
           fun cool () =
             case search coolRx low of
               NONE => NONE
             | SOME m =>
                 let val req = Q.Req_cd (Q.Cd_cool (tempOf (g1 low m) (valOf (grp low m 2)), tempOf (valOf (grp low m 3)) (valOf (grp low m 4)),
-                                                  Q.Dur (ratOf (valOf (grp low m 5)), String.isPrefix "min" (valOf (grp low m 6)))))
-                in if Q.answers req then SOME req else NONE end
+                                                  Q.Dur (quantity (valOf (grp low m 5)), String.isPrefix "min" (valOf (grp low m 6)))))
+                in finish t req end
         in
           if not (has foodWords low) then NONE
           else case cool () of
@@ -482,8 +488,8 @@ struct
               SOME (Q.Req_cd Q.Cd_reheat)
             else if has "\\bout of (?:temperature|temp)\\b|\\bat room temperature\\b|\\btime as a (?:public health )?control\\b|\\bwithout temperature control\\b|\\bsitting out\\b|\\bleft out\\b" low
                     andalso has "\\bhours?\\b|\\bhow long\\b" low then
-              (case search ("(-?\\d+(?:\\.\\d+)?)\\s*(?:hours?|hrs?)\\b") low of
-                 SOME hm => if not (has "\\bhow long\\b" low) then SOME (Q.Req_cd (Q.Cd_tphc (SOME (ratOf (g1 low hm)))))
+              (case search ("(qnum[0-9]+q)\\s*(?:hours?|hrs?)\\b") low of
+                 SOME hm => if not (has "\\bhow long\\b" low) then SOME (Q.Req_cd (Q.Cd_tphc (SOME (quantity (g1 low hm)))))
                             else SOME (Q.Req_cd (Q.Cd_tphc NONE))
                | NONE => SOME (Q.Req_cd (Q.Cd_tphc NONE)))
             else if has "\\bdate mark\\w*\\b|\\bdiscard by\\b|\\buse by\\b|\\bhow long\\b.*\\b(?:fridge|refrigerat\\w*|keep)\\b|\\bkeep\\b.*\\b(?:fridge|refrigerat\\w*)\\b" low then
@@ -493,26 +499,34 @@ struct
             else if has "\\bdanger zone\\b" low then SOME (Q.Req_cd Q.Cd_danger)
             else NONE
         end
-    end
+    end handle UnknownColdNumber => NONE
 
   val foodish = "\\btime as a (?:public health )?control\\b|\\bsandwich\\w*|\\bsalad\\b|\\bmeat\\b|\\bchicken\\b|\\bdish\\b|\\bstock\\b|\\bmeals?\\b|\\bbeans\\b|\\bpasta\\b"
   fun coldchainV2 text =
     let
       val t0 = collapse text
       val t1 = replaceAll "\\bhamburgers\\b" "hamburger" t0
-      val low = lower t1
-      val viaCool =
+    in
+      case ExactNumeric.mask (lower t1) of
+        NONE => NONE
+      | SOME {text = low, numbers} =>
+      let
+        fun literal marker =
+          case List.find (fn (name, _) => name = marker) numbers of
+            SOME (_, value) => ExactNumeric.canonical value
+          | NONE => raise UnknownColdNumber
+        val viaCool =
         if has "\\bcool\\w*\\b" low then
           let
-            val hm = search "\\b(?:in|within|over|took|taking)\\s+(\\d+(?:\\.\\d+)?)\\s*(hours?|hrs?|minutes?)\\b" low
+            val hm = search "\\b(?:in|within|over|took|taking)\\s+(qnum[0-9]+q)\\s*(hours?|hrs?|minutes?)\\b" low
             val a = search ("\\bfrom\\s+" ^ TEMP ^ "(?:\\s+down)?\\s+to\\s+" ^ TEMP) low
             val b = search ("\\b(?:after reaching|once (?:it|at)|at)\\s+" ^ TEMP ^ "[^?]*?\\bto\\s+" ^ TEMP) low
             val m = case a of SOME x => SOME x | NONE => b
           in
             case (m, hm) of
               (SOME mm, SOME h) =>
-                coldchainCore ("Food cooled from " ^ g1 low mm ^ " " ^ valOf (grp low mm 2) ^ " to " ^ valOf (grp low mm 3) ^ " "
-                               ^ valOf (grp low mm 4) ^ " in " ^ g1 low h ^ " " ^ valOf (grp low h 2) ^ ".")
+                coldchainCore ("Food cooled from " ^ literal (g1 low mm) ^ " " ^ valOf (grp low mm 2) ^ " to " ^ literal (valOf (grp low mm 3)) ^ " "
+                               ^ valOf (grp low mm 4) ^ " in " ^ literal (g1 low h) ^ " " ^ valOf (grp low h 2) ^ ".")
             | _ => NONE
           end
         else NONE
@@ -523,6 +537,7 @@ struct
         let val t2 = if has foodish low andalso not (has "\\bfood\\b" low) then "Food: " ^ t1 else t1
         in coldchainCore t2 end
     end
+    end handle UnknownColdNumber => NONE
 
   (* ---------- dispatch ---------- *)
   val organs = ["carboncapture", "airquality", "climate", "carbonmat", "coldchain", "coldchain-v2"]

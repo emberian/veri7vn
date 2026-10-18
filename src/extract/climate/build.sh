@@ -28,9 +28,10 @@ cat > "$OUT/build/climate.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 climate_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/climate" "$OUT/build/climate.mlb"
+"$REPO/tools/dev/native-compile" --family climate --compiler "$MLTON" -- -output "$OUT/bin/climate" "$OUT/build/climate.mlb"
 ls -l "$OUT/bin/climate"
 shasum -a 256 "$OUT/build/climate_generated.sml" "$OUT/bin/climate"
