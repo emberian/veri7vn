@@ -13,15 +13,19 @@ Where a result has a witness, the kernel states it and the theorem checks it: a 
 is a walk in the graph and no walk is lighter (a feasibility certificate from the search);
 an invalid argument carries the truth-table row that refutes it; a binary-search index holds
 the value; a sorted list is a permutation that is in order; a derivative is the real
-derivative of the polynomial (Isabelle's `has_field_derivative`).
+derivative of the polynomial (Isabelle's `has_field_derivative`); a spanning tree is stated
+only after a checker passes it, and the check passing proves it is a spanning tree of the
+graph and no spanning tree weighs less (`a_mst_minimal`, proved against a definition of
+spanning tree that does not mention Kruskal). The graph is declined as disconnected exactly
+when it has no edges or two of its nodes are joined by no path (`a_mst_disconnected`).
 
-Honest limits: Kruskal's tree is proved to use graph edges only (its minimality is not
-proved); the digests are executable specifications checked by known-answer vectors at build
+Honest limits: that Kruskal's tree always passes the checker is not proved (a tree that
+failed would be withheld; none of the 16 spanning-tree panel questions fails it); the digests are executable specifications checked by known-answer vectors at build
 time, not proved against another definition; the JSON validator follows CPython's scanner and
 is tested, not proved against RFC 8259; the definite integral is the antiderivative's value
 difference (HOL-Analysis is not imported). Statements and numbers:
 [handoff](../../../project/lanes/S12-discrete.md).
 
-Build: `python3 tools/dev/check-native --session Veri7vn_Discrete --session-root src/extract/discrete --expect 'VERI7VN_DISCRETE PASS' --timeout 600`, then `python3 src/extract/discrete/tables_check.py`, `sh src/extract/discrete/build.sh`, `PYTHONDONTWRITEBYTECODE=1 python3 src/extract/discrete/score.py`.
+Build: remotely, `tools/dev/remote-build persvati src/extract/discrete Veri7vn_Discrete -d src/extract/commons --expect 'VERI7VN_DISCRETE PASS'` (build.sh then uses the returned SML), or locally `python3 tools/dev/check-native --session Veri7vn_Discrete --session-root src/extract/discrete --expect 'VERI7VN_DISCRETE PASS' --timeout 600`, then `python3 src/extract/discrete/tables_check.py`, `sh src/extract/discrete/build.sh`, `PYTHONDONTWRITEBYTECODE=1 python3 src/extract/discrete/score.py`.
 Every panel (both splits, specialist mode and family mode) scores right on every item, 0 wrong,
 0 false yes, 0 disagreements with the organs.

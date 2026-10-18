@@ -425,6 +425,23 @@ proof -
   then show ?thesis using pad_mod[OF rl] by simp
 qed
 
+text \<open>The padding keeps the message as its prefix, puts the 0x80 byte right
+after it, and adds between 9 and 72 bytes (one extra block at most).\<close>
+
+theorem sha_pad_shape:
+  "take (length m) (sha_pad big m) = m \<and> sha_pad big m ! length m = 128 \<and>
+   length m + 9 \<le> length (sha_pad big m) \<and> length (sha_pad big m) \<le> length m + 72"
+proof -
+  have l: "length (sha_pad big m) = length m + 1 + (119 - length m mod 64) mod 64 + 8"
+    by (simp add: sha_pad_def length_be_bytes)
+  have b: "(119 - length m mod 64) mod 64 < 64" by simp
+  have t: "take (length m) (sha_pad big m) = m" by (simp add: sha_pad_def)
+  have n: "sha_pad big m ! length m = 128" by (simp add: sha_pad_def nth_append)
+  have lo: "length m + 9 \<le> length (sha_pad big m)" using l by simp
+  have hi: "length (sha_pad big m) \<le> length m + 72" using l b by linarith
+  show ?thesis using t n lo hi by blast
+qed
+
 definition hex_byte :: "nat \<Rightarrow> nat list" where
   "hex_byte b = [dc (b div 16), dc (b mod 16)]"
 
@@ -828,6 +845,21 @@ qed
 theorem f_base_declines:
   "f_kernel (F_base tok src dst cs) = FBaseBad tok' src' \<Longrightarrow> digits_val src cs = None"
   by (auto simp: f_kernel_def base_convert_def split: option.splits)
+
+text \<open>The base-conversion decline, stated as character ranges (ASCII codes:
+48..57 are the digits 0..9, 97..102 the letters a..f): the kernel declines
+exactly when some character is neither a digit nor a letter whose value is
+below the source base.\<close>
+
+lemma dv_ok: "(case dv c of Some d \<Rightarrow> d < b | None \<Rightarrow> False) \<longleftrightarrow>
+    (48 \<le> c \<and> c \<le> 57 \<and> c - 48 < b) \<or> (97 \<le> c \<and> c \<le> 102 \<and> c - 87 < b)"
+  by (auto simp: dv_def)
+
+theorem f_base_decline_exact:
+  "f_kernel (F_base tok src dst cs) = FBaseBad tok' src' \<longleftrightarrow>
+     tok' = tok \<and> src' = src \<and>
+     (\<exists>c \<in> set cs. \<not> (48 \<le> c \<and> c \<le> 57 \<and> c - 48 < src) \<and> \<not> (97 \<le> c \<and> c \<le> 102 \<and> c - 87 < src))"
+  by (auto simp: f_kernel_def base_convert_def digits_val_def dv_ok split: option.splits)
 
 theorem f_b64dec_ok:
   "f_kernel (F_b64dec p) = FB64dec p' bs \<Longrightarrow> p' = p \<and> b64_dec p = Some bs \<and> utf8_ok bs"

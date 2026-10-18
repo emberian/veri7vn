@@ -205,7 +205,10 @@ ML \<open>
     @{thm pct_roundtrip}, @{thm sha_pad_blocks}, @{thm days_next_day_in_month},
     @{thm weekday_next_day}, @{thm epoch_is_thursday}, @{thm f_base_sound}, @{thm f_base_declines},
     @{thm f_b64dec_ok}, @{thm f_b64enc_decodes}, @{thm f_url_roundtrip}, @{thm f_day_valid},
-    @{thm f_day_invalid}];
+    @{thm f_day_invalid}, @{thm f_base_decline_exact}, @{thm sha_pad_shape},
+    @{thm mst_cert_minimal}, @{thm mst_cert_spans}, @{thm a_mst_minimal}, @{thm a_mst_disconnected},
+    @{thm reply_of_games}, @{thm reply_of_logic}, @{thm reply_of_algos}, @{thm reply_of_calc},
+    @{thm reply_of_formats}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("discrete theorems use oracles: " ^ string_of_int (length oracles));
 

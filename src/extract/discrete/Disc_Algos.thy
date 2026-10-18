@@ -7,8 +7,10 @@ witness that the kernel checks before it is stated. Shortest path: Dijkstra
 runs untrusted-style, then the result is accepted only with a certificate (a
 feasible potential), which proves optimality of the returned walk. Binary
 search and sorting are proved against their specifications. Kruskal's tree is
-proved to consist of graph edges; its minimality is a runtime check only (see
-the handoff).\<close>
+checked by a certificate before it is stated, and the check passing proves
+the tree is a spanning tree of minimum weight (theorem @{text a_mst_minimal}).
+That Kruskal's tree always passes the check is not proved; a failure would
+withhold.\<close>
 
 type_synonym node = String.literal
 type_synonym edge = "node \<times> node \<times> rat"
@@ -181,6 +183,435 @@ proof -
     using h by (auto simp: mst_kernel_def Let_def split: if_splits)
   have pos: "0 < length (remdups (node_list es))" using ne by simp
   show ?thesis using sub len pos by auto
+qed
+
+section \<open>Minimum spanning tree: an independent minimality certificate\<close>
+
+text \<open>The specification, stated without reference to Kruskal. An edge joins
+its two ends in either direction; a list of edges connects a node list when
+every two of its nodes are joined by a path of those edges; a spanning tree of
+the graph is a list of graph edges, one fewer than the graph's nodes, that
+connects all of the graph's nodes. Weight is @{const wt}, the sum of the edge
+weights.\<close>
+
+definition adj :: "edge list \<Rightarrow> node \<Rightarrow> node \<Rightarrow> bool" where
+  "adj F u v = (\<exists>w. (u, v, w) \<in> set F \<or> (v, u, w) \<in> set F)"
+
+definition connects :: "edge list \<Rightarrow> node list \<Rightarrow> bool" where
+  "connects F V = (\<forall>x \<in> set V. \<forall>y \<in> set V. (adj F)\<^sup>*\<^sup>* x y)"
+
+definition spans :: "edge list \<Rightarrow> edge list \<Rightarrow> bool" where
+  "spans t es = (set t \<subseteq> set es \<and> length t + 1 = length (remdups (node_list es))
+      \<and> connects t (node_list es))"
+
+text \<open>The checker. Labels: every node starts as its own label; joining an
+edge sends every node labelled like its second end to the label of its first
+end (the closure is built with the two end labels evaluated once). For each
+edge weight c of the graph, the number of classes left after joining every
+graph edge of weight at most c is @{text "ncomp c es"}. A tree passes when it
+is made of graph edges, has one edge fewer than the graph's nodes, joins every
+node into one class, and for every weight c has exactly @{text "ncomp c es - 1"}
+edges heavier than c. Any spanning tree has at least that many (each heavier
+edge merges at most two classes), and summing over the weights gives the
+minimality theorem below. Nothing here refers to Kruskal.\<close>
+
+definition lmerge :: "(node \<Rightarrow> node) \<Rightarrow> node \<Rightarrow> node \<Rightarrow> node \<Rightarrow> node" where
+  "lmerge f a b = (let la = f a; lb = f b in (\<lambda>x. let lx = f x in if lx = lb then la else lx))"
+
+fun mergeall :: "(node \<Rightarrow> node) \<Rightarrow> edge list \<Rightarrow> node \<Rightarrow> node" where
+  "mergeall f [] = f"
+| "mergeall f ((a, b, w) # r) = mergeall (lmerge f a b) r"
+
+definition const_on :: "(node \<Rightarrow> node) \<Rightarrow> node list \<Rightarrow> bool" where
+  "const_on f V = (\<forall>y \<in> set V. f y = f (hd V))"
+
+definition low_edges :: "rat \<Rightarrow> edge list \<Rightarrow> edge list" where
+  "low_edges c es = filter (\<lambda>e. snd (snd e) \<le> c) es"
+
+definition ncomp :: "rat \<Rightarrow> edge list \<Rightarrow> nat" where
+  "ncomp c es = length (remdups (map (mergeall id (low_edges c es)) (remdups (node_list es))))"
+
+definition cnt_gt :: "rat \<Rightarrow> edge list \<Rightarrow> nat" where
+  "cnt_gt c F = length (filter (\<lambda>e. c < snd (snd e)) F)"
+
+definition wts :: "edge list \<Rightarrow> rat list" where
+  "wts es = sort (remdups (map (\<lambda>e. snd (snd e)) es))"
+
+definition mst_cert :: "edge list \<Rightarrow> edge list \<Rightarrow> bool" where
+  "mst_cert es t = (set t \<subseteq> set es \<and> length t + 1 = length (remdups (node_list es))
+      \<and> const_on (mergeall id t) (remdups (node_list es))
+      \<and> (\<forall>c \<in> set (wts es). cnt_gt c t + 1 = ncomp c es))"
+
+lemma lmerge_apply: "lmerge f a b x = (if f x = f b then f a else f x)"
+  by (simp add: lmerge_def Let_def)
+
+lemma lmerge_same: "f a = f b \<Longrightarrow> lmerge f a b = f"
+  by (rule ext) (simp add: lmerge_apply)
+
+lemma mergeall_mono: "f x = f y \<Longrightarrow> mergeall f F x = mergeall f F y"
+proof (induction F arbitrary: f)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons e r)
+  obtain a b w where e: "e = (a, b, w)" by (cases e) auto
+  have "lmerge f a b x = lmerge f a b y" using Cons.prems by (simp add: lmerge_apply)
+  then have "mergeall (lmerge f a b) r x = mergeall (lmerge f a b) r y" by (rule Cons.IH)
+  then show ?case using e by simp
+qed
+
+lemma mergeall_joins: "(a, b, w) \<in> set F \<Longrightarrow> mergeall f F a = mergeall f F b"
+proof (induction F arbitrary: f)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons e r)
+  obtain a' b' w' where e: "e = (a', b', w')" by (cases e) auto
+  show ?case
+  proof (cases "e = (a, b, w)")
+    case True
+    have "lmerge f a b a = lmerge f a b b" by (simp add: lmerge_apply)
+    then have "mergeall (lmerge f a b) r a = mergeall (lmerge f a b) r b" by (rule mergeall_mono)
+    then show ?thesis using True by simp
+  next
+    case False
+    then have "(a, b, w) \<in> set r" using Cons.prems by auto
+    then have "mergeall (lmerge f a' b') r a = mergeall (lmerge f a' b') r b" by (rule Cons.IH)
+    then show ?thesis using e by simp
+  qed
+qed
+
+lemma mergeall_connects:
+  assumes "set F \<subseteq> set G" "(adj F)\<^sup>*\<^sup>* x y"
+  shows "mergeall f G x = mergeall f G y"
+  using assms(2)
+proof (induction rule: rtranclp_induct)
+  case base
+  then show ?case by simp
+next
+  case (step u v)
+  obtain w where "(u, v, w) \<in> set F \<or> (v, u, w) \<in> set F" using step.hyps(2) by (auto simp: adj_def)
+  then have uv: "(u, v, w) \<in> set G \<or> (v, u, w) \<in> set G" using assms(1) by auto
+  have "mergeall f G u = mergeall f G v"
+  proof (cases "(u, v, w) \<in> set G")
+    case True
+    then show ?thesis by (rule mergeall_joins)
+  next
+    case False
+    then have "(v, u, w) \<in> set G" using uv by simp
+    then have "mergeall f G v = mergeall f G u" by (rule mergeall_joins)
+    then show ?thesis by simp
+  qed
+  then show ?case using step.IH by simp
+qed
+
+lemma mergeall_reach:
+  assumes "\<forall>x y. f x = f y \<longrightarrow> (adj G)\<^sup>*\<^sup>* x y" "set F \<subseteq> set G"
+  shows "\<forall>x y. mergeall f F x = mergeall f F y \<longrightarrow> (adj G)\<^sup>*\<^sup>* x y"
+  using assms
+proof (induction F arbitrary: f)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons e r)
+  obtain a b w where e: "e = (a, b, w)" by (cases e) auto
+  have abG: "(a, b, w) \<in> set G" using Cons.prems(2) e by simp
+  have ab: "adj G a b" using abG by (auto simp: adj_def)
+  have ba: "adj G b a" using abG by (auto simp: adj_def)
+  have R: "\<And>x y. f x = f y \<Longrightarrow> (adj G)\<^sup>*\<^sup>* x y" using Cons.prems(1) by blast
+  have inv: "\<forall>x y. lmerge f a b x = lmerge f a b y \<longrightarrow> (adj G)\<^sup>*\<^sup>* x y"
+  proof (intro allI impI)
+    fix x y assume h: "lmerge f a b x = lmerge f a b y"
+    consider "f x = f b" "f y = f b" | "f x = f b" "f y \<noteq> f b" | "f x \<noteq> f b" "f y = f b"
+      | "f x \<noteq> f b" "f y \<noteq> f b" by blast
+    then show "(adj G)\<^sup>*\<^sup>* x y"
+    proof cases
+      case 1
+      then have "f x = f y" by simp
+      then show ?thesis by (rule R)
+    next
+      case 2
+      have fa: "f a = f y" using h 2 by (simp add: lmerge_apply)
+      have xb: "(adj G)\<^sup>*\<^sup>* x b" by (rule R) (rule 2(1))
+      have bA: "(adj G)\<^sup>*\<^sup>* b a" by (rule r_into_rtranclp[of "adj G", OF ba])
+      have ay: "(adj G)\<^sup>*\<^sup>* a y" by (rule R) (rule fa)
+      show ?thesis by (rule rtranclp_trans[OF rtranclp_trans[OF xb bA] ay])
+    next
+      case 3
+      have fa: "f x = f a" using h 3 by (simp add: lmerge_apply)
+      have xa: "(adj G)\<^sup>*\<^sup>* x a" by (rule R) (rule fa)
+      have aB: "(adj G)\<^sup>*\<^sup>* a b" by (rule r_into_rtranclp[of "adj G", OF ab])
+      have byy: "(adj G)\<^sup>*\<^sup>* b y" by (rule R) (rule 3(2)[symmetric])
+      show ?thesis by (rule rtranclp_trans[OF rtranclp_trans[OF xa aB] byy])
+    next
+      case 4
+      then have "f x = f y" using h by (simp add: lmerge_apply)
+      then show ?thesis by (rule R)
+    qed
+  qed
+  have sub: "set r \<subseteq> set G" using Cons.prems(2) by simp
+  have "\<forall>x y. mergeall (lmerge f a b) r x = mergeall (lmerge f a b) r y \<longrightarrow> (adj G)\<^sup>*\<^sup>* x y"
+    by (rule Cons.IH[OF inv sub])
+  then show ?case using e by simp
+qed
+
+lemma connects_iff_const: "connects F V \<longleftrightarrow> const_on (mergeall id F) V"
+proof
+  assume c: "connects F V"
+  show "const_on (mergeall id F) V" unfolding const_on_def
+  proof
+    fix y assume y: "y \<in> set V"
+    then have "V \<noteq> []" by auto
+    then have "hd V \<in> set V" by (rule hd_in_set)
+    then have "(adj F)\<^sup>*\<^sup>* y (hd V)" using c y by (auto simp: connects_def)
+    then show "mergeall id F y = mergeall id F (hd V)" by (rule mergeall_connects[OF subset_refl])
+  qed
+next
+  assume k: "const_on (mergeall id F) V"
+  have inv: "\<forall>x y. id x = id y \<longrightarrow> (adj F)\<^sup>*\<^sup>* x y" by simp
+  have r: "\<forall>x y. mergeall id F x = mergeall id F y \<longrightarrow> (adj F)\<^sup>*\<^sup>* x y"
+    by (rule mergeall_reach[OF inv subset_refl])
+  show "connects F V" unfolding connects_def
+  proof (intro ballI)
+    fix x y assume "x \<in> set V" "y \<in> set V"
+    then have "mergeall id F x = mergeall id F y" using k by (auto simp: const_on_def)
+    then show "(adj F)\<^sup>*\<^sup>* x y" using r by blast
+  qed
+qed
+
+lemma connected_iff: "const_on (mergeall id es) (remdups (node_list es)) \<longleftrightarrow> connects es (node_list es)"
+  by (simp add: connects_iff_const[symmetric] connects_def)
+
+lemma card_lmerge:
+  assumes "finite S"
+  shows "card (f ` S) \<le> card (lmerge f a b ` S) + 1"
+proof -
+  define g where "g = (\<lambda>y. if y = f b then f a else y)"
+  have "lmerge f a b = g \<circ> f" by (rule ext) (simp add: lmerge_apply g_def)
+  then have img: "lmerge f a b ` S = g ` (f ` S)" by (simp add: image_comp)
+  have fin: "finite (f ` S)" using assms by simp
+  have inj: "inj_on g (f ` S - {f b})" by (auto simp: inj_on_def g_def)
+  have "card (f ` S) \<le> card (insert (f b) (f ` S - {f b}))" using fin by (intro card_mono) auto
+  also have "\<dots> \<le> card (f ` S - {f b}) + 1" using fin by (subst card_insert_disjoint) auto
+  also have "\<dots> = card (g ` (f ` S - {f b})) + 1" using inj by (simp add: card_image)
+  also have "\<dots> \<le> card (g ` (f ` S)) + 1" using fin by (intro add_right_mono card_mono) auto
+  finally have "card (f ` S) \<le> card (g ` (f ` S)) + 1" .
+  then show ?thesis using img by simp
+qed
+
+lemma mergeall_count:
+  assumes "finite S" "set F \<subseteq> set es"
+      "\<forall>e \<in> set es. snd (snd e) \<le> c \<longrightarrow> f (fst e) = f (fst (snd e))"
+  shows "card (f ` S) \<le> card (mergeall f F ` S) + cnt_gt c F"
+  using assms(2,3)
+proof (induction F arbitrary: f)
+  case Nil
+  then show ?case by (simp add: cnt_gt_def)
+next
+  case (Cons e r)
+  obtain a b w where e: "e = (a, b, w)" by (cases e) auto
+  have sub: "set r \<subseteq> set es" using Cons.prems(1) by simp
+  have inv: "\<forall>e \<in> set es. snd (snd e) \<le> c \<longrightarrow> lmerge f a b (fst e) = lmerge f a b (fst (snd e))"
+    using Cons.prems(2) by (auto simp: lmerge_apply)
+  have ih: "card (lmerge f a b ` S) \<le> card (mergeall (lmerge f a b) r ` S) + cnt_gt c r"
+    by (rule Cons.IH[OF sub inv])
+  have m: "mergeall f (e # r) = mergeall (lmerge f a b) r" using e by simp
+  show ?case
+  proof (cases "w \<le> c")
+    case True
+    have "(a, b, w) \<in> set es" using Cons.prems(1) e by simp
+    then have "f a = f b" using Cons.prems(2) True by fastforce
+    then have lm: "lmerge f a b = f" by (rule lmerge_same)
+    have nc: "\<not> c < w" using True by (simp add: not_less)
+    have cn: "cnt_gt c (e # r) = cnt_gt c r" using e nc by (simp add: cnt_gt_def)
+    show ?thesis using ih unfolding m cn lm by simp
+  next
+    case False
+    have lt: "c < w" using False by (simp add: not_le)
+    have cn: "cnt_gt c (e # r) = cnt_gt c r + 1" using e lt by (simp add: cnt_gt_def)
+    have cl: "card (f ` S) \<le> card (lmerge f a b ` S) + 1" by (rule card_lmerge[OF assms(1)])
+    show ?thesis unfolding m cn using cl ih by linarith
+  qed
+qed
+
+lemma low_joined:
+  assumes "e \<in> set es" "snd (snd e) \<le> c"
+  shows "mergeall id (low_edges c es) (fst e) = mergeall id (low_edges c es) (fst (snd e))"
+proof -
+  obtain a b w where e: "e = (a, b, w)" by (cases e) auto
+  have "(a, b, w) \<in> set (low_edges c es)" using assms e by (simp add: low_edges_def)
+  then have "mergeall id (low_edges c es) a = mergeall id (low_edges c es) b" by (rule mergeall_joins)
+  then show ?thesis using e by simp
+qed
+
+lemma spans_lower:
+  assumes "spans t' es"
+  shows "ncomp c es \<le> cnt_gt c t' + 1"
+proof -
+  let ?S = "set (node_list es)"
+  let ?f = "mergeall id (low_edges c es)"
+  have sub: "set t' \<subseteq> set es" and con: "connects t' (node_list es)"
+    and len: "length t' + 1 = length (remdups (node_list es))"
+    using assms by (auto simp: spans_def)
+  have inv: "\<forall>e \<in> set es. snd (snd e) \<le> c \<longrightarrow> ?f (fst e) = ?f (fst (snd e))"
+    using low_joined by blast
+  have cnt: "card (?f ` ?S) \<le> card (mergeall ?f t' ` ?S) + cnt_gt c t'"
+    by (rule mergeall_count[OF finite_set sub inv])
+  have ne: "node_list es \<noteq> []" using len by auto
+  have h: "hd (node_list es) \<in> ?S" using ne by (rule hd_in_set)
+  have "\<forall>y \<in> ?S. mergeall ?f t' y = mergeall ?f t' (hd (node_list es))"
+  proof
+    fix y assume y: "y \<in> ?S"
+    have "(adj t')\<^sup>*\<^sup>* y (hd (node_list es))" using con y h by (auto simp: connects_def)
+    then show "mergeall ?f t' y = mergeall ?f t' (hd (node_list es))"
+      by (rule mergeall_connects[OF subset_refl])
+  qed
+  then have "mergeall ?f t' ` ?S \<subseteq> {mergeall ?f t' (hd (node_list es))}" by auto
+  then have "card (mergeall ?f t' ` ?S) \<le> card {mergeall ?f t' (hd (node_list es))}"
+    by (intro card_mono) auto
+  then have one: "card (mergeall ?f t' ` ?S) \<le> 1" by simp
+  have "ncomp c es = card (?f ` ?S)" by (simp add: ncomp_def length_remdups_card_conv)
+  then show ?thesis using cnt one by linarith
+qed
+
+fun tele :: "rat list \<Rightarrow> rat \<Rightarrow> rat" where
+  "tele (c # d # r) w = (if c < w then d - c else 0) + tele (d # r) w"
+| "tele _ w = 0"
+
+fun tsum :: "rat list \<Rightarrow> edge list \<Rightarrow> rat" where
+  "tsum (c # d # r) F = (d - c) * of_nat (cnt_gt c F) + tsum (d # r) F"
+| "tsum _ F = 0"
+
+lemma tele_low: "sorted_wrt (<) (c # r) \<Longrightarrow> w \<le> c \<Longrightarrow> tele (c # r) w = 0"
+proof (induction r arbitrary: c)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons d r)
+  have cd: "c < d" using Cons.prems(1) by simp
+  have wd: "w \<le> d" using cd Cons.prems(2) by linarith
+  have sd: "sorted_wrt (<) (d # r)" using Cons.prems(1) by simp
+  have t: "tele (d # r) w = 0" by (rule Cons.IH[OF sd wd])
+  have nc: "\<not> c < w" using Cons.prems(2) by (simp add: not_less)
+  show ?case using t nc by simp
+qed
+
+lemma tele_val: "sorted_wrt (<) (c # r) \<Longrightarrow> w \<in> set (c # r) \<Longrightarrow> c + tele (c # r) w = w"
+proof (induction r arbitrary: c)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons d r)
+  have cd: "c < d" and sd: "sorted_wrt (<) (d # r)" using Cons.prems(1) by auto
+  show ?case
+  proof (cases "w = c")
+    case True
+    have wd: "w \<le> d" using cd True by linarith
+    have "tele (d # r) w = 0" by (rule tele_low[OF sd wd])
+    then show ?thesis using True by simp
+  next
+    case False
+    then have wr: "w \<in> set (d # r)" using Cons.prems(2) by simp
+    have cw: "c < w" using Cons.prems(1) wr by auto
+    have ih: "d + tele (d # r) w = w" by (rule Cons.IH[OF sd wr])
+    have "tele (c # d # r) w = (d - c) + tele (d # r) w" using cw by simp
+    then show ?thesis using ih by linarith
+  qed
+qed
+
+lemma tsum_nil: "tsum (c # r) [] = 0"
+  by (induction r arbitrary: c) (simp_all add: cnt_gt_def)
+
+lemma tsum_cons: "tsum (c # r) (e # F) = tele (c # r) (snd (snd e)) + tsum (c # r) F"
+proof (induction r arbitrary: c)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons d r)
+  show ?case by (cases "c < snd (snd e)") (simp_all add: Cons.IH cnt_gt_def algebra_simps)
+qed
+
+lemma wt_layer:
+  assumes "sorted_wrt (<) (c # r)" "\<forall>e \<in> set F. snd (snd e) \<in> set (c # r)"
+  shows "wt F = c * of_nat (length F) + tsum (c # r) F"
+  using assms(2)
+proof (induction F)
+  case Nil
+  then show ?case by (simp add: tsum_nil)
+next
+  case (Cons e F)
+  obtain a b w where e: "e = (a, b, w)" by (cases e) auto
+  have w: "w \<in> set (c # r)" using Cons.prems e by simp
+  have ih: "wt F = c * of_nat (length F) + tsum (c # r) F" using Cons.prems by (intro Cons.IH) simp
+  have tv: "c + tele (c # r) w = w" by (rule tele_val[OF assms(1) w])
+  have A: "wt (e # F) = w + wt F" using e by simp
+  have B: "tsum (c # r) (e # F) = tele (c # r) w + tsum (c # r) F" using e tsum_cons[of c r e F] by simp
+  have C: "c * of_nat (length (e # F)) = c + c * of_nat (length F)" by (simp add: algebra_simps)
+  show ?case unfolding A B C ih using tv by linarith
+qed
+
+lemma tsum_mono:
+  "sorted_wrt (<) (c # r) \<Longrightarrow> (\<forall>x \<in> set (c # r). cnt_gt x t \<le> cnt_gt x t') \<Longrightarrow>
+     tsum (c # r) t \<le> tsum (c # r) t'"
+proof (induction r arbitrary: c)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons d r)
+  have cd: "c < d" and sd: "sorted_wrt (<) (d # r)" using Cons.prems(1) by auto
+  have le: "cnt_gt c t \<le> cnt_gt c t'" using Cons.prems(2) by simp
+  have all: "\<forall>x \<in> set (d # r). cnt_gt x t \<le> cnt_gt x t'" using Cons.prems(2) by simp
+  have ih: "tsum (d # r) t \<le> tsum (d # r) t'" by (rule Cons.IH[OF sd all])
+  have dc: "0 \<le> d - c" using cd by linarith
+  have m: "(d - c) * of_nat (cnt_gt c t) \<le> (d - c) * of_nat (cnt_gt c t')"
+    using le dc by (intro mult_left_mono) simp_all
+  show ?case using add_mono[OF m ih] by simp
+qed
+
+lemma wts_sorted: "sorted_wrt (<) (wts es)"
+  by (simp add: wts_def strict_sorted_iff)
+
+lemma wts_set: "set (wts es) = (\<lambda>e. snd (snd e)) ` set es"
+  by (simp add: wts_def)
+
+theorem mst_cert_minimal:
+  assumes c: "mst_cert es t" and s: "spans t' es"
+  shows "wt t \<le> wt t'"
+proof -
+  have sub: "set t \<subseteq> set es" and len: "length t + 1 = length (remdups (node_list es))"
+    and cn: "\<forall>x \<in> set (wts es). cnt_gt x t + 1 = ncomp x es"
+    using c by (auto simp: mst_cert_def)
+  have sub': "set t' \<subseteq> set es" and len': "length t' + 1 = length (remdups (node_list es))"
+    using s by (auto simp: spans_def)
+  have "es \<noteq> []" using len by (auto simp: node_list_def)
+  then have "wts es \<noteq> []" using wts_set[of es] by auto
+  then obtain c0 r where cs: "wts es = c0 # r" by (cases "wts es") auto
+  have srt: "sorted_wrt (<) (c0 # r)" using wts_sorted[of es] cs by simp
+  have ws: "set (c0 # r) = (\<lambda>e. snd (snd e)) ` set es" using wts_set[of es] cs by simp
+  have inT: "\<forall>e \<in> set t. snd (snd e) \<in> set (c0 # r)" unfolding ws using sub by auto
+  have inT': "\<forall>e \<in> set t'. snd (snd e) \<in> set (c0 # r)" unfolding ws using sub' by auto
+  have mono: "\<forall>x \<in> set (c0 # r). cnt_gt x t \<le> cnt_gt x t'"
+  proof
+    fix x assume "x \<in> set (c0 # r)"
+    then have "x \<in> set (wts es)" using cs by simp
+    then have "cnt_gt x t + 1 = ncomp x es" using cn by blast
+    moreover have "ncomp x es \<le> cnt_gt x t' + 1" by (rule spans_lower[OF s])
+    ultimately show "cnt_gt x t \<le> cnt_gt x t'" by linarith
+  qed
+  have "wt t = c0 * of_nat (length t) + tsum (c0 # r) t" by (rule wt_layer[OF srt inT])
+  moreover have "wt t' = c0 * of_nat (length t') + tsum (c0 # r) t'" by (rule wt_layer[OF srt inT'])
+  moreover have "length t = length t'" using len len' by simp
+  moreover have "tsum (c0 # r) t \<le> tsum (c0 # r) t'" by (rule tsum_mono[OF srt mono])
+  ultimately show ?thesis by simp
+qed
+
+theorem mst_cert_spans: "mst_cert es t \<Longrightarrow> spans t es"
+proof -
+  assume c: "mst_cert es t"
+  have "const_on (mergeall id t) (remdups (node_list es))" using c by (simp add: mst_cert_def)
+  then have "connects t (remdups (node_list es))" by (simp add: connects_iff_const)
+  then have "connects t (node_list es)" by (simp add: connects_def)
+  then show "spans t es" using c by (simp add: mst_cert_def spans_def)
 qed
 
 section \<open>Binary search\<close>
@@ -376,7 +807,11 @@ definition a_kernel :: "areq \<Rightarrow> aout" where
                    | SP_unreach \<Rightarrow> AUnreach s e
                    | SP_imprecise \<Rightarrow> AImprecise)))
    | A_sp_need \<Rightarrow> ANeed 0
-   | A_mst es \<Rightarrow> (case mst_kernel es of Some t \<Rightarrow> AMst t | None \<Rightarrow> ADisconnected)
+   | A_mst es \<Rightarrow>
+       (if es = [] \<or> \<not> const_on (mergeall id es) (remdups (node_list es)) then ADisconnected
+        else (case mst_kernel es of
+                Some t \<Rightarrow> if mst_cert es t then AMst t else AImprecise
+              | None \<Rightarrow> AImprecise))
    | A_mst_need \<Rightarrow> ANeed 1
    | A_bsearch xs x \<Rightarrow>
        (if \<not> sorted xs then AUnsorted
@@ -401,9 +836,21 @@ theorem a_nonode:
   "a_kernel (A_sp es n s e) = ANoNode x \<Longrightarrow> x \<notin> set (node_list es)"
   unfolding a_kernel_def by (auto split: if_splits prod.splits spres.splits)
 
+theorem a_mst_minimal:
+  assumes "a_kernel (A_mst es) = AMst t"
+  shows "spans t es \<and> (\<forall>t'. spans t' es \<longrightarrow> wt t \<le> wt t')"
+proof -
+  have "mst_cert es t" using assms unfolding a_kernel_def by (auto split: if_splits option.splits)
+  then show ?thesis using mst_cert_spans mst_cert_minimal by blast
+qed
+
+theorem a_mst_disconnected:
+  "a_kernel (A_mst es) = ADisconnected \<longleftrightarrow> es = [] \<or> \<not> connects es (node_list es)"
+  unfolding a_kernel_def connected_iff by (auto split: if_splits option.splits)
+
 theorem a_mst_sound:
   "a_kernel (A_mst es) = AMst t \<Longrightarrow> set t \<subseteq> set es"
-  unfolding a_kernel_def using mst_edges by (auto split: option.splits)
+  using a_mst_minimal[of es t] by (simp add: spans_def)
 
 theorem a_bsearch_found:
   "a_kernel (A_bsearch xs x) = ABs i p \<Longrightarrow> sorted xs \<and> i < length xs \<and> xs ! i = x"

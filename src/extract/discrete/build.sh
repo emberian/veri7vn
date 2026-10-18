@@ -18,6 +18,14 @@ OUT=$REPO/var/discrete
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
+# The generated SML comes from the remote build (tools/dev/remote-build, which
+# pulls it to var/discrete/export-remote/) when that export exists, otherwise
+# from the local session database. DISCRETE_EXPORT=local forces the local one.
+REMOTE_GEN=$(find "$OUT/export-remote/Veri7vn_Discrete" -type f -name 'discrete*' 2>/dev/null | head -n 1 || true)
+if [ "${DISCRETE_EXPORT:-auto}" != local ] && [ -n "$REMOTE_GEN" ]; then
+  echo "using remote export $REMOTE_GEN"
+  cp "$REMOTE_GEN" "$OUT/build/discrete_generated.sml"
+else
 rm -rf "$OUT/export"
 REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
 import fcntl, os, subprocess
@@ -32,6 +40,7 @@ EOF
 GEN=$(find "$OUT/export" -type f -name 'discrete*' | head -n 1)
 [ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
 cp "$GEN" "$OUT/build/discrete_generated.sml"
+fi
 
 cat > "$OUT/build/discrete.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
