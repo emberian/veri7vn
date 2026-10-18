@@ -83,6 +83,11 @@ class NativeCompileTests(unittest.TestCase):
         self.mlb.write_text(self.mlb.read_text().replace(str(self.runtime),str(snapshot)))
         r=self.compile();self.assertEqual(r['canonical_source_map'][str(snapshot.resolve())],'src/extract/tiny/main.sml')
 
+    def test_tools_wrapper_is_in_canonical_runtime_closure(self):
+        wrapper=self.repo/'tools/document/main.sml';wrapper.parent.mkdir(parents=True);wrapper.write_bytes(self.runtime.read_bytes())
+        self.mlb.write_text(self.mlb.read_text().replace(str(self.runtime),str(wrapper)))
+        r=self.compile();self.assertEqual(r['source_sha256']['tools/document/main.sml'],n.sha(wrapper))
+
     def test_unrelated_nested_session_does_not_stale_parent(self):
         nested=self.src/'other';nested.mkdir();(nested/'ROOT').write_text('session Veri7vn_Other = HOL +\n theories Other\n');(nested/'Other.thy').write_text('new')
         self.assertTrue(self.compile()['compile_ok'])

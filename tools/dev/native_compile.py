@@ -113,6 +113,7 @@ def select_receipt(repo, family, session, inputs, explicit=None):
 
 
 def compile_native(repo, family, session, compiler, arguments, explicit=None, timeout=1200):
+    repo = repo.resolve()
     if not re.fullmatch(r'[a-z0-9_-]+', family):
         raise ValueError('invalid family')
     if arguments.count('-output') != 1 or not arguments or not arguments[-1].endswith('.mlb'):
@@ -155,10 +156,13 @@ def compile_native(repo, family, session, compiler, arguments, explicit=None, ti
         shutil.copyfile(mlb, attempt/'original.mlb')
         canonical = {}
         for p in before:
-            if p != mlb and p != generated[0] and 'src' in p.parts:
+            if p == mlb or p == generated[0]:
+                continue
+            if p.is_relative_to(repo) and p.relative_to(repo).parts[0] != 'var':
+                canonical[str(p)] = str(p.relative_to(repo))
+            elif 'src' in p.parts:
                 # Some existing family recipes already stage under var/.../src.
-                canonical[str(p)] = (str(p.relative_to(repo)) if p.is_relative_to(repo/'src')
-                                     else str(Path(*p.parts[p.parts.index('src'):])))
+                canonical[str(p)] = str(Path(*p.parts[p.parts.index('src'):]))
         source_sha256 = {}
         for original, name in canonical.items():
             if name in source_sha256 and source_sha256[name] != before[Path(original)]:
