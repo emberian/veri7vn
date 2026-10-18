@@ -9,13 +9,27 @@ panels and probes do not inflate specialist counts. Run it from the repository:
 python3 tools/dev/specialist-coverage.py --format json
 python3 tools/dev/specialist-coverage.py --format markdown
 python3 tools/dev/specialist-coverage.py --json-out var/coverage/inventory.json \
-  --markdown-out var/coverage/inventory.md
+  --markdown-out var/coverage/inventory.md \
+  --backlog-out var/coverage/semantic-audit-backlog.json
 ```
 
 The default includes offline validation of the selected compile-input receipt
 for each family. `--no-receipts` skips those reads. The command never runs a
 scorer or a specialist binary. It exits nonzero when registry and upstream
-specialist identity sets fail to reconcile.
+specialist identity sets fail to reconcile. With any output-file option it
+prints only concise counts and destination paths; without output-file options,
+the selected `--format` is written to stdout.
+
+The full JSON inventory includes `semantic_audit_backlog`; `--backlog-out`
+writes that view separately. It lists IDs without an explicit exact-ID
+semantic/gap reference in the searched reports, their family and current owner
+group, any other missing text-cue references, and any existing cited text rows.
+Family owners follow the current deputy areas in
+`project/CODEX-2026-10-18.md`; relation readers map to symbolic. This is a set of
+retrieval leads, not a completed semantic audit or a claim that no work exists.
+The current generated snapshot is in `var/coverage/semantic-audit-backlog.json`:
+24 IDs, grouped under 9 physical and 15 symbolic owner leads, with no unmapped
+families.
 
 ## Inventory at 2026-10-18
 
@@ -26,7 +40,7 @@ reconciliation reports no issues.
 
 | Surface | IDs | Panel and verdict files present | Semantic ledger/report reference | Counterexample text | Change text | Same-line measured delta text | Limitation text |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Non-relation specialists | 144 | 129 | 133 | 40 | 81 | 0 | 96 |
+| Non-relation specialists | 144 | 129 | 134 | 40 | 82 | 0 | 98 |
 | Relation readers | 161 | 161 | 147 | 0 | 1 | 0 | 0 |
 
 For the 144 non-relation specialists, 14 more have a readable panel but are
@@ -37,10 +51,10 @@ upstream-generated panel source files for 105 IDs; that is source availability,
 not evidence that those versions are current.
 
 The semantic column counts exact-ID references in every Markdown lane report,
-regardless of wave letter, and in `semantic-gaps.md` ledgers. Eleven
+regardless of wave letter, and in `semantic-gaps.md` ledgers. Ten
 non-relation IDs have no such reference: `bodies-v2`, `calculus`,
-`densities-r2`, `games-v3`, `mechanisms`, `mechanisms-v2`, `physics-r2`,
-`physics-r3`, `units-v2`, `units-v3`, and `units-v3-r2`. Fourteen relation-reader IDs also have no
+`densities-r2`, `mechanisms`, `mechanisms-v2`, `physics-r2`, `physics-r3`,
+`units-v2`, `units-v3`, and `units-v3-r2`. Fourteen relation-reader IDs also have no
 reference: `rel-actors`, `rel-chemists`, `rel-composers`, `rel-graphicartists`,
 `rel-journalists`, `rel-musicians`, `rel-painters`, `rel-philosophers`,
 `rel-photographers`, `rel-physicians`, `rel-physicists`, `rel-poets`,
@@ -54,7 +68,7 @@ the same line is deliberately left unattributed. These are missing explicit
 references in the searched files, not claims that the specialists lack
 coverage or improvement evidence.
 
-The offline receipt check found **12 `current_verified` family receipts**, **9
+The offline receipt check found **15 `current_verified` family receipts**, **6
 `verified_source_drift` receipts**, and **1 receipt with both binary mismatch
 and source drift**, including the shared relations kernel. A `current_verified`
 receipt passes immutable input checks, its registered binary matches the

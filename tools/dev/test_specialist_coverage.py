@@ -3,10 +3,13 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import io
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 
 MODULE_PATH = Path(__file__).with_name("specialist-coverage.py")
@@ -203,6 +206,37 @@ class CoverageInventoryTests(unittest.TestCase):
             self.repo, "demo", "var/demo/bin/decide", verifier)
         self.assertEqual(dirty_next["status"], "verified_source_drift")
         self.assertEqual(dirty_next["current_source_differences"]["runtime"], ["src/next.sml"])
+
+    def test_backlog_owner_mapping_and_cli_output_modes(self):
+        report = self.build()
+        backlog = report["semantic_audit_backlog"]
+        quiet = next(item for item in backlog["items"] if item["id"] == "rel-quiet")
+        self.assertEqual(quiet["owner_group"], "symbolic")
+        self.assertIn("semantic_audit_or_gap_reference", quiet["missing_evidence_references"])
+        self.assertIn("rel-quiet", {item["id"] for item in backlog["items"]})
+
+        inventory_path = self.repo / "out/inventory.json"
+        backlog_path = self.repo / "out/backlog.json"
+        output = io.StringIO()
+        args = ["specialist-coverage.py", "--repo", str(self.repo), "--upstream", str(self.upstream),
+                "--registry", str(self.registry_path), "--lanes", str(self.lanes), "--no-receipts",
+                "--json-out", str(inventory_path), "--backlog-out", str(backlog_path)]
+        with patch("sys.argv", args), redirect_stdout(output):
+            self.assertEqual(coverage.main(), 0)
+        rendered = output.getvalue()
+        self.assertIn("wrote", rendered)
+        self.assertIn(str(backlog_path), rendered)
+        self.assertLess(len(rendered), 500)
+        self.assertEqual(json.loads(backlog_path.read_text())["summary"]["id_count"],
+                         len(backlog["items"]))
+
+        output = io.StringIO()
+        args = ["specialist-coverage.py", "--repo", str(self.repo), "--upstream", str(self.upstream),
+                "--registry", str(self.registry_path), "--lanes", str(self.lanes), "--no-receipts",
+                "--format", "json"]
+        with patch("sys.argv", args), redirect_stdout(output):
+            self.assertEqual(coverage.main(), 0)
+        self.assertTrue(output.getvalue().startswith("{\n"))
 
 
 if __name__ == "__main__":

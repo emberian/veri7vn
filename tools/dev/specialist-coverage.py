@@ -28,6 +28,19 @@ DELTA_RE = re.compile(r"(?:\bfrom\b.{0,60}\bto\b|\b(?:before|after)\b|→|\bimpr
 MEASURE_RE = re.compile(r"\b(?:shipped|heldout|dev|seed|probes?|cases?)\b.{0,50}\b\d+\s*/\s*\d+|\b\d+\s*/\s*\d+.{0,50}\b(?:shipped|heldout|dev|seed|probes?|cases?)\b", re.I)
 SEMANTIC_RE = re.compile(r"semantic|counterexample|examined|frontier|known next|gap|remaining|limit|model boundary", re.I)
 
+# Mirrors the current deputy-family areas in project/CODEX-2026-10-18.md.
+OWNER_BY_FAMILY = {
+    "acoustics": "physical", "emoptics": "physical", "energy": "physical",
+    "geostats": "physical", "mechanics": "physical", "quantity": "physical",
+    "space": "physical", "variants": "physical",
+    "anatomyagri": "natural", "chemistry": "natural", "climate": "natural",
+    "earth": "natural", "finance": "natural", "life": "natural",
+    "materials": "natural", "trades": "natural",
+    "computing": "symbolic", "discrete": "symbolic", "facts": "symbolic",
+    "humanities": "symbolic", "stores": "symbolic",
+}
+OWNER_MAPPING_SOURCE = "project/CODEX-2026-10-18.md#Ownership for the next wave"
+
 
 def sha256(path: Path) -> str:
     h = hashlib.sha256()
@@ -212,6 +225,39 @@ def receipt_association(repo: Path, family: str, binary_rel: str, verifier) -> d
     }
 
 
+def semantic_audit_backlog(records: list[dict]) -> dict:
+    """Return ID-level leads where no exact-ID semantic/gap reference was found."""
+    items = []
+    for record in records:
+        evidence = record["semantic_evidence"]
+        if evidence["semantic_reference"] != "unknown":
+            continue
+        missing = ["semantic_audit_or_gap_reference"]
+        cue_fields = ("counterexample_text", "reported_change_text", "measured_delta_text", "limitation_text")
+        missing.extend(field for field in cue_fields if evidence[field] == "unknown")
+        items.append({
+            "id": record["id"],
+            "kind": record["kind"],
+            "family": record["family"],
+            "owner_group": record["owner_group"],
+            "missing_evidence_references": missing,
+            "existing_text_cues": {field: evidence[field] for field in cue_fields
+                                    if evidence[field] == "found"},
+            "source_records": evidence["records"],
+        })
+    by_owner = {}
+    for item in items:
+        owner = item["owner_group"]
+        by_owner[owner] = by_owner.get(owner, 0) + 1
+    return {
+        "format": "veri7vn.semantic-audit-backlog/1",
+        "interpretation": "retrieval leads with no exact-ID semantic/gap reference in searched lane reports or ledgers; not a completed audit and not proof that no work exists",
+        "owner_mapping_source": OWNER_MAPPING_SOURCE,
+        "summary": {"id_count": len(items), "by_owner_group": by_owner},
+        "items": items,
+    }
+
+
 def build_report(repo: Path = REPO, upstream: Path | None = None, registry_path: Path | None = None,
                  lane_root: Path | None = None, include_receipts: bool = True) -> dict:
     repo = repo.resolve(strict=True)
@@ -310,6 +356,7 @@ def build_report(repo: Path = REPO, upstream: Path | None = None, registry_path:
             "id": sid,
             "kind": "relation_reader" if is_relation else "specialist",
             "family": family,
+            "owner_group": "symbolic" if is_relation else OWNER_BY_FAMILY.get(family, "unmapped"),
             "upstream_manifest": str((folder / "manifest.json").relative_to(upstream)),
             "shipped_baseline": baseline,
             "upstream_generator_source_available": bool(generator_files),
@@ -357,7 +404,7 @@ def build_report(repo: Path = REPO, upstream: Path | None = None, registry_path:
         "interpretation": {
             "identity": "one record per upstream specialist manifest id; repeated panel or probe runs are not added together",
             "baseline": "file availability and shipped panel split sizes only; no scorer is executed and counts are not a veri7vn result",
-            "semantic": "exact-id text references in C-H lane reports and semantic-gap ledgers; evidence tags are retrieval cues, not proof of correctness or exhaustive audits",
+            "semantic": "exact-id text references in all Markdown lane reports except this generated report and in semantic-gap ledgers; evidence tags are retrieval cues, not proof of correctness or exhaustive audits",
             "capabilities": "declarations from capabilities.json or upstream relation manifests; declarations are not executed evidence",
             "receipts": "family-level immutable input/binary association; current_verified means valid receipt, registered binary, and current sources all match; mismatch statuses name binary and/or source drift separately; proof snapshot context is reported independently",
         },
@@ -373,6 +420,7 @@ def build_report(repo: Path = REPO, upstream: Path | None = None, registry_path:
             "family_receipts": family_receipts,
         },
         "specialists": records,
+        "semantic_audit_backlog": semantic_audit_backlog(records),
     }
 
 
@@ -403,8 +451,8 @@ def markdown(report: dict) -> str:
                   "`reference_found` means matching specialist-ID text appears in a semantic/gap section or ledger; it does not mean the audit is complete. "
                   "`found` values for change, counterexample, delta, and limits are text cues with file/line citations, not independently reviewed classifications.",
                   "",
-                  "| ID | Family | Baseline files | Semantic ref | Counterexample | Change | Delta | Limits | Receipt association |",
-                  "|---|---|---|---|---|---|---|---|---|"])
+                  "| ID | Family | Owner group | Baseline files | Semantic ref | Counterexample | Change | Delta | Limits | Receipt association |",
+                  "|---|---|---|---|---|---|---|---|---|---|"])
     for item in report["specialists"]:
         baseline = item["shipped_baseline"]
         panel = baseline.get("status", "unknown")
@@ -412,7 +460,7 @@ def markdown(report: dict) -> str:
             panel += f" ({baseline['dev_items']} dev / {baseline['heldout_items']} heldout)"
         ev = item["semantic_evidence"]
         receipt = item["receipt_association"].get("status", "not_checked")
-        lines.append(f"| `{item['id']}` | {item.get('family') or 'unmapped'} | {panel} | "
+        lines.append(f"| `{item['id']}` | {item.get('family') or 'unmapped'} | {item['owner_group']} | {panel} | "
                   f"{ev['semantic_reference']} | {ev['counterexample_text']} | {ev['reported_change_text']} | "
                   f"{ev['measured_delta_text']} | {ev['limitation_text']} | {receipt} |")
     lines.extend(["", "## Receipt association by family", ""])
@@ -445,6 +493,8 @@ def main() -> int:
     parser.add_argument("--format", choices=("json", "markdown"), default="json")
     parser.add_argument("--json-out", type=Path, help="write machine-readable inventory to this file")
     parser.add_argument("--markdown-out", type=Path, help="also write concise Markdown inventory to this file")
+    parser.add_argument("--backlog-out", type=Path,
+                        help="write ID-level semantic-reference backlog as a separate JSON file")
     args = parser.parse_args()
     repo = args.repo.resolve(strict=True)
     upstream = (args.upstream or repo / "upstream").resolve(strict=True)
@@ -459,7 +509,20 @@ def main() -> int:
     if args.markdown_out:
         args.markdown_out.parent.mkdir(parents=True, exist_ok=True)
         args.markdown_out.write_text(markdown(report), encoding="utf-8")
-    sys.stdout.write(rendered)
+    if args.backlog_out:
+        args.backlog_out.parent.mkdir(parents=True, exist_ok=True)
+        args.backlog_out.write_text(json.dumps(report["semantic_audit_backlog"], ensure_ascii=False,
+                                               indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    output_paths = [path for path in (args.json_out, args.markdown_out, args.backlog_out) if path]
+    if output_paths:
+        identity = report["summary"]["identity_reconciliation"]
+        backlog_count = report["semantic_audit_backlog"]["summary"]["id_count"]
+        destinations = ", ".join(str(path) for path in output_paths)
+        status = "; identity issues: " + "; ".join(identity["issues"]) if identity["issues"] else ""
+        sys.stdout.write(f"Inventory: {report['summary']['total_unique_ids']} IDs; "
+                         f"semantic-reference backlog: {backlog_count} IDs; wrote {destinations}{status}\n")
+    else:
+        sys.stdout.write(rendered)
     return 1 if report["summary"]["identity_reconciliation"]["issues"] else 0
 
 
