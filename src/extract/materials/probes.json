@@ -584,6 +584,162 @@
       "source": "Contradictory concentration role with second unit; shared whole-unit attachment regression."
     },
     {
+      "specialist": "additive-v2",
+      "q": "Scale a 10 cm length by 2 in every dimension. What is the new length?",
+      "valid": true,
+      "expect": 20,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 5 mm width by 1/2 in every dimension. What is the new width?",
+      "valid": true,
+      "expect": 2.5,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 2 m height by 1e1 in every dimension. What is the new height?",
+      "valid": true,
+      "expect": 20,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 100 g part by .5 times in every dimension. How much will it weigh?",
+      "valid": true,
+      "expect": 12.5,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a -100 g part by 2 times in every dimension. How much will it weigh?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 10 cm2 area by 2 in every dimension. What is the new area?",
+      "valid": true,
+      "expect": 40,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 10 cm3 volume by 2 in every dimension. What is the new volume?",
+      "valid": true,
+      "expect": 80,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 100 g part to 50% in every dimension. How much will it weigh?",
+      "valid": true,
+      "expect": 12.5,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 10 cm length by -2 in every dimension. What is the new length?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 10 cm length by 0 in every dimension. What is the new length?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 0 cm length by 2 in every dimension. What is the new length?",
+      "valid": true,
+      "expect": 0,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 10 cm length by 2 inches in every dimension. What is the new length?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 10 cm length by 1.2.3 in every dimension. What is the new length?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 10 cm and 20 cm length by 2 in every dimension. What is the new length?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 100 g part by 2 in every dimension. What is the new area?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 100 g part by 2 in every dimension. What is the new volume?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 10 cm length by 2 in every dimension. What is the new length and area?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a part by 2 in every dimension. What is the new length?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a part by 2 in every dimension. What factor changes its length?",
+      "valid": true,
+      "expect": 2,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a part by 2 in every dimension. What factor changes its volume?",
+      "valid": true,
+      "expect": 8,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 100 pounds part by 2 in every dimension. How much will it weigh?",
+      "valid": true,
+      "expect": 800,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "Scale a 10 cm/min length by 2 in every dimension. What is the new length?",
+      "valid": false,
+      "expect": null,
+      "source": "F typed physical scaling and exact source quantity regression; uniform geometry, mass assumes unchanged density."
+    },
+    {
       "specialist": "water",
       "q": "What is the CT for residual 2 mg/L.min and contact time 30 min?",
       "valid": false,
@@ -596,6 +752,351 @@
       "valid": false,
       "expect": null,
       "source": "Whole-unit operator continuation: concentration cannot include multiplied time."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has length 10 cm and is scaled down by a factor of 2. What is the new length?",
+      "valid": true,
+      "expect": 5,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has length 10 cm and is scaled up by 50 percent. What is the new length?",
+      "valid": true,
+      "expect": 15,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has length 10 cm and is scaled down by 25 percent. What is the new length?",
+      "valid": true,
+      "expect": 7.5,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has length 10 cm and is scaled down to 25 percent. What is the new length?",
+      "valid": true,
+      "expect": 2.5,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has length 10 cm and is scaled to 50 percent. What is the new length?",
+      "valid": true,
+      "expect": 5,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has length 10 cm and is scaled up by a factor of 2. What is the new length?",
+      "valid": true,
+      "expect": 20,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has length 10 cm and is uniformly scaled down by a factor of 1/2. What is the new length?",
+      "valid": true,
+      "expect": 5,
+      "source": "Ambiguous down-by fractional factor: valid reduction request withheld rather than guessing multiplicative versus divisor convention.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has area 10 cm2 and is scaled up by 50 percent. What is the new area?",
+      "valid": true,
+      "expect": 22.5,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has mass 10 g and is scaled down by a factor of 2. What is the new mass?",
+      "valid": true,
+      "expect": 1.25,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has length 10 cm and is scaled up by 0 percent. What is the new length?",
+      "valid": true,
+      "expect": 10,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has length 10 cm and is scaled down by 100 percent. What is the new length?",
+      "valid": false,
+      "expect": null,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has length 10 cm and is scaled up by -50 percent. What is the new length?",
+      "valid": true,
+      "expect": 5,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has mass 10 g and is scaled by 2 and its density is halved; what is the new mass?",
+      "valid": true,
+      "expect": 40,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has mass 10 g and is scaled by 2 and its density doubles; what is the new mass?",
+      "valid": true,
+      "expect": 160,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A block has volume 10 cm3 and is scaled by 2 and only its length changes; what is the new volume?",
+      "valid": true,
+      "expect": 20,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A part has mass 10 g and is uniformly scaled by 2 and its density is unchanged; what is the new mass?",
+      "valid": true,
+      "expect": 80,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A block has volume 10 cm3 and is scaled by 2 along one axis; what is the new volume?",
+      "valid": true,
+      "expect": 20,
+      "source": "F complete scale operation: absolute/divisor/relative percentage; whole uniformity and density conditions.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has -4 faces. How many edges does it have?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 4.5 vertices and genus 0. How many faces?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 20 faces and genus -1. How many vertices?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 20 faces and genus 1/2. How many edges?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has -4 vertices and genus 0. How many faces?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 1e2 faces. How many edges?",
+      "valid": true,
+      "expect": 150,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 100/2 faces. How many vertices?",
+      "valid": true,
+      "expect": 27,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has .5e3 faces. How many edges?",
+      "valid": true,
+      "expect": 750,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 1,000 faces. How many vertices?",
+      "valid": true,
+      "expect": 502,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 800 faces and genus 1e0. How many vertices?",
+      "valid": true,
+      "expect": 400,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 502 vertices. What is the number of faces?",
+      "valid": true,
+      "expect": 1000,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has face count 20. How many vertices?",
+      "valid": true,
+      "expect": 12,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "An open triangular mesh has 20 faces. How many vertices?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed quadrilateral mesh has 20 faces. How many edges?",
+      "valid": true,
+      "expect": 40,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 1.2.3 faces. How many vertices?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 1,2 faces. How many edges?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 20 faces and genus 1e-foo. How many vertices?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A torus-shaped closed triangle mesh has 800 faces and genus 0. How many vertices?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh with no holes has 20 faces and genus 1. How many vertices?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 20 faces and 12 vertices. How many edges?",
+      "valid": true,
+      "expect": 30,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 20 faces and 30 edges. How many vertices?",
+      "valid": true,
+      "expect": 12,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 20.5 faces. How many edges?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact discrete count/genus roles and closed-triangle model boundary."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 0 faces. How many vertices?",
+      "valid": false,
+      "expect": null,
+      "source": "A connected closed surface is nonempty; Euler arithmetic does not license an empty surface."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 0 faces. How many edges?",
+      "valid": false,
+      "expect": null,
+      "source": "A connected closed surface is nonempty; Euler arithmetic does not license an empty surface."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "How many edges does a closed triangular mesh with 4 faces and genus 100 have?",
+      "valid": false,
+      "expect": null,
+      "source": "G joint Euler/incidence tuple feasibility is required for every requested target."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 4 faces and genus 100. How many vertices?",
+      "valid": false,
+      "expect": null,
+      "source": "G joint Euler/incidence tuple feasibility is required for every requested target."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 4 faces and genus 2. How many edges?",
+      "valid": false,
+      "expect": null,
+      "source": "G joint Euler/incidence tuple feasibility is required for every requested target."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 600 faces and genus 1. How many vertices?",
+      "valid": true,
+      "expect": 300,
+      "source": "G joint Euler/incidence tuple feasibility is required for every requested target."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 600 faces and genus 1. How many edges?",
+      "valid": true,
+      "expect": 900,
+      "source": "G joint Euler/incidence tuple feasibility is required for every requested target."
+    },
+    {
+      "specialist": "additive-v2",
+      "q": "A closed triangular mesh has 300 vertices and genus 1. How many faces?",
+      "valid": true,
+      "expect": 600,
+      "source": "G joint Euler/incidence tuple feasibility is required for every requested target."
     }
   ]
 }

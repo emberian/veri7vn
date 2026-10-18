@@ -50,11 +50,27 @@ fun xcm :: "xunit \<Rightarrow> rat" where
 datatype vuA = VA_mm3 | VA_cm3
 fun vmm3 :: "vuA \<Rightarrow> rat" where "vmm3 VA_mm3 = 1" | "vmm3 VA_cm3 = 1000"
 
-datatype bunit = BU_g | BU_kg | BU_cm3 | BU_mm3 | BU_cm2 | BU_mm2 | BU_ml
+datatype scale_mode = ScaleMultiply | ScaleDivide | ScaleIncrease | ScaleDecrease
+fun scale_multiplier :: "scale_mode \<Rightarrow> rat \<Rightarrow> rat" where
+  "scale_multiplier ScaleMultiply s = s" | "scale_multiplier ScaleDivide s = 1/s"
+| "scale_multiplier ScaleIncrease s = 1+s" | "scale_multiplier ScaleDecrease s = 1-s"
+fun scale_valid :: "scale_mode \<Rightarrow> rat \<Rightarrow> bool" where
+  "scale_valid ScaleMultiply s = (0<s)" | "scale_valid ScaleDivide s = (0<s)"
+| "scale_valid ScaleIncrease s = (-1<s)" | "scale_valid ScaleDecrease s = (s<1)"
+
+datatype scale_dimension = ScaleLength | ScaleArea | ScaleVolume | ScaleMass
+
+datatype bunit = BU_g | BU_kg | BU_cm3 | BU_mm3 | BU_cm2 | BU_mm2 | BU_ml | BU_mm | BU_cm | BU_m
+fun bunit_dimension :: "bunit \<Rightarrow> scale_dimension" where
+  "bunit_dimension BU_g = ScaleMass" | "bunit_dimension BU_kg = ScaleMass"
+| "bunit_dimension BU_cm2 = ScaleArea" | "bunit_dimension BU_mm2 = ScaleArea"
+| "bunit_dimension BU_mm = ScaleLength" | "bunit_dimension BU_cm = ScaleLength"
+| "bunit_dimension BU_m = ScaleLength" | "bunit_dimension _ = ScaleVolume"
 fun bunit_label :: "bunit \<Rightarrow> String.literal" where
   "bunit_label BU_g = STR ''g''" | "bunit_label BU_kg = STR ''kg''" | "bunit_label BU_cm3 = STR ''cm3''"
 | "bunit_label BU_mm3 = STR ''mm3''" | "bunit_label BU_cm2 = STR ''cm2''" | "bunit_label BU_mm2 = STR ''mm2''"
 | "bunit_label BU_ml = STR ''ml''"
+| "bunit_label BU_mm = STR ''mm''" | "bunit_label BU_cm = STR ''cm''" | "bunit_label BU_m = STR ''m''"
 
 datatype cunit = C_pct | C_mgl
 fun cval :: "rat \<times> cunit \<Rightarrow> rat" where
@@ -128,15 +144,16 @@ definition filled :: "rat option \<Rightarrow> rat option \<Rightarrow> rat opti
 section \<open>Requests and outcomes\<close>
 
 datatype request =
-    MeshVertices rat nat
-  | MeshEdges rat
-  | MeshFaces rat nat
+    MeshVertices rat rat
+  | MeshEdges rat rat
+  | MeshFaces rat rat
   | ScadCube rat rat rat
   | ScadSphere rat
   | ScadCylinder rat rat
   | ScadFrustum rat rat rat
-  | ScaleAmount rat bool rat bunit
-  | ScaleFactor rat bool
+  | ScaleAmount scale_mode rat scale_dimension rat bunit
+  | ScaleFactor scale_mode rat scale_dimension
+  | MeshUnread
   | ScaleUnread
   | Extrude "(rat \<times> vuA) option" rat vuA bool
   | PackingFactor crystal
@@ -178,12 +195,12 @@ datatype kind = K_scad_volume | K_mesh_vertices | K_mesh_edges | K_mesh_faces | 
   | K_vwc | K_gpg_to_mgl | K_mgl_to_gpg | K_pounds_product | K_pounds | K_ct | K_ct_time | K_ct_concentration | K_dose
   | K_dilution | K_ph | K_h_conc
 
-datatype need = N_extrude | N_scale_factor | N_structure | N_alpha | N_mat_read | N_two_fractions
+datatype need = N_mesh_model | N_extrude | N_scale_factor | N_scale_dimension | N_structure | N_alpha | N_mat_read | N_two_fractions
   | N_bulk_density | N_wet_dry | N_bulk_for_vwc | N_mass_volume | N_flow_dose | N_ct | N_ct_time | N_ct_concentration
   | N_demand_residual | N_dilution
 
-datatype reason = R_odd_faces | R_negative_count | R_negative_size | R_nonpositive_flow
-  | R_nonpositive_scale | R_nonpositive_denominator | R_bulk_above_skeletal | R_fraction_range
+datatype reason = R_empty_mesh | R_nonintegral_count | R_odd_faces | R_negative_count | R_negative_size | R_nonpositive_flow
+  | R_nonpositive_scale | R_negative_scale_amount | R_nonpositive_denominator | R_bulk_above_skeletal | R_fraction_range
   | R_fractions_total | R_fractions_exceed | R_dry_above_wet | R_bulk_above_particle
   | R_nonpositive_conc | R_concentrating | R_negative_volume | R_negative_mass | R_ct_domain
 
@@ -194,14 +211,15 @@ datatype outcome = Exact kind rat | Approx kind "int \<times> int" layout | Clas
 
 fun kind_of :: "request \<Rightarrow> kind" where
   "kind_of (MeshVertices _ _) = K_mesh_vertices"
-| "kind_of (MeshEdges _) = K_mesh_edges"
+| "kind_of (MeshEdges _ _) = K_mesh_edges"
 | "kind_of (MeshFaces _ _) = K_mesh_faces"
 | "kind_of (ScadCube _ _ _) = K_scad_volume"
 | "kind_of (ScadSphere _) = K_scad_volume"
 | "kind_of (ScadCylinder _ _) = K_scad_volume"
 | "kind_of (ScadFrustum _ _ _) = K_scad_volume"
-| "kind_of (ScaleAmount _ _ _ _) = K_scale_amount"
-| "kind_of (ScaleFactor _ _) = K_scale_factor"
+| "kind_of (ScaleAmount _ _ _ _ _) = K_scale_amount"
+| "kind_of (ScaleFactor _ _ _) = K_scale_factor"
+| "kind_of MeshUnread = K_mesh_vertices"
 | "kind_of ScaleUnread = K_scale_factor"
 | "kind_of (Extrude _ _ _ _) = K_extrude_time"
 | "kind_of (PackingFactor _) = K_apf"
@@ -256,11 +274,11 @@ section \<open>Declines\<close>
 definition even_int :: "rat \<Rightarrow> bool" where
   "even_int f \<longleftrightarrow> snd (quotient_of (f / 2)) = 1"
 
-definition mesh_v :: "rat \<Rightarrow> nat \<Rightarrow> rat" where
-  "mesh_v f g = 2 - 2 * of_nat g + f / 2"
+definition mesh_v :: "rat \<Rightarrow> rat \<Rightarrow> rat" where
+  "mesh_v f g = 2 - 2 * g + f / 2"
 
-definition mesh_f :: "rat \<Rightarrow> nat \<Rightarrow> rat" where
-  "mesh_f v g = 2 * (v - 2 + 2 * of_nat g)"
+definition mesh_f :: "rat \<Rightarrow> rat \<Rightarrow> rat" where
+  "mesh_f v g = 2 * (v - 2 + 2 * g)"
 
 definition texture_decline :: "rat option \<Rightarrow> rat option \<Rightarrow> rat option \<Rightarrow> decline option" where
   "texture_decline a b c = (let gs = givens a b c in
@@ -270,19 +288,33 @@ definition texture_decline :: "rat option \<Rightarrow> rat option \<Rightarrow>
      else if length gs = 2 \<and> 100 < sum_list gs then Some (Impossible R_fractions_exceed)
      else (case classify (filled a b c) of None \<Rightarrow> Some Unclassified | Some _ \<Rightarrow> None))"
 
-fun decline_of :: "request \<Rightarrow> decline option" where
-  "decline_of (MeshVertices f g) =
+lemma mesh_v_faces [simp]: "mesh_v (mesh_f v g) g = v"
+  by (simp add: mesh_v_def mesh_f_def field_simps algebra_simps)
+
+text \<open>All targets share feasibility of the whole Euler/incidence tuple.
+Asking only for edges must not bypass impossible implied vertex counts.\<close>
+fun mesh_decline :: "rat \<Rightarrow> rat \<Rightarrow> decline option" where
+  "mesh_decline f g =
      (if \<not> even_int f then Some (Impossible R_odd_faces)
-      else if mesh_v f g < 0 then Some (Impossible R_negative_count) else None)"
-| "decline_of (MeshEdges f) = (if \<not> even_int f then Some (Impossible R_odd_faces) else None)"
-| "decline_of (MeshFaces v g) = (if mesh_f v g < 0 then Some (Impossible R_negative_count) else None)"
+      else if f < 0 \<or> g < 0 \<or> mesh_v f g < 0 then Some (Impossible R_negative_count)
+      else if f = 0 \<or> mesh_v f g = 0 then Some (Impossible R_empty_mesh)
+      else if \<not> is_int f \<or> \<not> is_int (3*f/2) \<or> \<not> is_int g \<or> \<not> is_int (mesh_v f g) then Some (Impossible R_nonintegral_count) else None)"
+
+fun decline_of :: "request \<Rightarrow> decline option" where
+  "decline_of (MeshVertices f g) = mesh_decline f g"
+| "decline_of (MeshEdges f g) = mesh_decline f g"
+| "decline_of (MeshFaces v g) = mesh_decline (mesh_f v g) g"
+| "decline_of MeshUnread = Some (Underspecified N_mesh_model)"
 | "decline_of (ScadCube x y z) = (if min x (min y z) < 0 then Some (Impossible R_negative_size) else None)"
 | "decline_of (ScadSphere r) = (if r < 0 then Some (Impossible R_negative_size) else None)"
 | "decline_of (ScadCylinder h r) = (if min h r < 0 then Some (Impossible R_negative_size) else None)"
 | "decline_of (ScadFrustum h r1 r2) =
      (if min h (min r1 r2) < 0 then Some (Impossible R_negative_size) else None)"
-| "decline_of (ScaleAmount s _ _ _) = (if s \<le> 0 then Some (Impossible R_nonpositive_scale) else None)"
-| "decline_of (ScaleFactor s _) = (if s \<le> 0 then Some (Impossible R_nonpositive_scale) else None)"
+| "decline_of (ScaleAmount mode s d b u) =
+     (if \<not> scale_valid mode s then Some (Impossible R_nonpositive_scale)
+      else if b < 0 then Some (Impossible R_negative_scale_amount)
+      else if d \<noteq> bunit_dimension u then Some (Underspecified N_scale_dimension) else None)"
+| "decline_of (ScaleFactor mode s _) = (if \<not> scale_valid mode s then Some (Impossible R_nonpositive_scale) else None)"
 | "decline_of ScaleUnread = Some (Underspecified N_scale_factor)"
 | "decline_of (Extrude None _ _ _) = Some (Underspecified N_extrude)"
 | "decline_of (Extrude (Some _) q _ _) = (if q \<le> 0 then Some (Impossible R_nonpositive_flow) else None)"
@@ -353,18 +385,18 @@ fun decline_of :: "request \<Rightarrow> decline option" where
 
 section \<open>Values\<close>
 
-fun pw :: "bool \<Rightarrow> rat \<Rightarrow> rat" where
-  "pw True s = s * s" | "pw False s = s * s * s"
+fun pw :: "scale_dimension \<Rightarrow> rat \<Rightarrow> rat" where
+  "pw ScaleLength s = s" | "pw ScaleArea s = s * s" | "pw ScaleVolume s = s * s * s" | "pw ScaleMass s = s * s * s"
 
 text \<open>The exact rational value of each rational kind. A missing amount (which
 the declines have already refused) reads as 0.\<close>
 fun qval :: "request \<Rightarrow> rat" where
   "qval (MeshVertices f g) = mesh_v f g"
-| "qval (MeshEdges f) = 3 * f / 2"
+| "qval (MeshEdges f g) = 3 * f / 2"
 | "qval (MeshFaces v g) = mesh_f v g"
 | "qval (ScadCube x y z) = x * y * z"
-| "qval (ScaleAmount s area b _) = b * pw area s"
-| "qval (ScaleFactor s area) = pw area s"
+| "qval (ScaleAmount mode s area b _) = b * pw area (scale_multiplier mode s)"
+| "qval (ScaleFactor mode s area) = pw area (scale_multiplier mode s)"
 | "qval (Extrude (Some (v, u)) q uq pm) =
      (v * vmm3 u) / (q * vmm3 uq / (if pm then 60 else 1)) / 60"
 | "qval (CrystalDensity (Some st) a u m) = atoms st * m / (NA * (a * xcm u) ^ 3)"
@@ -583,17 +615,17 @@ text \<open>A closed triangle mesh: every edge is shared by two triangles
 (2E = 3F) and Euler's formula V - E + F = 2 - 2g holds.\<close>
 theorem mesh_vertices_euler:
   assumes "kernel (MeshVertices f g) = Exact k v"
-  shows "k = K_mesh_vertices \<and> even_int f \<and> v - 3 * f / 2 + f = 2 - 2 * of_nat g"
+  shows "k = K_mesh_vertices \<and> even_int f \<and> v - 3 * f / 2 + f = 2 - 2 * g"
 proof -
   have k: "k = K_mesh_vertices" and ev: "even_int f" and v: "v = mesh_v f g"
     using kernel_exact_sound[OF assms] by (auto split: if_splits)
-  have v': "v = 2 - 2 * of_nat g + f / 2" using v by (simp add: mesh_v_def)
-  have "v - 3 * f / 2 + f = 2 - 2 * of_nat g" using v' by linarith
+  have v': "v = 2 - 2 * g + f / 2" using v by (simp add: mesh_v_def)
+  have "v - 3 * f / 2 + f = 2 - 2 * g" using v' by linarith
   with k ev show ?thesis by simp
 qed
 
 theorem mesh_edges_shared:
-  assumes "kernel (MeshEdges f) = Exact k e"
+  assumes "kernel (MeshEdges f g) = Exact k e"
   shows "k = K_mesh_edges \<and> even_int f \<and> 2 * e = 3 * f"
 proof -
   have k: "k = K_mesh_edges" and ev: "even_int f" and e: "e = 3 * f / 2"
@@ -604,14 +636,48 @@ qed
 
 theorem mesh_faces_euler:
   assumes "kernel (MeshFaces v g) = Exact k f"
-  shows "k = K_mesh_faces \<and> v - 3 * f / 2 + f = 2 - 2 * of_nat g"
+  shows "k = K_mesh_faces \<and> v - 3 * f / 2 + f = 2 - 2 * g"
 proof -
   have k: "k = K_mesh_faces" and e: "f = mesh_f v g"
     using kernel_exact_sound[OF assms] by (auto split: if_splits)
-  have e': "f = 2 * (v - 2 + 2 * of_nat g)" using e by (simp add: mesh_f_def)
-  have "v - 3 * f / 2 + f = 2 - 2 * of_nat g" using e' by (linarith | simp add: algebra_simps | (subst e'; simp add: algebra_simps))
+  have e': "f = 2 * (v - 2 + 2 * g)" using e by (simp add: mesh_f_def)
+  have "v - 3 * f / 2 + f = 2 - 2 * g" using e' by (linarith | simp add: algebra_simps | (subst e'; simp add: algebra_simps))
   with k show ?thesis by simp
 qed
+
+text \<open>These binding laws certify discrete nonnegative counts and the
+closed-triangle equations, not the existence of a geometric mesh.\<close>
+theorem mesh_vertices_discrete:
+  assumes "kernel (MeshVertices f g) = Exact k v"
+  shows "k = K_mesh_vertices \<and> 0 < f \<and> even_int f \<and> is_int f \<and> is_int (3*f/2) \<and>
+    0 \<le> g \<and> is_int g \<and> 0 < v \<and> is_int v \<and>
+    v - 3*f/2 + f = 2-2*g"
+  using kernel_exact_sound[OF assms] mesh_vertices_euler[OF assms]
+  by (auto split: if_splits)
+
+theorem mesh_edges_discrete:
+  assumes "kernel (MeshEdges f g) = Exact k e"
+  shows "k = K_mesh_edges \<and> 0 < f \<and> even_int f \<and> is_int f \<and>
+    0 \<le> g \<and> is_int g \<and> 0 < e \<and> is_int e \<and> 2*e = 3*f \<and>
+    0 < mesh_v f g \<and> is_int (mesh_v f g) \<and> mesh_v f g - e + f = 2-2*g"
+proof -
+  have e: "e = 3*f/2" using kernel_exact_sound[OF assms] by (auto split: if_splits)
+  have base: "0 < f" "even_int f" "0 \<le> g" "is_int g" "0 < mesh_v f g" "is_int (mesh_v f g)"
+    using kernel_exact_sound[OF assms] by (auto split: if_splits)
+  have integral0: "is_int (3*f/2)" using kernel_exact_sound[OF assms]
+    by (auto split: if_splits)
+  have integral: "is_int e" by (simp only: e integral0)
+  show ?thesis using kernel_exact_sound[OF assms] mesh_edges_shared[OF assms] integral base e
+    by (auto simp: mesh_v_def split: if_splits; linarith)
+qed
+
+theorem mesh_faces_discrete:
+  assumes "kernel (MeshFaces v g) = Exact k f"
+  shows "k = K_mesh_faces \<and> 0 < v \<and> is_int v \<and>
+    0 \<le> g \<and> is_int g \<and> 0 < f \<and> is_int f \<and> even_int f \<and> is_int (3*f/2) \<and>
+    v - 3*f/2 + f = 2-2*g"
+  using kernel_exact_sound[OF assms] mesh_faces_euler[OF assms]
+  by (auto split: if_splits)
 
 text \<open>The vertex count and the face count of a closed triangle mesh of
 genus g determine each other: asking for the faces of the vertices the kernel
@@ -621,15 +687,15 @@ theorem mesh_vertices_faces_inverse:
     and "kernel (MeshFaces v g) = Exact k' f'"
   shows "f' = f"
 proof -
-  have v: "v = 2 - 2 * of_nat g + f / 2" using kernel_exact_sound[OF assms(1)]
+  have v: "v = 2 - 2 * g + f / 2" using kernel_exact_sound[OF assms(1)]
     by (auto split: if_splits simp: mesh_v_def)
-  have f: "f' = 2 * (v - 2 + 2 * of_nat g)" using kernel_exact_sound[OF assms(2)]
+  have f: "f' = 2 * (v - 2 + 2 * g)" using kernel_exact_sound[OF assms(2)]
     by (auto split: if_splits simp: mesh_f_def)
   show ?thesis using v f by simp
 qed
 
 theorem mesh_odd_faces_decline:
-  "kernel (MeshEdges f) = Decline (Impossible R_odd_faces) \<longleftrightarrow> \<not> even_int f"
+  "kernel (MeshEdges f g) = Decline (Impossible R_odd_faces) \<longleftrightarrow> \<not> even_int f"
   by (simp add: kernel_decline_iff)
 
 theorem scad_cube_volume:
@@ -660,21 +726,73 @@ theorem scad_frustum_volume:
       \<le> tol_approx lay d (pi * rl h * (rl r1 ^ 2 + rl r1 * rl r2 + rl r2 ^ 2) / 3)"
   using kernel_approx_sound[OF assms] by (auto split: if_splits)
 
-text \<open>Uniform scaling by s: volume and mass scale with s cubed, area with s squared.\<close>
+text \<open>Uniform scaling by s: lengths scale linearly, areas quadratically and volumes cubically. Mass uses cubic scaling only under unchanged material density; the arithmetic does not establish physical density or geometry.\<close>
 theorem scale_volume_cubed:
-  assumes "kernel (ScaleAmount s False b u) = Exact k v"
+  assumes "kernel (ScaleAmount ScaleMultiply s ScaleVolume b u) = Exact k v"
+  shows "k = K_scale_amount \<and> 0 < s \<and> v = b * (s * s * s)"
+  using kernel_exact_sound[OF assms] by (auto split: if_splits)
+
+theorem scale_mass_cubed:
+  assumes "kernel (ScaleAmount ScaleMultiply s ScaleMass b u) = Exact k v"
   shows "k = K_scale_amount \<and> 0 < s \<and> v = b * (s * s * s)"
   using kernel_exact_sound[OF assms] by (auto split: if_splits)
 
 theorem scale_area_squared:
-  assumes "kernel (ScaleAmount s True b u) = Exact k v"
+  assumes "kernel (ScaleAmount ScaleMultiply s ScaleArea b u) = Exact k v"
   shows "k = K_scale_amount \<and> 0 < s \<and> v = b * (s * s)"
   using kernel_exact_sound[OF assms] by (auto split: if_splits)
 
 theorem scale_factor_cubed:
-  assumes "kernel (ScaleFactor s False) = Exact k v"
+  assumes "kernel (ScaleFactor ScaleMultiply s ScaleVolume) = Exact k v"
   shows "k = K_scale_factor \<and> 0 < s \<and> v = s * s * s"
   using kernel_exact_sound[OF assms] by (auto split: if_splits)
+
+theorem scale_length_linear:
+  assumes "kernel (ScaleAmount ScaleMultiply s ScaleLength b u) = Exact k v"
+  shows "k = K_scale_amount \<and> 0 < s \<and> 0 \<le> b \<and> bunit_dimension u = ScaleLength \<and> v = b * s"
+  using kernel_exact_sound[OF assms] by (auto split: if_splits)
+
+lemma scale_valid_positive:
+  "scale_valid mode s \<Longrightarrow> 0 < scale_multiplier mode s"
+  by (cases mode; simp_all; linarith)
+
+theorem scale_amount_binding:
+  assumes "kernel (ScaleAmount mode s d b u) = Exact k v"
+  shows "k = K_scale_amount \<and> scale_valid mode s \<and> 0 < scale_multiplier mode s \<and>
+    0 \<le> b \<and> d = bunit_dimension u \<and> v = b * pw d (scale_multiplier mode s)"
+  using kernel_exact_sound[OF assms] scale_valid_positive
+  by (auto split: if_splits)
+
+lemma scale_power_product:
+  "pw d (a * b) = pw d a * pw d b"
+  by (cases d) (simp_all add: algebra_simps)
+
+theorem scale_composes:
+  assumes "kernel (ScaleAmount ma a d b u) = Exact k x"
+      and "kernel (ScaleAmount mc c d x u) = Exact k' y"
+      and "kernel (ScaleAmount ScaleMultiply (scale_multiplier ma a * scale_multiplier mc c) d b u) = Exact k'' z"
+  shows "y = z"
+proof -
+  have first: "x = b * pw d (scale_multiplier ma a)" using scale_amount_binding[OF assms(1)] by blast
+  have second: "y = x * pw d (scale_multiplier mc c)" using scale_amount_binding[OF assms(2)] by blast
+  have direct: "z = b * pw d (scale_multiplier ma a * scale_multiplier mc c)" using scale_amount_binding[OF assms(3)] by auto
+  show ?thesis using first second direct by (simp add: scale_power_product algebra_simps)
+qed
+
+theorem scale_divide_length:
+  assumes "kernel (ScaleAmount ScaleDivide s ScaleLength b u) = Exact k v"
+  shows "0 < s \<and> v*s=b"
+  using scale_amount_binding[OF assms] by auto
+
+theorem scale_increase_length:
+  assumes "kernel (ScaleAmount ScaleIncrease s ScaleLength b u) = Exact k v"
+  shows "-1 < s \<and> v=b*(1+s)"
+  using scale_amount_binding[OF assms] by auto
+
+theorem scale_decrease_length:
+  assumes "kernel (ScaleAmount ScaleDecrease s ScaleLength b u) = Exact k v"
+  shows "s<1 \<and> v=b*(1-s)"
+  using scale_amount_binding[OF assms] by auto
 
 text \<open>Ideal extrusion time: time (minutes) times 60 times the flow in mm3/s
 is the volume in mm3.\<close>
@@ -1031,24 +1149,25 @@ definition sm :: "rat \<Rightarrow> String.literal" where "sm = shw Fam_mat"
 definition ss :: "rat \<Rightarrow> String.literal" where "ss = shw Fam_soil"
 definition sw :: "rat \<Rightarrow> String.literal" where "sw = shw Fam_water"
 
-fun pw_label :: "bool \<Rightarrow> String.literal" where
-  "pw_label True = STR ''2''" | "pw_label False = STR ''3''"
+fun pw_label :: "scale_dimension \<Rightarrow> String.literal" where
+  "pw_label ScaleLength = STR ''1''" | "pw_label ScaleArea = STR ''2''" | "pw_label ScaleVolume = STR ''3''" | "pw_label ScaleMass = STR ''3''"
 
 fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Rightarrow> String.literal" where
   "exact_text (MeshVertices f g) q V = STR ''The mesh has '' + V
      + STR '' vertices (V = 2 - 2g + E - F with E = 3F/2; F = '' + sa f + STR '', genus ''
-     + show_int (int g) + STR ''; closed triangle mesh).''"
-| "exact_text (MeshEdges f) q V = STR ''The mesh has '' + V + STR '' edges (E = 3F/2 = 3 x ''
+     + sa g + STR ''; closed triangle mesh).''"
+| "exact_text (MeshEdges f g) q V = STR ''The mesh has '' + V + STR '' edges (E = 3F/2 = 3 x ''
      + sa f + STR '' / 2; closed triangle mesh).''"
 | "exact_text (MeshFaces v g) q V = STR ''The mesh has '' + V
-     + STR '' triangles (F = 2(V - 2 + 2g) with V = '' + sa v + STR '', genus '' + show_int (int g)
+     + STR '' triangles (F = 2(V - 2 + 2g) with V = '' + sa v + STR '', genus '' + sa g
      + STR ''; closed triangle mesh).''"
 | "exact_text (ScadCube x y z) q V = STR ''The volume is '' + V + STR '' cubic units (cube '' + sa x
      + STR '' x '' + sa y + STR '' x '' + sa z + STR ''; units as in the model, usually mm).''"
-| "exact_text (ScaleAmount s area b u) q V = STR ''The new value is '' + V + STR '' '' + bunit_label u
-     + STR '' (x '' + sa (pw area s) + STR '' = '' + sa s + STR ''^'' + pw_label area
-     + STR ''; scales with the power of the length ratio).''"
-| "exact_text (ScaleFactor s area) q V = STR ''The factor is '' + V + STR '' ('' + sa s + STR ''^''
+| "exact_text (ScaleAmount mode s area b u) q V = STR ''The new value is '' + V + STR '' '' + bunit_label u
+     + STR '' (x '' + sa (pw area (scale_multiplier mode s)) + STR '' = '' + sa (scale_multiplier mode s) + STR ''^'' + pw_label area
+     + (if area = ScaleMass then STR ''; uniform geometry and unchanged density).''
+       else STR ''; uniform geometric scaling).'')"
+| "exact_text (ScaleFactor mode s area) q V = STR ''The factor is '' + V + STR '' ('' + sa (scale_multiplier mode s) + STR ''^''
      + pw_label area + STR ''; scales with the power of the length ratio).''"
 | "exact_text (Extrude (Some (v, u)) q uq pm) t V = STR ''The ideal extrusion time is '' + V
      + STR '' minutes ('' + sa (v * vmm3 u) + STR '' mm3 at a flow of '' + sa (q * vmm3 uq)
@@ -1126,8 +1245,11 @@ fun class_text :: "request \<Rightarrow> soil_class \<Rightarrow> String.literal
 
 definition need_text :: "need \<Rightarrow> String.literal" where
   "need_text n = (case n of
+      N_mesh_model \<Rightarrow> STR ''I need unambiguous integer counts and genus for the closed triangular mesh model; open or nontriangular surfaces need a different model.''
+    |
       N_extrude \<Rightarrow> STR ''I could not read both the volume to extrude and the volumetric flow; give them like 50 cm3 at 15 mm3/s.''
-    | N_scale_factor \<Rightarrow> STR ''I could not read the scale factor; say e.g. scaled by 1.5 times in every dimension.''
+    | N_scale_factor \<Rightarrow> STR ''I need one unambiguous scale factor and a compatible supplied quantity, or an explicit request for the change factor.''
+    | N_scale_dimension \<Rightarrow> STR ''The supplied quantity and requested result have different dimensions; a scale factor alone cannot convert between them.''
     | N_structure \<Rightarrow> STR ''I need the crystal structure (simple cubic, BCC or FCC) to work that out; I will not assume it.''
     | N_alpha \<Rightarrow> STR ''I need the coefficient of thermal expansion (it depends on the material and temperature); I will not assume one.''
     | N_mat_read \<Rightarrow> STR ''I could not read every quantity I need from that; give the lengths, load or lattice constant with units and I will work it out.''
@@ -1145,10 +1267,15 @@ definition need_text :: "need \<Rightarrow> String.literal" where
 
 definition reason_text :: "request \<Rightarrow> reason \<Rightarrow> String.literal" where
   "reason_text r why = (case why of
+      R_empty_mesh \<Rightarrow> STR ''The connected closed surface model requires positive numbers of vertices, edges and triangular faces.''
+    |
+      R_nonintegral_count \<Rightarrow> STR ''Counts of vertices, edges, faces and genus must be whole numbers.''
+    |
       R_odd_faces \<Rightarrow> STR ''A closed triangle mesh has an even number of faces (every edge is shared by two triangles, so 3F/2 edges must be whole).''
-    | R_negative_count \<Rightarrow> STR ''Those numbers would give a negative count of vertices or faces, so no closed mesh has them.''
+    | R_negative_count \<Rightarrow> STR ''Counts of vertices, edges, faces and genus must be nonnegative.''
     | R_negative_size \<Rightarrow> STR ''OpenSCAD sizes must be non-negative.''
     | R_nonpositive_flow \<Rightarrow> STR ''The volumetric flow must be positive.''
+    | R_negative_scale_amount \<Rightarrow> STR ''The physical quantity being scaled must be nonnegative.''
     | R_nonpositive_scale \<Rightarrow> STR ''The scale factor must be positive.''
     | R_nonpositive_denominator \<Rightarrow> STR ''A required length, area, strain, volume, density, strength or lattice constant must be positive.''
     | R_bulk_above_skeletal \<Rightarrow> STR ''The bulk density cannot exceed the skeletal density.''

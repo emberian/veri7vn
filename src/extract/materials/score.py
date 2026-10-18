@@ -122,8 +122,8 @@ def run_probes(binary):
                 math.isclose(value, item["expect"], rel_tol=0.0005, abs_tol=1e-9))
             bucket = "right" if good else "false_yes" if yes and not item["valid"] else "wrong" if yes else "withheld_valid"
             summary[bucket] += 1
-            results.append(dict(item, reply=rep, good=good))
-        out["modes"][mode] = dict(summary=summary, items=results)
+            results.append(dict(item, reply=rep, good=good, policy_good=(not yes and (not item.get("policy_decline_kind") or rep.get("kind") == item["policy_decline_kind"])) if item.get("policy_withheld_expected") else None))
+        out["modes"][mode] = dict(summary=summary, items=results, policy_assertions={"passed": sum(x["policy_good"] is True for x in results), "total": sum(x["policy_good"] is not None for x in results)})
     return out
 
 

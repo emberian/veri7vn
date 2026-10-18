@@ -19,6 +19,13 @@ struct
   fun supporting request =
     case request of
       Materials.HookeStress _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"hooke_stress_binding\"]"
+    | Materials.MeshVertices _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"mesh_vertices_discrete\"]"
+    | Materials.MeshEdges _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"mesh_edges_discrete\"]"
+    | Materials.MeshFaces _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"mesh_faces_discrete\"]"
+    | Materials.ScaleAmount (Materials.ScaleDivide, _, Materials.ScaleLength, _, _) => String.substring (theorems, 0, size theorems - 1) ^ ",\"scale_amount_binding\",\"scale_composes\",\"scale_divide_length\"]"
+    | Materials.ScaleAmount (Materials.ScaleIncrease, _, Materials.ScaleLength, _, _) => String.substring (theorems, 0, size theorems - 1) ^ ",\"scale_amount_binding\",\"scale_composes\",\"scale_increase_length\"]"
+    | Materials.ScaleAmount (Materials.ScaleDecrease, _, Materials.ScaleLength, _, _) => String.substring (theorems, 0, size theorems - 1) ^ ",\"scale_amount_binding\",\"scale_composes\",\"scale_decrease_length\"]"
+    | Materials.ScaleAmount _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"scale_amount_binding\",\"scale_composes\"]"
     | Materials.HookeStrain _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"hooke_strain_balance\"]"
     | Materials.CtTime _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"ct_time_balance\"]"
     | Materials.CtConcentration _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"ct_concentration_balance\"]"

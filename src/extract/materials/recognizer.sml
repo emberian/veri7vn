@@ -201,47 +201,55 @@ struct
         end
     end
 
+  (* Exact discrete roles for the closed triangular surface count model. *)
+  fun mesh low : M.request option =
+    if not (has "\\bmesh\\b|\\bstl\\b|\\bpolyhedron\\b|\\bmanifold\\b|\\bwatertight\\b" low
+            andalso has "\\bhow many\\b|\\bnumber of\\b" low) then NONE
+    else if has "\\bopen\\b|\\bwith (?:a )?boundary\\b|\\bquadrilateral\\b|\\bquadrangle\\b|\\bnon[- ]?triang\\w*\\b|\\bnon[- ]?orientable\\b" low
+      then SOME M.MeshUnread
+    else if not (has "\\bclosed\\b|\\bwatertight\\b|\\bpolyhedron\\b" low)
+         orelse not (has "\\btriang(?:le|les|ular)\\b|\\bfacets?\\b|\\bstl\\b" low)
+      then SOME M.MeshUnread
+    else case ExactNumeric.mask low of
+      NONE => SOME M.MeshUnread
+    | SOME {text, numbers} =>
+      let
+        val marker = "(qnum[0-9]+q)"
+        fun unique xs = List.foldl (fn (x,acc) => if List.exists (fn y => x=y) acc then acc else acc@[x]) [] xs
+        fun captures rx = List.map (fn m => g1 text m) (findall rx text)
+        fun role suffix prefix = unique (captures (marker ^ "\\s*(?:" ^ suffix ^ ")\\b") @
+          captures ("\\b(?:" ^ prefix ^ ")\\s*(?:of|is|=|:)?\\s*" ^ marker))
+        val fs = role "triangles|faces|triangular faces|facets" "(?:face|triangle|facet) count|faces|triangles|facets"
+        val vs = role "vertices" "vertex count|vertices"
+        val gs = role "holes?" "genus"
+        val torus = has "\\btorus\\b|\\bdonut[- ]shaped\\b" text
+        val noholes = has "\\bno holes\\b|\\bgenus[- ]zero\\b" text
+        fun value id = #2 (valOf (List.find (fn (key,_) => key=id) numbers))
+        val used = unique (fs @ vs @ gs)
+        val unused = List.exists (fn (key,_) => not (List.exists (fn k => k=key) used)) numbers
+        val invalidGenus = (has "\\bgenus\\b|\\bholes?\\b" text andalso null gs andalso not noholes andalso not torus)
+        val g = case gs of [id] => value id | _ => if torus then (1,1) else (0,1)
+        val conflicting = (torus andalso g <> (1,1)) orelse (noholes andalso g <> (0,1))
+        val targetMatches = findall "\\b(?:how many|number of)\\s+(vertices|edges|triangles|faces|facets)\\b" text
+        val targets = unique (List.map (fn m => g1 text m) targetMatches)
+      in
+        if unused orelse invalidGenus orelse conflicting orelse length gs > 1
+           orelse has "\\b(?:how many|number of)\\s+(?:vertices|edges|triangles|faces|facets)\\s+(?:and|or)\\s+(?:vertices|edges|triangles|faces|facets)\\b" text then SOME M.MeshUnread
+        else case (targets,fs,vs) of
+          (["vertices"],[f],[]) => SOME (M.MeshVertices (rat (value f),rat g))
+        | (["edges"],[f],[]) => SOME (M.MeshEdges (rat (value f),rat g))
+        | ([target],[],[v]) => if target="triangles" orelse target="faces" orelse target="facets"
+                             then SOME (M.MeshFaces (rat (value v),rat g)) else SOME M.MeshUnread
+        | _ => SOME M.MeshUnread
+      end
+
   fun additiveV1 (low : string) : M.request option =
     if has "\\b(?:cube|sphere|cylinder)\\s*\\(" low andalso has "\\bvolume\\b|\\bhow much material\\b" low
        andalso not (has "\\b(?:difference|union|intersection|hull|minkowski)\\s*\\(" low) then
       (case search "\\b(cube|sphere|cylinder)\\s*\\(([^()]*(?:\\[[^\\]]*\\])?[^()]*)\\)" low of
          NONE => NONE
        | SOME m => scad (valOf (grp low m 2)) (valOf (grp low m 1)))
-    else if has "\\bmesh\\b|\\bstl\\b|\\bpolyhedron\\b|\\bmanifold\\b|\\bwatertight\\b" low
-            andalso has "\\bhow many\\b|\\bnumber of\\b" low then
-      let
-        val fm = search (NUM ^ "\\s*(?:triangles|faces|triangular faces|facets)\\b") low
-        val vm = search (NUM ^ "\\s*vertices\\b") low
-        val gm = search "\\bgenus\\s*(?:of\\s*)?(\\d+)\\b|\\b(\\d+)\\s*holes?\\b|\\btorus\\b" low
-        val gen =
-          case gm of
-            NONE => 0
-          | SOME m => (case firstGroup low m [1, 2] of
-                         SOME s => valOf (Int.fromString s)
-                       | NONE => 1)
-      in
-        case fm of
-          SOME f =>
-            let val rest = removeAll (Regex.whole low f) low
-            in
-              if has "\\bvertices\\b|\\bedges\\b" rest then
-                let val F = rat (nth low f 1)
-                in
-                  if has "\\bedges\\b" rest andalso not (has "\\bvertices\\b" rest) then SOME (M.MeshEdges F)
-                  else SOME (M.MeshVertices (F, nat gen))
-                end
-              else (case vm of
-                      SOME v => if has "\\btriangles\\b|\\bfaces\\b|\\bfacets\\b" low
-                                then SOME (M.MeshFaces (rat (nth low v 1), nat gen)) else NONE
-                    | NONE => NONE)
-            end
-        | NONE =>
-            (case vm of
-               SOME v => if has "\\btriangles\\b|\\bfaces\\b|\\bfacets\\b" low
-                         then SOME (M.MeshFaces (rat (nth low v 1), nat gen)) else NONE
-             | NONE => NONE)
-      end
-    else NONE
+    else mesh low
 
   val VU = "(mm3|mm" ^ cube3 ^ "|cm3|cm" ^ cube3 ^ "|ml|cubic millimet\\w+|cubic centimet\\w+)"
   fun vuOf u = if u = "cm3" orelse u = "cm" ^ cube3 orelse u = "ml" orelse String.isPrefix "cubic centi" u
@@ -265,50 +273,101 @@ struct
             | m :: _ => SOME (M.Extrude (SOME (rat (nth low m 1), vuOf (valOf (grp low m 2))), rat q, uq, pm))
           end
 
-  fun buOf u =
-    if u = "g" orelse String.isPrefix "gram" u then M.BU_g
-    else if u = "kg" then M.BU_kg
-    else if u = "cm3" orelse u = "cm" ^ cube3 then M.BU_cm3
-    else if u = "mm3" orelse u = "mm" ^ cube3 then M.BU_mm3
-    else if u = "cm2" orelse u = "cm" ^ sq2 then M.BU_cm2
-    else if u = "mm2" orelse u = "mm" ^ sq2 then M.BU_mm2
-    else M.BU_ml
-
-  fun scale (low : string) : M.request option =
+  (* Input dimensions and output requests remain distinct. Shared measurements
+     retain raw text spans; no missing unit is supplied by the requested output. *)
+  fun scale (low : string) raw : M.request option =
     if not (has ("\\bscal\\w*\\b|\\btimes (?:the|its) size\\b|\\b(?:x|" ^ times ^ ") (?:the|its) size\\b|\\bin every (?:dimension|direction)\\b") low) then NONE
-    else if not (has "\\bvolume\\b|\\bmass\\b|\\bweigh\\w*\\b|\\bheavy\\b|\\bmaterial\\b|\\bfilament\\b|\\bsurface area\\b|\\barea\\b" low) then NONE
-    else
-      let
-        val sm =
-          case search ("\\b(?:by|to)\\s+(?:a factor of\\s+)?" ^ NUM ^ "\\s*(?:x|" ^ times ^ "|times)?(?!\\s*(?:g|grams?|kg|mm|cm|ml|%))\\b") low of
-            SOME m => SOME m
-          | NONE => search (NUM ^ "\\s*(?:x|" ^ times ^ "|times)\\s+(?:larger|bigger|smaller|the size|its size|scale)\\b") low
-        val pm = search (NUM ^ "\\s*%\\s*(?:scale|of (?:the |its )?(?:original )?size)\\b|\\bscaled? to\\s+" ^ NUM ^ "\\s*%") low
-        val s : q option =
-          case sm of
-            SOME m => SOME (nth low m 1)
-          | NONE => (case pm of
-                       SOME m => (case firstQ low m [1, 2] of SOME (a, b) => SOME (a, b * 100) | NONE => NONE)
-                     | NONE => NONE)
-      in
-        case s of
-          NONE => SOME M.ScaleUnread
-        | SOME s =>
-            if qNonPos s then NONE
-            else
-              let
-                val area = has "\\bsurface area\\b|\\barea\\b" low andalso not (has "\\bvolume\\b|\\bmass\\b|\\bweigh|\\bheavy\\b" low)
-                val base = search (NUM ^ "\\s*(g|grams?|kg|cm3|cm" ^ cube3 ^ "|mm3|mm" ^ cube3 ^ "|cm2|cm" ^ sq2
-                                   ^ "|mm2|mm" ^ sq2 ^ "|ml)\\b(?!\\s*/)") low
-              in
-                case base of
-                  SOME b =>
-                    if #start b <> (case sm of SOME m => gstart m 1 | NONE => ~1)
-                    then SOME (M.ScaleAmount (rat s, area, rat (nth low b 1), buOf (valOf (grp low b 2))))
-                    else SOME (M.ScaleFactor (rat s, area))
-                | NONE => SOME (M.ScaleFactor (rat s, area))
-              end
-      end
+    else if not (has "\\bvolume\\b|\\bmass\\b|\\bweigh\\w*\\b|\\bheavy\\b|\\bmaterial\\b|\\bfilament\\b|\\bsurface area\\b|\\barea\\b|\\blength\\b|\\bwidth\\b|\\bheight\\b|\\blong\\b" low) then NONE
+    else let
+      val low = lower raw
+      fun units dimension tag aliases = List.map (fn alias =>
+        {alias=alias, tag=tag, dimension=dimension, caseSensitive=false}) aliases
+      val unitTable =
+        units "mass" "g" ["g", "gram", "grams"] @ units "mass" "kg" ["kg", "kilogram", "kilograms"] @
+        units "length" "mm" ["mm", "millimeter", "millimeters", "millimetre", "millimetres"] @
+        units "length" "cm" ["cm", "centimeter", "centimeters", "centimetre", "centimetres"] @
+        units "length" "m" ["m", "meter", "meters", "metre", "metres"] @
+        units "area" "cm2" ["cm2", "cm" ^ sq2] @ units "area" "mm2" ["mm2", "mm" ^ sq2] @
+        units "volume" "cm3" ["cm3", "cm" ^ cube3] @ units "volume" "mm3" ["mm3", "mm" ^ cube3] @
+        units "volume" "ml" ["ml", "milliliter", "milliliters", "millilitre", "millilitres"] @
+        units "ratio" "percent" ["%", "percent"] @ units "ratio" "factor" ["x", "times", times]
+      val scanned = MeasuredInput.scan unitTable raw
+      val ns = List.mapPartial (fn MeasuredInput.Measurement n => SOME n | _ => NONE) scanned
+      fun prefix (n : MeasuredInput.measurement) = String.substring (low, 0, #start (#numberSpan n))
+      fun suffix (n : MeasuredInput.measurement) = String.extract (low, #stop (#numberSpan n), NONE)
+      fun only [x] = SOME x | only _ = NONE
+      fun dim "length" = M.ScaleLength | dim "area" = M.ScaleArea
+        | dim "mass" = M.ScaleMass | dim _ = M.ScaleVolume
+      fun bu "g" = M.BU_g | bu "kg" = M.BU_kg | bu "mm" = M.BU_mm
+        | bu "cm" = M.BU_cm | bu "m" = M.BU_m | bu "cm2" = M.BU_cm2
+        | bu "mm2" = M.BU_mm2 | bu "cm3" = M.BU_cm3 | bu "mm3" = M.BU_mm3 | bu _ = M.BU_ml
+      fun factor (n : MeasuredInput.measurement) =
+        let val pre = prefix n val post = suffix n
+            val by = has "\\b(?:by|to)\\s+(?:a factor of\\s+)?$|\\bscale factor\\s*(?:of|is|=|:)?\\s*$|\\bscal\\w*\\s+(?:up|down)\\s*$" pre
+            val to = has "\\bto\\s+(?:a factor of\\s+)?$" pre
+            val scaleWords = findall "\\bscal(?:e|ed|ing)\\b(?!\\s+factor)" pre
+            val operation = case rev scaleWords of [] => pre | m::_ => String.extract(pre,#start m,NONE)
+            val down = has "\\bdown\\b|\\bsmaller\\b|\\bshrink\\w*\\b|\\breduc\\w*\\b|\\bdecreas\\w*\\b" operation
+            val up = has "\\bup\\b|\\blarger\\b|\\benlarg\\w*\\b|\\bincreas\\w*\\b" operation
+            val timesSuffix = has ("^\\s*(?:x|" ^ times ^ "|times)\\s+(?:larger|bigger|smaller|the size|its size|scale)\\b") post
+            val smallerSuffix = has ("^\\s*(?:x|" ^ times ^ "|times)\\s+smaller\\b") post
+            val explicitMultiplier = case #unitBinding n of MeasuredInput.Explicit {unit=u,...} => #alias u = "x" orelse #alias u = times | _ => false
+            fun mode percent = if to orelse explicitMultiplier then M.ScaleMultiply
+                else if percent andalso down then M.ScaleDecrease
+                else if percent andalso up then M.ScaleIncrease
+                else if down orelse smallerSuffix then M.ScaleDivide else M.ScaleMultiply
+            val (a,b) = #value n
+            val percentUnit = case #unitBinding n of MeasuredInput.Explicit {unit=u,...} => #tag u = "percent" | _ => false
+            val directionAmbiguous = not to andalso not explicitMultiplier andalso not percentUnit andalso (down orelse up orelse smallerSuffix) andalso 0<a andalso a<b
+        in if directionAmbiguous orelse (down andalso up) then NONE else case #unitBinding n of
+          MeasuredInput.Bare => if (by andalso has ("^\\s*(?:(?:x|" ^ times ^ "|times)\\b|(?:in|throughout)\\s+every\\b|and\\b|[,.?!;:]|$)") post) orelse timesSuffix
+            then SOME (#id n,(a,b),mode false) else NONE
+        | MeasuredInput.Explicit {unit=u,span} =>
+            if #dimension u = "ratio" andalso (by orelse timesSuffix orelse has "^\\s*(?:scale|of (?:the |its )?(?:original )?size)\\b" (String.extract(low,#stop span,NONE)))
+            then SOME (#id n,(a,if #tag u = "percent" then b*100 else b),mode (#tag u = "percent")) else NONE
+        | _ => NONE end
+      val factorValue = only (List.mapPartial factor ns)
+      val bases = List.mapPartial (fn (n : MeasuredInput.measurement) =>
+        case #unitBinding n of MeasuredInput.Explicit {unit=u,...} =>
+          if #dimension u = "ratio" then NONE else SOME(n,u)
+        | _ => NONE) ns
+      val densityMentioned = has "\\bdensity\\b" low
+      val fixedDensity = has "\\b(?:constant|same|unchanged)\\s+(?:material\\s+)?density\\b|\\bdensity\\s+(?:(?:is|stays|remains)\\s+)?(?:constant|same|unchanged)\\b" low
+      val changedDensity = has "\\bdensity\\b.*\\b(?:halv\\w*|doubl\\w*|tripl\\w*|increas\\w*|decreas\\w*|chang\\w*|reduc\\w*)\\b|\\b(?:halv\\w*|doubl\\w*|chang\\w*)\\s+(?:its |the )?density\\b" low
+      val nonuniform = has "\\bnon[- ]?uniform\\w*\\b|\\b(?:only|just)\\b[^.?!;]*\\b(?:length|width|height|axis|axes|dimension|direction)\\b|\\b(?:one|single)\\s+(?:axis|dimension|direction)\\b" low
+      val fixedAxis = has "\\b(?:length|width|height|axis|dimension)\\s+(?:(?:is|stays|remains)\\s+)?(?:unchanged|fixed|constant|the same)\\b|\\b(?:same|unchanged|fixed)\\s+(?:length|width|height)\\b|\\b(?:except|excluding|but not)\\b[^.?!;]*\\b(?:length|width|height|axis|dimension)\\b|\\banisotropic\\b" low
+      val fixedMass = has "\\b(?:mass|weight)\\s+(?:(?:is|stays|remains)\\s+)?(?:unchanged|fixed|constant|the same)\\b|\\b(?:same|unchanged|fixed|constant)\\s+(?:mass|weight)\\b" low
+      val unsupportedOperation = nonuniform orelse fixedAxis orelse fixedMass orelse (densityMentioned andalso (not fixedDensity orelse changedDensity))
+      val malformed = List.exists (fn MeasuredInput.Malformed _ => true | _ => false) scanned
+        orelse List.exists (fn (n : MeasuredInput.measurement) =>
+          case #unitBinding n of MeasuredInput.Unsupported _ => true | _ => false) ns
+      val wantsMass = has "\\b(?:weigh\\w*|mass|heavy)\\b" low
+      val wantsVolume = has "\\bvolume\\b|\\bfilament\\b|\\bmaterial\\b" low
+      val wantsArea = has "\\b(?:surface )?area\\b" low
+      val wantsLength = has "\\b(?:length|width|height|long)\\b" low
+      val targetText = case search "\\b(?:what|find|calculate|compute)\\b" low of
+          NONE => "" | SOME m => String.extract (low,#start m,NONE)
+      val explicit = List.mapPartial (fn (word,d) =>
+        if has ("\\b" ^ word ^ "\\b") targetText then SOME d else NONE)
+        [("(?:length|width|height|long)",M.ScaleLength),("(?:surface )?area",M.ScaleArea),
+         ("volume",M.ScaleVolume),("(?:mass|weigh\\w*|heavy)",M.ScaleMass)]
+      val distinctTargets = List.foldl (fn (d,ds) => if List.exists (fn x => x=d) ds then ds else d::ds) [] explicit
+      val ambiguousTarget = length distinctTargets > 1
+      val asksAmount = has "\\b(?:new|resulting|scaled)\\s+(?:length|width|height|area|volume|mass)\\b|\\bhow much\\b.*\\bweigh\\b" low
+      val requested = case only distinctTargets of SOME d => SOME d | NONE =>
+        if wantsMass then SOME M.ScaleMass else if wantsVolume then SOME M.ScaleVolume
+        else if wantsArea then SOME M.ScaleArea else if wantsLength then SOME M.ScaleLength else NONE
+    in if malformed orelse ambiguousTarget orelse unsupportedOperation then SOME M.ScaleUnread
+       else case factorValue of NONE => SOME M.ScaleUnread
+       | SOME (factorId,q,mode) =>
+         if List.exists (fn (n : MeasuredInput.measurement) => #id n <> factorId andalso
+              not (List.exists (fn (base,_) => #id base = #id n) bases)) ns then SOME M.ScaleUnread
+         else (case bases of
+          [(n,u)] => let val d = case requested of SOME d => d | NONE => dim (#dimension u)
+                     in SOME (M.ScaleAmount (mode,rat q,d,rat (#value n),bu (#tag u))) end
+        | [] => if asksAmount then SOME M.ScaleUnread else (case requested of SOME d => SOME (M.ScaleFactor (mode,rat q,d)) | NONE => SOME M.ScaleUnread)
+        | _ => SOME M.ScaleUnread)
+    end
 
   fun additive text =
     let val t = collapse text
@@ -318,7 +377,7 @@ struct
         let
           val low = lower t
           val r = case extrude low of SOME r => SOME r | NONE =>
-                  (case scale low of SOME r => SOME r | NONE => additiveV1 low)
+                  (case scale low text of SOME r => SOME r | NONE => additiveV1 low)
         in
           case r of
             SOME req => if not (answered req) andalso not (has "\\d" t) then NONE else SOME req

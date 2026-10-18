@@ -81,3 +81,30 @@ matching uses a byte-preserving lowercase copy; supported units have exact
 source spans. Unit powers, multiplication and `per` continuations are rejected
 when the full compound unit is unsupported. Requested outputs never supply
 input units.
+
+Uniform scaling uses distinct length, area, volume and mass requests. Lengths
+scale linearly, areas quadratically and volume/mass cubically; mass assumes
+unchanged density. Original signed exact quantities come from shared measured
+input spans. Negative physical base quantities, nonpositive scale factors and
+contradictory source/output dimensions are refused. Scaling successively by a
+and b equals scaling once by a*b in the same dimension.
+
+The scaling operation is typed: absolute factor s, division by s, signed
+relative increase 1+s or signed relative decrease 1-s. Percent values are exact
+fractions. The effective factor must remain positive. "To 25 percent" is
+absolute; "down by 25 percent" subtracts from one. Ambiguous fractional
+"up/down by a factor" forms are withheld. Explicit density changes, fixed
+axes, and nonuniform scaling require a different model and are withheld.
+
+Mesh calculations bind exact integer count and genus roles. The model assumes
+a nonempty connected closed orientable triangular surface, with genus zero
+when omitted by the established convention. It rejects zero or negative counts,
+fractional counts/genus, malformed numerals and explicitly open or nontriangular
+models. Every target checks the whole implied tuple: positive integer faces,
+vertices and edges, nonnegative integer genus, Euler characteristic and
+closed-triangle incidence. Thus an edge request cannot ignore an impossible
+implied vertex count. These equations do not prove geometric realizability;
+we allow general triangular cell gluings and do not certify a simple
+triangulation or a particular embedding.
+An explicit postfix x/× denotes an absolute multiplier, including the inherited
+scaled-up-by-0.5x wording. Bare fractional directional factors remain ambiguous.

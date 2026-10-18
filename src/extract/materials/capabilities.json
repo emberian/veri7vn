@@ -82,6 +82,26 @@
           "underspecified"
         ]
       }
+    },
+    "additive-v2": {
+      "evidence": {
+        "computation": "Uniform scaling preserves quantity dimension and original units: length times s, area times s squared, volume and fixed-density mass times s cubed. Physical base quantities are nonnegative and factors positive. Two successive scales compose by multiplying factors. A typed operation distinguishes absolute multiplication, scale-down division, and relative percent increase/decrease; the effective multiplier is respectively s, 1/s, 1+s or 1-s. Explicit density changes and nonuniform axis scaling are unsupported and refused. Mesh count calculations bind exact nonnegative integer quantities and genus to Euler and closed-triangle incidence equations. Every mesh target validates positive integral implied vertices, edges and faces with nonnegative integral genus; an edge-only query cannot bypass vertex feasibility.",
+        "assumptions": [
+          "Uniform scaling in every geometric dimension.",
+          "Mass scaling assumes unchanged material density; volume cannot be inferred from mass alone.",
+          "A connected closed orientable triangular surface with stated genus (default zero). Count equations do not establish geometric realizability.",
+          "An explicit postfix x or \u00d7 names an absolute geometric multiplier, including the inherited scaled-up-by-0.5x wording; bare fractional directional factors are withheld as ambiguous."
+        ],
+        "untrusted": [
+          "English requested target, original quantity and unit interpretation."
+        ]
+      },
+      "accept": {
+        "declines_in_domain": [
+          "impossible",
+          "underspecified"
+        ]
+      }
     }
   }
 }

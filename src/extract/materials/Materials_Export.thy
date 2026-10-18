@@ -9,12 +9,23 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
-     kernel (MeshEdges 3000) = Exact K_mesh_edges 4500 \<and>
-     kernel (MeshEdges 1001) = Decline (Impossible R_odd_faces) \<and>
+     kernel (MeshEdges 4 100) = Decline (Impossible R_negative_count) \<and>
+     kernel (MeshEdges 3000 0) = Exact K_mesh_edges 4500 \<and>
+     kernel (MeshEdges (-4) 0) = Decline (Impossible R_negative_count) \<and>
+     kernel (MeshFaces (9/2) 0) = Decline (Impossible R_odd_faces) \<and>
+     kernel (MeshVertices 20 (-1)) = Decline (Impossible R_negative_count) \<and>
+     kernel (MeshVertices 0 0) = Decline (Impossible R_empty_mesh) \<and>
+     kernel (MeshEdges 1001 0) = Decline (Impossible R_odd_faces) \<and>
      kernel (MeshVertices 5000 0) = Exact K_mesh_vertices 2502 \<and>
      kernel (MeshFaces 502 0) = Exact K_mesh_faces 1000 \<and>
      kernel (ScadCube 20 10 5) = Exact K_scad_volume 1000 \<and>
-     kernel (ScaleAmount (3 / 2) False 50 BU_g) = Exact K_scale_amount (16875 / 100) \<and>
+     kernel (ScaleAmount ScaleMultiply (3 / 2) ScaleMass 50 BU_g) = Exact K_scale_amount (16875 / 100) \<and>
+     kernel (ScaleAmount ScaleMultiply 2 ScaleLength 10 BU_cm) = Exact K_scale_amount 20 \<and>
+     kernel (ScaleAmount ScaleDivide 2 ScaleLength 10 BU_cm) = Exact K_scale_amount 5 \<and>
+     kernel (ScaleAmount ScaleIncrease (1/2) ScaleLength 10 BU_cm) = Exact K_scale_amount 15 \<and>
+     kernel (ScaleAmount ScaleIncrease (-1/2) ScaleLength 10 BU_cm) = Exact K_scale_amount 5 \<and>
+     kernel (ScaleAmount ScaleDecrease (1/4) ScaleLength 10 BU_cm) = Exact K_scale_amount (15/2) \<and>
+     kernel (ScaleAmount ScaleMultiply 2 ScaleMass (-100) BU_g) = Decline (Impossible R_negative_scale_amount) \<and>
      kernel (CtValue (Some (1 / 2)) (Some 20)) = Exact K_ct 10 \<and>
      kernel (CtTime (Some 60) (Some 2)) = Exact K_ct_time 30 \<and>
      kernel (CtConcentration (Some 60) (Some 30)) = Exact K_ct_concentration 2 \<and>
@@ -39,16 +50,16 @@ definition self_test :: bool where
      render_layout (Sig 4) (6802, -4) = STR ''0.6802'' \<and>
      render_layout Fixed (16875, -2) = STR ''168.75'' \<and>
      render_layout (Sig 3) (398, -9) = STR ''3.98e-07'' \<and>
-     response (reply_of (MeshEdges 3000)) = STR ''The mesh has 4500 edges (E = 3F/2 = 3 x 3000 / 2; closed triangle mesh).''"
+     response (reply_of (MeshEdges 3000 0)) = STR ''The mesh has 4500 edges (E = 3F/2 = 3 x 3000 / 2; closed triangle mesh).''"
 
 export_code reply_of answered reply_kind response stated silent mk_rat
   integer_of_int nat_of_integer int_of_integer
-  MeshVertices MeshEdges MeshFaces ScadCube ScadSphere ScadCylinder ScadFrustum ScaleAmount
+  MeshVertices MeshEdges MeshFaces MeshUnread ScadCube ScadSphere ScadCylinder ScadFrustum ScaleAmount
   ScaleFactor ScaleUnread Extrude PackingFactor CrystalDensity PorosityAerogel Expansion Modulus
   HookeStress HookeStrain Strain Stress MatUnread Texture SoilPorosity WaterContent VolWaterContent BulkDensity
   HardnessGpg HardnessMgl Pounds CtValue CtTime CtConcentration ChlorineDose Dilution PhOf HConc Potable
   St_sc St_bcc St_fcc LU_mm LU_cm LU_m AU_mm2 AU_cm2 AU_m2 FU_N FU_kN SU_Pa SU_MPa SU_GPa
-  XU_pm XU_nm XU_A VA_mm3 VA_cm3 BU_g BU_kg BU_cm3 BU_mm3 BU_cm2 BU_mm2 BU_ml C_pct C_mgl
+  XU_pm XU_nm XU_A VA_mm3 VA_cm3 BU_g BU_kg BU_cm3 BU_mm3 BU_cm2 BU_mm2 BU_ml BU_mm BU_cm BU_m ScaleLength ScaleArea ScaleVolume ScaleMass ScaleMultiply ScaleDivide ScaleIncrease ScaleDecrease C_pct C_mgl
   WU_l WU_ml WU_gal
   in SML module_name Materials file_prefix materials
 
@@ -59,7 +70,8 @@ ML \<open>
     @{thm mesh_vertices_euler}, @{thm mesh_edges_shared}, @{thm mesh_faces_euler},
     @{thm mesh_odd_faces_decline}, @{thm scad_cube_volume}, @{thm scad_negative_decline},
     @{thm scad_sphere_volume}, @{thm scad_cylinder_volume}, @{thm scad_frustum_volume},
-    @{thm scale_volume_cubed}, @{thm scale_area_squared}, @{thm scale_factor_cubed},
+    @{thm scale_volume_cubed}, @{thm scale_mass_cubed}, @{thm scale_area_squared}, @{thm scale_factor_cubed}, @{thm scale_length_linear}, @{thm scale_amount_binding}, @{thm scale_composes},
+    @{thm scale_divide_length}, @{thm scale_increase_length}, @{thm scale_decrease_length},
     @{thm extrude_time}, @{thm extrude_underspecified},
     @{thm packing_factor}, @{thm crystal_density}, @{thm crystal_structure_needed},
     @{thm porosity_aerogel}, @{thm porosity_aerogel_decline}, @{thm stress_def}, @{thm strain_def},
@@ -75,6 +87,7 @@ ML \<open>
     @{thm water_not_potable}, @{thm dilution_nonpositive},
     @{thm classify_total}, @{thm volumetric_is_gravimetric_times_bulk_density},
     @{thm mesh_vertices_faces_inverse},
+    @{thm mesh_vertices_discrete}, @{thm mesh_edges_discrete}, @{thm mesh_faces_discrete},
     @{thm reply_answered_iff}, @{thm reply_withheld_names_decline}, @{thm reply_states_exact}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("materials theorems use oracles: " ^ string_of_int (length oracles));
