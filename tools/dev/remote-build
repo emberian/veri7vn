@@ -55,16 +55,20 @@ def main():
     ap.add_argument("session")
     ap.add_argument("-d", dest="extra", action="append", default=[])
     ap.add_argument("--expect", default="")
+    ap.add_argument("--check-only", action="store_true", help="isolated proof diagnostics; no usable export receipt or publication")
     ap.add_argument("--no-exports", action="store_true", help="proof-only session; check build/marker without publishing code")
     ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--queue-timeout", type=int, default=7200)
     ap.add_argument("--recover", metavar="ATTEMPT", help="collect an existing attempt without submitting another build")
     args = ap.parse_args()
+    if args.check_only:
+        args.no_exports = True
     root = Path.cwd().resolve()
     for directory in [args.session_dir, *args.extra]:
         path = Path(directory)
-        if path.is_absolute() or ".." in path.parts or not (root / path / "ROOT").is_file():
-            ap.error("session roots must be checkout-relative directories containing ROOT")
+        if (path.is_absolute() or ".." in path.parts or not path.parts or
+                path.parts[0] not in ("src", "tests") or not (root / path / "ROOT").is_file()):
+            ap.error("session roots must be under the snapshotted src/ or tests/ directories and contain ROOT; use a staged checkout for scratch sessions")
     if not 30 <= args.timeout <= 7200 or not 1 <= args.queue_timeout <= 14400:
         ap.error("build timeout must be 30..7200s; queue timeout 1..14400s")
     if args.recover and (Path(args.recover).name != args.recover or not args.recover.startswith("20")):
@@ -177,7 +181,7 @@ def main():
         if log.exists():
             shutil.copy2(log, out / "remote-build.log")
             print("\n".join(log.read_text(errors="replace").splitlines()[-8:]))
-        receipt["status"] = "passed" if result == 0 else "failed"
+        receipt["status"] = ("checked" if receipt.get("check_only") else "passed") if result == 0 else "failed"
         # Only the attempt this invocation created is removed, after complete collection.
         try:
             ssh(args.host, "rm -rf -- " + qremote)

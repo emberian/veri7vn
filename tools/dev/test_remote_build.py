@@ -26,14 +26,14 @@ class Process:
 class WorkerChecks(unittest.TestCase):
     def run_worker(self, *, build_rc=0, marker=True, export_rc=0, cancel=False, resource_error=False,
                    no_exports=False, cleanup_error=False, completed=True, cancel_during_build=False,
-                   cancel_during_export=False, changed_sources=False):
+                   cancel_during_export=False, changed_sources=False, check_only=False):
         with tempfile.TemporaryDirectory() as temp:
             managed = Path(temp) / "managed"
             attempt = managed / "attempts" / "test-attempt"
             attempt.mkdir(parents=True)
             config = {"attempt": "test-attempt", "session": "Session", "session_dir": "src/session",
                       "extra": [], "expect": "PASS oracles=0", "source_digest": "digest",
-                      "timeout": 30, "queue_timeout": 1, "no_exports": no_exports}
+                      "timeout": 30, "queue_timeout": 1, "no_exports": no_exports, "check_only": check_only}
             (attempt / "config.json").write_text(json.dumps(config))
             if cancel:
                 (attempt / "cancel").touch()
@@ -61,7 +61,10 @@ class WorkerChecks(unittest.TestCase):
             original = Path.cwd()
             try:
                 worker.os.chdir(attempt)
-                with patch.object(worker, "seed_state", return_value=managed / "state"), \
+                with patch.object(worker, "check_state", return_value=managed / "check-state"), \
+                     patch.object(worker, "verify_check_parents", return_value=True), \
+                     patch.object(worker, "check_parent_inputs", return_value={}), \
+                     patch.object(worker, "seed_state", return_value=managed / "state"), \
                      patch.object(worker, "resources", side_effect=RuntimeError("disk reserve") if resource_error else None,
                                   return_value={"job_cap": worker.MEMORY_CAP}), \
                      patch.object(worker, "active_heap_writers", return_value={}), \
@@ -74,6 +77,13 @@ class WorkerChecks(unittest.TestCase):
                 return result, calls, popen.call_count
             finally:
                 worker.os.chdir(original)
+
+    def test_check_only_never_exports_or_requests_target_heap(self):
+        result, calls, _ = self.run_worker(check_only=True)
+        self.assertEqual(result["exit_code"], 0)
+        self.assertNotIn("-b", result["command"])
+        self.assertFalse(any("export" in command for command in calls))
+        self.assertTrue(result["parents_unchanged"])
 
     def test_success_collects_and_stops_owned_unit(self):
         result, calls, started = self.run_worker()
@@ -209,6 +219,23 @@ class QueueAndSnapshotChecks(unittest.TestCase):
 
 
 class TransportChecks(unittest.TestCase):
+    def test_unsnapshotted_scratch_root_fails_before_remote_launch(self):
+        loader = SourceFileLoader("remote_client_roots", str(Path(__file__).with_name("remote-build")))
+        spec = importlib.util.spec_from_loader(loader.name, loader)
+        client = importlib.util.module_from_spec(spec); loader.exec_module(client)
+        import io
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); (root / "var/check").mkdir(parents=True)
+            (root / "var/check/ROOT").write_text("session Check = HOL + theories Check")
+            with patch.object(client.Path, "cwd", return_value=root), \
+                 patch.object(client.sys, "argv", ["remote-build", "hbox", "var/check", "Check", "--check-only"]), \
+                 patch.object(client.sys, "stderr", new_callable=io.StringIO), \
+                 patch.object(client, "ssh") as ssh:
+                with self.assertRaises(SystemExit) as result:
+                    client.main()
+                self.assertEqual(result.exception.code, 2)
+                ssh.assert_not_called()
+
     def test_transient_ssh_failure_retries_but_remote_failure_does_not(self):
         loader = SourceFileLoader("remote_client", str(Path(__file__).with_name("remote-build")))
         spec = importlib.util.spec_from_loader(loader.name, loader)
@@ -241,6 +268,66 @@ class TransportChecks(unittest.TestCase):
                 with self.assertRaises(subprocess.CalledProcessError):
                     client.ssh("hbox", "true")
                 self.assertEqual(runner.call_count, 5)
+
+
+
+class CheckOnlyTests(unittest.TestCase):
+    def test_parent_seed_is_independent_immutable_and_reused(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            managed = base / 'managed'; managed.mkdir()
+            isa = base / 'isabelle/bin/isabelle'
+            root = isa.parent.parent / 'heaps/polyml-5.9.2_x86_64_32-linux'
+            (root / 'log').mkdir(parents=True)
+            for name in ('Pure', 'HOL'):
+                (root / name).write_bytes(b'heap-' + name.encode())
+                (root / 'log' / (name + '.db')).write_bytes(b'db-' + name.encode())
+            with patch.object(worker.subprocess, 'check_output', return_value='Pure\nHOL\n'), \
+                 patch.object(worker.shutil, 'disk_usage', return_value=SimpleNamespace(free=100 * worker.GIB)):
+                result = {}
+                state = worker.check_state(managed, isa, [], 'Target', result)
+                seed = Path(result['parent_seed'])
+                self.assertNotEqual((seed / 'HOL').stat().st_ino, (root / 'HOL').stat().st_ino)
+                self.assertEqual((seed / 'HOL').stat().st_mode & 0o222, 0)
+                self.assertTrue(worker.verify_check_parents(result))
+                settings = (state / '.isabelle/Isabelle2026-RC1/etc/settings').read_text()
+                self.assertIn('ISABELLE_HEAPS_SYSTEM=', settings)
+                self.assertIn('ISABELLE_HEAPS=', settings)
+                again = {}
+                worker.check_state(managed, isa, [], 'Target', again)
+                self.assertEqual(again['parent_copy_bytes'], 0)
+                (seed / 'HOL').chmod(0o644); (seed / 'HOL').write_text('drift')
+                self.assertFalse(worker.verify_check_parents(result))
+                with self.assertRaisesRegex(RuntimeError, 'parent changed'):
+                    worker.check_state(managed, isa, [], 'Target', {})
+
+    def test_actual_parent_record_prefers_private_override(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            seed = base / "parents/platform"; seed.mkdir(parents=True)
+            output = base / "output/platform"; output.mkdir(parents=True)
+            (seed / "HOL").write_text("retained")
+            result = {"parent_seed": str(seed), "parent_sessions": ["HOL"]}
+            self.assertEqual(worker.check_parent_inputs(result)["HOL"]["origin"], "retained_seed")
+            (output / "HOL").write_text("rebuilt privately")
+            record = worker.check_parent_inputs(result)["HOL"]
+            self.assertEqual(record["origin"], "private_cache")
+            self.assertEqual(record["sha256"], worker.digest(output / "HOL"))
+
+    def test_missing_warm_parent_refuses_cold_build(self):
+        with tempfile.TemporaryDirectory() as temp:
+            managed = Path(temp) / 'managed'; managed.mkdir()
+            with patch.object(worker.subprocess, 'check_output', return_value='HOL-Analysis\n'):
+                with self.assertRaisesRegex(RuntimeError, 'warm parent'):
+                    worker.check_state(managed, Path(temp) / 'isa/bin/isabelle', [], 'Target', {})
+
+    def test_parent_copy_respects_disk_reserve(self):
+        with tempfile.TemporaryDirectory() as temp:
+            managed = Path(temp) / 'managed'; managed.mkdir()
+            with patch.object(worker.subprocess, 'check_output', return_value=''), \
+                 patch.object(worker.shutil, 'disk_usage', return_value=SimpleNamespace(free=worker.MIN_DISK - 1)):
+                with self.assertRaisesRegex(RuntimeError, 'reserve'):
+                    worker.check_state(managed, Path(temp) / 'isa/bin/isabelle', [], 'Target', {})
 
 
 if __name__ == "__main__":

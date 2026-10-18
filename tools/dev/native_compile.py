@@ -27,6 +27,17 @@ def atomic_json(path, data):
     os.replace(temp, path)
 
 
+def native_lock_path(repo):
+    """Share the compiler slot across worktrees and nested staged checkouts."""
+    repo = repo.resolve()
+    git = subprocess.run(['git', '-C', str(repo), 'rev-parse', '--path-format=absolute',
+                          '--git-common-dir'], capture_output=True, text=True, timeout=10)
+    root = Path(git.stdout.strip()).parent if git.returncode == 0 else repo
+    path = root / 'var/native-compile.lock'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def proof_sources(repo, session):
     sessions = {}
     for root in (repo / 'src').rglob('ROOT'):
@@ -136,7 +147,8 @@ def compile_native(repo, family, session, compiler, arguments, explicit=None, ti
         raise ValueError('unsupported compiler flags; add an explicit reviewed recipe')
     out = repo/'var'/family
     out.mkdir(parents=True, exist_ok=True)
-    with (repo/'var/native-compile.lock').open('a') as lock:
+    lock_path = native_lock_path(repo)
+    with lock_path.open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         inputs = read_mlb(mlb)
         receipt_path, proof, theories, generated = select_receipt(repo, family, session, inputs, explicit, proof_snapshot)
@@ -199,6 +211,7 @@ def compile_native(repo, family, session, compiler, arguments, explicit=None, ti
         version = subprocess.run([str(compiler), '-show', 'path-map'], capture_output=True, text=True)
         toolchain['path_map'] = version.stdout.strip()
         record = {'schema_version': 1, 'compile_ok': False, 'family': family, 'session': session,
+                  'compiler_lock': str(lock_path),
                   'snapshot_dir': str(attempt), 'compiler': toolchain, 'command': command,
                   'rewritten_mlb': str(snapshot_mlb), 'inputs_sha256': {str(p): d for p, d in before.items()},
                   'source_sha256': source_sha256, 'canonical_source_map': canonical, 'frozen_inputs_sha256': frozen, 'input_snapshot_map': mapping,

@@ -232,3 +232,48 @@ MLB as usual. The manifest labels `proof_source_context: receipt_snapshot`, name
 these distinct proof/runtime origins, rather than claim the retained kernel was
 proved from today's changing theory checkout. Missing or changed snapshot inputs,
 a different generated export, and receipt changes during compilation fail.
+
+## Isolated proof diagnostics
+
+`remote-build HOST ROOT SESSION --check-only` runs the normal Isabelle build
+pipeline with a separate stable source workspace and writable output/database
+cache. It inventories the session's required parent heaps and databases, copies
+only available warm parents once into a retained read-only seed, and hashes them
+before and after checking. Missing warm parents are refused. No writable
+hardlinks, code export, target heap request, or compatibility publication occurs.
+A successful diagnostic receipt has status `checked`, not `passed`; native
+compilation and packaging cannot consume it as a verified export receipt.
+
+This initial mode still holds the ordinary host build lock and uses the existing
+16 GiB service cap, timeout/cancellation controls and 20 GiB disk reserve. It
+establishes a separate safe cache boundary; it does not yet shorten queue wait.
+Concurrent checks require a separately reviewed reservation-aware admission
+change, including a transition for existing workers and native compilations.
+Use a bounded `--timeout` appropriate to the target. Optional `--expect` checks
+only captured diagnostic logs; this mode deliberately does not fetch code or
+assertion exports. Normal builds remain necessary to publish checked kernels.
+
+Scratch sessions use a staged checkout: create a unique directory under `var/`
+with its own `src/` and `tests/`, copy the needed coherent source closure there,
+and add the diagnostic ROOT/theory under that staged `src/`. Run the absolute
+remote-build executable with that directory as cwd and relative `src/...` roots.
+The live family ROOT remains unchanged. Roots outside `src/` and `tests/` are
+rejected before launch because those are the only trees the driver snapshots.
+
+A project parent can rebuild once inside the private cache because Isabelle
+includes source paths in cache identity. Later checks reuse that private output.
+`retained_parents` identifies the unchanged seed; `actual_parent_inputs` records
+the selected private-cache or seed heap hashes separately, so a rebuilt parent
+is not misattributed to the original seed. The immutable source snapshot retains
+the parent theory inputs as well as the diagnostic target.
+
+Staged native recipes may use unchanged copies of the current helper and its
+`tools/deploy/build_receipt.py` dependency. The compiler lock resolves through
+Git's common directory, so nested staged checkouts and worktrees share the main
+project's `var/native-compile.lock`. Their source context, immutable attempt
+receipts, requested binary and convenience manifest remain in their own stage.
+This preserves frozen live convenience receipts without allowing parallel local
+MLton jobs. Outside Git, the helper keeps a lock in its supplied checkout.
+Refresh older staged helper copies before starting another compilation; manifests
+record `compiler_lock` for inspection. Completed artifacts need no rebuild merely
+to change their lock location.

@@ -232,3 +232,77 @@ There is no automatic fallback or skipped dependency directory. Seventeen focuse
 native tests pass, including required explicit context, missing/drifted retained
 inputs, and a mismatched generated kernel. Packaging coordinates the two source
 origins rather than treating historical proof as a current-theory claim.
+
+## Isolated proof-check experiment
+
+Ordinary proof retries often take 7–9 seconds of proof work but wait several
+minutes behind unrelated builds. A separate check cache can remove the database
+race; overlapping work additionally requires explicit memory reservations.
+
+The first serialized hbox experiment retained independent Pure/HOL heaps and
+DB/log files (353,754,884 bytes), then ran the same true and false statements
+through ordinary and isolated-output builds. Ordinary true/false took 4.374/4.423
+seconds; isolated true/false/repair took 4.682/4.273/4.473 seconds. Both paths
+rejected `0 = (1::nat)` at the proof command. Every retained parent hash stayed
+unchanged; isolated output contained only its own target DB/log. The service
+peaked at 2.3 GiB. Evidence is retained in
+`var/c-build/proofcheck-trial/result-cli.json` and adjacent stage logs. An earlier
+Scala-wrapper experiment failed before proof loading; the successful design
+uses the normal CLI with separate input/output heap settings.
+
+`remote-build --check-only` now provides this isolated ordinary build path. It
+retains immutable attempt sources and parent hashes, copies only required warm
+parents once, verifies its own workspace and seed, and returns `checked` rather
+than an export-authorizing `passed` receipt. Its writable cache and stable source
+path are separate from publication builds. Twenty-six focused driver tests pass,
+including parent copy independence/reuse, missing warm parent refusal, drift and
+disk reserve rejection, and no export/target heap request in check-only mode.
+
+Concurrency is not enabled: initial checks still hold the existing global host
+lock with the same caps and exact service cleanup. A short resource admission
+lock with full normal/check slot reservations and a safe old-worker transition
+must be reviewed before overlap. Current ordinary proof/native jobs are untouched.
+
+The integrated driver also passed the actual positive/negative check. Receipt
+`var/c-build/check-only-stage/var/session/remote-attempts/20261018T082721Z-741266c469b7/receipt.json`
+records `checked`, actual build completion, unchanged parents, and no published
+exports. The false-statement successor `20261018T083201Z-bd79d502c62a` records
+`failed` with the explicit `False` proof obligation at line 2, unchanged parents,
+and no exports. Its parent-copy byte count is zero, confirming reuse of the one
+retained seed. Each target took three seconds of Isabelle work; queue waits were
+224 and 312 seconds. This establishes integrity/cache isolation, not a queue
+speedup. Neither receipt can authorize native compilation.
+
+An adopter found that scratch `var/` roots passed local validation but were not
+snapshotted. The driver now rejects them before remote launch; a focused negative
+test checks this. Documented staged checkouts support diagnostic sessions without
+editing live family ROOT files.
+
+First real adopter GeoStats_Paired_Check807e2ad7a1ce copied44 MB of warm project
+parent files and exposed an ordinary set/rat parser error in its new theorem.
+Its private GeoStats_Base rebuilt once (43 seconds) because source paths changed;
+the isolated cache retains that build for later checks. Actual selected parent
+heap hashes now have a separate receipt field from the immutable seed inventory,
+with a focused override-precedence test. No publication cache was modified.
+
+The repaired GeoStats model subsequently passed as check13571565d45c: actual
+completion, seven headline theorem roots with zero oracles, stable sources and
+parents, zero additional parent-copy bytes, and no published exports. Its receipt
+identifies retained Pure/HOL and the actual private GeoStats_Base heap separately.
+The owner checked the full paired-data normal equations, SSE decomposition and
+minimality, covariance, and consumer links while the live family remained frozen.
+
+## Staged native compiler locking
+
+Adopters copied the native helper into independent staged checkouts to preserve
+live convenience manifests. That also split the compiler lock. Using the main
+helper instead shared the lock but replaced the live family convenience receipt,
+so it was not a complete answer for frozen packets.
+
+The helper now resolves only its lock through Git's common directory. Staged
+source context, output and receipts stay staged; all current copies serialize
+on the original repository lock. Twenty native tests pass, including a real Git
+nested-stage lock lookup and a staged compilation that leaves an existing live
+convenience receipt unchanged. The manifest records the lock path. No local
+MLton process was running at the cutover check, and existing artifacts remain
+valid without rebuilding. Remote proof caps and concurrency are unchanged.

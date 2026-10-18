@@ -35,8 +35,10 @@ class NativeCompileTests(unittest.TestCase):
         self.compiler = self.repo/'compiler';self.compiler.write_text('#!/bin/sh\n');self.compiler.chmod(0o755)
         self.output = out/'bin/tiny'
 
-    def compile(self, callback=None, proof_snapshot=False):
+    def compile(self, callback=None, proof_snapshot=False, repo=None, output=None):
         def fake(command, **kwargs):
+            if command[0] == 'git':
+                return n.subprocess.CompletedProcess(command,1,stdout='',stderr='not a repository')
             if '-show' in command:
                 return n.subprocess.CompletedProcess(command,0,stdout='mock toolchain',stderr='')
             mlb=Path(command[-1]); body=mlb.read_text()
@@ -46,8 +48,30 @@ class NativeCompileTests(unittest.TestCase):
             Path(command[command.index('-output')+1]).write_text(consumed)
             return n.subprocess.CompletedProcess(command,0)
         with patch.object(n.subprocess,'run',fake):
-            return n.compile_native(self.repo,'tiny','Veri7vn_Tiny',self.compiler,['-output',str(self.output),str(self.mlb)],
+            return n.compile_native(repo or self.repo,'tiny','Veri7vn_Tiny',self.compiler,['-output',str(output or self.output),str(self.mlb)],
                                     self.receipt if proof_snapshot else None, proof_snapshot=proof_snapshot)
+
+    def test_nested_stage_resolves_same_repository_compiler_lock(self):
+        n.subprocess.run(['git', 'init', '-q', str(self.repo)], check=True)
+        stage = self.repo / 'var/stage'; stage.mkdir(parents=True)
+        self.assertEqual(n.native_lock_path(stage), n.native_lock_path(self.repo))
+        self.assertEqual(n.native_lock_path(stage), self.repo.resolve() / 'var/native-compile.lock')
+
+    def test_non_git_checkout_retains_local_lock(self):
+        self.assertEqual(n.native_lock_path(self.repo), self.repo.resolve() / 'var/native-compile.lock')
+
+    def test_staged_compile_preserves_live_convenience_receipt(self):
+        live = self.repo / 'var/tiny/build/compile-inputs.json'
+        live.parent.mkdir(parents=True); live.write_text('selected frozen artifact')
+        stage = self.repo / 'var/stage'; stage.mkdir(parents=True)
+        shutil.copytree(self.repo / 'src', stage / 'src')
+        shared = self.repo / 'var/native-compile.lock'
+        with patch.object(n, 'native_lock_path', return_value=shared):
+            record = self.compile(proof_snapshot=True, repo=stage, output=stage / 'tiny')
+        self.assertTrue(record['compile_ok'])
+        self.assertEqual(record['compiler_lock'], str(shared))
+        self.assertEqual(live.read_text(), 'selected frozen artifact')
+        self.assertTrue((stage / 'var/tiny/build/compile-inputs.json').is_file())
 
     def test_snapshot_is_actual_compiler_input_despite_live_change(self):
         r=self.compile(lambda _:self.runtime.write_text('val answer = 99\n'))

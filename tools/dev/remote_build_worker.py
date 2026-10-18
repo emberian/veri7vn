@@ -106,6 +106,94 @@ def seed_state(managed, result):
     return state
 
 
+def check_state(managed, isabelle, dirs, session, result):
+    """Retain warm parent inputs once; only this mode's private cache is writable.
+
+    Caller holds the ordinary host lock. New parent copies come from the managed
+    cache or installed distribution, never the unmanaged legacy writer cache.
+    """
+    base = managed / "proof-check"
+    base.mkdir(exist_ok=True)
+    names = subprocess.check_output([str(isabelle), "sessions", "-b", "-R", *dirs, session],
+                                    text=True, timeout=120).splitlines()
+    names = [name.strip() for name in names if name.strip() and name.strip() != session]
+    if any(not re.fullmatch(r"[A-Za-z0-9_.-]+", name) for name in names):
+        raise RuntimeError("unexpected parent session name")
+    platform = "polyml-5.9.2_x86_64_32-linux"
+    seed = base / "parents" / platform
+    manifest = base / "parents.json"
+    inventory = json.loads(manifest.read_text()) if manifest.exists() else {}
+    for name, record in inventory.items():
+        if not (seed / name).is_file() or digest(seed / name) != record["sha256"]:
+            raise RuntimeError("retained proof-check parent changed: " + name)
+    roots = [managed / "user-state/.isabelle/Isabelle2026-RC1/heaps" / platform,
+             isabelle.parent.parent / "heaps" / platform]
+    copies = []
+    for name in names:
+        if name in inventory:
+            if "log/" + name + ".db" not in inventory:
+                raise RuntimeError("incomplete retained parent inventory: " + name)
+            continue
+        source = next((root for root in roots
+                       if (root / name).is_file() and (root / "log" / (name + ".db")).is_file()), None)
+        if source is None:
+            raise RuntimeError("proof-check requires a warm parent heap/database: " + name)
+        for relative in [name, "log/" + name + ".db", "log/" + name + ".gz"]:
+            if (source / relative).is_file():
+                copies.append((source / relative, relative))
+    size = sum(path.stat().st_size for path, _ in copies)
+    if shutil.disk_usage(managed).free < MIN_DISK + size:
+        raise RuntimeError("need 20 GiB reserve plus inventoried proof-check parents")
+    for source, relative in copies:
+        target = seed / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        before = digest(source)
+        if not target.exists():
+            pending = target.with_name(target.name + ".copying")
+            shutil.copyfile(source, pending)
+            if digest(pending) != before:
+                raise RuntimeError("parent copy digest mismatch: " + relative)
+            os.replace(pending, target)
+        if digest(source) != before or digest(target) != before:
+            raise RuntimeError("parent changed during independent copy: " + relative)
+        target.chmod(0o444)
+        inventory[relative] = {"sha256": before, "bytes": target.stat().st_size, "source": str(source)}
+    atomic_json(manifest, inventory)
+    state = base / "user-state"
+    settings = state / ".isabelle/Isabelle2026-RC1/etc/settings"
+    settings.parent.mkdir(parents=True, exist_ok=True)
+    # Isabelle's normal CLI supports distinct system input and user output roots.
+    import shlex
+    settings.write_text("ISABELLE_HEAPS_SYSTEM=" + shlex.quote(str(base / "parents")) + "\n" +
+                        "ISABELLE_HEAPS=" + shlex.quote(str(base / "output")) + "\n")
+    result["check_only"] = True
+    result["parent_sessions"] = names
+    result["retained_parents"] = inventory
+    result["parent_seed"] = str(seed)
+    result["parent_copy_bytes"] = size
+    return state
+
+
+def verify_check_parents(result):
+    seed = Path(result["parent_seed"])
+    return all((seed / name).is_file() and digest(seed / name) == item["sha256"]
+               for name, item in result["retained_parents"].items())
+
+
+def check_parent_inputs(result):
+    """Record the actual private-cache overrides, separately from the seed."""
+    seed = Path(result["parent_seed"])
+    output = seed.parent.parent / "output" / seed.name
+    inputs = {}
+    for name in result["parent_sessions"]:
+        heap = next((root / name for root in (output, seed) if (root / name).is_file()), None)
+        if heap is None:
+            raise RuntimeError("missing proof-check parent input: " + name)
+        inputs[name] = {"path": str(heap), "sha256": digest(heap),
+                        "origin": "private_cache" if heap.parent == output else "retained_seed"}
+    return inputs
+
+
 def resources(managed):
     free = shutil.disk_usage(managed).free
     if free < MIN_DISK:
@@ -168,8 +256,8 @@ def source_hashes(root):
 def prepare_workspace(attempt, managed, result):
     # The global host lock makes a stable source path safe. Unique attempt paths
     # otherwise invalidate Isabelle's cached source identities on every request.
-    workspace = managed / "workspace"
-    workspace.mkdir(exist_ok=True)
+    workspace = managed / ("proof-check/workspace" if result.get("check_only") else "workspace")
+    workspace.mkdir(parents=True, exist_ok=True)
     subprocess.run(["rsync", "-a", "--checksum", "--delete", str(attempt / "src"),
                     str(attempt / "tests"), str(workspace) + "/"], check=True, timeout=120)
     expected = json.loads((attempt / "source-sha256.json").read_text())
@@ -205,7 +293,12 @@ def main():
             if (attempt / "cancel").exists() or time.monotonic() >= deadline:
                 raise RuntimeError("memory wait cancelled or timed out")
             time.sleep(3)
-        state = seed_state(managed, result)
+        isabelle = Path.home() / "tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle"
+        dirs = ["-d", str(attempt / config["session_dir"])]
+        for directory in config["extra"]:
+            dirs += ["-d", str(attempt / directory)]
+        state = (check_state(managed, isabelle, dirs, config["session"], result)
+                 if config.get("check_only") else seed_state(managed, result))
         if (attempt / "cancel").exists():
             raise RuntimeError("cancelled before build start")
         result["user_state"] = str(state)
@@ -226,7 +319,7 @@ def main():
                    "-p", "RuntimeMaxSec=" + str(config["timeout"]), "-p", "TimeoutStopSec=30",
                    "-p", "KillMode=control-group", "-p", "CPUWeight=50", "-p", "Nice=15",
                    "-p", "OOMScoreAdjust=0", sys.executable, str(attempt / "worker.py"),
-                   "--run-build", str(isabelle), "build", "-v", "-b", *dirs,
+                   "--run-build", str(isabelle), "build", "-v", *([] if config.get("check_only") else ["-b"]), *dirs,
                    "-j", "1", "-o", "threads=2", config["session"]]
         result["command"] = command
         result["unit"] = unit
@@ -250,6 +343,12 @@ def main():
             result["build_exit"] = 1
         if result["cancelled"]:
             result["build_exit"] = 1
+        if config.get("check_only"):
+            result["actual_parent_inputs"] = check_parent_inputs(result)
+            result["parents_unchanged"] = verify_check_parents(result)
+            if not result["parents_unchanged"]:
+                result["build_exit"] = 1
+                result["error"] = "retained proof-check parents changed"
         # Keep the host lock until diagnostics and export finish: build_log/export
         # read session databases that another build could otherwise replace.
         stored = results / "session.log"
@@ -259,7 +358,7 @@ def main():
         result["log_exit"] = logged.returncode
         export = results / "export" / config["session"]
         export.mkdir(parents=True)
-        if result["build_exit"] or config.get("no_exports", False):
+        if result["build_exit"] or config.get("no_exports", False) or config.get("check_only", False):
             result["export_exit"] = 0
             result["exports_skipped"] = True
         else:
