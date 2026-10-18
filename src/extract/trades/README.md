@@ -65,3 +65,11 @@ The shared numeral reader preserves exact signed decimals, scientific notation
 and fractions in row gauges. Count replies carry the selected model law; the
 English role binding remains untrusted. Boundary probes include amounts just
 above or below an integer, where floating-point epsilon rules gave wrong counts.
+
+NIOSH questions preserve whether weight limit or lifting index was requested.
+A lifting index needs a load; missing load does not turn the request into a
+weight-limit calculation. Numeric inputs use the shared exact reader. Necessary
+model guards require nonnegative geometry and load, FM between zero and one,
+and CM equal to 0.90, 0.95 or 1.00. The conditional weight bound is 0–23 kg.
+These checks do not establish the correct table row or whether the equation
+applies to an actual lifting task.

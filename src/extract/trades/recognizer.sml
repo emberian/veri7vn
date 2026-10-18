@@ -370,22 +370,28 @@ struct
       fun niosh () =
         if has "\\bniosh\\b|\\brecommended weight limit\\b|\\brwl\\b|\\blifting index\\b" low then
           let
-            fun grab label letter =
-              let val m = case search ("\\b" ^ label ^ "\\s*(?:of|is|=|:)?\\s*" ^ M) low of
-                            SOME m => SOME m
-                          | NONE => search ("(?<![\\w])" ^ letter ^ "\\s*=\\s*" ^ M) low
-              in Option.map (fn m => ratOf (g1 low m)) m end
-            val h = grab "horizontal(?: distance| location)?" "h"
-            val v = grab "vertical (?:height|location|start)" "v"
-            val d = grab "(?:travel distance|vertical travel(?: distance)?|lift distance|distance (?:moved|travell?ed))" "d"
-            val a = grab "asymmetry(?: angle)?" "a"
-            val fm = grab "frequency multiplier" "fm"
-            val cm = grab "coupling multiplier" "cm"
-            val lm = case search ("\\b(?:load|weighs?|lifting|lift(?:s|ing)? a)\\s*(?:of|is)?\\s*" ^ M ^ "\\s*kg\\b") low of
-                       SOME m => SOME m
-                     | NONE => search (M ^ "\\s*kg\\s*(?:load|box|object|bag)\\b") low
-            val ld = if has "\\blifting index\\b|\\bli\\b" low then Option.map (fn m => ratOf (g1 low m)) lm else NONE
-          in Take (Q.Niosh (h, v, d, a, fm, cm, ld)) end
+            val tokens = ExactNumeric.scan low
+            val ns = if List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens then []
+                     else List.mapPartial (fn ExactNumeric.Number n => SOME n | _ => NONE) tokens
+            fun prefixOf ({start,...} : {start:int,stop:int,value:lr}) = String.substring (low, 0, start)
+            fun after ({stop,...} : {start:int,stop:int,value:lr}) = String.extract (low, stop, NONE)
+            fun only ([n] : {start:int,stop:int,value:lr} list) = SOME (toQ (#value n)) | only _ = NONE
+            fun grab label letter incompatible = only (List.filter (fn n =>
+              not (has incompatible (after n)) andalso (has ("\\b(?:" ^ label ^ ")\\s*(?:of|is|=|:)?\\s*$") (prefixOf n) orelse
+              has ("(?<![\\w])" ^ letter ^ "\\s*=\\s*$") (prefixOf n))) ns)
+            val otherLength = "^\\s*(?:mm|millimet\\w*|m|metres?|meters?|inch(?:es)?|in|feet|foot|ft)\\b"
+            val h = grab "horizontal(?: distance| location)?" "h" otherLength
+            val v = grab "vertical (?:height|location|start)" "v" otherLength
+            val d = grab "(?:travel distance|vertical travel(?: distance)?|lift distance|distance (?:moved|travell?ed))" "d" otherLength
+            val a = grab "asymmetry(?: angle)?" "a" "^\\s*(?:rad(?:ians?)?|turns?|grads?)\\b"
+            val fm = grab "frequency multiplier" "fm" "^\\s*(?:%|percent\\b)"
+            val cm = grab "coupling multiplier" "cm" "^\\s*(?:%|percent\\b)"
+            val want_li = has "\\blifting index\\b|\\bli\\b" low
+            val ld = if want_li then only (List.filter (fn n =>
+              (has "\\b(?:load|weighs?|lifting|lift(?:s|ing)? a)\\s*(?:of|is|=|:)?\\s*$" (prefixOf n)
+               andalso has "^\\s*kg\\b" (after n)) orelse
+              has "^\\s*kg\\s*(?:load|box|object|bag)\\b" (after n)) ns) else NONE
+          in Take (Q.Niosh (h, v, d, a, fm, cm, want_li, ld)) end
         else Next
     in
       run [judge, noise, ladder, niosh]

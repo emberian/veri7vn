@@ -19,6 +19,8 @@ struct
   fun supporting request =
     case request of
       Trades.Rows _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"rows_nearest\"]"
+    | Trades.Niosh (_, _, _, _, _, _, true, _) => String.substring (theorems, 0, size theorems - 1) ^ ",\"niosh_index_balance\"]"
+    | Trades.Niosh _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"niosh_rwl_bound\"]"
     | Trades.Layers _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"layers_cover_height\"]"
     | Trades.Occupant _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"occupants_cover_area\"]"
     | Trades.Drywall _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"drywall_covers_area\"]"

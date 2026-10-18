@@ -1,5 +1,5 @@
 {
-  "note": "These authored probes share assumptions with the recognizer; they are not independent panels. Expected numbers use the stated linear model or the shipped organ docstring formula.",
+  "note": "These authored probes share assumptions with the recognizer; they are not independent panels. Expected numbers use the stated linear model or the shipped organ docstring formula. E safety probes check requested target, exact numeral roles and necessary model-input bounds; they do not establish real-task applicability.",
   "source": "upstream/root/specialists/crafts/organ_crafts_v1.py docstring; woodworking and printing panel formulas",
   "items": [
     {
@@ -227,6 +227,141 @@
       "expect": 2,
       "response_contains": "per 4x8 sheet",
       "source": "D correct physical sheet dimensions in the explanation."
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=1, CM=1?",
+      "valid": true,
+      "expect": 23,
+      "expect_kind": "rwl"
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=2, CM=1?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=1, CM=1.1?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=1, CM=.92?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=-0.5, CM=1?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=1/2, CM=1?",
+      "valid": true,
+      "expect": 11.5,
+      "expect_kind": "rwl"
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=5e-1, CM=1?",
+      "valid": true,
+      "expect": 11.5,
+      "expect_kind": "rwl"
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=.5, CM=1?",
+      "valid": true,
+      "expect": 11.5,
+      "expect_kind": "rwl"
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=0, CM=1?",
+      "valid": true,
+      "expect": 0,
+      "expect_kind": "rwl"
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=1, CM=.95?",
+      "valid": true,
+      "expect": 21.85,
+      "expect_kind": "rwl"
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH lifting index with H=25, V=75, D=25, A=0, FM=1, CM=1?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH lifting index for load 23/2 kg with H=25, V=75, D=25, A=0, FM=1, CM=1?",
+      "valid": true,
+      "expect": 0.5,
+      "expect_kind": "lifting_index"
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH lifting index for load 0 kg with H=25, V=75, D=25, A=0, FM=1, CM=1?",
+      "valid": true,
+      "expect": 0,
+      "expect_kind": "lifting_index"
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH lifting index for load -1 kg with H=25, V=75, D=25, A=0, FM=1, CM=1?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH lifting index for load 1.2.3 kg with H=25, V=75, D=25, A=0, FM=1, CM=1?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH lifting index for load 10 kg with H=25, V=75, D=25, A=0, FM=0, CM=1?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=-10, FM=1, CM=1?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=-25, V=75, D=25, A=0, FM=1, CM=1?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, H=30, V=75, D=25, A=0, FM=1, CM=1?",
+      "valid": false
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25 inches, V=75, D=25, A=0, FM=1, CM=1?",
+      "valid": true,
+      "expect": 9.05511811023622,
+      "policy_withheld_expected": true,
+      "source": "Mathematically valid unit conversion remains unsupported: capability is withheld-valid; refusal policy is checked separately."
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=1 radians, FM=1, CM=1?",
+      "valid": true,
+      "expect": 18.78303062783714,
+      "policy_withheld_expected": true,
+      "source": "Mathematically valid unit conversion remains unsupported: capability is withheld-valid; refusal policy is checked separately."
+    },
+    {
+      "specialist": "safety",
+      "q": "NIOSH RWL with H=25, V=75, D=25, A=0, FM=.5%, CM=1?",
+      "valid": true,
+      "expect": 0.115,
+      "policy_withheld_expected": true,
+      "source": "Mathematically valid unit conversion remains unsupported: capability is withheld-valid; refusal policy is checked separately."
     }
   ]
 }

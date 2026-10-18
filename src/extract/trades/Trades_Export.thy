@@ -39,7 +39,11 @@ definition self_test :: bool where
      kernel (Drywall 100 0 S32) = Exact K_drywall 4 \<and>
      kernel (Stairs 108 False False) = Exact K_risers 14 \<and>
      kernel Judge = Decline Judgement \<and>
-     kernel (Niosh (Some 25) (Some 75) (Some 25) (Some 0) (Some 1) (Some 1) None) = Exact K_rwl 23 \<and>
+     kernel (Niosh (Some 25) (Some 75) (Some 25) (Some 0) (Some 1) (Some 1) False None) = Exact K_rwl 23 \<and>
+     kernel (Niosh (Some 25) (Some 75) (Some 25) (Some 0) (Some 2) (Some 1) False None) = Decline (Impossible R_niosh_domain) \<and>
+     kernel (Niosh (Some 25) (Some 75) (Some 25) (Some 0) (Some (1/2)) (Some 1) False None) = Exact K_rwl (23/2) \<and>
+     kernel (Niosh (Some 25) (Some 75) (Some 25) (Some 0) (Some 1) (Some 1) True None) = Decline (Underspecified N_niosh_load) \<and>
+     kernel (Niosh (Some 25) (Some 75) (Some 25) (Some 0) (Some 1) (Some 1) True (Some (23/2))) = Exact K_li (1/2) \<and>
      stated (reply_of (Far 36000 12000)) = Some (STR ''3'') \<and>
      stated (reply_of (MaxFloor (7 / 2) 8000)) = Some (STR ''28000'') \<and>
      stated (reply_of (Cost 100 (Per_kg 20))) = Some (STR ''2.00'') \<and>
@@ -64,7 +68,7 @@ export_code reply_of answered reply_kind response stated mk_rat
   in SML module_name Trades file_prefix trades
 
 ML \<open>
-  val theorems = [@{thm kernel_exact_sound}, @{thm kernel_duo_sound}, @{thm kernel_hue_sound},
+  val theorems = [@{thm niosh_factors_bounded}, @{thm niosh_weight_bound}, @{thm niosh_rwl_bound}, @{thm niosh_index_balance}, @{thm kernel_exact_sound}, @{thm kernel_duo_sound}, @{thm kernel_hue_sound},
     @{thm kernel_approx_sound}, @{thm kernel_underspecified}, @{thm kernel_impossible},
     @{thm kernel_judgement}, @{thm kernel_imprecise}, @{thm reason_of_exact},
     @{thm expr_of_meaning}, @{thm round_he_spec}, @{thm ceil_rat_cover}, @{thm floor_rat_fit},

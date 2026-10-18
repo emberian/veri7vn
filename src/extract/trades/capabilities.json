@@ -71,6 +71,25 @@
           "English recognition and applicability of the selected physical/code convention."
         ]
       }
+    },
+    "safety": {
+      "evidence": {
+        "computation": "The requested NIOSH weight limit or lifting index remains explicit. A lifting index requires load and positive weight limit. Inputs require nonnegative distances, angle and load, frequency multiplier in [0,1], and coupling multiplier 0.90, 0.95 or 1.00. Under these necessary bounds the arithmetic weight limit lies in [0,23] kg; the index times weight limit equals the supplied load.",
+        "assumptions": [
+          "The NIOSH lifting equation applies to the supplied task.",
+          "The user supplied the correct frequency and coupling table entries for task conditions; guards do not select or verify the applicable row.",
+          "Geometry uses centimetres, load kilograms and angle degrees under the named metric convention."
+        ],
+        "untrusted": [
+          "Exact numeral lexing, English quantity roles and units, JSON framing.",
+          "Real-task applicability and table-row selection."
+        ]
+      },
+      "accept": {
+        "declines_in_domain": [
+          "impossible"
+        ]
+      }
     }
   }
 }

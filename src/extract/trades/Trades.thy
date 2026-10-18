@@ -222,7 +222,7 @@ datatype request =
   | NoiseDose "rat list" "rat list"   (* levels, hours *)
   | Twa "rat list" "rat list"
   | Ladder "rat option" ladder_unit
-  | Niosh "rat option" "rat option" "rat option" "rat option" "rat option" "rat option" "rat option"
+  | Niosh "rat option" "rat option" "rat option" "rat option" "rat option" "rat option" bool "rat option"
       (* H V D A FM CM and the load (kg) when a lifting index is asked *)
   | Judge
   | ActualSize nat nat
@@ -246,11 +246,11 @@ datatype request =
   | Clay rat rat cunit                (* shrinkage percent, wet size, unit *)
 
 datatype need = N_shrink | N_height_layer | N_flow_inputs | N_spool_weight | N_filament_diameter
-  | N_material | N_noise_times | N_ladder_length | N_niosh_geometry | N_niosh_multipliers
+  | N_material | N_noise_times | N_ladder_length | N_niosh_geometry | N_niosh_multipliers | N_niosh_load
 
 datatype reason = R_lot_nonpositive | R_factor_nonpositive | R_shrink_range | R_layer_nonpositive
   | R_gauge_dimensions | R_spool_nonpositive | R_diameter_nonpositive | R_density_nonpositive | R_negative_duration
-  | R_zero_dose | R_zero_rwl | R_nominal_size | R_openings_exceed | R_rise_nonpositive
+  | R_zero_dose | R_niosh_domain | R_zero_rwl | R_nominal_size | R_openings_exceed | R_rise_nonpositive
   | R_few_sides | R_dry_exceeds_wet | R_no_mix | R_block_nonpositive
 
 datatype decline = Underspecified need | Judgement | Impossible reason | Imprecise
@@ -286,7 +286,7 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (NoiseDose _ _) = K_noise_dose"
 | "kind_of (Twa _ _) = K_twa"
 | "kind_of (Ladder _ _) = K_ladder"
-| "kind_of (Niosh _ _ _ _ _ _ ld) = (if ld = None then K_rwl else K_li)"
+| "kind_of (Niosh _ _ _ _ _ _ want_li _) = (if want_li then K_li else K_rwl)"
 | "kind_of Judge = K_rwl"
 | "kind_of (ActualSize _ _) = K_actual_size"
 | "kind_of (BoardFeet _ _ _ _ _) = K_board_feet"
@@ -420,6 +420,11 @@ definition am :: "rat \<Rightarrow> rat" where "am a = max 0 (1 - 32 / 10000 * a
 definition rwl_of :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat" where
   "rwl_of h v d a fm cm = 23 * hm h * vm v * dm d * am a * fm * cm"
 
+definition niosh_domain :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> bool \<Rightarrow> rat option \<Rightarrow> bool" where
+  "niosh_domain h v d a fm cm want_li ld =
+    (0 \<le> h \<and> 0 \<le> v \<and> 0 \<le> d \<and> 0 \<le> a \<and> 0 \<le> fm \<and> fm \<le> 1
+      \<and> cm \<in> {9/10, 19/20, 1} \<and> (want_li \<longrightarrow> 0 \<le> the ld))"
+
 definition rise_in :: "rat \<Rightarrow> bool \<Rightarrow> rat" where
   "rise_in r ft = r * (if ft then 12 else 1)"
 
@@ -438,9 +443,10 @@ fun missing :: "request \<Rightarrow> need option" where
 | "missing (NoiseDose ls cs) = (if length ls \<noteq> length cs then Some N_noise_times else None)"
 | "missing (Twa ls cs) = (if length ls \<noteq> length cs then Some N_noise_times else None)"
 | "missing (Ladder l u) = (if l = None then Some N_ladder_length else None)"
-| "missing (Niosh h v d a fm cm ld) =
+| "missing (Niosh h v d a fm cm want_li ld) =
      (if h = None \<or> v = None \<or> d = None \<or> a = None then Some N_niosh_geometry
-      else if fm = None \<or> cm = None then Some N_niosh_multipliers else None)"
+      else if fm = None \<or> cm = None then Some N_niosh_multipliers
+      else if want_li \<and> ld = None then Some N_niosh_load else None)"
 | "missing _ = None"
 
 text \<open>Impossible: the inputs are all there and cannot be computed with (a division by
@@ -459,8 +465,9 @@ fun impossible :: "request \<Rightarrow> bool" where
 | "impossible (FilMass _ d _) = (the d \<le> 0)"
 | "impossible (NoiseDose _ cs) = (\<exists>c\<in>set cs. c < 0)"
 | "impossible (Twa _ cs) = ((\<exists>c\<in>set cs. c < 0) \<or> (\<forall>c\<in>set cs. c = 0))"
-| "impossible (Niosh h v d a fm cm ld) =
-     (ld \<noteq> None \<and> rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) \<le> 0)"
+| "impossible (Niosh h v d a fm cm want_li ld) =
+     (\<not> niosh_domain (the h) (the v) (the d) (the a) (the fm) (the cm) want_li ld
+      \<or> (want_li \<and> rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) \<le> 0))"
 | "impossible (ActualSize a b) = (actual a = None \<or> actual b = None)"
 | "impossible (Drywall a ov _) = (a \<le> ov)"
 | "impossible (Stairs r ft _) = (rise_in r ft / max_riser \<le> 0)"
@@ -487,8 +494,10 @@ fun reason_of :: "request \<Rightarrow> reason option" where
 | "reason_of (NoiseDose _ cs) = (if list_ex (\<lambda>c. c < 0) cs then Some R_negative_duration else None)"
 | "reason_of (Twa _ cs) = (if list_ex (\<lambda>c. c < 0) cs then Some R_negative_duration
      else if list_all (\<lambda>c. c = 0) cs then Some R_zero_dose else None)"
-| "reason_of (Niosh h v d a fm cm ld) =
-     (if ld \<noteq> None \<and> rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) \<le> 0
+| "reason_of (Niosh h v d a fm cm want_li ld) =
+     (if \<not> niosh_domain (the h) (the v) (the d) (the a) (the fm) (the cm) want_li ld
+      then Some R_niosh_domain
+      else if want_li \<and> rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) \<le> 0
       then Some R_zero_rwl else None)"
 | "reason_of (ActualSize a b) = (if actual a = None \<or> actual b = None then Some R_nominal_size else None)"
 | "reason_of (Drywall a ov _) = (if a \<le> ov then Some R_openings_exceed else None)"
@@ -673,9 +682,9 @@ fun answer_of :: "request \<Rightarrow> outcome" where
 | "answer_of (NoiseDose ls cs) = approx_out K_noise_dose (expr_of (NoiseDose ls cs))"
 | "answer_of (Twa ls cs) = approx_out K_twa (expr_of (Twa ls cs))"
 | "answer_of (Ladder l u) = Exact K_ladder (the l / 4)"
-| "answer_of (Niosh h v d a fm cm ld) =
-     (case ld of None \<Rightarrow> Exact K_rwl (rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm))
-      | Some l \<Rightarrow> Exact K_li (l / rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm)))"
+| "answer_of (Niosh h v d a fm cm want_li ld) =
+     (if want_li then Exact K_li (the ld / rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm))
+      else Exact K_rwl (rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm)))"
 | "answer_of (ActualSize a b) = (case (actual a, actual b) of
      (Some x, Some y) \<Rightarrow> Duo K_actual_size x y | _ \<Rightarrow> Decline Imprecise)"
 | "answer_of (BoardFeet th w l inch k) =
@@ -764,10 +773,10 @@ fun spec_exact :: "request \<Rightarrow> rat \<Rightarrow> bool" where
 | "spec_exact (Flow a b c) q = (q = the a * the b * the c)"
 | "spec_exact (Cost g p) q = (q * 1000 = g * per_kg p)"
 | "spec_exact (Ladder l u) q = (q * 4 = the l)"
-| "spec_exact (Niosh h v d a fm cm ld) q =
-     (case ld of None \<Rightarrow> q = rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm)
-      | Some l \<Rightarrow> 0 < rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm)
-          \<and> q * rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) = l)"
+| "spec_exact (Niosh h v d a fm cm want_li ld) q =
+     (if want_li then 0 < rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm)
+          \<and> q * rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) = the ld
+      else q = rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm))"
 | "spec_exact (BoardFeet th w l inch k) q = (q * 12 = th * w * (if inch then l / 12 else l) * of_nat k)"
 | "spec_exact (Concrete l w d inch) q = (q * 27 = l * w * (if inch then d / 12 else d))"
 | "spec_exact (Drywall a ov s) q = least_cover ((a - ov) / sheet_area s) q"
@@ -858,16 +867,16 @@ next
   case (Ladder x0 x1)
     show ?thesis using A Ladder by simp
 next
-  case (Niosh h v d a fm cm ld)
+  case (Niosh h v d a fm cm want_li ld)
     show ?thesis
-    proof (cases ld)
-      case None
+    proof (cases want_li)
+      case False
       then show ?thesis using A Niosh by simp
     next
-      case (Some l)
+      case True
       have rp: "0 < rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm)"
-        using B Niosh Some by (auto split: if_splits)
-      show ?thesis using A Niosh Some rp by (auto simp: field_simps algebra_simps)
+        using B Niosh True by (auto split: if_splits)
+      show ?thesis using A Niosh True rp by (auto simp: field_simps algebra_simps)
     qed
 next
   case Judge
@@ -959,6 +968,72 @@ proof -
     by (rule decline_none) (use assms in blast)
   then have a: "answer_of r = Exact k q" using assms by simp
   show ?thesis using d answer_exact_spec[OF a] reason_of_exact[of r] by auto
+qed
+
+text \<open>These bounds validate the supplied arithmetic inputs. They do not
+select a frequency/coupling table row or establish that a real lifting task
+satisfies the applicability conditions of the NIOSH equation.\<close>
+lemma unit_product:
+  fixes x y :: rat
+  assumes "0 \<le> x" "x \<le> 1" "0 \<le> y" "y \<le> 1"
+  shows "0 \<le> x * y \<and> x * y \<le> 1"
+  using assms mult_nonneg_nonneg mult_le_one by blast
+
+lemma niosh_factors_bounded:
+  assumes "0 \<le> angle"
+  shows "0 \<le> hm h \<and> hm h \<le> 1 \<and> 0 \<le> vm v \<and> vm v \<le> 1
+    \<and> 0 \<le> dm d \<and> dm d \<le> 1 \<and> 0 \<le> am angle \<and> am angle \<le> 1"
+proof -
+  have hpos: "0 < max h 25" and dpos: "0 < max d 25" by auto
+  have hn: "0 \<le> 25 / max h 25" using hpos by simp
+  have dn: "0 \<le> (45/10) / max d 25" using dpos by simp
+  have vn: "0 \<le> \<bar>v - 75\<bar>" by simp
+  show ?thesis using assms hn dn vn
+    by (auto simp: hm_def vm_def dm_def am_def max_def min_def; linarith)
+qed
+
+lemma niosh_weight_bound:
+  assumes "niosh_domain h v d angle frequency coupling want_li load_value"
+  shows "0 \<le> rwl_of h v d angle frequency coupling \<and> rwl_of h v d angle frequency coupling \<le> 23"
+proof -
+  have a: "0 \<le> angle" and f: "0 \<le> frequency" "frequency \<le> 1"
+    and c: "0 \<le> coupling" "coupling \<le> 1"
+    using assms by (auto simp: niosh_domain_def)
+  note factors = niosh_factors_bounded[OF a, of h v d]
+  have p1: "0 \<le> hm h * vm v \<and> hm h * vm v \<le> 1"
+    using factors unit_product[of "hm h" "vm v"] by blast
+  have p2: "0 \<le> hm h * vm v * dm d \<and> hm h * vm v * dm d \<le> 1"
+    using factors p1 unit_product[of "hm h * vm v" "dm d"] by blast
+  have p3: "0 \<le> hm h * vm v * dm d * am angle \<and> hm h * vm v * dm d * am angle \<le> 1"
+    using factors p2 unit_product[of "hm h * vm v * dm d" "am angle"] by blast
+  have p4: "0 \<le> hm h * vm v * dm d * am angle * frequency \<and> hm h * vm v * dm d * am angle * frequency \<le> 1"
+    using f p3 unit_product[of "hm h * vm v * dm d * am angle" frequency] by blast
+  have p5: "0 \<le> hm h * vm v * dm d * am angle * frequency * coupling \<and> hm h * vm v * dm d * am angle * frequency * coupling \<le> 1"
+    using c p4 unit_product[of "hm h * vm v * dm d * am angle * frequency" coupling] by blast
+  have scaled: "0 \<le> 23 * (hm h * vm v * dm d * am angle * frequency * coupling)
+    \<and> 23 * (hm h * vm v * dm d * am angle * frequency * coupling) \<le> 23"
+    using p5 by linarith
+  show ?thesis using scaled by (simp add: rwl_of_def algebra_simps)
+qed
+
+theorem niosh_rwl_bound:
+  assumes "kernel (Niosh (Some h) (Some v) (Some d) (Some angle) (Some frequency) (Some coupling) False None) = Exact k q"
+  shows "k = K_rwl \<and> 0 \<le> q \<and> q \<le> 23"
+  using kernel_exact_sound[OF assms] niosh_weight_bound[of h v d angle frequency coupling False None]
+  by auto
+
+theorem niosh_index_balance:
+  assumes "kernel (Niosh (Some h) (Some v) (Some d) (Some angle) (Some frequency) (Some coupling) True (Some load_value)) = Exact k q"
+  shows "k = K_li \<and> 0 \<le> load_value \<and> 0 < rwl_of h v d angle frequency coupling
+    \<and> 0 \<le> q \<and> q * rwl_of h v d angle frequency coupling = load_value"
+proof -
+  have data: "k = K_li \<and> 0 \<le> load_value \<and> 0 < rwl_of h v d angle frequency coupling
+    \<and> q * rwl_of h v d angle frequency coupling = load_value"
+    using kernel_exact_sound[OF assms] by (auto simp: niosh_domain_def)
+  have computed: "q = load_value / rwl_of h v d angle frequency coupling"
+    using data by (auto simp: field_simps)
+  have nonnegative: "0 \<le> q" using data computed by (auto intro: divide_nonneg_nonneg)
+  show ?thesis using data nonnegative by blast
 qed
 
 lemma rows_unit_invariant:
@@ -1302,12 +1377,11 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + (case u of L_ft \<Rightarrow> STR ''ft'' | L_m \<Rightarrow> STR ''m'') + STR '' out (one quarter of the '' + show4 (the l)
      + STR '' '' + (case u of L_ft \<Rightarrow> STR ''ft'' | L_m \<Rightarrow> STR ''m'')
      + STR '' working length; the 4-to-1 rule, OSHA 1926.1053(b)(5)(i)).''"
-| "exact_text (Niosh h v d a fm cm ld) q V = (case ld of
-       None \<Rightarrow> STR ''The recommended weight limit is '' + V + STR '' kg (23 x HM '' + show4 (hm (the h))
+| "exact_text (Niosh h v d a fm cm want_li ld) q V = (if \<not> want_li then STR ''The recommended weight limit is '' + V + STR '' kg (23 x HM '' + show4 (hm (the h))
          + STR '' x VM '' + show4 (vm (the v)) + STR '' x DM '' + show4 (dm (the d))
          + STR '' x AM '' + show4 (am (the a)) + STR '' x FM '' + show4 (the fm)
          + STR '' x CM '' + show4 (the cm) + STR ''; NIOSH 1994).''
-     | Some l \<Rightarrow> STR ''The lifting index is '' + V + STR '' ('' + show4 l + STR '' kg / RWL ''
+     else STR ''The lifting index is '' + V + STR '' ('' + show4 (the ld) + STR '' kg / RWL ''
          + show4 (rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm))
          + STR '' kg; NIOSH lifting equation)''
          + (if 1 < q then STR '' - above 1, the lift is a risk for some workers'' else STR '''') + STR ''.'')"
@@ -1399,11 +1473,13 @@ definition need_text :: "need \<Rightarrow> String.literal" where
      | N_noise_times \<Rightarrow> STR ''I need an exposure time for each noise level to calculate that; I won'' + apos + STR ''t assume it.''
      | N_ladder_length \<Rightarrow> STR ''I need the ladder'' + apos + STR ''s working length (to the top support) to calculate that; I won'' + apos + STR ''t assume it.''
      | N_niosh_geometry \<Rightarrow> STR ''I need the horizontal distance, vertical height, travel distance (cm) and asymmetry angle to calculate that; I won'' + apos + STR ''t assume it.''
+     | N_niosh_load \<Rightarrow> STR ''I need the load in kilograms to calculate the lifting index.''
      | N_niosh_multipliers \<Rightarrow> STR ''I need the frequency and coupling multipliers (they come from the NIOSH tables for your lift rate and grip) to calculate that; I won'' + apos + STR ''t assume it.'')"
 
 definition reason_text :: "request \<Rightarrow> reason \<Rightarrow> String.literal" where
   "reason_text r y = (case y of
-       R_gauge_dimensions \<Rightarrow> STR ''The gauge span must be positive and row count and target length nonnegative.''
+       R_niosh_domain \<Rightarrow> STR ''NIOSH inputs need nonnegative distances, angle and load; frequency multiplier from 0 to 1; and coupling multiplier 0.90, 0.95 or 1.00.''
+     | R_gauge_dimensions \<Rightarrow> STR ''The gauge span must be positive and row count and target length nonnegative.''
      | R_nominal_size \<Rightarrow> (case r of ActualSize a b \<Rightarrow> show_nat a + STR ''x'' + show_nat b
            + STR '' is outside the standard dimensional-lumber table (PS 20).'' | _ \<Rightarrow> STR ''Not in the lumber table.'')
      | R_few_sides \<Rightarrow> STR ''A closed frame needs at least 3 sides.''
