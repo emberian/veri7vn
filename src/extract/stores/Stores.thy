@@ -931,7 +931,7 @@ definition s0 :: sstate where "s0 = SState None None None None SL_none"
 text \<open>What the recognizer read the turn to ask, after resolving pronouns,
 follow-ups and ellipsis against the session (untrusted).\<close>
 datatype rintent =
-    R_self | R_neighbour | R_reorder nat "item option" String.literal | R_low
+    R_self | R_neighbour | R_reorder nat "item option" String.literal | R_invalid_order | R_low
   | R_where item | R_runout item | R_stock item
   | R_zone_status zone | R_sensor zone skind bool
   | R_unknown_item String.literal | R_kind_only skind | R_off_site | R_none
@@ -975,6 +975,7 @@ datatype soutcome =
   | SO_confirm nat item int
   | SO_ordered nat item
   | SO_cancelled
+  | SO_order_clarify
   | SO_unknown_item String.literal bool
   | SO_clarify_zone skind "String.literal list"
   | SO_missing_kind skind
@@ -1078,6 +1079,7 @@ fun sread :: "sstate \<Rightarrow> rintent \<Rightarrow> sev \<Rightarrow> soutc
 | "sread s (R_reorder n None w) ev = (SO_unknown_item w True, s)"
 | "sread s (R_reorder n (Some it) w) ev =
      (SO_confirm n it (stock_count (ev_events ev)), with_pending s (Some (n, it)))"
+| "sread s R_invalid_order ev = (SO_order_clarify, s)"
 | "sread s R_low ev = (SO_low (low_rows (ev_items ev)), s)"
 | "sread s (R_where it) ev = (case ev_bin ev of
        None \<Rightarrow> (SO_incomplete, with_item s it)
@@ -1145,6 +1147,13 @@ the same reply and the same state.\<close>
 theorem propose_idempotent:
   "sstep (snd (sstep s (I_read (R_reorder n x w)) ev)) (I_read (R_reorder n x w)) ev = sstep s (I_read (R_reorder n x w)) ev"
   by (cases x) (auto simp: with_pending_def)
+
+text \<open>An unsupported order is a refusal, not a stock lookup or a new
+proposal. Even incomplete evidence cannot change its prior state.\<close>
+theorem invalid_order_preserves_state:
+  "sstep s (I_read R_invalid_order) ev =
+    (if ev_complete ev then SO_order_clarify else SO_incomplete, s)"
+  by simp
 
 text \<open>A turn that is not a confirmation never touches a pending proposal,
 except a new proposal, which replaces it.\<close>
@@ -1356,6 +1365,7 @@ fun sreply :: "soutcome \<Rightarrow> reply" where
 | "sreply (SO_ordered n it) = ans (STR ''ordered'') (STR ''Done - I'' + apos + STR ''ve logged a request for ''
      + show_nat n + STR '' '' + snd it + STR ''. It'' + apos + STR ''s marked as requested until someone approves it.'') None"
 | "sreply SO_cancelled = ans (STR ''cancelled'') (STR ''Cancelled - no order placed.'') None"
+| "sreply SO_order_clarify = wh (STR ''order_clarify'') (STR ''Please give one known item and a positive whole-number quantity. I have not changed any order.'')"
 | "sreply (SO_unknown_item w ro) = wh (STR ''unknown_item'') (unknown_text w ro)"
 | "sreply (SO_clarify_zone k zs) = Reply False (STR ''clarify'') (STR ''clarify'') (STR ''Which zone? I have ''
      + skind_label k + STR '' sensors in '' + join (STR '', '') zs + STR ''.'') None"

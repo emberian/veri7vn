@@ -42,12 +42,18 @@ Use one state file per serialized owner. Runtime wrappers do not retry stateful
 requests automatically.
 Pronouns and omitted-object questions can reuse the previous item; an explicit
 unknown item cannot silently become that previous item.
+An order binds one positive whole-number quantity to one complete item name or
+explicit pronoun. Scientific, grouped and rational spellings work when their
+exact value is a positive integer. Unsupported orders, including multi-item or
+conditional requests, return `order_clarify` and preserve all pending/reference
+state. They cannot fall through to a stock lookup. No state file is written when
+the kernel state is unchanged and no order was emitted.
 
 ## Build and run
 
 ```sh
 python3 tools/dev/remote-build persvati src/extract/stores Veri7vn_Stores \
-  -d src/extract/commons --expect 'VERI7VN_STORES PASS theorems=44 oracles=0'
+  -d src/extract/commons --expect 'VERI7VN_STORES PASS theorems=45 oracles=0'
 sh src/extract/stores/build.sh
 python3 -B src/extract/stores/tables_check.py
 python3 -B src/extract/stores/verify.py
@@ -106,7 +112,7 @@ correct cup answers now clarify because the question does not specify which
 household preparation it means. Missing USDA values are still not estimated.
 The 20 implementation-authored probes and executable persistence checks pass.
 
-The E Darwin binary is 637,320 bytes; the E Linux binary is 1,560,136 bytes and
+The F Darwin binary is 652,232 bytes; the F Linux binary is 1,582,808 bytes and
 still exceeds the 1 MB goal. All 2,476 shipped-panel replies match across these
 platforms after removing timing. Earlier measured steady p50 is 0.41–0.48ms cooking and
 1.18–1.37ms warehouse. Cold first replies are about 79 ms and 33 ms respectively,
@@ -123,3 +129,6 @@ repair, and their measured results.
 The [exact quantity-role follow-up](../../../project/lanes/E-symbolic-stores.md)
 records shared numeric-token consumption, the repaired scientific-notation
 default-serving fault, final artifact bindings and independently calculated probes.
+
+The [whole-order follow-up](../../../project/lanes/F-symbolic-stores.md) records
+quantity/item binding, unchanged-state refusals, transaction tests and its limits.

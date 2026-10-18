@@ -121,9 +121,15 @@ second used the final bound binary.
 The independent arithmetic matrix reads immutable USDA rows directly and uses
 Python Decimal, not generated kernel arithmetic or food matching. It spans 18
 quantity spellings, whole/part servings, nutrients, mass/household roles, malformed
-inputs, forged markers and unclaimed quantities. Final bound E passes **918/918**;
-captured D passes **480/918**, with **58 incorrect assertions** among its failures.
-Most other D failures are unsupported-format withholds. These are authored
+inputs, forged markers and unclaimed quantities. Final bound E passes **918/918 policy assertions**; captured D passes
+**480/918 policy assertions**. Of the **882 cases with independent numeric
+answers**, E answers **882 correctly, zero wrongly, zero withheld**; D answers
+**447 correctly, 55 wrongly, and withholds 380**. The remaining 36 cases check
+ambiguity, unsupported syntax or refusal policy, not answered capability. Three
+additional D answers diverge from that refusal policy; they are not all proved
+wrong. In particular, D interprets `1 3/2` as the mathematically coherent 2.5,
+while E deliberately requires a proper fractional part and withholds that
+meaningful unsupported spelling. These are authored
 regressions, not substitute shipped-panel scores. Receipts:
 `var/stores/roles/bound-checks.json` and `baseline-checks.json`.
 

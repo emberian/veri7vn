@@ -594,6 +594,52 @@ struct
                 | _ => t))
     end
 
+  (* An order owns its complete quantity and item phrase. Numeric item codes
+     are interpreted only by exact item-name matching, never as quantities.
+     Unsupported order syntax must not become a stock read or a confirmation. *)
+  fun orderRead (tb : tables) (st : S.sstate) t : S.rintent option =
+    let
+      val cue = Rx.has "\\b(?:re-?order|order|restock)\\b" t
+      val command = Rx.search
+        "^(?:(?:can|could|would|will) you (?:please )?|please )?(?:re-?order|order|restock)\\b\\s*" t
+      fun invalid () = SOME S.R_invalid_order
+      fun parse ({stop, ...} : Regex.match) =
+        let
+          val tail = Rx.strip (String.extract (t, stop, NONE))
+          val number = ExactNumeric.at tail 0
+          val (n, d, finish) = case number of
+              SOME (ExactNumeric.Number {value = (n, d), stop, ...}) => (n, d, stop)
+            | NONE =>
+                (case List.find (fn (word, _) => String.isPrefix (word ^ " ") (Rx.lower tail)) Cook.WORDNUM of
+                   SOME (word, (n, d)) => (IntInf.fromInt n, IntInf.fromInt d, size word)
+                 | NONE => raise Fail "order quantity must be an exact numeral or supported number word")
+            | _ => raise Fail "malformed order quantity"
+          val _ = if n > 0 andalso d = 1 andalso finish < size tail
+                        andalso Char.isSpace (String.sub (tail, finish))
+                  then () else raise Fail "order quantity must be a positive whole number"
+          val phrase = Rx.rstrip ".!? " (Rx.strip (String.extract (tail, finish, NONE)))
+          val phrase = Rx.sub "^(?:more\\s+(?:of\\s+)?|of\\s+)?(?:the\\s+)?" "" 1 phrase
+          val normalized = norm phrase
+          (* norm is only used after rejecting punctuation and extra clauses;
+             otherwise its dropped characters could turn an unknown phrase into
+             a known item's name. Hyphens and item-code digits remain intact. *)
+          val _ = if phrase <> "" andalso List.all
+                    (fn c => Char.isAlphaNum c andalso Char.ord c < 128
+                             orelse Char.isSpace c orelse c = #"-") (String.explode phrase)
+                  then () else raise Fail "unsupported order item phrase"
+          val matches = List.filter (fn (key, _) => key = normalized) (#items tb)
+          val target = case matches of [(_, it)] => SOME it | _ => NONE
+          val target = case target of SOME it => SOME it | NONE =>
+            if List.exists (fn p => Rx.lower phrase = p) ["it", "them", "that", "those", "this one"]
+            then S.s_item st else NONE
+        in case target of SOME it => SOME (S.R_reorder (S.mk_nat n, SOME it, phrase))
+                        | NONE => invalid () end
+    in
+      if not cue then NONE
+      else case command of SOME m => (parse m handle Fail _ => invalid ())
+        | NONE => if has "LOW" t then NONE else invalid ()
+    end
+
   (* SiteOrgan.answer after the confirmation check: the reading of the turn *)
   fun read (tb : tables) (st : S.sstate) (t : string) : S.rintent =
     if has "SELF" t then S.R_self
@@ -624,12 +670,7 @@ struct
               then "how is " ^ Rx.rstrip "?.! " t else t
           | _ => t
       in
-        case Rx.search (P "REORDER") t of
-          SOME m =>
-            let val n = valOf (IntInf.fromString (Rx.g t m 1)); val x = Rx.g t m 2
-            in S.R_reorder (S.mk_nat n, item tb x, Rx.strip x) end
-        | NONE =>
-          if has "LOW" t then S.R_low
+        if has "LOW" t then S.R_low
           else
             let
               val it = item tb t
@@ -661,7 +702,12 @@ struct
     let val t = Rx.collapse text
     in
       if t = "" then S.I_read S.R_none
-      else if has "YES" t orelse has "NO" t then S.I_confirm (not (has "NO" t), read tb st t)
-      else S.I_read (read tb st t)
+      else if Rx.has
+        "^(?:yes|yep|yeah|confirm|do it|go ahead|ok(?:ay)?|sure|no|nope|cancel|don'?t|stop)(?:\\s+(?:the\\s+)?(?:order|request|proposal))?(?:,?\\s+(?:please|thanks|thank you))?[.!? ]*$" t
+      then S.I_confirm (not (has "NO" t), read tb st t)
+      else case orderRead tb st t of
+        SOME r => S.I_read r
+      | NONE => if has "YES" t orelse has "NO" t then S.I_read S.R_invalid_order
+                else S.I_read (read tb st t)
     end
 end

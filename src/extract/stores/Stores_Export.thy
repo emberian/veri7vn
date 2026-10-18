@@ -20,6 +20,9 @@ definition site_taken :: "soutcome \<Rightarrow> bool" where
 definition site_reply :: "sstate \<Rightarrow> intent \<Rightarrow> sev \<Rightarrow> reply \<times> sstate \<times> soutcome" where
   "site_reply s i ev = (case sstep s i ev of (o', s') \<Rightarrow> (sreply o', s', o'))"
 
+definition state_changed :: "sstate \<Rightarrow> sstate \<Rightarrow> bool" where
+  "state_changed s t \<longleftrightarrow> s \<noteq> t"
+
 definition ordered_of :: "soutcome \<Rightarrow> (nat \<times> item) option" where
   "ordered_of o' = (case o' of SO_ordered n it \<Rightarrow> Some (n, it) | _ \<Rightarrow> None)"
 
@@ -77,6 +80,9 @@ definition self_test :: bool where
      reply_status (nreply q2) = STR ''clarify'' \<and>
      show_g (566990 / 10000) = STR ''56.699'' \<and> show_g 100 = STR ''100'' \<and> show_g (1 / 3) = STR ''0.333333'' \<and>
      show_g 1234567 = STR ''1.23457e+06'' \<and> render_fixed 1 30 = STR ''3.0'' \<and> render_fixed 2 5 = STR ''0.05'' \<and>
+     sstep (with_pending s0 (Some (5, it0))) (I_read R_invalid_order) ev0 =
+       (SO_order_clarify, with_pending s0 (Some (5, it0))) \<and>
+     reply_status (sreply SO_order_clarify) = STR ''withheld'' \<and>
      fst (sstep s0 (I_confirm True R_off_site) ev0) = SO_off_site \<and>
      fst (sstep s0 (I_read (R_reorder 5 (Some it0) (STR ''M4 valve''))) ev0) = SO_confirm 5 it0 3 \<and>
      fst (sstep (snd (sstep s0 (I_read (R_reorder 5 (Some it0) (STR ''M4 valve''))) ev0)) (I_confirm True R_off_site) ev0)
@@ -94,12 +100,12 @@ definition self_test :: bool where
        + STR ''; b (3, reorder at 5).''"
 
 export_code nreply nkernel answered reply_status reply_kind response stated
-  site_reply site_taken ordered_of unknown_what s0 SState s_pending s_item s_zone s_kind s_last
+  site_reply site_taken state_changed ordered_of unknown_what s0 SState s_pending s_item s_zone s_kind s_last
   mk_rat mk_int mk_nat self_test integer_of_int int_of_integer nat_of_integer integer_of_nat
   nutrient_order nutrient_key nutrient_unit mass_names measure_names measure_key skind_order skind_key
   NQ A_default A_mass A_measure A_count
   CS_any CS_small CS_medium CS_large CS_extra_small CS_extra_large CS_jumbo CF_whole CF_slice CF_strip CF_piece
-  SEv I_read I_confirm R_self R_neighbour R_reorder R_low R_where R_runout R_stock R_zone_status R_sensor
+  SEv I_read I_confirm R_self R_neighbour R_reorder R_invalid_order R_low R_where R_runout R_stock R_zone_status R_sensor
   R_unknown_item R_kind_only R_off_site R_none SL_none SL_item SL_sensor SL_zone_status
   in SML module_name Stores file_prefix stores
 
@@ -113,7 +119,7 @@ ML \<open>
     @{thm nutrient_incomplete}, @{thm stated_within_tolerance}, @{thm nreply_answered_iff}, @{thm nreply_states},
     @{thm confirm_requires_proposal}, @{thm confirm_without_proposal_refused}, @{thm confirm_consumes},
     @{thm no_double_order}, @{thm propose_sets_pending}, @{thm propose_idempotent},
-    @{thm reading_keeps_proposal}, @{thm incomplete_fetch_declines}, @{thm latest_Some},
+    @{thm invalid_order_preserves_state}, @{thm reading_keeps_proposal}, @{thm incomplete_fetch_declines}, @{thm latest_Some},
     @{thm sensor_fresh}, @{thm stale_declines}, @{thm zone_parts_fresh}, @{thm stock_value},
     @{thm runout_days}, @{thm low_exact}, @{thm low_sorted}, @{thm stale_not_answered},
     @{thm sensor_reply_states_value}];

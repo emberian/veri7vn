@@ -294,9 +294,10 @@ struct
     in
       if not (S.site_taken out) orelse narrowedAway orelse S.reply_kind rep = "off_site" then NONE
       else let
-        val saved = op' "state_put" [("session", Js.Str session), ("state", stateJs st'), ("order", order)]
-        val _ = if complete saved andalso Js.bool (Js.field saved "ok") then ()
-                else raise Fail "warehouse session write failed"
+        val _ = if not (S.state_changed st st') andalso not (isSome (S.ordered_of out)) then ()
+                else let val saved = op' "state_put" [("session", Js.Str session), ("state", stateJs st'), ("order", order)]
+                     in if complete saved andalso Js.bool (Js.field saved "ok") then ()
+                        else raise Fail "warehouse session write failed" end
       in SOME (frame id t0 organ "Stores.site_reply" siteThms rep
         (", \"preview\": " ^ Bool.toString preview)) end
     end

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "family": "stores",
+  "specialists": {
+    "warehouse": {
+      "accept": {
+        "declines_in_domain": [
+          "order_clarify"
+        ]
+      },
+      "context_regex_additions": [
+        "^(?:(?:can|could|would|will) you (?:please )?|please )?(?:re-?order|restock)\\b"
+      ],
+      "evidence": {
+        "computation": "An unsupported single-order request leaves the complete kernel session state unchanged. A recognized order binds one exact positive integral quantity to one complete known item phrase; confirmation still requires the pending proposal in the same session.",
+        "assumptions": [
+          "The fetched item-name table is accurate; a normalized complete name identifies one supplied item.",
+          "Each state file has one serialized owner; external file isolation is not proved."
+        ],
+        "untrusted": [
+          "English interpretation, exact numeric token recognition, item-table completeness, persistence and dispatch ownership."
+        ]
+      }
+    },
+    "warehouse-r2": {
+      "accept": {
+        "declines_in_domain": [
+          "order_clarify"
+        ]
+      },
+      "context_regex_additions": [
+        "^(?:(?:can|could|would|will) you (?:please )?|please )?(?:re-?order|restock)\\b"
+      ],
+      "evidence": {
+        "computation": "An unsupported single-order request leaves the complete kernel session state unchanged. A recognized order binds one exact positive integral quantity to one complete known item phrase; confirmation still requires the pending proposal in the same session.",
+        "assumptions": [
+          "The fetched item-name table is accurate; a normalized complete name identifies one supplied item.",
+          "Each state file has one serialized owner; external file isolation is not proved."
+        ],
+        "untrusted": [
+          "English interpretation, exact numeric token recognition, item-table completeness, persistence and dispatch ownership."
+        ]
+      }
+    }
+  }
+}
