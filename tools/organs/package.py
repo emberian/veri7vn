@@ -136,7 +136,7 @@ def source_snapshot(slug):
 
 def prepared_kernel(capture):
     slug = capture["record"]["slug"]
-    stem = "quantity" if slug == "variants" else slug
+    stem = {"variants": "quantity", "mathorgan": "mathkernel"}.get(slug, slug)
     names = [name for name in capture["record"]["export_sha256"]
              if Path(name).name in (stem + ".ML", stem + ".sml")]
     if len(names) != 1:
@@ -173,6 +173,26 @@ def required_native_sources(capture):
     return {name: capture['sources'][name] for name in required}
 
 
+def verify_variant_recognizer(capture, consumed):
+    """The reviewed two-edit adapter; no arbitrary generated-source exemption."""
+    source = capture['runtime'] / 'src/extract/quantity/recognizer.sml'
+    text = source.read_bytes().decode('utf-8')
+    text, structures = re.subn(r'^structure Recognizer :', 'structure RecognizerBase :', text, flags=re.M)
+    text, signatures = re.subn(r'^  val organs : string list$',
+        '  val organs : string list\n  val densities : string -> Quantity.request option\n'
+        '  val unitsV2 : string -> Quantity.request option\n  val unitsV3 : string -> Quantity.request option', text, flags=re.M)
+    if structures != 1 or signatures != 1 or consumed.read_bytes() != text.encode('utf-8'):
+        raise ValueError('derived Variants recognizer differs from reviewed captured transformation')
+    return 'src/extract/quantity/recognizer.sml', sha256(source)
+
+
+def verify_stores_config(path):
+    """Allow only the known untrusted generated path constant, no extra code."""
+    if not re.fullmatch(rb'structure Config = struct val repo = "[^"\\\\\r\n]+" end\n', path.read_bytes()):
+        raise ValueError('unsupported Stores auxiliary Config structure')
+    return sha256(path)
+
+
 def consumed_native_sources(capture, compiled):
     """Read consumed compiler files, not a second asserted normalized map."""
     frozen = capture['base'] / 'native-inputs'
@@ -186,7 +206,7 @@ def consumed_native_sources(capture, compiled):
             if expected != compiled.get('frozen_inputs_sha256', {}).get(name):
                 raise ValueError('native original/frozen inventories conflict')
             canonical = compiled.get('canonical_source_map', {}).get(original)
-            rows.append((name, expected, canonical))
+            rows.append((name, expected, canonical, Path(original).name))
         mlb_name = Path(compiled['rewritten_mlb']).name
         mlb_hash = compiled['frozen_inputs_sha256'].get(mlb_name)
     else:
@@ -202,12 +222,12 @@ def consumed_native_sources(capture, compiled):
             for field in ('before_sha256', 'after_sha256', 'after_compile_copy_sha256'):
                 if field in row and row[field] != digest:
                     raise ValueError('native before/copy/after inventories conflict')
-            rows.append((path.name, digest, canonical))
+            rows.append((path.name, digest, canonical, Path(row["source"]).name))
         if 'mlb' in compiled:
             mlb_name, mlb_hash = Path(compiled['mlb']['path']).name, compiled['mlb']['sha256']
         else:
             mlb_name, mlb_hash = Path(compiled['argv'][-1]).name, compiled['mlb_sha256']
-    if not rows or len({name for name, _, _ in rows}) != len(rows):
+    if not rows or len({name for name, _, _, _ in rows}) != len(rows):
         raise ValueError('native consumed inventory is missing or ambiguous')
     mlb = frozen / mlb_name
     if not mlb.is_file() or sha256(mlb) != mlb_hash:
@@ -216,21 +236,35 @@ def consumed_native_sources(capture, compiled):
     if entries.count('$(SML_LIB)/basis/basis.mlb') != 1:
         raise ValueError('native MLB has unsupported basis declaration')
     application = [line for line in entries if line != '$(SML_LIB)/basis/basis.mlb']
-    if any(Path(line).name != line for line in application) or sorted(application) != sorted(name for name, _, _ in rows):
+    if any(Path(line).name != line for line in application) or sorted(application) != sorted(name for name, _, _, _ in rows):
         raise ValueError('native consumed MLB and input inventory differ')
-    result = {}
-    for name, expected, canonical in rows:
+    result, canonical_result, auxiliary = {}, {}, {}
+    for name, expected, canonical, original_name in rows:
         path = frozen / name
         if Path(name).name != name or not path.is_file() or sha256(path) != expected:
             raise ValueError('native consumed input changed: ' + name)
-        key = 'generated_kernel' if canonical is None and expected == kernel else canonical
+        if capture['record']['slug'] == 'variants' and canonical is None and original_name == 'recognizer_base.sml':
+            key, value = verify_variant_recognizer(capture, path)
+        elif capture['record']['slug'] == 'stores' and canonical is None and original_name == 'config.sml':
+            # This generated path constant is untrusted runtime configuration,
+            # separately bound to the actual MLB edge; it is not proved code.
+            key, value = 'auxiliary/config.sml', verify_stores_config(path)
+            auxiliary[key] = value
+        else:
+            key = 'generated_kernel' if canonical is None and expected == kernel else canonical
+            value = expected
+            if canonical is not None:
+                canonical_result[canonical] = expected
         if not key or key in result:
             raise ValueError('unexplained or duplicate native consumed input: ' + name)
-        result[key] = expected
+        result[key] = value
     required = required_native_sources(capture)
-    if result != dict(required, generated_kernel=kernel):
+    expected_result = dict(required, generated_kernel=kernel, **auxiliary)
+    if capture['record']['slug'] == 'stores' and 'auxiliary/config.sml' not in auxiliary:
+        raise ValueError('native Stores MLB lacks auxiliary Config input')
+    if result != expected_result:
         raise ValueError('native consumed inputs lack complete captured runtime closure')
-    if 'source_sha256' in compiled and compiled['source_sha256'] != required:
+    if 'source_sha256' in compiled and compiled['source_sha256'] != canonical_result:
         raise ValueError('native canonical source inventory conflicts with consumed inputs')
     return result
 

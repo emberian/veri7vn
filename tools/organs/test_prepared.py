@@ -141,12 +141,40 @@ class PreparedTests(unittest.TestCase):
             with self.subTest(scenario=scenario), self.assertRaises(ValueError):
                 package.load_prepared(self.root, 'finance')
 
+    def test_variants_adapter_checks_exact_source_and_derived_bytes(self):
+        source = self.runtime / 'src/extract/quantity/recognizer.sml'
+        source.parent.mkdir(parents=True)
+        source.write_text('structure Recognizer : sig\n  val organs : string list\nend = struct end\n')
+        derived = self.root / 'recognizer_base.sml'
+        correct = ('structure RecognizerBase : sig\n  val organs : string list\n'
+                   '  val densities : string -> Quantity.request option\n'
+                   '  val unitsV2 : string -> Quantity.request option\n'
+                   '  val unitsV3 : string -> Quantity.request option\nend = struct end\n')
+        derived.write_text(correct)
+        capture = {'runtime': self.runtime}
+        package.verify_variant_recognizer(capture, derived)
+        derived.write_text(correct + 'extra code\n')
+        with self.assertRaises(ValueError): package.verify_variant_recognizer(capture, derived)
+        derived.write_text(correct)
+        source.write_text(source.read_text().replace('struct end', 'struct val x = 1 end'))
+        with self.assertRaises(ValueError): package.verify_variant_recognizer(capture, derived)
+
     def test_superseded_unbound_capture_is_refused(self):
         self.record['capture_valid'] = False
         self.record['rejection_reason'] = 'native did not consume captured shared source'
         (self.base / 'prepared.json').write_text(json.dumps(self.record))
         with self.assertRaisesRegex(ValueError, 'capture was rejected'):
             package.load_prepared(self.root, 'finance')
+
+    def test_stores_auxiliary_is_only_a_path_constant(self):
+        config = self.root / 'config.sml'
+        config.write_text('structure Config = struct val repo = "/captured/repo" end\n')
+        self.assertEqual(package.verify_stores_config(config), package.sha256(config))
+        for text in ('structure Config = struct val repo = "/captured/repo" val x = 1 end\n',
+                     'structure Config = struct val repo = "/captured/repo" end\nval extra = 1\n',
+                     'structure Config = struct val repo = "/captured/\\110epo" end\n'):
+            config.write_text(text)
+            with self.assertRaises(ValueError): package.verify_stores_config(config)
 
     def test_missing_capture_and_later_cancelled_receipt_are_refused(self):
         with self.assertRaisesRegex(ValueError, 'missing prepared capture'):
