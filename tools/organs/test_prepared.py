@@ -1,5 +1,6 @@
 """Captured release inputs must not silently follow a reopened working family."""
 import hashlib
+import copy
 import json
 from pathlib import Path
 import tempfile
@@ -18,6 +19,7 @@ class PreparedTests(unittest.TestCase):
         self.runtime.mkdir(parents=True)
         files = {'src/extract/finance/ROOT': 'session S = HOL +',
                  'src/extract/finance/main.sml': 'captured runtime',
+                 'src/extract/finance/build.sh': 'cat > "$OUT/finance.mlb" <<EOF\n\\$(SML_LIB)/basis/basis.mlb\nfinance_generated.sml\n$SRC/main.sml\nEOF\n',
                  'src/extract/finance/capabilities.json': json.dumps({'schema_version': 1, 'family': 'finance',
                      'specialists': {'retail': {'accept': {'kinds': ['captured_kind']}}}}),
                  'src/extract/families.json': (package.REPO / 'src/extract/families.json').read_text(),
@@ -96,6 +98,55 @@ class PreparedTests(unittest.TestCase):
         # The integration checker is deliberately independent of native closure.
         deployment['source_sha256']['tools/runtime_contract.py'] = 'new shared Python checker'
         self.assertEqual(package.prepared_linux_issues(capture, deployment), [])
+
+    def test_native_compiler_manifest_requires_actual_complete_consumed_map(self):
+        frozen = self.base / 'native-inputs'; frozen.mkdir()
+        main = self.runtime / 'src/extract/finance/main.sml'
+        gen = self.base / 'export/finance.ML'
+        (frozen / 'input-01.sml').write_bytes(main.read_bytes())
+        (frozen / 'input-00.sml').write_bytes(gen.read_bytes())
+        mlb = frozen / 'input.mlb'
+        original_mlb = '$(SML_LIB)/basis/basis.mlb\ninput-00.sml\ninput-01.sml\n'
+        mlb.write_text(original_mlb)
+        source_map = {'src/extract/finance/main.sml': package.sha256(main)}
+        compiled = {'compile_ok': True, 'compiler_exit': 0, 'binary_sha256': self.record['binary_sha256'],
+                    'rewritten_mlb': str(mlb), 'source_sha256': source_map,
+                    'canonical_source_map': {str(main): 'src/extract/finance/main.sml'},
+                    'input_snapshot_map': {str(gen): 'input-00.sml', str(main): 'input-01.sml'},
+                    'inputs_sha256': {str(gen): package.sha256(gen), str(main): package.sha256(main)},
+                    'frozen_inputs_sha256': {p.name: package.sha256(p) for p in frozen.iterdir()}}
+        normalized = dict(source_map, generated_kernel=package.sha256(gen))
+        def save(data, inputs):
+            path = self.base / 'native-compile.json'; path.write_text(json.dumps(data))
+            self.record['native_compiler_binding'] = {
+                'binary_sha256': self.record['binary_sha256'], 'manifest_sha256': package.sha256(path),
+                'inputs_sha256': inputs}
+            (self.base / 'prepared.json').write_text(json.dumps(self.record))
+        save(compiled, normalized)
+        package.load_prepared(self.root, 'finance')
+        for scenario in ('conflicting_source_map', 'asserted_map', 'missing_consumed', 'tiny_consistent_map'):
+            data = copy.deepcopy(compiled); binding = dict(normalized); mlb.write_text(original_mlb)
+            if scenario == 'conflicting_source_map':
+                data['source_sha256']['src/extract/finance/main.sml'] = 'different'
+            elif scenario == 'asserted_map':
+                binding['src/extract/finance/main.sml'] = 'different'
+            else:
+                del data['input_snapshot_map'][str(main)]
+                if scenario == 'tiny_consistent_map':
+                    mlb.write_text('$(SML_LIB)/basis/basis.mlb\ninput-00.sml\n')
+                    data['frozen_inputs_sha256']['input.mlb'] = package.sha256(mlb)
+                    data['source_sha256'] = {}
+                    binding = {'generated_kernel': package.sha256(gen)}
+            save(data, binding)
+            with self.subTest(scenario=scenario), self.assertRaises(ValueError):
+                package.load_prepared(self.root, 'finance')
+
+    def test_superseded_unbound_capture_is_refused(self):
+        self.record['capture_valid'] = False
+        self.record['rejection_reason'] = 'native did not consume captured shared source'
+        (self.base / 'prepared.json').write_text(json.dumps(self.record))
+        with self.assertRaisesRegex(ValueError, 'capture was rejected'):
+            package.load_prepared(self.root, 'finance')
 
     def test_missing_capture_and_later_cancelled_receipt_are_refused(self):
         with self.assertRaisesRegex(ValueError, 'missing prepared capture'):

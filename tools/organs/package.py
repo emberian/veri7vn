@@ -24,6 +24,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -143,6 +144,97 @@ def prepared_kernel(capture):
     return capture["base"] / "export" / names[0]
 
 
+def required_native_sources(capture):
+    """Application SML closure declared by the captured flat family recipe."""
+    slug = capture['record']['slug']
+    build = capture['runtime'] / 'src/extract' / slug / 'build.sh'
+    if slug == 'stores':
+        required = ['src/extract/commons/commons.sml', 'src/extract/stores/json.sml',
+                    'src/extract/stores/recognizer.sml', 'src/extract/stores/main.sml']
+    else:
+        declaration = re.search(r'\.mlb" <<\'?(\w+)\'?\n(.*?)\n\1\n', build.read_text(), re.S)
+        if not declaration:
+            raise ValueError('unknown captured native recipe: ' + slug)
+        required = []
+        for line in declaration.group(2).splitlines():
+            line = line.strip()
+            if '$(SML_LIB)' in line or line.endswith('_generated.sml'):
+                continue
+            if line == 'recognizer_base.sml' and slug == 'variants':
+                required.append('src/extract/quantity/recognizer.sml')
+                continue
+            line = line.replace('$SRC', 'src/extract/' + slug).replace('$Q', 'src/extract/quantity').replace('$REPO/', '')
+            line = os.path.normpath(line)
+            if not line.startswith('src/') or '..' in Path(line).parts:
+                raise ValueError('unexplained captured native input: ' + line)
+            required.append(line)
+    if not required or any(name not in capture['sources'] for name in required):
+        raise ValueError('captured recipe has missing native source input: ' + slug)
+    return {name: capture['sources'][name] for name in required}
+
+
+def consumed_native_sources(capture, compiled):
+    """Read consumed compiler files, not a second asserted normalized map."""
+    frozen = capture['base'] / 'native-inputs'
+    kernel = sha256(prepared_kernel(capture))
+    rows = []
+    if 'input_snapshot_map' in compiled:
+        if compiled.get('compile_ok') is not True or compiled.get('compiler_exit') != 0:
+            raise ValueError('native compiler did not pass')
+        for original, name in compiled['input_snapshot_map'].items():
+            expected = compiled.get('inputs_sha256', {}).get(original)
+            if expected != compiled.get('frozen_inputs_sha256', {}).get(name):
+                raise ValueError('native original/frozen inventories conflict')
+            canonical = compiled.get('canonical_source_map', {}).get(original)
+            rows.append((name, expected, canonical))
+        mlb_name = Path(compiled['rewritten_mlb']).name
+        mlb_hash = compiled['frozen_inputs_sha256'].get(mlb_name)
+    else:
+        if compiled.get('exit_code') != 0:
+            raise ValueError('native compiler did not pass')
+        inputs = compiled.get('inputs', {})
+        inputs = inputs.values() if isinstance(inputs, dict) else inputs
+        for row in inputs:
+            path = Path(row.get('consumed', row.get('copy', '')))
+            source = Path(row['source'])
+            canonical = str(Path(*source.parts[source.parts.index('src'):])) if 'src' in source.parts else None
+            digest = row.get('sha256', row.get('copy_sha256'))
+            for field in ('before_sha256', 'after_sha256', 'after_compile_copy_sha256'):
+                if field in row and row[field] != digest:
+                    raise ValueError('native before/copy/after inventories conflict')
+            rows.append((path.name, digest, canonical))
+        if 'mlb' in compiled:
+            mlb_name, mlb_hash = Path(compiled['mlb']['path']).name, compiled['mlb']['sha256']
+        else:
+            mlb_name, mlb_hash = Path(compiled['argv'][-1]).name, compiled['mlb_sha256']
+    if not rows or len({name for name, _, _ in rows}) != len(rows):
+        raise ValueError('native consumed inventory is missing or ambiguous')
+    mlb = frozen / mlb_name
+    if not mlb.is_file() or sha256(mlb) != mlb_hash:
+        raise ValueError('native consumed MLB changed')
+    entries = [line.strip() for line in mlb.read_text().splitlines() if line.strip()]
+    if entries.count('$(SML_LIB)/basis/basis.mlb') != 1:
+        raise ValueError('native MLB has unsupported basis declaration')
+    application = [line for line in entries if line != '$(SML_LIB)/basis/basis.mlb']
+    if any(Path(line).name != line for line in application) or sorted(application) != sorted(name for name, _, _ in rows):
+        raise ValueError('native consumed MLB and input inventory differ')
+    result = {}
+    for name, expected, canonical in rows:
+        path = frozen / name
+        if Path(name).name != name or not path.is_file() or sha256(path) != expected:
+            raise ValueError('native consumed input changed: ' + name)
+        key = 'generated_kernel' if canonical is None and expected == kernel else canonical
+        if not key or key in result:
+            raise ValueError('unexplained or duplicate native consumed input: ' + name)
+        result[key] = expected
+    required = required_native_sources(capture)
+    if result != dict(required, generated_kernel=kernel):
+        raise ValueError('native consumed inputs lack complete captured runtime closure')
+    if 'source_sha256' in compiled and compiled['source_sha256'] != required:
+        raise ValueError('native canonical source inventory conflicts with consumed inputs')
+    return result
+
+
 def prepared_linux_issues(capture, deployment):
     """Require complete native input coverage, distinct from the Python consumer."""
     issues = []
@@ -151,9 +243,10 @@ def prepared_linux_issues(capture, deployment):
     issues.extend(deployment_receipt_issues(deployment))
     if deployment.get("generated_sha256") != sha256(prepared_kernel(capture)):
         issues.append("Linux generated export differs from capture")
-    required_runtime = {k: v for k, v in capture["sources"].items()
-                        if k.startswith("src/extract/") and
-                        (Path(k).suffix == ".sml" or k.endswith("/stores/fetch.py"))}
+    required_runtime = required_native_sources(capture)
+    fetch = 'src/extract/stores/fetch.py'
+    if capture['record']['slug'] == 'stores':
+        required_runtime[fetch] = capture['sources'][fetch]
     bound = deployment.get("source_sha256", {})
     missing = sorted(k for k, v in required_runtime.items() if bound.get(k) != v)
     if not required_runtime or missing:
@@ -186,6 +279,8 @@ def load_prepared(directory, slug):
     if not path.is_file():
         raise ValueError("missing prepared capture: " + slug)
     record = json.loads(path.read_text())
+    if record.get("capture_valid") is False:
+        raise ValueError("prepared capture was rejected: " + str(record.get("rejection_reason", slug)))
     if record.get("slug") != slug:
         raise ValueError("prepared family does not match: " + slug)
     expected = dict(record["source_sha256"])
@@ -217,6 +312,18 @@ def load_prepared(directory, slug):
     if issues:
         raise ValueError("rejected prepared receipt for " + slug + ": " + "; ".join(issues))
     validate_export_snapshot(base / "export", receipt["export_sha256"])
+    binding = record.get("native_compiler_binding")
+    if binding is not None:
+        manifest = base / "native-compile.json"
+        if binding.get("binary_sha256") != record["binary_sha256"] or not manifest.is_file() or sha256(manifest) != binding.get("manifest_sha256"):
+            raise ValueError("native compiler binding mismatch: " + slug)
+        compiled = json.loads(manifest.read_text())
+        if compiled.get("binary_sha256") != record["binary_sha256"]:
+            raise ValueError("native compiler receipt did not produce captured binary: " + slug)
+        capture = {"base": base, "runtime": base / "runtime", "record": record, "sources": expected}
+        consumed = consumed_native_sources(capture, compiled)
+        if binding.get("inputs_sha256") != consumed:
+            raise ValueError("native normalized binding conflicts with consumed manifest: " + slug)
     return {"base": base, "runtime": base / "runtime", "binary": binary,
             "record": record, "receipt": receipt, "sources": expected}
 
