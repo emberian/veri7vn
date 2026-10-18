@@ -80,7 +80,7 @@ struct
         if isSome (R.search bare low_all)
            andalso length (String.tokens Char.isSpace s) <= 4
            andalso not (String.isSuffix "?" s)
-           andalso isNone (R.search continuation low_all)
+           andalso (R.search continuation low_all = NONE)
         then K.Bare s
         else
           (* the deictic branch: a known predicate row, or a free surface split

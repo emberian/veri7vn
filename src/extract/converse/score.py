@@ -30,10 +30,9 @@ import sys
 from pathlib import Path
 
 sys.dont_write_bytecode = True
-REPO = Path(__file__).resolve().parents[3]
-if not (REPO / "upstream").exists():
-    REPO = Path("/Users/ember/dev/o7vn")          # scout worktree: upstream lives in the main checkout
-HIST = REPO / "upstream/research/sealed_history"
+REPO = Path(__file__).resolve().parents[3]       # this worktree (binary, var/)
+UP = REPO if (REPO / "upstream").exists() else Path("/Users/ember/dev/o7vn")   # upstream lives in the main checkout
+HIST = UP / "upstream/research/sealed_history"
 BIN = REPO / "var/converse/bin/converse"
 
 RUNS = [

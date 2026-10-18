@@ -87,7 +87,8 @@ export_code rewrite form note_of conv_step live_topic resolved summarize lookup_
   in SML module_name Converse file_prefix converse
 
 ML \<open>
-  val theorems = [@{thm conv_step_is_one_dispatch}, @{thm warrant_stays_with_route},
+  val theorems = [@{thm conv_step_is_one_dispatch}, @{thm warrant_stays_with_route(1)},
+    @{thm warrant_stays_with_route(2)},
     @{thm form_cases}, @{thm gate_no_new_answer}, @{thm probe_state_discarded},
     @{thm probe_leaves_log_unchanged}, @{thm note_iff_conversion},
     @{thm no_silent_substitution}, @{thm predicate_of_shape},
