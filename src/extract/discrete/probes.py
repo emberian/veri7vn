@@ -31,7 +31,7 @@ PROBES=[
     decline('Differentiate 1/0x^2'),
     decline('Find the derivative of x^3 at x = 1/0'),
     decline('Integrate x^2 from 1/0 to 2'),
-    decline('Differentiate x^2 with respect to y'),
+    poly('Differentiate x^2 with respect to y',[0],var='y'),
     decline('Find the derivative of x^2 at y = 2'),
     decline('Find the derivative of x^2 at x = 1.5abc'),
     decline('Integrate x^2 from 1 to 2.5abc'),

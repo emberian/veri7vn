@@ -13,7 +13,7 @@
 
 structure Main =
 struct
-  val theorems = "[\"anagram_equation\",\"atleast_value\",\"atleast_range\",\"card_k_ordered\",\"card_k_too_many\",\"dist_ways\",\"sum_dist\",\"classify_taut\",\"argument_valid\",\"l_formula_table_bound\",\"l_argument_table_bound\",\"sp_found_sound\",\"a_mst_minimal\",\"a_sorted_sound\",\"bsearch_found\",\"isort_correct\",\"pder_n_derivative\",\"pint_derivative\",\"from_to_digits\",\"f_signed_base_sound\",\"b64_roundtrip\",\"pct_roundtrip\"]"
+  val theorems = "[\"anagram_equation\",\"atleast_value\",\"atleast_range\",\"card_k_ordered\",\"card_k_too_many\",\"dist_ways\",\"sum_dist\",\"classify_taut\",\"argument_valid\",\"l_formula_table_bound\",\"l_argument_table_bound\",\"sp_found_sound\",\"a_mst_minimal\",\"a_sorted_sound\",\"bsearch_found\",\"isort_correct\",\"pder_n_derivative\",\"c_partial_sound\",\"c_partial_at_sound\",\"pint_derivative\",\"from_to_digits\",\"f_signed_base_sound\",\"b64_roundtrip\",\"pct_roundtrip\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))

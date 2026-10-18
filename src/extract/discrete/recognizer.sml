@@ -773,6 +773,53 @@ struct
              else if indicated then ordinalValue phrase else SOME 1 end
       end
 
+  (* Complete coordinate-derivative commands. The HOL request retains both
+     the polynomial's source variable and the coordinate being varied. *)
+  fun coordinateCalc low =
+    let
+      val t0=subCI "[?.]$" "" (strip low)
+      val functionAt=search ("^if ([fgh])\\(\\s*([a-z])\\s*\\)\\s*=\\s*(.+),\\s*what is \\1'\\(\\s*"^NUMRE^"\\s*\\)$") t0
+      val t0=case functionAt of NONE=>t0 | SOME m=>
+        "differentiate "^g1 t0 m^"("^valOf(grp t0 m 2)^")="^valOf(grp t0 m 3)^
+        " at "^valOf(grp t0 m 2)^"="^valOf(grp t0 m 4)
+      val t1=subCI "^(?:what is|find|compute|calculate|determine)\\s+(?:(?:the|a)\\s+)?" "" t0
+      val pm=search ("\\s+(?:at|when|where)\\s+(?:([a-z])\\s*=\\s*)?"^NUMRE^"$") t1
+      val point=case pm of NONE=>NONE | SOME m=>SOME(grp t1 m 1,valOf(grp t1 m 2))
+      val t2=case pm of NONE=>t1 | SOME m=>String.substring(t1,0,#start m)
+      val vm=search "\\s+(?:with respect to|wrt)\\s+([a-z])$" t2
+      val explicit=case vm of NONE=>NONE | SOME m=>SOME(g1 t2 m)
+      val t3=case vm of NONE=>t2 | SOME m=>String.substring(t2,0,#start m)
+      val dd=search "^d/d([a-z])\\s+(.+)$" t3
+      fun order prefix =
+        let val p=strip(subCI "(?:^|\\s)(?:partial|ordinary|total)$" "" (strip prefix))
+            val p=strip(subCI "^partial\\s+" "" p)
+            val p=strip(subCI "(?:-|\\s)order$" "" p)
+        in if p="" then SOME 1 else ordinalValue p end
+      val de=search "^(.*?)derivative(?: of)?\\s+(.+)$" t3
+      val diff=search "^differentiate\\s+(.+)$" t3
+      val opExpr=case dd of SOME m=>SOME(1,valOf(grp t3 m 2),SOME(g1 t3 m))
+        | NONE=>case diff of SOME m=>SOME(1,g1 t3 m,explicit)
+        | NONE=>case de of NONE=>NONE | SOME m=>
+          (case order(g1 t3 m) of NONE=>NONE | SOME n=>SOME(n,valOf(grp t3 m 2),explicit))
+    in
+      case opExpr of NONE=>NONE | SOME(n,expression,target0)=>
+      let val fm=search "^[fgh]\\(\\s*([a-z])\\s*\\)\\s*=\\s*(.+)$" expression
+          val declared=case fm of NONE=>NONE | SOME m=>SOME(g1 expression m)
+          val expr=case fm of NONE=>expression | SOME m=>valOf(grp expression m 2)
+          val target=case target0 of SOME v=>SOME v | NONE=>declared
+          val compatible=case (target0,declared) of (SOME a,SOME b)=>a=b | _=>true
+          val ddCompatible=case (dd,explicit,target0) of (SOME _,SOME a,SOME b)=>a=b | _=>true
+      in
+        if not compatible orelse not ddCompatible orelse has "[0-9]e[+-]?[0-9]" expr then NONE else
+        case (parsePoly expr,target) of
+          (SOME(poly,source),SOME v)=>
+            (case point of NONE=>SOME(D.C_partial(poly,source,v,nat n))
+             | SOME(pointVar,value)=>if (case pointVar of NONE=>true | SOME w=>w=v)
+                then SOME(D.C_partial_at(poly,source,v,nat n,fracOf value)) else NONE)
+        | _=>NONE
+      end
+    end
+
   fun calculus text =
     let
       val t = collapse text
@@ -790,7 +837,8 @@ struct
             then SOME (D.RCalc (D.C_need (nat 0))) else NONE
         | SOME e =>
           case parsePoly e of
-            NONE => NONE
+            NONE => if has "with respect to|\\bwrt\\b|\\bd/d[a-z]\\b|\\b[fgh]\\(\\s*[a-z]\\s*\\)\\s*=" low
+                    then SOME(D.RCalc(D.C_need(nat 2))) else NONE
           | SOME (poly, parsedVar) =>
             let
               (* Recognition is untrusted. Never reinterpret an explicit variable,
@@ -802,7 +850,11 @@ struct
               val hasVariable = List.exists Char.isAlpha (String.explode e)
               val var = if hasVariable then parsedVar else (case vars of v :: _ => v | [] => parsedVar)
             in
-              if List.exists (fn v => v <> var) vars then SOME (D.RCalc (D.C_need (nat 2)))
+              if has "(?<!anti-)\\bderivative\\b|\\bdifferentiate\\b|\\bd/d[a-z]\\b|\\bf'\\(" low andalso
+                 (has "with respect to|\\bwrt\\b|\\bd/d[a-z]\\b" low orelse
+                  has "\\b[fgh]\\(\\s*([a-z])\\s*\\)\\s*=" low)
+              then SOME(D.RCalc(case coordinateCalc low of SOME r=>r | NONE=>D.C_need(nat 2)))
+              else if List.exists (fn v => v <> var) vars then SOME (D.RCalc (D.C_need (nat 2)))
               else if has "\\bintegra|\\banti-?derivative\\b|\\bprimitive\\b" low then
                 let
                   val bounds =

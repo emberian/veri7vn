@@ -89,3 +89,12 @@ and proves successful formula counts have at most 4096 rows. This limits rows,
 not formula size or elapsed time. Independent checks evaluate generated syntax
 and returned counterexample assignments; [the logic report](../../../project/lanes/H-symbolic-discrete.md)
 records exact outcomes, proof statements and remaining interpretation limits.
+
+Coordinate derivatives retain the polynomial variable and the differentiation
+variable separately. Other free coordinates are held fixed, so the derivative
+of `x^2` with respect to independent `y` is zero. A function declaration such as
+`f(y)=x^2` uses `y` as its argument, including `f'(3)` evaluation. Complete
+coordinate commands reject explicit dependencies and extra operations. The
+[coordinate report](../../../project/lanes/I-symbolic-discrete.md) records the real
+derivative theorem, build state and checks; this is not a multivariate CAS or an
+analytic-integral claim.

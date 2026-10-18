@@ -180,7 +180,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat
   G_poker G_dice G_atleast G_atleast_unknown G_need G_card_one G_card_k G_anagram G_anagram_none
   FVar FNeg FConj FDisj FImpl FEquiv L_formula L_argument L_form L_bad_formula L_bad_argument L_need
   A_sp A_sp_need A_mst A_mst_need A_bsearch A_bsearch_need A_need A_sort A_complexity
-  C_deriv C_deriv_at C_anti C_def C_need
+  C_deriv C_deriv_at C_anti C_def C_partial C_partial_at C_need
   F_json F_b64dec F_b64enc F_hash F_urldec F_urlenc F_base F_signed_base F_need F_day
   H_sha256 H_sha1 H_md5
   in SML module_name Discrete file_prefix discrete
@@ -202,7 +202,7 @@ ML \<open>
     @{thm a_sorted_sound}, @{thm a_reply_answered},
     @{thm norm_peval}, @{thm norm_pev}, @{thm pder_raw_derivative}, @{thm pint_raw_derivative},
     @{thm pder_n_derivative}, @{thm pint_derivative}, @{thm c_deriv_sound}, @{thm c_deriv_at_sound},
-    @{thm c_anti_sound}, @{thm c_def_sound}, @{thm c_reply_answered},
+    @{thm coordinate_partial_derivative}, @{thm c_partial_sound}, @{thm c_partial_at_sound}, @{thm c_anti_sound}, @{thm c_def_sound}, @{thm c_reply_answered},
     @{thm from_to_digits}, @{thm to_digits_below}, @{thm base_convert_value}, @{thm b64_roundtrip},
     @{thm pct_roundtrip}, @{thm sha_pad_blocks}, @{thm days_next_day_in_month},
     @{thm weekday_next_day}, @{thm epoch_is_thursday}, @{thm f_base_sound}, @{thm f_signed_base_sound}, @{thm f_base_declines},

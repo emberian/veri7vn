@@ -165,6 +165,26 @@ proof -
   then show ?thesis by (simp add: pint_def norm_pev)
 qed
 
+text \<open>Coordinate derivatives hold every other variable fixed. Both names
+are retained in the request; no parsed polynomial is discarded.\<close>
+definition coordinate_partial :: "poly \<Rightarrow> String.literal \<Rightarrow> String.literal \<Rightarrow> nat \<Rightarrow> poly" where
+  "coordinate_partial p source target n =
+    (if source = target \<or> n = 0 then pder_n n p else [])"
+
+theorem coordinate_partial_derivative:
+  "((\<lambda>t. pev (coordinate_partial p source target k) ((env(target := t)) source))
+      has_field_derivative
+    pev (coordinate_partial p source target (Suc k)) ((env(target := z)) source)) (at z)"
+proof (cases "source = target")
+  case True
+  then show ?thesis using pder_n_derivative[of k p z]
+    by (simp add: coordinate_partial_def)
+next
+  case False
+  then show ?thesis
+    by (cases k) (auto simp: coordinate_partial_def intro: derivative_intros)
+qed
+
 section \<open>Requests, kernel and reply\<close>
 
 datatype creq =
@@ -172,6 +192,8 @@ datatype creq =
   | C_deriv_at poly String.literal nat rat bool
   | C_anti poly String.literal
   | C_def poly String.literal rat rat
+  | C_partial poly String.literal String.literal nat
+  | C_partial_at poly String.literal String.literal nat rat
   | C_need nat
 
 datatype cout =
@@ -187,6 +209,12 @@ definition c_kernel :: "creq \<Rightarrow> cout" where
    | C_deriv_at p v n x0 tg \<Rightarrow> CAt n (pder_n n p) (peval (pder_n n p) x0) x0 tg
    | C_anti p v \<Rightarrow> CAnti (pint p)
    | C_def p v a b \<Rightarrow> CDef (pint p) a b (peval (pint p) b - peval (pint p) a)
+   | C_partial p source target n \<Rightarrow>
+       (if n = 0 then CNeed 2 else CDer n (coordinate_partial p source target n))
+   | C_partial_at p source target n point \<Rightarrow>
+       (if n = 0 then CNeed 2 else
+         CAt n (coordinate_partial p source target n)
+           (peval (coordinate_partial p source target n) point) point False)
    | C_need k \<Rightarrow> CNeed k)"
 
 theorem c_deriv_sound:
@@ -228,6 +256,33 @@ proof -
   show ?thesis using e pint_derivative[of p] by (simp add: pev_of_rat of_rat_diff)
 qed
 
+theorem c_partial_sound:
+  assumes "c_kernel (C_partial p source target (Suc k)) = CDer n q"
+  shows "n = Suc k \<and> q = coordinate_partial p source target (Suc k) \<and>
+    ((\<lambda>t. pev (coordinate_partial p source target k) ((env(target := t)) source))
+       has_field_derivative pev q ((env(target := z)) source)) (at z)"
+  using assms coordinate_partial_derivative[of p source target k env z]
+  by (auto simp: c_kernel_def)
+
+theorem c_partial_at_sound:
+  assumes "c_kernel (C_partial_at p source target (Suc k) point) = CAt n q value point' tangent"
+  shows "n = Suc k \<and> point' = point \<and> \<not> tangent \<and>
+    q = coordinate_partial p source target (Suc k) \<and>
+    ((\<lambda>t. pev (coordinate_partial p source target k) ((env(target := t)) source))
+       has_field_derivative of_rat value) (at (of_rat point))"
+proof -
+  have h: "n = Suc k" "point' = point" "\<not> tangent"
+    "q = coordinate_partial p source target (Suc k)"
+    "value = peval (coordinate_partial p source target (Suc k)) point"
+    using assms by (auto simp: c_kernel_def)
+  have d: "((\<lambda>t. pev (coordinate_partial p source target k) ((env(target := t)) source))
+       has_field_derivative pev (coordinate_partial p source target (Suc k))
+           ((env(target := of_rat point)) source)) (at (of_rat point))"
+    by (rule coordinate_partial_derivative)
+  show ?thesis using h d
+    by (cases "source = target") (auto simp: coordinate_partial_def pev_of_rat)
+qed
+
 section \<open>Reply text (ASCII)\<close>
 
 definition term_text :: "String.literal \<Rightarrow> nat \<times> rat \<Rightarrow> String.literal" where
@@ -253,7 +308,9 @@ definition val_json :: "rat \<Rightarrow> jv" where
 
 definition c_var :: "creq \<Rightarrow> String.literal" where
   "c_var r = (case r of C_deriv p v n \<Rightarrow> v | C_deriv_at p v n x tg \<Rightarrow> v | C_anti p v \<Rightarrow> v
-     | C_def p v a b \<Rightarrow> v | C_need k \<Rightarrow> STR ''x'')"
+     | C_def p v a b \<Rightarrow> v
+     | C_partial p source target n \<Rightarrow> target
+     | C_partial_at p source target n point \<Rightarrow> target | C_need k \<Rightarrow> STR ''x'')"
 
 definition c_reply :: "creq \<Rightarrow> reply" where
   "c_reply r = (let v = c_var r in case c_kernel r of
