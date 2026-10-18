@@ -1,0 +1,166 @@
+[
+ {
+  "q": "What is the percent composition of H2O?",
+  "kind": "percent_composition",
+  "valid": true,
+  "expect": {
+   "H": 11.19067443796836,
+   "O": 88.80932556203165
+  },
+  "source": "csv + own reader"
+ },
+ {
+  "q": "Give the percent composition by mass of CO2.",
+  "kind": "percent_composition",
+  "valid": true,
+  "expect": {
+   "C": 27.292144788565974,
+   "O": 72.70785521143402
+  },
+  "source": "csv + own reader"
+ },
+ {
+  "q": "What is the mass percent of each element in Ca(OH)2?",
+  "kind": "percent_composition",
+  "valid": true,
+  "expect": {
+   "Ca": 54.09344886225605,
+   "O": 43.18568305125921,
+   "H": 2.720868086484735
+  },
+  "source": "csv + own reader"
+ },
+ {
+  "q": "What is the percent composition of (NH4)2SO4?",
+  "kind": "percent_composition",
+  "valid": true,
+  "expect": {
+   "N": 21.199600435888122,
+   "H": 6.102433708681438,
+   "S": 24.268979295314203,
+   "O": 48.428986560116236
+  },
+  "source": "csv + own reader"
+ },
+ {
+  "q": "Find the elemental composition of C6H12O6 by mass.",
+  "kind": "percent_composition",
+  "valid": true,
+  "expect": {
+   "C": 40.00199826816758,
+   "H": 6.714181043095983,
+   "O": 53.283820688736434
+  },
+  "source": "csv + own reader"
+ },
+ {
+  "q": "What is the percent composition of CuSO4.5H2O?",
+  "kind": "percent_composition",
+  "valid": true,
+  "expect": {
+   "Cu": 25.451458002090583,
+   "S": 12.843875029536505,
+   "O": 57.66767724907986,
+   "H": 4.036989719293046
+  },
+  "source": "csv + own reader"
+ },
+ {
+  "q": "What is the percent composition of XyO2?",
+  "kind": "percent_composition",
+  "valid": false,
+  "expect": "decline",
+  "source": "XyO2 is not a formula of known elements"
+ },
+ {
+  "q": "If I dilute 10 mL of 2 M NaCl to 100 mL, what is the final concentration?",
+  "kind": "diluted_conc",
+  "valid": true,
+  "expect": 0.2,
+  "source": "C1V1 = C2V2: 2 x 10 / 100"
+ },
+ {
+  "q": "What is the concentration after diluting 25 mL of 12 M HCl to 500 mL?",
+  "kind": "diluted_conc",
+  "valid": true,
+  "expect": 0.6,
+  "source": "12 x 25 / 500"
+ },
+ {
+  "q": "How much water do I add to 10 mL of 2 M stock to make 100 mL?",
+  "kind": "water_to_add",
+  "valid": true,
+  "expect": 90.0,
+  "source": "100 mL - 10 mL"
+ },
+ {
+  "q": "How many moles of NaCl are in 250 mL of a 0.5 M solution?",
+  "kind": "moles_in_solution",
+  "valid": true,
+  "expect": 0.125,
+  "source": "n = C V = 0.5 x 0.25"
+ },
+ {
+  "q": "How many moles of solute are in 2 L of 0.15 M solution?",
+  "kind": "moles_in_solution",
+  "valid": true,
+  "expect": 0.3,
+  "source": "0.15 x 2"
+ },
+ {
+  "q": "What is the molarity of 0.2 mol of KCl in 500 mL?",
+  "kind": "molarity_from_moles",
+  "valid": true,
+  "expect": 0.4,
+  "source": "0.2 / 0.5 L"
+ },
+ {
+  "q": "If I dilute 100 mL of 2 M NaCl to 10 mL, what is the final concentration?",
+  "kind": "diluted_conc",
+  "valid": false,
+  "expect": "decline",
+  "source": "a stock larger than the final volume is not a dilution"
+ },
+ {
+  "q": "Starting with 50 g of iodine-131, how many grams are left after 16.0504 days?",
+  "kind": "remaining_amount",
+  "valid": true,
+  "expect": 12.5,
+  "source": "iodine-131 half-life 8.0252 d (decay manifest table): two half-lives, 50/4"
+ },
+ {
+  "q": "What percentage by mass of NaCl is chlorine?",
+  "kind": "percent",
+  "valid": true,
+  "expect": 60.660745969098144,
+  "source": "csv + own reader"
+ },
+ {
+  "q": "What is the molar mass of (CH3)2CO?",
+  "kind": "molar_mass",
+  "valid": true,
+  "expect": 58.080000000000005,
+  "source": "csv + own reader"
+ },
+ {
+  "q": "How many grams of NaOH do I need to make 500 mL of a 0.1 M solution?",
+  "kind": "mass_needed",
+  "valid": true,
+  "expect": 1.9998384650000003,
+  "source": "csv; 0.1 mol/L x 0.5 L x MW"
+ },
+ {
+  "q": "How many grams is 0.25 mol of Mg(OH)2?",
+  "kind": "mol2g",
+  "valid": true,
+  "expect": 14.579749999999999,
+  "source": "csv + own reader"
+ },
+ {
+  "q": "What is the percent composition of the solution?",
+  "kind": "percent_composition",
+  "valid": false,
+  "expect": "decline",
+  "source": "no formula is named"
+ }
+]

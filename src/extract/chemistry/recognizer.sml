@@ -160,6 +160,10 @@ struct
   val PCT = "\\b(?:percent|percentage|%)\\s+(?:by mass\\s+)?(?:of\\s+)?(\\w+)\\s+in\\s+(\\S+)"
   (* B-chemistry step 2: "percentage by mass of F is E" (the generator's heldout phrasing; the organ's PCT wants "of E in F") *)
   val PCT2 = "\\b(?:percent|percentage)\\s+by\\s+(?:mass|weight)\\s+of\\s+(\\S+)\\s+is\\s+(\\w+)"
+  (* B-chemistry step 3: the whole composition, which the organ's one-element PCT never gave *)
+  val PCOMP = "\\bpercent(?:age)?\\s+composition\\b|\\belemental\\s+composition\\b|\\bcomposition\\s+by\\s+(?:mass|weight)\\b"
+    ^ "|\\bpercent(?:age)?s?\\s+(?:by\\s+(?:mass|weight)\\s+)?of\\s+(?:each|every|all)\\s+(?:the\\s+)?elements?\\b"
+    ^ "|\\bmass\\s+percent(?:age)?s?\\s+of\\s+(?:each|every|all)\\s+(?:the\\s+)?elements?\\b"
   val MOLAR = "\\bmolar mass\\b|\\bmolecular (?:mass|weight)\\b|\\bformula (?:mass|weight)\\b|\\bmass of one mole\\b"
 
   (* B-chemistry step 2. The organs' FORMULA starts with \b, which does not hold between a space and "(", so a token such as
@@ -268,6 +272,20 @@ struct
                     let val r = mk (Q.Percent (fchars s, fchars f))
                     in if Q.answers r then SOME r else NONE end
             end
+      fun comp () =
+        if not (has PCOMP low) orelse has "\\bsolution\\b|\\bmixture\\b|\\balloy\\b|\\bsample\\b|\\bair\\b" low then NONE
+        else
+          let
+            val shaped = List.filter (fn f => hasCS "\\d|\\(" f orelse length (Regex.findall (rcs "[A-Z][a-z]?") f) >= 2)
+                                     (map (Regex.whole t) (formulaMatches t))
+            fun distinct [] = []
+              | distinct (x :: xs) = x :: distinct (List.filter (fn y => y <> x) xs)
+          in
+            if length (distinct shaped) >= 2 then NONE      (* two compounds named: not one composition *)
+            else case reader t of
+                   NONE => NONE
+                 | SOME f => (case fclass f of 2 => NONE | _ => SOME (mk (Q.PercentComp (fchars f))))
+          end
       fun molar () =
         if not (has MOLAR low) then NONE
         else case reader t of
@@ -297,7 +315,7 @@ struct
       case first [(G2MOL, Q.GramsToMoles), (MOL2G, Q.MolesToGrams)] of
         SOME r => SOME r
       | NONE =>
-          (case (case pct () of SOME r => SOME r | NONE => pct2 ()) of
+          (case (case comp () of SOME r => SOME r | NONE => (case pct () of SOME r => SOME r | NONE => pct2 ())) of
              SOME r => SOME r
            | NONE =>
                (case molar () of
@@ -479,6 +497,24 @@ struct
               let val (n, d) = decPair (g1 low m)
               in SOME (mk (Q.WvMass (Q.mk_rat n d, ml))) end
           | _ =>
+            (* B-chemistry step 3: one concentration and two volumes (stock volume, final volume) *)
+            if has "\\bdilut\\w*\\b|\\bstock\\b" low andalso length concs = 1 andalso length vols = 2
+               andalso has "\\b(?:water|solvent|diluent)\\b" low andalso has "\\bhow (?:much|many)\\b|\\badd\\b" low
+            then SOME (mk (Q.WaterToAdd (List.nth (vols, 0), List.nth (vols, 1))))
+            else if has "\\bdilut\\w*\\b" low andalso length concs = 1 andalso length vols = 2
+                    andalso has "\\bconcentration\\b|\\bmolarity\\b|\\bhow concentrated\\b" low
+                    andalso not (has "\\bhow (?:much|many) (?:of )?(?:the )?(?:stock|ml|milliliters|liters|l)\\b" low)
+            then SOME (mk (Q.DilutedConc (List.nth (concs, 0), List.nth (vols, 0), List.nth (vols, 1))))
+            else if has "\\bhow many (?:moles?|mol)\\b" low andalso length concs = 1 andalso length vols = 1
+            then SOME (mk (Q.MolesInSol (List.nth (concs, 0), List.nth (vols, 0))))
+            else if has "\\bmolarity\\b|\\bconcentration\\b" low andalso length vols = 1 andalso null concs
+                    andalso not (has (N ^ "\\s*(?:g|grams?|mg|milligrams?)\\b") low)
+                    andalso isSome (search (N ^ "\\s*(?:moles?|mol)\\b") low)
+            then
+              let val m = valOf (search (N ^ "\\s*(?:moles?|mol)\\b") low)
+                  val (n, d) = decPair (g1 low m)
+              in SOME (mk (Q.MolarityMoles (Q.mk_rat n d, hd vols))) end
+            else
             if has "\\bdilut\\w*\\b|\\bstock\\b|\\bhow much (?:of )?(?:the )?\\d" low andalso length concs >= 2 andalso not (null vols)
             then SOME (mk (Q.Dilution (List.nth (concs, 0), List.nth (concs, 1), List.last vols)))
             else
@@ -499,6 +535,7 @@ struct
                           val grams = scaled (g1 low m) (1, if milli then 1000 else 1)
                         in SOME (mk (Q.Molarity (fchars f, grams, hd vols))) end
                       else if has "\\bhow (?:many|much)\\b|\\bmass\\b|\\bweigh\\b|\\bgrams?\\b" low
+                              andalso not (has "\\bhow many (?:moles?|mol|millimoles?|mmol)\\b" low)   (* the organ answered grams to a moles question *)
                               andalso not (null concs) andalso not (null vols)
                       then SOME (mk (Q.MassNeeded (fchars f, hd concs, hd vols)))
                       else NONE

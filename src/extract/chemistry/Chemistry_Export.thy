@@ -56,7 +56,16 @@ definition self_checks :: "bool list" where
     (stated (reply_of (RD (HalfLives (HL_iso I_rn222) (Some (17.21, TU_day))))) = Some (STR ''4.501'')),
     (stated (reply_of (RD (TimeToFraction (HL_iso I_h3) (Some (1 / 2)) (Some TU_year)))) = Some (STR ''12.32'')),
     (stated (reply_of (RD (TimeToFraction (HL_iso I_ra226) (Some (5 / 100)) (Some TU_year)))) = Some (STR ''6915'')),
-    (\<not> answers (RD (Remaining (HL_iso I_c14) (Some (1000, TU_year)) None)))]"
+    (\<not> answers (RD (Remaining (HL_iso I_c14) (Some (1000, TU_year)) None))),
+    (response (reply_of (RC (PercentComp ''H2O''))) = STR ''Percent composition of H2O by mass: H 11.19%, O 88.81% (total 18.015 g/mol, PubChem atomic masses).''),
+    (stated (reply_of (RC (PercentComp ''H2O''))) = Some (dq + STR ''H 11.19%, O 88.81%'' + dq)),
+    (\<not> answers (RC (PercentComp ''XyO2''))),
+    (stated (reply_of (RC (DilutedConc 2 (10 / 1000) (100 / 1000)))) = Some (STR ''0.2'')),
+    (stated (reply_of (RC (WaterToAdd (10 / 1000) (100 / 1000)))) = Some (STR ''90'')),
+    (\<not> answers (RC (WaterToAdd (100 / 1000) (10 / 1000)))),
+    (stated (reply_of (RC (MolesInSol (1 / 2) (250 / 1000)))) = Some (STR ''0.125'')),
+    (stated (reply_of (RC (MolarityMoles (1 / 5) (500 / 1000)))) = Some (STR ''0.4'')),
+    (\<not> answers (RC (MolesInSol 0 1)))]"
 
 definition self_test :: bool where
   "self_test = list_all id self_checks"
@@ -65,7 +74,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat chars_of
   self_checks fclass elem_names is_symbol iso_order
   integer_of_int nat_of_integer int_of_integer
   RC RD MolarMass GramsToMoles MolesToGrams Percent Property NoSuchElement WvMass Dilution
-  Molarity MassNeeded NeedFormula
+  Molarity MassNeeded NeedFormula PercentComp DilutedConc WaterToAdd MolesInSol MolarityMoles
   P_atomic_mass P_atomic_number P_electronegativity P_melting_point P_boiling_point P_density
   P_electron_configuration P_ionization_energy P_standard_state P_group_block
   P_year_discovered P_symbol
@@ -81,6 +90,9 @@ ML \<open>
     @{thm percent_value}, @{thm percent_entries_sum}, @{thm property_value}, @{thm property_declines},
     @{thm fahrenheit_celsius}, @{thm absolute_zero_fahrenheit}, @{thm wv_value}, @{thm dilution_value},
     @{thm molarity_value}, @{thm mass_needed_value}, @{thm mass_molarity_inverse}, @{thm lab_bad_formula},
+    @{thm percent_comp_value}, @{thm percent_comp_entry}, @{thm diluted_conc_value}, @{thm diluted_conc_declines},
+    @{thm water_add_value}, @{thm water_add_declines}, @{thm dilution_solute_conserved}, @{thm moles_sol_value},
+    @{thm molarity_moles_value}, @{thm molarity_moles_inverse}, @{thm moles_sol_declines}, @{thm molarity_moles_declines},
     @{thm reply_c_answered}, @{thm reply_c_exact_stated}, @{thm reply_c_withheld},
     @{thm decay_real_zero}, @{thm decay_halves}, @{thm decay_real_nat}, @{thm time_real_inverse},
     @{thm time_real_half}, @{thm factor_nv_sound}, @{thm halv_nv_sound}, @{thm half_lives_value},

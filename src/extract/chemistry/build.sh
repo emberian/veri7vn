@@ -18,6 +18,10 @@ OUT=$REPO/var/chemistry
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
+# CHEM_GEN=<path to chemistry.ML> uses a remote build's export (var/chemistry/export-remote/...) and skips the local export.
+if [ -n "${CHEM_GEN:-}" ]; then
+  GEN=$CHEM_GEN
+else
 rm -rf "$OUT/export"
 REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
 import fcntl, os, subprocess
@@ -30,6 +34,7 @@ with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
                    check=True, env=env, cwd=repo)
 EOF
 GEN=$(find "$OUT/export" -type f -name 'chemistry*' | head -n 1)
+fi
 [ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
 cp "$GEN" "$OUT/build/chemistry_generated.sml"
 

@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
+import re
 import statistics
 import subprocess
 import sys
@@ -118,13 +119,76 @@ def run_panel(binary, argv, sid, panel, scorer, organ, tol):
     return out
 
 
+def judge_probe(p, status, value):
+    """(good, asserted) for one committed probe from the reply's status and value alone"""
+    answered = status == "answered"
+    if not p["valid"]:
+        return (not answered), answered
+    if not answered:
+        return False, False
+    try:
+        if p["kind"] == "percent_composition":
+            got = {m.group(1): float(m.group(2)) for m in re.finditer(r"([A-Z][a-z]?) (\d+(?:\.\d+)?)%", str(value))}
+            want = p["expect"]
+            return (set(got) == set(want) and all(abs(got[e] - want[e]) <= 0.006 for e in want)), True
+        got, want = float(str(value).strip('"')), float(p["expect"])
+        return abs(got - want) <= 0.005 * abs(want) + 1e-9, True
+    except (TypeError, ValueError):
+        return False, True
+
+
+def run_probes(binary, probes):
+    """the probes through the binary (family order) and through the shipped organs in the same order (decay,
+    labsolutions-r2, chemistry-v3; the first organ that says anything speaks). Returns two tallies and the misses."""
+    organs = [getattr(load(sid, mod), cls)(*cargs) for sid, mod, cls, cargs, *_ in
+              [x for x in SPECIALISTS if x[0] in ("decay", "labsolutions-r2", "chemistry-v3")]]
+    proc = subprocess.Popen([binary], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+    tb = {"right": 0, "wrong": 0, "withheld_valid": 0, "false_yes": 0}
+    to = dict(tb)
+    misses = []
+    for i, p in enumerate(probes):
+        rep, _ = ask(proc, "probe:%d" % i, p["q"])
+        good, asserted = judge_probe(p, rep.get("status"), rep.get("value"))
+        o = None
+        for org in organs:
+            o = org.answer(p["q"])
+            if o is not None:
+                break
+        ogood, oasserted = judge_probe(p, (o or {}).get("status"), (o or {}).get("value"))
+        for t, g, a in ((tb, good, asserted), (to, ogood, oasserted)):
+            if not p["valid"]:
+                t["right"] += g
+                t["false_yes"] += a
+            elif g:
+                t["right"] += 1
+            elif a:
+                t["wrong"] += 1
+            else:
+                t["withheld_valid"] += 1
+        if not good:
+            misses.append({"q": p["q"], "expect": p["expect"], "status": rep.get("status"), "value": rep.get("value")})
+        if not ogood:
+            misses.append({"organ": True, "q": p["q"], "status": (o or {}).get("status"), "value": (o or {}).get("value")})
+    proc.stdin.close()
+    proc.wait()
+    return tb, to, misses
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--binary", default=str(REPO / "var/chemistry/bin/chemistry"))
     ap.add_argument("--out", default=str(REPO / "var/chemistry/score.json"))
     ap.add_argument("--panel-dir", help="directory holding <panel file name> per specialist (fresh_panels.py output) instead of the shipped panels")
     ap.add_argument("--specialist-mode-only", action="store_true", help="skip the family-order pass")
+    ap.add_argument("--probes", action="store_true", help="score src/extract/chemistry/probes.json (family order) and exit")
     args = ap.parse_args()
+    if args.probes:
+        tb, to, misses = run_probes(args.binary, json.loads((Path(__file__).parent / "probes.json").read_text()))
+        print("probes (20): kernel binary  right=%(right)d wrong=%(wrong)d withheld_valid=%(withheld_valid)d false_yes=%(false_yes)d" % tb)
+        print("probes (20): shipped organs right=%(right)d wrong=%(wrong)d withheld_valid=%(withheld_valid)d false_yes=%(false_yes)d" % to)
+        for m in misses:
+            print("   ", m)
+        return
     report = {"binary": args.binary, "size_bytes": Path(args.binary).stat().st_size, "specialists": {}}
     colds = []
     first_q = json.loads((SPEC / "chemistry-v3/chemistry_panel_v1.json").read_text())[0]["q"]

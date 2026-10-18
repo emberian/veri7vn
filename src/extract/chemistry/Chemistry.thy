@@ -152,15 +152,21 @@ datatype creq =
   | Molarity string rat rat
   | MassNeeded string rat rat
   | NeedFormula
+  | PercentComp string
+  | DilutedConc rat rat rat
+  | WaterToAdd rat rat
+  | MolesInSol rat rat
+  | MolarityMoles rat rat
 
 datatype ckind = CK_molar_mass | CK_g2mol | CK_mol2g | CK_percent | CK_wv_mass | CK_dilution
-  | CK_molarity | CK_mass_needed
+  | CK_molarity | CK_mass_needed | CK_diluted_conc | CK_water_add | CK_moles_sol | CK_molarity_mol
 
 datatype cdecl = UnknownSym string string | BadFormula string | ZeroMass string
   | NoValue eprop string | UnknownWord String.literal | NeedFormulaDecl
-  | NonPositiveConc | NotInFormula string string | ElementAbsent string
+  | NonPositiveConc | NotInFormula string string | ElementAbsent string | NotDilution
 
 datatype cout = CExact ckind rat | CLookup eprop string bool | CDecline cdecl
+  | CComp string counts rat
 
 fun prop_field :: "eprop \<Rightarrow> pelem \<Rightarrow> String.literal" where
   "prop_field P_atomic_mass e = pmass_s e"
@@ -211,6 +217,18 @@ fun ckernel :: "creq \<Rightarrow> cout" where
      FOk cs \<Rightarrow> CExact CK_mass_needed (mol * v * mass_total cs)
    | _ \<Rightarrow> CDecline (BadFormula f))"
 | "ckernel NeedFormula = CDecline NeedFormulaDecl"
+| "ckernel (PercentComp f) = with_mass f (\<lambda>m cs.
+     if m = 0 then CDecline (ZeroMass f) else CComp f cs m)"
+| "ckernel (DilutedConc c v1 v2) =
+     (if c \<le> 0 then CDecline NonPositiveConc
+      else if 0 < v1 \<and> v1 \<le> v2 then CExact CK_diluted_conc (c * v1 / v2)
+      else CDecline NotDilution)"
+| "ckernel (WaterToAdd v1 v2) =
+     (if 0 < v1 \<and> v1 \<le> v2 then CExact CK_water_add ((v2 - v1) * 1000) else CDecline NotDilution)"
+| "ckernel (MolesInSol c v) =
+     (if c \<le> 0 \<or> v \<le> 0 then CDecline NonPositiveConc else CExact CK_moles_sol (c * v))"
+| "ckernel (MolarityMoles n v) =
+     (if n \<le> 0 \<or> v \<le> 0 then CDecline NonPositiveConc else CExact CK_molarity_mol (n / v))"
 
 section \<open>What each kind means\<close>
 
@@ -347,6 +365,139 @@ theorem lab_bad_formula:
      (\<forall>cs. parse_formula f \<noteq> FOk cs) \<and> d = BadFormula f"
   by (cases "parse_formula f") auto
 
+section \<open>Beyond the organs: composition, diluted concentration, solvent, moles\<close>
+
+text \<open>B-chemistry step 3. The organs' own text (percent composition, "M1V1 = M2V2",
+"preparing laboratory solutions") plainly also asks for the whole composition, the
+concentration after a dilution, the solvent to add, and moles of solute, which
+none of them finished. @{text comp_pcts} is the percent of every entry of a
+formula, in the organ's dictionary order.\<close>
+definition comp_pcts :: "counts \<Rightarrow> rat \<Rightarrow> (string \<times> rat) list" where
+  "comp_pcts cs m = map (\<lambda>p. (fst p, 100 * (elem_mass (fst p) * of_nat (snd p)) / m)) cs"
+
+theorem percent_comp_value:
+  assumes "ckernel (PercentComp f) = CComp f' cs m"
+  shows "f' = f \<and> parse_formula f = FOk cs \<and> m = mass_total cs \<and> m \<noteq> 0 \<and>
+     sum_list (map snd (comp_pcts cs m)) = 100"
+proof -
+  from assms obtain cs0 where p: "parse_formula f = FOk cs0" by (cases "parse_formula f") (auto simp: with_mass_def)
+  have nz: "mass_total cs0 \<noteq> 0" using assms p by (auto simp: with_mass_def split: if_splits)
+  have eq: "f' = f \<and> cs = cs0 \<and> m = mass_total cs0" using assms p by (auto simp: with_mass_def split: if_splits)
+  have "sum_list (map snd (comp_pcts cs0 (mass_total cs0))) = sum_list (map (\<lambda>p. 100 * (elem_mass (fst p) * of_nat (snd p)) / mass_total cs0) cs0)"
+    by (simp add: comp_pcts_def comp_def)
+  also have "\<dots> = 100" by (rule percent_entries_sum[OF refl nz])
+  finally have sm: "sum_list (map snd (comp_pcts cs0 (mass_total cs0))) = 100" .
+  from eq have f1: "f' = f" and c1: "cs = cs0" and m1: "m = mass_total cs0" by blast+
+  show ?thesis by (simp add: f1 c1 m1 p nz sm)
+qed
+
+text \<open>An element's share, summed over the entries naming it, is exactly what the
+single-element percent kind states.\<close>
+lemma comp_pcts_Nil: "comp_pcts [] m = []"
+  by (simp add: comp_pcts_def)
+
+lemma comp_pcts_Cons: "comp_pcts ((e, n) # r) m = (e, 100 * (elem_mass e * of_nat n) / m) # comp_pcts r m"
+  by (simp add: comp_pcts_def)
+
+lemma count_of_Nil: "count_of s [] = 0"
+  by (simp add: count_of_def)
+
+lemma count_of_Cons: "count_of s ((e, n) # r) = (if e = s then n else 0) + count_of s r"
+  by (simp add: count_of_def)
+
+lemma comp_entries_symbol:
+  "sum_list (map snd (filter (\<lambda>p. fst p = s) (comp_pcts cs m))) = 100 * elem_mass s * of_nat (count_of s cs) / m"
+proof (induction cs)
+  case Nil show ?case by (simp add: comp_pcts_Nil count_of_Nil)
+next
+  case (Cons a r)
+  obtain e n where a: "a = (e, n)" by (cases a)
+  show ?case using Cons a
+    by (cases "e = s") (simp_all add: comp_pcts_Cons count_of_Cons divide_inverse algebra_simps)
+qed
+
+theorem percent_comp_entry:
+  assumes "ckernel (PercentComp f) = CComp f' cs m" "ckernel (Percent s f) = CExact k v"
+  shows "k = CK_percent \<and> sum_list (map snd (filter (\<lambda>p. fst p = s) (comp_pcts cs m))) = v"
+proof -
+  obtain cs1 where p: "parse_formula f = FOk cs1" using assms(1) by (cases "parse_formula f") (auto simp: with_mass_def)
+  have e1: "cs = cs1 \<and> m = mass_total cs1" using assms(1) p by (auto simp: with_mass_def split: if_splits)
+  have e2: "k = CK_percent \<and> v = 100 * elem_mass s * of_nat (count_of s cs1) / mass_total cs1"
+    using assms(2) p by (auto simp: with_mass_def split: if_splits)
+  show ?thesis using e1 e2 comp_entries_symbol[of s cs1 "mass_total cs1"] by simp
+qed
+
+theorem diluted_conc_value:
+  assumes "ckernel (DilutedConc c v1 v2) = CExact k c2"
+  shows "k = CK_diluted_conc \<and> 0 < c \<and> 0 < v1 \<and> v1 \<le> v2 \<and> c2 * v2 = c * v1 \<and> c2 \<le> c"
+proof -
+  have h: "0 < c" "0 < v1" "v1 \<le> v2" and v: "c2 = c * v1 / v2" and k: "k = CK_diluted_conc"
+    using assms by (auto split: if_splits)
+  have v2: "0 < v2" using h by linarith
+  have "c2 * v2 = c * v1" using v v2 by (simp add: field_simps)
+  moreover have "c2 \<le> c"
+  proof -
+    have a: "c * v1 \<le> c * v2" by (rule mult_left_mono) (use h in simp_all)
+    show ?thesis using v v2 a by (simp add: divide_le_eq)
+  qed
+  ultimately show ?thesis using h k by blast
+qed
+
+theorem diluted_conc_declines:
+  "ckernel (DilutedConc c v1 v2) = CDecline d \<longleftrightarrow>
+     (c \<le> 0 \<and> d = NonPositiveConc) \<or> (0 < c \<and> \<not> (0 < v1 \<and> v1 \<le> v2) \<and> d = NotDilution)"
+  by (auto split: if_splits)
+
+theorem water_add_value:
+  assumes "ckernel (WaterToAdd v1 v2) = CExact k w"
+  shows "k = CK_water_add \<and> 0 < v1 \<and> v1 \<le> v2 \<and> w / 1000 + v1 = v2"
+  using assms by (auto split: if_splits)
+
+theorem water_add_declines:
+  "ckernel (WaterToAdd v1 v2) = CDecline d \<longleftrightarrow> \<not> (0 < v1 \<and> v1 \<le> v2) \<and> d = NotDilution"
+  by (auto split: if_splits)
+
+text \<open>Adding the solvent the kernel states to the stock gives the final volume,
+and the diluted concentration times that volume is the solute that was there.\<close>
+theorem dilution_solute_conserved:
+  assumes "ckernel (WaterToAdd v1 v2) = CExact k w" "ckernel (DilutedConc c v1 v2) = CExact k' c2"
+  shows "c2 * (v1 + w / 1000) = c * v1"
+proof -
+  have "w / 1000 + v1 = v2" using water_add_value[OF assms(1)] by blast
+  then have "v1 + w / 1000 = v2" by simp
+  then show ?thesis using diluted_conc_value[OF assms(2)] by simp
+qed
+
+theorem moles_sol_value:
+  assumes "ckernel (MolesInSol c v) = CExact k n"
+  shows "k = CK_moles_sol \<and> 0 < c \<and> 0 < v \<and> n = c * v \<and> n / v = c"
+  using assms by (auto split: if_splits)
+
+theorem molarity_moles_value:
+  assumes "ckernel (MolarityMoles n v) = CExact k c"
+  shows "k = CK_molarity_mol \<and> 0 < n \<and> 0 < v \<and> c * v = n"
+  using assms by (auto split: if_splits)
+
+theorem molarity_moles_inverse:
+  assumes "ckernel (MolarityMoles n v) = CExact k c"
+  shows "ckernel (MolesInSol c v) = CExact CK_moles_sol n"
+proof -
+  have h: "0 < n" "0 < v" and e: "c = n / v" using assms by (auto split: if_splits)
+  have pos: "0 < n / v" using h by (rule divide_pos_pos)
+  have c0: "0 < c" using pos e by simp
+  have cond: "\<not> (c \<le> 0 \<or> v \<le> 0)" using c0 h by linarith
+  have cv: "c * v = n" using e h by simp
+  show ?thesis using cond cv by simp
+qed
+
+theorem moles_sol_declines:
+  "ckernel (MolesInSol c v) = CDecline d \<longleftrightarrow> (c \<le> 0 \<or> v \<le> 0) \<and> d = NonPositiveConc"
+  by (auto split: if_splits)
+
+theorem molarity_moles_declines:
+  "ckernel (MolarityMoles n v) = CDecline d \<longleftrightarrow> (n \<le> 0 \<or> v \<le> 0) \<and> d = NonPositiveConc"
+  by (auto split: if_splits)
+
 section \<open>Response text (ASCII)\<close>
 
 definition dq :: String.literal where "dq = String.implode [CHR 0x22]"
@@ -426,12 +577,26 @@ fun exact_text :: "creq \<Rightarrow> rat \<Rightarrow> String.literal" where
        FOk cs \<Rightarrow> STR ''You need '' + g4 v + STR '' g of '' + sl f + STR '' ('' + g4 mol + STR '' mol/L x ''
          + g4 vol + STR '' L x '' + g4 (mass_total cs) + STR '' g/mol, PubChem atomic masses).''
      | _ \<Rightarrow> STR '''')"
+| "exact_text (DilutedConc c v1 v2) v = STR ''The diluted concentration is '' + g4 v + STR '' M (''
+     + g4 c + STR '' M x '' + g4 (v1 * 1000) + STR '' mL / '' + g4 (v2 * 1000) + STR '' mL; M1V1 = M2V2).''"
+| "exact_text (WaterToAdd v1 v2) v = STR ''Add '' + g4 v + STR '' mL of water (solvent) to the '' + g4 (v1 * 1000)
+     + STR '' mL of stock to reach '' + g4 (v2 * 1000) + STR '' mL.''"
+| "exact_text (MolesInSol c v) n = STR ''The solution contains '' + g4 n + STR '' mol of solute (''
+     + g4 c + STR '' mol/L x '' + g4 v + STR '' L).''"
+| "exact_text (MolarityMoles n v) c = STR ''The molarity is '' + g4 c + STR '' M ('' + g4 n + STR '' mol / ''
+     + g4 v + STR '' L).''"
 | "exact_text _ _ = STR ''''"
 
 fun stated_text :: "ckind \<Rightarrow> rat \<Rightarrow> String.literal" where
   "stated_text CK_molar_mass v = fixed 3 v"
 | "stated_text CK_percent v = fixed 2 v"
 | "stated_text k v = g4 v"
+
+fun comp_items :: "counts \<Rightarrow> rat \<Rightarrow> String.literal" where
+  "comp_items [] m = STR ''''"
+| "comp_items [(s, n)] m = sl s + STR '' '' + fixed 2 (100 * (elem_mass s * of_nat n) / m) + STR ''%''"
+| "comp_items ((s, n) # y # r) m = sl s + STR '' '' + fixed 2 (100 * (elem_mass s * of_nat n) / m) + STR ''%, ''
+     + comp_items (y # r) m"
 
 fun ckind_name :: "ckind \<Rightarrow> String.literal" where
   "ckind_name CK_molar_mass = STR ''molar_mass''"
@@ -442,6 +607,10 @@ fun ckind_name :: "ckind \<Rightarrow> String.literal" where
 | "ckind_name CK_dilution = STR ''dilution''"
 | "ckind_name CK_molarity = STR ''molarity''"
 | "ckind_name CK_mass_needed = STR ''mass_needed''"
+| "ckind_name CK_diluted_conc = STR ''diluted_conc''"
+| "ckind_name CK_water_add = STR ''water_to_add''"
+| "ckind_name CK_moles_sol = STR ''moles_in_solution''"
+| "ckind_name CK_molarity_mol = STR ''molarity_from_moles''"
 
 fun cdecl_name :: "cdecl \<Rightarrow> String.literal" where
   "cdecl_name (UnknownSym _ _) = STR ''unknown''"
@@ -453,6 +622,7 @@ fun cdecl_name :: "cdecl \<Rightarrow> String.literal" where
 | "cdecl_name NonPositiveConc = STR ''impossible''"
 | "cdecl_name (NotInFormula _ _) = STR ''absent''"
 | "cdecl_name (ElementAbsent _) = STR ''absent''"
+| "cdecl_name NotDilution = STR ''impossible''"
 
 fun cdecl_text :: "cdecl \<Rightarrow> String.literal" where
   "cdecl_text (UnknownSym s f) = sl s + STR '' isn'' + apos + STR ''t an element symbol, so '' + sl f
@@ -467,6 +637,7 @@ fun cdecl_text :: "cdecl \<Rightarrow> String.literal" where
 | "cdecl_text NonPositiveConc = STR ''Concentrations must be positive.''"
 | "cdecl_text (NotInFormula s f) = sl s + STR '' is not in '' + sl f + STR ''.''"
 | "cdecl_text (ElementAbsent s) = STR ''No element '' + sl s + STR ''.''"
+| "cdecl_text NotDilution = STR ''A dilution needs a positive stock volume that does not exceed the final volume.''"
 
 definition reply_c :: "creq \<Rightarrow> reply" where
   "reply_c r = (case ckernel r of
@@ -475,11 +646,16 @@ definition reply_c :: "creq \<Rightarrow> reply" where
          Some e \<Rightarrow> Reply True (prop_kind p) (lookup_text p e fh)
                      (Some (dq + prop_field p e + dq))
        | None \<Rightarrow> Reply False (STR ''absent'') (STR '''') None)
+   | CComp f cs m \<Rightarrow> Reply True (STR ''percent_composition'')
+         (STR ''Percent composition of '' + sl f + STR '' by mass: '' + comp_items cs m + STR '' (total ''
+          + fixed 3 m + STR '' g/mol, PubChem atomic masses).'')
+         (Some (dq + comp_items cs m + dq))
    | CDecline d \<Rightarrow> Reply False (cdecl_name d) (cdecl_text d) None)"
 
 theorem reply_c_answered:
   "answered (reply_c r) \<longleftrightarrow>
-     (\<exists>k q. ckernel r = CExact k q) \<or> (\<exists>p s fh e. ckernel r = CLookup p s fh \<and> find_sym s = Some e)"
+     (\<exists>k q. ckernel r = CExact k q) \<or> (\<exists>p s fh e. ckernel r = CLookup p s fh \<and> find_sym s = Some e)
+     \<or> (\<exists>f cs m. ckernel r = CComp f cs m)"
   by (cases "ckernel r") (auto simp: reply_c_def split: option.splits)
 
 theorem reply_c_exact_stated:
