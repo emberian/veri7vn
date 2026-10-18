@@ -2,97 +2,132 @@
 
 **Oracle7's sibling, with an Isabelle spine.**
 
-[Oracle7](https://huggingface.co/psiloceyeben/oracle7) is an AI that answers from
-stored, sourced records and 267 specialists, says "I can't verify that" instead
-of guessing, and shows the path every answer took. veri7vn keeps that shape and
+[Oracle7](https://huggingface.co/psiloceyeben/oracle7) answers from stored,
+sourced records and 267 specialists, says "I can't verify that" instead of
+guessing, and shows the path every answer took. veri7vn keeps that shape and
 adds what Python cannot give it:
 
-- **Assurance.** The formulas a specialist computes, the rule that routes a
-  question, the rule that arbitrates between two specialists, and the exam that
-  admits a new one are written in Isabelle/HOL with proofs about them.
+- **Assurance.** Each specialist's formulas, the routing cascade, the rule that
+  arbitrates between specialists, the fusion planner and the exam that admits
+  a new specialist are written in Isabelle/HOL with theorems about them. A
+  wrong kernel fails a proof.
 - **Metareflective access.** The running system can state what its own
   admission, routing and composition mean, and check a claim against that
-  statement, instead of only reporting a score.
-- **Both directions.** A proved kernel compiles to a small binary that can sit
-  inside Oracle7 as one of its organs; an Oracle7 specialist with its panel can be
-  brought into veri7vn and examined there.
+  statement instead of only reporting a score.
+- **Both directions.** Every proved kernel compiles to a small binary that
+  drops into Oracle7 as one of its own specialists; an Oracle7 specialist with
+  its panel is lifted into veri7vn and examined there.
 
-veri7vn is being built as a gift back to Oracle7's author. Everything it claims is
-measured on Oracle7's own specialist panels, with Oracle7's own scorers, under
-the six criteria of Oracle7's own exam.
+Everything veri7vn claims is a number on Oracle7's own specialist panels, with
+Oracle7's own scorers, under the six criteria of Oracle7's own exam. The law
+that makes the project worth anything is **0 wrong**.
 
 ## The board
 
-| Answerer | Specialists' panels right / wrong | Status |
+Full table with every run: [`docs/parity/BOARD.md`](docs/parity/BOARD.md).
+
+| Answerer | Right / wrong on the specialists' held-out panels | Notes |
 |---|---|---|
-| Oracle7 as shipped | 15,478 / 14 published on the held-out exams. Reproduced here: 14,667 right / 17 false yes with the shipped organs (129 non-relation readers exact; the 161 relation readers run on a reconstructed linker index over the v1 store, and the 811 missing answers sit on properties the shipped store does not contain) | the control (`docs/parity/BOARD.md`) |
-| veri7vn revision-2 package (2026-10-16 morning) | 0 / 0, every panel item unrecognized | the starting line |
-| veri7vn extracted `acoustics` binary (2026-10-16 night) | 69 / 0 on its 69 held-out items and 70 / 0 on dev, same as the shipped organ; 428 KB, 12 ms median, 0 false yes; also packaged as a drop-in Oracle7 specialist folder (`src/extract/acoustics/oracle7-organ/`) | first lifted specialist, at parity |
-| veri7vn verified relation reader (2026-10-16 evening) | 60 answers on Oracle7's 205 relation-route core-panel items, 60 identical to Oracle7, 0 wrong | first lifted route |
-| veri7vn `quantity` binary: densities, units, units-v3, springs, fluids, fuels (2026-10-17) | 320 / 0 on the six held-out panels and 321 / 0 on dev, same as the shipped organs; one 545 KB binary, 7 ms cold start, 0.2 ms median | one kernel, six specialists, at parity |
-| veri7vn `fusion` binary: Oracle7's `network_v3` planner over the quantity, energy, climate and space kernels (2026-10-17) | 101 of the 102 core-panel fusion answers identical to Oracle7's text and route, 0 wrong; the last needs the geometry kernel; 0 verdict changes on 2,701 single-family panel items; 405 KB, 0.9 ms median | fusion proved: shallowest-depth agreement within 0.5% or decline |
-| veri7vn `relations` kernel: all 161 relation readers through one verified decision over the reconstructed linker index (2026-10-18) | 16,284 right / 0 wrong on their 18,976 panel items (shipped organs on the same store: 16,261 / 11); 1,814 silences are properties absent from the shipped store; the 11 homonym errors are now proved declines | one kernel, 161 specialists, 0 wrong |
+| Oracle7 as shipped (published) | 15,478 / 14 | the control |
+| Oracle7 as shipped, reproduced here | 14,667 / 17 false yes | the 129 non-relation readers exact; the 161 relation readers run on a reconstructed linker index over the v1 store, and the 811 missing answers sit on properties the shipped store does not contain |
+| veri7vn: 18 family kernels, 131 non-relation specialists | every panel equal to or better than the shipped organ, **0 wrong, 0 false yes** | each miss is one the shipped organ also makes, named in its lane's handoff |
+| veri7vn: one relation kernel, 161 readers | 16,284 / **0** of 18,976 panel items | the shipped organs score 16,261 / 11 on the same store; the 11 homonym errors are now proved declines |
+| veri7vn: fusion (`network_v3`) | 101 of 102 of Oracle7's fusion answers identical | the last needs the geometry kernel |
+| veri7vn: head routes | word problems 24/24 core items; precision guards 114/114 recorded declines; document route 224/231 status | each with its classified misses |
+| veri7vn: dialogue | 236 of 237 recorded verdicts; tests 2, 4, 5 reproduce the published summaries exactly | the harness has a dialogue mode |
 
-`docs/parity/BOARD.md` is regenerated by the parity harness as lanes land. See
-[the plan](project/PLAN.md) for what is being built right now and by whom.
+Cost of a verified answer: the fleet of 19 binaries is 12 MiB on disk, starts
+in milliseconds, uses 4–10 MiB each, median 0.1 ms per question. Oracle7's head
+on the same questions: 3.6 s to start, 140 ms median, 1.96 GB resident
+([`docs/performance/fleet.md`](docs/performance/fleet.md)).
 
-## What runs today
+## The gift
 
-**The original Oracle7**, from the 43 GB drop under `upstream/` (not in git):
-
-```sh
-cd upstream && ../.venv/bin/python oracle7.py "Who wrote Leaves of Grass?"
-# [ev:direct] Walt Whitman. ... [answered] path: organ:relation>READ>FRAME>LINK>RELATE:inv:P800>...
-```
-
-About eleven seconds cold, well under a second per turn after that.
-
-**The revision-2 veri7vn package** (macOS ARM64, built by the previous
-development swarm) launches without system Python and answers exact arithmetic
-phrased as "the sum of -2 and 3", with its result and provenance surviving a
-restart. It recognizes nothing else. It is kept as a baseline, not developed.
+[`docs/handoff/organ-package.md`](docs/handoff/organ-package.md) describes a
+package Oracle7's author can drop into `root/specialists/` with no veri7vn
+checkout: 125 specialist folders, one verified binary per family for macOS and
+Linux with hashes and build receipts, and a README written for him. It passed
+its smoke test on both platforms (12,247 panel questions, every reply equal to
+the lane runs). It also tells him, with numbers, what we found in his own
+release: his exam cannot run a shipped panel as written; the release composes
+specialists in front of the head although its constitution says fallback;
+under head-first composition no specialist the head half-covers can be
+admitted; the lane cap was measured on a 400-question sample; no verdict
+carries the file hash the exam promises. The linter at `tools/lint/` says the
+same per folder.
 
 ## How the pieces fit
 
 ```mermaid
 flowchart LR
-  Panels[Oracle7 specialist panels and scorers] --> Harness[Parity harness]
-  Harness --> O7[Oracle7 head + specialist]
-  Harness --> Bin[Extracted veri7vn binaries]
-  HOL[HOL kernels, cascade, arbitration, gate] -- export_code + MLton --> Bin
-  Store[(relation store, SQLite)] -. untrusted fetch .-> Bin
+  Panels[Oracle7 panels, scorers, generators] --> Harness[Parity harness]
+  Harness --> O7[Oracle7 head + organs]
+  Harness --> Bin[verified binaries]
+  HOL[HOL kernels, commons, cascade, arbitration, gate, fusion] -- export_code + MLton --> Bin
+  Stores[(relation store + reconstructed index, document stores)] -. untrusted fetch .-> Bin
+  Bin --> Dispatch[dispatcher: cascade order + verified arbitration]
 ```
 
 A **kernel** is a HOL function from a typed request to a typed outcome, with a
 theorem that the outcome satisfies the defining equation (or that a decline is
-exactly the stated underspecified or impossible case). The **recognizer** that
-turns English into a typed request is ordinary code and is labelled untrusted.
-A **fetch** over a store is likewise untrusted, and the verified decision only
-answers when the fetch asserts it returned every relevant row. Isabelle exports
-the kernel to Standard ML; MLton, which ships inside Isabelle, compiles it to a
-binary that speaks the [answerer contract](docs/contracts/answerer.md). No
-Isabelle process runs at answer time.
+exactly the stated condition). The **recognizer** that turns English into a
+typed request is ordinary code and is labelled untrusted. A **fetch** over a
+store is untrusted too, and a verified decision only answers when the fetch
+asserts it returned every relevant row. Isabelle exports each kernel to
+Standard ML; MLton, which ships inside Isabelle, compiles it to a binary that
+speaks the [answerer contract](docs/contracts/answerer.md). No Isabelle process
+runs at answer time; builds run on hbox and persvati through
+`tools/dev/remote-build`. Shared numeric and text machinery lives in
+`src/extract/commons/`.
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `project/PLAN.md` | the plan, the lanes, what was removed |
-| `docs/contracts/answerer.md` | the one protocol every answerer speaks |
-| `tools/parity/`, `docs/parity/` | the harness and the board |
-| `audit/folds/` | the catalogue of Oracle7's 346 routing folds |
-| `src/isabelle/routing/`, `src/isabelle/specialists/`, `src/isabelle/reader/` | the cascade, the contract/arbitration/gate, the relation reader |
-| `src/extract/<family>/` | lifted specialists, theory to binary: `acoustics`, `quantity` (six specialists), `fusion` in progress |
-| `audit/coverage/`, `docs/coverage/` | audit of all 305 Oracle7 manifests into 81 semantic profiles; still the map |
-| `project/lanes/` | one handoff per lane, with theorem statements and numbers |
+| `project/PLAN.md`, `project/swarm/` | the plan; lane waves (`WAVE5.md`, `WAVE6.md`), the lane brief, the beyond-parity recipe (`BEYOND.md`) |
+| `project/lanes/*.md` | one handoff per lane: theorem statements, numbers, receipts, limits |
+| `project/scouts/` | GLM scout briefs, their reports, the triage logs (`TRIAGE-N.md`) |
+| `docs/parity/` | the board, the harness manual, dialogue mode |
+| `docs/oracle7/CORE.md` | what Oracle7 actually is, with file pointers and route shares |
+| `docs/assurance/` | the theorem-quality audit |
+| `src/extract/<family>/` | one lifted family each: theories, recognizer, build, scorer, README; `families.json` is the registry |
+| `src/extract/commons/` | shared numeric core and SML library |
+| `src/isabelle/{routing,specialists,reader,document}/` | the cascade, the contract/arbitration/gate, the exact relation reader, the document route |
+| `tools/parity/`, `tools/dispatch/`, `tools/lint/`, `tools/organs/`, `tools/linker/`, `tools/perf/`, `tools/deploy/` | harness, dispatcher, specialist linter, organ package, linker reconstruction, fleet measurement, Linux builds |
+| `tools/dev/`, `tools/scout/` | build driver and remote builds; scout launcher and queue |
+| `audit/`, `docs/coverage/` | the fold catalogue and the coverage audit of all 305 manifests |
 | `upstream/`, `var/` | the Oracle7 drop and local scratch; ignored by git |
 
-## Working here
+## Running things
 
-Read [AGENTS.md](AGENTS.md). Isabelle builds go through
-`python3 tools/dev/check-native` with a scoped session; it holds the one build
-lock. One Isabelle distribution, at `/Applications/Isabelle2026-RC1.app`. Nothing
-writes under `upstream/`.
+```sh
+# the original Oracle7, from the 43 GB drop (not in git)
+cd upstream && ../.venv/bin/python oracle7.py "Who wrote Leaves of Grass?"
 
-The audited Oracle7 revision is `c5d6a29d5bc5e2525078e5a53afa1abf659e4d69`. Code
-here is CC0 (`LICENSE.md`); Oracle7 itself is Apache-2.0 code with per-source data licences (`upstream/DATA_LICENSES.md`).
+# a verified family on its own shipped panels
+PYTHONDONTWRITEBYTECODE=1 python3 tools/parity/harness.py \
+  --answerer "var/quantity/bin/quantity" --specialist densities,units --split both --out var/parity/demo
+
+# the relation readers on the reconstructed index
+ORACLE7_ROOT=var/linker/o7root python3 tools/parity/harness.py --answerer "python3 tools/relations/answerer.py" ...
+
+# a session on hbox, with the generated SML brought back
+tools/dev/remote-build hbox src/extract/quantity Veri7vn_Quantity -d src/extract/commons --expect 'VERI7VN_QUANTITY PASS'
+```
+
+Read [AGENTS.md](AGENTS.md) before working here. One Isabelle distribution
+locally (`/Applications/Isabelle2026-RC1.app`); nothing writes under
+`upstream/`; every build is green only when a remote-build receipt says so.
+
+## What is not done
+
+The 30 properties absent from the shipped relation store (1,814 panel items)
+need data that did not ship. The recognizers are untrusted code in every
+family. Several lanes' theorems restate definitions rather than bind to a
+specification; the audit in `docs/assurance/` lists them and wave 6 fixes
+them. Beyond-parity lanes are only beginning. The code organ has no panel and
+no core-panel question reaches it, so it is parked.
+
+The audited Oracle7 revision is `c5d6a29d5bc5e2525078e5a53afa1abf659e4d69`.
+Code here is CC0 (`LICENSE.md`); Oracle7 itself is Apache-2.0 code with
+per-source data licences (`upstream/DATA_LICENSES.md`).
