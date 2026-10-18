@@ -583,7 +583,12 @@ fun f533Of (q, route, reply) =
     val v = lower (mathValue reply)
     val fracEcho = fullmatch fraction v andalso sub1 asDecimal ql
                    andalso String.isSubstring (noSpaceLower v) (noSpaceLower ql)
-    val eqGiven =
+    (* A complete equation-solving request may correctly return a value already
+       present in its equation. This is a recognition policy, not a proof of
+       the English or of the answer. Incidental "at x=..." still triggers G5. *)
+    val solveQuestion = R.compile "^\\s*(?:(?:solve(?: for x)?|find x(?: if| given| when)?|what is (?:the value of )?x(?: if| given| when)?)\\s*:?\\s*)?([0-9x+ .-]+)=([0-9x+ .-]+?)(?:\\s+for x)?[?.]?\\s*$"
+    val requestedEquation = route = "algebra:solved" andalso sub1 solveQuestion ql
+    val eqGiven = not requestedEquation andalso (
       case R.matchHere equation v 0 of
         SOME m =>
           (case (R.group v m 1, R.group v m 2) of
@@ -592,7 +597,7 @@ fun f533Of (q, route, reply) =
                                           ^ escapeRe x ^ "\\s*=\\s*" ^ escapeRe value ^ "(?![\\d.])")
                in sub1 given ql end
            | _ => false)
-      | NONE => false
+      | NONE => false)
     val letters = List.mapPartial (fn c => if Char.isAlpha c then SOME (ichar c) else NONE)
                  (String.explode v)
     val unitL = map ichar (unitLetters q)

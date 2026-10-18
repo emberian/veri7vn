@@ -76,6 +76,32 @@ class CompositionTests(unittest.TestCase):
 
 
 class RecordedGuardTests(unittest.TestCase):
+    def test_equation_solution_survives_actual_echo_guard(self):
+        from dispatch import Child
+        repo = Path(__file__).resolve().parents[2]
+        with tempfile.TemporaryDirectory() as directory:
+            stages = RouteStages(repo, repo / "var", 10, Path(directory), Child,
+                                 enabled=("mathorgan", "guards"))
+            try:
+                for q, expected in [("x=2", "2"), ("2x=4", "2"), ("Solve x=2", "2"),
+                                    ("Find x given x=2", "2"), ("Solve 2x+3=x+7", "4"),
+                                    ("Solve for x 2x=4", "2"), ("Solve 2x=4 for x", "2"),
+                                    ("Solve for x: x=2", "2")]:
+                    with self.subTest(q=q):
+                        answer = stages.answer_math(0, q, {})
+                        self.assertIsNotNone(answer)
+                        result = stages.apply_guards(q, answer)
+                        self.assertEqual(result["status"], "answered", result)
+                        self.assertEqual(result["value"], expected)
+                q = "What is the derivative of 4x^3 at x = 2?"
+                self.assertIsNone(stages.answer_math(0, q, {}))
+                wrong = stages.apply_guards(q, {"status": "answered", "path": "algebra:solved",
+                    "response": "x = 2. read it as x = 2; then divide."})
+                self.assertEqual(wrong["status"], "withheld")
+                self.assertEqual(wrong["provenance"]["precision_guards"]["code"], "G5_echo")
+            finally:
+                stages.close()
+
     def test_114_recorded_guard_inputs_through_composition(self):
         """Synthetic replies pin adapter correctness, not whole-head accuracy."""
         from dispatch import Child

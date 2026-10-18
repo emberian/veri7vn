@@ -242,28 +242,22 @@ struct
       | NONE => NONE
     end
 
+  (* A complete equation-solving request, not an incidental assignment in a
+     derivative, integral, or multi-part question. Recognition remains untrusted.
+     The kernel receives no echo veto: with a != c it proves the unique root,
+     including when that root is already written in the input. *)
+  val solveQuestion = "^\\s*(?:(?:solve(?: for x)?|find x(?: if| given| when)?|what is (?:the value of )?x(?: if| given| when)?)\\s*:?\\s*)?([0-9x+ .-]+)=([0-9x+ .-]+?)(?:\\s+for x)?[?.]?\\s*$"
   fun algebraRoute low =
-    let
-      val hasVar = has "(?<![a-z])[xyz](?![a-z])" low
-      val ask = has "\\b(?:solve|simplify|collect|expand|what is [xyz]\\b|find [xyz]\\b|value of [xyz]\\b)" low
-      val looksAlgebraic = hasVar andalso (isSome (findEq low) orelse ask)
-      val hasDigit = has "\\d" low
-    in
-      if not (looksAlgebraic andalso hasDigit) then NONE
-      else
-        case extractEq low of
-          NONE => NONE
-        | SOME (lhs, rhs) =>
-            (case (parseLin lhs, parseLin rhs) of
-               (SOME (Lin (a, b)), SOME (Lin (c, d))) =>
-                 (* the values the question itself states (the echo guard's
-                    givens): every "x = v" in the text *)
-                 let
-                   val gs = map ratOf (List.mapPartial (fn m => grp low m 1)
-                                       (findall "(?<![a-z])x\\s*=\\s*(-?\\d+\\.?\\d*)" low))
-                 in SOME (K.Ask (K.SolveLin (a, b, c, d, gs))) end
-             | _ => NONE)
-    end
+    if not (has solveQuestion low andalso has "x" low andalso has "\\d" low)
+    then NONE
+    else
+      case search solveQuestion low of
+        NONE => NONE
+      | SOME m =>
+          (case (parseLin (g1 low m), parseLin (valOf (grp low m 2))) of
+             (SOME (Lin (a, b)), SOME (Lin (c, d))) =>
+               SOME (K.Ask (K.SolveLin (a, b, c, d, [])))
+           | _ => NONE)
 
   (* ---------- op: integer_sqrt / gcd_lcm / unit_convert ---------- *)
   val SQRT_TRIG = "\\b(?:square root|sqrt|perfect square)\\b"

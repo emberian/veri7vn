@@ -41,9 +41,12 @@ inventory, not a proof newly constructed for that sentence.
 The program is deliberately small. It does not implement a general algebra
 system or a general expression parser, even though the kernel includes an
 expression datatype. Fraction arithmetic and identities or inconsistent
-equations are not answered by this recognizer. Some refusal rules reproduce
-the original head's conservative behavior, such as refusing a solution that
-already appears among the question's given values.
+equations are not answered by this recognizer. Complete equation-solving
+requests, including a bare equation or “for x” before or after it, may return
+a proved root even when its number appears in the input. Incidental assignments
+inside derivative questions are no longer interpreted as solve requests.
+The actual G5 guard likewise distinguishes complete solve requests from
+answers that merely repeat an incidental given.
 
 Build and score:
 
