@@ -28,7 +28,18 @@ local copies of the items above. Builds add `-d src/extract/commons`. The
 generated SML is unchanged in shape: `export_code ... module_name <Family>`
 inlines the commons code into the family module.
 
-Scout status (2026-10-17): prototype. Quantity and acoustics are ported and
-at panel parity; the other fourteen families still carry their copies. See
-`SCOUT_REPORT.md` at the worktree root for the duplication numbers and the
-migration cost.
+Status (lane W5-12, 2026-10-17): every family kernel under `src/extract/` that had a
+private copy now imports this session and links `commons.sml`: anatomyagri,
+chemistry, climate, computing, discrete, emoptics, energy, facts, geostats,
+humanities, life, materials, mechanics, space, trades (and, SML half only,
+stores and fusion), as quantity and acoustics did before. `Commons_Export.thy`
+is the session's own check: a self-test of the number layout and the verified
+enclosure, the theorem list scanned for oracles, and the marker
+`VERI7VN_COMMONS PASS theorems=11 oracles=0` as the last command. The Regex
+in `commons.sml` has three case modes (`compile` lower-cases the pattern and
+expects a lower-cased text; `compileCS` keeps case; `compileI` is Python's
+re.I with `(?-i:...)`), backreferences `\1`..`\9` and `matchHere`, folded in
+from the four families that had private engines. Names a family defines with a
+different meaning than the commons one (materials and space: `enclose`,
+`render_fixed`, space also `to_dec`) are hidden from the commons side in that
+family; `to_fixed` (climate, trades, computing) is policy and stays local.

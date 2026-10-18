@@ -9,8 +9,8 @@
 # its Isabelle session (e.g. Veri7vn_Quantity). Run from anywhere in the
 # checkout; the script cd's to the repo root. Steps:
 #
-#   1. tools/dev/remote-build <host> src/extract/<slug> <session> --expect
-#      '<SESSION> PASS' — proves the session builds on Linux and leaves the
+#   1. tools/dev/remote-build <host> src/extract/<slug> <session>, then the
+#      '<SESSION> PASS' marker from the full stored log — proves the session builds on Linux and leaves the
 #      exported SML on the host (and pulls a copy into var/<slug>/export-remote/).
 #   2. on the host: assemble the .mlb (generated SML + regex.sml, or commons.sml for a ported family, + recognizer.sml
 #      + main.sml from the tree remote-build rsynced there) and compile with the
@@ -64,7 +64,13 @@ grep -q -- '--specialist' "$SRC/main.sml" && per_spec=1 # the driver picks the m
 commons=""                                              # families ported onto src/extract/commons
 grep -q 'Veri7vn_Commons' "$SRC/ROOT" && commons="-d src/extract/commons"
 if [ "$skip_build" -ne 1 ]; then
-  tools/dev/remote-build "$host" "$SRC" "$session" --expect "$marker" $commons
+  # No --expect: remote-build keeps only the last 2000 lines of the stored session log, and a session that
+  # loads Veri7vn_Commons on a plain HOL parent (anatomyagri, discrete) logs the whole Approximation import
+  # after the marker. The marker is read from the full stored log instead.
+  tools/dev/remote-build "$host" "$SRC" "$session" $commons
+  ssh -o BatchMode=yes "$host" "export USER_HOME=\$HOME/tools/isabelle-rc1/user-state; \
+    \$HOME/tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle build_log -v $session 2>/dev/null | grep -F '$marker'" \
+    || { echo "linux-build.sh: marker not found in the stored log: $marker" >&2; exit 1; }
 fi
 
 # 2. compile the binary on the host
