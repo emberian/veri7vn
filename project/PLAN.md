@@ -31,6 +31,7 @@ lane, self stays the core's, within budget.
 | veri7vn verified relation reader (2026-10-16 evening) | 60 answers on Oracle7's 205 relation-route core-panel items, 60 identical to Oracle7, 0 wrong | first lifted route |
 | veri7vn `quantity` binary: densities, units, units-v3, springs, fluids, fuels (2026-10-17) | 320 / 0 on the six held-out panels and 321 / 0 on dev, same as the shipped organs; one 545 KB binary, 7 ms cold start, 0.2 ms median | one kernel, six specialists, at parity |
 | veri7vn `fusion` binary: Oracle7's `network_v3` planner over the quantity, energy, climate and space kernels (2026-10-17) | 101 of the 102 core-panel fusion answers identical to Oracle7's text and route, 0 wrong; the last needs the geometry kernel; 0 verdict changes on 2,701 single-family panel items; 405 KB, 0.9 ms median | fusion proved: shallowest-depth agreement within 0.5% or decline |
+| veri7vn `relations` kernel: all 161 relation readers through one verified decision over the reconstructed linker index (2026-10-18) | 16,284 right / 0 wrong on their 18,976 panel items (shipped organs on the same store: 16,261 / 11); 1,814 silences are properties absent from the shipped store; the 11 homonym errors are now proved declines | one kernel, 161 specialists, 0 wrong |
 
 The harness must first reproduce Oracle7's own `verdict_heldout.json` numbers
 on a sample of specialists; until it does, it is not a scoreboard.
