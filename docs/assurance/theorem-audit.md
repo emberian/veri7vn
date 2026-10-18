@@ -1,5 +1,11 @@
 # Theorem audit: how much of the assurance is real
 
+> Historical audit at the commit named below. Its counts and defect list are
+> not a current inventory: wave 6 repaired the guard, specialist and reader
+> scans, among other changes. The [current continuation](../../project/CODEX-2026-10-18.md)
+> links completed proofs and consumer checks. We have not rerun this full
+> classification or inferred new percentages from the number of added theorems.
+
 Lane A1, 2026-10-17. Tree at `e1a3738` (after lane W5-12 moved every family onto
 `commons`). Read-only: no theory was edited and nothing was built.
 

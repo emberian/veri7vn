@@ -20,12 +20,20 @@ kept in the tree and in git; it is not the path forward.
 
 ## The scoreboard
 
-Nothing counts until it moves a number on the parity board. The board runs the
-specialists' own shipped panels (`upstream/root/specialists/*/`) through any
+The shared scoreboard runs the specialists' own shipped panels
+(`upstream/root/specialists/*/`) through any
 answerer that speaks the [answerer contract](../docs/contracts/answerer.md),
 and scores them with the specialists' own scorers under the six criteria of
 `upstream/workbench/exam.py`: domain gain, no false yes, few wrong, stays in
 lane, self stays the core's, within budget.
+
+Shipped answers are comparison data, not an obligation to preserve mistakes.
+Ember's 18 October continuation explicitly requires judging every specialist
+on its own merits. Keep the common panel numbers, and also check independent
+counterexamples, mathematical models, units, requested quantities and actual
+consumers. A perfect template score does not establish those properties. When
+a scorer rewards an incorrect answer, record the disagreement and its reason;
+repair the implementation rather than changing a constant to fit the scorer.
 
 | Answerer | Specialists' panels right / wrong | Status |
 |---|---|---|
@@ -37,7 +45,7 @@ lane, self stays the core's, within budget.
 | veri7vn `fusion` binary: Oracle7's `network_v3` planner over the quantity, energy, climate and space kernels (2026-10-17) | 101 of the 102 core-panel fusion answers identical to Oracle7's text and route, 0 wrong; the last needs the geometry kernel; 0 verdict changes on 2,701 single-family panel items; 405 KB, 0.9 ms median | fusion proved: shallowest-depth agreement within 0.5% or decline |
 | veri7vn beyond parity: chemistry and finance families (B-chemistry, B-finance, 2026-10-18) | chemistry/chemistry-v3 held-out 281 / 0 wrong / 0 withheld against the shipped organ's 223 / 2 / 56, decay 42/42 against 34/42; finance 129/0/0 against 116/0/13, economics 78/0/0 against 65/0/13; same on fresh generator seeds; cold starts 58 and 270 ms → 4 and 3 ms; the shipped retail organ ignores the sales tax it is asked to add (fixed) | the second scoreboard (`project/swarm/BEYOND.md`): 0 wrong stays the law, the other numbers move |
 | veri7vn `relations` kernel: all 161 relation readers through one verified decision over the reconstructed linker index (2026-10-18) | 16,284 right / 0 wrong on their 18,976 panel items (shipped organs on the same store: 16,261 / 11); 1,814 silences are properties absent from the shipped store; the 11 homonym errors are now proved declines | one kernel, 161 specialists, 0 wrong |
-| veri7vn: implementations for 144 of 144 non-relation specialist IDs (2026-10-18) | no current consolidated fleet score; W6-23 cooking-v3 and cooking-v3-r2 each retain two wrong held-out answers, W6-06 git retains one, and older optics, astronomy and energy variants retain errors | the family lift provides a foundation; current work repairs these errors, completes algorithms and connects runtime consumers |
+| veri7vn: implementations for 144 of 144 non-relation specialist IDs (2026-10-18) | no current consolidated fleet score; current scoped repairs and their exact panel counts are in the Codex continuation and lane reports | the lift is a foundation; systematic semantic examination, correction and useful expansion continue beyond parity |
 
 The harness must first reproduce Oracle7's own `verdict_heldout.json` numbers
 on a sample of specialists; until it does, it is not a scoreboard.

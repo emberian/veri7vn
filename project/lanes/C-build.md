@@ -171,3 +171,27 @@ Both receipts have actual in-service completion evidence, verified execution
 source hashes, unchanged sources after building, and the requested marker.
 The second receipt demonstrates cache reuse; it is not merely a timing guess.
 No broad suite or family rebuild was run to validate this change.
+
+
+## Transition complete
+
+The old polling workers were allowed to finish their valid snapshots. New proof
+retries and remote native compilations were briefly held so newer blocking
+waiters could not keep winning ahead of them. Persvati drained first; seven
+prepared proof repairs entered its new queue before native compilation resumed.
+Hbox then drained completely. Both hosts are released for ordinary bounded work
+through the current controls; existing valid jobs should stay where queued.
+
+At the final transition check, hbox had no managed jobs and32.9 GiB free;
+persvati had nine new workers, Anatomy active, and70.2 GiB free. Package builds
+were directed to use idle hbox, with one remote compilation submission at a time
+under the same host lock. The20 GiB disk reserve remains enforced. Legacy
+unmanaged jobs and their writable caches were preserved throughout.
+
+Final MathOrgan receipt
+`var/mathorgan/remote-attempts/20261018T063946Z-59fed3b412e5/receipt.json` passed:
+actual target completion in28 seconds, marker41 theorems/0 oracles, current
+Math/commons proof sources matching its snapshot. Runtime received the export
+for final native compilation. A later audit of66 local receipts found no
+remaining passed receipt with `cancelled=true`. This infrastructure lane has no
+specialist panel numbers of its own; family owners report their consumer panels.

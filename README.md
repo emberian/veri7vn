@@ -15,6 +15,13 @@ kernel serving the 161 relation readers. Connecting every capability through
 the combined runtime, strengthening its proofs and completing the specialists'
 intended algorithms are active work.
 
+Each specialist is also being examined beyond its shipped question templates.
+The original answer is a comparison, not a correctness requirement: dropped
+signs, lost units, mistaken subjects and answers to the wrong requested quantity
+are repaired even when the old panels pass. The
+[current continuation](project/CODEX-2026-10-18.md) records integrated changes,
+their measured scope and the next substantive defects.
+
 A proof establishes a particular statement about a computation. It can show
 that a result satisfies an equation or a decision follows from supplied rows.
 It does not establish that an English question was read correctly, a physical
