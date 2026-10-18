@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "family": "earth",
+  "specialists": {
+    "geography": {
+      "accept": {
+        "declines_in_domain": [
+          "impossible",
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "geology": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "seismology": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "hydrology": {
+      "accept": {
+        "declines_in_domain": [
+          "impossible",
+          "imprecise",
+          "underspecified"
+        ]
+      },
+      "evidence": {
+        "computation": "The simple rational-runoff model preserves exact coefficient/intensity/area quantities. Successful results require a runoff fraction in [0,1], nonnegative rainfall and area, and supported source units; flow is bounded by the declared zero-loss model capacity.",
+        "assumptions": [
+          "This is a simple precipitation-partition coefficient, not an adjusted design factor that may exceed one.",
+          "SI uses mm/h and normalized hectares; US inch/hour with acres retains the conventional CiA cfs approximation.",
+          "English quantity roles and unit tags are untrusted."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "ocean": {
+      "accept": {
+        "declines_in_domain": [
+          "impossible",
+          "imprecise"
+        ],
+        "kinds": [
+          "deep_group_speed"
+        ]
+      },
+      "evidence": {
+        "computation": "Ocean requests preserve exact signed numbers, reject physically infeasible inputs for their scalar models, and distinguish phase speed from group velocity. Group velocity is tied to the derivative of deep-water gravity-wave dispersion.",
+        "assumptions": [
+          "Gravity is 9.81 m/s2; seawater density and sound speed use declared defaults unless supplied.",
+          "The supplied wave is in the deep-water gravity-wave regime for phase and group speed; these formulas do not cover capillary waves or intermediate depth."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      },
+      "context_regex_additions": [
+        "\\bshallow[- ]water(?: wave)?\\b"
+      ]
+    },
+    "meteorology": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "greenhouse": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise",
+          "impossible",
+          "underspecified"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    },
+    "greenhouse-r2": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise",
+          "impossible",
+          "underspecified"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
+    }
+  }
+}

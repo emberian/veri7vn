@@ -1,0 +1,126 @@
+[
+  {
+    "q": "Calculate Shannon diversity for species counts -10, 20 and 30.",
+    "reply": {
+      "id": null,
+      "status": "answered",
+      "response": "The Shannon diversity index H' is 1.011 (-sum p ln p over 3 species, natural log).",
+      "path": "specialist:ecology>shannon",
+      "kind": "shannon",
+      "value": 1.011,
+      "provenance": {
+        "taken": true,
+        "organ": "ecology",
+        "specialist_ms": 27.378,
+        "kernel": "Life.*_reply",
+        "session": "Veri7vn_Life",
+        "theorems": [
+          "punnett_closed",
+          "hw_approx",
+          "bio_translate",
+          "ecology_approx",
+          "forestry_approx",
+          "lincoln_estimate",
+          "gentime_exact",
+          "to_dec_sound"
+        ]
+      }
+    }
+  },
+  {
+    "q": "Calculate Shannon diversity for species counts 1/2, 20 and 30.",
+    "reply": {
+      "id": null,
+      "status": "withheld",
+      "response": "",
+      "path": "",
+      "provenance": {
+        "taken": false,
+        "specialist_ms": 0.03
+      }
+    }
+  },
+  {
+    "q": "Calculate Simpson's dominance D for population counts 10, 20 and 30 using proportions squared.",
+    "reply": {
+      "id": null,
+      "status": "answered",
+      "response": "Simpson's index D is 0.3785 (sum n(n-1) / N(N-1), the probability two individuals drawn are the same species; diversity is 1 - D = 0.6215).",
+      "path": "specialist:ecology>simpson_d",
+      "kind": "simpson_d",
+      "value": 0.3785,
+      "provenance": {
+        "taken": true,
+        "organ": "ecology",
+        "specialist_ms": 0.121,
+        "kernel": "Life.*_reply",
+        "session": "Veri7vn_Life",
+        "theorems": [
+          "punnett_closed",
+          "hw_approx",
+          "bio_translate",
+          "ecology_approx",
+          "forestry_approx",
+          "lincoln_estimate",
+          "gentime_exact",
+          "to_dec_sound"
+        ]
+      }
+    }
+  },
+  {
+    "q": "Calculate Simpson's sample diversity for counts 10, 20 and 30.",
+    "reply": {
+      "id": null,
+      "status": "answered",
+      "response": "Simpson's diversity index (1 - D) is 0.6215 (D = sum n(n-1) / N(N-1) = 0.3785; convention named because texts differ).",
+      "path": "specialist:ecology>simpson_div",
+      "kind": "simpson_div",
+      "value": 0.6215,
+      "provenance": {
+        "taken": true,
+        "organ": "ecology",
+        "specialist_ms": 0.091,
+        "kernel": "Life.*_reply",
+        "session": "Veri7vn_Life",
+        "theorems": [
+          "punnett_closed",
+          "hw_approx",
+          "bio_translate",
+          "ecology_approx",
+          "forestry_approx",
+          "lincoln_estimate",
+          "gentime_exact",
+          "to_dec_sound"
+        ]
+      }
+    }
+  },
+  {
+    "q": "Use Chapman: 20 fish were marked and released, later 30 fish were caught, with 0 recaptures. Estimate population.",
+    "reply": {
+      "id": null,
+      "status": "withheld",
+      "response": "I need the number caught in the second sample to work that out; I won't assume it.",
+      "path": "specialist:wildlife>underspecified",
+      "kind": "underspecified",
+      "provenance": {
+        "taken": true,
+        "organ": "wildlife",
+        "specialist_ms": 0.289,
+        "kernel": "Life.*_reply",
+        "session": "Veri7vn_Life",
+        "theorems": [
+          "punnett_closed",
+          "hw_approx",
+          "bio_translate",
+          "ecology_approx",
+          "forestry_approx",
+          "lincoln_estimate",
+          "gentime_exact",
+          "to_dec_sound"
+        ]
+      }
+    }
+  }
+]

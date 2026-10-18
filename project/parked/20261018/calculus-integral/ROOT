@@ -1,0 +1,6 @@
+session Veri7vn_Discrete_Integral = "HOL-Analysis" +
+  options [document = false, threads = 2]
+  sessions
+    Veri7vn_Discrete
+  theories
+    Disc_Calc_Integral

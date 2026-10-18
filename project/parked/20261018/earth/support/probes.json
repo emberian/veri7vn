@@ -1,0 +1,154 @@
+{
+  "items": [
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s over .5 hours?",
+      "kind": "dli",
+      "value": 0.9,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 5e2 umol/m2/s over 1/2 hours?",
+      "kind": "dli",
+      "value": 0.9,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s over 24 hours?",
+      "kind": "dli",
+      "value": 43.2,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 0 umol/m2/s over 24 hours?",
+      "kind": "dli",
+      "value": 0.0,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s over 0 hours?",
+      "kind": "dli",
+      "value": 0.0,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 1/2 umol/m2/s over 12 hours?",
+      "kind": "dli",
+      "value": 0.0216,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s over 12 hours?",
+      "kind": "dli",
+      "value": 21.6,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What is the DLI for a PPFD of -500 umol/m2/s over 12 hours?",
+      "kind": "impossible",
+      "class": "impossible",
+      "status": "withheld"
+    },
+    {
+      "q": "What is the DLI for a PPFD of \u2212.5 umol/m2/s over 12 hours?",
+      "kind": "impossible",
+      "class": "impossible",
+      "status": "withheld"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s over 30 hours?",
+      "kind": "impossible",
+      "class": "impossible",
+      "status": "withheld"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s over -1 hours?",
+      "kind": "impossible",
+      "class": "impossible",
+      "status": "withheld"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s over \u2212.5 hours?",
+      "kind": "impossible",
+      "class": "impossible",
+      "status": "withheld"
+    },
+    {
+      "q": "What PPFD do I need to reach a DLI of 18 mol/m2/d with a 12 hours photoperiod?",
+      "kind": "ppfd_needed",
+      "value": 416.6666666666667,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What PPFD do I need to reach a DLI of 1/2 mol/m2/d with a .5 hours photoperiod?",
+      "kind": "ppfd_needed",
+      "value": 277.77777777777777,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What PPFD do I need to reach a DLI of 0 mol/m2/d with a 12 hours photoperiod?",
+      "kind": "ppfd_needed",
+      "value": 0.0,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What PPFD do I need to reach a DLI of 18 mol/m2/d with a 24 hours photoperiod?",
+      "kind": "ppfd_needed",
+      "value": 208.33333333333334,
+      "class": "modeled_answer"
+    },
+    {
+      "q": "What PPFD do I need to reach a DLI of -18 mol/m2/d with a 12 hours photoperiod?",
+      "kind": "impossible",
+      "class": "impossible",
+      "status": "withheld"
+    },
+    {
+      "q": "What PPFD do I need to reach a DLI of 18 mol/m2/d with a 0 hours photoperiod?",
+      "kind": "impossible",
+      "class": "impossible",
+      "status": "withheld"
+    },
+    {
+      "q": "What PPFD do I need to reach a DLI of 18 mol/m2/d with a 30 hours photoperiod?",
+      "kind": "impossible",
+      "class": "impossible",
+      "status": "withheld"
+    },
+    {
+      "q": "What PPFD do I need to reach a DLI of 18 mol/m2/d with a -1 hours photoperiod?",
+      "kind": "impossible",
+      "class": "impossible",
+      "status": "withheld"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 mmol/m2/s over 12 hours?",
+      "kind": "underspecified",
+      "class": "valid_unsupported",
+      "status": "withheld"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s/s over 12 hours?",
+      "kind": "underspecified",
+      "class": "valid_unsupported",
+      "status": "withheld"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s over 12 minutes?",
+      "kind": "underspecified",
+      "class": "valid_unsupported",
+      "status": "withheld"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s over 12 hours and 2 hours?",
+      "kind": "underspecified",
+      "class": "valid_unsupported",
+      "status": "withheld"
+    },
+    {
+      "q": "What is the DLI for a PPFD of 500 umol/m2/s over 12 hours at 25 C?",
+      "kind": "underspecified",
+      "class": "valid_unsupported",
+      "status": "withheld"
+    }
+  ]
+}

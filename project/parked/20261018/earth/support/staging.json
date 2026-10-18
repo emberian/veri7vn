@@ -1,0 +1,29 @@
+{
+  "base_receipt": "/Users/ember/dev/o7vn/var/earth/h-runoff/stage/var/earth/remote-attempts/20261018T100241Z-86c88f8ac79b/receipt.json",
+  "base_source_digest": "eed61f2b4c25c1421e7a85dd3683cd7e0fd1001a3c2349ee6156c37829c5438a",
+  "live_predecessor": "a2add49",
+  "stage": "/Users/ember/dev/o7vn/var/earth/j-daily-light/stage",
+  "source_sha256": {
+    "src/extract/earth/Earth_Geo.thy": "e4c38e321eaede3f13a9353fb2f9f69ac3bc9f159bd1f718b6943f8587e35de8",
+    "src/extract/earth/tables_check.py": "81b8c1fb19614869bf586b8d882005b505f254ef866482817496b5bb6be1c63d",
+    "src/extract/earth/Earth_Ocean.thy": "130ce30fd3990820983d07670171086a1088af2e25e87e928fb472220ed92fca",
+    "src/extract/earth/Earth_Seis.thy": "4b7ceb70c40667b20723b0a5c57717ac6535685581ad224291b452abb24bdfdb",
+    "src/extract/earth/Earth_Num.thy": "6cf2e60546edfaa1b88c55ede084d070ef504dcedc37c014ce19870a97c1d203",
+    "src/extract/earth/capabilities.json": "eca1d8cf4a3c95fe670810f3a9ffc487dbd5a91b00015822e09f061737f979e0",
+    "src/extract/earth/Earth.thy": "44a8f7254e819ba32e76b65345fc42b1006a5d13e382d48ceff005fd2ce8165a",
+    "src/extract/earth/Earth_Green.thy": "0d884a204a06e0e657e99c6e5d0144a34757f28990883f2c29a09cb5ce217d9a",
+    "src/extract/earth/Earth_Export.thy": "2406b4696c26f2eca86d03551f374502754d21cc505bb820b76561cbfa5919d0",
+    "src/extract/earth/beyond-probes.json": "abe6c4ba20a20cd4a914546141e264d7e460f5d835b887f989a056e9eabb3672",
+    "src/extract/earth/Earth_Hydro.thy": "d49d77fcf6dba1b512b86b7dcfbb0bc700d03cad6957eb794ca6f66ef2406b06",
+    "src/extract/earth/README.md": "4b994cd38f1992f119c6edcadcf1320f75d710d1dbb57b6680f2e650a81f2704",
+    "src/extract/earth/build.sh": "74fa08c6e629a9f0fe0ba23796007e8a3ad82eeb9c99d99c98727bb4561ace36",
+    "src/extract/earth/recognizer.sml": "9fea2fcf618ee209d5c7b42898731a151460c775b0f19f3f74bbc592619ba54f",
+    "src/extract/earth/Earth_Geol.thy": "9eaa38ceee71aba26d66983f4e0980e9c516924e92e46b105dd80fc7296a0b68",
+    "src/extract/earth/ROOT": "9f8848d2dd3ac7414cf5a568ec94678308756c2a32271ccc6c737322157d62fa",
+    "src/extract/earth/Earth_Weather.thy": "6982e2dc87cfc03745ede88734a28597fae41d8d6e1a00c38f4c2429f0aa7bcf",
+    "src/extract/earth/beyond.py": "cba53ce794c020e98f62d403e7d2138f0b6a70f056dc219a3387b4f02895e208",
+    "src/extract/earth/regex.sml": "b92ddc22aa6f002a6ee7bc156ecdb78c06bceb6bfa62764e432be462d3959f59",
+    "src/extract/earth/score.py": "36761e8311a7a0aca92b332b6e752727a6328a3b839bdea90db9691be73929d5",
+    "src/extract/earth/main.sml": "b0994210b2b4b2f74edaf1d565e3e24ff34041a094721518563858a85faa35b8"
+  }
+}

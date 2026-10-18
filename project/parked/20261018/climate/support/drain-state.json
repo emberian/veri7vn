@@ -1,0 +1,24 @@
+{
+  "status": "drained_failed_proof_no_native",
+  "live_predecessor_commit": "9b1f1be",
+  "live_binary_sha256": "8adf2cace24cee2b05cd9a70d80f5feeb0b0ff196698ae5556a629613115567a",
+  "submitted_attempt": "20261018T103226Z-95decb8e8219",
+  "submitted_receipt": "/Users/ember/dev/o7vn/var/climate/i-small-mass/stage/var/climate/remote-attempts/20261018T103226Z-95decb8e8219/receipt.json",
+  "prepared_source_hashes": {
+    "Climate_Num.thy": "cbc6b75906ac359c11831d359c176ea70f765cb54fb27be53b09ca3b13326361",
+    "Climate.thy": "58f54fe8e2350c3ee2a2a75b65b470e909592046a43ae3dc08dab6cb589f27ff",
+    "Climate_Export.thy": "304abd0c74201be284295dc90b8ed157cce607dcfe694df328c2ff8410cd77d1"
+  },
+  "submitted_snapshot_hashes": {
+    "Climate_Num.thy": "cbc6b75906ac359c11831d359c176ea70f765cb54fb27be53b09ca3b13326361",
+    "Climate.thy": "58f54fe8e2350c3ee2a2a75b65b470e909592046a43ae3dc08dab6cb589f27ff",
+    "Climate_Export.thy": "304abd0c74201be284295dc90b8ed157cce607dcfe694df328c2ff8410cd77d1"
+  },
+  "policy_baseline": "h-baseline-policies.json",
+  "native": null,
+  "report": "project/lanes/I-climate.md",
+  "failed_attempt": "20261018T102152Z-b2602a7e9ac9",
+  "cancelled_mistaken_checkout_attempt": "20261018T103049Z-b7fc7c5cd6e8",
+  "failure": "Climate_Num.thy102: linarith did not derive abs(mid-x)<=lo/2000000 from midpoint bound and hi-lo<=lo/1000000.",
+  "resume": "Use explicit divide_right_mono on the width inequality by positive2, simplify nested division, then order_trans with midpoint bound. No further retry during drain."
+}

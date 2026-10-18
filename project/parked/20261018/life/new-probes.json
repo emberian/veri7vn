@@ -1,0 +1,147 @@
+[
+  {
+    "specialist": "ecology",
+    "q": "Calculate Shannon diversity for species counts -10, 20 and 30.",
+    "expect": null,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Shannon diversity for species counts 1/2, 20 and 30.",
+    "expect": null,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Shannon diversity for species counts 1.2.3, 20 and 30.",
+    "expect": null,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations.",
+    "decline_class": "malformed"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance D for counts 10, 20 and 30 using proportions squared.",
+    "expect": 0.3888888888888889,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson diversity 1-D for counts 10, 20 and 30 using proportions squared.",
+    "expect": 0.6111111111111112,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson reciprocal index 1/D for counts 10, 20 and 30 using proportions squared.",
+    "expect": 2.5714285714285716,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance for counts 10, 20 and 30 with replacement.",
+    "expect": 0.3888888888888889,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance for counts 10, 20 and 30 without replacement.",
+    "expect": 0.3785310734463277,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson diversity for counts 10, 20 and 30 without replacement.",
+    "expect": 0.6214689265536724,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance for counts 10, 20 and 30 both with replacement and without replacement.",
+    "expect": null,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations.",
+    "decline_class": "underspecified"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance for counts 1 and 0 with replacement.",
+    "expect": 1,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance for counts 1 and 0 without replacement.",
+    "expect": null,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance for counts 0 and 0 with replacement.",
+    "expect": null,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate inverse Simpson for counts 1 and 1 with replacement.",
+    "expect": 2,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate inverse Simpson for counts 1 and 1 without replacement.",
+    "expect": null,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations.",
+    "decline_class": "invalid"
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate species richness for counts 0 and 0.",
+    "expect": 0,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate species richness for counts 5.",
+    "expect": 1,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Shannon diversity for counts 5.",
+    "expect": 0,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance for counts 1e1; 2e1; 3e1 with replacement.",
+    "expect": 0.3888888888888889,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance for counts 20/2; 40/2; 60/2 with replacement.",
+    "expect": 0.3888888888888889,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance for counts 10, 10, 10 and 0 with replacement.",
+    "expect": 0.3333333333333333,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Simpson dominance for counts 1,000; 2,000; 3,000 with replacement.",
+    "expect": 0.3888888888888889,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  },
+  {
+    "specialist": "ecology",
+    "q": "Calculate Shannon diversity for counts 10, 20 and 30.",
+    "expect": 1.0114042647073518,
+    "source": "Finite nonnegative whole counts: explicit with-replacement sum(n/N)^2 versus without-replacement sum(n(n-1))/(N(N-1)); independent arithmetic expectations."
+  }
+]

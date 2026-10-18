@@ -1,0 +1,18 @@
+{
+  "status": "drained_failed_proof_no_native",
+  "live_predecessor": "a2add49",
+  "live_ready": "var/earth/i-pressure/live-ready.json",
+  "receipt": "/Users/ember/dev/o7vn/var/earth/j-daily-light/stage/var/earth/remote-attempts/20261018T102634Z-f965b2da9238/receipt.json",
+  "owned_source_hashes": {
+    "Earth_Green.thy": "0d884a204a06e0e657e99c6e5d0144a34757f28990883f2c29a09cb5ce217d9a",
+    "Earth_Export.thy": "2406b4696c26f2eca86d03551f374502754d21cc505bb820b76561cbfa5919d0",
+    "recognizer.sml": "9fea2fcf618ee209d5c7b42898731a151460c775b0f19f3f74bbc592619ba54f",
+    "main.sml": "b0994210b2b4b2f74edaf1d565e3e24ff34041a094721518563858a85faa35b8",
+    "capabilities.json": "eca1d8cf4a3c95fe670810f3a9ffc487dbd5a91b00015822e09f061737f979e0"
+  },
+  "staging": "staging.json",
+  "native": null,
+  "report": "project/lanes/J-earth.md",
+  "failure": "Earth_Green.thy lines228 and241: positivity method unavailable in this session; no successful export.",
+  "resume": "Replace both positivity invocations with explicit mult_nonneg_nonneg/divide_nonneg_nonneg reasoning, restage and submit a new managed proof only after a future resume."
+}

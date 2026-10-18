@@ -1,0 +1,10 @@
+{
+  "base_receipt": "/Users/ember/dev/o7vn/var/climate/h-capture/stage/var/climate/remote-attempts/20261018T094340Z-113e14dddf3f/receipt.json",
+  "base_source_digest": "ff423905af01385a170d2aecd66c41f7ae332c5ae83a5975a47366784e3d9550",
+  "overlay_sha256": {
+    "Climate_Num.thy": "cbc6b75906ac359c11831d359c176ea70f765cb54fb27be53b09ca3b13326361",
+    "Climate.thy": "58f54fe8e2350c3ee2a2a75b65b470e909592046a43ae3dc08dab6cb589f27ff",
+    "Climate_Export.thy": "304abd0c74201be284295dc90b8ed157cce607dcfe694df328c2ff8410cd77d1"
+  },
+  "stage": "/Users/ember/dev/o7vn/var/climate/i-small-mass/stage"
+}

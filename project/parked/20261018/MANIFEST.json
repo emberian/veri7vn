@@ -1,0 +1,157 @@
+{
+  "status": "unfinished proposals, not active implementation or verified results",
+  "base_commit": "53ae833e52876a7f92b471aa2ef917ea75077dcb",
+  "branch": "codex/parked-staged-proposals-20261018",
+  "notes": [
+    "Climate I and Earth J failed proofs; no new native. Their staged source is stored as an archive, not overlaid onto production paths.",
+    "Life J is planning and expected probes only. Calculus analytic integral bridge is unverified.",
+    "Document summary parser remains unpublished; full source is on codex/parked-document-summary-20261018.",
+    "Support scripts preserve original local resume paths; use manifest to reconstruct scratch locations. No corpora, receipts containing heaps, credentials or binaries included."
+  ],
+  "files": [
+    {
+      "source": "var/climate/i-small-mass/stage/src/extract/climate/Climate.thy",
+      "archived_path": "project/parked/20261018/climate/Climate.thy",
+      "sha256": "58f54fe8e2350c3ee2a2a75b65b470e909592046a43ae3dc08dab6cb589f27ff",
+      "bytes": 109366
+    },
+    {
+      "source": "var/climate/i-small-mass/stage/src/extract/climate/Climate_Export.thy",
+      "archived_path": "project/parked/20261018/climate/Climate_Export.thy",
+      "sha256": "304abd0c74201be284295dc90b8ed157cce607dcfe694df328c2ff8410cd77d1",
+      "bytes": 9300
+    },
+    {
+      "source": "var/climate/i-small-mass/stage/src/extract/climate/Climate_Num.thy",
+      "archived_path": "project/parked/20261018/climate/Climate_Num.thy",
+      "sha256": "cbc6b75906ac359c11831d359c176ea70f765cb54fb27be53b09ca3b13326361",
+      "bytes": 9764
+    },
+    {
+      "source": "var/climate/i-small-mass/stage/src/extract/climate/README.md",
+      "archived_path": "project/parked/20261018/climate/README.md",
+      "sha256": "e1ebd381f4a8138d39909bec7ced123d70a5da7744256ccadafb2eb7ed271482",
+      "bytes": 3042
+    },
+    {
+      "source": "var/climate/i-small-mass/run-probes.py",
+      "archived_path": "project/parked/20261018/climate/support/run-probes.py",
+      "sha256": "d8db164f40789c307e13e861145474b56b67dd2cf52ec987a81da72dfd127649",
+      "bytes": 2900
+    },
+    {
+      "source": "var/climate/i-small-mass/run-consumer.py",
+      "archived_path": "project/parked/20261018/climate/support/run-consumer.py",
+      "sha256": "4f2f0109cf6cd2933ba44dbbd6895aec8c67afcb99bcbf436860d9e2d4a50651",
+      "bytes": 2880
+    },
+    {
+      "source": "var/climate/i-small-mass/staging.json",
+      "archived_path": "project/parked/20261018/climate/support/staging.json",
+      "sha256": "45d42ccd75fec39f5779986198fc7d589c050b1446bd8640e05338babeaeca1c",
+      "bytes": 602
+    },
+    {
+      "source": "var/climate/i-small-mass/drain-state.json",
+      "archived_path": "project/parked/20261018/climate/support/drain-state.json",
+      "sha256": "8c2b9c22559762b08e033a711da29aa87c89cff1ac2edcebfc2d126847cf5461",
+      "bytes": 1543
+    },
+    {
+      "source": "var/earth/j-daily-light/stage/src/extract/earth/Earth_Export.thy",
+      "archived_path": "project/parked/20261018/earth/Earth_Export.thy",
+      "sha256": "2406b4696c26f2eca86d03551f374502754d21cc505bb820b76561cbfa5919d0",
+      "bytes": 8391
+    },
+    {
+      "source": "var/earth/j-daily-light/stage/src/extract/earth/Earth_Green.thy",
+      "archived_path": "project/parked/20261018/earth/Earth_Green.thy",
+      "sha256": "0d884a204a06e0e657e99c6e5d0144a34757f28990883f2c29a09cb5ce217d9a",
+      "bytes": 15358
+    },
+    {
+      "source": "var/earth/j-daily-light/stage/src/extract/earth/capabilities.json",
+      "archived_path": "project/parked/20261018/earth/capabilities.json",
+      "sha256": "eca1d8cf4a3c95fe670810f3a9ffc487dbd5a91b00015822e09f061737f979e0",
+      "bytes": 6619
+    },
+    {
+      "source": "var/earth/j-daily-light/stage/src/extract/earth/main.sml",
+      "archived_path": "project/parked/20261018/earth/main.sml",
+      "sha256": "b0994210b2b4b2f74edaf1d565e3e24ff34041a094721518563858a85faa35b8",
+      "bytes": 8400
+    },
+    {
+      "source": "var/earth/j-daily-light/stage/src/extract/earth/recognizer.sml",
+      "archived_path": "project/parked/20261018/earth/recognizer.sml",
+      "sha256": "9fea2fcf618ee209d5c7b42898731a151460c775b0f19f3f74bbc592619ba54f",
+      "bytes": 47836
+    },
+    {
+      "source": "var/earth/j-daily-light/run-probes.py",
+      "archived_path": "project/parked/20261018/earth/support/run-probes.py",
+      "sha256": "54c0ef55f27e758f7c8f88acebf8b9f8bf2341e1c438ecd167dfe889171dd3ae",
+      "bytes": 2698
+    },
+    {
+      "source": "var/earth/j-daily-light/staging.json",
+      "archived_path": "project/parked/20261018/earth/support/staging.json",
+      "sha256": "7f4944aa956886c348be12fbdeea14099017ea42ff00b3f7e6d4b63eff14ee06",
+      "bytes": 2590
+    },
+    {
+      "source": "var/earth/j-daily-light/drain-state.json",
+      "archived_path": "project/parked/20261018/earth/support/drain-state.json",
+      "sha256": "c28fc47bc89d2685ede092882343e4e7d0ccc5b7f4273484b85230ddb83156ab",
+      "bytes": 1144
+    },
+    {
+      "source": "var/earth/j-daily-light/probes.json",
+      "archived_path": "project/parked/20261018/earth/support/probes.json",
+      "sha256": "de113619cb52335edf3ad5f5dc2093a0a776d7c39ef6df4a23648e1c9a918d0b",
+      "bytes": 4479
+    },
+    {
+      "source": "var/life/j-next/counterexamples-initial.json",
+      "archived_path": "project/parked/20261018/life/counterexamples-initial.json",
+      "sha256": "a2d4c21b823f8a45f7c964857d8babca240da387c32f3703dbcc1ea6b6c32b49",
+      "bytes": 3571
+    },
+    {
+      "source": "var/life/j-next/model-plan.md",
+      "archived_path": "project/parked/20261018/life/model-plan.md",
+      "sha256": "44d0534dadd4442baaa6cda23721464ebda25602461f5b466becc4992bc3f20b",
+      "bytes": 2079
+    },
+    {
+      "source": "var/life/j-next/new-probes.json",
+      "archived_path": "project/parked/20261018/life/new-probes.json",
+      "sha256": "94e59b9747a2887c617dd8eb284b0c0a168e9203be3e76f9c3740f531cc94502",
+      "bytes": 7515
+    },
+    {
+      "source": "var/discrete/codex/integral-draft/Disc_Calc_Integral.thy",
+      "archived_path": "project/parked/20261018/calculus-integral/Disc_Calc_Integral.thy",
+      "sha256": "09ad081a9c1ebde4d1199adf87ebb81a35a82428561d770dd44c414fb43214ec",
+      "bytes": 3074
+    },
+    {
+      "source": "var/discrete/codex/integral-draft/ROOT",
+      "archived_path": "project/parked/20261018/calculus-integral/ROOT",
+      "sha256": "f0aa4e82742c72aaeeafaa3a95c79d769a4bf6ffa793036ce3f0a010c24d0034",
+      "bytes": 161
+    },
+    {
+      "source": "var/document/summary-parser-line.txt",
+      "archived_path": "project/parked/20261018/document-summary/parser-proposal.txt",
+      "sha256": "46acc94a157779a084dbb6e98440c83030c5433dcfdf71b81474cae1ea7b5ea0",
+      "bytes": 139
+    },
+    {
+      "source": "var/symbolic/document-summary-independent-questions.json",
+      "archived_path": "project/parked/20261018/document-summary/independent-questions.json",
+      "sha256": "a54b91c3688b1a5c1f0a526da3b5a96a692ec69ab05a8407a67daf3d06b99baa",
+      "bytes": 1010
+    }
+  ]
+}

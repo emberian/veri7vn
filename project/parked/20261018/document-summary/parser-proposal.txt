@@ -1,0 +1,1 @@
+    ("summary", re.compile(r"^(?P<prefix>summarize|give me a summary of) (?P<article>)(?P<topic>" + TOPIC + r")(?P<punct>[?.]?)$", re.I)),

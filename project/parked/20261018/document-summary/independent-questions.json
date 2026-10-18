@@ -1,0 +1,32 @@
+[
+  {
+    "q": "Summarize the water cycle.",
+    "intent": "extractive summary",
+    "expected": "source-supported passages or valid withheld; check every quoted passage source/subject and no invented connective claim"
+  },
+  {
+    "q": "Give me a summary of photosynthesis.",
+    "intent": "extractive summary",
+    "expected": "source-supported passages or valid withheld"
+  },
+  {
+    "q": "Summarize The Cure.",
+    "intent": "exact proper title",
+    "expected": "whole band title retained; no generic cure/healing topic"
+  },
+  {
+    "q": "Summarize why the water cycle is important.",
+    "intent": "causal summary",
+    "expected": "no answering with plain water-cycle definition unless full requested clause supported"
+  },
+  {
+    "q": "Summarize photosynthesis and compare it with respiration.",
+    "intent": "compound request",
+    "expected": "no silently dropping comparison"
+  },
+  {
+    "q": "Do not summarize chlorophyll.",
+    "intent": "negated command",
+    "expected": "no summary"
+  }
+]
