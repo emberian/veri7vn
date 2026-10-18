@@ -51,6 +51,7 @@ def main():
             proc.stdin.write(json.dumps({"id": it["id"], **ev}, ensure_ascii=False) + "\n")
             proc.stdin.flush()
             mine = json.loads(proc.stdout.readline())
+            mine = f.present(it["q"], mine)     # the head's own presentation passes over the render
         except Exception as e:  # noqa: BLE001
             mine = {"status": "error", "path": "error", "response": str(e), "cites": []}
         times.append(1000 * (time.perf_counter() - t0))

@@ -71,7 +71,7 @@ structure Json = struct
         else let val (k, j) = str (expect (#"\"", i), []) val j = expect (#":", ws j)
                  val (v, j) = value j val j = ws j in
           case peek j of #"," => obj (ws (j + 1), (k, v) :: acc) | #"}" => (Obj (rev ((k, v) :: acc)), j + 1)
-                       | _ => raise Bad "object") end
+                       | _ => raise Bad "object" end
       val (v, j) = value 0
     in if ws j = n then v else raise Bad "trailing input" end
 
@@ -107,8 +107,13 @@ structure Main = struct
     D.Claim_ext (string (field c "id"), string (field c "page"), string (field c "sentence"),
                  bool (field c "fragment"), bool (field c "year"), tier (field c "tier"), ())
 
-  fun claimJson (c : D.claim) =
-    Obj [("id", Str (#claim_id c)), ("page", Str (#page c)), ("sentence", Str (#sentence c))]
+  (* records export as plain datatypes: accessors by destructuring *)
+  fun claimId (D.Claim_ext (i, _, _, _, _, _, _)) = i
+  fun claimPage (D.Claim_ext (_, p, _, _, _, _, _)) = p
+  fun claimSentence (D.Claim_ext (_, _, s, _, _, _, _)) = s
+
+  fun claimJson (c : unit D.claim_ext) =
+    Obj [("id", Str (claimId c)), ("page", Str (claimPage c)), ("sentence", Str (claimSentence c))]
 
   fun pool p =
     D.Pool_ext (bool (field p "resolved"), nat (int (field p "conjunctive")), map claim (list (field p "claims")), ())
@@ -144,7 +149,7 @@ structure Main = struct
       val t = turn e
       val ev = evidence e
       val out = D.decide t ev
-      val cites = map (fn c => Str (#claim_id c)) (D.cited_claims out)
+      val cites = map (fn c => Str (claimId c)) (D.cited_claims out)
     in
       show (Obj [("id", id), ("status", Str (D.status_of out)), ("path", Str (D.path_of t out)),
                  ("response", Str (D.response_of t ev out)), ("cites", Arr cites)])

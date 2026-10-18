@@ -38,6 +38,7 @@ def main():
             out = json.loads(proc.stdout.readline())
             if "error" in out:
                 raise RuntimeError("kernel: " + str(out.get("error")))
+            out = f.present(q, out)             # the head's own presentation passes over the render
             out["provenance"] = {"kind": "veri7vn_document", "decision": "Document_Route.decide",
                                  "route_class": route, "topic": ev.get("topic"),
                                  "untrusted": "fetch.py over the m13e7 bench and m13e8 deep stores"}

@@ -37,7 +37,7 @@ record claim =
   sentence :: String.literal
   fragment :: bool        \<comment> \<open> starts mid-parenthetical or lower-case (aa's FRAGMENT) \<close>
   has_year :: bool        \<comment> \<open> carries a 19xx/20xx year (aa's YEAR) \<close>
-  tier :: "nat option"    \<comment> \<open> the first cue tier whose regex matched, if any \<close>
+  tier :: "natural option"    \<comment> \<open> the first cue tier whose regex matched, if any \<close>
 
 record pool =
   resolved :: bool        \<comment> \<open> the topic resolved to one exact-title page \<close>
@@ -46,7 +46,7 @@ record pool =
 
 record evidence =
   pool_e :: pool
-  tiers :: "nat list"           \<comment> \<open> cue tier order; specific forms first, broad last \<close>
+  tiers :: "natural list"           \<comment> \<open> cue tier order; specific forms first, broad last \<close>
   checked :: bool               \<comment> \<open> the independent checker passed the candidate \<close>
   subject_defines :: bool       \<comment> \<open> the candidate's subject is the asked term (DEFINED_TERM) \<close>
   disambiguates :: bool         \<comment> \<open> the candidate's page is a disambiguation ("may refer to") \<close>
@@ -90,10 +90,10 @@ section \<open>The tiered pick (aa / y: specific cues first, fragments skipped, 
 definition usable :: "claim list \<Rightarrow> claim list" where
   "usable cs = (let u = filter (\<lambda>c. \<not> fragment c) cs in if u \<noteq> [] then u else cs)"
 
-definition tier_hits :: "nat \<Rightarrow> bool \<Rightarrow> claim list \<Rightarrow> claim list" where
+definition tier_hits :: "natural \<Rightarrow> bool \<Rightarrow> claim list \<Rightarrow> claim list" where
   "tier_hits t need_year cs = filter (\<lambda>c. tier c = Some t \<and> (need_year \<longrightarrow> has_year c)) cs"
 
-fun first_tier :: "nat list \<Rightarrow> bool \<Rightarrow> claim list \<Rightarrow> claim list" where
+fun first_tier :: "natural list \<Rightarrow> bool \<Rightarrow> claim list \<Rightarrow> claim list" where
   "first_tier [] _ _ = []"
 | "first_tier (t # ts) ny cs =
      (let h = tier_hits t ny cs in if h \<noteq> [] then h else first_tier ts ny cs)"
@@ -208,16 +208,16 @@ fun render_answer :: "claim \<Rightarrow> claim option \<Rightarrow> String.lite
 
 definition no_anchor_text :: "evidence \<Rightarrow> String.literal" where
   "no_anchor_text ev = STR ''I have no admitted entry for '' + topic ev + STR ''.''
-     + STR '' The record I hold has no page of its own for it, and no passage that carries
- every word of the question, so there is nothing to anchor an answer on.''"
+     + STR '' The record I hold has no page of its own for it, and no passage that carries every word of the question, so there is nothing to anchor an answer on.''"
 
 definition no_statement_text :: "evidence \<Rightarrow> String.literal" where
-  "no_statement_text ev = STR ''The admitted record for '' + topic ev + STR '' contains no
- statement that answers '' + asked ev + STR ''. I will not infer one.''"
+  "no_statement_text ev = STR ''The admitted record for '' + topic ev + STR '' contains no statement that answers '' + asked ev + STR ''. I will not infer one.''"
+
+definition dq :: String.literal where "dq = String.implode [CHR 0x22]"
 
 definition unverified_text :: "String.literal \<Rightarrow> String.literal" where
   "unverified_text s = STR ''I found a passage that may be related, but I can'' + apos +
-    STR ''t verify it answers your question: \"'' + s + STR ''\"''"
+    STR ''t verify it answers your question: '' + dq + s + dq"
 
 definition no_corpus_text :: String.literal where
   "no_corpus_text = STR ''No provenance-admitted sentence in the abstracts corpus answers that.''"
@@ -230,10 +230,7 @@ definition statement_text :: "evidence \<Rightarrow> claim \<Rightarrow> String.
      + sentence c + STR '' '' + cite c + STR '' Want to know more about it?''"
 
 definition clarify_text :: String.literal where
-  "clarify_text = STR ''I didn'' + apos + STR ''t fully parse that, so I won'' + apos +
-    STR ''t guess. I can summarize a topic, compare two things, list facts, give a timeline,
- explain something simply, define a term, reason about why and what-if, and discuss any
- document you teach me. A shorter, more direct phrasing usually lands.''"
+  "clarify_text = STR ''I didn'' + apos + STR ''t fully parse that, so I won'' + apos + STR ''t guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.''"
 
 definition cue_path :: "cue_kind \<Rightarrow> String.literal" where
   "cue_path k = (case k of Cause \<Rightarrow> STR ''capability:what_causes''
@@ -447,11 +444,18 @@ theorem clarify_shape:
   and "cited_claims Clarify = []"
   by auto
 
-theorem cited_iff_answer:
-  "cited_claims (decide t ev) \<noteq> [] \<longleftrightarrow> (\<exists>c e. decide t ev = Answer c e)"
-proof (cases "decide t ev")
+lemma cited_ne_nil_iff:
+  "cited_claims x \<noteq> [] \<longleftrightarrow> (\<exists>c e. x = Answer c e)"
+proof (cases x)
   case C: (Answer c e)
-  show ?thesis by (simp add: C split: option.splits)
+  show ?thesis
+  proof (cases e)
+    case N: None
+    show ?thesis by (simp add: C N)
+  next
+    case S: (Some a)
+    show ?thesis by (simp add: C S)
+  qed
 next
   case C: (UnverifiedPassage r s)
   show ?thesis by (simp add: C)
@@ -461,6 +465,20 @@ next
 next
   case C: Clarify
   show ?thesis by (simp add: C)
+qed
+
+theorem cited_iff_answer:
+  "cited_claims (decide t ev) \<noteq> [] \<longleftrightarrow> (\<exists>c e. decide t ev = Answer c e)"
+  by (rule cited_ne_nil_iff)
+
+lemma cited_answer_shape:
+  "cited_claims (Answer c e) = (case e of None \<Rightarrow> [c] | Some d \<Rightarrow> [c, d])"
+proof (cases e)
+  case N: None
+  show ?thesis by (simp add: N)
+next
+  case S: (Some a)
+  show ?thesis by (simp add: S)
 qed
 
 text \<open>Every answer's reply names its witnesses in brackets: the render and the citation
@@ -474,10 +492,8 @@ theorem answer_reply_carries_citation:
     and "cited_claims (decide t ev) = (case e of None \<Rightarrow> [c] | Some d \<Rightarrow> [c, d])"
     and "STR ''['' + claim_id c + STR '']'' = cite c"
 proof -
-  have cc: "cited_claims (Answer c e) = (case e of None \<Rightarrow> [c] | Some d \<Rightarrow> [c, d])"
-    by (simp split: option.splits)
   show "cited_claims (decide t ev) = (case e of None \<Rightarrow> [c] | Some d \<Rightarrow> [c, d])"
-    by (simp add: ans cc)
+    by (simp add: ans cited_answer_shape)
   show "STR ''['' + claim_id c + STR '']'' = cite c" by (simp add: cite_def)
   show "response_of t ev (decide t ev) =
       (if t = Statement then statement_text ev c

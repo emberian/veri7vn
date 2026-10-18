@@ -42,6 +42,10 @@ UPSTREAM = REPO / "upstream"
 if not UPSTREAM.exists():
     UPSTREAM = REPO.parents[2] / "upstream"      # var/scout-wt/<name> -> the main checkout
 os.environ.setdefault("ORACLE7_ROOT", str(UPSTREAM / "root"))
+# oracle7.py:51 sets NLTK_DATA to root/nltk_data (the WordNet the converse organ's
+# noun_senses needs); without it organ.answer() raises LookupError and every statement
+# turn silently degrades to the clarify terminal.
+os.environ.setdefault("NLTK_DATA", str(UPSTREAM / "root" / "nltk_data"))
 
 sys.path.insert(0, str(UPSTREAM / "root" / "wander-train"))
 sys.path.insert(0, str(UPSTREAM / "root" / "fable-content" / "oracle-m-series-2026-08-15" / "self_loop" / "admitted"))
@@ -51,6 +55,11 @@ from oracle_cube_reader_v1_4 import CubeReader     # noqa: E402
 import stage5m13e7_benchfold_induction_v1 as BF    # noqa: E402
 import verified_retrieval_v1 as VR                 # noqa: E402
 import oracle_release_runtime_w420 as W420         # noqa: E402
+import oracle_release_runtime_w516 as W516         # noqa: E402  (the chain's presentation passes)
+import oracle_release_runtime_w517 as W517         # noqa: E402
+import oracle_release_runtime_w518 as W518         # noqa: E402
+import oracle_release_runtime_w519 as W519         # noqa: E402
+import oracle_release_runtime_w520 as W520         # noqa: E402
 
 PH = UPSTREAM / "root" / "fable-content" / "oracle-m-series-2026-08-15"
 BENCH = PH / "m13e7_dbpedia_openstax_full_fable_bench_a_v1" / "wikipedia_specialist.sqlite3"
@@ -126,11 +135,17 @@ class Fetch:
         if not a or a.get("kind") not in ("statement", "request"):
             return None
         text = str(a.get("response") or "")
-        m = re.search(r"^(.*?)\s*\[([a-z]+_[0-9a-f]{6,})\]", text.split("Since you mention")[-1].strip())
+        # "Got it. Since you mention {about}: {sentence} [cite] Want to know more about it?" -- the first
+        # colon after the mention ends the topic; the sentence runs to the citation tag.
+        tail = text.split("Since you mention", 1)
+        if len(tail) != 2:
+            return None
+        about, _, rest = tail[1].partition(":")
+        m = re.search(r"^(.*?)\s*\[([a-z]+_[0-9a-f]{6,})\]", rest.strip())
         if not m:
             return None
         sentence, cid = m.group(1).strip(), m.group(2)
-        about = text.split("Since you mention", 1)[1].split(":", 1)[0].strip()
+        about = about.strip()
         ev = self._base("statement", q, topic=about)
         ev["future"] = bool(re.search(r"\b(?:tomorrow|next week|soon|going to|about to|gonna)\b", q, re.I))
         claim = self._claim(cid, sentence)
@@ -142,13 +157,15 @@ class Fetch:
         return ev
 
     def _factoid_eligible(self, q):
-        """w420's own chat gate: a question shape, not about the machine, not a number dump."""
+        """w420's own chat gate, read from its chat(): GUARD_Q or a trailing '?' only ENTER the
+        function -- the factoid attempt itself fires only for a WH-question shape (is_wh), over
+        a parent decline, not about the machine, not a number dump."""
         s = " ".join(str(q).split())
-        if not (W420.WHQ.match(s) or s.endswith("?") or W420.GUARD_Q.match(s)):
+        if not W420.WHQ.match(s):
             return False
         if W420.SELF_Q.search(s) or W420.OWNED_FORMS.search(s):
             return False
-        return len(W420.YEAR.findall(s)) < 3 and W420._numbers(s) < 3
+        return W420._numbers(s) < 3
 
     def evidence(self, q):
         """The cascade order as the head runs it: the corpus rules of the base runtime, then
@@ -165,6 +182,18 @@ class Fetch:
         if ev is not None:
             return ev, "organ:converse"
         return self._base("fallback", q), "terminal"
+
+    def present(self, q, out):
+        """The head's own presentation passes, in the chain's order (w516.present, w517.present2,
+        w518.present3, w519.present3b, w520.present4), over the kernel's rendered reply. The
+        organs' rule is that presentation never changes status, path or what is asserted; running
+        the organs' own code keeps the text from drifting."""
+        for fn in (W516.present, lambda o: W517.present2(q, o), W518.present3, W519.present3b, W520.present4):
+            try:
+                out = fn(out)
+            except Exception:                    # noqa: BLE001 - presentation never costs the turn
+                pass
+        return out
 
 
 def _cid_of(out):

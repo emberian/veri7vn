@@ -4,9 +4,11 @@
 set -e
 cd "$(dirname "$0")/../.."
 EXPORT=var/document/export-remote/Veri7vn_Document
-GEN=$(ls "$EXPORT"/*.ML 2>/dev/null | head -1)
+GEN=$(cd "$EXPORT" && find . -name '*.ML' | head -1 | sed 's|^\./||')
 [ -n "$GEN" ] || { echo "no generated SML under $EXPORT; run tools/dev/remote-build first" >&2; exit 1; }
 MLTON=$(ls /Applications/Isabelle2026-RC1.app/contrib/mlton-20241230-1/*/bin/mlton | head -1)
 mkdir -p var/document/bin
-"$MLTON" -output var/document/bin/document "$GEN" tools/document/document_main.sml
+# an mlb that admits the export's .ML suffix (as lane F's build_decide.sh does)
+printf '$(SML_LIB)/basis/basis.mlb\n%s\n%s\n' "$PWD/$EXPORT/$GEN" "$PWD/tools/document/document_main.sml" > var/document/bin/document.mlb
+"$MLTON" -output var/document/bin/document var/document/bin/document.mlb
 ls -l var/document/bin/document
