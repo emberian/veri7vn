@@ -168,8 +168,7 @@ text \<open>Comments on the constructors: MeshVertices faces genus; MeshFaces
 vertices genus; the Scad volumes read OpenSCAD primitives; ScaleAmount factor
 is_area base unit; Extrude volume flow flow_volume_unit per_minute; the
 PorosityAerogel arguments are bulk and skeletal density; Pounds takes MGD, mg/L
-and an optional percent strength of the product; Dilution takes the first two
-strengths and the final volume.\<close>
+and an optional percent strength of the product; Dilution takes stock concentration, target concentration and final volume in that order.\<close>
 
 datatype kind = K_scad_volume | K_mesh_vertices | K_mesh_edges | K_mesh_faces | K_scale_amount
   | K_scale_factor | K_extrude_time | K_apf | K_crystal_density | K_porosity | K_stress
@@ -184,7 +183,7 @@ datatype need = N_extrude | N_scale_factor | N_structure | N_alpha | N_mat_read 
 datatype reason = R_odd_faces | R_negative_count | R_negative_size | R_nonpositive_flow
   | R_nonpositive_scale | R_nonpositive_denominator | R_bulk_above_skeletal | R_fraction_range
   | R_fractions_total | R_fractions_exceed | R_dry_above_wet | R_bulk_above_particle
-  | R_nonpositive_conc
+  | R_nonpositive_conc | R_concentrating | R_negative_volume | R_negative_mass
 
 datatype decline = Underspecified need | Impossible reason | Judgement | Unclassified | Imprecise
 
@@ -308,11 +307,13 @@ fun decline_of :: "request \<Rightarrow> decline option" where
 | "decline_of (VolWaterContent (Some _) None _) = Some (Underspecified N_wet_dry)"
 | "decline_of (VolWaterContent (Some w) (Some d) bd) =
      (if d \<le> 0 \<or> w < d then Some (Impossible R_dry_above_wet)
-      else (case bd of None \<Rightarrow> Some (Underspecified N_bulk_for_vwc) | Some _ \<Rightarrow> None))"
+      else (case bd of None \<Rightarrow> Some (Underspecified N_bulk_for_vwc)
+        | Some bulk_density \<Rightarrow> if bulk_density \<le> 0 then Some (Impossible R_nonpositive_denominator) else None))"
 | "decline_of (BulkDensity None _) = Some (Underspecified N_mass_volume)"
 | "decline_of (BulkDensity (Some _) None) = Some (Underspecified N_mass_volume)"
-| "decline_of (BulkDensity (Some _) (Some v)) =
-     (if v \<le> 0 then Some (Impossible R_nonpositive_denominator) else None)"
+| "decline_of (BulkDensity (Some dry_mass) (Some v)) =
+     (if v \<le> 0 then Some (Impossible R_nonpositive_denominator)
+      else if dry_mass < 0 then Some (Impossible R_negative_mass) else None)"
 | "decline_of (HardnessGpg _) = None"
 | "decline_of (HardnessMgl _) = None"
 | "decline_of (Pounds None _ _) = Some (Underspecified N_flow_dose)"
@@ -328,8 +329,10 @@ fun decline_of :: "request \<Rightarrow> decline option" where
 | "decline_of (ChlorineDose (Some _) (Some _)) = None"
 | "decline_of (Dilution None _) = Some (Underspecified N_dilution)"
 | "decline_of (Dilution (Some _) None) = Some (Underspecified N_dilution)"
-| "decline_of (Dilution (Some (ca, cb)) (Some _)) =
-     (if min (cval ca) (cval cb) \<le> 0 then Some (Impossible R_nonpositive_conc) else None)"
+| "decline_of (Dilution (Some (stock, target)) (Some (final_volume, _))) =
+     (if cval stock \<le> 0 \<or> cval target < 0 then Some (Impossible R_nonpositive_conc)
+      else if cval stock < cval target then Some (Impossible R_concentrating)
+      else if final_volume < 0 then Some (Impossible R_negative_volume) else None)"
 | "decline_of (PhOf h) = (if h \<le> 0 then Some (Impossible R_nonpositive_conc) else None)"
 | "decline_of (HConc _) = None"
 | "decline_of Potable = Some Judgement"
@@ -368,7 +371,7 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (Pounds (Some f) (Some d) (Some p)) = f * d * lb_gal / (p / 100)"
 | "qval (CtValue (Some c) (Some t)) = c * t"
 | "qval (ChlorineDose (Some d) (Some r)) = d + r"
-| "qval (Dilution (Some (ca, cb)) (Some (v, _))) = min (cval ca) (cval cb) * v / max (cval ca) (cval cb)"
+| "qval (Dilution (Some (ca, cb)) (Some (v, _))) = cval cb * v / cval ca"
 | "qval _ = 0"
 
 fun class_of :: "request \<Rightarrow> soil_class option" where
@@ -809,13 +812,13 @@ theorem texture_underspecified:
 
 theorem soil_bulk_density:
   assumes "kernel (BulkDensity (Some m) (Some v)) = Exact k bd"
-  shows "k = K_bulk_density \<and> 0 < v \<and> bd * v = m"
+  shows "k = K_bulk_density \<and> 0 \<le> m \<and> 0 < v \<and> 0 \<le> bd \<and> bd * v = m"
 proof -
-  have k: "k = K_bulk_density" and v: "\<not> v \<le> 0" and e: "bd = m / v"
+  have mass: "0 \<le> m" and k: "k = K_bulk_density" and v: "\<not> v \<le> 0" and e: "bd = m / v"
     using kernel_exact_sound[OF assms] by (auto split: if_splits)
   have nz: "v \<noteq> 0" using v by simp
   have "bd * v = m" by (rule div_rel[OF nz e])
-  with k v show ?thesis by simp
+  with mass k v e show ?thesis by (auto intro: divide_nonneg_nonneg)
 qed
 
 theorem soil_porosity:
@@ -922,24 +925,32 @@ theorem dose_value:
   shows "k = K_dose \<and> v = dm + rs"
   using kernel_exact_sound[OF assms] by auto
 
-text \<open>C1 V1 = C2 V2, reading the stronger strength as the stock: a dilution
-cannot concentrate.\<close>
+text \<open>Directed dilution preserves the supplied stock and target roles.
+The stock must be at least as strong as the target; dilution cannot concentrate.\<close>
 theorem dilution_balance:
-  assumes "kernel (Dilution (Some (ca, cb)) (Some (v2, u))) = Exact k v1"
-  shows "k = K_dilution \<and> 0 < min (cval ca) (cval cb) \<and>
-    max (cval ca) (cval cb) * v1 = min (cval ca) (cval cb) * v2 \<and>
-    min (cval ca) (cval cb) \<le> max (cval ca) (cval cb)"
+  assumes "kernel (Dilution (Some (stock, target)) (Some (v2, u))) = Exact k v1"
+  shows "k = K_dilution \<and> 0 < cval stock \<and> 0 \<le> cval target \<and>
+    cval target \<le> cval stock \<and> 0 \<le> v2 \<and>
+    cval stock * v1 = cval target * v2"
 proof -
-  have k: "k = K_dilution" and m: "\<not> min (cval ca) (cval cb) \<le> 0"
-    and e: "v1 = min (cval ca) (cval cb) * v2 / max (cval ca) (cval cb)"
+  have bounds: "0 < cval stock \<and> 0 \<le> cval target \<and> cval target \<le> cval stock \<and> 0 \<le> v2"
+    and k: "k = K_dilution" and computed: "v1 = cval target * v2 / cval stock"
     using kernel_exact_sound[OF assms] by (auto split: if_splits)
-  have mp: "0 < min (cval ca) (cval cb)" using m by (simp only: not_le)
-  have le: "min (cval ca) (cval cb) \<le> max (cval ca) (cval cb)"
-    by (rule order_trans[OF min.cobounded1 max.cobounded1])
-  have M: "max (cval ca) (cval cb) \<noteq> 0" using mp le by linarith
-  have "v1 * max (cval ca) (cval cb) = min (cval ca) (cval cb) * v2" by (rule div_rel[OF M e])
-  then have "max (cval ca) (cval cb) * v1 = min (cval ca) (cval cb) * v2" by (simp add: mult.commute)
-  with k mp le show ?thesis by simp
+  have nz: "cval stock \<noteq> 0" using bounds by auto
+  have "v1 * cval stock = cval target * v2" by (rule div_rel[OF nz computed])
+  with bounds k show ?thesis by (simp add: mult.commute)
+qed
+
+theorem dilution_volume_bounds:
+  assumes "kernel (Dilution (Some (stock, target)) (Some (v2, u))) = Exact k v1"
+  shows "0 \<le> v1 \<and> v1 \<le> v2"
+proof -
+  have bounds: "0 < cval stock \<and> 0 \<le> cval target \<and> cval target \<le> cval stock \<and> 0 \<le> v2"
+    and computed: "v1 = cval target * v2 / cval stock"
+    using kernel_exact_sound[OF assms] by (auto split: if_splits)
+  have product: "cval target * v2 \<le> cval stock * v2"
+    using bounds by (intro mult_right_mono) auto
+  show ?thesis using bounds product computed by (auto simp: divide_le_eq mult.commute)
 qed
 
 text \<open>pH is minus the decimal logarithm of the concentration, and the
@@ -966,9 +977,14 @@ theorem water_not_potable:
   by (simp add: kernel_def)
 
 theorem dilution_nonpositive:
-  "kernel (Dilution (Some (ca, cb)) (Some vu)) = Decline (Impossible R_nonpositive_conc)
-     \<longleftrightarrow> min (cval ca) (cval cb) \<le> 0"
-  by (cases vu) (simp add: kernel_decline_iff)
+  "kernel (Dilution (Some (stock, target)) (Some vu)) = Decline (Impossible R_nonpositive_conc)
+     \<longleftrightarrow> cval stock \<le> 0 \<or> cval target < 0"
+  by (cases vu) (auto simp: kernel_decline_iff split: if_splits)
+
+theorem dilution_cannot_concentrate:
+  assumes "0 < cval stock" "cval stock < cval target"
+  shows "kernel (Dilution (Some (stock, target)) (Some vu)) = Decline (Impossible R_concentrating)"
+  using assms by (cases vu) (auto simp: kernel_decline_iff)
 
 section \<open>Response text (ASCII)\<close>
 
@@ -1041,7 +1057,7 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
 | "exact_text (Dilution (Some (ca, cb)) (Some (v2, u))) q V = STR ''Use '' + V + STR '' '' + wlabel u
      + (if u = WU_l \<and> q < 1 then STR '' ('' + sw (q * 1000) + STR '' mL)'' else STR '''')
      + STR '' of the stock, topped up to '' + sw v2 + STR '' '' + wlabel u + STR '' (C1 V1 = C2 V2: ''
-     + sw (max (cval ca) (cval cb)) + STR '' mg/L x V1 = '' + sw (min (cval ca) (cval cb))
+     + sw (cval ca) + STR '' mg/L x V1 = '' + sw (cval cb)
      + STR '' mg/L x '' + sw v2 + STR '').''"
 | "exact_text _ q V = V"
 
@@ -1090,7 +1106,7 @@ definition reason_text :: "request \<Rightarrow> reason \<Rightarrow> String.lit
     | R_negative_size \<Rightarrow> STR ''OpenSCAD sizes must be non-negative.''
     | R_nonpositive_flow \<Rightarrow> STR ''The volumetric flow must be positive.''
     | R_nonpositive_scale \<Rightarrow> STR ''The scale factor must be positive.''
-    | R_nonpositive_denominator \<Rightarrow> STR ''A length, area, strain, volume, strength or lattice constant in the denominator must be positive.''
+    | R_nonpositive_denominator \<Rightarrow> STR ''A required length, area, strain, volume, density, strength or lattice constant must be positive.''
     | R_bulk_above_skeletal \<Rightarrow> STR ''The bulk density cannot exceed the skeletal density.''
     | R_fraction_range \<Rightarrow> STR ''A particle-size fraction must be between 0% and 100%.''
     | R_fractions_total \<Rightarrow> (case r of
@@ -1105,7 +1121,10 @@ definition reason_text :: "request \<Rightarrow> reason \<Rightarrow> String.lit
     | R_bulk_above_particle \<Rightarrow> (case r of
           SoilPorosity (Some b) pd _ \<Rightarrow> STR ''A bulk density of '' + ss b + STR '' g/cm3 is not below the particle density ('' + ss pd + STR '' g/cm3), so the porosity would be zero or negative.''
         | _ \<Rightarrow> STR ''The bulk density must be below the particle density.'')
-    | R_nonpositive_conc \<Rightarrow> STR ''Concentrations must be positive.'')"
+    | R_nonpositive_conc \<Rightarrow> STR ''The stock concentration must be positive and target concentration nonnegative.''
+    | R_concentrating \<Rightarrow> STR ''Dilution cannot make a target stronger than the supplied stock.''
+    | R_negative_volume \<Rightarrow> STR ''The final volume must be nonnegative.''
+    | R_negative_mass \<Rightarrow> STR ''The dry mass must be nonnegative.'')"
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of Underspecified _ \<Rightarrow> STR ''underspecified'' | Impossible _ \<Rightarrow> STR ''impossible''

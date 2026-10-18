@@ -20,9 +20,10 @@ cat > "$OUT/build/materials.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 materials_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/materials" "$OUT/build/materials.mlb"
+"$REPO/tools/dev/native-compile" --family materials --compiler "$MLTON" -- -output "$OUT/bin/materials" "$OUT/build/materials.mlb"
 ls -l "$OUT/bin/materials"
 shasum -a 256 "$OUT/build/materials_generated.sml" "$OUT/bin/materials"

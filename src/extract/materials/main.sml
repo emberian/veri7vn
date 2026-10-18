@@ -20,6 +20,8 @@ struct
     case request of
       Materials.HookeStress _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"hooke_stress_binding\"]"
     | Materials.HookeStrain _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"hooke_strain_balance\"]"
+    | Materials.Dilution _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"dilution_balance\",\"dilution_volume_bounds\"]"
+    | Materials.BulkDensity _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"soil_bulk_density\"]"
     | _ => theorems
 
   fun ms (t0 : Time.time) : string =

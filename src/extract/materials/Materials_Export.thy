@@ -23,6 +23,10 @@ definition self_test :: bool where
      kernel (Texture (Some 62) (Some 15) (Some 23)) = Class K_texture Sandy_clay_loam \<and>
      kernel (Texture (Some 50) (Some 30) (Some 40)) = Decline (Impossible R_fractions_total) \<and>
      kernel (Texture None None (Some 30)) = Decline (Underspecified N_two_fractions) \<and>
+     kernel (BulkDensity (Some (-1)) (Some 100)) = Decline (Impossible R_negative_mass) \<and>
+     kernel (Dilution (Some ((100, C_mgl), (200, C_mgl))) (Some (1, WU_l))) = Decline (Impossible R_concentrating) \<and>
+     kernel (Dilution (Some ((200, C_mgl), (100, C_mgl))) (Some (1, WU_l))) = Exact K_dilution (1 / 2) \<and>
+     kernel (Dilution (Some ((200, C_mgl), (0, C_mgl))) (Some (1, WU_l))) = Exact K_dilution 0 \<and>
      kernel (BulkDensity (Some 145) (Some 100)) = Exact K_bulk_density (29 / 20) \<and>
      kernel (ChlorineDose (Some (5 / 2)) (Some 1)) = Exact K_dose (7 / 2) \<and>
      kernel (Pounds (Some 5) (Some (5 / 2)) None) = Exact K_pounds (10425 / 100) \<and>
@@ -63,7 +67,7 @@ ML \<open>
     @{thm soil_porosity_decline}, @{thm gravimetric_water}, @{thm volumetric_water},
     @{thm water_content_masses}, @{thm gpg_constant}, @{thm hardness_gpg_to_mgl},
     @{thm hardness_mgl_to_gpg}, @{thm hardness_round_trip}, @{thm pounds_formula},
-    @{thm pounds_product}, @{thm ct_value}, @{thm dose_value}, @{thm dilution_balance},
+    @{thm pounds_product}, @{thm ct_value}, @{thm dose_value}, @{thm dilution_balance}, @{thm dilution_volume_bounds}, @{thm dilution_cannot_concentrate},
     @{thm ph_value}, @{thm ph_inverse}, @{thm h_conc_value}, @{thm h_conc_inverse},
     @{thm water_not_potable}, @{thm dilution_nonpositive},
     @{thm classify_total}, @{thm volumetric_is_gravimetric_times_bulk_density},

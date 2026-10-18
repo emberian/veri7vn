@@ -184,6 +184,125 @@
       "expect": null,
       "specialist": "materials-v2",
       "source": "Numeric-token boundary regression."
+    },
+    {
+      "specialist": "soil-r2",
+      "q": "What is the bulk density of a soil core of 100 g and .5 cm3?",
+      "valid": true,
+      "expect": 200,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "soil",
+      "q": "What is the bulk density of a soil core of -100 g and 100 cm3?",
+      "valid": false,
+      "expect": null,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "soil",
+      "q": "What is the bulk density of a soil core of 100 g and 0 cm3?",
+      "valid": false,
+      "expect": null,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "soil",
+      "q": "What is the bulk density of a soil core of 0 g and 100 cm3?",
+      "valid": true,
+      "expect": 0,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "soil",
+      "q": "What is the bulk density of a soil core of 1e2 g and 100 cm3?",
+      "valid": true,
+      "expect": 1,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "soil",
+      "q": "What is the bulk density of a soil core of 100 g and 1.2.3 cm3?",
+      "valid": false,
+      "expect": null,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "soil",
+      "q": "Soil wet mass is 150 g, dry mass is 100 g, bulk density is -1.2. What is volumetric water content?",
+      "valid": false,
+      "expect": null,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "water",
+      "q": "How much 100 mg/L stock is needed to dilute to 200 mg/L in 1 L?",
+      "valid": false,
+      "expect": null,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "water",
+      "q": "How much 200 mg/L stock is needed to dilute to 100 mg/L in 1 L?",
+      "valid": true,
+      "expect": 0.5,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "water-r3",
+      "q": "Prepare 1 L of 100 mg/L solution from 200 mg/L stock. How much stock should I dilute?",
+      "valid": true,
+      "expect": 0.5,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "water",
+      "q": "How much 200 mg/L stock is needed to dilute to 0 mg/L in 1 L?",
+      "valid": true,
+      "expect": 0,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "water",
+      "q": "How much 0 mg/L stock is needed to dilute to 0 mg/L in 1 L?",
+      "valid": false,
+      "expect": null,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "water",
+      "q": "How much 200 mg/L stock is needed to dilute to 100 mg/L in -1 L?",
+      "valid": false,
+      "expect": null,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "water",
+      "q": "How much 200 mg/L stock is needed to dilute to 1.2.3 mg/L in 1 L?",
+      "valid": false,
+      "expect": null,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "water",
+      "q": "Dilute 100 mg/L and 200 mg/L to 1 L. How much do I use?",
+      "valid": false,
+      "expect": null,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "water",
+      "q": "How much 2% stock is needed to dilute to 100 mg/L in 10 L?",
+      "valid": true,
+      "expect": 0.05,
+      "source": "D directed dilution and physical numeric semantics regression."
+    },
+    {
+      "specialist": "water",
+      "q": "Dilute stock concentration 100 mg/L target and 200 mg/L stock to 1 L.",
+      "valid": false,
+      "expect": null,
+      "source": "Contradictory quantity roles must withhold."
     }
   ]
 }

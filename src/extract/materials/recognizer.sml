@@ -338,33 +338,49 @@ struct
 
   (* Quantity roles can precede or follow their number and unit. The selected
      output role must remain distinct from the supplied input roles. *)
+  (* Quantity roles stay here; the shared lexer owns numeral spelling and spans.
+     A malformed numeric run withholds the request rather than retrying its tail. *)
+  fun scalars low =
+    let val tokens = ExactNumeric.scan low
+    in if List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens then []
+       else List.mapPartial (fn ExactNumeric.Number n => SOME n | _ => NONE) tokens end
+  fun beforeScalar low ({start, ...} : {start:int, stop:int, value:q}) = String.substring (low, 0, start)
+  fun afterScalar low ({stop, ...} : {start:int, stop:int, value:q}) = String.extract (low, stop, NONE)
+  fun only [x] = SOME x | only _ = NONE
+  fun pickScalar low ns pre post =
+    Option.map #value (only (List.filter (fn n =>
+      has pre (beforeScalar low n) orelse has post (afterScalar low n)) ns))
+
   fun hooke low =
     let
-      val number = "(?<![a-z0-9_.,+~-])(-?(?:\\d+(?:,\\d{3})*(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?)(?![0-9_,]|\\.\\d|e[+-]?\\d)"
+      val ns = scalars low
       val modulusRole = "(?:young'?s? modulus|elastic modulus|modulus)"
       fun unit s = case s of "pa" => M.SU_Pa | "gpa" => M.SU_GPa | _ => M.SU_MPa
-      fun quantity role =
-        let
-          val prefix = search ("\\b" ^ role ^ "\\s*(?:of|is|=|:)?\\s*" ^ number ^ "\\s*(gpa|mpa|pa)\\b") low
-          val suffix = search (number ^ "\\s*(gpa|mpa|pa)\\s+(?:of\\s+)?" ^ role ^ "\\b") low
-          val found = case prefix of SOME m => SOME m | NONE => suffix
-        in Option.map (fn m => (rat (nth low m 1), unit (valOf (grp low m 2)))) found end
+      fun quantity role = only (List.mapPartial (fn n =>
+        case search "^\\s*(gpa|mpa|pa)\\b" (afterScalar low n) of NONE => NONE
+        | SOME m =>
+          let val tail = String.extract (afterScalar low n, #stop m, NONE)
+          in if has ("\\b" ^ role ^ "\\s*(?:of|is|=|:)?\\s*$") (beforeScalar low n)
+                orelse has ("^\\s+(?:of\\s+)?" ^ role ^ "\\b") tail
+             then SOME (rat (#value n), unit (valOf (grp (afterScalar low n) m 1))) else NONE end) ns)
       val modulus = quantity modulusRole
       val stress = quantity "stress"
-      val strainPrefix = search ("\\bstrain\\s*(?:of|is|=|:)?\\s*" ^ number ^ "(?![a-z0-9_]|\\.\\d)\\s*(%)?") low
-      val strainSuffix = search (number ^ "\\s*(%)?\\s+strain\\b") low
-      val strain = case strainPrefix of SOME m => SOME m | NONE => strainSuffix
+      val strain = only (List.mapPartial (fn n =>
+        let val tail = afterScalar low n
+            val prefix = has "\\bstrain\\s*(?:of|is|=|:)?\\s*$" (beforeScalar low n)
+                         andalso has "^(?:\\s|%|[.?!,;:]|$)" tail
+            val suffix = has "^\\s*%?\\s+strain\\b" tail
+            val pct = has "^\\s*%" tail
+            val (a,b) = #value n
+        in if prefix orelse suffix then SOME (rat (a, if pct then b * 100 else b)) else NONE end) ns)
       val explicitStress = has "\\b(?:what|find|calculate|compute|determine)(?: is| the|,)* stress\\b" low
       val explicitStrain = has "\\b(?:what|find|calculate|compute|determine)(?: is| the|,)* strain\\b" low
       val asksStress = explicitStress orelse (not explicitStrain andalso has "\\bstress\\?" low)
       val asksStrain = explicitStrain orelse (not explicitStress andalso has "\\bstrain\\?" low)
     in
       case modulus of NONE => NONE | SOME (e, eu) =>
-        if asksStress andalso not asksStrain then
-          Option.map (fn x => M.HookeStress (e, eu,
-            rat (let val (a,b) = nth low x 1 in (a, if isSome (grp low x 2) then b * 100 else b) end))) strain
-        else if asksStrain andalso not asksStress then
-          Option.map (fn (stress, su) => M.HookeStrain (stress, su, e, eu)) stress
+        if asksStress andalso not asksStrain then Option.map (fn x => M.HookeStress (e, eu, x)) strain
+        else if asksStrain andalso not asksStress then Option.map (fn (x, su) => M.HookeStrain (x, su, e, eu)) stress
         else NONE
     end
 
@@ -513,57 +529,38 @@ struct
     end
 
   (* ---------- soil ---------- *)
-  val SN = "(\\d+(?:\\.\\d+)?)"
-  fun frac low name =
-    case search (SN ^ "\\s*%\\s*" ^ name ^ "\\b") low of
-      SOME m => SOME (rat (nth low m 1))
-    | NONE => (case search ("\\b" ^ name ^ "\\s*(?:content\\s*)?(?:of|is|=|:)?\\s*" ^ SN ^ "\\s*%") low of
-                 SOME m => SOME (rat (nth low m 1))
-               | NONE => NONE)
-
-  fun firstNonEmpty s m gs = firstQ s m gs
-
   fun soilV1 (low : string) : M.request option =
-    if not (has "\\bsoil\\b|\\bbulk density\\b|\\bporosity\\b|\\bwater content\\b|\\d\\s*%\\s*(?:sand|silt|clay)\\b|\\b(?:sand|silt|clay)\\s*\\d" low) then NONE
-    else if has "\\btexture\\b|\\btextural\\b|\\bclassify\\b|\\bwhat (?:kind|type) of soil\\b" low then
-      SOME (M.Texture (frac low "sand", frac low "silt", frac low "clay"))
-    else
-      let
-        val pdm = search ("\\bparticle density\\s*(?:of|is|=)?\\s*" ^ SN) low
-        val pd = case pdm of SOME m => nth low m 1 | NONE => (265, 100)
-        val bdm = search ("\\bbulk density\\s*(?:of|is|=|:)?\\s*" ^ SN) low
-      in
-        if has "\\bporosity\\b" low then
-          let
-            val bd = case bdm of
-                       SOME m => SOME m
-                     | NONE => search (SN ^ "\\s*g\\s*/\\s*cm(?:3|" ^ cube3 ^ "|\\^3)\\s*bulk density") low
-          in SOME (M.SoilPorosity (Option.map (fn m => rat (nth low m 1)) bd, rat pd, isSome pdm)) end
-        else if has "\\bwater content\\b|\\bmoisture content\\b" low then
-          let
-            val wm = search (SN ^ "\\s*g\\s*(?:when\\s+)?wet\\b|\\bwet (?:mass|weight)\\s*(?:of|is|=|:)?\\s*" ^ SN ^ "\\s*g|\\bweighs\\s+" ^ SN ^ "\\s*g\\s*wet\\b") low
-            val dm = search (SN ^ "\\s*g\\s*(?:when\\s+)?(?:oven[- ])?dry\\b|\\b(?:oven[- ])?dry (?:mass|weight)\\s*(?:of|is|=|:)?\\s*" ^ SN ^ "\\s*g") low
-            val w = Option.map (fn m => rat (valOf (firstQ low m [1, 2, 3]))) wm
-            val d = Option.map (fn m => rat (valOf (firstQ low m [1, 2]))) dm
-          in
-            if has "\\bvolumetric\\b" low then
-              SOME (M.VolWaterContent (w, d, Option.map (fn m => rat (nth low m 1)) bdm))
-            else SOME (M.WaterContent (w, d))
-          end
-        else if has "\\bbulk density\\b" low then
-          let
-            val mm = search (SN ^ "\\s*g\\b(?!\\s*/)") low
-            val vm = search (SN ^ "\\s*(?:cm3|cm" ^ cube3 ^ "|cm\\^3|cubic centimet(?:er|re)s|cc|ml)\\b") low
-          in
-            case (mm, vm) of
-              (SOME m, SOME v) =>
-                if qNonPos (nth low v 1) then NONE
-                else SOME (M.BulkDensity (SOME (rat (nth low m 1)), SOME (rat (nth low v 1))))
-            | _ => SOME (M.BulkDensity (Option.map (fn m => rat (nth low m 1)) mm,
-                                        Option.map (fn m => rat (nth low m 1)) vm))
-          end
-        else NONE
-      end
+    if not (has "\\bsoil\\b|\\bbulk density\\b|\\bporosity\\b|\\bwater content\\b|\\b(?:sand|silt|clay)\\b" low) then NONE
+    else let
+      val ns = scalars low
+      fun pick pre post = pickScalar low ns pre post
+      fun frac name = Option.map rat (only (List.mapPartial (fn n =>
+        if has "^\\s*%" (afterScalar low n) andalso
+           (has ("\\b" ^ name ^ "\\s*(?:content\\s*)?(?:of|is|=|:)?\\s*$") (beforeScalar low n)
+            orelse has ("^\\s*%\\s*" ^ name ^ "\\b") (afterScalar low n))
+        then SOME (#value n) else NONE) ns))
+      val pdm = pick "\\bparticle density\\s*(?:of|is|=)?\\s*$" "(?!)"
+      val pd = case pdm of SOME v => v | NONE => (265, 100)
+      val bdm = pick "\\bbulk density\\s*(?:of|is|=|:)?\\s*$"
+                     ("^\\s*g\\s*/\\s*cm(?:3|" ^ cube3 ^ "|\\^3)\\s*bulk density\\b")
+      fun mass role = only (List.mapPartial (fn n =>
+        if has "^\\s*g\\b(?!\\s*/)" (afterScalar low n) andalso
+          (has ("\\b" ^ role ^ " (?:mass|weight)\\s*(?:of|is|=|:)?\\s*$") (beforeScalar low n)
+           orelse has ("^\\s*g\\s*(?:when\\s+)?" ^ role ^ "\\b") (afterScalar low n))
+        then SOME (rat (#value n)) else NONE) ns)
+    in
+      if has "\\btexture\\b|\\btextural\\b|\\bclassify\\b|\\bwhat (?:kind|type) of soil\\b" low then
+        SOME (M.Texture (frac "sand", frac "silt", frac "clay"))
+      else if has "\\bporosity\\b" low then SOME (M.SoilPorosity (Option.map rat bdm, rat pd, isSome pdm))
+      else if has "\\bwater content\\b|\\bmoisture content\\b" low then
+        if has "\\bvolumetric\\b" low then SOME (M.VolWaterContent (mass "wet", mass "(?:oven[- ])?dry", Option.map rat bdm))
+        else SOME (M.WaterContent (mass "wet", mass "(?:oven[- ])?dry"))
+      else if has "\\bbulk density\\b" low then
+        SOME (M.BulkDensity (
+          Option.map rat (pick "(?!)" "^\\s*g\\b(?!\\s*/)"),
+          Option.map rat (pick "(?!)" ("^\\s*(?:cm3|cm" ^ cube3 ^ "|cm\\^3|cubic centimet(?:er|re)s|cc|ml)\\b"))))
+      else NONE
+    end
 
   fun soilCore text =
     let val t = collapse text
@@ -574,7 +571,6 @@ struct
           NONE => NONE
         | SOME req =>
             if M.silent req then NONE
-            else if not (answered req) andalso not (Narrow.short_direct t) then NONE
             else SOME req
     end
 
@@ -647,12 +643,30 @@ struct
       in SOME (M.ChlorineDose (pick "demand", pick "residual")) end
     else if has "\\bdilut\\w*\\b|\\bhow much (?:bleach|concentrate|stock)\\b|\\bmake\\b.*\\b(?:solution|sanitizer)\\b" low then
       let
-        val cs = findall (NUMW ^ "\\s*(%|ppm|mg/l)") low
-        val vm = search (NUMW ^ "\\s*(l|liters?|litres?|ml|gallons?|gal)\\b") low
-        fun cu m = (wnum low m 1, if valOf (grp low m 2) = "%" then M.C_pct else M.C_mgl)
+        val ns = scalars low
         fun wu u = if u = "ml" then M.WU_ml else if String.isPrefix "gal" u then M.WU_gal else M.WU_l
-        val concs = case cs of a :: b :: _ => SOME (cu a, cu b) | _ => NONE
-        val vol = Option.map (fn m => (wnum low m 1, wu (valOf (grp low m 2)))) vm
+        val cs = List.mapPartial (fn n =>
+          case search "^\\s*(%|ppm\\b|mg/l\\b)" (afterScalar low n) of NONE => NONE
+          | SOME m => SOME (n, (rat (#value n), if valOf (grp (afterScalar low n) m 1) = "%" then M.C_pct else M.C_mgl),
+                           String.extract (afterScalar low n, #stop m, NONE))) ns
+        fun stock (n,_,tail) =
+          has "\\b(?:stock|bleach|concentrate)(?: concentration| strength)?\\s*(?:of|is|at|=|:)?\\s*$" (beforeScalar low n)
+          orelse has "^\\s*(?:stock|bleach|concentrate)\\b" tail
+          orelse has "\\bfrom\\s*$" (beforeScalar low n)
+        fun target (n,_,tail) =
+          has "\\b(?:target|final)(?: concentration| strength)?\\s*(?:of|is|at|=|:)?\\s*$" (beforeScalar low n)
+          orelse has "\\bto\\s*(?:a\\s*)?$" (beforeScalar low n)
+          orelse has "^\\s*(?:target|sanitizer|solution)\\b" tail
+        fun pair (a as (_,ca,_), b as (_,cb,_)) =
+          let val sa = stock a val sb = stock b val ta = target a val tb = target b
+          in if (sa andalso ta) orelse (sb andalso tb) orelse (sa andalso sb) orelse (ta andalso tb) then NONE
+             else if sa orelse tb then SOME (ca,cb)
+             else if sb orelse ta then SOME (cb,ca)
+             else NONE end
+        val concs = case cs of [a,b] => pair (a,b) | _ => NONE
+        val vol = only (List.mapPartial (fn n =>
+          case search "^\\s*(ml|liters?|litres?|l|gallons?|gal)\\b" (afterScalar low n) of NONE => NONE
+          | SOME m => SOME (rat (#value n), wu (valOf (grp (afterScalar low n) m 1)))) ns)
       in SOME (M.Dilution (concs, vol)) end
     else if has "\\bph\\b" low andalso has "\\bh\\+|\\bhydrogen[- ]ion\\b|\\bhydronium\\b|\\bmol/l\\b|\\bconcentration\\b" low then
       let

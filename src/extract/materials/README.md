@@ -8,7 +8,7 @@ kernels and differ in the recognizer.
 
 Same recipe as the quantity family (`../quantity/README.md`): the formulas and the decisions to
 decline are HOL with proofs; Isabelle exports them to Standard ML; the MLton inside Isabelle
-builds one standalone binary; the English reader (`recognizer.sml`, `../commons/commons.sml`) is
+builds one standalone binary; the English reader (`recognizer.sml`, `../commons/commons.sml`, `../commons/numeric.sml`) is
 hand-ported from the organs and is **untrusted**; `tables_check.py` ties the HOL constants and
 the texture rule list to the organ files.
 
@@ -49,3 +49,18 @@ runs fresh samples from the shipped generators and the authored extension
 probes. Fresh seeds vary selections from the generators' existing pools;
 they do not provide independent phrasings. `generation.json` records exactly
 which generator supplied each specialist.
+
+## Directed dilution and physical mass inputs
+
+Dilution preserves the stated stock and target roles. A stock cannot be diluted
+to a stronger target; final volume and target concentration must be nonnegative,
+and stock concentration positive. The calculated stock volume conserves the
+specified solute amount and lies between zero and final volume. Percent uses
+the inherited convention 1% = 10,000 mg/L, without inferring solution density.
+Ambiguous or contradictory concentration roles are withheld.
+
+The shared exact numeral lexer supplies signed decimals, scientific notation
+and fractions to the Hooke, soil and dilution readers. Bulk density refuses
+negative dry mass or nonpositive sample volume; volumetric water content also
+requires positive supplied bulk density. These rules check the supplied model
+inputs, not the physical identity or condition of an actual sample.

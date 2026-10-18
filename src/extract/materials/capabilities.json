@@ -12,6 +12,52 @@
           "English recognition and framing."
         ]
       }
+    },
+    "soil": {
+      "evidence": {
+        "computation": "Soil bulk density divides nonnegative dry mass by positive core volume. Soil readers preserve signed exact numeric values and decline malformed numbers.",
+        "assumptions": [
+          "Quantities name the stated dry sample and core; physical inputs satisfy the kernel guards."
+        ],
+        "untrusted": [
+          "English quantity roles, units and the shared numeric lexer."
+        ]
+      }
+    },
+    "soil-r2": {
+      "evidence": {
+        "computation": "Soil bulk density divides nonnegative dry mass by positive core volume. Soil readers preserve signed exact numeric values and decline malformed numbers.",
+        "assumptions": [
+          "Quantities name the stated dry sample and core; physical inputs satisfy the kernel guards."
+        ],
+        "untrusted": [
+          "English quantity roles, units and the shared numeric lexer."
+        ]
+      }
+    },
+    "water": {
+      "evidence": {
+        "computation": "Dilution preserves stated stock and target roles, balances stock concentration times stock volume against target concentration times final volume, and refuses concentration by dilution.",
+        "assumptions": [
+          "Additive solution volumes and a diluent with zero concentration of the solute.",
+          "The inherited percent conversion means 1 percent equals 10000 mg/L."
+        ],
+        "untrusted": [
+          "English quantity roles, units and the shared numeric lexer."
+        ]
+      }
+    },
+    "water-r3": {
+      "evidence": {
+        "computation": "Dilution preserves stated stock and target roles, balances stock concentration times stock volume against target concentration times final volume, and refuses concentration by dilution.",
+        "assumptions": [
+          "Additive solution volumes and a diluent with zero concentration of the solute.",
+          "The inherited percent conversion means 1 percent equals 10000 mg/L."
+        ],
+        "untrusted": [
+          "English quantity roles, units and the shared numeric lexer."
+        ]
+      }
     }
   }
 }
