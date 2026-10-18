@@ -1,0 +1,8 @@
+session Veri7vn_RelOrgan = HOL +
+  options [document = false]
+  sessions
+    "HOL-Library"
+  theories
+    Relation_Organ
+    Relation_Organ_Export
+    Relation_Organ_Test
