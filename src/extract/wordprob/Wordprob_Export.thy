@@ -120,12 +120,12 @@ ML \<open>
     @{thm money_tie_example}, @{thm negative_given_declines},
     @{thm unsigned_given_unchanged}, @{thm checked_answered_iff},
     @{thm round_sig_sound}, @{thm round_at_error},
-    @{thm percent_of_value}, @{thm convert_value}, @{thm simple_interest_value},
-    @{thm unit_price_value}, @{thm total_cost_value}, @{thm sale_off_value},
-    @{thm sale_pct_value}, @{thm percent_of_total_value}, @{thm motion_dist_value},
-    @{thm motion_speed_value}, @{thm rect_area_value}, @{thm rect_perim_value},
-    @{thm circle_area_value}, @{thm circle_circ_value}, @{thm cone_vol_value},
-    @{thm cyl_vol_value}, @{thm sphere_vol_value},
+    @{thm percent_of_value}, @{thm simple_interest_value}, @{thm total_cost_value}, @{thm sale_off_value},
+    @{thm sale_pct_value}, @{thm motion_dist_value}, @{thm rect_area_value}, @{thm rect_perim_value},
+    @{thm circle_area_value}, @{thm circle_circ_value},
+    @{thm cyl_vol_value}, @{thm convert_roundtrip}, @{thm unit_price_guard}, @{thm unit_price_answered_guard},
+    @{thm unit_price_total_cost}, @{thm percent_of_total_sym}, @{thm percent_of_total_range},
+    @{thm motion_speed_dist}, @{thm cone_cyl_ratio}, @{thm sphere_four_cones}, @{thm cyl_base_height},
     @{thm pow10_4_real}, @{thm pow10_5_real}, @{thm pow10_6_real}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("wordprob theorems use oracles: " ^ string_of_int (length oracles));

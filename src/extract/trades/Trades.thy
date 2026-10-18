@@ -156,6 +156,33 @@ fun comp_of :: "colour \<Rightarrow> colour" where
 | "comp_of C_violet = C_yellow"
 | "comp_of c = c"
 
+section \<open>Laws of the colour and lumber tables\<close>
+
+text \<open>Mixing two paints does not depend on which was named first, in both
+the painter's (RYB) and the light (RGB) models.\<close>
+theorem mix_symmetric: "mix_ryb a b = mix_ryb b a \<and> mix_rgb a b = mix_rgb b a"
+  by (cases a; cases b) (simp_all add: mix_ryb_def mix_rgb_def)
+
+text \<open>The complement table is an involution on every colour except violet.
+Violet is the organ's own asymmetry: its complement is yellow, but yellow's is
+purple, so two steps land on purple, not back on violet. The kernel keeps the
+organ's table; the two statements say exactly where the law holds and where it
+does not.\<close>
+theorem complement_involution:
+  "x \<noteq> C_violet \<Longrightarrow> comp_of (comp_of x) = x"
+  by (cases x) simp_all
+
+theorem complement_violet_exception:
+  "comp_of (comp_of C_violet) = C_purple \<and> C_purple \<noteq> C_violet"
+  by simp
+
+text \<open>A dressed board is smaller than its nominal size and has a positive
+size: the table never claims a board larger than its name.\<close>
+theorem actual_below_nominal:
+  "actual n = Some x \<Longrightarrow> 0 < x \<and> x < of_nat n"
+  by (auto simp: actual_def actual_tab_def split: if_splits)
+
+
 datatype cunit = CU_in | CU_quote | CU_cm | CU_mm
 
 fun cunit_label :: "cunit \<Rightarrow> String.literal" where

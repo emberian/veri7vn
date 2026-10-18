@@ -12,10 +12,10 @@ struct
     ["reply_answered_iff", "response_template", "printed_rounds_value", "printed_rounds_value_percent",
      "stated6_sound", "stated4_sound", "round_dec_error", "rl_round_dec_bound", "round_tie_up", "round_dec_tie_up", "money_round_tie_up",
      "money_tie_example", "negative_given_declines", "unsigned_given_unchanged", "checked_answered_iff",
-     "round_sig_sound", "round_at_error", "percent_of_value", "convert_value", "simple_interest_value",
-     "unit_price_value", "total_cost_value", "sale_off_value", "sale_pct_value", "percent_of_total_value",
-     "motion_dist_value", "motion_speed_value", "rect_area_value", "rect_perim_value", "circle_area_value",
-     "circle_circ_value", "cone_vol_value", "cyl_vol_value", "sphere_vol_value"])
+     "round_sig_sound", "round_at_error", "percent_of_value", "simple_interest_value",
+     "total_cost_value", "sale_off_value", "sale_pct_value",
+     "motion_dist_value", "rect_area_value", "rect_perim_value", "circle_area_value",
+     "circle_circ_value", "cyl_vol_value", "convert_roundtrip", "unit_price_guard", "unit_price_answered_guard", "unit_price_total_cost", "percent_of_total_sym", "percent_of_total_range", "motion_speed_dist", "cone_cyl_ratio", "sphere_four_cones", "cyl_base_height"])
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))

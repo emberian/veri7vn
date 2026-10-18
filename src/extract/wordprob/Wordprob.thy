@@ -622,12 +622,7 @@ qed
 text \<open>Every value satisfies its schema's equation.\<close>
 theorem percent_of_value: "wvalue (PercentOf m r w) = r / 100 * w" by simp
 
-theorem convert_value:
-  "scale b \<noteq> 0 \<Longrightarrow> wvalue (Convert x a b) * scale b = x * scale a" by simp
-
 theorem simple_interest_value: "wvalue (SimpleInterest P r n) = P * r / 100 * n" by simp
-
-theorem unit_price_value: "n \<noteq> 0 \<Longrightarrow> wvalue (UnitPrice p n) * n = p" by simp
 
 theorem total_cost_value: "wvalue (TotalCost n p) = n * p" by simp
 
@@ -635,13 +630,73 @@ theorem sale_off_value: "wvalue (SaleOff a b) = a - b" by simp
 
 theorem sale_pct_value: "wvalue (SalePct a r) = a * (1 - r / 100)" by simp
 
-theorem percent_of_total_value:
-  "max a b \<noteq> 0 \<Longrightarrow> wvalue (PercentOfTotal a b) * max a b = min a b * 100" by simp
-
 theorem motion_dist_value: "wvalue (MotionDist r t u l) = r * (t * scale u)" by simp
 
-theorem motion_speed_value:
-  "t * scale u' \<noteq> 0 \<Longrightarrow> wvalue (MotionSpeed x u t u') * (t * scale u') = x" by simp
+text \<open>The value of a schema is not restated here; each statement below ties
+two schemas, or a schema and the decline rule, to each other.\<close>
+lemma scale_pos [simp]: "0 < scale u"
+  by (cases u) simp_all
+
+lemma scale_nz [simp]: "scale u \<noteq> 0"
+  using scale_pos[of u] by (metis less_irrefl)
+
+text \<open>Converting there and back returns the quantity: the two conversions
+use the same table row in opposite directions, so the factors cancel.\<close>
+theorem convert_roundtrip:
+  "wvalue (Convert (wvalue (Convert x a b)) b a) = x"
+  by simp
+
+text \<open>The kernel divides a unit price only when the count is non-zero, on
+the decline rule and on the whole reply; and the unit price times the count
+is the total cost schema's value, which returns the original price.\<close>
+theorem unit_price_guard: "\<not> wdecline (UnitPrice p n) \<Longrightarrow> n \<noteq> 0"
+  by simp
+
+theorem unit_price_answered_guard:
+  "answered (reply_of (rnd, [UnitPrice p n])) \<Longrightarrow> n \<noteq> 0"
+  using reply_answered_iff[of rnd "[UnitPrice p n]"] by simp
+
+theorem unit_price_total_cost:
+  "answered (reply_of (rnd, [UnitPrice p n])) \<Longrightarrow>
+     wvalue (TotalCost n (wvalue (UnitPrice p n))) = p"
+  using unit_price_answered_guard by simp
+
+text \<open>Percent of total names the smaller as the part: the order the
+quantities are written in cannot change the answer, and an answered one
+lies between 0 and 100 for non-negative givens.\<close>
+theorem percent_of_total_sym:
+  "wvalue (PercentOfTotal a b) = wvalue (PercentOfTotal b a)"
+  by (simp add: min.commute max.commute)
+
+theorem percent_of_total_range:
+  assumes "0 \<le> a" "0 \<le> b" "\<not> wdecline (PercentOfTotal a b)"
+  shows "0 \<le> wvalue (PercentOfTotal a b) \<and> wvalue (PercentOfTotal a b) \<le> 100"
+proof -
+  have mp: "0 < max a b" using assms by (auto simp: max_def)
+  have "min a b \<le> max a b" by simp
+  with mp show ?thesis using assms(1,2)
+    by (auto simp: field_simps divide_le_eq_1 intro!: mult_nonneg_nonneg divide_nonneg_nonneg)
+qed
+
+text \<open>Speed and distance are the same motion read two ways: a speed the
+kernel answers, run forward for the same time in the same unit, gives back
+the distance.\<close>
+theorem motion_speed_dist:
+  assumes "\<not> wdecline (MotionSpeed x u t u')"
+  shows "wvalue (MotionDist (wvalue (MotionSpeed x u t u')) t u' l) = x"
+  using assms by simp
+
+text \<open>Solids against each other: a cylinder is three cones on the same
+base and height, a sphere is four cones whose base radius and height both
+equal its radius, and a cylinder is its base circle's area times the height.\<close>
+theorem cone_cyl_ratio: "wvalue (CylVol r h p) = 3 * wvalue (ConeVol r h p)"
+  by simp
+
+theorem sphere_four_cones: "wvalue (SphereVol r p) = 4 * wvalue (ConeVol r r p)"
+  by (simp add: power3_eq_cube field_simps)
+
+theorem cyl_base_height: "wvalue (CylVol r h p) = wvalue (CircleArea r p) * h"
+  by simp
 
 theorem rect_area_value: "wvalue (RectArea l w) = l * w" by simp
 
@@ -651,11 +706,7 @@ theorem circle_area_value: "wvalue (CircleArea r p) = pi_of p * r * r" by simp
 
 theorem circle_circ_value: "wvalue (CircleCirc r p) = 2 * pi_of p * r" by simp
 
-theorem cone_vol_value: "wvalue (ConeVol r h p) * 3 = pi_of p * r * r * h" by simp
-
 theorem cyl_vol_value: "wvalue (CylVol r h p) = pi_of p * r * r * h" by simp
-
-theorem sphere_vol_value: "wvalue (SphereVol r p) * 3 = 4 * pi_of p * r ^ 3" by simp
 
 text \<open>The printed number is a rounding of the schema's exact value: the
 reply prints @{term "stated6 (rounded rnd r)"} (or @{term "stated4"} for

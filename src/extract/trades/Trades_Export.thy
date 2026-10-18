@@ -2,6 +2,8 @@ theory Trades_Export
   imports Trades
 begin
 
+(* W6-24: the oracle scan below covers the colour and lumber laws. *)
+
 text \<open>Constructors the untrusted SML recognizer uses to build requests from
 decimal numerals it read off the text.\<close>
 definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
@@ -62,6 +64,8 @@ ML \<open>
     @{thm expr_of_meaning}, @{thm round_he_spec}, @{thm ceil_eps_cover}, @{thm floor_eps_fit},
     @{thm round_at_error}, @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm to_fixed_sound},
     @{thm enclose_m_sound}, @{thm stated_dec_sound}, @{thm round_tie_up},
+    @{thm mix_symmetric}, @{thm complement_involution}, @{thm complement_violet_exception},
+    @{thm actual_below_nominal},
     @{thm rafter_pythagoras}, @{thm pitch_tan}, @{thm noise_halving}, @{thm egress_widths},
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_states_approx},
     @{thm reply_withheld_names_decline}];
