@@ -201,6 +201,71 @@ struct
     end
     handle e => "{\"id\": null, \"error\": " ^ Json.quote (exnMessage e) ^ "}"
 
+  (* --dump-feats: one JSON object per input line carrying every feature of the
+     computed feats record (the recognizer's own reading of the text; the rat
+     list is dumped as its numerator/denominator pairs, which is exactly what
+     was handed to mk_rat). gen_vectors.py turns this into Guards_Vectors.thy. *)
+  fun dump (line : string) : string =
+    let
+      val fs = Json.fields line
+      val id = case field fs "id" of SOME raw => raw | NONE => "null"
+    in
+      case (fieldStr line fs "q", fieldStr line fs "route", fieldStr line fs "reply") of
+        (SOME q, SOME route, SOME rp) =>
+          let
+            val status = Option.getOpt (fieldStr line fs "status", "answered")
+            val F as Guards.Feats (_, rt, g3, rq, rr, _, _, hu, pm, r510, r511, r513, r514, r516, r517, r532, r533, r534) =
+              Recognizer.featsOf {status = status, q = q, route = route, reply = rp,
+                                  human = humanOf fs, premise = premiseOf line fs}
+            val Guards.F510 (g10, spec, phr) = r510
+            val Guards.F511 (a1, a2, a3, a4, a5, a6, a7, a8) = r511
+            val Guards.F513 (b1, b2, b3, w13, b5, subj) = r513
+            val Guards.F514 (c1, w14, c3, subj5) = r514
+            val Guards.F516 (d1, d2, d3, d4, w16) = r516
+            val Guards.F517 (e1) = r517
+            val Guards.F532 (f1, f2, f3) = r532
+            val Guards.F533 (h1, h2, h3, vl, ul, h6, h7, h8, h9) = r533
+            val Guards.F534 (i1, i2, i3) = r534
+            fun jb b = if b then "true" else "false"
+            fun jopt f = fn NONE => "null" | SOME x => f x
+            fun jstr s = Json.quote s
+            fun jl f xs = "[" ^ String.concatWith "," (map f xs) ^ "]"
+            fun jint n = String.translate (fn #"~" => "-" | c => String.str c) (Int.toString n)
+            fun jpair (a, b) = "[" ^ jint a ^ "," ^ jint b ^ "]"
+            val prem = case premiseOf line fs of
+                NONE => "null"
+              | SOME (l, y, ys) => "{\"label\": " ^ jstr l ^ ", \"year\": " ^ jint y
+                                   ^ ", \"years\": " ^ jl jint ys ^ "}"
+          in
+            "{\"id\": " ^ id
+            ^ ", \"answered\": " ^ jb (status = "answered")
+            ^ ", \"route\": " ^ jstr route
+            ^ ", \"resp_g3\": " ^ jstr (Recognizer.kstr g3)
+            ^ ", \"resp_q\": " ^ jstr (Recognizer.kstr rq)
+            ^ ", \"resp_r\": " ^ jstr (Recognizer.kstr rr)
+            ^ ", \"nums_q\": " ^ jl jpair (Recognizer.numPairsOf q)
+            ^ ", \"nums_resp\": " ^ jl jpair (Recognizer.numPairsOf (Recognizer.collapse rp))
+            ^ ", \"human\": " ^ jopt jb hu
+            ^ ", \"premise\": " ^ prem
+            ^ ", \"f510\": {\"gate\": " ^ jb g10 ^ ", \"specifics\": " ^ jl jstr (map Recognizer.kstr spec)
+            ^ ", \"of_phrases\": " ^ jl (jl jstr) (map (map Recognizer.kstr) phr) ^ "}"
+            ^ ", \"f511\": [" ^ String.concatWith "," (map jb [a1, a2, a3, a4, a5, a6, a7, a8]) ^ "]"
+            ^ ", \"f513\": [" ^ String.concatWith "," (map jb [b1, b2, b3]) ^ ", " ^ jl jstr (map Recognizer.kstr w13)
+            ^ ", " ^ jb b5 ^ ", " ^ jopt jstr (Option.map Recognizer.kstr subj) ^ "]"
+            ^ ", \"f514\": [" ^ jb c1 ^ ", " ^ jl jstr (map Recognizer.kstr w14) ^ ", " ^ jb c3
+            ^ ", " ^ jopt jstr (Option.map Recognizer.kstr subj5) ^ "]"
+            ^ ", \"f516\": [" ^ String.concatWith "," (map jb [d1, d2, d3, d4]) ^ ", "
+            ^ jl jstr (map Recognizer.kstr w16) ^ "]"
+            ^ ", \"f517\": [" ^ jb e1 ^ "]"
+            ^ ", \"f532\": [" ^ String.concatWith "," (map jb [f1, f2, f3]) ^ "]"
+            ^ ", \"f533\": [" ^ String.concatWith "," (map jb [h1, h2, h3, h6, h7, h8, h9])
+            ^ ", " ^ jstr (String.implode (map Recognizer.cchar vl))
+            ^ ", " ^ jstr (String.implode (map Recognizer.cchar ul)) ^ "]"
+            ^ ", \"f534\": [" ^ String.concatWith "," (map jb [i1, i2, i3]) ^ "]}"
+          end
+      | _ => "{\"id\": " ^ id ^ ", \"error\": \"request needs q, route and reply\"}"
+    end
+
   fun loop () =
     case TextIO.inputLine TextIO.stdIn of
       NONE => ()
@@ -216,6 +281,22 @@ val _ =
       (TextIO.output (TextIO.stdOut,
         "self_test=" ^ Bool.toString Guards.self_test ^ "\n");
        if Guards.self_test then () else OS.Process.exit OS.Process.failure)
+  | ["--dump-feats"] =>
+      (case TextIO.inputLine TextIO.stdIn of
+         NONE => ()
+       | SOME line =>
+           (if List.all Char.isSpace (String.explode line) then ()
+            else (TextIO.output (TextIO.stdOut, Main.dump line ^ "\n");
+                  TextIO.flushOut TextIO.stdOut);
+            let fun again () =
+                  case TextIO.inputLine TextIO.stdIn of
+                    NONE => ()
+                  | SOME l =>
+                      (if List.all Char.isSpace (String.explode l) then ()
+                       else (TextIO.output (TextIO.stdOut, Main.dump l ^ "\n");
+                             TextIO.flushOut TextIO.stdOut);
+                       again ())
+            in again () end))
   | [] => Main.loop ()
-  | _ => (TextIO.output (TextIO.stdErr, "usage: guards [--selftest]\n");
+  | _ => (TextIO.output (TextIO.stdErr, "usage: guards [--selftest] [--dump-feats]\n");
           OS.Process.exit OS.Process.failure)

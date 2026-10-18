@@ -207,6 +207,7 @@ fun parseNum t =
   in if e10 >= 0 then (sign * mag * pow10 e10, 1) else (sign * mag, pow10 (~e10)) end
 
 fun ratsOf s = map (irat o parseNum) (findAll numPat s)
+fun numPairsOf s = map parseNum (findAll numPat s)   (* the pairs behind the rats, for dumping *)
 
 (* ---- w510: gate, specifics, of-phrases ---- *)
 
