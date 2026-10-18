@@ -39,8 +39,10 @@ class FrontDoor:
     def answer(self, req):
         _, low = F.RS2.normalise(str(req.get("q", "")))
         matched = set()
+        inverse_matched = False
         for key, sids in self.readers.items():
             compiled = F.RS2.compiled(key)
+            inverse_matched = inverse_matched or any(rx.match(low) for rx in compiled["inv"])
             if any(rx.match(low) for direction in ("fwd", "inv") for rx in compiled[direction]):
                 matched.update(sids)
         decisive = []
@@ -50,12 +52,19 @@ class FrontDoor:
             out = self.answerers[sid].answer(req)
             if out["provenance"]["taken"]:
                 decisive.append(out)
-        return self.merge(req, decisive, matched)
+        return self.merge(req, decisive, matched, inverse_matched=inverse_matched)
 
     @staticmethod
-    def merge(req, decisive, matched):
+    def merge(req, decisive, matched, inverse_matched=False):
         """Conservative composition: no reader may overwrite another's refusal."""
         if not decisive:
+            if inverse_matched:
+                return {"id": req.get("id"), "status": "withheld", "value": None,
+                        "response": "I can't identify one stored subject of the requested kind, so I won't guess.",
+                        "path": "veri7vn:relations>INVERSE_UNRESOLVED",
+                        "provenance": {"kind": "veri7vn_relations_frontdoor", "taken": True,
+                                       "matched_readers": len(matched),
+                                       "scope": "Recognized inverse request; no checked reader returned a decisive claim."}}
             return {"id": req.get("id"), "status": "withheld", "response": "",
                     "path": "veri7vn:relations>SILENT",
                     "provenance": {"kind": "veri7vn_relations_frontdoor", "taken": False,
@@ -66,7 +75,7 @@ class FrontDoor:
         claims = {(out["provenance"].get("subject_qid"), out["provenance"].get("property"))
                   for out in decisive}
         values = {json.dumps(out["provenance"].get("value"), sort_keys=True) for out in answers}
-        incomplete = any(out["provenance"]["kernel_outcome"] == "incomplete" for out in decisive)
+        incomplete = any(out["provenance"].get("kernel_outcome") == "incomplete" for out in decisive)
         mixed_status = bool(answers) and len(answers) != len(decisive)
         if len(claims) == 1 and len(values) <= 1 and not incomplete and not mixed_status:
             out = dict(answers[0] if answers else decisive[0])

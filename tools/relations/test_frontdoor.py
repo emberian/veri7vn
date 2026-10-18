@@ -48,6 +48,19 @@ class Composition(unittest.TestCase):
         self.assertEqual(out["status"], "withheld")
         self.assertTrue(out["provenance"]["taken"])
 
+    def test_unresolved_inverse_stays_decisive(self):
+        out = FrontDoor.merge({"id": "test"}, [], {"a"}, inverse_matched=True)
+        self.assertEqual(out["status"], "withheld")
+        self.assertTrue(out["provenance"]["taken"])
+
+    def test_version_refusal_does_not_invent_kernel_result(self):
+        refusal = {"status": "withheld", "response": "cannot check subject kind", "path": "scope",
+                   "provenance": {"specialist": "a", "taken": True,
+                                  "adapter_refusal": "requested-subject kernel version required"}}
+        out = self.merge(refusal)
+        self.assertTrue(out["provenance"]["taken"])
+        self.assertNotIn("kernel_outcome", out["provenance"])
+
 
 if __name__ == "__main__":
     unittest.main()

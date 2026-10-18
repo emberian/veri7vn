@@ -13,7 +13,8 @@ verified decision reads. Everything here is shipped code imported read-only, run
      resolved to its display label as relation_spec_v1.values does (blank nodes and unlabelled entities -> Blank).
      complete=True and dom_complete=True assert that these sqlite scans are unbounded and the closure is the shipped
      one; nothing in HOL establishes either;
-  4. for inverse phrasings, the first (up to) 8 subjects holding (p, top candidate), exactly the shipped LIMIT 8 query;
+  4. for inverse phrasings, up to 256 distinct subjects holding (p, top candidate);
+     LIMIT 257 detects overflow and causes refusal instead of treating truncation as completeness;
   5. the restate words (exact_router_v1.norm, stop words removed on the value side only) and the pronoun flag of the
      two V2G organs (a subject label that is a pronoun written in lower case in the question).
 """
@@ -114,6 +115,8 @@ LINKERS = {"names": lambda text, n, domain: link_names(text, n), "standin": link
 
 
 class Fetch:
+    inverse_subject_limit = 256
+
     def __init__(self, spec, linker="names", n=6):
         self.spec, self.n = spec, n
         self.link, self.linker = LINKERS[linker], linker
@@ -172,9 +175,10 @@ class Fetch:
                                              for qq, ll in self.link(slot, self.n, self.spec.domain)]
                         if direction == "inv" and att["candidates"]:
                             top = att["candidates"][0]["qid"]
-                            subs = RS1._q("SELECT s FROM fact INDEXED BY fact_po WHERE p=? AND o=? LIMIT 8", (p, top))
-                            att["capped"] = len(subs) == 8
-                            att["subjects"] = [self.cand(x, 0, p, low) for x in subs]
+                            subs = RS1._q("SELECT DISTINCT s FROM fact INDEXED BY fact_po WHERE p=? AND o=? LIMIT ?",
+                                          (p, top, self.inverse_subject_limit + 1))
+                            att["capped"] = len(subs) > self.inverse_subject_limit
+                            att["subjects"] = [self.cand(x, 0, p, low) for x in subs[:self.inverse_subject_limit]]
                         for cd in att["candidates"] + att["subjects"]:
                             for v in [r[1] for r in cd["rows"]] + [cd["label"]]:
                                 if v[0] == "l" and v[1] not in seen:

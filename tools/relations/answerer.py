@@ -21,6 +21,7 @@ import sys
 sys.dont_write_bytecode = True
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fetch as F  # noqa: E402
+import scoped_fetch  # noqa: E402
 
 REPO = F.REPO
 BIN = os.environ.get("VERI7VN_RELATIONS_BIN", os.path.join(REPO, "var/relations/bin/decide"))
@@ -83,6 +84,7 @@ class Answerer:
         got = json.loads(self._call("spec " + self.spec.sid))
         if got.get("outcome") == "error":
             sys.exit("answerer: the binary has no table for %s" % self.spec.sid)
+        self.scoped = got.get("request_constraint_version") == 1
         want = []
         for k in self.spec.keys:
             e = F.RD.PROPS[k]
@@ -97,14 +99,18 @@ class Answerer:
                 self.spec.sid, got, want))
 
     def reply(self, req, out, low, ev):
-        prov = {"kind": "veri7vn_relations", "decision": "Relation_Reader.decide_spec", "specialist": self.spec.sid,
+        decision = "Relation_Request.decide_requested" if self.scoped else "Relation_Reader.decide_spec"
+        prov = {"kind": "veri7vn_relations", "decision": decision, "specialist": self.spec.sid,
                 "store": "relations_v1.sqlite3", "linker": self.linker}
         oc = out.get("outcome")
         prov.update(taken=oc in ("answer", "decline", "incomplete"), kernel_outcome=oc,
                     source_scope={"snapshot": self.snapshot, "candidate_limit": self.fetch.n,
                                   "linker_preselection_limit": 400 if self.linker == "standin" else None,
                                   "domain_closure": {"depth": 8, "parents_per_level": 12},
-                                  "inverse_subject_limit": 8,
+                                  "inverse_subject_limit": self.fetch.inverse_subject_limit,
+                                  "subject_constraint": ev.get("subject_constraint"),
+                                  "subject_constraint_frames": ev.get("subject_constraint_frames"),
+                                  "subject_constraint_properties": ev.get("subject_constraint_properties"),
                                   "forward_only": all(a["dir"] == "fwd" for a in ev["attempts"]),
                                   "projection": "entity display labels; blank and unlabelled values removed; "
                                                 "unique label does not imply unique entity identity",
@@ -114,7 +120,9 @@ class Answerer:
                                       "values for each candidate and property; unbounded row fetch is untrusted",
                                   "untrusted": ["question recognition", "entity linking", "domain closure",
                                                 "fetched-row completeness", "source assertions"]},
-                    evidence={"declaration": "Relation_Reader.decide_spec over supplied candidates and rows",
+                    evidence={"declaration": decision + " over supplied candidates and rows" +
+                                             (" with requested-subject constraint" if self.scoped else "") +
+                                             "; recognition and source coverage assumed",
                               "checks": {"specialist_table_matches_shipped": True,
                                          "kernel_returned": oc}})
         rs = F.STORE
@@ -158,6 +166,15 @@ class Answerer:
 
     def answer(self, req):
         low, ev = self.fetch.evidence(str(req.get("q", "")))
+        scoped_fetch.attach(low, ev)
+        if not self.scoped and any(a["dir"] == "inv" for a in ev["attempts"]):
+            return {"id": req.get("id"), "status": "withheld", "value": None,
+                    "response": "I can't verify the requested kind of person or place from my records, so I won't guess.",
+                    "path": "veri7vn:relations>SCOPE_REQUIRED",
+                    "provenance": {"kind": "veri7vn_relations", "taken": True,
+                                   "specialist": self.spec.sid,
+                                   "subject_constraint": ev["subject_constraint"],
+                                   "adapter_refusal": "requested-subject kernel version 1 required"}}
         ev["id"] = req.get("id")
         out = json.loads(self._call(json.dumps(ev, ensure_ascii=False)))
         if out.get("outcome") == "error":
