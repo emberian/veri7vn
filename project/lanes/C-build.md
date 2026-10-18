@@ -220,3 +220,15 @@ Receipt: `var/climate/native-attempts/20261018T073431Z-833b2038dcef/compile-inpu
 Binary: `a1bd7aa362aed6bd4c7caea0f0b37c4ed5e55c824c666f30387755833aaf0b70`.
 The Climate owner received this actual output for final consumer panels; this
 infrastructure check itself adds no specialist panel score.
+
+Adopter follow-through added canonical mapping for compiler wrappers under
+`tools/` and lookup of shared-session producer receipts (Variants uses Quantity).
+Fusion then exposed unrelated in-flight Energy theory changes inside the helper's
+conservative dependency-directory inventory. An explicit `--proof-snapshot`
+mode now accepts only a named passed receipt, validates its full retained proof
+closure and actual consumed export, and labels/reports its differences from current
+proof sources. Current runtime inputs still compile from their actual copies.
+There is no automatic fallback or skipped dependency directory. Seventeen focused
+native tests pass, including required explicit context, missing/drifted retained
+inputs, and a mismatched generated kernel. Packaging coordinates the two source
+origins rather than treating historical proof as a current-theory claim.

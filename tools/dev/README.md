@@ -213,3 +213,22 @@ The output and convenience receipt are published under the compiler lock after
 success. Readers still compare the binary hash with the receipt: two filesystem
 paths are not a transactional pair. Installed compiler path, wrapper/backend
 hashes and path map identify the toolchain separately from application snapshots.
+
+A selected older verified kernel can explicitly retain its proof context:
+
+```
+tools/dev/native-compile --family fusion --compiler "$MLTON" \
+  --from-receipt /absolute/path/to/receipt.json --proof-snapshot \
+  -- -output /absolute/path/to/fusion /absolute/path/to/fusion.mlb
+```
+
+This mode requires an exact passed receipt. It validates the complete conservative
+proof dependency closure inside that receipt's immutable source snapshot and
+still binds the generated SML actually consumed. It never silently falls back
+from current-source validation. Actual runtime inputs are copied from the given
+MLB as usual. The manifest labels `proof_source_context: receipt_snapshot`, names
+`proof_snapshot_dir`, and reports `current_proof_differences`,
+`current_proof_error`, and `current_proofs_match`. Package consumers must preserve
+these distinct proof/runtime origins, rather than claim the retained kernel was
+proved from today's changing theory checkout. Missing or changed snapshot inputs,
+a different generated export, and receipt changes during compilation fail.

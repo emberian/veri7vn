@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import tempfile
+import shutil
 import unittest
 from unittest.mock import patch
 import native_compile as n
@@ -24,6 +25,7 @@ class NativeCompileTests(unittest.TestCase):
         hashes = n.proof_sources(self.repo,'Veri7vn_Tiny')
         digest = hashlib.sha256(json.dumps(hashes,sort_keys=True).encode()).hexdigest()
         (p/'source-sha256.json').write_text(json.dumps(hashes))
+        shutil.copytree(self.repo/'src',p/'src')
         export = p/'results/export/Veri7vn_Tiny/Tiny/code/tiny.ML';export.parent.mkdir(parents=True);export.write_bytes(self.gen.read_bytes())
         self.receipt = p/'receipt.json'
         self.record = {'status':'passed','exit_code':0,'session':'Veri7vn_Tiny','source_digest':digest,'exports_published':True,
@@ -33,7 +35,7 @@ class NativeCompileTests(unittest.TestCase):
         self.compiler = self.repo/'compiler';self.compiler.write_text('#!/bin/sh\n');self.compiler.chmod(0o755)
         self.output = out/'bin/tiny'
 
-    def compile(self, callback=None):
+    def compile(self, callback=None, proof_snapshot=False):
         def fake(command, **kwargs):
             if '-show' in command:
                 return n.subprocess.CompletedProcess(command,0,stdout='mock toolchain',stderr='')
@@ -44,7 +46,8 @@ class NativeCompileTests(unittest.TestCase):
             Path(command[command.index('-output')+1]).write_text(consumed)
             return n.subprocess.CompletedProcess(command,0)
         with patch.object(n.subprocess,'run',fake):
-            return n.compile_native(self.repo,'tiny','Veri7vn_Tiny',self.compiler,['-output',str(self.output),str(self.mlb)])
+            return n.compile_native(self.repo,'tiny','Veri7vn_Tiny',self.compiler,['-output',str(self.output),str(self.mlb)],
+                                    self.receipt if proof_snapshot else None, proof_snapshot=proof_snapshot)
 
     def test_snapshot_is_actual_compiler_input_despite_live_change(self):
         r=self.compile(lambda _:self.runtime.write_text('val answer = 99\n'))
@@ -94,6 +97,29 @@ class NativeCompileTests(unittest.TestCase):
                                                    {'family':'variant','session':'Veri7vn_Tiny'}]}))
         selected=n.select_receipt(self.repo,'variant','Veri7vn_Tiny',n.read_mlb(self.mlb))
         self.assertEqual(selected[0],self.receipt)
+
+    def test_retained_proof_requires_explicit_receipt(self):
+        with self.assertRaisesRegex(ValueError,'requires an exact'):
+            n.select_receipt(self.repo,'tiny','Veri7vn_Tiny',n.read_mlb(self.mlb),proof_snapshot=True)
+
+    def test_retained_proof_reports_live_difference_and_compiles_saved_kernel(self):
+        (self.src/'Tiny.thy').write_text('new unproved theory')
+        r=self.compile(proof_snapshot=True)
+        self.assertEqual(r['proof_source_context'],'receipt_snapshot')
+        self.assertFalse(r['current_proofs_match'])
+        self.assertEqual(r['current_proof_differences'],['src/extract/tiny/Tiny.thy'])
+
+    def test_retained_proof_missing_input_rejected(self):
+        (self.receipt.parent/'src/extract/tiny/Tiny.thy').unlink()
+        with self.assertRaisesRegex(ValueError,'inventory differs'):self.compile(proof_snapshot=True)
+
+    def test_retained_proof_input_drift_rejected(self):
+        (self.receipt.parent/'src/extract/tiny/Tiny.thy').write_text('drift')
+        with self.assertRaisesRegex(ValueError,'proof dependencies differ'):self.compile(proof_snapshot=True)
+
+    def test_retained_proof_wrong_export_rejected(self):
+        self.gen.write_text('wrong kernel')
+        with self.assertRaisesRegex(ValueError,'checked generated export'):self.compile(proof_snapshot=True)
 
     def test_unrelated_nested_session_does_not_stale_parent(self):
         nested=self.src/'other';nested.mkdir();(nested/'ROOT').write_text('session Veri7vn_Other = HOL +\n theories Other\n');(nested/'Other.thy').write_text('new')

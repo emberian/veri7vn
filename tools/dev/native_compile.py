@@ -76,8 +76,11 @@ def read_mlb(path):
     return result
 
 
-def select_receipt(repo, family, session, inputs, explicit=None):
-    current = proof_sources(repo, session)
+def select_receipt(repo, family, session, inputs, explicit=None, proof_snapshot=False):
+    if proof_snapshot and explicit is None:
+        raise ValueError('--proof-snapshot requires an exact --from-receipt')
+    proof_root = explicit.parent if proof_snapshot else repo
+    current = proof_sources(proof_root, session)
     producers = {family}
     registry = repo/'src/extract/families.json'
     if registry.exists():
@@ -101,10 +104,10 @@ def select_receipt(repo, family, session, inputs, explicit=None):
             if any(source_hashes.get(k) != v for k, v in current.items()):
                 raise ValueError('current proof dependencies differ from receipt')
             # Also detect deleted proof inputs, not just changed/new ones.
-            roots = {repo/Path(k).parent for k in current if Path(k).name == 'ROOT'}
+            roots = {proof_root/Path(k).parent for k in current if Path(k).name == 'ROOT'}
             saved = {k: v for k, v in source_hashes.items()
                      if (Path(k).suffix in ('.thy', '.ML') or Path(k).name == 'ROOT')
-                     and next((a for a in (repo/k).parents if (a/'ROOT').is_file()), None) in roots}
+                     and next((a for a in (proof_root/k).parents if (a/'ROOT').is_file()), None) in roots}
             if saved != current:
                 raise ValueError('proof dependency inventory differs from receipt')
             exports = path.parent/'results/export'/session
@@ -119,7 +122,7 @@ def select_receipt(repo, family, session, inputs, explicit=None):
     raise ValueError('no passed current-proof receipt matches consumed export: ' + '; '.join(errors[-3:]))
 
 
-def compile_native(repo, family, session, compiler, arguments, explicit=None, timeout=1200):
+def compile_native(repo, family, session, compiler, arguments, explicit=None, timeout=1200, proof_snapshot=False):
     repo = repo.resolve()
     if not re.fullmatch(r'[a-z0-9_-]+', family):
         raise ValueError('invalid family')
@@ -136,7 +139,18 @@ def compile_native(repo, family, session, compiler, arguments, explicit=None, ti
     with (repo/'var/native-compile.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         inputs = read_mlb(mlb)
-        receipt_path, proof, theories, generated = select_receipt(repo, family, session, inputs, explicit)
+        receipt_path, proof, theories, generated = select_receipt(repo, family, session, inputs, explicit, proof_snapshot)
+        proof_root = receipt_path.parent if proof_snapshot else repo
+        current_proof_error = None
+        try:
+            live_proofs = proof_sources(repo, session)
+            current_differences = sorted(k for k in set(live_proofs) | set(theories)
+                                         if live_proofs.get(k) != theories.get(k))
+        except (ValueError, OSError) as exc:
+            if not proof_snapshot:
+                raise
+            current_proof_error = str(exc)
+            current_differences = []
         attempt = out/'native-attempts'/(time.strftime('%Y%m%dT%H%M%SZ', time.gmtime()) + '-' + uuid.uuid4().hex[:12])
         attempt.mkdir(parents=True)
         before = {p: sha(p) for p in inputs if p is not None}
@@ -190,6 +204,11 @@ def compile_native(repo, family, session, compiler, arguments, explicit=None, ti
                   'source_sha256': source_sha256, 'canonical_source_map': canonical, 'frozen_inputs_sha256': frozen, 'input_snapshot_map': mapping,
                   'generated_sha256': generated[2], 'generated_export': generated[1],
                   'proof_dependency_sha256': theories,
+                  'proof_source_context': 'receipt_snapshot' if proof_snapshot else 'current_checkout',
+                  'proof_snapshot_dir': str(proof_root) if proof_snapshot else None,
+                  'current_proof_differences': current_differences,
+                  'current_proof_error': current_proof_error,
+                  'current_proofs_match': not current_differences and current_proof_error is None,
                   'session_receipt': {'path': str(receipt_path), 'sha256': sha(receipt_path), 'record': proof},
                   'binary': str(binary), 'output': str(output)}
         atomic_json(attempt/'compile-inputs.json', record)
@@ -205,6 +224,10 @@ def compile_native(repo, family, session, compiler, arguments, explicit=None, ti
                 raise ValueError('frozen compiler input changed during compilation')
             if sha(compiler) != toolchain['sha256'] or (backend.is_file() and sha(backend) != toolchain['backend_sha256']):
                 raise ValueError('compiler changed during compilation')
+            if sha(receipt_path) != record['session_receipt']['sha256']:
+                raise ValueError('proof receipt changed during compilation')
+            if proof_snapshot and proof_sources(proof_root, session) != theories:
+                raise ValueError('retained proof snapshot changed during compilation')
             if managed_receipt_issues(json.loads(receipt_path.read_text()), session):
                 raise ValueError('proof receipt was rejected during compilation')
             record.update(compile_ok=True, binary_sha256=sha(binary), binary_bytes=binary.stat().st_size)
@@ -229,6 +252,8 @@ def main():
     parser.add_argument('--compiler', required=True, type=Path)
     parser.add_argument('--from-receipt', type=Path)
     parser.add_argument('--timeout', type=int, default=1200)
+    parser.add_argument('--proof-snapshot', action='store_true',
+                        help='explicitly use retained proof sources; requires --from-receipt; reports live differences')
     parser.add_argument('arguments', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     arguments = args.arguments[1:] if args.arguments[:1] == ['--'] else args.arguments
@@ -238,7 +263,7 @@ def main():
         parser.error('family not registered; supply --session')
     try:
         record = compile_native(REPO, args.family, session, args.compiler.resolve(), arguments,
-                                args.from_receipt.resolve() if args.from_receipt else None, args.timeout)
+                                args.from_receipt.resolve() if args.from_receipt else None, args.timeout, args.proof_snapshot)
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         raise SystemExit(str(exc))
     print(json.dumps({'compile_ok': True, 'receipt': record['snapshot_dir'] + '/compile-inputs.json',
