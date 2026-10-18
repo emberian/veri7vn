@@ -118,3 +118,57 @@ It is not present in this packet. Other remaining specialist limitations in the
 C report stand, including transposing-score ambiguity, nonstandard organism
 counts, and source-specific title/medium coverage. No inference of universal
 completion is made from these panel results.
+
+## Bounded author-local follow-up dependency (drain completion)
+
+Root integrated the field packet as `de6e7a4`; runtime captured native
+`78553eac…ab2b1` before this separate, explicitly authorized dependency.
+No further specialist scope or proof changes are included.
+
+Actual answered poetry creator rows 10–20 and literature creator rows 25–75 now
+emit `provenance.conversation_local`. Its finite identity contains family,
+specialist, store, source version, actual checked row, matched source title,
+local subject key, author predicate, authored-work role and exact request text.
+Artworks and other source rows do not acquire author metadata. The title is the
+existing exact known-title match; this is not global entity linking or a QID.
+
+`source_version.py` uses the shared native receipt selector to validate the
+exact consumed export and matching proof source inventory. It reads the
+immutable snapshot's `Facts_Tables.thy` and `Facts_Rows.thy`, verifies each input
+hash, then hashes their bytes with a versioned prefix and length framing.
+The prefix is UTF-8 `veri7vn-facts-source-v1` followed by NUL. Each ordered path
+is encoded as its eight-byte big-endian length, UTF-8 path, eight-byte content
+length, then exact file bytes. Any table change conservatively expires every
+local identity. The current source version is
+`sha256:bf9ca622574ed46350f56aec8c4952d78d24939327341eba6a48e2e840f00016`.
+The emitted SML constant is an actual frozen compiler input. Its source-data
+identity does not prove natural-language recognition or world truth.
+
+New native receipt:
+`var/facts/native-attempts/20261018T103052Z-70b9fca6948d/compile-inputs.json`.
+Binary: 590,136 bytes, SHA-256
+`7eae0e5de10f3c6099727433a445d7aeeae790131f61101db174528040dac931`.
+The unchanged proof is still the passed 78-theorem, zero-oracle export above.
+The manifest binds that export, generated source-version SML, five ordinary
+SML sources and the actual MLB recipe.
+
+Fresh affected own panels pass in specialist and family mode: poetry 9/9 dev,
+9/9 heldout; literature-v2 18/18 dev, 12/12 heldout; zero wrong, false yes or
+withheld-valid panel cases. Other specialists' full-panel results above are the
+preceding field packet's checks and were not rerun for this metadata-only edit.
+Five direct producer cases verify two real author identities and three controls
+(artwork, psychology, unsupported sequel).
+
+Dispatcher owner independently ran the actual all-default eight-case gate with
+this exact native candidate and source version:
+`var/dispatch/successor/20261018T103112Z/receipt.json`, 8/8 pass. Leaves of Grass
+seed and same-author follow-up preserve poetry row 15 through producer replay
+and guards; literal recall quotes the result. Quoted It stays a source refusal;
+stale and other-session pronouns clarify; a different requested predicate does
+not manufacture a global identity. The consumer compares the complete versioned
+identity tuple and accepts only its finite query template.
+
+Final dependency files: new `src/extract/facts/source_version.py`; modified
+`src/extract/facts/build.sh`, `main.sml`, `README.md`, and this report. Exact
+hashes are in `var/c-symbolic-facts-humanities/facts-author-frozen.json`.
+This packet is frozen; no additional scope or successors are planned in drain.

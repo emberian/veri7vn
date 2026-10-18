@@ -25,6 +25,16 @@ requires an explicitly supplied matching entity domain; a generic thing is
 insufficient. Missing source facts remain refusals after a successful
 reference resolution.
 
+Some source specialists supply a local row identity instead of a global entity
+ID. A same-predicate follow-up can reuse that subject only within its original
+family, specialist, store content version, row, and predicate. The newly returned
+answer must identify that same target. A changed version, different target, or
+refusal stops the turn; the dispatcher does not try another store. For example,
+an author-row receipt can support “Who wrote it?” without inventing a globally
+linked book or author. It cannot supply “Where was he born?”. These source
+identities remain producer-supplied data, and competing global context requires
+clarification. The ordinary final guards and session ledger still apply.
+
 Numeric context comes from exact structured Fusion output, or a solved-variable
 Math receipt. It does not mean the first number in the answer. The finite reader
 supports result conversion, result cost, and the square/cube of a solved

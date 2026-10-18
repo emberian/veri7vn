@@ -166,3 +166,10 @@ pass: pinned counts are 204 supported answers, 176 withheld-valid and three
 malformed-expression refusals. Another 38 explicit unsupported-scope probes
 withhold as expected. Exact statements, receipts and remaining limits are in
 [the source-field report](../../../project/lanes/F-symbolic-facts-fields.md).
+
+A final bounded metadata dependency lets the dispatcher replay the same author
+question about a versioned poetry or literature source row. It emits a local
+subject identity, never a global entity ID; source-version, row, subject and
+predicate must match on replay. The eight-case actual dispatcher gate passes.
+The native binary is 590,136 bytes; affected poetry and literature panels remain
+fully correct. The source-field report records exact bindings and limits.

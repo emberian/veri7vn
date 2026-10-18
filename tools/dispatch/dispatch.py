@@ -34,7 +34,7 @@ sys.path.insert(0, str(REPO / "tools"))
 from runtime_contract import load_registry, acceptance, capability_for, validate_capabilities, enforce_reply_evidence  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from routes import RouteStages, stage_programs as route_programs  # noqa: E402
-from dialogue.state import Dialogue, outcome as dialogue_outcome  # noqa: E402
+from dialogue.state import Dialogue, LocalSubject, outcome as dialogue_outcome  # noqa: E402
 UPSTREAM = Path(os.environ.get("PARITY_UPSTREAM", str(MAIN_REPO / "upstream")))
 
 # ---------------------------------------------------------------- combo oracles
@@ -776,6 +776,50 @@ class Dispatcher:
         prov = r.get("provenance") or {}
         return r if r.get("status") == "answered" or prov.get("taken") else None
 
+    def local_replay_stage(self, text, session, rid, binding):
+        """Re-evaluate one versioned local source predicate in its owning family.
+
+        This internal binding originates in a prior accepted final receipt. No
+        caller JSON is forwarded, and no global entity identity is inferred.
+        A changed source or refusal is terminal, never a relinking opportunity.
+        """
+        expected=LocalSubject.read_binding(binding)
+        def unavailable(reason, actual=None):
+            detail={"status":"unavailable", "reason":reason, "expected":binding}
+            if actual is not None:
+                detail["observed"]={"path":actual.get("path"),"status":actual.get("status"),
+                                    "local_source":actual.get("provenance",{}).get("conversation_local")}
+            return {"status":"clarify", "response":"The earlier source context is no longer available for that follow-up. Please name the subject.",
+                    "path":"dialogue>local_source_unavailable", "provenance":{"taken":True,"local_replay":detail}}
+        if expected is None:
+            return unavailable("malformed internal local binding")
+        entry=self.entries.get(expected.family)
+        if not entry or expected.specialist not in entry["specialists"]:
+            return unavailable("local source owner is not selected")
+        child=next((c for c,f in self.organs if f==expected.family),None)
+        if child is None:
+            return unavailable("local source owner has no active child")
+        reply=child.ask(rid,text,session)
+        shape=reply_shape_error(reply)
+        if shape:
+            return {"status":"withheld","response":"","path":"dialogue>local_source_error","error":shape}
+        if "error" in reply:
+            return reply
+        if specialist_of(reply.get("path")) != expected.specialist:
+            return unavailable("local source returned a different owner or did not take the question",reply)
+        candidates=self.organ_cands(text,session,rid,{expected.family:reply})
+        if len(candidates)!=1:
+            return unavailable("local source reply was not accepted by its manifest",reply)
+        if reply.get("status")=="answered" and LocalSubject.from_reply(text,reply)!=expected:
+            return unavailable("local source version, row, subject, or predicate changed",reply)
+        out=self.arbitrate(text,session,rid,candidates)
+        if out is None:
+            return unavailable("local source result was not selected",reply)
+        out.setdefault("provenance",{})["local_replay"]={"status":"matched" if out.get("status")=="answered" else "refused",
+                "source":expected.wire(),"boundary":"Same versioned source predicate only; no global identity or cross-store inference."}
+        out["provenance"].setdefault("dispatch",{})["decisive"]=True
+        return out
+
     # -- one turn
     def turn(self, rid, text, session):
         # A private state file has one committing child. Serialize the entire
@@ -807,7 +851,7 @@ class Dispatcher:
                         "path": "dialogue>" + plan.construction,
                         "provenance": {"taken": True}}, text)
                 elif plan and plan.question and plan.question != text:
-                    selected = self.evaluate(rid, plan.question, session, plan.bound_query_entity)
+                    selected = self.evaluate(rid, plan.question, session, plan.bound_query_entity, plan.bound_local_source)
                     observe(selected)
                 else:
                     selected = self.evaluate(rid, text, session)
@@ -830,13 +874,18 @@ class Dispatcher:
             dialogue.ledger.append(session, text, selected.question, out, recall=recall is not None)
         return out
 
-    def evaluate(self, rid, text, session, bound_query_entity=None):
+    def evaluate(self, rid, text, session, bound_query_entity=None, bound_local_source=None):
         """Run routes and guards without writing warehouse or conversation state."""
         t0 = time.perf_counter()
         ms = {}
         out = None
         stages = []
-        if READING.search(str(text or "")):
+        if bound_local_source is not None:
+            t=time.perf_counter()
+            out=self.local_replay_stage(text,session,rid,bound_local_source)
+            ms["receipt_replay"]=round(1000*(time.perf_counter()-t),3)
+            stages.append("receipt_replay")
+        elif READING.search(str(text or "")):
             out = {"status": "withheld", "response": "", "path": "dispatch>declined:reading"}
             stages.append("reading_guard")
         head_first = self.order == "head"

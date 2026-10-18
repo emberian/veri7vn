@@ -98,6 +98,22 @@ struct
           let val rowS = IntInf.toString (Facts.integer_of_nat row)
               val sourceSentence = decode sentence
               val sourceSubject = Recognizer.sourceSubject organ (IntInf.toInt (Facts.integer_of_nat row)) q
+              (* This is a local source-row identity, not a globally linked entity.
+                 The actual checked creator row and matched title supply its role. *)
+              val authorRow = (organ="poetry" andalso Facts.integer_of_nat row>=10
+                                andalso Facts.integer_of_nat row<=20) orelse
+                              (organ="literature-v2" andalso Facts.integer_of_nat row>=25
+                                andalso Facts.integer_of_nat row<=75)
+              val localSubject = case sourceSubject of
+                  SOME title => if authorRow then
+                    "{\"schema_version\":1,\"family\":\"facts\",\"specialist\":" ^ Json.quote organ
+                    ^ ",\"store\":" ^ Json.quote store ^ ",\"row\":" ^ rowS
+                    ^ ",\"store_version\":" ^ Json.quote FactsSourceVersion.version
+                    ^ ",\"subject_id\":" ^ Json.quote("facts:" ^ store ^ "#" ^ rowS ^ ":subject")
+                    ^ ",\"subject_surface\":" ^ Json.quote title
+                    ^ ",\"predicate\":\"author\",\"subject_role\":\"authored_work\",\"request_text\":" ^ Json.quote q ^ "}"
+                    else "null"
+                | NONE => "null"
               val sourceScope = if organ="firesafety-v2" andalso Facts.integer_of_nat row>=2
                                    andalso Facts.integer_of_nat row<=11 then SOME "US fire classification" else NONE
               val baseResponse = case (sourceScope,sourceSubject) of
@@ -134,6 +150,7 @@ struct
           ^ ", \"source_sentence\": " ^ Json.quote sourceSentence
           ^ ", \"source_scope\": " ^ (case sourceScope of NONE=>"null" | SOME scope=>Json.quote scope)
           ^ ", \"source_subject\": " ^ (case sourceSubject of NONE => "null" | SOME title => Json.quote title)
+          ^ ", \"conversation_local\": " ^ localSubject
           ^ ", \"kernel\": " ^ Json.quote (case projection of NONE=>"Facts.text_organ_reply" | SOME _=>"Facts.projected_value(Facts.text_organ_reply)")
           ^ ", \"session\": \"Veri7vn_Facts\", \"theorems\": "
           ^ theorems ^ "}}"

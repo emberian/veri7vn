@@ -22,9 +22,17 @@ GEN=${FACTS_GEN:-$OUT/export-remote/Veri7vn_Facts/Veri7vn_Facts.Facts_Export/cod
 [ -f "$GEN" ] || { echo "missing checked export: $GEN (run remote-build first)" >&2; exit 1; }
 cp "$GEN" "$OUT/build/facts_generated.sml"
 
+# Identify the actual checked table snapshot for source-local conversation replay.
+if [ -n "${FACTS_RECEIPT:-}" ]; then
+  python3 -B "$SRC/source_version.py" --repo "$REPO" --export "$GEN" --receipt "$FACTS_RECEIPT" --out "$OUT/build/facts_source_version.sml"
+else
+  python3 -B "$SRC/source_version.py" --repo "$REPO" --export "$GEN" --out "$OUT/build/facts_source_version.sml"
+fi
+
 cat > "$OUT/build/facts.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 facts_generated.sml
+facts_source_version.sml
 $SRC/../commons/commons.sml
 $SRC/javascript.sml
 $SRC/projection.sml

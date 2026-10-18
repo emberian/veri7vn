@@ -52,6 +52,101 @@ class Numeric:
     unit: str
 
 
+# Finite subject roles and predicate identities, supplied by the source producer.
+# No role here supplies a global entity identity or permits crossing predicates.
+LOCAL_PREDICATES = {
+    'author': ('authored_work', r'who\s+wrote\s+(?:it|that work)', 'Who wrote {}?'),
+    'capital': ('country', r'what\s+is\s+(?:its\s+capital|the\s+capital\s+of\s+it)', 'What is the capital of {}?'),
+    'currency': ('country', r'what\s+is\s+(?:its\s+currency|the\s+currency\s+of\s+it)', 'What is the currency of {}?'),
+    'birthplace': ('person', r'where\s+was\s+(?:he|she|that person)\s+born', 'Where was {} born?'),
+}
+
+
+@dataclass(frozen=True)
+class LocalSubject:
+    """Identity within a versioned source row, never a globally linked entity."""
+    family: str
+    specialist: str
+    store: str
+    store_version: str
+    row: int
+    subject_id: str
+    subject_surface: str
+    predicate: str
+    subject_role: str
+
+    @classmethod
+    def from_reply(cls, question, reply):
+        if outcome(reply) != 'answered':
+            return None
+        p=reply.get('provenance', {})
+        local=p.get('conversation_local')
+        if not isinstance(local, dict) or type(local.get('schema_version')) is not int or local.get('schema_version') != 1:
+            return None
+        required=cls.__dataclass_fields__.keys()
+        if any(k not in local for k in required):
+            return None
+        if type(local['row']) is not int or local['row'] < 0:
+            return None
+        for k in ('family','specialist','store'):
+            if not isinstance(local[k],str) or not re.fullmatch(r'[a-zA-Z0-9_.-]{1,100}',local[k]):
+                return None
+        # A version is an explicit immutable content digest, not an unversioned
+        # display name. The producer remains responsible for source authenticity.
+        if not isinstance(local['store_version'],str) or not re.fullmatch(r'sha256:[0-9a-f]{64}',local['store_version']):
+            return None
+        surface=local['subject_surface']
+        if not isinstance(surface,str) or not surface.strip() or len(surface)>300 or any(c in surface for c in '\n\r\x00'):
+            return None
+        if not isinstance(local['predicate'],str):
+            return None
+        spec=LOCAL_PREDICATES.get(local['predicate'])
+        if not spec or local['subject_role'] != spec[0]:
+            return None
+        if local['subject_id'] != 'facts:'+local['store']+'#'+str(local['row'])+':subject':
+            return None
+        if local['family'] != 'facts' or p.get('kernel') != 'Facts.text_organ_reply':
+            return None
+        if (local.get('request_text') != question or p.get('store') != local['store'] or
+                p.get('row') != local['row'] or p.get('source_subject') != surface or
+                p.get('organ') != local['specialist']):
+            return None
+        if not re.fullmatch(r'(?:specialist_call>)?specialist:'+re.escape(local['specialist'])+r'>.+',reply.get('path','')):
+            return None
+        # Exact finite query template ties the producer's local subject to the
+        # actual accepted question. Broader aliases require their own contract.
+        if question.strip().rstrip('?.!').casefold() != spec[2].format(surface).rstrip('?').casefold():
+            return None
+        return cls(**{k:local[k] for k in required})
+
+    def wire(self):
+        return {k:getattr(self,k) for k in self.__dataclass_fields__}
+
+    @classmethod
+    def read_binding(cls, binding):
+        if not isinstance(binding,dict) or set(binding)!=set(cls.__dataclass_fields__):
+            return None
+        if any(not isinstance(binding[k],str) for k in cls.__dataclass_fields__ if k!='row'):
+            return None
+        if type(binding['row']) is not int or binding['row']<0:
+            return None
+        if binding['family']!='facts' or not re.fullmatch(r'sha256:[0-9a-f]{64}',binding['store_version']):
+            return None
+        if any(not re.fullmatch(r'[a-zA-Z0-9_.-]{1,100}',binding[k]) for k in ('specialist','store')):
+            return None
+        spec=LOCAL_PREDICATES.get(binding['predicate'])
+        if not spec or binding['subject_role']!=spec[0]:
+            return None
+        if binding['subject_id']!='facts:'+binding['store']+'#'+str(binding['row'])+':subject':
+            return None
+        if not binding['subject_surface'].strip() or len(binding['subject_surface'])>300 or any(c in binding['subject_surface'] for c in '\n\r\x00'):
+            return None
+        try:
+            return cls(**binding)
+        except TypeError:
+            return None
+
+
 def exact(value):
     if not isinstance(value, str) or len(value) > 256:
         return None
@@ -75,6 +170,7 @@ class Ground:
     standalone: str = ''
     property: str | None = None
     native_owner: str | None = None
+    local_subject: LocalSubject | None = None
 
     @classmethod
     def from_reply(cls, index, standalone, reply):
@@ -116,9 +212,10 @@ class Ground:
         slot = c.get('slot_surface')
         if not isinstance(slot, str) or not slot or standalone.count(slot) != 1:
             slot = None
-        if not any((query, answer, number, solved, native_owner)):
+        local_subject=LocalSubject.from_reply(standalone,reply)
+        if not any((query, answer, number, solved, native_owner, local_subject)):
             return None
-        return cls(index, query, answer, number, solved, slot, standalone, c.get('property'), native_owner)
+        return cls(index, query, answer, number, solved, slot, standalone, c.get('property'), native_owner, local_subject)
 
 
 @dataclass(frozen=True)
@@ -136,6 +233,7 @@ class Plan:
     source_turn: int | None
     bound_query_entity: dict | None = None
     refusal: str | None = None
+    bound_local_source: dict | None = None
 
 
 class Ledger:
@@ -222,6 +320,21 @@ class Dialogue:
                                      r'how\s+many\s+(?:are\s+left|do\s+we\s+have)|when\s+will\s+(?:it|we)\s+run\s+out)[?.!]*', q, re.I)
         if ground and ground.native_owner in self.native_owners and native_followup:
             return Plan(q, 'native_warehouse_context', ground.source_turn)
+        local=ground.local_subject if ground else None
+        if local:
+            role,grammar,template=LOCAL_PREDICATES[local.predicate]
+            # Explicit title capitalization/quotes are not contextual pronouns.
+            explicit_title=bool(re.search(r'\b(?:It|IT|Its|ITS)\b',q))
+            if not explicit_title and re.fullmatch(grammar+r'[?.!]*',q,re.I):
+                if ground.query_entity or ground.answer_entity:
+                    return Plan(None,'ambiguous_local_reference',ground.source_turn,
+                                refusal='More than one context record is available. Please name the subject.')
+                policy=self.call(op='interpret',complete=True,reference='subject',
+                    query={'qid':local.subject_id,'entity_kind':'unknown'},answer=None,number=False,variable=False)
+                if policy.get('resolution')!='query' or policy.get('interpretation')!='context':
+                    raise ValueError('conversation policy did not select the available local subject')
+                return Plan(template.format(local.subject_surface),'local_predicate_replay',ground.source_turn,
+                            bound_local_source=local.wire())
         # A complete finite request is recognized before any replacement occurs.
         variable = re.fullmatch(r'(?i:what is|calculate)\s+([a-z])\s+((?i:squared|cubed))[?.!]*', q)
         cost = re.fullmatch(r'(?:what does|how much does)\s+(that|it)\s+cost\s+(at\s+.+?)[?.!]*', q, re.I)
