@@ -5,9 +5,11 @@
   "examined_surface": {
     "request_types": [
       "mixed-unit ideal lever advantage",
-      "pulley effort with explicitly supplied efficiency"
+      "pulley and lever effort with supplied efficiency",
+      "gear output torque with supplied efficiency",
+      "requested actual versus ideal pulley mechanical advantage"
     ],
-    "model_scope": "Two simple-machine models; original role grammar and finite unit conversions, not the entire mechanism catalogue."
+    "model_scope": "Request-specific work balance and ideal/actual distinction for pulleys, levers and gears; partial mechanism catalogue audit."
   },
   "cases": [
     {
@@ -24,6 +26,35 @@
       "request": "A pulley has 4 supporting strands and a 400 N load. Its efficiency is 50%. What effort is required?",
       "expected_boundary": "Work efficiency eta = output/input and ideal displacement ratio4 imply effort=400/(4*0.5)=200 N; alternatively withhold unsupported efficiency.",
       "observed_behavior": "{\"status\": \"answered\", \"kind\": \"pulley_effort\", \"value\": 100, \"response\": \"The effort is 100 N (load 400 N / 4 supporting strands; ideal, frictionless).\"}; reviewed outcome: wrong"
+    },
+    {
+      "case_id": "gear-torque-efficiency",
+      "kind": "counterexample",
+      "request": "A 20-tooth driver gear drives a 40-tooth driven gear. The input torque is 10 N m and efficiency is 80%. What is the output torque?",
+      "expected_boundary": "Torque_out*speed_out=eta*Torque_in*speed_in; speed ratio1/2 gives16N m.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"gear_torque\", \"value\": 20, \"response\": \"The output torque is 20 N m (10 N m x 40/20 teeth; ideal, no friction losses).\"}; reviewed outcome: wrong"
+    },
+    {
+      "case_id": "lever-effort-efficiency",
+      "kind": "counterexample",
+      "request": "A lever has an effort arm 40 cm and load arm 20 cm with a 400 N load. Its efficiency is 50%. What effort is required?",
+      "expected_boundary": "eta=load*load_displacement/(effort*effort_displacement); arm ratio2, eta1/2 and load400 imply effort400N.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"lever_effort\", \"value\": 200, \"response\": \"The effort needed is 200 N (load 400 N x load arm 0.2 / effort arm 0.4; ideal lever).\"}; reviewed outcome: wrong"
+    },
+    {
+      "case_id": "pulley-actual-ma",
+      "kind": "counterexample",
+      "request": "A pulley has 4 supporting strands and an efficiency of 50%. What is its actual mechanical advantage?",
+      "expected_boundary": "Actual force advantage equals efficiency times velocity ratio:0.5*4=2.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"pulley_ma\", \"value\": 4, \"response\": \"The ideal mechanical advantage is 4 (the number of supporting strands).\"}; reviewed outcome: wrong"
+    },
+    {
+      "case_id": "pulley-ideal-ma",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 4 supporting strands and an efficiency of 50%. What is its ideal mechanical advantage?",
+      "expected_boundary": "Ideal mechanical advantage describes displacement geometry alone:4, regardless of efficiency.",
+      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"pulley_ma\", \"value\": 4, \"response\": \"The ideal mechanical advantage is 4 (the number of supporting strands).\"}; reviewed outcome: right",
+      "independent_check": "Ideal mechanical advantage describes displacement geometry alone:4, regardless of efficiency."
     }
   ],
   "actual_receipt": "project/audits/evidence/mechanics-20261018.json",
@@ -32,15 +63,15 @@
     "registered_binary": "var/mechanics/bin/mechanics"
   },
   "current_unresolved_limits": [
-    "Open correctness defect: the pulley reader discards supplied efficiency and returns ideal100 N for a50%-efficient4-strand400 N system; required effort200 N. The ideal qualifier does not discharge the conflicting given.",
-    "Implement a checked efficiency-aware work-balance model with complete input consumption; review gears, belts and levers for the same missing-condition class.",
-    "Remaining mechanism kinds and target grammar are not exhaustively audited."
+    "Open correctness: pulley effort100N instead of200N; lever effort200N instead of400N; gear output torque20N m instead of16N m; actual pulley advantage4instead of2. Every case explicitly supplies efficiency.",
+    "Ideal pulley advantage4is correct for the same50%-efficient geometry. Efficiency must affect the appropriate requested quantity, not trigger blanket refusal or rescale every output.",
+    "Implement common work-balance definitions with request-specific force/torque/dimensionless consumers and complete supplied-input consumption. Other mechanism kinds and ambiguous efficiency semantics remain unexamined."
   ],
   "reviewer": "Codex root, direct source/theorem and executed-reader review, 2026-10-18",
   "owner": "root / physical mechanics backlog; no active deputy",
   "author_claims": {
     "audit_scope": "partial; presence is not completion",
-    "theorem_consumer_review": "lever_units binds accepted advantage to both declared length scale factors. pulley_effort_def proves y*n=load for the ideal request. That constructor contains no efficiency, so the proof does not justify answering an efficiency-bearing source question.",
+    "theorem_consumer_review": "lever_units binds accepted advantage to both declared length scale factors. pulley_effort_def proves y*n=load for the ideal request. That constructor contains no efficiency, so the proof does not justify answering an efficiency-bearing source question. gear_torque_def proves output_torque*driver_teeth=input_torque*driven_teeth for the ideal request; it omits efficiency. lever_effort_units binds source arm units but likewise has no efficiency field. Neither law justifies these explicitly lossy source questions.",
     "source_paths": [
       "src/extract/mechanics/Mechanics.thy",
       "src/extract/mechanics/Mechanics_Export.thy",
@@ -50,8 +81,8 @@
     "production_change_this_audit": false,
     "shipped_panel_result": "No shipped panel rerun in this audit. Prior exact-native score1264/1264 for the9-ID family is separately recorded in project/lanes/F-physical-mechanics-gravity.md.",
     "result_counts": {
-      "right": 1,
-      "wrong": 1
+      "right": 2,
+      "wrong": 4
     }
   }
 }

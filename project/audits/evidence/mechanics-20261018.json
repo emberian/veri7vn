@@ -2,7 +2,7 @@
   "schema": "veri7vn.reviewed-specialist-observations/1",
   "reviewed_at": "2026-10-18T10:55:37.131019+00:00",
   "source_commit": "fb966e7ffd6950e3cddf0aa5bf90f3df356ca840",
-  "scope": "22 root-authored pinned-native questions across9 exact IDs; partial model/reader audit, not an exhaustive specialist audit, shipped score, or full-default/portable-package run.",
+  "scope": "30 root-authored pinned-native questions across9 exact IDs: initial22 plus8 efficiency follow-ups. Partial model/reader audit, not an exhaustive specialist audit, shipped score, or full-default/portable-package run.",
   "binary": "var/mechanics/bin/mechanics",
   "binary_sha256": "bd4012b913766a9fcd25c918fabb47f819353321a67cf2091691d6220e4fb672",
   "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
@@ -347,6 +347,120 @@
         "value": null,
         "response": "The supplied fluid conditions are outside this reader's fixed-property, standard-gravity and atmospheric-pressure model; I will not replace them with defaults."
       }
+    },
+    {
+      "specialist_id": "mechanisms",
+      "case_id": "gear-torque-efficiency",
+      "request": "A 20-tooth driver gear drives a 40-tooth driven gear. The input torque is 10 N m and efficiency is 80%. What is the output torque?",
+      "reviewed_expected_value": 16,
+      "independent_check": "Torque_out*speed_out=eta*Torque_in*speed_in; speed ratio1/2 gives16N m.",
+      "outcome": "wrong",
+      "reply": {
+        "status": "answered",
+        "kind": "gear_torque",
+        "value": 20,
+        "response": "The output torque is 20 N m (10 N m x 40/20 teeth; ideal, no friction losses)."
+      }
+    },
+    {
+      "specialist_id": "mechanisms",
+      "case_id": "lever-effort-efficiency",
+      "request": "A lever has an effort arm 40 cm and load arm 20 cm with a 400 N load. Its efficiency is 50%. What effort is required?",
+      "reviewed_expected_value": 400,
+      "independent_check": "eta=load*load_displacement/(effort*effort_displacement); arm ratio2, eta1/2 and load400 imply effort400N.",
+      "outcome": "wrong",
+      "reply": {
+        "status": "answered",
+        "kind": "lever_effort",
+        "value": 200,
+        "response": "The effort needed is 200 N (load 400 N x load arm 0.2 / effort arm 0.4; ideal lever)."
+      }
+    },
+    {
+      "specialist_id": "mechanisms",
+      "case_id": "pulley-actual-ma",
+      "request": "A pulley has 4 supporting strands and an efficiency of 50%. What is its actual mechanical advantage?",
+      "reviewed_expected_value": 2,
+      "independent_check": "Actual force advantage equals efficiency times velocity ratio:0.5*4=2.",
+      "outcome": "wrong",
+      "reply": {
+        "status": "answered",
+        "kind": "pulley_ma",
+        "value": 4,
+        "response": "The ideal mechanical advantage is 4 (the number of supporting strands)."
+      }
+    },
+    {
+      "specialist_id": "mechanisms",
+      "case_id": "pulley-ideal-ma",
+      "request": "A pulley has 4 supporting strands and an efficiency of 50%. What is its ideal mechanical advantage?",
+      "reviewed_expected_value": 4,
+      "independent_check": "Ideal mechanical advantage describes displacement geometry alone:4, regardless of efficiency.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "pulley_ma",
+        "value": 4,
+        "response": "The ideal mechanical advantage is 4 (the number of supporting strands)."
+      }
+    },
+    {
+      "specialist_id": "mechanisms-v2",
+      "case_id": "gear-torque-efficiency",
+      "request": "A 20-tooth driver gear drives a 40-tooth driven gear. The input torque is 10 N m and efficiency is 80%. What is the output torque?",
+      "reviewed_expected_value": 16,
+      "independent_check": "Torque_out*speed_out=eta*Torque_in*speed_in; speed ratio1/2 gives16N m.",
+      "outcome": "wrong",
+      "reply": {
+        "status": "answered",
+        "kind": "gear_torque",
+        "value": 20,
+        "response": "The output torque is 20 N m (10 N m x 40/20 teeth; ideal, no friction losses)."
+      }
+    },
+    {
+      "specialist_id": "mechanisms-v2",
+      "case_id": "lever-effort-efficiency",
+      "request": "A lever has an effort arm 40 cm and load arm 20 cm with a 400 N load. Its efficiency is 50%. What effort is required?",
+      "reviewed_expected_value": 400,
+      "independent_check": "eta=load*load_displacement/(effort*effort_displacement); arm ratio2, eta1/2 and load400 imply effort400N.",
+      "outcome": "wrong",
+      "reply": {
+        "status": "answered",
+        "kind": "lever_effort",
+        "value": 200,
+        "response": "The effort needed is 200 N (load 400 N x load arm 0.2 / effort arm 0.4; ideal lever)."
+      }
+    },
+    {
+      "specialist_id": "mechanisms-v2",
+      "case_id": "pulley-actual-ma",
+      "request": "A pulley has 4 supporting strands and an efficiency of 50%. What is its actual mechanical advantage?",
+      "reviewed_expected_value": 2,
+      "independent_check": "Actual force advantage equals efficiency times velocity ratio:0.5*4=2.",
+      "outcome": "wrong",
+      "reply": {
+        "status": "answered",
+        "kind": "pulley_ma",
+        "value": 4,
+        "response": "The ideal mechanical advantage is 4 (the number of supporting strands)."
+      }
+    },
+    {
+      "specialist_id": "mechanisms-v2",
+      "case_id": "pulley-ideal-ma",
+      "request": "A pulley has 4 supporting strands and an efficiency of 50%. What is its ideal mechanical advantage?",
+      "reviewed_expected_value": 4,
+      "independent_check": "Ideal mechanical advantage describes displacement geometry alone:4, regardless of efficiency.",
+      "outcome": "right",
+      "reply": {
+        "status": "answered",
+        "kind": "pulley_ma",
+        "value": 4,
+        "response": "The ideal mechanical advantage is 4 (the number of supporting strands)."
+      }
     }
-  ]
+  ],
+  "followup_raw_local_receipt": "var/root-audit-mechanics/efficiency-surface.json",
+  "followup_raw_local_receipt_sha256": "7d47248831041f81deff68acb045421fc55d26a07176caebe8d073cc0b59009b"
 }

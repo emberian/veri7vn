@@ -43,14 +43,22 @@ prevent computing a gravitational potential-energy difference from its
 endpoints under constant gravity; the four refusals therefore remain capability
 misses. A checked refusal theorem does not establish that refusing was useful.
 
+A further eight efficiency probes distinguish the requested quantity: both
+mechanism readers ignore efficiency in gear torque, lever effort and **actual**
+pulley advantage (six wrong observations). Both correctly answer the **ideal**
+pulley advantage with the same efficiency supplied. Thus the shared fix needs
+request-specific work balance, not a blanket efficiency refusal or one factor
+applied to every result. The records now contain 30 observations: 16 right,
+eight wrong numerical answers, one ignored output unit and five valid withholds.
+
 ## Actionable work from this review
 
 1. **Mechanisms efficiency:** both `mechanisms` and `mechanisms-v2` return
    100 N for four supporting strands, a 400 N load and 50% efficiency. The
    work balance requires 200 N. The reader discards efficiency; its existing
    theorem proves only the ideal request. Add efficiency to the request and
-   prove the corresponding work balance, then inspect gears, belts and levers
-   for the same missing-condition class. Do not merely widen a parser keyword
+   prove the corresponding work balance, and cover the now-confirmed gear/lever defects in the same model. Inspect
+   belts and other condition-dependent requests for the same missing-input class. Do not merely widen a parser keyword
    or treat the response's “ideal” qualifier as permission to ignore a given.
 2. **Fleet output volume:** an explicit Imperial-gallon output request returns
    4.804 US gallons for 100 miles at 25 Imperial mpg. Preserve output units
