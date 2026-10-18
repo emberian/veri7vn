@@ -135,9 +135,9 @@ structure Main = struct
     else
       let
         val e = parse line
-        val req = C.Crequest_ext (cps (field e "concept"), map spec (list (field e "specs")), ())
+        val req = C.mk_crequest (cps (field e "concept")) (map spec (list (field e "specs")))
         val meds = map parseRel (map cps (list (field e "meds")))
-        val edges = map (fn (r, s0, e0, w, sf, ds) => C.Cedge_ext (r, s0, e0, w, sf, ds, ()))
+        val edges = map (fn (r, s0, e0, w, sf, ds) => C.mk_cedge (r, s0, e0, w, sf, ds))
                         (map edge (list (field e "edges")))
       in
         case C.decide meds req edges of

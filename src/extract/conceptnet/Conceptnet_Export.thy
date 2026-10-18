@@ -16,6 +16,27 @@ lemma parse_rel_name_roundtrip:
   "r \<in> set all_rels \<Longrightarrow> parse_relation (rel_name r) = Some r"
   using parse_rel_name by auto
 
+subsection \<open>Monomorphic constructors for the generated code\<close>
+
+text \<open>The record extension constructors are polymorphic in their tail and
+cannot be exported directly; these fix the tail to unit.\<close>
+
+definition mk_cedge :: "relation \<Rightarrow> int list \<Rightarrow> int list \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list \<Rightarrow> cedge" where
+  "mk_cedge r s t w sf ds = \<lparr>c_rel = r, c_start = s, c_end = t, c_weight = w, c_surface = sf, c_dataset = ds\<rparr>"
+
+definition mk_crequest :: "int list \<Rightarrow> (relation \<times> direction) list \<Rightarrow> crequest" where
+  "mk_crequest c specs = \<lparr>c_concept = c, c_specs = specs\<rparr>"
+
+lemma mk_cedge_rel [simp]: "c_rel (mk_cedge r s t w sf ds) = r"
+  and mk_cedge_start [simp]: "c_start (mk_cedge r s t w sf ds) = s"
+  and mk_cedge_end [simp]: "c_end (mk_cedge r s t w sf ds) = t"
+  and mk_cedge_weight [simp]: "c_weight (mk_cedge r s t w sf ds) = w"
+  and mk_cedge_surface [simp]: "c_surface (mk_cedge r s t w sf ds) = sf"
+  and mk_cedge_dataset [simp]: "c_dataset (mk_cedge r s t w sf ds) = ds"
+  and mk_crequest_concept [simp]: "c_concept (mk_crequest c specs) = c"
+  and mk_crequest_specs [simp]: "c_specs (mk_crequest c specs) = specs"
+  by (simp_all add: mk_cedge_def mk_crequest_def)
+
 subsection \<open>Fixtures: real rows of the sealed build (m13e5_conceptnet_build_a_v1)\<close>
 
 definition e_dog_comp :: cedge where
@@ -86,10 +107,10 @@ definition self_test :: bool where
        = C_abstain"
 
 export_code decide decide_direct decide_derived parse_relation rel_name all_rels
-  template_chars render_edge claim_of
+  template_chars render_edge claim_of mk_cedge mk_crequest
   c_rel c_start c_end c_weight c_surface c_dataset c_concept c_specs
   d_via d_line d_hop1 d_hop2
-  Cedge_ext Crequest_ext dline_ext Fwd Rev IsA PartOf HasA UsedFor CapableOf AtLocation
+  Fwd Rev IsA PartOf HasA UsedFor CapableOf AtLocation
   Causes HasSubevent HasPrerequisite MotivatedByGoal Desires MadeOf ReceivesAction
   HasProperty Synonym Antonym DistinctFrom SimilarTo RelatedTo
   C_answer C_derived C_abstain self_test
@@ -103,10 +124,10 @@ local
   val consts = [@{const_name decide}, @{const_name decide_direct}, @{const_name decide_derived},
     @{const_name parse_relation}, @{const_name rel_name}, @{const_name all_rels},
     @{const_name template_chars}, @{const_name render_edge}, @{const_name claim_of},
+    @{const_name mk_cedge}, @{const_name mk_crequest},
     @{const_name c_rel}, @{const_name c_start}, @{const_name c_end}, @{const_name c_weight},
     @{const_name c_surface}, @{const_name c_dataset}, @{const_name c_concept}, @{const_name c_specs},
     @{const_name d_via}, @{const_name d_line}, @{const_name d_hop1}, @{const_name d_hop2},
-    @{const_name Cedge_ext}, @{const_name Crequest_ext}, @{const_name dline_ext},
     @{const_name Fwd}, @{const_name Rev},
     @{const_name C_answer}, @{const_name C_derived}, @{const_name C_abstain}, @{const_name self_test}]
   val (files, _) = Code_Target.produce_code @{context} false consts "SML" "Conceptnet_Code" NONE []

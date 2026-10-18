@@ -11,6 +11,7 @@ lemmas kernel_defs =
   decide_def decide_direct_def decide_derived_def first_derived.simps
   collect_edges_def sel_spec_def derived_pairs_def parent_edges_def fwd_specs_def
   edge_matches_def declared_witness_def add_line.simps add_dline.simps
+  list_less_def list_le_def lexord_simps less_prod_def less_eq_prod_def
 
 lemmas fixture_defs =
   e_dog_comp_def e_dog_guard_def e_dog_pet_def e_dog_antonym_def dog_edges_def req_dog_def
