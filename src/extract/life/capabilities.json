@@ -26,6 +26,36 @@
           "English role assignment, supplied observations, units and JSON framing."
         ]
       }
+    },
+    "biology": {
+      "accept": {
+        "declines_in_domain": [
+          "underspecified",
+          "impossible"
+        ]
+      },
+      "evidence": {
+        "computation": "Standard genetic code from the first base, with explicit template/coding strand and 5-prime/3-prime orientation normalized by the extracted kernel. Strand reversal plus direction reversal preserves the normalized input.",
+        "assumptions": [
+          "One unambiguous sequence and strand role; absent orientation retains the documented 5-prime to 3-prime convention.",
+          "Only the standard genetic code and first-base frame; explicitly incompatible models decline."
+        ],
+        "untrusted": [
+          "English strand role, orientation and genetic-code recognition; source codon table and framing."
+        ]
+      }
+    },
+    "microbiology-v2": {
+      "evidence": {
+        "computation": "CFU equals colonies divided by dilution times plated volume. The kernel enforces nonnegative colony counts, dilution in (0,1], positive volume and nonnegative concentration.",
+        "assumptions": [
+          "Colony count and plated volume are explicitly supplied and uniquely assigned; units are converted to mL.",
+          "The concentration estimator uses the supplied dilution and plate count without certifying sampling validity."
+        ],
+        "untrusted": [
+          "Shared exact numeric tokenization, English quantity-role binding, physical observations and framing."
+        ]
+      }
     }
   }
 }

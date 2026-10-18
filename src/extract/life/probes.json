@@ -118,5 +118,143 @@
     "q": "Reverse complement of AATGCC?",
     "expect": "GGCATT",
     "source": "Reverse the Watson-Crick DNA complement."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe the DNA template strand 3'-TACGGA-5' to mRNA.",
+    "expect": "AUGCCU",
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "biology",
+    "q": "Transcribe the DNA template strand 5'-AGGCAT-3' to mRNA.",
+    "expect": "AUGCCU",
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA template strand 3'-TACGGA-5' into protein.",
+    "expect": "MP",
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA template strand 5'-AGGCAT-3' into protein.",
+    "expect": "MP",
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate coding DNA 5'-ATGCCT-3' into protein.",
+    "expect": "MP",
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate coding DNA 3'-TCCGTA-5' into protein.",
+    "expect": "MP",
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate RNA 5'-AUGUGA-3' using the vertebrate mitochondrial code.",
+    "expect": null,
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA coding strand 5'-ATGCCT-5'.",
+    "expect": null,
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate the DNA template coding strand 3'-TACGGA-5'.",
+    "expect": null,
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate RNA 3\u2032-UCCGUA-5\u2032.",
+    "expect": "MP",
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "biology",
+    "q": "Translate ATGCCT in reading frame 2.",
+    "expect": null,
+    "source": "Explicit strand orientation and standard genetic-code contract; same-author mechanistic expectation."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "What is the CFU per mL with 40 colonies at dilution 10^-3?",
+    "expect": null,
+    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "Calculate CFU/mL: -40 colonies, dilution 10^-3, 1 mL plated.",
+    "expect": null,
+    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "Calculate CFU/mL: 40 colonies, dilution 10^-3, -1 mL plated.",
+    "expect": null,
+    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "Calculate CFU/mL: 40 colonies, dilution 10^-3, 0.1 mL plated.",
+    "expect": 400000,
+    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "Calculate CFU/mL: 0 colonies, dilution 10^-3, 1 mL plated.",
+    "expect": 0,
+    "source": "CFU=c/(d*v), with explicit v>0, c>=0 and 0<d<=1; missing inputs never imputed."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "Calculate CFU/mL: \u221240 colonies, dilution 10^-3, .1 mL plated.",
+    "expect": null,
+    "source": "Shared exact numeric token roles; no malformed suffix recovery; CFU=c/(d*v)."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "Calculate CFU/mL: 4e1 colonies, dilution 10^-3, 1/10 mL plated.",
+    "expect": 400000,
+    "source": "Shared exact numeric token roles; no malformed suffix recovery; CFU=c/(d*v)."
+  },
+  {
+    "specialist": "microbiology-v2",
+    "q": "Calculate CFU/mL: 40 colonies, dilution 10^-3, 1.2.3 mL plated.",
+    "expect": null,
+    "source": "Shared exact numeric token roles; no malformed suffix recovery; CFU=c/(d*v)."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "What is the probability of ccbbAa offspring from AaBbCc x AaBbCc?",
+    "expect": 0.03125,
+    "source": "Independent Mendelian multiplication, matching unique loci by identity rather than text order."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "What is the probability of ccbbAa offspring from CcAaBb x BbCcAa?",
+    "expect": 0.03125,
+    "source": "Independent Mendelian multiplication, matching unique loci by identity rather than text order."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "What is the probability of ccaaAa offspring from AaBbCc x AaBbCc?",
+    "expect": null,
+    "source": "Independent Mendelian multiplication, matching unique loci by identity rather than text order."
+  },
+  {
+    "specialist": "genetics-v2",
+    "q": "What is the probability of aabb offspring from BbAa x bbAa?",
+    "expect": 0.125,
+    "source": "Independent Mendelian multiplication, matching unique loci by identity rather than text order."
   }
 ]

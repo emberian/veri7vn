@@ -37,21 +37,25 @@
     in
       if has ⟦\bcfu\b|\bcolon(?:y|ies)\b|\bplate count\b⟧ low andalso has ⟦\bdilution\b|10\s*\^|\b1\s*[:/]\s*\d⟧ low then
         let
-          val cm = search (N ^ ⟦\s*colon(?:y|ies)\b⟧) low
+          val tokens = ExactNumeric.scan low
+          val malformed = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+          fun role pat = List.mapPartial
+            (fn ExactNumeric.Number {stop, value, ...} =>
+                  let val rest = String.extract (low, stop, NONE)
+                  in if has pat rest then SOME (value, rest) else NONE end
+              | _ => NONE) tokens
+          val colonies = role ⟦^\s*colon(?:y|ies)\b⟧
+          val volumes = role ⟦^\s*(?:ml|µl|ul|microlit\w+|millilit\w+)\b⟧
           val dil = microDil low
-          val vm = search (N ^ ⟦\s*(ml|µl|ul|microlit\w+|millilit\w+)\s*(?:was |were )?(?:plated|spread|of the dilution)?⟧) low
         in
-          case (cm, dil) of
-            (SOME c, SOME d) =>
+          if malformed then SOME L.M_Unread
+          else case (colonies, dil, volumes) of
+            ([((cn, cd), _)], SOME d, [((vn, vd), unit)]) =>
               let
-                val vol = case vm of
-                            NONE => L.mk_rat 1 1
-                          | SOME v =>
-                              let val u = valOf (grp low v 2)
-                              in if String.isPrefix "\194\181" u orelse String.isPrefix "u" u orelse String.isPrefix "micro" u
-                                 then ratDiv (g1 low v) 1000 else ratOf (g1 low v) end
-              in SOME (L.M_CFU (ratOf (g1 low c), d, vol)) end
-          | _ => NONE
+                val micro = has ⟦^\s*(?:µl|ul|microlit\w+)\b⟧ unit
+                val vol = L.mk_rat vn (if micro then vd * 1000 else vd)
+              in SOME (L.M_CFU (L.mk_rat cn cd, d, vol)) end
+          | _ => SOME L.M_Unread
         end
       else
         case search ⟦\b(\d+|two|three|four|five|six)\s+(?:serial\s+)?(?:1\s*[:/]\s*(\d+)|(\d+)[- ]fold)\s+(?:serial\s+)?dilutions?\b⟧ low of

@@ -260,6 +260,41 @@ fun b_text :: "breq \<Rightarrow> outcome \<Rightarrow> String.literal" where
 | "b_text r o' = STR ''''"
 
 text \<open>The machine-readable value of a codon is the amino-acid name, as the organ states it.\<close>
+text \<open>Normalize a stated strand into the coding strand written 5-prime to
+3-prime before transcription or translation. The Boolean directions mean
+that the supplied sequence is template (rather than coding) and written
+3-prime to 5-prime (rather than 5-prime to 3-prime). English interpretation
+of those declarations remains outside this theorem.\<close>
+definition bio_input :: "bool \<Rightarrow> bool \<Rightarrow> nuc list \<Rightarrow> nuc list" where
+  "bio_input template backwards xs =
+    (let forward = (if backwards then rev xs else xs)
+     in if template then rev (map comp forward) else forward)"
+
+theorem bio_input_template_backwards:
+  "bio_input True True xs = map comp xs"
+  by (simp add: bio_input_def rev_map)
+
+theorem bio_input_coding_backwards:
+  "bio_input False True xs = rev xs"
+  by (simp add: bio_input_def)
+
+theorem bio_input_preserves_length:
+  "length (bio_input template backwards xs) = length xs"
+  by (cases template; cases backwards) (simp_all add: bio_input_def)
+
+theorem bio_input_orientation_invariance:
+  "bio_input template (\<not> backwards) (rev xs) = bio_input template backwards xs"
+  by (cases template; cases backwards) (simp_all add: bio_input_def)
+
+definition bio_model_reply :: reply where
+  "bio_model_reply = mk_reply
+     (Decline (Underspecified (STR ''I need one unambiguous strand direction and role, and this translator supports the standard genetic code from the first base.'')))
+     (STR ''I need one unambiguous strand direction and role, and this translator supports the standard genetic code from the first base.'')"
+
+theorem bio_model_declines:
+  "\<not> answered bio_model_reply"
+  by (simp add: bio_model_reply_def mk_reply_def)
+
 definition b_reply :: "breq \<Rightarrow> reply" where
   "b_reply r = (let rp = mk_reply (b_kernel r) (b_text r (b_kernel r)) in
      case b_kernel r of

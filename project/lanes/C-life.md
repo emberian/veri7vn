@@ -124,3 +124,63 @@ can invent an absent plated volume or discard a colony count's minus sign.
 The next repair starts from these concrete gaps. The per-specialist semantic
 ledger is `var/life/d-next/semantic-gaps.md`. C keeps its bounded improvements
 and performance win while that work proceeds separately.
+
+## D: repair the counterexamples, beyond panel parity
+
+The D candidate supersedes the C executable above. It repairs the listed
+strand and CFU defects and matches distinct genetic loci by identity, allowing
+parents and target genotypes in different orders without accepting duplicates.
+All six specialists have a maintained [semantic gap ledger](../../src/extract/life/semantic-gaps.md).
+
+The exported `bio_input` normalizes template/coding role and 3-prime/5-prime
+direction. Binding statements prove that template input written 3-prime to
+5-prime becomes its base complement, coding input in that direction becomes
+its reversal, normalization preserves sequence length, and reversing a sequence
+while swapping its stated direction preserves the normalized input. The real
+recognizer invokes this exported function before transcription or translation.
+The model-refusal reply is proved unanswered. English interpretation and the
+source genetic-code table remain untrusted.
+
+The strengthened CFU law states: if the kernel returns an exact concentration
+q from colony count c, dilution d and plated volume v, then c>=0, 0<d<=1,
+v>0, q>=0, and q*(d*v)=c. The decline theorem is the converse domain test.
+The reader binds tokens from shared `ExactNumeric.scan` to count/volume roles;
+it never substitutes 1 mL for missing volume or retries malformed numeric
+suffixes. Shared numeric code is explicitly included by the build script.
+
+Successful hbox receipt: `20261018T071759Z-ab5347a504a1`;
+`VERI7VN_LIFE PASS theorems=110 oracles=0`. The generated ML SHA-256 is
+`51485c3033128617651d436741a77730e07202c8c31f040bf72a6971f5293474`.
+The final binary is 809352 bytes, SHA-256
+`3607743180a6009cdd9dc2b06f364c08ff56b63617a07217c99b9f2666e6dde3`.
+The locus-alignment recognizer refinement was compiled after the proof
+snapshot; its final source hash is recorded separately in the delivery
+manifest. It changes interpretation, not the extracted HOL functions.
+
+The complete shipped table above is unchanged: 179/179 in pinned and family
+dispatch, zero wrong/false yes/withheld. Fresh development offsets 10181001
+and 10182003 each score 179/179; a new untouched offset 10186013 was first
+generated after the final shared numeric parser freeze and also scores 179/179. The 43 same-author probes
+score 43/43 versus frozen C's 25/43 (6 wrong, 9 false yes, 3 withheld), and
+versus the shipped organ's 8/43 (6 wrong, 13 false yes, 16 withheld).
+
+Fresh-process starts: 112.0, 3.6, 4.6, 4.3, 3.7 ms, median 4.3 ms; first
+filesystem-cold load remains visible. Receipts: `var/life/d-next/shipped-bound.json`,
+`probes-c-baseline.json`, `probes-bound.json`, and
+`var/life/c-beyond/{d-bound-10181001,d-bound-10182003,d-bound-untouched-10186013}.json`.
+Frozen D binary/export, named files and hashes: `var/life/d-delivery/ready.json`.
+
+Consumers still use existing answer kinds. Biology now explicitly admits the
+model-refusal kind `underspecified` in its capability contract; shared runtime
+capability validation passes. No claims are made that the remaining model
+limits in the ledger are solved.
+
+The shared native compiler driver binds the successful proof receipt and full
+theory closure to the actual frozen generated ML, commons, numeric parser,
+recognizer and main consumed by MLton. Final compile receipt:
+`var/life/native-attempts/20261018T073925Z-a9ebc17321d6/compile-inputs.json`.
+The consumed numeric parser hash is
+`2f313c77fadce09298f0387599e630b04a6551e800f52b6c79a88468b2cc046d`.
+Earlier diagnostic compiler snapshots remain in scratch and are not the final
+package. The redundant family-specific snapshot helper was removed after
+migration to the shared driver.

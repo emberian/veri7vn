@@ -74,7 +74,7 @@ lemma interp_m_fa_gentime [simp]:
   by (simp add: of_rat_divide of_rat_mult of_rat_inverse log_def divide_inverse)
 
 fun m_bad :: "mreq \<Rightarrow> decline option" where
-  "m_bad (M_CFU c d v) = (if d \<le> 0 \<or> v \<le> 0 then Some (Impossible R_zero) else None)"
+  "m_bad (M_CFU c d v) = (if c < 0 \<or> d \<le> 0 \<or> 1 < d \<or> v \<le> 0 then Some (Impossible R_plate) else None)"
 | "m_bad (M_GrowthN n0 g t) = (if g \<le> 0 then Some (Impossible R_zero) else None)"
 | "m_bad (M_Gens t g) = (if g \<le> 0 then Some (Impossible R_zero) else None)"
 | "m_bad (M_GenTime n0 nf t) = (if nf \<le> n0 then Some (Impossible R_final_below)
@@ -112,13 +112,13 @@ section \<open>What each kind means\<close>
 
 theorem cfu_value:
   assumes "m_kernel (M_CFU c d v) = Exact k q"
-  shows "0 < d \<and> 0 < v \<and> q * (d * v) = c"
+  shows "0 \<le> c \<and> 0 < d \<and> d \<le> 1 \<and> 0 < v \<and> 0 \<le> q \<and> q * (d * v) = c"
 proof -
-  have nd: "\<not> (d \<le> 0 \<or> v \<le> 0)" using assms by (cases "d \<le> 0 \<or> v \<le> 0") (simp_all add: m_kernel_def)
-  then have h: "0 < d" "0 < v" by auto
-  have q: "q = c / (d * v)" using assms nd by (simp add: m_kernel_def)
-  have "d * v \<noteq> 0" using h by simp
-  then show ?thesis using h q by (simp add: field_simps)
+  have h: "0 \<le> c" "0 < d" "d \<le> 1" "0 < v"
+    using assms by (auto simp: m_kernel_def split: if_splits)
+  have q: "q = c / (d * v)" using assms h by (simp add: m_kernel_def)
+  have nonneg: "0 \<le> q" using h q by (auto intro: divide_nonneg_nonneg mult_nonneg_nonneg)
+  show ?thesis using h q nonneg by (simp add: field_simps)
 qed
 
 theorem serial_value:
@@ -239,7 +239,7 @@ lemma m_decl_iff: "w \<noteq> Imprecise \<Longrightarrow> m_kernel r = Decline w
   by (cases "m_bad r") (auto simp: m_kernel_def dest: m_answer_decline)
 
 theorem cfu_declines_iff:
-  "m_kernel (M_CFU c d v) = Decline (Impossible R_zero) \<longleftrightarrow> d \<le> 0 \<or> v \<le> 0"
+  "m_kernel (M_CFU c d v) = Decline (Impossible R_plate) \<longleftrightarrow> c < 0 \<or> d \<le> 0 \<or> 1 < d \<or> v \<le> 0"
   by (simp add: m_decl_iff)
 
 theorem gens_declines_iff:

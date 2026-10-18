@@ -73,3 +73,19 @@ into the answerer. The expensive numeric reply paths reuse their result instead 
 `beyond.py` reproduces fresh generator panels without writing to upstream;
 `probe.py` runs the same-author model probes. See the current work and receipts
 in [C-life](../../../project/lanes/C-life.md).
+
+## Strand and measured-quantity repair
+
+The current candidate normalizes explicit 3-prime/5-prime direction and
+template/coding role before transcription or translation. It preserves the
+standard-code, first-base convention and declines explicit incompatible
+models. Independent genetic loci are matched by identity, so parents and
+targets can use different locus orders without inventing duplicate loci.
+
+CFU questions require an explicit plated volume. Count and volume are read
+through the shared exact numeric lexer, including signs, fractions and
+scientific notation; malformed and ambiguous inputs decline. The kernel
+requires nonnegative colony count, dilution in (0,1], and positive volume.
+The D receipt has 110 theorems and zero oracles; all 179 shipped items and
+43 targeted probes pass. See [semantic gaps](semantic-gaps.md)
+for the remaining limits beyond the shipped panels.

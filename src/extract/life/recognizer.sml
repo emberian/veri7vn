@@ -7,11 +7,11 @@
      upstream/root/specialists/wildlife/organ_wildlife_v1.py         (WildlifeOrgan)
      upstream/root/specialists/microbiology-v2/organ_micro_v{1,2}.py (MicroOrganV2)
    and of their shared narrowing rule narrow_v1.py. It reads numbers, genotypes,
-   sequences and words off the question and builds typed Life requests; it
-   computes nothing. Every value, decline and response text comes from the
-   verified HOL kernels (Life.*_reply). The only decisions made here are the
-   organs' own routing decisions (which branch a question belongs to, and the
-   narrowing rule that hands word problems to the head).
+   sequences and words off the question, converts units and binds them to typed
+   Life requests. Numeric tokenization and English role/model selection remain
+   untrusted. The scientific arithmetic, strand normalization, domain checks
+   and response construction are extracted HOL functions. The reader also
+   chooses routing and applies the shared narrowing rule.
 
    Patterns are written as in the organs and passed to the matcher as written;
    the question text is lower-cased by the caller where the organ matches
@@ -134,7 +134,7 @@ struct
     | _ => L.Het
   fun locusOf c1 c2 = L.Locus (String.str (Char.toUpper c1), String.str (Char.toLower c1), zygOf c1 c2)
   fun lociOf s = List.tabulate (size s div 2, fn i => (String.sub (s, 2 * i), String.sub (s, 2 * i + 1)))
-  fun validPair p1 p2 =
+  fun validOrderedPair p1 p2 =
     size p1 = size p2 andalso (size p1 >= 2 andalso size p1 <= 12 andalso size p1 mod 2 = 0) andalso
     List.all (fn (a, b) => 
       let val l = Char.toLower
@@ -142,6 +142,18 @@ struct
     length (List.foldl (fn ((a, _), seen) => if List.exists (fn c => c = Char.toLower a) seen then seen else Char.toLower a :: seen) [] (lociOf p1)) = size p1 div 2 andalso
     List.all (fn ((a, b), (c, d)) =>
       let val l = Char.toLower in l a = l c andalso l a = l d end) (ListPair.zip (lociOf p1, lociOf p2))
+
+  (* Bind diploid pairs by locus identity, preserving the first parent's
+     reporting order. A repeated, malformed or missing locus has no mapping. *)
+  fun alignLoci reference supplied =
+    if not (validOrderedPair reference reference andalso validOrderedPair supplied supplied)
+       orelse size reference <> size supplied then NONE
+    else
+      let val pairs = lociOf supplied
+          val mapped = map (fn (a, _) => List.find
+             (fn (b, _) => Char.toLower a = Char.toLower b) pairs) (lociOf reference)
+      in if List.all isSome mapped then SOME (map valOf mapped) else NONE end
+  fun validPair p1 p2 = isSome (alignLoci p1 p2)
 
   fun hwSource low : L.hwsrc option =
     let
@@ -214,16 +226,15 @@ struct
                      fun okCand (c : Regex.match) =
                        let val s = #start c
                            val w = Regex.whole t c
-                       in s <> s1 andalso s <> s2 andalso validPair w p1
-                          andalso Char.toLower (String.sub (w, 0)) = Char.toLower (String.sub (p1, 0)) end
-                     val want = Option.map (Regex.whole t) (List.find okCand cands)
+                       in s <> s1 andalso s <> s2 andalso validPair p1 w end
+                     val want = case List.filter okCand cands of [c] => SOME (Regex.whole t c) | _ => NONE
                      val lp = lociOf p1
-                     val lq = lociOf p2
+                     val lq = valOf (alignLoci p1 p2)
                      val pairs = ListPair.zip (map (fn (a, b) => locusOf a b) lp, map (fn (a, b) => locusOf a b) lq)
                    in
                      if isSome want andalso has "\\bprobability\\b|\\bchance\\b|\\bproportion\\b|\\bfraction\\b|\\bwhat percent\\w*\\b|\\bhow likely\\b" low then
                        let val w = valOf want
-                           val ws = map (fn (a, b) => zygOf a b) (lociOf w)
+                           val ws = map (fn (a, b) => zygOf a b) (valOf (alignLoci p1 w))
                        in SOME (L.G_Geno (map (fn ((a, b), z) => (a, (b, z))) (ListPair.zip (pairs, ws)))) end
                      else if n = 2 andalso has "\\brecessive (?:phenotype|trait)\\b|\\bshow the recessive\\b|\\bexpress the recessive\\b" low then
                        SOME (L.G_Pheno (false, #1 (hd pairs), #2 (hd pairs)))
@@ -300,6 +311,24 @@ struct
           in if size s >= 3 andalso CharVector.all (fn c => Char.contains "ACGTU" c) s then SOME s else NONE end
     end
 
+  (* Direction is attached to the sequence, not guessed from a later request
+     about output direction. No prime marks retains the published 5'->3'
+     convention; incomplete/conflicting marks request clarification. *)
+  fun bioDirection low seq : bool option =
+    let
+      val p = "([35])\\s*['\226\128\178]\\s*[-:]?\\s*([acgtu]{3,}(?:[ \\-][acgtu]{3})*)\\s*[-:]?\\s*([35])\\s*['\226\128\178]"
+      fun bases g = String.translate (fn c => if Char.isSpace c orelse c = #"-" then "" else String.str c) g
+      val ms = List.filter (fn m => bases (valOf (grp low m 2)) = lower seq) (findall p low)
+    in case ms of
+         [m] => if g1 low m = valOf (grp low m 3) then NONE else SOME (g1 low m = "3")
+       | [] => if has "[35]\\s*['\226\128\178]" low then NONE else SOME false
+       | _ => NONE
+    end
+
+  fun bioUnsupportedCode low =
+    has "\\bmitochondri\\w*\\b|\\bciliate\\w*\\b|\\balternative (?:genetic )?code\\b|\\bnonstandard\\b|\\bnon-standard\\b|\\bselenocysteine\\b|\\bpyrrolysine\\b|\\b(?:reading )?frame\\s*(?:[023456]|-[123])\\b" low
+    orelse (has "\\b(?:genetic )?code\\s*(?:table\\s*)?\\d+\\b" low andalso not (has "\\b(?:genetic )?code\\s*(?:table\\s*)?1\\b" low))
+
   fun biology text : L.reply option =
     if Narrow.narrative text then NONE
     else
@@ -317,10 +346,18 @@ struct
               let
                 val xs = map nucOf (String.explode s)
                 val both = String.isSubstring "U" s andalso String.isSubstring "T" s
+                val template = has "\\btemplate\\b|\\bantisense\\b|\\bnon-?coding strand\\b" low
+                val coding = has "\\bcoding strand\\b|\\bsense strand\\b" (subWith "\\bnon-?coding strand\\b" (fn _ => fn _ => "") low)
+                val direction = bioDirection low s
+                val codeTask = has "\\btranslat\\w*\\b|\\bprotein\\b|\\bamino acid\\b|\\bcodon\\b|\\bcode for\\b" low
+                val strandTask = codeTask orelse has "\\btranscri\\w*\\b|\\bmrna\\b" low
+                val ys = L.bio_input template (case direction of SOME x => x | NONE => false) xs
               in
-                if both then fin (L.Bio (L.Op_complement, xs))
+                if strandTask andalso (not (isSome direction) orelse (template andalso coding) orelse (codeTask andalso bioUnsupportedCode low))
+                then gate text L.bio_model_reply
+                else if both then fin (L.Bio (L.Op_complement, xs))
                 else if size s = 3 andalso has "\\bcodon\\b|\\bcode for\\b|\\bencode\\w*\\b|\\bamino acid\\b|\\bspecif\\w*\\b" low
-                then fin (L.Bio (L.Op_codon, xs))
+                then fin (L.Bio (L.Op_codon, ys))
                 else if has "\\bgc content\\b|\\bgc percent\\w*\\b|\\bgc %|\\bpercent(?:age)? (?:of )?g(?:\\s*\\+\\s*|c\\b)" low
                 then fin (L.Bio (L.Op_gc, xs))
                 else if has "\\breverse[- ]complement\\b" low then fin (L.Bio (L.Op_revcomp, xs))
@@ -330,11 +367,11 @@ struct
                         andalso not (has "\\btranslat\\w*\\b|\\bprotein\\b|\\bamino acids?\\b" low)
                 then
                   (if String.isSubstring "U" s then NONE
-                   else fin (L.Bio (L.Op_transcribe (has "\\btemplate\\b|\\bantisense\\b|\\bnon-?coding strand\\b" low), xs)))
+                   else fin (L.Bio (L.Op_transcribe false, ys)))
                 else if has "\\btranslat\\w*\\b|\\bprotein\\b|\\bamino acid sequence\\b|\\bpeptide\\b" low then
                   (if has "\\bhow many amino acids\\b|\\blength of the protein\\b|\\bhow long\\b" low
-                   then fin (L.Bio (L.Op_protlen, xs))
-                   else fin (L.Bio (L.Op_translate, xs)))
+                   then fin (L.Bio (L.Op_protlen, ys))
+                   else fin (L.Bio (L.Op_translate, ys)))
                 else NONE
               end
       end
@@ -674,21 +711,25 @@ struct
     in
       if has "\\bcfu\\b|\\bcolon(?:y|ies)\\b|\\bplate count\\b" low andalso has "\\bdilution\\b|10\\s*\\^|\\b1\\s*[:/]\\s*\\d" low then
         let
-          val cm = search (N ^ "\\s*colon(?:y|ies)\\b") low
+          val tokens = ExactNumeric.scan low
+          val malformed = List.exists (fn ExactNumeric.Malformed _ => true | _ => false) tokens
+          fun role pat = List.mapPartial
+            (fn ExactNumeric.Number {stop, value, ...} =>
+                  let val rest = String.extract (low, stop, NONE)
+                  in if has pat rest then SOME (value, rest) else NONE end
+              | _ => NONE) tokens
+          val colonies = role "^\\s*colon(?:y|ies)\\b"
+          val volumes = role "^\\s*(?:ml|\194\181l|ul|microlit\\w+|millilit\\w+)\\b"
           val dil = microDil low
-          val vm = search (N ^ "\\s*(ml|\194\181l|ul|microlit\\w+|millilit\\w+)\\s*(?:was |were )?(?:plated|spread|of the dilution)?") low
         in
-          case (cm, dil) of
-            (SOME c, SOME d) =>
+          if malformed then SOME L.M_Unread
+          else case (colonies, dil, volumes) of
+            ([((cn, cd), _)], SOME d, [((vn, vd), unit)]) =>
               let
-                val vol = case vm of
-                            NONE => L.mk_rat 1 1
-                          | SOME v =>
-                              let val u = valOf (grp low v 2)
-                              in if String.isPrefix "\194\181" u orelse String.isPrefix "u" u orelse String.isPrefix "micro" u
-                                 then ratDiv (g1 low v) 1000 else ratOf (g1 low v) end
-              in SOME (L.M_CFU (ratOf (g1 low c), d, vol)) end
-          | _ => NONE
+                val micro = has "^\\s*(?:\194\181l|ul|microlit\\w+)\\b" unit
+                val vol = L.mk_rat vn (if micro then vd * 1000 else vd)
+              in SOME (L.M_CFU (L.mk_rat cn cd, d, vol)) end
+          | _ => SOME L.M_Unread
         end
       else
         case search "\\b(\\d+|two|three|four|five|six)\\s+(?:serial\\s+)?(?:1\\s*[:/]\\s*(\\d+)|(\\d+)[- ]fold)\\s+(?:serial\\s+)?dilutions?\\b" low of

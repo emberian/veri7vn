@@ -152,7 +152,7 @@ definition self_test :: bool where
   "self_test \<longleftrightarrow> st0 \<and> st1 \<and> st2 \<and> st3 \<and> st4 \<and> st5 \<and> st6 \<and> st7 \<and> st8 \<and> st9 \<and> st10 \<and> st11 \<and> st12 \<and> st13 \<and> st14 \<and> st15 \<and> st16 \<and> st17 \<and> st18 \<and> st19 \<and> st20 \<and> st21 \<and> st22 \<and> st23 \<and> st24 \<and> st25 \<and> st26 \<and> st27 \<and> st28 \<and> st29 \<and> st30 \<and> st31 \<and> st32"
 
 
-export_code g_reply b_reply e_reply f_reply w_reply m_reply
+export_code bio_input bio_model_reply g_reply b_reply e_reply f_reply w_reply m_reply
   answered reply_kind response stated mk_rat
   integer_of_int nat_of_integer int_of_integer
   Hom_dom Het Hom_rec Locus G_Geno G_Pheno G_PRatio G_GRatio G_HW G_Need G_Model
@@ -176,6 +176,8 @@ ML \<open>
     @{thm revcomp_involutive}, @{thm transcription_inverse}, @{thm protein_length_bound},
     @{thm protein_has_no_stop}, @{thm gc_val_bounds}, @{thm gc_val_defining}, @{thm bio_mixed_declines},
     @{thm bio_codon}, @{thm bio_complement}, @{thm bio_revcomp}, @{thm bio_transcribe},
+    @{thm bio_model_declines}, @{thm bio_input_template_backwards}, @{thm bio_input_coding_backwards},
+    @{thm bio_input_preserves_length}, @{thm bio_input_orientation_invariance},
     @{thm bio_translate}, @{thm bio_translate_frame}, @{thm bio_gc},
     @{thm e_impossible}, @{thm e_imprecise}, @{thm simpson_d_value}, @{thm simpson_div_value},
     @{thm simpson_inv_value}, @{thm richness_value}, @{thm logistic_rate_value},
