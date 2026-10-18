@@ -17,73 +17,376 @@
       "kind": "independently_checked_case",
       "request": "A lever has effort arm 40 cm and load arm 0.2 m. What is its ideal mechanical advantage?",
       "expected_boundary": "Arm-ratio arithmetic: 0.40 m / 0.20 m = 2.",
-      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"lever_ma\", \"value\": 2, \"response\": \"The mechanical advantage is 2 (effort arm 0.4 / load arm 0.2).\"}; reviewed outcome: right",
-      "independent_check": "Arm-ratio arithmetic: 0.40 m / 0.20 m = 2."
+      "independent_check": "Arm-ratio arithmetic: 0.40 m / 0.20 m = 2.",
+      "observed_behavior": "{\"kind\": \"lever_ma\", \"response\": \"The mechanical advantage is 2 (effort arm 0.4 / load arm 0.2).\", \"status\": \"answered\", \"value\": 2}; reviewed outcome: right"
     },
     {
       "case_id": "lossy-pulley",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A pulley has 4 supporting strands and a 400 N load. Its efficiency is 50%. What effort is required?",
       "expected_boundary": "Work efficiency eta = output/input and ideal displacement ratio4 imply effort=400/(4*0.5)=200 N; alternatively withhold unsupported efficiency.",
-      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"pulley_effort\", \"value\": 100, \"response\": \"The effort is 100 N (load 400 N / 4 supporting strands; ideal, frictionless).\"}; reviewed outcome: wrong"
+      "independent_check": "Work efficiency eta = output/input and ideal displacement ratio4 imply effort=400/(4*0.5)=200 N; alternatively withhold unsupported efficiency.",
+      "observed_behavior": "{\"kind\": \"pulley_effort\", \"response\": \"The effort is 200 N (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 200}; reviewed outcome: right"
     },
     {
       "case_id": "gear-torque-efficiency",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A 20-tooth driver gear drives a 40-tooth driven gear. The input torque is 10 N m and efficiency is 80%. What is the output torque?",
       "expected_boundary": "Torque_out*speed_out=eta*Torque_in*speed_in; speed ratio1/2 gives16N m.",
-      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"gear_torque\", \"value\": 20, \"response\": \"The output torque is 20 N m (10 N m x 40/20 teeth; ideal, no friction losses).\"}; reviewed outcome: wrong"
+      "independent_check": "Torque_out*speed_out=eta*Torque_in*speed_in; speed ratio1/2 gives16N m.",
+      "observed_behavior": "{\"kind\": \"gear_torque\", \"response\": \"The output torque is 16 N m (useful output work / input work = 0.8; fixed geometry).\", \"status\": \"answered\", \"value\": 16}; reviewed outcome: right"
     },
     {
       "case_id": "lever-effort-efficiency",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A lever has an effort arm 40 cm and load arm 20 cm with a 400 N load. Its efficiency is 50%. What effort is required?",
       "expected_boundary": "eta=load*load_displacement/(effort*effort_displacement); arm ratio2, eta1/2 and load400 imply effort400N.",
-      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"lever_effort\", \"value\": 200, \"response\": \"The effort needed is 200 N (load 400 N x load arm 0.2 / effort arm 0.4; ideal lever).\"}; reviewed outcome: wrong"
+      "independent_check": "eta=load*load_displacement/(effort*effort_displacement); arm ratio2, eta1/2 and load400 imply effort400N.",
+      "observed_behavior": "{\"kind\": \"lever_effort\", \"response\": \"The effort needed is 400 N (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 400}; reviewed outcome: right"
     },
     {
       "case_id": "pulley-actual-ma",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A pulley has 4 supporting strands and an efficiency of 50%. What is its actual mechanical advantage?",
       "expected_boundary": "Actual force advantage equals efficiency times velocity ratio:0.5*4=2.",
-      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"pulley_ma\", \"value\": 4, \"response\": \"The ideal mechanical advantage is 4 (the number of supporting strands).\"}; reviewed outcome: wrong"
+      "independent_check": "Actual force advantage equals efficiency times velocity ratio:0.5*4=2.",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The actual mechanical advantage is 2 (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 2}; reviewed outcome: right"
     },
     {
       "case_id": "pulley-ideal-ma",
       "kind": "independently_checked_case",
       "request": "A pulley has 4 supporting strands and an efficiency of 50%. What is its ideal mechanical advantage?",
       "expected_boundary": "Ideal mechanical advantage describes displacement geometry alone:4, regardless of efficiency.",
-      "observed_behavior": "{\"status\": \"answered\", \"kind\": \"pulley_ma\", \"value\": 4, \"response\": \"The ideal mechanical advantage is 4 (the number of supporting strands).\"}; reviewed outcome: right",
-      "independent_check": "Ideal mechanical advantage describes displacement geometry alone:4, regardless of efficiency."
+      "independent_check": "Ideal mechanical advantage describes displacement geometry alone:4, regardless of efficiency.",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The ideal mechanical advantage is 4 (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 4}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-effort-0",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 7 supporting strands and a 120 N load. Its efficiency is 25%. What effort is required?",
+      "expected_boundary": "effort * supporting_strands * efficiency = load",
+      "independent_check": "effort * supporting_strands * efficiency = load",
+      "observed_behavior": "{\"kind\": \"pulley_effort\", \"response\": \"The effort is 68.57 N (useful output work / input work = 0.25; fixed geometry).\", \"status\": \"answered\", \"value\": 68.57}; reviewed outcome: right"
+    },
+    {
+      "case_id": "lever-effort-0",
+      "kind": "independently_checked_case",
+      "request": "A lever has effort arm 70 cm and load arm 10 cm with a 270 N load. Its efficiency is 25%. What effort is required?",
+      "expected_boundary": "effort * effort_arm * efficiency = load * load_arm",
+      "independent_check": "effort * effort_arm * efficiency = load * load_arm",
+      "observed_behavior": "{\"kind\": \"lever_effort\", \"response\": \"The effort needed is 154.3 N (useful output work / input work = 0.25; fixed geometry).\", \"status\": \"answered\", \"value\": 154.3}; reviewed outcome: right"
+    },
+    {
+      "case_id": "gear-torque-0",
+      "kind": "independently_checked_case",
+      "request": "A 40-tooth driver gear drives a 70-tooth driven gear. The input torque is 6 N m and efficiency is 25%. What is the output torque?",
+      "expected_boundary": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "independent_check": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "observed_behavior": "{\"kind\": \"gear_torque\", \"response\": \"The output torque is 2.625 N m (useful output work / input work = 0.25; fixed geometry).\", \"status\": \"answered\", \"value\": 2.625}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-actual-0",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 7 supporting strands and an efficiency of 25%. What is its actual mechanical advantage?",
+      "expected_boundary": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "independent_check": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The actual mechanical advantage is 1.75 (useful output work / input work = 0.25; fixed geometry).\", \"status\": \"answered\", \"value\": 1.75}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-effort-1",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 3 supporting strands and a 460 N load. Its efficiency is 25%. What effort is required?",
+      "expected_boundary": "effort * supporting_strands * efficiency = load",
+      "independent_check": "effort * supporting_strands * efficiency = load",
+      "observed_behavior": "{\"kind\": \"pulley_effort\", \"response\": \"The effort is 613.3 N (useful output work / input work = 0.25; fixed geometry).\", \"status\": \"answered\", \"value\": 613.3}; reviewed outcome: right"
+    },
+    {
+      "case_id": "lever-effort-1",
+      "kind": "independently_checked_case",
+      "request": "A lever has effort arm 40 cm and load arm 10 cm with a 370 N load. Its efficiency is 25%. What effort is required?",
+      "expected_boundary": "effort * effort_arm * efficiency = load * load_arm",
+      "independent_check": "effort * effort_arm * efficiency = load * load_arm",
+      "observed_behavior": "{\"kind\": \"lever_effort\", \"response\": \"The effort needed is 370 N (useful output work / input work = 0.25; fixed geometry).\", \"status\": \"answered\", \"value\": 370}; reviewed outcome: right"
+    },
+    {
+      "case_id": "gear-torque-1",
+      "kind": "independently_checked_case",
+      "request": "A 50-tooth driver gear drives a 80-tooth driven gear. The input torque is 9 N m and efficiency is 25%. What is the output torque?",
+      "expected_boundary": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "independent_check": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "observed_behavior": "{\"kind\": \"gear_torque\", \"response\": \"The output torque is 3.6 N m (useful output work / input work = 0.25; fixed geometry).\", \"status\": \"answered\", \"value\": 3.6}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-actual-1",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 3 supporting strands and an efficiency of 25%. What is its actual mechanical advantage?",
+      "expected_boundary": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "independent_check": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The actual mechanical advantage is 0.75 (useful output work / input work = 0.25; fixed geometry).\", \"status\": \"answered\", \"value\": 0.75}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-effort-2",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 2 supporting strands and a 300 N load. Its efficiency is 50%. What effort is required?",
+      "expected_boundary": "effort * supporting_strands * efficiency = load",
+      "independent_check": "effort * supporting_strands * efficiency = load",
+      "observed_behavior": "{\"kind\": \"pulley_effort\", \"response\": \"The effort is 300 N (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 300}; reviewed outcome: right"
+    },
+    {
+      "case_id": "lever-effort-2",
+      "kind": "independently_checked_case",
+      "request": "A lever has effort arm 40 cm and load arm 10 cm with a 410 N load. Its efficiency is 50%. What effort is required?",
+      "expected_boundary": "effort * effort_arm * efficiency = load * load_arm",
+      "independent_check": "effort * effort_arm * efficiency = load * load_arm",
+      "observed_behavior": "{\"kind\": \"lever_effort\", \"response\": \"The effort needed is 205 N (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 205}; reviewed outcome: right"
+    },
+    {
+      "case_id": "gear-torque-2",
+      "kind": "independently_checked_case",
+      "request": "A 50-tooth driver gear drives a 50-tooth driven gear. The input torque is 6 N m and efficiency is 50%. What is the output torque?",
+      "expected_boundary": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "independent_check": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "observed_behavior": "{\"kind\": \"gear_torque\", \"response\": \"The output torque is 3 N m (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 3}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-actual-2",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 2 supporting strands and an efficiency of 50%. What is its actual mechanical advantage?",
+      "expected_boundary": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "independent_check": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The actual mechanical advantage is 1 (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 1}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-effort-3",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 8 supporting strands and a 180 N load. Its efficiency is 50%. What effort is required?",
+      "expected_boundary": "effort * supporting_strands * efficiency = load",
+      "independent_check": "effort * supporting_strands * efficiency = load",
+      "observed_behavior": "{\"kind\": \"pulley_effort\", \"response\": \"The effort is 45 N (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 45}; reviewed outcome: right"
+    },
+    {
+      "case_id": "lever-effort-3",
+      "kind": "independently_checked_case",
+      "request": "A lever has effort arm 80 cm and load arm 10 cm with a 390 N load. Its efficiency is 50%. What effort is required?",
+      "expected_boundary": "effort * effort_arm * efficiency = load * load_arm",
+      "independent_check": "effort * effort_arm * efficiency = load * load_arm",
+      "observed_behavior": "{\"kind\": \"lever_effort\", \"response\": \"The effort needed is 97.5 N (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 97.5}; reviewed outcome: right"
+    },
+    {
+      "case_id": "gear-torque-3",
+      "kind": "independently_checked_case",
+      "request": "A 50-tooth driver gear drives a 70-tooth driven gear. The input torque is 8 N m and efficiency is 50%. What is the output torque?",
+      "expected_boundary": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "independent_check": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "observed_behavior": "{\"kind\": \"gear_torque\", \"response\": \"The output torque is 5.6 N m (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 5.6}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-actual-3",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 8 supporting strands and an efficiency of 50%. What is its actual mechanical advantage?",
+      "expected_boundary": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "independent_check": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The actual mechanical advantage is 4 (useful output work / input work = 0.5; fixed geometry).\", \"status\": \"answered\", \"value\": 4}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-effort-4",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 5 supporting strands and a 230 N load. Its efficiency is 60%. What effort is required?",
+      "expected_boundary": "effort * supporting_strands * efficiency = load",
+      "independent_check": "effort * supporting_strands * efficiency = load",
+      "observed_behavior": "{\"kind\": \"pulley_effort\", \"response\": \"The effort is 76.67 N (useful output work / input work = 0.6; fixed geometry).\", \"status\": \"answered\", \"value\": 76.67}; reviewed outcome: right"
+    },
+    {
+      "case_id": "lever-effort-4",
+      "kind": "independently_checked_case",
+      "request": "A lever has effort arm 40 cm and load arm 15 cm with a 170 N load. Its efficiency is 60%. What effort is required?",
+      "expected_boundary": "effort * effort_arm * efficiency = load * load_arm",
+      "independent_check": "effort * effort_arm * efficiency = load * load_arm",
+      "observed_behavior": "{\"kind\": \"lever_effort\", \"response\": \"The effort needed is 106.3 N (useful output work / input work = 0.6; fixed geometry).\", \"status\": \"answered\", \"value\": 106.3}; reviewed outcome: right"
+    },
+    {
+      "case_id": "gear-torque-4",
+      "kind": "independently_checked_case",
+      "request": "A 30-tooth driver gear drives a 40-tooth driven gear. The input torque is 18 N m and efficiency is 60%. What is the output torque?",
+      "expected_boundary": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "independent_check": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "observed_behavior": "{\"kind\": \"gear_torque\", \"response\": \"The output torque is 14.4 N m (useful output work / input work = 0.6; fixed geometry).\", \"status\": \"answered\", \"value\": 14.4}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-actual-4",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 5 supporting strands and an efficiency of 60%. What is its actual mechanical advantage?",
+      "expected_boundary": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "independent_check": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The actual mechanical advantage is 3 (useful output work / input work = 0.6; fixed geometry).\", \"status\": \"answered\", \"value\": 3}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-effort-5",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 2 supporting strands and a 420 N load. Its efficiency is 75%. What effort is required?",
+      "expected_boundary": "effort * supporting_strands * efficiency = load",
+      "independent_check": "effort * supporting_strands * efficiency = load",
+      "observed_behavior": "{\"kind\": \"pulley_effort\", \"response\": \"The effort is 280 N (useful output work / input work = 0.75; fixed geometry).\", \"status\": \"answered\", \"value\": 280}; reviewed outcome: right"
+    },
+    {
+      "case_id": "lever-effort-5",
+      "kind": "independently_checked_case",
+      "request": "A lever has effort arm 30 cm and load arm 15 cm with a 270 N load. Its efficiency is 75%. What effort is required?",
+      "expected_boundary": "effort * effort_arm * efficiency = load * load_arm",
+      "independent_check": "effort * effort_arm * efficiency = load * load_arm",
+      "observed_behavior": "{\"kind\": \"lever_effort\", \"response\": \"The effort needed is 180 N (useful output work / input work = 0.75; fixed geometry).\", \"status\": \"answered\", \"value\": 180}; reviewed outcome: right"
+    },
+    {
+      "case_id": "gear-torque-5",
+      "kind": "independently_checked_case",
+      "request": "A 40-tooth driver gear drives a 70-tooth driven gear. The input torque is 7 N m and efficiency is 75%. What is the output torque?",
+      "expected_boundary": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "independent_check": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "observed_behavior": "{\"kind\": \"gear_torque\", \"response\": \"The output torque is 9.188 N m (useful output work / input work = 0.75; fixed geometry).\", \"status\": \"answered\", \"value\": 9.188}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-actual-5",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 2 supporting strands and an efficiency of 75%. What is its actual mechanical advantage?",
+      "expected_boundary": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "independent_check": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The actual mechanical advantage is 1.5 (useful output work / input work = 0.75; fixed geometry).\", \"status\": \"answered\", \"value\": 1.5}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-effort-6",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 5 supporting strands and a 170 N load. Its efficiency is 75%. What effort is required?",
+      "expected_boundary": "effort * supporting_strands * efficiency = load",
+      "independent_check": "effort * supporting_strands * efficiency = load",
+      "observed_behavior": "{\"kind\": \"pulley_effort\", \"response\": \"The effort is 45.33 N (useful output work / input work = 0.75; fixed geometry).\", \"status\": \"answered\", \"value\": 45.33}; reviewed outcome: right"
+    },
+    {
+      "case_id": "lever-effort-6",
+      "kind": "independently_checked_case",
+      "request": "A lever has effort arm 30 cm and load arm 5 cm with a 430 N load. Its efficiency is 75%. What effort is required?",
+      "expected_boundary": "effort * effort_arm * efficiency = load * load_arm",
+      "independent_check": "effort * effort_arm * efficiency = load * load_arm",
+      "observed_behavior": "{\"kind\": \"lever_effort\", \"response\": \"The effort needed is 95.56 N (useful output work / input work = 0.75; fixed geometry).\", \"status\": \"answered\", \"value\": 95.56}; reviewed outcome: right"
+    },
+    {
+      "case_id": "gear-torque-6",
+      "kind": "independently_checked_case",
+      "request": "A 20-tooth driver gear drives a 60-tooth driven gear. The input torque is 10 N m and efficiency is 75%. What is the output torque?",
+      "expected_boundary": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "independent_check": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "observed_behavior": "{\"kind\": \"gear_torque\", \"response\": \"The output torque is 22.5 N m (useful output work / input work = 0.75; fixed geometry).\", \"status\": \"answered\", \"value\": 22.5}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-actual-6",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 5 supporting strands and an efficiency of 75%. What is its actual mechanical advantage?",
+      "expected_boundary": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "independent_check": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The actual mechanical advantage is 3.75 (useful output work / input work = 0.75; fixed geometry).\", \"status\": \"answered\", \"value\": 3.75}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-effort-7",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 7 supporting strands and a 350 N load. Its efficiency is 80%. What effort is required?",
+      "expected_boundary": "effort * supporting_strands * efficiency = load",
+      "independent_check": "effort * supporting_strands * efficiency = load",
+      "observed_behavior": "{\"kind\": \"pulley_effort\", \"response\": \"The effort is 62.5 N (useful output work / input work = 0.8; fixed geometry).\", \"status\": \"answered\", \"value\": 62.5}; reviewed outcome: right"
+    },
+    {
+      "case_id": "lever-effort-7",
+      "kind": "independently_checked_case",
+      "request": "A lever has effort arm 40 cm and load arm 20 cm with a 150 N load. Its efficiency is 80%. What effort is required?",
+      "expected_boundary": "effort * effort_arm * efficiency = load * load_arm",
+      "independent_check": "effort * effort_arm * efficiency = load * load_arm",
+      "observed_behavior": "{\"kind\": \"lever_effort\", \"response\": \"The effort needed is 93.75 N (useful output work / input work = 0.8; fixed geometry).\", \"status\": \"answered\", \"value\": 93.75}; reviewed outcome: right"
+    },
+    {
+      "case_id": "gear-torque-7",
+      "kind": "independently_checked_case",
+      "request": "A 40-tooth driver gear drives a 60-tooth driven gear. The input torque is 14 N m and efficiency is 80%. What is the output torque?",
+      "expected_boundary": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "independent_check": "output_torque * driver_teeth = efficiency * input_torque * driven_teeth",
+      "observed_behavior": "{\"kind\": \"gear_torque\", \"response\": \"The output torque is 16.8 N m (useful output work / input work = 0.8; fixed geometry).\", \"status\": \"answered\", \"value\": 16.8}; reviewed outcome: right"
+    },
+    {
+      "case_id": "pulley-actual-7",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 7 supporting strands and an efficiency of 80%. What is its actual mechanical advantage?",
+      "expected_boundary": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "independent_check": "actual_mechanical_advantage = efficiency * velocity_ratio",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The actual mechanical advantage is 5.6 (useful output work / input work = 0.8; fixed geometry).\", \"status\": \"answered\", \"value\": 5.6}; reviewed outcome: right"
+    },
+    {
+      "case_id": "ideal-ma",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 5 supporting strands and an efficiency of 40%. What is its ideal mechanical advantage?",
+      "expected_boundary": "Preserve ideal geometry; reject contradictory or impossible passive-machine givens.",
+      "independent_check": "Preserve ideal geometry; reject contradictory or impossible passive-machine givens.",
+      "observed_behavior": "{\"kind\": \"pulley_ma\", \"response\": \"The ideal mechanical advantage is 5 (useful output work / input work = 0.4; fixed geometry).\", \"status\": \"answered\", \"value\": 5}; reviewed outcome: right"
+    },
+    {
+      "case_id": "above-one",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 5 supporting strands and a 300 N load. Its efficiency is 120%. What effort is required?",
+      "expected_boundary": "Preserve ideal geometry; reject contradictory or impossible passive-machine givens.",
+      "independent_check": "Preserve ideal geometry; reject contradictory or impossible passive-machine givens.",
+      "observed_behavior": "{\"kind\": \"impossible\", \"response\": \"The stated magnitudes or event counts are outside the physical domain of this calculation.\", \"status\": \"withheld\", \"value\": null}; reviewed outcome: right"
+    },
+    {
+      "case_id": "zero-effort-denominator",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 5 supporting strands and a 300 N load. Its efficiency is 0%. What effort is required?",
+      "expected_boundary": "Preserve ideal geometry; reject contradictory or impossible passive-machine givens.",
+      "independent_check": "Preserve ideal geometry; reject contradictory or impossible passive-machine givens.",
+      "observed_behavior": "{\"kind\": \"impossible\", \"response\": \"The stated magnitudes or event counts are outside the physical domain of this calculation.\", \"status\": \"withheld\", \"value\": null}; reviewed outcome: right"
+    },
+    {
+      "case_id": "conflicting-efficiencies",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 5 supporting strands and a 300 N load. Its efficiency is 40% and its efficiency is 80%. What effort is required?",
+      "expected_boundary": "Preserve ideal geometry; reject contradictory or impossible passive-machine givens.",
+      "independent_check": "Preserve ideal geometry; reject contradictory or impossible passive-machine givens.",
+      "observed_behavior": "{\"kind\": \"underspecified\", \"response\": \"I need one unambiguous efficiency, all required quantities and their roles, with no conflicting or unused numbers; I won't assume it.\", \"status\": \"withheld\", \"value\": null}; reviewed outcome: right"
+    },
+    {
+      "case_id": "nonintegral-strands",
+      "kind": "independently_checked_case",
+      "request": "A pulley has 2.5 supporting strands and a 300 N load. Its efficiency is 40%. What effort is required?",
+      "expected_boundary": "Preserve ideal geometry; reject contradictory or impossible passive-machine givens.",
+      "independent_check": "Preserve ideal geometry; reject contradictory or impossible passive-machine givens.",
+      "observed_behavior": "{\"kind\": \"impossible\", \"response\": \"The stated magnitudes or event counts are outside the physical domain of this calculation.\", \"status\": \"withheld\", \"value\": null}; reviewed outcome: right"
     }
   ],
-  "actual_receipt": "project/audits/evidence/mechanics-20261018.json",
+  "actual_receipt": "project/audits/evidence/mechanics-efficiency-20261018.json",
   "native_binding": {
-    "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
-    "registered_binary": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/binary"
+    "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T114559Z-c4abe7e403d9/compile-inputs.json",
+    "registered_binary": "var/mechanics/native-attempts/20261018T114559Z-c4abe7e403d9/binary"
   },
   "current_unresolved_limits": [
-    "Open correctness: pulley effort100N instead of200N; lever effort200N instead of400N; gear output torque20N m instead of16N m; actual pulley advantage4instead of2. Every case explicitly supplies efficiency.",
-    "Ideal pulley advantage4is correct for the same50%-efficient geometry. Efficiency must affect the appropriate requested quantity, not trigger blanket refusal or rescale every output.",
-    "Implement common work-balance definitions with request-specific force/torque/dimensionless consumers and complete supplied-input consumption. Other mechanism kinds and ambiguous efficiency semantics remain unexamined."
+    "The typed fixed-geometry work model resolves the supplied-efficiency pulley, lever and gear errors in the preceding audit. This is a partial mechanism catalogue audit, not full semantic coverage.",
+    "Output shaft power with a supplied efficiency is still withheld; the source reader does not yet bind that request to an efficiency-aware power model.",
+    "More complex friction, variable geometry, compounded transmissions and ambiguous or redundant quantities still need model/reader examination. The English field assignments and fixed-geometry applicability are untrusted."
   ],
   "reviewer": "Codex root, direct source/theorem and executed-reader review, 2026-10-18",
-  "owner": "root / physical mechanics backlog; no active deputy",
+  "owner": "root; bounded implementation integrated without an active deputy",
   "author_claims": {
     "audit_scope": "partial; presence is not completion",
-    "theorem_consumer_review": "lever_units binds accepted advantage to both declared length scale factors. pulley_effort_def proves y*n=load for the ideal request. That constructor contains no efficiency, so the proof does not justify answering an efficiency-bearing source question. gear_torque_def proves output_torque*driver_teeth=input_torque*driven_teeth for the ideal request; it omits efficiency. lever_effort_units binds source arm units but likewise has no efficiency field. Neither law justifies these explicitly lossy source questions.",
+    "theorem_consumer_review": "McWork carries efficiency and a typed quantity request into the executed kernel. Accepted force/torque outputs satisfy output*output_travel = efficiency*(input*input_travel), with operation-specific nonzero denominators and physical count domains. efficient_lever_source_units binds source lengths, load units and percent scaling to the output equation. Ideal advantage and fixed gear/belt speed ratios remain invariant. The untrusted reader binds one labelled efficiency and checks remaining numeric-role count; theorem statements do not prove English interpretation.",
     "source_paths": [
       "src/extract/mechanics/Mechanics.thy",
       "src/extract/mechanics/Mechanics_Export.thy",
       "src/extract/mechanics/recognizer.sml",
       "src/extract/mechanics/main.sml"
     ],
-    "production_change_this_audit": false,
-    "shipped_panel_result": "No shipped panel rerun in this audit. Prior exact-native score1264/1264 for the9-ID family is separately recorded in project/lanes/F-physical-mechanics-gravity.md.",
+    "production_change_this_audit": true,
+    "shipped_panel_result": "118/118 own shipped cases for this ID; both IDs together 236/236; nine-ID family 1264/1264 in isolated and family modes. Fresh generator panels 116/116 mechanisms and 119/119 mechanisms-v2.",
     "result_counts": {
-      "right": 2,
-      "wrong": 4
+      "right": 43,
+      "wrong": 0,
+      "false_yes": 0,
+      "withheld_valid": 0
     },
-    "native_binding_scope": "The optional binary path selects the immutable observed artifact. Current source drift is reported separately; later native promotion must not erase this historical evidence."
+    "native_binding_scope": "Immutable current candidate compiler artifact; the earlier native audit receipt remains unchanged.",
+    "prior_native_observations": "project/audits/evidence/mechanics-20261018.json"
   }
 }

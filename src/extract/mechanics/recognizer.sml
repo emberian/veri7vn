@@ -518,6 +518,53 @@ struct
       | NONE => NONE
     end
 
+  (* Explicit efficiency belongs to the request. Percent conversion is exported
+     HOL arithmetic. All original numeric tokens must have a unique role. *)
+  fun efficientMechanism legacy text : M.request option =
+    let
+      val low = lower text
+      val marked = has "\\befficien(?:cy|t)\\b|\\beta\\b|%|\\bpercent\\b|\\bactual\\s+(?:mechanical advantage|ma)\\b" low
+      val mechanism = has "\\bgear|\\bpulley|\\blever|\\bfulcrum|\\bcrowbar|\\bseesaw|\\bramp|\\bincline|\\bbelt|\\bshaft" low
+      val etaRx = NUM ^ "\\s*(%|percent)?\\s*(?:efficien(?:cy|t))\\b|\\b(?:efficiency|eta)\\s*(?:of|is|=|:)?\\s*" ^ NUM ^ "\\s*(%|percent)?"
+      fun need () = SOME (M.McNeed (natOf 5))
+      fun count s = length(findall "qnum[0-9]+q" s)
+    in
+      if not marked orelse not mechanism then legacy text
+      else case findall etaRx low of
+        [m] =>
+          let
+            val eta = case grp low m 1 of
+                SOME p => if isSome(grp low m 2) then M.efficiency_percent(ratOf p) else ratOf p
+              | NONE => let val x=ratOf(valOf(grp low m 3))
+                        in if isSome(grp low m 4) then M.efficiency_percent x else x end
+            val clean = substCI "\\blift(?:s|ed|ing)\\b" "lift" (substCI etaRx " " text)
+            val ideal = has "(?<![-\\w])ideal\\s+(?:mechanical advantage|ma)\\b" low
+            val actual = has "\\bactual\\s+(?:mechanical advantage|ma)\\b" low
+            val ma = has "\\bmechanical advantage\\b|\\bma\\b" low
+            fun take w n = if count clean=n then SOME(M.McWork(w,eta)) else need()
+          in
+            if (ideal andalso actual) orelse has "\\befficien(?:cy|t)\\b|\\beta\\b|%|\\bpercent\\b" (lower clean) then need()
+            else case legacy clean of
+              SOME(M.McGearTorque(t,a,b)) => take (M.W_gear_torque(t,a,b)) 3
+            | SOME(M.McGearRatio(a,b)) => take (M.W_gear_ratio(a,b)) 2
+            | SOME(M.McGearSpeed(n,a,b)) => take (M.W_gear_speed(n,a,b)) 3
+            | SOME(M.McBeltSpeed(n,a,b)) => take (M.W_belt_speed(n,a,b)) 3
+            | SOME(M.McPulleyMA n) =>
+                if not ma andalso has "\\beffort\\b|\\bforce\\b|\\blift\\b" low then need()
+                else take (if ideal then M.W_pulley_ideal n else M.W_pulley_ma n) 1
+            | SOME(M.McPulleyEffort(n,ld)) =>
+                if ma then need() else take (M.W_pulley_effort(n,ld)) 2
+            | SOME(M.McLeverMA(e,l)) =>
+                if not ma andalso has "\\beffort\\b|\\bforce\\b|\\blift\\b" low then need()
+                else take (if ideal then M.W_lever_ideal(e,l) else M.W_lever_ma(e,l)) 2
+            | SOME(M.McLeverEffort(e,l,SOME ld)) =>
+                if ma then need() else take (M.W_lever_effort(e,l,ld)) 3
+            | SOME(M.McInclineMA(l,h)) => take (if ideal then M.W_incline_ideal(l,h) else M.W_incline_ma(l,h)) 2
+            | _ => need()
+          end
+      | _ => need()
+    end
+
   (* ---------- sports ---------- *)
   (* organ_sports_v1.stat: "N name" or "name [of|:|=] N", the first name that matches *)
   fun stat low names : string option =
@@ -908,8 +955,8 @@ struct
   fun byId "physics" = suppliedPhysics physicsV1 false
     | byId "physics-r2" = suppliedPhysics physicsR2 false
     | byId "physics-r3" = suppliedPhysics physicsR3 false
-    | byId "mechanisms" = mechV1
-    | byId "mechanisms-v2" = mechV2
+    | byId "mechanisms" = efficientMechanism mechV1
+    | byId "mechanisms-v2" = efficientMechanism mechV2
     | byId "bodies-v2" = suppliedPhysics bodiesV2 true
     | byId "sports" = sports
     | byId "fleet" = fleet

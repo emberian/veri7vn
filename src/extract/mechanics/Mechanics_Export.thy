@@ -9,6 +9,12 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
+     kernel (McWork (W_pulley_effort 4 (400, LD_n)) (efficiency_percent 50)) = Exact K_pulley_effort 200 \<and>
+     kernel (McWork (W_gear_torque 10 20 40) (efficiency_percent 80)) = Exact K_gear_torque 16 \<and>
+     kernel (McWork (W_lever_effort (2/5) (1/5) (400, LD_n)) (efficiency_percent 50)) = Exact K_lever_effort 400 \<and>
+     kernel (McWork (W_pulley_ma 4) (efficiency_percent 50)) = Exact K_pulley_ma 2 \<and>
+     kernel (McWork (W_pulley_ideal 4) (efficiency_percent 50)) = Exact K_pulley_ma 4 \<and>
+     kernel (McWork (W_pulley_ma 4) 0) = Exact K_pulley_ma 0 \<and>
      kernel FsModelLimit = Decline (Underspecified N_fluid_conditions) \<and>
      kernel PhModelLimit = Decline (Underspecified N_physics_conditions) \<and>
      kernel (PhPEAt (G_body MB_mars) (Some 2) (Some 3)) = Exact K_pe (1113/50) \<and>
@@ -59,6 +65,8 @@ export_code reply_of answered reply_kind response stated mk_rat length_m mass_kg
   PhRange PhImpact PhFall PhKE PhPE PhPEAt PhModelLimit PhMomentum PhWeight PhForce PhWork PhPower PhFinalV
   PhDistance BdWeight BdFall BdImpact BdPendulum BdUnreadable FsModelLimit
   McGearRatio McGearSpeed McGearTorque McBeltSpeed McPulleyMA McPulleyEffort McLeverMA
+  McWork W_pulley_ma W_lever_ma W_pulley_effort W_lever_effort W_gear_torque W_incline_ma
+  W_gear_ratio W_gear_speed W_belt_speed W_pulley_ideal W_lever_ideal W_incline_ideal efficiency_percent
   McLeverEffort McInclineMA McShaftPower McTorque McTorqueAngle McNeed
   SpPasser SpTrueShooting SpEra SpWhip SpAvg SpObp SpSlg SpGamesBehind SpWinPct
   FvBraking FvStopping FvToLpk FvToMpg FvCO2 FvCost FvLitres FvGallons
@@ -76,6 +84,16 @@ ML \<open>
     @{thm newton_force}, @{thm work_def}, @{thm power_def}, @{thm final_velocity_def},
     @{thm distance_def}, @{thm impact_model}, @{thm fall_model}, @{thm range_model},
     @{thm body_weight}, @{thm body_weight_units}, @{thm fluid_model_limit_refuses}, @{thm kinetic_energy_units}, @{thm body_fall_model}, @{thm body_impact_model}, @{thm pendulum_model},
+    @{thm efficiency_percent_bounds}, @{thm accepted_efficiency_domain},
+    @{thm actual_pulley_effort_balance}, @{thm actual_lever_effort_balance},
+    @{thm actual_gear_power_balance}, @{thm actual_advantage_balance(1)},
+    @{thm actual_advantage_balance(2)}, @{thm actual_advantage_balance(3)},
+    @{thm efficient_lever_source_units}, @{thm efficiency_one_ideal_compatibility(1)},
+    @{thm efficiency_one_ideal_compatibility(2)}, @{thm efficiency_one_ideal_compatibility(3)},
+    @{thm efficiency_one_ideal_compatibility(4)}, @{thm efficiency_one_ideal_compatibility(5)},
+    @{thm efficiency_one_ideal_compatibility(6)}, @{thm efficiency_invariant_quantities(1)},
+    @{thm efficiency_invariant_quantities(2)}, @{thm efficiency_invariant_quantities(3)},
+    @{thm efficiency_invariant_quantities(4)}, @{thm efficiency_invariant_quantities(5)},
     @{thm gear_ratio_def}, @{thm gear_speed_def}, @{thm gear_torque_def}, @{thm belt_speed_def},
     @{thm pulley_ma_def}, @{thm pulley_effort_def}, @{thm lever_ma_def}, @{thm lever_effort_def},
     @{thm incline_ma_def}, @{thm torque_def}, @{thm shaft_power_model}, @{thm torque_angle_bound},

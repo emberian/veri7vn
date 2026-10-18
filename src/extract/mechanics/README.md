@@ -128,3 +128,28 @@ wording is still unsupported; a signed height change is accepted. English role
 binding is untrusted. See `project/lanes/F-physical-mechanics-gravity.md` for exact
 scope and before/after counts; `check_gravity.py` checks the authored controls or
 an explicitly selected fresh numeric seed.
+
+## Supplied mechanism efficiency
+
+Both mechanism readers retain a labelled efficiency in the checked request.
+Pulley and lever effort, actual mechanical advantage and gear output torque
+use a shared work balance: useful output work equals efficiency times input
+work. Ideal mechanical advantage and fixed gear/belt speed ratios still depend
+on geometry alone. Effort calculations require positive efficiency; zero
+efficiency can yield a determinate zero output. Efficiency must be between zero
+and one, and supporting strands and gear teeth must be positive whole counts.
+Lever proofs also bind the original length units, load units and percent scale.
+
+The reader checks one labelled efficiency and the expected remaining numeric
+roles. English interpretation and applicability of the fixed-geometry model
+remain untrusted. Output shaft power with efficiency remains unsupported; an
+unrelated efficiency does not rescale a direct force-times-arm torque request.
+
+The current native passes all 1,264 family shipped cases in isolated and family
+modes. Both mechanism readers pass their 118 shipped cases, the fresh panels
+(116 and 119 cases), and 37 independently reserved work-balance cases each.
+The full dispatcher also passes those 37 requests. Each reader's 101 authored
+challenge cases yield 85 numerical answers, 15 correct invalid refusals and one
+valid withhold, with zero wrong or false yes. `check_efficiency.py` records these
+separately from policy assertions. Exact receipts and remaining scope are in
+`project/lanes/G-mechanics-efficiency.md`.

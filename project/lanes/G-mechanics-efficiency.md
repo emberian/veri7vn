@@ -1,5 +1,9 @@
 # Mechanics efficiency: preserved unfinished packet, 18 October 2026
 
+**Update:** root subsequently resumed and integrated this packet. The historical
+failed-build account below is retained; see the root integration section at the
+end for the passed proof, actual native results and current limitations.
+
 This packet is **not integration-ready**. It adds a typed work-balance model and
 connects both mechanism readers, but both permitted proof builds failed. No new
 native was compiled, no operational alias was replaced, and no corrected
@@ -129,3 +133,54 @@ source/native verifier, the two shipped scorers plus fresh/authored/root cases,
 and a scoped real consumer. Immutable capture and Linux/package follow-through
 belong to root. This packet has stopped with a recoverable draft; it has no
 successor and no commit or push from this owner.
+
+## Root integration after resumption
+
+Root resumed the retained proof repair under ember's instruction to continue
+one bounded implementation at a time. Managed proof
+`20261018T114331Z-9170cf0370b1` passed **98 scanned statements, zero oracles**.
+The work-balance and source-unit statements above are now passed statements
+connected to `McWork`, `qval`, `kernel` and `reply_of`. No statement was weakened
+for this resumption. Root added their names to native response provenance.
+
+Managed compile `20261018T114559Z-c4abe7e403d9` binds the current proof closure,
+export and actual reader/driver. Current proof/runtime verification matches.
+Native SHA256 is
+`45a9985223c03c4fc31f098afbfd89b5c94a847f5fbaeec1f6d2fa8e01249eb6`;
+it is active at `var/mechanics/bin/mechanics`. The predecessor is retained.
+The immutable capture is
+`var/C-runtime-package/bound-prepared/20261018T114559Z-c4abe7e403d9/mechanics`.
+
+Measured results:
+
+- Both mechanism IDs: 118/118 own shipped cases each, zero wrong/false yes.
+- Fresh generator panels: mechanisms 116/116, mechanisms-v2 119/119.
+- Authored challenge: each reader improves to 100 right, zero wrong/false yes,
+  one valid withhold out of 101. Those 100 comprise 85 numerical answers and
+  15 correct invalid refusals. All 101 expected-behavior assertions pass.
+- Root's previously reserved work-balance cases: 37/37 for each reader, and
+  37/37 through the actual full dispatcher using the candidate native.
+- The six earlier audit questions per reader now all answer correctly. Together
+  with the reserved cases, 86 direct observations are recorded in
+  `project/audits/evidence/mechanics-efficiency-20261018.json`. Both audit records
+  now reference the current immutable native; the old observations are retained.
+- The shared nine-ID mechanics family passes 1264/1264 shipped cases in both
+  isolated and family modes, zero wrong/false yes/valid withholds. This checks
+  the shared request/kernel change against the other family readers.
+- Managed Linux receipt
+  `var/linux/receipt-mechanics-persvati-mechanics-1792324110-90169.json` records
+  1264 freshly scored replies identical to macOS, all correct. Its 46 withheld
+  replies are correct invalid refusals, not capability misses.
+
+The remaining challenge miss is output shaft power with supplied efficiency.
+Contrary to the draft's anticipated boundary, direct local force-times-arm
+wrench torque already answers correctly; the check now requires that answer.
+The reader leaves this unrelated efficiency outside the transmission model.
+Broader friction, variable geometry and compound transmission semantics remain
+unexamined. Fleet's independently recorded unit defects are also unchanged.
+The English field assignments and model applicability are untrusted.
+
+Exact integration and local test hashes:
+`var/root-mechanics-efficiency/resume/integration.json`. The audit inventory
+accepts all nine explicit records; that is partial coverage of 305 IDs, not
+system completion. Scoped portable packaging is the remaining integration gate.

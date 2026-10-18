@@ -190,6 +190,15 @@ datatype econ = E_mpg bool rat | E_lpk rat
 
 section \<open>Requests, outcomes, declines\<close>
 
+text \<open>Efficiency is useful output work divided by input work. Geometry gives
+input travel divided by output travel; it does not change with energy losses.
+The load retains its source unit until the checked work model converts it.\<close>
+datatype work_request = W_pulley_ma rat | W_lever_ma rat rat
+  | W_pulley_effort rat "rat \<times> loadu"
+  | W_lever_effort rat rat "rat \<times> loadu"
+  | W_gear_torque rat rat rat | W_incline_ma rat rat
+  | W_gear_ratio rat rat | W_gear_speed rat rat rat | W_belt_speed rat rat rat | W_pulley_ideal rat | W_lever_ideal rat rat | W_incline_ideal rat rat
+
 datatype request =
     PhRange "rat option" "rat option"
   | PhImpact rat
@@ -221,6 +230,7 @@ datatype request =
   | McShaftPower rat rat
   | McTorque rat rat lenu
   | McTorqueAngle rat rat lenu rat
+  | McWork work_request rat
   | McNeed nat
   | SpPasser rat rat rat rat rat
   | SpTrueShooting rat rat rat
@@ -274,6 +284,20 @@ text \<open>An exact rational value; a decimal @{text "(m, e)"} meaning
 decline.\<close>
 datatype outcome = Exact kind rat | Approx kind "int \<times> int" | Sinks | Decline decline
 
+fun work_kind :: "work_request \<Rightarrow> kind" where
+  "work_kind (W_pulley_ma n) = K_pulley_ma"
+| "work_kind (W_lever_ma e l) = K_lever_ma"
+| "work_kind (W_pulley_effort n ld) = K_pulley_effort"
+| "work_kind (W_lever_effort e l ld) = K_lever_effort"
+| "work_kind (W_gear_torque t a b) = K_gear_torque"
+| "work_kind (W_incline_ma l h) = K_incline_ma"
+| "work_kind (W_gear_ratio a b) = K_gear_ratio"
+| "work_kind (W_gear_speed n a b) = K_gear_speed"
+| "work_kind (W_belt_speed n a b) = K_belt_speed"
+| "work_kind (W_pulley_ideal n) = K_pulley_ma"
+| "work_kind (W_lever_ideal e l) = K_lever_ma"
+| "work_kind (W_incline_ideal l h) = K_incline_ma"
+
 primrec kind_of :: "request \<Rightarrow> kind" where
   "kind_of (PhRange _ _) = K_range"
 | "kind_of (PhImpact _) = K_impact_speed"
@@ -307,6 +331,7 @@ primrec kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (McShaftPower _ _) = K_shaft_power"
 | "kind_of (McTorque _ _ _) = K_torque"
 | "kind_of (McTorqueAngle _ _ _ _) = K_torque"
+| "kind_of (McWork w eta) = work_kind w"
 | "kind_of (McNeed _) = K_declined"
 | "kind_of (SpPasser _ _ _ _ _) = K_passer_rating"
 | "kind_of (SpTrueShooting _ _ _) = K_ts_pct"
@@ -362,6 +387,7 @@ primrec missing :: "request \<Rightarrow> need option" where
 | "missing (BdUnreadable g) = Some N_unreadable"
 | "missing FsModelLimit = Some N_fluid_conditions"
 | "missing (McLeverEffort e l ld) = miss_if (ld = None) N_load"
+| "missing (McWork w eta) = None"
 | "missing (McNeed n) = Some (N_mc_need n)"
 | "missing (FvBraking v mu) = miss_if (v = None \<or> mu = None) N_speed_friction"
 | "missing (FvStopping v mu rt) =
@@ -422,6 +448,25 @@ fun economy_domain :: "econ \<Rightarrow> bool" where
   "economy_domain (E_mpg uk x) = (0 < x)"
 | "economy_domain (E_lpk x) = (0 \<le> x)"
 
+fun work_domain :: "work_request \<Rightarrow> bool" where
+  "work_domain (W_pulley_ma n) = (physical_count n \<and> 0 < n)"
+| "work_domain (W_lever_ma e l) = (0 < e \<and> 0 < l)"
+| "work_domain (W_pulley_effort n ld) = (physical_count n \<and> 0 < n \<and> 0 \<le> fst ld)"
+| "work_domain (W_lever_effort e l ld) = (0 < e \<and> 0 < l \<and> 0 \<le> fst ld)"
+| "work_domain (W_gear_torque t a b) = (physical_count a \<and> physical_count b \<and> 0 < a \<and> 0 < b)"
+| "work_domain (W_incline_ma l h) = (0 < h \<and> h \<le> l)"
+| "work_domain (W_gear_ratio a b) = (physical_count a \<and> physical_count b \<and> 0 < a \<and> 0 < b)"
+| "work_domain (W_gear_speed n a b) = (physical_count a \<and> physical_count b \<and> 0 < a \<and> 0 < b)"
+| "work_domain (W_belt_speed n a b) = (0 < a \<and> 0 < b)"
+| "work_domain (W_pulley_ideal n) = (physical_count n \<and> 0 < n)"
+| "work_domain (W_lever_ideal e l) = (0 < e \<and> 0 < l)"
+| "work_domain (W_incline_ideal l h) = (0 < h \<and> h \<le> l)"
+
+fun work_needs_positive :: "work_request \<Rightarrow> bool" where
+  "work_needs_positive (W_pulley_effort n ld) = True"
+| "work_needs_positive (W_lever_effort e l ld) = True"
+| "work_needs_positive w = False"
+
 fun physical_domain :: "request \<Rightarrow> bool" where
   "physical_domain (PhRange v a) = nonnegative_option v"
 | "physical_domain (PhKE m v) = nonnegative_option m"
@@ -465,6 +510,7 @@ fun physical_domain :: "request \<Rightarrow> bool" where
 | "physical_domain (FsGauge f h) = nonnegative_option h"
 | "physical_domain (FsAbs f h) = nonnegative_option h"
 | "physical_domain (FsBuoyant f v) = nonnegative_pair v"
+| "physical_domain (McWork w eta) = (work_domain w \<and> 0 \<le> eta \<and> eta \<le> 1 \<and> (work_needs_positive w \<longrightarrow> 0 < eta))"
 | "physical_domain r = True"
 
 
@@ -520,6 +566,7 @@ primrec impossible_base :: "request \<Rightarrow> bool" where
 | "impossible_base (McShaftPower x1 x2) \<longleftrightarrow> False"
 | "impossible_base (McTorque x1 x2 x3) \<longleftrightarrow> False"
 | "impossible_base (McTorqueAngle x1 x2 x3 x4) \<longleftrightarrow> False"
+| "impossible_base (McWork w eta) \<longleftrightarrow> False"
 | "impossible_base (McNeed x1) \<longleftrightarrow> False"
 | "impossible_base (SpGamesBehind x1 x2 x3 x4) \<longleftrightarrow> False"
 | "impossible_base (FsGauge x1 x2) \<longleftrightarrow> False"
@@ -589,6 +636,7 @@ primrec reason_base :: "request \<Rightarrow> reason option" where
 | "reason_base (McShaftPower x1 x2) = None"
 | "reason_base (McTorque x1 x2 x3) = None"
 | "reason_base (McTorqueAngle x1 x2 x3 x4) = None"
+| "reason_base (McWork w eta) = None"
 | "reason_base (McNeed x1) = None"
 | "reason_base (SpGamesBehind x1 x2 x3 x4) = None"
 | "reason_base (FsGauge x1 x2) = None"
@@ -662,6 +710,37 @@ qed
 lemma cl_rating_bounds: "0 \<le> cl_rating x \<and> cl_rating x \<le> 19 / 8"
   by (simp add: cl_rating_def)
 
+definition efficiency_percent :: "rat \<Rightarrow> rat" where
+  "efficiency_percent p = p / 100"
+
+fun work_value :: "work_request \<Rightarrow> rat \<Rightarrow> rat" where
+  "work_value (W_pulley_ma n) eta = eta * n"
+| "work_value (W_lever_ma e l) eta = eta * e / l"
+| "work_value (W_pulley_effort n ld) eta = load_n ld / (eta * n)"
+| "work_value (W_lever_effort e l ld) eta = load_n ld * l / (eta * e)"
+| "work_value (W_gear_torque t a b) eta = eta * t * b / a"
+| "work_value (W_incline_ma l h) eta = eta * l / h"
+| "work_value (W_gear_ratio a b) eta = b / a"
+| "work_value (W_gear_speed n a b) eta = n * a / b"
+| "work_value (W_belt_speed n a b) eta = n * a / b"
+| "work_value (W_pulley_ideal n) eta = n"
+| "work_value (W_lever_ideal e l) eta = e / l"
+| "work_value (W_incline_ideal l h) eta = l / h"
+
+fun work_text :: "work_request \<Rightarrow> String.literal \<Rightarrow> String.literal" where
+  "work_text (W_pulley_ma n) V = STR ''The actual mechanical advantage is '' + V"
+| "work_text (W_lever_ma e l) V = STR ''The actual mechanical advantage is '' + V"
+| "work_text (W_pulley_effort n ld) V = STR ''The effort is '' + V + STR '' N''"
+| "work_text (W_lever_effort e l ld) V = STR ''The effort needed is '' + V + STR '' N''"
+| "work_text (W_gear_torque t a b) V = STR ''The output torque is '' + V + STR '' N m''"
+| "work_text (W_incline_ma l h) V = STR ''The actual mechanical advantage is '' + V"
+| "work_text (W_gear_ratio a b) V = STR ''The gear ratio is '' + V + STR '':1''"
+| "work_text (W_gear_speed n a b) V = STR ''The output speed is '' + V + STR '' rpm''"
+| "work_text (W_belt_speed n a b) V = STR ''The driven pulley turns at '' + V + STR '' rpm''"
+| "work_text (W_pulley_ideal n) V = STR ''The ideal mechanical advantage is '' + V"
+| "work_text (W_lever_ideal e l) V = STR ''The ideal mechanical advantage is '' + V"
+| "work_text (W_incline_ideal l h) V = STR ''The ideal mechanical advantage is '' + V"
+
 primrec qval :: "request \<Rightarrow> rat" where
   "qval (PhKE m v) = the m * the v ^ 2 / 2"
 | "qval (PhPE m h) = the m * g0 * the h"
@@ -718,6 +797,7 @@ primrec qval :: "request \<Rightarrow> rat" where
 | "qval FsModelLimit = 0"
 | "qval (McShaftPower x1 x2) = 0"
 | "qval (McTorqueAngle x1 x2 x3 x4) = 0"
+| "qval (McWork w eta) = work_value w eta"
 | "qval (McNeed x1) = 0"
 
 primrec is_real :: "request \<Rightarrow> bool" where
@@ -753,6 +833,7 @@ primrec is_real :: "request \<Rightarrow> bool" where
 | "is_real (McLeverEffort x1 x2 x3) = False"
 | "is_real (McInclineMA x1 x2) = False"
 | "is_real (McTorque x1 x2 x3) = False"
+| "is_real (McWork w eta) = False"
 | "is_real (McNeed x1) = False"
 | "is_real (SpPasser x1 x2 x3 x4 x5) = False"
 | "is_real (SpTrueShooting x1 x2 x3) = False"
@@ -810,6 +891,7 @@ primrec sinks :: "request \<Rightarrow> bool" where
 | "sinks (McShaftPower x1 x2) \<longleftrightarrow> False"
 | "sinks (McTorque x1 x2 x3) \<longleftrightarrow> False"
 | "sinks (McTorqueAngle x1 x2 x3 x4) \<longleftrightarrow> False"
+| "sinks (McWork w eta) \<longleftrightarrow> False"
 | "sinks (McNeed x1) \<longleftrightarrow> False"
 | "sinks (SpPasser x1 x2 x3 x4 x5) \<longleftrightarrow> False"
 | "sinks (SpTrueShooting x1 x2 x3) \<longleftrightarrow> False"
@@ -867,6 +949,7 @@ primrec phys :: "request \<Rightarrow> real" where
 | "phys (McLeverEffort x1 x2 x3) = rl (qval (McLeverEffort x1 x2 x3))"
 | "phys (McInclineMA x1 x2) = rl (qval (McInclineMA x1 x2))"
 | "phys (McTorque x1 x2 x3) = rl (qval (McTorque x1 x2 x3))"
+| "phys (McWork w eta) = rl (work_value w eta)"
 | "phys (McNeed x1) = rl (qval (McNeed x1))"
 | "phys (SpPasser x1 x2 x3 x4 x5) = rl (qval (SpPasser x1 x2 x3 x4 x5))"
 | "phys (SpTrueShooting x1 x2 x3) = rl (qval (SpTrueShooting x1 x2 x3))"
@@ -944,6 +1027,7 @@ primrec fa_of :: "request \<Rightarrow> floatarith" where
 | "fa_of (McLeverEffort x1 x2 x3) = I 0"
 | "fa_of (McInclineMA x1 x2) = I 0"
 | "fa_of (McTorque x1 x2 x3) = I 0"
+| "fa_of (McWork w eta) = I 0"
 | "fa_of (McNeed x1) = I 0"
 | "fa_of (SpPasser x1 x2 x3 x4 x5) = I 0"
 | "fa_of (SpTrueShooting x1 x2 x3) = I 0"
@@ -1250,6 +1334,7 @@ primrec ok_text :: "request \<Rightarrow> String.literal \<Rightarrow> String.li
 | "ok_text FsModelLimit V = V"
 | "ok_text PhModelLimit V = V"
 | "ok_text (PhPEAt g m h) V = STR ''The gravitational potential energy change is '' + V + STR '' J '' + grav_where g + STR '' (constant gravity; mass '' + show4 (the m) + STR '' kg, signed height change '' + show4 (the h) + STR '' m).''"
+| "ok_text (McWork w eta) V = work_text w V + STR '' (useful output work / input work = '' + show4 eta + STR ''; fixed geometry).''"
 | "ok_text (McNeed x1) V = V"
 
 primrec sinks_text :: "request \<Rightarrow> String.literal" where
@@ -1288,6 +1373,7 @@ primrec sinks_text :: "request \<Rightarrow> String.literal" where
 | "sinks_text (McShaftPower x1 x2) = STR ''''"
 | "sinks_text (McTorque x1 x2 x3) = STR ''''"
 | "sinks_text (McTorqueAngle x1 x2 x3 x4) = STR ''''"
+| "sinks_text (McWork w eta) = STR ''''"
 | "sinks_text (McNeed x1) = STR ''''"
 | "sinks_text (SpPasser x1 x2 x3 x4 x5) = STR ''''"
 | "sinks_text (SpTrueShooting x1 x2 x3) = STR ''''"
@@ -1326,6 +1412,7 @@ definition need_text :: "request \<Rightarrow> need \<Rightarrow> String.literal
         else if n = 1 then STR ''I need to know which pulley drives which, with both diameters, to work that out'' + wont
         else if n = 2 then STR ''I need the effort-arm and load-arm lengths to work that out'' + wont
         else if n = 3 then STR ''I need the ramp length and height to work that out'' + wont
+        else if n = 5 then STR ''I need one unambiguous efficiency, all required quantities and their roles, with no conflicting or unused numbers'' + wont
         else STR ''I need the force and the lever arm to work that out'' + wont)
    | N_load \<Rightarrow> STR ''I need the load to work that out'' + wont
    | N_speed_friction \<Rightarrow> STR ''I need the speed and the tyre-road friction coefficient to work that out'' + wont
@@ -1703,6 +1790,99 @@ proof -
 qed
 
 subsection \<open>Mechanisms\<close>
+
+text \<open>The independent balance uses force times travel (or torque times
+angle): useful output work equals efficiency times supplied input work.\<close>
+definition transmission_balance :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> bool" where
+  "transmission_balance input output din dout eta \<longleftrightarrow>
+    output * dout = eta * (input * din)"
+
+lemma efficiency_percent_bounds:
+  "0 < efficiency_percent p \<and> efficiency_percent p \<le> 1 \<longleftrightarrow> 0 < p \<and> p \<le> 100"
+  by (simp add: efficiency_percent_def)
+
+theorem accepted_efficiency_domain:
+  "kernel (McWork w eta) = Exact c y \<Longrightarrow> work_domain w \<and> 0 \<le> eta \<and> eta \<le> 1 \<and> (work_needs_positive w \<longrightarrow> 0 < eta)"
+  by (auto dest: exact_facts)
+
+theorem actual_pulley_effort_balance:
+  assumes "kernel (McWork (W_pulley_effort n ld) eta) = Exact c y"
+  shows "c = K_pulley_effort \<and> physical_count n \<and> 0 < n \<and> 0 \<le> fst ld \<and>
+    0 < eta \<and> eta \<le> 1 \<and> transmission_balance y (load_n ld) (n * h) h eta"
+proof -
+  have f: "c = K_pulley_effort" "physical_count n" "0 < n" "0 \<le> fst ld"
+    "0 < eta" "eta \<le> 1" "y = load_n ld / (eta * n)"
+    using exact_facts[OF assms] by simp_all
+  have nz: "eta \<noteq> 0" "n \<noteq> 0" using f by auto
+  show ?thesis using f nz by (auto simp: transmission_balance_def field_simps)
+qed
+
+theorem actual_lever_effort_balance:
+  assumes "kernel (McWork (W_lever_effort e l ld) eta) = Exact c y"
+  shows "c = K_lever_effort \<and> 0 < e \<and> 0 < l \<and> 0 \<le> fst ld \<and>
+    0 < eta \<and> eta \<le> 1 \<and> transmission_balance y (load_n ld) (e * theta) (l * theta) eta"
+proof -
+  have f: "c = K_lever_effort" "0 < e" "0 < l" "0 \<le> fst ld"
+    "0 < eta" "eta \<le> 1" "y = load_n ld * l / (eta * e)"
+    using exact_facts[OF assms] by simp_all
+  have nz: "eta \<noteq> 0" "e \<noteq> 0" using f by auto
+  show ?thesis using f nz by (auto simp: transmission_balance_def field_simps)
+qed
+
+theorem actual_gear_power_balance:
+  assumes "kernel (McWork (W_gear_torque t a b) eta) = Exact c y"
+  shows "c = K_gear_torque \<and> physical_count a \<and> physical_count b \<and>
+    0 < a \<and> 0 < b \<and> 0 \<le> eta \<and> eta \<le> 1 \<and>
+    transmission_balance t y (b * omega) (a * omega) eta"
+proof -
+  have f: "c = K_gear_torque" "physical_count a" "physical_count b" "0 < a" "0 < b"
+    "0 \<le> eta" "eta \<le> 1" "y = eta * t * b / a"
+    using exact_facts[OF assms] by simp_all
+  have nz: "a \<noteq> 0" using f by auto
+  show ?thesis using f nz by (auto simp: transmission_balance_def field_simps)
+qed
+
+theorem actual_advantage_balance:
+  "kernel (McWork (W_pulley_ma n) eta) = Exact c y \<Longrightarrow>
+     c = K_pulley_ma \<and> y = eta * n \<and> transmission_balance 1 y n 1 eta"
+  "kernel (McWork (W_lever_ma e l) eta) = Exact c y \<Longrightarrow>
+     c = K_lever_ma \<and> transmission_balance 1 y e l eta"
+  "kernel (McWork (W_incline_ma l h) eta) = Exact c y \<Longrightarrow>
+     c = K_incline_ma \<and> transmission_balance 1 y l h eta"
+  by (auto dest: exact_facts simp: transmission_balance_def field_simps)
+
+theorem efficient_lever_source_units:
+  assumes "kernel (McWork (W_lever_effort (length_m e eu) (length_m l lu) (m,unit))
+    (efficiency_percent p)) = Exact c y"
+  shows "0 < e \<and> 0 < l \<and> 0 \<le> m \<and> 0 < p \<and> p \<le> 100 \<and>
+    y * (e * len_scale eu) * (p / 100) =
+      (if unit = LD_kg then m * g0 else m) * (l * len_scale lu)"
+proof -
+  note f = actual_lever_effort_balance[OF assms, where theta=1]
+  have domain: "0 < e \<and> 0 < l \<and> 0 \<le> m \<and> 0 < p \<and> p \<le> 100"
+    using f by (simp add: efficiency_percent_def)
+  have balance: "y * length_m e eu * efficiency_percent p = load_n (m,unit) * length_m l lu"
+    using f by (auto simp: transmission_balance_def algebra_simps)
+  show ?thesis using domain balance
+    by (cases unit) (auto simp: length_m_def load_n_def efficiency_percent_def)
+qed
+
+theorem efficiency_one_ideal_compatibility:
+  "work_value (W_pulley_ma n) 1 = qval (McPulleyMA n)"
+  "work_value (W_pulley_effort n ld) 1 = qval (McPulleyEffort n ld)"
+  "work_value (W_lever_ma e l) 1 = qval (McLeverMA e l)"
+  "work_value (W_lever_effort e l ld) 1 = qval (McLeverEffort e l (Some ld))"
+  "work_value (W_gear_torque t a b) 1 = qval (McGearTorque t a b)"
+  "work_value (W_incline_ma l h) 1 = qval (McInclineMA l h)"
+  by simp_all
+
+theorem efficiency_invariant_quantities:
+  "work_value (W_pulley_ideal n) eta = n"
+  "work_value (W_lever_ideal e l) eta = e / l"
+  "work_value (W_incline_ideal l h) eta = l / h"
+  "b \<noteq> 0 \<Longrightarrow> work_value (W_gear_speed n a b) eta * b = n * a"
+  "b \<noteq> 0 \<Longrightarrow> work_value (W_belt_speed n a b) eta * b = n * a"
+  by (simp_all add: field_simps)
 
 theorem gear_ratio_def:
   assumes "kernel (McGearRatio a b) = Exact c y"
