@@ -42,11 +42,11 @@ cat > "$OUT/build/acoustics.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 acoustics_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-BIN_TEMP=$(mktemp "$OUT/bin/.acoustics.XXXXXX")
-"$MLTON" -output "$BIN_TEMP" "$OUT/build/acoustics.mlb"
-mv "$BIN_TEMP" "$OUT/bin/acoustics"
+"$REPO/tools/dev/native-compile" --family acoustics --compiler "$MLTON" -- \
+  -output "$OUT/bin/acoustics" "$OUT/build/acoustics.mlb"
 ls -l "$OUT/bin/acoustics"
 shasum -a 256 "$OUT/build/acoustics_generated.sml" "$OUT/bin/acoustics"

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "family": "quantity",
+  "specialists": {
+    "densities": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "underspecified",
+          "undecided"
+        ]
+      },
+      "context_regex_additions": [
+        "(?s:^(?=.*\\b(?:water|ice|alumini?um|steel|iron|copper|gold|silver|lead|concrete|glass|petrol|gasoline|diesel|ethanol|mercury|air|granite|brass|titanium|platinum|zinc|nickel|milk|honey|uranium|tungsten|magnesium|olive oil)\\b)(?=.*\\b(?:density|dense|mass|volume|weight|weigh|heavy|float\\w*|sink\\w*)\\b))"
+      ],
+      "evidence": {
+        "computation": "Uses typical material density for mass, volume and flotation comparisons.",
+        "assumptions": [
+          "A material and requested operation establish the domain even when the necessary amount is missing.",
+          "Density rows model typical material states; phase and name narrowing remain enforced by the native recognizer."
+        ],
+        "untrusted": [
+          "English interpretation and JSON framing; these contexts describe domains, not proof of an individual interpretation."
+        ]
+      }
+    },
+    "springs": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "underspecified",
+          "impossible",
+          "imprecise"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Hooke force, extension, stiffness, elastic energy and ideal mass-spring period/frequency.",
+        "assumptions": [
+          "A missing stiffness, displacement, force or mass does not remove a spring request from its domain.",
+          "Ideal linear spring model; required magnitudes and domain guards remain in the native consumer."
+        ],
+        "untrusted": [
+          "English interpretation and JSON framing; these contexts describe domains, not proof of an individual interpretation."
+        ]
+      }
+    },
+    "fuels": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "underspecified"
+        ]
+      },
+      "context_regex_additions": [
+        "(?s:^(?=.*\\b(?:firewood|logs|methane gas|gas oil|jet a-?1)\\b)(?=.*\\b(?:burn\\w*|combust\\w*|energy|heat|co2|carbon dioxide|emission\\w*|emit\\w*|calorific|kwh|mwh|mj|gj)\\b))"
+      ],
+      "evidence": {
+        "computation": "Fuel energy, required mass and carbon emissions from standard default fuel values.",
+        "assumptions": [
+          "The requested fuel operation establishes domain even without a fuel mass.",
+          "Default net calorific and emission factors; not a model of moisture, boiler efficiency or lifecycle emissions."
+        ],
+        "untrusted": [
+          "English interpretation and JSON framing; these contexts describe domains, not proof of an individual interpretation."
+        ]
+      }
+    }
+  }
+}

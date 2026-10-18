@@ -56,19 +56,21 @@ struct
             go stop ms (rep :: String.substring (s, i, start - i) :: acc)
     in go 0 (findall p s) [] end
 
-  (* "1,000.50" -> mk_rat 100050 100, exactly; "-12.5" allowed (units) *)
-  fun ratOf (lit0 : string) : Q.rat =
-    let
-      val lit = String.translate (fn #"," => "" | c => String.str c) lit0
-      val (neg, body) = if String.isPrefix "-" lit then (true, String.extract (lit, 1, NONE))
-                        else (false, lit)
-      val (ip, fp) = case String.fields (fn c => c = #".") body of
-                       [a] => (a, "")
-                     | [a, b] => (a, b)
-                     | _ => raise Fail ("bad numeral " ^ lit0)
-      val num = valOf (IntInf.fromString (ip ^ fp))
-      val den = IntInf.pow (10, size fp)
-    in Q.mk_rat (if neg then IntInf.~ num else num) den end
+  (* Every role capture resolves through the current lexer's token table.
+     Text that merely looks like a token cannot supply a numeric value. *)
+  exception UnboundNumeral
+  val numericValues : (string * ExactNumeric.rational) list ref = ref []
+  fun rationalOf token = case List.find (fn (key, _) => key = token) (!numericValues) of
+      SOME (_, value) => value | NONE => raise UnboundNumeral
+  fun ratOf token : Q.rat = let val (n, d) = rationalOf token in Q.mk_rat n d end
+  fun withNumerals read text = case ExactNumeric.mask text of NONE => NONE
+    | SOME {text = masked, numbers} =>
+        let val previous = !numericValues
+            val _ = numericValues := numbers
+            val answer = (read masked handle UnboundNumeral => NONE)
+                handle e => (numericValues := previous; raise e)
+            val _ = numericValues := previous
+        in answer end
 
   fun collapse s = String.concatWith " " (String.tokens Char.isSpace s)
 
@@ -105,22 +107,23 @@ struct
         | i :: _ => let fun skip j = if j < size s andalso Char.isSpace (String.sub (s, j)) then skip (j + 1) else j
                     in String.extract (s, skip i, NONE) end
       end
-    val RELATION = "\\b(?:\\d+(?:\\.\\d+)?|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,2}"
+    val RELATION = "\\b(?:qnum[0-9]+q|\\d+(?:\\.\\d+)?|one|two|three|four|five|six|seven|eight|nine|ten)\\s+(?:\\w+\\s+){0,2}"
       ^ "(?:more|less|fewer|longer|shorter)\\s+than\\b|\\b(?:twice|three times|half)\\s+(?:as\\s+\\w+\\s+as\\s+)?the\\s+\\w+\\b"
-    val RATE = "\\b\\d+(?:\\.\\d+)?\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:\\d+(?:\\.\\d+)?|a|an|one|each)\\s+[a-z]+"
+    val RATE = "\\b(?:qnum[0-9]+q|\\d+(?:\\.\\d+)?)\\s+[a-z]+\\s+(?:for|per|every)\\s+(?:qnum[0-9]+q|\\d+(?:\\.\\d+)?|a|an|one|each)\\s+[a-z]+"
     fun narrative t =
       let val low = lower t
       in sentences t >= 3 orelse words t > 40 orelse has RELATION low orelse has RATE low end
     fun short_direct t = sentences t <= 2 andalso words t <= 25 andalso not (narrative t)
   end
 
-  val NUM = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
+  val NUM = "(qnum[0-9]+q)"
   val cube = "\194\179"   (* U+00B3 SUPERSCRIPT THREE, UTF-8 *)
 
   (* These physical formulas consume nonnegative magnitudes. NUM must not
      silently turn a stated negative mass, volume, depth or stiffness positive.
      Linear/affine unit conversions use their own signed-number grammar. *)
-  fun negativeMagnitude text = has "(?:^|[^\\w])(?:-|\226\136\146)\\s*\\d|\\b(?:negative|minus)\\s+\\d" (lower text)
+  fun negativeMagnitude text = List.exists (fn (_, (n, _)) => n < 0) (!numericValues)
+    orelse has ("\\b(?:negative|minus)\\s+" ^ NUM) (lower text)
 
   (* ---------- densities ---------- *)
   val matPats = zip3 ([
@@ -240,12 +243,12 @@ struct
     in rev (foldl (fn (x, acc) => rev (ins (x, rev acc))) [] all) end
   fun escape s = String.translate (fn c => if Char.isAlphaNum c then String.str c else "\\" ^ String.str c) s
   val UNIT_RX = "(" ^ String.concatWith "|" (map escape names) ^ ")"
-  val CONV = "(-?\\d+(?:\\.\\d+)?)\\s*" ^ UNIT_RX ^ "\\s+(?:to|in|into|=|as|comes?\\s+to\\s+in)\\s+" ^ UNIT_RX ^ "\\b"
-  val HOWMANY = "how many\\s+" ^ UNIT_RX ^ "\\s+(?:are\\s+)?(?:in|is|make up)\\s+(?:an?\\s+|one\\s+)?(-?\\d+(?:\\.\\d+)?\\s*)?"
+  val CONV = NUM ^ "\\s*" ^ UNIT_RX ^ "\\s+(?:to|in|into|=|as|comes?\\s+to\\s+in)\\s+" ^ UNIT_RX ^ "\\b"
+  val HOWMANY = "how many\\s+" ^ UNIT_RX ^ "\\s+(?:are\\s+)?(?:in|is|make up)\\s+(?:an?\\s+|one\\s+)?(?:" ^ NUM ^ "\\s*)?"
     ^ UNIT_RX ^ "\\b"
-  val QTY = "(-?\\d+(?:\\.\\d+)?)\\s*" ^ UNIT_RX ^ "(?![\\w/])"
+  val QTY = NUM ^ "\\s*" ^ UNIT_RX ^ "(?![\\w/])"
   val TARGET = "\\bhow many\\s+" ^ UNIT_RX ^ "(?![\\w/])"
-  val TWO = "^\\s*(?:i have|we have|there (?:is|are)|it(?:'s| is)|it weighs|it measures|it runs for)\\s+(-?\\d+(?:\\.\\d+)?)\\s*"
+  val TWO = "^\\s*(?:i have|we have|there (?:is|are)|it(?:'s| is)|it weighs|it measures|it runs for)\\s+" ^ NUM ^ "\\s*"
     ^ UNIT_RX ^ "\\s*[.!]\\s*(?:how many\\s+" ^ UNIT_RX ^ "\\s+(?:is|are|does)\\s+that|what is that in\\s+" ^ UNIT_RX
     ^ "|convert (?:that|it) to\\s+" ^ UNIT_RX ^ ")\\s*[?.!]?\\s*$"
 
@@ -428,9 +431,12 @@ struct
   val fAnthracite = List.nth (Q.fuel_order, 7)
   val fuelMassPats = zip3 ([NUM ^ "\\s*(?:tonnes?|metric tons?|t)\\b", NUM ^ "\\s*(?:kg|kilograms?|kilos?)\\b",
                             NUM ^ "\\s*(?:g|grams?)\\b"], Q.fuel_mass_units, "fuel_mass_units")
-  val fuelEnergyPats = zip3 ([NUM ^ "\\s*(?:kwh|kilowatt[- ]hours?)\\b", NUM ^ "\\s*(?:mwh|megawatt[- ]hours?)\\b",
-                              NUM ^ "\\s*(?:mj|megajoules?)\\b", NUM ^ "\\s*(?:gj|gigajoules?)\\b"],
-                             Q.fuel_energy_units, "fuel_energy_units")
+  val fuelEnergyLabels = zip3 (["kwh|kilowatt[- ]hours?", "mwh|megawatt[- ]hours?",
+                                "mj|megajoules?", "gj|gigajoules?"],
+                               Q.fuel_energy_units, "fuel_energy_units")
+  val fuelEnergyPats = map (fn (p, u) => (NUM ^ "\\s*(?:" ^ p ^ ")\\b", u)) fuelEnergyLabels
+  fun energyUnitMention text = List.find (fn (p, _) => has ("\\b(?:" ^ p ^ ")\\b") text) fuelEnergyLabels
+  fun energyAnswerUnit text = case energyUnitMention text of SOME (_, u) => u | NONE => Q.U_megajoule
 
   fun fuels text =
     let val t = collapse text
@@ -445,7 +451,7 @@ struct
         in
           case found of
             [f] =>
-              if not (has "\\bburn\\w*|combust\\w*|energy|heat|co2|carbon dioxide|emission|emit\\w*|calorific|kwh|mj\\b" low)
+              if not (has "\\bburn\\w*|combust\\w*|energy|heat|co2|carbon dioxide|emission|emit\\w*|calorific" low orelse isSome (energyUnitMention low))
               then NONE
               else if has (NUM ^ "\\s*(?:litres?|liters?|l|gallons?|gal|m3|cubic)\\b") low then NONE
               else
@@ -461,19 +467,28 @@ struct
                   else if has ("\\bhow (?:much|many kilograms?|many kg|many tonnes?)\\b.*\\b(?:need|needed|required|burn)\\b|"
                                ^ "\\bmass of\\b.*\\bneeded\\b") ask andalso not (null energies) andalso null masses then
                     SOME (Q.FuelMassNeeded (f, hd energies))
-                  else if has "\\b(?:energy|heat|how many (?:kwh|kilowatt|mj|megajoules|gj))\\b" ask then
+                  else if has "\\b(?:energy|heat)\\b" ask orelse
+                          (has "\\bhow many\\b" ask andalso isSome (energyUnitMention ask)) then
                     if length masses <> 1 then
                       if has "\\b(?:per kilogram|per kg|calorific|energy content|energy density)\\b" low andalso null masses
                       then SOME (Q.FuelNCV f)
                       else need (Q.FuelEnergy (f, NONE, Q.U_megajoule))
                     else
                       SOME (Q.FuelEnergy (f, SOME (hd masses),
-                                          if has "\\bkwh|kilowatt" ask then Q.U_kilowatt_hour else Q.U_megajoule))
+                                          energyAnswerUnit ask))
                   else NONE
                 end
           | _ => NONE
         end
     end
+
+  val densities = withNumerals densities
+  val unitsV1 = withNumerals unitsV1
+  val unitsV2 = withNumerals unitsV2
+  val unitsV3 = withNumerals unitsV3
+  val springs = withNumerals springs
+  val fluids = withNumerals fluids
+  val fuels = withNumerals fuels
 
   (* ---------- dispatch ---------- *)
   val organs = ["densities", "units", "units-v3", "springs", "fluids", "fuels"]

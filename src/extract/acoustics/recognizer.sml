@@ -18,7 +18,7 @@ end =
 struct
   structure A = Acoustics
 
-  val N = "(-?\\d+(?:\\.\\d+)?)"
+  val N = "(qnum[0-9]+q)"
   val deg = "\194\176"          (* U+00B0 DEGREE SIGN, UTF-8 *)
   val celsius = "\226\132\131"  (* U+2103 DEGREE CELSIUS, UTF-8 *)
 
@@ -34,20 +34,21 @@ struct
   fun grp s m g = Regex.group s m g
   fun grpOr s m gs = case List.mapPartial (grp s m) gs of x :: _ => SOME x | [] => NONE
 
-  (* "-12.50" -> mk_rat (-1250) 100, exactly *)
-  fun ratOf (lit : string) : A.rat =
-    let
-      val (neg, body) = if String.isPrefix "-" lit then (true, String.extract (lit, 1, NONE))
-                        else (false, lit)
-      val (ip, fp) = case String.fields (fn c => c = #".") body of
-                       [a] => (a, "")
-                     | [a, b] => (a, b)
-                     | _ => raise Fail ("bad numeral " ^ lit)
-      val num = valOf (IntInf.fromString (ip ^ fp))
-      val den = IntInf.pow (10, size fp)
-    in A.mk_rat (if neg then IntInf.~ num else num) den end
-
-  fun intOf lit = valOf (IntInf.fromString lit)
+  (* Every role capture resolves through the current lexer's token table.
+     Text that merely looks like a token cannot supply a numeric value. *)
+  exception UnboundNumeral
+  val numericValues : (string * ExactNumeric.rational) list ref = ref []
+  fun rationalOf token = case List.find (fn (key, _) => key = token) (!numericValues) of
+      SOME (_, value) => value | NONE => raise UnboundNumeral
+  fun ratOf token : A.rat = let val (n, d) = rationalOf token in A.mk_rat n d end
+  fun withNumerals read text = case ExactNumeric.mask text of NONE => NONE
+    | SOME {text = masked, numbers} =>
+        let val previous = !numericValues
+            val _ = numericValues := numbers
+            val answer = (read masked handle UnboundNumeral => NONE)
+                handle e => (numericValues := previous; raise e)
+            val _ = numericValues := previous
+        in answer end
 
   fun lower s = String.map Char.toLower s
   fun collapse s = String.concatWith " " (String.tokens Char.isSpace s)
@@ -115,7 +116,7 @@ struct
       val water = has "\\bwater\\b" low
       val waterTemperature = search (N ^ "\\s*(?:" ^ deg ^ "\\s*c|degrees? c(?:elsius)?|" ^ celsius ^ "|c\\b)") low
       val waterAtOtherTemperature = case waterTemperature of NONE => false
-          | SOME m => not (has "^20(?:\\.0+)?$" (valOf (grp low m 1)))
+          | SOME m => let val (n, d) = rationalOf (valOf (grp low m 1)) in n <> 20 * d end
       val unsupportedWater = not (isSome (speedMatch low)) andalso
           (has "\\b(?:sea|salt)\\s*water\\b" low orelse
            (water andalso (waterAtOtherTemperature orelse
@@ -123,7 +124,7 @@ struct
     in
       if not sound orelse unsupportedSpeed orelse unsupportedTemperature orelse unsupportedWater orelse ambiguousSpeed then NONE
       else if has "\\bbeat frequency\\b|\\bbeats? per second\\b" low
-              orelse (has "\\bbeats?\\b" low andalso length (findall "\\d\\s*hz\\b" low) >= 2) then
+              orelse (has "\\bbeats?\\b" low andalso length (findall (N ^ "\\s*hz\\b") low) >= 2) then
         let val fs = map (fn m => ratOf (valOf (grp low m 1))) (findall (N ^ "\\s*hz\\b") low)
         in case fs of
              a :: b :: _ => SOME (A.Beat (SOME a, SOME b))
@@ -208,16 +209,18 @@ struct
               val len = Option.map (fn m => (ratOf (valOf (grp low m 1)),
                                              if grp low m 2 = SOME "cm" then A.Centimetre else A.Metre)) lm
               val om = search "\\b(first|second|third|fourth|fifth|sixth|seventh|fundamental)\\b(?:\\s+harmonic)?" low
-              val nm = search "\\b(\\d+)(?:st|nd|rd|th)\\s+harmonic\\b|\\bharmonic\\s*(?:n\\s*=\\s*)?(\\d+)\\b" low
-              val n = case nm of
-                        SOME m => intOf (valOf (grpOr low m [1, 2]))
+              val nm = search (N ^ "(?:st|nd|rd|th)\\s+harmonic\\b|\\bharmonic\\s*(?:n\\s*=\\s*)?" ^ N) low
+              val harmonicValue = Option.map (fn m => rationalOf (valOf (grpOr low m [1, 2]))) nm
+              val badHarmonic = case harmonicValue of SOME (n, d) => n < 0 orelse d <> 1 | NONE => false
+              val n = case harmonicValue of
+                        SOME (n, _) => n
                       | NONE => (case om of
                                    SOME m => let val w = valOf (grp low m 1)
                                              in IntInf.fromInt (#2 (valOf (List.find (fn (k, _) => k = w) ordinals))) end
                                  | NONE => 1)
               val hn = A.mk_nat n
             in
-              if sm then
+              if badHarmonic then NONE else if sm then
                 let val vm = search ("\\bwave speed\\s*(?:of|is|=)?\\s*" ^ N ^ "\\s*m/s|" ^ N ^ "\\s*m/s") low
                     val v = Option.map (fn m => ratOf (valOf (grpOr low m [1, 2]))) vm
                 in SOME (A.StringHarmonic (hn, len, v)) end
@@ -266,4 +269,6 @@ struct
             end
         end
     end
+  val recognize = withNumerals recognize
+
 end

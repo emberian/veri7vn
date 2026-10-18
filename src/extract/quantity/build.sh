@@ -42,11 +42,11 @@ cat > "$OUT/build/quantity.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 quantity_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-BIN_TEMP=$(mktemp "$OUT/bin/.quantity.XXXXXX")
-"$MLTON" -output "$BIN_TEMP" "$OUT/build/quantity.mlb"
-mv "$BIN_TEMP" "$OUT/bin/quantity"
+"$REPO/tools/dev/native-compile" --family quantity --compiler "$MLTON" -- \
+  -output "$OUT/bin/quantity" "$OUT/build/quantity.mlb"
 ls -l "$OUT/bin/quantity"
 shasum -a 256 "$OUT/build/quantity_generated.sml" "$OUT/bin/quantity"

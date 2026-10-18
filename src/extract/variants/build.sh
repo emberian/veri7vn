@@ -45,12 +45,12 @@ cat > "$OUT/build/variants.mlb" <<EOM
 \$(SML_LIB)/basis/basis.mlb
 quantity_generated.sml
 $REPO/src/extract/commons/commons.sml
+$REPO/src/extract/commons/numeric.sml
 recognizer_base.sml
 $SRC/variants.sml
 $Q/main.sml
 EOM
-BIN_TEMP=$(mktemp "$OUT/bin/.variants.XXXXXX")
-"$MLTON" -output "$BIN_TEMP" "$OUT/build/variants.mlb"
-mv "$BIN_TEMP" "$OUT/bin/variants"
+"$REPO/tools/dev/native-compile" --family variants --compiler "$MLTON" -- \
+  -output "$OUT/bin/variants" "$OUT/build/variants.mlb"
 ls -l "$OUT/bin/variants"
 shasum -a 256 "$OUT/build/quantity_generated.sml" "$OUT/bin/variants"

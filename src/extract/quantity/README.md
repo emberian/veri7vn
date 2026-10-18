@@ -108,3 +108,14 @@ the same value within the scorer's tolerance. The current binary is 563,632 byte
 The final continuation also passes 44 quantity/variant probes and every item in
 fresh panels generated with reserved seeds 2026101891 and 2026101892. Details:
 [continuation report](../../../project/lanes/C-physical-quantity-sound.md).
+
+## Exact numeral interpretation
+
+The continuation uses the shared untrusted `../commons/numeric.sml` lexer.
+It reads complete signed decimal, scientific and slash-fraction tokens exactly,
+including leading-dot decimals and Unicode minus. Malformed or over-limit
+numeric runs fall through; their suffixes are never treated as a different
+number. The role recognizer binds the resulting exact fractions to the physical
+request. This improves interpretation but does not make English parsing a proof.
+See [semantic continuation](../../../project/lanes/C-physical-quantity-sound-next.md)
+for domain-specific sign rules, panel results and remaining limitations.

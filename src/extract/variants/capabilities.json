@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "family": "variants",
+  "specialists": {
+    "densities-r2": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "underspecified",
+          "undecided"
+        ]
+      },
+      "context_regex_additions": [
+        "(?s:^(?=.*\\b(?:water|ice|alumini?um|steel|iron|copper|gold|silver|lead|concrete|glass|petrol|gasoline|diesel|ethanol|mercury|air|granite|brass|titanium|platinum|zinc|nickel|milk|honey|uranium|tungsten|magnesium|olive oil)\\b)(?=.*\\b(?:density|dense|mass|volume|weight|weigh|heavy|float\\w*|sink\\w*)\\b))"
+      ],
+      "evidence": {
+        "computation": "Uses typical material density for mass, volume and flotation comparisons.",
+        "assumptions": [
+          "A material and requested operation establish the domain even when the necessary amount is missing.",
+          "Density rows model typical material states; phase and name narrowing remain enforced by the native recognizer."
+        ],
+        "untrusted": [
+          "English interpretation and JSON framing; these contexts describe domains, not proof of an individual interpretation."
+        ]
+      }
+    }
+  }
+}
