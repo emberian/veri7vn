@@ -10,7 +10,7 @@ z-scores, combinations, permutations, binomial probability). Same recipe as the 
   (Isabelle's `Approximation`), number layout.
 - `GeoStats_Geometry.thy`, `GeoStats_Stats.thy`: typed requests, declines, values, theorems, reply text.
 - `GeoStats_Export.thy`: SML export, self test, oracle check, the `VERI7VN_GEOSTATS PASS` marker.
-- `recognizer.sml`, `regex.sml`, `main.sml`: untrusted English reading and JSON framing.
+- `recognizer.sml`, `../commons/commons.sml`, `main.sml`: untrusted English reading and JSON framing.
 - `tables_check.py`: checks kinds, polygon names and decline sentences against the organs.
 - `score.py`: scores each specialist on its panel and compares with the shipped organ.
 

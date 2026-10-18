@@ -14,6 +14,8 @@ session Veri7vn_GeoStats_Base in base = HOL +
 
 session Veri7vn_GeoStats = Veri7vn_GeoStats_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     GeoStats_Num
     GeoStats_Geometry

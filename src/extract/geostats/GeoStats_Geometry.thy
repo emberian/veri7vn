@@ -163,8 +163,8 @@ lemma g_approx_decline: "g_approx k e = GDecline w \<Longrightarrow> w = GImprec
 definition g_answer :: "grequest \<Rightarrow> goutcome" where
   "g_answer r = (case gval r of
        GF_rat q \<Rightarrow> GExact (gkind_of r) q
-     | GF_pi c \<Rightarrow> g_approx (gkind_of r) (floatarith.Mult (fQ c) floatarith.Pi)
-     | GF_root d \<Rightarrow> g_approx (gkind_of r) (floatarith.Sqrt (fQ d))
+     | GF_pi c \<Rightarrow> g_approx (gkind_of r) (floatarith.Mult (Q c) floatarith.Pi)
+     | GF_root d \<Rightarrow> g_approx (gkind_of r) (floatarith.Sqrt (Q d))
      | GF_count m \<Rightarrow> GCount (gkind_of r) m
      | GF_none \<Rightarrow> GDecline GImprecise)"
 
@@ -190,12 +190,12 @@ lemma g_answer_approx:
   shows "k = gkind_of r \<and> \<bar>dec_val d - gphys r\<bar> \<le> \<bar>gphys r\<bar> / 100000 + 1 / 1000000000"
 proof (cases "gval r")
   case (GF_pi c)
-  have a: "g_approx (gkind_of r) (floatarith.Mult (fQ c) floatarith.Pi) = GApprox k d"
+  have a: "g_approx (gkind_of r) (floatarith.Mult (Q c) floatarith.Pi) = GApprox k d"
     using assms GF_pi by (simp add: g_answer_def)
   from g_approx_sound[OF a] show ?thesis using GF_pi by (simp add: gphys_def)
 next
   case (GF_root x)
-  have a: "g_approx (gkind_of r) (floatarith.Sqrt (fQ x)) = GApprox k d"
+  have a: "g_approx (gkind_of r) (floatarith.Sqrt (Q x)) = GApprox k d"
     using assms GF_root by (simp add: g_answer_def)
   from g_approx_sound[OF a] show ?thesis using GF_root by (simp add: gphys_def)
 next

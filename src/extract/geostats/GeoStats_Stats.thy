@@ -151,7 +151,7 @@ fun sval :: "srequest \<Rightarrow> sform" where
 definition s_answer :: "srequest \<Rightarrow> soutcome" where
   "s_answer r = (case sval r of
        SF_rat q \<Rightarrow> SRat (skind_of r) q
-     | SF_root d \<Rightarrow> (case enc4 (floatarith.Sqrt (fQ d)) of None \<Rightarrow> SDecline SImprecise
+     | SF_root d \<Rightarrow> (case enc4 (floatarith.Sqrt (Q d)) of None \<Rightarrow> SDecline SImprecise
                        | Some m \<Rightarrow> SApprox (skind_of r) m)
      | SF_count n \<Rightarrow> SCount (skind_of r) n
      | SF_modes ms \<Rightarrow> SModes ms
@@ -175,10 +175,10 @@ lemma s_answer_approx:
            \<bar>real_of_int m - sqrt (rl d) * 10000\<bar> \<le> 51 / 100)"
 proof (cases "sval r")
   case (SF_root d)
-  then obtain m' where m': "enc4 (floatarith.Sqrt (fQ d)) = Some m'" and e: "SApprox (skind_of r) m' = SApprox k m"
+  then obtain m' where m': "enc4 (floatarith.Sqrt (Q d)) = Some m'" and e: "SApprox (skind_of r) m' = SApprox k m"
     using assms by (auto simp: s_answer_def split: option.splits)
   from e have mm: "m' = m" and kk: "k = skind_of r" by simp_all
-  have "\<bar>real_of_int m' - interpret_floatarith (floatarith.Sqrt (fQ d)) [] * 10000\<bar> \<le> 51 / 100"
+  have "\<bar>real_of_int m' - interpret_floatarith (floatarith.Sqrt (Q d)) [] * 10000\<bar> \<le> 51 / 100"
     by (rule enc4_sound[OF m'])
   then show ?thesis using SF_root mm kk by auto
 next
