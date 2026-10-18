@@ -231,7 +231,8 @@ struct
             fun jstr s = Json.quote s
             fun jl f xs = "[" ^ String.concatWith "," (map f xs) ^ "]"
             fun jint n = String.translate (fn #"~" => "-" | c => String.str c) (Int.toString n)
-            fun jpair (a, b) = "[" ^ jint a ^ "," ^ jint b ^ "]"
+            fun jbig n = String.translate (fn #"~" => "-" | c => String.str c) (IntInf.toString n)
+            fun jpair (a, b) = "[" ^ jbig a ^ "," ^ jbig b ^ "]"
             val prem = case premiseOf line fs of
                 NONE => "null"
               | SOME (l, y, ys) => "{\"label\": " ^ jstr l ^ ", \"year\": " ^ jint y

@@ -16,7 +16,11 @@
 
    Known divergences from Python, none of which touch the 114 panel items:
    - the Unicode minus (U+2212) of w532's NEG is read as the ASCII minus;
-   - quoted-title scanning treats the multi-byte curly quotes as bytes. *)
+   - text is collapsed and lower-cased bytewise: Unicode whitespace and
+     non-ASCII letters are not folded as Python's str.split/re.I fold them.
+   (W5-15 fixed: w511's P1 and w510's quoted titles now match the curly quotes
+   by codepoint; w510's quoted-title words keep their capitals; P1 reads the
+   whole reply, not its first 300 characters.) *)
 structure Recognizer =
 struct
 
@@ -46,7 +50,7 @@ fun digitsToInt ds =
   in go (ds, 0, 0) end
 fun cchar c = Char.chr (digitsToInt (Guards.digits_of c))
 fun kstr cs = String.implode (map cchar cs)   (* a kernel char list, back to a target string *)
-fun irat (n, d) = Guards.mk_rat (IntInf.fromInt n) (IntInf.fromInt d)
+fun irat (n, d) = Guards.mk_rat n d     (* IntInf numerator and denominator *)
 
 fun member x xs = List.exists (fn y => y = x) xs
 fun dedupByKey key xs =
@@ -76,8 +80,6 @@ fun subAll rx s =
 val whq = R.compile "^\\s*(who|whom|whose|what|what's|which|where|when|why|how|in what|in which|at what|on what|for what|from what|to what|by what|name the|determine|find|compute|calculate|solve|is|are|was|were|do|does|did|can|could|has|have)\\b"
 (* w510/w516 CHAT (re.I): listener words *)
 val chat = R.compile "\\b(you|your|yours|you're|you've|yourself|i|i'm|i've|i'd|me|my|mine|we|us|our|hi|hey|hello|excuse me|please|sir|madam|ma'am|mum|mom|dad|thanks|thank)\\b"
-(* w511 NO_ENTRY (re.I) *)
-val noEntry = R.compile "^\\s*(?:\\[ev:[a-z_]+\\]\\s*)?i have no admitted (?:entry|record) for [\"“]([^\"”]{1,120})[\"”]"
 (* w511 ATTR (re.I) *)
 val attr = R.compile "\\b(largest|longest|smallest|highest|hardest|tallest|biggest|deepest|fastest|oldest|first|last|most|least|symbol|capital|currency|population|velocity|speed|mass|weight|number|name|author|year|date|age|height|length|distance|temperature|density|boiling|melting|freezing|area|volume)\\b"
 (* w511 P1's punctuation class on the captured title *)
@@ -137,7 +139,35 @@ val evTag = R.compile "^\\s*\\[ev:[a-z_]+\\]\\s*"
 (* words of at least three letters *)
 val word3 = R.compile "\\b[a-z]{3,}\\b"
 (* w510 quoted titles *)
-val quoted = R.compile "[\"“'‘]([^\"”'’]{3,60})[\"”'’]"
+(* w510's quoted spans, re.finditer(r"[\"“'‘]([^\"”'’]{3,60})[\"”'’]", q): classes of
+   CODEPOINTS, matched by hand over UTF-8 characters (quotedSpans, below) because
+   the shared Regex matches bytes and a curly quote is three (W5-15). *)
+fun utf8Chars s =      (* the string split into UTF-8 characters, each as its bytes *)
+  let val n = String.size s
+      fun cont i = i < n andalso Char.ord (String.sub (s, i)) >= 0x80 andalso Char.ord (String.sub (s, i)) < 0xC0
+      fun go (i, acc) =
+        if i >= n then List.rev acc
+        else let fun stop j = if cont j then stop (j + 1) else j
+                 val j = stop (i + 1)
+             in go (j, String.substring (s, i, j - i) :: acc) end
+  in go (0, []) end
+fun quotedSpans q =
+  let val cs = Vector.fromList (utf8Chars q)
+      val n = Vector.length cs
+      fun at i = Vector.sub (cs, i)
+      val opens = ["\"", "\226\128\156", "'", "\226\128\152"]     (* " “ ' ‘ *)
+      val closes = ["\"", "\226\128\157", "'", "\226\128\153"]    (* " ” ' ’ *)
+      fun run (j, k) = if j < n andalso not (member (at j) closes) andalso k < 60 then run (j + 1, k + 1) else (j, k)
+      fun scan (i, acc) =
+        if i >= n then List.rev acc
+        else if member (at i) opens then
+          let val (j, k) = run (i + 1, 0)
+          in if k >= 3 andalso j < n andalso member (at j) closes
+             then scan (j + 1, String.concat (List.tabulate (k, fn t => at (i + 1 + t))) :: acc)
+             else scan (i + 1, acc)
+          end
+        else scan (i + 1, acc)
+  in scan (0, []) end
 (* w510's word walk: [A-Za-z][A-Za-z0-9'\-]*|\d{4}, hand-coded like the other
    case-sensitive scanners *)
 fun isUpperC c = #"A" <= c andalso c <= #"Z"
@@ -157,7 +187,6 @@ fun anyWords q =
         go (i + 4, String.substring (q, i, 4) :: acc)
       else go (i + 1, acc)
   in go (0, []) end
-val alnum1 = R.compile "[a-z0-9]+"
 
 (* w510 STOP, lower-cased *)
 val stop510 = ["a","an","the","of","in","on","at","to","for","from","by","with","and","or","but",
@@ -183,28 +212,34 @@ fun respR reply = takeStr 300 (lower (collapse (subAll cite reply)))
 
 val numPat = R.compile "(?<![\\w.])[-+]?(?:\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d+)?(?:[eE][-+]?\\d+)?"
 
+(* Arbitrary precision (IntInf): with the default 32-bit int, "26.09759007"
+   (2,609,759,007 after scaling) raised Overflow and the binary returned an
+   error line instead of a verdict (W5-15, two units-v3 replies on the core
+   panel). Python's float() never overflows here; past the float range it gives
+   inf or 0, so the decimal exponent is clamped to +-400 (a divergence only for
+   numbers no reply prints). *)
 fun parseNum t =
   let val t0 = String.translate (fn c => if c = #"," then "" else String.str c) t
-      val (sign, r1) = if String.isPrefix "-" t0 then (~1, String.extract (t0, 1, NONE))
+      val (sign, r1) = if String.isPrefix "-" t0 then (~1 : IntInf.int, String.extract (t0, 1, NONE))
                        else if String.isPrefix "+" t0 then (1, String.extract (t0, 1, NONE))
                        else (1, t0)
       val (mant, expo) =
         case String.tokens (fn c => c = #"e" orelse c = #"E") r1 of
           [m] => (m, 0)
-        | [m, e] => (m, Option.getOpt (Int.fromString e, 0))
+        | [m, e] => (m, Int.max (~400, Int.min (400, Option.getOpt (Int.fromString e, 0) handle Overflow => 0)))
         | _ => (r1, 0)
       val (ip, fp) =
         case String.tokens (fn c => c = #".") mant of
           [i] => (i, "")
         | [i, f] => (i, f)
         | _ => (mant, "")
-      val ipV = Option.getOpt (Int.fromString (if ip = "" then "0" else ip), 0)
-      val fpV = Option.getOpt (Int.fromString (if fp = "" then "0" else fp), 0)
+      val ipV = Option.getOpt (IntInf.fromString (if ip = "" then "0" else ip), 0)
+      val fpV = Option.getOpt (IntInf.fromString (if fp = "" then "0" else fp), 0)
       val fpLen = String.size fp
-      fun pow10 0 = 1 | pow10 n = 10 * pow10 (n - 1)
+      fun pow10 n = IntInf.pow (10, n)
       val e10 = expo - fpLen
       val mag = ipV * pow10 fpLen + fpV
-  in if e10 >= 0 then (sign * mag * pow10 e10, 1) else (sign * mag, pow10 (~e10)) end
+  in if e10 >= 0 then (sign * mag * pow10 e10, 1 : IntInf.int) else (sign * mag, pow10 (~e10)) end
 
 fun ratsOf s = map (irat o parseNum) (findAll numPat s)
 fun numPairsOf s = map parseNum (findAll numPat s)   (* the pairs behind the rats, for dumping *)
@@ -230,8 +265,10 @@ fun specifics q =
   let
     val qs = q   (* raw text: capitals matter *)
     val quotedWords =
-      List.concat (List.mapPartial (fn m => Option.map (fn g => findAll alnum1 g) (R.group qs m 1))
-                    (R.findall quoted qs))
+      (* re.findall(r"[A-Za-z0-9]+", group): ASCII letters of both cases (the shared
+         Regex lower-cases the class and the text here is raw, so alnum1 dropped capitals) *)
+      List.concat (map (String.tokens (fn c => not (isUpperC c orelse isDigitC c orelse (#"a" <= c andalso c <= #"z"))))
+                       (quotedSpans qs))
     fun keep w = not (member (lower w) stop510) andalso String.size w > 2
     val words = anyWords qs
     fun walk ([], _) = []
@@ -280,14 +317,44 @@ fun ofPhrases q =
 
 (* ---- w511 ---- *)
 
+(* w511 NO_ENTRY.match(resp), its quoted group. Python's [\"“] and [^\"”]{1,120} are
+   classes of CODEPOINTS; the shared Regex matches bytes, so a curly quote (three
+   bytes in UTF-8) inside a class matched only its first byte and the real replies
+   ("I have no admitted entry for “my passport number”") never matched (W5-15,
+   found on the head's own replies; the synthesized fixtures used ASCII quotes).
+   The prefix is matched by the regex; the quotes and the 1..120-codepoint group
+   by hand. resp is the WHOLE collapsed reply (w511: " ".join(resp.split())),
+   not the 300-character head the other folds read. *)
+val noEntryHead = R.compile "^\\s*(?:\\[ev:[a-z_]+\\]\\s*)?i have no admitted (?:entry|record) for "
+val openCurly = "\226\128\156"     (* U+201C “ *)
+val closeCurly = "\226\128\157"    (* U+201D ” *)
+fun bytesAt s i t = i + String.size t <= String.size s andalso String.substring (s, i, String.size t) = t
+fun noEntryGroup s =
+  case R.search noEntryHead s of
+    NONE => NONE
+  | SOME m =>
+      let val n = String.size s
+          val i = #stop m
+          val start = if i < n andalso String.sub (s, i) = #"\"" then SOME (i + 1)
+                      else if bytesAt s i openCurly then SOME (i + 3) else NONE
+          fun cont c = Char.ord c >= 0x80 andalso Char.ord c < 0xC0   (* UTF-8 continuation byte *)
+          fun scan (j, cps) =
+            if j >= n then NONE
+            else if String.sub (s, j) = #"\"" orelse bytesAt s j closeCurly then SOME (j, cps)
+            else scan (j + 1, if cont (String.sub (s, j)) then cps else cps + 1)
+      in case start of
+           NONE => NONE
+         | SOME a => (case scan (a, 0) of
+                        SOME (j, cps) => if cps >= 1 andalso cps <= 120 then SOME (String.substring (s, a, j - a)) else NONE
+                      | NONE => NONE)
+      end
+
 fun f511Of (q, reply, respG3low) =
   let val ql = lower q
-      val ne = R.search noEntry respG3low
+      val ne = noEntryGroup (lower (collapse reply))
       val (neP, neA, neF) = case ne of
             NONE => (false, false, false)
-          | SOME m => (true,
-                       case R.group respG3low m 1 of SOME g => sub1 attr g | NONE => false,
-                       case R.group respG3low m 1 of SOME g => not (sub1 punct g) | NONE => false)
+          | SOME g => (true, sub1 attr g, not (sub1 punct g))
       val asksNum = sub1 numq ql orelse matchAt0 whatThe ql
       val numwordHit = sub1 numword (lower (collapse reply))
   in Guards.F511 (sub1 negPhys q,        (* neg_phys_given *)

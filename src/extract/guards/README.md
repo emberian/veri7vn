@@ -52,6 +52,18 @@ replies (the panel records only question, status and path - the organ reply
 the guard judged is not in the drop), so the replay exercises the guards'
 decisions, not the organ pipeline that produced those replies.
 
+Silence on real replies (lane W5-15, `silence.py`): one run of the shipped head
+w540 over the 924 core questions (`head_record.py`, lane A's answerer plus the
+engine's provenance, which carries the organ reply a guard withheld) is recorded
+in `head_core_w540.jsonl`. On the 801 items that neither the panel nor this run
+guarded, the binary fires 0 times on the head's own replies (the real Python
+guards also 0). On the 108 items both guarded, fed the withheld organ reply, it
+gives the recorded code 108 times; on the 9 that only this run guarded, 9 of 9.
+Limit: this machine's upstream drop lacks `relstore/names_v1.sqlite3`, so the
+run's head differs from the shipped one (all 112 rel-* specialist answers fall
+silent, and the real G3 date-premise guard cannot link). Answered rel-* replies
+are therefore not in the silent set; see `project/lanes/W5-15-guards-silence.md`.
+
 Build: `tools/dev/remote-build <host> src/extract/guards Veri7vn_Guards --expect 'VERI7VN_GUARDS PASS'` (or `check-native` with the same session and marker), then
 `/Users/ember/dev/o7vn/.venv/bin/python -I src/extract/guards/tables_check.py`,
 `sh src/extract/guards/build.sh`,

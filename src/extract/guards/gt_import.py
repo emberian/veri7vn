@@ -3,7 +3,7 @@ guard functions can be called on fixtures. Read-only against upstream."""
 import importlib.util, os, sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]   # the scout worktree
+REPO = Path(__file__).resolve().parents[3]   # the repo root (var/ lives here)
 UP = Path(os.environ.get("GT_UPSTREAM", "/Users/ember/dev/o7vn/upstream"))
 
 os.environ.update(PYTHONHASHSEED="0", PYTHONDONTWRITEBYTECODE="1", PYTHONIOENCODING="utf-8")

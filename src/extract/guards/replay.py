@@ -57,7 +57,7 @@ class FakeEL:
     def __init__(self):
         import sqlite3
         self.db = sqlite3.connect(
-            "file:/Users/ember/dev/o7vn/upstream/root/relstore/relations_v1.sqlite3?mode=ro", uri=True)
+            "file:/Users/ember/dev/o7vn/upstream/root/relstore/relations_v1.sqlite3?immutable=1", uri=True)
 
     def link(self, q, k=3):
         m = M["w532"].PREMISE.match(q)
@@ -86,7 +86,7 @@ class FakeRV:
     def __init__(self):
         import sqlite3
         self.db = sqlite3.connect(
-            "file:/Users/ember/dev/o7vn/upstream/root/relstore/relations_v1.sqlite3?mode=ro", uri=True)
+            "file:/Users/ember/dev/o7vn/upstream/root/relstore/relations_v1.sqlite3?immutable=1", uri=True)
 
     def values(self, qid, p):
         if p not in self.PROPS or not str(qid).isdigit():
