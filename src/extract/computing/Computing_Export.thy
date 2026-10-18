@@ -1,11 +1,11 @@
 theory Computing_Export
-  imports Networking Numerics System Pyref Sql "HOL-Library.Code_Target_Numeral"
+  imports Networking Numerics System Permission_Query Pyref Sql "HOL-Library.Code_Target_Numeral"
 begin
 
 definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
   "mk_rat a b = Fract (int_of_integer a) (int_of_integer b)"
 
-export_code net_reply emb_reply cyb_reply rob_reply lin_reply git_reply py_reply sql_answer validity_reply sql_validity
+export_code permission_scope_reply permission_effective_reply permission_reply net_reply emb_reply cyb_reply rob_reply lin_reply git_reply py_reply sql_answer validity_reply sql_validity
   mk_rat mask_prefix sig_num sig_name
   integer_of_int nat_of_integer int_of_integer integer_of_nat
   IP NReq BMask BPrefix BWildcard BCount BAddr BNeedPrefix BSame BPrivate BSubnets BForHosts
@@ -14,6 +14,7 @@ export_code net_reply emb_reply cyb_reply rob_reply lin_reply git_reply py_reply
   CS_printable CS_alnum CS_mixed CS_lower CS_digits CS_custom
   CDigest CBirthday CBase64 CKeyspace CEntropy CDistribution CBrute
   RW_radius RW_angular RW_linear RPwm RFk REnc RWheel RDiff
+  Mode P_owner P_group P_other
   LSymFromOct LOctFromSym LUmask LCron LCronNoPeriod LSigNum LSigName LExit
   Sym Perm X_no X_x X_sp X_SP UM_file UM_dir UM_both CStar CRange CSingle CI CBad
   G_reset_soft G_reset_hard G_amend G_switch_c G_switch G_unstage G_restore G_add_all G_rename G_del_remote
@@ -25,7 +26,8 @@ export_code net_reply emb_reply cyb_reply rob_reply lin_reply git_reply py_reply
   in SML module_name Computing file_prefix computing
 
 ML \<open>
-  val theorems = flat [@{thms net_props}, @{thms net_unique}, @{thms bcast_props}, @{thms mask_wildcard_complement},
+  val theorems = flat [@{thms missing_actions_exact}, @{thms permission_rows_exact},
+    @{thms permission_reply_lists_exact_unset}, @{thms permission_reply_guard}, @{thms net_props}, @{thms net_unique}, @{thms bcast_props}, @{thms mask_wildcard_complement},
     @{thms usable_hosts}, @{thms mask_prefix_iff}, @{thms pfh_smallest}, @{thms pfh_complete},
     @{thms net_private_iff}, @{thms net_mask_value}, @{thms net_network_value}, @{thms net_broadcast_value},
     @{thms net_subnets_value}, @{thms net_forhosts_value}, @{thms net_reply_answered_iff},
@@ -59,7 +61,7 @@ ML \<open>
     @{thms select_correct_unordered}, @{thms select_correct_ordered}, @{thms select_distinct_relational}, @{thms select_group_count_relational}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("computing theorems use oracles: " ^ string_of_int (length oracles));
-  val _ = if @{code net_self_test} andalso @{code emb_self_test} andalso @{code cyb_self_test} andalso @{code rob_self_test} andalso
+  val _ = if @{code permission_self_test} andalso @{code net_self_test} andalso @{code emb_self_test} andalso @{code cyb_self_test} andalso @{code rob_self_test} andalso
           @{code lin_self_test} andalso @{code git_self_test} andalso @{code py_self_test} andalso @{code sql_self_test} andalso @{code sql_parse_test}
           then () else error "computing self test failed";
   val _ = writeln ("VERI7VN_COMPUTING PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");

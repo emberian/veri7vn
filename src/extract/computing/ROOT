@@ -17,6 +17,7 @@ session Veri7vn_Computing = Veri7vn_Computing_Base +
     Networking
     Numerics
     System
+    Permission_Query
     Pyref_Table
     Pyref
     Sql

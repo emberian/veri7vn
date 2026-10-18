@@ -22,16 +22,19 @@
     },
     "linux-v2": {
       "accept": {
-        "kinds": [],
+        "kinds": [
+          "chmod_unset"
+        ],
         "declines_in_domain": []
       },
       "context_regex_additions": [
         "\\bmode\\s+(?:of\\s+)?\\d{3,4}\\b"
       ],
       "evidence": {
-        "computation": "File-mode conversion validates octal permission digits before converting them to symbolic permissions. Commands are never executed.",
+        "computation": "File-mode conversion validates octal digits. The unset-bit query lists precisely the complement of ordinary owner/group/other read, write and execute bits; special bits do not alter this calculation. Commands are never executed.",
         "assumptions": [
-          "The recognized mode refers to Unix file permissions"
+          "The recognized mode refers to Unix file permissions",
+          "Unset permission means the ordinary inode mode bit is clear, not effective access through ACLs, identities or path/mount conditions"
         ],
         "untrusted": [
           "Natural-language recognition and mode extraction"

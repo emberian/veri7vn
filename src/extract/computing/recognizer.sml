@@ -512,7 +512,23 @@ struct
                       in
                         case om of
                           SOME md =>
-                            if has "\\bmean\\b|\\bsymbolic\\b|\\brwx\\b|\\bwhat (?:permissions|access)\\b|\\bls -l\\b|\\bgive\\b|\\bgrant\\b|\\bset\\b" low
+                            if has "\\bpermissions?(?: bits?)?\\b.{0,40}\\b(?:denied|not granted|missing|unset|clear)\\b" low
+                               andalso not (has "\\bnot (?:denied|missing|unset|clear)\\b|\\baren(?:'|\226\128\153)t (?:denied|missing|unset|clear)\\b" low) then
+                              let
+                                val ds = digitsOf md
+                                val (sp, u, g, o') = case ds of [u,g,o'] => (nat 0,u,g,o')
+                                                         | [sp,u,g,o'] => (sp,u,g,o')
+                                                         | _ => raise Fail "bounded mode parser"
+                                val classes = List.mapPartial (fn (pat,c) => if has pat low then SOME c else NONE)
+                                  [("\\bowner\\b|\\buser\\b",C.P_owner), ("\\bgroup\\b",C.P_group), ("\\bothers?\\b",C.P_other)]
+                                val who = case classes of [c] => SOME c | _ => NONE
+                                val multiMode = has "\\b\\d{3,4}\\b.*\\b\\d{3,4}\\b" low
+                                val extraAction = has "\\b(?:and|then|also)\\s+(?:how|what|which|change|set|grant|remove|run|execute|chmod)\\b" low
+                              in if multiMode orelse extraAction then finishNarrow t C.permission_scope_reply
+                                 else if has "\\bacls?\\b|\\beffective (?:access|permissions?)\\b|\\b(?:root|privileged) (?:user|process)\\b" low
+                                 then finishNarrow t C.permission_effective_reply
+                                 else finishNarrow t (C.permission_reply (C.Mode (sp,u,g,o')) who) end
+                            else if has "\\bmean\\b|\\bsymbolic\\b|\\brwx\\b|\\bwhat (?:permissions|access)\\b|\\bls -l\\b|\\bgive\\b|\\bgrant\\b|\\bset\\b" low
                             then fin (C.LSymFromOct (digitsOf md)) else NONE
                         | NONE => NONE
                       end
