@@ -669,8 +669,17 @@ struct
       | SOME r => if not (M.answered (M.reply_of r)) andalso not (Narrow.short_direct text) then NONE else SOME r
 
   (* ---------- fleet ---------- *)
-  val MPG = NUM ^ "\\s*(?:us\\s+)?(uk\\s+|imperial\\s+)?mpg\\b|" ^ NUM ^ "\\s*miles per (?:us\\s+)?(imperial\\s+)?gallon\\b"
+  val MPG = NUM ^ "\\s*(?:(us|uk|imperial)\\s+)?mpg\\b(?:\\s*\\(([a-z]+)\\))?|" ^ NUM ^ "\\s*miles per\\s+(?:(us|uk|imperial)\\s+)?gallon\\b(?:\\s*\\(([a-z]+)\\))?"
   val LPK = NUM ^ "\\s*(?:l|liters?|litres?)\\s*(?:/|per)\\s*100\\s*km\\b"
+  val FUELPRICE = "\\$\\s*" ^ NUM ^ "\\s*(?:per|/|a)\\s*(?:(us|uk|imperial)\\s+)?(gallons?|gal|liters?|litres?|l)\\b(?:\\s*\\(([a-z]+)\\))?"
+  fun imperial s = s = "uk" orelse s = "imperial"
+  fun coherentLabels labels =
+    List.all (fn s=>s="us" orelse imperial s) labels andalso
+    not (List.exists imperial labels andalso List.exists (fn s=>s="us") labels)
+  fun fuelUnit word labels =
+    if not(coherentLabels labels) then NONE
+    else if String.isPrefix "gal" word then SOME(if List.exists imperial labels then M.FU_imperial_gallon else M.FU_us_gallon)
+    else if null labels then SOME M.FU_litre else NONE
 
   fun fleetInner text : M.request option =
     let
@@ -699,12 +708,19 @@ struct
         end
       else
         let
-          val dist = search (NUM ^ "\\s*(miles?|mi|km|kilometers?|kilometres?)\\b(?!\\s*(?:per|/)\\s*(?:hour|h|gallon|liter|litre))")
-                            (substCI "100\\s*km|miles per (?:us\\s+|imperial\\s+)?gallon" "" low)
-          val ukOf = fn m => isSome (grp low m 2) orelse isSome (grp low m 4)
-          val mpgVal = fn m => ratOf (valOf (firstGroup low m [1, 3]))
+          val dlow = substCI LPK " " (substCI MPG " " low)
+          val distances = findall (NUM ^ "\\s*(miles?|mi|km|kilometers?|kilometres?)\\b(?!\\s*(?:per|/)\\s*(?:hour|h|gallon|liter|litre))") dlow
+          val dist = case distances of [m]=>SOME m | _=>NONE
+          fun mpgLabels m = List.mapPartial (grp low m) [2,3,5,6]
+          val ukOf = fn m => List.exists imperial (mpgLabels m)
+          val mpgVal = fn m => ratOf (valOf (firstGroup low m [1,4]))
         in
-          if not (isSome dist) andalso (isSome mpg orelse isSome lpk)
+          if (isSome mpg orelse isSome lpk) andalso
+             (length(findall MPG low) + length(findall LPK low) > 1
+              orelse length distances > 1
+              orelse (case mpg of SOME m=>not(coherentLabels(mpgLabels m)) | NONE=>false))
+          then SOME M.FvNeed
+          else if not (isSome dist) andalso (isSome mpg orelse isSome lpk)
              andalso has "\\bconvert\\b|\\bl/100\\s*km\\b|\\bliters? per 100|\\blitres? per 100|\\bmpg\\b|\\bmiles per gallon\\b" low then
             (if isSome mpg andalso has "l/100|liters? per 100|litres? per 100" low then
                SOME (M.FvToLpk (ukOf (valOf mpg), mpgVal (valOf mpg)))
@@ -715,32 +731,60 @@ struct
                   andalso has "\\bfuel\\b|\\bgas\\b|\\bgallons?\\b|\\bliters?\\b|\\blitres?\\b|\\bcost\\b|\\bco2\\b|\\bcarbon\\b|\\bemissions?\\b|\\bspend\\b" low then
             let
               val dm = valOf dist
-              val dlow = substCI "100\\s*km|miles per (?:us\\s+|imperial\\s+)?gallon" "" low
               val d = ratOf (g1 dlow dm)
               val du = if String.isPrefix "mi" (valOf (grp dlow dm 2)) then M.DU_mi else M.DU_km
               val ec = case mpg of
                          SOME m => M.E_mpg (ukOf m, mpgVal m)
                        | NONE => M.E_lpk (ratOf (g1 low (valOf lpk)))
+              val prices = findall FUELPRICE low
+              val cost = has "\\bcosts?\\b|\\bspend\\b|\\bhow much money\\b|\\bprice\\b" low
+              fun need () = SOME M.FvNeed
+              fun price m =
+                let val labels=List.mapPartial (grp low m) [2,4]
+                in Option.map (fn u=>(ratOf(g1 low m),u)) (fuelUnit (valOf(grp low m 3)) labels) end
+              val outputText = substCI FUELPRICE " " dlow
+              val outputs = findall "\\b(?:(us|uk|imperial)\\s+)?(gallons?|liters?|litres?|l)\\b(?:\\s*\\(([a-z]+)\\))?" outputText
+              fun output m = fuelUnit (valOf(grp outputText m 2)) (List.mapPartial(grp outputText m)[1,3])
+              (* Do not discard an unrecognised word qualifying an output unit.
+                 Ordinary query framing is not a volume-system qualifier. *)
+              val qualifierWords = findall "\\b([a-z]+)\\s+(?:gallons?|liters?|litres?)\\b" outputText
+              val framing = ["us","uk","imperial","many","much","fuel","of","in","total","use","uses","needs","need","burn","burns","require","requires","take","takes"]
+              val outputUnitsKnown = List.all (fn m=>List.exists(fn w=>w=g1 outputText m) framing) qualifierWords
+              val amounts = Narrow.numbers low
             in
-              if has "\\bco2\\b|\\bcarbon\\b|\\bemissions?\\b" low then SOME (M.FvCO2 (d, du, ec, has "diesel" low))
-              else if has "\\bcost\\b|\\bspend\\b|\\bhow much money\\b|\\bprice\\b" low then
-                let
-                  val price = search ("\\$\\s*" ^ NUM ^ "\\s*(?:per|/|a)\\s*(gallon|gal|liter|litre|l)\\b") low
-                  val pr = Option.map (fn m => (ratOf (g1 low m), String.isPrefix "gal" (valOf (grp low m 2)))) price
-                in SOME (M.FvCost (d, du, ec, pr)) end
-              else if has "\\bliters?\\b|\\blitres?\\b" low andalso not (has "\\bgallons?\\b" low) then SOME (M.FvLitres (d, du, ec))
-              else SOME (M.FvGallons (d, du, ec))
+              if has "\\bco2\\b|\\bcarbon\\b|\\bemissions?\\b" low then
+                if amounts=2 then SOME (M.FvCO2 (d, du, ec, has "diesel" low)) else need()
+              else if cost then
+                (case prices of
+                   [] => if amounts=2 then SOME(M.FvCost(d,du,ec,NONE)) else need()
+                 | [m] => if amounts<>3 then need() else
+                     (case price m of SOME pr=>SOME(M.FvCost(d,du,ec,SOME pr)) | NONE=>need())
+                 | _=>need())
+              else if amounts<>2 orelse not(null prices) orelse not outputUnitsKnown then need()
+              else (case outputs of
+                  []=>SOME(M.FvVolume(d,du,ec,M.FU_us_gallon))
+                | [m]=>(case output m of SOME u=>SOME(M.FvVolume(d,du,ec,u)) | NONE=>need())
+                | _=>need())
             end
           else NONE
         end
     end
 
   fun fleet text : M.request option =
-    if Narrow.narrative text then NONE
-    else
+    let
+      val low=lower text
+      val directTrip = Narrow.sentences text <= 3 andalso Narrow.words text <= 60
+        andalso not(has Narrow.RELATION low)
+        andalso has "\\b(?:what|how many|how much|calculate|compute|cost for)\\b" low
+      fun trip r = case r of M.FvVolume _=>true | M.FvCost _=>true | M.FvNeed=>true | _=>false
+    in
       case fleetInner text of
-        NONE => NONE
-      | SOME r => if not (M.answered (M.reply_of r)) andalso not (Narrow.short_direct text) then NONE else SOME r
+        NONE=>NONE
+      | SOME r=> if trip r andalso directTrip then SOME r
+                 else if Narrow.narrative text then NONE
+                 else if not(M.answered(M.reply_of r)) andalso not(Narrow.short_direct text) then NONE
+                 else SOME r
+    end
 
   (* ---------- fluids-r2 ---------- *)
   val fluidRx = ["(?:fresh |pure )?water", "sea ?water|salt water|the sea|the ocean|ocean", "mercury",

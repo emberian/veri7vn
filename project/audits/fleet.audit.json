@@ -17,14 +17,15 @@
       "request": "A car travels 100 miles at 25 US mpg. How many US gallons of fuel does it use?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; divide by 473176473/125000000 litres per requested unit.",
       "independent_check": "Trip uses 473176473/31250000 litres; divide by 473176473/125000000 litres per requested unit.",
-      "observed_behavior": "{\"id\": \"us-volume-us\", \"status\": \"answered\", \"response\": \"The trip needs 4 US gallons of fuel (15.14 L).\", \"path\": \"specialist:fleet>trip_gallons\", \"kind\": \"trip_gallons\", \"value\": 4}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"us-volume-us\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 4 US gallons of fuel.\", \"status\": \"answered\", \"value\": 4}; reviewed outcome: right"
     },
     {
       "case_id": "us-volume-imperial",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 US mpg. How many Imperial gallons of fuel does it use?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; divide by 454609/100000 litres per requested unit.",
-      "observed_behavior": "{\"id\": \"us-volume-imperial\", \"status\": \"answered\", \"response\": \"The trip needs 4 US gallons of fuel (15.14 L).\", \"path\": \"specialist:fleet>trip_gallons\", \"kind\": \"trip_gallons\", \"value\": 4}; reviewed outcome: wrong_requested_unit"
+      "independent_check": "Trip uses 473176473/31250000 litres; divide by 454609/100000 litres per requested unit.",
+      "observed_behavior": "{\"id\": \"us-volume-imperial\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 3.331 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 3.331}; reviewed outcome: right"
     },
     {
       "case_id": "us-volume-litre",
@@ -32,42 +33,47 @@
       "request": "A car travels 100 miles at 25 US mpg. How many litres of fuel does it use?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; divide by 1 litres per requested unit.",
       "independent_check": "Trip uses 473176473/31250000 litres; divide by 1 litres per requested unit.",
-      "observed_behavior": "{\"id\": \"us-volume-litre\", \"status\": \"answered\", \"response\": \"The trip needs 15.14 L of fuel (4 US gallons).\", \"path\": \"specialist:fleet>trip_litres\", \"kind\": \"trip_litres\", \"value\": 15.14}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"us-volume-litre\", \"kind\": \"trip_litres\", \"path\": \"specialist:fleet>trip_litres\", \"response\": \"The trip needs 15.14 L of fuel.\", \"status\": \"answered\", \"value\": 15.14}; reviewed outcome: right"
     },
     {
       "case_id": "us-cost-US gallon-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 US mpg. Fuel costs $3 per US gallon. What is the fuel cost?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"us-cost-US gallon-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 473176473/31250000 litres; price is 3 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"us-cost-US gallon-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $12.00 (4 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 12.0}; reviewed outcome: right"
     },
     {
       "case_id": "us-cost-US gallon-question",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "What is the fuel cost for 100 miles at 25 US mpg and $3 per US gallon?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"us-cost-US gallon-question\", \"status\": \"withheld\", \"response\": \"It needs 4 US gallons (15.14 L); give me the fuel price and I will cost it.\", \"path\": \"specialist:fleet>need_price\", \"kind\": \"need_price\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 473176473/31250000 litres; price is 3 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"us-cost-US gallon-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $12.00 (4 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 12.0}; reviewed outcome: right"
     },
     {
       "case_id": "us-cost-Imperial gallon-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 US mpg. Fuel costs $3 per Imperial gallon. What is the fuel cost?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"us-cost-Imperial gallon-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 473176473/31250000 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"us-cost-Imperial gallon-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $9.99 (3.331 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 9.99}; reviewed outcome: right"
     },
     {
       "case_id": "us-cost-Imperial gallon-question",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "What is the fuel cost for 100 miles at 25 US mpg and $3 per Imperial gallon?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"us-cost-Imperial gallon-question\", \"status\": \"withheld\", \"response\": \"It needs 4 US gallons (15.14 L); give me the fuel price and I will cost it.\", \"path\": \"specialist:fleet>need_price\", \"kind\": \"need_price\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 473176473/31250000 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"us-cost-Imperial gallon-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $9.99 (3.331 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 9.99}; reviewed outcome: right"
     },
     {
       "case_id": "us-cost-litre-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 US mpg. Fuel costs $3 per litre. What is the fuel cost?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; price is 3 dollars per 1 litres.",
-      "observed_behavior": "{\"id\": \"us-cost-litre-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 473176473/31250000 litres; price is 3 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"us-cost-litre-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $45.42 (15.14 L at $3 per unit).\", \"status\": \"answered\", \"value\": 45.42}; reviewed outcome: right"
     },
     {
       "case_id": "us-cost-litre-question",
@@ -75,14 +81,15 @@
       "request": "What is the fuel cost for 100 miles at 25 US mpg and $3 per litre?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; price is 3 dollars per 1 litres.",
       "independent_check": "Trip uses 473176473/31250000 litres; price is 3 dollars per 1 litres.",
-      "observed_behavior": "{\"id\": \"us-cost-litre-question\", \"status\": \"answered\", \"response\": \"The fuel costs about $45.42 (4 US gallons at $3 per litre).\", \"path\": \"specialist:fleet>trip_cost\", \"kind\": \"trip_cost\", \"value\": 45.42}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"us-cost-litre-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $45.42 (15.14 L at $3 per unit).\", \"status\": \"answered\", \"value\": 45.42}; reviewed outcome: right"
     },
     {
       "case_id": "us-cost-gallon (US)-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 US mpg. Fuel costs $3 per gallon (US). What is the fuel cost?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"us-cost-gallon (US)-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 473176473/31250000 litres; price is 3 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"us-cost-gallon (US)-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $12.00 (4 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 12.0}; reviewed outcome: right"
     },
     {
       "case_id": "us-cost-gallon (US)-question",
@@ -90,21 +97,23 @@
       "request": "What is the fuel cost for 100 miles at 25 US mpg and $3 per gallon (US)?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; price is 3 dollars per 473176473/125000000 litres.",
       "independent_check": "Trip uses 473176473/31250000 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"us-cost-gallon (US)-question\", \"status\": \"answered\", \"response\": \"The fuel costs about $12.00 (4 US gallons at $3 per gallon).\", \"path\": \"specialist:fleet>trip_cost\", \"kind\": \"trip_cost\", \"value\": 12.0}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"us-cost-gallon (US)-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $12.00 (4 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 12.0}; reviewed outcome: right"
     },
     {
       "case_id": "us-cost-gallon (Imperial)-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 US mpg. Fuel costs $3 per gallon (Imperial). What is the fuel cost?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"us-cost-gallon (Imperial)-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 473176473/31250000 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"us-cost-gallon (Imperial)-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $9.99 (3.331 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 9.99}; reviewed outcome: right"
     },
     {
       "case_id": "us-cost-gallon (Imperial)-question",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "What is the fuel cost for 100 miles at 25 US mpg and $3 per gallon (Imperial)?",
       "expected_boundary": "Trip uses 473176473/31250000 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"us-cost-gallon (Imperial)-question\", \"status\": \"answered\", \"response\": \"The fuel costs about $12.00 (4 US gallons at $3 per gallon).\", \"path\": \"specialist:fleet>trip_cost\", \"kind\": \"trip_cost\", \"value\": 12.0}; reviewed outcome: wrong_numeric"
+      "independent_check": "Trip uses 473176473/31250000 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"us-cost-gallon (Imperial)-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $9.99 (3.331 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 9.99}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-volume-us",
@@ -112,14 +121,15 @@
       "request": "A car travels 100 miles at 25 Imperial mpg. How many US gallons of fuel does it use?",
       "expected_boundary": "Trip uses 454609/25000 litres; divide by 473176473/125000000 litres per requested unit.",
       "independent_check": "Trip uses 454609/25000 litres; divide by 473176473/125000000 litres per requested unit.",
-      "observed_behavior": "{\"id\": \"imperial-volume-us\", \"status\": \"answered\", \"response\": \"The trip needs 4.804 US gallons of fuel (18.18 L).\", \"path\": \"specialist:fleet>trip_gallons\", \"kind\": \"trip_gallons\", \"value\": 4.804}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"imperial-volume-us\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 4.804 US gallons of fuel.\", \"status\": \"answered\", \"value\": 4.804}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-volume-imperial",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 Imperial mpg. How many Imperial gallons of fuel does it use?",
       "expected_boundary": "Trip uses 454609/25000 litres; divide by 454609/100000 litres per requested unit.",
-      "observed_behavior": "{\"id\": \"imperial-volume-imperial\", \"status\": \"answered\", \"response\": \"The trip needs 4.804 US gallons of fuel (18.18 L).\", \"path\": \"specialist:fleet>trip_gallons\", \"kind\": \"trip_gallons\", \"value\": 4.804}; reviewed outcome: wrong_requested_unit"
+      "independent_check": "Trip uses 454609/25000 litres; divide by 454609/100000 litres per requested unit.",
+      "observed_behavior": "{\"id\": \"imperial-volume-imperial\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 4 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 4}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-volume-litre",
@@ -127,42 +137,47 @@
       "request": "A car travels 100 miles at 25 Imperial mpg. How many litres of fuel does it use?",
       "expected_boundary": "Trip uses 454609/25000 litres; divide by 1 litres per requested unit.",
       "independent_check": "Trip uses 454609/25000 litres; divide by 1 litres per requested unit.",
-      "observed_behavior": "{\"id\": \"imperial-volume-litre\", \"status\": \"answered\", \"response\": \"The trip needs 18.18 L of fuel (4.804 US gallons).\", \"path\": \"specialist:fleet>trip_litres\", \"kind\": \"trip_litres\", \"value\": 18.18}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"imperial-volume-litre\", \"kind\": \"trip_litres\", \"path\": \"specialist:fleet>trip_litres\", \"response\": \"The trip needs 18.18 L of fuel.\", \"status\": \"answered\", \"value\": 18.18}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-cost-US gallon-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 Imperial mpg. Fuel costs $3 per US gallon. What is the fuel cost?",
       "expected_boundary": "Trip uses 454609/25000 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"imperial-cost-US gallon-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 454609/25000 litres; price is 3 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"imperial-cost-US gallon-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $14.41 (4.804 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 14.41}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-cost-US gallon-question",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "What is the fuel cost for 100 miles at 25 Imperial mpg and $3 per US gallon?",
       "expected_boundary": "Trip uses 454609/25000 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"imperial-cost-US gallon-question\", \"status\": \"withheld\", \"response\": \"It needs 4.804 US gallons (18.18 L); give me the fuel price and I will cost it.\", \"path\": \"specialist:fleet>need_price\", \"kind\": \"need_price\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 454609/25000 litres; price is 3 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"imperial-cost-US gallon-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $14.41 (4.804 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 14.41}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-cost-Imperial gallon-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 Imperial mpg. Fuel costs $3 per Imperial gallon. What is the fuel cost?",
       "expected_boundary": "Trip uses 454609/25000 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"imperial-cost-Imperial gallon-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 454609/25000 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"imperial-cost-Imperial gallon-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $12.00 (4 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 12.0}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-cost-Imperial gallon-question",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "What is the fuel cost for 100 miles at 25 Imperial mpg and $3 per Imperial gallon?",
       "expected_boundary": "Trip uses 454609/25000 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"imperial-cost-Imperial gallon-question\", \"status\": \"withheld\", \"response\": \"It needs 4.804 US gallons (18.18 L); give me the fuel price and I will cost it.\", \"path\": \"specialist:fleet>need_price\", \"kind\": \"need_price\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 454609/25000 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"imperial-cost-Imperial gallon-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $12.00 (4 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 12.0}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-cost-litre-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 Imperial mpg. Fuel costs $3 per litre. What is the fuel cost?",
       "expected_boundary": "Trip uses 454609/25000 litres; price is 3 dollars per 1 litres.",
-      "observed_behavior": "{\"id\": \"imperial-cost-litre-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 454609/25000 litres; price is 3 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"imperial-cost-litre-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $54.55 (18.18 L at $3 per unit).\", \"status\": \"answered\", \"value\": 54.55}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-cost-litre-question",
@@ -170,14 +185,15 @@
       "request": "What is the fuel cost for 100 miles at 25 Imperial mpg and $3 per litre?",
       "expected_boundary": "Trip uses 454609/25000 litres; price is 3 dollars per 1 litres.",
       "independent_check": "Trip uses 454609/25000 litres; price is 3 dollars per 1 litres.",
-      "observed_behavior": "{\"id\": \"imperial-cost-litre-question\", \"status\": \"answered\", \"response\": \"The fuel costs about $54.55 (4.804 US gallons at $3 per litre).\", \"path\": \"specialist:fleet>trip_cost\", \"kind\": \"trip_cost\", \"value\": 54.55}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"imperial-cost-litre-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $54.55 (18.18 L at $3 per unit).\", \"status\": \"answered\", \"value\": 54.55}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-cost-gallon (US)-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 Imperial mpg. Fuel costs $3 per gallon (US). What is the fuel cost?",
       "expected_boundary": "Trip uses 454609/25000 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"imperial-cost-gallon (US)-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 454609/25000 litres; price is 3 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"imperial-cost-gallon (US)-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $14.41 (4.804 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 14.41}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-cost-gallon (US)-question",
@@ -185,21 +201,23 @@
       "request": "What is the fuel cost for 100 miles at 25 Imperial mpg and $3 per gallon (US)?",
       "expected_boundary": "Trip uses 454609/25000 litres; price is 3 dollars per 473176473/125000000 litres.",
       "independent_check": "Trip uses 454609/25000 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"imperial-cost-gallon (US)-question\", \"status\": \"answered\", \"response\": \"The fuel costs about $14.41 (4.804 US gallons at $3 per gallon).\", \"path\": \"specialist:fleet>trip_cost\", \"kind\": \"trip_cost\", \"value\": 14.41}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"imperial-cost-gallon (US)-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $14.41 (4.804 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 14.41}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-cost-gallon (Imperial)-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 miles at 25 Imperial mpg. Fuel costs $3 per gallon (Imperial). What is the fuel cost?",
       "expected_boundary": "Trip uses 454609/25000 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"imperial-cost-gallon (Imperial)-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 454609/25000 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"imperial-cost-gallon (Imperial)-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $12.00 (4 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 12.0}; reviewed outcome: right"
     },
     {
       "case_id": "imperial-cost-gallon (Imperial)-question",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "What is the fuel cost for 100 miles at 25 Imperial mpg and $3 per gallon (Imperial)?",
       "expected_boundary": "Trip uses 454609/25000 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"imperial-cost-gallon (Imperial)-question\", \"status\": \"answered\", \"response\": \"The fuel costs about $14.41 (4.804 US gallons at $3 per gallon).\", \"path\": \"specialist:fleet>trip_cost\", \"kind\": \"trip_cost\", \"value\": 14.41}; reviewed outcome: wrong_numeric"
+      "independent_check": "Trip uses 454609/25000 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"imperial-cost-gallon (Imperial)-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $12.00 (4 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 12.0}; reviewed outcome: right"
     },
     {
       "case_id": "metric-volume-us",
@@ -207,14 +225,15 @@
       "request": "A car travels 100 km at 8 L/100 km. How many US gallons of fuel does it use?",
       "expected_boundary": "Trip uses 8 litres; divide by 473176473/125000000 litres per requested unit.",
       "independent_check": "Trip uses 8 litres; divide by 473176473/125000000 litres per requested unit.",
-      "observed_behavior": "{\"id\": \"metric-volume-us\", \"status\": \"answered\", \"response\": \"The trip needs 2.113 US gallons of fuel (8 L).\", \"path\": \"specialist:fleet>trip_gallons\", \"kind\": \"trip_gallons\", \"value\": 2.113}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"metric-volume-us\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 2.113 US gallons of fuel.\", \"status\": \"answered\", \"value\": 2.113}; reviewed outcome: right"
     },
     {
       "case_id": "metric-volume-imperial",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 km at 8 L/100 km. How many Imperial gallons of fuel does it use?",
       "expected_boundary": "Trip uses 8 litres; divide by 454609/100000 litres per requested unit.",
-      "observed_behavior": "{\"id\": \"metric-volume-imperial\", \"status\": \"answered\", \"response\": \"The trip needs 2.113 US gallons of fuel (8 L).\", \"path\": \"specialist:fleet>trip_gallons\", \"kind\": \"trip_gallons\", \"value\": 2.113}; reviewed outcome: wrong_requested_unit"
+      "independent_check": "Trip uses 8 litres; divide by 454609/100000 litres per requested unit.",
+      "observed_behavior": "{\"id\": \"metric-volume-imperial\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 1.76 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 1.76}; reviewed outcome: right"
     },
     {
       "case_id": "metric-volume-litre",
@@ -222,42 +241,47 @@
       "request": "A car travels 100 km at 8 L/100 km. How many litres of fuel does it use?",
       "expected_boundary": "Trip uses 8 litres; divide by 1 litres per requested unit.",
       "independent_check": "Trip uses 8 litres; divide by 1 litres per requested unit.",
-      "observed_behavior": "{\"id\": \"metric-volume-litre\", \"status\": \"answered\", \"response\": \"The trip needs 8 L of fuel (2.113 US gallons).\", \"path\": \"specialist:fleet>trip_litres\", \"kind\": \"trip_litres\", \"value\": 8}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"metric-volume-litre\", \"kind\": \"trip_litres\", \"path\": \"specialist:fleet>trip_litres\", \"response\": \"The trip needs 8 L of fuel.\", \"status\": \"answered\", \"value\": 8}; reviewed outcome: right"
     },
     {
       "case_id": "metric-cost-US gallon-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 km at 8 L/100 km. Fuel costs $3 per US gallon. What is the fuel cost?",
       "expected_boundary": "Trip uses 8 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"metric-cost-US gallon-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 8 litres; price is 3 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"metric-cost-US gallon-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $6.34 (2.113 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 6.34}; reviewed outcome: right"
     },
     {
       "case_id": "metric-cost-US gallon-question",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "What is the fuel cost for 100 km at 8 L/100 km and $3 per US gallon?",
       "expected_boundary": "Trip uses 8 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"metric-cost-US gallon-question\", \"status\": \"withheld\", \"response\": \"It needs 2.113 US gallons (8 L); give me the fuel price and I will cost it.\", \"path\": \"specialist:fleet>need_price\", \"kind\": \"need_price\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 8 litres; price is 3 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"metric-cost-US gallon-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $6.34 (2.113 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 6.34}; reviewed outcome: right"
     },
     {
       "case_id": "metric-cost-Imperial gallon-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 km at 8 L/100 km. Fuel costs $3 per Imperial gallon. What is the fuel cost?",
       "expected_boundary": "Trip uses 8 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"metric-cost-Imperial gallon-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 8 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"metric-cost-Imperial gallon-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $5.28 (1.76 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 5.28}; reviewed outcome: right"
     },
     {
       "case_id": "metric-cost-Imperial gallon-question",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "What is the fuel cost for 100 km at 8 L/100 km and $3 per Imperial gallon?",
       "expected_boundary": "Trip uses 8 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"metric-cost-Imperial gallon-question\", \"status\": \"withheld\", \"response\": \"It needs 2.113 US gallons (8 L); give me the fuel price and I will cost it.\", \"path\": \"specialist:fleet>need_price\", \"kind\": \"need_price\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 8 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"metric-cost-Imperial gallon-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $5.28 (1.76 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 5.28}; reviewed outcome: right"
     },
     {
       "case_id": "metric-cost-litre-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 km at 8 L/100 km. Fuel costs $3 per litre. What is the fuel cost?",
       "expected_boundary": "Trip uses 8 litres; price is 3 dollars per 1 litres.",
-      "observed_behavior": "{\"id\": \"metric-cost-litre-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 8 litres; price is 3 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"metric-cost-litre-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $24.00 (8 L at $3 per unit).\", \"status\": \"answered\", \"value\": 24.0}; reviewed outcome: right"
     },
     {
       "case_id": "metric-cost-litre-question",
@@ -265,14 +289,15 @@
       "request": "What is the fuel cost for 100 km at 8 L/100 km and $3 per litre?",
       "expected_boundary": "Trip uses 8 litres; price is 3 dollars per 1 litres.",
       "independent_check": "Trip uses 8 litres; price is 3 dollars per 1 litres.",
-      "observed_behavior": "{\"id\": \"metric-cost-litre-question\", \"status\": \"answered\", \"response\": \"The fuel costs about $24.00 (2.113 US gallons at $3 per litre).\", \"path\": \"specialist:fleet>trip_cost\", \"kind\": \"trip_cost\", \"value\": 24.0}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"metric-cost-litre-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $24.00 (8 L at $3 per unit).\", \"status\": \"answered\", \"value\": 24.0}; reviewed outcome: right"
     },
     {
       "case_id": "metric-cost-gallon (US)-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 km at 8 L/100 km. Fuel costs $3 per gallon (US). What is the fuel cost?",
       "expected_boundary": "Trip uses 8 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"metric-cost-gallon (US)-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 8 litres; price is 3 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"metric-cost-gallon (US)-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $6.34 (2.113 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 6.34}; reviewed outcome: right"
     },
     {
       "case_id": "metric-cost-gallon (US)-question",
@@ -280,55 +305,622 @@
       "request": "What is the fuel cost for 100 km at 8 L/100 km and $3 per gallon (US)?",
       "expected_boundary": "Trip uses 8 litres; price is 3 dollars per 473176473/125000000 litres.",
       "independent_check": "Trip uses 8 litres; price is 3 dollars per 473176473/125000000 litres.",
-      "observed_behavior": "{\"id\": \"metric-cost-gallon (US)-question\", \"status\": \"answered\", \"response\": \"The fuel costs about $6.34 (2.113 US gallons at $3 per gallon).\", \"path\": \"specialist:fleet>trip_cost\", \"kind\": \"trip_cost\", \"value\": 6.34}; reviewed outcome: right"
+      "observed_behavior": "{\"id\": \"metric-cost-gallon (US)-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $6.34 (2.113 US gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 6.34}; reviewed outcome: right"
     },
     {
       "case_id": "metric-cost-gallon (Imperial)-sentences",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "A car travels 100 km at 8 L/100 km. Fuel costs $3 per gallon (Imperial). What is the fuel cost?",
       "expected_boundary": "Trip uses 8 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"metric-cost-gallon (Imperial)-sentences\", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\"}; reviewed outcome: withheld_valid"
+      "independent_check": "Trip uses 8 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"metric-cost-gallon (Imperial)-sentences\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $5.28 (1.76 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 5.28}; reviewed outcome: right"
     },
     {
       "case_id": "metric-cost-gallon (Imperial)-question",
-      "kind": "counterexample",
+      "kind": "independently_checked_case",
       "request": "What is the fuel cost for 100 km at 8 L/100 km and $3 per gallon (Imperial)?",
       "expected_boundary": "Trip uses 8 litres; price is 3 dollars per 454609/100000 litres.",
-      "observed_behavior": "{\"id\": \"metric-cost-gallon (Imperial)-question\", \"status\": \"answered\", \"response\": \"The fuel costs about $6.34 (2.113 US gallons at $3 per gallon).\", \"path\": \"specialist:fleet>trip_cost\", \"kind\": \"trip_cost\", \"value\": 6.34}; reviewed outcome: wrong_numeric"
+      "independent_check": "Trip uses 8 litres; price is 3 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"metric-cost-gallon (Imperial)-question\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $5.28 (1.76 Imperial gallons at $3 per unit).\", \"status\": \"answered\", \"value\": 5.28}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-miles-us-us",
+      "kind": "independently_checked_case",
+      "request": "How many US gallons of fuel for 137.5 miles at 31.7 US mpg?",
+      "expected_boundary": "5204941203/317000000 litres divided by 473176473/125000000 litres per output unit.",
+      "independent_check": "5204941203/317000000 litres divided by 473176473/125000000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-miles-us-us\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 4.338 US gallons of fuel.\", \"status\": \"answered\", \"value\": 4.338}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-us-us-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 US mpg. Fuel costs $4.17 per US gallon. What is the fuel cost?",
+      "expected_boundary": "5204941203/317000000 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "5204941203/317000000 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-us-us-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $18.09 (4.338 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 18.09}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-us-us-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 US mpg. Fuel costs $4.17 per gallon (US). What is the fuel cost?",
+      "expected_boundary": "5204941203/317000000 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "5204941203/317000000 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-us-us-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $18.09 (4.338 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 18.09}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-miles-us-imperial",
+      "kind": "independently_checked_case",
+      "request": "How many Imperial gallons of fuel for 137.5 miles at 31.7 US mpg?",
+      "expected_boundary": "5204941203/317000000 litres divided by 454609/100000 litres per output unit.",
+      "independent_check": "5204941203/317000000 litres divided by 454609/100000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-miles-us-imperial\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 3.612 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 3.612}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-us-imperial-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 US mpg. Fuel costs $4.17 per Imperial gallon. What is the fuel cost?",
+      "expected_boundary": "5204941203/317000000 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "5204941203/317000000 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-us-imperial-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $15.06 (3.612 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 15.06}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-us-imperial-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 US mpg. Fuel costs $4.17 per gallon (Imperial). What is the fuel cost?",
+      "expected_boundary": "5204941203/317000000 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "5204941203/317000000 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-us-imperial-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $15.06 (3.612 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 15.06}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-miles-us-litre",
+      "kind": "independently_checked_case",
+      "request": "How many litres of fuel for 137.5 miles at 31.7 US mpg?",
+      "expected_boundary": "5204941203/317000000 litres divided by 1 litres per output unit.",
+      "independent_check": "5204941203/317000000 litres divided by 1 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-miles-us-litre\", \"kind\": \"trip_litres\", \"path\": \"specialist:fleet>trip_litres\", \"response\": \"The trip needs 16.42 L of fuel.\", \"status\": \"answered\", \"value\": 16.42}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-us-litre-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 US mpg. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "5204941203/317000000 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "5204941203/317000000 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-us-litre-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $68.47 (16.42 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 68.47}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-us-litre-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 US mpg. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "5204941203/317000000 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "5204941203/317000000 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-us-litre-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $68.47 (16.42 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 68.47}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-miles-imperial-us",
+      "kind": "independently_checked_case",
+      "request": "How many US gallons of fuel for 137.5 miles at 31.7 Imperial mpg?",
+      "expected_boundary": "5000699/253600 litres divided by 473176473/125000000 litres per output unit.",
+      "independent_check": "5000699/253600 litres divided by 473176473/125000000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-miles-imperial-us\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 5.209 US gallons of fuel.\", \"status\": \"answered\", \"value\": 5.209}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-imperial-us-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 Imperial mpg. Fuel costs $4.17 per US gallon. What is the fuel cost?",
+      "expected_boundary": "5000699/253600 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "5000699/253600 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-imperial-us-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $21.72 (5.209 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 21.72}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-imperial-us-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 Imperial mpg. Fuel costs $4.17 per gallon (US). What is the fuel cost?",
+      "expected_boundary": "5000699/253600 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "5000699/253600 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-imperial-us-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $21.72 (5.209 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 21.72}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-miles-imperial-imperial",
+      "kind": "independently_checked_case",
+      "request": "How many Imperial gallons of fuel for 137.5 miles at 31.7 Imperial mpg?",
+      "expected_boundary": "5000699/253600 litres divided by 454609/100000 litres per output unit.",
+      "independent_check": "5000699/253600 litres divided by 454609/100000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-miles-imperial-imperial\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 4.338 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 4.338}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-imperial-imperial-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 Imperial mpg. Fuel costs $4.17 per Imperial gallon. What is the fuel cost?",
+      "expected_boundary": "5000699/253600 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "5000699/253600 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-imperial-imperial-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $18.09 (4.338 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 18.09}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-imperial-imperial-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 Imperial mpg. Fuel costs $4.17 per gallon (Imperial). What is the fuel cost?",
+      "expected_boundary": "5000699/253600 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "5000699/253600 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-imperial-imperial-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $18.09 (4.338 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 18.09}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-miles-imperial-litre",
+      "kind": "independently_checked_case",
+      "request": "How many litres of fuel for 137.5 miles at 31.7 Imperial mpg?",
+      "expected_boundary": "5000699/253600 litres divided by 1 litres per output unit.",
+      "independent_check": "5000699/253600 litres divided by 1 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-miles-imperial-litre\", \"kind\": \"trip_litres\", \"path\": \"specialist:fleet>trip_litres\", \"response\": \"The trip needs 19.72 L of fuel.\", \"status\": \"answered\", \"value\": 19.72}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-imperial-litre-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 Imperial mpg. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "5000699/253600 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "5000699/253600 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-imperial-litre-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $82.23 (19.72 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 82.23}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-imperial-litre-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 31.7 Imperial mpg. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "5000699/253600 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "5000699/253600 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-imperial-litre-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $82.23 (19.72 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 82.23}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-miles-metric-us",
+      "kind": "independently_checked_case",
+      "request": "How many US gallons of fuel for 137.5 miles at 6.4 L/100 km?",
+      "expected_boundary": "1106424/78125 litres divided by 473176473/125000000 litres per output unit.",
+      "independent_check": "1106424/78125 litres divided by 473176473/125000000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-miles-metric-us\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 3.741 US gallons of fuel.\", \"status\": \"answered\", \"value\": 3.741}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-metric-us-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 6.4 L/100 km. Fuel costs $4.17 per US gallon. What is the fuel cost?",
+      "expected_boundary": "1106424/78125 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "1106424/78125 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-metric-us-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $15.60 (3.741 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 15.6}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-metric-us-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 6.4 L/100 km. Fuel costs $4.17 per gallon (US). What is the fuel cost?",
+      "expected_boundary": "1106424/78125 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "1106424/78125 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-metric-us-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $15.60 (3.741 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 15.6}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-miles-metric-imperial",
+      "kind": "independently_checked_case",
+      "request": "How many Imperial gallons of fuel for 137.5 miles at 6.4 L/100 km?",
+      "expected_boundary": "1106424/78125 litres divided by 454609/100000 litres per output unit.",
+      "independent_check": "1106424/78125 litres divided by 454609/100000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-miles-metric-imperial\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 3.115 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 3.115}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-metric-imperial-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 6.4 L/100 km. Fuel costs $4.17 per Imperial gallon. What is the fuel cost?",
+      "expected_boundary": "1106424/78125 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "1106424/78125 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-metric-imperial-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $12.99 (3.115 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 12.99}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-metric-imperial-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 6.4 L/100 km. Fuel costs $4.17 per gallon (Imperial). What is the fuel cost?",
+      "expected_boundary": "1106424/78125 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "1106424/78125 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-metric-imperial-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $12.99 (3.115 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 12.99}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-miles-metric-litre",
+      "kind": "independently_checked_case",
+      "request": "How many litres of fuel for 137.5 miles at 6.4 L/100 km?",
+      "expected_boundary": "1106424/78125 litres divided by 1 litres per output unit.",
+      "independent_check": "1106424/78125 litres divided by 1 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-miles-metric-litre\", \"kind\": \"trip_litres\", \"path\": \"specialist:fleet>trip_litres\", \"response\": \"The trip needs 14.16 L of fuel.\", \"status\": \"answered\", \"value\": 14.16}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-metric-litre-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 6.4 L/100 km. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "1106424/78125 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "1106424/78125 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-metric-litre-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $59.06 (14.16 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 59.06}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-miles-metric-litre-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 137.5 miles at 6.4 L/100 km. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "1106424/78125 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "1106424/78125 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-miles-metric-litre-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $59.06 (14.16 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 59.06}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-km-us-us",
+      "kind": "independently_checked_case",
+      "request": "How many US gallons of fuel for 87.6 km at 31.7 US mpg?",
+      "expected_boundary": "8241919/1268000 litres divided by 473176473/125000000 litres per output unit.",
+      "independent_check": "8241919/1268000 litres divided by 473176473/125000000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-km-us-us\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 1.717 US gallons of fuel.\", \"status\": \"answered\", \"value\": 1.717}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-us-us-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 US mpg. Fuel costs $4.17 per US gallon. What is the fuel cost?",
+      "expected_boundary": "8241919/1268000 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "8241919/1268000 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-us-us-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $7.16 (1.717 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 7.16}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-us-us-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 US mpg. Fuel costs $4.17 per gallon (US). What is the fuel cost?",
+      "expected_boundary": "8241919/1268000 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "8241919/1268000 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-us-us-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $7.16 (1.717 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 7.16}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-km-us-imperial",
+      "kind": "independently_checked_case",
+      "request": "How many Imperial gallons of fuel for 87.6 km at 31.7 US mpg?",
+      "expected_boundary": "8241919/1268000 litres divided by 454609/100000 litres per output unit.",
+      "independent_check": "8241919/1268000 litres divided by 454609/100000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-km-us-imperial\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 1.43 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 1.43}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-us-imperial-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 US mpg. Fuel costs $4.17 per Imperial gallon. What is the fuel cost?",
+      "expected_boundary": "8241919/1268000 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "8241919/1268000 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-us-imperial-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $5.96 (1.43 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 5.96}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-us-imperial-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 US mpg. Fuel costs $4.17 per gallon (Imperial). What is the fuel cost?",
+      "expected_boundary": "8241919/1268000 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "8241919/1268000 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-us-imperial-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $5.96 (1.43 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 5.96}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-km-us-litre",
+      "kind": "independently_checked_case",
+      "request": "How many litres of fuel for 87.6 km at 31.7 US mpg?",
+      "expected_boundary": "8241919/1268000 litres divided by 1 litres per output unit.",
+      "independent_check": "8241919/1268000 litres divided by 1 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-km-us-litre\", \"kind\": \"trip_litres\", \"path\": \"specialist:fleet>trip_litres\", \"response\": \"The trip needs 6.5 L of fuel.\", \"status\": \"answered\", \"value\": 6.5}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-us-litre-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 US mpg. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "8241919/1268000 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "8241919/1268000 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-us-litre-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $27.10 (6.5 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 27.1}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-us-litre-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 US mpg. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "8241919/1268000 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "8241919/1268000 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-us-litre-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $27.10 (6.5 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 27.1}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-km-imperial-us",
+      "kind": "independently_checked_case",
+      "request": "How many US gallons of fuel for 87.6 km at 31.7 Imperial mpg?",
+      "expected_boundary": "165932285/21256752 litres divided by 473176473/125000000 litres per output unit.",
+      "independent_check": "165932285/21256752 litres divided by 473176473/125000000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-km-imperial-us\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 2.062 US gallons of fuel.\", \"status\": \"answered\", \"value\": 2.062}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-imperial-us-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 Imperial mpg. Fuel costs $4.17 per US gallon. What is the fuel cost?",
+      "expected_boundary": "165932285/21256752 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "165932285/21256752 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-imperial-us-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $8.60 (2.062 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 8.6}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-imperial-us-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 Imperial mpg. Fuel costs $4.17 per gallon (US). What is the fuel cost?",
+      "expected_boundary": "165932285/21256752 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "165932285/21256752 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-imperial-us-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $8.60 (2.062 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 8.6}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-km-imperial-imperial",
+      "kind": "independently_checked_case",
+      "request": "How many Imperial gallons of fuel for 87.6 km at 31.7 Imperial mpg?",
+      "expected_boundary": "165932285/21256752 litres divided by 454609/100000 litres per output unit.",
+      "independent_check": "165932285/21256752 litres divided by 454609/100000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-km-imperial-imperial\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 1.717 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 1.717}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-imperial-imperial-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 Imperial mpg. Fuel costs $4.17 per Imperial gallon. What is the fuel cost?",
+      "expected_boundary": "165932285/21256752 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "165932285/21256752 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-imperial-imperial-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $7.16 (1.717 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 7.16}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-imperial-imperial-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 Imperial mpg. Fuel costs $4.17 per gallon (Imperial). What is the fuel cost?",
+      "expected_boundary": "165932285/21256752 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "165932285/21256752 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-imperial-imperial-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $7.16 (1.717 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 7.16}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-km-imperial-litre",
+      "kind": "independently_checked_case",
+      "request": "How many litres of fuel for 87.6 km at 31.7 Imperial mpg?",
+      "expected_boundary": "165932285/21256752 litres divided by 1 litres per output unit.",
+      "independent_check": "165932285/21256752 litres divided by 1 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-km-imperial-litre\", \"kind\": \"trip_litres\", \"path\": \"specialist:fleet>trip_litres\", \"response\": \"The trip needs 7.806 L of fuel.\", \"status\": \"answered\", \"value\": 7.806}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-imperial-litre-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 Imperial mpg. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "165932285/21256752 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "165932285/21256752 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-imperial-litre-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $32.55 (7.806 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 32.55}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-imperial-litre-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 31.7 Imperial mpg. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "165932285/21256752 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "165932285/21256752 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-imperial-litre-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $32.55 (7.806 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 32.55}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-km-metric-us",
+      "kind": "independently_checked_case",
+      "request": "How many US gallons of fuel for 87.6 km at 6.4 L/100 km?",
+      "expected_boundary": "3504/625 litres divided by 473176473/125000000 litres per output unit.",
+      "independent_check": "3504/625 litres divided by 473176473/125000000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-km-metric-us\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 1.481 US gallons of fuel.\", \"status\": \"answered\", \"value\": 1.481}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-metric-us-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 6.4 L/100 km. Fuel costs $4.17 per US gallon. What is the fuel cost?",
+      "expected_boundary": "3504/625 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "3504/625 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-metric-us-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $6.18 (1.481 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 6.18}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-metric-us-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 6.4 L/100 km. Fuel costs $4.17 per gallon (US). What is the fuel cost?",
+      "expected_boundary": "3504/625 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "independent_check": "3504/625 litres times 4.17 dollars per 473176473/125000000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-metric-us-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $6.18 (1.481 US gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 6.18}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-km-metric-imperial",
+      "kind": "independently_checked_case",
+      "request": "How many Imperial gallons of fuel for 87.6 km at 6.4 L/100 km?",
+      "expected_boundary": "3504/625 litres divided by 454609/100000 litres per output unit.",
+      "independent_check": "3504/625 litres divided by 454609/100000 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-km-metric-imperial\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 1.233 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 1.233}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-metric-imperial-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 6.4 L/100 km. Fuel costs $4.17 per Imperial gallon. What is the fuel cost?",
+      "expected_boundary": "3504/625 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "3504/625 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-metric-imperial-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $5.14 (1.233 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 5.14}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-metric-imperial-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 6.4 L/100 km. Fuel costs $4.17 per gallon (Imperial). What is the fuel cost?",
+      "expected_boundary": "3504/625 litres times 4.17 dollars per 454609/100000 litres.",
+      "independent_check": "3504/625 litres times 4.17 dollars per 454609/100000 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-metric-imperial-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $5.14 (1.233 Imperial gallons at $4.17 per unit).\", \"status\": \"answered\", \"value\": 5.14}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-km-metric-litre",
+      "kind": "independently_checked_case",
+      "request": "How many litres of fuel for 87.6 km at 6.4 L/100 km?",
+      "expected_boundary": "3504/625 litres divided by 1 litres per output unit.",
+      "independent_check": "3504/625 litres divided by 1 litres per output unit.",
+      "observed_behavior": "{\"id\": \"new-km-metric-litre\", \"kind\": \"trip_litres\", \"path\": \"specialist:fleet>trip_litres\", \"response\": \"The trip needs 5.606 L of fuel.\", \"status\": \"answered\", \"value\": 5.606}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-metric-litre-False",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 6.4 L/100 km. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "3504/625 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "3504/625 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-metric-litre-False\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $23.38 (5.606 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 23.38}; reviewed outcome: right"
+    },
+    {
+      "case_id": "new-cost-km-metric-litre-True",
+      "kind": "independently_checked_case",
+      "request": "A car travels 87.6 km at 6.4 L/100 km. Fuel costs $4.17 per litre. What is the fuel cost?",
+      "expected_boundary": "3504/625 litres times 4.17 dollars per 1 litres.",
+      "independent_check": "3504/625 litres times 4.17 dollars per 1 litres.",
+      "observed_behavior": "{\"id\": \"new-cost-km-metric-litre-True\", \"kind\": \"trip_cost\", \"path\": \"specialist:fleet>trip_cost\", \"response\": \"The fuel costs about $23.38 (5.606 L at $4.17 per unit).\", \"status\": \"answered\", \"value\": 23.38}; reviewed outcome: right"
+    },
+    {
+      "case_id": "economy-alias-25 UK mpg",
+      "kind": "independently_checked_case",
+      "request": "How many Imperial gallons of fuel for 100 miles at 25 UK mpg?",
+      "expected_boundary": "100 miles / 25 miles per Imperial gallon = 4 Imperial gallons.",
+      "independent_check": "100 miles / 25 miles per Imperial gallon = 4 Imperial gallons.",
+      "observed_behavior": "{\"id\": \"economy-alias-25 UK mpg\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 4 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 4}; reviewed outcome: right"
+    },
+    {
+      "case_id": "economy-alias-25 mpg (UK)",
+      "kind": "independently_checked_case",
+      "request": "How many Imperial gallons of fuel for 100 miles at 25 mpg (UK)?",
+      "expected_boundary": "100 miles / 25 miles per Imperial gallon = 4 Imperial gallons.",
+      "independent_check": "100 miles / 25 miles per Imperial gallon = 4 Imperial gallons.",
+      "observed_behavior": "{\"id\": \"economy-alias-25 mpg (UK)\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 4 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 4}; reviewed outcome: right"
+    },
+    {
+      "case_id": "economy-alias-25 mpg (Imperial)",
+      "kind": "independently_checked_case",
+      "request": "How many Imperial gallons of fuel for 100 miles at 25 mpg (Imperial)?",
+      "expected_boundary": "100 miles / 25 miles per Imperial gallon = 4 Imperial gallons.",
+      "independent_check": "100 miles / 25 miles per Imperial gallon = 4 Imperial gallons.",
+      "observed_behavior": "{\"id\": \"economy-alias-25 mpg (Imperial)\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 4 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 4}; reviewed outcome: right"
+    },
+    {
+      "case_id": "economy-alias-25 miles per Imperial gallon",
+      "kind": "independently_checked_case",
+      "request": "How many Imperial gallons of fuel for 100 miles at 25 miles per Imperial gallon?",
+      "expected_boundary": "100 miles / 25 miles per Imperial gallon = 4 Imperial gallons.",
+      "independent_check": "100 miles / 25 miles per Imperial gallon = 4 Imperial gallons.",
+      "observed_behavior": "{\"id\": \"economy-alias-25 miles per Imperial gallon\", \"kind\": \"trip_gallons\", \"path\": \"specialist:fleet>trip_gallons\", \"response\": \"The trip needs 4 Imperial gallons of fuel.\", \"status\": \"answered\", \"value\": 4}; reviewed outcome: right"
+    },
+    {
+      "case_id": "negative-price",
+      "kind": "independently_checked_case",
+      "request": "What is the fuel cost for 100 miles at 25 mpg and $-3 per US gallon?",
+      "expected_boundary": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "observed_behavior": "{\"id\": \"negative-price\", \"kind\": \"impossible\", \"path\": \"specialist:fleet>impossible\", \"response\": \"The stated magnitudes or event counts are outside the physical domain of this calculation.\", \"status\": \"withheld\"}; reviewed outcome: right"
+    },
+    {
+      "case_id": "negative-distance",
+      "kind": "independently_checked_case",
+      "request": "How many gallons of fuel for -100 miles at 25 mpg?",
+      "expected_boundary": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "observed_behavior": "{\"id\": \"negative-distance\", \"kind\": \"impossible\", \"path\": \"specialist:fleet>impossible\", \"response\": \"The stated magnitudes or event counts are outside the physical domain of this calculation.\", \"status\": \"withheld\"}; reviewed outcome: right"
+    },
+    {
+      "case_id": "zero-mpg",
+      "kind": "independently_checked_case",
+      "request": "How many gallons of fuel for 100 miles at 0 mpg?",
+      "expected_boundary": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "observed_behavior": "{\"id\": \"zero-mpg\", \"kind\": \"impossible\", \"path\": \"specialist:fleet>impossible\", \"response\": \"A fuel economy must be above zero.\", \"status\": \"withheld\"}; reviewed outcome: right"
+    },
+    {
+      "case_id": "conflicting-economy",
+      "kind": "independently_checked_case",
+      "request": "How many gallons of fuel for 100 miles at 25 US mpg (Imperial)?",
+      "expected_boundary": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "observed_behavior": "{\"id\": \"conflicting-economy\", \"kind\": \"underspecified\", \"path\": \"specialist:fleet>underspecified\", \"response\": \"I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.\", \"status\": \"withheld\"}; reviewed outcome: right"
+    },
+    {
+      "case_id": "conflicting-price",
+      "kind": "independently_checked_case",
+      "request": "What is the fuel cost for 100 miles at 25 mpg and $3 per US gallon (Imperial)?",
+      "expected_boundary": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "observed_behavior": "{\"id\": \"conflicting-price\", \"kind\": \"underspecified\", \"path\": \"specialist:fleet>underspecified\", \"response\": \"I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.\", \"status\": \"withheld\"}; reviewed outcome: right"
+    },
+    {
+      "case_id": "litre-qualifier",
+      "kind": "independently_checked_case",
+      "request": "What is the fuel cost for 100 miles at 25 mpg and $3 per Imperial litre?",
+      "expected_boundary": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "observed_behavior": "{\"id\": \"litre-qualifier\", \"kind\": \"underspecified\", \"path\": \"specialist:fleet>underspecified\", \"response\": \"I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.\", \"status\": \"withheld\"}; reviewed outcome: right"
+    },
+    {
+      "case_id": "duplicate-distance",
+      "kind": "independently_checked_case",
+      "request": "How many gallons of fuel for 100 miles and 200 miles at 25 mpg?",
+      "expected_boundary": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "observed_behavior": "{\"id\": \"duplicate-distance\", \"kind\": \"underspecified\", \"path\": \"specialist:fleet>underspecified\", \"response\": \"I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.\", \"status\": \"withheld\"}; reviewed outcome: right"
+    },
+    {
+      "case_id": "duplicate-economy",
+      "kind": "independently_checked_case",
+      "request": "How many gallons of fuel for 100 miles at 25 mpg and 8 L/100 km?",
+      "expected_boundary": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "observed_behavior": "{\"id\": \"duplicate-economy\", \"kind\": \"underspecified\", \"path\": \"specialist:fleet>underspecified\", \"response\": \"I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.\", \"status\": \"withheld\"}; reviewed outcome: right"
+    },
+    {
+      "case_id": "duplicate-price",
+      "kind": "independently_checked_case",
+      "request": "What is the fuel cost for 100 miles at 25 mpg with $3 per gallon and $4 per gallon?",
+      "expected_boundary": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "observed_behavior": "{\"id\": \"duplicate-price\", \"kind\": \"underspecified\", \"path\": \"specialist:fleet>underspecified\", \"response\": \"I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.\", \"status\": \"withheld\"}; reviewed outcome: right"
+    },
+    {
+      "case_id": "unconsumed-number",
+      "kind": "independently_checked_case",
+      "request": "What is the fuel cost for 100 miles at 25 mpg with $3 per gallon and 7?",
+      "expected_boundary": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation.",
+      "observed_behavior": "{\"id\": \"unconsumed-number\", \"kind\": \"underspecified\", \"path\": \"specialist:fleet>underspecified\", \"response\": \"I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.\", \"status\": \"withheld\"}; reviewed outcome: right"
+    },
+    {
+      "case_id": "unknown-output-label",
+      "kind": "independently_checked_case",
+      "request": "How many Canadian gallons of fuel for 100 miles at 25 mpg?",
+      "expected_boundary": "The requested unit or price qualifier is outside the declared three-unit model; silently substituting US liquid gallons is incorrect. This valid withhold remains a capability gap.",
+      "independent_check": "The requested unit or price qualifier is outside the declared three-unit model; silently substituting US liquid gallons is incorrect. This valid withhold remains a capability gap.",
+      "observed_behavior": "{\"id\": \"unknown-output-label\", \"kind\": \"underspecified\", \"path\": \"specialist:fleet>underspecified\", \"response\": \"I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.\", \"status\": \"withheld\"}; reviewed outcome: withheld_valid"
+    },
+    {
+      "case_id": "dry-gallons",
+      "kind": "independently_checked_case",
+      "request": "How many US dry gallons of fuel for 100 miles at 25 mpg?",
+      "expected_boundary": "The requested unit or price qualifier is outside the declared three-unit model; silently substituting US liquid gallons is incorrect. This valid withhold remains a capability gap.",
+      "independent_check": "The requested unit or price qualifier is outside the declared three-unit model; silently substituting US liquid gallons is incorrect. This valid withhold remains a capability gap.",
+      "observed_behavior": "{\"id\": \"dry-gallons\", \"kind\": \"underspecified\", \"path\": \"specialist:fleet>underspecified\", \"response\": \"I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.\", \"status\": \"withheld\"}; reviewed outcome: withheld_valid"
+    },
+    {
+      "case_id": "unknown-price-label",
+      "kind": "independently_checked_case",
+      "request": "What is the fuel cost for 100 miles at 25 mpg and $3 per gallon (Canadian)?",
+      "expected_boundary": "The requested unit or price qualifier is outside the declared three-unit model; silently substituting US liquid gallons is incorrect. This valid withhold remains a capability gap.",
+      "independent_check": "The requested unit or price qualifier is outside the declared three-unit model; silently substituting US liquid gallons is incorrect. This valid withhold remains a capability gap.",
+      "observed_behavior": "{\"id\": \"unknown-price-label\", \"kind\": \"underspecified\", \"path\": \"specialist:fleet>underspecified\", \"response\": \"I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.\", \"status\": \"withheld\"}; reviewed outcome: withheld_valid"
     }
   ],
-  "actual_receipt": "project/audits/evidence/fleet-units-20261018.json",
+  "actual_receipt": "project/audits/evidence/fleet-units-fixed-20261018.json",
   "native_binding": {
-    "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/compile-inputs.json",
-    "registered_binary": "var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/binary"
+    "compile_inputs_manifest": "var/mechanics/native-attempts/20261018T120137Z-bac35ad2035c/compile-inputs.json",
+    "registered_binary": "var/mechanics/native-attempts/20261018T120137Z-bac35ad2035c/binary"
   },
   "current_unresolved_limits": [
-    "Explicit Imperial output is ignored for all three economy inputs tested. Carry output volume unit separately through the typed request, arithmetic, rendering and accepted-output theorem.",
-    "The price parser treats suffix-qualified gallon (Imperial) as US gallons. Three observed costs are numerically wrong; prefix-qualified US/Imperial gallons are valid requests withheld. Replace the price boolean with a volume-unit type independent of economy units.",
-    "All 15 multisentence cost requests are withheld although equivalent single-question forms sometimes answer. Inspect the narrative guard without broadly weakening it.",
+    "US dry gallons and unsupported named gallon qualifiers remain valid requests withheld; they are not silently answered as US liquid gallons. Broader unit vocabulary remains unexamined.",
+    "One trip distance and one economy are supported; redundant/compound trip quantities, multiple prices and variable economy need additional models or role resolution.",
     "Braking gradients, varying traction and emissions assumptions remain unaudited."
   ],
   "reviewer": "Codex root, direct source/theorem and executed-reader review, 2026-10-18",
-  "owner": "root / physical mechanics backlog; no active deputy",
+  "owner": "root; bounded Fleet unit repair",
   "author_claims": {
     "audit_scope": "partial; presence is not completion",
-    "theorem_consumer_review": "trip_gallons_def binds to canonical US gallons without a requested-output unit. trip_cost_def binds to price_cost, whose boolean distinguishes US gallon from litre only. Neither theorem can establish the missing Imperial output/price request contract; the reader can discard explicit suffix price units before the theorem applies.",
+    "theorem_consumer_review": "FvVolume carries the requested fuel_unit; FvCost carries an independent fuel_unit with its price. trip_volume_source_units proves the source economy balance for y*fuel_scale(output_unit). trip_price_source_units proves a source-balanced litres quantity with y*fuel_scale(price_unit)=litres*price, with nonnegative distance/price and economy domain premises derived from actual kernel acceptance. Both feed reply_of; English roles remain untrusted.",
     "source_paths": [
       "src/extract/mechanics/Mechanics.thy",
       "src/extract/mechanics/Mechanics_Export.thy",
       "src/extract/mechanics/recognizer.sml",
       "src/extract/mechanics/main.sml"
     ],
-    "production_change_this_audit": false,
-    "shipped_panel_result": "No shipped panel rerun in this audit. Prior exact-native score1264/1264 for the9-ID family is separately recorded in project/lanes/F-physical-mechanics-gravity.md.",
+    "production_change_this_audit": true,
+    "shipped_panel_result": "Fleet 108/108; whole nine-ID family 1264/1264 in isolated and family modes.",
     "result_counts": {
-      "right": 12,
-      "wrong_requested_unit": 3,
-      "withheld_valid": 21,
-      "wrong_numeric": 3
+      "right": 107,
+      "withheld_valid": 3
     },
-    "native_binding_scope": "The optional binary path selects the immutable observed artifact. Current source drift is reported separately; later native promotion must not erase this historical evidence.",
-    "reproduce": "python3 src/extract/mechanics/check_fleet_units.py --binary var/mechanics/native-attempts/20261018T104545Z-f11dc9553f17/binary --out var/fleet-units/replay.json",
-    "historical_receipt": "project/audits/evidence/mechanics-20261018.json retains the preceding two volume observations."
+    "native_binding_scope": "Current immutable compiler artifact, now active; historical wrong-answer observations remain in their original receipt.",
+    "reproduce": "python3 src/extract/mechanics/check_fleet_units.py --binary var/mechanics/native-attempts/20261018T120137Z-bac35ad2035c/binary --expanded --out var/fleet-units/replay-fixed.json",
+    "historical_receipt": "project/audits/evidence/fleet-units-20261018.json preserves all original 39 observations."
   }
 }

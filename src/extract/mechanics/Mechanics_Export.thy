@@ -9,6 +9,8 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
+     kernel (FvVolume 100 DU_mi (E_mpg True 25) FU_imperial_gallon) = Exact K_trip_gallons 4 \<and>
+     kernel (FvCost 100 DU_mi (E_mpg True 25) (Some (3, FU_imperial_gallon))) = Exact K_trip_cost 12 \<and>
      kernel (McWork (W_pulley_effort 4 (400, LD_n)) (efficiency_percent 50)) = Exact K_pulley_effort 200 \<and>
      kernel (McWork (W_gear_torque 10 20 40) (efficiency_percent 80)) = Exact K_gear_torque 16 \<and>
      kernel (McWork (W_lever_effort (2/5) (1/5) (400, LD_n)) (efficiency_percent 50)) = Exact K_lever_effort 400 \<and>
@@ -22,7 +24,7 @@ definition self_test :: bool where
      kernel (PhKE (Some 5) (Some 2)) = Exact K_ke 10 \<and>
      kernel (PhKE (Some (mass_kg 500 MU_g)) (Some 4)) = Exact K_ke 4 \<and>
      kernel (SpObp 0 1 0 0 0) = Exact K_obp 1 \<and>
-     kernel (FvCost 0 DU_mi (E_mpg False 30) (Some (389 / 100, True))) = Exact K_trip_cost 0 \<and>
+     kernel (FvCost 0 DU_mi (E_mpg False 30) (Some (389 / 100, FU_us_gallon))) = Exact K_trip_cost 0 \<and>
      kernel (BdWeight (G_stated 0) (Some 4)) = Exact K_weight 0 \<and>
      kernel (PhFinalV (Some (3 / 2)) (Some 5) None True) = Exact K_final_velocity (15 / 2) \<and>
      kernel (PhFinalV (Some 2) (Some 3) None False) = Decline (Underspecified N_start_speed) \<and>
@@ -49,7 +51,7 @@ definition self_test :: bool where
      stated (reply_of (SpPasser 15 40 150 0 3)) = Some (STR ''17.7'') \<and>
      stated (reply_of (SpGamesBehind 50 30 45 36)) = Some (STR ''5.5'') \<and>
      stated (reply_of (SpGamesBehind 88 62 95 55)) = Some (STR ''7'') \<and>
-     stated (reply_of (FvCost 250 DU_mi (E_mpg False 50) (Some (319 / 100, True)))) = Some (STR ''15.95'') \<and>
+     stated (reply_of (FvCost 250 DU_mi (E_mpg False 50) (Some (319 / 100, FU_us_gallon)))) = Some (STR ''15.95'') \<and>
      stated (reply_of (FvToLpk False 50)) = Some (STR ''4.704'') \<and>
      render_dec 4 (1000, 1) = STR ''1e+04'' \<and>
      render_fixed 3 (5, -3) = STR ''0.005'' \<and>
@@ -69,7 +71,7 @@ export_code reply_of answered reply_kind response stated mk_rat length_m mass_kg
   W_gear_ratio W_gear_speed W_belt_speed W_pulley_ideal W_lever_ideal W_incline_ideal efficiency_percent
   McLeverEffort McInclineMA McShaftPower McTorque McTorqueAngle McNeed
   SpPasser SpTrueShooting SpEra SpWhip SpAvg SpObp SpSlg SpGamesBehind SpWinPct
-  FvBraking FvStopping FvToLpk FvToMpg FvCO2 FvCost FvLitres FvGallons
+  FvBraking FvStopping FvToLpk FvToMpg FvCO2 FvCost FvVolume FvNeed FU_us_gallon FU_imperial_gallon FU_litre
   FsGauge FsAbs FsBuoyant FsSubmerged
   in SML module_name Mechanics file_prefix mechanics
 
@@ -101,7 +103,7 @@ ML \<open>
     @{thm batting_average_def}, @{thm on_base_def}, @{thm slugging_def}, @{thm games_behind_def},
     @{thm win_pct_def},
     @{thm braking_def}, @{thm stopping_def}, @{thm to_lpk_def}, @{thm to_mpg_def},
-    @{thm trip_co2_def}, @{thm trip_cost_def}, @{thm trip_litres_def}, @{thm trip_gallons_def},
+    @{thm trip_co2_def}, @{thm trip_cost_def}, @{thm trip_volume_source_units}, @{thm trip_price_source_units}, @{thm gallons_source_balance},
     @{thm gauge_pressure}, @{thm absolute_pressure}, @{thm buoyant_force},
     @{thm submerged_fraction}, @{thm submerged_sinks},
     @{thm kinetic_energy_momentum}, @{thm drop_energy_conserved}, @{thm stopping_is_reaction_plus_braking},

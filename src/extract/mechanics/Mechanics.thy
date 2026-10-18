@@ -188,6 +188,24 @@ fun grav_where :: "mgrav \<Rightarrow> String.literal" where
 text \<open>Fuel economy: US or UK miles per gallon, or litres per 100 km.\<close>
 datatype econ = E_mpg bool rat | E_lpk rat
 
+text \<open>The economy's gallon, requested volume and price denominator are
+independent source roles. Output and price use these exact volume scales.\<close>
+datatype fuel_unit = FU_us_gallon | FU_imperial_gallon | FU_litre
+fun fuel_scale :: "fuel_unit \<Rightarrow> rat" where
+  "fuel_scale FU_us_gallon = l_per_gal"
+| "fuel_scale FU_imperial_gallon = uk_gal_litres"
+| "fuel_scale FU_litre = 1"
+fun fuel_name :: "fuel_unit \<Rightarrow> String.literal" where
+  "fuel_name FU_us_gallon = STR ''US gallons''"
+| "fuel_name FU_imperial_gallon = STR ''Imperial gallons''"
+| "fuel_name FU_litre = STR ''L''"
+lemma fuel_scale_pos [simp]: "0 < fuel_scale u"
+  by (cases u) (simp_all add: l_per_gal_def uk_gal_litres_def)
+lemma fuel_scale_nz [simp]: "fuel_scale u \<noteq> 0"
+  by (cases u) (simp_all add: l_per_gal_def uk_gal_litres_def)
+lemma l_per_gal_nz [simp]: "l_per_gal \<noteq> 0"
+  by (simp add: l_per_gal_def)
+
 section \<open>Requests, outcomes, declines\<close>
 
 text \<open>Efficiency is useful output work divided by input work. Geometry gives
@@ -246,9 +264,9 @@ datatype request =
   | FvToLpk bool rat
   | FvToMpg bool rat
   | FvCO2 rat distu econ bool
-  | FvCost rat distu econ "(rat \<times> bool) option"
-  | FvLitres rat distu econ
-  | FvGallons rat distu econ
+  | FvCost rat distu econ "(rat \<times> fuel_unit) option"
+  | FvVolume rat distu econ fuel_unit
+  | FvNeed
   | FsGauge mfluid "rat option"
   | FsAbs mfluid "rat option"
   | FsBuoyant mfluid "(rat \<times> volu) option"
@@ -260,7 +278,7 @@ selects the sentence (see @{text need_text}).\<close>
 
 datatype need = N_speed_angle | N_mass_speed | N_mass_height | N_mass_velocity | N_mass_accel
   | N_accel_time | N_start_speed | N_mass_kg | N_fall_height | N_pendulum_length
-  | N_mc_need nat | N_load | N_speed_friction | N_reaction | N_price | N_depth | N_volume
+  | N_fuel | N_mc_need nat | N_load | N_speed_friction | N_reaction | N_price | N_depth | N_volume
   | N_unreadable | N_fluid_conditions | N_physics_conditions
 
 datatype reason = R_nonpositive_gravity | R_negative_gravity | R_negative_amount | R_zero_time | R_zero_teeth
@@ -348,8 +366,8 @@ primrec kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (FvToMpg _ _) = K_to_mpg"
 | "kind_of (FvCO2 _ _ _ _) = K_co2"
 | "kind_of (FvCost _ _ _ _) = K_trip_cost"
-| "kind_of (FvLitres _ _ _) = K_trip_litres"
-| "kind_of (FvGallons _ _ _) = K_trip_gallons"
+| "kind_of (FvVolume _ _ _ u) = (if u = FU_litre then K_trip_litres else K_trip_gallons)"
+| "kind_of FvNeed = K_declined"
 | "kind_of (FsGauge _ _) = K_pressure_gauge"
 | "kind_of (FsAbs _ _) = K_pressure_abs"
 | "kind_of (FsBuoyant _ _) = K_buoyant_force"
@@ -425,8 +443,8 @@ primrec missing :: "request \<Rightarrow> need option" where
 | "missing (FvToLpk x1 x2) = None"
 | "missing (FvToMpg x1 x2) = None"
 | "missing (FvCO2 x1 x2 x3 x4) = None"
-| "missing (FvLitres x1 x2 x3) = None"
-| "missing (FvGallons x1 x2 x3) = None"
+| "missing (FvVolume d du ec u) = None"
+| "missing FvNeed = Some N_fuel"
 | "missing (FsSubmerged x1 x2) = None"
 
 definition econ_zero :: "econ \<Rightarrow> bool" where
@@ -505,8 +523,7 @@ fun physical_domain :: "request \<Rightarrow> bool" where
 | "physical_domain (FvToMpg uk x) = (0 < x)"
 | "physical_domain (FvCO2 d du ec diesel) = (0 \<le> d \<and> economy_domain ec)"
 | "physical_domain (FvCost d du ec pr) = (0 \<le> d \<and> economy_domain ec \<and> nonnegative_pair pr)"
-| "physical_domain (FvLitres d du ec) = (0 \<le> d \<and> economy_domain ec)"
-| "physical_domain (FvGallons d du ec) = (0 \<le> d \<and> economy_domain ec)"
+| "physical_domain (FvVolume d du ec u) = (0 \<le> d \<and> economy_domain ec)"
 | "physical_domain (FsGauge f h) = nonnegative_option h"
 | "physical_domain (FsAbs f h) = nonnegative_option h"
 | "physical_domain (FsBuoyant f v) = nonnegative_pair v"
@@ -547,8 +564,8 @@ primrec impossible_base :: "request \<Rightarrow> bool" where
 | "impossible_base (FvToMpg uk x) \<longleftrightarrow> x = 0"
 | "impossible_base (FvCO2 d du ec dsl) \<longleftrightarrow> econ_zero ec"
 | "impossible_base (FvCost d du ec pr) \<longleftrightarrow> econ_zero ec"
-| "impossible_base (FvLitres d du ec) \<longleftrightarrow> econ_zero ec"
-| "impossible_base (FvGallons d du ec) \<longleftrightarrow> econ_zero ec"
+| "impossible_base (FvVolume d du ec u) \<longleftrightarrow> econ_zero ec"
+| "impossible_base FvNeed \<longleftrightarrow> False"
 | "impossible_base (PhRange x1 x2) \<longleftrightarrow> False"
 | "impossible_base (PhKE x1 x2) \<longleftrightarrow> False"
 | "impossible_base (PhPE x1 x2) \<longleftrightarrow> False"
@@ -617,8 +634,8 @@ primrec reason_base :: "request \<Rightarrow> reason option" where
 | "reason_base (FvToMpg uk x) = (if x = 0 then Some R_zero_economy else None)"
 | "reason_base (FvCO2 d du ec dsl) = (if econ_zero ec then Some R_zero_economy else None)"
 | "reason_base (FvCost d du ec pr) = (if econ_zero ec then Some R_zero_economy else None)"
-| "reason_base (FvLitres d du ec) = (if econ_zero ec then Some R_zero_economy else None)"
-| "reason_base (FvGallons d du ec) = (if econ_zero ec then Some R_zero_economy else None)"
+| "reason_base (FvVolume d du ec u) = (if econ_zero ec then Some R_zero_economy else None)"
+| "reason_base FvNeed = None"
 | "reason_base (PhRange x1 x2) = None"
 | "reason_base (PhKE x1 x2) = None"
 | "reason_base (PhPE x1 x2) = None"
@@ -684,8 +701,22 @@ definition gallons_of :: "rat \<Rightarrow> distu \<Rightarrow> econ \<Rightarro
      E_mpg uk e \<Rightarrow> if uk then miles_of d du / e * uk_gal_litres / l_per_gal else miles_of d du / e
    | E_lpk x \<Rightarrow> (miles_of d du * km_per_mi) * x / 100 / l_per_gal)"
 
-definition price_cost :: "rat \<Rightarrow> rat \<times> bool \<Rightarrow> rat" where
-  "price_cost gal pr = (if snd pr then gal * fst pr else gal * l_per_gal * fst pr)"
+definition fuel_amount :: "rat \<Rightarrow> fuel_unit \<Rightarrow> rat" where
+  "fuel_amount gal u = gal * l_per_gal / fuel_scale u"
+definition price_cost :: "rat \<Rightarrow> rat \<times> fuel_unit \<Rightarrow> rat" where
+  "price_cost gal pr = fuel_amount gal (snd pr) * fst pr"
+
+definition fuel_balance :: "rat \<Rightarrow> distu \<Rightarrow> econ \<Rightarrow> rat \<Rightarrow> bool" where
+  "fuel_balance d du ec litres = (case ec of
+    E_mpg uk e \<Rightarrow> litres * e = miles_of d du * (if uk then uk_gal_litres else l_per_gal)
+  | E_lpk x \<Rightarrow> litres * 100 = miles_of d du * km_per_mi * x)"
+lemma fuel_amount_units:
+  "fuel_amount gal u * fuel_scale u = gal * l_per_gal"
+  by (simp add: fuel_amount_def)
+lemma gallons_source_balance:
+  "economy_domain ec \<Longrightarrow> fuel_balance d du ec (gallons_of d du ec * l_per_gal)"
+  by (cases ec) (auto simp: fuel_balance_def gallons_of_def field_simps)
+
 
 text \<open>Each of the four passer-rating components is clamped to [0, 2.375].\<close>
 text \<open>Singles are given, or are the hits that are not doubles, triples or
@@ -781,8 +812,8 @@ primrec qval :: "request \<Rightarrow> rat" where
 | "qval (FvToMpg uk x) = (if uk then lpk_uk else lpk_us) / x"
 | "qval (FvCO2 d du ec dsl) = gallons_of d du ec * (if dsl then co2_diesel else co2_gasoline) / 1000"
 | "qval (FvCost d du ec pr) = price_cost (gallons_of d du ec) (the pr)"
-| "qval (FvLitres d du ec) = gallons_of d du ec * l_per_gal"
-| "qval (FvGallons d du ec) = gallons_of d du ec"
+| "qval (FvVolume d du ec u) = fuel_amount (gallons_of d du ec) u"
+| "qval FvNeed = 0"
 | "qval (FsGauge f h) = fluid_density f * g0 * the h"
 | "qval (FsAbs f h) = p0 + fluid_density f * g0 * the h"
 | "qval (FsBuoyant f v) = fluid_density f * g0 * vol_m3 (the v)"
@@ -850,8 +881,8 @@ primrec is_real :: "request \<Rightarrow> bool" where
 | "is_real (FvToMpg x1 x2) = False"
 | "is_real (FvCO2 x1 x2 x3 x4) = False"
 | "is_real (FvCost x1 x2 x3 x4) = False"
-| "is_real (FvLitres x1 x2 x3) = False"
-| "is_real (FvGallons x1 x2 x3) = False"
+| "is_real (FvVolume d du ec u) = False"
+| "is_real FvNeed = False"
 | "is_real (FsGauge x1 x2) = False"
 | "is_real (FsAbs x1 x2) = False"
 | "is_real (FsBuoyant x1 x2) = False"
@@ -908,8 +939,8 @@ primrec sinks :: "request \<Rightarrow> bool" where
 | "sinks (FvToMpg x1 x2) \<longleftrightarrow> False"
 | "sinks (FvCO2 x1 x2 x3 x4) \<longleftrightarrow> False"
 | "sinks (FvCost x1 x2 x3 x4) \<longleftrightarrow> False"
-| "sinks (FvLitres x1 x2 x3) \<longleftrightarrow> False"
-| "sinks (FvGallons x1 x2 x3) \<longleftrightarrow> False"
+| "sinks (FvVolume d du ec u) \<longleftrightarrow> False"
+| "sinks FvNeed \<longleftrightarrow> False"
 | "sinks (FsGauge x1 x2) \<longleftrightarrow> False"
 | "sinks (FsAbs x1 x2) \<longleftrightarrow> False"
 | "sinks (FsBuoyant x1 x2) \<longleftrightarrow> False"
@@ -966,8 +997,8 @@ primrec phys :: "request \<Rightarrow> real" where
 | "phys (FvToMpg x1 x2) = rl (qval (FvToMpg x1 x2))"
 | "phys (FvCO2 x1 x2 x3 x4) = rl (qval (FvCO2 x1 x2 x3 x4))"
 | "phys (FvCost x1 x2 x3 x4) = rl (qval (FvCost x1 x2 x3 x4))"
-| "phys (FvLitres x1 x2 x3) = rl (qval (FvLitres x1 x2 x3))"
-| "phys (FvGallons x1 x2 x3) = rl (qval (FvGallons x1 x2 x3))"
+| "phys (FvVolume d du ec u) = rl (qval (FvVolume d du ec u))"
+| "phys FvNeed = 0"
 | "phys (FsGauge x1 x2) = rl (qval (FsGauge x1 x2))"
 | "phys (FsAbs x1 x2) = rl (qval (FsAbs x1 x2))"
 | "phys (FsBuoyant x1 x2) = rl (qval (FsBuoyant x1 x2))"
@@ -1044,8 +1075,8 @@ primrec fa_of :: "request \<Rightarrow> floatarith" where
 | "fa_of (FvToMpg x1 x2) = I 0"
 | "fa_of (FvCO2 x1 x2 x3 x4) = I 0"
 | "fa_of (FvCost x1 x2 x3 x4) = I 0"
-| "fa_of (FvLitres x1 x2 x3) = I 0"
-| "fa_of (FvGallons x1 x2 x3) = I 0"
+| "fa_of (FvVolume d du ec u) = I 0"
+| "fa_of FvNeed = I 0"
 | "fa_of (FsGauge x1 x2) = I 0"
 | "fa_of (FsAbs x1 x2) = I 0"
 | "fa_of (FsBuoyant x1 x2) = I 0"
@@ -1311,13 +1342,11 @@ primrec ok_text :: "request \<Rightarrow> String.literal \<Rightarrow> String.li
 | "ok_text (FvCO2 d du ec dsl) V = STR ''The trip emits about '' + V + STR '' kg of CO2 ('' + show4 (gallons_of d du ec)
      + STR '' US gallons of '' + (if dsl then STR ''diesel'' else STR ''gasoline'') + STR '' x ''
      + show4 (if dsl then co2_diesel else co2_gasoline) + STR '' g/gal, EPA).''"
-| "ok_text (FvCost d du ec pr) V = STR ''The fuel costs about $'' + V + STR '' ('' + show4 (gallons_of d du ec)
-     + STR '' US gallons at $'' + show4 (fst (the pr)) + STR '' per '' + (if snd (the pr) then STR ''gallon'' else STR ''litre'')
-     + STR '').''"
-| "ok_text (FvLitres d du ec) V = STR ''The trip needs '' + V + STR '' L of fuel ('' + show4 (gallons_of d du ec)
-     + STR '' US gallons).''"
-| "ok_text (FvGallons d du ec) V = STR ''The trip needs '' + V + STR '' US gallons of fuel (''
-     + show4 (gallons_of d du ec * l_per_gal) + STR '' L).''"
+| "ok_text (FvCost d du ec pr) V = STR ''The fuel costs about $'' + V + STR '' (''
+     + show4 (fuel_amount (gallons_of d du ec) (snd (the pr))) + STR '' '' + fuel_name (snd (the pr))
+     + STR '' at $'' + show4 (fst (the pr)) + STR '' per unit).''"
+| "ok_text (FvVolume d du ec u) V = STR ''The trip needs '' + V + STR '' '' + fuel_name u + STR '' of fuel.''"
+| "ok_text FvNeed V = STR ''''"
 | "ok_text (FsGauge f h) V = STR ''The gauge pressure is about '' + V + STR '' Pa ('' + show4 (qval (FsGauge f h) / 1000)
      + STR '' kPa) at '' + show4 (the h) + STR '' m in '' + fluid_name f + STR '' (P = rho g h = ''
      + show4 (fluid_density f) + STR '' x 9.80665 x '' + show4 (the h) + STR ''; add 101325 Pa for absolute).''"
@@ -1390,15 +1419,16 @@ primrec sinks_text :: "request \<Rightarrow> String.literal" where
 | "sinks_text (FvToMpg x1 x2) = STR ''''"
 | "sinks_text (FvCO2 x1 x2 x3 x4) = STR ''''"
 | "sinks_text (FvCost x1 x2 x3 x4) = STR ''''"
-| "sinks_text (FvLitres x1 x2 x3) = STR ''''"
-| "sinks_text (FvGallons x1 x2 x3) = STR ''''"
+| "sinks_text (FvVolume d du ec u) = STR ''''"
+| "sinks_text FvNeed = STR ''''"
 | "sinks_text (FsGauge x1 x2) = STR ''''"
 | "sinks_text (FsAbs x1 x2) = STR ''''"
 | "sinks_text (FsBuoyant x1 x2) = STR ''''"
 
 definition need_text :: "request \<Rightarrow> need \<Rightarrow> String.literal" where
   "need_text r w = (let wont = STR ''; I won'' + apos + STR ''t assume it.'' in case w of
-     N_speed_angle \<Rightarrow> STR ''I need a launch speed and an angle to compute that'' + wont
+     N_fuel \<Rightarrow> STR ''I need one trip distance, one fuel economy and unambiguous requested or price units, with every supplied number accounted for.''
+   | N_speed_angle \<Rightarrow> STR ''I need a launch speed and an angle to compute that'' + wont
    | N_mass_speed \<Rightarrow> STR ''I need a mass and a speed to compute that'' + wont
    | N_mass_height \<Rightarrow> STR ''I need a mass and a height to compute that'' + wont
    | N_mass_velocity \<Rightarrow> STR ''I need a mass and a velocity to compute that'' + wont
@@ -2179,15 +2209,32 @@ theorem trip_cost_def:
   shows "c = K_trip_cost \<and> \<not> econ_zero ec \<and> 0 \<le> d \<and> y = price_cost (gallons_of d du ec) pr"
   using exact_facts[OF assms] by simp
 
-theorem trip_litres_def:
-  assumes "kernel (FvLitres d du ec) = Exact c y"
-  shows "c = K_trip_litres \<and> \<not> econ_zero ec \<and> y = gallons_of d du ec * l_per_gal"
-  using exact_facts[OF assms] by simp
+theorem trip_volume_source_units:
+  assumes "kernel (FvVolume d du ec u) = Exact c y"
+  shows "c = (if u = FU_litre then K_trip_litres else K_trip_gallons) \<and>
+    0 \<le> d \<and> economy_domain ec \<and> fuel_balance d du ec (y * fuel_scale u)"
+proof -
+  have f: "c = (if u = FU_litre then K_trip_litres else K_trip_gallons)"
+    "0 \<le> d" "economy_domain ec" "y = fuel_amount (gallons_of d du ec) u"
+    using exact_facts[OF assms] by simp_all
+  show ?thesis using f gallons_source_balance[OF f(3), of d du]
+    by (simp add: fuel_amount_units)
+qed
 
-theorem trip_gallons_def:
-  assumes "kernel (FvGallons d du ec) = Exact c y"
-  shows "c = K_trip_gallons \<and> \<not> econ_zero ec \<and> y = gallons_of d du ec"
-  using exact_facts[OF assms] by simp
+theorem trip_price_source_units:
+  assumes "kernel (FvCost d du ec (Some (p,u))) = Exact c y"
+  shows "c = K_trip_cost \<and> 0 \<le> d \<and> 0 \<le> p \<and> economy_domain ec \<and>
+    (\<exists>litres. fuel_balance d du ec litres \<and> y * fuel_scale u = litres * p)"
+proof -
+  have f: "c = K_trip_cost" "0 \<le> d" "0 \<le> p" "economy_domain ec"
+    "y = price_cost (gallons_of d du ec) (p,u)"
+    using exact_facts[OF assms] by simp_all
+  have balance: "fuel_balance d du ec (gallons_of d du ec * l_per_gal)"
+    using gallons_source_balance[OF f(4)] .
+  have units: "y * fuel_scale u = (gallons_of d du ec * l_per_gal) * p"
+    using f(5) by (simp add: price_cost_def fuel_amount_def field_simps)
+  show ?thesis using f balance units by blast
+qed
 
 subsection \<open>Fluid statics\<close>
 

@@ -153,3 +153,22 @@ challenge cases yield 85 numerical answers, 15 correct invalid refusals and one
 valid withhold, with zero wrong or false yes. `check_efficiency.py` records these
 separately from policy assertions. Exact receipts and remaining scope are in
 `project/lanes/G-mechanics-efficiency.md`.
+
+## Fuel economy, requested volume and price units
+
+Fleet now keeps the economy's gallon separate from the requested volume and
+the price denominator. One typed volume request handles litres, US liquid
+gallons and Imperial gallons. Cost uses the exact volume scale of its quoted
+price, including prefix and parenthetical qualifiers. Bare gallons and mpg
+retain the declared US default; an explicit unknown qualifier is not silently
+treated as US. The reader accepts a short three-sentence trip description and
+checks a single distance, economy and price with no unused numeric tokens.
+
+The accepted-output statements connect the volume to distance/economy in source
+units, and cost to that volume times the separately denominated price. English
+role binding remains untrusted. The original 39 unit-role cases now all answer
+correctly. An expanded 110-case check has 97 numerical answers, ten correct
+invalid refusals and three valid withholds for unsupported unit qualifications;
+the full dispatcher has the same results. All 108 Fleet shipped cases and all
+1,264 family shipped cases pass. `check_fleet_units.py --expanded` reproduces
+the independent cases; see `project/lanes/L-fleet-units.md` for exact evidence.

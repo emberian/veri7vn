@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """UNTRUSTED independent unit-role regression panel, not a HOL proof or shipped score.
 
-Run with --binary PATH --out PATH. Exit 1 means known capability/correctness
-gaps remain; the JSON distinguishes wrong answers from valid requests withheld.
+Run with --binary PATH --out PATH. Exit 1 means an unexpected result; explicitly
+expected valid withholds still count as capability gaps in the JSON.
 Input economy, output volume, and price denominator are deliberately independent.
 """
 import argparse
@@ -50,6 +50,10 @@ def cases():
 
 
 def classify(case, reply):
+    if case.get("unsupported", False):
+        return "wrong_requested_unit" if reply.get("status") == "answered" else "withheld_valid"
+    if case.get("invalid", False):
+        return "false_yes" if reply.get("status") == "answered" else "right"
     if reply.get("status") != "answered":
         return "withheld_valid"
     if reply.get("kind") != case["expected_kind"]:
@@ -74,14 +78,62 @@ def classify(case, reply):
     return "right" if correct else "wrong_numeric"
 
 
+def expanded_cases():
+    """Different magnitudes, distance units and economy/price/output pairings."""
+    for distance, du in [(F("137.5"), "miles"), (F("87.6"), "km")]:
+        miles = distance if du == "miles" else distance / F("1.609344")
+        for source in ("us", "imperial", "metric"):
+            economy = "6.4 L/100 km" if source == "metric" else f"31.7 {LABEL[source].split()[0]} mpg"
+            litres = miles * F("1.609344") * F("6.4") / 100 if source == "metric" else miles / F("31.7") * VOLUME[source]
+            given = f"{float(distance)} {du} at {economy}"
+            for unit, scale in VOLUME.items():
+                common = {"expected_exact": str(litres / scale), "expected_unit": unit,
+                          "independent_check": f"{litres} litres divided by {scale} litres per output unit."}
+                yield dict(common, case_id=f"new-{du}-{source}-{unit}", expected_kind="trip_litres" if unit == "litre" else "trip_gallons",
+                           request=f"How many {LABEL[unit]} of fuel for {given}?")
+                for suffix in (False, True):
+                    denomination = "litre" if unit == "litre" else (f"gallon ({LABEL[unit].split()[0]})" if suffix else LABEL[unit][:-1])
+                    yield {"case_id": f"new-cost-{du}-{source}-{unit}-{suffix}", "expected_kind": "trip_cost", "expected_unit": "dollars",
+                           "expected_exact": str(litres / scale * F("4.17")),
+                           "independent_check": f"{litres} litres times 4.17 dollars per {scale} litres.",
+                           "request": f"A car travels {given}. Fuel costs $4.17 per {denomination}. What is the fuel cost?"}
+    for label in ("25 UK mpg", "25 mpg (UK)", "25 mpg (Imperial)", "25 miles per Imperial gallon"):
+        yield {"case_id": "economy-alias-" + label, "request": f"How many Imperial gallons of fuel for 100 miles at {label}?",
+               "expected_kind": "trip_gallons", "expected_unit": "imperial", "expected_exact": "4",
+               "independent_check": "100 miles / 25 miles per Imperial gallon = 4 Imperial gallons."}
+    for name, q in [
+        ("negative-price", "What is the fuel cost for 100 miles at 25 mpg and $-3 per US gallon?"),
+        ("negative-distance", "How many gallons of fuel for -100 miles at 25 mpg?"),
+        ("zero-mpg", "How many gallons of fuel for 100 miles at 0 mpg?"),
+        ("conflicting-economy", "How many gallons of fuel for 100 miles at 25 US mpg (Imperial)?"),
+        ("conflicting-price", "What is the fuel cost for 100 miles at 25 mpg and $3 per US gallon (Imperial)?"),
+        ("litre-qualifier", "What is the fuel cost for 100 miles at 25 mpg and $3 per Imperial litre?"),
+        ("duplicate-distance", "How many gallons of fuel for 100 miles and 200 miles at 25 mpg?"),
+        ("duplicate-economy", "How many gallons of fuel for 100 miles at 25 mpg and 8 L/100 km?"),
+        ("duplicate-price", "What is the fuel cost for 100 miles at 25 mpg with $3 per gallon and $4 per gallon?"),
+        ("unconsumed-number", "What is the fuel cost for 100 miles at 25 mpg with $3 per gallon and 7?"),
+    ]:
+        yield {"case_id": name, "request": q, "invalid": True,
+               "independent_check": "Invalid passive trip domain or conflicting/unconsumed supplied quantities; must not assert a selected interpretation."}
+    for name, q in [
+        ("unknown-output-label", "How many Canadian gallons of fuel for 100 miles at 25 mpg?"),
+        ("dry-gallons", "How many US dry gallons of fuel for 100 miles at 25 mpg?"),
+        ("unknown-price-label", "What is the fuel cost for 100 miles at 25 mpg and $3 per gallon (Canadian)?"),
+    ]:
+        yield {"case_id": name, "request": q, "unsupported": True,
+               "independent_check": "The requested unit or price qualifier is outside the declared three-unit model; silently substituting US liquid gallons is incorrect. This valid withhold remains a capability gap."}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--expanded", action="store_true", help="include independent new magnitudes, aliases and conflicting-input controls")
     args = parser.parse_args()
     binary = args.binary.resolve(strict=True)
     rows = []
-    for case in cases():
+    panel = list(cases()) + (list(expanded_cases()) if args.expanded else [])
+    for case in panel:
         proc = subprocess.run([str(binary), "--specialist", "fleet"],
                               input=json.dumps({"id": case["case_id"], "q": case["request"]}) + "\n",
                               text=True, capture_output=True, check=True, timeout=5)
@@ -90,14 +142,15 @@ def main():
         reply = {k: v for k, v in reply.items() if k != "provenance"}
         rows.append({**case, "reply": reply, "outcome": classify(case, reply)})
     counts = dict(Counter(row["outcome"] for row in rows))
-    result = {"schema": "veri7vn.fleet-unit-review/1", "scope": "39 direct pinned-reader unit-role probes; partial audit, not shipped panels or package/default dispatch",
+    result = {"schema": "veri7vn.fleet-unit-review/1", "scope": f"{len(rows)} direct pinned-reader unit-role probes; partial audit, not shipped panels or package/default dispatch",
               "binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
               "checker_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               "counts": counts, "cases": rows}
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(counts, sort_keys=True))
-    return int(counts.get("right", 0) != len(rows))
+    return int(any(row["outcome"] != "right" and not
+                   (row.get("unsupported") and row["outcome"] == "withheld_valid") for row in rows))
 
 
 if __name__ == "__main__":

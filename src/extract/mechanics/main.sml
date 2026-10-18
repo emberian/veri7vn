@@ -13,7 +13,7 @@
 
 structure Main =
 struct
-  val theorems = "[\"kernel_exact_sound\",\"kernel_approx_sound\",\"kernel_underspecified\",\"kernel_impossible\",\"stated_dec_sound\",\"answered_physical_domain\",\"lever_units\",\"lever_effort_units\",\"body_weight_units\",\"kinetic_energy_units\",\"fluid_model_limit_refuses\",\"supplied_potential_energy\",\"supplied_potential_units\",\"supplied_potential_additive\",\"supplied_drop_energy_conserved\",\"physics_model_limit_refuses\",\"accepted_efficiency_domain\",\"actual_pulley_effort_balance\",\"actual_lever_effort_balance\",\"actual_gear_power_balance\",\"actual_advantage_balance\",\"efficient_lever_source_units\"]"
+  val theorems = "[\"kernel_exact_sound\",\"kernel_approx_sound\",\"kernel_underspecified\",\"kernel_impossible\",\"stated_dec_sound\",\"answered_physical_domain\",\"lever_units\",\"lever_effort_units\",\"body_weight_units\",\"kinetic_energy_units\",\"fluid_model_limit_refuses\",\"supplied_potential_energy\",\"supplied_potential_units\",\"supplied_potential_additive\",\"supplied_drop_energy_conserved\",\"physics_model_limit_refuses\",\"accepted_efficiency_domain\",\"actual_pulley_effort_balance\",\"actual_lever_effort_balance\",\"actual_gear_power_balance\",\"actual_advantage_balance\",\"efficient_lever_source_units\",\"trip_volume_source_units\",\"trip_price_source_units\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
