@@ -84,3 +84,16 @@ against generated folders, including counterfactual/segmentation/disagreement
 reasks and concurrent calls. It checks no default state file appears, plus a
 separate direct explicit opt-in proposal/confirmation sequence. It does not run
 the complete head. Use current stores binaries with preview support.
+
+For an archive assembled while family owners continue new work, use
+`--prepared-dir PATH` with one validated `<family>/prepared.json` capture per
+selected family. The captured native program, exported kernel, runtime files
+and capability declarations are used together. Missing or modified captures
+fail assembly. The current shared consumer checker is copied once per archive
+and recorded separately; its version is not a new family proof claim.
+
+For Linux refresh from those frozen inputs, `--runtime-overlay PATH` points to
+the capture's `runtime/` root; set `MACBIN` to its captured Darwin program.
+The passed receipt still supplies the verified export. Wrappers, acceptance,
+panels and the Darwin baseline are prepared before the remote compile waits
+for its lock. Later live-source changes cannot alter that comparison.

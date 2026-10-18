@@ -80,6 +80,11 @@ checker is untrusted corroboration; it does not check English recognition.
 snapshot, historical native session checks and Linux receipts whose binary
 hash matches the copied artifact. Read each receipt's original commit, note
 and result: a matching old receipt is not a fresh build of current sources.
+When `prepared_capture` is present, the family's native binary, source files
+and acceptance declarations came from a frozen capture. A packaged Linux
+binary then requires complete matching runtime and proof-input coverage plus
+the same generated kernel in a passed build receipt. The shared consumer
+checker has its own integration-version hash in `MANIFEST.json`.
 Missing receipts remain missing. Generated-SML comparisons concern exported
 files, and alone do not bind a binary to them. No panel or cross-platform
 success is inferred merely by creating this archive.

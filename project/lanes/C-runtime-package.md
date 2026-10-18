@@ -270,3 +270,45 @@ upstream `exam.Loaded`. Four targeted checks passed; these are not panel
 numbers. Exact receipt: `var/C-runtime-package/finance-final-native/consumer-check.json`.
 The finance-only Darwin archive SHA256 is
 `ee67c35afb9c91abeac531af84a7f8d2d29e7e103b21548b685390e06b95764c`.
+
+The captured-input follow-up adds `--prepared-dir` to archive assembly. Each
+selected family must have a complete capture: native binary, runtime sources,
+capabilities, unchanged proof dependencies, passed uncancelled receipt and its
+exact export. Missing captures or changed source/native/export bytes refuse
+assembly. Specialist acceptance comes from the captured capability file. The
+shared consumer checker is snapshotted once from the current integration
+version and its hash is recorded separately from family proof evidence.
+Four targeted tests pass, including binary/metadata mismatch, changed
+capability/source, missing capture, cancelled receipt and a captured-only
+accepted kind appearing in the generated manifest.
+
+The prepared finance-only archive at
+`var/C-runtime-package/finance-prepared-native-v2/` has SHA256
+`142d3b4e2bc36f975ef5be2b7f69c269f19430412eae0bd94402d9adddfbf631`.
+Its actual relocated producer, current consumer checker and mutated-packet
+check pass all four targeted checks again; no additional panel claim is made.
+The consumer receipt is `finance-prepared-native-v2/consumer-check.json`.
+
+Linux preparation also accepts `--runtime-overlay DIRECTORY` with `MACBIN`
+pinned to the captured native binary. It generates and hashes wrappers,
+acceptance manifests, panels and the smoke runner, then scores the captured
+Darwin binary before submitting the remote compiler job. Both machines use
+those same prepared wrapper files even if the live family is reopened while
+waiting for the lock. The actual five finance manifests generated this way
+were checked against their captured capabilities and exact checker hash.
+
+Prepared Linux binaries now require a passed matching deployment receipt for
+all families, with the exact kernel export and complete required SML runtime,
+Stores fetch, and proof dependency coverage. A tiny or stale source subset is
+rejected. The shared Python consumer version is deliberately separate from
+this native input closure. The tests reject different runtime/proof/export
+versions even when the receipt's session and compilation passed.
+
+The captured Stores C sources were recovered from commit `3f936b7` and checked
+against all 11 hashes in its successful Linux receipt. Its newer D-wave theory
+and recognizer were not included. A two-platform archive using this strict
+prepared path assembled successfully at
+`var/C-runtime-package/stores-prepared-both-v2/` (SHA256
+`30b04e27a3dbd152609e6d77d5333c60884b9a90296eba2e5ad5d23ff1289acc`).
+This is an assembly check; the 811/818 package panel result above remains
+attached to the earlier exact Stores archive and is not relabelled here.
