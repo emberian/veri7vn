@@ -135,7 +135,7 @@ end
 
 structure Main =
 struct
-  val theorems = "[\"gc_sound\",\"gl_value_sound\",\"seis_value_sound\",\"hy_value_sound\",\"oc_value_sound\",\"w_value_sound\",\"gh_value_sound\",\"render_x_sound\"]"
+  val theorems = "[\"gc_sound\",\"gl_value_sound\",\"seis_value_sound\",\"sp_success_physical\",\"gr_success_log_model\",\"hy_value_sound\",\"oc_value_sound\",\"w_value_sound\",\"gh_value_sound\",\"render_x_sound\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))

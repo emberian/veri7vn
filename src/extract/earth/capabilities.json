@@ -57,14 +57,17 @@
     "hydrology": {
       "accept": {
         "declines_in_domain": [
-          "imprecise"
+          "impossible",
+          "imprecise",
+          "underspecified"
         ]
       },
       "evidence": {
-        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "computation": "The simple rational-runoff model preserves exact coefficient/intensity/area quantities. Successful results require a runoff fraction in [0,1], nonnegative rainfall and area, and supported source units; flow is bounded by the declared zero-loss model capacity.",
         "assumptions": [
-          "The natural-language question was mapped to the intended typed request and units.",
-          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+          "This is a simple precipitation-partition coefficient, not an adjusted design factor that may exceed one.",
+          "SI uses mm/h and normalized hectares; US inch/hour with acres retains the conventional CiA cfs approximation.",
+          "English quantity roles and unit tags are untrusted."
         ],
         "untrusted": [
           "Natural-language recognition, family selection and parsing of numbers and units."

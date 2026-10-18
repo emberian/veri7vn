@@ -63,7 +63,7 @@
     },
     {
       "specialist": "geography",
-      "q": "What is the great-circle distance between 10°N, 20°E and 30°S, 40°W in km?",
+      "q": "What is the great-circle distance between 10\u00b0N, 20\u00b0E and 30\u00b0S, 40\u00b0W in km?",
       "expected": 7799.976537459435,
       "status": "answered",
       "kind": "gc_km",
@@ -71,7 +71,7 @@
     },
     {
       "specialist": "geography",
-      "q": "What is the great-circle distance between 30°S, 40°W and 10°N, 20°E in km?",
+      "q": "What is the great-circle distance between 30\u00b0S, 40\u00b0W and 10\u00b0N, 20\u00b0E in km?",
       "expected": 7799.976537459435,
       "status": "answered",
       "kind": "gc_km",
@@ -79,7 +79,7 @@
     },
     {
       "specialist": "geography",
-      "q": "What is the great-circle distance between 95°N, 20°E and 30°S, 40°W in km?",
+      "q": "What is the great-circle distance between 95\u00b0N, 20\u00b0E and 30\u00b0S, 40\u00b0W in km?",
       "expected": null,
       "status": "withheld",
       "capability_class": "impossible_input"
@@ -363,7 +363,7 @@
     },
     {
       "specialist": "ocean",
-      "q": "What is the group velocity of a deep-water wave with period −.5 seconds?",
+      "q": "What is the group velocity of a deep-water wave with period \u2212.5 seconds?",
       "expected": null,
       "status": "withheld",
       "kind": "impossible",
@@ -380,6 +380,928 @@
     {
       "specialist": "ocean",
       "q": "What is the group velocity of a deep-water capillary wave with period 10 seconds?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6 and b=1, how many earthquakes per year have magnitude at least 10?",
+      "expected": 0.0001,
+      "status": "answered",
+      "kind": "gr_count",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6 and b=1, how many earthquakes per year have magnitude at least -1?",
+      "expected": 10000000,
+      "status": "answered",
+      "kind": "gr_count",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6 and b=1, how many earthquakes per year have magnitude at least \u2212.5?",
+      "expected": 3162277.6601683795,
+      "status": "answered",
+      "kind": "gr_count",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6 and b=1/2, how many earthquakes per year have magnitude at least 10?",
+      "expected": 10.0,
+      "status": "answered",
+      "kind": "gr_count",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6e0 and b=.5, how many earthquakes per year have magnitude at least 10?",
+      "expected": 10.0,
+      "status": "answered",
+      "kind": "gr_count",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=-2 and b=1, how many earthquakes per year have magnitude at least 1?",
+      "expected": 0.001,
+      "status": "answered",
+      "kind": "gr_count",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6 and b=0, how many earthquakes per year have magnitude at least 10?",
+      "expected": 1000000,
+      "status": "answered",
+      "kind": "gr_count",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6 and b=1, how many earthquakes per year have magnitude at least 1e1?",
+      "expected": 0.0001,
+      "status": "answered",
+      "kind": "gr_count",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6 and b=1, how many earthquakes per year have magnitude at least 20/2?",
+      "expected": 0.0001,
+      "status": "answered",
+      "kind": "gr_count",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1 seconds, P-wave speed 6 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": 6.0,
+      "status": "answered",
+      "kind": "sp_distance",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 0 seconds, P-wave speed 6 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": 0.0,
+      "status": "answered",
+      "kind": "sp_distance",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of .5 seconds, P-wave speed 6 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": 3.0,
+      "status": "answered",
+      "kind": "sp_distance",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1/2 seconds, P-wave speed 6 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": 3.0,
+      "status": "answered",
+      "kind": "sp_distance",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 5e-1 seconds, P-wave speed 6 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": 3.0,
+      "status": "answered",
+      "kind": "sp_distance",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1 seconds, P-wave speed 12/2 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": 6.0,
+      "status": "answered",
+      "kind": "sp_distance",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1 seconds, P-wave speed 6 km/s and S-wave speed 3/2 km/s. What is the distance?",
+      "expected": 2.0,
+      "status": "answered",
+      "kind": "sp_distance",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of -1 seconds, P-wave speed 6 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of \u2212.5 seconds, P-wave speed 6 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of -1/2 seconds, P-wave speed 6 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1 seconds, P-wave speed -6 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1 seconds, P-wave speed 6 km/s and S-wave speed -3 km/s. What is the distance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1 seconds, P-wave speed 6 km/s and S-wave speed 0 km/s. What is the distance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1 seconds, P-wave speed 3 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1 seconds, P-wave speed 2 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1 seconds and another delay of 2 seconds, P-wave speed 6 km/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6 and a=7 and b=1, how many earthquakes per year have magnitude at least 5?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "seismology",
+      "q": "An earthquake has an S-P delay of 1 seconds, P-wave speed 6 km/s/s and S-wave speed 3 km/s. What is the distance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6 and b=1, how many earthquakes per year have magnitude at least 1.2.3, measured in 2026?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "With Gutenberg-Richter a=6 and b=1, how many earthquakes per year have magnitude at least QNUM0Q, measured in 2026?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between magnitude -1 and magnitude 1 earthquakes?",
+      "expected": 1000.0,
+      "status": "answered",
+      "kind": "energy_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the amplitude ratio between magnitude -1 and magnitude 1 earthquakes?",
+      "expected": 100,
+      "status": "answered",
+      "kind": "amplitude_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between magnitude \u2212.5 and magnitude .5 earthquakes?",
+      "expected": 31.622776601683793,
+      "status": "answered",
+      "kind": "energy_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the amplitude ratio between magnitude \u2212.5 and magnitude .5 earthquakes?",
+      "expected": 10.0,
+      "status": "answered",
+      "kind": "amplitude_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between magnitude 10 and magnitude 8 earthquakes?",
+      "expected": 1000.0,
+      "status": "answered",
+      "kind": "energy_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the amplitude ratio between magnitude 10 and magnitude 8 earthquakes?",
+      "expected": 100,
+      "status": "answered",
+      "kind": "amplitude_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between magnitude 1/2 and magnitude 5/2 earthquakes?",
+      "expected": 1000.0,
+      "status": "answered",
+      "kind": "energy_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the amplitude ratio between magnitude 1/2 and magnitude 5/2 earthquakes?",
+      "expected": 100.0,
+      "status": "answered",
+      "kind": "amplitude_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between magnitude 1e1 and magnitude 8 earthquakes?",
+      "expected": 1000.0,
+      "status": "answered",
+      "kind": "energy_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the amplitude ratio between magnitude 1e1 and magnitude 8 earthquakes?",
+      "expected": 100,
+      "status": "answered",
+      "kind": "amplitude_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between magnitude 0 and magnitude 0 earthquakes?",
+      "expected": 1.0,
+      "status": "answered",
+      "kind": "energy_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the amplitude ratio between magnitude 0 and magnitude 0 earthquakes?",
+      "expected": 1,
+      "status": "answered",
+      "kind": "amplitude_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between magnitude -3 and magnitude -1 earthquakes?",
+      "expected": 1000.0,
+      "status": "answered",
+      "kind": "energy_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the amplitude ratio between magnitude -3 and magnitude -1 earthquakes?",
+      "expected": 100,
+      "status": "answered",
+      "kind": "amplitude_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between M6 and M4 earthquakes?",
+      "expected": 1000,
+      "status": "answered",
+      "kind": "energy_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between M0 and M-2 earthquakes?",
+      "expected": 1000,
+      "status": "answered",
+      "kind": "energy_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between ML-1 and ML1 earthquakes?",
+      "expected": 1000,
+      "status": "answered",
+      "kind": "energy_ratio",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the seismic moment of a magnitude -1 earthquake?",
+      "expected": 39810717.05534969,
+      "status": "answered",
+      "kind": "m0",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the seismic moment of a magnitude \u2212.5 earthquake?",
+      "expected": 223872113.8568338,
+      "status": "answered",
+      "kind": "m0",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the seismic moment of a magnitude 0 earthquake?",
+      "expected": 1258925411.794166,
+      "status": "answered",
+      "kind": "m0",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the seismic moment of a magnitude 10 earthquake?",
+      "expected": 1.2589254117941714e+24,
+      "status": "answered",
+      "kind": "m0",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the seismic moment of a magnitude 1/2 earthquake?",
+      "expected": 7079457843.841373,
+      "status": "answered",
+      "kind": "m0",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of 1e15 N m?",
+      "expected": 3.9333333333333336,
+      "status": "answered",
+      "kind": "mw",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of 2 x 10^15 N m?",
+      "expected": 4.134019997109321,
+      "status": "answered",
+      "kind": "mw",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of 2 \u00d7 10^15 N m?",
+      "expected": 4.134019997109321,
+      "status": "answered",
+      "kind": "mw",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of 2 * 10^15 N m?",
+      "expected": 4.134019997109321,
+      "status": "answered",
+      "kind": "mw",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of 1/2 x 10^15 N m?",
+      "expected": 3.732646669557346,
+      "status": "answered",
+      "kind": "mw",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of .5e15 N m?",
+      "expected": 3.732646669557346,
+      "status": "answered",
+      "kind": "mw",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of 0 N m?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of -1e15 N m?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of \u2212.5e15 N m?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of -2 x 10^15 N m?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to a seismic moment of 0 x 10^15 N m?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between magnitude 1, magnitude 2 and magnitude 3 earthquakes?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to seismic moment of 2 x 10^1/2 N m?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to seismic moment of 2 x 11^15 N m?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to seismic moment of 2e15 N m/s?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What moment magnitude corresponds to moments of 2e15 and 3e15 N m?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy and amplitude ratio between magnitude -1 and magnitude 1 earthquakes?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underspecified"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between magnitude 1.2.3 and magnitude 1 earthquakes?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "seismology",
+      "q": "What is the energy ratio between magnitude QNUM0Q and magnitude 1 earthquakes?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": 0.2777777777777778,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=1/2, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": 0.2777777777777778,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=5e-1, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": 0.2777777777777778,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=50%, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": 0.2777777777777778,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=1/2%, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": 0.002777777777777778,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=0, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": 0.0,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=1, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": 0.5555555555555556,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=100%, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": 0.5555555555555556,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 1/2 mm/h and drainage area 20 hectares?",
+      "expected": 0.013888888888888888,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/h and drainage area .2 km2?",
+      "expected": 0.2777777777777778,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/h and drainage area 20 acres?",
+      "expected": 0.1124126784,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 1/2 in/hr and drainage area 20 acres?",
+      "expected": 5,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 0 mm/h and drainage area 20 hectares?",
+      "expected": 0,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/h and drainage area 0 hectares?",
+      "expected": 0,
+      "status": "answered",
+      "kind": "rational",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=1.5, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=-1/2, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=\u2212.5, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=150%, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=-20%, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity -10 mm/h and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/h and drainage area -20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 0 mm/h and drainage area -20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/day and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/h/s and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/h and drainage area 20 hectares/year?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/h and drainage area 20 hectares\u00b7s?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 1 in/hr and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5 and C=.8, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/h and 20 mm/h and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=.5, rainfall intensity 10 mm/h and drainage area 20 hectares and 30 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=1.2.3, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "hydrology",
+      "q": "Using the rational method, what is peak runoff with C=QNUM0Q, rainfall intensity 10 mm/h and drainage area 20 hectares?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with gravity 1 gram?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with gravity 1.62 m/s2?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with g=10 m/s2/s?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with density 1 slug/ft3?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with density 1000 kg/m3 and gravity 10 m/s2?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with surface pressure 30 kPa?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with P0=30 kPa?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with temperature 100 C?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with 1 gram?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with density 1000 kg/m3?",
+      "expected": 29.43,
+      "status": "answered",
+      "kind": "pressure",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with rho=1000 kg/m3?",
+      "expected": 29.43,
+      "status": "answered",
+      "kind": "pressure",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with density -1000 kg/m3?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in fresh water?",
+      "expected": 29.43,
+      "status": "answered",
+      "kind": "pressure",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in seawater?",
+      "expected": 30.17,
+      "status": "answered",
+      "kind": "pressure",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with density 1000 kg/m3/s?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "ocean",
+      "q": "What is the gauge pressure at depth 3 m in water with density 1000 kg/m3 and density 900 kg/m3?",
       "expected": null,
       "status": "withheld",
       "capability_class": "valid_unsupported"

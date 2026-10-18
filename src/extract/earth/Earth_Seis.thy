@@ -35,6 +35,41 @@ definition ten_pow :: "rat \<Rightarrow> floatarith" where
 lemma interp_ten_pow [simp]: "interpret_floatarith (ten_pow e) xs = 10 powr rl e"
   by (simp add: ten_pow_def)
 
+text \<open>Integer powers of ten have exact rational values. The finite exponent
+bound limits work in this optional optimization; larger or fractional exponents
+retain the existing certified interval algorithm.\<close>
+definition ten_rat :: "int \<Rightarrow> rat" where
+  "ten_rat n = (if 0 \<le> n then 10 ^ nat n else 1 / 10 ^ nat (-n))"
+
+lemma ten_rat_sound:
+  "rl (ten_rat n) = 10 powr (of_int n)"
+  by (simp add: ten_rat_def powr_real_of_int of_rat_power of_rat_divide inverse_eq_divide)
+
+definition ten_value :: "rat \<Rightarrow> xexpr" where
+  "ten_value e = (let n = \<lfloor>e\<rfloor> in
+     if of_int n = e \<and> \<bar>n\<bar> \<le> 256 then XRat (ten_rat n)
+     else XFa dprec (ten_pow e))"
+
+lemma ten_value_sound [simp]:
+  "xsem (ten_value e) = 10 powr rl e"
+proof (cases "of_int \<lfloor>e\<rfloor> = e \<and> \<bar>\<lfloor>e\<rfloor>\<bar> \<le> 256")
+  case True
+  have er: "rl e = of_int \<lfloor>e\<rfloor>" using True by (metis of_rat_of_int_eq)
+  show ?thesis using True er by (simp add: ten_value_def Let_def ten_rat_sound)
+next
+  case False
+  then show ?thesis by (auto simp: ten_value_def Let_def)
+qed
+
+theorem ten_value_exact_integer:
+  "\<bar>n\<bar> \<le> 256 \<Longrightarrow> ten_value (of_int n) = XRat (ten_rat n)"
+  by (simp add: ten_value_def Let_def)
+
+theorem ten_value_fallback:
+  "of_int \<lfloor>e\<rfloor> \<noteq> e \<or> 256 < \<bar>\<lfloor>e\<rfloor>\<bar> \<Longrightarrow>
+    ten_value e = XFa dprec (ten_pow e)"
+  by (auto simp: ten_value_def Let_def)
+
 section \<open>Declines\<close>
 
 definition w_dt :: String.literal where "w_dt = STR ''the S-P arrival-time difference''"
@@ -52,7 +87,9 @@ fun seis_missing :: "seis_req \<Rightarrow> String.literal option" where
 
 fun seis_impossible :: "seis_req \<Rightarrow> String.literal option" where
   "seis_impossible (SeSP dt (Some p) (Some s)) =
-     (if p \<le> s \<or> s \<le> 0 then
+     (if (case dt of Some d \<Rightarrow> d < 0 | None \<Rightarrow> False) then
+        Some (STR ''The S-minus-P arrival-time difference cannot be negative in this direct-wave model.'')
+      else if p \<le> s \<or> s \<le> 0 then
         Some (STR ''S waves are slower than P waves; an S-wave speed of '' + showx GSeis (XRat s)
               + STR '' km/s at or above a P-wave speed of '' + showx GSeis (XRat p) + STR '' km/s is not physical.'')
       else None)"
@@ -71,14 +108,14 @@ definition gr_spec :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rea
   "gr_spec a b m = 10 powr (rl a - rl b * rl m)"
 
 fun seis_xval :: "seis_req \<Rightarrow> xexpr" where
-  "seis_xval (SeEnergy a b) = XFa dprec (ten_pow (3 / 2 * dmag a b))"
-| "seis_xval (SeAmp a b) = XFa dprec (ten_pow (dmag a b))"
+  "seis_xval (SeEnergy a b) = ten_value (3 / 2 * dmag a b)"
+| "seis_xval (SeAmp a b) = ten_value (dmag a b)"
 | "seis_xval (SeAsk a b) = XRat 0"
 | "seis_xval (SeMw m0) = XFa 100 (fdiv (fsub (log10_fa (Q m0)) (Q (91 / 10))) (Q (3 / 2)))"
-| "seis_xval (SeM0 mw) = XFa dprec (ten_pow (3 / 2 * mw + 91 / 10))"
+| "seis_xval (SeM0 mw) = ten_value (3 / 2 * mw + 91 / 10)"
 | "seis_xval (SeSP (Some dt) (Some p) (Some s)) = XRat (dt / (1 / s - 1 / p))"
 | "seis_xval (SeSP _ _ _) = XRat 0"
-| "seis_xval (SeGR (Some a) (Some b) (Some m)) = XFa dprec (ten_pow (a - b * m))"
+| "seis_xval (SeGR (Some a) (Some b) (Some m)) = ten_value (a - b * m)"
 | "seis_xval (SeGR _ _ _) = XRat 0"
 
 fun seis_phys :: "seis_req \<Rightarrow> real" where
@@ -96,8 +133,8 @@ definition ask_text :: "rat \<Rightarrow> rat \<Rightarrow> String.literal" wher
   "ask_text a b =
      (let d = dmag a b in
       STR ''Do you mean the energy released or the shaking amplitude? They differ: energy grows 10^(1.5 x ''
-      + showx GSeis (XRat d) + STR '') = '' + showx GSeis (XFa dprec (ten_pow (3 / 2 * d)))
-      + STR '' times, amplitude 10^'' + showx GSeis (XRat d) + STR '' = '' + showx GSeis (XFa dprec (ten_pow d))
+      + showx GSeis (XRat d) + STR '') = '' + showx GSeis (ten_value (3 / 2 * d))
+      + STR '' times, amplitude 10^'' + showx GSeis (XRat d) + STR '' = '' + showx GSeis (ten_value d)
       + STR '' times, for M'' + showx GSeis (XRat (hi_mag a b)) + STR '' vs M'' + showx GSeis (XRat (lo_mag a b)) + STR ''.'')"
 
 definition seis_kernel :: "seis_req \<Rightarrow> outcome" where
@@ -144,6 +181,24 @@ proof -
        of_rat_mult of_rat_add)
   then show ?thesis using c by simp
 qed
+
+text \<open>Magnitude differences, including negative magnitudes, are invariant
+under a shared change of origin. These identities bind the actual ratio outputs.\<close>
+lemma dmag_translate:
+  "dmag (a+c) (b+c) = dmag a b"
+  by (simp add: dmag_def hi_mag_def lo_mag_def max_def min_def)
+
+theorem energy_kernel_translate:
+  "seis_kernel (SeEnergy (a+c) (b+c)) = seis_kernel (SeEnergy a b)"
+  by (simp add: seis_kernel_def dmag_translate)
+
+theorem amplitude_kernel_translate:
+  "seis_kernel (SeAmp (a+c) (b+c)) = seis_kernel (SeAmp a b)"
+  by (simp add: seis_kernel_def dmag_translate)
+
+theorem moment_success_positive:
+  "(\<exists>x. seis_kernel (SeMw m) = Value x) \<longleftrightarrow> 0 < m"
+  by (auto simp: seis_kernel_def split: if_splits)
 
 section \<open>What each kind means\<close>
 
@@ -269,11 +324,59 @@ theorem seis_answered_iff:
 
 theorem seis_travel_decline:
   "(\<exists>w. seis_kernel (SeSP (Some dt) (Some p) (Some s)) = Decline (Imposs w))
-   \<longleftrightarrow> p \<le> s \<or> s \<le> 0"
+   \<longleftrightarrow> dt < 0 \<or> p \<le> s \<or> s \<le> 0"
   by (auto simp: seis_kernel_def)
 
 theorem seis_moment_decline:
   "(\<exists>w. seis_kernel (SeMw m) = Decline (Imposs w)) \<longleftrightarrow> m \<le> 0"
   by (auto simp: seis_kernel_def)
+
+
+text \<open>A successful direct-wave distance has ordered positive speeds and a
+nonnegative S-minus-P delay. The inferred distance reproduces both travel times.\<close>
+theorem sp_success_physical:
+  assumes k: "seis_kernel (SeSP (Some dt) (Some p) (Some s)) = Value x"
+  shows "0 \<le> dt \<and> 0 < s \<and> s < p \<and> 0 \<le> xsem x \<and>
+    xsem x / rl s - xsem x / rl p = rl dt"
+proof -
+  have guards: "0 \<le> dt" "0 < s" "s < p"
+    using seis_value_cases[OF k] by (auto split: if_splits)
+  have sem: "xsem x = sp_spec dt p s" using seis_value_sound[OF k] by simp
+  have s0: "0 < rl s" using guards(2) by (simp add: zero_less_of_rat_iff)
+  have sp: "rl s < rl p" using guards(3) by (simp add: of_rat_less)
+  have p0: "0 < rl p" using s0 sp by linarith
+  have denom: "0 < 1 / rl s - 1 / rl p"
+    using inverse_less_iff_less[OF p0 s0] sp by (simp add: inverse_eq_divide)
+  have dt0: "0 \<le> rl dt" using guards(1) by (simp add: zero_le_of_rat_iff)
+  have nonnegative: "0 \<le> sp_spec dt p s"
+    unfolding sp_spec_def by (rule divide_nonneg_pos[OF dt0 denom])
+  show ?thesis using guards sem nonnegative sp_travel_times[OF guards(2,3), of dt] by simp
+qed
+
+theorem sp_success_zero_iff:
+  assumes k: "seis_kernel (SeSP (Some dt) (Some p) (Some s)) = Value x"
+  shows "xsem x = 0 \<longleftrightarrow> dt = 0"
+proof
+  assume "xsem x = 0"
+  then have "rl dt = 0" using sp_success_physical[OF k] by simp
+  then show "dt = 0" by simp
+next
+  assume "dt = 0"
+  then show "xsem x = 0" using seis_value_sound[OF k] by (simp add: sp_spec_def)
+qed
+
+theorem gr_success_log_model:
+  assumes k: "seis_kernel (SeGR (Some a) (Some b) (Some m)) = Value x"
+  shows "0 < xsem x \<and> log 10 (xsem x) = rl a - rl b * rl m"
+  using seis_value_sound[OF k] gr_log_count[of a b m]
+  by (simp add: gr_spec_def)
+
+theorem gr_success_threshold_monotone:
+  assumes k1: "seis_kernel (SeGR (Some a) (Some b) (Some m1)) = Value x1"
+    and k2: "seis_kernel (SeGR (Some a) (Some b) (Some m2)) = Value x2"
+    and b: "0 < b" and m: "m1 \<le> m2"
+  shows "xsem x2 \<le> xsem x1"
+  using seis_value_sound[OF k1] seis_value_sound[OF k2]
+    gr_decreases_with_magnitude[OF b m, of a] by simp
 
 end

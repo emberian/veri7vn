@@ -354,122 +354,96 @@ struct
     in if Narrow.narrative t then NONE else gate t (geologyReq t) end
 
   (* ============================ seismology ============================ *)
-  val SN = "(\\d+(?:\\.\\d+)?)"
-  val SCI = SN ^ "\\s*(?:(?:x|\195\151|\\*)\\s*10\\s*\\^?\\s*([+-]?\\d+)|e([+-]?\\d+))?"
+  exception UnknownSeismoNumber
+  val seisToken = "(qnum[0-9]+q)"
 
-  fun sciVal low m i : fr =
+  (* Separate compact magnitude labels from quantities before shared lexing.
+     M0= remains the seismic-moment label, not a magnitude. *)
+  fun separateMagnitudeLabels raw =
     let
-      val v = frOf (gs low m i)
-      val e = case firstGroup low m [i + 1, i + 2] of SOME x => SOME x | NONE => NONE
-    in
-      case e of
-        NONE => v
-      | SOME es => fmul v (fpow10 (valOf (Int.fromString (if String.isPrefix "+" es then String.extract (es, 1, NONE) else es))))
-    end
+      val matches = findall "\\b(?:mw|ml|m(?!0\\s*=))(?=[+\\-]?(?:[0-9]|\\.[0-9]))" raw
+      fun go pos [] acc = String.concat (rev (String.extract(raw,pos,NONE)::acc))
+        | go pos ((m:Regex.match)::ms) acc =
+            go (#stop m) ms (" "::String.substring(raw,pos,#stop m-pos)::acc)
+    in go 0 matches [] end
 
   fun seismologyReq t =
     let
-      val low = lower t
+      val raw = String.translate (fn #"^" => "^ " | c => String.str c) (separateMagnitudeLabels (lower t))
+      val spGoal = has "\\bs\\s*-\\s*p\\b|\\bp[- ]?waves?\\b.*\\bs[- ]?waves?\\b|\\bs[- ]?waves?\\b.*\\bp[- ]?waves?\\b" raw
+        andalso has "\\bdistance\\b|\\bhow far\\b|\\bepicenter\\b|\\bepicentre\\b" raw
+      val grGoal = has "\\bgutenberg\\b|\\bb[- ]value\\b|\\ba[- ]value\\b|\\bhow many (?:earthquakes|quakes)\\b" raw
+        andalso has "\\bper year\\b|\\bhow many\\b|\\bexpected number\\b|\\bannual\\b" raw
+      val context = has "\\bearthquakes?\\b|\\bquakes?\\b|\\bmagnitude\\b|\\bseismic\\b|\\bseismogram\\b|\\brichter\\b|\\bs-p\\b|\\bp[- ]waves?\\b|\\bs[- ]waves?\\b|\\bgutenberg\\b" raw
     in
-      if has "\\bpredict\\w*\\b|\\bforecast\\w*\\b|\\bwhen will\\b|\\bnext (?:big )?(?:earthquake|quake)\\b" low then NONE
-      else if not (has ("\\bearthquakes?\\b|\\bquakes?\\b|\\bmagnitude\\b|\\bseismic\\b|\\bseismogram\\b|\\brichter\\b|\\bs-p\\b"
-                        ^ "|\\bp[- ]waves?\\b|\\bs[- ]waves?\\b|\\bgutenberg\\b") low) then NONE
-      else if has "\\bs\\s*-\\s*p\\b|\\bs-p\\b|\\bp[- ]?waves?\\b.*\\bs[- ]?waves?\\b|\\bs[- ]?waves?\\b.*\\bp[- ]?waves?\\b" low
-              andalso has "\\bdistance\\b|\\bhow far\\b|\\bepicenter\\b|\\bepicentre\\b" low then
+      if not context orelse has "\\bpredict\\w*\\b|\\bforecast\\w*\\b|\\bwhen will\\b|\\bnext (?:big )?(?:earthquake|quake)\\b" raw then NONE
+      else case ExactNumeric.mask raw of NONE => NONE
+      | SOME {text=low,numbers} =>
         let
-          val dt = search (SN ^ "\\s*(?:s\\b|sec\\w*)") low
-          val vp = search ("\\bp[- ]?waves?\\s*(?:travel\\w*|speed|velocity|move\\w*)?\\s*(?:of|at|is|=)?\\s*" ^ SN
-                           ^ "\\s*km\\s*/\\s*s|" ^ SN ^ "\\s*km\\s*/\\s*s\\s*(?:for\\s+)?(?:the\\s+)?p[- ]?waves?") low
-          val vs = search ("\\bs[- ]?waves?\\s*(?:travel\\w*|speed|velocity|move\\w*)?\\s*(?:of|at|is|=)?\\s*" ^ SN
-                           ^ "\\s*km\\s*/\\s*s|" ^ SN ^ "\\s*km\\s*/\\s*s\\s*(?:for\\s+)?(?:the\\s+)?s[- ]?waves?") low
-          fun v m = Option.map (fn mm => fq (frOf (valOf (firstGroup low mm [1, 2])))) m
-        in SOME (E.RSeis (E.SeSP (Option.map (fn m => fq (frOf (g1 low m))) dt, v vp, v vs))) end
-      else
-        let
-          val m0 = search ("\\b(?:seismic )?moment\\s*(?:of|is|=|m0)?\\s*(?:m0\\s*=\\s*)?" ^ SCI
-                           ^ "\\s*(?:n\\s*(?:\194\183|[.*])?\\s*m|newton[- ]met(?:er|re)s?)") low
+          fun rational marker = case List.find (fn (name,_) => name=marker) numbers of
+              SOME (_,q) => q | NONE => raise UnknownSeismoNumber
+          fun quantity marker = fq (rational marker)
+          fun unique pat groups = case findall pat low of
+              [m] => SOME (quantity (valOf (firstGroup low m groups))) | _ => NONE
+          val unitEnd = "(?![A-Za-z0-9_^]|\\s*(?:/|\\*|\\^|\194\183|per\\b))"
+          fun speed wave = unique
+            ("\\b" ^ wave ^ "[- ]?waves?\\s*(?:travel\\w*|speed|velocity|move\\w*)?\\s*(?:of|at|is|=)?\\s*" ^ seisToken ^ "\\s*km\\s*/\\s*s" ^ unitEnd
+             ^ "|" ^ seisToken ^ "\\s*km\\s*/\\s*s" ^ unitEnd ^ "\\s*(?:for\\s+)?(?:the\\s+)?" ^ wave ^ "[- ]?waves?") [1,2]
+          val magnitudePattern = "\\b(?:magnitude|mag\\.?|m|mw|ml)\\s*(?:of\\s*|=\\s*)?" ^ seisToken ^ "\\b" ^ unitEnd
+          val magnitudeMatches = findall magnitudePattern low
+          val suffixMatches = findall (seisToken ^ "\\s*(?:magnitude|earthquake|quake)\\b") low
+          val magnitudes = if null magnitudeMatches then suffixMatches else magnitudeMatches
+          val momentPattern = "\\b(?:seismic )?moment\\s*(?:of|is|=|m0)?\\s*(?:m0\\s*=\\s*)?" ^ seisToken
+            ^ "(?:\\s*(?:x|\195\151|\\*)\\s*" ^ seisToken ^ "\\s*\\^\\s*" ^ seisToken ^ ")?"
+            ^ "\\s*(?:n\\s*(?:\194\183|[.*])?\\s*m|newton[- ]met(?:er|re)s?)" ^ unitEnd
+          val moments = findall momentPattern low
+          fun momentValue m =
+            let val v = rational (g1 low m) in
+              case grp low m 2 of NONE => SOME (fq v)
+              | SOME base =>
+                  if rational base <> (10,1) orelse #2(rational(gs low m 3)) <> 1 then NONE
+                  else case ExactNumeric.parse ("1e" ^ ExactNumeric.canonical (rational (gs low m 3))) of
+                    SOME factor => SOME (fq (fmul v factor)) | NONE => NONE
+            end
+          val energy = has "\\benergy\\b|\\bjoules?\\b" low
+          val amplitude = has "\\bamplitude\\b|\\bshaking\\b|\\bground motion\\b|\\bwave height\\b|\\bseismogram\\b" low
         in
-          case m0 of
-            SOME m =>
-              if has "\\bmoment magnitude\\b|\\bmw\\b|\\bmagnitude\\b" low then
-                let val big = sciVal low m 1
-                in if not (fpos big) then NONE else SOME (E.RSeis (E.SeMw (fq big))) end
-              else seismologyRest t low
-          | NONE => seismologyRest t low
-        end
+          if spGoal then SOME (E.RSeis (E.SeSP
+            (unique (seisToken ^ "\\s*(?:s\\b|sec\\w*\\b)" ^ unitEnd) [1],speed "p",speed "s")))
+          else if grGoal then SOME (E.RSeis (E.SeGR
+            (unique ("\\ba\\s*(?:[- ]?value)?\\s*(?:of|is|=)?\\s*" ^ seisToken) [1],
+             unique ("\\bb\\s*(?:[- ]?value)?\\s*(?:of|is|=)?\\s*" ^ seisToken) [1],
+             unique ("\\bmagnitude\\s*(?:of\\s*)?(?:>=|\226\137\165|at least|or (?:greater|more|larger)|)\\s*" ^ seisToken
+               ^ "|" ^ seisToken ^ "\\s*or (?:greater|more|larger|above)") [1,2])))
+          else if not (null moments) then
+            (case moments of [m] =>
+               if has "\\bmoment magnitude\\b|\\bmw\\b|\\bmagnitude\\b" low
+               then Option.map (fn q => E.RSeis(E.SeMw q)) (momentValue m) else NONE
+             | _ => NONE)
+          else if has "\\bseismic moment\\b" low andalso has "\\bwhat\\b|\\bfind\\b|\\bhow (?:much|large)\\b|\\bcalculate\\b" low then
+            (case magnitudes of [m] => SOME(E.RSeis(E.SeM0(quantity(g1 low m)))) | _ => NONE)
+          else if length magnitudes=2 andalso
+              has "\\bhow many times\\b|\\bhow much (?:more|stronger|bigger|larger)\\b|\\bratio\\b|\\bfactor\\b|\\btimes (?:more|stronger|larger|bigger)\\b" low then
+            let val a=quantity(g1 low(hd magnitudes)) val b=quantity(g1 low(List.nth(magnitudes,1))) in
+              if energy andalso not amplitude then SOME(E.RSeis(E.SeEnergy(a,b)))
+              else if amplitude andalso not energy then SOME(E.RSeis(E.SeAmp(a,b)))
+              else SOME(E.RSeis(E.SeAsk(a,b)))
+            end
+          else NONE
+        end handle UnknownSeismoNumber => NONE
     end
-
-  and seismologyRest t low =
-    let
-      val mwm = search "\\b(?:magnitude|mw|m)\\s*(?:of\\s*)?(\\d(?:\\.\\d+)?)\\b" low
-    in
-      case mwm of
-        SOME m =>
-          if has "\\bseismic moment\\b" low andalso has "\\bwhat\\b|\\bfind\\b|\\bhow (?:much|large)\\b|\\bcalculate\\b" low
-          then SOME (E.RSeis (E.SeM0 (fq (frOf (g1 low m)))))
-          else seismologyGR low
-      | NONE => seismologyGR low
-    end
-
-  and seismologyGR low =
-    if has "\\bgutenberg\\b|\\bb[- ]value\\b|\\ba[- ]value\\b|\\bhow many (?:earthquakes|quakes)\\b" low
-       andalso has "\\bper year\\b|\\bhow many\\b|\\bexpected number\\b|\\bannual\\b" low then
-      let
-        val am = search ("\\ba\\s*(?:[- ]?value)?\\s*(?:of|is|=)?\\s*" ^ SN) low
-        val bm = search ("\\bb\\s*(?:[- ]?value)?\\s*(?:of|is|=)?\\s*" ^ SN) low
-        val mm = search ("\\bmagnitude\\s*(?:of\\s*)?(?:>=|\226\137\165|at least|or (?:greater|more|larger)|)\\s*(\\d(?:\\.\\d+)?)"
-                         ^ "|(\\d(?:\\.\\d+)?)\\s*or (?:greater|more|larger|above)") low
-        fun og m = Option.map (fn x => fq (frOf (g1 low x))) m
-      in SOME (E.RSeis (E.SeGR (og am, og bm, Option.map (fn x => fq (frOf (valOf (firstGroup low x [1, 2])))) mm))) end
-    else
-      let
-        val mags0 = map (fn m => frOf (g1 low m)) (findall "\\b(?:magnitude|mag\\.?|m|mw|ml)\\s*[-=]?\\s*(\\d(?:\\.\\d+)?)\\b" low)
-        val mags = if length mags0 < 2 then
-                     (case map (fn m => frOf (g1 low m))
-                              (findall "(?<![\\d.])(\\d(?:\\.\\d)?)(?![\\d.])\\s*(?:magnitude|earthquake|quake)\\b" low) of
-                        [] => mags0
-                      | xs => xs)
-                   else mags0
-      in
-        if length mags >= 2
-           andalso has "\\bhow many times\\b|\\bhow much (?:more|stronger|bigger|larger)\\b|\\bratio\\b|\\bfactor\\b|\\btimes (?:more|stronger|larger|bigger)\\b" low
-        then
-          let
-            val a = fq (List.nth (mags, 0))
-            val b = fq (List.nth (mags, 1))
-          in
-            if has "\\benergy\\b|\\bjoules?\\b" low andalso not (has "\\bamplitude\\b|\\bshaking\\b|\\bground motion\\b|\\bwave height\\b" low)
-            then SOME (E.RSeis (E.SeEnergy (a, b)))
-            else if has "\\bamplitude\\b|\\bshaking\\b|\\bground motion\\b|\\bseismogram\\b|\\bwave height\\b" low
-            then SOME (E.RSeis (E.SeAmp (a, b)))
-            else SOME (E.RSeis (E.SeAsk (a, b)))
-          end
-        else NONE
-      end
 
   fun seismology text =
-    let val t = collapse text
-    in if Narrow.narrative t then NONE else gate t (seismologyReq t) end
+    let val t=collapse text
+    in if Narrow.narrative t then NONE else seismologyReq t end
 
   (* ============================ hydrology ============================ *)
-  fun hydrologyReq t =
+  fun legacyHydrologyReq t =
     let
       val low = lower t
       fun og m = Option.map (fn x => fq (frOf (g1 low x))) m
     in
-      if has "\\brational method\\b|\\bpeak (?:runoff|discharge|flow)\\b|\\brunoff coefficient\\b" low then
-        let
-          val cm = search "\\b(?:runoff coefficient|coefficient|c)\\s*(?:of|is|=)?\\s*(0?\\.\\d+|1(?:\\.0+)?)\\b" low
-          val im = search (N ^ "\\s*(in/hr|in/h|inches per hour|mm/h|mm/hr|millimet(?:er|re)s per hour)\\b") low
-          val am = search (N ^ "\\s*(acres?|ha|hectares?|km2|square kilomet(?:er|re)s?)\\b") low
-          val iu = case im of SOME m => if startsWith "in" (gs low m 2) then E.IIn else E.IMm | NONE => E.IMm
-          val au = case am of
-                     SOME m => let val u = gs low m 2
-                               in if startsWith "acre" u then E.AAcre
-                                  else if startsWith "km" u orelse startsWith "square" u then E.AKm2 else E.AHa end
-                   | NONE => E.AHa
-        in SOME (E.RHydro (E.HyRational (og cm, og im, og am, iu, au))) end
-      else if has "\\brain\\w*\\b" low andalso has "\\bharvest|\\bcollect|\\bcatch|\\broof\\b|\\bgallons?\\b|\\blit(?:er|re)s?\\b" low
+      if has "\\brain\\w*\\b" low andalso has "\\bharvest|\\bcollect|\\bcatch|\\broof\\b|\\bgallons?\\b|\\blit(?:er|re)s?\\b" low
               andalso has "\\bhow much\\b|\\bhow many\\b" low then
         let
           val rin = search (N ^ "\\s*(inch|inches|in|mm|millimet(?:er|re)s?)\\b(?! ?/)") low
@@ -530,9 +504,36 @@ struct
       else NONE
     end
 
+  exception UnknownRunoffNumber
+  fun hydrologyReq t =
+    let val raw=lower t in
+      if not(has "\\brational method\\b|\\bpeak (?:runoff|discharge|flow)\\b|\\brunoff coefficient\\b" raw)
+      then legacyHydrologyReq t
+      else case ExactNumeric.mask raw of NONE=>NONE
+      | SOME{text=low,numbers}=>
+        let
+          val token="(qnum[0-9]+q)"
+          fun quantity marker=case List.find(fn(name,_)=>name=marker)numbers of
+            SOME(_,q)=>fq q | NONE=>raise UnknownRunoffNumber
+          fun unique pat=case findall pat low of [m]=>SOME m | _=>NONE
+          val unitEnd="(?![A-Za-z0-9_^]|\\s*(?:/|\\*|\\^|\194\183|per\\b))"
+          val cm=unique("\\b(?:runoff coefficient|coefficient|c)\\s*(?:of|is|=)?\\s*"^token^"(?![A-Za-z0-9_])\\s*(%)?")
+          val im=unique(token^"\\s*(in/hr|in/h|inches per hour|mm/h|mm/hr|millimet(?:er|re)s per hour)"^unitEnd)
+          val am=unique(token^"\\s*(acres?|ha|hectares?|km2|square kilomet(?:er|re)s?)"^unitEnd)
+          val cv=Option.map(fn m=>E.runoff_coefficient (if isSome(grp low m 2)then E.CPercent else E.CFraction) (quantity(g1 low m)))cm
+          fun v m=Option.map(fn m=>quantity(g1 low m))m
+          val iu=case im of SOME m=>if startsWith "in"(gs low m 2)then E.IIn else E.IMm | NONE=>E.IMm
+          val au=case am of SOME m=>let val u=gs low m 2 in if startsWith "acre" u then E.AAcre else if startsWith "km" u orelse startsWith "square" u then E.AKm2 else E.AHa end | NONE=>E.AHa
+        in SOME(E.RHydro(E.HyRational(cv,v im,v am,iu,au))) end
+        handle UnknownRunoffNumber=>NONE
+    end
   fun hydrology text =
-    let val t = collapse text
-    in if Narrow.narrative t then NONE else gate t (hydrologyReq t) end
+    let val t=collapse text in
+      if Narrow.narrative t then NONE
+      else case hydrologyReq t of
+        SOME(r as E.RHydro(E.HyRational _))=>SOME r
+      | request=>gate t request
+    end
 
   (* ============================ ocean ============================ *)
   exception UnknownOceanNumber
@@ -578,11 +579,25 @@ struct
           else if has "\\bpressure\\b" low andalso isSome dval
                   andalso has "\\bsea\\b|\\bocean\\b|\\bseawater\\b|\\bwater\\b|\\bdiver\\b|\\bsubmarine\\b|\\bunderwater\\b" low then
             let
-              val rho = case search ("\\bdensity\\s*(?:of|is|=)?\\s*" ^ N ^ "\\s*kg") low of
-                          SOME m => frOf (g1 low m)
+              val densityWord = has "\\b(?:density|rho)\\b|\207\129" low
+              val densityMatches = findall
+                ("(?:\\b(?:density|rho)\\b|\207\129)\\s*(?:of|is|=|:)?\\s*" ^ N
+                 ^ "\\s*(?:kg\\s*/\\s*m(?:3|\194\179|\\^3)|kg\\s+per\\s+cubic\\s+met(?:er|re)s?)"
+                 ^ "(?![A-Za-z0-9_^]|\\s*(?:/|\\*|\\^|\194\183|per\\b))") low
+              val density = case densityMatches of [m] => SOME m | _ => NONE
+              val depthMarker = valOf (firstGroup low (valOf depth) [1,3,5])
+              val consumed = depthMarker :: (case density of SOME m => [g1 low m] | NONE => [])
+              val everyNumberBound = List.all (fn (name,_) => List.exists (fn key=>key=name) consumed) numbers
+              val unsupportedRole = has
+                "\\b(?:gravity|gravitational|acceleration|p0)\\b|\\bg\\s*=|\\b(?:surface|ambient|external|reference|baseline|atmospheric)\\s+(?:absolute\\s+)?pressure\\b" low
+              val rho = case density of SOME m => frOf (g1 low m)
                         | NONE => if has "\\bfresh ?water\\b|\\blake\\b" low then fint 1000 else fint 1025
               val abs = has "\\babsolute\\b|\\btotal pressure\\b|\\bincluding (?:the )?atmospher\\w*\\b" low
-            in SOME (E.ROcean (E.OPressure (fq (valOf dval), fq rho, abs))) end
+            in
+              if unsupportedRole orelse not everyNumberBound orelse (densityWord andalso not(isSome density))
+              then NONE
+              else SOME (E.ROcean (E.OPressure (fq (valOf dval), fq rho, abs)))
+            end
           else
             let
               val tsu =

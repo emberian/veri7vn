@@ -46,6 +46,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat capital_
   GCapital GGc GAntipode GSolar GLat
   GlPlateDist GlPlateRate GlDepthTemp GlAge GlLeft HlNone HlGiven HlIso C14 K40 U238 U235 MRatio MFrac
   SeEnergy SeAmp SeAsk SeMw SeM0 SeSP SeGR
+  runoff_coefficient CFraction CPercent
   HyRational HyHarvest HyManning HyFill HyCont IIn IMm AAcre AHa AKm2 HUS HSI HMix VGal VL VM3 TMin THour TSec
   OSonar OPressure OTsunamiSpeed OTsunamiTime ODeepSpeed ODeepGroupSpeed ODeepWL
   WHeat WChill WDew WAirT WRH WSaffir WBeaufort WIsa TsF TsC WMph WKmh WMs WKn AltKm AltM AltFt RhBoth RhWhich
@@ -73,10 +74,14 @@ ML \<open>
     @{thm gl_underspecified}, @{thm gl_impossible_iff}, @{thm gl_value_sound}, @{thm gl_age_ratio_law},
     @{thm gl_age_fraction_law}, @{thm left_after_one_half_life}, @{thm left_composes},
     @{thm half_powr_log2}, @{thm ystr_opt_sound}, @{thm gl_answered_iff},
+    @{thm energy_kernel_translate}, @{thm amplitude_kernel_translate}, @{thm moment_success_positive},
+    @{thm ten_value_sound}, @{thm ten_value_exact_integer}, @{thm ten_value_fallback},
+    @{thm sp_success_physical}, @{thm sp_success_zero_iff}, @{thm gr_success_log_model}, @{thm gr_success_threshold_monotone},
     @{thm seis_underspecified}, @{thm seis_impossible_iff}, @{thm seis_asks_back}, @{thm seis_value_sound},
     @{thm energy_is_amplitude_power}, @{thm amp_ratio_adds}, @{thm energy_ratio_adds},
     @{thm amp_ratio_two_units}, @{thm energy_ratio_two_units}, @{thm mw_of_m0_of}, @{thm m0_of_mw_of},
     @{thm sp_travel_times}, @{thm gr_log_count}, @{thm gr_decreases_with_magnitude}, @{thm seis_answered_iff},
+    @{thm runoff_success_physical}, @{thm runoff_success_conservation}, @{thm runoff_percent_equivalent}, @{thm runoff_area_unit_equivalent},
     @{thm hy_underspecified}, @{thm hy_impossible_iff}, @{thm hy_value_sound}, @{thm manning_velocity},
     @{thm manning_cubed}, @{thm fill_time_times_flow}, @{thm rational_method_si}, @{thm hy_answered_iff},
     @{thm oc_impossible_iff}, @{thm oc_value_sound}, @{thm shallow_speed_squared},

@@ -9,6 +9,11 @@ text \<open>
   assumed.
 \<close>
 
+datatype cunit = CFraction | CPercent
+fun runoff_coefficient :: "cunit \<Rightarrow> rat \<Rightarrow> rat" where
+  "runoff_coefficient CFraction c = c"
+| "runoff_coefficient CPercent c = c / 100"
+
 datatype iunit = IIn | IMm
 datatype aunit = AAcre | AHa | AKm2
 datatype hsys = HUS | HSI | HMix
@@ -68,6 +73,10 @@ fun hy_impossible :: "hyd_req \<Rightarrow> String.literal option" where
      (if n \<le> 0 \<or> p \<le> 0 \<or> a < 0 \<or> s < 0 then Some (STR ''Manning'' + apos + STR ''s n and the wetted perimeter must be positive; area and slope cannot be negative.'') else None)"
 | "hy_impossible (HyFill (Some v) vu (Some r) ru tu) =
      (if r * vol_litres ru \<le> 0 then Some (STR ''A flow rate must be positive.'') else None)"
+| "hy_impossible (HyRational (Some c) (Some i) (Some a) iu au) =
+     (if c < 0 \<or> 1 < c \<or> i < 0 \<or> a < 0 then
+       Some (STR ''In the simple runoff-fraction model, the coefficient must be from 0 to 1; rainfall intensity and drainage area cannot be negative.'')
+      else None)"
 | "hy_impossible _ = None"
 
 section \<open>Values\<close>
@@ -216,6 +225,46 @@ qed
 theorem rational_method_si:
   "hy_phys (HyRational (Some c) (Some i) (Some a) IMm au) * 360 = rl c * rl i * rl (ha_of au a)"
   by (simp add: field_simps)
+
+text \<open>The simple runoff coefficient partitions the model's zero-loss
+peak flow. The US CiA approximation and SI conversion remain explicitly distinct.\<close>
+definition runoff_capacity :: "iunit \<Rightarrow> aunit \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat" where
+  "runoff_capacity iu au i a = (if iu = IIn then i * a else i * ha_of au a / 360)"
+
+lemma runoff_capacity_nonnegative:
+  "0 \<le> i \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> runoff_capacity iu au i a"
+  by (cases iu; cases au) (auto simp: runoff_capacity_def)
+
+theorem runoff_success_physical:
+  assumes "hy_kernel (HyRational (Some c) (Some i) (Some a) iu au) = Value x"
+  shows "0 \<le> c \<and> c \<le> 1 \<and> 0 \<le> i \<and> 0 \<le> a \<and> (iu = IIn \<longrightarrow> au = AAcre)"
+  using hy_value_cases[OF assms] by (auto split: if_splits)
+
+theorem runoff_success_conservation:
+  assumes k: "hy_kernel (HyRational (Some c) (Some i) (Some a) iu au) = Value x"
+  shows "0 \<le> xsem x \<and> xsem x \<le> rl (runoff_capacity iu au i a)"
+proof -
+  have p: "0 \<le> c" "c \<le> 1" "0 \<le> i" "0 \<le> a"
+    using runoff_success_physical[OF k] by auto
+  have cap: "0 \<le> runoff_capacity iu au i a"
+    by (rule runoff_capacity_nonnegative[OF p(3) p(4)])
+  have lo: "0 \<le> c * runoff_capacity iu au i a" by (rule mult_nonneg_nonneg[OF p(1) cap])
+  have hi: "c * runoff_capacity iu au i a \<le> runoff_capacity iu au i a"
+    using mult_right_mono[OF p(2) cap] by simp
+  have eq: "xsem x = rl (c * runoff_capacity iu au i a)"
+    using hy_value_cases[OF k] by (cases iu) (simp_all add: runoff_capacity_def algebra_simps)
+  show ?thesis using lo hi eq by (simp add: of_rat_less_eq)
+qed
+
+theorem runoff_percent_equivalent:
+  "hy_kernel (HyRational (Some (runoff_coefficient CPercent (100*c))) i a iu au) =
+   hy_kernel (HyRational (Some c) i a iu au)"
+  by simp
+
+theorem runoff_area_unit_equivalent:
+  "hy_kernel (HyRational c i (Some a) IMm AKm2) =
+   hy_kernel (HyRational c i (Some (100*a)) IMm AHa)"
+  by (cases c; cases i) (auto simp: hy_kernel_def mult_less_0_iff algebra_simps split: if_splits)
 
 theorem harvest_without_efficiency_is_before_losses:
   "harv_eff None = 1"
