@@ -30,7 +30,7 @@ Full table with every run: [`docs/parity/BOARD.md`](docs/parity/BOARD.md).
 |---|---|---|
 | Oracle7 as shipped (published) | 15,478 / 14 | the control |
 | Oracle7 as shipped, reproduced here | 14,667 / 17 false yes | the 129 non-relation readers exact; the 161 relation readers run on a reconstructed linker index over the v1 store, and the 811 missing answers sit on properties the shipped store does not contain |
-| veri7vn: 18 family kernels, 131 non-relation specialists | every panel equal to or better than the shipped organ, **0 wrong, 0 false yes** | each miss is one the shipped organ also makes, named in its lane's handoff |
+| veri7vn: 19 family kernels, all 144 non-relation specialists | every panel equal to or better than the shipped organ, **0 wrong, 0 false yes** | each miss is one the shipped organ also makes, named in its lane's handoff |
 | veri7vn: one relation kernel, 161 readers | 16,284 / **0** of 18,976 panel items | the shipped organs score 16,261 / 11 on the same store; the 11 homonym errors are now proved declines |
 | veri7vn: fusion (`network_v3`) | 101 of 102 of Oracle7's fusion answers identical | the last needs the geometry kernel |
 | veri7vn beyond parity: chemistry and finance families (B-chemistry, B-finance, 2026-10-18) | chemistry/chemistry-v3 held-out 281 / 0 wrong / 0 withheld against the shipped organ's 223 / 2 / 56, decay 42/42 against 34/42; finance 129/0/0 against 116/0/13, economics 78/0/0 against 65/0/13; same on fresh generator seeds; cold starts 58 and 270 ms → 4 and 3 ms; the shipped retail organ ignores the sales tax it is asked to add (fixed) | the second scoreboard (`project/swarm/BEYOND.md`): 0 wrong stays the law, the other numbers move |
