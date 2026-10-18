@@ -21,6 +21,7 @@ import sys
 sys.dont_write_bytecode = True
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from answerer import Answerer, BIN, F, close_kernel, terminate_requested
+import query_request as QR
 
 
 class FrontDoor:
@@ -37,7 +38,16 @@ class FrontDoor:
         close_kernel(self.proc)
 
     def answer(self, req):
-        _, low = F.RS2.normalise(str(req.get("q", "")))
+        original = str(req.get("q", ""))
+        query = QR.interpret(original, lambda s: F.link_names(s,24))
+        if query is not None and query.query_kind == 'ambiguous':
+            return {'id': req.get('id'), 'status': 'clarify', 'value': None,
+                    'response': 'I found both a complete title and a different typed-name reading. Please specify the title and type more explicitly.',
+                    'path': 'veri7vn:relations>QUERY_NAME_AMBIGUOUS',
+                    'provenance': {'kind': 'veri7vn_relations_frontdoor', 'taken': True,
+                                   'query_interpretation': query.__dict__,
+                                   'adapter_refusal': 'distinct literal-title and typed-name linked identities'}}
+        _, low = F.RS2.normalise(query.canonical if query else original)
         matched = set()
         inverse_matched = False
         for key, sids in self.readers.items():
@@ -58,6 +68,14 @@ class FrontDoor:
             out = self.answerers[sid].answer(req)
             if out["provenance"]["taken"]:
                 decisive.append(out)
+        if not decisive and query is not None and (
+                query.query_kind != 'any' or F.RS2.normalise(original)[1] != low):
+            return {'id': req.get('id'), 'status': 'withheld', 'value': None,
+                    'response': "I can't identify one stored answer for that requested relation and entity type.",
+                    'path': 'veri7vn:relations>QUERY_UNRESOLVED',
+                    'provenance': {'kind': 'veri7vn_relations_frontdoor', 'taken': True,
+                                   'query_interpretation': query.__dict__,
+                                   'scope': 'Recognized complete request; no checked typed reader answered.'}}
         return self.merge(req, decisive, matched, inverse_matched=inverse_matched)
 
     @staticmethod

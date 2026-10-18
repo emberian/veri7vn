@@ -8,6 +8,7 @@ import json
 
 import fetch as F
 import subject_request as SR
+import query_request as QR
 
 _ROWS = {}
 
@@ -54,4 +55,32 @@ def attach(low, evidence, identity=False):
     evidence["subject_constraint"] = constraint
     evidence["subject_constraint_frames"] = frames
     evidence["subject_constraint_properties"] = properties
+    return evidence
+
+
+def attach_query(query, evidence):
+    """Supply literal property rows and separately identified object ancestry.
+    Ontology authenticity/completeness remains an explicit external premise.
+    """
+    expression = QR.constraint(query)
+    evidence['query_constraint'] = expression
+    properties = QR.property_ids(expression)
+    closures = {}
+    for attempt in evidence['attempts']:
+        if attempt['dir'] != 'fwd':
+            continue
+        for candidate in attempt['candidates']:
+            candidate['rows'] = list(candidate['rows'])
+            for prop in properties:
+                rows = exact_rows(candidate['qid'], prop)
+                candidate['rows'].extend(rows)
+                for _, value in rows:
+                    if value[0] == 'e':
+                        closures[value[1]] = sorted(F.RS1.ancestors(value[1]))
+    evidence['query_classes'] = sorted(closures.items())
+    evidence['query_interpretation'] = None if query is None else {
+        'property': query.prop, 'slot': query.slot, 'kind': query.query_kind,
+        'canonical': query.canonical, 'frame': query.frame,
+        'assumptions': ['whole-request recognition', 'supplied property rows',
+                        'finite source ontology closure']}
     return evidence

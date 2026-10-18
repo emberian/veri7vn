@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fetch as F  # noqa: E402
 import scoped_fetch  # noqa: E402
 import conversation  # noqa: E402
+import query_request as QR  # noqa: E402
 
 REPO = F.REPO
 BIN = os.environ.get("VERI7VN_RELATIONS_BIN", os.path.join(REPO, "var/relations/bin/decide"))
@@ -85,8 +86,9 @@ class Answerer:
         got = json.loads(self._call("spec " + self.spec.sid))
         if got.get("outcome") == "error":
             sys.exit("answerer: the binary has no table for %s" % self.spec.sid)
-        self.identity = got.get("request_constraint_version") == 2
-        self.scoped = got.get("request_constraint_version") in (1, 2)
+        self.queried = got.get("request_constraint_version") == 3
+        self.identity = got.get("request_constraint_version") in (2, 3)
+        self.scoped = got.get("request_constraint_version") in (1, 2, 3)
         self.fetch.inverse_identity = self.identity
         want = []
         for k in self.spec.keys:
@@ -102,7 +104,7 @@ class Answerer:
                 self.spec.sid, got, want))
 
     def reply(self, req, out, low, ev):
-        decision = "Relation_Identity.decide_identity" if self.identity else (
+        decision = "Relation_Query.decide_query" if self.queried else "Relation_Identity.decide_identity" if self.identity else (
             "Relation_Request.decide_requested" if self.scoped else "Relation_Reader.decide_spec")
         prov = {"kind": "veri7vn_relations", "decision": decision, "specialist": self.spec.sid,
                 "store": "relations_v1.sqlite3", "linker": self.linker}
@@ -117,6 +119,8 @@ class Answerer:
                                   "subject_constraint_properties": ev.get("subject_constraint_properties"),
                                   "subject_excluded_properties": ev.get("subject_excluded_properties"),
                                   "bound_query_entity": ev.get("bound_query_entity"),
+                                  "query_interpretation": ev.get("query_interpretation"),
+                                  "query_constraint": ev.get("query_constraint"),
                                   "inverse_target_scope": "all supplied linked IDs" if self.identity else "top linked target",
                                   "forward_only": all(a["dir"] == "fwd" for a in ev["attempts"]),
                                   "projection": "entity display labels; blank and unlabelled values removed; "
@@ -142,6 +146,16 @@ class Answerer:
                     "consequence": "The answered subject's snapshot values are exactly the answer singleton; "
                                    "every linked in-domain candidate of an answering attempt has only that value or none.",
                 }
+                if self.queried and ev.get('query_constraint') != ['any']:
+                    prov['source_scope']['conditional_theorem'] = {
+                        'name': 'Relation_Query.queried_forward_answer',
+                        'premise': 'Question-kind interpretation and supplied rows/class/genre closure describe the intended source; '
+                                   'their external truth and coverage are assumed, not proved.',
+                        'consequence': 'The answer names an original supplied candidate satisfying the interpreted query constraint '
+                                       'and specialist domain, with the exact nonblank answer row. Every original candidate in the answering '
+                                       'attempt passed the finite query-evidence availability guard. '
+                                       'Unfiltered candidates are not claimed to agree with this typed answer.',
+                    }
             p, subj, v = out["property"], out["subject"], out["value"]
             text = v[1] if v[0] == "l" else "Q%d" % v[1]
             shown = F.X._show(text, low)
@@ -204,6 +218,21 @@ class Answerer:
                 "path": "veri7vn:relations>%s" % ("SILENT" if oc == "silent" else "INCOMPLETE"), "provenance": prov}
 
     def answer(self, req):
+        query = QR.interpret(str(req.get('q', '')), lambda s: F.link_names(s,24))
+        if query is not None and query.query_kind == 'ambiguous':
+            return {'id': req.get('id'), 'status': 'clarify', 'value': None,
+                    'response': 'I found both a complete title and a different typed-name reading. Please specify the title and type more explicitly.',
+                    'path': 'veri7vn:relations>QUERY_NAME_AMBIGUOUS',
+                    'provenance': {'kind': 'veri7vn_relations', 'taken': True,
+                                   'specialist': self.spec.sid, 'query_interpretation': query.__dict__,
+                                   'adapter_refusal': 'distinct literal-title and typed-name linked identities'}}
+        if query is not None and query.query_kind != 'any' and not self.queried:
+            return {'id': req.get('id'), 'status': 'withheld', 'value': None,
+                    'response': "I can't check the requested entity type with this reader.",
+                    'path': 'veri7vn:relations>QUERY_SCOPE_REQUIRED',
+                    'provenance': {'kind': 'veri7vn_relations', 'taken': True,
+                                   'specialist': self.spec.sid,
+                                   'adapter_refusal': 'query constraint kernel version 3 required'}}
         binding = req.get("bound_query_entity")
         self.fetch.bound_query_entity = None
         if binding is not None:
@@ -218,7 +247,7 @@ class Answerer:
                         "provenance": {"kind": "veri7vn_relations", "taken": True,
                                        "specialist": self.spec.sid, "bound_query_entity": binding,
                                        "adapter_refusal": "bound surface must equal the current stored entity label"}}
-        low, ev = self.fetch.evidence(str(req.get("q", "")))
+        low, ev = self.fetch.evidence(query.canonical if query else str(req.get("q", "")))
         ev["bound_query_entity"] = binding
         if binding is not None and ev["attempts"] and not all(a["binding_applied"] for a in ev["attempts"]):
             return {"id": req.get("id"), "status": "withheld", "value": None,
@@ -228,6 +257,7 @@ class Answerer:
                                    "specialist": self.spec.sid, "bound_query_entity": binding,
                                    "adapter_refusal": "bound entity surface must equal every recognized slot exactly"}}
         scoped_fetch.attach(low, ev, identity=self.identity)
+        scoped_fetch.attach_query(query, ev)
         if not self.scoped and any(a["dir"] == "inv" for a in ev["attempts"]):
             return {"id": req.get("id"), "status": "withheld", "value": None,
                     "response": "I can't verify the requested kind of person or place from my records, so I won't guess.",
