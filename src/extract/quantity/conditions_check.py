@@ -50,14 +50,14 @@ cases.extend([
     dict(q='Convert a temperature difference of 10 C to F per minute.',kind=None,expected=None),
     dict(q='Convert 1 m to cm^2.',kind=None,expected=None),
     dict(q='Convert a change of 10 m to cm.',kind='convert',expected='1000'),
-    dict(q='What is the temperature difference between 20 C and 10 C in F?',kind=None,expected=None),
-    dict(q='Convert a temperature difference of 10 C to F with an uncertainty of 2 C.',kind=None,expected=None),
+    dict(q='What is the temperature difference between 20 C and 10 C in F?',kind=None,expected=None,computable=True),
+    dict(q='Convert a temperature difference of 10 C to F with an uncertainty of 2 C.',kind=None,expected=None,computable=True),
 ])
 report={'seed':args.seed,'source':'Exact Fraction interval scale ratios; authored grammar and explicit unsupported multi-input policy.', 'specialists':{}}
 for sid,family in [('units','quantity'),('units-v3','quantity'),('units-v2','variants'),('units-v3-r2','variants')]:
     binary = args.quantity_binary if family == 'quantity' else args.variants_binary
     p=subprocess.Popen([str(ROOT/binary),'--specialist',sid],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
-    stats=dict(n=len(cases),right=0,wrong=0,false_yes=0,withheld_valid=0,failures=[])
+    stats=dict(n=len(cases),checks_passed=0,right=0,wrong=0,false_yes=0,withheld_valid=0,failures=[])
     for i,case in enumerate(cases):
         p.stdin.write(json.dumps(dict(id=str(i),q=case['q']))+'\n');p.stdin.flush()
         reply=json.loads(p.stdout.readline());asserted=reply.get('status')=='answered'
@@ -66,10 +66,15 @@ for sid,family in [('units','quantity'),('units-v3','quantity'),('units-v2','var
         else:
             expected=Fraction(case['expected']);value=reply.get('value')
             good=asserted and reply.get('kind')==case['kind'] and value is not None and abs(Fraction(str(value))-expected)<=max(abs(expected)*Fraction(1,100000000),Fraction(1,1000000000))
-        stats['right']+=bool(good)
-        stats['wrong']+=bool(case['expected'] is not None and asserted and not good)
-        stats['false_yes']+=bool(case['expected'] is None and asserted)
-        stats['withheld_valid']+=bool(case['expected'] is not None and not asserted)
+        # Safe refusal of a computable unsupported form passes this regression,
+        # but is still a capability limitation. Keep those counts separate.
+        computable=case.get('computable',False)
+        valid=case['expected'] is not None or computable
+        stats['checks_passed']+=bool(good)
+        stats['right']+=bool(good and not computable)
+        stats['wrong']+=bool(valid and asserted and not good)
+        stats['false_yes']+=bool(not valid and asserted)
+        stats['withheld_valid']+=bool(valid and not asserted)
         if not good:stats['failures'].append(dict(case=case,reply=reply))
     p.stdin.close();assert p.wait()==0
     report['specialists'][sid]=stats

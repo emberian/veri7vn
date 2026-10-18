@@ -35,14 +35,14 @@ Existing `Convert`, pressure and fuel constructor signatures remain unchanged fo
 
 `conditions_check.py` is explicitly untrusted authored evidence. It checks exact Fraction scale ratios, signed intervals, point controls, role wording, mismatches and unsupported multi-input/unit suffix cases. Baseline binaries are the immutable numeral captures under `var/C-runtime-package/bound-prepared/20261018T073902Z-6cfbea65b624/quantity/` and `20261018T073932Z-8da36b3b3ad1/variants/`. A wrong count includes the wrong point/difference meaning or reply kind even when one scale pair happens to produce the same number.
 
-| Specialist | Baseline right / wrong / false yes / valid withheld | Final right / total | Final wrong / false yes / valid withheld |
+| Specialist | Baseline right / wrong / false yes / valid withheld | Final safety checks passed / total | Final capability right / wrong / false yes / valid withheld |
 |---|---:|---:|---:|
-| units | 8 / 35 / 6 / 10 | 59 / 59 | 0 / 0 / 0 |
-| units-v3 | 8 / 36 / 6 / 9 | 59 / 59 | 0 / 0 / 0 |
-| units-v2 | 8 / 36 / 6 / 9 | 59 / 59 | 0 / 0 / 0 |
-| units-v3-r2 | 8 / 36 / 6 / 9 | 59 / 59 | 0 / 0 / 0 |
+| units | 8 / 37 / 4 / 10 | 59 / 59 | 57 / 0 / 0 / 2 |
+| units-v3 | 8 / 38 / 4 / 9 | 59 / 59 | 57 / 0 / 0 / 2 |
+| units-v2 | 8 / 38 / 4 / 9 | 59 / 59 | 57 / 0 / 0 / 2 |
+| units-v3-r2 | 8 / 38 / 4 / 9 | 59 / 59 | 57 / 0 / 0 / 2 |
 
-Tuning used seed 2026102201; the final reserved numerical values use 2026102209. Final total is 236/236, with zero wrong answers, false yeses and valid withheld answers. No tuning followed the final evaluation. All 319 earlier numeral cases remain correct; acoustics in that regression is the unchanged captured binary. All 44 earlier quantity probes remain correct.
+Tuning used seed 2026102201; the final reserved numerical values use 2026102209. All 236 safety assertions pass. Capability counts are 228 right, zero wrong, zero false yes and eight valid withheld: the endpoint and uncertainty forms are computable requests that this reader intentionally does not answer. Their safe refusals are not capability completion. This distinction was applied to the saved receipts without rerunning native checks; the baseline asserted point answers for those forms are wrong, not false yeses. No tuning followed the final evaluation. All 319 earlier numeral cases remain correct; acoustics in that regression is the unchanged captured binary. All 44 earlier quantity probes remain correct.
 
 Final shipped and fresh panel totals below include dev plus held-out. Fresh generators use seeds 2026102209/10 and retain the inherited template/table lineage disclosed in the earlier reports.
 
