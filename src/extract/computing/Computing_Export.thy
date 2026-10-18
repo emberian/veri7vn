@@ -55,7 +55,9 @@ ML \<open>
     @{thms agg_max_is_member}, @{thms validity_bad_leading_word}, @{thms validity_yes_reply_answered},
     @{thms validity_unknown_withheld}, @{thms sig_name_some}, @{thms umask_values},
     @{thms lin_chmod_declines_iff}, @{thms lin_umask_declines_iff}, @{thms lin_exit_value},
-    @{thms git_all_intents_complete}, @{thms exec_group_keys_strictly_ordered}];
+    @{thms git_all_intents_complete}, @{thms exec_group_keys_strictly_ordered},
+    @{thms where_cond_is_relational}, @{thms where_rows_relational}, @{thms keys_cmp_relational},
+    @{thms select_correct_unordered}, @{thms select_correct_ordered}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("computing theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code net_self_test} andalso @{code emb_self_test} andalso @{code cyb_self_test} andalso @{code rob_self_test} andalso

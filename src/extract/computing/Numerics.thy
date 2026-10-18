@@ -77,7 +77,7 @@ proof -
        "\<bar>of_int o' - ctc_raw fc P ft\<bar> \<le> 1 / 2" "0 < fc" "0 < ft" "0 < P" by blast
   define n :: rat where "n = 1 + of_int o'"
   define x :: rat where "x = fc / (of_nat P * ft)"
-  have g: "1 + emb_value (ECtc fc P ft bits) = n" by (simp add: o(1) n_def)
+  have g: "1 + emb_value (ECtc fc P ft bits) = n" unfolding n_def o(1) by (rule refl)
   have o0: "(0::rat) \<le> of_int o'" using o(2) by simp
   have n0: "0 < n" using o0 by (simp add: n_def add_pos_nonneg)
   have P0: "(0::rat) < of_nat P" using o(6) by simp
@@ -85,14 +85,14 @@ proof -
   have e1: "fc / (of_nat P * n) - ft = ft * (x - n) / n"
     using ne by (simp add: x_def field_simps)
   have xr: "x - n = - (of_int o' - ctc_raw fc P ft)" by (simp add: ctc_raw_def x_def n_def)
-  have b: "\<bar>x - n\<bar> \<le> 1 / 2" using o(3) by (simp add: xr)
+  have b: "\<bar>x - n\<bar> \<le> 1 / 2" unfolding xr abs_minus_cancel by (rule o(3))
   have fa: "\<bar>ft\<bar> = ft" and na: "\<bar>n\<bar> = n" using o(5) n0 by simp_all
   have "\<bar>fc / (of_nat P * n) - ft\<bar> = ft * \<bar>x - n\<bar> / n"
     by (simp add: e1 abs_mult abs_divide fa na)
   also have "\<dots> \<le> ft * (1 / 2) / n"
     using b o(5) n0 by (intro divide_right_mono mult_left_mono) simp_all
   also have "\<dots> = ft / (2 * n)" by simp
-  finally show ?thesis by (simp add: g)
+  finally show ?thesis unfolding g .
 qed
 
 theorem emb_ubrr_value:

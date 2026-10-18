@@ -397,12 +397,12 @@ proof (cases "find (\<lambda>c. col_index cols (fst c) = None)
   then show ?thesis using assms by (simp add: exec_sq_def Let_def)
 next
   case None
-  then have "col_index cols (fst g) \<noteq> None" by (auto simp: find_None_iff item_cols_def)
+  then have "col_index cols (fst g) \<noteq> None" by (auto simp: find_None_iff item_cols_def split: if_splits)
   then obtain gi where gi: "col_index cols (fst g) = Some gi" by auto
   have "out = map (\<lambda>k. [k]) (isort (\<lambda>a b. sv_ord a b \<le> 0)
               (uniq_by_ord (map (\<lambda>r. cell r gi) (where_rows cols cnd rows))))"
     using assms None gi
-    by (simp add: exec_sq_def Let_def has_agg_def agg_row_def item_cols_def comp_def)
+    by (simp add: exec_sq_def Let_def has_agg_def agg_row_def item_cols_def comp_def image_iff)
   then show ?thesis using gi that by blast
 qed
 
@@ -445,6 +445,313 @@ proof -
       using sv_ord_refl by auto
   qed
   show ?thesis using gi strict cov sub by (auto simp: out' sorted_wrt_map)
+qed
+
+section \<open>A relational meaning of SELECT, written apart from the engine\<close>
+
+text \<open>Lane W6-06. What a SELECT without GROUP BY means, stated without the engine's
+machinery: the value of a named column in a row; WHERE as an ordinary true/false
+predicate (a comparison with NULL is simply not satisfied; there is no NOT in the
+subset, so this two-valued reading is what SQL's three-valued logic keeps); the
+projection item by item; ORDER BY as a lexicographic order over the named columns
+with DESC flipping one comparison; LIMIT as a prefix. The engine instead runs
+@{const eval_cond} (three-valued), @{const where_rows}, @{const keys_cmp} (a fold over
+column indices) and @{const isort}. The theorems below say the engine's output is
+exactly this meaning: the kept rows in table order when there is no ORDER BY, and a
+sorted rearrangement of exactly the kept rows (same rows, same multiplicities) when
+there is one.\<close>
+
+definition rel_val :: "(String.literal \<times> aff \<times> bool) list \<Rightarrow> sval list \<Rightarrow> String.literal \<Rightarrow> sval" where
+  "rel_val cols r n = (case col_index cols n of Some i \<Rightarrow> cell r i | None \<Rightarrow> SNull)"
+
+fun rel_holds :: "(String.literal \<times> aff \<times> bool) list \<Rightarrow> sval list \<Rightarrow> scond \<Rightarrow> bool" where
+  "rel_holds cols r (SC_cmp c cp v) = (let x = rel_val cols r (fst c) in x \<noteq> SNull \<and> v \<noteq> SNull \<and>
+      (case cp of C_eq \<Rightarrow> sv_ord x v = 0 | C_ne \<Rightarrow> sv_ord x v \<noteq> 0 | C_lt \<Rightarrow> sv_ord x v < 0
+        | C_le \<Rightarrow> sv_ord x v \<le> 0 | C_gt \<Rightarrow> 0 < sv_ord x v | C_ge \<Rightarrow> 0 \<le> sv_ord x v))"
+| "rel_holds cols r (SC_isnull c n) = (if n then rel_val cols r (fst c) \<noteq> SNull else rel_val cols r (fst c) = SNull)"
+| "rel_holds cols r (SC_and a b) = (rel_holds cols r a \<and> rel_holds cols r b)"
+| "rel_holds cols r (SC_or a b) = (rel_holds cols r a \<or> rel_holds cols r b)"
+
+definition rel_kept :: "(String.literal \<times> aff \<times> bool) list \<Rightarrow> scond option \<Rightarrow> sval list \<Rightarrow> bool" where
+  "rel_kept cols cnd r = (case cnd of None \<Rightarrow> True | Some c \<Rightarrow> rel_holds cols r c)"
+
+fun rel_item :: "(String.literal \<times> aff \<times> bool) list \<Rightarrow> sval list \<Rightarrow> sitem \<Rightarrow> sval list" where
+  "rel_item cols r SI_star = r"
+| "rel_item cols r (SI_col c) = [rel_val cols r (fst c)]"
+| "rel_item cols r (SI_agg f d c) = []"
+
+definition rel_project :: "(String.literal \<times> aff \<times> bool) list \<Rightarrow> sitem list \<Rightarrow> sval list \<Rightarrow> sval list" where
+  "rel_project cols its r = concat (map (rel_item cols r) its)"
+
+definition rel_is_agg :: "sitem \<Rightarrow> bool" where
+  "rel_is_agg i = (case i of SI_agg f d c \<Rightarrow> True | _ \<Rightarrow> False)"
+
+definition rel_cmp_at :: "bool \<Rightarrow> sval \<Rightarrow> sval \<Rightarrow> int" where
+  "rel_cmp_at desc a b = (if desc then sv_ord b a else sv_ord a b)"
+
+text \<open>Row x comes no later than row y under ORDER BY os.\<close>
+fun rel_before :: "(String.literal \<times> aff \<times> bool) list \<Rightarrow> (cref \<times> bool) list \<Rightarrow> sval list \<Rightarrow> sval list \<Rightarrow> bool" where
+  "rel_before cols [] x y = True"
+| "rel_before cols ((c, d) # os) x y = (let k = rel_cmp_at d (rel_val cols x (fst c)) (rel_val cols y (fst c)) in
+      k < 0 \<or> (k = 0 \<and> rel_before cols os x y))"
+
+definition rel_limit :: "nat option \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "rel_limit lmt xs = (case lmt of None \<Rightarrow> xs | Some n \<Rightarrow> take n xs)"
+
+subsection \<open>WHERE\<close>
+
+lemma and3_true: "and3 a b = Some True \<longleftrightarrow> a = Some True \<and> b = Some True"
+  by (induction a b rule: and3.induct) auto
+
+lemma or3_true: "or3 a b = Some True \<longleftrightarrow> a = Some True \<or> b = Some True"
+  by (induction a b rule: or3.induct) auto
+
+lemma op_holds_cases:
+  "op_holds cp k = (case cp of C_eq \<Rightarrow> k = 0 | C_ne \<Rightarrow> k \<noteq> 0 | C_lt \<Rightarrow> k < 0
+     | C_le \<Rightarrow> k \<le> 0 | C_gt \<Rightarrow> 0 < k | C_ge \<Rightarrow> 0 \<le> k)"
+  by (cases cp) simp_all
+
+theorem where_cond_is_relational: "eval_cond cols r c = Some True \<longleftrightarrow> rel_holds cols r c"
+  by (induction c) (auto simp: Let_def rel_val_def and3_true or3_true op_holds_cases)
+
+theorem where_rows_relational: "where_rows cols cnd rows = filter (rel_kept cols cnd) rows"
+  by (cases cnd) (simp_all add: where_rows_def rel_kept_def[abs_def] where_cond_is_relational)
+
+subsection \<open>ORDER BY\<close>
+
+lemma sv_lt_le_trans:
+  assumes ab: "sv_ord a b < 0" and bc: "sv_ord b c \<le> 0" shows "sv_ord a c < 0"
+proof (rule ccontr)
+  assume "\<not> sv_ord a c < 0"
+  then have ca: "sv_ord c a \<le> 0" using sv_ord_antisym[of c a] by linarith
+  have "sv_ord b a \<le> 0" by (rule sv_ord_trans[OF bc ca])
+  then show False using ab sv_ord_antisym[of b a] by linarith
+qed
+
+lemma sv_le_lt_trans:
+  assumes ab: "sv_ord a b \<le> 0" and bc: "sv_ord b c < 0" shows "sv_ord a c < 0"
+proof (rule ccontr)
+  assume "\<not> sv_ord a c < 0"
+  then have ca: "sv_ord c a \<le> 0" using sv_ord_antisym[of c a] by linarith
+  have "sv_ord c b \<le> 0" by (rule sv_ord_trans[OF ca ab])
+  then show False using bc sv_ord_antisym[of c b] by linarith
+qed
+
+lemma sv_eq_trans:
+  assumes ab: "sv_ord a b = 0" and bc: "sv_ord b c = 0" shows "sv_ord a c = 0"
+proof -
+  have ab': "sv_ord a b \<le> 0" and bc': "sv_ord b c \<le> 0" using ab bc by simp_all
+  have cb: "sv_ord c b \<le> 0" using bc sv_ord_antisym[of c b] by linarith
+  have ba: "sv_ord b a \<le> 0" using ab sv_ord_antisym[of b a] by linarith
+  have "sv_ord a c \<le> 0" by (rule sv_ord_trans[OF ab' bc'])
+  moreover have "sv_ord c a \<le> 0" by (rule sv_ord_trans[OF cb ba])
+  ultimately show ?thesis using sv_ord_antisym[of c a] by linarith
+qed
+
+lemma rel_cmp_at_flip: "rel_cmp_at d b a = - rel_cmp_at d a b"
+proof (cases d)
+  case True then show ?thesis using sv_ord_antisym[of a b] by (simp add: rel_cmp_at_def)
+next
+  case False then show ?thesis using sv_ord_antisym[of b a] by (simp add: rel_cmp_at_def)
+qed
+
+lemma rel_cmp_lt_le: "rel_cmp_at d a b < 0 \<Longrightarrow> rel_cmp_at d b c \<le> 0 \<Longrightarrow> rel_cmp_at d a c < 0"
+  using sv_lt_le_trans[of a b c] sv_le_lt_trans[of c b a] by (cases d) (simp_all add: rel_cmp_at_def)
+
+lemma rel_cmp_le_lt: "rel_cmp_at d a b \<le> 0 \<Longrightarrow> rel_cmp_at d b c < 0 \<Longrightarrow> rel_cmp_at d a c < 0"
+  using sv_le_lt_trans[of a b c] sv_lt_le_trans[of c b a] by (cases d) (simp_all add: rel_cmp_at_def)
+
+lemma rel_cmp_eq: "rel_cmp_at d a b = 0 \<Longrightarrow> rel_cmp_at d b c = 0 \<Longrightarrow> rel_cmp_at d a c = 0"
+  using sv_eq_trans[of a b c] sv_eq_trans[of c b a] by (cases d) (simp_all add: rel_cmp_at_def)
+
+lemma rel_cmp_at_step:
+  assumes 1: "rel_cmp_at d a b < 0 \<or> (rel_cmp_at d a b = 0 \<and> PA)"
+    and 2: "rel_cmp_at d b c < 0 \<or> (rel_cmp_at d b c = 0 \<and> QA)"
+  shows "rel_cmp_at d a c < 0 \<or> (rel_cmp_at d a c = 0 \<and> PA \<and> QA)"
+proof (cases "rel_cmp_at d a b < 0")
+  case True
+  from 2 have "rel_cmp_at d b c \<le> 0" by (auto simp: le_less)
+  then show ?thesis using rel_cmp_lt_le[OF True] by blast
+next
+  case False
+  then have e: "rel_cmp_at d a b = 0" "PA" using 1 by auto
+  show ?thesis
+  proof (cases "rel_cmp_at d b c < 0")
+    case True then show ?thesis using rel_cmp_le_lt[of d a b c] e by simp
+  next
+    case False
+    then have "rel_cmp_at d b c = 0" "QA" using 2 by auto
+    then show ?thesis using rel_cmp_eq[of d a b c] e by simp
+  qed
+qed
+
+lemma rel_before_trans: "rel_before cols os x y \<Longrightarrow> rel_before cols os y z \<Longrightarrow> rel_before cols os x z"
+proof (induction os)
+  case Nil then show ?case by simp
+next
+  case (Cons p os)
+  obtain c d where p: "p = (c, d)" by (cases p)
+  have 1: "rel_cmp_at d (rel_val cols x (fst c)) (rel_val cols y (fst c)) < 0 \<or>
+      (rel_cmp_at d (rel_val cols x (fst c)) (rel_val cols y (fst c)) = 0 \<and> rel_before cols os x y)"
+    using Cons.prems(1) by (simp add: p Let_def)
+  have 2: "rel_cmp_at d (rel_val cols y (fst c)) (rel_val cols z (fst c)) < 0 \<or>
+      (rel_cmp_at d (rel_val cols y (fst c)) (rel_val cols z (fst c)) = 0 \<and> rel_before cols os y z)"
+    using Cons.prems(2) by (simp add: p Let_def)
+  show ?case using rel_cmp_at_step[OF 1 2] Cons.IH by (auto simp: p Let_def)
+qed
+
+lemma rel_before_total: "rel_before cols os x y \<or> rel_before cols os y x"
+proof (induction os)
+  case Nil then show ?case by simp
+next
+  case (Cons p os)
+  obtain c d where p: "p = (c, d)" by (cases p)
+  let ?k = "rel_cmp_at d (rel_val cols x (fst c)) (rel_val cols y (fst c))"
+  have fl: "rel_cmp_at d (rel_val cols y (fst c)) (rel_val cols x (fst c)) = - ?k" by (rule rel_cmp_at_flip)
+  have "?k < 0 \<or> ?k = 0 \<or> 0 < ?k" by (rule less_linear)
+  then show ?case using Cons.IH fl by (auto simp: p Let_def)
+qed
+
+lemma keys_cmp_Cons:
+  "keys_cmp (k # ks) x y = (let c = sv_ord (cell x (fst k)) (cell y (fst k)) in
+      if c \<noteq> 0 then (if snd k then - c else c) else keys_cmp ks x y)"
+  by (simp add: keys_cmp_def Let_def)
+
+theorem keys_cmp_relational:
+  assumes "\<forall>p \<in> set ordl. col_index cols (fst (fst p)) \<noteq> None"
+  shows "(keys_cmp (map (\<lambda>o2. (the (col_index cols (fst (fst o2))), snd o2)) ordl) x y \<le> 0) = rel_before cols ordl x y"
+  using assms
+proof (induction ordl)
+  case Nil then show ?case by (simp add: keys_cmp_def)
+next
+  case (Cons p os)
+  obtain c d where p: "p = (c, d)" by (cases p)
+  obtain i where i: "col_index cols (fst c) = Some i" using Cons.prems p by auto
+  have ih: "(keys_cmp (map (\<lambda>o2. (the (col_index cols (fst (fst o2))), snd o2)) os) x y \<le> 0) = rel_before cols os x y"
+    using Cons by simp
+  have va: "rel_val cols x (fst c) = cell x i" "rel_val cols y (fst c) = cell y i" by (simp_all add: rel_val_def i)
+  define k where "k = sv_ord (cell x i) (cell y i)"
+  have fl: "sv_ord (cell y i) (cell x i) = - k" using sv_ord_antisym[of "cell y i" "cell x i"] by (simp add: k_def)
+  have lhs: "(keys_cmp (map (\<lambda>o2. (the (col_index cols (fst (fst o2))), snd o2)) (p # os)) x y \<le> 0) =
+      (if k \<noteq> 0 then (if d then - k \<le> 0 else k \<le> 0) else rel_before cols os x y)"
+    using ih by (simp add: keys_cmp_Cons p i Let_def k_def[symmetric])
+  have rhs: "rel_before cols (p # os) x y = ((if d then - k else k) < 0 \<or> ((if d then - k else k) = 0 \<and> rel_before cols os x y))"
+    by (simp add: p va Let_def rel_cmp_at_def fl k_def[symmetric])
+  show ?case
+  proof (cases "k = 0")
+    case True then show ?thesis using lhs rhs by simp
+  next
+    case False
+    then have "(k \<le> 0) = (k < 0)" "(- k \<le> 0) = (- k < 0)" by (simp_all add: less_le)
+    then show ?thesis using lhs rhs False by (cases d) simp_all
+  qed
+qed
+
+lemma count_ins: "count_list (ins le x ys) r = count_list (x # ys) r"
+  by (induction ys) auto
+
+lemma count_isort: "count_list (isort le xs) r = count_list xs r"
+  by (induction xs) (simp_all add: count_ins)
+
+lemma ins_true: "ins (\<lambda>x y. True) a ys = a # ys"
+  by (cases ys) simp_all
+
+lemma isort_true: "isort (\<lambda>x y. True) xs = xs"
+  by (induction xs) (simp_all add: ins_true)
+
+lemma isort_cong:
+  assumes "\<And>x y. le x y = le' x y" shows "isort le xs = isort le' xs"
+proof -
+  have "le = le'" by (rule ext, rule ext, rule assms)
+  then show ?thesis by simp
+qed
+
+subsection \<open>The engine computes the meaning\<close>
+
+lemma proj_relational:
+  assumes "\<forall>c \<in> set (item_cols its). col_index cols (fst c) \<noteq> None"
+  shows "concat (map (\<lambda>i. case i of SI_star \<Rightarrow> r | SI_col c \<Rightarrow> [cell r (the (col_index cols (fst c)))]
+            | SI_agg _ _ _ \<Rightarrow> []) its) = rel_project cols its r"
+  using assms
+proof (induction its)
+  case Nil then show ?case by (simp add: rel_project_def)
+next
+  case (Cons a its)
+  then show ?case
+    by (cases a) (auto simp: rel_project_def item_cols_def rel_val_def split: option.splits)
+qed
+
+lemma find_None_ball: "find P xs = None \<Longrightarrow> \<forall>x \<in> set xs. \<not> P x"
+  by (induction xs) (auto split: if_splits)
+
+lemma ungrouped_out:
+  assumes ex: "exec_sq (STable tn to cols rows) (SQ False its tb cnd None ordl lmt) = SRows out"
+    and na: "\<forall>i \<in> set its. \<not> rel_is_agg i"
+  shows "(\<forall>p \<in> set ordl. col_index cols (fst (fst p)) \<noteq> None) \<and>
+    out = rel_limit lmt (map (rel_project cols its)
+      (isort (\<lambda>x y. keys_cmp (map (\<lambda>o2. (the (col_index cols (fst (fst o2))), snd o2)) ordl) x y \<le> 0)
+        (filter (rel_kept cols cnd) rows)))"
+proof (cases "find (\<lambda>c. col_index cols (fst c) = None)
+       (item_cols its @ (case cnd of None \<Rightarrow> [] | Some c \<Rightarrow> cond_cols c) @ map fst ordl)")
+  case (Some c)
+  then show ?thesis using ex by (simp add: exec_sq_def Let_def)
+next
+  case None
+  note all = find_None_ball[OF None]
+  have ok1: "\<forall>c \<in> set (item_cols its). col_index cols (fst c) \<noteq> None"
+  proof
+    fix c assume "c \<in> set (item_cols its)"
+    then have "c \<in> set (item_cols its @ (case cnd of None \<Rightarrow> [] | Some cc \<Rightarrow> cond_cols cc) @ map fst ordl)" by simp
+    then show "col_index cols (fst c) \<noteq> None" using all by blast
+  qed
+  have ok2: "\<forall>p \<in> set ordl. col_index cols (fst (fst p)) \<noteq> None"
+  proof
+    fix p assume "p \<in> set ordl"
+    then have "fst p \<in> set (item_cols its @ (case cnd of None \<Rightarrow> [] | Some cc \<Rightarrow> cond_cols cc) @ map fst ordl)" by auto
+    then show "col_index cols (fst (fst p)) \<noteq> None" using all by blast
+  qed
+  note ok = ok1 ok2
+  have nh: "\<not> has_agg its" using na by (auto simp: has_agg_def list_ex_iff rel_is_agg_def split: sitem.splits)
+  have "out = rel_limit lmt (map (\<lambda>r. concat (map (\<lambda>i. case i of SI_star \<Rightarrow> r
+                | SI_col c \<Rightarrow> [cell r (the (col_index cols (fst c)))] | SI_agg _ _ _ \<Rightarrow> []) its))
+      (isort (\<lambda>x y. keys_cmp (map (\<lambda>o2. (the (col_index cols (fst (fst o2))), snd o2)) ordl) x y \<le> 0)
+        (where_rows cols cnd rows)))"
+    using ex None nh by (simp add: exec_sq_def Let_def rel_limit_def split: if_splits)
+  then show ?thesis using ok proj_relational[OF ok(1)] by (simp add: where_rows_relational)
+qed
+
+text \<open>A SELECT without GROUP BY, aggregates, DISTINCT or ORDER BY returns, for each row of
+the table in table order that satisfies the WHERE predicate, that row projected item by
+item, cut at the LIMIT.\<close>
+theorem select_correct_unordered:
+  assumes "exec_sq (STable tn to cols rows) (SQ False its tb cnd None [] lmt) = SRows out"
+    "\<forall>i \<in> set its. \<not> rel_is_agg i"
+  shows "out = rel_limit lmt (map (rel_project cols its) (filter (rel_kept cols cnd) rows))"
+  using ungrouped_out[OF assms] by (simp add: keys_cmp_def isort_true)
+
+text \<open>With ORDER BY: the output is the projection, cut at the LIMIT, of some list that holds
+exactly the rows satisfying WHERE (each as often as in the table) and is ordered by the
+ORDER BY columns.\<close>
+theorem select_correct_ordered:
+  assumes "exec_sq (STable tn to cols rows) (SQ False its tb cnd None ordl lmt) = SRows out"
+    "\<forall>i \<in> set its. \<not> rel_is_agg i"
+  shows "\<exists>srt. (\<forall>r. count_list srt r = count_list (filter (rel_kept cols cnd) rows) r) \<and>
+     sorted_wrt (rel_before cols ordl) srt \<and> out = rel_limit lmt (map (rel_project cols its) srt)"
+proof -
+  note u = ungrouped_out[OF assms]
+  have ok: "\<forall>p \<in> set ordl. col_index cols (fst (fst p)) \<noteq> None" using u by blast
+  define srt where "srt = isort (rel_before cols ordl) (filter (rel_kept cols cnd) rows)"
+  have cong: "isort (\<lambda>x y. keys_cmp (map (\<lambda>o2. (the (col_index cols (fst (fst o2))), snd o2)) ordl) x y \<le> 0)
+        (filter (rel_kept cols cnd) rows) = srt"
+    unfolding srt_def by (rule isort_cong) (rule keys_cmp_relational[OF ok])
+  have out: "out = rel_limit lmt (map (rel_project cols its) srt)" using u cong by simp
+  have tot: "\<forall>a b. rel_before cols ordl a b \<or> rel_before cols ordl b a" using rel_before_total by blast
+  have tr: "\<forall>a b c. rel_before cols ordl a b \<longrightarrow> rel_before cols ordl b c \<longrightarrow> rel_before cols ordl a c"
+    using rel_before_trans by blast
+  have "sorted_wrt (rel_before cols ordl) srt" unfolding srt_def by (rule isort_sorted[OF tot tr])
+  moreover have "\<forall>r. count_list srt r = count_list (filter (rel_kept cols cnd) rows) r"
+    by (simp add: srt_def count_isort)
+  ultimately show ?thesis using out by blast
 qed
 
 section \<open>Setup statements\<close>
