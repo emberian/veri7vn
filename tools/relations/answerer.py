@@ -119,6 +119,14 @@ class Answerer:
                                          "kernel_returned": oc}})
         rs = F.STORE
         if oc == "answer":
+            if prov["source_scope"]["forward_only"]:
+                prov["source_scope"]["conditional_theorem"] = {
+                    "name": "Relation_Reader.forward_answer_snapshot",
+                    "premise": "For every supplied candidate and its asked property, fetched nonblank "
+                               "label-projected values equal the named snapshot's values; this equality is assumed, not checked.",
+                    "consequence": "The answered subject's snapshot values are exactly the answer singleton; "
+                                   "every linked in-domain candidate of an answering attempt has only that value or none.",
+                }
             p, subj, v = out["property"], out["subject"], out["value"]
             text = v[1] if v[0] == "l" else "Q%d" % v[1]
             shown = F.X._show(text, low)

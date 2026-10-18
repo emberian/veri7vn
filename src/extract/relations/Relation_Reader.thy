@@ -852,4 +852,77 @@ lemma walk_first_halt:
   "step sp f a = Halt r \<Longrightarrow> walk sp f (a # rest) acc = r"
   by simp
 
+section \<open>Meaning relative to a named store snapshot\<close>
+
+text \<open>A snapshot maps an entity and property to the nonblank values of that
+property after the fetch's value projection: the present adapter resolves entity
+values to display labels. Thus singleton values do not establish unique entity
+identities when distinct entities share a label. This is a separate premise, not the fetch's boolean
+@{const complete}. A caller may name the immutable file it queried, but neither
+the file name nor an unbounded SQL query proves this equality. In particular,
+the result below says nothing about senses missing from the linker or about
+whether the store itself describes the world correctly. Domain membership
+still means the supplied class and ancestor evidence.\<close>
+
+definition snapshot_complete_wrt ::
+  "(natural \<Rightarrow> natural \<Rightarrow> rel_value set) \<Rightarrow> natural \<Rightarrow> candidate \<Rightarrow> bool" where
+  "snapshot_complete_wrt S p c \<longleftrightarrow> set (vals p c) = S (qid c) p"
+
+lemma omitted_snapshot_value_breaks_coverage:
+  "v \<in> S (qid c) p \<Longrightarrow> v \<notin> set (vals p c) \<Longrightarrow>
+    \<not> snapshot_complete_wrt S p c"
+  by (auto simp: snapshot_complete_wrt_def)
+
+theorem forward_attempt_snapshot:
+  assumes av: "attempt_values sp f a = Some (s, p, v)"
+    and fw: "dir a = Fwd"
+    and cov: "\<forall>c \<in> set (candidates a). snapshot_complete_wrt S p c"
+  shows "S s p = {v} \<and>
+    (\<forall>c \<in> set (candidates a). domain_member sp c \<longrightarrow> S (qid c) p \<subseteq> {v})"
+proof -
+  note A = attempt_values_sound[OF av fw]
+  have hm: "hd (mineof sp a) \<in> set (mineof sp a)"
+    by (rule hd_in_set[OF A(4)])
+  have hc: "hd (mineof sp a) \<in> set (candidates a)"
+    using mine_in_candidates[OF hm] by blast
+  have eq: "S s p = {v}"
+    using cov hc hm A(5) A(8) by (auto simp: snapshot_complete_wrt_def)
+  have all: "\<forall>c \<in> set (candidates a). domain_member sp c \<longrightarrow> S (qid c) p \<subseteq> {v}"
+  proof (intro ballI impI)
+    fix c
+    assume cin: "c \<in> set (candidates a)" and dom: "domain_member sp c"
+    have cover: "set (vals p c) = S (qid c) p"
+      using cov cin by (simp add: snapshot_complete_wrt_def)
+    show "S (qid c) p \<subseteq> {v}"
+    proof (cases "vals p c = []")
+      case True
+      with cover show ?thesis by simp
+    next
+      case False
+      have "set (vals p c) = {v}" using A(9) cin dom False by blast
+      with cover show ?thesis by simp
+    qed
+  qed
+  show ?thesis using eq all by blast
+qed
+
+theorem forward_answer_snapshot:
+  assumes ans: "decide_spec sp f attempts = Answer (s, p, v)"
+    and fw: "\<forall>a \<in> set attempts. dir a = Fwd"
+    and cov: "\<forall>a \<in> set attempts. \<forall>c \<in> set (candidates a).
+      snapshot_complete_wrt S (prop_of sp (key a)) c"
+  shows "S s p = {v} \<and> (\<exists>a \<in> set attempts.
+    attempt_values sp f a = Some (s, p, v) \<and>
+    (\<forall>c \<in> set (candidates a). domain_member sp c \<longrightarrow> S (qid c) p \<subseteq> {v}))"
+proof -
+  from answer_stored[OF ans] obtain a where
+    a: "a \<in> set attempts" "attempt_values sp f a = Some (s, p, v)" by blast
+  have af: "dir a = Fwd" using fw a(1) by blast
+  have p_eq: "p = prop_of sp (key a)"
+    by (rule attempt_values_sound(3)[OF a(2) af])
+  have ac: "\<forall>c \<in> set (candidates a). snapshot_complete_wrt S p c"
+    using cov a(1) p_eq by blast
+  from forward_attempt_snapshot[OF a(2) af ac] a show ?thesis by blast
+qed
+
 end
