@@ -89,7 +89,9 @@ correct cup answers now clarify because the question does not specify which
 household preparation it means. Missing USDA values are still not estimated.
 The 20 implementation-authored probes and executable persistence checks pass.
 
-The Darwin binary is about 582 KB. Measured steady p50 is 0.41–0.48ms cooking and
+The Darwin binary is about 582 KB; the Linux binary is 1,380,816 bytes and
+still exceeds the 1 MB goal. All 2,476 shipped-panel replies match across these
+platforms after removing timing. Measured steady p50 is 0.41–0.48ms cooking and
 1.18–1.37ms warehouse. Cold first replies are about 79 ms and 33 ms respectively,
 so the 20ms cold-start target remains unmet. These standalone results do not
 claim completion of all six head-composition criteria.

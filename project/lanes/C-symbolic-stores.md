@@ -175,13 +175,23 @@ not authorize sharing the state file with other writers. Runtime packaging
 must default speculative Oracle7 Combo wrappers to preview, because Combo can
 query candidates and counterfactual sessions before selecting a reply; explicit
 committing mode is for a serialized single-owner caller. No automatic retries.
-An earlier committing-mode package confirms that cooking-v3 and warehouse run outside the checkout with
-copied data and separate temporary state. Acceptance-aware packaged panels match
-the direct scores:811/818right,0wrong,0false yes,7valid withheld. Receipt:
-`var/C-runtime-package/stores-current/smoke-selected.json`; relocation probes:
-`var/C-runtime-package/stores-current/relocation-probes.json`. Those counts do not describe the safer default speculative wrapper introduced
-subsequently; it withholds effect replies rather than claiming a previewed order
-was committed. Final consumer owners record their own configuration and receipts.
+The relocated committing-mode package and the default preview package both
+match direct standalone cooking-v3 plus warehouse scores: **811/818 right,
+0 wrong, 0 false yes, 7 valid withheld**. The preview receipt reports 55 total
+withheld replies because it includes 48 correctly refused invalid questions.
+Default preview receipt: `var/C-runtime-package/stores-preview/smoke-selected.json`.
+Outside-checkout relocation probes are in
+`var/C-runtime-package/stores-current/relocation-probes.json`.
+
+The warehouse panels contain no proposal, confirmation or cancellation commands,
+so these unchanged scores do not test effects. The package owner separately
+reports seven checks against the actual Oracle7 Combo speculative caller using
+`stores-preview-v2`; preview wrappers withhold effect candidates and explicit
+serialized-owner mode is separate. Runtime dispatch additionally tests selection
+and guards before one commit. Pure reads can update conversation references in
+committing mode: “M4 valve count?” followed by “Where is it?” locates bin A5-05;
+a fresh session cannot resolve “it”. This is why a retained pinned read needs
+its one commit too, while an unpinned preview read remains stateless.
 
 Root caught another integration issue: even a committed pinned call wrote a
 session file before deciding whether it owned the question. Persistence now
@@ -198,3 +208,27 @@ Changed source: `src/extract/stores/{Stores.thy,Stores_Export.thy,recognizer.sml
 main.sml,fetch.py,build.sh,tables_check.py,README.md,beyond.py,probes.json,verify.py}`
 and this report. No upstream files, data, corpora, transient artifacts or heaps
 are committed by this lane. Root integrates and commits.
+
+## Final Linux receipt
+
+`var/linux/receipt-stores-hbox-stores-codex-9316b86385.json` records the frozen
+runtime source hashes, unchanged checked HOL theory hashes, original successful
+HOL receipt, generated SML hash and native binary hash. Compilation used hbox's
+managed global build lock, an 8 GiB cap and a 1200-second timeout; no Isabelle
+rebuild was needed. The fresh test stage needed its own `var/stores` parent
+created before the state tests; checks then resumed without recompiling.
+
+- Linux binary: `var/stores/stores-codex-9316b86385/stores-linux`.
+- Linux SHA256: `39b9ca68101d94b936bdc1c3d999182b4d556aa2ed9a61ef1dea61317a3680e3`.
+- Generated SML SHA256, identical on both platforms:
+  `af3f22dda243de66fd110eb8632420268411c99e4de0cd162339ff0e17383887`.
+- All **2,476 shipped-panel replies are identical** between Linux and Darwin
+  after removing timing, including status, text, kind, value and other provenance.
+- All 20 quantity probes and the preview, live-committer, session, corrupt-read
+  and failed-write checks pass on Linux.
+- Linux binary size is **1,380,816 bytes**, exceeding the 1 MB goal. Darwin is
+  582,024 bytes. Cold-start performance and Linux binary size remain explicit
+  efficiency work; neither is reported as completed.
+
+Package ownership has the exact Linux binary and receipt. Packaging rejects old
+Linux stores artifacts whose source hashes predate the new CLI and preview API.
