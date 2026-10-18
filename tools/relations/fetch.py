@@ -24,8 +24,8 @@ import sqlite3
 import sys
 
 sys.dont_write_bytecode = True
-UP = "/Users/ember/dev/o7vn/upstream/root"
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+UP = os.path.join(REPO, "upstream/root")
 O7ROOT = os.environ.setdefault("ORACLE7_ROOT", os.path.join(REPO, "var/linker/o7root"))
 sys.path.insert(0, UP + "/wander-train")
 
@@ -37,7 +37,8 @@ import relation_spec_v1 as RS1  # noqa: E402
 import relation_spec_v2 as RS2  # noqa: E402
 
 SPEC = UP + "/specialists"
-STORE = ORS.RelStore(os.path.join(O7ROOT, "relstore/relations_v1.sqlite3"))
+STORE_PATH = os.path.join(O7ROOT, "relstore/relations_v1.sqlite3")
+STORE = ORS.RelStore(STORE_PATH)
 RS1._rs = lambda: STORE
 PRON = {"you", "me", "it", "this", "that", "them", "him", "her", "us", "they", "we", "i", "he", "she", "these", "those", "one"}
 

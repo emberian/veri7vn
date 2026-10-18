@@ -14,6 +14,7 @@ domain; a mismatch stops the answerer. The reply text is rendered as the shipped
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 
@@ -26,15 +27,52 @@ BIN = os.environ.get("VERI7VN_RELATIONS_BIN", os.path.join(REPO, "var/relations/
 LINKERS = os.path.join(REPO, "src/extract/relations/linkers.json")
 
 
+def terminate_requested(signum, frame):
+    raise SystemExit(128 + signum)
+
+
+def close_kernel(proc):
+    """Stop only this adapter's recorded child, including after a dispatcher timeout."""
+    if proc.poll() is not None:
+        return
+    try:
+        proc.stdin.close()
+    except (BrokenPipeError, OSError):
+        pass
+    try:
+        proc.wait(timeout=0.5)
+    except subprocess.TimeoutExpired:
+        proc.terminate()
+        try:
+            proc.wait(timeout=0.5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=0.5)
+
+
 class Answerer:
-    def __init__(self, sid, linker=None, n=24):
+    def __init__(self, sid, linker=None, n=24, binary=None, proc=None):
         self.spec = F.Spec(sid)
         if linker is None:
             linker = json.load(open(LINKERS))["choice"].get(sid, "names")
         self.linker = linker
         self.fetch = F.Fetch(self.spec, linker=linker, n=n)
-        self.proc = subprocess.Popen([BIN], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, encoding="utf-8")
-        self.check_table()
+        stat = os.stat(F.STORE_PATH)
+        self.snapshot = {"path": os.path.realpath(F.STORE_PATH), "size": stat.st_size,
+                         "mtime_ns": stat.st_mtime_ns, "identity": "filesystem metadata, not a content digest"}
+        self.owns_process = proc is None
+        self.proc = proc or subprocess.Popen([binary or BIN], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                             text=True, encoding="utf-8")
+        try:
+            self.check_table()
+        except BaseException:
+            if self.owns_process:
+                close_kernel(self.proc)
+            raise
+
+    def close(self):
+        if self.owns_process:
+            close_kernel(self.proc)
 
     def _call(self, line):
         self.proc.stdin.write(line + "\n")
@@ -62,6 +100,23 @@ class Answerer:
         prov = {"kind": "veri7vn_relations", "decision": "Relation_Reader.decide_spec", "specialist": self.spec.sid,
                 "store": "relations_v1.sqlite3", "linker": self.linker}
         oc = out.get("outcome")
+        prov.update(taken=oc in ("answer", "decline", "incomplete"), kernel_outcome=oc,
+                    source_scope={"snapshot": self.snapshot, "candidate_limit": self.fetch.n,
+                                  "linker_preselection_limit": 400 if self.linker == "standin" else None,
+                                  "domain_closure": {"depth": 8, "parents_per_level": 12},
+                                  "inverse_subject_limit": 8,
+                                  "forward_only": all(a["dir"] == "fwd" for a in ev["attempts"]),
+                                  "projection": "entity display labels; blank and unlabelled values removed; "
+                                                "unique label does not imply unique entity identity",
+                                  "candidate_properties": sorted({(c["qid"], a["prop"]) for a in ev["attempts"]
+                                      for c in a["candidates"] + a["subjects"]}),
+                                  "coverage_assumption": "snapshot_complete_wrt: fetched nonblank values equal snapshot "
+                                      "values for each candidate and property; unbounded row fetch is untrusted",
+                                  "untrusted": ["question recognition", "entity linking", "domain closure",
+                                                "fetched-row completeness", "source assertions"]},
+                    evidence={"declaration": "Relation_Reader.decide_spec over supplied candidates and rows",
+                              "checks": {"specialist_table_matches_shipped": True,
+                                         "kernel_returned": oc}})
         rs = F.STORE
         if oc == "answer":
             p, subj, v = out["property"], out["subject"], out["value"]
@@ -103,21 +158,26 @@ class Answerer:
 
 
 def main():
+    signal.signal(signal.SIGTERM, terminate_requested)
     args = sys.argv[1:]
     sid = args[args.index("--specialist") + 1]
     linker = args[args.index("--linker") + 1] if "--linker" in args else None
-    a = Answerer(sid, linker)
-    for line in sys.stdin:
-        if not line.strip():
-            continue
-        req = json.loads(line)
-        try:
-            rep = a.answer(req)
-        except Exception as e:  # noqa: BLE001 - the contract's error field; scored as withheld
-            rep = {"id": req.get("id"), "error": "%s: %s" % (type(e).__name__, e), "status": "withheld",
-                   "response": "", "path": "veri7vn:relations>ERROR"}
-        sys.stdout.write(json.dumps(rep, ensure_ascii=False) + "\n")
-        sys.stdout.flush()
+    binary = args[args.index("--binary") + 1] if "--binary" in args else None
+    a = Answerer(sid, linker, binary=binary)
+    try:
+        for line in sys.stdin:
+            if not line.strip():
+                continue
+            req = json.loads(line)
+            try:
+                rep = a.answer(req)
+            except Exception as e:  # noqa: BLE001 - the contract's error field; scored as withheld
+                rep = {"id": req.get("id"), "error": "%s: %s" % (type(e).__name__, e), "status": "withheld",
+                       "response": "", "path": "veri7vn:relations>ERROR"}
+            sys.stdout.write(json.dumps(rep, ensure_ascii=False) + "\n")
+            sys.stdout.flush()
+    finally:
+        a.close()
 
 
 if __name__ == "__main__":

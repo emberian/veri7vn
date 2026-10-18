@@ -1,0 +1,33 @@
+{
+  "note": "Author-written integration probes, not an independent specialist panel. Negative examples exercise wrong domains, absent names, nonrelation operations and incomplete questions. They require abstention, not a claim that the named entity can never exist. Positive answers are independently familiar examples also checked against the local relation rows; no new factual source is added.",
+  "positive": [
+    ["Who wrote Leaves of Grass?", "Walt Whitman"],
+    ["Who wrote Pride and Prejudice?", "Jane Austen"],
+    ["Who directed Jaws?", "Steven Spielberg"],
+    ["What is the capital of France?", "Paris"],
+    ["Where was Albert Einstein born?", "Ulm"],
+    ["Who wrote The Hobbit?", "J. R. R. Tolkien"]
+  ],
+  "negative": [
+    "Who wrote the planet Jupiter?",
+    "Who directed the chemical element oxygen?",
+    "Where was the number seven born?",
+    "What is the capital of a triangle?",
+    "Who wrote Zqxwpl invented nonexistent book?",
+    "Who directed Zqxwpl invented nonexistent film?",
+    "What is the capital of Zqxwpl fictional country?",
+    "Where was Zqxwpl fictional person born?",
+    "Who wrote?",
+    "Who directed?",
+    "What is the capital of?",
+    "Where was born?",
+    "What is 2 plus 3?",
+    "Solve x squared equals 4.",
+    "Convert 12 metres to feet.",
+    "How much is 20 percent of 50?",
+    "Summarize photosynthesis.",
+    "Write a poem about the Moon.",
+    "Hello!",
+    ""
+  ]
+}
