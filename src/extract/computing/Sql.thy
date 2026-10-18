@@ -302,13 +302,149 @@ theorem exec_unknown_column:
      = Some c \<Longrightarrow> exec_sq (STable tn to cols rows) (SQ dst its tb cnd grp ordl lmt) = SErr (STR ''no such column: '' + snd c)"
   by (simp add: exec_sq_def Let_def)
 
-theorem exec_group_order_is_key_order:
-  "isort (\<lambda>a b. sv_ord a b \<le> 0) ks = ks' \<Longrightarrow> sorted_wrt (\<lambda>a b. sv_ord a b \<le> 0) ks'"
+lemma uniq_subset: "set (uniq_by_ord vs) \<subseteq> set vs"
+  by (induction vs rule: uniq_by_ord.induct) auto
+
+lemma uniq_cover: "\<forall>x \<in> set vs. \<exists>u \<in> set (uniq_by_ord vs). sv_ord x u = 0"
+proof (induction vs rule: uniq_by_ord.induct)
+  case 1 then show ?case by simp
+next
+  case (2 v vs)
+  show ?case
+  proof
+    fix x assume x: "x \<in> set (v # vs)"
+    show "\<exists>u \<in> set (uniq_by_ord (v # vs)). sv_ord x u = 0"
+    proof (cases "sv_ord v x = 0")
+      case True
+      then have "sv_ord x v = 0" using sv_ord_antisym[of x v] by simp
+      then show ?thesis by auto
+    next
+      case False
+      then have "x \<in> set (filter (\<lambda>w. sv_ord v w \<noteq> 0) vs)" using x sv_ord_refl[of v] by auto
+      then obtain u where "u \<in> set (uniq_by_ord (filter (\<lambda>w. sv_ord v w \<noteq> 0) vs))" "sv_ord x u = 0"
+        using 2 by blast
+      then show ?thesis by auto
+    qed
+  qed
+qed
+
+lemma uniq_sep:
+  "x \<in> set (uniq_by_ord vs) \<Longrightarrow> y \<in> set (uniq_by_ord vs) \<Longrightarrow> x \<noteq> y \<Longrightarrow> sv_ord x y \<noteq> 0"
+proof (induction vs arbitrary: x y rule: uniq_by_ord.induct)
+  case 1 then show ?case by simp
+next
+  case (2 v vs)
+  let ?t = "uniq_by_ord (filter (\<lambda>w. sv_ord v w \<noteq> 0) vs)"
+  have sub: "set ?t \<subseteq> set (filter (\<lambda>w. sv_ord v w \<noteq> 0) vs)" by (rule uniq_subset)
+  show ?case
+  proof (cases "x = v")
+    case True
+    then have "y \<in> set ?t" using 2(3,4) by auto
+    then show ?thesis using sub True by auto
+  next
+    case xv: False
+    then have xt: "x \<in> set ?t" using 2(2) by auto
+    show ?thesis
+    proof (cases "y = v")
+      case True
+      then have "sv_ord v x \<noteq> 0" using xt sub by auto
+      then show ?thesis using True sv_ord_antisym[of x y] by simp
+    next
+      case False
+      then have "y \<in> set ?t" using 2(3) by auto
+      then show ?thesis using 2(1) xt 2(4) by blast
+    qed
+  qed
+qed
+
+lemma uniq_distinct: "distinct (uniq_by_ord vs)"
+proof (induction vs rule: uniq_by_ord.induct)
+  case 1 then show ?case by simp
+next
+  case (2 v vs)
+  have "v \<notin> set (uniq_by_ord (filter (\<lambda>w. sv_ord v w \<noteq> 0) vs))"
+    using uniq_subset[of "filter (\<lambda>w. sv_ord v w \<noteq> 0) vs"] sv_ord_refl[of v] by auto
+  then show ?case using 2 by simp
+qed
+
+lemma strict_sorted:
+  assumes "sorted_wrt (\<lambda>a b. sv_ord a b \<le> 0) l" "distinct l"
+    "\<forall>x \<in> set l. \<forall>y \<in> set l. x \<noteq> y \<longrightarrow> sv_ord x y \<noteq> 0"
+  shows "sorted_wrt (\<lambda>a b. sv_ord a b < 0) l"
+  using assms
+proof (induction l)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs)
+  have "\<forall>y \<in> set xs. sv_ord x y < 0"
+  proof
+    fix y assume y: "y \<in> set xs"
+    then have "x \<noteq> y" using Cons.prems(2) by auto
+    moreover have "sv_ord x y \<le> 0" using y Cons.prems(1) by simp
+    ultimately show "sv_ord x y < 0" using Cons.prems(3) y by fastforce
+  qed
+  then show ?case using Cons by simp
+qed
+
+lemma group_keys_out:
+  assumes "exec_sq (STable tn to cols rows) (SQ False [SI_col g] tb cnd (Some g) [] None) = SRows out"
+  obtains gi where "col_index cols (fst g) = Some gi"
+    "out = map (\<lambda>k. [k]) (isort (\<lambda>a b. sv_ord a b \<le> 0)
+              (uniq_by_ord (map (\<lambda>r. cell r gi) (where_rows cols cnd rows))))"
+proof (cases "find (\<lambda>c. col_index cols (fst c) = None)
+       (item_cols [SI_col g] @ (case cnd of None \<Rightarrow> [] | Some c \<Rightarrow> cond_cols c) @ [g] @ map fst [])")
+  case (Some c)
+  then show ?thesis using assms by (simp add: exec_sq_def Let_def)
+next
+  case None
+  then have "col_index cols (fst g) \<noteq> None" by (auto simp: find_None_iff item_cols_def)
+  then obtain gi where gi: "col_index cols (fst g) = Some gi" by auto
+  have "out = map (\<lambda>k. [k]) (isort (\<lambda>a b. sv_ord a b \<le> 0)
+              (uniq_by_ord (map (\<lambda>r. cell r gi) (where_rows cols cnd rows))))"
+    using assms None gi
+    by (simp add: exec_sq_def Let_def has_agg_def agg_row_def item_cols_def comp_def)
+  then show ?thesis using gi that by blast
+qed
+
+text \<open>A grouped select of the grouping column alone returns each group key once, in strictly
+ascending order, and the keys are exactly those of the rows the WHERE keeps.\<close>
+theorem exec_group_keys_strictly_ordered:
+  assumes "exec_sq (STable tn to cols rows) (SQ False [SI_col g] tb cnd (Some g) [] None) = SRows out"
+  shows "\<exists>gi. col_index cols (fst g) = Some gi \<and>
+     sorted_wrt (\<lambda>r s. sv_ord (hd r) (hd s) < 0) out \<and> (\<forall>r \<in> set out. \<exists>k. r = [k]) \<and>
+     (\<forall>row \<in> set (where_rows cols cnd rows). \<exists>r \<in> set out. sv_ord (cell row gi) (hd r) = 0) \<and>
+     (\<forall>r \<in> set out. \<exists>row \<in> set (where_rows cols cnd rows). sv_ord (cell row gi) (hd r) = 0)"
 proof -
-  assume h: "isort (\<lambda>a b. sv_ord a b \<le> 0) ks = ks'"
+  from group_keys_out[OF assms] obtain gi where gi: "col_index cols (fst g) = Some gi"
+    and out: "out = map (\<lambda>k. [k]) (isort (\<lambda>a b. sv_ord a b \<le> 0)
+              (uniq_by_ord (map (\<lambda>r. cell r gi) (where_rows cols cnd rows))))" by blast
+  define u where "u = uniq_by_ord (map (\<lambda>r. cell r gi) (where_rows cols cnd rows))"
+  define keys where "keys = isort (\<lambda>a b. sv_ord a b \<le> 0) u"
+  have out': "out = map (\<lambda>k. [k]) keys" using out by (simp add: u_def keys_def)
   have tot: "\<forall>a b. sv_ord a b \<le> 0 \<or> sv_ord b a \<le> 0" using sv_ord_total by blast
   have tr: "\<forall>a b c. sv_ord a b \<le> 0 \<longrightarrow> sv_ord b c \<le> 0 \<longrightarrow> sv_ord a c \<le> 0" using sv_ord_trans by blast
-  from isort_sorted[OF tot tr, of ks] h show ?thesis by simp
+  have srt: "sorted_wrt (\<lambda>a b. sv_ord a b \<le> 0) keys" unfolding keys_def by (rule isort_sorted[OF tot tr])
+  have perm: "set keys = set u" "length keys = length u"
+    using isort_perm[of "\<lambda>a b. sv_ord a b \<le> 0" u] by (simp_all add: keys_def)
+  have du: "distinct u" unfolding u_def by (rule uniq_distinct)
+  have "card (set keys) = length keys" using perm distinct_card[OF du] by simp
+  then have dk: "distinct keys" by (rule card_distinct)
+  have sep0: "\<forall>x \<in> set u. \<forall>y \<in> set u. x \<noteq> y \<longrightarrow> sv_ord x y \<noteq> 0"
+    unfolding u_def using uniq_sep by blast
+  have sep: "\<forall>x \<in> set keys. \<forall>y \<in> set keys. x \<noteq> y \<longrightarrow> sv_ord x y \<noteq> 0" using sep0 perm(1) by simp
+  have strict: "sorted_wrt (\<lambda>a b. sv_ord a b < 0) keys" by (rule strict_sorted[OF srt dk sep])
+  have cov: "\<forall>row \<in> set (where_rows cols cnd rows). \<exists>k \<in> set keys. sv_ord (cell row gi) k = 0"
+    using uniq_cover[of "map (\<lambda>r. cell r gi) (where_rows cols cnd rows)"] perm(1) by (auto simp: u_def)
+  have sub: "\<forall>k \<in> set keys. \<exists>row \<in> set (where_rows cols cnd rows). sv_ord (cell row gi) k = 0"
+  proof
+    fix k assume "k \<in> set keys"
+    then have "k \<in> set (map (\<lambda>r. cell r gi) (where_rows cols cnd rows))"
+      using perm(1) uniq_subset[of "map (\<lambda>r. cell r gi) (where_rows cols cnd rows)"] u_def by auto
+    then obtain row where "row \<in> set (where_rows cols cnd rows)" "k = cell row gi" by auto
+    then show "\<exists>row \<in> set (where_rows cols cnd rows). sv_ord (cell row gi) k = 0"
+      using sv_ord_refl by auto
+  qed
+  show ?thesis using gi strict cov sub by (auto simp: out' sorted_wrt_map)
 qed
 
 section \<open>Setup statements\<close>

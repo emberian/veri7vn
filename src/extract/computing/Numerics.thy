@@ -64,17 +64,35 @@ proof -
   show ?thesis using c r round_he_close[of "ctc_raw fc P ft"] by (auto intro!: exI[of _ "round_he (ctc_raw fc P ft)"])
 qed
 
-theorem emb_ctc_gives:
+text \<open>The compare value @{text "N = 1 + value"} divides the clock by @{text "P * N"}; the achieved
+frequency is @{text "fc / (P * N)"}. Rounding the divisor to the nearest integer moves the
+frequency by at most @{text "ft / (2 N)"}: a count that is off by more than one half fails it.\<close>
+theorem emb_ctc_freq_bound:
   assumes "emb_decline (ECtc fc P ft bits) = None"
-  shows "0 < P \<and> 0 < fc \<and>
-     (fc / (of_nat P * (1 + emb_value (ECtc fc P ft bits)))) * (of_nat P * (1 + emb_value (ECtc fc P ft bits))) = fc"
+  shows "\<bar>fc / (of_nat P * (1 + emb_value (ECtc fc P ft bits))) - ft\<bar>
+           \<le> ft / (2 * (1 + emb_value (ECtc fc P ft bits)))"
 proof -
-  have c: "0 < fc" "0 < ft" "P \<noteq> 0" and r: "0 \<le> round_he (ctc_raw fc P ft)"
-    using assms by (auto simp: split: if_splits)
-  have pos: "(0::rat) < 1 + of_int (round_he (ctc_raw fc P ft))" using r by (simp add: add_nonneg_pos)
-  have pp: "(0::rat) < of_nat P" using c by simp
-  have nz: "of_nat P * (1 + of_int (round_he (ctc_raw fc P ft))) \<noteq> (0::rat)" using pos pp by simp
-  show ?thesis using c nz by simp
+  from emb_ctc_value[OF assms] obtain o' where
+    o: "emb_value (ECtc fc P ft bits) = of_int o'" "0 \<le> o'"
+       "\<bar>of_int o' - ctc_raw fc P ft\<bar> \<le> 1 / 2" "0 < fc" "0 < ft" "0 < P" by blast
+  define n :: rat where "n = 1 + of_int o'"
+  define x :: rat where "x = fc / (of_nat P * ft)"
+  have g: "1 + emb_value (ECtc fc P ft bits) = n" by (simp add: o(1) n_def)
+  have o0: "(0::rat) \<le> of_int o'" using o(2) by simp
+  have n0: "0 < n" using o0 by (simp add: n_def add_pos_nonneg)
+  have P0: "(0::rat) < of_nat P" using o(6) by simp
+  have ne: "(of_nat P :: rat) \<noteq> 0" "ft \<noteq> 0" "n \<noteq> 0" using P0 o(5) n0 by simp_all
+  have e1: "fc / (of_nat P * n) - ft = ft * (x - n) / n"
+    using ne by (simp add: x_def field_simps)
+  have xr: "x - n = - (of_int o' - ctc_raw fc P ft)" by (simp add: ctc_raw_def x_def n_def)
+  have b: "\<bar>x - n\<bar> \<le> 1 / 2" using o(3) by (simp add: xr)
+  have fa: "\<bar>ft\<bar> = ft" and na: "\<bar>n\<bar> = n" using o(5) n0 by simp_all
+  have "\<bar>fc / (of_nat P * n) - ft\<bar> = ft * \<bar>x - n\<bar> / n"
+    by (simp add: e1 abs_mult abs_divide fa na)
+  also have "\<dots> \<le> ft * (1 / 2) / n"
+    using b o(5) n0 by (intro divide_right_mono mult_left_mono) simp_all
+  also have "\<dots> = ft / (2 * n)" by simp
+  finally show ?thesis by (simp add: g)
 qed
 
 theorem emb_ubrr_value:
@@ -243,10 +261,17 @@ fun cyb_value :: "creq \<Rightarrow> rat" where
 | "cyb_value (CBrute avg cs L None) = 0"
 | "cyb_value (CBrute avg cs L (Some R)) = of_nat (csize cs ^ L) / R / (if avg then 2 else 1)"
 
+text \<open>The padded Base64 length is the smallest multiple of four that holds @{text "8n"} bits
+in six-bit groups.\<close>
 theorem cyb_base64_len:
-  fixes n :: nat
-  shows "0 < n \<Longrightarrow> 8 * n \<le> 6 * (4 * ((n + 2) div 3)) \<and> 6 * (4 * ((n + 2) div 3) - 4) < 8 * n"
-  by arith
+  "8 * of_nat n \<le> 6 * cyb_value (CBase64 n) \<and> 6 * (cyb_value (CBase64 n) - 4) < 8 * of_nat n"
+proof -
+  have h: "8 * n \<le> 6 * (4 * ((n + 2) div 3)) \<and> 6 * (4 * ((n + 2) div 3)) < 8 * n + 24" by arith
+  then have h1: "(of_nat (8 * n) :: rat) \<le> of_nat (6 * (4 * ((n + 2) div 3)))"
+    and h2: "(of_nat (6 * (4 * ((n + 2) div 3))) :: rat) < of_nat (8 * n + 24)"
+    by (simp_all only: of_nat_le_iff of_nat_less_iff)
+  show ?thesis using h1 h2 by (simp add: algebra_simps)
+qed
 
 theorem cyb_digest_hex:
   "bits mod 4 = 0 \<Longrightarrow> cyb_value (CDigest bits) * 4 = of_nat bits"

@@ -31,7 +31,7 @@ ML \<open>
     @{thms net_private_iff}, @{thms net_mask_value}, @{thms net_network_value}, @{thms net_broadcast_value},
     @{thms net_subnets_value}, @{thms net_forhosts_value}, @{thms net_reply_answered_iff},
     @{thms round_he_close}, @{thms round_he_tie_even}, @{thms to_fixed_sound}, @{thms enclose_fixed_sound},
-    @{thms emb_ctc_value}, @{thms emb_ctc_gives}, @{thms emb_ubrr_value}, @{thms emb_timer_identities},
+    @{thms emb_ctc_value}, @{thms emb_ctc_freq_bound}, @{thms emb_ubrr_value}, @{thms emb_timer_identities},
     @{thms emb_uart_identities}, @{thms cyb_base64_len}, @{thms cyb_brute_value}, @{thms cyb_entropy_sound},
     @{thms rob_diff_identities}, @{thms rob_wheel_sound}, @{thms rob_enc_sound}, @{thms rob_fk_sound},
     @{thms sym_mode_sym}, @{thms mode_sym_mode}, @{thms item_vals_mem}, @{thms field_count_bound}, @{thms sig_table_bijective},
@@ -41,7 +41,21 @@ ML \<open>
     @{thms py_withheld_iff}, @{thms py_lookup_sound}, @{thms py_lookup_complete},
     @{thms isort_perm}, @{thms isort_sorted}, @{thms where_keeps_exactly_true}, @{thms agg_count_skips_null},
     @{thms agg_sum_empty}, @{thms agg_sum_ints}, @{thms agg_avg_value}, @{thms exec_unknown_column},
-    @{thms sql_reply_answered_iff}, @{thms validity_unbalanced_is_no}, @{thms sql_answer_unparsed_withheld}];
+    @{thms sql_reply_answered_iff}, @{thms validity_unbalanced_is_no}, @{thms sql_answer_unparsed_withheld},
+    @{thms fixed_str_sound}, @{thms net_of_eq_iff}, @{thms usable_p2p}, @{thms priv_block_range},
+    @{thms priv_block_complete}, @{thms net_kernel_value}, @{thms net_decline_ip}, @{thms net_decline_prefix},
+    @{thms net_decline_mask}, @{thms net_prefix_value}, @{thms net_wildcard_value}, @{thms net_usable_value},
+    @{thms net_same_value}, @{thms net_forhosts_declines_iff}, @{thms net_reply_withheld_names_decline},
+    @{thms emb_address_value}, @{thms emb_address_bytes_exact}, @{thms emb_reply_answered_iff},
+    @{thms cyb_digest_hex}, @{thms cyb_birthday_value}, @{thms cyb_keyspace_value},
+    @{thms cyb_brute_avg_half}, @{thms cyb_underspecified}, @{thms dur_unit_years},
+    @{thms cyb_reply_answered}, @{thms rob_diff_straight}, @{thms rob_pwm_bound},
+    @{thms rob_reply_withheld_iff_decline}, @{thms py_module_states_row}, @{thms py_doc_states_row},
+    @{thms ins_stable_before_equal}, @{thms where_null_never_kept}, @{thms agg_count_star_len},
+    @{thms agg_max_is_member}, @{thms validity_bad_leading_word}, @{thms validity_yes_reply_answered},
+    @{thms validity_unknown_withheld}, @{thms sig_name_some}, @{thms umask_values},
+    @{thms lin_chmod_declines_iff}, @{thms lin_umask_declines_iff}, @{thms lin_exit_value},
+    @{thms git_all_intents_complete}, @{thms exec_group_keys_strictly_ordered}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("computing theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code net_self_test} andalso @{code emb_self_test} andalso @{code cyb_self_test} andalso @{code rob_self_test} andalso
