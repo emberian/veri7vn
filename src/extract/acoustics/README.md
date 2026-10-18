@@ -20,7 +20,7 @@ proved formulas to a small program that answers questions.
 | Physical model, declines, kernel, rounding, reply text | `Acoustics.thy` | HOL, proved; exported to SML |
 | Export, self test, oracle check | `Acoustics_Export.thy` | HOL; the build fails if any listed theorem depends on an oracle |
 | Interval arithmetic (square root, logarithm, powers) | Isabelle's `HOL-Decision_Procs.Approximation` | Isabelle library, proved there |
-| Reading numbers out of English | `regex.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organ's regular expressions |
+| Reading numbers out of English | `../commons/commons.sml` (Regex), `recognizer.sml` | **untrusted**, hand-ported from the organ's regular expressions |
 | JSON framing | `main.sml` | **untrusted** |
 | Isabelle code generator, MLton | toolchain | trusted |
 

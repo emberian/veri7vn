@@ -26,7 +26,7 @@ its amounts in SI units.
 | Export, self test, oracle check | `Quantity_Export.thy` | HOL; the build fails if any listed theorem depends on an oracle or the self test fails |
 | Interval arithmetic (spring period and frequency only: a square root and pi) | Isabelle's `HOL-Decision_Procs.Approximation` | Isabelle library, proved there |
 | Table transcription check | `tables_check.py` | a Python check of the HOL text against the organ files; it is not a proof |
-| Reading numbers and words out of English | `regex.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions |
+| Reading numbers and words out of English | `../commons/commons.sml` (Regex), `recognizer.sml` | **untrusted**, hand-ported from the organs' regular expressions |
 | JSON framing | `main.sml` | **untrusted** |
 | Isabelle code generator, MLton | toolchain | trusted |
 

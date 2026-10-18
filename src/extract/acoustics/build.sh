@@ -25,7 +25,7 @@ repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT
 with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
     fcntl.flock(lock, fcntl.LOCK_EX)
     env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
-    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/acoustics",
+    subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/acoustics", "-d", "src/extract/commons",
                     "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Acoustics"],
                    check=True, env=env, cwd=repo)
 EOF
@@ -36,7 +36,7 @@ cp "$GEN" "$OUT/build/acoustics_generated.sml"
 cat > "$OUT/build/acoustics.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 acoustics_generated.sml
-$SRC/regex.sml
+$SRC/../commons/commons.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF

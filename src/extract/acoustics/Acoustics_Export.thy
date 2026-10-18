@@ -23,11 +23,11 @@ definition debug_approx :: "nat \<Rightarrow> floatarith \<Rightarrow> ((int \<t
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
      kernel (SpeedAir (AirAt 0)) = Value K_speed (3313, -1) \<and>
-     render_dec (3313, -1) = STR ''331.3'' \<and>
-     render_dec (4673, -1) = STR ''467.3'' \<and>
-     render_dec (7800, -4) = STR ''0.78'' \<and>
-     render_dec (1000, 1) = STR ''1e+04'' \<and>
-     render_dec (2000, -3) = STR ''2'' \<and>
+     render_dec 4 (3313, -1) = STR ''331.3'' \<and>
+     render_dec 4 (4673, -1) = STR ''467.3'' \<and>
+     render_dec 4 (7800, -4) = STR ''0.78'' \<and>
+     render_dec 4 (1000, 1) = STR ''1e+04'' \<and>
+     render_dec 4 (2000, -3) = STR ''2'' \<and>
      kernel (Doppler (Some 500) (Some 400) Source Toward AirDefault) = Decline (Impossible Shock_Wave) \<and>
      kernel (PipeClosed 2 (Some (1, Metre)) AirDefault) = Decline (Impossible (Even_Closed_Harmonic 2)) \<and>
      kernel (Beat (Some 440) None) = Decline (Underspecified Both_Frequencies) \<and>
