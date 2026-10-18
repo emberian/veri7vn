@@ -44,6 +44,18 @@ def main():
     base=ROOT/'var/stores/verify'
     base.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='state-',dir=base) as tmp:
+        references=Path(tmp)/'references.json'
+        p=Answerer(a.binary.resolve(),'--specialist','warehouse-r2','--state',references)
+        try:
+            assert p.ask('M4 valve count?')['value']==107
+            before=references.read_bytes()
+            r=p.ask('purple widgets count?')
+            assert r.get('kind')=='unknown_item' and r.get('status')=='withheld',r
+            assert references.read_bytes()==before
+            r=p.ask('Where is it?')
+            assert r.get('kind')=='where' and 'A5-05' in r.get('response',''),r
+            assert p.ask('count?')['value']==107
+        finally:p.close()
         state=Path(tmp)/'sessions.json'
         p=Answerer(a.binary.resolve(),'--specialist','warehouse-r2','--state',state,'--preview')
         try:
@@ -125,7 +137,7 @@ def main():
             assert r['status']=='withheld' and 'read failed' in r.get('error',''),r
             assert corrupt.read_text()=='not valid JSON'
         finally:p.close()
-    print('PASS: %d quantity/ambiguity probes; preview writes no state; committed confirmation places once, session isolated; family preview preserves cooking; long-lived preview observes sole committer changes; failed read/write withholds and preserves state/cache.' % len(tests))
+    print('PASS: %d quantity/ambiguity probes; explicit unknown item preserves prior reference without asserting it; preview writes no state; committed confirmation places once, session isolated; family preview preserves cooking; long-lived preview observes sole committer changes; failed read/write withholds and preserves state/cache.' % len(tests))
 
 
 if __name__=='__main__':main()

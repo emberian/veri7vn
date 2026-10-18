@@ -36,12 +36,14 @@ for receipt_path in sorted((root/'var/stores/remote-attempts').glob('*/receipt.j
 if matched is None:
     raise SystemExit('No successful remote export matches these Stores theories. Run tools/dev/remote-build first.')
 shutil.copyfile(matched, out/'stores_generated.sml')
+(out/'proof-receipt.txt').write_text(str(receipt_path))
 (out/'config.sml').write_text('structure Config = struct val repo = '+json.dumps(str(root))+' end\n')
 (out/'stores.mlb').write_text('$(SML_LIB)/basis/basis.mlb\nstores_generated.sml\nconfig.sml\n'+
     str(source.parent/'commons/commons.sml')+'\n'+''.join(str(source/n)+'\n' for n in ('json.sml','recognizer.sml','main.sml')))
 print('Checked export:', matched)
 PY
-"$MLTON" -output "$OUT/build/stores.next" "$OUT/build/stores.mlb"
-mv "$OUT/build/stores.next" "$OUT/bin/stores"
+python3 -B "$REPO/tools/dev/native-compile" --family stores --compiler "$MLTON" \
+  --from-receipt "$(cat "$OUT/build/proof-receipt.txt")" -- \
+  -output "$OUT/bin/stores" "$OUT/build/stores.mlb"
 ls -l "$OUT/bin/stores"
 shasum -a 256 "$OUT/build/stores_generated.sml" "$OUT/bin/stores"

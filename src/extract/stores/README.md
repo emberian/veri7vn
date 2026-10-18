@@ -13,29 +13,39 @@ within 5% or 0.15 absolute. This matters when foods have similar amounts per 100
 but different cup weights: an unspecified cup of jackfruit now needs clarification.
 A weight in grams often resolves that uncertainty.
 
+Counted foods carry an explicit size and form. Two small Granny Smith apples
+and two large ones use different USDA weights; an unspecified pair clarifies
+when the possible sizes disagree. Slices, strips and pieces cannot silently
+use a whole-food weight. Number words and fractions work for counts too.
+
 The exact arithmetic, serving checks, reply construction, warehouse freshness
 and stock calculations, and confirmation state machine are exported from HOL.
 English matching, SQLite fetching, file persistence, timestamps and JSON remain
 untrusted. The fetcher's completeness flags are assumptions: checking supplied
-rows cannot prove that none were omitted. Missing or duplicate alternative
-portion groups can hide a possible serving; their complete and unique delivery
-is currently an untrusted input premise. The kernel theorem concerns the
-alternatives it receives, not every possible real-world food interpretation.
+rows cannot prove that none were omitted. The kernel now requires exactly one
+portion group for each supplied food alternative, positive supplied weights,
+and equality between the selected group's rows and the selected portion rows.
+It cannot establish that a group contains every database row, or that the food
+alternatives cover every possible interpretation. Those remain external premises.
 
 For warehouse, the HOL state machine requires a pending proposal in the same
 session before confirmation can place its exact order, and consumes that proposal.
 This does not prove atomicity or isolation of an external shared state file.
 Use one state file per serialized owner. Runtime wrappers do not retry stateful
 requests automatically.
+Pronouns and omitted-object questions can reuse the previous item; an explicit
+unknown item cannot silently become that previous item.
 
 ## Build and run
 
 ```sh
 python3 tools/dev/remote-build persvati src/extract/stores Veri7vn_Stores \
-  -d src/extract/commons --expect 'VERI7VN_STORES PASS theorems=43 oracles=0'
+  -d src/extract/commons --expect 'VERI7VN_STORES PASS theorems=44 oracles=0'
 sh src/extract/stores/build.sh
 python3 -B src/extract/stores/tables_check.py
 python3 -B src/extract/stores/verify.py
+python3 -B src/extract/stores/counts_check.py --binary var/stores/bin/stores \
+  --out var/stores/counts-check.json --require-pass
 printf '%s\n' '{"id":"1","q":"How much protein is in 1/2 kg of raw chayote?"}' \
   | var/stores/bin/stores --specialist cooking-v3
 ```
@@ -96,6 +106,9 @@ platforms after removing timing. Measured steady p50 is 0.41–0.48ms cooking an
 so the 20ms cold-start target remains unmet. These standalone results do not
 claim completion of all six head-composition criteria.
 
-The [current lane report](../../../project/lanes/C-symbolic-stores.md) contains
+The [initial lane report](../../../project/lanes/C-symbolic-stores.md) contains
 exact theorem statements, both fresh-seed comparisons, receipts, known limits
 and package/dispatcher integration results.
+The [counted-serving follow-up](../../../project/lanes/D-symbolic-stores.md)
+records explicit sizes, finite portion-group validation, the warehouse reference
+repair, and their measured results.

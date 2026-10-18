@@ -338,11 +338,14 @@ subsection \<open>Requests and fetched rows\<close>
 text \<open>The amount the question asks about, as the recognizer read it: none
 (USDA's 100 g), a mass, a household measure, or a count of the food. The
 words as written are kept for the reply text.\<close>
+datatype count_size = CS_any | CS_small | CS_medium | CS_large | CS_extra_small | CS_extra_large | CS_jumbo
+datatype count_form = CF_whole | CF_slice | CF_strip | CF_piece
+
 datatype amount =
     A_default
   | A_mass rat String.literal mass_unit
   | A_measure rat String.literal String.literal measure
-  | A_count rat String.literal String.literal
+  | A_count rat String.literal String.literal count_size count_form
 
 text \<open>A nutrition query: the asked nutrient and amount, the food words, the
 recognizer's food reading (fdc id and description) and the readings still in
@@ -369,6 +372,19 @@ definition row_of :: "(int \<times> rat \<times> String.literal) list \<Rightarr
 lemma row_of_Some: "row_of rows f = Some r \<Longrightarrow> (f, r) \<in> set rows"
   by (auto simp: row_of_def dest: map_of_SomeD)
 
+fun needs_portions :: "amount \<Rightarrow> bool" where
+  "needs_portions (A_measure q nt ut m) = True"
+| "needs_portions (A_count q nt w sz form) = True"
+| "needs_portions _ = False"
+
+definition portion_groups_ok :: "nquery \<Rightarrow> bool" where
+  "portion_groups_ok e \<longleftrightarrow> (needs_portions (nq_amount e) \<longrightarrow>
+    distinct (map fst (nq_other_portions e)) \<and>
+    set (map fst (nq_other_portions e)) = set (map fst (nq_near e)) \<and>
+    (\<forall>fp\<in>set (nq_other_portions e). \<forall>p\<in>set (snd fp). 0 < snd p) \<and>
+    (case nq_hit e of None \<Rightarrow> True | Some fd \<Rightarrow>
+      map_of (nq_other_portions e) (fst fd) = Some (nq_portions e)))"
+
 text \<open>The fetched rows are well formed and agree with the query they answer,
 checked here and not taken from the shim: no negative amount, the store's unit
 is the nutrient's unit, at most one row per food, every row is for a food the
@@ -380,7 +396,8 @@ definition rows_ok :: "nquery \<Rightarrow> bool" where
      \<and> distinct (map fst (nq_rows e))
      \<and> (\<forall>r\<in>set (nq_rows e). fst r \<in> set (map fst (nq_near e)))
      \<and> (case nq_hit e of None \<Rightarrow> True | Some fd \<Rightarrow> fd \<in> set (nq_near e))
-     \<and> (\<forall>p\<in>set (nq_portions e). 0 < snd p)"
+     \<and> (\<forall>p\<in>set (nq_portions e). 0 < snd p)
+     \<and> portion_groups_ok e"
 
 text \<open>The values of the readings in play that have a row (with their
 descriptions).\<close>
@@ -468,21 +485,52 @@ definition measure_portion :: "measure \<Rightarrow> (String.literal \<times> ra
 text \<open>A per-item weight: not a cup, tbsp, tsp, oz or ml measure.\<close>
 definition count_ok :: "String.literal \<Rightarrow> bool" where
   "count_ok l \<longleftrightarrow> \<not> (contains ''cup'' (lowl l) \<or> contains ''tbsp'' (lowl l) \<or> contains ''tsp'' (lowl l)
-     \<or> contains ''oz'' (lowl l) \<or> contains ''ml'' (lowl l))"
+     \<or> contains ''oz'' (lowl l) \<or> contains ''ml'' (lowl l)
+     \<or> contains ''lb'' (lowl l) \<or> contains ''pound'' (lowl l) \<or> contains ''gram'' (lowl l)
+     \<or> contains ''liter'' (lowl l) \<or> contains ''fluid'' (lowl l) \<or> contains ''gallon'' (lowl l)
+     \<or> contains ''pint'' (lowl l) \<or> contains ''quart'' (lowl l))"
 
 text \<open>ORDER BY medium DESC, large DESC, whole DESC, (label LIKE '1 %') DESC, length(label).\<close>
 definition count_key :: "String.literal \<Rightarrow> bool \<times> bool \<times> bool \<times> bool \<times> nat" where
   "count_key l = (\<not> contains ''medium'' (lowl l), \<not> contains ''large'' (lowl l),
      \<not> contains ''whole'' (lowl l), \<not> starts ''1 '' (lowl l), slen l)"
 
-definition count_portion :: "(String.literal \<times> rat) list \<Rightarrow> (String.literal \<times> rat) option" where
-  "count_portion ps = first_min (\<lambda>p. count_key (fst p)) (filter (\<lambda>p. count_ok (fst p)) ps)"
+fun size_words :: "count_size \<Rightarrow> char list" where
+  "size_words CS_any = []"
+| "size_words CS_small = ''small''"
+| "size_words CS_medium = ''medium''"
+| "size_words CS_large = ''large''"
+| "size_words CS_extra_small = ''extra small''"
+| "size_words CS_extra_large = ''extra large''"
+| "size_words CS_jumbo = ''jumbo''"
+
+fun form_words :: "count_form \<Rightarrow> char list" where
+  "form_words CF_whole = []"
+| "form_words CF_slice = ''slice''"
+| "form_words CF_strip = ''strip''"
+| "form_words CF_piece = ''piece''"
+
+definition label_prefix :: "char list \<Rightarrow> String.literal \<Rightarrow> bool" where
+  "label_prefix p l \<longleftrightarrow> lowl l = p \<or> starts (p @ '' '') (lowl l)
+    \<or> starts (p @ ''('') (lowl l) \<or> starts (p @ '','') (lowl l)"
+
+definition count_matches :: "count_size \<Rightarrow> count_form \<Rightarrow> String.literal \<Rightarrow> bool" where
+  "count_matches sz form l \<longleftrightarrow> count_ok l \<and> starts ''1 '' (lowl l) \<and>
+    (if form = CF_whole then \<not> (contains ''slice'' (lowl l) \<or> contains ''strip'' (lowl l)
+       \<or> contains ''piece'' (lowl l) \<or> contains ''serving'' (lowl l))
+     else contains (form_words form) (lowl l)) \<and>
+    (sz = CS_any \<or> (if form = CF_whole then label_prefix (''1 '' @ size_words sz) l
+      else label_prefix (''1 '' @ form_words form @ '' '' @ size_words sz) l
+        \<or> label_prefix (''1 '' @ size_words sz @ '' '' @ form_words form) l))"
+
+definition count_portion :: "count_size \<Rightarrow> count_form \<Rightarrow> (String.literal \<times> rat) list \<Rightarrow> (String.literal \<times> rat) option" where
+  "count_portion sz form ps = first_min (\<lambda>p. count_key (fst p)) (filter (\<lambda>p. count_matches sz form (fst p)) ps)"
 
 fun amount_grams :: "amount \<Rightarrow> (String.literal \<times> rat) list \<Rightarrow> (rat \<times> String.literal option) option" where
   "amount_grams A_default ps = Some (100, None)"
 | "amount_grams (A_mass q w u) ps = Some (q * grams_per u, None)"
 | "amount_grams (A_measure q nt ut m) ps = map_option (\<lambda>p. (q * snd p, Some (fst p))) (measure_portion m ps)"
-| "amount_grams (A_count q nt w) ps = map_option (\<lambda>p. (q * snd p, Some (fst p))) (count_portion ps)"
+| "amount_grams (A_count q nt w sz form) ps = map_option (\<lambda>p. (q * snd p, Some (fst p))) (count_portion sz form ps)"
 
 subsection \<open>Displayed precision and plausible servings\<close>
 
@@ -504,6 +552,7 @@ qed
 
 fun possible_grams :: "amount \<Rightarrow> (String.literal \<times> rat) list \<Rightarrow> rat list" where
   "possible_grams (A_measure q nt ut m) ps = map (\<lambda>p. q * snd p) (filter (\<lambda>p. like_measure m (fst p)) ps)"
+| "possible_grams (A_count q nt w sz form) ps = map (\<lambda>p. q * snd p) (filter (\<lambda>p. count_matches sz form (fst p)) ps)"
 | "possible_grams a ps = (case amount_grams a ps of None \<Rightarrow> [] | Some g \<Rightarrow> [fst g])"
 
 definition portions_for :: "nquery \<Rightarrow> int \<Rightarrow> (String.literal \<times> rat) list" where
@@ -570,6 +619,17 @@ theorem nutrient_serving_alternatives:
   shows "\<bar>stated_num (nutrient_unit (nq_nutrient e)) v - w\<bar> \<le> max (w / 20) (15 / 100)"
   using assms by (auto simp: nkernel_def serving_agrees_def split: option.splits prod.splits if_splits)
 
+theorem nutrient_portion_groups:
+  assumes "nkernel e = NAnswer g p v pl" "needs_portions (nq_amount e)"
+  shows "distinct (map fst (nq_other_portions e)) \<and>
+    set (map fst (nq_other_portions e)) = set (map fst (nq_near e)) \<and>
+    (\<forall>fd. nq_hit e = Some fd \<longrightarrow> map_of (nq_other_portions e) (fst fd) = Some (nq_portions e))"
+proof -
+  have "rows_ok e" using assms(1) by (auto simp: nkernel_def split: if_splits)
+  then show ?thesis using assms(2)
+    by (auto simp: rows_ok_def portion_groups_ok_def split: option.splits)
+qed
+
 theorem nutrient_requires_complete: "nkernel e = NAnswer g p v pl \<Longrightarrow> nq_complete e"
   using nutrient_answer_sound by blast
 
@@ -606,8 +666,8 @@ lemma measure_portion_Some:
   using first_min_Some[OF assms[unfolded measure_portion_def]] by auto
 
 lemma count_portion_Some:
-  assumes "count_portion ps = Some (l, w)"
-  shows "(l, w) \<in> set ps \<and> count_ok l \<and> (\<forall>x\<in>set ps. count_ok (fst x) \<longrightarrow> count_key l \<le> count_key (fst x))"
+  assumes "count_portion sz form ps = Some (l, w)"
+  shows "(l, w) \<in> set ps \<and> count_matches sz form l \<and> (\<forall>x\<in>set ps. count_matches sz form (fst x) \<longrightarrow> count_key l \<le> count_key (fst x))"
   using first_min_Some[OF assms[unfolded count_portion_def]] by auto
 
 text \<open>A household measure is converted with a stored portion of that measure
@@ -628,13 +688,13 @@ text \<open>A count of the food uses a stored per-item weight (not a cup, spoon,
 ml measure), preferring medium, then large, then whole, then a "1 ..." label,
 then the shortest.\<close>
 theorem nutrient_count_portion:
-  assumes "nq_amount e = A_count q nt w0" "nkernel e = NAnswer g p v pl"
-  shows "\<exists>l w. pl = Some l \<and> (l, w) \<in> set (nq_portions e) \<and> count_ok l \<and> g = q * w
-    \<and> (\<forall>x\<in>set (nq_portions e). count_ok (fst x) \<longrightarrow> count_key l \<le> count_key (fst x))"
+  assumes "nq_amount e = A_count q nt w0 sz form" "nkernel e = NAnswer g p v pl"
+  shows "\<exists>l w. pl = Some l \<and> (l, w) \<in> set (nq_portions e) \<and> count_matches sz form l \<and> g = q * w
+    \<and> (\<forall>x\<in>set (nq_portions e). count_matches sz form (fst x) \<longrightarrow> count_key l \<le> count_key (fst x))"
 proof -
   have "amount_grams (nq_amount e) (nq_portions e) = Some (g, pl)"
     using nutrient_answer_sound[OF assms(2)] by blast
-  then obtain l w where "count_portion (nq_portions e) = Some (l, w)" "g = q * w" "pl = Some l"
+  then obtain l w where "count_portion sz form (nq_portions e) = Some (l, w)" "g = q * w" "pl = Some l"
     using assms(1) by auto
   then show ?thesis using count_portion_Some by blast
 qed
@@ -658,7 +718,7 @@ theorem nutrient_portion_real:
   shows "(\<forall>q nt ut m. nq_amount e = A_measure q nt ut m \<longrightarrow>
       (\<exists>l w. pl = Some l \<and> (l, w) \<in> set (nq_portions e) \<and> 0 < w \<and>
         realq v = realq p * realq q * realq w / 100))
-    \<and> (\<forall>q nt w0. nq_amount e = A_count q nt w0 \<longrightarrow>
+    \<and> (\<forall>q nt w0 sz form. nq_amount e = A_count q nt w0 sz form \<longrightarrow>
       (\<exists>l w. pl = Some l \<and> (l, w) \<in> set (nq_portions e) \<and> 0 < w \<and>
         realq v = realq p * realq q * realq w / 100))
     \<and> (\<forall>q nt u. nq_amount e = A_mass q nt u \<longrightarrow>
@@ -672,7 +732,7 @@ proof (intro conjI allI impI)
   ultimately show "\<exists>l w. pl = Some l \<and> (l, w) \<in> set (nq_portions e) \<and> 0 < w \<and> realq v = realq p * realq q * realq w / 100"
     using lw realq_scale[of v p q w] by (intro exI[of _ l] exI[of _ w]) auto
 next
-  fix q nt w0 assume a: "nq_amount e = A_count q nt w0"
+  fix q nt w0 sz form assume a: "nq_amount e = A_count q nt w0 sz form"
   from nutrient_count_portion[OF a assms] obtain l w where lw: "pl = Some l" "(l, w) \<in> set (nq_portions e)" "g = q * w" by blast
   have ok: "rows_ok e" using assms by (auto simp: nkernel_def split: if_splits)
   then have "0 < w" using lw(2) by (auto simp: rows_ok_def)
@@ -745,7 +805,7 @@ a count, no per-item row exists); a mass or no amount always has grams.\<close>
 theorem amount_grams_none:
   "amount_grams a ps = None \<longleftrightarrow>
      (\<exists>q nt ut m. a = A_measure q nt ut m \<and> (\<forall>x\<in>set ps. \<not> like_measure m (fst x)))
-     \<or> (\<exists>q nt w. a = A_count q nt w \<and> (\<forall>x\<in>set ps. \<not> count_ok (fst x)))"
+     \<or> (\<exists>q nt w sz form. a = A_count q nt w sz form \<and> (\<forall>x\<in>set ps. \<not> count_matches sz form (fst x)))"
   by (cases a) (auto simp: measure_portion_def count_portion_def filter_empty_conv)
 
 theorem nutrient_incomplete:
@@ -780,7 +840,7 @@ definition nreply :: "nquery \<Rightarrow> reply" where
        NAnswer g p v pl \<Rightarrow>
          let st = Some (render_fixed (dp_of (nutrient_unit n) v) (round_dp (dp_of (nutrient_unit n) v) v)) in
          (case nq_amount e of
-            A_count q nt w \<Rightarrow> Reply True (STR ''answered'') (STR ''nutrient'')
+            A_count q nt w sz form \<Rightarrow> Reply True (STR ''answered'') (STR ''nutrient'')
               (nt + STR '' '' + w + STR '' ('' + show_g q + STR '' x ''
                  + strip_one (case pl of Some l \<Rightarrow> l | None \<Rightarrow> STR '''') + STR '', '' + show_g g
                  + STR '' g total) has '' + what_text n v + source_text f d p n) st
@@ -807,7 +867,7 @@ definition nreply :: "nquery \<Rightarrow> reply" where
            (STR ''USDA gives no '' + measure_key m + STR '' weight for '' + dq + d + dq + STR '', so I can'' + apos
              + STR ''t convert '' + nt + STR '' '' + ut + STR ''. Ask me in grams instead.'') None
        | _ \<Rightarrow> Reply False (STR ''withheld'') (STR ''no_portion'')
-           (STR ''USDA gives no per-item weight for '' + dq + d + dq + STR '', so I can'' + apos
+           (STR ''USDA gives no matching size or per-item weight for '' + dq + d + dq + STR '', so I can'' + apos
              + STR ''t count them. Ask me in grams instead.'') None)
      | NDecline ND_serving_ambiguous \<Rightarrow> Reply False (STR ''clarify'') (STR ''clarify'')
          (STR ''The matching USDA foods or household portions give different amounts for '' + lower ph

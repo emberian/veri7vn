@@ -345,7 +345,19 @@ struct
       fun ins (x, []) = [x]
         | ins (x, y :: ys) = if size x > size y then x :: y :: ys else y :: ins (x, ys)
     in String.concatWith "|" (List.foldl ins [] names) end
-  val AMOUNT = "\\b((?:\\d+\\s+)?\\d+/\\d+|\\d+(?:\\.\\d+)?|an?|one|two|three|half an?|half a)\\s*(" ^ unitAlternation () ^ ")\\b(?:\\s+of)?"
+  val NUMBER = "(?:\\d+\\s+)?\\d+/\\d+|\\d+(?:\\.\\d+)?|an?|one|two|three|half an?|half a"
+  val AMOUNT = "\\b(" ^ NUMBER ^ ")\\s*(" ^ unitAlternation () ^ ")\\b(?:\\s+of)?"
+  (* Count modifiers describe the portion, so they are removed before matching
+     food descriptions and carried explicitly into the checked request. *)
+  val COUNT_PREFIX = "\\b(" ^ NUMBER ^ ")\\s+"
+    ^ "(?:(extra small|extra large|small|medium|large|jumbo)\\s+)?"
+    ^ "(?:(slices?|strips?|pieces?)\\s+(?:of\\s+)?)?"
+  fun countSize s = case Rx.lower s of
+      "small" => S.CS_small | "medium" => S.CS_medium | "large" => S.CS_large
+    | "extra small" => S.CS_extra_small | "extra large" => S.CS_extra_large
+    | "jumbo" => S.CS_jumbo | _ => S.CS_any
+  fun countForm s = case sing (Rx.lower s) of
+      "slice" => S.CF_slice | "strip" => S.CF_strip | "piece" => S.CF_piece | _ => S.CF_whole
 
   fun qtyOf (q : string) : S.rat =
     let
@@ -375,7 +387,7 @@ struct
   (* NutritionOrgan.answer up to the store lookups. NONE = the organ returns None. *)
   fun v1 (foods : unit -> food vector) (text : string) : recog option =
     let
-      val t = Rx.collapse text
+      val t = Rx.sub "\\s*/\\s*" "/" 0 (Rx.collapse text)
       val found = List.mapPartial (fn (k, n, p) => Option.map (fn (m : Regex.match) => (#start m, k, n)) (Rx.search p t)) nutPats
       fun better ((s1, k1, _), (s2, k2, _)) = s1 < s2 orelse (s1 = s2 andalso k1 < k2)
       val nut = List.foldl (fn (x, NONE) => SOME x | (x, SOME y) => SOME (if better (x, y) then x else y)) NONE found
@@ -387,8 +399,23 @@ struct
           else
             let
               val m = Rx.search AMOUNT t
+              val cm = if isSome m then NONE else Rx.search COUNT_PREFIX t
+              (* A suffix of an unsupported numeral is not a quantity: e.g.
+                 2,000 must not become 000, nor 1.2.3 become 3. *)
+              val _ = case (case m of SOME x => SOME x | NONE => cm) of
+                  SOME (mm as {start, ...} : Regex.match) =>
+                    let val prefix = Rx.rstrip " \t\r\n" (String.substring (t, 0, start))
+                        val adjacent = start > 0 andalso
+                          not (Char.isSpace (String.sub (t, start - 1))) andalso
+                          not (Char.contains "(:" (String.sub (t, start - 1)))
+                        val priorNumeric = size prefix > 0 andalso
+                          Char.contains "0123456789.,/+-" (String.sub (prefix, size prefix - 1))
+                    in if adjacent orelse priorNumeric
+                       then raise Fail "unsupported quantity token" else () end
+                | NONE => ()
               val rest = Rx.sub (Pats.get ("nutrition_v1.NUTRIENTS." ^ k)) " " 1 t
-              val rest = case m of SOME mm => Rx.replaceAll (Rx.whole t mm) " " rest | NONE => rest
+              val rest = case m of SOME mm => Rx.replaceAll (Rx.whole t mm) " " rest
+                         | NONE => (case cm of SOME mm => Rx.replaceAll (Rx.whole t mm) " " rest | NONE => rest)
               val rest = String.map (fn c => if Char.isAlpha c andalso Char.ord c < 128 orelse c = #" " orelse c = #"," then c else #" ") rest
               val fv = foods ()
               val hit = matchFood fv rest
@@ -410,12 +437,14 @@ struct
                            | NONE => raise Fail ("no unit " ^ u))
                     end
                 | NONE =>
-                    (case (hit, Rx.search (Pats.get "nutrition_v1.COUNT") t) of
-                       (SOME (f, _), SOME cm) =>
-                         if mem (sing (Rx.g t cm 2)) (#toks f)
-                         then S.A_count (qtyOf (Rx.g t cm 1), Rx.g t cm 1, Rx.g t cm 2)
-                         else S.A_default
-                     | _ => S.A_default)
+                    (case cm of
+                       SOME mm =>
+                         let val quantity = Rx.g t mm 1
+                             val sz = case Rx.grp t mm 2 of SOME x => x | NONE => ""
+                             val form = case Rx.grp t mm 3 of SOME x => x | NONE => ""
+                             val description = String.concatWith " " (List.filter (fn x => x <> "") [sz, form, phrase])
+                         in S.A_count (qtyOf quantity, quantity, description, countSize sz, countForm form) end
+                     | NONE => S.A_default)
             in
               SOME {nut = n, amount = amount, phrase = Rx.strip phrase,
                     hit = Option.map #1 hit, near = case hit of SOME (_, nr) => nr | NONE => []}
@@ -442,6 +471,7 @@ struct
 
   (* Per manifest: (pre-narrowing passes, normalized text, decline-narrowing applies) *)
   fun recognize (mode : string) (foods : unit -> food vector) (text : string) : (recog * bool) option =
+    let val text = Rx.replaceAll "\226\136\146" "-" text in
     if Rx.has "(?:^|\\s)-\\s*\\d|(?:^|\\s)\\.\\d" text then NONE
     else case mode of
       "cooking" => Option.map (fn r => (r, false)) (v1 foods (normalize3 text))
@@ -452,6 +482,7 @@ struct
         else if Narrow.narrative text then NONE
         else Option.map (fn r => (r, true)) (v1 foods (normalize3 text))
     | _ => NONE
+    end
 end
 
 (* ------------------------------------------------------------------ site *)
@@ -517,6 +548,11 @@ struct
 
   fun zoneT (z : IntInf.int * string) = (S.mk_int (#1 z), #2 z)
 
+  (* Only an actual omitted-object question inherits the previous item. A short
+     explicit unknown name ("purple widgets count?") is not an ellipsis. *)
+  fun itemEllipsis t = Rx.has
+    "^(?:and )?(?:how many(?: are left| left| do we have)?|count|stock|quantity|where|where (?:is|are|do we keep)|which bin|when will we run out|how long(?: until (?:empty|we run out))?|days left)[?.! ]*$" t
+
   fun resolveFollow tb t (st : S.sstate) =
     let
       val rest = Rx.rstrip "?.! " (Rx.sub (Pats.get "site_v2.follow_strip") "" 0 t)
@@ -548,7 +584,7 @@ struct
         val t = case S.s_item st of
                   SOME (_, nm) =>
                     if not (isSome (item tb t)) andalso not (isSome (zone tb t)) andalso not (isSome (kind t))
-                       andalso (has "STOCK" t orelse has "WHERE" t orelse has "RUNOUT" t) andalso Rx.words t <= 8
+                       andalso itemEllipsis t
                     then Rx.rstrip "?.! " t ^ " " ^ nm else t
                 | NONE => t
         val t =

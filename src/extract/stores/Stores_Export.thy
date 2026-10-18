@@ -32,17 +32,27 @@ definition q1 :: nquery where
 
 definition q2 :: nquery where
   "q2 = NQ N_sodium (A_measure 1 (STR ''a'') (STR ''cup'') M_cup) (STR ''x'') (Some (1, STR ''X''))
-     [(1, STR ''X''), (2, STR ''Y'')] [(1, 100, STR ''mg''), (2, 50, STR ''mg'')] [] [] True"
+     [(1, STR ''X''), (2, STR ''Y'')] [(1, 100, STR ''mg''), (2, 50, STR ''mg'')] [] [(1, []), (2, [])] True"
 
 definition q3 :: nquery where
   "q3 = NQ N_sodium (A_measure 1 (STR ''a'') (STR ''cup'') M_cup) (STR ''x'') (Some (1, STR ''X''))
      [(1, STR ''X''), (2, STR ''Y'')] [(1, 100, STR ''mg''), (2, 90, STR ''mg'')]
-     [(STR ''1 cup, chopped'', 150), (STR ''1 Cup'', 140), (STR ''1 tbsp'', 9)] [] True"
+     [(STR ''1 cup, chopped'', 150), (STR ''1 Cup'', 140), (STR ''1 tbsp'', 9)]
+     [(1, [(STR ''1 cup, chopped'', 150), (STR ''1 Cup'', 140), (STR ''1 tbsp'', 9)]), (2, [])] True"
 
 definition q4 :: nquery where
-  "q4 = NQ N_calories (A_count 2 (STR ''2'') (STR ''bananas'')) (STR ''banana'') (Some (1, STR ''Bananas, raw''))
+  "q4 = NQ N_calories (A_count 2 (STR ''2'') (STR ''medium bananas'') CS_medium CF_whole) (STR ''banana'') (Some (1, STR ''Bananas, raw''))
      [(1, STR ''Bananas, raw'')] [(1, 89, STR ''kcal'')]
-     [(STR ''1 cup, mashed'', 225), (STR ''1 extra small'', 81), (STR ''1 medium (7 to 7-7/8 long)'', 118)] [] True"
+     [(STR ''1 cup, mashed'', 225), (STR ''1 extra small'', 81), (STR ''1 medium (7 to 7-7/8 long)'', 118)]
+     [(1, [(STR ''1 cup, mashed'', 225), (STR ''1 extra small'', 81), (STR ''1 medium (7 to 7-7/8 long)'', 118)])] True"
+
+definition with_groups :: "(int \<times> (String.literal \<times> rat) list) list \<Rightarrow> nquery \<Rightarrow> nquery" where
+  "with_groups groups e = NQ (nq_nutrient e) (nq_amount e) (nq_phrase e)
+    (nq_hit e) (nq_near e) (nq_rows e) (nq_portions e) groups (nq_complete e)"
+
+definition q4_unsized :: nquery where
+  "q4_unsized = NQ N_calories (A_count 2 (STR ''2'') (STR ''bananas'') CS_any CF_whole)
+    (nq_phrase q4) (nq_hit q4) (nq_near q4) (nq_rows q4) (nq_portions q4) (nq_other_portions q4) True"
 
 definition ev0 :: sev where
   "ev0 = SEv 1000000 30 [(0, 10), (900000, -7)] 5 (Some (STR ''A1-01'', STR ''Aisle 1'')) None
@@ -60,6 +70,10 @@ definition self_test :: bool where
      nkernel q3 = NDecline ND_serving_ambiguous \<and>
      reply_status (nreply q3) = STR ''clarify'' \<and>
      nkernel q4 = NAnswer 236 89 (89 * 236 / 100) (Some (STR ''1 medium (7 to 7-7/8 long)'')) \<and>
+     nkernel q4_unsized = NDecline ND_serving_ambiguous \<and>
+     nkernel (with_groups [] q4) = NDecline ND_incomplete \<and>
+     nkernel (with_groups [(1, nq_portions q4), (1, nq_portions q4)] q4) = NDecline ND_incomplete \<and>
+     nkernel (with_groups [(1, [])] q4) = NDecline ND_incomplete \<and>
      reply_status (nreply q2) = STR ''clarify'' \<and>
      show_g (566990 / 10000) = STR ''56.699'' \<and> show_g 100 = STR ''100'' \<and> show_g (1 / 3) = STR ''0.333333'' \<and>
      show_g 1234567 = STR ''1.23457e+06'' \<and> render_fixed 1 30 = STR ''3.0'' \<and> render_fixed 2 5 = STR ''0.05'' \<and>
@@ -84,13 +98,14 @@ export_code nreply nkernel answered reply_status reply_kind response stated
   mk_rat mk_int mk_nat self_test integer_of_int int_of_integer nat_of_integer integer_of_nat
   nutrient_order nutrient_key nutrient_unit mass_names measure_names measure_key skind_order skind_key
   NQ A_default A_mass A_measure A_count
+  CS_any CS_small CS_medium CS_large CS_extra_small CS_extra_large CS_jumbo CF_whole CF_slice CF_strip CF_piece
   SEv I_read I_confirm R_self R_neighbour R_reorder R_low R_where R_runout R_stock R_zone_status R_sensor
   R_unknown_item R_kind_only R_off_site R_none SL_none SL_item SL_sensor SL_zone_status
   in SML module_name Stores file_prefix stores
 
 ML \<open>
   val theorems = [@{thm first_min_Some}, @{thm first_min_tie_first}, @{thm round_dp_sound},
-    @{thm nutrient_serving_alternatives}, @{thm nutrient_answer_covered}, @{thm nutrient_portion_real}, @{thm grams_pos}, @{thm stale_mono},
+    @{thm nutrient_portion_groups}, @{thm nutrient_serving_alternatives}, @{thm nutrient_answer_covered}, @{thm nutrient_portion_real}, @{thm grams_pos}, @{thm stale_mono},
     @{thm nutrient_answer_sound}, @{thm nutrient_requires_complete}, @{thm nutrient_value},
     @{thm nutrient_default_grams}, @{thm nutrient_mass_grams}, @{thm nutrient_measure_portion},
     @{thm nutrient_count_portion}, @{thm nutrient_readings_agree}, @{thm nutrient_unknown_food},
