@@ -17,16 +17,16 @@
       },
       "context_regex_additions": [
         "\\bpercent(?:age)?\\s+composition\\b|\\belemental\\s+composition\\b|\\bcomposition\\s+by\\s+(?:mass|weight)\\b",
-        "(?=[\\s\\S]*->)(?=[\\s\\S]*\\b(?:yield|leftover|remaining|produced|form|remain)\\b)(?=[\\s\\S]*\\b(?:mol|moles|mmol|millimoles)\\b)"
+        "(?=[\\s\\S]*->)(?=[\\s\\S]*\\b(?:yield|leftover|remaining|produced|form|remain)\\b)(?=[\\s\\S]*\\b(?:mol|moles|mmol|millimoles|micromoles|umol|g|grams|mg|milligrams|kg|kilograms|micrograms)\\b)"
       ],
       "evidence": {
-        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding. For an explicit reaction, the kernel checks positive coefficients and conservation of every element, then computes the greatest feasible extent, an exhausted reactant, and exact theoretical yield or leftovers. Repeated identical species names aggregate, equal left/right coefficients cancel, and limiting extent uses only net consumables. Net product formation and final inventory including any initial product are distinct outputs. Mass units are typed as grams, milligrams, kilograms, or micrograms; exact gram scales are applied inside the kernel. Requested output units and inverse-decay ratios retain their original unit constructors. Forward and inverse decay preserve physical mass under these scales.",
+        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding. For an explicit reaction, the kernel checks positive coefficients and conservation of every element, then computes the greatest feasible extent, an exhausted reactant, and exact theoretical yield or leftovers. Repeated identical species names aggregate, equal left/right coefficients cancel, and limiting extent uses only net consumables. Net product formation and final inventory including any initial product are distinct outputs. Mass units are typed as grams, milligrams, kilograms, or micrograms; exact gram scales are applied inside the kernel. Requested output units and inverse-decay ratios retain their original unit constructors. Forward and inverse decay preserve physical mass under these scales. Reaction inventories retain mole or physical mass units through the kernel; normalization conserves the supplied quantity, and requested yield/remaining units scale only the exact checked result.",
         "assumptions": [
           "Percent-composition requests denote one molecular formula, not a solution, mixture, alloy or sample.",
           "Embedded atomic masses are the supplied PubChem decimals, not independently established physical facts.",
           "Reaction calculations model complete conversion of the limiting reactant under the supplied stoichiometry; they do not establish reaction occurrence, equilibrium, kinetics, or measured yield.",
           "Species identity is the exact formula spelling after supported syntactic normalization; distinct names with equal element counts are withheld as unresolved aliases/isomers.",
-          "Every original reactant has one explicitly supplied initial mole amount; product-only species may have an initial amount or default to zero. Repeated terms share the same named inventory.",
+          "Every original reactant has one explicitly supplied initial amount in a supported mole or mass unit; product-only species may have an initial amount or default to zero. Repeated terms share the same named inventory.",
           "A single requested mass unit belongs to the supported gram scale family; other units or multiple requested units are withheld."
         ],
         "untrusted": [
@@ -52,16 +52,16 @@
       },
       "context_regex_additions": [
         "\\bpercent(?:age)?\\s+composition\\b|\\belemental\\s+composition\\b|\\bcomposition\\s+by\\s+(?:mass|weight)\\b",
-        "(?=[\\s\\S]*->)(?=[\\s\\S]*\\b(?:yield|leftover|remaining|produced|form|remain)\\b)(?=[\\s\\S]*\\b(?:mol|moles|mmol|millimoles)\\b)"
+        "(?=[\\s\\S]*->)(?=[\\s\\S]*\\b(?:yield|leftover|remaining|produced|form|remain)\\b)(?=[\\s\\S]*\\b(?:mol|moles|mmol|millimoles|micromoles|umol|g|grams|mg|milligrams|kg|kilograms|micrograms)\\b)"
       ],
       "evidence": {
-        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding. For an explicit reaction, the kernel checks positive coefficients and conservation of every element, then computes the greatest feasible extent, an exhausted reactant, and exact theoretical yield or leftovers. Repeated identical species names aggregate, equal left/right coefficients cancel, and limiting extent uses only net consumables. Net product formation and final inventory including any initial product are distinct outputs. Mass units are typed as grams, milligrams, kilograms, or micrograms; exact gram scales are applied inside the kernel. Requested output units and inverse-decay ratios retain their original unit constructors. Forward and inverse decay preserve physical mass under these scales.",
+        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding. For an explicit reaction, the kernel checks positive coefficients and conservation of every element, then computes the greatest feasible extent, an exhausted reactant, and exact theoretical yield or leftovers. Repeated identical species names aggregate, equal left/right coefficients cancel, and limiting extent uses only net consumables. Net product formation and final inventory including any initial product are distinct outputs. Mass units are typed as grams, milligrams, kilograms, or micrograms; exact gram scales are applied inside the kernel. Requested output units and inverse-decay ratios retain their original unit constructors. Forward and inverse decay preserve physical mass under these scales. Reaction inventories retain mole or physical mass units through the kernel; normalization conserves the supplied quantity, and requested yield/remaining units scale only the exact checked result.",
         "assumptions": [
           "Percent-composition requests denote one molecular formula, not a solution, mixture, alloy or sample.",
           "Embedded atomic masses are the supplied PubChem decimals, not independently established physical facts.",
           "Reaction calculations model complete conversion of the limiting reactant under the supplied stoichiometry; they do not establish reaction occurrence, equilibrium, kinetics, or measured yield.",
           "Species identity is the exact formula spelling after supported syntactic normalization; distinct names with equal element counts are withheld as unresolved aliases/isomers.",
-          "Every original reactant has one explicitly supplied initial mole amount; product-only species may have an initial amount or default to zero. Repeated terms share the same named inventory.",
+          "Every original reactant has one explicitly supplied initial amount in a supported mole or mass unit; product-only species may have an initial amount or default to zero. Repeated terms share the same named inventory.",
           "A single requested mass unit belongs to the supported gram scale family; other units or multiple requested units are withheld."
         ],
         "untrusted": [

@@ -25,7 +25,13 @@ def cases():
     for sid, q, expected in base.cases():
         if " + Pt" in q or "1 mol O2, 2 mol H2O" in q:
             expected = 2
+        if "4 g H2" in q:
+            expected = float(Fraction(4) / Fraction("2.016"))
+        if q.endswith("yield H2O in kg"):
+            expected = .03603
         category = "answer" if expected is not None else base.expectation_class(q, expected)
+        if expected is None and "yield NaCl" in q:
+            category = "withheld_valid"
         seen.add((sid, q))
         yield sid, q, expected, category
     probes = json.loads((Path(__file__).parent / "net-probes.json").read_text())

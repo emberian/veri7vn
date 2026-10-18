@@ -1,10 +1,11 @@
 theory Chemistry_Export
-  imports "stoich/NetStoichiometry" "stoich/Mass_Units" "stoich/Solutions"
+  imports "stoich/NetStoichiometry" "stoich/Mass_Units" "stoich/Solutions" "stoich/Reaction_Units"
 begin
 
 datatype request = RC creq | RD dreq | RM measured_request | RL solution_request solution_prefix
   | RS "(string \<times> nat) list" "(string \<times> nat) list" "rat list" stoich_query
   | RNS "(string \<times> nat) list" "(string \<times> nat) list" "(string \<times> rat) list" net_query
+  | RNU "(string \<times> nat) list" "(string \<times> nat) list" "reaction_amount list" measured_net_query
 
 text \<open>The arithmetic functions are total algebraic maps. The public typed
 answer interface additionally checks the physical input domain. In particular a
@@ -40,6 +41,7 @@ fun physical_request :: "request \<Rightarrow> bool" where
 | "physical_request (RD r) = physical_dreq r"
 | "physical_request (RS lhs rhs amounts query) = True"
 | "physical_request (RNS lhs rhs amounts query) = True"
+| "physical_request (RNU lhs rhs amounts query) = True"
 | "physical_request (RM r) = True"
 | "physical_request (RL r u) = True"
 
@@ -48,6 +50,7 @@ fun raw_reply :: "request \<Rightarrow> reply" where
 | "raw_reply (RD r) = reply_d r"
 | "raw_reply (RS lhs rhs amounts query) = reply_s lhs rhs amounts query"
 | "raw_reply (RNS lhs rhs amounts query) = reply_net lhs rhs amounts query"
+| "raw_reply (RNU lhs rhs amounts query) = measured_net_reply lhs rhs amounts query"
 | "raw_reply (RM r) = measured_reply r"
 | "raw_reply (RL r u) = solution_reply r u"
 
@@ -58,6 +61,16 @@ fun invalid_request_text :: "request \<Rightarrow> String.literal" where
 definition reply_of :: "request \<Rightarrow> reply" where
   "reply_of r = (if physical_request r then raw_reply r
      else Reply False (STR ''impossible'') (invalid_request_text r) None)"
+
+theorem reply_of_measured_net_value:
+  "answered (reply_of (RNU lhs rhs amounts query)) \<Longrightarrow>
+    \<exists>ns result n scale. normalize_inventory amounts = Some ns \<and>
+      checked_net_reaction lhs rhs ns = Some result \<and>
+      net_value result (base_net_query query) = Some n \<and>
+      unit_scale (net_query_name (base_net_query query)) (measured_query_unit query) = Some scale \<and>
+      0 < scale \<and>
+      stated (reply_of (RNU lhs rhs amounts query)) = Some (nshow (NR (n * scale)))"
+  using measured_net_answered_value[of lhs rhs amounts query] by (auto simp: reply_of_def)
 
 theorem reply_of_solution_value:
   "answered (reply_of (RL r u)) \<Longrightarrow>
@@ -206,6 +219,12 @@ definition self_checks :: "unit \<Rightarrow> bool list" where
     (stated (reply_of (RC (WaterToAdd 0 1))) = Some (STR ''1000'')),
     (\<not> answers (RC (MolarityMoles 0 0))),
     (\<not> answers (RC (DilutedConc 2 0 0))),
+    (stated (reply_of (RNU [(''H2'',2),(''O2'',1)] [(''H2O'',2)]
+      [ReactionAmount ''H2'' 4.032 (ReactionMass MassGram), ReactionAmount ''O2'' 31.998 (ReactionMass MassGram)]
+      (MeasuredNetYield ''H2O'' (ReactionMass MassKilogram)))) = Some (STR ''0.03603'')),
+    (\<not> answers (RNU [(''H2'',2),(''O2'',1)] [(''H2O'',2)]
+      [ReactionAmount ''H2'' (-1) (ReactionMass MassGram), ReactionAmount ''O2'' 1 ReactionMol]
+      (MeasuredNetYield ''H2O'' ReactionMol))),
     (stated (reply_of (RL (MassSolutionMolarity ''H2O'' 18.015 MassMilligram 1) SolMilli)) = Some (STR ''1'')),
     (stated (reply_of (RL (StockVolume 0 0 0) SolMilli)) = Some (STR ''0'')),
     (\<not> answers (RL (MassSolutionMolarity ''H2O'' 1 MassGram 0) SolMilli)),
@@ -246,6 +265,7 @@ definition self_test :: "unit \<Rightarrow> bool" where
 export_code reply_of answered reply_kind response stated answers mk_rat chars_of self_test
   self_checks fclass elem_names is_symbol iso_order
   integer_of_int nat_of_integer int_of_integer
+  RNU ReactionAmount ReactionMol ReactionMillimol ReactionMicromol ReactionMass MeasuredNetYield MeasuredNetFinal
   RL StockVolume AddSolvent SoluteAmount SolutionMolarity DilutedMolarity MassSolutionMolarity SolBase SolMilli SolMicro
   RM MeasuredMoles MeasuredMass MeasuredRemaining MeasuredDecayTime
   MeasuredMolarMass MeasuredSolutionMass MeasuredMolarity
@@ -262,7 +282,7 @@ export_code reply_of answered reply_kind response stated answers mk_rat chars_of
   in SML module_name Chemistry file_prefix chemistry
 
 ML \<open>
-  val theorems = [@{thm mass_solution_conservation}, @{thm zero_stock_zero_final}, @{thm reply_of_solution_value}, @{thm solution_reply_value}, @{thm directed_stock_conserves_solute}, @{thm directed_stock_unique}, @{thm solvent_volume_conservation}, @{thm solution_amount_conservation}, @{thm solution_molarity_conservation}, @{thm solution_dilution_conservation}, @{thm measured_molar_mass_value}, @{thm measured_solution_mass_value}, @{thm measured_molarity_value}, @{thm measured_moles_value}, @{thm grams_per_unit_positive}, @{thm convert_mass_conserves_grams}, @{thm convert_mass_composes}, @{thm convert_mass_nonnegative}, @{thm mass_fraction_value}, @{thm measured_mass_value}, @{thm measured_remaining_kernel_value}, @{thm measured_remaining_answered}, @{thm measured_decay_time_answered}, @{thm reply_of_measured_mass}, @{thm net_inventory_atom_conservation}, @{thm checked_net_inventory_conservation}, @{thm species_coefficient_append}, @{thm species_coefficient_other}, @{thm species_coefficient_same}, @{thm prepared_species_bindings}, @{thm prepared_species_names}, @{thm spectator_zero_net}, @{thm spectator_excluded_from_consumers}, @{thm spectator_does_not_limit}, @{thm spectator_inventory_unchanged}, @{thm net_inventory_nonnegative}, @{thm checked_net_certificate}, @{thm checked_net_conservation}, @{thm checked_net_limiting_extent}, @{thm reply_net_answered_certificate}, @{thm reply_of_net_reaction_certificate},
+  val theorems = [@{thm reply_of_measured_net_value}, @{thm units_per_mole_positive}, @{thm unit_scale_value}, @{thm amount_conversion_conserves_quantity}, @{thm mass_inventory_conserves_grams}, @{thm normalized_inventory_names}, @{thm normalized_inventory_quantities}, @{thm measured_net_answered_value}, @{thm measured_net_conservation_certificate}, @{thm mass_solution_conservation}, @{thm zero_stock_zero_final}, @{thm reply_of_solution_value}, @{thm solution_reply_value}, @{thm directed_stock_conserves_solute}, @{thm directed_stock_unique}, @{thm solvent_volume_conservation}, @{thm solution_amount_conservation}, @{thm solution_molarity_conservation}, @{thm solution_dilution_conservation}, @{thm measured_molar_mass_value}, @{thm measured_solution_mass_value}, @{thm measured_molarity_value}, @{thm measured_moles_value}, @{thm grams_per_unit_positive}, @{thm convert_mass_conserves_grams}, @{thm convert_mass_composes}, @{thm convert_mass_nonnegative}, @{thm mass_fraction_value}, @{thm measured_mass_value}, @{thm measured_remaining_kernel_value}, @{thm measured_remaining_answered}, @{thm measured_decay_time_answered}, @{thm reply_of_measured_mass}, @{thm net_inventory_atom_conservation}, @{thm checked_net_inventory_conservation}, @{thm species_coefficient_append}, @{thm species_coefficient_other}, @{thm species_coefficient_same}, @{thm prepared_species_bindings}, @{thm prepared_species_names}, @{thm spectator_zero_net}, @{thm spectator_excluded_from_consumers}, @{thm spectator_does_not_limit}, @{thm spectator_inventory_unchanged}, @{thm net_inventory_nonnegative}, @{thm checked_net_certificate}, @{thm checked_net_conservation}, @{thm checked_net_limiting_extent}, @{thm reply_net_answered_certificate}, @{thm reply_of_net_reaction_certificate},
     @{thm balanced_reaction_conserves_every_element}, @{thm parsed_reaction_side_known},
     @{thm reaction_extent_feasible}, @{thm reaction_extent_greatest}, @{thm reaction_extent_exhausts_a_feed},
     @{thm reaction_leftovers_nonnegative}, @{thm reaction_leftovers_contains_zero},

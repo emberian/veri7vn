@@ -1,6 +1,6 @@
 # Chemistry J — physical reaction inventories and requested yield units
 
-This is a **staged, checked successor**, not the live chemistry implementation. Live I remains committed as `e8e57bb` and captured at `var/C-runtime-package/bound-prepared/20261018T102034Z-f93346a47116/chemistry`. The user’s drain ended further implementation and promotion after this bounded packet.
+**Root integration update:** J is now the live chemistry implementation. Root adopted the frozen packet after the drain, reused its checked proof, and compiled it against the current checkout. The original staging record below remains historical evidence; the new integration receipt is `var/root-chemistry-j/integration.json`. No additional proof build was needed.
 
 ## What it does
 
@@ -44,3 +44,31 @@ The single successful staged native compile manifest is `var/chemistry/native-at
 The reader still uses the explicit three-clause reaction/inventory/query grammar. Rates are not inventories. Unsupported units, repeated inventory batches, unknown query species, and unresolved formula aliases/isomers remain withheld. Complete limiting-reactant conversion is a supplied model assumption; this does not establish reaction occurrence, kinetics, equilibrium, or actual experimental yield. Atomic masses are the embedded supplied decimals. Text recognition, unit/name binding, and authored probes are untrusted boundaries.
 
 The lane is drained: no running jobs, no further successor or retries, no pending live mutation. Root owns future integration.
+
+
+## Root adoption after drain
+
+Current-checkout compile `20261018T111952Z-db46d7f92800` reproduced the exact
+staged native `1680f709…`; verifier reports no proof or runtime differences.
+Root inspected the positive-scale, quantity-conservation, normalized-name and
+net-conservation statements and their public `reply_of` connection. All frozen
+packet/evidence hashes and predecessor I source/native hashes matched before
+adoption. The eight source files retain their recorded modes.
+
+The exact-native shipped result remains1206/1206, with zero wrong/false yes.
+It was not redundantly rerun: the rebuilt native is byte-identical. Current
+scoped Dispatcher composition freshly passes342/342 assertions:312 numerical
+answers,22 correct invalid refusals, and8 valid requests withheld. The report's
+334 right includes those22 invalid refusals. Root's independent methane panel
+adds14 numerical answers and4 invalid refusals across both chemistry IDs.
+Initial root tolerance was too strict for the documented four-significant-digit
+interface; exact Decimal half-up display expectations now pass, and the initial
+observations are retained. Seven selected fresh requests also pass through the
+actual full default Dispatcher:five numerical answers andtwo invalid refusals.
+
+Evidence and exact consumer hashes are under `var/root-chemistry-j/`.
+An immutable source/export/native capture is at
+`var/C-runtime-package/bound-prepared/20261018T111952Z-db46d7f92800/chemistry`.
+The current checkout still contains unrelated preserved drafts. These chemistry
+checks do not certify them. Linux comparison and selected portable archive
+refresh remain pending; the fixed-cohort delivery record has not changed.

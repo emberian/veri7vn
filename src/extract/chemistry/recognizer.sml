@@ -382,11 +382,18 @@ struct
     (* organ_chemistry_v2 / labsolutions: a decline is only given to a short direct question *)
     not narrow orelse Q.answers r orelse Narrow.short_direct t
 
-  (* Explicit reaction clauses: reaction; named mole amounts; requested yield
+  (* Explicit reaction clauses: reaction; named physical amounts; requested yield
      or remainder. Every quantity and formula must be claimed exactly once.
      Coefficients and amounts are checked again by the extracted kernel. *)
   fun reactionRequest text =
     let
+      val reactionUnits = "mol|moles?|mmol|millimoles?|micromoles?|umol|" ^ MASS_UNIT
+      fun reactionUnit u =
+        case u of
+          "mol" => SOME Q.ReactionMol | "mole" => SOME Q.ReactionMol | "moles" => SOME Q.ReactionMol
+        | "mmol" => SOME Q.ReactionMillimol | "millimole" => SOME Q.ReactionMillimol | "millimoles" => SOME Q.ReactionMillimol
+        | "umol" => SOME Q.ReactionMicromol | "micromole" => SOME Q.ReactionMicromol | "micromoles" => SOME Q.ReactionMicromol
+        | _ => Option.map Q.ReactionMass (massUnit u)
       fun sequence [] = SOME []
         | sequence (NONE :: _) = NONE
         | sequence (SOME x :: xs) = Option.map (fn rest => x :: rest) (sequence xs)
@@ -417,7 +424,7 @@ struct
         | SOME {text = masked, numbers} =>
             let
               val low = lower masked
-              val matches = findall (NUM ^ "\\s*(mol|moles?|mmol|millimoles?)\\b\\s+(?:of\\s+)?([^\\s,;]+)") low
+              val matches = findall (NUM ^ "\\s*(" ^ reactionUnits ^ ")\\b\\s+(?:of\\s+)?([^\\s,;]+)") low
               fun pair m =
                 let val marker = g1 low m
                     val unit = valOf (grp low m 2)
@@ -425,7 +432,7 @@ struct
                 in case List.find (fn (key, _) => key = marker) numbers of
                      NONE => NONE
                    | SOME (_, (n, d)) =>
-                       SOME (f, Q.mk_rat n (d * (if unit = "mmol" orelse String.isPrefix "milli" unit then 1000 else 1)))
+                       Option.map (fn u => (f, Q.ReactionAmount(fchars f,Q.mk_rat n d,u))) (reactionUnit unit)
                 end
               fun gaps pos first [] = has "^\\s*$" (String.extract (low, pos, NONE))
                 | gaps pos first (m :: ms) =
@@ -446,19 +453,17 @@ struct
             end
       fun query source lhs rhs =
         let val s = rstrip "?." (collapse source)
-            fun make left grams f =
-              Option.map (fn _ =>
-                let val name = fchars f
-                in if left then (if grams then Q.NetFinalGrams name else Q.NetFinalMoles name)
-                   else (if grams then Q.NetYieldGrams name else Q.NetYieldMoles name) end)
-                (index (normFormula f) (if left then lhs @ rhs else rhs))
+            fun make left unit f =
+              case (index (normFormula f) (if left then lhs @ rhs else rhs),reactionUnit unit) of
+                (SOME _,SOME u) => SOME (if left then Q.MeasuredNetFinal (fchars f,u) else Q.MeasuredNetYield (fchars f,u))
+              | _ => NONE
         in
-          case search "^(?:(?:what is|calculate) (?:the )?)?(?:theoretical )?(yield|leftover|remaining)(?: (?:amount|mass))?(?: of)?\\s+([^\\s]+)\\s+in\\s+(mol|moles|g|grams)$" (lower s) of
-            SOME m => make (g1 (lower s) m <> "yield") (String.isPrefix "g" (valOf (grp (lower s) m 3))) (valOf (grp s m 2))
+          case search ("^(?:(?:what is|calculate) (?:the )?)?(?:theoretical )?(yield|leftover|remaining)(?: (?:amount|mass))?(?: of)?\\s+([^\\s]+)\\s+in\\s+(" ^ reactionUnits ^ ")$") (lower s) of
+            SOME m => make (g1 (lower s) m <> "yield") (valOf (grp (lower s) m 3)) (valOf (grp s m 2))
           | NONE =>
-              (case search "^how many (mol|moles|g|grams) of ([^\\s]+) (form|are produced|remain|are left)$" (lower s) of
+              (case search ("^how many (" ^ reactionUnits ^ ") of ([^\\s]+) (form|are produced|remain|are left)$") (lower s) of
                  SOME m => make (List.exists (fn word => word = valOf (grp (lower s) m 3)) ["remain", "are left"])
-                   (String.isPrefix "g" (g1 (lower s) m)) (valOf (grp s m 2))
+                   (g1 (lower s) m) (valOf (grp s m 2))
                | NONE => NONE)
         end
     in
@@ -471,9 +476,9 @@ struct
                   (SOME lhs, SOME rhs) =>
                     (case (amounts given lhs rhs, query wanted lhs rhs) of
                        (SOME values, SOME wanted) =>
-                         SOME (Q.RNS (map (fn (f, k) => (fchars f, k)) lhs,
+                         SOME (Q.RNU (map (fn (f, k) => (fchars f, k)) lhs,
                                      map (fn (f, k) => (fchars f, k)) rhs,
-                                     map (fn (f, a) => (fchars f, a)) values, wanted))
+                                     map #2 values, wanted))
                      | _ => NONE)
                 | _ => NONE))
       | _ => NONE
