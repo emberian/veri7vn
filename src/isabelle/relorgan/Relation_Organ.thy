@@ -633,9 +633,9 @@ proof -
        \<or> (patterns t \<noteq> [] \<and> (\<exists>d. try_stage t d = Stop (Answered P v s pat)
             \<and> (d = Fwd \<or> try_stage t Fwd = Continue)))" by blast+
   show "\<not> restates t v"
-    using wit try_stage_Stop_Answered_inv(2, 2, 1) by blast
+    using wit try_stage_Stop_Answered_inv by blast
   show "\<not> (P \<in> set (time_variant t) \<and> past t)"
-    using wit try_stage_Stop_Answered_inv(2, 2, 2, 1) by blast
+    using wit try_stage_Stop_Answered_inv by blast
   show "(\<exists>cs. cs \<noteq> [] \<and> length cs \<le> 3 \<and> s = qid (hd cs)
           \<and> (\<forall>c \<in> set cs. indomain c \<and> complete c \<and> vals P c = [v] \<and> (P, v) \<in> set (rows c)))
      \<or> (\<exists>subs capped. inv_read subs capped = Some (v, s) \<and> \<not> capped)"
@@ -671,7 +671,10 @@ proof -
     assume pat: "patterns t \<noteq> [] \<and> (\<exists>d. try_stage t d = Stop (Answered P v s pat)
             \<and> (d = Fwd \<or> try_stage t Fwd = Continue))"
     then obtain d where d: "try_stage t d = Stop (Answered P v s pat)" by blast
-    from try_stage_Stop_Answered_inv(2, 2, 2, 2)[OF d] show ?thesis
+    from try_stage_Stop_Answered_inv [OF d] have
+      "(d = Fwd \<and> agree P (pat_cands t) = Some (v, s))
+        \<or> (d = Inv \<and> pat_inv_read t P = Some (v, s))" by blast
+    then show ?thesis
     proof
       assume "d = Fwd \<and> agree P (pat_cands t) = Some (v, s)"
       then have ag: "agree P (pat_cands t) = Some (v, s)" by blast
