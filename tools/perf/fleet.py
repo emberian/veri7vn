@@ -50,7 +50,8 @@ sys.path.insert(0, str(REPO / "tools" / "parity"))
 import panels  # noqa: E402
 
 DARWIN = sys.platform == "darwin"
-LIST_NAMES = ("SPECIALISTS", "IDS", "VARIANTS")   # where a family's score.py names its specialists
+LIST_NAMES = ("SPECIALISTS", "IDS", "VARIANTS")   # where a family's score.py names its specialists (check only)
+STATE_FLAG = {e["family"] for e in json.loads((REPO / "src" / "extract" / "families.json").read_text(encoding="utf-8"))["families"] if e.get("state_flag")}
 
 
 # ---------------------------------------------------------------- discovery
@@ -79,15 +80,24 @@ def family_specialists(score_py: Path):
     return None
 
 
+REGISTRY = REPO / "src" / "extract" / "families.json"
+
+
+def load_registry():
+    """src/extract/families.json: the committed families, their specialists and flags"""
+    return json.loads(REGISTRY.read_text(encoding="utf-8"))["families"]
+
+
 def discover(var_root: Path):
-    """every family folder with a built binary; folders without one are reported, not run"""
+    """every registered family whose binary is built; those without one are reported, not run.
+    The binary is looked up under --var (registry paths are var/<slug>/bin/<slug>)."""
     out, missing = [], []
-    for fam in sorted((REPO / "src" / "extract").iterdir()):
-        if not fam.is_dir():
-            continue
-        binary = var_root / fam.name / "bin" / fam.name
-        (out if binary.exists() else missing).append(
-            {"slug": fam.name, "binary": str(binary)})
+    for ent in load_registry():
+        binary = var_root / Path(ent["binary"]).relative_to("var")
+        if binary.exists():
+            out.append({"slug": ent["family"], "binary": str(binary), "entry": ent})
+        else:
+            missing.append(ent["family"])
     return out, missing
 
 
@@ -256,7 +266,7 @@ def merge_into(fam, run):
 
 def family_extra_args(slug, scratch):
     """stores carries a warehouse session file, exactly as its lane ran it through the harness"""
-    if slug == "stores":
+    if slug in STATE_FLAG:
         return ["--state", str(Path(scratch) / ("stores-%d.json" % os.getpid()))]
     return []
 
@@ -296,7 +306,7 @@ def measure_family(fam, a, scratch):
             if not items:
                 continue
             prep_run(slug, scratch)
-            run = Run([fam["binary"], "--specialist", sid] + extra, a.timeout_s, log)
+            run = Run([fam["binary"]] + (["--specialist", sid] if fam["entry"].get("specialist_flag", True) else []) + extra, a.timeout_s, log)
             cold, warm, errors, statuses = [], [], [], {}
             for i, it in enumerate(items):
                 rid = "%s:%s:%d" % (sid, split, i)
@@ -331,7 +341,7 @@ def measure_family(fam, a, scratch):
         extra = family_extra_args(slug, scratch)
         for _ in range(a.cold_trials if q0 is not None else 0):
             prep_run(slug, scratch)
-            run = Run([fam["binary"], "--specialist", sid] + extra, a.timeout_s, log)
+            run = Run([fam["binary"]] + (["--specialist", sid] if fam["entry"].get("specialist_flag", True) else []) + extra, a.timeout_s, log)
             r, ms = run.ask("cold:%s" % slug, q0["q"], "perf-cold")
             run.close()
             merge_into(fam, run)
@@ -525,12 +535,10 @@ def main():
         if fam["slug"] == "fusion":
             fam["specialists"] = ["(fusion batteries)"]
             continue
-        ids = family_specialists(REPO / "src" / "extract" / fam["slug"] / "score.py")
-        if ids is None and panels.read_manifest(panels.specialist_dir(fam["slug"])):
-            ids = [fam["slug"]]                  # a single specialist named like the family (acoustics)
+        ids = list(fam["entry"]["specialists"])
         fam["specialists"] = ids or []
         if not fam["specialists"]:
-            print("[%s] no specialist list found; skipped" % fam["slug"], flush=True)
+            print("[%s] no specialists in families.json; skipped" % fam["slug"], flush=True)
     fams = [f for f in fams if f["specialists"]]
 
     t0 = time.time()
@@ -589,6 +597,13 @@ def main():
 
 
 # ---------------------------------------------------------------- markdown
+
+def _imports_approximation(slug):
+    """does any theory or ROOT of the family's folder name HOL-Decision_Procs.Approximation"""
+    d = REPO / "src" / "extract" / slug
+    return any("Decision_Procs.Approximation" in p.read_text(encoding="utf-8", errors="replace")
+               for p in list(d.rglob("*.thy")) + list(d.rglob("ROOT")))
+
 
 def ms(x):
     return "-" if x is None else ("%.2f" % x if x < 10 else "%.1f" % x if x < 1000 else "%.0f" % x)
@@ -720,19 +735,30 @@ def write_markdown(data, path):
     slow_cold = sorted((r for r in fams if r["stats"]["cold_ms"] > 100),
                        key=lambda r: -r["stats"]["cold_ms"])
     if slow_cold:
-        out.append("Cold starts above 100 ms: %s (everything else is 80 ms or less)."
-                   % ", ".join("`%s` %s ms" % (r["slug"], ms(r["stats"]["cold_ms"])) for r in slow_cold))
+        rest = [r["stats"]["cold_ms"] for r in fams if r["stats"]["cold_ms"] <= 100]
+        out.append("Cold starts above 100 ms: %s (the other %d binaries start in %s ms or less)."
+                   % (", ".join("`%s` %s ms" % (r["slug"], ms(r["stats"]["cold_ms"])) for r in slow_cold),
+                      len(rest), ms(max(rest)) if rest else "-"))
     slow_panels = []
     for r in fams:
         for ps in r.get("panels", []):
             if ps.get("n") and (ps.get("p50_ms") or 0) > 5:
                 slow_panels.append((r["slug"], ps))
     if slow_panels:
-        out.append("Warm questions above 5 ms p50, all of them interval arithmetic"
-                   " (`HOL-Decision_Procs.Approximation`), everything else in the fleet is"
-                   " 0.05-0.5 ms: %s." % "; ".join(
-                       "`%s` on `%s` %s %s ms" % (f, ps["specialist"], ps["split"], ms(ps["p50_ms"]))
-                       for f, ps in sorted(slow_panels, key=lambda fp: -fp[1]["p50_ms"])))
+        slow_ids = {(f, ps["specialist"], ps["split"]) for f, ps in slow_panels}
+        other = [ps["p50_ms"] for r in fams for ps in r.get("panels", [])
+                 if ps.get("n") and (r["slug"], ps["specialist"], ps["split"]) not in slow_ids
+                 and ps.get("p50_ms") is not None]
+        approx = {f for f, _ in slow_panels if _imports_approximation(f)}
+        out.append("Warm questions above 5 ms p50 (all other panels run %s to %s ms; the %d slow panels are in"
+                   " %d families, of which %s import `HOL-Decision_Procs.Approximation` (interval arithmetic)"
+                   " in their sources%s): %s." % (
+                       ms(min(other)) if other else "-", ms(max(other)) if other else "-", len(slow_panels),
+                       len({f for f, _ in slow_panels}), "all" if approx == {f for f, _ in slow_panels}
+                       else ", ".join("`%s`" % f for f in sorted(approx)) or "none",
+                       "" if approx == {f for f, _ in slow_panels} else "; the others do not",
+                       "; ".join("`%s` on `%s` %s %s ms" % (f, ps["specialist"], ps["split"], ms(ps["p50_ms"]))
+                                 for f, ps in sorted(slow_panels, key=lambda fp: -fp[1]["p50_ms"]))))
     for r in fams + ([o7] if o7 else []):
         if r["stats"]["max_ms"] > 1000:
             worst = ""

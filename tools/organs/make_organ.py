@@ -51,9 +51,13 @@ SPECIALISTS = UPSTREAM / "root/specialists"
 STD = {"re", "json", "math", "sys", "os", "statistics", "unicodedata", "hashlib", "datetime", "random",
        "itertools", "functools", "collections", "textwrap", "time", "fractions"}
 
+# src/extract/families.json lists the committed families, their specialists and whether the binary
+# takes --specialist. Families not in it (untracked earth, finance) are not packaged.
+REGISTRY = {e["family"]: e for e in json.loads((REPO / "src/extract/families.json").read_text(encoding="utf-8"))["families"]
+            if e["specialists"]}
 # acoustics has no score.py table: one specialist, and its binary takes no --specialist argument
 SINGLE = {"acoustics": ["acoustics"]}
-NO_FLAG = {"acoustics"}
+NO_FLAG = {s for s, e in REGISTRY.items() if not e.get("specialist_flag", True)}
 
 WRAPPER = '''#!/usr/bin/env python3
 """{module} - Oracle7's {sid} specialist answered by veri7vn's extracted {slug} binary.
@@ -178,7 +182,10 @@ def family_tables():
             EXTRA.update(extra)
         elif plain and all(re.fullmatch(r"[a-z0-9][a-z0-9-]*", s) for s in plain):
             out[slug] = plain                              # facts: a bare IDS list, no per-row data
-    return out
+    for slug in out:                                   # score.py ids are cross-checked against the registry
+        if slug in REGISTRY and out[slug] != REGISTRY[slug]["specialists"]:
+            print("warning: %s: score.py lists differ from families.json; using families.json" % slug, file=sys.stderr)
+    return {slug: list(e["specialists"]) for slug, e in REGISTRY.items()}
 
 
 EXTRA = {}          # (slug, sid) -> the other string literals of its score.py row
