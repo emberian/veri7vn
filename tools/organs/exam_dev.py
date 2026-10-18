@@ -8,7 +8,10 @@ head's self_loop writes redirected out of upstream/ with lane A's redirect_self_
 (tools/parity/answerers/oracle7.py). The specialist binary comes from the folder's manifest veri7vn block:
 $VERI7VN_<SLUG>_BIN, else var/<slug>/bin/<slug> in this checkout.
 
-  python3 tools/organs/exam_dev.py var/organs/<sid>-veri7vn [...]"""
+  python3 tools/organs/exam_dev.py var/organs/<sid>-veri7vn [...]
+
+Needs the checkout's .venv python (the head imports numpy). Several folders run one process each: a second
+Engine in one process finds the self_loop paths already redirected and refuses."""
 from __future__ import annotations
 
 import importlib.util
@@ -48,6 +51,11 @@ def resolve_binary(v7):
 def main():
     if len(sys.argv) < 2:
         raise SystemExit(__doc__)
+    if len(sys.argv) > 2:                                 # one process per folder: a second Engine build in the
+        import subprocess                                 # same process finds the self_loop paths already redirected
+        for arg in sys.argv[2:]:
+            subprocess.run([sys.executable, os.path.abspath(__file__)] + [arg], check=False)
+        sys.argv = [sys.argv[0], sys.argv[1]]
     trials = REPO / "var/scout/trials"
     states = REPO / "var/scout/exam-state"
     os.environ.setdefault("ORACLE7_ROOT", str(UPSTREAM / "root"))
