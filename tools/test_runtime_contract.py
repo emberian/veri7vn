@@ -115,6 +115,19 @@ class ComputationEvidenceTests(unittest.TestCase):
                 self.assertEqual(result["response"], "")
                 self.assertNotIn("value", result)
 
+    def test_numeric_text_is_bounded_and_money_format_unambiguous(self):
+        for bad in ("64.8e999999999", "64.8e-999999999", "NaN", "Infinity"):
+            reply = self.reply()
+            reply["value"] = bad
+            self.assertEqual(enforce_reply_evidence(reply)["status"], "withheld")
+        for text in ("The final price is $6,4.80.", "The final price is $64.80.5."):
+            reply = self.reply()
+            reply["response"] = text
+            self.assertEqual(enforce_reply_evidence(reply)["status"], "withheld")
+        reply = self.reply()
+        reply["value"] = "6.48e1"
+        self.assertEqual(enforce_reply_evidence(reply)["status"], "answered")
+
     def test_half_cent_rounding_and_stacked_discounts(self):
         reply = self.reply()
         packet = self.packet(reply)

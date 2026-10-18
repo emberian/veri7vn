@@ -27,7 +27,7 @@ current runtime command.
 
 ## A concrete computation explanation
 
-Finance is adding a packet from its actual discount-and-tax request and
+Finance emits a packet from its actual discount-and-tax request and
 kernel result. The shared Python consumer independently checks the rational
 inputs, successive discount factors, tax multiplication, cents rounding and
 the final stated amount. It retains the actual packet and records which
@@ -38,16 +38,21 @@ into accidental fallthrough.
 This independent Python check is explicitly unverified. It checks typed
 arithmetic and the final amount, not English recognition, the meaning of the
 model, or every sentence in the response. The producer's HOL checker and its
-theorem are finance's responsibility. No build or end-to-end packet success
-is claimed here until that producer is rebuilt and tested.
+theorem belong to the finance kernel. Its exported checker is true exactly when
+`kernel (R_DiscountTax b discounts tax) = Exact K_discount_tax value`: it checks
+nonnegative price and tax, each discount between 0 and 100, and the exact
+product of discount factors followed by tax. The actual producer runs this
+checker on the request and result it serializes. Alternate tax-base, tax-amount
+and savings requests do not currently emit this replay packet.
 
 ## Checks so far
 
-- `python3 -B tools/test_runtime_contract.py`: 11 tests pass. Tests cover
+- `python3 -B tools/test_runtime_contract.py`: 12 tests pass. Tests cover
   ownership, schema and regex rejection, preserving original acceptance,
   changing packet inputs/results/output while leaving its `accepted` flag
   true, stacked discounts with a half-cent boundary, malformed present
-  evidence, and absence of evidence.
+  evidence, absence of evidence, bounded numeric notation and unambiguous
+  final-money formatting.
 - All 144 shipped specialist acceptance objects load with the current
   family overlays. This is a contract check, not a panel score.
 - Dispatch reports held-out chemistry-v3 281/281 right and retail 51/51
@@ -58,10 +63,18 @@ is claimed here until that producer is rebuilt and tested.
   chemistry-v3, retail and geography dev/held-out panels through manifest
   acceptance. It does not establish that those binaries match current
   concurrently changing source; see `C-runtime-package.md`.
-- A relocated generated wrapper with a real fixture executable retains a
-  consistent computation packet and turns a changed final value into a
-  non-None withheld reply through Oracle7's actual loader. This tests the
-  consumer boundary; the fixture is not the rebuilt finance producer.
+- The final finance native executable (`079c948a…51b4c`), built from the
+  checked 64-theorem/zero-oracle export, passes four actual dispatcher probes:
+  two discount-and-tax answers with consistent packets, a tax-amount answer
+  without a packet, and a negative-tax refusal. Five changes to its actual
+  inputs/result/value/text/checker flag are rejected. Receipt:
+  `var/C-runtime-consumers/finance-evidence-final.json`.
+- The same final finance executable in a relocated package passes four
+  targeted checks through Oracle7's actual loader. Its actual $64.80 reply
+  survives; changing its value to $65 while retaining `accepted: true` yields
+  a non-None withheld reply. Receipt:
+  `var/C-runtime-package/finance-final-native/consumer-check.json`. This is a
+  scoped consumer check, not an additional panel score.
 - `python3 -B tools/dispatch/test_fusion_lifecycle.py`: three real-process
   checks pass. The fusion adapter reaps its own kernel after EOF, an uncaught
   request exception and SIGTERM, including a child that ignores termination.
@@ -69,9 +82,13 @@ is claimed here until that producer is rebuilt and tested.
 
 ## Integration still open
 
-Finish and check the finance packet through dispatch and relocated packages.
-Finish current-source package receipts, including Linux computing and stores
-asset relocation. Do not silently relabel historical Linux receipts as fresh.
+Finish current-source package receipts, including Linux computing. Stores
+asset relocation and current Mac/Linux reply identity are checked: the selected
+cooking-v3 and warehouse panels score 811/818 right, zero wrong/false yes, on
+both platforms, with all 818 status/response pairs identical. Their 7 remaining
+misses are not claimed repaired by relocation. Current Linux refresh staging
+now binds unchanged proof dependencies and exports to the exact final runtime
+compiler inputs; new remote submissions remain held while older builds drain. Do not silently relabel historical Linux receipts as fresh.
 The dispatcher now previews effectful warehouse requests, selects and guards
 the preview, then commits the original request once using its private state.
 Tests show that losing or guard-blocked previews do not write and that a

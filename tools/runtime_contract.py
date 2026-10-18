@@ -223,9 +223,14 @@ def validate_reply_evidence(reply):
         value = reply.get("value")
         if isinstance(value, bool) or not isinstance(value, (str, int, float)) or len(str(value)) > 256:
             raise ContractError("final numeric value is missing or malformed")
+        # Fraction accepts arbitrarily large scientific exponents in strings.
+        # Bound the representation before constructing its integer arithmetic.
+        numeric = re.fullmatch(r"-?(?:[0-9]+(?:\.[0-9]+)?)(?:[eE]([+-]?[0-9]{1,3}))?", str(value))
+        if not numeric or (numeric[1] is not None and abs(int(numeric[1])) > 309):
+            raise ContractError("final numeric value must be a bounded decimal")
         if Fraction(str(value)) != rounded:
             raise ContractError("final numeric value disagrees with cents rounding")
-        match = re.match(r"The final price is \$([0-9,]+\.[0-9]{2})(?=\s|\(|\.|$)", str(reply.get("response", "")))
+        match = re.match(r"The final price is \$((?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)\.[0-9]{2})(?=\s|\(|\.(?:\s|$)|$)", str(reply.get("response", "")))
         if not match or Fraction(match[1].replace(",", "")) != rounded:
             raise ContractError("final response amount disagrees with the checked result")
         _strings(packet.get("assumptions", []), "computation assumptions")
