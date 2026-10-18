@@ -12,6 +12,8 @@ session Veri7vn_Quantity_Base in base = HOL +
 
 session Veri7vn_Quantity = Veri7vn_Quantity_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     Quantity
     Quantity_Export

@@ -1,0 +1,12 @@
+(* The shared numeric core of the extracted family kernels (scout/commons).
+   One session every family session can depend on: exact rationals as reals,
+   floatarith glue into Isabelle's verified interval arithmetic, decimal
+   rounding with a proved error bound, and ASCII number layout. Nothing here
+   knows a request, a kind or an organ. *)
+session Veri7vn_Commons = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Decision_Procs"
+    "HOL-Library"
+  theories
+    Commons_Num

@@ -11,6 +11,8 @@ session Veri7vn_Acoustics_Base in base = HOL +
 
 session Veri7vn_Acoustics = Veri7vn_Acoustics_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     Acoustics
     Acoustics_Export
