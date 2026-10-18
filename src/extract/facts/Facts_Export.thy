@@ -1,5 +1,5 @@
 theory Facts_Export
-  imports Word_Guards
+  imports Word_Guards JS_Expr Fact_Projection
 begin
 
 definition organ_by_id :: "String.literal \<Rightarrow> organ option" where
@@ -15,6 +15,19 @@ definition organ_patterns :: "organ \<Rightarrow> String.literal list" where
 
 definition row_guards :: "organ \<Rightarrow> String.literal list" where
   "row_guards og = map guard (store_rules (organ_store og))"
+
+text \<open>Whitelisted whole-expression examples and static JavaScript facts
+retain their source-table evidence. The parser cannot select an arbitrary row.\<close>
+definition js_table_row :: "nat \<Rightarrow> (String.literal \<times> String.literal) option" where
+  "js_table_row i = (if i \<in> set [2,4,6,7,12,13,14,15,16,17,18,19] \<and>
+    i < length facts_javascript_v1_rules then
+    Some (fact_value (facts_javascript_v1_rules ! i), sentence (facts_javascript_v1_rules ! i)) else None)"
+theorem js_table_row_bound:
+  "js_table_row i = Some (v,s) \<Longrightarrow>
+    i < length facts_javascript_v1_rules \<and>
+    v = fact_value (facts_javascript_v1_rules ! i) \<and>
+    s = sentence (facts_javascript_v1_rules ! i)"
+  by (auto simp: js_table_row_def split: if_splits)
 
 definition is_answer :: "outcome \<Rightarrow> bool" where
   "is_answer a = (case a of Answer _ _ _ _ _ \<Rightarrow> True | Silent _ \<Rightarrow> False)"
@@ -39,13 +52,15 @@ definition self_test :: bool where
         organ_reply False m og = Silent Boundary \<and>
         is_answer (organ_reply False m organ_medicine))"
 
-export_code row_guards question_bytes text_organ_reply text_family_reply word_guard word_holds answer_word_guard organ_reply family_reply organs organ_by_id organ_patterns organ_id organ_store
+export_code js_eval js_text js_type js_table_row int_of_integer integer_of_int nat_of_integer
+  projected_value AnomieMeaning ExchangeDirection Plant Fungus
+  JNum JStr JBool JNull JUndef JNaN JAdd JSub JStrict JLoose JLit JBin JTypeof row_guards question_bytes text_organ_reply text_family_reply word_guard word_holds answer_word_guard organ_reply family_reply organs organ_by_id organ_patterns organ_id organ_store
   store_name store_kind store_block is_answer integer_of_nat
   Answer Silent Boundary Narrative Off_gate Blocked Not_asked No_rule
   in SML module_name Facts file_prefix facts
 
 ML \<open>
-  val theorems = [@{thm checked_feature_narrows}, @{thm linguistics_guards_checked}, @{thm word_holds_occurrence}, @{thm text_answer_word_occurs}, @{thm text_answer_first_row}, @{thm first_match}, @{thm no_rule_no_answer}, @{thm interpret_table_local},
+  val theorems = [@{thm js_eval_sound}, @{thm js_eval_safe_integer}, @{thm js_numeric_add}, @{thm js_string_add}, @{thm js_strict_type_sensitive}, @{thm js_table_row_bound}, @{thm transferred_exact}, @{thm exchange_reverse_disjoint}, @{thm projection_requires_source}, @{thm checked_feature_narrows}, @{thm linguistics_guards_checked}, @{thm word_holds_occurrence}, @{thm text_answer_word_occurs}, @{thm text_answer_first_row}, @{thm first_match}, @{thm no_rule_no_answer}, @{thm interpret_table_local},
     @{thm guard_exact}, @{thm answer_from_table}, @{thm organ_silent}, @{thm no_rule_silent},
     @{thm boundary_narrows}, @{thm boundary_only_silences}, @{thm family_first}, @{thm family_none},
     @{thm literature_order_matters}]

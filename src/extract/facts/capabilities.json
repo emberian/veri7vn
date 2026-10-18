@@ -272,7 +272,8 @@
           "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
         ],
         "untrusted": [
-          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing.",
+          "Per-work painting/sculpture/print medium inventory and matched-title response context."
         ]
       }
     },
@@ -291,6 +292,79 @@
         ],
         "untrusted": [
           "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "sociology": {
+      "accept": {
+        "kinds": [
+          "sociology"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "HOL source-row-bound requested-field projection distinguishes the meaning of anomie from its attributed author.",
+        "assumptions": [
+          "The typed concept meaning is transcribed from source prose; source identity is checked, world truth is not proved."
+        ],
+        "untrusted": [
+          "Whole-question attribute parser, source transcription, response rendering and JSON framing."
+        ]
+      }
+    },
+    "mycelial": {
+      "accept": {
+        "kinds": [
+          "mycelial"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "HOL source-row-bound requested-field projection; fungal resource values come from a directed edge relation.",
+        "assumptions": [
+          "Typed source assertions and relation edges are transcribed from source prose; source identity is checked, world truth is not proved."
+        ],
+        "untrusted": [
+          "Whole-question attribute/direction parser, source transcription, response rendering and JSON framing."
+        ]
+      }
+    },
+    "javascript": {
+      "accept": {
+        "kinds": [
+          "javascript"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "HOL evaluator for a finite typed primitive-expression model; numeric literals, string coercions and intermediate values stay within the safe-integer interval. Exact non-model examples use a whitelisted source row.",
+        "assumptions": [
+          "ASCII strings and default primitive bindings; no objects, arbitrary calls, general floating point or complete ECMAScript model.",
+          "Correspondence between the finite integer semantics and ECMAScript is an explicit model assumption, supported separately by engine conformance probes."
+        ],
+        "untrusted": [
+          "Whole-expression tokenizer/parser, English framing, source-table assertions, string display and JSON framing."
+        ]
+      }
+    },
+    "firesafety-v2": {
+      "accept": {
+        "kinds": [
+          "firesafety"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table selection; class questions require an exact fuel or class-meaning request.",
+        "assumptions": [
+          "Fire-class rows use the source US classification. Other jurisdictions and mixed or unknown fuels are not modeled."
+        ],
+        "untrusted": [
+          "Whole-question jurisdiction/fuel grammar, source assertions, response rendering and JSON framing."
         ]
       }
     }

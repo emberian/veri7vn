@@ -2,7 +2,7 @@
    one HOL interpreter plus transcribed rule tables, exported to SML. The base
    session holds only the interpreter and its theorems, so a table change
    rebuilds only the top session. *)
-session Veri7vn_Facts_Base in base = HOL +
+session Veri7vn_Facts_Base in base = Veri7vn_Commons +
   options [document = false, threads = 2]
   theories
     Facts_Kernel
@@ -11,8 +11,11 @@ session Veri7vn_Facts = Veri7vn_Facts_Base +
   options [document = false, threads = 2]
   sessions
     "HOL-Library"
+    Veri7vn_Commons
   theories
     Facts_Tables
     Facts_Rows
     Word_Guards
+    JS_Expr
+    Fact_Projection
     Facts_Export

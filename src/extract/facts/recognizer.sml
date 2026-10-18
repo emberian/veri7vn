@@ -51,6 +51,7 @@ struct
 
   fun canonical t =
     let
+      val t = rewrite "^define anomie$" (fn _ => "What does anomie mean") t
       val t = rewrite "^describe\\s+" (fn _ => "What is ") t
       val t = rewrite "\\bwhat is the function of ([a-z]+)\\b"
         (fn g => "What do " ^ g 1 ^ " do") t
@@ -162,26 +163,76 @@ struct
     ^ "rate speed depth deep fast how many much per minute should you give perform push be "
     ^ "at do does of single rescuer one each 30 follow between and"
 
+  val authorGuardPrefix = "(?=.*\\b(?:wrote|written|author\\w*|writer|penned)\\b).*"
+  val publicationGuardPrefix = "(?=.*\\b(?:when|what year|which year|in what year)\\b)(?=.*\\b(?:published|publication|come out|came out|released|first appear\\w*)\\b).*"
+  fun titleGuard sid i =
+    let val guard=rowGuard sid i
+    in if sid="literature-v2" andalso i>=25 then
+         if String.isPrefix authorGuardPrefix guard then String.extract(guard,size authorGuardPrefix,NONE)
+         else raise Fail "literature author guard shape changed"
+       else if sid="literature-v2" andalso i>=9 andalso i<=14 then
+         if String.isPrefix publicationGuardPrefix guard then String.extract(guard,size publicationGuardPrefix,NONE)
+         else raise Fail "literature publication guard shape changed"
+       else guard
+    end
   (* A creator question must surround exactly the known work title. A
      matched title inside a question about a thief, restoration or replica
      does not authorize returning its original artist. *)
-  fun titleQuestion sid i prefix q =
-    case Regex.search (compiled (rowGuard sid i)) q of
+  fun titleRelation sid i prefix suffix q =
+    case Regex.search (compiled (titleGuard sid i)) q of
       NONE => false
     | SOME {start,stop,...} =>
         accepts ("^(?:" ^ prefix ^ ")[\"']?$") (String.substring(q,0,start))
-        andalso accepts ("^[\"']?" ^ finish) (String.extract(q,stop,NONE))
-  val artistPrefix =
-    "who (?:painted|sculpted|created|made) (?:the |a )?(?:painting |sculpture |artwork )?"
-    ^ "|(?:which|what) artist (?:painted|sculpted|created|made) (?:the )?"
-    ^ "|name the (?:artist|painter|sculptor) who (?:painted|sculpted|created|made) (?:the )?"
-    ^ "|who is the (?:artist|painter|sculptor) (?:of|behind) (?:the )?"
-    ^ "|name the (?:artist|painter|sculptor) (?:of|behind) (?:the )?"
+        andalso accepts ("^[\"']?" ^ suffix ^ finish) (String.extract(q,stop,NONE))
+  fun titleQuestion sid i prefix q = titleRelation sid i prefix "" q
+  (* The source names particular works, not every work with a shared title.
+     This small medium inventory is untrusted source metadata: David/Thinker
+     are sculpture, the Great Wave aliases are print, other stored works are
+     paintings. It constrains the requested creation verb and role. *)
+  fun artistPrefix i =
+    let val guard=rowGuard "arthistory" i
+        val sculpture = guard="\\bdavid\\b" orelse guard="\\bthe thinker\\b"
+        val printWork = guard="\\bthe great wave\\b" orelse guard="\\bthe great wave off kanagawa\\b"
+        val verb = if sculpture then "sculpted" else if printWork then "designed" else "painted"
+        val role = if sculpture then "sculptor" else if printWork then "printmaker" else "painter"
+        val medium = if sculpture then "sculpture" else if printWork then "print" else "painting"
+        val action="(?:" ^ verb ^ "|created|made)"
+        val person="(?:artist|" ^ role ^ ")"
+    in "who " ^ action ^ " (?:the |a )?(?:" ^ medium ^ " |artwork )?"
+     ^ "|(?:which|what) artist " ^ action ^ " (?:the )?"
+     ^ "|name the " ^ person ^ " who " ^ action ^ " (?:the )?"
+     ^ "|who is the " ^ person ^ " (?:of|behind) (?:the )?"
+     ^ "|name the " ^ person ^ " (?:of|behind) (?:the )?"
+    end
   val poetPrefix =
     "who (?:wrote|composed|penned) (?:the poem )?"
     ^ "|(?:which|what) poet (?:wrote|composed|penned) (?:the poem )?"
     ^ "|who is the author of (?:the poem )?"
     ^ "|name the (?:author|poet) (?:of|behind) (?:the poem )?"
+  val authorPrefix =
+    "who (?:wrote|authored|penned) (?:the book )?"
+    ^ "|(?:which|what) (?:author|writer) (?:wrote|penned) (?:the book )?"
+    ^ "|who is the (?:author|writer) of (?:the book )?"
+    ^ "|name the (?:author|writer) of (?:the book )?"
+  fun publicationYear i q =
+    titleRelation "literature-v2" i "(?:when|(?:in )?(?:what|which) year) was (?:the book )?"
+      " (?:first |originally )?(?:published|released)" q
+    orelse titleRelation "literature-v2" i "(?:when|(?:in )?(?:what|which) year) did (?:the book )?"
+      " (?:first |originally )?(?:come out|appear)" q
+  fun lineCount form = accepts
+    ("^how many lines (?:does (?:a |the )?" ^ form ^ " have|are (?:there )?in (?:a |the )?" ^ form ^ ")" ^ finish)
+  fun rhymeScheme form = accepts
+    ("^(?:what is the rhyme scheme of (?:a |the )?" ^ form
+      ^ "|what rhyme scheme does (?:a |the )?" ^ form ^ " use)" ^ finish)
+  val haikuPattern = accepts
+    ("^(?:what is the (?:syllable )?pattern of (?:a |the )?haiku"
+      ^ "|how many syllables (?:are there )?(?:per|in each) line (?:in|of) (?:a |the )?haiku)" ^ finish)
+  val iambicSyllables = accepts
+    ("^how many syllables (?:are (?:there )?in (?:a |one )?line of iambic pentameter"
+      ^ "|does (?:a |one )?line of iambic pentameter have)" ^ finish)
+  val pentameterFeet = accepts
+    ("^how many (?:feet|iambs) (?:are (?:there )?in (?:a |one )?(?:line of )?(?:iambic )?pentameter"
+      ^ "|does (?:a |one )?line of (?:iambic )?pentameter have)" ^ finish)
   (* A date request binds both the named subject and its stored event.
      Merely asking a year about a familiar subject is not enough: sealing,
      destruction, reissue and commemoration are different events. *)
@@ -209,9 +260,45 @@ struct
   fun datedRow i q =
     accepts ("^(?:when|(?:in )?(?:what|which) year) " ^ List.nth(dateClauses,i) ^ finish) q
     andalso accepts (rowGuard "worldhistory" i) q
+  val historyPeople = [
+    "who (?:was|is) the first (?:human|person|man) in space",
+    "who (?:was|is) the first (?:roman emperor|emperor of rome)",
+    "who (?:was|is) the first emperor of (?:a unified )?china",
+    "(?:who founded the mongol empire|who (?:was|is) the founder of the mongol empire)",
+    "(?:who unified germany|who led (?:german unification|the unification of germany))",
+    "who was (?:the )?(?:british prime minister|prime minister (?:of|in) britain) (?:during|for most of) (?:the )?(?:world war ii|second world war|wwii)"]
+  fun historyPerson j = accepts ("^" ^ List.nth(historyPeople,j) ^ finish)
+  (* The supplied class rows use the US source classification. The question
+     must be unqualified or explicitly US-scoped; other jurisdictions and
+     mixed/unknown fuels are not interpreted using this table. *)
+  val usFirePrefix = "(?:in the (?:us|united states),? )?"
+  val usFireSuffix = "(?: in the (?:us|united states))?"
+  val fireFuels = ["(?:cooking oils?(?: and (?:grease|fats?))?|cooking fats?|grease)",
+    "(?:electrical|electric|energized electrical equipment|wiring)",
+    "(?:gasoline|petrol|flammable liquids?|solvents?)", "(?:combustible metals?|magnesium|titanium|sodium)",
+    "(?:wood|paper|cloth|ordinary combustibles?)"]
+  fun fireClassFuel j = accepts
+    ("^" ^ usFirePrefix ^ "(?:(?:which|what) (?:extinguisher (?:class|type)|(?:class|type)(?: of (?:fire(?: extinguisher)?))?) "
+     ^ "(?:is (?:used |meant )?(?:for|on)|involves) (?:a |an )?(?:burning )?" ^ List.nth(fireFuels,j) ^ "(?: fires?)?"
+     ^ "|(?:which|what) (?:fire )?(?:class|type) (?:is|are) (?:a |an )?" ^ List.nth(fireFuels,j) ^ " fires?)"
+     ^ usFireSuffix ^ finish)
+  val classLetters=["a","b","c","d","k"]
+  fun fireClassMeaning j =
+    let val c=List.nth(classLetters,j)
+    in accepts ("^" ^ usFirePrefix ^ "(?:what (?:is a|are) class " ^ c ^ " fires?"
+      ^ "|what kinds? of fires? (?:is|are) class " ^ c ^ " fires?"
+      ^ "|what kind of material burns in a class " ^ c ^ " fire"
+      ^ "|class " ^ c ^ " extinguishers are for fires involving what"
+      ^ "|what (?:does a class " ^ c ^ " fire|do class " ^ c ^ " fires) involve)"
+      ^ usFireSuffix ^ finish) end
   val rowScopeGroups =
+    List.tabulate(6,fn j=>("worldhistory",j+17,historyPerson j)) @
+    List.tabulate(6,fn j=>let val i=j+9 in ("literature-v2",i,publicationYear i) end) @
+    List.tabulate(5,fn j=>("firesafety-v2",j+2,fireClassFuel j)) @
+    List.tabulate(5,fn j=>("firesafety-v2",j+7,fireClassMeaning j)) @
+    List.tabulate (51,fn j => let val i=j+25 in ("literature-v2",i,titleQuestion "literature-v2" i authorPrefix) end) @
     List.tabulate (17,fn i => ("worldhistory",i,datedRow i)) @
-    List.tabulate (34,fn i => ("arthistory",i,titleQuestion "arthistory" i artistPrefix)) @
+    List.tabulate (34,fn i => ("arthistory",i,titleQuestion "arthistory" i (artistPrefix i))) @
     List.tabulate (11,fn j => let val i=j+10 in ("poetry",i,titleQuestion "poetry" i poetPrefix) end)
 
   val scopedRows : (string * (string -> bool)) list =
@@ -235,15 +322,27 @@ struct
        ("firstaid",1,closedRow "firstaid" 1 adultCPRWords),
        ("firstaid",2,closedRow "firstaid" 2 adultCPRWords),
        ("mycology",0,fungalWallMaterial),
-       ("etiquette",15,breadPlatePlacement)])
+       ("etiquette",15,breadPlatePlacement),
+       ("poetry",0,lineCount "sonnet"),
+       ("poetry",1,rhymeScheme "shakespearean sonnet"),
+       ("poetry",2,haikuPattern),
+       ("poetry",3,lineCount "haiku"),
+       ("poetry",4,lineCount "limerick"),
+       ("poetry",5,rhymeScheme "limerick"),
+       ("poetry",6,lineCount "villanelle"),
+       ("poetry",7,lineCount "sestina"),
+       ("poetry",8,iambicSyllables),
+       ("poetry",9,pentameterFeet),
+       ("sociology",1,fn q => Projection.anomieMeaning q orelse Projection.anomieAuthor q),
+       ("mycelial",1,fn q => Option.isSome(Projection.direction q))])
 
   (* The admitted creator grammar surrounds exactly this row's known title.
      Preserve that matched title as answer context, never arbitrary question
      qualifiers. Regex span extraction and rendering remain untrusted. *)
   fun sourceSubject sid i q =
-    if sid = "arthistory" orelse (sid = "poetry" andalso i >= 10) then
+    if sid = "arthistory" orelse (sid = "poetry" andalso i >= 10) orelse (sid="literature-v2" andalso i>=25) then
       let val text = normalize q
-      in case Regex.search (compiled (rowGuard sid i)) text of
+      in case Regex.search (compiled (titleGuard sid i)) text of
            SOME {start,stop,...} => SOME (String.substring(text,start,stop-start))
          | NONE => NONE
       end

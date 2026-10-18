@@ -11,7 +11,7 @@
 
 structure Main =
 struct
-  val theorems = "[\"text_answer_word_occurs\",\"checked_feature_narrows\",\"text_answer_first_row\",\"first_match\",\"no_rule_no_answer\",\"guard_exact\",\"answer_from_table\",\"organ_silent\",\"boundary_narrows\",\"family_first\",\"tables_well_formed\"]"
+  val theorems = "[\"text_answer_word_occurs\",\"checked_feature_narrows\",\"text_answer_first_row\",\"first_match\",\"no_rule_no_answer\",\"guard_exact\",\"answer_from_table\",\"organ_silent\",\"boundary_narrows\",\"family_first\",\"tables_well_formed\",\"projection_requires_source\",\"transferred_exact\",\"exchange_reverse_disjoint\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
@@ -50,9 +50,34 @@ struct
       Facts.Boundary => "boundary" | Facts.Narrative => "narrative" | Facts.Off_gate => "off_gate"
     | Facts.Blocked => "blocked" | Facts.Not_asked => "not_asked" | Facts.No_rule => "no_rule"
 
+  fun jsReply id q t0 request =
+    let
+      fun withheld () = SOME ("{\"id\":" ^ id ^ ",\"status\":\"withheld\",\"response\":\"\",\"path\":\"\",\"provenance\":{\"taken\":false,\"organ\":\"javascript\",\"silence\":\"unsupported_expression_or_request\"}}")
+      fun answered value response kernel evidence = SOME (
+        "{\"id\":" ^ id ^ ",\"status\":\"answered\",\"kind\":\"javascript\",\"value\":" ^ Json.quote value
+        ^ ",\"response\":" ^ Json.quote response ^ ",\"path\":\"specialist:javascript>javascript\",\"provenance\":{\"taken\":true,\"organ\":\"javascript\",\"session\":\"Veri7vn_Facts\",\"kernel\":"
+        ^ Json.quote kernel ^ ",\"computation\":" ^ Json.quote evidence ^ ",\"parser\":\"untrusted whole ASCII expression\",\"specialist_ms\":" ^ ms t0 ^ "}}")
+    in case request of
+      Javascript.NotJS => NONE
+    | Javascript.Rejected => withheld ()
+    | Javascript.Expression expression =>
+        (case Facts.js_eval expression of NONE => withheld () | SOME value =>
+          let val display = case value of Facts.JStr text => Json.quote text | _ => Facts.js_text value
+              val (_,sourceExpression)=Javascript.frame q
+          in answered display (sourceExpression ^ " evaluates to " ^ display ^ ".")
+              "Facts.js_eval" "finite safe-integer primitive semantics; not full ECMAScript" end)
+    | Javascript.TableRow row =>
+        (case Facts.js_table_row (Facts.nat_of_integer(IntInf.fromInt row)) of NONE=>withheld()
+         | SOME(value,sentence)=>answered (decode value) (decode sentence)
+             "Facts.js_table_row" "exact whole-expression or static-fact source table")
+    end
+
   fun reply (id : string) (q : string) : string =
     let
       val t0 = Time.now ()
+      val js = case mode of
+          SOME og => if Facts.organ_id og="javascript" then jsReply id q t0 (Javascript.request true q) else NONE
+        | NONE => jsReply id q t0 (Javascript.request false q)
       val narr = Recognizer.narrative q
       val m = Recognizer.features q
       val textBytes = Facts.question_bytes (map (fn c => IntInf.fromInt (Char.ord c)) (String.explode q))
@@ -63,7 +88,8 @@ struct
                      SOME r => r
                    | NONE => ("family", Facts.Silent Facts.No_rule))
     in
-      case result of
+      case js of SOME rendered => rendered | NONE =>
+      (case result of
         (organ, Facts.Silent why) =>
           "{\"id\": " ^ id ^ ", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\""
           ^ ", \"provenance\": {\"taken\": false, \"organ\": " ^ Json.quote organ
@@ -72,8 +98,19 @@ struct
           let val rowS = IntInf.toString (Facts.integer_of_nat row)
               val sourceSentence = decode sentence
               val sourceSubject = Recognizer.sourceSubject organ (IntInf.toInt (Facts.integer_of_nat row)) q
-              val response = case sourceSubject of NONE => sourceSentence
-                           | SOME title => title ^ ": " ^ sourceSentence
+              val sourceScope = if organ="firesafety-v2" andalso Facts.integer_of_nat row>=2
+                                   andalso Facts.integer_of_nat row<=11 then SOME "US fire classification" else NONE
+              val baseResponse = case (sourceScope,sourceSubject) of
+                  (SOME scope,_) => scope ^ ": " ^ sourceSentence
+                | (_,SOME title) => title ^ ": " ^ sourceSentence
+                | _ => sourceSentence
+              val projection = case Projection.request q of NONE=>NONE | SOME request=>
+                (case Facts.projected_value request (Facts.Answer(kind,value,sentence,store,row)) of
+                  NONE=>NONE | SOME projected=>SOME(request,projected))
+              val (valueText,response,field) = case projection of
+                  NONE => (decode value,baseResponse,"null")
+                | SOME(request,projected) => (projected,Projection.describe request projected,
+                                              Json.quote(Projection.label request))
               val guardEvidence = case Facts.organ_by_id organ of
                   NONE => "null"
                 | SOME og => (case Facts.answer_word_guard og row of
@@ -83,16 +120,19 @@ struct
           "{\"id\": " ^ id ^ ", \"status\": \"answered\""
           ^ ", \"response\": " ^ Json.quote response
           ^ ", \"path\": " ^ Json.quote ("specialist:" ^ organ ^ ">" ^ kind ^ ">" ^ store ^ "#" ^ rowS)
-          ^ ", \"kind\": " ^ Json.quote kind ^ ", \"value\": " ^ Json.quote (decode value)
+          ^ ", \"kind\": " ^ Json.quote kind ^ ", \"value\": " ^ Json.quote valueText
           ^ ", \"provenance\": {\"taken\": true, \"organ\": " ^ Json.quote organ
           ^ ", \"store\": " ^ Json.quote store ^ ", \"row\": " ^ rowS
           ^ ", \"specialist_ms\": " ^ ms t0
           ^ ", \"recognition\": " ^ guardEvidence
+          ^ ", \"projection\": " ^ field
           ^ ", \"source_sentence\": " ^ Json.quote sourceSentence
+          ^ ", \"source_scope\": " ^ (case sourceScope of NONE=>"null" | SOME scope=>Json.quote scope)
           ^ ", \"source_subject\": " ^ (case sourceSubject of NONE => "null" | SOME title => Json.quote title)
-          ^ ", \"kernel\": \"Facts.text_organ_reply\", \"session\": \"Veri7vn_Facts\", \"theorems\": "
+          ^ ", \"kernel\": " ^ Json.quote (case projection of NONE=>"Facts.text_organ_reply" | SOME _=>"Facts.projected_value(Facts.text_organ_reply)")
+          ^ ", \"session\": \"Veri7vn_Facts\", \"theorems\": "
           ^ theorems ^ "}}"
-          end
+          end)
     end
 
   fun handle_line (line : string) : string =

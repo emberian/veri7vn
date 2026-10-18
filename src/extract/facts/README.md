@@ -84,7 +84,7 @@ The recognizer calls `Regex.compileI` from `../commons/commons.sml`, not the pla
 `compile`'s convention of lower-casing the text, those patterns could never match. (Until lane W5-12 this
 family carried its own `regex.sml` for that; the case modes now live in commons.)
 
-## Current result
+## Completed second packet
 
 All 22 specialists and family mode score **221/221 dev and 207/207 heldout**,
 with zero wrong answers, false yeses or valid omissions. Seven reachable
@@ -116,3 +116,22 @@ are bound separately in the native receipt; the proved theories match.
 Exact proof/native receipts, theorem statements, per-specialist review limits
 and remaining useful extensions are in
 [the continuation report](../../../project/lanes/C-symbolic-facts-humanities.md).
+
+## Third packet
+
+The third packet adds a checked finite JavaScript expression evaluator and
+source-bound requested-field projections for anomie and mycorrhizal exchange.
+It passed 72 theorem checks with zero oracles. Whole expressions preserve case,
+precedence and string content; numeric intermediates stay within the safe-integer
+interval. Unsupported operations decline. This is not a complete ECMAScript model.
+Source projections validate the actual selected source row; their transcribed
+world assertions remain assumptions.
+
+Current native and dispatcher probes contain 98 supported answers, 102 valid or
+underspecified requests withheld, and 3 malformed-expression refusals. All 203
+policy assertions pass; a refusal assertion is not an answered capability.
+Two independent generated JavaScript corpora produce 673 Node-matching answers,
+0 wrong answers and 127 withheld-valid out of 800 expressions. Shipped panel
+numbers remain 221/221 dev and 207/207 heldout for specialists and family mode.
+The current binary is 497,864 bytes. See the report for exact receipts, source
+bindings, new theorem statements, corpus seeds and outstanding scope gaps.

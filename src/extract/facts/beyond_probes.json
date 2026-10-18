@@ -2,566 +2,1219 @@
   {
     "specialist": "linguistics",
     "q": "Which family does ENGLISH belong to?",
-    "expect": "Indo-European"
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "linguistics",
     "q": "Which family does (German) belong to?",
-    "expect": "Indo-European"
+    "expect": "Indo-European",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "linguistics",
     "q": "Which family does Finnish belong to?",
-    "expect": "Uralic"
+    "expect": "Uralic",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "linguistics",
     "q": "Which family does Basque belong to?",
-    "expect": "isolate"
+    "expect": "isolate",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "linguistics",
     "q": "Which family does xenglish belong to?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "linguistics",
     "q": "Which family does englishx belong to?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "linguistics",
     "q": "Which family does \u00e9english belong to?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "linguistics",
     "q": "Which family does english\u00e9 belong to?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "linguistics",
     "q": "Which family does english_ belong to?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "linguistics",
     "q": "Which family does 2english belong to?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "literature-v2",
     "q": "Which book begins 'It was the best of times, it was the worst of times'?",
-    "expect": "A Tale of Two Cities"
+    "expect": "A Tale of Two Cities",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "literature-v2",
     "q": "What is the best book: 'Pride and Prejudice'?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "botany",
     "q": "Describe the vein pattern in dicot leaves: parallel or net?",
-    "expect": "net"
+    "expect": "net",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "botany",
     "q": "What is the function of stomata in plants?",
-    "expect": "gas exchange"
+    "expect": "gas exchange",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "botany",
     "q": "What is the function of my plant?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "marinebio",
     "q": "Which animal is the biggest that has ever lived?",
-    "expect": "blue whale"
+    "expect": "blue whale",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "marinebio",
     "q": "Which fish is the largest in the ocean?",
-    "expect": "whale shark"
+    "expect": "whale shark",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "marinebio",
     "q": "Which animal is the largest in Loch Ness?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "marinebio",
     "q": "Which animal is the biggest in my aquarium?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ornithology",
     "q": "Which bird is the fastest when diving?",
-    "expect": "peregrine falcon"
+    "expect": "peregrine falcon",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ornithology",
     "q": "Which animals are the only ones with feathers?",
-    "expect": "birds"
+    "expect": "birds",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ornithology",
     "q": "Which bird is the best when diving?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "marinebio",
     "q": "Which fish is the largest in Loch Ness?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ornithology",
     "q": "Which bird is the fastest in my garden?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "medicine",
     "q": "What is normal human body temperature?",
-    "expect": "98.6"
+    "expect": "98.6",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "medicine",
     "q": "What is the normal body temperature?",
-    "expect": "98.6"
+    "expect": "98.6",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "medicine",
     "q": "What is a dog's normal body temperature?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "medicine",
     "q": "What is an axolotl's normal body temperature?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "pets",
     "q": "What is a dog's normal body temperature?",
-    "expect": "101 to 102.5"
+    "expect": "101 to 102.5",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "medicine",
     "q": "What is normal blood pressure for an axolotl?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "medicine",
     "q": "What is the normal resting heart rate of a hummingbird?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "medicine",
     "q": "What is the usual adult resting pulse range?",
-    "expect": "60 to 100"
+    "expect": "60 to 100",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "medicine",
     "q": "What is considered normal blood pressure in adults?",
-    "expect": "less than 120/80"
+    "expect": "less than 120/80",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "pets",
     "q": "How many teeth does a newborn puppy have?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "pets",
     "q": "How many teeth does a newborn kitten have?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "pets",
     "q": "What is an adult dog's tooth count?",
-    "expect": "42"
+    "expect": "42",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "pets",
     "q": "How many permanent teeth does a domestic cat have?",
-    "expect": "30"
+    "expect": "30",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "law",
     "q": "What was the vote count in Marbury v. Madison?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "law",
     "q": "Which power did Marbury v. Madison establish?",
-    "expect": "judicial review"
+    "expect": "judicial review",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "psychology",
     "q": "What is classical conditioning?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "psychology",
     "q": "Who criticized classical conditioning?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "psychology",
     "q": "Which researcher is credited with classical conditioning?",
-    "expect": "Ivan Pavlov"
+    "expect": "Ivan Pavlov",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "childdev",
     "q": "What is object permanence?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "childdev",
     "q": "At what developmental stage does object permanence emerge?",
-    "expect": "sensorimotor"
+    "expect": "sensorimotor",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "marinebio",
     "q": "What is the largest fish in Loch Ness?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "marinebio",
     "q": "Which fish grows the largest?",
-    "expect": "whale shark"
+    "expect": "whale shark",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ornithology",
     "q": "What is the largest bird in New Zealand?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "ornithology",
     "q": "What bird is the heaviest alive?",
-    "expect": "ostrich"
+    "expect": "ostrich",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "ornithology",
     "q": "Which living bird has the greatest wingspan?",
-    "expect": "wandering albatross"
+    "expect": "wandering albatross",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "botany",
     "q": "Where does photosynthesis take place in bacteria?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "botany",
     "q": "In which organelle do plant cells perform photosynthesis?",
-    "expect": "chloroplasts"
+    "expect": "chloroplasts",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "entomology",
     "q": "Where are the legs of a spider attached?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "entomology",
     "q": "Where do insect wings attach?",
-    "expect": "thorax"
+    "expect": "thorax",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "firstaid",
     "q": "How deep should infant CPR compressions be?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "firstaid",
     "q": "What is the CPR compression ratio for two rescuers treating an infant?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "firstaid",
     "q": "What is the CPR compression depth for an axolotl?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "firstaid",
     "q": "What is the compression depth for adult CPR?",
-    "expect": "2 inches"
+    "expect": "2 inches",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "Who won the Battle of Hastings?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "Who signed the Magna Carta?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "In which year was the Magna Carta sealed?",
-    "expect": "1215"
+    "expect": "1215",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Who stole the Mona Lisa painting?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Who painted the Mona Lisa replica?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Who is the artist behind The Starry Night?",
-    "expect": "Vincent van Gogh"
+    "expect": "Vincent van Gogh",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "poetry",
     "q": "Who illustrated The Raven?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "poetry",
     "q": "Who wrote The Raven sequel?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "poetry",
     "q": "Which poet penned Ozymandias?",
-    "expect": "Percy Bysshe Shelley"
+    "expect": "Percy Bysshe Shelley",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "mycology",
     "q": "How thick are fungal cell walls?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "mycology",
     "q": "Which polymer forms fungal cell walls?",
-    "expect": "chitin"
+    "expect": "chitin",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "etiquette",
     "q": "What is a bread plate made of?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "etiquette",
     "q": "In a formal place setting, where does the bread plate belong?",
-    "expect": "upper left"
+    "expect": "upper left",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Who painted \"The Starry Night\"?",
-    "expect": "Vincent van Gogh"
+    "expect": "Vincent van Gogh",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Name the painter of the Sistine Chapel ceiling",
-    "expect": "Michelangelo"
+    "expect": "Michelangelo",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Name the painter of The Starry Night",
-    "expect": "Vincent van Gogh"
+    "expect": "Vincent van Gogh",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "poetry",
     "q": "Name the author of The Waste Land",
-    "expect": "T. S. Eliot"
+    "expect": "T. S. Eliot",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Who painted the Mona Lisa in 1950?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Who painted The Starry Night in 1990?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Who restored the Mona Lisa?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Who purchased The Thinker?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "arthistory",
     "q": "Who painted the Mona Lisa and The Starry Night?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did the Western Roman Empire fall?",
-    "expect": "476"
+    "expect": "476",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When was Magna Carta sealed?",
-    "expect": "1215"
+    "expect": "1215",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "In what year was the Battle of Hastings fought?",
-    "expect": "1066"
+    "expect": "1066",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did Columbus reach the Americas?",
-    "expect": "1492"
+    "expect": "1492",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did Luther post the 95 Theses?",
-    "expect": "1517"
+    "expect": "1517",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did the storming of the Bastille occur?",
-    "expect": "1789"
+    "expect": "1789",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did the Battle of Waterloo take place?",
-    "expect": "1815"
+    "expect": "1815",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did World War I begin?",
-    "expect": "1914"
+    "expect": "1914",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did World War I end?",
-    "expect": "1918"
+    "expect": "1918",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did the Russian Revolution occur?",
-    "expect": "1917"
+    "expect": "1917",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did World War II begin?",
-    "expect": "1939"
+    "expect": "1939",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did World War II end?",
-    "expect": "1945"
+    "expect": "1945",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When was the United Nations founded?",
-    "expect": "1945"
+    "expect": "1945",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did India gain independence from Britain?",
-    "expect": "1947"
+    "expect": "1947",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When was the People's Republic of China proclaimed?",
-    "expect": "1949"
+    "expect": "1949",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did the Berlin Wall fall?",
-    "expect": "1989"
+    "expect": "1989",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did the Soviet Union dissolve?",
-    "expect": "1991"
+    "expect": "1991",
+    "capability_case": "answered_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When was the fall of the Western Roman Empire commemorated?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When was Magna Carta destroyed?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "In what year was the Battle of Hastings commemorated?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did Columbus reach India?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When were the 95 Theses translated into Japanese?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When was the storming of the Bastille first filmed?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When was the Battle of Waterloo commemorated?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did World War I begin in this film?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did World War I end in this novel?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When was the Russian Revolution commemorated?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did World War II begin in this play?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did World War II end in this game?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When was the United Nations headquarters renovated after it was founded?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did India celebrate independence for the fiftieth time?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When was the People's Republic of China first commemorated after it was founded?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did the Berlin Wall fall in this movie?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   },
   {
     "specialist": "worldhistory",
     "q": "When did the Soviet Union collapse in this documentary?",
-    "status": "withheld"
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who sculpted the Mona Lisa?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who painted The Thinker?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who painted David?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who sculpted The Kiss?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who painted The Great Wave off Kanagawa?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who sculpted David?",
+    "expect": "Michelangelo",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who created The Thinker?",
+    "expect": "Auguste Rodin",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who created The Great Wave off Kanagawa?",
+    "expect": "Katsushika Hokusai",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "sociology",
+    "q": "What does anomie mean?",
+    "expect": "normlessness",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "sociology",
+    "q": "Which sociologist developed the concept of anomie?",
+    "expect": "Emile Durkheim",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "mycelial",
+    "q": "What do fungi give plants in a mycorrhizal exchange?",
+    "expect": "water and mineral nutrients (especially phosphorus and nitrogen)",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "mycelial",
+    "q": "What do plants get from fungi in a mycorrhiza?",
+    "expect": "water and mineral nutrients (especially phosphorus and nitrogen)",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "mycelial",
+    "q": "What does the plant give the fungus in a mycorrhiza?",
+    "expect": "sugars",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "mycelial",
+    "q": "In a mycorrhiza, what does the fungus receive from the plant?",
+    "expect": "sugars",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "sociology",
+    "q": "What year did anomie begin?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "mycelial",
+    "q": "What do bacteria give plants in a mycorrhiza?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "mycelial",
+    "q": "What do plants give other plants in a mycorrhiza?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is typeof null === \"object\" in JavaScript?",
+    "expect": "true",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is \"5\" + 3 + 4 in JavaScript?",
+    "expect": "\"534\"",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is 5 + 3 + 4 in JavaScript?",
+    "expect": "12",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is (5 + 3) - 4 in JavaScript?",
+    "expect": "4",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is \"8\" - 3 in JavaScript?",
+    "expect": "5",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is true + 4 in JavaScript?",
+    "expect": "5",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is null + 4 in JavaScript?",
+    "expect": "4",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is undefined + 4 in JavaScript?",
+    "expect": "NaN",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is true == \"1\" in JavaScript?",
+    "expect": "true",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is true === 1 in JavaScript?",
+    "expect": "false",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is NaN === NaN in JavaScript?",
+    "expect": "false",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is \"a  b\" + 2 in JavaScript?",
+    "expect": "\"a  b2\"",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is 9007199254740990 + 1 in JavaScript?",
+    "expect": "9007199254740991",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is typeof nan in JavaScript?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is \"5\" + 3 nonsense in JavaScript?",
+    "status": "withheld",
+    "capability_case": "invalid_syntax"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is 9007199254740991 + 1 in JavaScript?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is 9007199254740992 - 9007199254740991 in JavaScript?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is \"9007199254740992\" - 9007199254740991 in JavaScript?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is 1++2 in JavaScript?",
+    "status": "withheld",
+    "capability_case": "invalid_syntax"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is 1--2 in JavaScript?",
+    "status": "withheld",
+    "capability_case": "invalid_syntax"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is 1 + 2 * 3 in JavaScript?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is 0.1 + 0.2 + 3 in JavaScript?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is typeof NULL in JavaScript?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is (typeof null) === \"object\" + unknown in JavaScript?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Who wrote Pride and Prejudice?",
+    "expect": "Jane Austen",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Who is the author of Moby-Dick?",
+    "expect": "Herman Melville",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Who wrote the sequel to Pride and Prejudice?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Who is the author of the film adaptation of Moby-Dick?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "Who wrote Pride and Prejudice in 2020?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "poetry",
+    "q": "What is the syllable pattern of a haiku?",
+    "expect": "5-7-5",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "poetry",
+    "q": "How many lines are in a haiku?",
+    "expect": "3",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "poetry",
+    "q": "How many syllables are in a line of iambic pentameter?",
+    "expect": "10",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "poetry",
+    "q": "How many syllables are in the word haiku?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "poetry",
+    "q": "How many lines are in my sonnet?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "poetry",
+    "q": "How many syllables are in the phrase iambic pentameter?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "sociology",
+    "q": "Define anomie",
+    "expect": "normlessness",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "firesafety-v2",
+    "q": "In the US, what class is an electrical fire?",
+    "expect": "Class C",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "firesafety-v2",
+    "q": "Which class of fire extinguisher is used on an electrical fire?",
+    "expect": "Class C",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "firesafety-v2",
+    "q": "What is a Class C fire in the United States?",
+    "expect": "electrical",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "firesafety-v2",
+    "q": "What class is a wood fire?",
+    "expect": "Class A",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "firesafety-v2",
+    "q": "Which extinguisher class is meant for burning gasoline?",
+    "expect": "Class B",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "firesafety-v2",
+    "q": "In the UK, what class is an electrical fire?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "firesafety-v2",
+    "q": "What is a Class C fire in the UK?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "firesafety-v2",
+    "q": "What class is an electrical fire in Australia?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "firesafety-v2",
+    "q": "What class is a wood and electrical fire?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "firesafety-v2",
+    "q": "Which extinguisher class is meant for burning unknownium?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was Pride and Prejudice first published?",
+    "expect": "1813",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was the Japanese translation of Pride and Prejudice published?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was Frankenstein first published?",
+    "expect": "1818",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was the Japanese translation of Frankenstein published?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was Moby-Dick first published?",
+    "expect": "1851",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was the Japanese translation of Moby-Dick published?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was Dracula first published?",
+    "expect": "1897",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was the Japanese translation of Dracula published?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was Jane Eyre first published?",
+    "expect": "1847",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was the Japanese translation of Jane Eyre published?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was Les Miserables first published?",
+    "expect": "1862",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "literature-v2",
+    "q": "When was the Japanese translation of Les Miserables published?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who was the first human in space?",
+    "expect": "Yuri Gagarin",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who was the first Roman emperor?",
+    "expect": "Augustus",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who was the first emperor of a unified China?",
+    "expect": "Qin Shi Huang",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who founded the Mongol Empire?",
+    "expect": "Genghis Khan",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who led German unification?",
+    "expect": "Otto von Bismarck",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who was British prime minister for most of World War II?",
+    "expect": "Winston Churchill",
+    "capability_case": "answered_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was the first human in space?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who was the first Roman emperor's daughter?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who was the first emperor of China in this novel?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who killed the founder of the Mongol Empire?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who unified Germany in this film?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who was British prime minister at the beginning of World War II?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What does Array.prototype.Push return?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What does array.prototype.push return?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
+  },
+  {
+    "specialist": "javascript",
+    "q": "What is the difference in scope between Let and Var?",
+    "status": "withheld",
+    "capability_case": "withheld_valid"
   }
 ]

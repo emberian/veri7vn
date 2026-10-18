@@ -26,6 +26,8 @@ cat > "$OUT/build/facts.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 facts_generated.sml
 $SRC/../commons/commons.sml
+$SRC/javascript.sml
+$SRC/projection.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
