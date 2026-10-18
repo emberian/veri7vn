@@ -173,3 +173,109 @@ Triage 2 (details in [`TRIAGE-2.md`](../scouts/TRIAGE-2.md)):
   missing `--specialist` flag).
 - One `.pyc` was written under `upstream/` today at 17:48 by the system Python
   importing `relation_readers_v1` (candidates: rel-census, rel-novels). Root decides on cleanup.
+
+## Triage 3 (2026-10-17)
+
+Log: [`project/scouts/TRIAGE-3.md`](../scouts/TRIAGE-3.md).
+
+| Branch | Merged | Why, or what to fix first |
+|---|---|---|
+| scout/organ-wrappers | yes, `0e96ff5` | new files only; two verdict files re-read, layout equals lane D's folder |
+| scout/commons | yes, `2b53bd0` | three sessions rebuilt fresh (quantity hbox, acoustics persvati, fusion hbox, all PASS oracles=0); 641/641 and 139/139 replies identical; two consumers fixed on dev (`6509730` linux-build.sh, `1aab277` variants/build.sh) |
+| scout/perf-envelope | yes, `90db133` | three binaries and the head's cold start re-measured within a few percent; raw JSON kept out of git; plain-words paragraph added |
+
+| Lane | Tier | Size | Start from | Done when |
+|---|---|---|---|---|
+| W5-10 The organ package for Oracle7's author | sonnet | M | dev (`tools/organs/`), W5-04's Linux binaries | a staged package with built binaries passes `make_organ.py --smoke` with no veri7vn checkout and no env vars, on macOS and on hbox; acoustics' dev verdict byte-equal to lane D's |
+| W5-11 Front-composition board for every organ | sonnet | M | W5-10's package (or dev's `var/organs/`) | one row per generated organ, both splits; each equals its family lane's own panel numbers |
+| W5-12 Every family on commons | sonnet | L (split by family) | dev (`src/extract/commons/`, quantity and acoustics as the pattern) | per family: fresh remote PASS with oracles=0 and every panel reply byte-identical, both splits; fusion umbrella PASS; commons has its own PASS marker |
+| W5-13 Dispatcher: the pinned specialist goes first | sonnet | S | dev (`tools/dispatch/`) | astronomy-v3 held-out 137/0/0 through the dispatcher; the other nine panels and 924 core statuses unchanged |
+| W5-14 One family registry, then a quiet fleet run | sonnet | S | dev (`tools/perf/`, `tools/organs/`) | `src/extract/families.json` read by fleet.py and make_organ.py with the same lists they find today; fleet.md regenerated at load below 1 with every committed family |
+
+**W5-10.** Turn `tools/organs/make_organ.py`'s output into something Oracle7's
+author can drop into `root/specialists/` without a veri7vn checkout. Generate
+from committed families only (dev today has untracked `src/extract/earth/` and
+`finance/`; discovery must not pick them up). Put one binary per family and
+platform in `specialists/_veri7vn/bin/<os>-<arch>/<slug>` (Linux from
+`tools/deploy/linux-build.sh` on hbox, macOS from the lanes' builds, each with
+its sha256 and the session receipt that produced it), and teach the wrapper
+that path before the walk-up. Rewrite the generated README for him: what the
+folder is (his own specialist, answered by a program whose formulas and
+refusals are proved in Isabelle; recognizer and wrapper untrusted), how to
+install, and what his exam will say: behind the w540 head exam.py reports
+WOULD FAIL for every clone because the head already holds the original
+(gain starved) and the composite inherits the head's own wrong answers; give
+the front-composition numbers next to it. Leave the `stores` organs out
+(their binary needs the checkout path and a python fetcher) or make them
+relocatable. One NOTICE for the package. The exam.py `expected: (decline)`
+display (it reads `a`, panels use `expect`) is noted for him, not patched.
+
+**W5-11.** The organ-wrappers scout's follow-up 1. Run lane A's harness with
+`--compose front` over every generated organ, both splits, LANE/SELF/BUDGET
+with `--lane-answerer`. This runs the Oracle7 head through lane A's answerer;
+root grants it for this lane by name, engine state under `var/`. Report
+right / wrong / false yes per organ against its family lane's own numbers;
+any difference is a finding, not noise.
+
+**W5-12.** Port every remaining family onto `src/extract/commons/`, one
+family per commit: anatomyagri, chemistry, climate, computing, discrete,
+emoptics, energy, facts, geostats, humanities, life, materials, mechanics,
+space, trades; stores and fusion take the SML half only. For each: delete
+the duplicated items (the scout's `var/scout-wt/commons/var/commons/measure_thy.py`
+lists them), import `Veri7vn_Commons`, add the ROOT `sessions` line and the
+`-d` in build.sh, drop `regex.sml`, slim `main.sml`. Keep `to_fixed`
+(climate, trades, computing mean three different things) and space's `style`
+record local. Gate per family: build the before binary, port, rebuild fresh
+on hbox or persvati with the PASS marker, re-score every panel and diff every
+reply against the before binary (the triage diff ignores only
+`provenance.specialist_ms`); 0 differing replies. Energy, climate and space
+are re-checked inside `Veri7vn_Fusion`: rebuild it after each of those.
+Check the consumers each time (`tools/deploy/linux-build.sh`,
+`src/extract/variants/build.sh`, anything that names a family's
+`regex.sml` or `main.sml`). Add commons' own export block: `all_oracles`
+empty over its theorems, a self-test of `render_dec`, `round_tie_up`,
+`to_dec`, marker `VERI7VN_COMMONS PASS`. Done number: every family's panel
+numbers unchanged and every reply identical; report the line count before
+and after. Sonnet; split across two or three lanes by family if run in
+parallel, each owning its families' directories.
+
+**W5-13.** W5-09's open item (triage 3 traced it). The arbitration picks
+chemistry-v3's element reading for "According to NASA, what is the density
+of Mercury?" because its reply repeats two question trigrams and wording
+ranks before the context cue. That order is combo_runtime_v1's own code and
+`Arbitration.thy` models it; do not change the verified rule. Change the
+composition: in front order with `--specialist`, ask the pinned specialist
+alone first, as the release's exam does, and run the rest of the cascade
+(other families through the arbitration, network, reader) only when it does
+not take the turn.
+
+**W5-14.** fleet.py and make_organ.py both find families by parsing each
+`score.py`'s id list (three different names for it, acoustics none). Write
+`src/extract/families.json` (family, session, binary, specialists), have both
+tools read it, and show they get the lists they find today. Then rerun
+`fleet.py` once at load below 1 with every committed family (humanities was
+not in the scout's run), regenerate `docs/performance/fleet.md`, and replace
+the two uncomputed sentences ("all of them interval arithmetic", "80 ms or
+less") with computed ones or drop them.
+
+Parked from triage 3: life cold start (218 ms) and the interval-arithmetic
+warm cost (wiring 35 ms, ecology 27 ms, orbits 20 ms) are inside every budget
+by a factor of 50 or more; no board number moves. A fleet row in every
+handoff waits for W5-14. The head-drift audit w363 to w540 and admission of a
+new specialist through Oracle7's gate (organ-wrappers follow-ups 2 and 3)
+wait for W5-11. A held-out exam of one organ spends a set and needs root's
+sign-off. The harness's two failure modes (missing `upstream/` gives a
+swallowed `NoneType.get`; a dirty `--out` replays an old error) go to the
+lane holding `tools/parity/` (W5-06).
+
+Triage 3, claims not verified: organ-wrappers' 124-folder smoke run;
+commons' exact Isabelle duplication census and the ~6,300-line saving;
+perf-envelope's 61-minute head pass and the 16 binaries not re-run; why the
+w540 head withholds the Mercury question.
+
+Triage 3, what scouts got wrong: organ-wrappers counts the head's
+exact-fraction unit answers as "wrong" without saying the number is right and
+the scorer misreads it; commons' line totals (regex 4,475 not 4,197; main
+3,782 not ~3,400) and two consumers left broken; perf-envelope's stated load
+(6.0 at start, not 4 to 5.5), a 0.8 MB raw file under `docs/`, and a
+worktree path in the page.

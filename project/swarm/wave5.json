@@ -2,7 +2,8 @@
  "wave": 5,
  "from_triage": [
   "project/scouts/TRIAGE-1.md",
-  "project/scouts/TRIAGE-2.md"
+  "project/scouts/TRIAGE-2.md",
+  "project/scouts/TRIAGE-3.md"
  ],
  "batches": {
   "W5-01-rel-novels-land": {
@@ -115,6 +116,66 @@
    ],
    "brief": "The core-panel numbers reproduce 924/924 (status and path). The report's claim that the space binary drifted past its receipt is wrong: with --specialist astronomy-v3 it scores 137/0/0 held-out, as lane S02 recorded; without the flag it applies astronomy-v3-r2's rules (111/0/3). The dispatcher starts every family binary without --specialist, so its own astronomy-v3 110/4 has the same cause. Retract the claim, decide how the dispatcher tells a family binary whose rules apply (per-specialist processes or the manifest context), make the dispatcher refuse to start when a stage process cannot (a copy without tools/fusion silently lost 58 network answers), commit the report, hand to root.",
    "done_when": "report committed with the drift claim replaced; astronomy-v3 held-out 137/0/0 through the dispatcher; core-panel statuses otherwise unchanged (924 compared); a missing stage is a start-up error"
+  },
+  "W5-10-organ-package": {
+   "title": "The organ package for Oracle7's author",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "dev (tools/organs/make_organ.py, tools/organs/exam_dev.py); Linux binaries via tools/deploy/linux-build.sh (W5-04)",
+   "paths": [
+    "tools/organs/"
+   ],
+   "brief": "Generate Oracle7 specialist folders from committed families only (dev has untracked src/extract/earth and finance). One binary per family and platform in specialists/_veri7vn/bin/<os>-<arch>/<slug>, each with sha256 and its session receipt; the wrapper looks there before the walk-up. Rewrite the generated README for Oracle7's author: what the folder is, what is proved (kernel) and what is not (recognizer, wrapper), how to install, and why exam.py behind the w540 head reports WOULD FAIL for every clone (the head holds the original, so gain is starved, and the composite inherits the head's wrong answers), with the front-composition numbers beside it. Leave the stores organs out or make them relocatable. One NOTICE for the package. Note, do not patch, exam.py's expected:(decline) display.",
+   "done_when": "a staged package with built binaries passes make_organ.py --smoke with no veri7vn checkout and no env vars, on macOS and on hbox; acoustics' dev verdict byte-equal to lane D's"
+  },
+  "W5-11-organ-front-board": {
+   "title": "Front-composition board for every generated organ",
+   "model": "sonnet",
+   "size": "M",
+   "start_from": "W5-10's package, or dev's var/organs/ from make_organ.py",
+   "paths": [
+    "var/organs-board/",
+    "docs/parity/organs.md"
+   ],
+   "brief": "Run lane A's harness with --compose front over every generated organ, both splits, LANE/SELF/BUDGET via --lane-answerer. Runs the Oracle7 head through lane A's answerer: root grants it for this lane by name, engine state under var/. Report right/wrong/false yes per organ against its family lane's own numbers; any difference is a finding.",
+   "done_when": "one row per generated organ, both splits, each equal to its family lane's own panel numbers or the difference explained item by item"
+  },
+  "W5-12-commons-migration": {
+   "title": "Every family on src/extract/commons",
+   "model": "sonnet",
+   "size": "L",
+   "start_from": "dev: src/extract/commons/, quantity and acoustics as the pattern; the scout's var/scout-wt/commons/var/commons/measure_thy.py for the per-family item lists",
+   "paths": [
+    "src/extract/<family>/ for the families the lane is given",
+    "src/extract/commons/"
+   ],
+   "brief": "Port anatomyagri, chemistry, climate, computing, discrete, emoptics, energy, facts, geostats, humanities, life, materials, mechanics, space, trades onto commons (stores and fusion: SML half only), one family per commit. Keep to_fixed and space's style record local. Per family: before binary, port, fresh remote build with the PASS marker, re-score every panel and diff every reply against the before binary (ignore only provenance.specialist_ms). Rebuild Veri7vn_Fusion after energy, climate and space. Check consumers each time (tools/deploy/linux-build.sh, src/extract/variants/build.sh). Add commons' own export block (all_oracles empty, self-test, marker VERI7VN_COMMONS PASS). Split across two or three lanes by family if parallel.",
+   "done_when": "every family: fresh remote PASS oracles=0 and 0 differing panel replies on both splits; fusion umbrella PASS; VERI7VN_COMMONS PASS; line count before and after reported"
+  },
+  "W5-13-dispatcher-pinned-front": {
+   "title": "Dispatcher: the pinned specialist goes first",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev (tools/dispatch/), project/lanes/W5-09-dispatcher.md, TRIAGE-3's Mercury trace",
+   "paths": [
+    "tools/dispatch/"
+   ],
+   "brief": "For 'According to NASA, what is the density of Mercury?' the verified arbitration picks chemistry-v3 because its reply repeats two question trigrams and wording ranks before the context cue; that is combo_runtime_v1's own order and Arbitration.thy models it, so the rule stays. Change the composition: in front order with --specialist, ask the pinned specialist alone first, as the release's exam does; run the rest of the cascade only when it does not take the turn.",
+   "done_when": "astronomy-v3 held-out 137/0/0 through the dispatcher; the other nine W5-09 panels unchanged; 924/924 core statuses and paths unchanged"
+  },
+  "W5-14-family-registry-fleet": {
+   "title": "One family registry, then a quiet fleet run",
+   "model": "sonnet",
+   "size": "S",
+   "start_from": "dev (tools/perf/fleet.py, tools/organs/make_organ.py)",
+   "paths": [
+    "src/extract/families.json",
+    "tools/perf/",
+    "tools/organs/make_organ.py (discovery only, coordinate with W5-10)",
+    "docs/performance/fleet.md"
+   ],
+   "brief": "Both tools find families by parsing each score.py's id list (SPECIALISTS, IDS, VARIANTS, or none). Write src/extract/families.json (family, session, binary, specialists), have both read it, show they get today's lists. Rerun fleet.py once at load below 1 with every committed family (humanities was missing), regenerate fleet.md, and compute or drop the two uncomputed sentences in the generator.",
+   "done_when": "both tools read families.json and list exactly what they list today; fleet.md regenerated at load below 1 covering every committed family"
   }
  },
  "deferred": {
@@ -129,7 +190,14 @@
   "names-polish-and-top3": "rel-linker follow-ups 2 and 4; after W5-02, whose agreement rule changes what a rank loss costs.",
   "relation-route-harness": "rel-linker follow-up 1; W5-07 covers the rel-* row, and the core's 204 relation items route through the tritree, which does not read names_v1.",
   "conversation-lifts": "conversation follow-ups 2-4 (w529 lift, converse organ, dialogue-state locale); after W5-08 gives them a number.",
-  "dispatcher-follow-ups": "verified stage order, guard narrows, network v2 mode, static distribution; after W5-09."
+  "dispatcher-follow-ups": "verified stage order, guard narrows, network v2 mode, static distribution; after W5-09.",
+  "perf-life-cold-and-interval-cost": "perf-envelope follow-ups 2 and 4: life cold 218 ms and interval warm cost (wiring 35, ecology 27, orbits 20 ms) are inside every budget by 50x or more; no board number moves.",
+  "perf-handoff-row-and-stores-first-call": "perf-envelope follow-ups 1 and 3: after W5-14.",
+  "organ-head-drift-and-new-admission": "organ-wrappers follow-ups 2 and 3: after W5-11.",
+  "organ-heldout-exam": "organ-wrappers follow-up 5: spends a held-out set; needs root's sign-off.",
+  "harness-failure-modes": "commons scout: a missing upstream/ surfaces as a swallowed NoneType.get, and a dirty --out replays an old error. To the lane holding tools/parity (W5-06).",
+  "commons-build-driver-and-narrow": "commons follow-ups 3 and 4 (one family-build script, shared narrow_v1 scaffolding): after W5-12.",
+  "render-dec-spec": "commons follow-up 5: render_dec against Python %.pg; optional metatheory, fable tier."
  },
  "merges": [
   {
@@ -174,6 +242,24 @@
    "branch": "scout/dispatcher",
    "merged": false,
    "fix_first": "report uncommitted; the space-drift claim is wrong (W5-09)"
+  },
+  {
+   "branch": "scout/organ-wrappers",
+   "merged": true,
+   "commit": "0e96ff5",
+   "note": "new files only; units and law verdicts re-read; acoustics folder equals lane D's except notes and the veri7vn block"
+  },
+  {
+   "branch": "scout/commons",
+   "merged": true,
+   "commit": "2b53bd0",
+   "note": "fresh remote builds: Quantity hbox, Acoustics persvati, Fusion hbox, all PASS oracles=0; 641/641 and 139/139 replies identical; consumers fixed on dev 6509730 (linux-build.sh) and 1aab277 (variants/build.sh, 402/402 identical)"
+  },
+  {
+   "branch": "scout/perf-envelope",
+   "merged": true,
+   "commit": "90db133",
+   "note": "three binaries and the head cold start re-measured; fleet.json kept out of git (var/perf/fleet.json); plain-words paragraph and relative head path added"
   }
  ],
  "unverified": [
@@ -186,7 +272,11 @@
   "math-organ: coverage claims (47 answered items, guard counts) are the scout's reading of the draft, explicitly unverified by it too",
   "rel-linker: the 5-minute build itself; slot top-1 96.5% over all 18,969 (ten readers re-run only); the ~14M original name count; the exact-router examples; the breakdown of the 935 non-gap silences",
   "conversation: the AO case-flag bug; the 84-of-143 fold catalogue counts",
-  "dispatcher: the ten front-order panels table; 84/101 byte-identical network texts; cold start and memory; the Mercury arbitration case"
+  "dispatcher: the ten front-order panels table; 84/101 byte-identical network texts; cold start and memory; the Mercury arbitration case",
+  "organ-wrappers: the 124-folder smoke run; git/orbits/acoustics verdicts beyond the headline counts; multi-folder exam_dev.py",
+  "commons: the exact Isabelle duplication census (90/35/1,312); the ~6,300-line migration saving; regex_test.sh and tables_check.py on the port",
+  "perf-envelope: the 61-minute head pass (1.96 GB, 140 ms p50, 8.4 s max); the 16 binaries not re-run; the outlier reproductions",
+  "Mercury: why the w540 head withholds this question"
  ],
  "scout_errors": [
   "specialist-linter: says the release used a lane cap of 5 and was tighter than exam.py; the three specialists over 5 were admitted, so it was not",
@@ -200,6 +290,10 @@
   "rel-linker: the 11 wrong answers are blamed on missing aliases; they are label collisions ranked by the fame proxy",
   "rel-linker: builder docstring says ~3.6M aliases missing, report says ~1.9M rows; neither is measured",
   "conversation: conv_step_deterministic is true of any function; conv_step_is_one_dispatch is proved by its definition",
-  "dispatcher: 'the space binary has drifted past its parity receipt' is the missing --specialist flag"
+  "dispatcher: 'the space binary has drifted past its parity receipt' is the missing --specialist flag",
+  "organ-wrappers: 11 of the 12 visible units 'wrong' answers are the head's right number in fraction form, misread by the shipped scorer; the report does not say so",
+  "commons: regex.sml copies total 4,475 lines, not 4,197; main.sml 3,782, not ~3,400",
+  "commons: left tools/deploy/linux-build.sh and src/extract/variants/build.sh pointing at the deleted quantity/regex.sml",
+  "perf-envelope: load stated as 4 to 5.5, the JSON records 6.0 at start; 0.8 MB raw JSON committed under docs/; the page printed the worktree path"
  ]
 }
