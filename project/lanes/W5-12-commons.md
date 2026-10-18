@@ -1,6 +1,6 @@
 # W5-12: every family on commons
 
-Lane W5-12, 2026-10-17, branch dev, commits `[lane W5-12] ...` (21, unsigned, not pushed).
+Lane W5-12, 2026-10-17, branch dev, commits `[lane W5-12] ...` (22, unsigned, not pushed).
 
 ## What it does
 
@@ -11,7 +11,7 @@ by the family theory, listed in the family ROOT `sessions`, `-d src/extract/comm
 in `build.sh`) and `commons.sml` (listed in the `.mlb` instead of `regex.sml`;
 `main.sml` lost its Json block). The generated SML keeps its shape, so
 recognizers are untouched, except facts (below). Nothing about what any binary
-answers changed: 0 of 247,000 recorded replies differ.
+answers changed: 0 of 236,408 recorded replies differ (250,194 with quantity and acoustics re-run).
 
 ## Result per family
 
