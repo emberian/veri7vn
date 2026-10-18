@@ -78,7 +78,14 @@ def read_mlb(path):
 
 def select_receipt(repo, family, session, inputs, explicit=None):
     current = proof_sources(repo, session)
-    candidates = [explicit] if explicit else sorted((repo/'var'/family/'remote-attempts').glob('*/receipt.json'), reverse=True)
+    producers = {family}
+    registry = repo/'src/extract/families.json'
+    if registry.exists():
+        producers.update(e['family'] for e in json.loads(registry.read_text())['families']
+                         if e.get('session') == session)
+    candidates = [explicit] if explicit else sorted(
+        (p for producer in producers for p in (repo/'var'/producer/'remote-attempts').glob('*/receipt.json')),
+        key=lambda p: (p.parent.name, str(p)), reverse=True)
     input_hashes = {p: sha(p) for p in inputs if p is not None}
     errors = []
     for path in candidates:

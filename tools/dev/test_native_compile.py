@@ -88,6 +88,13 @@ class NativeCompileTests(unittest.TestCase):
         self.mlb.write_text(self.mlb.read_text().replace(str(self.runtime),str(wrapper)))
         r=self.compile();self.assertEqual(r['source_sha256']['tools/document/main.sml'],n.sha(wrapper))
 
+    def test_shared_session_consumer_finds_producer_receipt(self):
+        registry=self.repo/'src/extract/families.json'
+        registry.write_text(json.dumps({'families':[{'family':'tiny','session':'Veri7vn_Tiny'},
+                                                   {'family':'variant','session':'Veri7vn_Tiny'}]}))
+        selected=n.select_receipt(self.repo,'variant','Veri7vn_Tiny',n.read_mlb(self.mlb))
+        self.assertEqual(selected[0],self.receipt)
+
     def test_unrelated_nested_session_does_not_stale_parent(self):
         nested=self.src/'other';nested.mkdir();(nested/'ROOT').write_text('session Veri7vn_Other = HOL +\n theories Other\n');(nested/'Other.thy').write_text('new')
         self.assertTrue(self.compile()['compile_ok'])
