@@ -13,6 +13,9 @@ definition organ_patterns :: "organ \<Rightarrow> String.literal list" where
      (case store_block (organ_store og) of Some b \<Rightarrow> [b] | None \<Rightarrow> []) @
      [store_ask (organ_store og)] @ map guard (store_rules (organ_store og))"
 
+definition row_guards :: "organ \<Rightarrow> String.literal list" where
+  "row_guards og = map guard (store_rules (organ_store og))"
+
 definition is_answer :: "outcome \<Rightarrow> bool" where
   "is_answer a = (case a of Answer _ _ _ _ _ \<Rightarrow> True | Silent _ \<Rightarrow> False)"
 
@@ -36,13 +39,13 @@ definition self_test :: bool where
         organ_reply False m og = Silent Boundary \<and>
         is_answer (organ_reply False m organ_medicine))"
 
-export_code question_bytes text_organ_reply text_family_reply word_guard word_holds answer_word_guard organ_reply family_reply organs organ_by_id organ_patterns organ_id organ_store
+export_code row_guards question_bytes text_organ_reply text_family_reply word_guard word_holds answer_word_guard organ_reply family_reply organs organ_by_id organ_patterns organ_id organ_store
   store_name store_kind store_block is_answer integer_of_nat
   Answer Silent Boundary Narrative Off_gate Blocked Not_asked No_rule
   in SML module_name Facts file_prefix facts
 
 ML \<open>
-  val theorems = [@{thm linguistics_guards_checked}, @{thm word_holds_occurrence}, @{thm text_answer_word_occurs}, @{thm text_answer_first_row}, @{thm first_match}, @{thm no_rule_no_answer}, @{thm interpret_table_local},
+  val theorems = [@{thm checked_feature_narrows}, @{thm linguistics_guards_checked}, @{thm word_holds_occurrence}, @{thm text_answer_word_occurs}, @{thm text_answer_first_row}, @{thm first_match}, @{thm no_rule_no_answer}, @{thm interpret_table_local},
     @{thm guard_exact}, @{thm answer_from_table}, @{thm organ_silent}, @{thm no_rule_silent},
     @{thm boundary_narrows}, @{thm boundary_only_silences}, @{thm family_first}, @{thm family_none},
     @{thm literature_order_matters}]

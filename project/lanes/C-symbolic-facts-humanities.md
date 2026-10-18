@@ -2,7 +2,9 @@
 
 Owner: Codex symbolic/facts_humanities, 18 October 2026. Both families are
 complete with fresh proof exports, native panels and dispatcher probes.
-Humanities is committed as `45c425b`; Facts is frozen and ready for integration.
+Humanities is committed as `45c425b`; the first Facts packet is committed as
+`165458a`. A second Facts packet is complete below. Further semantic extensions remain
+explicitly open; family green is not a claim that every specialist is finished.
 
 ## What changes
 
@@ -184,3 +186,125 @@ Facts_Export.thy, ROOT, Word_Guards.thy, main.sml, recognizer.sml, build.sh,
 README.md, capabilities.json, beyond_probes.json. The combined report is also
 ready for integration. No new kinds are added; capability declarations describe
 acceptance/evidence assumptions and are not per-answer proof certificates.
+
+
+## Second Facts packet: scope and requested attributes (complete, ready)
+
+The user expanded the goal to correct source-organ wrongness beyond its shipped
+panels. Typed question grammars now attach to actual exported row guards via
+`row_guards`, rather than copied patterns. They distinguish human measurements
+from animal ones, adult pet teeth from newborn ones, attribution from definitions,
+and globally scoped records from local records. They also constrain plant
+photosynthesis, insect anatomy, adult CPR, fungal wall material, bread-plate
+placement, event dates and exact-title creator questions. Useful alternate
+requests are supported, including permanent-tooth counts, usual adult pulse,
+insect wing attachment and plant-cell organelles. No source facts or kinds change.
+
+Review caught an incomplete event distinction: a year prefix alone still let
+Magna Carta destruction and Hastings commemoration select the original dates.
+All 17 date rows now use complete positive event clauses with an exact subject
+and event relation. Every date row has an occurrence-positive and an unrelated-
+event or extra-scope negative (34 new probes). No verb blacklist is used.
+
+The new HOL definition conjoins independent checked occurrence with the
+recognizer predicate. `checked_feature_narrows` states
+`checked_features q m p ==> m p`: the checked matcher cannot undo a subject or
+requested-attribute restriction. `text_answer_word_occurs` says a selected
+literal row has a boundary-delimited, ASCII-case-folded occurrence in the raw
+question bytes. `text_answer_first_row` says the selected index is the first
+row accepted by the composed feature map. Checked literals now admit internal
+spaces as well as ASCII letters. A syntactic inventory finds 115/417 source
+guards in that form, versus 58 single-word guards before; all 44 linguistics
+rows still have their proved coverage fact. The count is not an additional
+coverage theorem. Neither these theorems nor the recognizer prove NLP entailment
+or source world truth.
+
+Fresh proof receipt:
+`var/facts/remote-attempts/20261018T071339Z-de60bcbf0e83/receipt.json`:
+**passed, exports published, exit 0, 63 theorem checks, 0 oracles**.
+Export SHA256: `12c80bbb98837bb44ad2d9c7e52ce896ae0afb917d94587a5add6765c8912c09`.
+The old warm development artifacts under `next-scope-dev/` are not evidence.
+
+All 22 specialists and family mode: **dev 221/221, heldout 207/207,
+wrong 0, false yes 0, valid omissions 0**. The 113 authored probes pass in native
+specialist mode, actual dispatcher mode with routes/guards enabled, and unpinned
+family mode. A dog-temperature query correctly reaches pets in family mode.
+Creator replies retain the exact known title matched by the selected row,
+allowing the correct `Name the painter/author of ...` forms through G3s.
+`source_sentence` preserves original table prose and `source_subject` records
+the matched title. Extraction/rendering is untrusted; unrelated restoration,
+purchase, replica, sequel, compound-title and impossible-date queries stay silent.
+No arbitrary user qualifier is copied into the response.
+
+The 924-question core comparison for each specialist has eight differences:
+six only retain work titles in the response, and two correct the shipped
+organ's answers to impossible-date Mona Lisa/Starry Night questions by withholding.
+There are no other status/kind/value changes. Tables checker: 0 failures.
+Native binary: 422,872 bytes. Exact timings and comparisons are in
+`var/c-symbolic-facts-humanities/facts-scope-panels.json`; probes are in
+`facts-scope-probes.json`, `facts-scope-dispatch.json` and
+`facts-scope-family-probes.json` in that directory.
+
+The shared native compiler now freezes the actual flat MLB inputs, validates
+the export and unchanged proof dependencies, and atomically publishes the binary.
+Immutable native receipt:
+`var/facts/native-attempts/20261018T074200Z-dc3c78e1cadf/compile-inputs.json`.
+Binary SHA256: `4c56f2814267a06a05b633f4bcdb6aa896a4611ed40c7b8f5427b711e06d9ce2`.
+Recognizer SHA256: `ec700e4aadfe4fc1e01a26e6f88df2147035eac4a1c925decb120820f59c5d56`.
+Main SHA256: `f31c56fa908af5b0d1b490b9d85747c97a47057a329e28792fb24c4df2df1c13`.
+Commons SHA256: `1cce00aede6c14c3121ccfe8777b5bcdf3618ffcbeb6b6729e05e7b691a93962`.
+Main and recognizer follow the proof snapshot and must be consumed from this
+native snapshot; current theories and ROOT match the proof receipt. The shared
+build wrapper follows the snapshot too, without changing proof statements.
+
+Frozen second-packet files, below `src/extract/facts/`: Facts_Export.thy,
+Word_Guards.thy, recognizer.sml, main.sml, build.sh, capabilities.json,
+beyond_probes.json, README.md, plus this combined lane report.
+
+Known art-medium limitation: the creator grammar distinguishes the exact work
+and requested creator, but currently pools painted/sculpted/created verbs.
+`Who sculpted the Mona Lisa?` still answers Leonardo da Vinci. The next change
+must distinguish each source work's medium; no claim of medium correctness is
+made for this packet.
+
+Outstanding next work: mycorrhizal exchange needs directional structured values;
+the shipped scorer scans prose mentioning both directions and misses a value
+always set to sugars. JavaScript needs whole-expression, case-sensitive typed
+evaluation. The ledger below records further individual semantic limits.
+
+## Per-specialist semantic review ledger
+
+This ledger separates completed packets from remaining semantic work.
+A family score is not evidence that every behavior below has been examined.
+
+| Exact specialist ID | Concrete behavior examined | Status / bounded remaining limit |
+|---|---|---|
+| literature-v2 | Quoted “best/worst” opening lines versus an actual opinion outside the quote | First packet complete; other literary attribute/edition ambiguities not yet reviewed |
+| worldhistory | Winner/signatory requests and destruction/commemoration dates selected original event years | Complete event clauses plus positive/negative probes for all 17 date rows; alternate events and reissues are withheld, not modeled |
+| arthistory | Thief/replica questions containing Mona Lisa selected the original artist | Exact-title creator grammar complete; medium still unmodeled: “Who sculpted the Mona Lisa?” wrongly answers Leonardo da Vinci; ambiguous titles remain source assumptions |
+| medicine-r2 | Animal-scoped pulse/pressure and unqualified adult measurements | Shared typed measurement grammar complete in second packet; drug/clinical interpretation outside these rows unexamined |
+| medicine | Axolotl pressure, hummingbird pulse, dog temperature selected human values | Temperature fix complete in first packet; pulse/pressure grammar and useful alternate wording complete in second packet |
+| law | Marbury vote count selected judicial review | Principle-request grammar complete in second packet; other case attributes and non-US legal scope unexamined |
+| psychology | Definitions/criticism of classical conditioning selected its discoverer | Attribution grammar complete for classical/operant rows in second packet; definition values and other concepts remain open |
+| sociology | “What does anomie mean?” returns structured value Emile Durkheim though its sentence says normlessness | Confirmed structured-attribute gap; typed projection still pending |
+| linguistics | English embedded beside accented letters, digits, underscores or other letters | First-packet byte-boundary fix complete; all 44 source rows covered by literal guard theorem; broader subject disambiguation remains open |
+| poetry | Illustrator/sequel questions containing a known title selected its original writer | Exact-title author grammar complete in second packet; prosody edge cases not yet examined |
+| botany | Bacterial photosynthesis selected plant chloroplasts | Plant/organelle grammar complete in second packet; other taxonomic scope assumptions unexamined |
+| entomology | Spider leg attachment selected insect thorax | Insect-appendage grammar and wing query support complete in second packet; larval/anatomical exceptions unexamined |
+| marinebio | Largest fish in Loch Ness selected global whale shark | Global-range grammar complete in second packet; other ocean zone/property attributes unexamined |
+| ornithology | Largest bird in New Zealand selected global ostrich | Global record grammar complete for size/wingspan in second packet; extinct birds and source-record rankings not adjudicated |
+| mycology | “How thick are fungal cell walls?” selected material chitin | Material-request grammar and polymer query complete in second packet; species exceptions unexamined |
+| mycelial | Fungi-to-plant exchange returns structured value sugars, although prose supplies both directions | Confirmed scorer blind spot; directional typed value projection pending |
+| pets | Newborn puppy/kitten teeth selected adult counts | Adult/permanent-tooth grammar plus tooth-count variants complete in second packet; other age/health contexts unexamined |
+| childdev | Definition of object permanence selected its developmental stage | Stage-request grammar complete in second packet; definition projection and other developmental assertions open |
+| etiquette | Bread plate material question selected placement upper left | Placement grammar and alternate request complete in second packet; cultural gift-setting scope unexamined |
+| firesafety-v2 | UK-qualified electrical-fire class still returns Class C | Jurisdiction is not modeled; concrete scoped review pending, no claim of cross-jurisdiction correctness |
+| firstaid | Infant/two-rescuer CPR selected adult single-rescuer rows | Adult-model vocabulary/metric restriction complete in second packet; wider first-aid scope still unexamined |
+| javascript | Whole-expression suffix and identifier case are ignored by canned regex | Finite typed evaluator design prepared; actual implementation/proof/consumer integration pending |
+| music-v2-r2 | MIDI Cb4/B#4 cross octave boundaries; inverse preserves pitch class with exact octave carry | Humanities packet complete; other music semantics remain bounded to existing operations |
+| music-v2 | Same MIDI boundary and source panel/fresh-seed checks | Humanities packet complete; no separate claim that every musical convention was reviewed |
+| grammar | Unknown candidates in past/plural/comparison forms must stay silent under the active priority flags | Humanities packet complete; word-formation rules remain closed source tables |
+| mythology | Non-identical Greek/Roman forward rows have reverse names in the reverse table | Reverse-table theorem complete; ambiguous cultural attribution and variants unexamined |
+| ushistory | Own shipped panels and three generator offsets exercised | No new semantic counterexample review beyond those panels; explicit bounded unexamined area |
+| library | Target ISBN-13 label must not swallow the “10” from a later source ISBN-10 label | Conversion-label fix and independent probes complete; broader bibliographic identity not proved |
+| government | Alternate structural counts versus historical, foreign and state-specific scopes | Typed count forms and scope refusals complete; broader constitutional/temporal questions unexamined |

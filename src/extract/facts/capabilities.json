@@ -11,12 +11,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "HOL literal word guard and ordered source-table lookup",
+        "computation": "Ordered HOL source-table lookup; literal ASCII words/phrases and boundaries checked over supplied bytes, conjoined with recognizer scope.",
         "assumptions": [
           "Published table rows are treated as source assertions. ASCII case folding; non-ASCII bytes cannot create a word boundary."
         ],
         "untrusted": [
-          "JSON decoding, gate/block/ask patterns, narrative classifier, other regex patterns, source transcription."
+          "Typed subject/attribute question grammars, general regex patterns, narrative classification, source transcription and JSON framing."
         ]
       }
     },
@@ -31,12 +31,12 @@
         "\\b(?:book|novel|opening line|begins)\\b"
       ],
       "evidence": {
-        "computation": "Ordered HOL source-table lookup; literal word guards checked over supplied text.",
+        "computation": "Ordered HOL source-table lookup; literal ASCII words/phrases and boundaries checked over supplied bytes, conjoined with recognizer scope.",
         "assumptions": [
           "Rows are source assertions. Pattern matching does not prove semantic entailment."
         ],
         "untrusted": [
-          "Question construction normalization, general regex matching, narrative classification, source transcription and JSON."
+          "Typed subject/attribute question grammars, general regex patterns, narrative classification, source transcription and JSON framing."
         ]
       }
     },
@@ -49,12 +49,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Ordered HOL source-table lookup; literal word guards checked over supplied text.",
+        "computation": "Ordered HOL source-table lookup; literal ASCII words/phrases and boundaries checked over supplied bytes, conjoined with recognizer scope.",
         "assumptions": [
           "Rows are source assertions. Pattern matching does not prove semantic entailment."
         ],
         "untrusted": [
-          "Question construction normalization, general regex matching, narrative classification, source transcription and JSON."
+          "Typed subject/attribute question grammars, general regex patterns, narrative classification, source transcription and JSON framing."
         ]
       }
     },
@@ -69,12 +69,12 @@
         "\\b(?:animal|creature|fish)\\b"
       ],
       "evidence": {
-        "computation": "Ordered HOL source-table lookup; literal word guards checked over supplied text.",
+        "computation": "Ordered HOL source-table lookup; literal ASCII words/phrases and boundaries checked over supplied bytes, conjoined with recognizer scope.",
         "assumptions": [
           "Rows are source assertions. Pattern matching does not prove semantic entailment."
         ],
         "untrusted": [
-          "Question construction normalization, general regex matching, narrative classification, source transcription and JSON."
+          "Typed subject/attribute question grammars, general regex patterns, narrative classification, source transcription and JSON framing."
         ]
       }
     },
@@ -87,12 +87,210 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "Ordered HOL source-table lookup; literal word guards checked over supplied text.",
+        "computation": "Ordered HOL source-table lookup; literal ASCII words/phrases and boundaries checked over supplied bytes, conjoined with recognizer scope.",
         "assumptions": [
           "Rows are source assertions. Pattern matching does not prove semantic entailment."
         ],
         "untrusted": [
-          "Question construction normalization, general regex matching, narrative classification, source transcription and JSON."
+          "Typed subject/attribute question grammars, general regex patterns, narrative classification, source transcription and JSON framing."
+        ]
+      }
+    },
+    "medicine": {
+      "accept": {
+        "kinds": [
+          "medicine"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "medicine-r2": {
+      "accept": {
+        "kinds": [
+          "medicine"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "pets": {
+      "accept": {
+        "kinds": [
+          "pets"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "law": {
+      "accept": {
+        "kinds": [
+          "law"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "psychology": {
+      "accept": {
+        "kinds": [
+          "psychology"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "childdev": {
+      "accept": {
+        "kinds": [
+          "childdev"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "entomology": {
+      "accept": {
+        "kinds": [
+          "entomology"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "firstaid": {
+      "accept": {
+        "kinds": [
+          "firstaid"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "worldhistory": {
+      "accept": {
+        "kinds": [
+          "world_history"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "arthistory": {
+      "accept": {
+        "kinds": [
+          "artist"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
+        ]
+      }
+    },
+    "poetry": {
+      "accept": {
+        "kinds": [
+          "poetry"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Ordered HOL source-table lookup; checked literal occurrence never bypasses recognizer subject/attribute restrictions.",
+        "assumptions": [
+          "Rows are source assertions. Matching text and a typed candidate do not prove natural-language entailment or world truth."
+        ],
+        "untrusted": [
+          "Subject/attribute question grammars, general regex matching, narrative classifier, source transcription and JSON framing."
         ]
       }
     }

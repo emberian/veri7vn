@@ -3,7 +3,7 @@ theory Word_Guards
 begin
 
 text \<open>A checked, executable meaning for literal word guards. This handles guards
-of the form backslash-b, ASCII letters, backslash-b, including every linguistics
+of the form backslash-b, ASCII letters/spaces, backslash-b, including every linguistics
 row. Other patterns and the narrative classification remain untrusted. Bytes above
 ASCII count as word characters: an ASCII language name embedded in a Unicode word
 cannot become a false boundary. Case folding here is explicitly ASCII.\<close>
@@ -21,7 +21,8 @@ definition word_guard :: "String.literal \<Rightarrow> string option" where
   "word_guard p = (let cs = String.explode p; w = take (length cs - 4) (drop 2 cs) in
      if 4 < length cs \<and> take 2 cs = [CHR 0x5c, CHR 0x62] \<and>
         drop (length cs - 2) cs = [CHR 0x5c, CHR 0x62] \<and>
-        list_all (\<lambda>c. 97 \<le> (of_char c :: nat) \<and> (of_char c :: nat) \<le> 122) w
+        list_all (\<lambda>c. c = CHR 0x20 \<or> (97 \<le> (of_char c :: nat) \<and> (of_char c :: nat) \<le> 122)) w \<and>
+        hd w \<noteq> CHR 0x20 \<and> last w \<noteq> CHR 0x20
      then Some w else None)"
 
 definition word_at :: "string \<Rightarrow> string \<Rightarrow> nat \<Rightarrow> bool" where
@@ -46,7 +47,13 @@ theorem word_holds_occurrence:
   by (auto simp: word_holds_def list_ex_iff)
 
 definition checked_features :: "string \<Rightarrow> features \<Rightarrow> features" where
-  "checked_features q m p = (case word_guard p of Some w \<Rightarrow> word_holds q w | None \<Rightarrow> m p)"
+  "checked_features q m p = (case word_guard p of Some w \<Rightarrow> word_holds q w \<and> m p | None \<Rightarrow> m p)"
+
+text \<open>The independent occurrence check may remove a recognizer match; it cannot
+undo a subject, attribute or scope restriction made by that recognizer.\<close>
+theorem checked_feature_narrows:
+  "checked_features q m p \<Longrightarrow> m p"
+  by (auto simp: checked_features_def split: option.splits)
 
 definition text_organ_reply :: "bool \<Rightarrow> string \<Rightarrow> features \<Rightarrow> organ \<Rightarrow> outcome" where
   "text_organ_reply narr q m og = organ_reply narr (checked_features q m) og"

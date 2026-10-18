@@ -143,5 +143,425 @@
     "specialist": "pets",
     "q": "What is a dog's normal body temperature?",
     "expect": "101 to 102.5"
+  },
+  {
+    "specialist": "medicine",
+    "q": "What is normal blood pressure for an axolotl?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "medicine",
+    "q": "What is the normal resting heart rate of a hummingbird?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "medicine",
+    "q": "What is the usual adult resting pulse range?",
+    "expect": "60 to 100"
+  },
+  {
+    "specialist": "medicine",
+    "q": "What is considered normal blood pressure in adults?",
+    "expect": "less than 120/80"
+  },
+  {
+    "specialist": "pets",
+    "q": "How many teeth does a newborn puppy have?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "pets",
+    "q": "How many teeth does a newborn kitten have?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "pets",
+    "q": "What is an adult dog's tooth count?",
+    "expect": "42"
+  },
+  {
+    "specialist": "pets",
+    "q": "How many permanent teeth does a domestic cat have?",
+    "expect": "30"
+  },
+  {
+    "specialist": "law",
+    "q": "What was the vote count in Marbury v. Madison?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "law",
+    "q": "Which power did Marbury v. Madison establish?",
+    "expect": "judicial review"
+  },
+  {
+    "specialist": "psychology",
+    "q": "What is classical conditioning?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "psychology",
+    "q": "Who criticized classical conditioning?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "psychology",
+    "q": "Which researcher is credited with classical conditioning?",
+    "expect": "Ivan Pavlov"
+  },
+  {
+    "specialist": "childdev",
+    "q": "What is object permanence?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "childdev",
+    "q": "At what developmental stage does object permanence emerge?",
+    "expect": "sensorimotor"
+  },
+  {
+    "specialist": "marinebio",
+    "q": "What is the largest fish in Loch Ness?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "marinebio",
+    "q": "Which fish grows the largest?",
+    "expect": "whale shark"
+  },
+  {
+    "specialist": "ornithology",
+    "q": "What is the largest bird in New Zealand?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "ornithology",
+    "q": "What bird is the heaviest alive?",
+    "expect": "ostrich"
+  },
+  {
+    "specialist": "ornithology",
+    "q": "Which living bird has the greatest wingspan?",
+    "expect": "wandering albatross"
+  },
+  {
+    "specialist": "botany",
+    "q": "Where does photosynthesis take place in bacteria?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "botany",
+    "q": "In which organelle do plant cells perform photosynthesis?",
+    "expect": "chloroplasts"
+  },
+  {
+    "specialist": "entomology",
+    "q": "Where are the legs of a spider attached?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "entomology",
+    "q": "Where do insect wings attach?",
+    "expect": "thorax"
+  },
+  {
+    "specialist": "firstaid",
+    "q": "How deep should infant CPR compressions be?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "firstaid",
+    "q": "What is the CPR compression ratio for two rescuers treating an infant?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "firstaid",
+    "q": "What is the CPR compression depth for an axolotl?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "firstaid",
+    "q": "What is the compression depth for adult CPR?",
+    "expect": "2 inches"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who won the Battle of Hastings?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "Who signed the Magna Carta?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "In which year was the Magna Carta sealed?",
+    "expect": "1215"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who stole the Mona Lisa painting?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who painted the Mona Lisa replica?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who is the artist behind The Starry Night?",
+    "expect": "Vincent van Gogh"
+  },
+  {
+    "specialist": "poetry",
+    "q": "Who illustrated The Raven?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "poetry",
+    "q": "Who wrote The Raven sequel?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "poetry",
+    "q": "Which poet penned Ozymandias?",
+    "expect": "Percy Bysshe Shelley"
+  },
+  {
+    "specialist": "mycology",
+    "q": "How thick are fungal cell walls?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "mycology",
+    "q": "Which polymer forms fungal cell walls?",
+    "expect": "chitin"
+  },
+  {
+    "specialist": "etiquette",
+    "q": "What is a bread plate made of?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "etiquette",
+    "q": "In a formal place setting, where does the bread plate belong?",
+    "expect": "upper left"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who painted \"The Starry Night\"?",
+    "expect": "Vincent van Gogh"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Name the painter of the Sistine Chapel ceiling",
+    "expect": "Michelangelo"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Name the painter of The Starry Night",
+    "expect": "Vincent van Gogh"
+  },
+  {
+    "specialist": "poetry",
+    "q": "Name the author of The Waste Land",
+    "expect": "T. S. Eliot"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who painted the Mona Lisa in 1950?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who painted The Starry Night in 1990?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who restored the Mona Lisa?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who purchased The Thinker?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "arthistory",
+    "q": "Who painted the Mona Lisa and The Starry Night?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did the Western Roman Empire fall?",
+    "expect": "476"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was Magna Carta sealed?",
+    "expect": "1215"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "In what year was the Battle of Hastings fought?",
+    "expect": "1066"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did Columbus reach the Americas?",
+    "expect": "1492"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did Luther post the 95 Theses?",
+    "expect": "1517"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did the storming of the Bastille occur?",
+    "expect": "1789"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did the Battle of Waterloo take place?",
+    "expect": "1815"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did World War I begin?",
+    "expect": "1914"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did World War I end?",
+    "expect": "1918"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did the Russian Revolution occur?",
+    "expect": "1917"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did World War II begin?",
+    "expect": "1939"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did World War II end?",
+    "expect": "1945"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was the United Nations founded?",
+    "expect": "1945"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did India gain independence from Britain?",
+    "expect": "1947"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was the People's Republic of China proclaimed?",
+    "expect": "1949"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did the Berlin Wall fall?",
+    "expect": "1989"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did the Soviet Union dissolve?",
+    "expect": "1991"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was the fall of the Western Roman Empire commemorated?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was Magna Carta destroyed?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "In what year was the Battle of Hastings commemorated?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did Columbus reach India?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When were the 95 Theses translated into Japanese?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was the storming of the Bastille first filmed?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was the Battle of Waterloo commemorated?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did World War I begin in this film?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did World War I end in this novel?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was the Russian Revolution commemorated?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did World War II begin in this play?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did World War II end in this game?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was the United Nations headquarters renovated after it was founded?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did India celebrate independence for the fiftieth time?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When was the People's Republic of China first commemorated after it was founded?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did the Berlin Wall fall in this movie?",
+    "status": "withheld"
+  },
+  {
+    "specialist": "worldhistory",
+    "q": "When did the Soviet Union collapse in this documentary?",
+    "status": "withheld"
   }
 ]

@@ -11,7 +11,7 @@
 
 structure Main =
 struct
-  val theorems = "[\"text_answer_word_occurs\",\"text_answer_first_row\",\"first_match\",\"no_rule_no_answer\",\"guard_exact\",\"answer_from_table\",\"organ_silent\",\"boundary_narrows\",\"family_first\",\"tables_well_formed\"]"
+  val theorems = "[\"text_answer_word_occurs\",\"checked_feature_narrows\",\"text_answer_first_row\",\"first_match\",\"no_rule_no_answer\",\"guard_exact\",\"answer_from_table\",\"organ_silent\",\"boundary_narrows\",\"family_first\",\"tables_well_formed\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
@@ -70,20 +70,26 @@ struct
           ^ ", \"silence\": \"" ^ silence_name why ^ "\", \"specialist_ms\": " ^ ms t0 ^ "}}"
       | (organ, Facts.Answer (kind, value, sentence, store, row)) =>
           let val rowS = IntInf.toString (Facts.integer_of_nat row)
+              val sourceSentence = decode sentence
+              val sourceSubject = Recognizer.sourceSubject organ (IntInf.toInt (Facts.integer_of_nat row)) q
+              val response = case sourceSubject of NONE => sourceSentence
+                           | SOME title => title ^ ": " ^ sourceSentence
               val guardEvidence = case Facts.organ_by_id organ of
                   NONE => "null"
                 | SOME og => (case Facts.answer_word_guard og row of
                     NONE => "{\"row_guard\":\"untrusted_regex\"}"
-                  | SOME word => "{\"row_guard\":\"checked_ascii_word\",\"word\":" ^ Json.quote word ^ ",\"other_checks\":\"untrusted\"}")
+                  | SOME word => "{\"row_guard\":\"checked_ascii_literal\",\"literal\":" ^ Json.quote word ^ ",\"other_checks\":\"untrusted\"}")
           in
           "{\"id\": " ^ id ^ ", \"status\": \"answered\""
-          ^ ", \"response\": " ^ Json.quote (decode sentence)
+          ^ ", \"response\": " ^ Json.quote response
           ^ ", \"path\": " ^ Json.quote ("specialist:" ^ organ ^ ">" ^ kind ^ ">" ^ store ^ "#" ^ rowS)
           ^ ", \"kind\": " ^ Json.quote kind ^ ", \"value\": " ^ Json.quote (decode value)
           ^ ", \"provenance\": {\"taken\": true, \"organ\": " ^ Json.quote organ
           ^ ", \"store\": " ^ Json.quote store ^ ", \"row\": " ^ rowS
           ^ ", \"specialist_ms\": " ^ ms t0
           ^ ", \"recognition\": " ^ guardEvidence
+          ^ ", \"source_sentence\": " ^ Json.quote sourceSentence
+          ^ ", \"source_subject\": " ^ (case sourceSubject of NONE => "null" | SOME title => Json.quote title)
           ^ ", \"kernel\": \"Facts.text_organ_reply\", \"session\": \"Veri7vn_Facts\", \"theorems\": "
           ^ theorems ^ "}}"
           end

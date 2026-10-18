@@ -25,8 +25,9 @@ etiquette, firesafety-v2, firstaid, javascript.
 | Isabelle code generator, MLton | toolchain | trusted |
 
 The answerer supplies the question text, narrowing verdict and a fallback feature map.
-`Word_Guards.thy` checks literal `\bword\b` guards itself, including every row in
-the linguistics store. It checks ASCII case folding, substring equality and word
+`Word_Guards.thy` checks literal ASCII word/phrase guards itself, including every row in
+the linguistics store. Its checked occurrence is conjoined with the recognizer
+predicate, so it cannot undo a subject or requested-attribute restriction. It checks ASCII case folding, substring equality and word
 boundaries. The driver passes actual UTF-8 bytes through the exported
 `question_bytes` decoder; non-ASCII bytes count as word characters. This is a
 conservative byte boundary, not complete Unicode word segmentation. Other patterns still use
@@ -85,20 +86,33 @@ family carried its own `regex.sml` for that; the case modes now live in commons.
 
 ## Current result
 
-All 22 specialists score **221/221 dev and 207/207 heldout**, with zero wrong,
-false yes or valid omissions. Family mode now gives the same counts. Seven
-reachable heldout omissions were closed through existing table rows, and an
-older family-order error (human medicine answering a dog's temperature) was
-removed. All 924 core questions for each specialist still match its shipped
-organ's status, kind, value and response text.
+All 22 specialists and family mode score **221/221 dev and 207/207 heldout**,
+with zero wrong answers, false yeses or valid omissions. Seven reachable
+heldout omissions were closed through existing rows. Typed question grammars
+now keep animal measurements out of human rows, newborn teeth out of adult
+counts, definitions out of attribution rows, and local records out of global
+rows. These recognizer interpretations remain untrusted.
 
-The final export passed 62 theorem checks with zero oracles. There are 29/29
-positive and negative probes through the native binary and actual dispatcher,
-plus 3/3 unpinned family temperature-scope probes. These fixed Facts panels have
-no fresh random seeds. The binary is 385,480 bytes; median cold start is 5.35 ms,
-and specialist median round trips range from 0.240 to 1.449 ms.
+The second export passed 63 theorem checks with zero oracles. The checked
+literal syntax now covers 115 of 417 source guards (58 single words plus 57
+phrases); this is a syntactic inventory, not a world-truth theorem. All 113
+positive/negative probes pass natively, in unpinned family mode and through the
+actual dispatcher. Creator answers retain the known work title matched by the
+selected row; original source prose remains in `provenance.source_sentence`.
+Title extraction/rendering is untrusted, and arbitrary user qualifiers are not
+copied into the answer.
 
-Exact proof/native receipts, theorem statements, scope and remaining limits are
-in [the continuation report](../../../project/lanes/C-symbolic-facts-humanities.md).
-The recognizer's final temperature narrowing follows the proof snapshot; native
-input hashes bind that change separately from the unchanged proved theories.
+Across each specialist's 924 core questions there are two status/value changes:
+impossible-date artwork questions now stay silent. Six further differences only
+retain the matched work title in the response. These fixed panels have no
+fresh random seeds. The binary is 422,872 bytes.
+
+`build.sh` uses the shared `tools/dev/native-compile` helper to freeze the actual
+MLB inputs, validate their checked export against a passed proof receipt and
+publish the binary atomically. `FACTS_GEN` and `FACTS_RECEIPT` can pin an immutable
+export and proof receipt. Main and recognizer changes after the proof snapshot
+are bound separately in the native receipt; the proved theories match.
+
+Exact proof/native receipts, theorem statements, per-specialist review limits
+and remaining useful extensions are in
+[the continuation report](../../../project/lanes/C-symbolic-facts-humanities.md).
