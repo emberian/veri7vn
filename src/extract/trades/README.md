@@ -26,7 +26,7 @@ NIOSH lifting limit, board feet and rafters, knitting gauge and colour mixing.
 | Tables: occupancy factors, filament densities, lumber sizes, sheets, colour wheels, NIOSH constants | `Trades.thy` | HOL constants, checked against the organs by `tables_check.py` |
 | Requests, declines, kernel, reply text | `Trades.thy` | HOL, proved; exported to SML |
 | Export, self test, oracle check | `Trades_Export.thy` | the build fails if a listed theorem uses an oracle or the self test fails |
-| English recognizer | `regex.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs |
+| English recognizer | `../commons/commons.sml`, `recognizer.sml` | **untrusted**, hand-ported from the organs |
 | JSON framing | `main.sml` | **untrusted** |
 
 Statements and numbers: [lane S14 handoff](../../../project/lanes/S14-trades.md).

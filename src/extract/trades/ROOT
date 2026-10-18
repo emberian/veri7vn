@@ -12,6 +12,8 @@ session Veri7vn_Trades_Base in base = HOL +
 
 session Veri7vn_Trades = Veri7vn_Trades_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     Trades_Num
     Trades

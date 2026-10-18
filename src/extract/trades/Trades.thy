@@ -177,7 +177,6 @@ definition eps :: rat where "eps = 1 / 1000000000"
 definition max_riser :: rat where "max_riser = 31 / 4"
 definition cm_per_inch :: rat where "cm_per_inch = 127 / 50"
 
-
 section \<open>Requests, outcomes and declines\<close>
 
 datatype request =
@@ -280,7 +279,6 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (Yards _) = K_yards"
 | "kind_of (Mat _ _ _) = K_mat_outer"
 | "kind_of (Clay _ _ _) = K_clay_fired"
-
 
 section \<open>Values the organs compute\<close>
 
@@ -397,7 +395,6 @@ definition rwl_of :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat 
 definition rise_in :: "rat \<Rightarrow> bool \<Rightarrow> rat" where
   "rise_in r ft = r * (if ft then 12 else 1)"
 
-
 section \<open>Declines\<close>
 
 text \<open>Underspecified: an input the formula needs is absent (the organs' need branches).\<close>
@@ -485,7 +482,6 @@ definition decline_of :: "request \<Rightarrow> decline option" where
   "decline_of r = (case missing r of Some n \<Rightarrow> Some (Underspecified n) | None \<Rightarrow>
      (case reason_of r of Some y \<Rightarrow> Some (Impossible y)
       | None \<Rightarrow> if is_judge r then Some Judgement else None))"
-
 
 section \<open>The enclosed quantities\<close>
 
@@ -628,7 +624,6 @@ lemma approx_out_not_duo [simp]: "approx_out c e \<noteq> Duo k p q"
 lemma approx_out_not_hue [simp]: "approx_out c e \<noteq> Hue k h"
   by (auto simp: approx_out_def split: option.splits)
 
-
 section \<open>The kernel\<close>
 
 fun answer_of :: "request \<Rightarrow> outcome" where
@@ -719,7 +714,6 @@ proof -
     using assms by (auto simp: kernel_eq split: option.splits if_splits)
   then show ?thesis using reason_of_exact[of r] by auto
 qed
-
 
 section \<open>What each exact answer means\<close>
 
@@ -931,7 +925,6 @@ next
     show ?thesis using A Clay by simp
 qed
 
-
 theorem kernel_exact_sound:
   assumes "kernel r = Exact k q"
   shows "missing r = None \<and> \<not> impossible r \<and> k = kind_of r \<and> spec_exact r q"
@@ -998,7 +991,6 @@ proof -
   show ?thesis using d1 ni answer_approx[OF a] m by auto
 qed
 
-
 section \<open>Model facts\<close>
 
 theorem rafter_pythagoras:
@@ -1028,7 +1020,6 @@ qed
 
 theorem egress_widths: "egress_per True = 3 / 10 \<and> egress_per False = 1 / 5"
   by (simp add: egress_per_def)
-
 
 section \<open>Stated values\<close>
 
@@ -1152,19 +1143,13 @@ definition approx_lit :: "bool \<Rightarrow> kind \<Rightarrow> int \<times> int
 definition dec_rat :: "int \<times> int \<Rightarrow> rat" where
   "dec_rat d = (case d of (m, e) \<Rightarrow> if 0 \<le> e then of_int m * 10 ^ nat e else of_int m / 10 ^ nat (- e))"
 
-
 section \<open>Response text (ASCII)\<close>
-
-definition apos :: String.literal where "apos = String.implode [CHR 0x27]"
 
 definition show3 :: "rat \<Rightarrow> String.literal" where
   "show3 q = render_dec 100 (round_at (rl q) (- 3))"
 
 definition show3c :: "rat \<Rightarrow> String.literal" where
   "show3c q = (if 1000000 \<le> \<bar>rl q\<bar> then show_commas (fst (round_at (rl q) 0)) else show3 q)"
-
-definition show4 :: "rat \<Rightarrow> String.literal" where
-  "show4 q = (case round_sig 4 (rl q) of Some d \<Rightarrow> render_dec 4 d | None \<Rightarrow> STR ''?'')"
 
 definition show4c :: "rat \<Rightarrow> String.literal" where
   "show4c q = (if 10000 \<le> \<bar>rl q\<bar> then show_commas (fst (round_at (rl q) 0)) else show4 q)"
