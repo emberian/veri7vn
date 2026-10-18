@@ -144,3 +144,29 @@ What this shows:
   allows at most max(1, 2% of n) wrong answers, and the release's exam did not have that rule: `astronomy` was
   admitted with 68 right and 13 wrong, and under `exam.py`'s rules it fails. The board reports `exam.py`'s decision
   next to the shipped one.
+
+## Dialogue mode
+
+Conversation is scored the same way, turn by turn. `--dialogue SCRIPT[=RUN]` feeds every dialogue in a script to the
+answerer in order, one session id per dialogue, and marks each turn with the rules from Oracle7's conversation tests
+(`tools/parity/dialogue.py`). `--dialogue shipped` takes the four sealed tests that shipped
+(`upstream/research/sealed_history/conv_sealed_v1.json`, `v2`, `v4`, `v5`) with their recorded runs. Without
+`--answerer`, the recorded replies are scored and nothing runs; with `--answerer`, the answerer is asked and the
+recorded run is only the reference to compare with.
+
+```sh
+python3 tools/parity/harness.py --dialogue shipped --out var/parity/dialogue-replay           # no head, no answerer
+python3 tools/parity/harness.py --dialogue <script.json>=<run.json> --answerer "<cmd>" --out var/parity/dialogue-x
+```
+
+The marks are `right`, `wrong`, `missed` (the answerer did not answer), `kept` (a must-refuse turn refused),
+`false_yes`, and `handled` (a greeting or thanks that got a real reply). The summary is Oracle7's: turns handled
+(right + kept + handled), precision (right over answered), follow-ups right, false yes.
+
+On the recorded runs the rules reproduce 236 of 237 verdicts and the published summaries of tests 2, 4 and 5 exactly.
+Test 1 run 3 differs on one turn, `And Phobos?` (dialogue 17, turn 1): Oracle7 answered with a paragraph about Phobos
+that never says "Mars", the shipped runner counted it right and the written rule counts it wrong. With it wrong the test
+reads handled 70.5%, precision 89.1%, follow-ups right 48.6% against the published 71.6%, 90.9%, 51.4%. The rules are
+Python written from a docstring, so they are checked against the recordings and not proved. The scripts are Oracle7's
+own and the dialogue replies of one run are not independent of its head: a candidate is compared on the same 237 turns.
+`answerers/recorded.py` is a test answerer that replays a recorded run and keeps session state.

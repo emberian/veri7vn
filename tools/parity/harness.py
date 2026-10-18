@@ -10,6 +10,11 @@ every specialist. Head counts come from each reply's provenance.head when the an
 composed answerer does); otherwise DOMAIN and FALSE YES are reported as not measured. LANE, SELF and BUDGET are measured
 only with --lane-answerer (the specialist alone, for example oracle7.py --specialist {dir} --alone).
 
+Dialogue mode (--dialogue SCRIPT[=RUN] | shipped, repeatable): every dialogue in the script is sent turn by turn under
+one session id and scored with the conversation test rules (tools/parity/dialogue.py). =RUN names a recorded run
+(Oracle7's shipped one for `shipped`, the four sealed runs): with --answerer the answerer is asked and RUN is only the
+reference to compare with; without --answerer the recorded replies are scored, no answerer runs. Output: <name>.dialogue.json.
+
 Outputs, per specialist and split, in --out: <id>.<split>.items.jsonl (one record per item, appended as it is answered,
 so a stopped run resumes where it left off), <id>.<split>.lane.jsonl (same for the core panel), and <id>.<split>.json
 (the verdict, written last; a specialist with that file is skipped on resume)."""
@@ -30,6 +35,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import panels  # noqa: E402
 import score  # noqa: E402
+import dialogue  # noqa: E402
 
 
 class Answerer:
@@ -267,9 +273,51 @@ def run_one(sid, split, args, out, shared):
     return v
 
 
+def dialogue_jobs(specs):
+    """--dialogue values -> [(name, script path, recorded run path or None)]"""
+    jobs = []
+    for spec in specs:
+        if spec == "shipped":
+            jobs += [(n, dialogue.HIST / sc, dialogue.HIST / rn) for n, (sc, rn) in dialogue.SHIPPED.items()]
+            continue
+        sc, _, rn = spec.partition("=")
+        jobs.append((Path(sc).stem, Path(sc), Path(rn) if rn else None))
+    return jobs
+
+
+def run_dialogue(name, script_path, run_path, args, out):
+    """one script: ask (or replay) every turn in order, one session per dialogue, score, write <name>.dialogue.json"""
+    script = dialogue.load_script(script_path)
+    recorded = dialogue.load_run(run_path) if run_path else None
+    flat = dialogue.flatten(script)
+    t0 = time.time()
+    if args.answerer:
+        reqs = [("%s:d%d:t%d" % (name, d, t), turn["q"], "dlg-%s-d%d" % (name, d)) for d, t, turn in flat]
+        log = open(out / ("%s.dialogue.stderr" % name), "a", encoding="utf-8")
+        ans = Answerer(args.answerer, args.timeout, log, args.memory_cap_gb)
+        recs = ask_all(ans, out / ("%s.dialogue.items.jsonl" % name), reqs)
+        ans.close()
+        log.close()
+        replies = [score.as_scored(r["reply"]) for r in recs]
+        errors = sum("error" in r["reply"] for r in recs)
+        source = "answerer"
+    else:
+        if recorded is None:
+            raise SystemExit("--dialogue %s needs an --answerer or a recorded run (SCRIPT=RUN)" % script_path)
+        replies, errors, source = dialogue.join_run(script, recorded), 0, "recorded"
+    v = dialogue.score(script, replies, recorded)
+    v.update({"id": name, "script": str(script_path), "source": source, "errors": errors, "answerer": args.answerer,
+              "wall_s": round(time.time() - t0, 1), "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+    (out / ("%s.dialogue.json" % name)).write_text(json.dumps(v, indent=1, ensure_ascii=False), encoding="utf-8")
+    return v
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--answerer", required=True, help="answerer command line, one quoted string (shell words)")
+    ap.add_argument("--answerer", help="answerer command line, one quoted string (shell words)")
+    ap.add_argument("--dialogue", action="append", default=[], metavar="SCRIPT[=RUN]",
+                    help="dialogue mode: a script of turns sent in one session per dialogue (see above); 'shipped' is "
+                         "the four sealed conversation tests with their recorded runs; repeatable")
     ap.add_argument("--lane-answerer", help="specialist-alone answerer command line for LANE / SELF / BUDGET")
     ap.add_argument("--specialist", default="all", help="id, comma-separated ids, or all")
     ap.add_argument("--split", default="heldout", choices=["dev", "heldout", "both"])
@@ -281,12 +329,27 @@ def main(argv=None):
     ap.add_argument("--specialists-dir", default=str(panels.SPECIALISTS))
     ap.add_argument("--rescore", action="store_true", help="recompute verdicts from recorded replies (no re-asking)")
     a = ap.parse_args(argv)
-    a.answerer = shlex.split(a.answerer)
+    if not a.dialogue and not a.answerer:
+        ap.error("--answerer is required (except in --dialogue mode with recorded runs)")
+    a.answerer = shlex.split(a.answerer) if a.answerer else None
     a.lane_answerer = shlex.split(a.lane_answerer) if a.lane_answerer else None
     out = Path(a.out).resolve()
     if panels.UPSTREAM.resolve() in out.parents or out == panels.UPSTREAM.resolve():
         ap.error("--out must not be inside upstream/")
     out.mkdir(parents=True, exist_ok=True)
+    if a.dialogue:
+        for name, sp, rp in dialogue_jobs(a.dialogue):
+            v = run_dialogue(name, sp, rp, a, out)
+            m, r = v["summary"], v.get("recorded")
+            print("%s [%s] turns=%d handled=%.1f%% precision=%.1f%% follow=%.1f%% false_yes=%d wrong=%d%s" % (
+                name, v["source"], m["turns"], 100 * m["handled_rate"] + 1e-9, 100 * (m["precision_on_answered"] or 0) + 1e-9,
+                100 * (m["follow_rate"] or 0) + 1e-9, m["false_yes"], m["wrong"],
+                "" if not r else "; recorded verdicts %d/%d, summary %s" % (
+                    r["verdicts_match"], r["verdicts_total"], "exact" if not r["summary_differs_on"] else
+                    "differs on " + ",".join(r["summary_differs_on"]))), flush=True)
+            for df in (r or {}).get("verdict_diffs", []):
+                print("  d%dt%d %s %r: recorded %s, ours %s" % (df["d"], df["t"], df["kind"], df["q"], df["recorded"], df["ours"]))
+        return
     ids = panels.specialist_ids(a.specialists_dir) if a.specialist == "all" else a.specialist.split(",")
     splits = ["dev", "heldout"] if a.split == "both" else [a.split]
     (out / "run.json").write_text(json.dumps({"argv": sys.argv, "answerer": a.answerer, "lane_answerer": a.lane_answerer,
