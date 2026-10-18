@@ -1339,6 +1339,17 @@ theorem momentum_def:
   shows "c = K_momentum \<and> y = m * v"
   using exact_facts[OF assms] by simp
 
+text \<open>Kinetic energy and momentum of one body agree: 2 E m = p^2.\<close>
+theorem kinetic_energy_momentum:
+  assumes "kernel (PhKE (Some m) (Some v)) = Exact c e"
+    and "kernel (PhMomentum (Some m) (Some v)) = Exact c' p"
+  shows "2 * e * m = p ^ 2"
+proof -
+  have e: "e = m * v ^ 2 / 2" using kinetic_energy[OF assms(1)] by simp
+  have p: "p = m * v" using momentum_def[OF assms(2)] by simp
+  show ?thesis using e p by (simp add: power2_eq_square field_simps)
+qed
+
 theorem weight_on_earth:
   assumes "kernel (PhWeight m) = Exact c y"
   shows "c = K_weight \<and> y = m * g0"
@@ -1383,6 +1394,17 @@ proof -
     show "0 \<le> h" by (rule assms)
   qed
   show ?thesis using sqrt_model[OF p] by simp
+qed
+
+text \<open>Energy is conserved in a drop: the kinetic energy at the impact speed
+the kernel models equals the potential energy the kernel states.\<close>
+theorem drop_energy_conserved:
+  assumes "0 \<le> h" and "kernel (PhPE (Some m) (Some h)) = Exact c e"
+  shows "rl m * phys (PhImpact h) ^ 2 / 2 = (rl e :: real)"
+proof -
+  have e: "e = m * g0 * h" using potential_energy[OF assms(2)] by simp
+  have s: "phys (PhImpact h) ^ 2 = rl (2 * g0 * h)" using impact_model[OF assms(1)] by simp
+  show ?thesis using s e by (simp add: of_rat_mult of_rat_divide)
 qed
 
 theorem fall_model:
@@ -1672,6 +1694,18 @@ theorem stopping_def:
   assumes "kernel (FvStopping (Some v) (Some mu) (Some rt)) = Exact c y"
   shows "c = K_stopping \<and> 0 < mu \<and> y = spd v * rt + spd v ^ 2 / (2 * mu * g0)"
   using exact_facts[OF assms] by simp
+
+text \<open>Stopping distance is the reaction distance plus the braking distance.\<close>
+theorem stopping_is_reaction_plus_braking:
+  assumes "kernel (FvStopping (Some v) (Some mu) (Some rt)) = Exact c s"
+    and "kernel (FvBraking (Some v) (Some mu)) = Exact c' b"
+  shows "s = spd v * rt + b"
+proof -
+  have s: "s = spd v * rt + spd v ^ 2 / (2 * mu * g0)" using stopping_def[OF assms(1)] by simp
+  have "b * (2 * mu * g0) = spd v ^ 2" and mu: "0 < mu" using braking_def[OF assms(2)] by simp_all
+  hence b: "b = spd v ^ 2 / (2 * mu * g0)" using mu by (simp add: eq_divide_eq)
+  show ?thesis using s b by simp
+qed
 
 theorem to_lpk_def:
   assumes "kernel (FvToLpk uk x) = Exact c y"

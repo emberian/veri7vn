@@ -108,6 +108,13 @@ definition classify :: "rat \<times> rat \<times> rat \<Rightarrow> soil_class o
     else if 40 \<le> cl \<and> sa \<le> 45 \<and> si < 40 then Some Clay
     else None)"
 
+text \<open>The triangle has no gap: any three non-negative fractions totalling
+100 are given a class.\<close>
+theorem classify_total:
+  assumes "sa + si + cl = 100" "0 \<le> sa" "0 \<le> si" "0 \<le> cl"
+  shows "classify (sa, si, cl) \<noteq> None"
+  using assms by (auto simp: classify_def not_less not_le)
+
 definition givens :: "rat option \<Rightarrow> rat option \<Rightarrow> rat option \<Rightarrow> rat list" where
   "givens a b c = (case a of Some x \<Rightarrow> [x] | None \<Rightarrow> []) @ (case b of Some x \<Rightarrow> [x] | None \<Rightarrow> [])
      @ (case c of Some x \<Rightarrow> [x] | None \<Rightarrow> [])"
@@ -562,6 +569,21 @@ proof -
   with k show ?thesis by simp
 qed
 
+text \<open>The vertex count and the face count of a closed triangle mesh of
+genus g determine each other: asking for the faces of the vertices the kernel
+gave returns the faces the kernel started from.\<close>
+theorem mesh_vertices_faces_inverse:
+  assumes "kernel (MeshVertices f g) = Exact k v"
+    and "kernel (MeshFaces v g) = Exact k' f'"
+  shows "f' = f"
+proof -
+  have v: "v = 2 - 2 * of_nat g + f / 2" using kernel_exact_sound[OF assms(1)]
+    by (auto split: if_splits simp: mesh_v_def)
+  have f: "f' = 2 * (v - 2 + 2 * of_nat g)" using kernel_exact_sound[OF assms(2)]
+    by (auto split: if_splits simp: mesh_f_def)
+  show ?thesis using v f by simp
+qed
+
 theorem mesh_odd_faces_decline:
   "kernel (MeshEdges f) = Decline (Impossible R_odd_faces) \<longleftrightarrow> \<not> even_int f"
   by (simp add: kernel_decline_iff)
@@ -801,6 +823,18 @@ theorem volumetric_water:
   assumes "kernel (VolWaterContent (Some w) (Some d) (Some bd)) = Exact k v"
   shows "k = K_vwc \<and> 0 < d \<and> v = (w - d) / d * 100 * bd"
   using kernel_exact_sound[OF assms] by (auto split: if_splits)
+
+text \<open>Volumetric water content is gravimetric content times bulk density:
+the two kinds of one family agree on one soil sample.\<close>
+theorem volumetric_is_gravimetric_times_bulk_density:
+  assumes "kernel (VolWaterContent (Some w) (Some d) (Some bd)) = Exact k v"
+    and "kernel (WaterContent (Some w) (Some d)) = Exact k' g"
+  shows "v = g * bd"
+proof -
+  have v: "v = (w - d) / d * 100 * bd" using volumetric_water[OF assms(1)] by simp
+  have g: "g = (w - d) / d * 100" using kernel_exact_sound[OF assms(2)] by (auto split: if_splits)
+  show ?thesis using v g by simp
+qed
 
 theorem water_content_masses:
   "kernel (WaterContent (Some w) (Some d)) = Decline (Impossible R_dry_above_wet) \<longleftrightarrow> d \<le> 0 \<or> w < d"

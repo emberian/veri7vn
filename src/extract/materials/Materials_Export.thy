@@ -65,6 +65,8 @@ ML \<open>
     @{thm pounds_product}, @{thm ct_value}, @{thm dose_value}, @{thm dilution_balance},
     @{thm ph_value}, @{thm ph_inverse}, @{thm h_conc_value}, @{thm h_conc_inverse},
     @{thm water_not_potable}, @{thm dilution_nonpositive},
+    @{thm classify_total}, @{thm volumetric_is_gravimetric_times_bulk_density},
+    @{thm mesh_vertices_faces_inverse},
     @{thm reply_answered_iff}, @{thm reply_withheld_names_decline}, @{thm reply_states_exact}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("materials theorems use oracles: " ^ string_of_int (length oracles));

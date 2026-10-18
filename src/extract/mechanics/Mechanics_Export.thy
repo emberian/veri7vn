@@ -76,6 +76,7 @@ ML \<open>
     @{thm trip_co2_def}, @{thm trip_cost_def}, @{thm trip_litres_def}, @{thm trip_gallons_def},
     @{thm gauge_pressure}, @{thm absolute_pressure}, @{thm buoyant_force},
     @{thm submerged_fraction}, @{thm submerged_sinks},
+    @{thm kinetic_energy_momentum}, @{thm drop_energy_conserved}, @{thm stopping_is_reaction_plus_braking},
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_states_approx},
     @{thm reply_withheld_names_decline}];
   val oracles = Thm_Deps.all_oracles theorems;
