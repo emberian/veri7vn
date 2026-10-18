@@ -37,6 +37,6 @@ $SRC/../commons/commons.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/mathorgan" "$OUT/build/mathorgan.mlb"
+"$REPO/tools/dev/native-compile" --family mathorgan --session Veri7vn_MathOrgan --compiler "$MLTON" -- -output "$OUT/bin/mathorgan" "$OUT/build/mathorgan.mlb"
 ls -l "$OUT/bin/mathorgan"
 shasum -a 256 "$OUT/build/mathkernel_generated.sml" "$OUT/bin/mathorgan"

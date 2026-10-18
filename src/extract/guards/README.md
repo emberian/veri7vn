@@ -13,14 +13,14 @@ recorded items replayed through both (`replay.py`, `gen_vectors.py`).
 What is proved (the session builds green with `VERI7VN_GUARDS PASS ... oracles=0`):
 
 - one theorem per modelled guard that its predicate fires exactly on the
-  fold's documented condition (the equations of `firesL`, quoted from the
-  Python sources);
+  documented condition (the equations of `firesL`, initially taken from the
+  Python sources, with the P2 presence and G6 route repairs described here);
 - what a firing means where there is mathematics to state: the date-premise
   guard fires only when the asked year lies outside every recorded date with
   the fold's five-before/two-after tolerance, and a year inside it never
-  fires; a reply that states a number the question did not give (outside the
-  `1e-9` tolerance) never fires P2; a number the question gave is never
-  "fresh"; the units guard means the reply's value letters are among the
+  fires; P2 fires only if neither numeric values nor number words were
+  recognized in the reply. Any recognized numeric value, including zero or a
+  value equal to a given, prevents P2; the units guard means the reply's value letters are among the
   question's unit letters; the person guard means the store did not resolve
   the offered name to a human;
 - the decision takes the first guard that fires in the chain's checking
@@ -79,3 +79,27 @@ error. Replies disclose the 20-of-87 coverage and whether the caller supplied
 human/date facts. Without a store adapter those facts remain unknown, so the
 store-dependent checks are incomplete. `tools/dispatch/test_routes.py` checks
 the composition boundary, including all 114 recorded synthetic inputs.
+
+
+Guard predicates remain heuristics about recognized features. G3s checks
+whether a qualifier phrase is absent from the response; that theorem does
+not establish that the answer is semantically wrong. For example, a correct
+painter/author row rendered only as “It is by ...” can lose the subject needed
+to make the answer self-contained. The Facts repair retains the actual
+matched row's subject in the reply. It does not copy an arbitrary qualifier
+from the question or weaken the guard.
+
+G5 now permits a complete recognized equation-solving request to return a
+root already present in its equation. It still rejects an answer that simply
+repeats the evaluation point in a derivative question. G6 now applies to the symbolic evaluator, whose letters may be mistaken unit names.
+A typed word-problem result such as “432000 km” should retain its output unit;
+those letters alone do not make it a symbolic expression. The G6 proof passed with 50 theorem checks and zero oracles; its native
+consumer passes the existing 114 synthetic inputs and new unit-bearing reply
+checks. The update is tracked in `project/lanes/D-runtime-routes.md`. Coverage remains
+20 of 87 catalogue codes.
+
+P2 checks number presence only. The former numeric-novelty requirement
+rejected valid zero results and computations equal to their givens. Presence
+is necessary for these numeric requests, but is not proof that the value is
+correct or answers the question. G5 still checks its separate assignment-echo
+condition; no route or provenance flag exempts a reply from the guards.

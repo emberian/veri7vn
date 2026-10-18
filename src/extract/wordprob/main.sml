@@ -3,7 +3,8 @@
    reply per line on stdout, flushes after each, exits on EOF. The JSON reader
    and the Regex matcher come from commons.sml (src/extract/commons). All
    reply content (status, response, value) comes from the HOL kernel's
-   Wordprob.reply_checkeda (the generator spelling of reply_checked') over the untyped recognizer's request list; this file
+   Wordprob.reply_checkeda (the generator spelling of reply_checked') or
+   Wordprob.measured_reply over the recognizer's typed request; this file
    only frames it. The path is the head's own organ path for the word organ
    (fold w488): organ:math>word:<schema>. *)
 structure Main =
@@ -17,6 +18,11 @@ struct
      "motion_dist_value", "rect_area_value", "rect_perim_value", "circle_area_value",
      "circle_circ_value", "cyl_vol_value", "convert_roundtrip", "unit_price_guard", "unit_price_answered_guard", "unit_price_total_cost", "percent_of_total_sym", "percent_of_total_range", "motion_speed_dist", "cone_cyl_ratio", "sphere_four_cones", "cyl_base_height"])
 
+  val measuredTheorems = String.concatWith "," (map (fn s => "\"" ^ s ^ "\"")
+    ["geometry_unit_conservation", "geometry_scale_law", "distance_unit_conservation",
+     "speed_unit_conservation", "speed_distance_inverse", "measured_answered_iff",
+     "measured_reply_states_value", "measured_precision"])
+
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))
     in LargeInt.toString (us div 1000) ^ "." ^ StringCvt.padLeft #"0" 3 (LargeInt.toString (us mod 1000)) end
@@ -24,9 +30,13 @@ struct
   fun reply (id : string) (q : string) : string =
     let
       val t0 = Time.now ()
-      val (neg, (rnd, reqs)) = Recognizer.answer q
-      val r = Wordprob.reply_checkeda neg (rnd, reqs)
+      val (r,taken,kernel) = case MeasuredRecognizer.recognize q of
+          SOME request => (Wordprob.measured_reply (Recognizer.roundingOf (String.map Char.toLower q)) request,
+                           true,"Wordprob.measured_reply")
+        | NONE => let val (neg,(rnd,reqs)) = Recognizer.answer q
+                  in (Wordprob.reply_checkeda neg (rnd,reqs),not (null reqs),"Wordprob.reply_checkeda") end
       val schema = Wordprob.schema r
+      val inventory = if kernel = "Wordprob.measured_reply" then measuredTheorems else theorems
     in
       if Wordprob.answered r then
         "{\"id\": " ^ id ^ ", \"status\": \"answered\""
@@ -35,18 +45,18 @@ struct
         ^ ", \"kind\": " ^ Json.quote schema
         ^ (case Wordprob.stated r of SOME v => ", \"value\": " ^ Json.quote v | NONE => "")
         ^ ", \"provenance\": {\"taken\": true, \"organ\": \"word_problems_v1\""
-        ^ ", \"specialist_ms\": " ^ ms t0
-        ^ ", \"kernel\": \"Wordprob.reply_checkeda\", \"session\": \"Veri7vn_Wordprob\", \"theorems\": ["
-        ^ theorems ^ "]}}"
+        ^ ", \"recognition_trusted\": false, \"specialist_ms\": " ^ ms t0
+        ^ ", \"kernel\": " ^ Json.quote kernel ^ ", \"session\": \"Veri7vn_Wordprob\", \"theorems\": ["
+        ^ inventory ^ "]}}"
       else
-        let val taken = not (null reqs)
+        let
         in
           "{\"id\": " ^ id ^ ", \"status\": \"withheld\", \"response\": \"\", \"path\": "
           ^ Json.quote (if taken then "organ:math>word:" ^ schema else "")
           ^ ", \"kind\": " ^ Json.quote schema
           ^ ", \"provenance\": {\"taken\": " ^ Bool.toString taken
-          ^ ", \"organ\": \"word_problems_v1\", \"kernel\": \"Wordprob.reply_checkeda\""
-          ^ ", \"specialist_ms\": " ^ ms t0 ^ "}}"
+          ^ ", \"organ\": \"word_problems_v1\", \"kernel\": " ^ Json.quote kernel
+          ^ ", \"recognition_trusted\": false, \"specialist_ms\": " ^ ms t0 ^ "}}"
         end
     end
 
@@ -58,7 +68,13 @@ struct
       (case List.find (fn (k, _) => k = "q") fs of
          SOME (_, raw) => reply id (Json.stringValue raw)
        | NONE => "{\"id\": " ^ id ^ ", \"error\": \"request has no q\"}")
-      handle e => "{\"id\": " ^ id ^ ", \"error\": " ^ Json.quote (exnMessage e) ^ "}"
+      handle MeasuredRecognizer.Reject why =>
+        "{\"id\": " ^ id ^ ", \"status\": \"withheld\", \"response\": " ^ Json.quote why
+        ^ ", \"path\": \"organ:math>word:unsupported_input\", \"provenance\": {\"taken\": true, \"recognizer_rejection\": true, \"recognition_trusted\": false}}"
+      | Recognizer.Reject why =>
+        "{\"id\": " ^ id ^ ", \"status\": \"withheld\", \"response\": " ^ Json.quote why
+        ^ ", \"path\": \"organ:math>word:unsupported_input\", \"provenance\": {\"taken\": true, \"recognizer_rejection\": true, \"recognition_trusted\": false}}"
+      | e => "{\"id\": " ^ id ^ ", \"error\": " ^ Json.quote (exnMessage e) ^ "}"
     end
       handle e => "{\"id\": null, \"error\": " ^ Json.quote (exnMessage e) ^ "}"
 

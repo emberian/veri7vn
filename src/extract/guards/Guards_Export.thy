@@ -62,9 +62,8 @@ definition G1un :: feats where
      (F534 True False False)"
 
 text \<open>The question "What is 15 pounds in kilograms?" answered by a lookup
-route: the reply's number is the question's own given (15) plus the
-conversion factor - fresh - so P2 stands down and P4 fires; with the factor
-removed, the reply gives nothing new and P2 fires instead.\<close>
+route: the reply contains a conversion factor, so P2 stands down and P4
+fires. A reply with neither numeric values nor number words fires P2 instead.\<close>
 definition P4ex :: feats where
   "P4ex = Feats True ''arb:definitional>x''
      ''a pound is 0.45359237 kilograms'' ''a pound is 0.45359237 kilograms''
@@ -82,9 +81,9 @@ definition P4ex :: feats where
 
 definition P2ex :: feats where
   "P2ex = Feats True ''arb:definitional>x''
-     ''the answer is about fifteen in the usual terms'' ''the answer is about fifteen in the usual terms''
-     ''the answer is about fifteen in the usual terms''
-     [15] [15] None None
+     ''the answer depends on the usual terms'' ''the answer depends on the usual terms''
+     ''the answer depends on the usual terms''
+     [15] [] None None
      (F510 False [] [])
      (F511 False False False False False False True False)
      (F513 False False False [] False None)
@@ -203,9 +202,9 @@ ML \<open>
      @{thm fire_R2_dump_w517},
      @{thm fire_G1_sign_kept_w532}, @{thm fire_G2_private_state_w532}, @{thm fire_G1_sign_kept_w534},
      @{thm fire_G2_private_state_w534}, @{thm fire_G5_echo},
-     @{thm fire_G6_units_not_variables}, @{thm fire_G7_word_sense},
+     @{thm fire_G6_units_not_variables}, @{thm G6_preserves_word_quantities}, @{thm fire_G7_word_sense},
      @{thm G3_date_premise_means}, @{thm G3_date_premise_tolerated},
-     @{thm P2_means_rest_empty}, @{thm P2_never_on_a_fresh_number}, @{thm givens_are_not_fresh},
+     @{thm P2_means_no_number}, @{thm P2_preserves_any_number}, @{thm P2_preserves_number_word},
      @{thm G6_means_subset}, @{thm G6_letter_outside_units}, @{thm S1_means_not_a_resolved_human},
      @{thm G3s_means_uncovered},
      @{thm decision_iff}, @{thm modelled_codes_in_catalogue}, @{thm modelled_distinct},

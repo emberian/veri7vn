@@ -19,8 +19,13 @@ OUT=$REPO/var/guards
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
-if [ "${REMOTE:-1}" = 1 ] && [ -d "$OUT/export-remote/Veri7vn_Guards" ]; then
-  GEN=$(find "$OUT/export-remote/Veri7vn_Guards" -type f -name 'guards.ML' | head -n 1)
+EXPORT_DIR=${VERI7VN_EXPORT_DIR:-$OUT/export-remote/Veri7vn_Guards}
+if [ -n "${VERI7VN_EXPORT_DIR:-}" ] && [ ! -d "$EXPORT_DIR" ]; then
+  echo "missing explicitly selected export: $EXPORT_DIR" >&2
+  exit 1
+fi
+if [ "${REMOTE:-1}" = 1 ] && [ -d "$EXPORT_DIR" ]; then
+  GEN=$(find -L "$EXPORT_DIR" -type f -name 'guards.ML' | head -n 1)
   [ -n "$GEN" ] || { echo "no remote export under $OUT/export-remote; run remote-build first" >&2; exit 1; }
   cp "$GEN" "$OUT/build/guards_generated.sml"
 else
@@ -48,6 +53,6 @@ printf '%s\n%s\n%s\n' "$SRC/regex.sml" "$SRC/recognizer.sml" "$SRC/main.sml" >> 
 # allowExtendedTextConsts: the Python patterns carry UTF-8 bytes (curly quotes,
 # the degree sign, superscripts); SML strings are byte vectors, so the
 # recognizer matches them exactly as Python's re does on UTF-8 text.
-"$MLTON" -default-ann 'allowExtendedTextConsts true' -output "$OUT/bin/guards" "$OUT/build/guards.mlb"
+"$REPO/tools/dev/native-compile" --family guards --session Veri7vn_Guards --compiler "$MLTON" -- -default-ann 'allowExtendedTextConsts true' -output "$OUT/bin/guards" "$OUT/build/guards.mlb"
 ls -l "$OUT/bin/guards"
 shasum -a 256 "$OUT/build/guards_generated.sml" "$OUT/bin/guards"

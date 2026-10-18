@@ -1,113 +1,109 @@
-# The word-problem organ, verified
+# Word problems with explicit quantities and units
 
-This folder carries Oracle7's head word-problem organ
-(`upstream/root/wander-train/word_problems_v1.py`, reached through head fold
-w488, its reply pluralised by fold w490) as one verified program. The organ
-reads a single-step textbook word problem -- "What is 17% of 2,400?", "How
-many seconds are there in 3.5 hours?" -- by matching one of nine stored
-schemas (simple interest, unit price, total cost, sale price, percent of a
-total, percent of, motion, unit conversion, rectangle/circle/cone/cylinder/
-sphere measures). A schema fires only when every quantity it needs was read
-off the text with the right type and the question asks for what the formula
-produces; if none fires, or two fire, the organ abstains and the head says
-it cannot verify the turn. This narrowness is the organ's own: story-shaped
-and multi-step problems ("9 inches more than the width", "106 calories for
-8 ounces") are exactly what it declines, which is why `narrow_v1` pushes
-them away from the specialists and to the head.
+This program answers a finite set of single-step questions: percentages,
+prices, simple interest, unit conversion, motion, and common geometric
+measures. It reads one JSON question per line and returns an answer or a
+refusal through the [answerer contract](../../../docs/contracts/answerer.md).
+English recognition is untrusted. Isabelle/HOL defines the arithmetic,
+conditions for answering, and rendered response; its exported Standard ML
+runs as a standalone native executable.
 
-Here the organ is one typed request list. Every quantity is an exact
-fraction; every unit has an exact factor in the organ's own base units
-(length in metres, mass in grams, volume in litres, time in hours); every
-value, decline and printed reply comes from one HOL function.
+The unit-aware kernel passed its fresh proof build with 49 theorem checks and
+zero oracles. Its immutable native build passes 34 input boundary cases and
+four actual guard-composition cases. The previous executable and measurements
+remain recorded in `project/lanes/C-runtime-routes.md`; the current receipts
+and limits are in `project/lanes/D-runtime-routes.md`.
 
-- The nine formulas, the exactly-one-schema rule, the rounding rules and the
-  reply text are written in Isabelle/HOL, with proofs (`Wordprob.thy`).
-- The program that answers is that HOL function. Isabelle turns it into
-  Standard ML and the MLton compiler that ships inside Isabelle turns that
-  into one standalone binary (`var/wordprob/bin/wordprob`). No Isabelle
-  process runs when questions are answered.
-- The binary speaks the [answerer contract](../../../docs/contracts/answerer.md)
-  and answers with the head's own path for this organ,
-  `organ:math>word:<schema>`.
+## Measured questions
 
-## What is proved and what is trusted
+`Wordprob_Units.thy` retains the unit of each length, duration, and rate,
+including the rate denominator and requested output unit. For example:
 
-| Part | File | Status |
-|---|---|---|
-| Unit tables (49 factors), geometry pi, w490's 27 plural units | `Wordprob.thy` | HOL constants, transcribed and checked by `tables_check.py` |
-| Requests, values, declines, rounding, `%g`/money rendering, reply | `Wordprob.thy` | HOL, proved; exported to SML |
-| Export, self test, oracle check | `Wordprob_Export.thy` | HOL; the build fails if a listed theorem depends on an oracle or the self test fails |
-| Table transcription check | `tables_check.py` | a Python check of the HOL text against the organ file; not a proof |
-| Reading numbers, units and trigger words out of English, and flagging a minus sign in front of a numeral | `recognizer.sml` (regex matcher: `../commons/commons.sml`) | **untrusted**, hand-ported from the organ |
-| Rounding, `%g` digit layout (`pow10`, `round_at`, `round_sig`, `render_dec`, `show_int`) | `../commons/Commons_Num.thy` | HOL, proved once for every family (session `Veri7vn_Commons`) |
-| JSON framing | `main.sml` | **untrusted** |
-| Isabelle code generator, MLton | toolchain | trusted |
+- A rectangle with sides 2 m and 30 cm has area 0.6 square metres.
+- A speed of 60 km/s sustained for 2 hours gives 432000 km.
+- A distance of 60 km in 2 hours gives about 8.33333 metres per second.
 
-Every value is computed **exactly** in rational arithmetic. A theorem per
-schema gives its defining equation (`percent_of_value`,
-`simple_interest_value`, `convert_value`: a conversion times the target
-factor equals the amount times the source factor, and so on). The printed
-number is tied to the formula by `stated6_sound`/`stated4_sound`: the
-printed decimal is within half a unit in the last significant digit of the
-exact value, plus the decimal-places rounding the organ applies first
-(`round_dec_error`), and an exact decimal tie rounds up (`round_tie_up` for reals, `round_dec_tie_up` for the organ's `round(v, n)`, `money_round_tie_up` for cents).
-`reply_answered_iff` is the exactly-one-schema rule: the reply is an answer
-exactly when one schema fired and its formula divides by nothing zero;
-`response_template` is fold w488's reply body.
+The supported length and time units come from the existing 49-entry unit
+table. Geometry scales every length to metres, computes the shape measure,
+and divides by the requested length scale to the appropriate power. Motion
+also scales both time units. Missing or ambiguous roles and unsupported
+units are refused. The kernel independently checks dimension kinds,
+nonnegative physical inputs, and positive duration for speed.
 
-**Stated deviation, money ties.** House rule: decimal ties round up, and
-`money_round_tie_up` says so. We keep it rather than adopting half-even,
-because the organ's own result on a tie is a property of the binary double
-(0.125 is exact, so Python takes the even neighbour; 11.175 is a double just
-below the tie and Python takes the lower one), and no one rule reproduces
-both. The only probe that differs is `What is 12.5% of $1?` (`$0.13` here,
-`$0.12` from the organ); `money_tie_example` proves our side. No core-panel
-item is a money tie.
+The geometry model uses either 157/50 when the question selects pi = 3.14,
+or the exact rational value of the original IEEE-double pi constant,
+884279719003555/281474976710656. Its scale and conservation laws concern
+that rational model. They do not give an error bound against true pi or
+establish that a physical object is an ideal geometric shape.
 
-**Negative givens.** The organ reads `-60 km` as 60 km and answers 30 km/h;
-the head's precision guard `P7_negative_given` withholds those items. We
-decline too, and say why in `Wordprob.thy`: every request carries unsigned
-rationals, and a signed distance or radius has no reading in these schemas.
-`negative_given_declines` is the kernel half; the recognizer's flag for a
-minus sign is untrusted and checked by `score_core.py`.
+Measured answers render six significant digits directly. In particular,
+small areas are not first rounded to six decimal places and lost as zero.
+With no explicit decimal-place request, `measured_precision` bounds display
+error relative to the rational model value by 1/200000 of its magnitude.
+Explicit decimal-place rounding uses the existing `round_dec` operation,
+which rounds ties upward, before significant-digit rendering.
 
-Two things are deliberately NOT modelled, both float artefacts of the
-Python organ, stated in the theory text: binary floating-point rounding
-(the organ prints `0.30000000000000004`-style neighbours on exact decimal
-ties sometimes; the kernel states exact rationals and rounds ties up), and
-`math.isfinite` (an exact rational is always finite). The one tie this
-costs on the probe set: `What is 12.5% of $1?` is exactly 1/8, the organ's
-`{:,.2f}` rounds the tie to even and prints `$0.12`, the kernel's money
-path rounds up and prints `$0.13` (probe wp:78; no core-panel item is a
-money tie). One residual fidelity gap: when the printed value's unit is an
-abbreviation ("min", "kg"), fold w490 pluralises the first number-unit
-pair in the STEPS rather than the value; the kernel pluralises the value.
-Every core-panel and probe shape prints the value first with a spelled-out
-unit, so the two agree there.
+The new connected statements are:
 
-## Run it
+- `geometry_unit_conservation`: multiplying the result by the output unit
+  scale raised to the shape degree recovers the formula on metre-scaled
+  inputs.
+- `geometry_scale_law`: scaling both input lengths by k scales the measure
+  by k to that same degree.
+- `distance_unit_conservation` and `speed_unit_conservation`: converting a
+  result back to base units preserves distance = speed × time, with nonzero
+  duration where division requires it.
+- `speed_distance_inverse`: computing speed and using it for the original
+  duration recovers the original distance, even across different units.
+- `measured_answered_iff` and `measured_reply_states_value`: the exported
+  reply answers only with valid dimensions/domain and available rendered
+  digits, and states those digits.
 
-    tools/dev/remote-build persvati src/extract/wordprob Veri7vn_Wordprob -d src/extract/commons --expect 'VERI7VN_WORDPROB PASS'
-    python3 src/extract/wordprob/tables_check.py
-    src/extract/wordprob/build.sh          # MLton: var/wordprob/bin/wordprob
-    PYTHONDONTWRITEBYTECODE=1 python3 src/extract/wordprob/score_core.py --allow-assurance-text-change   # all 924 core questions
-    python3 src/extract/wordprob/score.py var/scout/probes/all87.jsonl --ref head
+These statements assume the typed request. They do not prove that the
+English reader chose the right roles. The new `measured.sml` adapter uses
+`../commons/numeric.sml` for exact numeric tokens, including signed decimals,
+fractions, scientific notation, and grouped digits. It binds units and roles
+using numeric masks resolved through the scanner's table. Invalid or
+unsupported readings produce explicit recognizer refusals carrying no
+kernel claim. The older price/percentage schemas retain narrower decimal
+syntax and now reject shared tokens that their patterns would truncate.
 
-`--ref head` compares against the shipped head's own replies (one run of
-lane A's `tools/parity/answerers/oracle7.py`, state under `var/scout/`),
-`--ref organ` against the organ module imported read-only. The 24
-core-panel word items (`upstream/workbench/data/core_panel.json`, paths
-`organ:math>word:*`) are items 0..23 of `var/scout/probes/all87.jsonl`.
+## Existing arithmetic and composition
 
-Composition now distinguishes no recognized schema from a checked refusal.
-An empty request list returns `provenance.taken=false`, so another organ may
-try. A nonempty request list which the kernel declines (negative given,
-ambiguous schemas, or impossible formula) returns `taken=true` and its named
-word-problem decline path. The dispatcher preserves that refusal instead of
-letting a later organ replace it with an answer.
+`Wordprob.thy` retains the original finite formulas, money rounding,
+exactly-one-schema rule, and decimal rendering proofs. Money ties round up:
+12.5% of $1 is stated as $0.13. Its older reply rendering applies preliminary
+decimal-place rounding; the measured entry point above avoids that step
+unless explicitly requested.
 
-Replies now end after the formula steps. The inherited sentence claiming
-that the question's quantities, units and requested goal had been checked
-was removed: those readings come from the untrusted recognizer. The scorer
-keeps the original recorded replies and separately counts this exact suffix
-removal; `--allow-assurance-text-change` permits only that stated difference.
+Replies do not claim that their English interpretation was checked, or that
+an independent second calculation ran. The theorem names in provenance are
+a static inventory, not a per-answer proof certificate. JSON framing,
+recognition, and routing remain untrusted; Isabelle's code generator and
+MLton are part of the trusted toolchain.
+
+No recognized schema means `taken=false` and allows another route to try.
+A recognized impossibility, invalid dimension, ambiguity, or unsupported
+measured input returns `taken=true` and stops routing. The precision guards
+subsequently inspect actual answered replies. Their G6 unit-letter check is
+restricted to the symbolic evaluator: printing the unit of a typed
+quantity is not evidence of treating that unit as a variable.
+
+## Build and checks
+
+Use the project's managed build driver and a successful immutable export:
+
+    python3 tools/dev/remote-build persvati src/extract/wordprob Veri7vn_Wordprob -d src/extract/commons --expect 'VERI7VN_WORDPROB PASS'
+    VERI7VN_EXPORT_DIR=<successful-attempt>/results/export/Veri7vn_Wordprob sh src/extract/wordprob/build.sh
+    python3 -B src/extract/wordprob/test_units.py
+
+`test_units.py` checks independent unit and numeric boundaries plus actual
+guard composition. `score_core.py` retains the original recorded core
+references and reports intentional behavior/text differences; it does not
+silently rewrite them. These checks are distinct from shipped specialist
+panels and their six-criterion scorers. The 924-question core comparison now answers 46 questions (five newly
+answered rectangle perimeters are independently correct), preserves all 24
+core word-item status/path results and all 12 negative-given refusals, and
+changes 12 other geometry/motion schema paths deliberately. No shipped
+specialist-panel completion is claimed for this route. Receipts are tracked in
+`project/lanes/D-runtime-routes.md`.

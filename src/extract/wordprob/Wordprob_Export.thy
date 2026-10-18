@@ -1,5 +1,5 @@
 theory Wordprob_Export
-  imports Wordprob
+  imports Wordprob_Units
 begin
 
 text \<open>Constructor the untrusted SML recognizer uses to build exact rationals
@@ -100,7 +100,10 @@ definition half_rat :: "rat \<Rightarrow> rat" where
 definition reply_checked' :: "bool \<Rightarrow> integer option \<times> wp list \<Rightarrow> wreply" where
   "reply_checked' neg x = reply_checked neg (map_option nat_of_integer (fst x), snd x)"
 
-export_code reply_of' reply_checked' answered schema response stated mk_rat g6r uname self_test self_failures half_rat
+export_code measured_reply Geometry Distance Speed RectangleArea RectanglePerimeter
+  CircleAreaU CircleCircumference CylinderVolume ConeVolume SphereVolume
+  measured_value measured_valid
+  reply_of' reply_checked' answered schema response stated mk_rat g6r uname self_test self_failures half_rat
   integer_of_int int_of_integer
   unit_table plural_units
   PercentOf Convert SimpleInterest UnitPrice TotalCost SaleOff SalePct
@@ -112,7 +115,10 @@ export_code reply_of' reply_checked' answered schema response stated mk_rat g6r 
   in SML module_name Wordprob file_prefix wordprob
 
 ML \<open>
-  val theorems = [@{thm reply_answered_iff}, @{thm response_template},
+  val theorems = [@{thm geometry_unit_conservation}, @{thm geometry_scale_law},
+    @{thm distance_unit_conservation}, @{thm speed_unit_conservation},
+    @{thm speed_distance_inverse}, @{thm measured_answered_iff},
+    @{thm measured_reply_states_value}, @{thm measured_precision}, @{thm reply_answered_iff}, @{thm response_template},
     @{thm printed_rounds_value}, @{thm printed_rounds_value_percent},
     @{thm stated6_sound}, @{thm stated4_sound}, @{thm round_dec_error},
     @{thm rl_round_dec_bound},

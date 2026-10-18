@@ -4,7 +4,8 @@
    trigger words off the question and builds a typed Wordprob.wp request list
    plus the "round to the nearest ..." digit count; it computes nothing. Every
    value, decline and response text comes from the verified HOL kernel
-   (Wordprob.reply_of'). An empty request list is the organ abstaining; two or
+   (Wordprob.reply_of'). Geometry and motion are handled only by measured.sml;
+   their old unit-erasing adapters have been removed. An empty request list is the organ abstaining; two or
    more entries is two schemas reading the problem differently, which the
    organ also abstains on (the kernel decides; this file just lists what
    fired).
@@ -25,10 +26,15 @@
    range through float overflow, which no panel question reaches). *)
 structure Recognizer :
 sig
+  exception Reject of string
   val answer : string -> bool * (IntInf.int option * Wordprob.wp list)
+  val unitOf : string -> (Wordprob.mkind * Wordprob.wunit) option
+  val questionPart : string -> string
+  val roundingOf : string -> IntInf.int option
 end =
 struct
   structure Q = Wordprob
+  exception Reject of string
 
   val cache : (string * Regex.regex) list ref = ref []
   fun lower s = String.map Char.toLower s
@@ -48,16 +54,9 @@ struct
 
   fun collapse s = String.concatWith " " (String.tokens Char.isSpace s)
 
-  (* "1,000.50" -> mk_rat 100050 100, exactly; quantities are unsigned here *)
-  fun parts (lit : string) =
-    let val s = String.translate (fn #"," => "" | c => String.str c) lit
-        val (ip, fp) = case String.fields (fn c => c = #".") s of
-                         [a] => (a, "")
-                       | [a, b] => (a, b)
-                       | _ => raise Fail ("bad numeral " ^ lit)
-        val num = valOf (IntInf.fromString (ip ^ fp))
-        val den = IntInf.pow (10, size fp)
-    in (num, den) end
+  (* Shared full-literal exact parser; no decimal-prefix conversion. *)
+  fun parts lit = case ExactNumeric.parse lit of SOME q => q
+    | NONE => raise Fail ("malformed numeral " ^ lit)
   fun ratOf lit = let val (n, d) = parts lit in Q.mk_rat n d end
   (* U+2212 MINUS SIGN (UTF-8 e2 88 92) -> "-", as the organ's quantities() *)
   val minus = "\226\136\146"
@@ -219,7 +218,7 @@ struct
     end
   fun rxEscape s = String.translate (fn c => if Char.isAlphaNum c then String.str c else "\\" ^ String.str c) s
 
-  (* ---------------- the nine schemas, in the organ's order ----------------
+  (* ---------------- legacy non-measured schemas, in the organ's order -----
      Each takes (t, tl, q, qs): original text, lower-cased text, lower-cased
      question part, quantity list. NONE = did not fire. *)
 
@@ -315,26 +314,6 @@ struct
       SOME m => SOME (Q.PercentOf (String.isSubstring "$" t, ratOf (g1 tl m), ratOf (valOf (grp tl m 2))))
     | NONE => NONE
 
-  fun sMotion (t, tl, q, qs) =
-    let
-      val rates = rateQ qs
-      val times = kindQ Q.Mtime qs
-      val lengths = kindQ Q.Mlength qs
-    in
-      if has "\\bdistance\\b|how far" q andalso length rates = 1 andalso length times = 1
-      then case (#word (hd rates), #unit (hd times)) of
-             (SOME w, SOME u) =>
-               SOME (Q.MotionDist (#v (hd rates), #v (hd times), u,
-                                   hd (String.tokens (fn c => c = #"/") w)))
-           | _ => NONE
-      else if has "\\b(?:rate|speed|how fast)\\b" q andalso length lengths = 1 andalso length times = 1
-           andalso #num (hd times) <> 0   (* the organ raises on zero time: skip *)
-      then case (#unit (hd lengths), #unit (hd times)) of
-             (SOME u, SOME u') => SOME (Q.MotionSpeed (#v (hd lengths), u, #v (hd times), u'))
-           | _ => NONE
-      else NONE
-    end
-
   fun sConvert (t, tl, q, qs) =
     case search "how many ([a-z]+)" q of
       SOME m => (case unitOf (g1 q m) of
@@ -348,49 +327,6 @@ struct
             end
         | NONE => NONE)
     | NONE => NONE
-
-  fun sGeometry (t, tl, q, qs) =
-    let
-      fun near word = case search (word ^ "[^.]{0,40}?" ^ NUM ^ "\\s*([a-z]+)") tl of
-                        SOME m => SOME (ratOf (g1 tl m)) | NONE => NONE
-      fun pival () = if String.isSubstring "3.14" tl then Q.Pi314 else Q.Pidouble
-      fun rect () =
-        if has "rectangle" tl orelse has "rectangular" tl then
-          case (near "length", near "width") of
-            (SOME l, SOME w) =>
-              if has "\\barea\\b" q then SOME (Q.RectArea (l, w))
-              else if has "perimeter" q then SOME (Q.RectPerim (l, w))
-              else NONE
-          | _ => NONE
-        else NONE
-      fun circle () =
-        if has "circle" tl orelse has "circular" tl then
-          let val r = case near "radius" of
-                        SOME r => SOME r
-                      | NONE => Option.map Q.half_rat (near "diameter")
-          in case r of
-               SOME r => if has "\\barea\\b" q then SOME (Q.CircleArea (r, pival ()))
-                         else if has "circumference" q then SOME (Q.CircleCirc (r, pival ()))
-                         else NONE
-             | NONE => NONE
-          end
-        else NONE
-      fun vol () =
-        if has "\\bvolume\\b" q then
-          let val r = near "radius"; val h = near "height"
-          in if has "cone" tl andalso isSome r andalso isSome h
-             then SOME (Q.ConeVol (valOf r, valOf h, pival ()))
-             else if has "cylinder" tl andalso isSome r andalso isSome h
-             then SOME (Q.CylVol (valOf r, valOf h, pival ()))
-             else if has "sphere" tl andalso isSome r
-             then SOME (Q.SphereVol (valOf r, pival ()))
-             else NONE
-          end
-        else NONE
-    in
-      case rect () of SOME r => SOME r | NONE =>
-      case circle () of SOME r => SOME r | NONE => vol ()
-    end
 
   (* ---------------- answer(): the organ's own control flow ---------------- *)
 
@@ -408,6 +344,17 @@ struct
   fun answer (text : string) : bool * (IntInf.int option * Q.wp list) =
     let
       val t = collapse text
+      (* The legacy schemas still bind their original decimal syntax. Reject a
+         full shared token they would truncate; measured schemas support the
+         broader shared grammar through numeric masks. *)
+      fun validateNumbers () = List.app (fn ExactNumeric.Malformed _ =>
+                    raise Reject "A numeric input is malformed or exceeds the supported range."
+                | ExactNumeric.Number {start,stop,...} =>
+                    let val literal = String.substring(t,start,stop-start)
+                        val plain = substMinus literal
+                    in if has ("^[-+]?" ^ NUM ^ "$") plain then ()
+                       else raise Reject "This word-problem schema does not yet support that numeric notation." end)
+                (ExactNumeric.scan t)
       val tl = lower t
       val q = questionPart t
       val qs = quantities t
@@ -417,7 +364,8 @@ struct
         let
           val hits = List.mapPartial (fn f => f (t, tl, q, qs))
             [sSimpleInterest, sUnitPrice, sTotalCost, sSalePrice, sPercentOfTotal,
-             sPercentOf, sMotion, sConvert, sGeometry]
+             sPercentOf, sConvert]
+          val _ = if null hits then () else validateNumbers ()
         in (negativeGiven t, (roundingOf tl, hits)) end
     end
 end

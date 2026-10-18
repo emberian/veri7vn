@@ -255,7 +255,7 @@ definition firesL :: "layer \<Rightarrow> gcode \<Rightarrow> feats \<Rightarrow
   | (L511, P7_negative_given) \<Rightarrow> answered F \<and> \<not> symbolic_cue (f511 F) \<and> neg_phys_given (f511 F)
   | (L511, P7_private) \<Rightarrow> answered F \<and> private_p7 (f511 F)
   | (L511, P1_declines_in_words) \<Rightarrow> answered F \<and> ne_present (f511 F) \<and> ne_attr_hit (f511 F) \<and> ne_punct_free (f511 F)
-  | (L511, P2_no_number) \<Rightarrow> answered F \<and> asks_number_v4 (f511 F) \<and> rest (nums_q F) (nums_resp F) = [] \<and> \<not> numword_resp (f511 F)
+  | (L511, P2_no_number) \<Rightarrow> answered F \<and> asks_number_v4 (f511 F) \<and> nums_resp F = [] \<and> \<not> numword_resp (f511 F)
   | (L511, P4_lookup_for_compute) \<Rightarrow> answered F \<and> nums_q F \<noteq> [] \<and> asks_number_v4 (f511 F) \<and> (pfx ''corpus_query'' (route F) \<or> pfx ''factoid:'' (route F) \<or> pfx ''arb:'' (route F) \<or> pfx ''compose:'' (route F) \<or> pfx ''deep_reach'' (route F) \<or> pfx ''definitional'' (route F) \<or> pfx ''cube:read'' (route F))
   | (L513, Q1_english_as_algebra) \<Rightarrow> answered F \<and> pfx ''organ:math>evaluate'' (route F) \<and> read_present (f513 F) \<and> read_has_letter (f513 F) \<and> 3 \<le> length (content13 (q_words13 (f513 F))) \<and> q1_ops_free (f513 F)
   | (L513, Q3_subject_missing) \<Rightarrow> answered F \<and> q3_shape (f513 F) \<and> \<not> (pfx ''organ:math'' (route F) \<or> pfx ''algebra'' (route F) \<or> pfx ''op:'' (route F) \<or> pfx ''compute:'' (route F) \<or> pfx ''network'' (route F) \<or> pfx ''unit:'' (route F) \<or> pfx ''organ:relation'' (route F) \<or> pfx ''cube:'' (route F)) \<and> (case subject_stem_q3 (f513 F) of None \<Rightarrow> False | Some s \<Rightarrow> \<not> covered6 s (resp_q F))
@@ -269,7 +269,7 @@ definition firesL :: "layer \<Rightarrow> gcode \<Rightarrow> feats \<Rightarrow
   | (L532, G2_private_state) \<Rightarrow> answered F \<and> pfx ''factoid:'' (route F) \<and> private_g2a (f532 F)
   | (L532, G3_date_premise) \<Rightarrow> fires_G3dp F
   | (L533own, G5_echo) \<Rightarrow> answered F \<and> (pfx ''organ:math'' (route F) \<or> pfx ''algebra:'' (route F)) \<and> (frac_echo (f533 F) \<or> eq_given (f533 F))
-  | (L533own, G6_units_not_variables) \<Rightarrow> answered F \<and> pfx ''organ:math'' (route F) \<and> value_letters (f533 F) \<noteq> [] \<and> no_algebra_q (f533 F) \<and> set (value_letters (f533 F)) \<subseteq> set (unit_letters (f533 F))
+  | (L533own, G6_units_not_variables) \<Rightarrow> answered F \<and> pfx ''organ:math>evaluate'' (route F) \<and> value_letters (f533 F) \<noteq> [] \<and> no_algebra_q (f533 F) \<and> set (value_letters (f533 F)) \<subseteq> set (unit_letters (f533 F))
   | (L533own, G7_word_sense) \<Rightarrow> answered F \<and> pfx ''specialist_call>'' (route F) \<and> ((astro_route (f533 F) \<and> substance_q (f533 F)) \<or> (chem_route (f533 F) \<and> sky_q (f533 F)))
   | (L534, G1_sign_kept) \<Rightarrow> answered F \<and> specialist_in_path (f534 F) \<and> neg_num_q (f532 F) \<and> \<not> neg_tok_resp (f532 F)
   | (L534, G2_private_state) \<Rightarrow> answered F \<and> private_g2b (f534 F) \<and> \<not> quantity_q (f534 F)
@@ -343,7 +343,7 @@ theorem fire_P1_declines_in_words:
 
 theorem fire_P2_no_number:
   "firesL L511 P2_no_number F \<longleftrightarrow> answered F \<and> asks_number_v4 (f511 F) \<and>
-     rest (nums_q F) (nums_resp F) = [] \<and> \<not> numword_resp (f511 F)"
+     nums_resp F = [] \<and> \<not> numword_resp (f511 F)"
   by (simp add: firesL_def)
 
 theorem fire_P4_lookup_for_compute:
@@ -443,10 +443,20 @@ theorem fire_G5_echo:
   by (simp add: firesL_def)
 
 theorem fire_G6_units_not_variables:
-  "firesL L533own G6_units_not_variables F \<longleftrightarrow> answered F \<and> pfx ''organ:math'' (route F) \<and>
+  "firesL L533own G6_units_not_variables F \<longleftrightarrow> answered F \<and> pfx ''organ:math>evaluate'' (route F) \<and>
      value_letters (f533 F) \<noteq> [] \<and> no_algebra_q (f533 F) \<and>
      set (value_letters (f533 F)) \<subseteq> set (unit_letters (f533 F))"
   by (simp add: firesL_def)
+
+text \<open>G6 detects unit letters mistaken for symbolic variables by the
+expression evaluator. A quantity-bearing word-problem reply is a different
+representation; merely printing its unit is not evidence of that mistake.
+This route distinction narrows the inherited policy, not the input validity
+checks of either arithmetic kernel.\<close>
+theorem G6_preserves_word_quantities:
+  assumes "route F = ''organ:math>word:'' @ suffix"
+  shows "\<not> firesL L533own G6_units_not_variables F"
+  using assms by (simp add: firesL_def pfx_def)
 
 theorem fire_G7_word_sense:
   "firesL L533own G7_word_sense F \<longleftrightarrow> answered F \<and> pfx ''specialist_call>'' (route F) \<and>
@@ -472,39 +482,24 @@ theorem G3_date_premise_tolerated:
   shows "\<not> fires_G3dp F"
   using assms by (auto simp: fires_G3dp_def)
 
-text \<open>P2 (no number): every number the reply states is one the question
-itself gave - within the tolerance - and no number word appears.\<close>
+text \<open>P2 tests absence of a numeric answer, not numerical novelty.
+A computed result may equal any given, including zero. This feature-level
+rule does not establish that the present number answers the question.\<close>
 
-lemma close_refl [simp]: "close g g"
-  by (simp add: close_def)
-
-theorem P2_means_rest_empty:
-  "firesL L511 P2_no_number F \<Longrightarrow> rest (nums_q F) (nums_resp F) = []"
+theorem P2_means_no_number:
+  "firesL L511 P2_no_number F \<Longrightarrow>
+   nums_resp F = [] \<and> \<not> numword_resp (f511 F)"
   by (simp add: firesL_def)
 
-text \<open>A reply that states a number the question did not give never fires
-P2: the filter keeps that number, so \<open>rest\<close> is not empty.\<close>
-theorem P2_never_on_a_fresh_number:
-  assumes "v \<in> set (nums_resp F)" and "\<forall>g\<in>set (nums_q F). \<not> close v g"
+theorem P2_preserves_any_number:
+  assumes "v \<in> set (nums_resp F)"
   shows "\<not> firesL L511 P2_no_number F"
-proof -
-  from assms have "v \<in> set (rest (nums_q F) (nums_resp F))"
-    by (simp add: rest_def)
-  then have "rest (nums_q F) (nums_resp F) \<noteq> []" by auto
-  then show ?thesis by (simp add: firesL_def)
-qed
+  using assms by (auto simp: firesL_def)
 
-text \<open>A number the question gave is never fresh: the tolerance covers the
-exact value, so a given can never be what P2 withholds on.\<close>
-theorem givens_are_not_fresh:
-  assumes "g \<in> set (nums_q F)"
-  shows "g \<notin> set (rest (nums_q F) (nums_resp F))"
-proof
-  assume "g \<in> set (rest (nums_q F) (nums_resp F))"
-  then have quiet: "\<forall>x\<in>set (nums_q F). \<not> close g x" by (auto simp: rest_def)
-  from assms have "close g g" by simp
-  with quiet assms show False by blast
-qed
+theorem P2_preserves_number_word:
+  assumes "numword_resp (f511 F)"
+  shows "\<not> firesL L511 P2_no_number F"
+  using assms by (simp add: firesL_def)
 
 text \<open>G6 (units are not variables): the reply's stated value is a symbolic
 expression built only from the unit letters of the question.\<close>

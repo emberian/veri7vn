@@ -51,9 +51,11 @@ cat > "$OUT/build/wordprob.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 wordprob_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
+$SRC/measured.sml
 $SRC/main.sml
 EOF
-"$MLTON" -output "$OUT/bin/wordprob" "$OUT/build/wordprob.mlb"
+"$REPO/tools/dev/native-compile" --family wordprob --session Veri7vn_Wordprob --compiler "$MLTON" -- -output "$OUT/bin/wordprob" "$OUT/build/wordprob.mlb"
 ls -l "$OUT/bin/wordprob"
 shasum -a 256 "$OUT/build/wordprob_generated.sml" "$OUT/bin/wordprob"
