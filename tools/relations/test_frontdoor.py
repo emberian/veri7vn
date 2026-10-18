@@ -61,6 +61,18 @@ class Composition(unittest.TestCase):
         self.assertTrue(out["provenance"]["taken"])
         self.assertNotIn("kernel_outcome", out["provenance"])
 
+    def test_global_ambiguity_survives_narrow_specialist_answer(self):
+        ambiguity = {"status": "clarify", "response": "choose", "path": "ambiguity",
+                     "provenance": {"specialist": "b", "taken": True, "property": 26,
+                                    "alternatives": [{"qid": "Q1", "label": "Same"},
+                                                     {"qid": "Q2", "label": "Same"}]}}
+        for replies in ((reply("a", "answer", prop=26), ambiguity),
+                        (ambiguity, reply("a", "answer", prop=26))):
+            out = self.merge(*replies)
+            self.assertEqual(out["status"], "clarify")
+            self.assertEqual({x["qid"] for x in out["provenance"]["alternatives"]}, {"Q1", "Q2"})
+            self.assertTrue(out["provenance"]["taken"])
+
 
 if __name__ == "__main__":
     unittest.main()

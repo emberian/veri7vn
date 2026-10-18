@@ -1,0 +1,6 @@
+session Veri7vn_Document_Anchors = Veri7vn_Document +
+  options [document = false]
+  theories
+    Document_Anchors
+    Document_Anchors_Export
+

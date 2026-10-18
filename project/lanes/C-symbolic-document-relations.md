@@ -170,7 +170,8 @@ statement. No failed exports were published.
   --split heldout --out var/relations/codex-frontdoor-heldout --timeout 15
 tools/dev/remote-build persvati src/isabelle/document Veri7vn_Document \
   --expect 'VERI7VN_DOCUMENT PASS'
-sh tools/document/build.sh
+sh tools/document/build.sh \
+  var/document/remote-attempts/20261018T071146Z-0bfc8b40564a/receipt.json
 ```
 
 Changed paths owned here: `tools/relations/{answerer.py,fetch.py,frontdoor.py,

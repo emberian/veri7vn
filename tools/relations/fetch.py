@@ -13,7 +13,8 @@ verified decision reads. Everything here is shipped code imported read-only, run
      resolved to its display label as relation_spec_v1.values does (blank nodes and unlabelled entities -> Blank).
      complete=True and dom_complete=True assert that these sqlite scans are unbounded and the closure is the shipped
      one; nothing in HOL establishes either;
-  4. for inverse phrasings, up to 256 distinct subjects holding (p, top candidate);
+  4. for inverse phrasings, up to 256 distinct subjects holding (p, supplied target), across all supplied targets
+     for identity kernels (older kernels use only the top candidate);
      LIMIT 257 detects overflow and causes refusal instead of treating truncation as completeness;
   5. the restate words (exact_router_v1.norm, stop words removed on the value side only) and the pronoun flag of the
      two V2G organs (a subject label that is a pronoun written in lower case in the question).
@@ -121,6 +122,8 @@ class Fetch:
         self.spec, self.n = spec, n
         self.link, self.linker = LINKERS[linker], linker
         self._cand = {}
+        self.inverse_identity = False
+        self.bound_query_entity = None
 
     def classes(self, qid):
         c, occ = RS1.classes_of(qid)
@@ -169,16 +172,31 @@ class Fetch:
                         continue
                     slot = RS2._slot(s, low, m)
                     att = {"key": str(key), "prop": p, "dir": direction, "idx": i, "slot_ok": len(slot) >= 2,
-                           "candidates": [], "subjects": [], "capped": False}
+                           "candidates": [], "subjects": [], "capped": False, "slot": slot, "binding_applied": False}
                     if len(slot) >= 2:
-                        att["candidates"] = [self.cand(qq, ll, p, low)
-                                             for qq, ll in self.link(slot, self.n, self.spec.domain)]
+                        binding = self.bound_query_entity
+                        if binding is not None:
+                            linked = [(binding["qid"], 0)] if slot == binding["surface"] else []
+                            att["binding_applied"] = bool(linked)
+                        else:
+                            linked = self.link(slot, self.n, self.spec.domain)
+                        att["candidates"] = [self.cand(qq, ll, p, low) for qq, ll in linked]
                         if direction == "inv" and att["candidates"]:
-                            top = att["candidates"][0]["qid"]
-                            subs = RS1._q("SELECT DISTINCT s FROM fact INDEXED BY fact_po WHERE p=? AND o=? LIMIT ?",
-                                          (p, top, self.inverse_subject_limit + 1))
-                            att["capped"] = len(subs) > self.inverse_subject_limit
-                            att["subjects"] = [self.cand(x, 0, p, low) for x in subs[:self.inverse_subject_limit]]
+                            targets = att["candidates"] if self.inverse_identity else att["candidates"][:1]
+                            subjects = set()
+                            for target in targets:
+                                got = RS1._q("SELECT DISTINCT s FROM fact INDEXED BY fact_po WHERE p=? AND o=? LIMIT ?",
+                                              (p, target["qid"], self.inverse_subject_limit + 1))
+                                subjects.update(got)
+                                if len(got) > self.inverse_subject_limit or len(subjects) > self.inverse_subject_limit:
+                                    att["capped"] = True
+                                    break
+                            for qid in sorted(subjects)[:self.inverse_subject_limit]:
+                                subject = self.cand(qid, 0, p, low)
+                                if self.inverse_identity:
+                                    subject["rows"] = [[pp, ["e", obj] if obj else (["l", lit] if lit else ["b"])]
+                                                       for pp, obj, lit in STORE.props_of(qid) if pp == p]
+                                att["subjects"].append(subject)
                         for cd in att["candidates"] + att["subjects"]:
                             for v in [r[1] for r in cd["rows"]] + [cd["label"]]:
                                 if v[0] == "l" and v[1] not in seen:

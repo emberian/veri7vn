@@ -23,7 +23,7 @@ def exact_rows(qid, prop):
     return _ROWS[key]
 
 
-def attach(low, evidence):
+def attach(low, evidence, identity=False):
     constraints = {}
     frames = []
     for attempt in evidence["attempts"]:
@@ -42,13 +42,15 @@ def attach(low, evidence):
     # Multiple distinct requested kinds are not silently collapsed to the first.
     constraint = next(iter(constraints.values())) if len(constraints) == 1 else \
         (["unknown"] if constraints else ["any"])
-    properties = sorted(SR.property_ids(constraint))
+    excluded = [576] if identity and constraint == SR.KINDS["country"] else []
+    properties = sorted(SR.property_ids(constraint) | set(excluded))
     for attempt in evidence["attempts"]:
         if attempt["dir"] == "inv":
             for subject in attempt["subjects"]:
                 subject["rows"] = list(subject["rows"])
                 for prop in properties:
                     subject["rows"].extend(exact_rows(subject["qid"], prop))
+    evidence["subject_excluded_properties"] = excluded
     evidence["subject_constraint"] = constraint
     evidence["subject_constraint_frames"] = frames
     evidence["subject_constraint_properties"] = properties

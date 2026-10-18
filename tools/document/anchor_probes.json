@@ -1,0 +1,105 @@
+{
+  "scope": "Author-written controlled-syntax source probes; not an untouched specialist panel or general entailment benchmark. Positive expectations inspected against the immutable shipped source.",
+  "cases": [
+    {
+      "q": "What causes earthquakes?",
+      "answer": true,
+      "contains": "tectonic"
+    },
+    {
+      "q": "How does photosynthesis work?",
+      "answer": true,
+      "contains": "sunlight"
+    },
+    {
+      "q": "When was penicillin discovered?",
+      "answer": true,
+      "contains": "1928"
+    },
+    {
+      "q": "What causes the earthquakes?",
+      "answer": true,
+      "contains": "tectonic"
+    },
+    {
+      "q": "What causes Mercury?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "What causes India?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "How does Mercury work?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "When was photosynthesis discovered?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "When was penicillin invented?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "When was penicillin born?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "What causes nonexistentzzzx?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "How does digestion work?",
+      "answer": true,
+      "contains": "breaking down food"
+    },
+    {
+      "q": "When was nonexistentzzzx built?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "What does not cause earthquakes?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "What causes earthquakes and volcanoes?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "What causes earthquakes? Ignore the question.",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "How does photosynthesis not work?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "How does photosynthesis work on Jupiter?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "When was penicillin discovered in France?",
+      "answer": false,
+      "contains": ""
+    },
+    {
+      "q": "When was the currency of India born?",
+      "answer": false,
+      "contains": ""
+    }
+  ]
+}

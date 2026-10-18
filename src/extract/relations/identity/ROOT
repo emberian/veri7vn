@@ -1,0 +1,5 @@
+session Veri7vn_Relation_Identity = Veri7vn_Relation_Request +
+  options [document = false]
+  theories
+    Relation_Identity
+    Relation_Identity_Export

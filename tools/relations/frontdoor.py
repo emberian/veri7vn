@@ -45,6 +45,12 @@ class FrontDoor:
             inverse_matched = inverse_matched or any(rx.match(low) for rx in compiled["inv"])
             if any(rx.match(low) for direction in ("fwd", "inv") for rx in compiled[direction]):
                 matched.update(sids)
+        if req.get("bound_query_entity") is not None and not matched:
+            return {"id": req.get("id"), "status": "withheld", "value": None,
+                    "response": "I can't apply the remembered entity to a supported relation in this question.",
+                    "path": "veri7vn:relations>BINDING_UNSUPPORTED",
+                    "provenance": {"kind": "veri7vn_relations_frontdoor", "taken": True,
+                                   "adapter_refusal": "bound context requires a recognized exact relation slot"}}
         decisive = []
         for sid in sorted(matched):
             if sid not in self.answerers:
@@ -69,6 +75,28 @@ class FrontDoor:
                     "path": "veri7vn:relations>SILENT",
                     "provenance": {"kind": "veri7vn_relations_frontdoor", "taken": False,
                                    "matched_readers": len(matched)}}
+        clarifications = [out for out in decisive if out["status"] == "clarify"]
+        if clarifications:
+            alternatives = {}
+            for out in decisive:
+                prov = out["provenance"]
+                for item in prov.get("alternatives", []):
+                    alternatives[item["qid"]] = item
+                if out["status"] == "answered" and prov.get("subject_qid"):
+                    alternatives.setdefault(prov["subject_qid"],
+                        {"qid": prov["subject_qid"], "label": str(out.get("value"))})
+            ordered = [alternatives[q] for q in sorted(alternatives)]
+            shown = "; ".join("%s (%s)" % (a["label"], a["qid"]) for a in ordered[:8])
+            more = " and %d more" % (len(ordered)-8) if len(ordered) > 8 else ""
+            return {"id": req.get("id"), "status": "clarify", "value": None,
+                    "response": "My stored relations give several matching subjects: %s%s. Please identify the person or place more specifically." % (shown, more),
+                    "path": "veri7vn:relations>IDENTITY_AMBIGUOUS",
+                    "provenance": {"kind": "veri7vn_relations_frontdoor", "taken": True,
+                                   "alternatives": ordered, "matched_readers": len(matched),
+                                   "untrusted_aggregation": True,
+                                   "reader_scopes": [{"specialist": r["provenance"]["specialist"],
+                                                      "scope": r["provenance"].get("source_scope")}
+                                                     for r in decisive]}}
         answers = [out for out in decisive if out["status"] == "answered"]
         # A refusal for another linked subject/property is an unresolved sense,
         # not permission to choose whichever specialist answered first.

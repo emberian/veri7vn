@@ -22,6 +22,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fetch as F  # noqa: E402
 import scoped_fetch  # noqa: E402
+import conversation  # noqa: E402
 
 REPO = F.REPO
 BIN = os.environ.get("VERI7VN_RELATIONS_BIN", os.path.join(REPO, "var/relations/bin/decide"))
@@ -84,7 +85,9 @@ class Answerer:
         got = json.loads(self._call("spec " + self.spec.sid))
         if got.get("outcome") == "error":
             sys.exit("answerer: the binary has no table for %s" % self.spec.sid)
-        self.scoped = got.get("request_constraint_version") == 1
+        self.identity = got.get("request_constraint_version") == 2
+        self.scoped = got.get("request_constraint_version") in (1, 2)
+        self.fetch.inverse_identity = self.identity
         want = []
         for k in self.spec.keys:
             e = F.RD.PROPS[k]
@@ -99,11 +102,12 @@ class Answerer:
                 self.spec.sid, got, want))
 
     def reply(self, req, out, low, ev):
-        decision = "Relation_Request.decide_requested" if self.scoped else "Relation_Reader.decide_spec"
+        decision = "Relation_Identity.decide_identity" if self.identity else (
+            "Relation_Request.decide_requested" if self.scoped else "Relation_Reader.decide_spec")
         prov = {"kind": "veri7vn_relations", "decision": decision, "specialist": self.spec.sid,
                 "store": "relations_v1.sqlite3", "linker": self.linker}
         oc = out.get("outcome")
-        prov.update(taken=oc in ("answer", "decline", "incomplete"), kernel_outcome=oc,
+        prov.update(taken=oc in ("answer", "decline", "incomplete", "ambiguous"), kernel_outcome=oc,
                     source_scope={"snapshot": self.snapshot, "candidate_limit": self.fetch.n,
                                   "linker_preselection_limit": 400 if self.linker == "standin" else None,
                                   "domain_closure": {"depth": 8, "parents_per_level": 12},
@@ -111,6 +115,9 @@ class Answerer:
                                   "subject_constraint": ev.get("subject_constraint"),
                                   "subject_constraint_frames": ev.get("subject_constraint_frames"),
                                   "subject_constraint_properties": ev.get("subject_constraint_properties"),
+                                  "subject_excluded_properties": ev.get("subject_excluded_properties"),
+                                  "bound_query_entity": ev.get("bound_query_entity"),
+                                  "inverse_target_scope": "all supplied linked IDs" if self.identity else "top linked target",
                                   "forward_only": all(a["dir"] == "fwd" for a in ev["attempts"]),
                                   "projection": "entity display labels; blank and unlabelled values removed; "
                                                 "unique label does not imply unique entity identity",
@@ -144,15 +151,47 @@ class Answerer:
             att = next((a for a in ev["attempts"] if a["prop"] == p and (
                 any(c["qid"] == subj for c in a["candidates"]) or any(c["qid"] == subj for c in a["subjects"]))), None)
             if att is not None and att["dir"] == "inv":
-                top = att["candidates"][0]["qid"]
-                receipt = "%s (Q%d) - %s (P%d) - %s (Q%d)" % (slab, subj, F.RS1.prop_label(p), p,
-                                                               rs.label(top) or "Q%d" % top, top)
+                if self.identity:
+                    subject = next(c for c in att["subjects"] if c["qid"] == subj)
+                    target_ids = {c["qid"] for c in att["candidates"]}
+                    targets = sorted({value[1] for pp, value in subject["rows"]
+                                      if pp == p and value[0] == "e" and value[1] in target_ids})
+                    receipt = "%s (Q%d) - stored %s (P%d) - %s" % (slab, subj, F.RS1.prop_label(p), p,
+                        "; ".join("%s (Q%d)" % (rs.label(q) or "Q%d" % q, q) for q in targets))
+                    prov["source_scope"]["answered_target_qids"] = targets
+                else:
+                    top = att["candidates"][0]["qid"]
+                    receipt = "%s (Q%d) - %s (P%d) - %s (Q%d)" % (slab, subj, F.RS1.prop_label(p), p,
+                                                                   rs.label(top) or "Q%d" % top, top)
             else:
                 receipt = "%s (Q%d) - %s (P%d) - %s" % (slab, subj, F.RS1.prop_label(p), p, shown)
             prov.update(subject_qid="Q%d" % subj, property=p, value=v)
+            context = conversation.metadata(out, ev, att, self.spec.domain) if self.identity else None
+            if context is not None:
+                prov["conversation"] = context
+            if self.identity and not prov["source_scope"]["forward_only"]:
+                prov["source_scope"]["projection"] = "raw entity IDs through inverse selection; labels rendered afterwards"
+                if all(a["dir"] == "inv" for a in ev["attempts"]):
+                    prov["source_scope"]["conditional_theorem"] = {
+                        "name": "Relation_Identity.inverse_answer_snapshot_identity",
+                        "premise": "For each attempt, fetched subject IDs equal all snapshot subjects linked by the asked property "
+                                   "to any supplied target ID; source eligibility agrees with the interpreted requested kind "
+                                   "and exclusions on all fetched subjects. These equalities are assumed, not checked.",
+                        "consequence": "The eligible snapshot subject union of an answering attempt is exactly the answered ID singleton.",
+                    }
             return {"id": req.get("id"), "status": "answered", "value": shown,
                     "response": "%s. From the Wikidata relation store: %s." % (shown, receipt),
                     "path": "veri7vn:relations>P%d" % p, "provenance": prov}
+        if oc == "ambiguous":
+            alternatives = [{"qid": "Q%d" % q, "label": value[1] if value[0] == "l" else "Q%d" % q}
+                            for q, value in out["alternatives"]]
+            prov.update(property=out["property"], alternatives=alternatives,
+                        ambiguity="distinct requested-kind subjects across all supplied linked target IDs")
+            shown = "; ".join("%s (%s)" % (a["label"], a["qid"]) for a in alternatives[:8])
+            more = " and %d more" % (len(alternatives)-8) if len(alternatives) > 8 else ""
+            return {"id": req.get("id"), "status": "clarify", "value": None,
+                    "response": "My stored relations give several matching subjects: %s%s. Please identify the person or place more specifically." % (shown, more),
+                    "path": "veri7vn:relations>IDENTITY_AMBIGUOUS", "provenance": prov}
         if oc == "decline":
             p, subj = out["property"], out["subject"]
             slab = rs.label(subj) or "Q%d" % subj
@@ -165,8 +204,30 @@ class Answerer:
                 "path": "veri7vn:relations>%s" % ("SILENT" if oc == "silent" else "INCOMPLETE"), "provenance": prov}
 
     def answer(self, req):
+        binding = req.get("bound_query_entity")
+        self.fetch.bound_query_entity = None
+        if binding is not None:
+            if not isinstance(binding, dict) or not re.fullmatch(r"Q[1-9][0-9]*", str(binding.get("qid", ""))) or \
+                    not isinstance(binding.get("surface"), str) or not binding["surface"]:
+                raise ValueError("bound_query_entity requires a QID and exact nonempty slot surface")
+            self.fetch.bound_query_entity = {"qid": int(binding["qid"][1:]), "surface": binding["surface"]}
+            if F.STORE.label(self.fetch.bound_query_entity["qid"]) != binding["surface"]:
+                return {"id": req.get("id"), "status": "withheld", "value": None,
+                        "response": "I can't match the remembered entity label to its stored identity.",
+                        "path": "veri7vn:relations>BINDING_MISMATCH",
+                        "provenance": {"kind": "veri7vn_relations", "taken": True,
+                                       "specialist": self.spec.sid, "bound_query_entity": binding,
+                                       "adapter_refusal": "bound surface must equal the current stored entity label"}}
         low, ev = self.fetch.evidence(str(req.get("q", "")))
-        scoped_fetch.attach(low, ev)
+        ev["bound_query_entity"] = binding
+        if binding is not None and ev["attempts"] and not all(a["binding_applied"] for a in ev["attempts"]):
+            return {"id": req.get("id"), "status": "withheld", "value": None,
+                    "response": "I can't match the remembered entity to this question's relation slot.",
+                    "path": "veri7vn:relations>BINDING_MISMATCH",
+                    "provenance": {"kind": "veri7vn_relations", "taken": True,
+                                   "specialist": self.spec.sid, "bound_query_entity": binding,
+                                   "adapter_refusal": "bound entity surface must equal every recognized slot exactly"}}
+        scoped_fetch.attach(low, ev, identity=self.identity)
         if not self.scoped and any(a["dir"] == "inv" for a in ev["attempts"]):
             return {"id": req.get("id"), "status": "withheld", "value": None,
                     "response": "I can't verify the requested kind of person or place from my records, so I won't guess.",
