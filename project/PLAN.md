@@ -1,3 +1,6 @@
+> Latest terminal state and resume map: [DRAIN-2026-10-18.md](DRAIN-2026-10-18.md).
+> The usage-aware drain is complete; the broader project remains unfinished.
+
 > Current work and corrections: `project/CODEX-2026-10-18.md`.
 > `project/HANDOFF-2026-10-18.md` records the preceding handoff; some of its
 > completion claims were stronger than the receipts support.

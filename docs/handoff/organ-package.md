@@ -10,32 +10,39 @@ are not specialist folders. Stores needs binaries with the explicit asset-path
 options and is included only with `--include-stores`; its six IDs otherwise
 remain explicitly excluded.
 
-## Selected delivery: 2026-10-18
+## Selected delivery: 2026-10-18 drain
 
-`var/C-runtime-package/delivery-20261018-a5f10.json` records the selected
-21-family, 144-folder delivery. Root promoted these existing archives after
-Finance source commit `fb5c6ec` and package tooling commit `b26ff69`; their
-candidate filenames remain unchanged:
+`var/C-runtime-package/delivery-20261018-b0813cc.json` records the selected
+21-family, 144-folder delivery. Root reviewed the final receipts and verified
+both archive hashes and folder counts. Existing archive bytes are unchanged:
 
-| Platforms | Archive under `var/C-runtime-package/` | Bytes | SHA256 |
+| Platforms | Archive under `var/C-runtime-package/successor-b0813cc/` | Bytes | SHA256 |
 |---|---|---:|---|
-| Apple Silicon macOS | `candidate-native-a5f10/veri7vn-specialists-2026-10-18.tar.gz` | 8,377,015 | `6d8d5b9a3ede107271662e5f3e07ba2679823b76255e0051ad2e36e2d6f4afa7` |
-| macOS and x86-64 Linux | `candidate-both-a5f10/veri7vn-specialists-2026-10-18.tar.gz` | 17,729,837 | `f7a51fe544a669da9a77684a1d9d2019712c3a673e7bb47e3f91d19f71473791` |
+| Apple Silicon macOS | `native-package/veri7vn-specialists-2026-10-18.tar.gz` | 8,696,333 | `d0ce3c845d78de374a56056c485f0153f48a9fb679b673849aa5b710c97d53b7` |
+| macOS and x86-64 Linux | `both-package/veri7vn-specialists-2026-10-18.tar.gz` | 18,732,090 | `faf662b5a344e7f03c91f4626968ae04098c1f0ac711273bea0022aabffe9870` |
 
-The shared checker is exactly approved commit `105051f`, SHA256
-`11c8ec3ce9c89499811fcc29c7936d115c530208e14fd389ce93b8f43417e029`.
-It was not replaced with newer working-tree code during promotion. Captured
-family versions and their acceptance declarations remain fixed; later family
-and composition packets do not enter this delivery.
+The registry and shared Python consumers are pinned to `b0813cc`. Family
+artifacts are the fixed selection captured through `0b185dc`, with only the
+committed Stores lexical repair `dc4c756b` substituted. Several later integrated
+fixes are **not in these archives**; their exact retained captures and commits
+are listed in `project/DRAIN-2026-10-18.md` and the lane reports. Do not rebuild
+from the dirty working tree and call it the same package.
 
-All family platform comparisons have matching replies. Finance's original
-scorer reports **553/559 right, six wrong, zero false yes, 36 withheld**; the
-six exact-Fisher versus approximate-scorer disagreements remain recorded, not
-rescored. Two supported-in-principle discount phrasings still withhold. Three
-Finance boundary probes pass identically after extracting each platform archive;
-the report `project/lanes/C-runtime-package.md` links the scoped evidence.
-These checks are not a whole-head admission or timing score. Warehouse defaults
-to preview, and composition roles are excluded. No archive has been sent externally.
+All 21 families have matching source-bound Linux evidence: 19 fresh comparisons
+and two matching reused artifacts. Ten portable relocation checks pass on each
+platform with identical replies apart from timing. All six relocated Stores
+folders score 2448/2476, zero wrong/false yes, with 28 valid withholds.
+The selected Climate panel scores 283/306 with 23 valid withholds. Finance scores
+553/559 with six recorded exact-Fisher versus approximate-scorer disagreements.
+The original labels are preserved. This is not universal parity or a new
+whole-system six-criteria certification.
+
+Separate checkout-bound composition passes 19 default cases and two Relations
+cases with the pinned consumer and role captures. Those roles are excluded from
+the portable archive; Document/Relations retain external corpus dependencies.
+Warehouse defaults to preview. Nothing has been sent externally.
+The preceding `delivery-20261018-a5f10.json` and its archives remain intact as
+historical selections. Full receipts: `project/lanes/C-runtime-package.md`.
 
 ## Layout
 

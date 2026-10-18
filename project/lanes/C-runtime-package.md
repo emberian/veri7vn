@@ -5,7 +5,84 @@ loader and a person unpacking the archive. No Isabelle theorem statements were
 changed here. Python wrappers, recognizers and evidence consumers remain
 untrusted code; registration is not a claim that a current artifact exists.
 
-## Current delivery state
+## Selected drain delivery
+
+Root selected `delivery-20261018-b0813cc.json` after reviewing the final receipts,
+archive hashes and 144-folder counts. The exact selected cohort is frozen under
+`var/C-runtime-package/successor-b0813cc/`. It retains the 21-family selection made at
+`0b185dc`, replaces only Stores with committed `dc4c756b`, and pins the registry and
+shared Python consumers to `b0813cc`. Newer family successors, the unfinished Code integer packet and later integrated
+local-source dialogue work are excluded. `candidate-state.json` and `cohort.json` retain
+full artifact hashes, exact capture/proof/receipt paths and the explicit selection.
+
+Both archives contain 144 specialist folders:
+
+| Platforms | Bytes | SHA256 |
+|---|---:|---|
+| darwin | 8,696,333 | `d0ce3c845d78de374a56056c485f0153f48a9fb679b673849aa5b710c97d53b7` |
+| darwin_and_linux | 18,732,090 | `faf662b5a344e7f03c91f4626968ae04098c1f0ac711273bea0022aabffe9870` |
+
+Archives are under `native-package/` and `both-package/`, named
+`veri7vn-specialists-2026-10-18.tar.gz`. Their manifests bind every selected native
+and the approved registry/checker/sibling hashes. All 19 changed-family Linux builds
+finished under the managed lock with the 8 GiB cap, without Isabelle. Acoustics reused
+its exact matching prior artifact; Stores used its owner’s exact repaired artifact.
+No package build job remains.
+
+The following original-panel observations are preserved on both platforms:
+
+| Family | Native SHA256 prefix | Source integration | Right / total | Wrong / false yes | Withheld |
+|---|---|---|---:|---:|---:|
+| acoustics | `848ae3055e1b` | `7073a488` | 139 / 139 | 0 / 0 | 8 |
+| anatomyagri | `219430108e47` | `1d4c4e97` | 156 / 156 | 0 / 0 | 18 |
+| chemistry | `6303883bfd16` | `f3e38dca` | 1,206 / 1,206 | 0 / 0 | 40 |
+| climate | `8adf2cace24c` | `9b1f1be4` | 283 / 306 | 0 / 0 | 49 |
+| computing | `220348be0908` | `2cf1b55d` | 1,364 / 1,364 | 0 / 0 | 52 |
+| discrete | `93e72f594cd2` | `938de65c` | 508 / 508 | 0 / 0 | 22 |
+| earth | `5f63016919cd` | `a2add49c` | 554 / 554 | 0 / 0 | 38 |
+| emoptics | `d6ace3cf7cfc` | `3d449200` | 1,253 / 1,253 | 0 / 0 | 52 |
+| energy | `a720c691cd42` | `3d449200` | 569 / 569 | 0 / 0 | 42 |
+| facts | `0a21f97b358e` | `e9f9578b` | 428 / 428 | 0 / 0 | 46 |
+| finance | `4f0ca77ea98c` | `48113649` | 553 / 559 | 6 / 0 | 36 |
+| geostats | `ad71e10afc82` | `61aa3fe9` | 1,456 / 1,456 | 0 / 0 | 44 |
+| humanities | `05c28101c984` | `e9f9578b` | 394 / 394 | 0 / 0 | 24 |
+| life | `ace611e37388` | `64f83836` | 179 / 179 | 0 / 0 | 13 |
+| materials | `0c693169e818` | `bbbfb375` | 440 / 440 | 0 / 0 | 36 |
+| mechanics | `5810f08249fe` | `3d449200` | 1,264 / 1,264 | 0 / 0 | 46 |
+| quantity | `75ec0797c33b` | `02befeea` | 641 / 641 | 0 / 0 | 34 |
+| space | `13151f58abbf` | `52de506e` | 1,185 / 1,185 | 0 / 0 | 68 |
+| stores | `dc4c756b8d52` | `36403e7` | 2,448 / 2,476 | 0 / 0 | 164 |
+| trades | `6ae6b577c52d` | `e1e94271` | 357 / 357 | 0 / 0 | 30 |
+| variants | `68c9d6ea6d8e` | `02befeea` | 402 / 402 | 0 / 0 | 22 |
+
+Climate has **23 valid withholds** under unchanged shipped labels. Finance retains
+**six exact-Fisher versus approximate-scorer disagreements**; these were not silently
+rescored. Stores has **28 valid withholds**. The withheld column also includes correct
+refusals of invalid questions. These observations are not a new whole-head six-criteria
+certification. Acoustics’ full panel comparison is reused from the exact native/input
+pair; its current portable wrapper was checked on both platforms.
+
+Ten portable relocation checks pass on each platform; replies are identical except
+for measured specialist time. All six
+Stores folders were also scored after relocation: **2,448/2,476 right, 0 wrong,
+0 false yes**, with all replies identical. A separate actual Finance packet mutation
+check confirms terminal withholding. The native and two-platform archives contain
+identical Darwin runtime/panel bytes (603 files checked), so the Darwin relocation
+receipt applies to both.
+
+The separate checkout-bound composition gate passed **19/19 default cases plus 2/2
+Relations cases**, with zero source/native drift. Its role inventory and immutable
+input cohort are recorded in `composition-roles.json` and `composition-cohort.json`.
+Those roles are excluded from the portable archive. External read-only corpus links
+and the historical arb_check compiler-provenance limitation remain explicit.
+
+The two finite queue plans, owned PIDs, frozen tools and per-family receipts remain
+under `jobs.json` and `queue-{hbox,persvati}.{json,state.json}`. Both queues are complete.
+The authoritative local selection is `var/C-runtime-package/delivery-20261018-b0813cc.json`.
+The preparation-time candidate record and preceding delivery remain unchanged.
+Nothing has been sent externally. Later integrated source fixes are not in this archive.
+
+## Previous delivery state (retained history)
 
 Root selected and promoted **delivery-20261018-a5f10** after integrating Finance
 `fb5c6ec` and package tooling `b26ff69`. The immutable delivery record is
@@ -28,7 +105,7 @@ original compiler receipt, copied consumed files and rewritten MLB. The selected
 directory also retains earlier complete captures. Root integration and capture
 both precede release of an owner's source freeze.
 
-Completed Linux comparisons for currently selected versions:
+Completed Linux comparisons for the previous selection:
 
 | Family | Right / total | Wrong / false yes | Withheld | Receipt under `var/linux/` |
 |---|---:|---:|---:|---|
