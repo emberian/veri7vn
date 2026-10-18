@@ -122,3 +122,4 @@ exact reason there is none yet.
 - Open any sqlite store under `upstream/` with `file:...?immutable=1` (not just `mode=ro`): read-only mode still rewrites the `-shm` side file, which is a write under upstream.
 
 - Any granted Oracle7 head run uses the reconstructed linker index: `ORACLE7_ROOT=/Users/ember/dev/o7vn/var/linker/o7root` (rebuild with `tools/linker/build_names.py` then `make_overlay.py` if absent). Without it the head differs from the recorded core panel on 142 of 924 paths and every `rel-*` specialist is silent (W5-15).
+- The `approximation` proof method (HOL-Decision_Procs) records an oracle, like `by eval`; a theorem proved with it fails the export scan. State interval bounds via the enclosure lemmas the family already has, or move the fact to a checked table (W6-18).
