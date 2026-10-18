@@ -57,6 +57,7 @@ Write `SCOUT_REPORT.md` at your worktree root and commit it:
    per lemma; untrusted parts named; nothing claimed that you did not run.
 
 ## The few rules that protect the shared machine
+- **Never kill any process you did not start, on any host.** No `pkill`, `killall`, pattern kills, or `ssh <host> pkill ...`; on hbox and persvati the Isabelle processes you see belong to other lanes (a scout killed every `poly` on hbox by pattern and took out another lane's build). The launcher now denies those commands; a scout that works around the denial is stopped and its branch discarded.
 - Never kill by pattern (`pkill -f`, `killall`, `kill -u`); stop only a process
   you started, by the PID you recorded.
 - Never `git stash`, `git reset --hard`, or touch the main checkout or other
