@@ -39,8 +39,15 @@ struct
         ^ ", \"kernel\": \"Wordprob.reply_checkeda\", \"session\": \"Veri7vn_Wordprob\", \"theorems\": ["
         ^ theorems ^ "]}}"
       else
-        "{\"id\": " ^ id ^ ", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\""
-        ^ ", \"provenance\": {\"taken\": false, \"organ\": \"word_problems_v1\", \"specialist_ms\": " ^ ms t0 ^ "}}"
+        let val taken = not (null reqs)
+        in
+          "{\"id\": " ^ id ^ ", \"status\": \"withheld\", \"response\": \"\", \"path\": "
+          ^ Json.quote (if taken then "organ:math>word:" ^ schema else "")
+          ^ ", \"kind\": " ^ Json.quote schema
+          ^ ", \"provenance\": {\"taken\": " ^ Bool.toString taken
+          ^ ", \"organ\": \"word_problems_v1\", \"kernel\": \"Wordprob.reply_checkeda\""
+          ^ ", \"specialist_ms\": " ^ ms t0 ^ "}}"
+        end
     end
 
   fun handle_line (line : string) : string =

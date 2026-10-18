@@ -77,7 +77,8 @@ def main():
     for q, h in zip((json.loads(l)["q"] for l in open(P / "core24.jsonl") if l.strip()),
                     (json.loads(l) for l in open(P / "core24_heads.jsonl") if l.strip())):
         heads[q] = h
-    ok_sp = ok_text = 0
+    ok_sp = ok_text = assurance_only = 0
+    suffix = " Checked: every quantity the formula needs was found with its unit, and the question asks for what the formula gives."
     for i, it in word:
         r = reps[i]
         if r.get("status") == it["status"] and r.get("path") == it["path"]:
@@ -87,10 +88,13 @@ def main():
         h = heads.get(it["q"])
         if h is not None and h["response"] == r.get("response"):
             ok_text += 1
+        elif h is not None and h["response"].endswith(suffix) and h["response"][:-len(suffix)] == r.get("response"):
+            assurance_only += 1
         else:
             print("  CORE24 text MISS", it["q"])
     print("core word items: %d; status+path equal to panel: %d; text equal to recorded head reply: %d"
           % (len(word), ok_sp, ok_text))
+    print("text differs only by the removed unsupported assurance suffix: %d" % assurance_only)
 
     p7 = [(i, it) for i, it in enumerate(items) if it["path"].startswith("precision_guard:P7_negative_given")]
     p7ok = sum(1 for i, it in p7 if reps[i].get("status") == "withheld" == it["status"])
@@ -99,8 +103,9 @@ def main():
     print("answered questions with a minus sign before a numeral: %d" % len(leaks))
     for q in leaks:
         print("  LEAK", q)
+    allowed_text_changes = assurance_only if "--allow-assurance-text-change" in sys.argv else 0
     bad = (len(diffs) != sum(1 for d in diffs if d[1] and not d[2] and d[3])) or schema_bad or leaks \
-        or ok_sp != len(word) or ok_text != len(word) or p7ok != len(p7)
+        or ok_sp != len(word) or ok_text + allowed_text_changes != len(word) or p7ok != len(p7)
     sys.exit(1 if bad else 0)
 
 

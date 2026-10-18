@@ -69,3 +69,13 @@ Build: `tools/dev/remote-build <host> src/extract/guards Veri7vn_Guards --expect
 `sh src/extract/guards/build.sh`,
 `/Users/ember/dev/o7vn/.venv/bin/python -I src/extract/guards/replay.py --emit-inputs`,
 `python3 src/extract/guards/gen_vectors.py` (after a binary rebuild, then rebuild the session).
+
+The dispatcher now calls this program as a final check of the actual selected
+answer: question, route, reply text and status travel together. It never asks
+the guard binary to act as an ordinary question-answering specialist. A guard
+can only turn an answered reply into a refusal; an existing refusal is left
+unchanged. A guard process error also withholds the answer and reports the
+error. Replies disclose the 20-of-87 coverage and whether the caller supplied
+human/date facts. Without a store adapter those facts remain unknown, so the
+store-dependent checks are incomplete. `tools/dispatch/test_routes.py` checks
+the composition boundary, including all 114 recorded synthetic inputs.

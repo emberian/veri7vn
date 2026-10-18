@@ -21,11 +21,16 @@ cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
 GEN=""
-for f in "$OUT"/export-remote/Veri7vn_Wordprob/*/code/wordprob* \
-         "$OUT"/export-remote/Veri7vn_Wordprob/code/wordprob*; do
+EXPORT_DIR=${VERI7VN_EXPORT_DIR:-$OUT/export-remote/Veri7vn_Wordprob}
+for f in "$EXPORT_DIR"/*/code/wordprob* \
+         "$EXPORT_DIR"/code/wordprob*; do
   [ -f "$f" ] && GEN=$f && break
 done
 if [ -z "$GEN" ]; then
+  if [ -n "${VERI7VN_EXPORT_DIR:-}" ]; then
+    echo "no generated wordprob SML in explicitly selected export: $EXPORT_DIR" >&2
+    exit 1
+  fi
   rm -rf "$OUT/export"
   REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
 import fcntl, os, subprocess

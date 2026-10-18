@@ -90,7 +90,7 @@ unit, so the two agree there.
     tools/dev/remote-build persvati src/extract/wordprob Veri7vn_Wordprob -d src/extract/commons --expect 'VERI7VN_WORDPROB PASS'
     python3 src/extract/wordprob/tables_check.py
     src/extract/wordprob/build.sh          # MLton: var/wordprob/bin/wordprob
-    PYTHONDONTWRITEBYTECODE=1 python3 src/extract/wordprob/score_core.py   # all 924 core questions
+    PYTHONDONTWRITEBYTECODE=1 python3 src/extract/wordprob/score_core.py --allow-assurance-text-change   # all 924 core questions
     python3 src/extract/wordprob/score.py var/scout/probes/all87.jsonl --ref head
 
 `--ref head` compares against the shipped head's own replies (one run of
@@ -98,3 +98,16 @@ lane A's `tools/parity/answerers/oracle7.py`, state under `var/scout/`),
 `--ref organ` against the organ module imported read-only. The 24
 core-panel word items (`upstream/workbench/data/core_panel.json`, paths
 `organ:math>word:*`) are items 0..23 of `var/scout/probes/all87.jsonl`.
+
+Composition now distinguishes no recognized schema from a checked refusal.
+An empty request list returns `provenance.taken=false`, so another organ may
+try. A nonempty request list which the kernel declines (negative given,
+ambiguous schemas, or impossible formula) returns `taken=true` and its named
+word-problem decline path. The dispatcher preserves that refusal instead of
+letting a later organ replace it with an answer.
+
+Replies now end after the formula steps. The inherited sentence claiming
+that the question's quantities, units and requested goal had been checked
+was removed: those readings come from the untrusted recognizer. The scorer
+keeps the original recorded replies and separately counts this exact suffix
+removal; `--allow-assurance-text-change` permits only that stated difference.

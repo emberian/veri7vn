@@ -585,7 +585,7 @@ text \<open>Fold w488's reply body.\<close>
 definition body_text :: "nat option \<Rightarrow> wp \<Rightarrow> String.literal" where
   "body_text rnd r = STR ''[ev:derived] '' + fmt_value (rounded rnd r) (wlab r) + STR ''. Read as ''
      + read_name (skind_of r) + STR '': '' + steps_text r
-     + STR ''. Checked: every quantity the formula needs was found with its unit, and the question asks for what the formula gives.''"
+     + STR ''.''"
 
 text \<open>The whole reply. An empty request list is the organ abstaining with
 no schema reading the problem; two or more is two schemas reading it
