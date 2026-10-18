@@ -8,16 +8,19 @@
           "rows"
         ],
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "underspecified"
         ]
       },
       "context_regex_additions": [
-        "\\b(?:rows|row count)\\b"
+        "\\b(?:rows|row count)\\b",
+        "\\brgb\\b|\\b(?:digital|additive)\\s+(?:colou?r|light)\\b"
       ],
       "evidence": {
-        "computation": "For row-gauge requests, rows equal gauge row count divided by gauge span, times target length after inch/cm conversion, rounded to the nearest integer with ties to even. The kernel refuses a nonpositive gauge span or negative row count or length. Other crafts requests retain their own named convention. Quilt blocks use exact rational floor in both dimensions, so each count fits and one additional block in that direction does not.",
+        "computation": "For row-gauge requests, rows equal gauge row count divided by gauge span, times target length after inch/cm conversion, rounded to the nearest integer with ties to even. The kernel refuses a nonpositive gauge span or negative row count or length. Other crafts requests retain their own named convention. Quilt blocks use exact rational floor in both dimensions, so each count fits and one additional block in that direction does not. Named full digital RGB channels combine by channel union; every returned channel occurs in an input and every input channel is retained.",
         "assumptions": [
-          "Row-gauge requests assume uniform gauge across the requested length."
+          "Row-gauge requests assume uniform gauge across the requested length.",
+          "RGB composition uses saturated full digital channels. It does not predict weighted brightness, spectra or paint mixtures."
         ],
         "untrusted": [
           "English recognition and framing."
@@ -30,12 +33,21 @@
         "\\b(?:actual|nominal)\\s+(?:size|dimensions?)\\b|\\bdimensional\\s+(?:lumber|timber)\\b"
       ],
       "evidence": {
-        "computation": "Drywall sheet and stair riser counts use exact rational ceiling. The returned sheet count covers the net area and one fewer sheet does not.",
+        "computation": "Drywall sheet and stair riser counts use exact rational ceiling. The returned sheet count covers the net area and one fewer sheet does not. Board-foot answers equal the exact rectangular volume in cubic inches times the whole piece count divided by144; dimensions are converted in HOL from inch, foot, centimetre or millimetre source tags, and dimensions/count are nonnegative.",
         "assumptions": [
-          "The stated area, openings and sheet size are the intended quantities; no waste allowance is inferred."
+          "The stated area, openings and sheet size are the intended quantities; no waste allowance is inferred.",
+          "The supplied dimensions describe rectangular complete pieces; no nominal-to-dressed correction or waste allowance is inferred.",
+          "Bare thickness and width in conventional dimension products use inches; length requires a supplied unit. Partial-board quantities remain unsupported.",
+          "Piece-count word grammar supports zero through ninety-nine; other explicit quantities or grouped counts are withheld rather than defaulted to one."
         ],
         "untrusted": [
           "English quantity/unit recognition and real-project applicability of the stated model."
+        ]
+      },
+      "accept": {
+        "declines_in_domain": [
+          "impossible",
+          "underspecified"
         ]
       }
     },

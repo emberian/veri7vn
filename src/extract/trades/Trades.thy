@@ -112,7 +112,7 @@ fun sheet_area :: "sheet \<Rightarrow> rat" where
 lemma sheet_area_pos [simp]: "0 < sheet_area s"
   by (cases s) simp_all
 
-datatype colour = C_red | C_yellow | C_blue | C_green | C_orange | C_purple | C_violet | C_cyan | C_magenta
+datatype colour = C_red | C_yellow | C_blue | C_green | C_orange | C_purple | C_violet | C_cyan | C_magenta | C_white | C_black
 
 fun cname :: "colour \<Rightarrow> String.literal" where
   "cname C_red = STR ''red''"
@@ -124,12 +124,13 @@ fun cname :: "colour \<Rightarrow> String.literal" where
 | "cname C_violet = STR ''violet''"
 | "cname C_cyan = STR ''cyan''"
 | "cname C_magenta = STR ''magenta''"
+| "cname C_white = STR ''white''" | "cname C_black = STR ''black''"
 
 text \<open>Alphabetical rank of the colour names (the organ prints the pair sorted).\<close>
 fun crank :: "colour \<Rightarrow> nat" where
-  "crank C_blue = 0" | "crank C_cyan = 1" | "crank C_green = 2" | "crank C_magenta = 3"
-| "crank C_orange = 4" | "crank C_purple = 5" | "crank C_red = 6" | "crank C_violet = 7"
-| "crank C_yellow = 8"
+  "crank C_black = 0" | "crank C_blue = 1" | "crank C_cyan = 2" | "crank C_green = 3"
+| "crank C_magenta = 4" | "crank C_orange = 5" | "crank C_purple = 6" | "crank C_red = 7"
+| "crank C_violet = 8" | "crank C_white = 9" | "crank C_yellow = 10"
 
 definition input_colours :: "colour list" where
   "input_colours = [C_red, C_yellow, C_blue, C_green, C_orange, C_purple, C_violet]"
@@ -145,6 +146,83 @@ definition mix_rgb :: "colour \<Rightarrow> colour \<Rightarrow> colour option" 
   "mix_rgb a b = (if (a = C_red \<and> b = C_green) \<or> (a = C_green \<and> b = C_red) then Some C_yellow
      else if (a = C_green \<and> b = C_blue) \<or> (a = C_blue \<and> b = C_green) then Some C_cyan
      else if (a = C_red \<and> b = C_blue) \<or> (a = C_blue \<and> b = C_red) then Some C_magenta else None)"
+
+text \<open>Full digital RGB channels combine by saturation. This discrete
+model does not determine brightness ratios or spectra of physical lights.\<close>
+
+type_synonym rgb_bits = "bool \<times> bool \<times> bool"
+datatype rgb_channel = RedChannel | GreenChannel | BlueChannel
+
+fun rgb_mask :: "colour \<Rightarrow> rgb_bits" where
+  "rgb_mask C_red = (True,False,False)"
+| "rgb_mask C_green = (False,True,False)"
+| "rgb_mask C_blue = (False,False,True)"
+| "rgb_mask C_yellow = (True,True,False)"
+| "rgb_mask C_cyan = (False,True,True)"
+| "rgb_mask C_magenta = (True,False,True)"
+| "rgb_mask C_white = (True,True,True)"
+| "rgb_mask _ = (False,False,False)"
+
+definition rgb_supported :: "colour \<Rightarrow> bool" where
+  "rgb_supported c \<longleftrightarrow> c \<in> {C_red,C_green,C_blue,C_yellow,C_cyan,C_magenta,C_white,C_black}"
+
+fun union_rgb :: "rgb_bits \<Rightarrow> rgb_bits \<Rightarrow> rgb_bits" where
+  "union_rgb (r,g,b) (r',g',b') = (r \<or> r',g \<or> g',b \<or> b')"
+
+fun fold_rgb :: "colour list \<Rightarrow> rgb_bits" where
+  "fold_rgb [] = (False,False,False)"
+| "fold_rgb (c#cs) = union_rgb (rgb_mask c) (fold_rgb cs)"
+
+fun rgb_colour :: "rgb_bits \<Rightarrow> colour" where
+  "rgb_colour (True,True,True) = C_white"
+| "rgb_colour (True,True,False) = C_yellow"
+| "rgb_colour (True,False,True) = C_magenta"
+| "rgb_colour (False,True,True) = C_cyan"
+| "rgb_colour (True,False,False) = C_red"
+| "rgb_colour (False,True,False) = C_green"
+| "rgb_colour (False,False,True) = C_blue"
+| "rgb_colour (False,False,False) = C_black"
+
+fun bit_channels :: "rgb_bits \<Rightarrow> rgb_channel set" where
+  "bit_channels (r,g,b) = (if r then {RedChannel} else {}) \<union>
+      (if g then {GreenChannel} else {}) \<union> (if b then {BlueChannel} else {})"
+
+definition rgb_channels :: "colour \<Rightarrow> rgb_channel set" where
+  "rgb_channels c = bit_channels (rgb_mask c)"
+
+definition mix_rgb_many :: "colour list \<Rightarrow> colour option" where
+  "mix_rgb_many cs = (if cs \<noteq> [] \<and> list_all rgb_supported cs
+     then Some (rgb_colour (fold_rgb cs)) else None)"
+
+lemma union_rgb_channels:
+  "bit_channels (union_rgb x y) = bit_channels x \<union> bit_channels y"
+proof -
+  obtain r g b where x: "x = (r,g,b)" by (cases x) auto
+  obtain r' g' b' where y: "y = (r',g',b')" by (cases y) auto
+  show ?thesis unfolding x y by auto
+qed
+
+lemma rgb_colour_channels:
+  "rgb_channels (rgb_colour x) = bit_channels x"
+proof -
+  obtain r g b where x: "x = (r,g,b)" by (cases x) auto
+  show ?thesis unfolding x by (cases r; cases g; cases b) (simp_all add: rgb_channels_def)
+qed
+
+lemma fold_rgb_channels:
+  "bit_channels (fold_rgb cs) = \<Union> (rgb_channels ` set cs)"
+  by (induction cs) (auto simp: union_rgb_channels rgb_channels_def)
+
+lemma mix_rgb_many_channels:
+  assumes "mix_rgb_many cs = Some c"
+  shows "cs \<noteq> [] \<and> list_all rgb_supported cs \<and>
+         rgb_channels c = \<Union> (rgb_channels ` set cs)"
+  using assms by (auto simp: mix_rgb_many_def rgb_colour_channels fold_rgb_channels split: if_splits)
+
+lemma rgb_pair_preserved:
+  assumes "mix_rgb a b = Some c"
+  shows "mix_rgb_many [a,b] = Some c"
+  using assms by (cases a; cases b) (simp_all add: mix_rgb_def mix_rgb_many_def rgb_supported_def)
 
 fun comp_of :: "colour \<Rightarrow> colour" where
   "comp_of C_red = C_green"
@@ -205,6 +283,22 @@ definition cm_per_inch :: rat where "cm_per_inch = 127 / 50"
 
 section \<open>Requests, outcomes and declines\<close>
 
+datatype board_unit = BU_in | BU_ft | BU_cm | BU_mm
+
+fun board_inches :: "board_unit \<Rightarrow> rat \<Rightarrow> rat" where
+  "board_inches BU_in x = x"
+| "board_inches BU_ft x = 12*x"
+| "board_inches BU_cm x = 50*x/127"
+| "board_inches BU_mm x = 5*x/127"
+
+definition board_domain :: "rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> bool" where
+  "board_domain t w l k \<longleftrightarrow> 0 \<le> t \<and> 0 \<le> w \<and> 0 \<le> l \<and>
+    0 \<le> k \<and> snd (quotient_of k) = 1"
+
+lemma board_inches_nonnegative:
+  "0 \<le> x \<Longrightarrow> 0 \<le> board_inches u x"
+  by (cases u) auto
+
 datatype request =
     Far rat rat                       (* floor area, lot area (sq ft) *)
   | MaxFloor rat rat                  (* FAR, lot area *)
@@ -226,7 +320,8 @@ datatype request =
       (* H V D A FM CM and the load (kg) when a lifting index is asked *)
   | Judge
   | ActualSize nat nat
-  | BoardFeet rat rat rat bool nat    (* thickness, width, length, length in inches?, pieces *)
+  | BoardFeet rat board_unit rat board_unit rat board_unit rat (* thickness/unit, width/unit, length/unit, integral piece count *)
+  | BoardUnread
   | Concrete rat rat rat bool         (* length ft, width ft, depth, depth in inches? *)
   | Drywall rat rat sheet             (* area, openings *)
   | Stairs rat bool bool              (* rise, in feet?, asks the riser height *)
@@ -235,7 +330,7 @@ datatype request =
   | Miter nat
   | Moisture rat rat                  (* wet, oven-dry *)
   | MixRyb colour colour
-  | MixRgb colour colour
+  | MixRgb "colour list"
   | Complement colour
   | Rows rat rat bool rat bool        (* gauge rows, gauge span, inches?, target length, inches? *)
   | CastOn rat bool rat bool          (* stitches per unit, per inch?, width, in inches? *)
@@ -246,10 +341,10 @@ datatype request =
   | Clay rat rat cunit                (* shrinkage percent, wet size, unit *)
 
 datatype need = N_shrink | N_height_layer | N_flow_inputs | N_spool_weight | N_filament_diameter
-  | N_material | N_noise_times | N_ladder_length | N_niosh_geometry | N_niosh_multipliers | N_niosh_load
+  | N_board_inputs | N_rgb_model | N_material | N_noise_times | N_ladder_length | N_niosh_geometry | N_niosh_multipliers | N_niosh_load
 
 datatype reason = R_lot_nonpositive | R_factor_nonpositive | R_shrink_range | R_layer_nonpositive
-  | R_gauge_dimensions | R_spool_nonpositive | R_diameter_nonpositive | R_density_nonpositive | R_negative_duration
+  | R_board_domain | R_gauge_dimensions | R_spool_nonpositive | R_diameter_nonpositive | R_density_nonpositive | R_negative_duration
   | R_zero_dose | R_niosh_domain | R_zero_rwl | R_nominal_size | R_openings_exceed | R_rise_nonpositive
   | R_few_sides | R_dry_exceeds_wet | R_no_mix | R_block_nonpositive
 
@@ -289,7 +384,8 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (Niosh _ _ _ _ _ _ want_li _) = (if want_li then K_li else K_rwl)"
 | "kind_of Judge = K_rwl"
 | "kind_of (ActualSize _ _) = K_actual_size"
-| "kind_of (BoardFeet _ _ _ _ _) = K_board_feet"
+| "kind_of BoardUnread = K_board_feet"
+| "kind_of (BoardFeet _ _ _ _ _ _ _) = K_board_feet"
 | "kind_of (Concrete _ _ _ _) = K_concrete"
 | "kind_of (Drywall _ _ _) = K_drywall"
 | "kind_of (Stairs _ _ h) = (if h then K_riser_height else K_risers)"
@@ -298,7 +394,7 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (Miter _) = K_miter"
 | "kind_of (Moisture _ _) = K_wood_mc"
 | "kind_of (MixRyb _ _) = K_mix_ryb"
-| "kind_of (MixRgb _ _) = K_mix_rgb"
+| "kind_of (MixRgb _) = K_mix_rgb"
 | "kind_of (Complement _) = K_complement"
 | "kind_of (Rows _ _ _ _ _) = K_rows"
 | "kind_of (CastOn _ _ _ _) = K_cast_on"
@@ -447,6 +543,8 @@ fun missing :: "request \<Rightarrow> need option" where
      (if h = None \<or> v = None \<or> d = None \<or> a = None then Some N_niosh_geometry
       else if fm = None \<or> cm = None then Some N_niosh_multipliers
       else if want_li \<and> ld = None then Some N_niosh_load else None)"
+| "missing (MixRgb cs) = (if mix_rgb_many cs = None then Some N_rgb_model else None)"
+| "missing BoardUnread = Some N_board_inputs"
 | "missing _ = None"
 
 text \<open>Impossible: the inputs are all there and cannot be computed with (a division by
@@ -468,13 +566,14 @@ fun impossible :: "request \<Rightarrow> bool" where
 | "impossible (Niosh h v d a fm cm want_li ld) =
      (\<not> niosh_domain (the h) (the v) (the d) (the a) (the fm) (the cm) want_li ld
       \<or> (want_li \<and> rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) \<le> 0))"
+| "impossible (BoardFeet t tu w wu l lu k) = (\<not> board_domain t w l k)"
 | "impossible (ActualSize a b) = (actual a = None \<or> actual b = None)"
 | "impossible (Drywall a ov _) = (a \<le> ov)"
 | "impossible (Stairs r ft _) = (rise_in r ft / max_riser \<le> 0)"
 | "impossible (Miter n) = (n < 3)"
 | "impossible (Moisture w d) = (d \<le> 0 \<or> w < d)"
 | "impossible (MixRyb a b) = (mix_ryb a b = None)"
-| "impossible (MixRgb a b) = (mix_rgb a b = None)"
+| "impossible (MixRgb cs) = False"
 | "impossible (Rows row_count gauge_span _ target_len _) = (row_count < 0 \<or> gauge_span \<le> 0 \<or> target_len < 0)"
 | "impossible (Quilt _ _ s) = (s \<le> 0)"
 | "impossible _ = False"
@@ -499,13 +598,14 @@ fun reason_of :: "request \<Rightarrow> reason option" where
       then Some R_niosh_domain
       else if want_li \<and> rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) \<le> 0
       then Some R_zero_rwl else None)"
+| "reason_of (BoardFeet t tu w wu l lu k) = (if board_domain t w l k then None else Some R_board_domain)"
 | "reason_of (ActualSize a b) = (if actual a = None \<or> actual b = None then Some R_nominal_size else None)"
 | "reason_of (Drywall a ov _) = (if a \<le> ov then Some R_openings_exceed else None)"
 | "reason_of (Stairs r ft _) = (if rise_in r ft / max_riser \<le> 0 then Some R_rise_nonpositive else None)"
 | "reason_of (Miter n) = (if n < 3 then Some R_few_sides else None)"
 | "reason_of (Moisture w d) = (if d \<le> 0 \<or> w < d then Some R_dry_exceeds_wet else None)"
 | "reason_of (MixRyb a b) = (if mix_ryb a b = None then Some R_no_mix else None)"
-| "reason_of (MixRgb a b) = (if mix_rgb a b = None then Some R_no_mix else None)"
+| "reason_of (MixRgb cs) = None"
 | "reason_of (Rows row_count gauge_span _ target_len _) = (if row_count < 0 \<or> gauge_span \<le> 0 \<or> target_len < 0 then Some R_gauge_dimensions else None)"
 | "reason_of (Quilt _ _ s) = (if s \<le> 0 then Some R_block_nonpositive else None)"
 | "reason_of _ = None"
@@ -687,8 +787,8 @@ fun answer_of :: "request \<Rightarrow> outcome" where
       else Exact K_rwl (rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm)))"
 | "answer_of (ActualSize a b) = (case (actual a, actual b) of
      (Some x, Some y) \<Rightarrow> Duo K_actual_size x y | _ \<Rightarrow> Decline Imprecise)"
-| "answer_of (BoardFeet th w l inch k) =
-     Exact K_board_feet (th * w * (if inch then l / 12 else l) / 12 * of_nat k)"
+| "answer_of (BoardFeet th tu w wu l lu k) =
+     Exact K_board_feet (board_inches tu th * board_inches wu w * board_inches lu l * k / 144)"
 | "answer_of (Concrete l w d inch) = Exact K_concrete (l * w * (if inch then d / 12 else d) / 27)"
 | "answer_of (Drywall a ov s) = Exact K_drywall (ceil_rat ((a - ov) / sheet_area s))"
 | "answer_of (Stairs r ft h) =
@@ -699,7 +799,7 @@ fun answer_of :: "request \<Rightarrow> outcome" where
 | "answer_of (Miter n) = Exact K_miter (180 / of_nat n)"
 | "answer_of (Moisture w d) = Exact K_wood_mc ((w - d) / d * 100)"
 | "answer_of (MixRyb a b) = (case mix_ryb a b of Some c \<Rightarrow> Hue K_mix_ryb c | None \<Rightarrow> Decline Imprecise)"
-| "answer_of (MixRgb a b) = (case mix_rgb a b of Some c \<Rightarrow> Hue K_mix_rgb c | None \<Rightarrow> Decline Imprecise)"
+| "answer_of (MixRgb cs) = (case mix_rgb_many cs of Some c \<Rightarrow> Hue K_mix_rgb c | None \<Rightarrow> Decline Imprecise)"
 | "answer_of (Complement c) = Hue K_complement (comp_of c)"
 | "answer_of (Rows row_count gauge_span u l li) = Exact K_rows (round_he (row_count / gauge_span * cast_width u l li))"
 | "answer_of (CastOn spu u w wi) = Exact K_cast_on (round_he (spu * cast_width u w wi))"
@@ -708,6 +808,7 @@ fun answer_of :: "request \<Rightarrow> outcome" where
 | "answer_of (Yards i) = Exact K_yards (i / 36)"
 | "answer_of (Mat w h b) = Duo K_mat_outer (w + 2 * b) (h + 2 * b)"
 | "answer_of (Clay p s u) = Exact K_clay_fired (s * (1 - p / 100))"
+| "answer_of BoardUnread = Decline Imprecise"
 | "answer_of Judge = Decline Imprecise"
 
 definition kernel :: "request \<Rightarrow> outcome" where
@@ -777,7 +878,7 @@ fun spec_exact :: "request \<Rightarrow> rat \<Rightarrow> bool" where
      (if want_li then 0 < rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm)
           \<and> q * rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm) = the ld
       else q = rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm))"
-| "spec_exact (BoardFeet th w l inch k) q = (q * 12 = th * w * (if inch then l / 12 else l) * of_nat k)"
+| "spec_exact (BoardFeet th tu w wu l lu k) q = (q * 144 = board_inches tu th * board_inches wu w * board_inches lu l * k)"
 | "spec_exact (Concrete l w d inch) q = (q * 27 = l * w * (if inch then d / 12 else d))"
 | "spec_exact (Drywall a ov s) q = least_cover ((a - ov) / sheet_area s) q"
 | "spec_exact (Stairs r ft h) q =
@@ -885,7 +986,10 @@ next
   case ActualSize
     show ?thesis using A ActualSize by (simp split: option.splits)
 next
-  case (BoardFeet x0 x1 x2 x3 x4)
+  case BoardUnread
+    show ?thesis using A BoardUnread by simp
+next
+  case (BoardFeet x0 x1 x2 x3 x4 x5 x6)
     show ?thesis using A BoardFeet by (simp add: field_simps algebra_simps)
 next
   case (Concrete x0 x1 x2 x3)
@@ -1127,7 +1231,7 @@ qed
 lemma answer_hue:
   "answer_of r = Hue k c \<Longrightarrow>
      (\<exists>a b. r = MixRyb a b \<and> mix_ryb a b = Some c \<and> k = K_mix_ryb)
-   \<or> (\<exists>a b. r = MixRgb a b \<and> mix_rgb a b = Some c \<and> k = K_mix_rgb)
+   \<or> (\<exists>cs. r = MixRgb cs \<and> mix_rgb_many cs = Some c \<and> k = K_mix_rgb)
    \<or> (\<exists>x. r = Complement x \<and> c = comp_of x \<and> k = K_complement)"
   by (cases r) (auto split: option.splits if_splits)
 
@@ -1135,13 +1239,20 @@ theorem kernel_hue_sound:
   assumes "kernel r = Hue k c"
   shows "missing r = None \<and> \<not> impossible r \<and>
      ((\<exists>a b. r = MixRyb a b \<and> mix_ryb a b = Some c \<and> k = K_mix_ryb)
-    \<or> (\<exists>a b. r = MixRgb a b \<and> mix_rgb a b = Some c \<and> k = K_mix_rgb)
+    \<or> (\<exists>cs. r = MixRgb cs \<and> mix_rgb_many cs = Some c \<and> k = K_mix_rgb)
     \<or> (\<exists>x. r = Complement x \<and> c = comp_of x \<and> k = K_complement))"
 proof -
   have d: "missing r = None \<and> reason_of r = None \<and> \<not> is_judge r \<and> answer_of r = kernel r"
     by (rule decline_none) (use assms in blast)
   then show ?thesis using assms answer_hue reason_of_exact[of r] by auto
 qed
+
+theorem kernel_rgb_channel_union:
+  assumes "kernel (MixRgb cs) = Hue k c"
+  shows "k = K_mix_rgb \<and> cs \<noteq> [] \<and> list_all rgb_supported cs \<and>
+         rgb_channels c = \<Union> (rgb_channels ` set cs)"
+  using kernel_hue_sound[OF assms] mix_rgb_many_channels
+  by auto
 
 lemma answer_approx:
   "answer_of r = Approx k d \<Longrightarrow> k = kind_of r \<and>
@@ -1192,6 +1303,26 @@ qed
 
 theorem egress_widths: "egress_per True = 3 / 10 \<and> egress_per False = 1 / 5"
   by (simp add: egress_per_def)
+
+text \<open>One board foot is 144 cubic inches. The result binds the exact
+unit-converted rectangular volume and a nonnegative integral piece count.\<close>
+theorem board_feet_volume:
+  assumes "kernel (BoardFeet t tu w wu l lu n) = Exact k q"
+  shows "k = K_board_feet \<and> 0 \<le> t \<and> 0 \<le> w \<and> 0 \<le> l \<and>
+    0 \<le> n \<and> snd (quotient_of n) = 1 \<and>
+    q * 144 = board_inches tu t * board_inches wu w * board_inches lu l * n"
+  using kernel_exact_sound[OF assms] by (simp add: board_domain_def)
+
+theorem board_feet_nonnegative:
+  assumes "kernel (BoardFeet t tu w wu l lu n) = Exact k q"
+  shows "0 \<le> q"
+proof -
+  have b: "0 \<le> t" "0 \<le> w" "0 \<le> l" "0 \<le> n"
+    using board_feet_volume[OF assms] by auto
+  have p: "0 \<le> board_inches tu t * board_inches wu w * board_inches lu l * n"
+    using b board_inches_nonnegative by (intro mult_nonneg_nonneg) auto
+  show ?thesis using p board_feet_volume[OF assms] by linarith
+qed
 
 section \<open>Stated values\<close>
 
@@ -1385,9 +1516,9 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
          + show4 (rwl_of (the h) (the v) (the d) (the a) (the fm) (the cm))
          + STR '' kg; NIOSH lifting equation)''
          + (if 1 < q then STR '' - above 1, the lift is a risk for some workers'' else STR '''') + STR ''.'')"
-| "exact_text (BoardFeet th w l inch k) q V = STR ''That is '' + V + STR '' board feet ('' + show3 th
-     + STR '' in x '' + show3 w + STR '' in x '' + show3 (if inch then l / 12 else l) + STR '' ft / 12''
-     + (if 1 < k then STR '' x '' + show_nat k + STR '' pieces'' else STR '''') + STR '').''"
+| "exact_text (BoardFeet th tu w wu l lu k) q V = STR ''That is '' + V + STR '' board feet ('' + show3 (board_inches tu th)
+     + STR '' in x '' + show3 (board_inches wu w) + STR '' in x '' + show3 (board_inches lu l)
+     + STR '' in x '' + show3 k + STR '' pieces / 144 cubic inches per board foot; rectangular pieces, no waste allowance).''"
 | "exact_text (Concrete l w d inch) q V = STR ''The volume is '' + V + STR '' cubic yards ('' + show3 l
      + STR '' ft x '' + show3 w + STR '' ft x '' + show3 (if inch then d / 12 else d)
      + STR '' ft / 27; no waste allowance).''"
@@ -1456,15 +1587,17 @@ fun sort_pair :: "colour \<Rightarrow> colour \<Rightarrow> colour \<times> colo
 fun hue_text :: "request \<Rightarrow> colour \<Rightarrow> String.literal" where
   "hue_text (MixRyb a b) c = STR ''The colour is '' + cname c + STR '' (traditional RYB painter'' + apos
      + STR ''s colour wheel: '' + cname (fst (sort_pair a b)) + STR '' + '' + cname (snd (sort_pair a b)) + STR '').''"
-| "hue_text (MixRgb a b) c = STR ''The colour is '' + cname c + STR '' (additive RGB light: ''
-     + cname (fst (sort_pair a b)) + STR '' + '' + cname (snd (sort_pair a b)) + STR '').''"
+| "hue_text (MixRgb cs) c = STR ''The colour is '' + cname c
+     + STR '' (saturated digital RGB channels; no brightness or spectral prediction).''"
 | "hue_text (Complement x) c = STR ''The complementary colour is '' + cname c
      + STR '' (traditional RYB colour wheel, opposite '' + cname x + STR '').''"
 | "hue_text r c = cname c"
 
 definition need_text :: "need \<Rightarrow> String.literal" where
   "need_text n = (case n of
-       N_shrink \<Rightarrow> STR ''I need the shrinkage percentage to work that out; I won'' + apos + STR ''t assume it.''
+       N_board_inputs \<Rightarrow> STR ''I need three unambiguous rectangular dimensions with length units and a whole number of pieces; thickness and width without units use the board-foot inch convention.''
+     | N_rgb_model \<Rightarrow> STR ''I can combine named full digital RGB channels; I need the supported colour names and cannot infer brightness or a weighted physical light mixture.''
+     | N_shrink \<Rightarrow> STR ''I need the shrinkage percentage to work that out; I won'' + apos + STR ''t assume it.''
      | N_height_layer \<Rightarrow> STR ''I need the part height and the layer height to work that out; I won'' + apos + STR ''t assume it.''
      | N_flow_inputs \<Rightarrow> STR ''I need the layer height, the line width and the print speed to work that out; I won'' + apos + STR ''t assume it.''
      | N_spool_weight \<Rightarrow> STR ''I need the spool'' + apos + STR ''s weight to work that out; I won'' + apos + STR ''t assume it.''
@@ -1478,7 +1611,8 @@ definition need_text :: "need \<Rightarrow> String.literal" where
 
 definition reason_text :: "request \<Rightarrow> reason \<Rightarrow> String.literal" where
   "reason_text r y = (case y of
-       R_niosh_domain \<Rightarrow> STR ''NIOSH inputs need nonnegative distances, angle and load; frequency multiplier from 0 to 1; and coupling multiplier 0.90, 0.95 or 1.00.''
+       R_board_domain \<Rightarrow> STR ''Board dimensions and piece count must be nonnegative, and the number of complete pieces must be an integer.''
+     | R_niosh_domain \<Rightarrow> STR ''NIOSH inputs need nonnegative distances, angle and load; frequency multiplier from 0 to 1; and coupling multiplier 0.90, 0.95 or 1.00.''
      | R_gauge_dimensions \<Rightarrow> STR ''The gauge span must be positive and row count and target length nonnegative.''
      | R_nominal_size \<Rightarrow> (case r of ActualSize a b \<Rightarrow> show_nat a + STR ''x'' + show_nat b
            + STR '' is outside the standard dimensional-lumber table (PS 20).'' | _ \<Rightarrow> STR ''Not in the lumber table.'')

@@ -30,6 +30,8 @@ definition self_test :: bool where
      kernel (ActualSize 2 4) = Duo K_actual_size (3 / 2) (7 / 2) \<and>
      kernel (ActualSize 2 5) = Decline (Impossible R_nominal_size) \<and>
      kernel (Moisture 150 100) = Exact K_wood_mc 50 \<and>
+     kernel (MixRgb [C_red,C_green,C_blue]) = Hue K_mix_rgb C_white \<and>
+     kernel (MixRgb [C_cyan,C_red]) = Hue K_mix_rgb C_white \<and>
      kernel (MixRyb C_red C_yellow) = Hue K_mix_ryb C_orange \<and>
      kernel (Rows 28 4 True 12 True) = Exact K_rows 84 \<and>
      kernel (Rows 28 0 True 12 True) = Decline (Impossible R_gauge_dimensions) \<and>
@@ -38,6 +40,9 @@ definition self_test :: bool where
      kernel (CastOn (5 / 2) True 1 True) = Exact K_cast_on 2 \<and>
      kernel (Drywall 100 0 S32) = Exact K_drywall 4 \<and>
      kernel (Stairs 108 False False) = Exact K_risers 14 \<and>
+     kernel (BoardFeet (1/2) BU_in 6 BU_in 8 BU_ft 1) = Exact K_board_feet 2 \<and>
+     kernel (BoardFeet (-2) BU_in 6 BU_in 8 BU_ft 1) = Decline (Impossible R_board_domain) \<and>
+     kernel (BoardFeet 2 BU_in 6 BU_in 8 BU_ft (3/2)) = Decline (Impossible R_board_domain) \<and>
      kernel Judge = Decline Judgement \<and>
      kernel (Niosh (Some 25) (Some 75) (Some 25) (Some 0) (Some 1) (Some 1) False None) = Exact K_rwl 23 \<and>
      kernel (Niosh (Some 25) (Some 75) (Some 25) (Some 0) (Some 2) (Some 1) False None) = Decline (Impossible R_niosh_domain) \<and>
@@ -61,14 +66,14 @@ export_code reply_of answered reply_kind response stated mk_rat
   integer_of_int nat_of_integer int_of_integer
   use_order fil_order input_colours
   Far MaxFloor Coverage Occupant Egress Ramp Shrink Layers Flow Cost FilLength FilMass NoiseTime
-  NoiseDose Twa Ladder Niosh Judge ActualSize BoardFeet Concrete Drywall Stairs Rafter Pitch Miter
+  NoiseDose Twa Ladder Niosh Judge ActualSize BoardFeet BoardUnread BU_in BU_ft BU_cm BU_mm Concrete Drywall Stairs Rafter Pitch Miter
   Moisture MixRyb MixRgb Complement Rows CastOn Quilt CutSize Yards Mat Clay
-  C_red C_yellow C_blue C_green C_orange C_purple C_violet
+  C_red C_yellow C_blue C_green C_orange C_purple C_violet C_cyan C_magenta C_white C_black
   Given Table D_given D_typical D_none Per_kg Per_spool L_ft L_m S32 S40 S48 CU_in CU_quote CU_cm CU_mm
   in SML module_name Trades file_prefix trades
 
 ML \<open>
-  val theorems = [@{thm niosh_factors_bounded}, @{thm niosh_weight_bound}, @{thm niosh_rwl_bound}, @{thm niosh_index_balance}, @{thm kernel_exact_sound}, @{thm kernel_duo_sound}, @{thm kernel_hue_sound},
+  val theorems = [@{thm board_feet_volume}, @{thm board_feet_nonnegative}, @{thm niosh_factors_bounded}, @{thm niosh_weight_bound}, @{thm niosh_rwl_bound}, @{thm niosh_index_balance}, @{thm kernel_exact_sound}, @{thm kernel_duo_sound}, @{thm kernel_hue_sound},
     @{thm kernel_approx_sound}, @{thm kernel_underspecified}, @{thm kernel_impossible},
     @{thm kernel_judgement}, @{thm kernel_imprecise}, @{thm reason_of_exact},
     @{thm expr_of_meaning}, @{thm round_he_spec}, @{thm ceil_rat_cover}, @{thm floor_rat_fit},
@@ -76,7 +81,7 @@ ML \<open>
     @{thm occupants_cover_area}, @{thm drywall_covers_area}, @{thm quilt_blocks_fit},
     @{thm round_at_error}, @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm to_fixed_sound},
     @{thm enclose_m_sound}, @{thm stated_dec_sound}, @{thm round_tie_up},
-    @{thm mix_symmetric}, @{thm complement_involution}, @{thm complement_violet_exception},
+    @{thm mix_symmetric}, @{thm kernel_rgb_channel_union}, @{thm rgb_pair_preserved}, @{thm fold_rgb_channels}, @{thm complement_involution}, @{thm complement_violet_exception},
     @{thm actual_below_nominal}, @{thm rows_unit_invariant}, @{thm rows_nearest},
     @{thm rafter_pythagoras}, @{thm pitch_tan}, @{thm noise_halving}, @{thm egress_widths},
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_states_approx},

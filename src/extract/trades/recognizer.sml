@@ -406,6 +406,89 @@ struct
                    ("triangle", 3), ("pentagon", 5), ("hexagon", 6), ("octagon", 8), ("decagon", 10),
                    ("square", 4)]
 
+  (* The complete dimension field is isolated by the product/role grammar.
+     Shared unit parsing therefore cannot mistake a product separator for part
+     of a compound unit. These spans are local to the isolated unit field. *)
+  fun boardFeetExact raw =
+    let
+      fun u alias tag = {alias=alias,tag=tag,dimension="length",caseSensitive=false}
+      val units = List.concat (map (fn (tag,aliases) => map (fn a=>u a tag) aliases)
+        [("in",["in","inch","inches","\"",dprime]),("ft",["ft","foot","feet","'"]),
+         ("cm",["cm","centimeter","centimeters","centimetre","centimetres"]),
+         ("mm",["mm","millimeter","millimeters","millimetre","millimetres"])])
+      fun unit field default =
+        if List.all Char.isSpace (String.explode field) then default else
+        case MeasuredInput.unitAt units field 0 of
+          SOME (ub as MeasuredInput.Explicit {unit=us,span={stop,...}}) =>
+            if not (List.all Char.isSpace (String.explode (String.extract(field,stop,NONE)))) then NONE
+            else (case MeasuredInput.bind {expected="length",inheritFrom=NONE}
+                    {id=0,numberSpan={start=0,stop=0},value=(0,1),unitBinding=ub} of
+              MeasuredInput.Bound _ => (case #tag us of "in"=>SOME Q.BU_in | "ft"=>SOME Q.BU_ft
+                  | "cm"=>SOME Q.BU_cm | "mm"=>SOME Q.BU_mm | _=>NONE)
+            | _=>NONE)
+        | _=>NONE
+      val marker="(qnum[0-9]+q)"
+      val field="\\s*((?!(?:lumber|boards?|planks?|each)\\b)[a-z]+|\\\"|'|" ^ dprime ^ ")?\\s*"
+      fun parse {text=masked,numbers=ns} =
+        let
+          val low=lower masked
+          fun value key = Option.map (toQ o #2) (List.find(fn(k,_)=>k=key) ns)
+          fun capture m i = case grp low m i of SOME x=>x | NONE=>""
+          fun qty m i = value (capture m i)
+          val countNoun="(?:boards?(?![- ]f(?:ee|oo)t)|pieces?|planks?)\\b"
+          val countMatches=findall(marker ^ "\\s+(?:" ^ countNoun ^ "|of them\\b)") low
+          val wordMatches=findall ("(?:^|\\b(?:in|for|of|from|with))\\s*([a-z]+(?:[- ][a-z]+){0,4})\\s+" ^ countNoun) low
+          val smallWords=[("a",1),("an",1),("zero",0),("one",1),("two",2),("three",3),("four",4),
+             ("five",5),("six",6),("seven",7),("eight",8),("nine",9),("ten",10),("eleven",11),
+             ("twelve",12),("thirteen",13),("fourteen",14),("fifteen",15),("sixteen",16),
+             ("seventeen",17),("eighteen",18),("nineteen",19),("twenty",20),("thirty",30),
+             ("forty",40),("fifty",50),("sixty",60),("seventy",70),("eighty",80),("ninety",90)]
+          fun wordValue w = Option.map #2 (List.find(fn(k,_)=>k=w)smallWords)
+          fun wordCount phrase =
+            case String.tokens(fn c=>Char.isSpace c orelse c = #"-")phrase of
+              [w]=>wordValue w
+            | [a,b]=>(case(wordValue a,wordValue b)of(SOME x,SOME y)=>
+                  if x>=20 andalso x mod 10=0 andalso y>0 andalso y<10 then SOME(x+y) else NONE
+                | _=>NONE)
+            | _=>NONE
+          val quantityNouns=length(findall countNoun low) + length(findall "\\bof them\\b" low)
+          val pluralNouns=length(findall "\\b(?:boards|pieces|planks|of them)\\b" low)
+          val residue=List.foldl(fn(m,t)=>replaceLit (Regex.whole low m) " " t) low wordMatches
+          val qtyWords=map #1 (List.filter(fn(w,_)=>not(List.exists(fn a=>w=a)["a","an","one"])) smallWords)
+            @ ["hundred","thousand","million","dozen","half","quarter","both","several","some"]
+          val leftoverQuantity=has ("\\b(?:" ^ String.concatWith "|" qtyWords ^ ")\\b") residue
+          val count = if leftoverQuantity then NONE else case (countMatches,wordMatches) of
+              ([m],[])=>if quantityNouns=1 then qty m 1 else NONE
+            | ([],[m])=>if quantityNouns=1 then Option.map(fn n=>toQ(IntInf.fromInt n,1))(wordCount(capture m 1)) else NONE
+            | ([],[])=>if pluralNouns=0 then SOME(toQ(1,1)) else NONE
+            | _=>NONE
+          val countKeys=map(fn m=>capture m 1)countMatches
+          val ending="(?=\\s*(?:long\\b|length\\b|board\\b|lumber\\b|[?,.;]|$))"
+          val tuple1=marker ^ field ^ xby ^ "\\s*" ^ marker ^ field ^ xby ^ "\\s*" ^ marker ^ field ^ ending
+          val tuple2=marker ^ field ^ xby ^ "\\s*" ^ marker ^ field ^
+            "(?:lumber|boards?|planks?)?\\s*[,;]?\\s*(?:each\\s+)?" ^ marker ^ field ^ ending
+          val tuples=case findall tuple1 low of []=>findall tuple2 low | xs=>xs
+          fun mk (ak,au,bk,bu,ck,cu) =
+            case (value ak,unit au (SOME Q.BU_in),value bk,unit bu (SOME Q.BU_in),value ck,unit cu NONE,count) of
+              (SOME a,SOME ua,SOME b,SOME ub,SOME c,SOME uc,SOME n)=>
+                if List.all(fn(k,_)=>List.exists(fn used=>k=used)(ak::bk::ck::countKeys))ns
+                then Q.BoardFeet(a,ua,b,ub,c,uc,n) else Q.BoardUnread
+            | _=>Q.BoardUnread
+          fun namedRole role = findall(marker ^ field ^ role ^ "\\b")low
+          val thick=namedRole "(?:thick|thickness)"
+          val wide=namedRole "(?:wide|width)"
+          val long=namedRole "(?:long|length)"
+        in case tuples of
+             [m]=>mk(capture m 1,capture m 2,capture m 3,capture m 4,capture m 5,capture m 6)
+           | []=>(case(thick,wide,long)of
+               ([a],[b],[c])=>mk(capture a 1,capture a 2,capture b 1,capture b 2,capture c 1,capture c 2)
+             | _=>Q.BoardUnread)
+           | _=>Q.BoardUnread
+        end
+    in if has "\\b(?:round|cylindrical|tapered|irregular|hollow|cutouts?|notches?|waste|allowance)\\b" (lower raw)
+       then Q.BoardUnread
+       else case ExactNumeric.mask raw of NONE=>Q.BoardUnread | SOME x=>parse x end
+
   fun woodworkingCore text : Q.request option =
     let
       val low = lower (collapse text)
@@ -419,25 +502,8 @@ struct
             else Next
         | NONE => Next
       fun boardFeet () =
-        if has "\\bboard[- ]f(?:ee|oo)t(?:age)?\\b|\\bbd\\.? ?ft\\b" low then
-          let
-            val p1 = M ^ "\\s*(?:in|inch(?:es)?|\\\"|" ^ dprime ^ ")?\\s*" ^ xby ^ "\\s*" ^ M ^ "\\s*(?:in|inch(?:es)?|\\\"|" ^ dprime
-                     ^ ")?\\s*" ^ xby ^ "\\s*" ^ M ^ "\\s*(ft|feet|foot|'|in|inch(?:es)?|\\\"|" ^ dprime ^ ")"
-            val p2 = M ^ "\\s*(?:in|inch(?:es)?|\\\")?\\s*" ^ xby ^ "\\s*" ^ M ^ "\\s*(?:in|inch(?:es)?|\\\")?[^.?]*?\\b" ^ M ^ "\\s*(ft|feet|foot|'|in|inch(?:es)?)\\s*(?:long|length)?"
-            val m = case search p1 low of SOME m => SOME m | NONE => search p2 low
-          in
-            case m of
-              NONE => Stop
-            | SOME m =>
-                let
-                  val cnt = search "\\b(\\d+)\\s+(?:boards|pieces|planks|of them)\\b" low
-                  val k = case cnt of SOME c => natOf (g1 low c) | NONE => natOf "1"
-                in
-                  Take (Q.BoardFeet (ratOf (g1 low m), ratOf (valOf (grp low m 2)), ratOf (valOf (grp low m 3)),
-                                     isInchUnit (valOf (grp low m 4)), k))
-                end
-          end
-        else Next
+        if has "\\bboard[- ]f(?:ee|oo)t(?:age)?\\b|\\bbd\\.? ?ft\\b" low
+        then Take(boardFeetExact text) else Next
       fun concrete () =
         if has "\\bconcrete\\b|\\bslab\\b|\\bfooting\\b|\\bpour\\b" low andalso has ("\\bcubic yards?\\b|\\byards?\\b|\\byd3\\b|\\byd" ^ cu3 ^ "\\b") low then
           let
@@ -527,15 +593,19 @@ struct
     end
 
   fun woodworking text : Q.request option =
-    if Narrow.narrative text then NONE
+    (* Decimal punctuation is not a sentence boundary, even in a malformed
+       numeric run. The raw text still goes to the exact scanner below. *)
+    if Narrow.narrative (replaceAll "(?<=[0-9])\\.(?=[0-9])" "" text) then NONE
     else case woodworkingCore text of
            NONE => NONE
-         | SOME r => if answered r orelse Narrow.short_direct text then SOME r else NONE
+         | SOME r => (case r of Q.BoardFeet _ => SOME r | Q.BoardUnread => SOME r
+             | _ => if answered r orelse Narrow.short_direct text then SOME r else NONE)
 
   (* ---------- crafts ---------- *)
   val colourWords = [("red", Q.C_red), ("yellow", Q.C_yellow), ("blue", Q.C_blue), ("green", Q.C_green),
-                     ("orange", Q.C_orange), ("purple", Q.C_purple), ("violet", Q.C_violet)]
-  val colourRx = "\\b(red|yellow|blue|green|orange|purple|violet)\\b"
+                     ("orange", Q.C_orange), ("purple", Q.C_purple), ("violet", Q.C_violet),
+                     ("cyan", Q.C_cyan), ("magenta", Q.C_magenta), ("white", Q.C_white), ("black", Q.C_black)]
+  val colourRx = "\\b(red|yellow|blue|green|orange|purple|violet|cyan|magenta|white|black)\\b"
   fun colourOf w = #2 (valOf (List.find (fn (k, _) => k = w) colourWords))
   val crUnit = "(inch(?:es)?|in\\b|\\\"|cm|centimet\\w+)"
 
@@ -552,14 +622,24 @@ struct
             let
               val cols = List.map (fn m => g1 low m) (findall colourRx low)
               val distinct = List.foldl (fn (c, acc) => if List.exists (fn x => x = c) acc then acc else acc @ [c]) [] cols
+              val mixing = has "\\bmix\\w*\\b|\\bcombin\\w*\\b|\\bwhat colou?r\\b|\\bmake\\w*\\b" low
+              val light = has "\\blights?\\b|\\brgb\\b|\\badditive\\b|\\bscreen\\b|\\bdigital\\b" low
+              val explicitRgb = has "\\brgb\\b|\\bdigital\\b|\\bsaturated\\b" low
+              val paint = has "\\bpaint\\w*\\b|\\bryb\\b" low
+              val words = List.map (fn m => Regex.whole low m) (findall "[a-z]+" low)
+              val framing = ["what","colour","color","does","do","is","the","and","with","of","when","you","get","from","in","if","i",
+                "mix","mixes","mixed","mixing","combine","combines","combined","combining","make","makes","produce","produces","give","gives","together",
+                "rgb","digital","additive","saturated","full","channel","channels","light","lights","screen"]
+              val knownWords = List.all (fn w => List.exists (fn (c,_) => w=c) colourWords orelse List.exists (fn f => w=f) framing) words
+              val primaryOnly = List.all (fn c => c="red" orelse c="green" orelse c="blue") cols
             in
-              if has "\\bmix\\w*\\b|\\bcombin\\w*\\b|\\bwhat colou?r\\b|\\bmake\\w*\\b" low andalso length distinct = 2
-                 andalso has "\\bpaint\\w*\\b|\\blight\\b|\\brgb\\b|\\bryb\\b|\\bcolou?r\\b" low
-              then
-                let val a = colourOf (hd distinct) val b = colourOf (List.nth (distinct, 1)) in
-                  if has "\\blight\\b|\\brgb\\b|\\badditive\\b|\\bscreen\\b" low then Take (Q.MixRgb (a, b))
-                  else Take (Q.MixRyb (a, b))
-                end
+              if mixing andalso light then
+                if null cols orelse not knownWords orelse paint orelse has "[0-9%]" low
+                   orelse (not explicitRgb andalso not primaryOnly)
+                then Take (Q.MixRgb [])
+                else Take (Q.MixRgb (List.map colourOf cols))
+              else if mixing andalso length distinct = 2 andalso has "\\bpaint\\w*\\b|\\bryb\\b|\\bcolou?r\\b" low then
+                Take (Q.MixRyb (colourOf (hd distinct), colourOf (List.nth (distinct,1))))
               else Next
             end
           fun complement () =
@@ -668,7 +748,7 @@ struct
             | NONE => Next
         in
           case run [colour, complement, rows, knit, quilt, cut, yards, mat, clay] of
-            SOME r => (case r of Q.Rows _ => SOME r | _ => if answered r then SOME r else NONE)
+            SOME r => (case r of Q.Rows _ => SOME r | Q.MixRgb _ => SOME r | _ => if answered r then SOME r else NONE)
           | NONE => NONE
         end
     end

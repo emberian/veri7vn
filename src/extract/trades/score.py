@@ -119,14 +119,16 @@ def run_probes(binary):
             yes = rep.get("status") == "answered"
             value = rep.get("value")
             good = not yes if not item["valid"] else (yes and isinstance(value, (int, float)) and
-                math.isclose(value, item["expect"], rel_tol=0.0005, abs_tol=1e-9))
+                math.isclose(value, item.get("expect", float("nan")), rel_tol=0.0005, abs_tol=1e-9))
+            if item["valid"] and item.get("expect_color"):
+                good = yes and rep.get("kind") == "mix_rgb" and rep.get("response", "").startswith("The colour is " + item["expect_color"] + " ")
             if good and item.get("expect_kind"):
                 good = item["expect_kind"] == rep.get("kind")
             if good and item.get("response_contains"):
                 good = item["response_contains"] in rep.get("response", "")
             bucket = "right" if good else "false_yes" if yes and not item["valid"] else "wrong" if yes else "withheld_valid"
             summary[bucket] += 1
-            results.append(dict(item, reply=rep, good=good, policy_good=(not yes) if item.get("policy_withheld_expected") else None))
+            results.append(dict(item, reply=rep, good=good, policy_good=(not yes and (not item.get("policy_decline_kind") or rep.get("kind") == item["policy_decline_kind"])) if item.get("policy_withheld_expected") else None))
         out["modes"][mode] = dict(summary=summary, items=results, policy_assertions={"passed": sum(x["policy_good"] is True for x in results), "total": sum(x["policy_good"] is not None for x in results)})
     return out
 

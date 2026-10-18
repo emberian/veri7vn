@@ -1,5 +1,5 @@
 {
-  "note": "These authored probes share assumptions with the recognizer; they are not independent panels. Expected numbers use the stated linear model or the shipped organ docstring formula. E safety probes check requested target, exact numeral roles and necessary model-input bounds; they do not establish real-task applicability.",
+  "note": "These authored probes share assumptions with the recognizer; they are not independent panels. Expected numbers use the stated linear model or the shipped organ docstring formula. E safety probes check requested target, exact numeral roles and necessary model-input bounds; they do not establish real-task applicability. G adds exact rectangular dimensions, units, signed/scientific numbers, and complete-piece counts; partial-board quantities count valid-withheld.",
   "source": "upstream/root/specialists/crafts/organ_crafts_v1.py docstring; woodworking and printing panel formulas",
   "items": [
     {
@@ -362,6 +362,433 @@
       "expect": 0.115,
       "policy_withheld_expected": true,
       "source": "Mathematically valid unit conversion remains unsupported: capability is withheld-valid; refusal policy is checked separately."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing red, green and blue RGB light make?",
+      "valid": true,
+      "expect_color": "white",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing blue, red and green RGB light make?",
+      "valid": true,
+      "expect_color": "white",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing cyan and red RGB light make?",
+      "valid": true,
+      "expect_color": "white",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing red and red RGB light make?",
+      "valid": true,
+      "expect_color": "red",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing red and green RGB light make?",
+      "valid": true,
+      "expect_color": "yellow",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing green and blue RGB light make?",
+      "valid": true,
+      "expect_color": "cyan",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing red and blue RGB light make?",
+      "valid": true,
+      "expect_color": "magenta",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing black and red RGB light make?",
+      "valid": true,
+      "expect_color": "red",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing white and black RGB light make?",
+      "valid": true,
+      "expect_color": "white",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing yellow and blue RGB light make?",
+      "valid": true,
+      "expect_color": "white",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing magenta and green RGB light make?",
+      "valid": true,
+      "expect_color": "white",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing black and black RGB light make?",
+      "valid": true,
+      "expect_color": "black",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing red, red, green and blue RGB light make?",
+      "valid": true,
+      "expect_color": "white",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing red, green and blue light make?",
+      "valid": true,
+      "expect_color": "white",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction."
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing orange and black RGB light make?",
+      "valid": true,
+      "expect_color": "orange",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing teal and black RGB light make?",
+      "valid": true,
+      "expect_color": "teal",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing 50% red and 50% blue RGB light make?",
+      "valid": true,
+      "expect_color": "magenta",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing cyan and red light make?",
+      "valid": true,
+      "expect_color": "white",
+      "source": "F discrete saturated digital RGB channel model, not brightness or spectral prediction.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "crafts",
+      "q": "What colour does mixing RGB light make?",
+      "valid": false,
+      "source": "No named channels supplied."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 1/2 inch x 6 inch x 8 ft board?",
+      "valid": true,
+      "expect": 2,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a .5 inch x 6 inch x 8 ft board?",
+      "valid": true,
+      "expect": 2,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 5e-1 inch x 6 inch x 8 ft board?",
+      "valid": true,
+      "expect": 2,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a -2 inch x 6 inch x 8 ft board?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 inch x -6 inch x 8 ft board?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 inch x 6 inch x -8 ft board?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in -3 boards that are 2 in x 6 in x 8 ft?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in 1.5 boards that are 2 in x 6 in x 8 ft?",
+      "valid": true,
+      "expect": 12,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "impossible"
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in 3/2 boards that are 2 in x 6 in x 8 ft?",
+      "valid": true,
+      "expect": 12,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "impossible"
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in 0 boards that are 2 in x 6 in x 8 ft?",
+      "valid": true,
+      "expect": 0,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in 1e2 boards that are 2 in x 6 in x 8 ft?",
+      "valid": true,
+      "expect": 800,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 25.4 mm x 15.24 cm x 8 ft board?",
+      "valid": true,
+      "expect": 4,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2.54 cm x 15.24 cm x 243.84 cm board?",
+      "valid": true,
+      "expect": 4,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 1 ft x 6 in x 8 ft board?",
+      "valid": true,
+      "expect": 48,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 in x 6 in x 96 in board?",
+      "valid": true,
+      "expect": 8,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a board 1/2 inch thick, 6 inch wide, 8 ft long?",
+      "valid": true,
+      "expect": 2,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 in x 6 in x 8 ft/min board?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 in x 6 in x 8 ft squared board?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 kg x 6 in x 8 ft board?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 in/min x 6 in x 8 ft board?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 1.2.3 in x 6 in x 8 ft board?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 1,2 in x 6 in x 8 ft board?",
+      "valid": false,
+      "expect": null,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "Calculate board feet for 12 pieces of 1/2 x 4 lumber, each 8 ft long.",
+      "valid": true,
+      "expect": 16,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 in \u00d7 6 in \u00d7 8 ft board?",
+      "valid": true,
+      "expect": 8,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 in by 6 in by 8 ft board?",
+      "valid": true,
+      "expect": 8,
+      "source": "G exact unit-tagged rectangular board volume and complete-piece count boundary."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 in x 6 in x 8 ft hollow board?",
+      "valid": false,
+      "expect": null,
+      "source": "G explicit nonrectangular geometry cannot be silently overridden."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 in x 6 in x 8 ft board including a waste allowance?",
+      "valid": false,
+      "expect": null,
+      "source": "G missing allowance is not inferred."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet are in a 2 in x 6 in x 2 meter board?",
+      "valid": true,
+      "expect": 6.561679790026247,
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified",
+      "source": "G metre source unit remains a supported-model capability gap."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in three boards each 2 in x 4 in x 8 ft?",
+      "valid": true,
+      "expect": 16,
+      "source": "G full explicit piece-count phrase; finite word counts, no absent-count default when plural quantity is supplied."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in two boards each 2 in x 4 in x 8 ft?",
+      "valid": true,
+      "expect": 10.666666666666666,
+      "source": "G full explicit piece-count phrase; finite word counts, no absent-count default when plural quantity is supplied."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in twenty-three boards each 1 in x 12 in x 1 ft?",
+      "valid": true,
+      "expect": 23,
+      "source": "G full explicit piece-count phrase; finite word counts, no absent-count default when plural quantity is supplied."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in twenty three boards each 1 in x 12 in x 1 ft?",
+      "valid": true,
+      "expect": 23,
+      "source": "G full explicit piece-count phrase; finite word counts, no absent-count default when plural quantity is supplied."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in zero boards each 2 in x 4 in x 8 ft?",
+      "valid": true,
+      "expect": 0,
+      "source": "G full explicit piece-count phrase; finite word counts, no absent-count default when plural quantity is supplied."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in one hundred boards each 1 in x 12 in x 1 ft?",
+      "valid": true,
+      "expect": 100,
+      "source": "G full explicit piece-count phrase; finite word counts, no absent-count default when plural quantity is supplied.",
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified"
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in some boards each 2 in x 4 in x 8 ft?",
+      "valid": false,
+      "expect": null,
+      "source": "Unspecified plural count must not default to one."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in three boards and two planks each 2 in x 4 in x 8 ft?",
+      "valid": true,
+      "expect": 26.666666666666668,
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified",
+      "source": "Multiple explicit groups need a separate grouped-volume model."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in two board each 2 in x 4 in x 8 ft?",
+      "valid": true,
+      "expect": 10.666666666666666,
+      "source": "Explicit count survives a singular noun; it is not absence."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in three 2 in x 4 in x 8 ft?",
+      "valid": true,
+      "expect": 16,
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified",
+      "source": "Missing quantity noun is an unsupported but valid compact count form; no default one."
+    },
+    {
+      "specialist": "woodworking",
+      "q": "How many board feet in three groups of 2 boards each 1 in x 12 in x 1 ft?",
+      "valid": true,
+      "expect": 6,
+      "policy_withheld_expected": true,
+      "policy_decline_kind": "underspecified",
+      "source": "Unconsumed explicit group count must not disappear."
     }
   ]
 }

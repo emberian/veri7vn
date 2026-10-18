@@ -21,6 +21,8 @@ struct
       Trades.Rows _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"rows_nearest\"]"
     | Trades.Niosh (_, _, _, _, _, _, true, _) => String.substring (theorems, 0, size theorems - 1) ^ ",\"niosh_index_balance\"]"
     | Trades.Niosh _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"niosh_rwl_bound\"]"
+    | Trades.BoardFeet _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"board_feet_volume\",\"board_feet_nonnegative\"]"
+    | Trades.MixRgb _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"kernel_rgb_channel_union\"]"
     | Trades.Layers _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"layers_cover_height\"]"
     | Trades.Occupant _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"occupants_cover_area\"]"
     | Trades.Drywall _ => String.substring (theorems, 0, size theorems - 1) ^ ",\"drywall_covers_area\"]"

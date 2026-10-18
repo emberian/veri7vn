@@ -73,3 +73,29 @@ model guards require nonnegative geometry and load, FM between zero and one,
 and CM equal to 0.90, 0.95 or 1.00. The conditional weight bound is 0–23 kg.
 These checks do not establish the correct table row or whether the equation
 applies to an actual lifting task.
+
+RGB colour composition accepts lists of named full digital channels and combines
+them by saturation. All three primaries give white; black contributes no channel.
+Every output channel comes from an input and every input channel is preserved.
+This does not compute brightness ratios, spectra, weighted continuous colour
+or paint mixtures. RYB paint retains its separate named wheel.
+
+
+G staged board-foot correction: dimension products and named thickness/width/
+length fields use the shared exact numeric lexer and shared unit adapter. Unit
+parsing is applied to the complete isolated grammatical unit field, whose byte
+spans are local to that field. The grammar consumes the source field before
+assigning a role; requested output units cannot supply a source dimension.
+Typed inch, foot, centimetre and millimetre tags reach HOL, which performs every
+unit conversion and rectangular-volume calculation. Bare thickness/width in
+conventional products mean inches; the length needs an explicit unit. The
+kernel requires nonnegative dimensions and an integral nonnegative complete-
+piece count. Partial-board quantities are valid requests outside this model.
+No nominal-to-dressed correction, irregular shape or waste allowance is inferred.
+The two independent laws bind the result to cubic inches/144 and prove its
+nonnegativity. English extraction and native compilation remain untrusted.
+
+Explicit piece counts are never treated as missing: numerals retain exact value,
+word counts from zero through ninety-nine use a finite grammar, and unsupported
+quantifiers or multiple groups are withheld. A plural source without a count
+does not silently become one piece.
