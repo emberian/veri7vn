@@ -1,0 +1,221 @@
+{
+  "disclosure": "Author-written probes; formula references are existing checked models, not independent linguistic validation.",
+  "probes": [
+    {
+      "specialist": "astronomy",
+      "q": "How many Earth years is one orbit of Mercury?",
+      "valid": true,
+      "expect": 0.24093086926762491,
+      "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
+      "kind": null
+    },
+    {
+      "specialist": "astronomy-v2",
+      "q": "Relative to Jupiter, how many times as massive is Venus?",
+      "valid": true,
+      "expect": 0.002565858798735511,
+      "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
+      "kind": null
+    },
+    {
+      "specialist": "astronomy-v3",
+      "q": "Give the length of Earth's year in Earth years.",
+      "valid": true,
+      "expect": 0.9998631074606433,
+      "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
+      "kind": null
+    },
+    {
+      "specialist": "astronomy",
+      "q": "By what factor does Venus's mass exceed Neptune's?",
+      "valid": true,
+      "expect": 0.047745098039215686,
+      "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
+      "kind": null
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "According to NASA, what is the escape velocity of Earth?",
+      "valid": true,
+      "expect": 11.2,
+      "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
+      "kind": null
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "How many minutes does sunlight need to reach Mars?",
+      "valid": true,
+      "expect": 12.675435617529779,
+      "source": "Space_Tables.thy: checked NASA snapshot; Space.thy property_model/ratio_model/years_model/sunlight_model",
+      "kind": null
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "Convert a specific impulse of 312 s to effective exhaust velocity.",
+      "valid": true,
+      "expect": 3059.6748,
+      "source": "Space.thy: exhaust_model, propellant_initial_model; ideal rocket with constant exhaust speed",
+      "kind": null
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "Starting from 6400 kg total mass, what propellant mass does a 1200 m/s maneuver need at Isp 320 s?",
+      "valid": true,
+      "expect": 2033.7504656168826,
+      "source": "Space.thy: exhaust_model, propellant_initial_model; ideal rocket with constant exhaust speed",
+      "kind": null
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "Starting from 4 t total mass, what propellant mass does a 800 m/s maneuver need at Isp 280 s?",
+      "valid": true,
+      "expect": 1010.9761225895095,
+      "source": "Space.thy: exhaust_model, propellant_initial_model; ideal rocket with constant exhaust speed",
+      "kind": null
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the escape velocity from the surface of Mars?",
+      "valid": true,
+      "expect": 5.0220933535638235,
+      "source": "Space_Tables.thy: Mars mu=42828.37 km3/s2 r=3396.19 km; Space.thy orbit_escape_model",
+      "kind": null
+    },
+    {
+      "specialist": "orbits",
+      "q": "A spacecraft circles Mars. What is its orbital velocity?",
+      "valid": false,
+      "expect": null,
+      "source": "Satellite speed requires altitude/radius; heliocentric Mars speed is a different quantity.",
+      "kind": null
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "What is the surface pressure of Jupiter?",
+      "valid": false,
+      "expect": null,
+      "source": "NASA snapshot marks surface pressure unknown.",
+      "kind": null
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long does light take to travel 300000 km?",
+      "valid": true,
+      "expect": 1.0006922855944562,
+      "source": "Space.thy: light_time_model (seconds)",
+      "kind": null
+    },
+    {
+      "specialist": "spacecomms",
+      "q": "How long does light take to travel 3 million km round trip?",
+      "valid": true,
+      "expect": 20.013845711889125,
+      "source": "Space.thy: light_time_model (seconds)",
+      "kind": null
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "What is the delta-v with Isp 320 s, initial mass 2000 kg and final mass 2500 kg?",
+      "valid": false,
+      "expect": null,
+      "source": "Final mass exceeds initial mass; ideal rocket decline.",
+      "kind": null
+    },
+    {
+      "specialist": "orbits",
+      "q": "What is the geostationary altitude around Venus?",
+      "valid": false,
+      "expect": null,
+      "source": "Space.thy no-sync model for Venus; no supported synchronous orbit.",
+      "kind": null
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "On Mars, how much does a 400 kg crate weigh in newtons?",
+      "valid": false,
+      "expect": null,
+      "source": "NASA kg-equivalent weight must not answer force in newtons; mechanics owns this.",
+      "kind": null
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "A diver is 5 m below the surface of mercury. What pressure does the mercury exert there?",
+      "valid": false,
+      "expect": null,
+      "source": "Mercury here is the fluid, not the planet; mechanics owns this.",
+      "kind": null
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "What is the pressure in liquid mercury at a depth of 2 m?",
+      "valid": false,
+      "expect": null,
+      "source": "Fluid pressure is outside planetary table interpretation.",
+      "kind": null
+    },
+    {
+      "specialist": "spacecraft",
+      "q": "What propellant mass does a 1200 m/s maneuver need at Isp 320 s?",
+      "valid": false,
+      "expect": null,
+      "source": "Ideal rocket propellant amount requires initial or final mass.",
+      "kind": null
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "What is Earth's year in days?",
+      "valid": true,
+      "expect": 365.2,
+      "kind": "orbital_period",
+      "source": "Space_Tables.thy NASA orbital period; wording supplied independently by physical deputy after initial packet."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "What is the density of solid mercury in kg/m3?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "What is the density of metallic mercury in kg/m3?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "What is the density of molten mercury in kg/m3?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "What is the density of gaseous mercury in kg/m3?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "What is the density of mercury vapour in kg/m3?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+    },
+    {
+      "specialist": "astronomy-v3-r2",
+      "q": "What is the density of mercury vapor in kg/m3?",
+      "valid": false,
+      "expect": null,
+      "kind": null,
+      "source": "Material phase context supplied by physical deputy after source-table consumer check; NASA planetary bulk density is inapplicable."
+    }
+  ]
+}

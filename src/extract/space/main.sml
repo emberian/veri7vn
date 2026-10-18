@@ -3,6 +3,7 @@
    reply per line on stdout, flushes after each, exits on EOF. The JSON reader
    is lane D's (src/extract/acoustics/main.sml) via lane G's. All reply content
    (status, kind, response, value) comes from the HOL kernel's Space.reply_of;
+   the recognizer carries the exact reply used by its narrowing decision, and
    this file only frames it.
 
    Usage: space [--specialist ID]
@@ -34,9 +35,8 @@ struct
       NONE =>
         "{\"id\": " ^ id ^ ", \"status\": \"withheld\", \"response\": \"\", \"path\": \"\""
         ^ ", \"provenance\": {\"taken\": false, \"specialist_ms\": " ^ ms t0 ^ "}}"
-    | SOME (organ, request) =>
+    | SOME (organ, r) =>
         let
-          val r = Space.reply_of request
           val kind = Space.reply_kind r
           val value = case Space.stated r of
                         SOME v => ", \"value\": " ^ v

@@ -21,26 +21,29 @@ mkdir -p "$OUT/bin" "$OUT/build"
 
 # A remote build (tools/dev/remote-build persvati src/extract/space Veri7vn_Space ...)
 # leaves the generated SML under var/space/export-remote/; use it when present.
-GEN=""
+GEN=${GENERATED_SML:-}
+if [ -z "$GEN" ]; then
 for f in "$OUT"/export-remote/Veri7vn_Space/*/code/space* \
          "$OUT"/export-remote/Veri7vn_Space/code/space*; do
   [ -f "$f" ] && GEN=$f && break
 done
+fi
 if [ -z "$GEN" ]; then
-  rm -rf "$OUT/export"
-  REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
+  EXPORT_DIR=$(mktemp -d "$OUT/export.XXXXXX")
+  EXPORT_DIR="$EXPORT_DIR" REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
 import fcntl, os, subprocess
 repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT"]
 with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
     fcntl.flock(lock, fcntl.LOCK_EX)
     env = dict(os.environ, USER_HOME=os.path.join(repo, "var/native-scaffold/user-state"))
     subprocess.run([os.path.join(app, "bin/isabelle"), "export", "-n", "-d", "src/extract/space", "-d", "src/extract/commons",
-                    "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Space"],
+                    "-O", os.environ["EXPORT_DIR"], "-x", "*:code/**", "Veri7vn_Space"],
                    check=True, env=env, cwd=repo)
 EOF
-  GEN=$(find "$OUT/export" -type f -name 'space*' | head -n 1)
-  [ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
+  GEN=$(find "$EXPORT_DIR" -type f -name 'space*' | head -n 1)
+  [ -n "$GEN" ] || { echo "no generated SML found under $EXPORT_DIR" >&2; exit 1; }
 fi
+[ -f "$GEN" ] || { echo "generated SML not found: $GEN" >&2; exit 1; }
 cp "$GEN" "$OUT/build/space_generated.sml"
 
 cat > "$OUT/build/space.mlb" <<EOF

@@ -17,7 +17,7 @@
    Matching is case-insensitive by lower-casing the text; patterns are written in
    lower case and passed to Regex.compile as written. \w and \d are ASCII here.
 
-   Differences from the organs, all disclosed and none on the panels:
+   Additional safeguards and representation differences from the original port:
    - patterns with the non-ASCII letters delta (dv) are dropped (the engine is
      byte-wise, so \b around them would differ);
    - miles in an orbit altitude are converted to kilometres here, exactly
@@ -31,7 +31,7 @@
 structure Recognizer :
 sig
   val organs : string list
-  val recognize : string -> string -> (string * Space.request) option
+  val recognize : string -> string -> (string * Space.reply) option
 end =
 struct
   structure S = Space
@@ -114,9 +114,14 @@ struct
   val N = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
 
   (* the organs' answer(): a withheld reply is returned only for a short direct question *)
+  (* A successful narrowed recognizer returns exactly the request whose reply
+     it saved. call below captures that reply before another recognizer runs. *)
+  val checkedReply : S.reply option ref = ref NONE
   fun narrowed t req =
-    if S.answered (S.reply_of req) then SOME req
-    else if Narrow.short_direct t then SOME req else NONE
+    let val reply = S.reply_of req
+        val _ = checkedReply := SOME reply
+    in if S.answered reply then SOME req
+       else if Narrow.short_direct t then SOME req else NONE end
 
   (* ---------- orbits ---------- *)
   val orbitBodies = [("earth", S.O_earth), ("moon", S.O_moon), ("mars", S.O_mars),
@@ -285,7 +290,7 @@ struct
             | (NONE, SOME m) => SOME (S.Ve_speed (ratOf (g1 low m), if valOf (grp low m 2) = "km/s" then S.Su_kmps else S.Su_mps))
             | _ => NONE
           val m0 = search ("\\b(?:initial|wet|fueled|fuelled|launch|total|starting|gross) mass\\s*(?:of|is|=)?\\s*" ^ N ^ MASS
-                           ^ "|" ^ N ^ MASS ^ "\\s*(?:initial|wet|fueled|fuelled|at launch|fully fueled)") low
+                           ^ "|" ^ N ^ MASS ^ "\\s*(?:initial|wet|fueled|fuelled|total mass|starting mass|at launch|fully fueled)") low
           val mf = search ("\\b(?:final|dry|empty|burnout|end) mass\\s*(?:of|is|=)?\\s*" ^ N ^ MASS
                            ^ "|" ^ N ^ MASS ^ "\\s*(?:final|dry|empty|at burnout)") low
           fun massOf m = if isSome (grp low m 1) then (ratOf (g1 low m), massU (valOf (grp low m 2)))
@@ -296,7 +301,7 @@ struct
                                ^ N ^ "\\s*(kn|mn|n|newtons?|kilonewtons?|meganewtons?)\\b") low
           val F =
             case thrust of
-              SOME m => if has "\\bthrust\\b" low then
+              SOME m => if has "\\bthrust\\b|\\bengine (?:of|rated at)\\b" low then
                           (if isSome (grp low m 1) then SOME (ratOf (g1 low m), forceU (valOf (grp low m 2)))
                            else SOME (ratOf (valOf (grp low m 3)), forceU (valOf (grp low m 4))))
                         else NONE
@@ -304,7 +309,7 @@ struct
           fun take req = narrowed t req
         in
           if isSome isp andalso has "\\bexhaust velocity\\b|\\beffective exhaust\\b" low
-             andalso has "\\bwhat\\b|\\bfind\\b|\\bcalculate\\b|\\?" low andalso not (isSome M0) andalso not (isSome F) then
+             andalso has "\\bwhat\\b|\\bfind\\b|\\bcalculate\\b|\\bconvert\\b|\\?" low andalso not (isSome M0) andalso not (isSome F) then
             (case ve of SOME (S.Ve_isp i) => take (S.SExhaust i) | _ => NONE)
           else if isSome F andalso has "\\bthrust[- ]to[- ]weight\\b|\\btwr\\b" low then
             let
@@ -437,7 +442,7 @@ struct
             go stop ms (rep :: String.substring (s, i, start - i) :: acc)
     in go 0 (findall p s) [] end
 
-  val EARTH_UNIT = "\\bearth(?:'s)?\\s+(?:years?|days?|hours?|masses|mass units|radii|diameters|gravities)\\b"
+  val EARTH_UNIT = "\\bearth\\s+(?:years?|days?|hours?|masses|mass units|radii|diameters|gravities)\\b"
 
   (* the bodies named in the text, first by position; skip one body *)
   fun bodyIn low (skip : S.abody option) : S.abody option =
@@ -458,7 +463,7 @@ struct
     (S.P_day, "\\blength of (?:a |the )?day\\b|\\bhow long is (?:a |the )?day\\b|\\bday length\\b"),
     (S.P_rotation, "\\brotation period\\b|\\bhow long .* to (?:rotate|spin)\\b"),
     (S.P_distance, "\\bdistance from the sun\\b|\\bhow far .* from the sun\\b|\\bfrom the sun\\b"),
-    (S.P_period, "\\borbital period\\b|\\bhow long .* to orbit\\b|\\blength of (?:a |its )?year\\b|\\bhow long is (?:a |its |the )?year\\b"),
+    (S.P_period, "\\borbital period\\b|\\bhow long .* to orbit\\b|\\blength of (?:a |its )?year\\b|\\bhow long is (?:a |its |the )?year\\b|\\byear in (?:earth )?days\\b"),
     (S.P_velocity, "\\borbital (?:velocity|speed)\\b"),
     (S.P_eccentricity, "\\beccentricity\\b"),
     (S.P_tilt, "\\b(?:axial )?tilt\\b|\\bobliquity\\b"),
@@ -605,11 +610,16 @@ struct
       if t = "" then NONE
       else
         let val low = lower t in
-          case variant of
-            "v1" => v1 false t low
-          | "v2" => astroV2 t low
-          | "v3" => astroV3 t low
-          | _ => if has NOT_MINE (lower text) then NONE else astroV3 t low
+          (* All public versions now use the grammatical comparison direction.
+             Earth years is a unit; Earth's year still names the subject.
+             kg-equivalent weight must never answer a force-in-newtons request,
+             and a fluid's pressure is not a planet's atmospheric pressure. *)
+          if has NOT_MINE low
+             orelse (has "\\bweigh\\w*\\b" low andalso has "\\bnewtons?\\b" low)
+             orelse (has "\\bmercury\\b" low andalso
+                     (has "\\b(?:liquid|fluid|metal|diver|depth|submerged|buoyant)\\b" low orelse
+                      has "\\b(?:solid|metallic|molten|gaseous|vaporous) mercury\\b|\\bmercury (?:vapou?r|gas|metal)\\b" low))
+          then NONE else astroV3 t low
         end
     end
 
@@ -627,13 +637,55 @@ struct
     | byId "astronomy-v3-r2" = astro "r2"
     | byId other = raise Fail ("unknown specialist " ^ other)
 
-  (* The family: each organ in a fixed order, the first that takes the question answers it. *)
-  val familyOrder = ["planetary", "spacecraft", "orbits", "spacecomms", "astronomy-v3-r2"]
+  (* Numerical satellite requests outrank table properties, including a
+     recognized satellite question that lacks its required altitude. Surface
+     escape calculations use mu/r; NASA property queries retain the NASA cell.
+     This is UNTRUSTED interpretation, over requests, never answer values. *)
+  fun explicitOrbit (S.OSpeed (_, SOME _)) = true
+    | explicitOrbit (S.OPeriod (_, SOME _)) = true
+    | explicitOrbit (S.OEscape (_, SOME _)) = true
+    | explicitOrbit (S.OSync _) = true
+    | explicitOrbit (S.OHohDv _) = true
+    | explicitOrbit (S.OHohTime _) = true
+    | explicitOrbit _ = false
+  fun orbitalSubject text req =
+    let val low = lower text in
+      explicitOrbit req orelse
+      has "\\b(?:spacecraft|satellite|iss|leo|circles?)\\b" low orelse
+      (case req of S.OEscape _ => has "\\bsurface\\b" low andalso not (has "\\bnasa\\b" low)
+                 | _ => false)
+    end
+  fun explicitComms (S.CLight (NONE, _)) = false
+    | explicitComms _ = true
+
+  (* One checked reply per successful recognizer. In this module narrowed is
+     the only producer of checkedReply, and returns its identical request.
+     Call-local capture prevents subsequent candidates from replacing it. *)
+  fun call id text =
+    let val _ = checkedReply := NONE
+        val req = byId id text
+        val reply = !checkedReply
+    in Option.map (fn r => (id, r, reply)) req end
+
+  fun family text =
+    case call "planetary" text of SOME x => SOME x
+    | NONE => (case call "spacecraft" text of SOME x => SOME x
+      | NONE => let
+          val orbital = call "orbits" text
+          fun rest () =
+            let val comms = call "spacecomms" text
+                fun tableOrFallback () =
+                  case call "astronomy-v3-r2" text of SOME x => SOME x
+                  | NONE => (case orbital of SOME x => SOME x | NONE => comms)
+            in case comms of SOME (x as (_, r, _)) =>
+                 if explicitComms r then SOME x else tableOrFallback ()
+               | NONE => tableOrFallback () end
+        in case orbital of SOME (x as (_, r, _)) =>
+             if orbitalSubject text r then SOME x else rest ()
+           | NONE => rest () end)
 
   fun recognize mode text =
-    if mode = "family" then
-      let fun go [] = NONE
-            | go (id :: ids) = case byId id text of SOME r => SOME (id, r) | NONE => go ids
-      in go familyOrder end
-    else Option.map (fn r => (mode, r)) (byId mode text)
+    Option.map (fn (id, req, saved) =>
+      (id, case saved of SOME reply => reply | NONE => S.reply_of req))
+      (if mode = "family" then family text else call mode text)
 end

@@ -30,7 +30,7 @@ definition self_test :: bool where
      answered (reply_of (OSync (Some O_earth))) \<and>
      \<not> answered (reply_of (OSync (Some O_venus)))"
 
-export_code reply_of answered reply_kind response stated kernel mk_rat self_test
+export_code reply_of answered reply_kind response stated kernel mk_rat
   integer_of_int nat_of_integer int_of_integer
   abody_order abody_name obody_order obody_name sheet cell_num
   PGravity PEscape POrbV PDensity PWeightE Pb_si Pb_earth Lu_m Lu_km
