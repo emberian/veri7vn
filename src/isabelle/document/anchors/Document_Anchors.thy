@@ -13,7 +13,7 @@ key. Omitting an alias can hide ambiguity: that completeness premise is explicit
 not established by a Boolean from the fetch. Sentence selection is bounded to the
 supplied rows; no absence claim about the entire source is made.\<close>
 
-datatype explain_kind = ECause | EProcess | EWhen | EDiscourse
+datatype explain_kind = ECause | EProcess | EWhen | EDiscourse | ESummary
 
 record explain_request =
   rq_kind :: explain_kind
@@ -58,6 +58,7 @@ definition supported_form :: "explain_request \<Rightarrow> bool" where
     rq_punct r \<in> set ['''', ''?'', ''.''] \<and>
     (case rq_kind r of
        ECause \<Rightarrow> rq_prefix r \<in> set [''what causes'', ''what makes''] \<and> rq_verb r = []
+     | ESummary \<Rightarrow> rq_article r = [] \<and> rq_prefix r \<in> set [''summarize'', ''give me a summary of''] \<and> rq_verb r = []
      | EDiscourse \<Rightarrow> rq_article r = [] \<and> rq_prefix r \<in> set [''i am interested in'', ''i like'', ''tell me about'', ''i want to learn about'']
                       \<and> rq_verb r = []
      | EProcess \<Rightarrow> rq_prefix r \<in> set [''how does'', ''how do'', ''how is'', ''how are'', ''how can'']
@@ -65,7 +66,7 @@ definition supported_form :: "explain_request \<Rightarrow> bool" where
      | EWhen \<Rightarrow> rq_prefix r \<in> set [''when did'', ''when was'', ''when were'', ''when does'', ''when do'']
                       \<and> rq_article r \<in> set ['''', ''the ''] \<and> rq_verb r \<in> set event_verbs) \<and>
     lowercase (rq_text r) = rq_prefix r @ '' '' @ rq_article r @ lowercase (rq_topic r)
-       @ (if rq_kind r \<in> {ECause, EDiscourse} then [] else '' '' @ rq_verb r) @ rq_punct r"
+       @ (if rq_kind r \<in> {ECause, EDiscourse, ESummary} then [] else '' '' @ rq_verb r) @ rq_punct r"
 
 definition topic_keys :: "explain_request \<Rightarrow> string list" where
   "topic_keys r = (let k = lowercase (rq_topic r) in
@@ -106,6 +107,11 @@ definition direct_cues :: "explain_request \<Rightarrow> string list" where
                    '' is due to '', '' are due to '']
     | EDiscourse \<Rightarrow> ['' is a '', '' is an '', '' is the '', '' are a '', '' are an '', '' are the '',
                        '' was a '', '' was an '', '' was the '', '' were a '', '' were an '', '' were the '', '' refers to '']
+    | ESummary \<Rightarrow> ['' is a '', '' is an '', '' is the '', '' are a '', '' are an '', '' are the '',
+       '' was a '', '' was an '', '' was the '', '' were a '', '' were an '', '' were the '', '' refers to '',
+       '' can '', '' uses '', '' use '', '' began '', '' started '', '' was discovered '',
+       '' occurs '', '' occur '', '' happens '', '' usually '', '' contains '', '' contain '',
+       '' absorbs '', '' absorb '', '' makes '', '' make '', '' is caused by '', '' are caused by '']
     | EWhen \<Rightarrow> event_cues (rq_verb r)
     | EProcess \<Rightarrow>
        (if rq_verb r \<in> set [''work'', ''works'', ''function'', ''functions'']
@@ -161,14 +167,60 @@ definition as_claim :: "sentence_witness \<Rightarrow> claim" where
   "as_claim c = \<lparr> claim_id = row_id c, page = row_title c, sentence = row_sentence c,
        fragment = False, has_year = year_scan True (row_sentence c), tier = Some 0 \<rparr>"
 
+text \<open>An extractive summary selects at most three supplied, topic-bound rows.
+It preserves their source order, omits repeated citation IDs and literal sentence
+texts, and quotes every selected row. This is bounded passage selection, not a
+claim of comprehensive coverage or abstraction of the source's full meaning.\<close>
+fun summary_select :: "nat \<Rightarrow> sentence_witness list \<Rightarrow> sentence_witness list" where
+  "summary_select 0 rows = []"
+| "summary_select (Suc n) [] = []"
+| "summary_select (Suc n) (c # cs) = c # summary_select n
+     (filter (\<lambda>d. row_id d \<noteq> row_id c \<and> row_sentence d \<noteq> row_sentence c) cs)"
+
+declare summary_select.simps[code drop]
+lemma summary_select_code [code]:
+  "summary_select n rows = (if n = 0 then [] else case rows of
+      [] \<Rightarrow> []
+    | c # cs \<Rightarrow> c # summary_select (n - 1)
+        (filter (\<lambda>d. row_id d \<noteq> row_id c \<and> row_sentence d \<noteq> row_sentence c) cs))"
+  by (cases n; cases rows) auto
+
+lemma summary_select_subset: "set (summary_select n rows) \<subseteq> set rows"
+proof (induction n arbitrary: rows)
+  case 0 then show ?case by simp
+next
+  case (Suc n) then show ?case by (cases rows) auto
+qed
+
+lemma summary_select_bound: "length (summary_select n rows) \<le> n"
+proof (induction n arbitrary: rows)
+  case 0 then show ?case by simp
+next
+  case (Suc n) then show ?case by (cases rows) auto
+qed
+
+lemma summary_select_distinct:
+  "distinct (map row_id (summary_select n rows)) \<and>
+   distinct (map row_sentence (summary_select n rows))"
+proof (induction n arbitrary: rows)
+  case 0 then show ?case by simp
+next
+  case (Suc n)
+  then show ?case
+    by (cases rows) (auto dest!: subsetD[OF summary_select_subset])
+qed
+
 datatype anchored_outcome = AnchorSilent | AnchorMissing | AnchorAmbiguous | AnchorNoClause
-  | AnchorAnswer claim "claim option"
+  | AnchorAnswer claim "claim option" | AnchorSummary "claim list"
 
 definition anchored_decide :: "explain_request \<Rightarrow> title_witness list \<Rightarrow> sentence_witness list \<Rightarrow> anchored_outcome" where
   "anchored_decide r ts rows = (if \<not> supported_form r then AnchorSilent else
      let matches = matching_titles r ts in
      if matches = [] then AnchorMissing
      else if \<not> titles_agree matches then AnchorAmbiguous
+     else if rq_kind r = ESummary then
+       (let selected = summary_select 3 (eligible_rows r (hd matches) rows) in
+        if selected = [] then AnchorNoClause else AnchorSummary (map as_claim selected))
      else case eligible_rows r (hd matches) rows of
          [] \<Rightarrow> AnchorNoClause
        | c # cs \<Rightarrow> AnchorAnswer (as_claim c) (case cs of [] \<Rightarrow> None | d # _ \<Rightarrow> Some (as_claim d)))"
@@ -276,6 +328,7 @@ qed
 
 fun anchored_status :: "anchored_outcome \<Rightarrow> String.literal" where
   "anchored_status (AnchorAnswer _ _) = STR ''answered''"
+| "anchored_status (AnchorSummary _) = STR ''answered''"
 | "anchored_status _ = STR ''withheld''"
 
 fun anchored_taken :: "anchored_outcome \<Rightarrow> bool" where
@@ -288,12 +341,44 @@ fun anchored_reason :: "anchored_outcome \<Rightarrow> String.literal" where
 | "anchored_reason AnchorAmbiguous = STR ''ambiguous_anchor''"
 | "anchored_reason AnchorNoClause = STR ''no_direct_clause''"
 | "anchored_reason (AnchorAnswer _ _) = STR ''quoted_clause''"
+| "anchored_reason (AnchorSummary _) = STR ''selected_source_passages''"
 
 fun anchored_path :: "explain_kind \<Rightarrow> String.literal" where
   "anchored_path ECause = STR ''capability:what_causes''"
 | "anchored_path EProcess = STR ''capability:how_does''"
 | "anchored_path EDiscourse = STR ''document:discourse''"
+| "anchored_path ESummary = STR ''document:summary''"
 | "anchored_path EWhen = STR ''capability:when_did''"
+
+fun render_summary :: "claim list \<Rightarrow> string" where
+  "render_summary [] = []"
+| "render_summary (c # cs) = render_lead c @ '' '' @ render_summary cs"
+
+lemma render_summary_contains:
+  assumes "c \<in> set cs"
+  shows "\<exists>pre suf. render_summary cs = pre @ sentence c @ suf"
+  using assms
+proof (induction cs)
+  case Nil then show ?case by simp
+next
+  case (Cons d ds)
+  show ?case
+  proof (cases "c = d")
+    case True
+    show ?thesis
+      by (rule exI[where x = "''According to '' @ page c @ '', ''"],
+          rule exI[where x = "'' '' @ cite c @ '' '' @ render_summary ds"])
+         (simp add: True render_lead_def)
+  next
+    case False
+    from Cons.prems False have "c \<in> set ds" by simp
+    from Cons.IH[OF this] obtain pre suf where
+      tail: "render_summary ds = pre @ sentence c @ suf" by blast
+    show ?thesis
+      by (rule exI[where x = "render_lead d @ '' '' @ pre"], rule exI[where x = suf])
+         (simp add: tail append_assoc)
+  qed
+qed
 
 fun anchored_response :: "explain_request \<Rightarrow> anchored_outcome \<Rightarrow> string" where
   "anchored_response r AnchorSilent = []"
@@ -302,10 +387,12 @@ fun anchored_response :: "explain_request \<Rightarrow> anchored_outcome \<Right
 | "anchored_response r AnchorNoClause = ''The passages I retrieved about '' @ rq_topic r @
        '' do not directly answer this question. I will not infer one.''"
 | "anchored_response r (AnchorAnswer c e) = render_answer c e"
+| "anchored_response r (AnchorSummary cs) = ''Selected source passages about '' @ rq_topic r @ '': '' @ render_summary cs"
 
 fun anchored_cites :: "anchored_outcome \<Rightarrow> claim list" where
   "anchored_cites (AnchorAnswer c None) = [c]"
 | "anchored_cites (AnchorAnswer c (Some d)) = [c, d]"
+| "anchored_cites (AnchorSummary cs) = cs"
 | "anchored_cites _ = []"
 
 theorem anchored_claim_from_source:
@@ -329,6 +416,69 @@ proof -
   show ?thesis
     by (rule bexI[where x = w], rule exI[where x = ?pre], rule exI[where x = ?suf])
        (use eq w in auto)
+qed
+
+theorem summary_answer_selection:
+  assumes "anchored_decide r ts rows = AnchorSummary cs"
+  shows "supported_form r \<and> rq_kind r = ESummary \<and> titles_agree (matching_titles r ts) \<and>
+    cs = map as_claim (summary_select 3 (eligible_rows r (hd (matching_titles r ts)) rows)) \<and>
+    cs \<noteq> [] \<and> length cs \<le> 3 \<and>
+    distinct (map claim_id cs) \<and> distinct (map sentence cs)"
+  using assms summary_select_bound[of 3] summary_select_distinct[of 3]
+  by (auto simp: anchored_decide_def Let_def as_claim_def comp_def split: if_splits list.splits)
+
+theorem summary_every_claim_witness:
+  assumes ans: "anchored_decide r ts rows = AnchorSummary cs" and member: "c \<in> set cs"
+  shows "\<exists>w\<in>set rows. c = as_claim w \<and>
+    row_page w = alias_page (hd (matching_titles r ts)) \<and>
+    row_source_page w = alias_page (hd (matching_titles r ts)) \<and>
+    row_title w = alias_title (hd (matching_titles r ts)) \<and>
+    nonblank (row_id w) \<and> direct_clause r (hd (matching_titles r ts)) w"
+proof -
+  from summary_answer_selection[OF ans] member obtain w where w:
+    "w \<in> set (summary_select 3 (eligible_rows r (hd (matching_titles r ts)) rows))"
+    "c = as_claim w" by auto
+  have "w \<in> set (eligible_rows r (hd (matching_titles r ts)) rows)"
+    using w(1) summary_select_subset by blast
+  thus ?thesis using w(2) by (auto simp: eligible_rows_def)
+qed
+
+theorem summary_every_claim_snapshot:
+  assumes ans: "anchored_decide r ts rows = AnchorSummary cs" and member: "c \<in> set cs"
+      and coverage: "alias_complete_wrt r S ts" and authentic: "set rows \<subseteq> R"
+  shows "\<exists>a\<in>S. \<exists>w\<in>R. c = as_claim w \<and>
+    row_page w = alias_page a \<and> row_source_page w = alias_page a \<and>
+    row_title w = alias_title a \<and> nonblank (row_id w) \<and> direct_clause r a w \<and>
+    (\<forall>b\<in>S. alias_key b \<in> set (topic_keys r)
+      \<longrightarrow> alias_page b = alias_page a \<and> alias_title b = alias_title a)"
+proof -
+  let ?matches = "matching_titles r ts"
+  have agree: "titles_agree ?matches" using summary_answer_selection[OF ans] by blast
+  have nonempty: "?matches \<noteq> []" using agree by (simp add: titles_agree_def)
+  have head_member: "hd ?matches \<in> set ?matches" using nonempty by (cases ?matches) auto
+  have head_source: "hd ?matches \<in> S" using coverage head_member by (auto simp: alias_complete_wrt_def)
+  have all_pages: "\<forall>b\<in>S. alias_key b \<in> set (topic_keys r)
+      \<longrightarrow> alias_page b = alias_page (hd ?matches) \<and> alias_title b = alias_title (hd ?matches)"
+    using coverage agree by (auto simp: alias_complete_wrt_def titles_agree_def list_all_iff)
+  show ?thesis using summary_every_claim_witness[OF ans member] head_source all_pages authentic by blast
+qed
+
+theorem summary_every_reply_quotes_source:
+  assumes ans: "anchored_decide r ts rows = AnchorSummary cs" and member: "c \<in> set cs"
+  shows "\<exists>w\<in>set rows. claim_id c = row_id w \<and> page c = row_title w \<and>
+    (\<exists>pre suf. anchored_response r (anchored_decide r ts rows) = pre @ row_sentence w @ suf)"
+proof -
+  from summary_every_claim_witness[OF ans member] obtain w where w:
+    "w \<in> set rows" "c = as_claim w" by blast
+  from render_summary_contains[OF member] obtain pre suf where quote:
+    "render_summary cs = pre @ sentence c @ suf" by blast
+  show ?thesis
+    by (rule bexI[where x = w], intro conjI,
+        use w(2) in \<open>simp add: as_claim_def\<close>,
+        use w(2) in \<open>simp add: as_claim_def\<close>,
+        rule exI[where x = "''Selected source passages about '' @ rq_topic r @ '': '' @ pre"],
+        rule exI[where x = suf])
+       (use ans w quote in \<open>auto simp: as_claim_def append_assoc\<close>)
 qed
 
 end

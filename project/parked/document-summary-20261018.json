@@ -1,0 +1,38 @@
+{
+  "status": "parked unfinished draft, not integrated or release-ready",
+  "base_commit": "53ae833e52876a7f92b471aa2ef917ea75077dcb",
+  "branch": "codex/parked-document-summary-20261018",
+  "reason": "Unfinished: both summary proof attempts failed; code-drop syntax repair remains unbuilt. Summary parser was never published and active predecessor remains selected. See project/lanes/F-document-summary.md.",
+  "files": [
+    {
+      "path": "src/isabelle/document/anchors/Document_Anchors.thy",
+      "sha256": "64d36e6079ad9fc6ba578fd0778741de8a9db4e7e430a86cb7ab28ee55f52f61",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "src/isabelle/document/anchors/Document_Anchors_Export.thy",
+      "sha256": "69727586a283602bb52ffff69d66f778c06014eec3d6ecfd7f3a17d6ace79ffc",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "tools/document/anchor_main.sml",
+      "sha256": "f7816523e7ffd29a8af5b16daab6d76545eda720fcf0ab1ed675d6f0a5150588",
+      "tracked_before": true,
+      "mode": "100644"
+    },
+    {
+      "path": "tools/document/check_summary.py",
+      "sha256": "e14f6a0e084f79a2270be5d34bd884d9000fd3dcb87628ad62d9254664307e95",
+      "tracked_before": false,
+      "mode": "100644"
+    },
+    {
+      "path": "tools/document/summary_probes.json",
+      "sha256": "8fa0248987434791e4a016cd993df3848b3274ea7bb290109cadebe52b9a2aa6",
+      "tracked_before": false,
+      "mode": "100644"
+    }
+  ]
+}

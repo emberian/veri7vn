@@ -98,7 +98,7 @@ structure Main = struct
   fun hs s = map (fn ch => D.char_of_integer (IntInf.fromInt (Char.ord ch))) (String.explode s)
   fun sh cs = String.implode (map (fn c => Char.chr (IntInf.toInt (D.integer_of_char c))) cs)
   fun hstr v = hs (string v)
-  fun kind v = case string v of "cause" => D.ECause | "process" => D.EProcess | "when" => D.EWhen | "discourse" => D.EDiscourse
+  fun kind v = case string v of "cause" => D.ECause | "process" => D.EProcess | "when" => D.EWhen | "discourse" => D.EDiscourse | "summary" => D.ESummary
     | _ => raise Bad "explanatory kind"
   fun request r = D.Explain_request_ext (kind (field r "kind"), hstr (field r "question"),
     hstr (field r "topic"), hstr (field r "prefix"), hstr (field r "article"),
@@ -132,6 +132,6 @@ structure Main = struct
   fun loop () = case TextIO.inputLine TextIO.stdIn of NONE => () | SOME line =>
     (TextIO.output (TextIO.stdOut, handle_line line ^ "\n"); TextIO.flushOut TextIO.stdOut; loop ())
 end
-val _ = if Main.D.anchor_self_test then () else
+val _ = if Main.D.anchor_self_test andalso Main.D.summary_self_test then () else
   (TextIO.output (TextIO.stdErr, "document anchor self test failed\n"); OS.Process.exit OS.Process.failure)
 val _ = Main.loop ()

@@ -42,6 +42,32 @@ definition discourse_request :: explain_request where
   "discourse_request = \<lparr> rq_kind = EDiscourse, rq_text = ''Tell me about photosynthesis.'',
       rq_topic = ''photosynthesis'', rq_prefix = ''tell me about'', rq_article = [], rq_verb = [], rq_punct = ''.'' \<rparr>"
 
+definition summary_request :: explain_request where
+  "summary_request = \<lparr> rq_kind = ESummary, rq_text = ''Summarize photosynthesis.'',
+      rq_topic = ''photosynthesis'', rq_prefix = ''summarize'', rq_article = [], rq_verb = [], rq_punct = ''.'' \<rparr>"
+
+definition summary_second :: sentence_witness where
+  "summary_second = process_row\<lparr> row_id := ''claim4'',
+    row_sentence := ''Photosynthesis uses sunlight to make glucose.'' \<rparr>"
+
+definition summary_self_test :: bool where
+  "summary_self_test \<longleftrightarrow>
+    anchored_decide summary_request [process_alias] [process_row, summary_second] =
+      AnchorSummary [as_claim process_row, as_claim summary_second]
+    \<and> anchored_decide summary_request [process_alias] [process_row, process_row, summary_second] =
+      AnchorSummary [as_claim process_row, as_claim summary_second]
+    \<and> anchored_decide summary_request [process_alias]
+      [process_row, process_row\<lparr> row_id := ''duplicate-text'' \<rparr>, summary_second] =
+      AnchorSummary [as_claim process_row, as_claim summary_second]
+    \<and> anchored_decide summary_request [process_alias] [process_row,
+      summary_second\<lparr> row_source_page := ''other'' \<rparr>] = AnchorSummary [as_claim process_row]
+    \<and> anchored_decide summary_request [process_alias] [process_row,
+      summary_second\<lparr> row_sentence := ''Chlorophyll is a pigment.'' \<rparr>] = AnchorSummary [as_claim process_row]
+    \<and> anchored_decide (summary_request\<lparr> rq_text := ''Summarize photosynthesis and compare respiration.'' \<rparr>)
+      [process_alias] [process_row] = AnchorSilent
+    \<and> anchored_decide summary_request [process_alias, process_alias\<lparr> alias_page := [] \<rparr>]
+      [process_row] = AnchorAmbiguous"
+
 definition anchor_self_test :: bool where
   "anchor_self_test \<longleftrightarrow>
      anchored_decide quake_request [quake_alias] [quake_row] = AnchorAnswer (as_claim quake_row) None
@@ -82,18 +108,19 @@ definition anchor_self_test :: bool where
           [process_alias] [process_row] = AnchorSilent"
 
 export_code anchored_decide anchored_status anchored_taken anchored_reason anchored_path
-  anchored_response anchored_cites anchor_self_test
+  anchored_response anchored_cites anchor_self_test summary_self_test
   explain_request_ext title_witness_ext sentence_witness_ext
-  ECause EProcess EWhen EDiscourse claim_id integer_of_char char_of_integer
+  ECause EProcess EWhen EDiscourse ESummary claim_id integer_of_char char_of_integer
   in SML module_name Document_Anchors_Code file_prefix document_anchors
 
 ML \<open>
   val theorems = @{thms anchored_answer_witness anchored_answer_clause event_answer_has_year event_answer_bound_date
-    unrelated_page_never_selected anchored_answer_snapshot anchored_claim_from_source anchored_reply_quotes_source};
+    unrelated_page_never_selected anchored_answer_snapshot anchored_claim_from_source anchored_reply_quotes_source
+    summary_answer_selection summary_every_claim_witness summary_every_claim_snapshot summary_every_reply_quotes_source};
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error "document anchor theorems use oracles";
-  val _ = if @{code anchor_self_test} then () else error "document anchor boundary test failed";
-  val _ = writeln ("VERI7VN_DOCUMENT_ANCHORS PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0 checks=25");
+  val _ = if @{code anchor_self_test} andalso @{code summary_self_test} then () else error "document anchor boundary test failed";
+  val _ = writeln ("VERI7VN_DOCUMENT_ANCHORS PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0 checks=32");
 \<close>
 
 end

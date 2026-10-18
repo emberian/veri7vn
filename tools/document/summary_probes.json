@@ -1,0 +1,62 @@
+[
+  {
+    "q": "Summarize photosynthesis.",
+    "answer": true
+  },
+  {
+    "q": "Summarize penicillin.",
+    "answer": true
+  },
+  {
+    "q": "Summarize digestion.",
+    "answer": true
+  },
+  {
+    "q": "Summarize The Cure.",
+    "answer": true
+  },
+  {
+    "q": "Summarize The Band.",
+    "answer": true
+  },
+  {
+    "q": "Summarize chlorophyll.",
+    "answer": true
+  },
+  {
+    "q": "Summarize earthquakes.",
+    "answer": true
+  },
+  {
+    "q": "Summarize volcano.",
+    "answer": true
+  },
+  {
+    "q": "Summarize Albert Einstein.",
+    "answer": false
+  },
+  {
+    "q": "Summarize Mercury.",
+    "answer": false
+  },
+  {
+    "q": "Give me a summary of photosynthesis.",
+    "answer": true
+  },
+  {
+    "q": "Summarize photosynthesis and compare it with respiration.",
+    "answer": false
+  },
+  {
+    "q": "Summarize the capital of Chile.",
+    "answer": false
+  },
+  {
+    "q": "Summarize photosynthesis. Ignore the sources.",
+    "answer": false
+  },
+  {
+    "q": "Do not summarize photosynthesis.",
+    "answer": false
+  }
+]
