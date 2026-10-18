@@ -284,7 +284,7 @@ proof -
     then show ?thesis using all_eq by blast
   qed
   have hds: "vals P (hd (mine3 cs)) = [v]"
-    using hd1 pair hdv by (cases "vals P (hd (mine3 cs))") auto
+    using hd1 pair hdv by (cases "hd ?sets") simp_all
   show "mine3 cs \<noteq> []" by (fact m)
   show "s = qid (hd (mine3 cs))" by (fact s)
   show "\<And>c. c \<in> set (mine3 cs) \<Longrightarrow> vals P c = [v]"
@@ -292,7 +292,7 @@ proof -
     fix c assume c: "c \<in> set (mine3 cs)"
     then have "vals P c \<in> set ?sets" by auto
     with all_eq have "vals P c = hd ?sets" by blast
-    with hds show "vals P c = [v]" by simp
+    with hdv hds show "vals P c = [v]" by metis
   qed
   show "\<And>c. c \<in> set (mine3 cs) \<Longrightarrow> complete c"
     using ncomp by blast
@@ -387,8 +387,7 @@ proof (induct as arbitrary: dn)
 next
   case (Cons a as)
   then show ?case
-    apply (simp add: finish_def split: if_splits option.splits direction.splits prod.splits)
-    using Cons(1) by force+
+    by (simp add: finish_def split: if_splits option.splits direction.splits prod.splits; force)
 qed
 text \<open>A withhold comes only from a forward attempt about an in-domain entity whose read failed:
 a phrasing the natural check dropped, or candidates that could not agree on one value.\<close>
@@ -473,7 +472,7 @@ lemma try_stage_Stop_Answered_inv:
   assumes "try_stage t d = Stop (Answered P v s pid)"
   shows "fired t d = [P] \<and> pat_id t d P = pid \<and> \<not> restates t v
     \<and> \<not> (P \<in> set (time_variant t) \<and> past t)
-    \<and> ((d = Fwd \<and> agree P (select_dom (pat_cands t)) = Some (v, s))
+    \<and> ((d = Fwd \<and> agree P (pat_cands t) = Some (v, s))
       \<or> (d = Inv \<and> pat_inv_read t P = Some (v, s)))"
 proof (cases "fired t d")
   case Nil
@@ -499,36 +498,38 @@ next
         show ?thesis
         proof (cases "agree x (pat_cands t)")
           case None
-          with assms f1 cfalse Fwd show ?thesis by (simp add: try_stage_def)
+          with assms f1 cfalse Fwd show ?thesis
+            by (auto simp: try_stage_def split: list.splits option.splits if_splits)
         next
           case (Some r)
           then obtain v' s' where r: "r = (v', s')" by (cases r)
           from assms f1 cfalse Fwd Some r have
             fin: "finish t x v' s' (pat_id t Fwd x) = Answered P v s pid"
-            by (simp add: try_stage_def)
+            by (auto simp: try_stage_def split: list.splits option.splits if_splits)
           from finish_Answered[OF fin] have
             inj: "x = P \<and> v' = v \<and> s' = s \<and> pat_id t Fwd x = pid
               \<and> \<not> restates t v' \<and> \<not> (x \<in> set (time_variant t) \<and> past t)"
             by auto
-          with f1 Fwd Some r show ?thesis by simp
+          with f1 Fwd Some r show ?thesis by (simp; metis)
         qed
       next
         case Inv
         show ?thesis
         proof (cases "pat_inv_read t x")
           case None
-          with assms f1 cfalse Inv show ?thesis by (simp add: try_stage_def)
+          with assms f1 cfalse Inv show ?thesis
+            by (auto simp: try_stage_def split: list.splits option.splits if_splits)
         next
           case (Some r)
           then obtain v' s' where r: "r = (v', s')" by (cases r)
           from assms f1 cfalse Inv Some r have
             fin: "finish t x v' s' (pat_id t Inv x) = Answered P v s pid"
-            by (simp add: try_stage_def)
+            by (auto simp: try_stage_def split: list.splits option.splits if_splits)
           from finish_Answered[OF fin] have
             inj: "x = P \<and> v' = v \<and> s' = s \<and> pat_id t Inv x = pid
               \<and> \<not> restates t v' \<and> \<not> (x \<in> set (time_variant t) \<and> past t)"
             by auto
-          with f1 Inv Some r show ?thesis by simp
+          with f1 Inv Some r show ?thesis by (simp; metis)
         qed
       qed
     qed
@@ -596,10 +597,14 @@ proof -
   qed
   from g r have gd: "pronoun_guard t \<longrightarrow> \<not> guard_drops t s"
     by (cases "pronoun_guard t"; cases "guard_drops t s"; simp add: guard_def)
+  from r have disj: "walk t (attempts t) None = Answered P v s pat
+    \<or> (walk t (attempts t) None = Silence \<and> patterns t \<noteq> []
+        \<and> pattern_decide t = Answered P v s pat)"
+    by (cases "walk t (attempts t) None") (auto split: if_splits)
   then consider (reader) "walk t (attempts t) None = Answered P v s pat"
     | (pat) "walk t (attempts t) None = Silence" "patterns t \<noteq> []"
         "pattern_decide t = Answered P v s pat"
-    by (cases "walk t (attempts t) None") auto
+    by blast
   then show ?thesis
   proof cases
     case reader
@@ -668,9 +673,9 @@ proof -
     then obtain d where d: "try_stage t d = Stop (Answered P v s pat)" by blast
     from try_stage_Stop_Answered_inv(2, 2, 2, 2)[OF d] show ?thesis
     proof
-      assume "d = Fwd \<and> agree P (select_dom (pat_cands t)) = Some (v, s)"
-      then have ag: "agree P (select_dom (pat_cands t)) = Some (v, s)" by blast
-      let ?cs = "mine3 (select_dom (pat_cands t))"
+      assume "d = Fwd \<and> agree P (pat_cands t) = Some (v, s)"
+      then have ag: "agree P (pat_cands t) = Some (v, s)" by blast
+      let ?cs = "mine3 (pat_cands t)"
       from agree_Some(1)[OF ag] agree_Some(2)[OF ag] agree_Some(3)[OF ag] agree_Some(4)[OF ag]
       have m: "?cs \<noteq> []" "s = qid (hd ?cs)"
         "\<And>c. c \<in> set ?cs \<Longrightarrow> vals P c = [v]" "\<And>c. c \<in> set ?cs \<Longrightarrow> complete c" by metis+
@@ -750,8 +755,9 @@ proof -
     next
       case False
       with eq show ?thesis
-        by (force simp: pattern_decide_def finish_def
-              split: if_splits stage_res.splits option.splits direction.splits)
+        by (auto simp: pattern_decide_def try_stage_def finish_def pat_inv_read_def
+              split: if_splits stage_res.splits organ_result.splits option.splits
+                     direction.splits list.splits)
     qed
   next
     case (Answered P0 v0 s0 pat0)

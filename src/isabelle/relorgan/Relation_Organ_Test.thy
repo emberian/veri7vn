@@ -65,7 +65,7 @@ lemma restating_answer_silences:
 
 lemma past_time_variant_silences:
   "organ_decide (novel_q\<lparr>qwords := [STR ''who'', STR ''wrote'', STR ''sheep''], past := True,
-    attempts := [novel_a\<lparr>key = STR ''27'', patk = STR ''27|fwd|0'',
+    attempts := [novel_a\<lparr>key := STR ''27'', patk := STR ''27|fwd|0'',
                  cands := [cand 2279794 100 True [(27, STR ''Japan'')]]\<rparr>],
     props := [(STR ''27'', 27)]\<rparr>) = Silence"
   by (auto simp: fixture_defs)
@@ -73,7 +73,8 @@ lemma past_time_variant_silences:
 lemma incomplete_fetch_never_answers:
   "organ_decide (novel_q\<lparr>attempts := [novel_a\<lparr>cands :=
       [\<lparr>qid = 2279794, links = 100, indomain = True, complete = False,
-         rows = [(50, STR ''Haruki Murakami'')]\<rparr>]]\<rparr>]\<rparr>) = Silence"
+         rows = [(50, STR ''Haruki Murakami'')]\<rparr>]\<rparr>]\<rparr>)
+     = Withheld 50 2279794 (STR ''50|fwd|0'')"
   by (auto simp: fixture_defs)
 
 lemma dominant_sense_alone_decides:
@@ -88,7 +89,7 @@ lemma inverse_unique_holder_answers:
     props := [(STR ''36'', 36)],
     attempts := [\<lparr>key = STR ''36'', idx = 0, dir = Inv, patk = STR ''36|inv|0'', slot_len = 4,
       cands = [cand 133220 100 False [(17, STR ''United States of America'')]],
-      inv_subs = [(138154, True, STR ''Albany''), (7 2, False, STR ''Other'')], inv_capped = False\<rparr>]\<rparr>)
+      inv_subs = [(138154, True, STR ''Albany''), (72, False, STR ''Other'')], inv_capped = False\<rparr>]\<rparr>)
      = Answered 36 (STR ''Albany'') 138154 (STR ''36|inv|0'')"
   by (auto simp: fixture_defs)
 
@@ -102,6 +103,7 @@ lemma inverse_two_in_domain_holders_skip:
 lemma pattern_single_property_answers:
   "organ_decide (T\<lparr>qwords := [STR ''who'', STR ''wrote'', STR ''it''],
     value_words := [(STR ''Haruki Murakami'', [STR ''haruki'', STR ''murakami''])],
+    feats := [(STR ''who'', STR ''wrote'')],
     patterns := [((Fwd, STR ''who'', STR ''wrote''), 50)],
     pats := [((Fwd, 50), STR ''fwd|who|wrote'')],
     pat_cands := [cand 2279794 100 True [(50, STR ''Haruki Murakami'')]]\<rparr>)
@@ -127,7 +129,7 @@ lemma pronoun_guard_drops_pronoun_subject:
     props := [(STR ''170'', 170)], pronoun_guard := True,
     pron_subj := [(846712, STR ''you'', True, False)],
     attempts := [\<lparr>key = STR ''170'', idx = 0, dir = Fwd, patk = STR ''170|fwd|0'', slot_len = 3,
-      cands := [cand 846712 100 True [(170, STR ''Sera Gamble'')]], inv_subs = [], inv_capped = False\<rparr>]\<rparr>)
+      cands = [cand 846712 100 True [(170, STR ''Sera Gamble'')]], inv_subs = [], inv_capped = False\<rparr>]\<rparr>)
      = Silence"
   by (auto simp: fixture_defs)
 
@@ -137,7 +139,7 @@ lemma pronoun_guard_keeps_titled_subject:
     props := [(STR ''170'', 170)], pronoun_guard := True,
     pron_subj := [(846712, STR ''you'', False, True)],
     attempts := [\<lparr>key = STR ''170'', idx = 0, dir = Fwd, patk = STR ''170|fwd|0'', slot_len = 3,
-      cands := [cand 846712 100 True [(170, STR ''Sera Gamble'')]], inv_subs = [], inv_capped = False\<rparr>]\<rparr>)
+      cands = [cand 846712 100 True [(170, STR ''Sera Gamble'')]], inv_subs = [], inv_capped = False\<rparr>]\<rparr>)
      = Answered 170 (STR ''Sera Gamble'') 846712 (STR ''170|fwd|0'')"
   by (auto simp: fixture_defs)
 
