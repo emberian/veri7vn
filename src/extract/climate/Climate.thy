@@ -29,7 +29,7 @@ datatype cat = Cat_good | Cat_moderate | Cat_usg | Cat_unhealthy | Cat_very_unhe
 datatype tube = T_armchair | T_zigzag | T_chiral
 datatype weekday = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
 
-datatype need = N_gwp | N_conc | N_sens | N_solar_albedo | N_cooling_schedule
+datatype need = N_gwp | N_conc | N_sens | N_solar_albedo | N_cooling_schedule | N_partial_cooling
 
 datatype reason = R_rate_over_100 | R_zero_mpg
   | R_pm_hourly | R_beyond pol | R_o3_above_8h | R_so2_above_1h | R_between pol | R_aqi_out_of_scale
@@ -1143,10 +1143,14 @@ datatype temp = Temp rat bool
 datatype dur = Dur rat bool
 datatype cookclass = Cook_poultry | Cook_ground | Cook_whole
 
+datatype cooling_observation = First_elapsed | Total_elapsed | Second_elapsed
+datatype cooling_scope = Whole_schedule | Checkpoint_only
+
 datatype cdreq =
     Cd_cool temp temp dur
   | Cd_schedule temp temp temp dur dur
   | Cd_schedule_unknown
+  | Cd_partial temp temp dur cooling_scope
   | Cd_cold temp
   | Cd_hot temp
   | Cd_cook cookclass
@@ -1191,6 +1195,178 @@ definition schedule_endpoints :: "temp \<Rightarrow> temp \<Rightarrow> temp \<R
   "schedule_endpoints a b c \<longleftrightarrow>
     schedule_start a \<and> schedule_middle b \<and> schedule_final c"
 
+
+text \<open>A partial record fixes one elapsed clock. A compatible full record
+has a nonnegative first-checkpoint time no later than its final-checkpoint time.
+These are times of reaching the nominal checkpoints, not arbitrary later sensor
+readings. Quantifying over all compatible clocks avoids inventing the missing
+first stage or final stage.\<close>
+fun compatible_cooling :: "cooling_observation \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> rat \<Rightarrow> bool" where
+  "compatible_cooling First_elapsed h t_first t_total =
+    (0 \<le> t_first \<and> t_first \<le> t_total \<and> t_first = h)"
+| "compatible_cooling Total_elapsed h t_first t_total =
+    (0 \<le> t_first \<and> t_first \<le> t_total \<and> t_total = h)"
+| "compatible_cooling Second_elapsed h t_first t_total =
+    (0 \<le> t_first \<and> t_first \<le> t_total \<and> t_total - t_first = h)"
+
+fun partial_pass_possible :: "cooling_observation \<Rightarrow> rat \<Rightarrow> bool" where
+  "partial_pass_possible First_elapsed h = (h \<le> 2)"
+| "partial_pass_possible Total_elapsed h = (h \<le> 6)"
+| "partial_pass_possible Second_elapsed h = (h \<le> 6)"
+
+fun partial_fail_possible :: "cooling_observation \<Rightarrow> rat \<Rightarrow> bool" where
+  "partial_fail_possible First_elapsed h = True"
+| "partial_fail_possible Total_elapsed h = (2 < h)"
+| "partial_fail_possible Second_elapsed h = True"
+
+lemma compatible_cooling_exists:
+  assumes "0 \<le> h"
+  shows "\<exists>t_first t_total. compatible_cooling obs h t_first t_total"
+proof (cases obs)
+  case First_elapsed
+  show ?thesis unfolding First_elapsed
+    by (rule exI[of _ h], rule exI[of _ h]) (simp add: assms)
+next
+  case Total_elapsed
+  show ?thesis unfolding Total_elapsed
+    by (rule exI[of _ 0], rule exI[of _ h]) (simp add: assms)
+next
+  case Second_elapsed
+  show ?thesis unfolding Second_elapsed
+    by (rule exI[of _ 0], rule exI[of _ h]) (simp add: assms)
+qed
+
+lemma compatible_cooling_pass:
+  assumes "0 \<le> h"
+  shows "(\<exists>t_first t_total. compatible_cooling obs h t_first t_total \<and>
+    cooling_deadlines t_first t_total) \<longleftrightarrow> partial_pass_possible obs h"
+proof (cases obs)
+  case First_elapsed
+  show ?thesis unfolding First_elapsed
+  proof
+    assume "\<exists>t_first t_total. compatible_cooling First_elapsed h t_first t_total \<and> cooling_deadlines t_first t_total"
+    then show "partial_pass_possible First_elapsed h" by (auto simp: cooling_deadlines_def)
+  next
+    assume "partial_pass_possible First_elapsed h"
+    then show "\<exists>t_first t_total. compatible_cooling First_elapsed h t_first t_total \<and> cooling_deadlines t_first t_total"
+      using assms by (intro exI[of _ h] exI[of _ h]) (simp add: cooling_deadlines_def)
+  qed
+next
+  case Total_elapsed
+  show ?thesis unfolding Total_elapsed
+  proof
+    assume "\<exists>t_first t_total. compatible_cooling Total_elapsed h t_first t_total \<and> cooling_deadlines t_first t_total"
+    then show "partial_pass_possible Total_elapsed h" by (auto simp: cooling_deadlines_def)
+  next
+    assume "partial_pass_possible Total_elapsed h"
+    then show "\<exists>t_first t_total. compatible_cooling Total_elapsed h t_first t_total \<and> cooling_deadlines t_first t_total"
+      using assms by (intro exI[of _ 0] exI[of _ h]) (simp add: cooling_deadlines_def)
+  qed
+next
+  case Second_elapsed
+  show ?thesis unfolding Second_elapsed
+  proof
+    assume "\<exists>t_first t_total. compatible_cooling Second_elapsed h t_first t_total \<and> cooling_deadlines t_first t_total"
+    then show "partial_pass_possible Second_elapsed h" by (auto simp: cooling_deadlines_def; linarith)
+  next
+    assume "partial_pass_possible Second_elapsed h"
+    then show "\<exists>t_first t_total. compatible_cooling Second_elapsed h t_first t_total \<and> cooling_deadlines t_first t_total"
+      using assms by (intro exI[of _ 0] exI[of _ h]) (simp add: cooling_deadlines_def)
+  qed
+qed
+
+lemma compatible_cooling_fail:
+  assumes "0 \<le> h"
+  shows "(\<exists>t_first t_total. compatible_cooling obs h t_first t_total \<and>
+    \<not> cooling_deadlines t_first t_total) \<longleftrightarrow> partial_fail_possible obs h"
+proof (cases obs)
+  case First_elapsed
+  have "compatible_cooling First_elapsed h h (h+7) \<and> \<not> cooling_deadlines h (h+7)"
+    using assms by (auto simp: cooling_deadlines_def; linarith)
+  then have "\<exists>f t. compatible_cooling First_elapsed h f t \<and> \<not> cooling_deadlines f t"
+    by (intro exI[of _ h] exI[of _ "h+7"])
+  then show ?thesis unfolding First_elapsed by simp
+next
+  case Total_elapsed
+  show ?thesis unfolding Total_elapsed
+  proof
+    assume "\<exists>t_first t_total. compatible_cooling Total_elapsed h t_first t_total \<and> \<not> cooling_deadlines t_first t_total"
+    then show "partial_fail_possible Total_elapsed h" by (auto simp: cooling_deadlines_def; linarith)
+  next
+    assume "partial_fail_possible Total_elapsed h"
+    then show "\<exists>t_first t_total. compatible_cooling Total_elapsed h t_first t_total \<and> \<not> cooling_deadlines t_first t_total"
+      using assms by (intro exI[of _ h] exI[of _ h]) (simp add: cooling_deadlines_def)
+  qed
+next
+  case Second_elapsed
+  have "compatible_cooling Second_elapsed h 3 (3+h) \<and> \<not> cooling_deadlines 3 (3+h)"
+    using assms by (simp add: cooling_deadlines_def)
+  then have "\<exists>f t. compatible_cooling Second_elapsed h f t \<and> \<not> cooling_deadlines f t"
+    by (intro exI[of _ 3] exI[of _ "3+h"])
+  then show ?thesis unfolding Second_elapsed by simp
+qed
+
+fun nominal_start :: "temp \<Rightarrow> bool" where
+  "nominal_start (Temp v c) = (v = (if c then 57 else 135))"
+fun nominal_middle :: "temp \<Rightarrow> bool" where
+  "nominal_middle (Temp v c) = (v = (if c then 21 else 70))"
+fun nominal_final :: "temp \<Rightarrow> bool" where
+  "nominal_final (Temp v c) = (v = (if c then 5 else 41))"
+
+definition partial_observation :: "temp \<Rightarrow> temp \<Rightarrow> cooling_observation option" where
+  "partial_observation a b =
+    (if nominal_start a \<and> nominal_middle b then Some First_elapsed
+     else if nominal_start a \<and> nominal_final b then Some Total_elapsed
+     else if nominal_middle a \<and> nominal_final b then Some Second_elapsed
+     else None)"
+
+text \<open>Whole-schedule verdicts quantify over the missing clock. Explicit
+checkpoint-only questions test just the named first or total deadline. There is
+no independent fixed four-hour second-stage deadline without an earlier clock.\<close>
+definition partial_clock_kernel :: "cooling_observation \<Rightarrow> rat \<Rightarrow> cooling_scope \<Rightarrow> outcome" where
+  "partial_clock_kernel obs h scope =
+    (if h < 0 then Decline (Impossible R_negative_duration)
+     else if scope = Checkpoint_only then
+       (case obs of First_elapsed \<Rightarrow> Verdict K_cooling_check (h \<le> 2)
+        | Total_elapsed \<Rightarrow> Verdict K_cooling_check (h \<le> 6)
+        | Second_elapsed \<Rightarrow> Decline (Underspecified N_partial_cooling))
+     else if \<not> partial_pass_possible obs h then Verdict K_cooling_check False
+     else if \<not> partial_fail_possible obs h then Verdict K_cooling_check True
+     else Decline (Underspecified N_partial_cooling))"
+
+theorem partial_clock_true:
+  assumes "0 \<le> h"
+  shows "partial_clock_kernel obs h Whole_schedule = Verdict K_cooling_check True \<longleftrightarrow>
+    (\<forall>t_first t_total. compatible_cooling obs h t_first t_total \<longrightarrow> cooling_deadlines t_first t_total)"
+  using assms compatible_cooling_exists[OF assms, of obs]
+    compatible_cooling_pass[OF assms, of obs] compatible_cooling_fail[OF assms, of obs]
+  by (auto simp: partial_clock_kernel_def; linarith)
+
+theorem partial_clock_false:
+  assumes "0 \<le> h"
+  shows "partial_clock_kernel obs h Whole_schedule = Verdict K_cooling_check False \<longleftrightarrow>
+    (\<forall>t_first t_total. compatible_cooling obs h t_first t_total \<longrightarrow> \<not> cooling_deadlines t_first t_total)"
+  using assms compatible_cooling_pass[OF assms, of obs]
+  by (auto simp: partial_clock_kernel_def; linarith)
+
+theorem partial_clock_unknown:
+  assumes "0 \<le> h"
+  shows "partial_clock_kernel obs h Whole_schedule = Decline (Underspecified N_partial_cooling) \<longleftrightarrow>
+    (\<exists>f t. compatible_cooling obs h f t \<and> cooling_deadlines f t) \<and>
+    (\<exists>f t. compatible_cooling obs h f t \<and> \<not> cooling_deadlines f t)"
+  using assms compatible_cooling_pass[OF assms, of obs] compatible_cooling_fail[OF assms, of obs]
+  by (auto simp: partial_clock_kernel_def; linarith)
+
+theorem partial_clock_negative:
+  "partial_clock_kernel obs h scope = Decline (Impossible R_negative_duration) \<longleftrightarrow> h < 0"
+  by (auto simp: partial_clock_kernel_def split: cooling_observation.splits)
+
+theorem partial_checkpoint_scope:
+  assumes "0 \<le> h"
+  shows "partial_clock_kernel First_elapsed h Checkpoint_only = Verdict K_cooling_check (h \<le> 2)"
+    and "partial_clock_kernel Total_elapsed h Checkpoint_only = Verdict K_cooling_check (h \<le> 6)"
+  using assms by (simp_all add: partial_clock_kernel_def)
+
 fun cook_f :: "cookclass \<Rightarrow> rat" where
   "cook_f Cook_poultry = 165" | "cook_f Cook_ground = 155" | "cook_f Cook_whole = 145"
 
@@ -1212,6 +1388,10 @@ definition cd_kernel :: "cdreq \<Rightarrow> outcome" where
         (if hours d < 0 \<or> hours e < 0 then Decline (Impossible R_negative_duration)
          else if \<not> schedule_start a then Decline (Underspecified N_cooling_schedule)
          else Verdict K_cooling_check (schedule_middle b \<and> schedule_final c \<and> hours d \<le> 2 \<and> hours d + hours e \<le> 6))
+    | Cd_partial a b d scope \<Rightarrow>
+        (if hours d < 0 then Decline (Impossible R_negative_duration)
+         else case partial_observation a b of None \<Rightarrow> Decline (Underspecified N_partial_cooling)
+           | Some obs \<Rightarrow> partial_clock_kernel obs (hours d) scope)
     | Cd_schedule_unknown \<Rightarrow> Decline (Underspecified N_cooling_schedule)
     | Cd_cold t \<Rightarrow> Verdict K_cold_hold (f_of t \<le> 41)
     | Cd_hot t \<Rightarrow> Verdict K_hot_hold (135 \<le> f_of t)
@@ -1223,6 +1403,36 @@ definition cd_kernel :: "cdreq \<Rightarrow> outcome" where
     | Cd_date None \<Rightarrow> Exact K_date_rule 7
     | Cd_date (Some d) \<Rightarrow> Weekday (last_day d)
     | Cd_danger \<Rightarrow> Interval K_danger_zone 41 135)"
+
+
+theorem partial_cooling_whole_binding:
+  assumes "partial_observation a b = Some obs" "0 \<le> hours d"
+  shows "cd_kernel (Cd_partial a b d Whole_schedule) = partial_clock_kernel obs (hours d) Whole_schedule"
+  using assms by (simp add: cd_kernel_def)
+
+
+theorem partial_cooling_true:
+  assumes "partial_observation a b = Some obs" "0 \<le> hours d"
+  shows "cd_kernel (Cd_partial a b d Whole_schedule) = Verdict K_cooling_check True \<longleftrightarrow>
+    (\<forall>f t. compatible_cooling obs (hours d) f t \<longrightarrow> cooling_deadlines f t)"
+  using partial_cooling_whole_binding[OF assms] partial_clock_true[OF assms(2), of obs] by simp
+
+theorem partial_cooling_false:
+  assumes "partial_observation a b = Some obs" "0 \<le> hours d"
+  shows "cd_kernel (Cd_partial a b d Whole_schedule) = Verdict K_cooling_check False \<longleftrightarrow>
+    (\<forall>f t. compatible_cooling obs (hours d) f t \<longrightarrow> \<not> cooling_deadlines f t)"
+  using partial_cooling_whole_binding[OF assms] partial_clock_false[OF assms(2), of obs] by simp
+
+theorem partial_cooling_unknown:
+  assumes "partial_observation a b = Some obs" "0 \<le> hours d"
+  shows "cd_kernel (Cd_partial a b d Whole_schedule) = Decline (Underspecified N_partial_cooling) \<longleftrightarrow>
+    (\<exists>f t. compatible_cooling obs (hours d) f t \<and> cooling_deadlines f t) \<and>
+    (\<exists>f t. compatible_cooling obs (hours d) f t \<and> \<not> cooling_deadlines f t)"
+  using partial_cooling_whole_binding[OF assms] partial_clock_unknown[OF assms(2), of obs] by simp
+
+theorem partial_cooling_negative:
+  "cd_kernel (Cd_partial a b d scope) = Decline (Impossible R_negative_duration) \<longleftrightarrow> hours d < 0"
+  by (auto simp: cd_kernel_def partial_clock_negative split: option.splits)
 
 theorem cooling_verdict:
   assumes "cd_kernel (Cd_cool a b d) = Verdict k ok"
@@ -1542,6 +1752,13 @@ definition cd_text :: "cdreq \<Rightarrow> outcome \<Rightarrow> String.literal"
            (if ok then STR ''Yes, that meets the limit'' else STR ''No, that misses the limit'')
              + STR '' for the total: 135 F to 41 F must take no more than 6 hours (and the first stage, to 70 F, no more than 2); ''
              + h + STR '' hours '' + (if ok then STR ''is within 6'' else STR ''exceeds 6'') + STR '' [3-501.14(A)].'')
+   | (Cd_partial a b d scope, Verdict _ ok) \<Rightarrow>
+       (if scope = Checkpoint_only then
+          yes_no ok + STR '': this checks only the named checkpoint deadline, not the complete cooling schedule. Elapsed time: ''
+          + pct_g (hours d) + STR '' hours.''
+        else yes_no ok + STR '': every complete cooling timeline consistent with this elapsed checkpoint time ''
+          + (if ok then STR ''meets both deadlines.'' else STR ''fails at least one deadline.'')
+          + STR '' The deadlines are 70 F (21 C) within 2 hours and 41 F (5 C) within 6 hours total [Food Code 2022 3-501.14(A)].'')
    | (Cd_schedule a b c d e, Verdict _ ok) \<Rightarrow>
        yes_no ok + STR '': the first cooling stage took '' + pct_g (hours d)
        + STR '' hours and the complete schedule took '' + pct_g (hours d + hours e)
@@ -1572,6 +1789,7 @@ definition need_text :: "need \<Rightarrow> String.literal" where
    | N_conc \<Rightarrow> STR ''the starting and final CO2 concentrations (ppm)''
    | N_sens \<Rightarrow> STR ''the climate sensitivity (C per doubling) or the feedback parameter lambda - it is uncertain, so I will not assume one''
    | N_solar_albedo \<Rightarrow> STR ''the solar constant (W/m2) and the albedo''
+   | N_partial_cooling \<Rightarrow> STR ''the missing checkpoint time: specify when 70 F (21 C) and 41 F (5 C) were reached relative to 135 F (57 C); a partial record may fit both compliant and noncompliant complete timelines''
    | N_cooling_schedule \<Rightarrow> STR ''a complete supported cooling schedule: from 135 F to 70 F with its elapsed time, then to 41 F with its additional elapsed time'')"
 
 definition reason_text :: "reason \<Rightarrow> String.literal" where

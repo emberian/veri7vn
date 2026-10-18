@@ -444,6 +444,11 @@ struct
   val days = [("monday", Q.Monday), ("tuesday", Q.Tuesday), ("wednesday", Q.Wednesday), ("thursday", Q.Thursday),
               ("friday", Q.Friday), ("saturday", Q.Saturday), ("sunday", Q.Sunday)]
 
+  val checkpointScope = "\\bfirst[- ]stage\\b|\\bfirst checkpoint\\b|\\btotal[- ]time limit\\b|\\btotal limit\\b"
+
+  fun checkpointOnly low = has checkpointScope low andalso
+    not (has "\\bcomplete\\b|\\boverall\\b|\\bentire\\b" low)
+
   exception UnknownColdNumber
 
   fun coldchainCore text =
@@ -464,8 +469,9 @@ struct
             case search coolRx low of
               NONE => NONE
             | SOME m =>
-                let val req = Q.Req_cd (Q.Cd_cool (tempOf (g1 low m) (valOf (grp low m 2)), tempOf (valOf (grp low m 3)) (valOf (grp low m 4)),
-                                                  Q.Dur (quantity (valOf (grp low m 5)), String.isPrefix "min" (valOf (grp low m 6)))))
+                let val req = Q.Req_cd (Q.Cd_partial (tempOf (g1 low m) (valOf (grp low m 2)), tempOf (valOf (grp low m 3)) (valOf (grp low m 4)),
+                                                  Q.Dur (quantity (valOf (grp low m 5)), String.isPrefix "min" (valOf (grp low m 6))),
+                                                  if checkpointOnly low then Q.Checkpoint_only else Q.Whole_schedule))
                 in finish t req end
         in
           if not (has foodWords low) then NONE
@@ -508,6 +514,11 @@ struct
     ^ "\\s*(?:,\\s*)?(?:and\\s+)?then\\s+(?:down\\s+)?to\\s+" ^ TEMP
     ^ "\\s+(?:in|over)\\s+(?:another\\s+|an additional\\s+)?" ^ durationRx
 
+  val priorClockRx = "\\bafter reaching\\s+" ^ TEMP ^ "\\s+" ^ durationRx
+    ^ "\\s+after cooling started at\\s+" ^ TEMP
+    ^ "\\s*,?\\s*(?:food|it|the food)\\s+cooled\\s+to\\s+" ^ TEMP
+    ^ "\\s+(?:in|over)\\s+" ^ durationRx
+
   (* This route consumes every temperature and elapsed duration in a supported
      schedule. Ambiguous compound input cannot fall through to a first-stage Yes. *)
   fun compoundCooling text =
@@ -528,9 +539,15 @@ struct
       in
         if not compound then NONE
         else if length temps <> 3 orelse length durations <> 2 orelse length numbers <> 5
-          orelse has "\\btotal\\b|\\bwithin\\b|\\bby\\b|\\bafter\\b|\\bfrom the start\\b" low then unknown
+          orelse (has "\\btotal\\b|\\bwithin\\b|\\bby\\b|\\bafter\\b|\\bfrom the start\\b" low andalso not (Option.isSome (search priorClockRx low))) then unknown
         else case search scheduleRx low of
-          NONE => unknown
+          NONE => (case search priorClockRx low of
+            NONE => unknown
+          | SOME m =>
+              let fun g i = valOf (grp low m i)
+                  fun temp i = Q.Temp (value (g i), String.isPrefix "c" (g (i+1)))
+                  fun dur i = Q.Dur (value (g i), String.isPrefix "min" (g (i+1)))
+              in SOME (Q.Req_cd (Q.Cd_schedule (temp 5, temp 1, temp 7, dur 3, dur 9))) end)
         | SOME m =>
           let fun g i = valOf (grp low m i)
               fun temp i = Q.Temp (value (g i), String.isPrefix "c" (g (i+1)))
@@ -564,7 +581,7 @@ struct
             case (m, hm) of
               (SOME mm, SOME h) =>
                 coldchainCore ("Food cooled from " ^ literal (g1 low mm) ^ " " ^ valOf (grp low mm 2) ^ " to " ^ literal (valOf (grp low mm 3)) ^ " "
-                               ^ valOf (grp low mm 4) ^ " in " ^ literal (g1 low h) ^ " " ^ valOf (grp low h 2) ^ ".")
+                               ^ valOf (grp low mm 4) ^ " in " ^ literal (g1 low h) ^ " " ^ valOf (grp low h 2) ^ (if checkpointOnly low then ". First-stage or total-time limit only." else "."))
             | _ => NONE
           end
         else NONE

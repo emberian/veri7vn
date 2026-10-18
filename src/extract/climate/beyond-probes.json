@@ -1,5 +1,5 @@
 {
-  "source": "Author-written capability and refusal probes; numeric expectations from the independent formulas in shipped generators and declared kernel models. These probes share the recognizer author, unlike generator seeds.",
+  "source": "Author-written capability and refusal probes; numeric expectations from the independent formulas in shipped generators and declared kernel models. These probes share the recognizer author, unlike generator seeds. F: partial schedule expectations use compatible complete clocks; upstream scorers remain unchanged.",
   "items": [
     {
       "specialist": "airquality",
@@ -36,50 +36,62 @@
     {
       "specialist": "coldchain",
       "q": "After reaching 70 F, the rice took 3.5 hours to cool to 41 F. Is that within the limit?",
-      "expected": true,
-      "status": "answered",
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain",
       "q": "After reaching 70 F, the rice took 4 hours to cool to 41 F. Is that within the limit?",
-      "expected": true,
-      "status": "answered",
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain",
       "q": "After reaching 70 F, the rice took 4.1 hours to cool to 41 F. Is that within the limit?",
-      "expected": false,
-      "status": "answered",
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": false,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain-v2",
       "q": "After reaching 70 F, the rice took 3.5 hours to cool to 41 F. Is that within the limit?",
-      "expected": true,
-      "status": "answered",
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain-v2",
       "q": "After reaching 70 F, the rice took 4 hours to cool to 41 F. Is that within the limit?",
-      "expected": true,
-      "status": "answered",
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain-v2",
       "q": "After reaching 70 F, the rice took 4.1 hours to cool to 41 F. Is that within the limit?",
-      "expected": false,
-      "status": "answered",
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": false,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain",
@@ -164,18 +176,22 @@
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 0 hours. Does it meet the cooling rule?",
-      "expected": true,
-      "status": "answered",
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 2 hours. Does it meet the cooling rule?",
-      "expected": true,
-      "status": "answered",
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain",
@@ -228,18 +244,22 @@
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 0 hours. Does it meet the cooling rule?",
-      "expected": true,
-      "status": "answered",
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 2 hours. Does it meet the cooling rule?",
-      "expected": true,
-      "status": "answered",
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain-v2",
@@ -283,7 +303,7 @@
     },
     {
       "specialist": "coldchain",
-      "q": "Food cools from 135 F to 70 F in −.5 hours. Does it meet the cooling rule?",
+      "q": "Food cools from 135 F to 70 F in \u2212.5 hours. Does it meet the cooling rule?",
       "status": "withheld",
       "expected": null,
       "kind": "impossible",
@@ -292,26 +312,32 @@
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in .5 hours. Does it meet the cooling rule?",
-      "status": "answered",
-      "expected": true,
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "status": "withheld",
+      "expected": null,
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 1/2 hours. Does it meet the cooling rule?",
-      "status": "answered",
-      "expected": true,
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "status": "withheld",
+      "expected": null,
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 5e-1 hours. Does it meet the cooling rule?",
-      "status": "answered",
-      "expected": true,
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "status": "withheld",
+      "expected": null,
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain",
@@ -329,7 +355,7 @@
     },
     {
       "specialist": "coldchain-v2",
-      "q": "Food cools from 135 F to 70 F in −.5 hours. Does it meet the cooling rule?",
+      "q": "Food cools from 135 F to 70 F in \u2212.5 hours. Does it meet the cooling rule?",
       "status": "withheld",
       "expected": null,
       "kind": "impossible",
@@ -338,26 +364,32 @@
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in .5 hours. Does it meet the cooling rule?",
-      "status": "answered",
-      "expected": true,
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "status": "withheld",
+      "expected": null,
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 1/2 hours. Does it meet the cooling rule?",
-      "status": "answered",
-      "expected": true,
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "status": "withheld",
+      "expected": null,
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 5e-1 hours. Does it meet the cooling rule?",
-      "status": "answered",
-      "expected": true,
-      "kind": "cooling_check",
-      "capability_class": "answerable_model_case"
+      "status": "withheld",
+      "expected": null,
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain-v2",
@@ -390,18 +422,22 @@
     {
       "specialist": "coldchain",
       "q": "Food cools from 135 F to 70 F in 1/ 2 hours. Does it meet the cooling rule?",
-      "status": "answered",
-      "kind": "cooling_check",
-      "expected": true,
-      "capability_class": "answerable_model_case"
+      "status": "withheld",
+      "kind": "underspecified",
+      "expected": null,
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain-v2",
       "q": "Food cools from 135 F to 70 F in 1/ 2 hours. Does it meet the cooling rule?",
-      "status": "answered",
-      "kind": "cooling_check",
-      "expected": true,
-      "capability_class": "answerable_model_case"
+      "status": "withheld",
+      "kind": "underspecified",
+      "expected": null,
+      "capability_class": "valid_underdetermined",
+      "prior_expected": true,
+      "expectation_reason": "Both compliant and noncompliant complete clocks fit this partial record."
     },
     {
       "specialist": "coldchain",
@@ -461,7 +497,7 @@
     },
     {
       "specialist": "coldchain",
-      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in −.5 hours. Does it meet the cooling rule?",
+      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in \u2212.5 hours. Does it meet the cooling rule?",
       "status": "withheld",
       "kind": "impossible",
       "expected": null,
@@ -589,7 +625,7 @@
     },
     {
       "specialist": "coldchain-v2",
-      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in −.5 hours. Does it meet the cooling rule?",
+      "q": "Food cools from 135 F to 70 F in 1 hours and then to 41 F in \u2212.5 hours. Does it meet the cooling rule?",
       "status": "withheld",
       "kind": "impossible",
       "expected": null,
@@ -850,6 +886,1172 @@
       "status": "withheld",
       "kind": "underspecified",
       "capability_class": "valid_unsupported"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in -1 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 0 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "0",
+          "6"
+        ],
+        "False": [
+          "0",
+          "7"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 1/2 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "1/2",
+          "6"
+        ],
+        "False": [
+          "1/2",
+          "15/2"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 2 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "6"
+        ],
+        "False": [
+          "2",
+          "9"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 2.1 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "21/10",
+          "21/5"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 5 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "5",
+          "12"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 6 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "6",
+          "13"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 6.1 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "61/10",
+          "131/10"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in -1 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 0 hours. Does the complete cooling schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "True": [
+          "0",
+          "0"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 1/2 hours. Does the complete cooling schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "True": [
+          "1/2",
+          "1/2"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 2 hours. Does the complete cooling schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "True": [
+          "2",
+          "2"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 2.1 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "21/10"
+        ],
+        "False": [
+          "21/10",
+          "21/10"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 5 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "5"
+        ],
+        "False": [
+          "5",
+          "5"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 6 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "6"
+        ],
+        "False": [
+          "6",
+          "6"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 6.1 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "61/10",
+          "61/10"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in -1 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 0 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "2"
+        ],
+        "False": [
+          "3",
+          "3"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 1/2 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "3/2",
+          "2"
+        ],
+        "False": [
+          "3",
+          "7/2"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 2 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "4"
+        ],
+        "False": [
+          "3",
+          "5"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 2.1 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "41/10"
+        ],
+        "False": [
+          "31/10",
+          "26/5"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 5 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "1",
+          "6"
+        ],
+        "False": [
+          "6",
+          "11"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 6 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "0",
+          "6"
+        ],
+        "False": [
+          "7",
+          "13"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 6.1 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "71/10",
+          "66/5"
+        ]
+      },
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 0 hours. Does it meet only the first-stage limit?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 2 hours. Does it meet only the first-stage limit?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 3 hours. Does it meet only the first-stage limit?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 6.1 hours. Does it meet only the first-stage limit?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 0 hours. Does it meet only the total-time limit?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 2 hours. Does it meet only the total-time limit?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 3 hours. Does it meet only the total-time limit?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 6.1 hours. Does it meet only the total-time limit?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 2 hours. Does meeting this first-stage limit establish complete compliance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 2 hours. Does the first-stage limit establish complete compliance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 5 hours. Does the first-stage limit establish complete compliance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "After reaching 70 F 1 hours after cooling started at 135 F, food cooled to 41 F in 5 hours. Does the schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "After reaching 70 F 3 hours after cooling started at 135 F, food cooled to 41 F in 2 hours. Does the schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "After reaching 70 F 3 hours after cooling started at 135 F, food cooled to 41 F in 5 hours. Does the schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "After reaching 70 F 2 hours after cooling started at 135 F, food cooled to 41 F in 4 hours. Does the schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "After reaching 70 F 1 hours after cooling started at 135 F, food cooled to 41 F in -1 hours. Does the schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 57 C to 5 C in 2 hours. Does the complete schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 57 C to 41 F in 2 hours. Does the complete schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 21 C to 5 C in 5 hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70.4 F in 2 hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 134.6 F to 41 F in 1 hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 40 F in 3 hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 1.2.3 hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in qnum0q hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input",
+      "witnesses": null,
+      "specialist": "coldchain"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in -1 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 0 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "0",
+          "6"
+        ],
+        "False": [
+          "0",
+          "7"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 1/2 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "1/2",
+          "6"
+        ],
+        "False": [
+          "1/2",
+          "15/2"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 2 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "6"
+        ],
+        "False": [
+          "2",
+          "9"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 2.1 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "21/10",
+          "21/5"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 5 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "5",
+          "12"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 6 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "6",
+          "13"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 6.1 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "61/10",
+          "131/10"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in -1 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 0 hours. Does the complete cooling schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "True": [
+          "0",
+          "0"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 1/2 hours. Does the complete cooling schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "True": [
+          "1/2",
+          "1/2"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 2 hours. Does the complete cooling schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "True": [
+          "2",
+          "2"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 2.1 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "21/10"
+        ],
+        "False": [
+          "21/10",
+          "21/10"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 5 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "5"
+        ],
+        "False": [
+          "5",
+          "5"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 6 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "6"
+        ],
+        "False": [
+          "6",
+          "6"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 6.1 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "61/10",
+          "61/10"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in -1 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 0 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "2"
+        ],
+        "False": [
+          "3",
+          "3"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 1/2 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "3/2",
+          "2"
+        ],
+        "False": [
+          "3",
+          "7/2"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 2 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "4"
+        ],
+        "False": [
+          "3",
+          "5"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 2.1 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "2",
+          "41/10"
+        ],
+        "False": [
+          "31/10",
+          "26/5"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 5 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "1",
+          "6"
+        ],
+        "False": [
+          "6",
+          "11"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 6 hours. Does the complete cooling schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": {
+        "True": [
+          "0",
+          "6"
+        ],
+        "False": [
+          "7",
+          "13"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 6.1 hours. Does the complete cooling schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": {
+        "False": [
+          "71/10",
+          "66/5"
+        ]
+      },
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 0 hours. Does it meet only the first-stage limit?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 2 hours. Does it meet only the first-stage limit?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 3 hours. Does it meet only the first-stage limit?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 6.1 hours. Does it meet only the first-stage limit?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 0 hours. Does it meet only the total-time limit?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 2 hours. Does it meet only the total-time limit?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 3 hours. Does it meet only the total-time limit?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 6.1 hours. Does it meet only the total-time limit?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70 F in 2 hours. Does meeting this first-stage limit establish complete compliance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 2 hours. Does the first-stage limit establish complete compliance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 70 F to 41 F in 5 hours. Does the first-stage limit establish complete compliance?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "After reaching 70 F 1 hours after cooling started at 135 F, food cooled to 41 F in 5 hours. Does the schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "After reaching 70 F 3 hours after cooling started at 135 F, food cooled to 41 F in 2 hours. Does the schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "After reaching 70 F 3 hours after cooling started at 135 F, food cooled to 41 F in 5 hours. Does the schedule comply?",
+      "expected": false,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "After reaching 70 F 2 hours after cooling started at 135 F, food cooled to 41 F in 4 hours. Does the schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "After reaching 70 F 1 hours after cooling started at 135 F, food cooled to 41 F in -1 hours. Does the schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 57 C to 5 C in 2 hours. Does the complete schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 57 C to 41 F in 2 hours. Does the complete schedule comply?",
+      "expected": true,
+      "status": "answered",
+      "kind": "cooling_check",
+      "capability_class": "answerable_model_case",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 21 C to 5 C in 5 hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_underdetermined",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 70.4 F in 2 hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 134.6 F to 41 F in 1 hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 40 F in 3 hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in 1.2.3 hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
+    },
+    {
+      "q": "Food cooled from 135 F to 41 F in qnum0q hours. Does the complete schedule comply?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input",
+      "witnesses": null,
+      "specialist": "coldchain-v2"
     }
   ]
 }

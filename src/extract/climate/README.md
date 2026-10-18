@@ -44,7 +44,15 @@ Two-stage cooling schedules now retain both elapsed times. For example, cooling
 hours passes the declared two-checkpoint model. The reader preserves signed
 fractions, decimals and minute units through the shared exact numeric lexer.
 The complete schedule uses exact published nominal F/C thresholds without
-half-degree slack; above-limit checkpoint readings fail. Negative elapsed times are impossible; missing or ambiguous compound timing is
-underspecified. This does not judge a particular food safe. The inherited
-single-stage/partial-information limitations and exact checked evidence are in
+half-degree slack; above-limit checkpoint readings fail. Negative elapsed times are
+impossible; missing or ambiguous compound timing is underspecified. This does not
+judge a particular food safe. Exact checked complete-schedule evidence is in
 [the E report](../../../project/lanes/E-climate.md).
+
+Partial cooling records now distinguish complete-schedule compliance from an
+explicit checkpoint-only question. A missing first or final time is not guessed:
+the kernel checks all compatible complete clocks and withholds when both passing
+and failing clocks fit. Explicit known earlier time is retained. This corrects
+23 inherited shipped assertions into visible valid-withheld results; see
+[the F report](../../../project/lanes/F-climate.md) for the independent laws,
+counts under unchanged official scorers, actual consumer checks and model limits.
