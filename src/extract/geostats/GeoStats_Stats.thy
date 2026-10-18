@@ -632,6 +632,9 @@ subsection \<open>Mode\<close>
 lemma foldr_max_ge: "y \<in> set l \<Longrightarrow> y \<le> foldr max l (0::nat)"
   by (induct l) auto
 
+lemma foldr_max_le: "\<forall>y\<in>set l. y \<le> c \<Longrightarrow> foldr max l (0::nat) \<le> c"
+  by (induct l) auto
+
 text \<open>Every mode is a data value that occurs at least as often as any
 value.\<close>
 theorem modes_value:
@@ -658,6 +661,25 @@ proof -
       then show ?thesis by simp
     qed
   qed
+qed
+
+text \<open>Completeness: every value that occurs at least as often as every other
+is reported, so the mode list is exactly the set of most frequent values.\<close>
+theorem modes_complete:
+  assumes "x \<in> set xs" and "\<forall>y. count_list xs y \<le> count_list xs x"
+  shows "x \<in> set (smodes xs)"
+proof -
+  have sd: "set (sdistinct xs) = set xs" by (simp add: sdistinct_def)
+  have mem: "x \<in> set (sdistinct xs)" using assms(1) sd by simp
+  have le: "smaxcount xs \<le> count_list xs x"
+    unfolding smaxcount_def
+    by (rule foldr_max_le) (use assms(2) in auto)
+  have ge: "count_list xs x \<le> smaxcount xs"
+  proof -
+    have "count_list xs x \<in> set (map (count_list xs) (sdistinct xs))" using mem by simp
+    from foldr_max_ge[OF this] show ?thesis by (simp add: smaxcount_def)
+  qed
+  show ?thesis using mem le ge by (simp add: smodes_def)
 qed
 
 theorem mode_value:

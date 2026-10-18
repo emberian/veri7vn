@@ -2,6 +2,8 @@ theory GeoStats_Export
   imports GeoStats_Geometry GeoStats_Stats
 begin
 
+(* W6-15: marker and oracle scan are the last commands; every headline theorem is listed. *)
+
 text \<open>Constructors the untrusted SML recognizer uses to build requests from
 decimal numerals it read off the text.\<close>
 definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
@@ -78,7 +80,15 @@ ML \<open>
     @{thm s_reply_answered_iff}, @{thm s_reply_withheld_names_decline},
     @{thm s_reply_states_approx}, @{thm s_reply_states_rat},
     @{thm to_dec6_sound}, @{thm enc6_sound}, @{thm fix4_sound}, @{thm fix4_dec_sound},
-    @{thm enc4_sound}, @{thm round_sig_sound}];
+    @{thm enc4_sound}, @{thm round_sig_sound},
+    @{thm leg_missing}, @{thm circle_missing}, @{thm g_lengths_positive},
+    @{thm cube_volume_nonpositive_iff}, @{thm cube_surface_nonpositive_iff},
+    @{thm square_area_nonpositive_iff}, @{thm square_perimeter_nonpositive_iff},
+    @{thm circle_area_nonpositive_iff}, @{thm rect_area_nonpositive_iff},
+    @{thm box_volume_nonpositive_iff}, @{thm hypotenuse_nonpositive_iff}, @{thm leg_nonpositive_iff},
+    @{thm box_volume_is_area_times_height}, @{thm cube_volume_is_area_times_edge},
+    @{thm cube_surface_is_six_faces}, @{thm rect_area_is_two_triangles},
+    @{thm square_perimeter_is_rect_perimeter}, @{thm angle_sum_step}, @{thm modes_complete}];
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("geostats theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "geostats self test failed";

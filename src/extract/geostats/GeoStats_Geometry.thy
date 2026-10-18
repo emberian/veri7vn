@@ -23,7 +23,7 @@ datatype gkind = GK_circle_area | GK_circumference | GK_sphere_volume | GK_spher
 datatype gneed = GN_radius | GN_radius_height | GN_edge | GN_length_width | GN_height
   | GN_base_height_or_sides | GN_hyp_leg
 
-datatype greason = GR_leg_ge_hyp | GR_triangle_inequality | GR_few_sides
+datatype greason = GR_leg_ge_hyp | GR_triangle_inequality | GR_few_sides | GR_nonpositive_length
 
 text \<open>@{text "G_leg c o"}: hypotenuse @{text c} and the known leg @{text o}.
 @{text "G_tri_area b h"} is the base-and-height reading; the three-sides
@@ -97,14 +97,44 @@ fun gmissing :: "grequest \<Rightarrow> gneed option" where
 | "gmissing (G_leg c a) = (if a = None then Some GN_hyp_leg else None)"
 | "gmissing r = None"
 
+text \<open>The lengths a request carries (the dimensions that are present). A
+length is a distance, so a request with a zero or negative one has no figure.\<close>
+definition olist :: "rat option \<Rightarrow> rat list" where
+  "olist x = (case x of None \<Rightarrow> [] | Some v \<Rightarrow> [v])"
+
+fun glens :: "grequest \<Rightarrow> rat list" where
+  "glens (G_circle_area r) = olist r"
+| "glens (G_circumference r) = olist r"
+| "glens (G_sphere_volume r) = olist r"
+| "glens (G_sphere_surface r) = olist r"
+| "glens (G_cylinder_volume r h) = olist r @ olist h"
+| "glens (G_cylinder_surface r h) = olist r @ olist h"
+| "glens (G_cone_volume r h) = olist r @ olist h"
+| "glens (G_cube_volume s) = olist s"
+| "glens (G_cube_surface s) = olist s"
+| "glens (G_box_volume l w h) = olist l @ olist w @ olist h"
+| "glens (G_rect_area l w) = olist l @ olist w"
+| "glens (G_rect_perimeter l w) = olist l @ olist w"
+| "glens (G_square_area s) = [s]"
+| "glens (G_square_perimeter s) = [s]"
+| "glens (G_tri_area b h) = olist b @ olist h"
+| "glens (G_heron a b c) = [a, b, c]"
+| "glens (G_hypotenuse a b) = [a, b]"
+| "glens (G_leg c a) = c # olist a"
+| "glens (G_angle_sum n) = []"
+
 text \<open>Impossible: a leg as long as the hypotenuse or longer; three sides that
-break the triangle inequality; a polygon with fewer than three sides.\<close>
+break the triangle inequality (which already forces every side positive); a
+polygon with fewer than three sides; any other request with a length that is
+zero or negative. A leg that is not shorter than the hypotenuse is reported as
+that first, so only a shorter, non-positive leg is a non-positive length.\<close>
 fun greason_of :: "grequest \<Rightarrow> greason option" where
   "greason_of (G_heron a b c) =
      (if a + b \<le> c \<or> a + c \<le> b \<or> b + c \<le> a then Some GR_triangle_inequality else None)"
-| "greason_of (G_leg c (Some a)) = (if c \<le> a then Some GR_leg_ge_hyp else None)"
+| "greason_of (G_leg c (Some a)) =
+     (if c \<le> a then Some GR_leg_ge_hyp else if a \<le> 0 then Some GR_nonpositive_length else None)"
 | "greason_of (G_angle_sum n) = (if n < 3 then Some GR_few_sides else None)"
-| "greason_of r = None"
+| "greason_of r = (if \<exists>l\<in>set (glens r). l \<le> 0 then Some GR_nonpositive_length else None)"
 
 definition decline_of :: "grequest \<Rightarrow> gdecline option" where
   "decline_of r = (case gmissing r of Some w \<Rightarrow> Some (GUnderspecified w)
@@ -266,31 +296,69 @@ section \<open>What each kind means\<close>
 
 subsection \<open>Exact kinds\<close>
 
-theorem cube_volume_value: "g_kernel (G_cube_volume (Some s)) = GExact GK_cube_volume (s * s * s)"
-  by (simp add: g_kernel_def decline_of_def g_answer_def)
+theorem cube_volume_value:
+  assumes "0 < s"
+  shows "g_kernel (G_cube_volume (Some s)) = GExact GK_cube_volume (s * s * s)"
+proof -
+  have "\<not> s \<le> 0" using assms by simp
+  then show ?thesis by (simp add: g_kernel_def decline_of_def g_answer_def olist_def)
+qed
 
-theorem cube_surface_value: "g_kernel (G_cube_surface (Some s)) = GExact GK_cube_surface (6 * (s * s))"
-  by (simp add: g_kernel_def decline_of_def g_answer_def)
+theorem cube_surface_value:
+  assumes "0 < s"
+  shows "g_kernel (G_cube_surface (Some s)) = GExact GK_cube_surface (6 * (s * s))"
+proof -
+  have "\<not> s \<le> 0" using assms by simp
+  then show ?thesis by (simp add: g_kernel_def decline_of_def g_answer_def olist_def)
+qed
 
 theorem box_volume_value:
-  "g_kernel (G_box_volume (Some l) (Some w) (Some h)) = GExact GK_box_volume (l * w * h)"
-  by (simp add: g_kernel_def decline_of_def g_answer_def)
+  assumes "0 < l" "0 < w" "0 < h"
+  shows "g_kernel (G_box_volume (Some l) (Some w) (Some h)) = GExact GK_box_volume (l * w * h)"
+proof -
+  have "\<not> l \<le> 0" "\<not> w \<le> 0" "\<not> h \<le> 0" using assms by simp_all
+  then show ?thesis by (simp add: g_kernel_def decline_of_def g_answer_def olist_def)
+qed
 
-theorem rect_area_value: "g_kernel (G_rect_area (Some l) (Some w)) = GExact GK_rect_area (l * w)"
-  by (simp add: g_kernel_def decline_of_def g_answer_def)
+theorem rect_area_value:
+  assumes "0 < l" "0 < w"
+  shows "g_kernel (G_rect_area (Some l) (Some w)) = GExact GK_rect_area (l * w)"
+proof -
+  have "\<not> l \<le> 0" "\<not> w \<le> 0" using assms by simp_all
+  then show ?thesis by (simp add: g_kernel_def decline_of_def g_answer_def olist_def)
+qed
 
 theorem rect_perimeter_value:
-  "g_kernel (G_rect_perimeter (Some l) (Some w)) = GExact GK_rect_perimeter (2 * (l + w))"
-  by (simp add: g_kernel_def decline_of_def g_answer_def)
+  assumes "0 < l" "0 < w"
+  shows "g_kernel (G_rect_perimeter (Some l) (Some w)) = GExact GK_rect_perimeter (2 * (l + w))"
+proof -
+  have "\<not> l \<le> 0" "\<not> w \<le> 0" using assms by simp_all
+  then show ?thesis by (simp add: g_kernel_def decline_of_def g_answer_def olist_def)
+qed
 
-theorem square_area_value: "g_kernel (G_square_area s) = GExact GK_square_area (s * s)"
-  by (simp add: g_kernel_def decline_of_def g_answer_def)
+theorem square_area_value:
+  assumes "0 < s"
+  shows "g_kernel (G_square_area s) = GExact GK_square_area (s * s)"
+proof -
+  have "\<not> s \<le> 0" using assms by simp
+  then show ?thesis by (simp add: g_kernel_def decline_of_def g_answer_def)
+qed
 
-theorem square_perimeter_value: "g_kernel (G_square_perimeter s) = GExact GK_square_perimeter (4 * s)"
-  by (simp add: g_kernel_def decline_of_def g_answer_def)
+theorem square_perimeter_value:
+  assumes "0 < s"
+  shows "g_kernel (G_square_perimeter s) = GExact GK_square_perimeter (4 * s)"
+proof -
+  have "\<not> s \<le> 0" using assms by simp
+  then show ?thesis by (simp add: g_kernel_def decline_of_def g_answer_def)
+qed
 
-theorem tri_area_value: "g_kernel (G_tri_area (Some b) (Some h)) = GExact GK_tri_area (b * h / 2)"
-  by (simp add: g_kernel_def decline_of_def g_answer_def)
+theorem tri_area_value:
+  assumes "0 < b" "0 < h"
+  shows "g_kernel (G_tri_area (Some b) (Some h)) = GExact GK_tri_area (b * h / 2)"
+proof -
+  have "\<not> b \<le> 0" "\<not> h \<le> 0" using assms by simp_all
+  then show ?thesis by (simp add: g_kernel_def decline_of_def g_answer_def olist_def)
+qed
 
 text \<open>A polygon's interior angles add up to @{text "(n - 2) * 180"} degrees:
 the @{text n} straight angles at the vertices less the full turn of the
@@ -501,6 +569,189 @@ theorem circle_missing: "g_kernel (G_circle_area None) = GDecline (GUnderspecifi
   by (simp add: g_kernel_def decline_of_def)
 
 
+subsection \<open>Lengths are positive\<close>
+
+lemma heron_sides_pos:
+  fixes a b c :: rat
+  assumes "\<not> (a + b \<le> c \<or> a + c \<le> b \<or> b + c \<le> a)"
+  shows "0 < a \<and> 0 < b \<and> 0 < c"
+proof -
+  have h1: "\<not> a + b \<le> c" and h2: "\<not> a + c \<le> b" and h3: "\<not> b + c \<le> a" using assms by blast+
+  have "0 < a" using h1 h2 h3 by linarith
+  moreover have "0 < b" using h1 h2 h3 by linarith
+  moreover have "0 < c" using h1 h2 h3 by linarith
+  ultimately show ?thesis by simp
+qed
+
+lemma glens_pos:
+  assumes "gmissing r = None" "greason_of r = None"
+  shows "\<forall>l\<in>set (glens r). 0 < l"
+proof (cases "\<exists>a b c. r = G_heron a b c")
+  case True
+  then obtain a b c where r: "r = G_heron a b c" by blast
+  note a2 = assms(2)[unfolded r]
+  have "\<not> (a + b \<le> c \<or> a + c \<le> b \<or> b + c \<le> a)" using a2 by (auto split: if_splits)
+  from heron_sides_pos[OF this] show ?thesis using r by simp
+next
+  case F1: False
+  show ?thesis
+  proof (cases "\<exists>c ao. r = G_leg c ao")
+    case True
+    then obtain c ao where r: "r = G_leg c ao" by blast
+    show ?thesis
+    proof (cases ao)
+      case None
+      then show ?thesis using assms(1) r by simp
+    next
+      case (Some a)
+      note a2 = assms(2)[unfolded r Some]
+      have "\<not> c \<le> a" "\<not> a \<le> 0" using a2 by (auto split: if_splits)
+      then show ?thesis using r Some by (simp add: olist_def)
+    qed
+  next
+    case F2: False
+    show ?thesis
+    proof (cases "\<exists>n. r = G_angle_sum n")
+      case True
+      then show ?thesis by auto
+    next
+      case F3: False
+      have gen: "greason_of r = (if \<exists>l\<in>set (glens r). l \<le> 0 then Some GR_nonpositive_length else None)"
+        using F1 F2 F3 by (cases r) simp_all
+      then have "\<not> (\<exists>l\<in>set (glens r). l \<le> 0)" using assms(2) by (simp split: if_splits)
+      then show ?thesis by (simp add: not_le)
+    qed
+  qed
+qed
+
+text \<open>Whenever the kernel does not decline, every length the request carries
+is positive: a negative edge, radius or side never gets a figure.\<close>
+theorem g_lengths_positive:
+  assumes "\<forall>w. g_kernel r \<noteq> GDecline w"
+  shows "\<forall>l\<in>set (glens r). 0 < l"
+proof -
+  have "decline_of r = None"
+  proof (cases "decline_of r")
+    case None
+    then show ?thesis by simp
+  next
+    case (Some w)
+    then have "g_kernel r = GDecline w" by (simp add: g_kernel_def)
+    then show ?thesis using assms by blast
+  qed
+  then have "gmissing r = None" "greason_of r = None" using decline_none by blast+
+  then show ?thesis by (rule glens_pos)
+qed
+
+text \<open>The decline is exact, written as inequalities on the dimensions and not
+through @{const glens}: a request is declined for a non-positive length iff
+one of its dimensions is zero or negative.\<close>
+theorem cube_volume_nonpositive_iff:
+  "g_kernel (G_cube_volume (Some s)) = GDecline (GImpossible GR_nonpositive_length) \<longleftrightarrow> s \<le> 0"
+  by (auto simp: g_kernel_def decline_of_def olist_def dest: g_answer_decline)
+
+theorem cube_surface_nonpositive_iff:
+  "g_kernel (G_cube_surface (Some s)) = GDecline (GImpossible GR_nonpositive_length) \<longleftrightarrow> s \<le> 0"
+  by (auto simp: g_kernel_def decline_of_def olist_def dest: g_answer_decline)
+
+theorem square_area_nonpositive_iff:
+  "g_kernel (G_square_area s) = GDecline (GImpossible GR_nonpositive_length) \<longleftrightarrow> s \<le> 0"
+  by (auto simp: g_kernel_def decline_of_def dest: g_answer_decline)
+
+theorem square_perimeter_nonpositive_iff:
+  "g_kernel (G_square_perimeter s) = GDecline (GImpossible GR_nonpositive_length) \<longleftrightarrow> s \<le> 0"
+  by (auto simp: g_kernel_def decline_of_def dest: g_answer_decline)
+
+theorem circle_area_nonpositive_iff:
+  "g_kernel (G_circle_area (Some r)) = GDecline (GImpossible GR_nonpositive_length) \<longleftrightarrow> r \<le> 0"
+  by (auto simp: g_kernel_def decline_of_def olist_def dest: g_answer_decline)
+
+theorem rect_area_nonpositive_iff:
+  "g_kernel (G_rect_area (Some l) (Some w)) = GDecline (GImpossible GR_nonpositive_length) \<longleftrightarrow>
+     l \<le> 0 \<or> w \<le> 0"
+  by (auto simp: g_kernel_def decline_of_def olist_def dest: g_answer_decline)
+
+theorem box_volume_nonpositive_iff:
+  "g_kernel (G_box_volume (Some l) (Some w) (Some h)) = GDecline (GImpossible GR_nonpositive_length) \<longleftrightarrow>
+     l \<le> 0 \<or> w \<le> 0 \<or> h \<le> 0"
+  by (auto simp: g_kernel_def decline_of_def olist_def dest: g_answer_decline)
+
+theorem hypotenuse_nonpositive_iff:
+  "g_kernel (G_hypotenuse a b) = GDecline (GImpossible GR_nonpositive_length) \<longleftrightarrow> a \<le> 0 \<or> b \<le> 0"
+  by (auto simp: g_kernel_def decline_of_def dest: g_answer_decline)
+
+theorem leg_nonpositive_iff:
+  "g_kernel (G_leg c (Some a)) = GDecline (GImpossible GR_nonpositive_length) \<longleftrightarrow> a < c \<and> a \<le> 0"
+  by (auto simp: g_kernel_def decline_of_def dest: g_answer_decline)
+
+subsection \<open>Laws between kinds\<close>
+
+text \<open>Kinds the kernel answers separately must agree with one another; a kernel
+with a wrong factor in one of them fails the corresponding law.\<close>
+
+theorem box_volume_is_area_times_height:
+  assumes "g_kernel (G_box_volume (Some l) (Some w) (Some h)) = GExact k v"
+    and "g_kernel (G_rect_area (Some l) (Some w)) = GExact k' a"
+  shows "v = a * h"
+proof -
+  have e1: "l * w * h = v" and e2: "l * w = a"
+    using g_exact_sound[OF assms(1)] g_exact_sound[OF assms(2)] by simp_all
+  show ?thesis by (simp add: e1[symmetric] e2[symmetric])
+qed
+
+theorem cube_volume_is_area_times_edge:
+  assumes "g_kernel (G_cube_volume (Some s)) = GExact k v"
+    and "g_kernel (G_square_area s) = GExact k' a"
+  shows "v = a * s"
+proof -
+  have e1: "s * s * s = v" and e2: "s * s = a"
+    using g_exact_sound[OF assms(1)] g_exact_sound[OF assms(2)] by simp_all
+  show ?thesis by (simp add: e1[symmetric] e2[symmetric])
+qed
+
+theorem cube_surface_is_six_faces:
+  assumes "g_kernel (G_cube_surface (Some s)) = GExact k c"
+    and "g_kernel (G_square_area s) = GExact k' a"
+  shows "c = 6 * a"
+proof -
+  have e1: "6 * (s * s) = c" and e2: "s * s = a"
+    using g_exact_sound[OF assms(1)] g_exact_sound[OF assms(2)] by simp_all
+  show ?thesis by (simp add: e1[symmetric] e2[symmetric])
+qed
+
+theorem rect_area_is_two_triangles:
+  assumes "g_kernel (G_rect_area (Some b) (Some h)) = GExact k a"
+    and "g_kernel (G_tri_area (Some b) (Some h)) = GExact k' t"
+  shows "a = 2 * t"
+proof -
+  have e1: "b * h = a" and e2: "b * h / 2 = t"
+    using g_exact_sound[OF assms(1)] g_exact_sound[OF assms(2)] by simp_all
+  show ?thesis by (simp add: e1[symmetric] e2[symmetric])
+qed
+
+theorem square_perimeter_is_rect_perimeter:
+  assumes "g_kernel (G_rect_perimeter (Some s) (Some s)) = GExact k p"
+    and "g_kernel (G_square_perimeter s) = GExact k' q"
+  shows "p = q"
+proof -
+  have e1: "2 * (s + s) = p" and e2: "4 * s = q"
+    using g_exact_sound[OF assms(1)] g_exact_sound[OF assms(2)] by simp_all
+  show ?thesis by (simp add: e1[symmetric] e2[symmetric])
+qed
+
+text \<open>One more side adds a straight angle: 180 degrees.\<close>
+theorem angle_sum_step:
+  assumes "g_kernel (G_angle_sum n) = GCount k a" and "g_kernel (G_angle_sum (n + 1)) = GCount k' b"
+  shows "b = a + 180"
+proof -
+  have "greason_of (G_angle_sum n) = None" using g_count_value[OF assms(1)] by simp
+  then have n3: "3 \<le> n" by (simp split: if_splits)
+  have ea: "(n - 2) * 180 = a" and eb: "(n + 1 - 2) * 180 = b"
+    using g_count_value[OF assms(1)] g_count_value[OF assms(2)] by simp_all
+  have "n + 1 - 2 = (n - 2) + 1" using n3 by arith
+  then show ?thesis using ea eb by (simp add: add_mult_distrib)
+qed
+
 section \<open>Response text (ASCII)\<close>
 
 definition g_dec :: "rat \<Rightarrow> (int \<times> int) option" where
@@ -569,7 +820,8 @@ definition greason_text :: "grequest \<Rightarrow> greason \<Rightarrow> String.
            G_heron a b c \<Rightarrow> STR ''Sides '' + show6 a + STR '', '' + show6 b + STR '' and '' + show6 c
              + STR '' break the triangle inequality, so that triangle doesn'' + apos + STR ''t exist.''
          | _ \<Rightarrow> STR ''Those sides break the triangle inequality.'')
-     | GR_few_sides \<Rightarrow> STR ''A polygon needs at least 3 sides.'')"
+     | GR_few_sides \<Rightarrow> STR ''A polygon needs at least 3 sides.''
+     | GR_nonpositive_length \<Rightarrow> STR ''A length must be positive, so I won'' + apos + STR ''t compute that.'')"
 
 definition gdecline_name :: "gdecline \<Rightarrow> String.literal" where
   "gdecline_name w = (case w of GUnderspecified _ \<Rightarrow> STR ''underspecified'' | GImpossible _ \<Rightarrow> STR ''impossible''
