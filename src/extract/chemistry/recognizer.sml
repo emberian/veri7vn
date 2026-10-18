@@ -153,10 +153,34 @@ struct
     ("\\b(?:chemical )?symbol\\b", Q.P_symbol)]
 
   val FORMULA = "\\b((?:[A-Z][a-z]?\\d*|\\((?:[A-Z][a-z]?\\d*)+\\)\\d*)+(?:(?:[.*]|\194\183)\\d*(?:[A-Z][a-z]?\\d*)+)?)\\b"
+  (* the same pattern without its leading \b, for Regex.matchHere at a "(" that begins a token *)
+  val FORMULA_NB = String.extract (FORMULA, 2, NONE)
   val G2MOL = "\\b(\\d+(?:\\.\\d+)?)\\s*(?:g|grams?)\\s+of\\s+(\\S+)"
   val MOL2G = "\\b(\\d+(?:\\.\\d+)?)\\s*(?:mol|moles?)\\s+of\\s+(\\S+)"
   val PCT = "\\b(?:percent|percentage|%)\\s+(?:by mass\\s+)?(?:of\\s+)?(\\w+)\\s+in\\s+(\\S+)"
+  (* B-chemistry step 2: "percentage by mass of F is E" (the generator's heldout phrasing; the organ's PCT wants "of E in F") *)
+  val PCT2 = "\\b(?:percent|percentage)\\s+by\\s+(?:mass|weight)\\s+of\\s+(\\S+)\\s+is\\s+(\\w+)"
   val MOLAR = "\\bmolar mass\\b|\\bmolecular (?:mass|weight)\\b|\\bformula (?:mass|weight)\\b|\\bmass of one mole\\b"
+
+  (* B-chemistry step 2. The organs' FORMULA starts with \b, which does not hold between a space and "(", so a token such as
+     "(NH4)2SO4" was read from its "NH4". Here a match that starts right after a "(" opening a token is re-read from that
+     "(" when the pattern still matches there and reaches at least as far; matches inside an extended one are dropped.
+     This is a deliberate divergence from both organs, whose reading of these tokens is wrong. *)
+  fun formulaMatches t =
+    let
+      fun ext (m : Regex.match) =
+        let val st = #start m in
+          if st >= 1 andalso String.sub (t, st - 1) = #"(" andalso (st = 1 orelse Char.isSpace (String.sub (t, st - 2)))
+          then (case Regex.matchHere (rcs FORMULA_NB) t (st - 1) of
+                  SOME m2 => if #stop m2 >= #stop m then m2 else m
+                | NONE => m)
+          else m
+        end
+      fun go _ [] = []
+        | go lastStop (m :: ms) =
+            let val m' = ext m
+            in if #start m' < lastStop then go lastStop ms else m' :: go (#stop m') ms end
+    in go 0 (Regex.findall (rcs FORMULA) t) end
 
   (* the organ's first formula-shaped token; v1: ChemistryOrgan._formula_in *)
   fun formulaV1 t =
@@ -165,7 +189,7 @@ struct
         | go (m :: ms) =
             let val f = Regex.whole t m
             in if hasCS "[a-z]\\d|\\d|\\(|[A-Z][a-z]?[A-Z]" f orelse Q.is_symbol f then SOME f else go ms end
-    in go (Regex.findall (rcs FORMULA) t) end
+    in go (formulaMatches t) end
 
   (* formula_reader_v2.formula_in *)
   fun formulaV2 t =
@@ -186,7 +210,7 @@ struct
                   else go ms lone
                 end
             end
-    in go (Regex.findall (rcs FORMULA) t) NONE end
+    in go (formulaMatches t) NONE end
 
   fun nameSym w = Option.map #2 (List.find (fn (n, _) => n = w) Q.elem_names)
 
@@ -227,6 +251,23 @@ struct
                     let val r = mk (Q.Percent (fchars s, fchars f))
                     in if Q.answers r then SOME r else NONE end
             end
+      fun pct2 () =
+        case search PCT2 low of
+          NONE => NONE
+        | SOME m =>
+            let
+              val elw = valOf (grp t m 2)
+              val f = rstrip "?.," (valOf (grp t m 1))
+              val sym = case nameSym (lower elw) of SOME s => SOME s | NONE => if Q.is_symbol elw then SOME elw else NONE
+            in
+              case sym of
+                NONE => NONE
+              | SOME s =>
+                  if fclass f <> 0 then NONE
+                  else
+                    let val r = mk (Q.Percent (fchars s, fchars f))
+                    in if Q.answers r then SOME r else NONE end
+            end
       fun molar () =
         if not (has MOLAR low) then NONE
         else case reader t of
@@ -256,7 +297,7 @@ struct
       case first [(G2MOL, Q.GramsToMoles), (MOL2G, Q.MolesToGrams)] of
         SOME r => SOME r
       | NONE =>
-          (case pct () of
+          (case (case pct () of SOME r => SOME r | NONE => pct2 ()) of
              SOME r => SOME r
            | NONE =>
                (case molar () of
@@ -332,7 +373,10 @@ struct
       if t = "" orelse Narrow.narrative t then NONE
       else
         let val low = lower t in
-          if not (has "\\bhalf[- ]?li(?:fe|ves)\\b|\\bdecay\\w*\\b|\\bradioactive\\b|\\bisotope\\b|\\bremain" low) then NONE
+          (* B-chemistry step 2: the organ's gate also needs one of these words; "how many grams are left after T" with an
+             amount in the question is a remaining-amount question about the isotope it names (shipped heldout phrasing) *)
+          if not (has "\\bhalf[- ]?li(?:fe|ves)\\b|\\bdecay\\w*\\b|\\bradioactive\\b|\\bisotope\\b|\\bremain" low
+                  orelse (has "\\b(?:left|still)\\b" low andalso has AMOUNT low)) then NONE
           else
             case halfLife t low of
               NONE => NONE
