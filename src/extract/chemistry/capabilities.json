@@ -20,18 +20,20 @@
         "(?=[\\s\\S]*->)(?=[\\s\\S]*\\b(?:yield|leftover|remaining|produced|form|remain)\\b)(?=[\\s\\S]*\\b(?:mol|moles|mmol|millimoles)\\b)"
       ],
       "evidence": {
-        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding. For an explicit reaction, the kernel checks positive coefficients and conservation of every element, then computes the greatest feasible extent, an exhausted reactant, and exact theoretical yield or leftovers.",
+        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding. For an explicit reaction, the kernel checks positive coefficients and conservation of every element, then computes the greatest feasible extent, an exhausted reactant, and exact theoretical yield or leftovers. Repeated identical species names aggregate, equal left/right coefficients cancel, and limiting extent uses only net consumables. Net product formation and final inventory including any initial product are distinct outputs. Mass units are typed as grams, milligrams, kilograms, or micrograms; exact gram scales are applied inside the kernel. Requested output units and inverse-decay ratios retain their original unit constructors. Forward and inverse decay preserve physical mass under these scales.",
         "assumptions": [
           "Percent-composition requests denote one molecular formula, not a solution, mixture, alloy or sample.",
           "Embedded atomic masses are the supplied PubChem decimals, not independently established physical facts.",
           "Reaction calculations model complete conversion of the limiting reactant under the supplied stoichiometry; they do not establish reaction occurrence, equilibrium, kinetics, or measured yield.",
-          "Every reactant has one explicitly supplied mole amount, and the requested species and output unit were assigned to the intended typed query.",
-          "This initial consumer withholds duplicate element-count compositions or compositions present on both sides; catalysts, spectators and ambiguous isomers require a separate species-identity model."
+          "Species identity is the exact formula spelling after supported syntactic normalization; distinct names with equal element counts are withheld as unresolved aliases/isomers.",
+          "Every original reactant has one explicitly supplied initial mole amount; product-only species may have an initial amount or default to zero. Repeated terms share the same named inventory.",
+          "A single requested mass unit belongs to the supported gram scale family; other units or multiple requested units are withheld."
         ],
         "untrusted": [
           "Natural-language recognition and selection of a formula from the question.",
           "The original periodic-table source and its import.",
-          "Reaction-clause recognition, coefficient and reactant-amount binding, formula normalization, and requested species/unit selection."
+          "Reaction-clause recognition, coefficient and reactant-amount binding, formula normalization, and requested species/unit selection.",
+          "Exact unit alias recognition and assignment of initial amount, final amount, and requested output unit roles."
         ]
       }
     },
@@ -53,18 +55,20 @@
         "(?=[\\s\\S]*->)(?=[\\s\\S]*\\b(?:yield|leftover|remaining|produced|form|remain)\\b)(?=[\\s\\S]*\\b(?:mol|moles|mmol|millimoles)\\b)"
       ],
       "evidence": {
-        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding. For an explicit reaction, the kernel checks positive coefficients and conservation of every element, then computes the greatest feasible extent, an exhausted reactant, and exact theoretical yield or leftovers.",
+        "computation": "Exact rational elemental mass shares computed from parsed formula counts and the embedded periodic table; a successful composition has nonzero total mass and shares summing to 100 before display rounding. For an explicit reaction, the kernel checks positive coefficients and conservation of every element, then computes the greatest feasible extent, an exhausted reactant, and exact theoretical yield or leftovers. Repeated identical species names aggregate, equal left/right coefficients cancel, and limiting extent uses only net consumables. Net product formation and final inventory including any initial product are distinct outputs. Mass units are typed as grams, milligrams, kilograms, or micrograms; exact gram scales are applied inside the kernel. Requested output units and inverse-decay ratios retain their original unit constructors. Forward and inverse decay preserve physical mass under these scales.",
         "assumptions": [
           "Percent-composition requests denote one molecular formula, not a solution, mixture, alloy or sample.",
           "Embedded atomic masses are the supplied PubChem decimals, not independently established physical facts.",
           "Reaction calculations model complete conversion of the limiting reactant under the supplied stoichiometry; they do not establish reaction occurrence, equilibrium, kinetics, or measured yield.",
-          "Every reactant has one explicitly supplied mole amount, and the requested species and output unit were assigned to the intended typed query.",
-          "This initial consumer withholds duplicate element-count compositions or compositions present on both sides; catalysts, spectators and ambiguous isomers require a separate species-identity model."
+          "Species identity is the exact formula spelling after supported syntactic normalization; distinct names with equal element counts are withheld as unresolved aliases/isomers.",
+          "Every original reactant has one explicitly supplied initial mole amount; product-only species may have an initial amount or default to zero. Repeated terms share the same named inventory.",
+          "A single requested mass unit belongs to the supported gram scale family; other units or multiple requested units are withheld."
         ],
         "untrusted": [
           "Natural-language recognition and selection of a formula from the question.",
           "The original periodic-table source and its import.",
-          "Reaction-clause recognition, coefficient and reactant-amount binding, formula normalization, and requested species/unit selection."
+          "Reaction-clause recognition, coefficient and reactant-amount binding, formula normalization, and requested species/unit selection.",
+          "Exact unit alias recognition and assignment of initial amount, final amount, and requested output unit roles."
         ]
       }
     },
@@ -78,13 +82,18 @@
         ]
       },
       "evidence": {
-        "computation": "Exact rational solution arithmetic: C2 V2 = C1 V1; added volume plus stock volume equals final volume; n = C V. Concentrations, amounts and volumes obey the explicit kernel guards.",
+        "computation": "Exact rational solution arithmetic: C2 V2 = C1 V1; added volume plus stock volume equals final volume; n = C V. Concentrations, amounts and volumes obey the explicit kernel guards. Exact typed mass-unit scales convert grams, milligrams, kilograms, and micrograms inside the kernel for solution preparation and molarity. Solution preparation answers are expressed in the requested supported mass unit. Directed solution requests retain stock and target concentration roles; the positive stock uniquely determines the required volume by solute conservation. Amounts and concentrations may be zero where defined, but concentration denominators must be positive. Requested litre/mole/molar output prefixes are applied by exact kernel scales. Water-addition requests also retain the stated stock concentration and reject negative values.",
         "assumptions": [
           "Requested volumes use the ideal additive-volume dilution model.",
-          "Natural-language numbers and units were mapped to the intended typed request."
+          "Natural-language numbers and units were mapped to the intended typed request.",
+          "A single requested mass unit belongs to the supported gram scale family; other units or multiple requested units are withheld.",
+          "Dilution adds solute-free solvent with additive volumes; no chemical reaction or volume contraction is modelled. Zero stock and zero target concentration do not determine a unique stock volume.",
+          "Stock and target describe one unchanged solute; different explicit formula spellings or named solutes are withheld rather than treated as interchangeable."
         ],
         "untrusted": [
-          "Natural-language recognition, unit extraction and choice of requested quantity."
+          "Natural-language recognition, unit extraction and choice of requested quantity.",
+          "Exact mass-unit alias recognition and assignment of mass, concentration, volume, and output-unit roles.",
+          "The reader binds explicit stock/target roles, rejects compound rates, and identifies requested output units. Mass-defined concentration currently supports mol/L output only."
         ]
       }
     },
@@ -98,13 +107,18 @@
         ]
       },
       "evidence": {
-        "computation": "Exact rational solution arithmetic: C2 V2 = C1 V1; added volume plus stock volume equals final volume; n = C V. Concentrations, amounts and volumes obey the explicit kernel guards.",
+        "computation": "Exact rational solution arithmetic: C2 V2 = C1 V1; added volume plus stock volume equals final volume; n = C V. Concentrations, amounts and volumes obey the explicit kernel guards. Exact typed mass-unit scales convert grams, milligrams, kilograms, and micrograms inside the kernel for solution preparation and molarity. Solution preparation answers are expressed in the requested supported mass unit. Directed solution requests retain stock and target concentration roles; the positive stock uniquely determines the required volume by solute conservation. Amounts and concentrations may be zero where defined, but concentration denominators must be positive. Requested litre/mole/molar output prefixes are applied by exact kernel scales. Water-addition requests also retain the stated stock concentration and reject negative values.",
         "assumptions": [
           "Requested volumes use the ideal additive-volume dilution model.",
-          "Natural-language numbers and units were mapped to the intended typed request."
+          "Natural-language numbers and units were mapped to the intended typed request.",
+          "A single requested mass unit belongs to the supported gram scale family; other units or multiple requested units are withheld.",
+          "Dilution adds solute-free solvent with additive volumes; no chemical reaction or volume contraction is modelled. Zero stock and zero target concentration do not determine a unique stock volume.",
+          "Stock and target describe one unchanged solute; different explicit formula spellings or named solutes are withheld rather than treated as interchangeable."
         ],
         "untrusted": [
-          "Natural-language recognition, unit extraction and choice of requested quantity."
+          "Natural-language recognition, unit extraction and choice of requested quantity.",
+          "Exact mass-unit alias recognition and assignment of mass, concentration, volume, and output-unit roles.",
+          "The reader binds explicit stock/target roles, rejects compound rates, and identifies requested output units. Mass-defined concentration currently supports mol/L output only."
         ]
       }
     },
@@ -118,13 +132,15 @@
         "(?=.*\\b(?:carbon[- ]?14|c[- ]?14|14c|radiocarbon|uranium[- ]?(?:238|235)|u[- ]?(?:238|235)|iodine[- ]?131|i[- ]?131|cobalt[- ]?60|co[- ]?60|c(?:a)?esium[- ]?137|cs[- ]?137|strontium[- ]?90|sr[- ]?90|radium[- ]?226|ra[- ]?226|plutonium[- ]?239|pu[- ]?239|tritium|hydrogen[- ]?3|h[- ]?3|radon(?:[- ]?222)?|rn[- ]?222|potassium[- ]?40|k[- ]?40|phosphorus[- ]?32|p[- ]?32|technetium[- ]?99m|tc[- ]?99m|fluorine[- ]?18|f[- ]?18|americium[- ]?241|am[- ]?241)\\b)(?=.*\\b(?:remain\\w*|left|still|fraction|proportion|percentage?|half[- ]?lives)\\b)"
       ],
       "evidence": {
-        "computation": "Radioactive-decay amounts and fractions use the typed exponential decay law and checked numeric enclosure; missing required quantities produce a decline. The public typed interface rejects negative elapsed times and amounts.",
+        "computation": "Radioactive-decay amounts and fractions use the typed exponential decay law and checked numeric enclosure; missing required quantities produce a decline. The public typed interface rejects negative elapsed times and amounts. Mass units are typed as grams, milligrams, kilograms, or micrograms; exact gram scales are applied inside the kernel. Requested output units and inverse-decay ratios retain their original unit constructors. Forward and inverse decay preserve physical mass under these scales.",
         "assumptions": [
-          "The named isotope or stated half-life identifies the intended single-exponential model."
+          "The named isotope or stated half-life identifies the intended single-exponential model.",
+          "A single requested mass unit belongs to the supported gram scale family; other units or multiple requested units are withheld."
         ],
         "untrusted": [
           "Natural-language intent, isotope-name recognition, unit and quantity-role extraction.",
-          "The supplied isotope half-life table."
+          "The supplied isotope half-life table.",
+          "Exact unit alias recognition and assignment of initial amount, final amount, and requested output unit roles."
         ]
       }
     }

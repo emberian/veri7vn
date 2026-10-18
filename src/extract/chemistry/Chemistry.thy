@@ -305,7 +305,7 @@ datatype ckind = CK_molar_mass | CK_g2mol | CK_mol2g | CK_percent | CK_wv_mass |
 
 datatype cdecl = UnknownSym string string | BadFormula string | ZeroMass string
   | NoValue eprop string | UnknownWord String.literal | NeedFormulaDecl
-  | NonPositiveConc | NotInFormula string string | ElementAbsent string | NotDilution
+  | NonPositiveConc | NegativeQuantity | NonPositiveVolume | NotInFormula string string | ElementAbsent string | NotDilution
 
 datatype cout = CExact ckind rat | CLookup eprop string bool | CDecline cdecl
   | CComp string counts rat
@@ -362,15 +362,16 @@ fun ckernel :: "creq \<Rightarrow> cout" where
 | "ckernel (PercentComp f) = with_mass f (\<lambda>m cs.
      if m = 0 then CDecline (ZeroMass f) else CComp f cs m)"
 | "ckernel (DilutedConc c v1 v2) =
-     (if c \<le> 0 then CDecline NonPositiveConc
-      else if 0 < v1 \<and> v1 \<le> v2 then CExact CK_diluted_conc (c * v1 / v2)
+     (if c < 0 then CDecline NegativeQuantity
+      else if v2 \<le> 0 then CDecline NonPositiveVolume
+      else if 0 \<le> v1 \<and> v1 \<le> v2 then CExact CK_diluted_conc (c * v1 / v2)
       else CDecline NotDilution)"
 | "ckernel (WaterToAdd v1 v2) =
-     (if 0 < v1 \<and> v1 \<le> v2 then CExact CK_water_add ((v2 - v1) * 1000) else CDecline NotDilution)"
+     (if 0 \<le> v1 \<and> v1 \<le> v2 then CExact CK_water_add ((v2 - v1) * 1000) else CDecline NotDilution)"
 | "ckernel (MolesInSol c v) =
-     (if c \<le> 0 \<or> v \<le> 0 then CDecline NonPositiveConc else CExact CK_moles_sol (c * v))"
+     (if c < 0 \<or> v < 0 then CDecline NegativeQuantity else CExact CK_moles_sol (c * v))"
 | "ckernel (MolarityMoles n v) =
-     (if n \<le> 0 \<or> v \<le> 0 then CDecline NonPositiveConc else CExact CK_molarity_mol (n / v))"
+     (if n < 0 then CDecline NegativeQuantity else if v \<le> 0 then CDecline NonPositiveVolume else CExact CK_molarity_mol (n / v))"
 
 section \<open>What each kind means\<close>
 
@@ -602,32 +603,35 @@ qed
 
 theorem diluted_conc_value:
   assumes "ckernel (DilutedConc c v1 v2) = CExact k c2"
-  shows "k = CK_diluted_conc \<and> 0 < c \<and> 0 < v1 \<and> v1 \<le> v2 \<and> c2 * v2 = c * v1 \<and> c2 \<le> c"
+  shows "k = CK_diluted_conc \<and> 0 \<le> c \<and> 0 \<le> v1 \<and> 0 < v2 \<and> v1 \<le> v2 \<and>
+    c2 * v2 = c * v1 \<and> c2 \<le> c"
 proof -
-  have h: "0 < c" "0 < v1" "v1 \<le> v2" and v: "c2 = c * v1 / v2" and k: "k = CK_diluted_conc"
+  have h: "0 \<le> c" "0 \<le> v1" "0 < v2" "v1 \<le> v2"
+    and v: "c2 = c * v1 / v2" and k: "k = CK_diluted_conc"
     using assms by (auto split: if_splits)
-  have v2: "0 < v2" using h by linarith
-  have "c2 * v2 = c * v1" using v v2 by (simp add: field_simps)
+  have "c2 * v2 = c * v1" using v h by (simp add: field_simps)
   moreover have "c2 \<le> c"
   proof -
     have a: "c * v1 \<le> c * v2" by (rule mult_left_mono) (use h in simp_all)
-    show ?thesis using v v2 a by (simp add: divide_le_eq)
+    show ?thesis using v h a by (simp add: divide_le_eq)
   qed
   ultimately show ?thesis using h k by blast
 qed
 
 theorem diluted_conc_declines:
   "ckernel (DilutedConc c v1 v2) = CDecline d \<longleftrightarrow>
-     (c \<le> 0 \<and> d = NonPositiveConc) \<or> (0 < c \<and> \<not> (0 < v1 \<and> v1 \<le> v2) \<and> d = NotDilution)"
+     (c < 0 \<and> d = NegativeQuantity) \<or>
+     (0 \<le> c \<and> v2 \<le> 0 \<and> d = NonPositiveVolume) \<or>
+     (0 \<le> c \<and> 0 < v2 \<and> \<not> (0 \<le> v1 \<and> v1 \<le> v2) \<and> d = NotDilution)"
   by (auto split: if_splits)
 
 theorem water_add_value:
   assumes "ckernel (WaterToAdd v1 v2) = CExact k w"
-  shows "k = CK_water_add \<and> 0 < v1 \<and> v1 \<le> v2 \<and> w / 1000 + v1 = v2"
+  shows "k = CK_water_add \<and> 0 \<le> v1 \<and> v1 \<le> v2 \<and> w / 1000 + v1 = v2"
   using assms by (auto split: if_splits)
 
 theorem water_add_declines:
-  "ckernel (WaterToAdd v1 v2) = CDecline d \<longleftrightarrow> \<not> (0 < v1 \<and> v1 \<le> v2) \<and> d = NotDilution"
+  "ckernel (WaterToAdd v1 v2) = CDecline d \<longleftrightarrow> \<not> (0 \<le> v1 \<and> v1 \<le> v2) \<and> d = NotDilution"
   by (auto split: if_splits)
 
 text \<open>Adding the solvent the kernel states to the stock gives the final volume,
@@ -643,33 +647,44 @@ qed
 
 theorem moles_sol_value:
   assumes "ckernel (MolesInSol c v) = CExact k n"
-  shows "k = CK_moles_sol \<and> 0 < c \<and> 0 < v \<and> n = c * v \<and> n / v = c"
+  shows "k = CK_moles_sol \<and> 0 \<le> c \<and> 0 \<le> v \<and> n = c * v \<and> (0 < v \<longrightarrow> n / v = c)"
   using assms by (auto split: if_splits)
 
 theorem molarity_moles_value:
   assumes "ckernel (MolarityMoles n v) = CExact k c"
-  shows "k = CK_molarity_mol \<and> 0 < n \<and> 0 < v \<and> c * v = n"
+  shows "k = CK_molarity_mol \<and> 0 \<le> n \<and> 0 < v \<and> c * v = n"
   using assms by (auto split: if_splits)
 
 theorem molarity_moles_inverse:
   assumes "ckernel (MolarityMoles n v) = CExact k c"
   shows "ckernel (MolesInSol c v) = CExact CK_moles_sol n"
 proof -
-  have h: "0 < n" "0 < v" and e: "c = n / v" using assms by (auto split: if_splits)
-  have pos: "0 < n / v" using h by (rule divide_pos_pos)
-  have c0: "0 < c" using pos e by simp
-  have cond: "\<not> (c \<le> 0 \<or> v \<le> 0)" using c0 h by linarith
+  have h: "0 \<le> n" "0 < v" and e: "c = n / v" using assms by (auto split: if_splits)
+  have c0: "0 \<le> c" using h e by (simp add: divide_nonneg_pos)
   have cv: "c * v = n" using e h by simp
-  show ?thesis using cond cv by simp
+  show ?thesis using c0 h cv by simp
 qed
 
 theorem moles_sol_declines:
-  "ckernel (MolesInSol c v) = CDecline d \<longleftrightarrow> (c \<le> 0 \<or> v \<le> 0) \<and> d = NonPositiveConc"
+  "ckernel (MolesInSol c v) = CDecline d \<longleftrightarrow> (c < 0 \<or> v < 0) \<and> d = NegativeQuantity"
   by (auto split: if_splits)
 
 theorem molarity_moles_declines:
-  "ckernel (MolarityMoles n v) = CDecline d \<longleftrightarrow> (n \<le> 0 \<or> v \<le> 0) \<and> d = NonPositiveConc"
+  "ckernel (MolarityMoles n v) = CDecline d \<longleftrightarrow>
+    (n < 0 \<and> d = NegativeQuantity) \<or> (0 \<le> n \<and> v \<le> 0 \<and> d = NonPositiveVolume)"
   by (auto split: if_splits)
+
+theorem zero_volume_has_zero_moles:
+  "0 \<le> c \<Longrightarrow> ckernel (MolesInSol c 0) = CExact CK_moles_sol 0"
+  by simp
+
+theorem zero_amount_has_zero_molarity:
+  "0 < v \<Longrightarrow> ckernel (MolarityMoles 0 v) = CExact CK_molarity_mol 0"
+  by simp
+
+theorem zero_stock_dilutes_to_zero:
+  "0 \<le> c \<Longrightarrow> 0 < v \<Longrightarrow> ckernel (DilutedConc c 0 v) = CExact CK_diluted_conc 0"
+  by simp
 
 section \<open>Response text (ASCII)\<close>
 
@@ -793,6 +808,8 @@ fun cdecl_name :: "cdecl \<Rightarrow> String.literal" where
 | "cdecl_name (UnknownWord _) = STR ''unknown''"
 | "cdecl_name NeedFormulaDecl = STR ''underspecified''"
 | "cdecl_name NonPositiveConc = STR ''impossible''"
+| "cdecl_name NegativeQuantity = STR ''impossible''"
+| "cdecl_name NonPositiveVolume = STR ''impossible''"
 | "cdecl_name (NotInFormula _ _) = STR ''absent''"
 | "cdecl_name (ElementAbsent _) = STR ''absent''"
 | "cdecl_name NotDilution = STR ''impossible''"
@@ -807,10 +824,12 @@ fun cdecl_text :: "cdecl \<Rightarrow> String.literal" where
 | "cdecl_text (UnknownWord w) = STR ''There'' + apos + STR ''s no element called '' + w
      + STR '' in PubChem'' + apos + STR ''s periodic table.''"
 | "cdecl_text NeedFormulaDecl = STR ''I need the compound'' + apos + STR ''s formula (e.g. NaCl, CuSO4.5H2O) to work that out; I won'' + apos + STR ''t assume it.''"
-| "cdecl_text NonPositiveConc = STR ''Concentrations must be positive.''"
+| "cdecl_text NonPositiveConc = STR ''A stock concentration must be positive to determine the dilution volume.''"
+| "cdecl_text NegativeQuantity = STR ''Amounts, concentrations and volumes must be nonnegative.''"
+| "cdecl_text NonPositiveVolume = STR ''Concentration requires a positive solution volume.''"
 | "cdecl_text (NotInFormula s f) = sl s + STR '' is not in '' + sl f + STR ''.''"
 | "cdecl_text (ElementAbsent s) = STR ''No element '' + sl s + STR ''.''"
-| "cdecl_text NotDilution = STR ''A dilution needs a positive stock volume that does not exceed the final volume.''"
+| "cdecl_text NotDilution = STR ''Stock volume must be nonnegative and cannot exceed the final volume.''"
 
 definition reply_c :: "creq \<Rightarrow> reply" where
   "reply_c r = (case ckernel r of

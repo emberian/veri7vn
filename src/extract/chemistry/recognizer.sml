@@ -137,6 +137,43 @@ struct
   fun mk r = Q.RC r
   fun mkD r = Q.RD r
 
+
+  val MASS_UNIT = "(?:g|grams?|mg|milligrams?|kg|kilograms?|ug|\194\181g|\206\188g|micrograms?)"
+  val MASS_AMOUNT = NUM ^ "\\s*(" ^ MASS_UNIT ^ ")\\b(?!\\s*/|\\s+per\\b)"
+  fun massUnit u =
+    case lower u of
+      "g" => SOME Q.MassGram | "gram" => SOME Q.MassGram | "grams" => SOME Q.MassGram
+    | "mg" => SOME Q.MassMilligram | "milligram" => SOME Q.MassMilligram | "milligrams" => SOME Q.MassMilligram
+    | "kg" => SOME Q.MassKilogram | "kilogram" => SOME Q.MassKilogram | "kilograms" => SOME Q.MassKilogram
+    | "ug" => SOME Q.MassMicrogram | "\194\181g" => SOME Q.MassMicrogram | "\206\188g" => SOME Q.MassMicrogram
+    | "microgram" => SOME Q.MassMicrogram | "micrograms" => SOME Q.MassMicrogram
+    | _ => NONE
+
+  (* A requested output unit is distinct from the numeric input amount. None
+     means ambiguous/unsupported; SOME NONE means no explicit mass target. *)
+  fun massTargetFor molar low =
+    let val requested = findall ("\\b(?:how many|in|to|and)\\s+(" ^ MASS_UNIT ^ "|ounces?|pounds?|lbs?|tons?|tonnes?|stones?)\\b") low
+        val units = map (fn m =>
+          if has "^\\s*(?:/|per\\b)" (String.extract (low,#stop m,NONE))
+             andalso not (molar andalso has "^\\s*(?:/\\s*mol(?:e|es)?|per\\s+moles?)\\b" (String.extract (low,#stop m,NONE))) then NONE
+          else massUnit (g1 low m)) requested
+    in case units of [] => SOME NONE
+       | SOME u :: us => if List.all (fn v => v = SOME u) us then SOME (SOME u) else NONE
+       | _ => NONE
+    end
+
+  val massTarget = massTargetFor false
+
+  (* Non-mass amount classes compare only explicit canonical identities. *)
+  fun amountClass u =
+    case lower u of
+      "atom" => SOME "atoms" | "atoms" => SOME "atoms"
+    | "nucleus" => SOME "nuclei" | "nuclei" => SOME "nuclei"
+    | "mol" => SOME "mol" | "mole" => SOME "mol" | "moles" => SOME "mol"
+    | "becquerel" => SOME "bq" | "becquerels" => SOME "bq" | "bq" => SOME "bq"
+    | "count per minute" => SOME "cpm" | "counts per minute" => SOME "cpm" | "cpm" => SOME "cpm"
+    | "units" => SOME "units" | _ => NONE
+
   (* ======================= chemistry ======================= *)
   val propPats = [
     ("\\batomic (?:mass|weight)\\b", Q.P_atomic_mass),
@@ -152,7 +189,7 @@ struct
     ("\\bdiscovered\\b|\\byear (?:of )?discovery\\b", Q.P_year_discovered),
     ("\\b(?:chemical )?symbol\\b", Q.P_symbol)]
 
-  val G2MOL = NUM ^ "\\s*(?:g|grams?)\\s+of\\s+(\\S+)"
+  val G2MOL = NUM ^ "\\s*(" ^ MASS_UNIT ^ ")\\s+of\\s+(\\S+)"
   val MOL2G = NUM ^ "\\s*(?:mol|moles?)\\s+of\\s+(\\S+)"
   val PCT = "\\b(?:percent|percentage|%)\\s+(?:by mass\\s+)?(?:of\\s+)?(\\w+)\\s+in\\s+(\\S+)"
   (* B-chemistry step 2: "percentage by mass of F is E" (the generator's heldout phrasing; the organ's PCT wants "of E in F") *)
@@ -234,23 +271,23 @@ struct
   fun chemV1 reader fahrOn t : Q.request option =
     let
       val low = lower t
-      fun massKind (rx, mk') =
-        case findall rx low of
-          [m] =>
-            if not (has "\\bmol(?:e|es)?\\b|\\bgrams?\\b|\\bhow many\\b|\\bmass\\b" low) then NONE
-            else
-              let
-                val f = rstrip "?.," (valOf (grp t m 2))
-                val q = ratOf (g1 t m)
-              in
-                if not (onlyFormula f t) then NONE
-                else case fclass f of
-                  2 => NONE
-                | _ => SOME (mk (mk' (q, fchars f)))
-              end
+      fun formulaAmount m group build =
+        let val f = rstrip "?.," (valOf (grp t m group))
+        in if not (onlyFormula f t) orelse fclass f = 2 then NONE
+           else SOME (Q.RM (build (ratOf (g1 t m), fchars f))) end
+      fun massConversion () =
+        case (findall G2MOL low, findall MOL2G low, massTarget low) of
+          ([m], [], SOME NONE) =>
+            if has "\\bmol(?:e|es)?\\b" low then
+              (case massUnit (valOf (grp low m 2)) of
+                SOME u => formulaAmount m 3 (fn (q,f) => Q.MeasuredMoles (q,u,f))
+              | NONE => NONE)
+            else NONE
+        | ([], [m], SOME target) =>
+            if isSome target orelse has "\\bgrams?\\b|\\bmass\\b|\\bweigh" low then
+              formulaAmount m 2 (fn (q,f) => Q.MeasuredMass (q,f,case target of SOME u => u | NONE => Q.MassGram))
+            else NONE
         | _ => NONE
-      fun first [] = NONE
-        | first (x :: xs) = case massKind x of SOME r => SOME r | NONE => first xs
       fun pct () =
         case search PCT low of
           NONE => NONE
@@ -304,7 +341,10 @@ struct
         else case reader t of
                NONE => NONE
              | SOME f => if not (onlyFormula f t) then SOME NONE
-                         else (case fclass f of 2 => SOME NONE | _ => SOME (SOME (mk (Q.MolarMass (fchars f)))))
+                         else (case (fclass f,massTargetFor true low) of
+                           (2,_) => SOME NONE | (_,NONE) => SOME NONE
+                         | (_,SOME NONE) => SOME (SOME (mk (Q.MolarMass (fchars f))))
+                         | (_,SOME (SOME u)) => SOME (SOME (Q.RM (Q.MeasuredMolarMass (fchars f,u)))))
       fun prop () =
         case List.find (fn (p, _) => has p low) propPats of
           NONE => NONE
@@ -326,7 +366,7 @@ struct
                    | NONE => NONE)
             end
     in
-      case first [(G2MOL, Q.GramsToMoles), (MOL2G, Q.MolesToGrams)] of
+      case massConversion () of
         SOME r => SOME r
       | NONE =>
           (case (case comp () of SOME r => SOME r | NONE => (case pct () of SOME r => SOME r | NONE => pct2 ())) of
@@ -365,13 +405,13 @@ struct
                | _ => NONE end
       fun side s =
         case sequence (map term (String.fields (fn c => c = #"+") s)) of
-          SOME xs => if distinct (map #1 xs) then SOME xs else NONE
+          SOME xs => SOME xs
         | NONE => NONE
       fun index name xs =
         let fun go _ [] = NONE
               | go i ((f, _) :: rest) = if f = name then SOME i else go (i + 1) rest
         in go 0 xs end
-      fun amounts source lhs =
+      fun amounts source lhs rhs =
         case ExactNumeric.mask source of
           NONE => NONE
         | SOME {text = masked, numbers} =>
@@ -394,22 +434,24 @@ struct
                                       else "^\\s*(?:,|and|,\\s*and)\\s*$"
                     in has pattern gap andalso gaps (#stop m) false ms end
             in
-              if null matches orelse length matches <> length lhs orelse not (gaps 0 true matches)
+              if null matches orelse not (gaps 0 true matches)
               then NONE
               else case sequence (map pair matches) of
                 NONE => NONE
               | SOME xs =>
                   if not (distinct (map #1 xs)) then NONE
-                  else sequence (map (fn (f, _) => Option.map #2 (List.find (fn (name, _) => name = f) xs)) lhs)
+                  else if not (List.all (fn (f, _) => List.exists (fn (name, _) => name = f) xs) lhs)
+                       orelse not (List.all (fn (f, _) => List.exists (fn (name, _) => name = f) (lhs @ rhs)) xs)
+                  then NONE else SOME xs
             end
       fun query source lhs rhs =
         let val s = rstrip "?." (collapse source)
             fun make left grams f =
-              Option.map (fn i =>
-                let val n = Q.nat_of_integer (IntInf.fromInt i)
-                in if left then (if grams then Q.LeftGrams n else Q.LeftMoles n)
-                   else (if grams then Q.YieldGrams n else Q.YieldMoles n) end)
-                (index (normFormula f) (if left then lhs else rhs))
+              Option.map (fn _ =>
+                let val name = fchars f
+                in if left then (if grams then Q.NetFinalGrams name else Q.NetFinalMoles name)
+                   else (if grams then Q.NetYieldGrams name else Q.NetYieldMoles name) end)
+                (index (normFormula f) (if left then lhs @ rhs else rhs))
         in
           case search "^(?:(?:what is|calculate) (?:the )?)?(?:theoretical )?(yield|leftover|remaining)(?: (?:amount|mass))?(?: of)?\\s+([^\\s]+)\\s+in\\s+(mol|moles|g|grams)$" (lower s) of
             SOME m => make (g1 (lower s) m <> "yield") (String.isPrefix "g" (valOf (grp (lower s) m 3))) (valOf (grp s m 2))
@@ -427,10 +469,11 @@ struct
            | SOME m =>
                (case (side (g1 equation m), side (valOf (grp equation m 2))) of
                   (SOME lhs, SOME rhs) =>
-                    (case (amounts given lhs, query wanted lhs rhs) of
+                    (case (amounts given lhs rhs, query wanted lhs rhs) of
                        (SOME values, SOME wanted) =>
-                         SOME (Q.RS (map (fn (f, k) => (fchars f, k)) lhs,
-                                     map (fn (f, k) => (fchars f, k)) rhs, values, wanted))
+                         SOME (Q.RNS (map (fn (f, k) => (fchars f, k)) lhs,
+                                     map (fn (f, k) => (fchars f, k)) rhs,
+                                     map (fn (f, a) => (fchars f, a)) values, wanted))
                      | _ => NONE)
                 | _ => NONE))
       | _ => NONE
@@ -463,7 +506,7 @@ struct
   val HALF_RX = "half[- ]?life\\s+(?:of|is|was|equal to|=)?\\s*(?:about\\s+)?" ^ NUM
     ^ "\\s*(years?|yrs?|days?|hours?|hrs?|minutes?|mins?|seconds?|s)\\b|"
     ^ NUM ^ "[- ](years?|days?|hours?|minutes?|seconds?)\\s+half[- ]?life"
-  val AMOUNT = NUM ^ "\\s*(g|grams?|mg|milligrams?|kg|kilograms?|\194\181g|micrograms?|atoms|nuclei|mol|moles?|becquerels?|bq|units|counts? per minute|cpm)\\b"
+  val AMOUNT = NUM ^ "\\s*(" ^ MASS_UNIT ^ "|atoms?|nuclei|nucleus|mol|moles?|becquerels?|bq|units|counts? per minute|cpm)\\b(?!\\s*/|\\s+per\\b)"
   val FRACTION_WORDS = [("half", (1, 2)), ("a quarter", (1, 4)), ("one quarter", (1, 4)), ("an eighth", (1, 8)),
     ("one eighth", (1, 8)), ("a sixteenth", (1, 16)), ("one sixteenth", (1, 16)), ("a tenth", (1, 10)),
     ("one tenth", (1, 10)), ("a hundredth", (1, 100))]
@@ -539,16 +582,24 @@ struct
                                  let
                                    val (a0, d0) = decPair n0
                                    val (a1, d1) = decPair n1
-                                   val pre = fn u => String.substring (lower u, 0, Int.min (2, size u))
+                                   val sameClass = isSome (amountClass u0) andalso amountClass u0 = amountClass u1
                                  in
                                    if IntInf.> (IntInf.* (a0, d1), IntInf.* (a1, d0)) andalso IntInf.> (a1, 0)
-                                      andalso pre u0 = pre u1
+                                      andalso sameClass
                                    then SOME (Q.mk_rat (IntInf.* (a1, d0)) (IntInf.* (d1, a0))) else NONE
                                  end
                              | _ => NONE)
                       val mu = case search "\\bhow many (years|days|hours|minutes|seconds)\\b" askL of
                                  SOME m => tunitOf (g1 askL m) | NONE => NONE
-                    in answerOrNeed (Q.TimeToFraction (h, frac, mu)) end
+                    in
+                      case (frac0, amounts) of
+                        (NONE, [(n0,u0),(n1,u1)]) =>
+                          (case (massUnit u0, massUnit u1) of
+                            (SOME source, SOME target) =>
+                              SOME (Q.RM (Q.MeasuredDecayTime (h,ratOf n0,source,ratOf n1,target,mu)))
+                          | _ => answerOrNeed (Q.TimeToFraction (h,frac,mu)))
+                      | _ => answerOrNeed (Q.TimeToFraction (h,frac,mu))
+                    end
                   else if has "\\bhow many half[- ]?lives\\b" askL then
                     (case times of
                        [(v, tu)] => SOME (mkD (Q.HalfLives (h, SOME (v, tu))))
@@ -557,7 +608,13 @@ struct
                     (case times of
                        [(v, tu)] =>
                          (case amounts of
-                            [(n0, u0)] => SOME (mkD (Q.Remaining (h, SOME (v, tu), SOME (ratOf n0, u0))))
+                            [(n0, u0)] =>
+                              (case (massUnit u0, massTarget askL) of
+                                (SOME source, SOME target) =>
+                                  SOME (Q.RM (Q.MeasuredRemaining (h,SOME (v,tu),ratOf n0,source,
+                                    case target of SOME u => u | NONE => source)))
+                              | (NONE, SOME NONE) => SOME (mkD (Q.Remaining (h,SOME (v,tu),SOME (ratOf n0,u0))))
+                              | _ => NONE)
                           | _ =>
                               if has "\\b(?:fraction|percent|percentage|proportion|how much of)\\b" askL andalso null amounts
                               then SOME (mkD (Q.RemFraction (h, SOME (v, tu), has "\\bpercent|percentage\\b" askL)))
@@ -582,23 +639,91 @@ struct
   fun scaled lit (fn_, fd) =
     let val (n, d) = decPair lit in Q.mk_rat (IntInf.* (n, IntInf.fromInt fn_)) (IntInf.* (d, IntInf.fromInt fd)) end
 
+  val VOL_UNIT = "(?:millilit(?:er|re)s?|microlit(?:er|re)s?|lit(?:er|re)s?|ml|ul|\194\181l|l)"
+  val CONC_UNIT = "(?:millimolar|micromolar|molar|mmol/l|umol/l|mol/l|mm|um|\194\181m|m)"
+  val AMOUNT_UNIT = "(?:millimoles?|micromoles?|moles?|mmol|umol|\194\181mol|mol)"
+  fun solutionPrefix u =
+    if has "^(?:ml|millilit(?:er|re)s?|mm|millimolar|mmol/l|mmol|millimoles?)$" u then Q.SolMilli
+    else if has "^(?:ul|microlit(?:er|re)s?|um|micromolar|umol/l|umol|micromoles?|\194\181l|\194\181m|\194\181mol)$" u then Q.SolMicro
+    else Q.SolBase
+  fun prefixScale u =
+    case solutionPrefix u of Q.SolMilli => (1,1000) | Q.SolMicro => (1,1000000) | _ => (1,1)
+  fun solutionTarget units fallback low =
+    let val allUnits = "(?:" ^ VOL_UNIT ^ "|" ^ CONC_UNIT ^ "|" ^ AMOUNT_UNIT ^ "|" ^ MASS_UNIT ^ ")"
+        val ms = findall ("\\b(?:how many|in|to|and)\\s+(" ^ allUnits ^ ")\\b") low
+        val us = map (fn m => solutionPrefix (g1 low m)) ms
+        val wrongDimension = List.exists (fn m => not(has ("^" ^ units ^ "$") (g1 low m))) ms
+        val unsupported = has "\\b(?:how many|in|to|and)\\s+(?:gallons?|pints?|quarts?|cups?|fluid ounces?|nanomoles?|nanomolar|nm)\\b" low
+        val compound = List.exists (fn (m : Regex.match) =>
+          has "^\\s*(?:/|per\\b)" (String.extract(low,#stop m,NONE))) ms
+    in if unsupported orelse compound orelse wrongDimension then NONE
+       else case us of [] => SOME fallback | u::rest => if List.all (fn v => v=u) rest then SOME u else NONE
+    end
+  fun solutionResult make units fallback low =
+    Option.map (fn u => Q.RL(make,u)) (solutionTarget units fallback low)
+
+  (* Stock is a named role, not the larger of two numbers. The two remaining
+     syntactic layouts carry an explicit 'from' and 'to' relation. *)
+  fun directedConcs low matches =
+    let
+      fun afterStock (m : Regex.match) =
+        has "^\\s+(?:[a-z][a-z0-9()]*\\s+)?stock\\b" (String.extract(low,#stop m,NONE))
+      fun beforeStock (m : Regex.match) =
+        has "\\bstock(?:\\s+solution)?(?:\\s+(?:is|of|at|has))?\\s*$" (String.substring(low,0,#start m))
+      fun beforeFrom (m : Regex.match) =
+        has "\\bfrom\\s*$" (String.substring(low,0,#start m))
+      fun beforeTo (m : Regex.match) =
+        has "\\bto\\s*$" (String.substring(low,0,#start m))
+      val tagged = List.filter (fn m => afterStock m orelse beforeStock m) matches
+      fun value m = scaled (g1 low m) (prefixScale (valOf(grp low m 2)))
+    in case (matches,tagged) of
+      ([a,b],[stock]) => if #start stock = #start a then SOME(value a,value b) else SOME(value b,value a)
+    | ([a,b],[]) => if beforeFrom a andalso beforeTo b then SOME(value a,value b) else NONE
+    | _ => NONE
+    end
+
+  fun directedVolumes low matches =
+    let
+      fun isFinal (m : Regex.match) =
+        has "\\b(?:to(?:\\s+(?:a|the))?(?:\\s+final)?(?:\\s+volume(?:\\s+of)?)?|final\\s+volume(?:\\s+is)?)\\s*$" (String.substring(low,0,#start m))
+      fun value m = scaled (g1 low m) (prefixScale (valOf(grp low m 2)))
+    in case (matches,List.filter isFinal matches) of
+      ([a,b],[final]) => if #start final = #start b then SOME(value a,value b) else SOME(value b,value a)
+    | _ => NONE
+    end
+
+  fun sameNamedSolute low matches =
+    let
+      fun name (m : Regex.match) =
+        case search "\\s+([a-z][a-z0-9()]*(?:\\s+[a-z][a-z0-9()]*){0,2})\\s+(?:stock|solution)\\b"
+                    (String.extract(low,#stop m,NONE)) of
+          NONE => NONE
+        | SOME found => if #start found <> 0 then NONE
+                        else let val n = g1 (String.extract(low,#stop m,NONE)) found
+                             in if n = "stock" then NONE else SOME n end
+      val names = List.mapPartial name matches
+    in case names of [] => true | n::ns => List.all (fn x => x=n) ns end
+
   fun labAnswer t : Q.request option =
     let
       val low = lower t
     in
-      if not (has "\\bsolution\\b|\\bmolar\\w*\\b|\\bdilut\\w*\\b|\\bstock\\b|\\bw/v\\b|\\b\\d+(?:\\.\\d+)?\\s*(?:m|mm)\\b" low) then NONE
+      if has (N ^ "\\s*(?:" ^ VOL_UNIT ^ "|" ^ CONC_UNIT ^ ")\\b\\s*(?:/|per\\b)") low then NONE
+      else if has (N ^ "\\s*" ^ AMOUNT_UNIT ^ "\\b(?!\\s*/l\\b)\\s*(?:/|per\\b)") low then NONE
+      else if not (has "\\bsolution\\b|\\bmolar\\w*\\b|\\bdilut\\w*\\b|\\bstock\\b|\\bw/v\\b|\\b\\d+(?:\\.\\d+)?\\s*(?:m|mm)\\b" low) then NONE
       else
         let
-          val vols = map (fn m => scaled (g1 low m) (volFactor (valOf (grp low m 2))))
-                         (findall (N ^ "\\s*(l|liters?|litres?|ml|millilit(?:er|re)s?|ul|\194\181l)\\b") low)
-          val volsMl = map (fn m => scaled (g1 low m) (let val (a, b) = volFactor (valOf (grp low m 2)) in (a * 1000, b) end))
-                         (findall (N ^ "\\s*(l|liters?|litres?|ml|millilit(?:er|re)s?|ul|\194\181l)\\b") low)
-          val concs = map (fn m => scaled (g1 low m) (concFactor (valOf (grp low m 2))))
-                         (findall (N ^ "\\s*(m|molar|mol/l|mm|millimolar|mmol/l|um|\194\181m)\\b(?![a-z])") low)
+          val volMatches = findall (N ^ "\\s*(" ^ VOL_UNIT ^ ")\\b") low
+          val concMatches = findall (N ^ "\\s*(" ^ CONC_UNIT ^ ")\\b(?![a-z])") low
+          val vols = map (fn m => scaled (g1 low m) (prefixScale (valOf(grp low m 2)))) volMatches
+          val volsMl = map (fn m => scaled (g1 low m) (let val (a,b)=prefixScale(valOf(grp low m 2)) in (a*1000,b) end)) volMatches
+          val concs = map (fn m => scaled (g1 low m) (prefixScale (valOf(grp low m 2)))) concMatches
           val f = formulaV2 t
           val wv = findall (N ^ "\\s*%\\s*(?:\\(?w/v\\)?|weight(?:/| per )volume)") low
         in
-          case (wv, volsMl) of
+          if not (sameNamedSolute low concMatches) orelse
+             (case f of SOME formula => not (onlyFormula formula t) | NONE => false) then NONE
+          else case (wv, volsMl) of
             ([m], [ml]) =>
               let val (n, d) = decPair (g1 low m)
               in SOME (mk (Q.WvMass (Q.mk_rat n d, ml))) end
@@ -606,32 +731,35 @@ struct
             (* B-chemistry step 3: one concentration and two volumes (stock volume, final volume) *)
             if has "\\bdilut\\w*\\b|\\bstock\\b" low andalso length concs = 1 andalso length vols = 2
                andalso has "\\b(?:water|solvent|diluent)\\b" low andalso has "\\bhow (?:much|many)\\b|\\badd\\b" low
-            then SOME (mk (Q.WaterToAdd (List.nth (vols, 0), List.nth (vols, 1))))
+            then (case directedVolumes low volMatches of NONE => NONE | SOME (stock,final) => solutionResult (Q.AddSolvent (hd concs, stock, final)) VOL_UNIT Q.SolMilli low)
             else if has "\\bdilut\\w*\\b" low andalso length concs = 1 andalso length vols = 2
                     andalso has "\\bconcentration\\b|\\bmolarity\\b|\\bhow concentrated\\b" low
                     andalso not (has "\\bhow (?:much|many) (?:of )?(?:the )?(?:stock|ml|milliliters|liters|l)\\b" low)
-            then SOME (mk (Q.DilutedConc (List.nth (concs, 0), List.nth (vols, 0), List.nth (vols, 1))))
-            else if has "\\bhow many (?:moles?|mol)\\b" low andalso length concs = 1 andalso length vols = 1
-            then SOME (mk (Q.MolesInSol (List.nth (concs, 0), List.nth (vols, 0))))
+            then (case directedVolumes low volMatches of NONE => NONE | SOME (stock,final) => solutionResult (Q.DilutedMolarity (hd concs, stock, final)) CONC_UNIT Q.SolBase low)
+            else if has ("\\bhow many " ^ AMOUNT_UNIT ^ "\\b") low andalso length concs = 1 andalso length vols = 1
+            then solutionResult (Q.SoluteAmount (hd concs, hd vols)) AMOUNT_UNIT Q.SolBase low
             else if has "\\bmolarity\\b|\\bconcentration\\b" low andalso length vols = 1 andalso null concs
-                    andalso not (has (N ^ "\\s*(?:g|grams?|mg|milligrams?)\\b") low)
-                    andalso length (findall (N ^ "\\s*(?:moles?|mol)\\b") low) = 1
+                    andalso not (has (N ^ "\\s*" ^ MASS_UNIT ^ "\\b") low)
+                    andalso length (findall (N ^ "\\s*" ^ AMOUNT_UNIT ^ "\\b") low) = 1
             then
-              let val m = valOf (search (N ^ "\\s*(?:moles?|mol)\\b") low)
-                  val (n, d) = decPair (g1 low m)
-              in SOME (mk (Q.MolarityMoles (Q.mk_rat n d, hd vols))) end
+              let val m = valOf (search (N ^ "\\s*(" ^ AMOUNT_UNIT ^ ")\\b") low)
+                  val n = scaled (g1 low m) (prefixScale (valOf(grp low m 2)))
+              in solutionResult (Q.SolutionMolarity (n, hd vols)) CONC_UNIT Q.SolBase low end
             else
             if has "\\bdilut\\w*\\b|\\bstock\\b|\\bhow much (?:of )?(?:the )?qnum" low andalso length concs = 2 andalso length vols = 1
-            then SOME (mk (Q.Dilution (List.nth (concs, 0), List.nth (concs, 1), List.last vols)))
+            then (case directedConcs low concMatches of NONE => NONE
+                  | SOME (stock,target) => solutionResult (Q.StockVolume(stock,target,hd vols)) VOL_UNIT Q.SolMilli low)
             else
               case f of
                 NONE => if has "\\bgrams?\\b|\\bmolarity\\b" low then SOME (mk Q.NeedFormula) else NONE
               | SOME f =>
                   if not (onlyFormula f t) then NONE
+                  else if (has "\\bmolarity\\b|\\bconcentration\\b" low) andalso
+                    (case solutionTarget CONC_UNIT Q.SolBase low of SOME Q.SolBase => false | _ => true) then NONE
                   else if fclass f <> 0 then SOME (mk (Q.Molarity (fchars f, ratInt 1, ratInt 1)))
                   else
                     let
-                      val gramsMatches = findall (N ^ "\\s*(g|grams?|mg|milligrams?)\\b") low
+                      val gramsMatches = findall MASS_AMOUNT low
                       val gramsM = case gramsMatches of [m] => SOME m | _ => NONE
                     in
                       if has "\\bmolarity\\b|\\bconcentration\\b|\\bwhat is the (?:molar )?concentration\\b" low
@@ -639,13 +767,17 @@ struct
                       then
                         let
                           val m = valOf gramsM
-                          val milli = String.isPrefix "m" (valOf (grp low m 2))
-                          val grams = scaled (g1 low m) (1, if milli then 1000 else 1)
-                        in SOME (mk (Q.Molarity (fchars f, grams, hd vols))) end
-                      else if has "\\bhow (?:many|much)\\b|\\bmass\\b|\\bweigh\\b|\\bgrams?\\b" low
+                          val unit = massUnit (valOf (grp low m 2))
+                        in case unit of
+                          SOME u => SOME (Q.RM (Q.MeasuredMolarity (fchars f,ratOf (g1 low m),u,hd vols)))
+                        | NONE => NONE end
+                      else if (has "\\bmass\\b|\\bweigh\\w*\\b|\\bgrams?\\b" low orelse (case massTarget low of SOME (SOME _) => true | _ => false))
                               andalso not (has "\\bhow many (?:moles?|mol|millimoles?|mmol)\\b" low)   (* the organ answered grams to a moles question *)
                               andalso length concs = 1 andalso length vols = 1
-                      then SOME (mk (Q.MassNeeded (fchars f, hd concs, hd vols)))
+                      then (case massTarget low of
+                        NONE => NONE
+                      | SOME target => SOME (Q.RM (Q.MeasuredSolutionMass (fchars f,hd concs,hd vols,
+                          case target of SOME u => u | NONE => Q.MassGram))))
                       else NONE
                     end
         end
@@ -657,10 +789,15 @@ struct
          has "\\bstock of \\w|\\bSQL\\b|\\bSELECT\\b|`" (lower t)
          andalso not (has "\\b(?:molar\\w*|mol|moles|mL|litres?|liters?|grams? of|dilut\\w*|stock solution|\\d+(?:\\.\\d+)?\\s*M\\b)" (lower t))
       then NONE
-      else if t = "" orelse Narrow.narrative t then NONE   (* narrative(text) is first in LabSolutionsOrgan.answer *)
+      else if t = "" then NONE
       else case labAnswer t of
              NONE => NONE
-           | SOME r => if Q.answers r orelse Narrow.short_direct t then SOME r else NONE
+           | SOME r =>
+               let val directed = case r of Q.RL (Q.StockVolume _, _) => true | _ => false
+                   val onlyRateFlag = directed andalso Narrow.sentences t <= 2 andalso Narrow.words t <= 40
+                                      andalso not (has Narrow.RELATION (lower t))
+               in if Narrow.narrative t andalso not onlyRateFlag then NONE
+                  else if Q.answers r orelse Narrow.short_direct t then SOME r else NONE end
     end
 
   (* ======================= dispatch ======================= *)

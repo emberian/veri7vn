@@ -46,6 +46,12 @@ $SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF
-"$REPO/tools/dev/native-compile" --family chemistry --compiler "$MLTON" -- -output "$OUT/bin/chemistry" "$OUT/build/chemistry.mlb"
+set -- "$REPO/tools/dev/native-compile" --family chemistry --compiler "$MLTON"
+# A checked staged-source build can be reused after its exact proof closure is
+# promoted. The native driver validates current sources against this receipt.
+if [ -n "${PROOF_RECEIPT:-}" ]; then
+  set -- "$@" --from-receipt "$PROOF_RECEIPT"
+fi
+"$@" -- -output "$OUT/bin/chemistry" "$OUT/build/chemistry.mlb"
 ls -l "$OUT/bin/chemistry"
 shasum -a 256 "$OUT/build/chemistry_generated.sml" "$OUT/bin/chemistry"

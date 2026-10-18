@@ -1,9 +1,10 @@
 theory Chemistry_Export
-  imports "stoich/Stoichiometry" Decay
+  imports "stoich/NetStoichiometry" "stoich/Mass_Units" "stoich/Solutions"
 begin
 
-datatype request = RC creq | RD dreq
+datatype request = RC creq | RD dreq | RM measured_request | RL solution_request solution_prefix
   | RS "(string \<times> nat) list" "(string \<times> nat) list" "rat list" stoich_query
+  | RNS "(string \<times> nat) list" "(string \<times> nat) list" "(string \<times> rat) list" net_query
 
 text \<open>The arithmetic functions are total algebraic maps. The public typed
 answer interface additionally checks the physical input domain. In particular a
@@ -38,11 +39,17 @@ fun physical_request :: "request \<Rightarrow> bool" where
   "physical_request (RC r) = physical_creq r"
 | "physical_request (RD r) = physical_dreq r"
 | "physical_request (RS lhs rhs amounts query) = True"
+| "physical_request (RNS lhs rhs amounts query) = True"
+| "physical_request (RM r) = True"
+| "physical_request (RL r u) = True"
 
 fun raw_reply :: "request \<Rightarrow> reply" where
   "raw_reply (RC r) = reply_c r"
 | "raw_reply (RD r) = reply_d r"
 | "raw_reply (RS lhs rhs amounts query) = reply_s lhs rhs amounts query"
+| "raw_reply (RNS lhs rhs amounts query) = reply_net lhs rhs amounts query"
+| "raw_reply (RM r) = measured_reply r"
+| "raw_reply (RL r u) = solution_reply r u"
 
 fun invalid_request_text :: "request \<Rightarrow> String.literal" where
   "invalid_request_text (RC (MolarMass f)) = STR ''A molecular formula must have positive mass; zero atoms do not define a molecule.''"
@@ -51,6 +58,13 @@ fun invalid_request_text :: "request \<Rightarrow> String.literal" where
 definition reply_of :: "request \<Rightarrow> reply" where
   "reply_of r = (if physical_request r then raw_reply r
      else Reply False (STR ''impossible'') (invalid_request_text r) None)"
+
+theorem reply_of_solution_value:
+  "answered (reply_of (RL r u)) \<Longrightarrow>
+    \<exists>v. solution_value r = Some v \<and>
+      stated (reply_of (RL r u)) = Some (Chemistry.g4 (v / solution_scale u)) \<and>
+      (v / solution_scale u) * solution_scale u = v"
+  using solution_reply_value[of r u] by (simp add: reply_of_def)
 
 theorem reply_of_physical:
   "answered (reply_of r) \<Longrightarrow> physical_request r"
@@ -94,6 +108,26 @@ theorem reply_of_reaction_certificate:
   using reply_s_answered_certificate[of lhs rhs amounts query]
   by (simp add: reply_of_def)
 
+theorem reply_of_net_reaction_certificate:
+  "answered (reply_of (RNS lhs rhs amounts query)) \<Longrightarrow>
+    \<exists>ls rs ss x q. checked_net_reaction lhs rhs amounts = Some (NetResult ls rs ss x) \<and>
+      net_value (NetResult ls rs ss x) query = Some q \<and>
+      (\<forall>e. side_atoms e ls = side_atoms e rs \<and>
+        side_atoms e (net_left_side ss) = side_atoms e (net_right_side ss) \<and>
+        inventory_atoms e ss x = initial_inventory_atoms e ss) \<and>
+      feasible_extent (net_feed ss) x \<and>
+      (\<forall>y. feasible_extent (net_feed ss) y \<longrightarrow> y \<le> x) \<and>
+      0 \<in> set (reaction_leftovers (net_feed ss)) \<and>
+      (\<forall>s \<in> set ss. 0 \<le> final_amount s x)"
+  using reply_net_answered_certificate[of lhs rhs amounts query]
+  by (simp add: reply_of_def)
+
+theorem reply_of_measured_mass:
+  "answered (reply_of (RM (MeasuredMass n f u))) \<Longrightarrow>
+    \<exists>cs. parse_formula f = FOk cs \<and> 0 \<le> n \<and> 0 < mass_total cs \<and>
+      stated (reply_of (RM (MeasuredMass n f u))) = Some (g4 (n * mass_total cs / grams_per_unit u))"
+  using measured_mass_value[of n f u] by (simp add: reply_of_def)
+
 text \<open>Constructors the untrusted SML recognizer uses to build requests from
 numerals and text it read off the question.\<close>
 definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
@@ -122,6 +156,17 @@ generator makes it a top-level SML value, so the binary ran every check (decay e
 included) before it read its first request: 58 ms of cold start for nothing.\<close>
 definition self_checks :: "unit \<Rightarrow> bool list" where
   "self_checks _ = [
+    (stated (reply_of (RM (MeasuredMoles (18015/1000000) MassKilogram ''H2O''))) = Some (STR ''1'')),
+    (stated (reply_of (RM (MeasuredMass 2 ''H2O'' MassKilogram))) = Some (STR ''0.03603'')),
+    (stated (reply_of (RM (MeasuredRemaining (HL_stated 10 TU_day) (Some (10,TU_day)) 1 MassKilogram MassGram))) = Some (STR ''500'')),
+    (stated (reply_of (RM (MeasuredMolarMass ''H2O'' MassKilogram))) = Some (STR ''0.018015'')),
+    (stated (reply_of (RM (MeasuredSolutionMass ''NaCl'' 1 (1/2) MassKilogram))) = Some (STR ''0.02922'')),
+    (stated (reply_of (RM (MeasuredMolarity ''NaCl'' (2922/100000) MassKilogram (1/2)))) = Some (STR ''1'')),
+    (mass_fraction 1000 MassMilligram 500 MassMicrogram = Some (1/2000)),
+    (stated (reply_of (RM (MeasuredDecayTime (HL_stated 10 TU_day) 1000 MassMilligram 500 MassMicrogram (Some TU_day)))) = Some (STR ''109.7'')),
+    (\<not> answers (RM (MeasuredMass 2 ''H0'' MassGram))),
+    (\<not> answers (RM (MeasuredRemaining (HL_stated 10 TU_day) (Some (-1,TU_day)) 1 MassGram MassGram))),
+
     (ckernel (MolarMass ''H2O'') = CExact CK_molar_mass (18015 / 1000)),
     (ckernel (MolarMass ''Ca(OH)2'') = CExact CK_molar_mass (74094 / 1000)),
     ((case parse_formula ''CuSO4.5H2O'' of FOk _ \<Rightarrow> True | _ \<Rightarrow> False)),
@@ -154,7 +199,24 @@ definition self_checks :: "unit \<Rightarrow> bool list" where
     (\<not> answers (RC (WaterToAdd (100 / 1000) (10 / 1000)))),
     (stated (reply_of (RC (MolesInSol (1 / 2) (250 / 1000)))) = Some (STR ''0.125'')),
     (stated (reply_of (RC (MolarityMoles (1 / 5) (500 / 1000)))) = Some (STR ''0.4'')),
-    (\<not> answers (RC (MolesInSol 0 1))),
+    (stated (reply_of (RC (MolesInSol 0 1))) = Some (STR ''0'')),
+    (stated (reply_of (RC (MolesInSol 2 0))) = Some (STR ''0'')),
+    (stated (reply_of (RC (MolarityMoles 0 1))) = Some (STR ''0'')),
+    (stated (reply_of (RC (DilutedConc 2 0 1))) = Some (STR ''0'')),
+    (stated (reply_of (RC (WaterToAdd 0 1))) = Some (STR ''1000'')),
+    (\<not> answers (RC (MolarityMoles 0 0))),
+    (\<not> answers (RC (DilutedConc 2 0 0))),
+    (reply_kind (reply_of (RL (SoluteAmount 1 1) SolBase)) = STR ''moles_in_solution''),
+    (reply_kind (reply_of (RL (AddSolvent 1 0 1) SolMilli)) = STR ''water_to_add''),
+    (reply_kind (reply_of (RL (SolutionMolarity 1 1) SolBase)) = STR ''molarity_from_moles''),
+    (stated (reply_of (RL (StockVolume 2 1 (1/10)) SolMilli)) = Some (STR ''50'')),
+    (\<not> answers (RL (StockVolume 1 2 (1/10)) SolMilli)),
+    (\<not> answers (RL (StockVolume 0 0 (1/10)) SolMilli)),
+    (stated (reply_of (RL (AddSolvent 1 (1/20) (1/10)) SolBase)) = Some (STR ''0.05'')),
+    (\<not> answers (RL (AddSolvent (-1) (1/20) (1/10)) SolBase)),
+    (stated (reply_of (RL (SoluteAmount 1 (1/2)) SolMilli)) = Some (STR ''500'')),
+    (stated (reply_of (RL (SolutionMolarity 1 (1/2)) SolMilli)) = Some (STR ''2000'')),
+    (stated (reply_of (RL (DilutedMolarity 1 (1/20) (1/10)) SolMilli)) = Some (STR ''500'')),
     (\<not> answers (RC (GramsToMoles (-1) ''H2O''))),
     (\<not> answers (RC (MassNeeded ''NaCl'' (-1) 1))),
     (\<not> answers (RC (MolarMass ''H0''))),
@@ -167,7 +229,13 @@ definition self_checks :: "unit \<Rightarrow> bool list" where
     (\<not> answers (RS [(''H2'', 1), (''O2'', 1)] [(''H2O'', 1)] [4, 1] (YieldMoles 0))),
     (\<not> answers (RS [(''H2'', 2), (''O2'', 1)] [(''H2O'', 2)] [4] (YieldMoles 0))),
     (\<not> answers (RS [(''H2'', 2), (''O2'', 1), (''Pt'', 1)] [(''H2O'', 2), (''Pt'', 1)] [4, 1, 1/10] (YieldMoles 0))),
-    (\<not> answers (RS [(''H2O'', 2)] [(''OH2'', 2)] [4] (YieldMoles 0)))]"
+    (\<not> answers (RS [(''H2O'', 2)] [(''OH2'', 2)] [4] (YieldMoles 0))),
+    (stated (reply_of (RNS [(''H2'', 2), (''O2'', 1), (''Pt'', 1)] [(''H2O'', 2), (''Pt'', 1)] [(''H2'', 4), (''O2'', 1), (''Pt'', 1/10)] (NetYieldMoles ''H2O''))) = Some (STR ''2'')),
+    (stated (reply_of (RNS [(''H2'', 2), (''O2'', 1), (''Pt'', 1)] [(''H2O'', 2), (''Pt'', 1)] [(''H2'', 4), (''O2'', 1), (''Pt'', 1/10)] (NetFinalMoles ''Pt''))) = Some (STR ''0.1'')),
+    (stated (reply_of (RNS [(''H2'', 1), (''H2'', 1), (''O2'', 1)] [(''H2O'', 2)] [(''H2'', 4), (''O2'', 1)] (NetYieldMoles ''H2O''))) = Some (STR ''2'')),
+    (stated (reply_of (RNS [(''H2'', 2), (''O2'', 1)] [(''H2O'', 2)] [(''H2'', 4), (''O2'', 1), (''H2O'', 2)] (NetFinalMoles ''H2O''))) = Some (STR ''4'')),
+    (\<not> answers (RNS [(''CH3CH2OH'', 1)] [(''CH3OCH3'', 1)] [(''CH3CH2OH'', 1)] (NetYieldMoles ''CH3OCH3''))),
+    (\<not> answers (RNS [(''H2'', 2), (''O2'', 1)] [(''H2O'', 2)] [(''H2'', 4), (''H2'', 1), (''O2'', 1)] (NetYieldMoles ''H2O'')))]"
 
 definition self_test :: "unit \<Rightarrow> bool" where
   "self_test u = list_all id (self_checks u)"
@@ -175,8 +243,13 @@ definition self_test :: "unit \<Rightarrow> bool" where
 export_code reply_of answered reply_kind response stated answers mk_rat chars_of self_test
   self_checks fclass elem_names is_symbol iso_order
   integer_of_int nat_of_integer int_of_integer
+  RL StockVolume AddSolvent SoluteAmount SolutionMolarity DilutedMolarity SolBase SolMilli SolMicro
+  RM MeasuredMoles MeasuredMass MeasuredRemaining MeasuredDecayTime
+  MeasuredMolarMass MeasuredSolutionMass MeasuredMolarity
+  MassGram MassMilligram MassKilogram MassMicrogram
   RC RD MolarMass GramsToMoles MolesToGrams Percent Property NoSuchElement WvMass Dilution
   RS YieldMoles YieldGrams LeftMoles LeftGrams
+  RNS NetYieldMoles NetYieldGrams NetFinalMoles NetFinalGrams
   Molarity MassNeeded NeedFormula PercentComp DilutedConc WaterToAdd MolesInSol MolarityMoles
   P_atomic_mass P_atomic_number P_electronegativity P_melting_point P_boiling_point P_density
   P_electron_configuration P_ionization_energy P_standard_state P_group_block
@@ -186,7 +259,8 @@ export_code reply_of answered reply_kind response stated answers mk_rat chars_of
   in SML module_name Chemistry file_prefix chemistry
 
 ML \<open>
-  val theorems = [@{thm balanced_reaction_conserves_every_element}, @{thm parsed_reaction_side_known},
+  val theorems = [@{thm reply_of_solution_value}, @{thm solution_reply_value}, @{thm directed_stock_conserves_solute}, @{thm directed_stock_unique}, @{thm solvent_volume_conservation}, @{thm solution_amount_conservation}, @{thm solution_molarity_conservation}, @{thm solution_dilution_conservation}, @{thm measured_molar_mass_value}, @{thm measured_solution_mass_value}, @{thm measured_molarity_value}, @{thm measured_moles_value}, @{thm grams_per_unit_positive}, @{thm convert_mass_conserves_grams}, @{thm convert_mass_composes}, @{thm convert_mass_nonnegative}, @{thm mass_fraction_value}, @{thm measured_mass_value}, @{thm measured_remaining_kernel_value}, @{thm measured_remaining_answered}, @{thm measured_decay_time_answered}, @{thm reply_of_measured_mass}, @{thm net_inventory_atom_conservation}, @{thm checked_net_inventory_conservation}, @{thm species_coefficient_append}, @{thm species_coefficient_other}, @{thm species_coefficient_same}, @{thm prepared_species_bindings}, @{thm prepared_species_names}, @{thm spectator_zero_net}, @{thm spectator_excluded_from_consumers}, @{thm spectator_does_not_limit}, @{thm spectator_inventory_unchanged}, @{thm net_inventory_nonnegative}, @{thm checked_net_certificate}, @{thm checked_net_conservation}, @{thm checked_net_limiting_extent}, @{thm reply_net_answered_certificate}, @{thm reply_of_net_reaction_certificate},
+    @{thm balanced_reaction_conserves_every_element}, @{thm parsed_reaction_side_known},
     @{thm reaction_extent_feasible}, @{thm reaction_extent_greatest}, @{thm reaction_extent_exhausts_a_feed},
     @{thm reaction_leftovers_nonnegative}, @{thm reaction_leftovers_contains_zero},
     @{thm checked_reaction_certificate}, @{thm checked_reaction_conservation}, @{thm checked_reaction_bottleneck},
@@ -203,6 +277,7 @@ ML \<open>
     @{thm percent_comp_value}, @{thm percent_comp_entry}, @{thm diluted_conc_value}, @{thm diluted_conc_declines},
     @{thm water_add_value}, @{thm water_add_declines}, @{thm dilution_solute_conserved}, @{thm moles_sol_value},
     @{thm molarity_moles_value}, @{thm molarity_moles_inverse}, @{thm moles_sol_declines}, @{thm molarity_moles_declines},
+    @{thm zero_volume_has_zero_moles}, @{thm zero_amount_has_zero_molarity}, @{thm zero_stock_dilutes_to_zero},
     @{thm reply_c_answered}, @{thm reply_c_exact_stated}, @{thm reply_c_withheld},
     @{thm decay_real_zero}, @{thm decay_halves}, @{thm decay_real_nat}, @{thm time_real_inverse},
     @{thm time_real_half}, @{thm factor_nv_sound}, @{thm halv_nv_sound}, @{thm half_lives_value},

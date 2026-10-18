@@ -1,0 +1,76 @@
+[
+  {
+    "q": "2 H2 + O2 + Pt -> 2 H2O + Pt; 4 mol H2, 1 mol O2, .1 mol Pt; yield H2O in mol",
+    "expected": 2
+  },
+  {
+    "q": "2 H2 + O2 + Pt -> 2 H2O + Pt; 4 mol H2, 1 mol O2, .1 mol Pt; remaining Pt in mol",
+    "expected": 0.1
+  },
+  {
+    "q": "2 H2 + O2 + Pt -> 2 H2O + Pt; 4 mol H2, 1 mol O2, .1 mol Pt; yield Pt in mol",
+    "expected": 0
+  },
+  {
+    "q": "H2 + H2 + O2 -> 2 H2O; 4 mol H2, 1 mol O2; yield H2O in mol",
+    "expected": 2
+  },
+  {
+    "q": "2 H2 + O2 -> H2O + H2O; 4 mol H2, 1 mol O2; yield H2O in mol",
+    "expected": 2
+  },
+  {
+    "q": "3 H2 + O2 -> 2 H2O + H2; 2 mol H2, 1 mol O2; yield H2O in mol",
+    "expected": 2
+  },
+  {
+    "q": "3 H2 + O2 -> 2 H2O + H2; 2 mol H2, 1 mol O2; remaining H2 in mol",
+    "expected": 0
+  },
+  {
+    "q": "2 H2 + O2 + H2O -> 3 H2O; 4 mol H2, 1 mol O2, 2 mol H2O; yield H2O in mol",
+    "expected": 2
+  },
+  {
+    "q": "2 H2 + O2 + H2O -> 3 H2O; 4 mol H2, 1 mol O2, 2 mol H2O; remaining H2O in mol",
+    "expected": 4
+  },
+  {
+    "q": "2 H2 + O2 -> 2 H2O; 4 mol H2, 1 mol O2, 2 mol H2O; remaining H2O in grams",
+    "expected": 72.06
+  },
+  {
+    "q": "2 H2 + O2 -> 2 H2O; 4 mol H2, 1 mol O2, 2 mol H2O; yield H2O in grams",
+    "expected": 36.03
+  },
+  {
+    "q": "CH3CH2OH -> CH3OCH3; 1 mol CH3CH2OH; yield CH3OCH3 in mol",
+    "expected": null,
+    "expectation_class": "withheld_valid"
+  },
+  {
+    "q": "C2H5OH -> CH3CH2OH; 1 mol C2H5OH; yield CH3CH2OH in mol",
+    "expected": null,
+    "expectation_class": "withheld_valid"
+  },
+  {
+    "q": "H2 -> H2; 1 mol H2; yield H2 in mol",
+    "expected": null,
+    "expectation_class": "withheld_valid"
+  },
+  {
+    "q": "H2 + H2 + O2 -> 2 H2O; 2 mol H2, 2 mol H2, 1 mol O2; yield H2O in mol",
+    "expected": null,
+    "expectation_class": "withheld_valid"
+  },
+  {
+    "q": "2 H2 + O2 + Pt -> 2 H2O + Pt; 4 mol H2, 1 mol O2; yield H2O in mol",
+    "expected": null,
+    "expectation_class": "withheld_valid"
+  },
+  {
+    "q": "2 H2 + O2 -> 2 H2O; 4 mol H2, 1 mol O2, -1 mol H2O; yield H2O in mol",
+    "expected": null,
+    "expectation_class": "invalid_or_underspecified"
+  }
+]

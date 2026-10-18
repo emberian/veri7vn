@@ -160,7 +160,7 @@ definition log2_exact :: "rat \<Rightarrow> nat option" where
 definition halv_nv :: "rat \<Rightarrow> nval" where
   "halv_nv f = (case log2_exact f of
      Some k \<Rightarrow> NR (of_nat k)
-   | None \<Rightarrow> NA (floatarith.Mult (floatarith.Minus (floatarith.Ln (Q f))) (floatarith.Inverse (floatarith.Ln (I 2)))))"
+   | None \<Rightarrow> NA (floatarith.Mult (floatarith.Ln (Q (inverse f))) (floatarith.Inverse (floatarith.Ln (I 2)))))"
 
 theorem halv_nv_sound: "0 < f \<Longrightarrow> nreal (halv_nv f) = time_real (rl f)"
 proof (cases "log2_exact f")
@@ -171,7 +171,7 @@ proof (cases "log2_exact f")
   ultimately show ?thesis using Some by (simp add: halv_nv_def time_real_def)
 next
   case None
-  then show ?thesis by (simp add: halv_nv_def time_real_def divide_inverse)
+  then show ?thesis by (simp add: halv_nv_def time_real_def of_rat_inverse ln_inverse divide_inverse)
 qed
 
 definition time_nv :: "rat \<Rightarrow> rat \<Rightarrow> nval" where

@@ -69,9 +69,14 @@ fun nreal :: "nval \<Rightarrow> real" where
   "nreal (NR q) = rl q"
 | "nreal (NA e) = interpret_floatarith e []"
 
+text \<open>Try the usual precision first, then one bounded higher-precision
+retry. Both branches use the same checked enclosure and decimal error bound;
+small inverse-decay fractions can need more than 106 bits in the current
+interval algorithm. Failure at both precisions remains a refusal.\<close>
+
 fun ndec :: "nval \<Rightarrow> (int \<times> int) option" where
   "ndec (NR q) = round_sig 4 (rl q)"
-| "ndec (NA e) = enclose 53 e"
+| "ndec (NA e) = (case enclose 53 e of Some d \<Rightarrow> Some d | None \<Rightarrow> enclose 212 e)"
 
 theorem ndec_sound:
   assumes "ndec v = Some d"
@@ -87,8 +92,11 @@ proof (cases v)
   show ?thesis unfolding n using b c by linarith
 next
   case (NA e)
-  have "enclose 53 e = Some d" using assms NA by simp
-  from enclose_sound[OF this] show ?thesis using NA by simp
+  have "enclose 53 e = Some d \<or> enclose 212 e = Some d"
+    using assms NA by (auto split: option.splits)
+  then show ?thesis
+    using enclose_sound[where p=53 and e=e and d=d]
+      enclose_sound[where p=212 and e=e and d=d] NA by auto
 qed
 
 definition nshow :: "nval \<Rightarrow> String.literal" where
