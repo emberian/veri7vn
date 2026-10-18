@@ -183,4 +183,21 @@ The English field assignments and model applicability are untrusted.
 Exact integration and local test hashes:
 `var/root-mechanics-efficiency/resume/integration.json`. The audit inventory
 accepts all nine explicit records; that is partial coverage of 305 IDs, not
-system completion. Scoped portable packaging is the remaining integration gate.
+system completion.
+
+Scoped portable packaging also passed. The nine-folder macOS/Linux archive is
+`var/root-mechanics-efficiency/resume/portability/package/veri7vn-specialists-2026-10-18.tar.gz`,
+850,812 bytes, SHA256
+`e3b91759a73b88dbb4fd3fbb35ad162c0c29f47866a2657eb9664c6b71407fb6`.
+It pins shared consumers to `af9605d`. After relocation outside the checkout,
+both platforms again score 1264/1264 shipped cases with identical replies.
+All 276 mechanism capability assertions also pass with identical replies:
+236 numerical answers, 38 correct invalid refusals and two valid withholds
+(the output-shaft-power case for each reader). Those withholds remain gaps.
+The capability set combines each reader's 101 authored and 37 reserved cases;
+it is separate from the shipped panel score.
+
+Exact package and evidence hashes are in
+`var/root-mechanics-efficiency/resume/portability/delivery.json`. The full
+144-specialist archive has not been refreshed with this repair. No proof,
+compiler, remote test or implementation job remains from this bounded step.

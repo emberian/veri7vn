@@ -10,6 +10,24 @@ are not specialist folders. Stores needs binaries with the explicit asset-path
 options and is included only with `--include-stores`; its six IDs otherwise
 remain explicitly excluded.
 
+## Later mechanics successor
+
+The nine mechanics specialists have a separate macOS/Linux package at
+`var/root-mechanics-efficiency/resume/portability/package/veri7vn-specialists-2026-10-18.tar.gz`.
+It includes the supplied-efficiency work-balance correction for both mechanism
+readers, with shared consumers pinned to `af9605d`. Both relocated platforms
+score 1264/1264 shipped cases with identical replies, including 46 correct
+invalid refusals. The 276 additional efficiency checks also match: 236 answers,
+38 correct invalid refusals and two valid withholds. Output shaft power with
+efficiency remains unsupported. Other known family gaps, including Fleet's
+requested and price gallon units, are not repaired by this package.
+
+The archive is 850,812 bytes, SHA256
+`e3b91759a73b88dbb4fd3fbb35ad162c0c29f47866a2657eb9664c6b71407fb6`.
+Exact bindings and evidence:
+`var/root-mechanics-efficiency/resume/portability/delivery.json`.
+It does not replace the full delivery below.
+
 ## Later Trades successor
 
 The six Trades specialists have a separate, tested macOS/Linux package at
