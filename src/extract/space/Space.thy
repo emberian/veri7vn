@@ -13,70 +13,16 @@ text \<open>
 
 section \<open>Rounding to a stated decimal\<close>
 
-definition I :: "int \<Rightarrow> floatarith" where "I i = floatarith.Num (Float i 0)"
+text \<open>The decimal rounding (round_at, its error bound, round_tie_up, sig_exp) and the
+digit layout come from Veri7vn_Commons (src/extract/commons/Commons_Num.thy,
+lifted from lane G). This family's @{text to_dec}, @{text enclose} and
+@{text render_fixed} take a style or other arguments and are different
+functions from the commons ones of the same names, so the commons names are
+hidden. The exponent search never carries soundness (see @{text style_exp}).\<close>
 
-definition Q :: "rat \<Rightarrow> floatarith" where
-  "Q q = (case quotient_of q of (a, b) \<Rightarrow> floatarith.Mult (I a) (floatarith.Inverse (I b)))"
-
-lemma interp_I [simp]: "interpret_floatarith (I i) xs = of_int i"
-  by (simp add: I_def)
-
-lemma interp_Q [simp]: "interpret_floatarith (Q q) xs = rl q"
-proof -
-  obtain a b where qa: "quotient_of q = (a, b)" by (cases "quotient_of q")
-  then have "q = of_int a / of_int b" by (rule quotient_of_div)
-  then have "rl q = of_int a / of_int b" by (simp add: of_rat_divide)
-  then show ?thesis by (simp add: Q_def qa divide_inverse)
-qed
-
-definition pow10 :: "int \<Rightarrow> real" where
-  "pow10 k = (if 0 \<le> k then 10 ^ nat k else inverse (10 ^ nat (- k)))"
-
-lemma pow10_pos: "0 < pow10 k"
-  by (simp add: pow10_def)
-
-definition dec_val :: "int \<times> int \<Rightarrow> real" where
-  "dec_val d = (case d of (m, e) \<Rightarrow> of_int m * pow10 e)"
-
-definition round_at :: "real \<Rightarrow> int \<Rightarrow> int \<times> int" where
-  "round_at x e = (\<lfloor>x / pow10 e + 1 / 2\<rfloor>, e)"
-
-lemma round_at_error: "\<bar>dec_val (round_at x e) - x\<bar> \<le> pow10 e / 2"
-proof -
-  define p where "p = pow10 e"
-  have p: "0 < p" by (simp add: p_def pow10_pos)
-  define y where "y = x / p"
-  have x: "x = y * p" using p by (simp add: y_def)
-  have lo: "of_int \<lfloor>y + 1 / 2\<rfloor> \<le> y + 1 / 2" by (rule of_int_floor_le)
-  have hi: "y + 1 / 2 < of_int \<lfloor>y + 1 / 2\<rfloor> + 1" by (rule real_of_int_floor_add_one_gt)
-  have "\<bar>of_int \<lfloor>y + 1 / 2\<rfloor> - y\<bar> \<le> 1 / 2" using lo hi by linarith
-  then have "\<bar>of_int \<lfloor>y + 1 / 2\<rfloor> - y\<bar> * p \<le> 1 / 2 * p" using p by (intro mult_right_mono) auto
-  then have "\<bar>of_int \<lfloor>y + 1 / 2\<rfloor> * p - y * p\<bar> \<le> p / 2"
-    using p by (simp add: abs_mult left_diff_distrib[symmetric])
-  then show ?thesis by (simp add: dec_val_def round_at_def p_def[symmetric] y_def[symmetric] x[symmetric])
-qed
-
-text \<open>Tie behaviour, stated: an exact decimal tie rounds up. (Lane G's lemma.)\<close>
-theorem round_tie_up:
-  assumes "x / pow10 e = of_int n + 1 / 2"
-  shows "round_at x e = (n + 1, e)"
-proof -
-  have "x / pow10 e + 1 / 2 = of_int (n + 1)" using assms by simp
-  then show ?thesis by (simp add: round_at_def)
-qed
-
-text \<open>An exponent with @{text "10^(p-1) * 10^e \<le> |x| < 10^p * 10^e"} when one is found
-within 400 steps; soundness never relies on the search (see @{text style_exp}).\<close>
-fun exp_up :: "real \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int" where
-  "exp_up B x 0 e = e"
-| "exp_up B x (Suc n) e = (if B * pow10 e \<le> x then exp_up B x n (e + 1) else e)"
-
-fun exp_down :: "real \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int" where
-  "exp_down L x 0 e = e"
-| "exp_down L x (Suc n) e = (if x < L * pow10 e then exp_down L x n (e - 1) else e)"
-
-definition sig_exp :: "nat \<Rightarrow> real \<Rightarrow> int" where
-  "sig_exp p x = exp_down (10 ^ (p - 1)) \<bar>x\<bar> 400 (exp_up (10 ^ p) \<bar>x\<bar> 400 0)"
+hide_const (open) Commons_Num.to_dec Commons_Num.enclose Commons_Num.render_fixed
+hide_fact (open) Commons_Num.to_dec_def Commons_Num.to_dec_sound Commons_Num.enclose_def
+  Commons_Num.enclose_sound Commons_Num.render_fixed_def
 
 text \<open>How the organs print a number: a style fixes the exponent the value is rounded
 at. @{text "St_sig p"} is p significant digits; @{text St_orb} is Python's
@@ -114,15 +60,6 @@ proof -
   have s: "snd d = e" by (simp add: d round_at_def)
   have "\<bar>dec_val d - rl q\<bar> \<le> pow10 e / 2" unfolding d by (rule round_at_error)
   then show ?thesis by (simp add: s)
-qed
-
-lemma midpoint_close:
-  fixes lo hi x :: real
-  assumes "lo \<le> x" "x \<le> hi"
-  shows "\<bar>(lo + hi) / 2 - x\<bar> \<le> (hi - lo) / 2"
-proof (rule abs_leI)
-  show "(lo + hi) / 2 - x \<le> (hi - lo) / 2" using assms(1) by (simp add: field_simps)
-  show "- ((lo + hi) / 2 - x) \<le> (hi - lo) / 2" using assms(2) by (simp add: field_simps)
 qed
 
 text \<open>A decimal from a float interval enclosing a value, or a refusal when the
@@ -189,26 +126,7 @@ proof -
   then show ?thesis using to_dec_sound d by blast
 qed
 
-
 section \<open>Response text: digits\<close>
-
-fun digits :: "nat \<Rightarrow> nat list" where
-  "digits n = (if n < 10 then [n] else digits (n div 10) @ [n mod 10])"
-
-definition digit_lit :: "nat \<Rightarrow> String.literal" where
-  "digit_lit d = (if d = 0 then STR ''0'' else if d = 1 then STR ''1'' else if d = 2 then STR ''2''
-    else if d = 3 then STR ''3'' else if d = 4 then STR ''4'' else if d = 5 then STR ''5''
-    else if d = 6 then STR ''6'' else if d = 7 then STR ''7'' else if d = 8 then STR ''8''
-    else STR ''9'')"
-
-definition lit :: "nat list \<Rightarrow> String.literal" where
-  "lit ds = foldr (\<lambda>d s. digit_lit d + s) ds (STR '''')"
-
-definition strip_zeros :: "nat list \<Rightarrow> nat list" where
-  "strip_zeros ds = rev (dropWhile (\<lambda>d. d = 0) (rev ds))"
-
-definition pad2 :: "nat list \<Rightarrow> nat list" where
-  "pad2 ds = (if length ds < 2 then 0 # ds else ds)"
 
 text \<open>Thousands commas, by fuel on the number of digits.\<close>
 fun commas_n :: "nat \<Rightarrow> nat list \<Rightarrow> String.literal" where
@@ -220,23 +138,6 @@ definition commas :: "nat list \<Rightarrow> String.literal" where
   "commas ds = commas_n (length ds) ds"
 
 text \<open>Python's @{text "%.pg"} layout for a decimal @{text "m * 10^e"} (lane G's).\<close>
-definition render_dec :: "nat \<Rightarrow> int \<times> int \<Rightarrow> String.literal" where
-  "render_dec p d = (case d of (m, e) \<Rightarrow>
-     if m = 0 then STR ''0'' else
-     let sg = (if m < 0 then STR ''-'' else STR '''');
-         ds = digits (nat \<bar>m\<bar>); k = int (length ds); x = e + k - 1 in
-     if x < -4 \<or> int p \<le> x then
-       (let fr = strip_zeros (tl ds) in
-        sg + lit [hd ds] + (if fr = [] then STR '''' else STR ''.'' + lit fr) + STR ''e''
-          + (if x < 0 then STR ''-'' else STR ''+'') + lit (pad2 (digits (nat \<bar>x\<bar>))))
-     else if 0 \<le> e then sg + lit (ds @ replicate (nat e) 0)
-     else
-       (let p = nat (- e);
-            ip = (if p < length ds then take (length ds - p) ds else [0]);
-            fr = strip_zeros (if p < length ds then drop (length ds - p) ds
-                              else replicate (p - length ds) 0 @ ds)
-        in sg + lit ip + (if fr = [] then STR '''' else STR ''.'' + lit fr)))"
-
 text \<open>Fixed notation: @{text "%.nf"}, optionally with trailing zeros stripped (the
 spacecraft and planetary @{text g}) and thousands commas.\<close>
 definition render_fixed :: "bool \<Rightarrow> bool \<Rightarrow> int \<times> int \<Rightarrow> String.literal" where
@@ -269,9 +170,6 @@ definition render_plain :: "int \<times> int \<Rightarrow> String.literal" where
 text \<open>A number in a reply, in a style (a question mark if the style cannot pin it).\<close>
 definition fmt :: "style \<Rightarrow> rat \<Rightarrow> String.literal" where
   "fmt st q = (case stated_dec st q of None \<Rightarrow> STR ''?'' | Some d \<Rightarrow> render_st st d)"
-
-definition apos :: String.literal where "apos = String.implode [CHR 0x27]"
-
 
 section \<open>Units the organs read\<close>
 
@@ -330,7 +228,6 @@ lemma dbase_f_pos [simp]: "0 < dbase_f u" by (cases u) (simp_all add: mile_km_de
 lemma freq_mhz_pos [simp]: "0 < freq_mhz u" by (cases u) simp_all
 lemma dpre_f_pos [simp]: "0 < dpre_f u" by (cases u) simp_all
 lemma rate_f_pos [simp]: "0 < rate_f u" by (cases u) simp_all
-
 
 section \<open>Requests and outcomes\<close>
 
@@ -429,7 +326,6 @@ definition dur_unit :: "rat \<Rightarrow> String.literal" where
 
 lemma dur_scale_pos [simp]: "0 < dur_scale s" by (simp add: dur_scale_def)
 
-
 section \<open>Declines\<close>
 
 text \<open>Underspecified: a body, altitude, distance, frequency or rate the formula
@@ -519,7 +415,6 @@ lemma decl_none: "decline_of r = None \<Longrightarrow>
     missing r = None \<and> \<not> nosync r \<and> reason_of r = None \<and> \<not> fake r \<and> \<not> novalue r"
   by (auto simp: decline_of_def split: option.splits if_splits)
 
-
 section \<open>Values\<close>
 
 subsection \<open>Which kinds are enclosed and which are exact\<close>
@@ -593,7 +488,6 @@ fun fa :: "request \<Rightarrow> floatarith" where
 
 definition phys :: "request \<Rightarrow> real" where
   "phys r = (if is_approx r then interpret_floatarith (fa r) [] else rl (qval r))"
-
 
 section \<open>Names, styles and the kernel\<close>
 
@@ -835,7 +729,6 @@ lemma kernel_exact_of:
 
 theorem kernel_deterministic: "kernel r = o1 \<Longrightarrow> kernel r = o2 \<Longrightarrow> o1 = o2"
   by simp
-
 
 section \<open>What each kind means\<close>
 
@@ -1350,7 +1243,6 @@ proof -
   have nd: "decline_of (AYears b) = None" by (simp add: decl_none_iff)
   show ?thesis using kernel_exact_of[OF nd] by simp
 qed
-
 
 section \<open>Response text (ASCII)\<close>
 

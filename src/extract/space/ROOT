@@ -12,6 +12,8 @@ session Veri7vn_Space_Base in base = HOL +
 
 session Veri7vn_Space = Veri7vn_Space_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     Space_Tables
     Space

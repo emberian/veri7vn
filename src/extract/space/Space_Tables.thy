@@ -1,5 +1,5 @@
 theory Space_Tables
-  imports "Veri7vn_Space_Base.Space_Base"
+  imports "Veri7vn_Space_Base.Space_Base" "Veri7vn_Commons.Commons_Num"
 begin
 
 text \<open>
@@ -10,8 +10,6 @@ text \<open>
   difference, so the tables cannot drift. Nothing here is computed: these are
   data.
 \<close>
-
-abbreviation rl :: "rat \<Rightarrow> real" where "rl \<equiv> of_rat"
 
 section \<open>Orbits: gravitational parameters, radii, sidereal periods\<close>
 
@@ -66,7 +64,6 @@ lemma brad_pos [simp]: "0 < brad b"
 lemma sidereal_pos: "sidereal b = Some t \<Longrightarrow> 0 < t"
   by (cases b) auto
 
-
 section \<open>Planetary: constants\<close>
 
 text \<open>G = 6.674e-11 N m2/kg2, g = 9.81 m/s2, Earth mass 5.972e24 kg and radius
@@ -77,7 +74,6 @@ definition mass_E :: rat where "mass_E = 5972 * 1000000000000000000000"
 definition radius_E :: rat where "radius_E = 6371000"
 
 lemma grav_G_pos [simp]: "0 < grav_G" by (simp add: grav_G_def)
-
 
 section \<open>Spacecraft and space communications: constants\<close>
 
@@ -92,7 +88,6 @@ definition mile_km :: rat where "mile_km = 1609344 / 1000000"
 definition fspl_const :: rat where "fspl_const = 324478 / 10000"
 
 lemma light_c_pos [simp]: "0 < light_c" by (simp add: light_c_def)
-
 
 section \<open>Astronomy: NASA's Planetary Fact Sheet\<close>
 
