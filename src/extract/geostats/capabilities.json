@@ -8,11 +8,14 @@
           "weighted_mean"
         ],
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "unsupported_modifier",
+          "underspecified"
         ]
       },
       "context_regex_additions": [
-        "\\bweighted\\s+(?:mean|average)\\b"
+        "\\bweighted\\s+(?:mean|average)\\b",
+        "\\b(?:mean|average|median|mode|range|variance|standard deviation)\\b.*\\b(?:of|for|in|data|values|numbers|list)\\s*:?\\s*[+\\-0-9.\\[\u2212]"
       ],
       "evidence": {
         "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof.",
@@ -20,10 +23,11 @@
           "Dataset operations use finite rational observations; sample variance/deviation need at least two observations. Population and sample denominators differ.",
           "For weighted_mean only: equally long lists, nonnegative weights with positive sum; zero individual weights allowed. Mean is sum(value times weight) / sum(weights).",
           "Combinatorial operations use bounded natural counts; binomial probability requires a valid trial count and probability in [0,1]; z-score requires positive standard deviation.",
-          "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval."
+          "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval.",
+          "Explicit exclusions remove every equal-valued observation and retain the order and multiplicity of all remaining observations. Unsupported modifiers are refused; weighted exclusions are not supported."
         ],
         "untrusted": [
-          "English operation recognition, dataset extraction, decimal parsing and JSON framing; this catalogue does not certify that the recognized request matches the question."
+          "English operation recognition and complete dataset-list parsing (commas delimit observations), exact scalar lexical adapter, and JSON framing. This catalogue does not certify interpretation."
         ]
       }
     },
@@ -33,11 +37,14 @@
           "weighted_mean"
         ],
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "unsupported_modifier",
+          "underspecified"
         ]
       },
       "context_regex_additions": [
-        "\\bweighted\\s+(?:mean|average)\\b"
+        "\\bweighted\\s+(?:mean|average)\\b",
+        "\\b(?:mean|average|median|mode|range|variance|standard deviation)\\b.*\\b(?:of|for|in|data|values|numbers|list)\\s*:?\\s*[+\\-0-9.\\[\u2212]"
       ],
       "evidence": {
         "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof.",
@@ -45,10 +52,11 @@
           "Dataset operations use finite rational observations; sample variance/deviation need at least two observations. Population and sample denominators differ.",
           "For weighted_mean only: equally long lists, nonnegative weights with positive sum; zero individual weights allowed. Mean is sum(value times weight) / sum(weights).",
           "Combinatorial operations use bounded natural counts; binomial probability requires a valid trial count and probability in [0,1]; z-score requires positive standard deviation.",
-          "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval."
+          "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval.",
+          "Explicit exclusions remove every equal-valued observation and retain the order and multiplicity of all remaining observations. Unsupported modifiers are refused; weighted exclusions are not supported."
         ],
         "untrusted": [
-          "English operation recognition, dataset extraction, decimal parsing and JSON framing; this catalogue does not certify that the recognized request matches the question."
+          "English operation recognition and complete dataset-list parsing (commas delimit observations), exact scalar lexical adapter, and JSON framing. This catalogue does not certify interpretation."
         ]
       }
     },
@@ -58,11 +66,14 @@
           "weighted_mean"
         ],
         "declines_in_domain": [
-          "impossible"
+          "impossible",
+          "unsupported_modifier",
+          "underspecified"
         ]
       },
       "context_regex_additions": [
-        "\\bweighted\\s+(?:mean|average)\\b"
+        "\\bweighted\\s+(?:mean|average)\\b",
+        "\\b(?:mean|average|median|mode|range|variance|standard deviation)\\b.*\\b(?:of|for|in|data|values|numbers|list)\\s*:?\\s*[+\\-0-9.\\[\u2212]"
       ],
       "evidence": {
         "computation": "Specialist catalogue: arithmetic or weighted mean, median, complete tied modes, range, population/sample variance and standard deviation, combinations/permutations, binomial probability, and z-score. The reply kind selects the operation; this declaration is not a per-answer interpretation proof.",
@@ -70,10 +81,71 @@
           "Dataset operations use finite rational observations; sample variance/deviation need at least two observations. Population and sample denominators differ.",
           "For weighted_mean only: equally long lists, nonnegative weights with positive sum; zero individual weights allowed. Mean is sum(value times weight) / sum(weights).",
           "Combinatorial operations use bounded natural counts; binomial probability requires a valid trial count and probability in [0,1]; z-score requires positive standard deviation.",
-          "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval."
+          "Exact rational calculations are formatted to four decimal places; standard deviation uses a checked square-root interval.",
+          "Explicit exclusions remove every equal-valued observation and retain the order and multiplicity of all remaining observations. Unsupported modifiers are refused; weighted exclusions are not supported."
         ],
         "untrusted": [
-          "English operation recognition, dataset extraction, decimal parsing and JSON framing; this catalogue does not certify that the recognized request matches the question."
+          "English operation recognition and complete dataset-list parsing (commas delimit observations), exact scalar lexical adapter, and JSON framing. This catalogue does not certify interpretation."
+        ]
+      }
+    },
+    "geometry": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "unsupported_units"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Geometry catalogue: lengths, perimeters, areas, surfaces, volumes and polygon angle sums. Explicit length units are converted exactly before the existing shape computation; output names the selected unit and its dimension. Static catalogue, not an interpretation proof.",
+        "assumptions": [
+          "Supported lengths: mm, cm, m, km, international inch/foot/yard; all shape lengths positive. Requested output unit takes precedence, otherwise first explicit length unit.",
+          "Bare dimensions inherit a common unit only if explicit input units agree; a mixed-unit request with any bare dimension is refused.",
+          "Pi and roots use verified intervals rounded to six significant digits."
+        ],
+        "untrusted": [
+          "English roles and units, original numeric-token span binding, output unit recognition, and JSON framing."
+        ]
+      }
+    },
+    "geometry-v3": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "unsupported_units"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Geometry catalogue: lengths, perimeters, areas, surfaces, volumes and polygon angle sums. Explicit length units are converted exactly before the existing shape computation; output names the selected unit and its dimension. Static catalogue, not an interpretation proof.",
+        "assumptions": [
+          "Supported lengths: mm, cm, m, km, international inch/foot/yard; all shape lengths positive. Requested output unit takes precedence, otherwise first explicit length unit.",
+          "Bare dimensions inherit a common unit only if explicit input units agree; a mixed-unit request with any bare dimension is refused.",
+          "Pi and roots use verified intervals rounded to six significant digits."
+        ],
+        "untrusted": [
+          "English roles and units, original numeric-token span binding, output unit recognition, and JSON framing."
+        ]
+      }
+    },
+    "geometry-v4": {
+      "accept": {
+        "kinds": [],
+        "declines_in_domain": [
+          "unsupported_units"
+        ]
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Geometry catalogue: lengths, perimeters, areas, surfaces, volumes and polygon angle sums. Explicit length units are converted exactly before the existing shape computation; output names the selected unit and its dimension. Static catalogue, not an interpretation proof.",
+        "assumptions": [
+          "Supported lengths: mm, cm, m, km, international inch/foot/yard; all shape lengths positive. Requested output unit takes precedence, otherwise first explicit length unit.",
+          "Bare dimensions inherit a common unit only if explicit input units agree; a mixed-unit request with any bare dimension is refused.",
+          "Pi and roots use verified intervals rounded to six significant digits."
+        ],
+        "untrusted": [
+          "English roles and units, original numeric-token span binding, output unit recognition, and JSON framing."
         ]
       }
     }

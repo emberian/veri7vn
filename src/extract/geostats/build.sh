@@ -41,6 +41,7 @@ cat > "$OUT/build/geostats.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 geostats_generated.sml
 $SRC/../commons/commons.sml
+$SRC/../commons/numeric.sml
 $SRC/recognizer.sml
 $SRC/main.sml
 EOF

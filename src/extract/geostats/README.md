@@ -39,3 +39,29 @@ weighted-average equation, with our explicitly narrower nonnegative domain.
 The build-time self-test still runs and the final oracle scan remains mandatory.
 The self-test is no longer exported as an eager startup value. To compile a
 checked remote export, pass its SML path as the first argument to `build.sh`.
+
+Mixed units and dataset exclusions (D)
+-------------------------------------
+
+Geometry converts explicit mm, cm, m, km, international inches, feet and yards
+with exact rational factors before applying the existing shape calculation.
+A requested output unit selects the common length base; otherwise the first
+explicit input unit does. Responses label squared/cubed units for areas and
+volumes. Bare dimensions inherit one common input unit, but a mixture of
+explicit units plus a bare dimension is refused. Unsupported units and
+malformed scalar captures cannot donate a numeric suffix to a length role.
+The reader binds complete issued numeric spans; role and unit interpretation
+remain untrusted. Exact factors follow NIST's international length definitions:
+https://www.nist.gov/pml/owm/si-units-length .
+
+Ordinary dataset operations consume the whole finite list. Explicit
+`excluding`, `except`, `without` and `omitting` clauses remove every occurrence
+of each named value. The HOL filter preserves retained order and multiplicity,
+then feeds the existing mean/median/mode/range/variance/deviation kernel. Empty
+and singleton results retain the existing operation-specific refusals. Commas
+in datasets are separators, not thousands grouping. Unsupported modifiers,
+including weighted exclusions, are refused instead of silently ignored.
+
+New statements connect converted rectangle area to its original physical
+lengths and the filtered mean to the original sum plus excluded observations.
+These verify the typed computations; they do not certify English parsing.

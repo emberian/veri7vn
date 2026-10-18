@@ -102,6 +102,88 @@ struct
   (* =================== geometry =================== *)
   structure Geo =
   struct
+    exception BadGeometry
+    val N = "([+\\-\226\136\146]?(?:\\d+(?:,\\d{3})*(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?(?:\\s*/\\s*[+\\-\226\136\146]?(?:\\d+(?:,\\d{3})*(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?)?)"
+    fun parseDec lit = case ExactNumeric.parse lit of SOME q => q | NONE => raise BadGeometry
+    (* Scalar roles bind whole issued spans, never a suffix of an exponent,
+       negative quantity, identifier or malformed numeral. *)
+    fun grp text (m as {groups,...}: Regex.match) g =
+      case Regex.group text m g of
+        NONE => NONE
+      | SOME lit =>
+          if size lit > 0 andalso (Char.isDigit (String.sub(lit,0)) orelse
+               Char.contains "+-." (String.sub(lit,0)) orelse String.isPrefix "\226\136\146" lit)
+          then if List.exists (fn ExactNumeric.Number {start,stop,...} =>
+                    Vector.sub(groups,g) = SOME(start,stop) | _ => false) (ExactNumeric.scan text)
+               then SOME lit else raise BadGeometry
+          else SOME lit
+    fun g1 text m = valOf (grp text m 1)
+    val unitRx = "(?:millimet(?:er|re)s?|centimet(?:er|re)s?|kilomet(?:er|re)s?|met(?:er|re)s?|inches|inch|feet|foot|yards?|mm|cm|km|ft|yd|in|m)"
+    fun unitOf w =
+      if has "^(?:mm|millimet)" w then G.LU_mm
+      else if has "^(?:cm|centimet)" w then G.LU_cm
+      else if has "^(?:km|kilomet)" w then G.LU_km
+      else if has "^(?:in|inch)" w then G.LU_in
+      else if has "^(?:ft|feet|foot)" w then G.LU_ft
+      else if has "^(?:yd|yard)" w then G.LU_yd else G.LU_m
+    fun suffix text stop = String.extract(text,stop,NONE)
+    fun attachedUnit text stop =
+      case search ("^\\s*(" ^ unitRx ^ ")\\b") (suffix text stop) of
+        NONE => NONE
+      | SOME (m as {stop=unitStop,...}) =>
+          let val tail = suffix text stop
+              val w = valOf (Regex.group tail m 1)
+          in SOME (unitOf w, stop+unitStop) end
+    fun prepare text =
+      let val original = lower (collapse text)
+          val outputRx = "\\b(?:in|into)\\s+(?:square\\s+|cubic\\s+)?(" ^ unitRx ^ ")(?:[23]|\\^[23]|\194\178|\194\179)?(?![a-z0-9])"
+          val explicitOutput = search outputRx original
+          (* Output unit exponents are notation, never input dimensions. *)
+          val t = replaceAll outputRx "" original
+          val ts = ExactNumeric.scan t
+          val _ = if List.exists (fn ExactNumeric.Malformed _ => true | _ => false) ts
+                  then raise BadGeometry else ()
+          val inputUnits = List.mapPartial (fn ExactNumeric.Number {stop,...} => Option.map #1 (attachedUnit t stop) | _ => NONE) ts
+          val mixed = case inputUnits of [] => false | u::us => List.exists (fn v => v<>u) us
+          val hasBare = List.exists (fn ExactNumeric.Number {stop,...} => not(isSome(attachedUnit t stop)) | _ => false) ts
+          val _ = if mixed andalso hasBare then raise BadGeometry else ()
+          val firstUnit = List.find (fn ExactNumeric.Number {stop,...} => isSome(attachedUnit t stop) | _ => false) ts
+          val outputPhrase = search "\\b(?:in|into)\\s+([a-z]+(?:\\s+[a-z]+)?)(?:[23]|\\^[23]|\194\178|\194\179)?(?:[?.]|$)" original
+          val _ = if isSome outputPhrase andalso not(isSome explicitOutput) then raise BadGeometry else ()
+          val requestedPower = if has ("\\b(?:in|into)\\s+(?:square\\s+" ^ unitRx ^ "|" ^ unitRx ^ "(?:2|\\^2|\194\178))") original then SOME 2
+              else if has ("\\b(?:in|into)\\s+(?:cubic\\s+" ^ unitRx ^ "|" ^ unitRx ^ "(?:3|\\^3|\194\179))") original then SOME 3 else NONE
+          val operationPower = if has "\\bvolume\\b" t then 3 else if has "\\barea\\b" t then 2 else 1
+          val _ = case requestedPower of SOME n => if n=operationPower then () else raise BadGeometry | NONE => ()
+          val target = case explicitOutput of
+              SOME m => SOME(unitOf (valOf(Regex.group original m 1)))
+            | NONE => (case firstUnit of SOME(ExactNumeric.Number {stop,...}) =>
+                          Option.map #1 (attachedUnit t stop) | _ => NONE)
+          fun replacement (ExactNumeric.Number {start,stop,value}) =
+                (case attachedUnit t stop of
+                   SOME (source,last) =>
+                     let val rest = suffix t last
+                         val _ = if has "^(?:[23]|\\^[23]|\194\178|\194\179)" rest then raise BadGeometry else ()
+                         val q = G.converted_parts source (valOf target) (toRat value)
+                     in (start,last,ExactNumeric.canonical q) end
+                 | NONE =>
+                     let val tail = suffix t stop
+                         val _ = if has "^\\s*(?:['\"]|\194\181|\206\188|\194\176)" tail then raise BadGeometry else ()
+                         val _ = case search "^\\s*([a-z]+)" tail of
+                           NONE => ()
+                         | SOME m =>
+                             let val w = valOf(Regex.group tail m 1)
+                             in if List.exists (fn x => x=w)
+                               ["by","x","and","or","sides","sided","units","unit","long","wide","high","tall",
+                                "radius","diameter","height","width","length","base","edge","side","leg","hypotenuse",
+                                "is","with","has","what","find","compute","calculate","determine","the","a","of",
+                                "rectangle","rectangular","box","cuboid","square","triangle","circle","sphere","cylinder","cone","cube","polygon","legs"]
+                               then () else raise BadGeometry end
+                     in (start,stop,String.substring(t,start,stop-start)) end)
+            | replacement _ = raise BadGeometry
+          fun rewrite pos [] acc = String.concat(rev(String.extract(t,pos,NONE)::acc))
+            | rewrite pos ((a,b,v)::rest) acc = rewrite b rest (v::String.substring(t,pos,a-pos)::acc)
+      in (rewrite 0 (map replacement ts) [],target) end
+
     fun valD low word : dec option =
       case search ("\\b" ^ word ^ "\\s*(?:of|=|is|:)?\\s*" ^ N) low of
         SOME m => SOME (parseDec (g1 low m))
@@ -318,7 +400,13 @@ struct
     val IMPERATIVE = "\\b(?:compute|calculate|determine|give|work out|get)\\s+(?=the (?:length of the )?hypotenuse\\b)"
     fun v4 (text : string) : G.grequest option = v3 (replaceAll IMPERATIVE "find " (lower text))
 
-    fun reply f text = Option.map G.g_reply (f text)
+    fun reply f text =
+      if not(has "\\b(?:circle|sphere|cylinder|cone|cube|rectangle|rectangular|box|cuboid|square|triangle|hypotenuse|polygon|sided|pentagon|hexagon|heptagon|octagon|nonagon|decagon|quadrilateral)\\b" (lower text))
+      then NONE
+      else ((let val (t,u) = prepare text
+             in Option.map (fn req => case u of NONE => G.g_reply req
+                               | SOME unit => G.geometry_unit_reply unit req) (f t) end)
+            handle BadGeometry => SOME G.units_refusal)
     fun byId "geometry" text = reply v4 text
       | byId "geometry-v3" text = reply v4 text
       | byId "geometry-v4" text = reply v4 text
@@ -513,7 +601,7 @@ struct
       end
 
     (* organ_stats_v3 *)
-    val DATASET = "\\b(of|for|in)\\s+(?:the|these|this|those)\\s+(?:data ?set|data|numbers|values|list|sample|observations|scores)\\b[:\\s]*"
+    val DATASET = "\\b(of|for|in)\\s+(?:(?:the|these|this|those)\\s+)?(?:data ?set|data|numbers|values|list|sample|observations|scores)\\b[:\\s]*"
     fun v3 (low : string) : S.srequest option =
       v2 (replaceFn DATASET (fn m => (g1 low m) ^ " ") low)
 
@@ -534,7 +622,71 @@ struct
            SOME m => SOME (G.weighted_reply (numbers (g1 t m)) (numbers (valOf (grp t m 2))))
          | NONE => SOME (G.weighted_reply [] [])
       end
-    fun complete text = case weighted text of SOME r => SOME r | NONE => reply v3 text
+    (* The list grammar owns commas as observation separators. Each complete
+       scalar literal is then parsed exactly; no numeric-prefix extraction. *)
+    val LISTNUM = "[+\\-\226\136\146]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?(?:\\s*/\\s*[+\\-\226\136\146]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?)?"
+    fun exactList body =
+      let val t = replaceAll "\\band\\b" "," (replaceAll "^\\s*\\[|\\]\\s*$" "" body)
+      in if not(has ("^\\s*" ^ LISTNUM ^ "(?:(?:\\s*,\\s*|\\s+)" ^ LISTNUM ^ ")*\\s*$") t)
+         then NONE
+         else let val vals = map (fn m => ExactNumeric.parse(Regex.whole t m)) (findall LISTNUM t)
+              in if List.all isSome vals then SOME(map (toRat o valOf) vals) else NONE end
+      end
+    fun dataset text =
+      let val t = replaceAll "[?.]$" "" (norm text)
+          val t = replaceFn DATASET (fn m => (g1 t m) ^ " ") t
+          val which = List.find (fn (_,rx) => has rx t)
+            [("stdev","\\bstandard deviation\\b|\\bstd\\.? ?dev\\b|\\bsd\\b"),
+             ("variance","\\bvariance\\b"),("median","\\bmedian\\b"),("mode","\\bmode\\b"),
+             ("range","\\brange\\b"),("mean","\\bmean\\b|\\baverage\\b")]
+          val excludedOtherOperation = has "\\bz[- ]?score\\b|\\bprobability\\b|\\bweighted\\b|\\bchance\\b" t
+          val body = search "\\b(?:of|for|in|data(?:set)?|numbers|values|list)[:\\s]+(.+)$" t
+          fun request kind xs = case kind of
+              "stdev" => S.S_stdev (has "\\bpopulation\\b" t,xs)
+            | "variance" => S.S_variance (has "\\bpopulation\\b" t,xs)
+            | "median" => S.S_median(xs,true) | "mode" => S.S_mode xs
+            | "range" => S.S_range xs | _ => S.S_mean(xs,true)
+      val unsupportedPrefix = has "\\b(?:trimmed|geometric|harmonic|winsori[sz]ed|rolling|moving|first|last|largest|smallest|distinct|unique)\\b" t
+      in if excludedOtherOperation then NONE
+         else case (which,body) of
+           (SOME(kind,_),SOME m) =>
+             let val b = replaceAll ",\\s*(?:what is|find|compute|calculate|determine)\\s+(?:the\\s+)?(?:population\\s+|sample\\s+)?(?:mean|average|median|mode|range|variance|standard deviation)\\s*$" "" (g1 t m)
+                 val ex = search "\\s+(?:excluding|except|without|omitting)\\s+(.+)$" b
+                 val (values,excluded) = case ex of NONE =>
+                     (b,if has "\\b(?:excluding|except|without|omitting|remove|drop|ignore)\\b" t then NONE else SOME [])
+                   | SOME (em as {start,...}) => (String.substring(b,0,start),exactList(g1 b em))
+                 val parsed = exactList values
+                 val listPrefix = has ("^\\s*\\[?\\s*" ^ LISTNUM ^ "(?:\\s*,\\s*|\\s+(?:and\\s+)?)" ^ LISTNUM) values
+                 val explicitDataset = has "\\b(?:data ?set|data|numbers|values|list|observations)\\b" (norm text)
+                 val ownsDataset = isSome parsed orelse listPrefix orelse explicitDataset
+             in if not ownsDataset then NONE
+                else if unsupportedPrefix then SOME G.modifier_refusal
+                else case (parsed,excluded) of
+                  (SOME xs,SOME es) => SOME(G.filtered_reply es (request kind xs))
+                | _ => if has "[0-9]|\\b(?:excluding|except|without|omitting)\\b" b
+                       then SOME G.modifier_refusal else NONE
+             end
+         | _ => NONE
+      end
+    (* z-score scalar roles use the same whole-token binding as geometry;
+       a negative standard deviation reaches the existing positive-SD guard. *)
+    fun exactZ text =
+      let val t = norm text
+          fun role rx = case search (rx ^ "\\s*(?:of|for|is|=)?\\s*(?:(?:a|the)\\s+)?(?:value\\s+of\\s+)?" ^ Geo.N) t of
+              NONE => NONE
+            | SOME m => Option.map (toRat o Geo.parseDec) (Geo.grp t m 1)
+      in case (role "\\bz[- ]?score\\b", role "(?:\\bmean\\b|\\baverage\\b|\206\188)",
+               role "(?:\\bstandard deviation\\b|\\bsd\\b|\\bstd\\b|\207\131)") of
+           (SOME x,SOME mu,SOME sd) => SOME(S.s_reply(S.S_z(x,mu,sd)))
+         | _ => NONE
+      end handle Geo.BadGeometry => NONE
+    fun complete text =
+      if has "\\bz[- ]?score\\b" (norm text) then exactZ text
+      else if has "\\bweighted (?:mean|average)\\b" (norm text) andalso
+         has "\\b(?:excluding|except|without|omitting|remove|drop|trim|ignore)\\b" (norm text)
+      then SOME G.modifier_refusal
+      else case weighted text of SOME r => SOME r
+      | NONE => (case dataset text of SOME r => SOME r | NONE => reply v3 text)
     fun byId "statistics" text = complete text
       | byId "statistics-v2" text = complete text
       | byId "statistics-v3" text = complete text

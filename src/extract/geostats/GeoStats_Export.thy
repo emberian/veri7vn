@@ -1,5 +1,5 @@
 theory GeoStats_Export
-  imports GeoStats_Geometry GeoStats_Stats GeoStats_Weighted
+  imports GeoStats_Geometry GeoStats_Stats GeoStats_Weighted GeoStats_Extensions
 begin
 
 (* W6-15: marker and oracle scan are the last commands; every headline theorem is listed. *)
@@ -49,7 +49,9 @@ definition self_test :: bool where
      stated (s_reply (S_z 44 61 12)) = Some (STR ''-1.4167'') \<and>
      s_kernel (S_z 44 61 0) = SDecline (SImpossible SR_nonpositive_sd)"
 
-export_code g_reply s_reply answered reply_kind response stated mk_rat mk_nat weighted_reply
+export_code converted_parts geometry_unit_reply filtered_reply modifier_refusal units_refusal
+  LU_mm LU_cm LU_m LU_km LU_in LU_ft LU_yd
+  g_reply s_reply answered reply_kind response stated mk_rat mk_nat weighted_reply
   integer_of_int nat_of_integer int_of_integer
   G_circle_area G_circumference G_sphere_volume G_sphere_surface G_cylinder_volume G_cylinder_surface
   G_cone_volume G_cube_volume G_cube_surface G_box_volume G_rect_area G_rect_perimeter G_square_area
@@ -58,7 +60,9 @@ export_code g_reply s_reply answered reply_kind response stated mk_rat mk_nat we
   in SML module_name GeoStats file_prefix geostats
 
 ML \<open>
-  val theorems = [@{thm weighted_balance}, @{thm weighted_between}, @{thm weighted_rejects_invalid}, @{thm weighted_equal_weights}, @{thm g_exact_sound}, @{thm g_approx_value}, @{thm g_count_value},
+  val theorems = [@{thm length_convert_physical}, @{thm length_convert_composes}, @{thm length_convert_sign},
+    @{thm converted_rectangle_area}, @{thm geometry_unit_reply_value}, @{thm exclusion_membership},
+    @{thm exclusion_sum_partition}, @{thm filtered_mean_partition}, @{thm weighted_balance}, @{thm weighted_between}, @{thm weighted_rejects_invalid}, @{thm weighted_equal_weights}, @{thm g_exact_sound}, @{thm g_approx_value}, @{thm g_count_value},
     @{thm g_underspecified}, @{thm g_impossible}, @{thm g_imprecise},
     @{thm cube_volume_value}, @{thm cube_surface_value}, @{thm box_volume_value},
     @{thm rect_area_value}, @{thm rect_perimeter_value}, @{thm square_area_value},

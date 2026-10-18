@@ -21,4 +21,5 @@ session Veri7vn_GeoStats = Veri7vn_GeoStats_Base +
     GeoStats_Geometry
     GeoStats_Stats
     GeoStats_Weighted
+    GeoStats_Extensions
     GeoStats_Export
