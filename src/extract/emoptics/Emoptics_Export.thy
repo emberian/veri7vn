@@ -9,6 +9,13 @@ definition mk_rat :: "integer \<Rightarrow> integer \<Rightarrow> rat" where
 
 definition mk_nat :: "integer \<Rightarrow> nat" where "mk_nat a = nat_of_integer a"
 
+text \<open>The recognizer reads each lens length with its explicit unit.
+All lens-distance requests use centimetres, including mixed-unit inputs.\<close>
+definition lens_cm :: "rat \<times> lu \<Rightarrow> rat" where
+  "lens_cm l = 100 * amt lu_scale l"
+lemma lens_cm_metres: "lens_cm l / 100 = amt lu_scale l"
+  by (simp add: lens_cm_def)
+
 definition self_test :: bool where
   "self_test \<longleftrightarrow>
      kernel (E_HpKw 5) = Exact K_hp_kw (37285 / 10000) \<and>
@@ -30,7 +37,7 @@ definition self_test :: bool where
      kernel (O_Image (Some 10) (Some 10)) = Verdict K_at_focus \<and>
      stated (reply_of (O_EnergyL (400, L_nm))) = Some (STR ''3.1'')"
 
-export_code reply_of answered reply_kind response stated mk_rat mk_nat self_test
+export_code reply_of answered reply_kind response stated mk_rat mk_nat lens_cm
   integer_of_int nat_of_integer int_of_integer lookup
   names_v names_a names_w names_va names_len names_wlen names_freq names_pfx names_cq names_medium
   medium_n
@@ -42,12 +49,12 @@ export_code reply_of answered reply_kind response stated mk_rat mk_nat self_test
   CB_Series CB_Parallel CB_Divider CB_Rc CB_Led CB_Cur CB_Volt CB_Res CB_Pow
   E_HpKw E_KwHp E_XfmrV E_XfmrI E_PfCorr E_Tri C_Circ W_Judgement W_Continuous W_Vdrop W_Res
   W_Area W_Diam W_Cur W_Cur3 O_EnergyL O_EnergyF O_Frequency O_Wavelength O_LensPower O_Image
-  O_Mag O_Crit O_Speed O_Index O_Snell
+  O_Object O_Focal O_Mag O_Crit O_Speed O_Index O_Snell
   in SML module_name Emoptics file_prefix emoptics
 
 (* marker block *)
 ML \<open>
-  val theorems = [@{thm kernel_exact_sound}, @{thm kernel_approx_sound}, @{thm kernel_reflect_sound},
+  val theorems = [@{thm lens_cm_metres}, @{thm kernel_exact_sound}, @{thm kernel_approx_sound}, @{thm kernel_reflect_sound},
     @{thm kernel_underspecified}, @{thm kernel_impossible}, @{thm kernel_judgement}, @{thm kernel_imprecise},
     @{thm round_sig_sound}, @{thm to_dec_sound}, @{thm stated_dec_sound},
     @{thm hp_kw_value}, @{thm hp_kw_roundtrip}, @{thm transformer_power}, @{thm power_factor_value},
@@ -55,17 +62,37 @@ ML \<open>
     @{thm three_phase_real_is_apparent_times_pf}, @{thm three_phase_current_inverse},
     @{thm pf_correction_tan}, @{thm pf_correction_balance}, @{thm pf_over_one}, 
     @{thm ohm_law}, @{thm power_is_vi}, @{thm parallel_reciprocal}, @{thm series_sum}, @{thm divider_ratio},
-    @{thm rc_time_constant}, @{thm led_resistor}, @{thm zero_resistor_declined},
+    @{thm rc_time_constant}, @{thm led_resistor}, @{thm zero_resistor_declined}, @{thm resistor_decline_exact},
+    @{thm parallel_below_smallest}, @{thm reply_states_approximation}, @{thm inverse_lens_equation},
+    @{thm focal_lens_equation}, @{thm lens_roundtrip},
     @{thm awg_36}, @{thm awg_step}, @{thm wire_resistance_area}, @{thm voltage_drop_is_current_times_loop},
     @{thm continuous_eighty_percent}, @{thm single_phase_current}, @{thm vdrop_underspecified},
     @{thm photon_energy_wavelength}, @{thm frequency_wavelength}, @{thm wavelength_frequency}, @{thm medium_speed},
     @{thm lens_power}, @{thm thin_lens_equation}, @{thm magnification_ratio}, @{thm object_at_focus},
     @{thm no_critical_angle}, @{thm snell_law}, @{thm critical_angle_law},
     @{thm reply_answered_iff}, @{thm reply_states_exact}, @{thm reply_withheld_names_decline}] @ @{thms power_factor_never_assumed};
-  val oracles = Thm_Deps.all_oracles theorems;
+  val family_facts = Global_Theory.all_thms_of @{theory} true
+    |> filter (fn ((name, _), _) => exists (fn prefix => String.isPrefix prefix name)
+         ["Emoptics.", "Emoptics_Num.", "Emoptics_Export."]);
+  val family_theorems = map #2 family_facts;
+  val oracles = Thm_Deps.all_oracles (theorems @ family_theorems);
+  (* The aggregate checks every fact. On failure, locate one witness by
+     partitioning, without repeatedly traversing every clean proof root. *)
+  fun oracle_witness [] = NONE
+    | oracle_witness [x] = SOME x
+    | oracle_witness xs =
+        let val (left, right) = chop (length xs div 2) xs
+        in if null (Thm_Deps.all_oracles (map (fn (_, th) => th) left))
+           then oracle_witness right else oracle_witness left end;
+  val _ = if null oracles then ()
+    else if null (Thm_Deps.all_oracles family_theorems)
+      then Pretty.writeln (Thm_Deps.pretty_thm_oracles @{context} theorems)
+    else (case oracle_witness family_facts of NONE => ()
+      | SOME ((name, _), th) => (writeln ("EMOPTICS_ORACLE_FACT " ^ name);
+          Pretty.writeln (Thm_Deps.pretty_thm_oracles @{context} [th])));
   val _ = if null oracles then () else error ("emoptics theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "emoptics self test failed";
-  val _ = writeln ("VERI7VN_EMOPTICS PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");
+  val _ = writeln ("VERI7VN_EMOPTICS PASS theorems=" ^ string_of_int (length theorems) ^ " scanned=" ^ string_of_int (length family_theorems) ^ " oracles=0");
 \<close>
 
 end

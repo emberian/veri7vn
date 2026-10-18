@@ -14,34 +14,39 @@ text \<open>
   from the organs; tables_check.py compares this file with the organ files.
 \<close>
 
+text \<open>These datatypes retain code extraction and their logical laws. The
+unused full-exhaustive and narrowing test generators are disabled: Isabelle
+generates their test equations through an oracle, so they do not belong in
+this family's oracle-free theorem catalogue.\<close>
+
 section \<open>Units, prefixes and exact factors\<close>
 
-datatype vu = VU_V | VU_kV
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) vu = VU_V | VU_kV
 fun vu_scale :: "vu \<Rightarrow> rat" where "vu_scale VU_V = 1" | "vu_scale VU_kV = 1000"
-datatype au = AU_A | AU_kA
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) au = AU_A | AU_kA
 fun au_scale :: "au \<Rightarrow> rat" where "au_scale AU_A = 1" | "au_scale AU_kA = 1000"
 text \<open>Real power, scaled to kW.\<close>
-datatype pu = PU_W | PU_kW | PU_MW
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) pu = PU_W | PU_kW | PU_MW
 fun pu_scale :: "pu \<Rightarrow> rat" where "pu_scale PU_W = 1 / 1000" | "pu_scale PU_kW = 1" | "pu_scale PU_MW = 1000"
 text \<open>Apparent power, scaled to kVA.\<close>
-datatype vau = VAU_VA | VAU_kVA | VAU_MVA
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) vau = VAU_VA | VAU_kVA | VAU_MVA
 fun vau_scale :: "vau \<Rightarrow> rat" where
   "vau_scale VAU_VA = 1 / 1000" | "vau_scale VAU_kVA = 1" | "vau_scale VAU_MVA = 1000"
 text \<open>Lengths, scaled to metres.\<close>
-datatype lu = L_nm | L_um | L_mm | L_cm | L_m | L_km | L_ft
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) lu = L_nm | L_um | L_mm | L_cm | L_m | L_km | L_ft
 fun lu_scale :: "lu \<Rightarrow> rat" where
   "lu_scale L_nm = 1 / 1000000000" | "lu_scale L_um = 1 / 1000000" | "lu_scale L_mm = 1 / 1000"
 | "lu_scale L_cm = 1 / 100" | "lu_scale L_m = 1" | "lu_scale L_km = 1000" | "lu_scale L_ft = 3048 / 10000"
-datatype fu = F_Hz | F_kHz | F_MHz | F_GHz | F_THz
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) fu = F_Hz | F_kHz | F_MHz | F_GHz | F_THz
 fun fu_scale :: "fu \<Rightarrow> rat" where
   "fu_scale F_Hz = 1" | "fu_scale F_kHz = 1000" | "fu_scale F_MHz = 1000000"
 | "fu_scale F_GHz = 1000000000" | "fu_scale F_THz = 1000000000000"
-datatype pfx = P_p | P_n | P_u | P_m | P_1 | P_k | P_M
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) pfx = P_p | P_n | P_u | P_m | P_1 | P_k | P_M
 fun pfx_scale :: "pfx \<Rightarrow> rat" where
   "pfx_scale P_p = 1 / 1000000000000" | "pfx_scale P_n = 1 / 1000000000" | "pfx_scale P_u = 1 / 1000000"
 | "pfx_scale P_m = 1 / 1000" | "pfx_scale P_1 = 1" | "pfx_scale P_k = 1000" | "pfx_scale P_M = 1000000"
-datatype cq = CQ_V | CQ_A | CQ_R | CQ_W | CQ_C
-datatype medium = Vacuum | Air | Water | Diamond
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) cq = CQ_V | CQ_A | CQ_R | CQ_W | CQ_C
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) medium = Vacuum | Air | Water | Diamond
 text \<open>Refractive index at 589 nm (organ_optics_v1.MEDIA).\<close>
 fun medium_n :: "medium \<Rightarrow> rat" where
   "medium_n Vacuum = 1" | "medium_n Air = 1000293 / 1000000" | "medium_n Water = 1333 / 1000"
@@ -49,7 +54,7 @@ fun medium_n :: "medium \<Rightarrow> rat" where
 fun medium_name :: "medium \<Rightarrow> String.literal" where
   "medium_name Vacuum = STR ''vacuum''" | "medium_name Air = STR ''air''"
 | "medium_name Water = STR ''water''" | "medium_name Diamond = STR ''diamond''"
-datatype metal = Copper | Aluminium
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) metal = Copper | Aluminium
 text \<open>Resistivity at 20 C in ohm m (organ_wiring_v1.RHO).\<close>
 fun rho :: "metal \<Rightarrow> rat" where "rho Copper = 17241 / 1000000000000" | "rho Aluminium = 282 / 10000000000"
 fun metal_name :: "metal \<Rightarrow> String.literal" where
@@ -100,7 +105,7 @@ section \<open>Requests and outcomes\<close>
 text \<open>An amount with an SI prefix (electronics).\<close>
 type_synonym camt = "rat \<times> pfx"
 
-datatype tri =
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) tri =
     T_Wye rat          \<comment> \<open>phase voltage in V\<close>
   | T_Delta rat        \<comment> \<open>phase current in A\<close>
   | T_Kva "rat \<times> vu" "rat \<times> au"
@@ -109,7 +114,7 @@ datatype tri =
   | T_Pf "rat \<times> pu" "rat \<times> vau"
   | T_React "rat \<times> pu" "rat \<times> vau"
 
-datatype cbody =
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) cbody =
     CB_Series "camt list"
   | CB_Parallel "camt list"
   | CB_Divider camt camt camt          \<comment> \<open>Vin, R1, R2\<close>
@@ -120,7 +125,7 @@ datatype cbody =
   | CB_Res "camt option" "camt option"                  \<comment> \<open>V, A\<close>
   | CB_Pow "camt option" "camt option" "camt option"    \<comment> \<open>V, A, R\<close>
 
-datatype request =
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) request =
     E_HpKw rat
   | E_KwHp rat
   | E_XfmrV rat rat rat                \<comment> \<open>Np, Ns, Vp\<close>
@@ -142,32 +147,35 @@ datatype request =
   | O_Wavelength "rat \<times> fu"
   | O_LensPower "(rat \<times> lu) option"
   | O_Image "rat option" "rat option"  \<comment> \<open>focal length, object distance\<close>
+  | O_Object "rat option" "rat option"  \<comment> \<open>focal length, image distance\<close>
+  | O_Focal "rat option" "rat option"  \<comment> \<open>object distance, image distance\<close>
   | O_Mag "rat option" "rat option"
   | O_Crit "rat option" "rat option"
   | O_Speed "rat option"
   | O_Index medium
   | O_Snell "rat option" "rat option" "rat option"      \<comment> \<open>angle in degrees, n1, n2\<close>
 
-datatype need = N_pf_power | N_pf_current | N_c_current | N_c_voltage | N_c_resistance | N_c_power
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) need = N_pf_power | N_pf_current | N_c_current | N_c_voltage | N_c_resistance | N_c_power
   | N_w_vdrop | N_o_focal | N_o_lens | N_o_indices | N_o_index | N_o_snell
 
-datatype reason = R_pf_over | R_p_over_s | R_pf_range | R_turns | R_zero_div | R_resistor | R_led
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) reason = R_pf_over | R_p_over_s | R_pf_range | R_turns | R_zero_div | R_resistor | R_capacitor | R_led
   | R_wavelength | R_frequency | R_focal_zero | R_index | R_angle
 
-datatype decline = Underspecified need | Judgement | Impossible reason | Imprecise
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) decline = Underspecified need | Judgement | Impossible reason | Imprecise
 
-datatype kind =
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) kind =
     K_three_phase_kw | K_three_phase_kva | K_three_phase_current | K_wye_vline | K_delta_iline | K_pf
   | K_reactive | K_pf_correction | K_xfmr_v | K_xfmr_i | K_hp_kw | K_kw_hp
   | K_current | K_voltage | K_resistance | K_power | K_series | K_parallel | K_divider | K_rc | K_led
   | K_continuous | K_vdrop | K_wire_resistance | K_area | K_diameter | K_current3 | K_wire_current
   | K_photon_energy | K_frequency | K_wavelength | K_lens_power | K_image_distance | K_magnification
+  | K_object_distance | K_focal_length | K_object_infinite
   | K_at_focus | K_critical_angle | K_no_critical | K_medium_speed | K_tir | K_refraction_angle | K_index
 
 text \<open>An exact rational, a decimal @{text "(m, e)"} meaning @{text "m * 10^e"}
 enclosing a real value, a text-only verdict, total internal reflection (the
 decimal is the ratio @{text "n1 sin t1 / n2"}, which exceeds 1), or a decline.\<close>
-datatype outcome = Exact kind rat | Approx kind "int \<times> int" | Verdict kind | Reflect "int \<times> int" | Decline decline
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) outcome = Exact kind rat | Approx kind "int \<times> int" | Verdict kind | Reflect "int \<times> int" | Decline decline
 
 fun kind_of :: "request \<Rightarrow> kind" where
   "kind_of (E_HpKw _) = K_hp_kw"
@@ -205,6 +213,8 @@ fun kind_of :: "request \<Rightarrow> kind" where
 | "kind_of (O_Wavelength _) = K_wavelength"
 | "kind_of (O_LensPower _) = K_lens_power"
 | "kind_of (O_Image _ _) = K_image_distance"
+| "kind_of (O_Object _ _) = K_object_distance"
+| "kind_of (O_Focal _ _) = K_focal_length"
 | "kind_of (O_Mag _ _) = K_magnification"
 | "kind_of (O_Crit _ _) = K_critical_angle"
 | "kind_of (O_Speed _) = K_medium_speed"
@@ -237,10 +247,11 @@ fun pre_tri :: "rat option \<Rightarrow> tri \<Rightarrow> decline option" where
 | "pre_tri pf (T_React p s) = (if amt vau_scale s < amt pu_scale p then Some (Impossible R_p_over_s) else None)"
 
 fun pre_cb :: "cbody \<Rightarrow> decline option" where
-  "pre_cb (CB_Series rs) = None"
+  "pre_cb (CB_Series rs) = (if list_ex (\<lambda>r. cv r \<le> 0) rs then Some (Impossible R_resistor) else None)"
 | "pre_cb (CB_Parallel rs) = (if list_ex (\<lambda>r. cv r \<le> 0) rs then Some (Impossible R_resistor) else None)"
 | "pre_cb (CB_Divider vin r1 r2) = (if cv r1 + cv r2 = 0 then Some (Impossible R_zero_div) else None)"
-| "pre_cb (CB_Rc r c) = None"
+| "pre_cb (CB_Rc r c) = (if cv r \<le> 0 then Some (Impossible R_resistor)
+    else if cv c \<le> 0 then Some (Impossible R_capacitor) else None)"
 | "pre_cb (CB_Led vs i) = (if cv i = 0 then Some (Impossible R_zero_div)
      else if (lmax (map cv vs) - lmin (map cv vs)) / cv i \<le> 0 then Some (Impossible R_led) else None)"
 | "pre_cb (CB_Cur v r w) = (if hs (ocv v) \<and> nz (ocv r) then None
@@ -253,7 +264,7 @@ fun pre_cb :: "cbody \<Rightarrow> decline option" where
      else if hs (ocv v) \<and> nz (ocv r) then None else Some (Underspecified N_c_power))"
 
 fun pre_lens :: "rat option \<Rightarrow> rat option \<Rightarrow> decline option" where
-  "pre_lens (Some f) (Some d) = (if f \<noteq> d \<and> (f = 0 \<or> d = 0) then Some (Impossible R_zero_div) else None)"
+  "pre_lens (Some f) (Some d) = (if f = 0 \<or> d = 0 then Some (Impossible R_zero_div) else None)"
 | "pre_lens f d = Some (Underspecified N_o_lens)"
 
 text \<open>Why a request is declined, in the order the organs check: the
@@ -266,7 +277,7 @@ fun pre :: "request \<Rightarrow> decline option" where
 | "pre (E_XfmrI np ns ip) = (if ns = 0 then Some (Impossible R_turns) else None)"
 | "pre (E_PfCorr p p1 p2) = (if 0 < p1 \<and> p1 \<le> 1 \<and> 0 < p2 \<and> p2 \<le> 1 then None else Some (Impossible R_pf_range))"
 | "pre (E_Tri pf b) = (if (case pf of None \<Rightarrow> False | Some x \<Rightarrow> 1 < x) then Some (Impossible R_pf_over) else pre_tri pf b)"
-| "pre (C_Circ res rall b) = (if res \<and> list_ex (\<lambda>r. cv r \<le> 0) rall then Some (Impossible R_resistor) else pre_cb b)"
+| "pre (C_Circ res rall b) = (if list_ex (\<lambda>r. cv r \<le> 0) rall then Some (Impossible R_resistor) else pre_cb b)"
 | "pre W_Judgement = Some Judgement"
 | "pre (W_Continuous b) = None"
 | "pre (W_Vdrop m n i l v) = (if n = None \<or> i = None \<or> l = None then Some (Underspecified N_w_vdrop)
@@ -277,12 +288,15 @@ fun pre :: "request \<Rightarrow> decline option" where
 | "pre (W_Cur p v) = (if v = 0 then Some (Impossible R_zero_div) else None)"
 | "pre (W_Cur3 p v pf) = (if v = 0 \<or> pf = Some 0 then Some (Impossible R_zero_div) else None)"
 | "pre (O_EnergyL l) = (if amt lu_scale l \<le> 0 then Some (Impossible R_wavelength) else None)"
-| "pre (O_EnergyF f) = None"
+| "pre (O_EnergyF f) = (if amt fu_scale f \<le> 0 then Some (Impossible R_frequency) else None)"
 | "pre (O_Frequency l) = (if amt lu_scale l \<le> 0 then Some (Impossible R_wavelength) else None)"
 | "pre (O_Wavelength f) = (if amt fu_scale f \<le> 0 then Some (Impossible R_frequency) else None)"
 | "pre (O_LensPower None) = Some (Underspecified N_o_focal)"
 | "pre (O_LensPower (Some l)) = (if amt lu_scale l = 0 then Some (Impossible R_focal_zero) else None)"
 | "pre (O_Image f d) = pre_lens f d"
+| "pre (O_Object f d) = pre_lens f d"
+| "pre (O_Focal d i) = (case pre_lens d i of Some w \<Rightarrow> Some w
+     | None \<Rightarrow> if 1 / ov d + 1 / ov i = 0 then Some (Impossible R_zero_div) else None)"
 | "pre (O_Mag f d) = pre_lens f d"
 | "pre (O_Crit a b) = (case a of Some x \<Rightarrow> (case b of Some y \<Rightarrow> if min x y < 1 then Some (Impossible R_index) else None
      | None \<Rightarrow> Some (Underspecified N_o_indices)) | None \<Rightarrow> Some (Underspecified N_o_indices))"
@@ -329,6 +343,8 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (O_Wavelength f) = light_c / amt fu_scale f"
 | "qval (O_LensPower l) = 1 / ola l"
 | "qval (O_Image f d) = 1 / (1 / ov f - 1 / ov d)"
+| "qval (O_Object f d) = 1 / (1 / ov f - 1 / ov d)"
+| "qval (O_Focal d i) = 1 / (1 / ov d + 1 / ov i)"
 | "qval (O_Mag f d) = - (1 / (1 / ov f - 1 / ov d)) / ov d"
 | "qval (O_Speed a) = light_c / ov a"
 | "qval (O_Index m) = medium_n m"
@@ -469,6 +485,7 @@ fun answer_of :: "request \<Rightarrow> outcome" where
 | "answer_of (O_Crit a b) = (if ov a \<le> ov b then Verdict K_no_critical
      else approx_out K_critical_angle (fa (O_Crit a b)))"
 | "answer_of (O_Image f d) = (if ov f = ov d then Verdict K_at_focus else Exact K_image_distance (qval (O_Image f d)))"
+| "answer_of (O_Object f d) = (if ov f = ov d then Verdict K_object_infinite else Exact K_object_distance (qval (O_Object f d)))"
 | "answer_of (O_Mag f d) = (if ov f = ov d then Verdict K_at_focus else Exact K_magnification (qval (O_Mag f d)))"
 | "answer_of r = (if irr r then approx_out (kind_of r) (fa r) else Exact (kind_of r) (qval r))"
 
@@ -828,9 +845,11 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + show4 (amt fu_scale f) + STR '' Hz).''"
 | "exact_text (O_LensPower l) q vl = STR ''The lens power is '' + vl + STR '' diopters (P = 1/f with f = ''
      + show4 (ola l) + STR '' m).''"
-| "exact_text (O_Image f d) q vl = STR ''The image distance is '' + vl + STR '' (1/di = 1/f - 1/do = 1/''
+| "exact_text (O_Image f d) q vl = STR ''The image distance is '' + vl + STR '' cm (1/di = 1/f - 1/do = 1/''
      + show4 (ov f) + STR '' - 1/'' + show4 (ov d) + STR ''); the image is ''
      + (if 0 < q then STR ''real'' else STR ''virtual'') + STR '', magnification '' + show4 (qval (O_Mag f d)) + STR ''.''"
+| "exact_text (O_Object f d) q vl = STR ''The object distance is '' + vl + STR '' cm (1/do = 1/f - 1/di).''"
+| "exact_text (O_Focal d i) q vl = STR ''The focal length is '' + vl + STR '' cm (1/f = 1/do + 1/di).''"
 | "exact_text (O_Mag f d) q vl = STR ''The magnification is '' + vl + STR '' (m = -di/do, with di = ''
      + show4 (qval (O_Image f d)) + STR '' from 1/f = 1/do + 1/di).''"
 | "exact_text (O_Speed a) q vl = STR ''Light travels at '' + vl + STR '' m/s there (v = c/n = 299,792,458 / ''
@@ -887,6 +906,7 @@ fun approx_text :: "request \<Rightarrow> String.literal \<Rightarrow> String.li
 
 fun verdict_text :: "request \<Rightarrow> String.literal" where
   "verdict_text (O_Image f d) = STR ''An object at the focal point forms no finite image (1/di = 1/f - 1/do = 0): the rays leave parallel.''"
+| "verdict_text (O_Object f d) = STR ''An image at the focal point requires an object at infinity (1/do = 0).''"
 | "verdict_text (O_Mag f d) = STR ''An object at the focal point forms no finite image (1/di = 1/f - 1/do = 0): the rays leave parallel.''"
 | "verdict_text (O_Crit a b) = STR ''There is no critical angle going from n = '' + show4 (ov a) + STR '' into n = '' + show4 (ov b)
      + STR '': total internal reflection needs the light to go from a higher index to a lower one.''"
@@ -919,6 +939,7 @@ definition reason_text :: "reason \<Rightarrow> String.literal" where
    | R_turns \<Rightarrow> STR ''A transformer winding needs a nonzero number of turns.''
    | R_zero_div \<Rightarrow> STR ''That would divide by zero, so there'' + apos + STR ''s no finite answer.''
    | R_resistor \<Rightarrow> STR ''A resistance of zero or less isn'' + apos + STR ''t a real resistor value, so I won'' + apos + STR ''t compute a current from it.''
+   | R_capacitor \<Rightarrow> STR ''The passive RC model requires a positive capacitance.''
    | R_led \<Rightarrow> STR ''The supply isn'' + apos + STR ''t above the LED'' + apos + STR ''s forward voltage, so no series resistor can set that current.''
    | R_wavelength \<Rightarrow> STR ''A wavelength must be positive.''
    | R_frequency \<Rightarrow> STR ''A frequency must be positive.''
@@ -945,6 +966,8 @@ definition kind_name :: "kind \<Rightarrow> String.literal" where
    | K_pf_correction \<Rightarrow> STR ''pf_correction'' | K_xfmr_v \<Rightarrow> STR ''xfmr_v'' | K_xfmr_i \<Rightarrow> STR ''xfmr_i''
    | K_hp_kw \<Rightarrow> STR ''hp_kw'' | K_kw_hp \<Rightarrow> STR ''kw_hp''
    | K_current \<Rightarrow> STR ''current'' | K_voltage \<Rightarrow> STR ''voltage'' | K_resistance \<Rightarrow> STR ''resistance''
+   | K_object_distance \<Rightarrow> STR ''object_distance'' | K_focal_length \<Rightarrow> STR ''focal_length''
+   | K_object_infinite \<Rightarrow> STR ''object_at_infinity''
    | K_power \<Rightarrow> STR ''power'' | K_series \<Rightarrow> STR ''series'' | K_parallel \<Rightarrow> STR ''parallel''
    | K_divider \<Rightarrow> STR ''divider'' | K_rc \<Rightarrow> STR ''rc'' | K_led \<Rightarrow> STR ''led''
    | K_continuous \<Rightarrow> STR ''continuous'' | K_vdrop \<Rightarrow> STR ''vdrop'' | K_wire_resistance \<Rightarrow> STR ''resistance''
@@ -959,7 +982,7 @@ definition kind_name :: "kind \<Rightarrow> String.literal" where
 
 text \<open>The whole reply: answered or withheld, the kind, the response text and
 the stated value. Withheld replies carry the decline text, as the organs do.\<close>
-datatype reply = Reply (answered: bool) (reply_kind: String.literal)
+datatype (plugins del: quickcheck_full_exhaustive quickcheck_narrowing) reply = Reply (answered: bool) (reply_kind: String.literal)
   (response: String.literal) (stated: "String.literal option")
 
 definition imprecise_reply :: "request \<Rightarrow> reply" where
@@ -1192,6 +1215,53 @@ theorem zero_resistor_declined:
   shows "kernel (C_Circ True rall b) = Decline (Impossible R_resistor)"
   using assms by (simp add: kernel_def)
 
+
+text \<open>The outer resistor list is supplied by the recognizer. A parallel
+body also checks its own branches, so no coverage premise is silently assumed.\<close>
+theorem resistor_decline_exact:
+  "kernel (C_Circ True rall b) = Decline (Impossible R_resistor) \<longleftrightarrow>
+   list_ex (\<lambda>r. cv r \<le> 0) rall \<or>
+   (\<exists>rs. (b = CB_Parallel rs \<or> b = CB_Series rs) \<and> list_ex (\<lambda>r. cv r \<le> 0) rs) \<or>
+   (\<exists>r c. b = CB_Rc r c \<and> cv r \<le> 0)"
+  by (cases b; auto simp: kernel_impossible reason_of_def split: if_splits option.splits)
+
+lemma parallel_branch_bound:
+  assumes positive: "list_all (\<lambda>r. 0 < cv r) rs" and member: "r \<in> set rs"
+  shows "1 / sum_list (map (\<lambda>r. 1 / cv r) rs) \<le> cv r"
+proof -
+  have rpos: "0 < cv r" using positive member by (auto simp: list_all_iff)
+  have le: "1 / cv r \<le> sum_list (map (\<lambda>r. 1 / cv r) rs)"
+    by (rule member_le_sum_list) (use positive member in \<open>auto simp: list_all_iff\<close>)
+  have "inverse (sum_list (map (\<lambda>r. 1 / cv r) rs)) \<le> inverse (1 / cv r)"
+    by (rule le_imp_inverse_le[OF le]) (use rpos in simp)
+  then show ?thesis by (simp add: divide_inverse)
+qed
+
+lemma lower_bound_lmin:
+  assumes "xs \<noteq> []" "\<And>x. x \<in> set xs \<Longrightarrow> t \<le> x"
+  shows "t \<le> lmin xs"
+  using assms by (induction xs rule: lmin.induct) auto
+
+theorem parallel_below_smallest:
+  assumes "kernel (C_Circ res rall (CB_Parallel rs)) = Exact k t"
+    "rs \<noteq> []" "list_all (\<lambda>r. 0 < cv r) rs"
+  shows "t \<le> lmin (map cv rs)"
+proof -
+  have t: "t = 1 / sum_list (map (\<lambda>r. 1 / cv r) rs)"
+    using kernel_exact_sound[OF assms(1)] by simp
+  have each: "\<And>r. r \<in> set rs \<Longrightarrow> t \<le> cv r"
+    using t parallel_branch_bound[OF assms(3)] by metis
+  show ?thesis
+    by (rule lower_bound_lmin) (use assms(2) each in auto)
+qed
+
+theorem reply_states_approximation:
+  assumes "kernel r = Approx k d" "answered (reply_of r)"
+  shows "stated (reply_of r) = Some (value_lit k d) \<and>
+    \<bar>dec_val d - phys r\<bar> \<le> \<bar>phys r\<bar> / 1000 + 1 / 1000000000"
+  using assms kernel_approx_sound[OF assms(1)]
+  by (auto simp: reply_of_def imprecise_reply_def split: option.splits)
+
 subsection \<open>Wiring\<close>
 
 lemma awg_d_pos: "0 < awg_d n"
@@ -1320,8 +1390,9 @@ proof -
 qed
 
 theorem object_at_focus:
-  "kernel (O_Image (Some f) (Some f)) = Verdict K_at_focus"
-  by (simp add: kernel_def)
+  assumes "f \<noteq> 0"
+  shows "kernel (O_Image (Some f) (Some f)) = Verdict K_at_focus"
+  using assms by (simp add: kernel_def)
 
 theorem no_critical_angle:
   assumes "1 \<le> x" "1 \<le> y"
@@ -1367,6 +1438,28 @@ proof -
   have sa: "sin (arcsin (rl (y / x))) = rl (y / x)" by (rule sin_arcsin) (use r0 r1 in linarith)+
   have "sin (pi * phys (O_Crit (Some x) (Some y)) / 180) = rl (y / x)" by (simp only: ph sa)
   then show ?thesis using xz by (simp add: of_rat_divide)
+qed
+
+
+theorem inverse_lens_equation:
+  assumes "kernel (O_Object (Some f) (Some di)) = Exact k d"
+  shows "1 / d = 1 / f - 1 / di"
+  using kernel_exact_sound[OF assms] by (simp add: divide_inverse)
+
+theorem focal_lens_equation:
+  assumes "kernel (O_Focal (Some d) (Some i)) = Exact k f"
+  shows "1 / f = 1 / d + 1 / i"
+  using kernel_exact_sound[OF assms] by (simp add: divide_inverse)
+
+theorem lens_roundtrip:
+  assumes "kernel (O_Image (Some f) (Some d)) = Exact k i"
+    "kernel (O_Object (Some f) (Some i)) = Exact k' d'"
+  shows "d' = d"
+proof -
+  have "1 / i = 1 / f - 1 / d" using thin_lens_equation assms(1) by blast
+  moreover have "1 / d' = 1 / f - 1 / i" using inverse_lens_equation assms(2) by blast
+  ultimately have "inverse d' = inverse d" by (simp only: divide_inverse; linarith)
+  then show ?thesis by simp
 qed
 
 end

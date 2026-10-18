@@ -1,0 +1,382 @@
+[
+  {
+    "specialist": "optics",
+    "q": "Light enters a medium of index 1.8 from index 1.2 at 35 degrees. What is the angle of refraction?",
+    "expect": 22.481449535485147,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "n1 sin(theta1) = n2 sin(theta2)"
+  },
+  {
+    "specialist": "optics",
+    "q": "Light exits index 1.8 into index 1.2 at 35 degrees. What is the angle of refraction?",
+    "expect": 59.35755096415355,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "n1 sin(theta1) = n2 sin(theta2)"
+  },
+  {
+    "specialist": "optics",
+    "q": "Light goes from index 1.7 into index 1.7 at 27 degrees. What is the angle of refraction?",
+    "expect": 27.000000000000004,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "n1 sin(theta1) = n2 sin(theta2)"
+  },
+  {
+    "specialist": "optics",
+    "q": "Inside index 1.5, light at 52 degrees goes from index 1.5 to index 1.0. What is the angle of refraction?",
+    "expect": "totally internally reflected",
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "n1 sin(theta1) = n2 sin(theta2)"
+  },
+  {
+    "specialist": "optics",
+    "q": "Light passes from index 1.0 to index 1.8 at 0 degrees. What is the angle of refraction?",
+    "expect": 0.0,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "n1 sin(theta1) = n2 sin(theta2)"
+  },
+  {
+    "specialist": "optics",
+    "q": "Light enters diamond from air at 23 degrees. What is the angle of refraction?",
+    "expect": 9.305985551459804,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "Snell equation, using the supported table values air=1.000293 and diamond=2.417 (table transcription checked separately)."
+  },
+  {
+    "specialist": "optics",
+    "q": "Critical angle from a refractive index of 1.75 to 1.25?",
+    "expect": 45.58469140280703,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "sin(theta_c)=n2/n1"
+  },
+  {
+    "specialist": "optics",
+    "q": "What is the critical angle from index 1.2 to index 1.9?",
+    "expect": "no critical angle",
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "No TIR when n1 <= n2"
+  },
+  {
+    "specialist": "optics",
+    "q": "At what speed does light travel inside a material of refractive index 1.7?",
+    "expect": 176348504.70588237,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "v=c/n"
+  },
+  {
+    "specialist": "optics",
+    "q": "What is the speed of light in vacuum?",
+    "expect": 299792458,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "v=c/n, vacuum n=1"
+  },
+  {
+    "specialist": "optics",
+    "q": "Power in diopters of a -40 cm focal-length lens?",
+    "expect": -2.5,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "P=1/f in metres"
+  },
+  {
+    "specialist": "optics",
+    "q": "A lens has focal length 12 cm and the object is 36 cm away. Where is the image?",
+    "expect": 18,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "1/di=1/12-1/36"
+  },
+  {
+    "specialist": "optics",
+    "q": "A lens has focal length -12 cm and the object is 36 cm away. What is the magnification?",
+    "expect": 0.25,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "di=-9, m=-di/do"
+  },
+  {
+    "specialist": "optics",
+    "q": "An object is placed 6 cm from a lens with focal length 12 cm. What is the image distance?",
+    "expect": -12,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "1/di=1/12-1/6"
+  },
+  {
+    "specialist": "optics",
+    "q": "An object is placed 12 cm from a lens with focal length 12 cm. What is the image distance?",
+    "expect": "no finite image",
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "do=f implies 1/di=0"
+  },
+  {
+    "specialist": "electronics",
+    "q": "What is the resistance of 7 ohms and 13 ohms in parallel?",
+    "expect": 4.55,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "1/R=1/7+1/13"
+  },
+  {
+    "specialist": "electronics",
+    "q": "What is the resistance of 2 ohms, 3 ohms and 6 ohms in parallel?",
+    "expect": 1,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "1/R=1/2+1/3+1/6"
+  },
+  {
+    "specialist": "electronics",
+    "q": "What is the resistance of 7 ohms and 13 ohms in series?",
+    "expect": 20,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "R=7+13"
+  },
+  {
+    "specialist": "electrical",
+    "q": "Transformer with 700 primary turns and 200 secondary turns carries 4 A on the primary. Secondary current?",
+    "expect": 14,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/15-6-transformers",
+    "derivation": "Is=Ip Np/Ns"
+  },
+  {
+    "specialist": "electrical",
+    "q": "A transformer has 700 turns on the primary and 200 turns on the secondary. What is the secondary voltage with 210 V on the primary?",
+    "expect": 60,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/15-6-transformers",
+    "derivation": "Vs=Vp Ns/Np"
+  },
+  {
+    "specialist": "optics",
+    "q": "What is the speed of light in a medium with refractive index 0.8?",
+    "expect": null,
+    "valid": false,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "Index domain is n>=1"
+  },
+  {
+    "specialist": "optics",
+    "q": "Light passes from index 1.5 to index 1.0 at 90 degrees. What is the angle of refraction?",
+    "expect": null,
+    "valid": false,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/1-3-refraction",
+    "derivation": "Incidence domain is 0<=theta<90"
+  },
+  {
+    "specialist": "electronics",
+    "q": "What current flows through a resistor of -10 ohms at 5 volts?",
+    "expect": null,
+    "valid": false,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Passive resistor domain R>0"
+  },
+  {
+    "specialist": "electronics",
+    "q": "What is the resistance of 0 ohms and 10 ohms in parallel?",
+    "expect": null,
+    "valid": false,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-2-resistors-in-series-and-parallel",
+    "derivation": "Passive resistor domain R>0"
+  },
+  {
+    "specialist": "optics",
+    "q": "A lens has focal length 12 cm and the object is 0.36 m away. Where is the image?",
+    "expect": 18,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "12 cm and 0.36 m normalized to cm: 1/di=1/12-1/36"
+  },
+  {
+    "specialist": "optics",
+    "q": "An image is 18 cm from a lens with focal length 12 cm. What is the object distance?",
+    "expect": 36,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "1/do=1/12-1/18"
+  },
+  {
+    "specialist": "optics",
+    "q": "An object is 30 cm from a lens and the image is 60 cm away. What is the focal length?",
+    "expect": 20,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "1/f=1/30+1/60"
+  },
+  {
+    "specialist": "optics",
+    "q": "What is the energy of a photon with frequency -10 THz?",
+    "expect": null,
+    "valid": false,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/6-2-photoelectric-effect",
+    "derivation": "Photon energy E=hf requires positive frequency in this model"
+  },
+  {
+    "specialist": "optics",
+    "q": "An object is 30 cm from a lens and the image is -30 cm away. What is the focal length?",
+    "expect": null,
+    "valid": false,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "1/do+1/di=0 gives no finite focal length"
+  },
+  {
+    "specialist": "optics",
+    "q": "A lens has focal length 0 cm and the object is 0 cm away. Where is the image?",
+    "expect": null,
+    "valid": false,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "Degenerate or nonpositive passive input is outside this physical model"
+  },
+  {
+    "specialist": "optics",
+    "q": "An image is 0 cm from a lens with focal length 0 cm. What is the object distance?",
+    "expect": null,
+    "valid": false,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "Degenerate or nonpositive passive input is outside this physical model"
+  },
+  {
+    "specialist": "electronics",
+    "q": "What is the RC time constant with a 10 ohm resistor and a -2 uF capacitor?",
+    "expect": null,
+    "valid": false,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/10-5-rc-circuits",
+    "derivation": "The passive RC relaxation model assumes positive R and C; tau=RC."
+  },
+  {
+    "specialist": "electronics",
+    "q": "What current flows through a 2 kohm resistor with 1e-3 kV across it?",
+    "expect": 0.0005,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-2/pages/9-4-ohms-law",
+    "derivation": "I=V/R; 1e-3 kV=1 V and 2 kohm=2000 ohm"
+  },
+  {
+    "specialist": "optics",
+    "q": "A thin lens has object distance 30 cm and image distance 0.6 m. What is its focal length?",
+    "expect": 20,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "1/f = 1/30 + 1/60; output cm"
+  },
+  {
+    "specialist": "optics",
+    "q": "A thin lens has object distance 300 mm and image distance 0.6 m. Find the focal length.",
+    "expect": 20,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "1/f = 1/30 + 1/60; output cm"
+  },
+  {
+    "specialist": "optics",
+    "q": "A thin lens has focal length 0.2 m and image distance 600 mm. What is its object distance?",
+    "expect": 30,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "1/d = 1/20 - 1/60; output cm"
+  },
+  {
+    "specialist": "optics",
+    "q": "A thin lens has focal length 20 cm and image distance 0.6 m. Calculate the object distance.",
+    "expect": 30,
+    "valid": true,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "1/d = 1/20 - 1/60; output cm"
+  },
+  {
+    "specialist": "optics",
+    "q": "A thin lens has object distance 0 cm and image distance 0 m. What is its focal length?",
+    "expect": null,
+    "valid": false,
+    "split": "probes",
+    "kind": "probe",
+    "source": "https://openstax.org/books/university-physics-volume-3/pages/2-4-thin-lenses",
+    "derivation": "Zero object and image distance lie outside the reciprocal thin-lens model."
+  }
+]

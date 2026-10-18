@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "family": "emoptics",
+  "specialists": {
+    "optics": {
+      "accept": {
+        "kinds": [
+          "object_distance",
+          "focal_length",
+          "object_at_infinity"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical quantities follow the typed request model: Snell refraction and critical angle, speed c/n, vacuum frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Explicit lens units are normalized to centimetres in HOL.",
+        "assumptions": [
+          "Recognition selected the intended quantities, medium roles and physical model. This declaration does not prove the English interpretation.",
+          "Frequency, wavelength and wavelength-based photon-energy operations currently use the vacuum model; refraction assumes one interface with angles to its normal.",
+          "Lens operations use the ideal paraxial thin-lens model and signed-distance convention."
+        ],
+        "untrusted": [
+          "English recognition and JSON framing.",
+          "Printed decimal rendering is checked by source-derived probes, not proved to parse back to the rational."
+        ]
+      }
+    },
+    "optics-v2": {
+      "accept": {
+        "kinds": [
+          "object_distance",
+          "focal_length",
+          "object_at_infinity"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical quantities follow the typed request model: Snell refraction and critical angle, speed c/n, vacuum frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Explicit lens units are normalized to centimetres in HOL.",
+        "assumptions": [
+          "Recognition selected the intended quantities, medium roles and physical model. This declaration does not prove the English interpretation.",
+          "Frequency, wavelength and wavelength-based photon-energy operations currently use the vacuum model; refraction assumes one interface with angles to its normal.",
+          "Lens operations use the ideal paraxial thin-lens model and signed-distance convention."
+        ],
+        "untrusted": [
+          "English recognition and JSON framing.",
+          "Printed decimal rendering is checked by source-derived probes, not proved to parse back to the rational."
+        ]
+      }
+    },
+    "optics-v3": {
+      "accept": {
+        "kinds": [
+          "object_distance",
+          "focal_length",
+          "object_at_infinity"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical quantities follow the typed request model: Snell refraction and critical angle, speed c/n, vacuum frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Explicit lens units are normalized to centimetres in HOL.",
+        "assumptions": [
+          "Recognition selected the intended quantities, medium roles and physical model. This declaration does not prove the English interpretation.",
+          "Frequency, wavelength and wavelength-based photon-energy operations currently use the vacuum model; refraction assumes one interface with angles to its normal.",
+          "Lens operations use the ideal paraxial thin-lens model and signed-distance convention."
+        ],
+        "untrusted": [
+          "English recognition and JSON framing.",
+          "Printed decimal rendering is checked by source-derived probes, not proved to parse back to the rational."
+        ]
+      }
+    },
+    "optics-v5": {
+      "accept": {
+        "kinds": [
+          "object_distance",
+          "focal_length",
+          "object_at_infinity"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical quantities follow the typed request model: Snell refraction and critical angle, speed c/n, vacuum frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Explicit lens units are normalized to centimetres in HOL.",
+        "assumptions": [
+          "Recognition selected the intended quantities, medium roles and physical model. This declaration does not prove the English interpretation.",
+          "Frequency, wavelength and wavelength-based photon-energy operations currently use the vacuum model; refraction assumes one interface with angles to its normal.",
+          "Lens operations use the ideal paraxial thin-lens model and signed-distance convention."
+        ],
+        "untrusted": [
+          "English recognition and JSON framing.",
+          "Printed decimal rendering is checked by source-derived probes, not proved to parse back to the rational."
+        ]
+      }
+    },
+    "optics-v5-r2": {
+      "accept": {
+        "kinds": [
+          "object_distance",
+          "focal_length",
+          "object_at_infinity"
+        ],
+        "declines_in_domain": []
+      },
+      "context_regex_additions": [],
+      "evidence": {
+        "computation": "Static model catalogue, not a checked interpretation of this reply. Optical quantities follow the typed request model: Snell refraction and critical angle, speed c/n, vacuum frequency/wavelength/photon relations, and the reciprocal thin-lens equation. Explicit lens units are normalized to centimetres in HOL.",
+        "assumptions": [
+          "Recognition selected the intended quantities, medium roles and physical model. This declaration does not prove the English interpretation.",
+          "Frequency, wavelength and wavelength-based photon-energy operations currently use the vacuum model; refraction assumes one interface with angles to its normal.",
+          "Lens operations use the ideal paraxial thin-lens model and signed-distance convention."
+        ],
+        "untrusted": [
+          "English recognition and JSON framing.",
+          "Printed decimal rendering is checked by source-derived probes, not proved to parse back to the rational."
+        ]
+      }
+    }
+  }
+}

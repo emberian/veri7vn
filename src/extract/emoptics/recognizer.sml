@@ -100,7 +100,7 @@ struct
     if Narrow.narrative text then NONE
     else case r of
       NONE => NONE
-    | SOME req => if not (E.answered (E.reply_of req)) andalso not (Narrow.short_direct text) then NONE else SOME req
+    | SOME req => if Narrow.short_direct text orelse E.answered (E.reply_of req) then SOME req else NONE
 
   val NUM = "(\\d+(?:,\\d{3})*(?:\\.\\d+)?)"
   fun orStr xs = String.concatWith "|" xs
@@ -147,17 +147,17 @@ struct
       else
         let
           val turns = search "\\b(\\d+(?:\\.\\d+)?)\\s*:\\s*(\\d+(?:\\.\\d+)?)\\b" low
-          val np_ = search ("\\bprimary\\s*(?:winding\\s*)?(?:has\\s*|of\\s*|with\\s*)?" ^ NUM ^ "\\s*turns|" ^ NUM ^ "\\s*turns?\\s*(?:on the )?primary") low
-          val ns_ = search ("\\bsecondary\\s*(?:winding\\s*)?(?:has\\s*|of\\s*|with\\s*)?" ^ NUM ^ "\\s*turns|" ^ NUM ^ "\\s*turns?\\s*(?:on the )?secondary") low
+          val np_ = search ("\\bprimary\\s*(?:winding\\s*)?(?:has\\s*|of\\s*|with\\s*)?" ^ NUM ^ "\\s*turns|" ^ NUM ^ "\\s*turns?\\s*(?:on (?:the )?)?primary|" ^ NUM ^ "\\s*primary turns") low
+          val ns_ = search ("\\bsecondary\\s*(?:winding\\s*)?(?:has\\s*|of\\s*|with\\s*)?" ^ NUM ^ "\\s*turns|" ^ NUM ^ "\\s*turns?\\s*(?:on (?:the )?)?secondary|" ^ NUM ^ "\\s*secondary turns") low
         in
           if has "\\btransformer\\b" low andalso (isSome turns orelse (isSome np_ andalso isSome ns_)) then
             let
               val (np, ns) =
                 if isSome np_ andalso isSome ns_ then
-                  (ratOf (valOf (firstGroup low (valOf np_) [1, 2])), ratOf (valOf (firstGroup low (valOf ns_) [1, 2])))
+                  (ratOf (valOf (firstGroup low (valOf np_) [1, 2, 3])), ratOf (valOf (firstGroup low (valOf ns_) [1, 2, 3])))
                 else (ratOf (g1 low (valOf turns)), ratOf (valOf (grp low (valOf turns) 2)))
-              val vp = search ("\\bprimary (?:voltage )?(?:of |is |=)?\\s*" ^ NUM ^ "\\s*v\\b|" ^ NUM ^ "\\s*v\\s*(?:on the )?primary|\\b" ^ NUM ^ "\\s*v\\s*(?:input|in)\\b") low
-              val ip = search ("\\bprimary current\\s*(?:of|is|=)?\\s*" ^ NUM ^ "\\s*a\\b|" ^ NUM ^ "\\s*a\\s*(?:on the |in the )?primary") low
+              val vp = search ("\\bprimary (?:voltage )?(?:of |is |=)?\\s*" ^ NUM ^ "\\s*v\\b|" ^ NUM ^ "\\s*v\\s*(?:on (?:the )?)?primary|\\b" ^ NUM ^ "\\s*v\\s*(?:input|in)\\b") low
+              val ip = search ("\\bprimary current\\s*(?:of|is|=)?\\s*" ^ NUM ^ "\\s*a\\b|" ^ NUM ^ "\\s*a\\s*(?:(?:on|in) (?:the )?)?primary") low
             in
               if has "\\bsecondary voltage\\b|\\boutput voltage\\b|\\bvoltage (?:on|at|across) the secondary\\b|\\bwhat voltage\\b" low andalso isSome vp then
                 SOME (E.E_XfmrV (np, ns, ratOf (valOf (firstGroup low (valOf vp) [1, 2, 3]))))
@@ -244,7 +244,8 @@ struct
       else if has "\\bcontinuous\\b" low andalso has "\\bbreaker\\b|\\bcircuit\\b" low
               andalso has "\\b(\\d+)\\s*(?:a|amp|amps|ampere)\\b" low then
         SOME (E.W_Continuous (ratOf (g1 low (valOf (search "\\b(\\d+)\\s*(?:a|amp|amps|ampere)\\b" low)))))
-      else if has "\\bvoltage drop\\b" low then
+      else if has "\\bvoltage drop\\b" low andalso
+              (isSome n orelse has "\\bwire|\\bawg\\b|\\bcable|\\bfeet\\b|\\bmeters?\\b|\\bft\\b" low) then
         let
           val lm = lenAmt low "ft|feet|foot|m|meters?|metres?" E.names_wlen
           val vm = search (NUM ^ "\\s*(?:v|volts?)\\b") low
@@ -294,7 +295,7 @@ struct
         in if size str < n then str else go 0 [] end
     in foldl (fn (r, acc) => rep1 r acc) s reps end
 
-  val Q_RX = "(\\d+(?:\\.\\d+)?)\\s*(p|n|u|m|k)?\\s*(volts?|v|amps?|amperes?|a|ohms?|watts?|w|farads?|f)\\b"
+  val Q_RX = "(-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)(?:e[+-]?\\d+)?)\\s*(p|n|u|m|k)?\\s*(volts?|v|amps?|amperes?|a|ohms?|watts?|w|farads?|f)\\b"
 
   fun circuitsRaw text : E.request option =
     let
@@ -322,7 +323,7 @@ struct
           (* a zero resistance is a rational compare after scaling; the kernel does it, we ask by value *)
           fun hd1 l = case l of x :: _ => SOME x | [] => NONE
           fun mk b = SOME (E.C_Circ (res, rs, b))
-          val zeroR = List.exists (fn m => isZero (g1 low m) andalso
+          val zeroR = List.exists (fn m => nonPos (g1 low m) andalso
                                    (case E.lookup E.names_cq (valOf (grp low m 3)) of SOME E.CQ_R => true | _ => false)) ms
         in
           if zeroR andalso res then mk (E.CB_Series rs)
@@ -367,7 +368,7 @@ struct
     fun raw low : idx list =
       let
         val nums = map (fn m => (startOf m, ratOf (g1 low m), NONE))
-                     (findall ("\\b(?:index(?: of refraction)?|refractive index|n\\d?)\\s*(?:of|=|is)?\\s*" ^ ON) low)
+                     (findall ("\\b(?:index(?: of refraction)?|refractive index|n\\d?|to|into|toward)\\s*(?:of|=|is)?\\s*" ^ ON) low)
         val named = List.concat (map (fn nm =>
                       map (fn m => (startOf m, E.medium_n (valOf (E.lookup E.names_medium nm)), SOME nm))
                           (findall ("\\b" ^ nm ^ "\\b") low)) mediaNames)
@@ -401,7 +402,7 @@ struct
         else
           let
             val fm = search "\\b(?:from|leaving|leaves|exits?|out of|inside|within)\\b" low
-            val tms = findall "\\b(?:to|into|enters?|entering|reaches|hits a boundary with|boundary with)\\b" low
+            val tms = findall "\\b(?:to|toward|into|enters?|entering|reaches|hits a boundary with|boundary with)\\b" low
             val n1 = case fm of
                        SOME f => (case List.filter (fn x => pos x > startOf f) found of x :: _ => SOME x | [] => NONE)
                      | NONE => NONE
@@ -409,8 +410,8 @@ struct
               | n2of (m :: rest) =
                   let
                     val c = List.filter (fn f => pos f > startOf m andalso
-                              (case n1 of NONE => true | SOME a => not (valEq f a) orelse not (same f a))) found
-                    val c = List.filter (fn f => case n1 of NONE => true | SOME a => not (valEq f a)) c
+                              (case n1 of NONE => true | SOME a => not (same f a))) found
+                    (* Equal indices are valid; medium identity is its role, not its value. *)
                   in case c of x :: _ => SOME x | [] => n2of rest end
           in
             case n1 of
@@ -419,7 +420,7 @@ struct
                 let
                   val n2 = case n2of tms of
                              SOME b => SOME b
-                           | NONE => (case List.filter (fn f => not (valEq f a)) found of x :: _ => SOME x | [] => NONE)
+                           | NONE => (case List.filter (fn f => not (same f a)) found of x :: _ => SOME x | [] => NONE)
                 in
                   case n2 of
                     NONE => [a]
@@ -431,7 +432,7 @@ struct
     fun value ((_, v, _) : idx) = v
 
     val AWAY = "\\bobject\\s+(?:is\\s+)?(?:at\\s+a\\s+distance\\s+of\\s+|distance\\s+(?:of\\s+|is\\s+)?)?(\\d+(?:\\.\\d+)?)\\s*(cm|mm|m)\\s*(?:away|from the lens|in front of the lens)?"
-    val SPEED = "\\bhow fast (?:does )?light travels?\\b|\\blight travels\\b|\\bspeed at which light travels\\b"
+    val SPEED = "\\bat what speed does light travel\\b|\\bhow fast (?:does )?light travels?\\b|\\blight travels\\b|\\bspeed at which light travels\\b"
     val NOT_MINE = "\\b(?:siren|horn|whistle|pipe|pipes|string|guitar|violin|piano|speaker|loudspeaker|sound|sounds|hear|heard|audible|echo|decibels?|db|pitch|tuning fork|harmonics?|overtones?)\\b"
     val MINE = "\\b(?:light|laser|photons?|lens|lenses|mirror|refract\\w*|optic\\w*|visible|rays?|nm|nanomet\\w*|thz|telescope|microscope)\\b"
 
@@ -476,27 +477,37 @@ struct
         val none1 = (NONE : Emoptics.rat option)
       in
         (* lens power *)
-        if has "\\bpower\\b" low andalso has "\\blens\\b" low andalso has "\\bfocal length\\b" low then
+        if has "\\bpower\\b" low andalso has "\\blens\\b" low andalso has "\\bfocal[- ]length\\b" low then
           let
             val m = case search ("\\bfocal length\\s*(?:of|=|is)?\\s*" ^ ON ^ "\\s*(mm|cm|m)\\b") low of
                       SOME m => SOME m
-                    | NONE => search (ON ^ "\\s*(mm|cm|m)\\s*focal length") low
+                    | NONE => search (ON ^ "\\s*(mm|cm|m)\\s*focal[- ]length") low
           in
             case m of
               NONE => SOME (E.O_LensPower NONE)
             | SOME m => SOME (E.O_LensPower (SOME (ratOf (g1 low m), valOf (E.lookup E.names_len (valOf (grp low m 2))))))
           end
-        (* thin lens / mirror *)
-        else if has "\\blens\\b|\\bmirror\\b" low andalso has "\\bimage\\b|\\bmagnification\\b" low then
+        (* Thin-lens distances are read with units and normalized by the HOL
+           helper to centimetres. Roles must be explicit; a bare image number
+           cannot be silently treated as an object distance. *)
+        else if has "\\blens\\b|\\bmirror\\b" low andalso has "\\bimage\\b|\\bmagnification\\b|\\bfocal length\\b" low then
           let
-            val fm = search ("\\bfocal length\\s*(?:of|=|is)?\\s*" ^ ON) low
-            val om = case search ("\\bobject\\b[^.?]*?\\b(?:at|distance(?: of| is)?|placed)\\s*(?:of\\s*)?" ^ ON) low of
-                       SOME m => SOME m
-                     | NONE => search (ON ^ "\\s*(?:cm|mm|m)?\\s*(?:from|in front of)\\b") low
-            val f = Option.map (fn m => ratOf (g1 low m)) fm
-            val d = Option.map (fn m => ratOf (g1 low m)) om
+            val unitRx = "\\s*(mm|cm|m)\\b"
+            val fm = search ("\\bfocal[- ]length\\s*(?:of|=|is)?\\s*" ^ ON ^ unitRx) low
+            fun distance role = search ("\\b" ^ role ^ "\\s*(?:is\\s*)?(?:(?:placed|sits|lies|stands|located|positioned)\\s*)?(?:at\\s*)?(?:(?:a\\s+)?distance\\s*)?(?:of|is|=)?\\s*" ^ ON ^ unitRx) low
+            val om = distance "object"
+            val im = distance "image"
+            fun amount m = E.lens_cm (ratOf (g1 low m), valOf (E.lookup E.names_len (valOf (grp low m 2))))
+            val f = Option.map amount fm
+            val d = Option.map amount om
+            val i = Option.map amount im
+            fun asks target = has ("\\b(?:what|find|give|calculate|determine)\\s+(?:is\\s+)?(?:(?:the|its)\\s+)?" ^ target ^ "\\b") low
+            val wantObject = asks "object[- ]distance" orelse has "\\bwhere is the object\\b" low
+            val wantFocal = asks "focal[- ]length"
           in
-            if isSome fm andalso isSome om andalso has "\\bmagnification\\b" low
+            if wantObject then SOME (E.O_Object (f, i))
+            else if wantFocal then SOME (E.O_Focal (d, i))
+            else if isSome fm andalso isSome om andalso has "\\bmagnification\\b" low
                andalso not (has "\\bimage distance\\b|\\bwhere\\b" low)
             then SOME (E.O_Mag (f, d))
             else SOME (E.O_Image (f, d))
@@ -508,7 +519,7 @@ struct
            | _ => SOME (E.O_Crit (none1, none1)))
         (* speed of light in a medium *)
         else if has "\\bspeed of light\\b|\\bhow fast (?:does|is) light\\b|\\blight travel\\b" low
-                andalso has "\\bin\\b" low andalso not (has "\\bvacuum\\b" low) then
+                andalso has "\\bin\\b" low then
           (case indices low of
              a :: _ => SOME (E.O_Speed (SOME (value a)))
            | [] => SOME (E.O_Speed none1))
@@ -537,6 +548,8 @@ struct
     fun answer v text : E.request option =
       let
         val low0 = lower (collapse text)
+        (* All historical wrappers use the corrected direction and phrasing semantics. *)
+        val v = 52
       in
         if v = 52 andalso has NOT_MINE low0 andalso not (has MINE low0) then NONE
         else
@@ -578,8 +591,8 @@ struct
     | byId other = raise Fail ("unknown specialist " ^ other)
 
   (* The family: each manifest's organ in a fixed order, the first that takes the question answers
-     it. Wiring before electrical (a three-phase line-current question with a gauge is the wiring
-     organ's), then circuits, then the newest optics. *)
+     it: electrical, optics, wire-specific wiring questions, then circuits.
+     Wiring requires wire/gauge/length context before taking voltage drop. *)
   val familyOrder = ["electrical", "optics-v5-r2", "wiring", "electronics-r2"]
 
   fun recognize mode text =
