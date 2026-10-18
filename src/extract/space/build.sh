@@ -4,8 +4,9 @@
 # Precondition: the Isabelle session has passed check-native (that is where the
 # theorems are proved and the code is generated); this script never builds
 # Isabelle sessions. It
-#   1. reads the generated SML out of the session database (isabelle export -n,
-#      no build) while holding the shared native build lock,
+#   1. takes the generated SML from var/space/export-remote/ (a remote build), or
+#      reads it out of the local session database (isabelle export -n, no build)
+#      while holding the shared native build lock,
 #   2. compiles generated kernel + untrusted recognizer + driver with the MLton
 #      that ships inside Isabelle,
 #   3. writes var/space/bin/space and prints its size.
@@ -18,8 +19,16 @@ OUT=$REPO/var/space
 cd "$REPO"
 mkdir -p "$OUT/bin" "$OUT/build"
 
-rm -rf "$OUT/export"
-REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
+# A remote build (tools/dev/remote-build persvati src/extract/space Veri7vn_Space ...)
+# leaves the generated SML under var/space/export-remote/; use it when present.
+GEN=""
+for f in "$OUT"/export-remote/Veri7vn_Space/*/code/space* \
+         "$OUT"/export-remote/Veri7vn_Space/code/space*; do
+  [ -f "$f" ] && GEN=$f && break
+done
+if [ -z "$GEN" ]; then
+  rm -rf "$OUT/export"
+  REPO="$REPO" ISABELLE_APP="$ISABELLE_APP" OUT="$OUT" python3 - <<'EOF'
 import fcntl, os, subprocess
 repo, app, out = os.environ["REPO"], os.environ["ISABELLE_APP"], os.environ["OUT"]
 with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
@@ -29,8 +38,9 @@ with open(os.path.join(repo, "var/native-scaffold/build.lock"), "a") as lock:
                     "-O", os.path.join(out, "export"), "-x", "*:code/**", "Veri7vn_Space"],
                    check=True, env=env, cwd=repo)
 EOF
-GEN=$(find "$OUT/export" -type f -name 'space*' | head -n 1)
-[ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
+  GEN=$(find "$OUT/export" -type f -name 'space*' | head -n 1)
+  [ -n "$GEN" ] || { echo "no generated SML found under $OUT/export" >&2; exit 1; }
+fi
 cp "$GEN" "$OUT/build/space_generated.sml"
 
 cat > "$OUT/build/space.mlb" <<EOF

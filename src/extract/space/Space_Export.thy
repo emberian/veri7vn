@@ -63,7 +63,10 @@ ML \<open>
     @{thm property_model}, @{thm weight_elsewhere_model}, @{thm sunlight_model},
     @{thm ratio_model}, @{thm years_model},
     @{thm reply_answered_iff}, @{thm reply_states_approx}, @{thm reply_states_exact},
-    @{thm reply_states_fact}, @{thm reply_withheld_names_decline}] @ @{thms orbit_escape_model};
+    @{thm reply_states_fact}, @{thm reply_withheld_names_decline},
+    @{thm hohmann_dv_vis_viva}, @{thm hohmann_dv_stated}, @{thm unknown_cells}, @{thm ve_of_pos_iff}]
+    @ @{thms orbit_escape_model} @ @{thms declines_exact_kinds} @ @{thms declines_enclosed_kinds}
+    @ @{thms exhaust_mass_flow_agree};
   val oracles = Thm_Deps.all_oracles theorems;
   val _ = if null oracles then () else error ("space theorems use oracles: " ^ string_of_int (length oracles));
   val _ = if @{code self_test} then () else error "space self test failed";

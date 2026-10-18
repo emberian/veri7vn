@@ -727,8 +727,136 @@ lemma kernel_exact_of:
   shows "kernel r = Exact (kind_of r) (qval r)"
   using assms answer_nonfact[of r] by (simp add: kernel_def answer_gen_def)
 
-theorem kernel_deterministic: "kernel r = o1 \<Longrightarrow> kernel r = o2 \<Longrightarrow> o1 = o2"
-  by simp
+section \<open>Declines, written out over the question's own numbers\<close>
+
+text \<open>The theorems above say the kernel declines exactly when the code's predicates
+(@{text missing}, @{text nosync}, @{text reason_of}, @{text fake}, @{text novalue})
+say so. The theorems below state each kind's decline condition directly in the
+numbers and names the question gave, without those predicates: a body radius
+plus an altitude that is not positive, a final mass above the initial mass, an
+exhaust velocity that is not positive, the bodies with no fixed rotation (Sun,
+Venus), the five sheet cells NASA marks Unknown. The one numerical decline,
+@{text Imprecise}, is described by @{text kernel_imprecise}: it happens only to
+enclosed kinds, so the exact kinds' conditions below hold for every decline.\<close>
+
+lemma pos_times_iff:
+  fixes x c :: rat
+  assumes "0 < c"
+  shows "0 < x * c \<longleftrightarrow> 0 < x"
+proof
+  assume "0 < x * c"
+  then show "0 < x" by (rule zero_less_mult_pos2[OF _ assms])
+next
+  assume "0 < x"
+  then show "0 < x * c" by (rule mult_pos_pos[OF _ assms])
+qed
+
+text \<open>The number the question gave for the exhaust velocity: a specific impulse
+in seconds, or a speed.\<close>
+fun ve_given :: "vesrc \<Rightarrow> rat" where
+  "ve_given (Ve_isp i) = i" | "ve_given (Ve_speed v u) = v"
+
+lemma std_g0_pos: "0 < std_g0" by (simp add: std_g0_def)
+
+lemma ve_of_pos_iff: "0 < ve_of v \<longleftrightarrow> 0 < ve_given v"
+  by (cases v) (simp_all add: pos_times_iff std_g0_pos)
+
+lemma sidereal_none_iff: "sidereal b = None \<longleftrightarrow> b = O_sun \<or> b = O_venus"
+  by (cases b) simp_all
+
+lemma unknown_cells:
+  "is_unknown (sheet b p) \<longleftrightarrow>
+     (p = P_pressure \<and> (b = A_jupiter \<or> b = A_saturn \<or> b = A_uranus \<or> b = A_neptune)) \<or>
+     (b = A_pluto \<and> p = P_magnetic)"
+  by (cases b; cases p; simp add: sheet_def is_unknown_def)
+
+lemma kernel_decline_exact:
+  assumes "\<not> is_approx r"
+  shows "kernel r = Decline w \<longleftrightarrow> decline_of r = Some w"
+proof (cases "w = Imprecise")
+  case True
+  have "kernel r \<noteq> Decline Imprecise" using kernel_imprecise assms by blast
+  then show ?thesis using True decl_not_imprecise by simp
+next
+  case False
+  then show ?thesis by (rule kernel_decl)
+qed
+
+lemmas decl_explicit_simps = decline_of_def ppos_def rad1_def hr1_def hr2_def obd_def opd_def
+  prd_def dd_def ff_def rr_def pos_times_iff not_less ve_of_pos_iff sidereal_none_iff unknown_cells
+
+text \<open>Exact kinds (planetary gravity and weight, spacecraft, links, astronomy):
+every decline, by the question's numbers.\<close>
+theorem declines_exact_kinds:
+  fixes M R k F P i n r wt :: rat
+  shows "kernel (PGravity (Pb_si M R u)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
+    and "kernel (PGravity (Pb_earth M R)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
+    and "kernel (PWeightE M R k) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
+    and "kernel (SExhaust i) \<noteq> Decline w"
+    and "kernel (STwr F fu M mw) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> M \<le> 0"
+    and "kernel (SMassFlow F fu v) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> ve_given v \<le> 0"
+    and "kernel (SBurn F fu v P pu) = Decline w \<longleftrightarrow>
+           w = Impossible R_nonpositive \<and> (ve_given v \<le> 0 \<or> F \<le> 0)"
+    and "kernel (CLight None rt) = Decline w \<longleftrightarrow> w = Underspecified N_dist"
+    and "kernel (CLight (Some d) rt) \<noteq> Decline w"
+    and "kernel (CXfer n pf bytes r ru) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> r \<le> 0"
+    and "kernel (CBits None rq) = Decline w \<longleftrightarrow> w = Underspecified N_dist_rate"
+    and "kernel (CBits dx None) = Decline w \<longleftrightarrow> w = Underspecified N_dist_rate"
+    and "kernel (CBits (Some d) (Some x)) \<noteq> Decline w"
+    and "kernel (AFake nm) = Decline w \<longleftrightarrow> w = Unknown"
+    and "kernel (AProp b p) = Decline w \<longleftrightarrow> w = NoValue \<and>
+           ((p = P_pressure \<and> (b = A_jupiter \<or> b = A_saturn \<or> b = A_uranus \<or> b = A_neptune)) \<or>
+            (b = A_pluto \<and> p = P_magnetic))"
+    and "kernel (ARatio rs b1 b2 p) = Decline w \<longleftrightarrow>
+           w = Impossible R_nonpositive \<and> cell_num (sheet b2 p) = 0"
+    and "kernel (ALight b) \<noteq> Decline w"
+    and "kernel (AWeight wt wu b) \<noteq> Decline w"
+    and "kernel (AYears b) \<noteq> Decline w"
+    and "kernel AMoonKm \<noteq> Decline w"
+    and "kernel AMoonKkm \<noteq> Decline w"
+  by (auto simp: kernel_decline_exact decl_explicit_simps split: if_splits option.splits)
+
+text \<open>Enclosed kinds (square roots, pi, exp, ln): every decline other than
+@{text Imprecise}, by the question's numbers.\<close>
+theorem declines_enclosed_kinds:
+  fixes M R a a1 a2 M0 MF dv x :: rat
+  assumes "w \<noteq> Imprecise"
+  shows "kernel (PEscape (Pb_si M R u)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
+    and "kernel (PEscape (Pb_earth M R)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
+    and "kernel (POrbV (Pb_si M R u)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
+    and "kernel (POrbV (Pb_earth M R)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
+    and "kernel (PDensity (Pb_si M R u)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
+    and "kernel (PDensity (Pb_earth M R)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> (M \<le> 0 \<or> R \<le> 0)"
+    and "kernel (OSync None) = Decline w \<longleftrightarrow> w = Underspecified N_body"
+    and "kernel (OSync (Some b)) = Decline w \<longleftrightarrow> w = NoSync \<and> (b = O_sun \<or> b = O_venus)"
+    and "kernel (OSpeed None oa) = Decline w \<longleftrightarrow> w = Underspecified N_body"
+    and "kernel (OSpeed (Some b) None) = Decline w \<longleftrightarrow> w = Underspecified N_alt"
+    and "kernel (OSpeed (Some b) (Some a)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> brad b + a \<le> 0"
+    and "kernel (OPeriod None oa) = Decline w \<longleftrightarrow> w = Underspecified N_body"
+    and "kernel (OPeriod (Some b) None) = Decline w \<longleftrightarrow> w = Underspecified N_alt"
+    and "kernel (OPeriod (Some b) (Some a)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> brad b + a \<le> 0"
+    and "kernel (OEscape None oa) = Decline w \<longleftrightarrow> w = Underspecified N_body"
+    and "kernel (OEscape (Some b) None) \<noteq> Decline w"
+    and "kernel (OEscape (Some b) (Some a)) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> brad b + a \<le> 0"
+    and "kernel (OHohDv None hp) = Decline w \<longleftrightarrow> w = Underspecified N_body"
+    and "kernel (OHohDv (Some b) None) = Decline w \<longleftrightarrow> w = Underspecified N_alts"
+    and "kernel (OHohDv (Some b) (Some (a1, a2))) = Decline w \<longleftrightarrow>
+           w = Impossible R_nonpositive \<and> (brad b + a1 \<le> 0 \<or> brad b + a2 \<le> 0)"
+    and "kernel (OHohTime None hp) = Decline w \<longleftrightarrow> w = Underspecified N_body"
+    and "kernel (OHohTime (Some b) None) = Decline w \<longleftrightarrow> w = Underspecified N_alts"
+    and "kernel (OHohTime (Some b) (Some (a1, a2))) = Decline w \<longleftrightarrow>
+           w = Impossible R_nonpositive \<and> (brad b + a1 \<le> 0 \<or> brad b + a2 \<le> 0)"
+    and "kernel (SDeltaV v M0 u0 MF uf) = Decline w \<longleftrightarrow>
+           (w = Impossible R_final_exceeds_initial \<and> M0 * massf u0 < MF * massf uf) \<or>
+           (w = Impossible R_nonpositive \<and> MF * massf uf \<le> M0 * massf u0 \<and>
+            (ve_given v \<le> 0 \<or> M0 \<le> 0 \<or> MF \<le> 0))"
+    and "kernel (SProp0 v dv du M0 u0) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> ve_given v \<le> 0"
+    and "kernel (SPropF v dv du MF uf) = Decline w \<longleftrightarrow> w = Impossible R_nonpositive \<and> ve_given v \<le> 0"
+    and "kernel (CFspl None f) = Decline w \<longleftrightarrow> w = Underspecified N_dist_freq"
+    and "kernel (CFspl d None) = Decline w \<longleftrightarrow> w = Underspecified N_dist_freq"
+    and "kernel (CFspl (Some (Dist a sc bs)) (Some (x, fq))) = Decline w \<longleftrightarrow>
+           w = Impossible R_nonpositive \<and> (a \<le> 0 \<or> x \<le> 0)"
+  using assms by (auto simp: kernel_decl[OF assms] decl_explicit_simps split: if_splits option.splits)
 
 section \<open>What each kind means\<close>
 
@@ -986,6 +1114,109 @@ text \<open>The total delta-v of a Hohmann transfer is never negative.\<close>
 theorem hohmann_dv_nonneg: "0 \<le> phys (OHohDv ob p)"
   by (simp add: phys_def)
 
+text \<open>The Hohmann delta-v against vis-viva, with each speed given only by its
+defining equation: v1 and v2 are the circular speeds at r1 and r2
+(v^2 r = mu), vt1 and vt2 the speeds on the transfer ellipse at its two ends
+(v^2 = mu (2/r - 1/a), a = (r1 + r2)/2). The kernel's expression is the sum of
+the two burns |vt1 - v1| + |v2 - vt2|. First over the reals, then for the kernel's
+radii, then for the decimal the kernel states.\<close>
+lemma hohmann_dv_real:
+  fixes m r1 r2 a1 a2 x1 x2 v1 v2 vt1 vt2 :: real
+  assumes r: "0 < r1" "0 < r2"
+    and a: "a1 = m / r1" "a2 = m / r2" "x1 = 2 * r2 / (r1 + r2)" "x2 = 2 * r1 / (r1 + r2)"
+    and v: "0 \<le> v1" "v1 ^ 2 * r1 = m" "0 \<le> v2" "v2 ^ 2 * r2 = m"
+    and t: "0 \<le> vt1" "vt1 ^ 2 = m * (2 / r1 - 1 / ((r1 + r2) / 2))"
+           "0 \<le> vt2" "vt2 ^ 2 = m * (2 / r2 - 1 / ((r1 + r2) / 2))"
+  shows "\<bar>sqrt a1 * (sqrt x1 + - 1)\<bar> + \<bar>sqrt a2 * (1 + - sqrt x2)\<bar> = \<bar>vt1 - v1\<bar> + \<bar>v2 - vt2\<bar>"
+proof -
+  have n1: "r1 \<noteq> 0" by (rule pos_ne0[OF r(1)])
+  have n2: "r2 \<noteq> 0" by (rule pos_ne0[OF r(2)])
+  have s: "0 < r1 + r2" using r by simp
+  have n3: "r1 + r2 \<noteq> 0" by (rule pos_ne0[OF s])
+  have e1: "v1 ^ 2 = a1" unfolding a(1) using v(2) n1 by (simp add: eq_divide_eq)
+  have e2: "v2 ^ 2 = a2" unfolding a(2) using v(4) n2 by (simp add: eq_divide_eq)
+  have sa1: "sqrt a1 = v1" by (rule real_sqrt_unique[OF e1 v(1)])
+  have sa2: "sqrt a2 = v2" by (rule real_sqrt_unique[OF e2 v(3)])
+  have q1: "m / r1 * (2 * r2 / (r1 + r2)) = m * (2 / r1 - 1 / ((r1 + r2) / 2))"
+    using n1 n3 by (simp add: field_simps)
+  have q2: "m / r2 * (2 * r1 / (r1 + r2)) = m * (2 / r2 - 1 / ((r1 + r2) / 2))"
+    using n2 n3 by (simp add: field_simps)
+  have f1: "vt1 ^ 2 = a1 * x1" unfolding a(1) a(3) q1 by (rule t(2))
+  have f2: "vt2 ^ 2 = a2 * x2" unfolding a(2) a(4) q2 by (rule t(4))
+  have st1: "sqrt a1 * sqrt x1 = vt1"
+    using real_sqrt_unique[OF f1 t(1)] by (simp add: real_sqrt_mult)
+  have st2: "sqrt a2 * sqrt x2 = vt2"
+    using real_sqrt_unique[OF f2 t(3)] by (simp add: real_sqrt_mult)
+  have b1: "sqrt a1 * (sqrt x1 + - 1) = vt1 - v1"
+  proof -
+    have "sqrt a1 * (sqrt x1 + - 1) = sqrt a1 * sqrt x1 - sqrt a1" by (simp add: algebra_simps)
+    then show ?thesis using st1 sa1 by simp
+  qed
+  have b2: "sqrt a2 * (1 + - sqrt x2) = v2 - vt2"
+  proof -
+    have "sqrt a2 * (1 + - sqrt x2) = sqrt a2 - sqrt a2 * sqrt x2" by (simp add: algebra_simps)
+    then show ?thesis using st2 sa2 by simp
+  qed
+  show ?thesis by (simp only: b1 b2)
+qed
+
+theorem hohmann_dv_vis_viva:
+  fixes v1 v2 vt1 vt2 :: real
+  assumes r: "0 < hr1 ob p" "0 < hr2 ob p"
+    and v: "0 \<le> v1" "v1 ^ 2 * rl (hr1 ob p) = rl (mu (obd ob))"
+           "0 \<le> v2" "v2 ^ 2 * rl (hr2 ob p) = rl (mu (obd ob))"
+    and t: "0 \<le> vt1" "vt1 ^ 2 = rl (mu (obd ob)) *
+              (2 / rl (hr1 ob p) - 1 / ((rl (hr1 ob p) + rl (hr2 ob p)) / 2))"
+           "0 \<le> vt2" "vt2 ^ 2 = rl (mu (obd ob)) *
+              (2 / rl (hr2 ob p) - 1 / ((rl (hr1 ob p) + rl (hr2 ob p)) / 2))"
+  shows "phys (OHohDv ob p) = \<bar>vt1 - v1\<bar> + \<bar>v2 - vt2\<bar>"
+proof -
+  have ph: "phys (OHohDv ob p) =
+      \<bar>sqrt (rl (mu (obd ob) / hr1 ob p)) * (sqrt (rl (2 * hr2 ob p / (hr1 ob p + hr2 ob p))) + - 1)\<bar> +
+      \<bar>sqrt (rl (mu (obd ob) / hr2 ob p)) * (1 + - sqrt (rl (2 * hr1 ob p / (hr1 ob p + hr2 ob p))))\<bar>"
+    by (simp only: phys_def is_approx.simps if_True fa.simps interpret_floatarith.simps
+          interp_Q interp_I of_int_1)
+  have r1: "0 < rl (hr1 ob p)" using r(1) by simp
+  have r2: "0 < rl (hr2 ob p)" using r(2) by simp
+  have a1: "rl (mu (obd ob) / hr1 ob p) = rl (mu (obd ob)) / rl (hr1 ob p)" by (rule of_rat_divide)
+  have a2: "rl (mu (obd ob) / hr2 ob p) = rl (mu (obd ob)) / rl (hr2 ob p)" by (rule of_rat_divide)
+  have x1: "rl (2 * hr2 ob p / (hr1 ob p + hr2 ob p)) = 2 * rl (hr2 ob p) / (rl (hr1 ob p) + rl (hr2 ob p))"
+    by (simp add: of_rat_divide of_rat_mult of_rat_add)
+  have x2: "rl (2 * hr1 ob p / (hr1 ob p + hr2 ob p)) = 2 * rl (hr1 ob p) / (rl (hr1 ob p) + rl (hr2 ob p))"
+    by (simp add: of_rat_divide of_rat_mult of_rat_add)
+  show ?thesis unfolding ph by (rule hohmann_dv_real[OF r1 r2 a1 a2 x1 x2 v t])
+qed
+
+text \<open>End to end: the decimal the kernel states for a Hohmann delta-v is within
+the family's enclosure and rounding bound of |vt1 - v1| + |v2 - vt2|, the two burns
+from vis-viva. Positive radii are not assumed: a stated value implies them.\<close>
+theorem hohmann_dv_stated:
+  fixes v1 v2 vt1 vt2 :: real
+  assumes k: "kernel (OHohDv ob p) = Approx k d"
+    and v: "0 \<le> v1" "v1 ^ 2 * rl (hr1 ob p) = rl (mu (obd ob))"
+           "0 \<le> v2" "v2 ^ 2 * rl (hr2 ob p) = rl (mu (obd ob))"
+    and t: "0 \<le> vt1" "vt1 ^ 2 = rl (mu (obd ob)) *
+              (2 / rl (hr1 ob p) - 1 / ((rl (hr1 ob p) + rl (hr2 ob p)) / 2))"
+           "0 \<le> vt2" "vt2 ^ 2 = rl (mu (obd ob)) *
+              (2 / rl (hr2 ob p) - 1 / ((rl (hr1 ob p) + rl (hr2 ob p)) / 2))"
+  shows "\<bar>dec_val d - (\<bar>vt1 - v1\<bar> + \<bar>v2 - vt2\<bar>)\<bar> \<le>
+         pow10 (snd d) / 2 + (\<bar>vt1 - v1\<bar> + \<bar>v2 - vt2\<bar>) / 1000000 + 1 / 1000000000"
+proof -
+  have ks: "reason_of (OHohDv ob p) = None \<and>
+      \<bar>dec_val d - phys (OHohDv ob p)\<bar> \<le>
+        pow10 (snd d) / 2 + \<bar>phys (OHohDv ob p)\<bar> / 1000000 + 1 / 1000000000"
+    using kernel_approx_sound[OF k] by blast
+  have rn: "reason_of (OHohDv ob p) = None" using ks by (rule conjunct1)
+  have rp: "0 < hr1 ob p \<and> 0 < hr2 ob p" using rn by (simp split: if_splits)
+  have r1: "0 < hr1 ob p" using rp by (rule conjunct1)
+  have r2: "0 < hr2 ob p" using rp by (rule conjunct2)
+  have e: "phys (OHohDv ob p) = \<bar>vt1 - v1\<bar> + \<bar>v2 - vt2\<bar>"
+    by (rule hohmann_dv_vis_viva[OF r1 r2 v t])
+  have nn: "\<bar>\<bar>vt1 - v1\<bar> + \<bar>v2 - vt2\<bar>\<bar> = \<bar>vt1 - v1\<bar> + \<bar>v2 - vt2\<bar>"
+    by (rule abs_of_nonneg) (rule add_nonneg_nonneg; simp)
+  show ?thesis using ks unfolding e nn by blast
+qed
+
 text \<open>The synchronous orbit: its radius r = altitude + R satisfies
 r^3 4 pi^2 = mu T^2 (Kepler), T the sidereal rotation period.\<close>
 theorem sync_model:
@@ -1054,6 +1285,34 @@ proof -
   have fn: "forcef fu \<noteq> 0" by (rule pos_ne0[OF forcef_pos])
   have d: "F * forcef fu / ve_of v \<noteq> 0" using m Fn fn by simp
   show ?thesis using kernel_exact_of[OF nd] d by simp
+qed
+
+text \<open>Two kinds agree: the exhaust velocity the kernel states for a specific
+impulse is the one its mass flow divides by, given as that impulse or as that
+speed in m/s (mdot ve = F, with ve from the exhaust kind).\<close>
+theorem exhaust_mass_flow_agree:
+  assumes e: "kernel (SExhaust i) = Exact k ve"
+  shows "kernel (SMassFlow F fu (Ve_isp i)) = Exact k' mdot \<Longrightarrow> mdot * ve = F * forcef fu"
+    and "kernel (SMassFlow F fu (Ve_speed ve Su_mps)) = Exact k' mdot \<Longrightarrow> mdot * ve = F * forcef fu"
+proof -
+  have ve: "ve = i * std_g0" using kernel_exact_sound[OF e] by simp
+  show "mdot * ve = F * forcef fu" if m: "kernel (SMassFlow F fu (Ve_isp i)) = Exact k' mdot"
+  proof -
+    have s: "reason_of (SMassFlow F fu (Ve_isp i)) = None \<and> mdot = qval (SMassFlow F fu (Ve_isp i))"
+      using kernel_exact_sound[OF m] by blast
+    have p: "0 < i * std_g0" using s by (simp split: if_splits)
+    have nz: "i * std_g0 \<noteq> 0" by (rule pos_ne0[OF p])
+    show ?thesis using s nz unfolding ve by (simp add: field_simps)
+  qed
+  show "mdot * ve = F * forcef fu" if m: "kernel (SMassFlow F fu (Ve_speed ve Su_mps)) = Exact k' mdot"
+  proof -
+    have s: "reason_of (SMassFlow F fu (Ve_speed ve Su_mps)) = None \<and>
+        mdot = qval (SMassFlow F fu (Ve_speed ve Su_mps))"
+      using kernel_exact_sound[OF m] by blast
+    have p: "0 < ve" using s by (simp split: if_splits)
+    have nz: "ve \<noteq> 0" by (rule pos_ne0[OF p])
+    show ?thesis using s nz by simp
+  qed
 qed
 
 text \<open>Tsiolkovsky: e^(dv/ve) mf = m0.\<close>
