@@ -20,56 +20,9 @@
       "plans": [[...], ...], "given": i, "rule": r, "ms": "0.123"} *)
 structure J =
 struct
-  exception Parse of string
+  (* ws, utf8, hex4, str, quote and exception Parse are the commons.sml Json ones (src/extract/commons). *)
+  open Json
   datatype v = Obj of (string * v) list | Arr of v list | Str of string | Num of string | Bool of bool | Null
-
-  (* Skip whitespace *)
-  fun ws s i = if i < size s andalso Char.isSpace (String.sub (s, i)) then ws s (i + 1) else i
-
-  fun utf8 (cp : int) : string =
-    let fun ch x = String.str (Char.chr x)
-    in if cp < 0x80 then ch cp
-       else if cp < 0x800 then ch (0xC0 + cp div 64) ^ ch (0x80 + cp mod 64)
-       else if cp < 0x10000 then
-         ch (0xE0 + cp div 4096) ^ ch (0x80 + (cp div 64) mod 64) ^ ch (0x80 + cp mod 64)
-       else ch (0xF0 + cp div 262144) ^ ch (0x80 + (cp div 4096) mod 64)
-            ^ ch (0x80 + (cp div 64) mod 64) ^ ch (0x80 + cp mod 64)
-    end
-
-  fun hex4 s i =
-    case StringCvt.scanString (Int.scan StringCvt.HEX) (String.substring (s, i, 4)) of
-      SOME v => v
-    | NONE => raise Parse "bad \\u escape"
-
-  (* Parse a string starting at the opening quote; return (decoded, next index) *)
-  fun str s i =
-    let
-      fun go j acc =
-        if j >= size s then raise Parse "unterminated string"
-        else case String.sub (s, j) of
-          #"\"" => (String.concat (rev acc), j + 1)
-        | #"\\" =>
-            (case String.sub (s, j + 1) of
-               #"\"" => go (j + 2) ("\"" :: acc)
-             | #"\\" => go (j + 2) ("\\" :: acc)
-             | #"/" => go (j + 2) ("/" :: acc)
-             | #"b" => go (j + 2) ("\b" :: acc)
-             | #"f" => go (j + 2) ("\f" :: acc)
-             | #"n" => go (j + 2) ("\n" :: acc)
-             | #"r" => go (j + 2) ("\r" :: acc)
-             | #"t" => go (j + 2) ("\t" :: acc)
-             | #"u" =>
-                 let val hi = hex4 s (j + 2)
-                 in if hi >= 0xD800 andalso hi < 0xDC00 andalso j + 11 < size s
-                       andalso String.sub (s, j + 6) = #"\\" andalso String.sub (s, j + 7) = #"u"
-                    then let val lo = hex4 s (j + 8)
-                         in go (j + 12) (utf8 (0x10000 + (hi - 0xD800) * 1024 + (lo - 0xDC00)) :: acc) end
-                    else go (j + 6) (utf8 hi :: acc)
-                 end
-             | _ => raise Parse "bad escape")
-        | c => go (j + 1) (String.str c :: acc)
-    in go (i + 1) [] end
-
 
   fun value s i =
     let val i = ws s i
@@ -121,20 +74,6 @@ struct
   fun raw (Str s) = "\"" ^ s ^ "\""
     | raw (Num n) = n
     | raw _ = "null"
-
-  fun quote (s : string) : string =
-    let
-      fun esc c =
-        case c of
-          #"\"" => "\\\""
-        | #"\\" => "\\\\"
-        | #"\n" => "\\n"
-        | #"\r" => "\\r"
-        | #"\t" => "\\t"
-        | c => if Char.ord c < 0x20 then
-                 "\\u00" ^ StringCvt.padLeft #"0" 2 (Int.fmt StringCvt.HEX (Char.ord c))
-               else String.str c
-    in "\"" ^ String.translate esc s ^ "\"" end
 end
 
 structure Main =

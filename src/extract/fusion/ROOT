@@ -9,6 +9,7 @@
 session Veri7vn_Fusion = Veri7vn_Quantity +
   options [document = false, threads = 2]
   sessions
+    Veri7vn_Commons
     Veri7vn_Energy_Base Veri7vn_Energy
     Veri7vn_Climate_Base Veri7vn_Climate
     Veri7vn_Space_Base Veri7vn_Space

@@ -37,6 +37,7 @@ cp "$GEN" "$OUT/build/fusion_generated.sml"
 cat > "$OUT/build/fusion.mlb" <<EOF
 \$(SML_LIB)/basis/basis.mlb
 fusion_generated.sml
+$SRC/../commons/commons.sml
 $SRC/main.sml
 EOF
 "$MLTON" -output "$OUT/bin/fusion" "$OUT/build/fusion.mlb"

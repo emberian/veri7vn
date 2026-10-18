@@ -114,14 +114,14 @@ text \<open>Every theorem of Fusion.thy is stated for an arbitrary node function
 catalogue, so it holds for @{text fdecide} as it stands. The theorems below say
 what each node value is.\<close>
 
-lemma of_rat_dec_rat_energy: "(of_rat (dec_rat d) :: real) = Energy_Core.dec_val d"
-  by (cases d) (auto simp: dec_rat_def Energy_Core.dec_val_def Energy_Core.pow10_def of_rat_mult of_rat_power of_rat_inverse)
+lemma of_rat_dec_rat_energy: "(of_rat (dec_rat d) :: real) = Commons_Num.dec_val d"
+  by (cases d) (auto simp: dec_rat_def Commons_Num.dec_val_def Commons_Num.pow10_def of_rat_mult of_rat_power of_rat_inverse)
 
-lemma of_rat_dec_rat_climate: "(of_rat (dec_rat d) :: real) = Climate_Num.dec_val d"
-  by (cases d) (auto simp: dec_rat_def Climate_Num.dec_val_def Climate_Num.pow10_def of_rat_mult of_rat_power of_rat_inverse)
+lemma of_rat_dec_rat_climate: "(of_rat (dec_rat d) :: real) = Commons_Num.dec_val d"
+  by (cases d) (auto simp: dec_rat_def Commons_Num.dec_val_def Commons_Num.pow10_def of_rat_mult of_rat_power of_rat_inverse)
 
-lemma of_rat_dec_rat_space: "(of_rat (dec_rat d) :: real) = Space.dec_val d"
-  by (cases d) (auto simp: dec_rat_def Space.dec_val_def Space.pow10_def of_rat_mult of_rat_power of_rat_inverse)
+lemma of_rat_dec_rat_space: "(of_rat (dec_rat d) :: real) = Commons_Num.dec_val d"
+  by (cases d) (auto simp: dec_rat_def Commons_Num.dec_val_def Commons_Num.pow10_def of_rat_mult of_rat_power of_rat_inverse)
 
 text \<open>The four lane G operations keep lane G's nodes (@{thm qnode_sound}).\<close>
 theorem fnode_lane_g:
@@ -164,7 +164,7 @@ proof -
   have csm: "cs = Thermo.csrc.C_mat mt" by (simp add: cs_def mt)
   have k: "k = STR ''sensible_heat''" using ex by (simp add: rq_def)
   have q: "q = x * Thermo.spec_heat mt * (b - a)" using ex by (simp add: rq_def csm Thermo.kelvin_def)
-  have e: "\<bar>Energy_Core.dec_val d - of_rat q\<bar> \<le> Energy_Core.fmt_err_r Energy_Core.nfmt.G4 (of_rat q)"
+  have e: "\<bar>Commons_Num.dec_val d - of_rat q\<bar> \<le> Energy_Core.fmt_err_r Energy_Core.nfmt.G4 (of_rat q)"
     by (rule Energy_Core.num_dec_r_sound[OF d])
   have bnd: "\<bar>of_rat (dec_rat d) - of_rat q\<bar> \<le> \<bar>of_rat q\<bar> / (2000 :: real)"
     using e by (simp add: of_rat_dec_rat_energy Energy_Core.fmt_err_r_def)
@@ -204,7 +204,7 @@ proof -
   have law: "k = STR ''latent_fusion'' \<and> q = (x * Thermo.mfac Thermo.munit.MU_kg) * 334000"
     by (rule Thermo.latent_fusion_law[OF kq0])
   have q: "q = x * 334000" using law by simp
-  have e: "\<bar>Energy_Core.dec_val d - of_rat q\<bar> \<le> Energy_Core.fmt_err_r Energy_Core.nfmt.G4 (of_rat q)"
+  have e: "\<bar>Commons_Num.dec_val d - of_rat q\<bar> \<le> Energy_Core.fmt_err_r Energy_Core.nfmt.G4 (of_rat q)"
     by (rule Energy_Core.num_dec_r_sound[OF d])
   have bnd: "\<bar>of_rat (dec_rat d) - of_rat q\<bar> \<le> \<bar>of_rat q\<bar> / (2000 :: real)"
     using e by (simp add: of_rat_dec_rat_energy Energy_Core.fmt_err_r_def)
@@ -225,7 +225,7 @@ theorem gasoline_co2_node:
        = Climate.outcome.Exact Climate.kind.K_fuel_co2 q \<and>
      q * 1000 = g * 8887 \<and> r = NVal (dec_rat (Climate_Num.g_dec 4 q)) \<and>
      (snd (Climate_Num.g_dec 4 q) = - 4 \<or> snd (Climate_Num.g_dec 4 q) = 0) \<and>
-     \<bar>of_rat (dec_rat (Climate_Num.g_dec 4 q)) - of_rat q\<bar> \<le> Climate_Num.pow10 (snd (Climate_Num.g_dec 4 q)) / 2"
+     \<bar>of_rat (dec_rat (Climate_Num.g_dec 4 q)) - of_rat q\<bar> \<le> Commons_Num.pow10 (snd (Climate_Num.g_dec 4 q)) / 2"
 proof -
   obtain g where g: "phrase (amount v / gal_m3) = Some g"
     using assms by (auto simp: fnode_def gasoline_req_def split: option.splits)
@@ -246,10 +246,10 @@ proof -
   have q: "q * 1000 = g * 8887" using law by simp
   have dd: "Climate.dd_of k = 4" using law by simp
   have gs: "(snd (Climate_Num.g_dec 4 q) = - int 4 \<or> snd (Climate_Num.g_dec 4 q) = 0) \<and>
-     \<bar>Climate_Num.dec_val (Climate_Num.g_dec 4 q) - of_rat q\<bar> \<le> Climate_Num.pow10 (snd (Climate_Num.g_dec 4 q)) / 2"
+     \<bar>Commons_Num.dec_val (Climate_Num.g_dec 4 q) - of_rat q\<bar> \<le> Commons_Num.pow10 (snd (Climate_Num.g_dec 4 q)) / 2"
     by (rule Climate_Num.g_dec_sound)
   have gs1: "snd (Climate_Num.g_dec 4 q) = - 4 \<or> snd (Climate_Num.g_dec 4 q) = 0" using gs by simp
-  have gs2: "\<bar>of_rat (dec_rat (Climate_Num.g_dec 4 q)) - of_rat q\<bar> \<le> Climate_Num.pow10 (snd (Climate_Num.g_dec 4 q)) / 2"
+  have gs2: "\<bar>of_rat (dec_rat (Climate_Num.g_dec 4 q)) - of_rat q\<bar> \<le> Commons_Num.pow10 (snd (Climate_Num.g_dec 4 q)) / 2"
     using gs by (simp add: of_rat_dec_rat_climate)
   have kq': "Climate.kernel (Climate.request.Req_cc (Climate.ccreq.Cc_fuel_co2 Climate.fuel.F_gasoline (STR ''gasoline'') g))
        = Climate.outcome.Exact Climate.kind.K_fuel_co2 q"
@@ -266,7 +266,7 @@ theorem surface_gravity_node:
      Space.kernel (Space.request.PGravity (Space.pbody.Pb_earth M R)) = Space.outcome.Exact (STR ''gravity'') q \<and>
      q * R ^ 2 = 981 / 100 * M \<and>
      Space.stated_dec Space.style.St_pl q = Some d \<and> r = NVal (dec_rat d) \<and>
-     \<bar>of_rat (dec_rat d) - of_rat q\<bar> \<le> Space.pow10 (snd d) / 2"
+     \<bar>of_rat (dec_rat d) - of_rat q\<bar> \<le> Commons_Num.pow10 (snd d) / 2"
 proof -
   obtain M R where M: "phrase (amount em) = Some M" and R: "phrase (amount er) = Some R"
     using assms by (auto simp: fnode_def split: option.splits)
@@ -293,8 +293,8 @@ proof -
     using gm by (simp only: qg Space.pr_i.simps Space.pconst.simps Space.pm_i.simps)
   have law: "q * R ^ 2 = 981 / 100 * M" using law0 by (simp only: Space_Tables.grav_E_def)
   have st: "Space.stated_dec Space.style.St_pl q = Some d" using d by (simp add: rq_def Space.qshown_def)
-  have bnd: "\<bar>Space.dec_val d - of_rat q\<bar> \<le> Space.pow10 (snd d) / 2" by (rule Space.stated_dec_sound[OF st])
-  have bnd': "\<bar>of_rat (dec_rat d) - of_rat q\<bar> \<le> Space.pow10 (snd d) / 2" using bnd by (simp add: of_rat_dec_rat_space)
+  have bnd: "\<bar>Commons_Num.dec_val d - of_rat q\<bar> \<le> Commons_Num.pow10 (snd d) / 2" by (rule Space.stated_dec_sound[OF st])
+  have bnd': "\<bar>of_rat (dec_rat d) - of_rat q\<bar> \<le> Commons_Num.pow10 (snd d) / 2" using bnd by (simp add: of_rat_dec_rat_space)
   have kq': "Space.kernel (Space.request.PGravity (Space.pbody.Pb_earth M R)) = Space.outcome.Exact (STR ''gravity'') q"
     using gm qg by simp
   have rr: "r = NVal (dec_rat d)" using r yd by simp
@@ -310,7 +310,7 @@ theorem planet_weight_node:
      Space.kernel (Space.request.PWeightE M R k) = Space.outcome.Exact (STR ''weight'') q \<and>
      q * R ^ 2 = k * (981 / 100 * M) \<and>
      Space.stated_dec Space.style.St_pl q = Some d \<and> r = NVal (dec_rat d) \<and>
-     \<bar>of_rat (dec_rat d) - of_rat q\<bar> \<le> Space.pow10 (snd d) / 2"
+     \<bar>of_rat (dec_rat d) - of_rat q\<bar> \<le> Commons_Num.pow10 (snd d) / 2"
 proof -
   obtain k M R where k: "phrase (amount m) = Some k" and M: "phrase (amount em) = Some M"
       and R: "phrase (amount er) = Some R"
@@ -335,8 +335,8 @@ proof -
   have law0: "q * R ^ 2 = k * (Space_Tables.grav_E * M)" using wm by (simp only: qw)
   have law: "q * R ^ 2 = k * (981 / 100 * M)" using law0 by (simp only: Space_Tables.grav_E_def)
   have st: "Space.stated_dec Space.style.St_pl q = Some d" using d by (simp add: rq_def Space.qshown_def)
-  have bnd: "\<bar>Space.dec_val d - of_rat q\<bar> \<le> Space.pow10 (snd d) / 2" by (rule Space.stated_dec_sound[OF st])
-  have bnd': "\<bar>of_rat (dec_rat d) - of_rat q\<bar> \<le> Space.pow10 (snd d) / 2" using bnd by (simp add: of_rat_dec_rat_space)
+  have bnd: "\<bar>Commons_Num.dec_val d - of_rat q\<bar> \<le> Commons_Num.pow10 (snd d) / 2" by (rule Space.stated_dec_sound[OF st])
+  have bnd': "\<bar>of_rat (dec_rat d) - of_rat q\<bar> \<le> Commons_Num.pow10 (snd d) / 2" using bnd by (simp add: of_rat_dec_rat_space)
   have kq': "Space.kernel (Space.request.PWeightE M R k) = Space.outcome.Exact (STR ''weight'') q"
     using wm qw by simp
   have rr: "r = NVal (dec_rat d)" using r yd by simp
