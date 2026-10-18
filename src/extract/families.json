@@ -288,6 +288,15 @@
       "role": "specialist"
     },
     {
+      "family": "mathorgan",
+      "role": "math",
+      "session": "Veri7vn_MathOrgan",
+      "binary": "var/mathorgan/bin/mathorgan",
+      "specialists": [],
+      "specialist_flag": false,
+      "build": "src/extract/mathorgan/build.sh"
+    },
+    {
       "family": "mechanics",
       "session": "Veri7vn_Mechanics",
       "binary": "var/mechanics/bin/mechanics",

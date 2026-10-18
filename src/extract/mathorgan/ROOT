@@ -1,0 +1,11 @@
+(* Scout math-organ: the head mathematics route (organ:math word problems,
+   op: operators, algebra:solved, and the precision guards that sit on those
+   routes) as one HOL kernel, exported to SML. Exact rational arithmetic
+   only, so the session sits directly on the bundled HOL image. *)
+session Veri7vn_MathOrgan in "." = HOL +
+  options [document = false, threads = 2]
+  sessions
+    "HOL-Library"
+  theories
+    Math
+    Math_Export
