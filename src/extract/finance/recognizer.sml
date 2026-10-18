@@ -28,9 +28,19 @@ structure Recognizer :
 sig
   val organs : string list
   val recognize : string -> string -> (string * Finance.request) option
+  val replyOf : Finance.request -> Finance.reply
 end =
 struct
   structure F = Finance
+
+  (* The narrowing steps ask "does the kernel answer this request?", which builds the whole reply; the driver then needs
+     that same reply. Keep the last one (same request object) so each question is computed once. Untrusted bookkeeping. *)
+  val memo : (F.request * F.reply) option ref = ref NONE
+  fun replyOf (req : F.request) : F.reply =
+    case !memo of
+      SOME (r, rep) => if r = req then rep else let val rep = F.reply_of req in memo := SOME (req, rep); rep end
+    | NONE => let val rep = F.reply_of req in memo := SOME (req, rep); rep end
+  fun answersM (req : F.request) : bool = F.answered (replyOf req)
 
   val cache : (string * Regex.regex) list ref = ref []
   fun lower s = String.map Char.toLower s
@@ -270,20 +280,20 @@ struct
                | SOME F.F_Advice => a
                | SOME req =>
                    if Narrow.narrative tx then NONE
-                   else if not (F.answers req) andalso (not (Narrow.short_direct tx) orelse Narrow.numbers tx = 0) then NONE
+                   else if not (answersM req) andalso (not (Narrow.short_direct tx) orelse Narrow.numbers tx = 0) then NONE
                    else a
       (* numbers_rule_v1: an "I need X" with numbers in the turn is silence *)
       val a2 = if variant >= 2 then
                  (case a1 of
                     SOME F.F_Advice => a1
-                  | SOME req => if not (F.answers req) andalso Narrow.numbers low0 >= 1 then NONE else a1
+                  | SOME req => if not (answersM req) andalso Narrow.numbers low0 >= 1 then NONE else a1
                   | NONE => NONE)
                else a1
     in
       if variant >= 3 then
         (case a2 of
            SOME req =>
-             if F.answers req
+             if answersM req
                 andalso (length (distinct (map (fn m => replaceAll "\\s" "" (Regex.whole low0 m)) (findall PCT low0))) >= 2
                          orelse (has PHASE low0 andalso has PCT low0))
              then (case twoPhase low0 of SOME req => SOME req | NONE => SOME F.F_MultiPhase) else a2
@@ -341,7 +351,7 @@ struct
         in
           case r of
             NONE => NONE
-          | SOME req => if not (F.answers req) andalso not (Narrow.short_direct t) then NONE else r
+          | SOME req => if not (answersM req) andalso not (Narrow.short_direct t) then NONE else r
         end
     end
   and econCore low : F.request option =
@@ -538,7 +548,7 @@ struct
       else
         case retailCore low of
           NONE => NONE
-        | SOME req => if not (F.answers req) andalso not (Narrow.short_direct t) then NONE else SOME req
+        | SOME req => if not (answersM req) andalso not (Narrow.short_direct t) then NONE else SOME req
     end
   and retailCore low : F.request option =
     let

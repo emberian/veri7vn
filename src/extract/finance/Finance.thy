@@ -68,6 +68,17 @@ definition rpow :: "rat \<Rightarrow> nat \<Rightarrow> rat" where
 lemma rpow_eq [simp]: "rpow x n = x ^ n"
   by (simp add: rpow_def)
 
+text \<open>Executable form (code only; the statements above are unchanged): the power of
+a coprime fraction is the fraction of the powers, so the integers are powered
+and the fraction is normalised once instead of after every multiplication.\<close>
+lemma rpow_code [code]: "rpow x n = (case quotient_of x of (a, c) \<Rightarrow> Fract (a ^ n) (c ^ n))"
+proof -
+  obtain a c where q: "quotient_of x = (a, c)" by force
+  have xe: "x = of_int a / of_int c" by (rule quotient_of_div[OF q])
+  have "x ^ n = (of_int a / of_int c :: rat) ^ n" by (subst xe) (rule refl)
+  then show ?thesis by (simp add: rpow_def q power_divide Fract_of_int_quotient of_int_power)
+qed
+
 text \<open>Exact growth as an unnormalised fraction, and its rounding to a number of
 decimals (half up), so a compound balance over thousands of periods is never
 reduced.\<close>

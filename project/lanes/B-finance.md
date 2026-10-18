@@ -135,3 +135,34 @@ organ answers the discounted price; the right answer is to ask). Fresh panels an
 unchanged (shipped finance 129/129, v2 128/128, r2 128/128, economics 78/78, retail 96/96; fresh F1+F2 259/259,
 246/246, 246/246, 156/156; wrong 0, false yes 0). The generators never write the new kinds, so the fresh panels can
 only show nothing regressed; the probes carry the new-kind evidence and they are few.
+
+## Step 4: efficiency (marker `VERI7VN_FINANCE PASS theorems=50 oracles=0`, hbox, with `-d src/extract/commons`)
+
+Causes found, not guessed (SML timing driver on the generated code):
+- Cold start 245 ms: the exported `self_test` is a nullary constant, which generated SML evaluates when the program
+  loads; it ran the 120-bit enclosures. Removed from `export_code` (the build-time check still runs it through
+  `@{code self_test}` in the marker block). Cold start now 3.2 ms (5 runs: 3.8, 3.2, 3.5, 3.2, 3.2).
+- Loans, savings goals, APY: `rpow x n = x ^ n` on `rat` multiplies one factor at a time and normalises (a gcd on
+  numbers of thousands of digits) after each. A code equation (`rpow_code`, proved: `rpow x n = Fract (a^n) (c^n)` for
+  `quotient_of x = (a, c)`) powers the integers and normalises once. The statement of `rpow` and every theorem are
+  unchanged (`rpow_eq` still holds). Loan payment 600 ms -> 14 ms CPU under load, APY 460 -> 10.
+- The recognizer built every reply two to three times (the narrowing steps ask whether the kernel answers). A memo of the
+  last request/reply (untrusted bookkeeping) makes it once.
+- `prec` 120 -> 64 bits: doubling and continuous growth 137 -> 33 ms CPU under load (below 64 no further gain). No
+  panel or probe item turned imprecise (a too-coarse enclosure would decline, never misstate: `enclose_fmt_sound`).
+- Port onto `src/extract/commons`: `Finance_Num.thy` imports `Veri7vn_Commons.Commons_Num` and drops the 27 definitions and
+  lemmas that were byte-identical copies (checked mechanically: 27 same, 0 different); `main.sml` loses its Json block;
+  `build.sh` and `remote-build` use `commons.sml` and `-d src/extract/commons`; `regex.sml` stays in the tree unused.
+  `tables_check.py` now names the three lane-B need strings (25 checks PASS).
+
+| | before (S13) | after |
+|---|---|---|
+| cold start | ~270 ms | 3.2 ms |
+| p50 per item, in-binary, 50 ms budget | finance 1.5, v2 13.6, r2 17.8 | finance 0.9, v2 1.0, r2 0.8, economics 0.11, retail 0.09 |
+| size | 644,248 bytes | 722,760 bytes (the four new kinds; under 1 MB) |
+| theorems | 44 | 50 |
+
+Panels with this binary (harness): shipped finance 129/129, v2 128/128, r2 128/128, economics 78/78, retail 96/96;
+fresh F1+F2 259/259, 246/246, 246/246, 156/156; wrong 0, false yes 0; probes 26/0/0. Slowest remaining query kinds,
+CPU under a loaded laptop: doubling and continuous growth ~33 ms, a 30-year daily compound ~40 ms (10,950 periods), well
+inside the 50 ms budget but above a tenth of it; typical items are 1 ms.

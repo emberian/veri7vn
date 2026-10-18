@@ -59,7 +59,13 @@ needs_org = set(re.findall(r'_need\("([^"]+)"\)', fin)) | set(re.findall(r'_need
 needs_org |= set(re.findall(r'return self\._need\("([^"]+)"\)', fin))
 needs_hol = set(re.findall(r'need_what N_\w+ = STR \'\'([^\']+)\'\'', thy))
 check("every organ _need string is a HOL need_what", needs_org <= needs_hol, str(needs_org - needs_hol))
-check("every HOL need_what is an organ string", needs_hol <= needs_org, str(needs_hol - needs_org))
+# lane B-finance kinds have no organ: their strings are named here so the check stays two-sided for everything else
+LANE_B_NEEDS = {"the monthly deposit, the annual rate and the time",
+                "the starting amount and the rate and time of each phase",
+                "both nominal GDP and the GDP deflator"}
+check("every HOL need_what is an organ string or a named lane-B string", needs_hol <= needs_org | LANE_B_NEEDS,
+      str(needs_hol - needs_org - LANE_B_NEEDS))
+check("the lane-B need strings are all in HOL", LANE_B_NEEDS <= needs_hol, str(LANE_B_NEEDS - needs_hol))
 check("finance need suffix", "to calculate that; I won" in thy and "to calculate that; I won't assume it" in fin)
 check("economics/retail need suffix", "to work that out; I won" in thy and "to work that out; I won't assume it" in eco and "to work that out; I won't assume it" in ret)
 

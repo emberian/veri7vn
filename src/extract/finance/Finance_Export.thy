@@ -51,7 +51,7 @@ definition self_test :: bool where
      response (reply_of (E_Elasticity (Some (20, 22)) (Some (1000, 980)))) =
        STR ''The price elasticity of demand is -0.212 (midpoint method: %dQ -2.02% / %dP 9.524%) - inelastic (|E| < 1).''"
 
-export_code reply_of answered reply_kind response stated answers mk_rat self_test
+export_code reply_of answered reply_kind response stated answers mk_rat
   Fq_annual Fq_semi Fq_quarterly Fq_monthly Fq_weekly Fq_daily Fq_continuous
   F_Apy F_Doubling F_LoanPayment F_LoanInterest F_Savings F_Simple F_Compound F_Advice F_MultiPhase
   E_Elasticity E_ElasticityPct E_Inflation E_RealValue E_RealRate E_Growth E_Multiplier

@@ -12,6 +12,8 @@ session Veri7vn_Finance_Base in base = HOL +
 
 session Veri7vn_Finance = Veri7vn_Finance_Base +
   options [document = false, threads = 2]
+  sessions
+    "Veri7vn_Commons"
   theories
     Finance_Num
     Finance
