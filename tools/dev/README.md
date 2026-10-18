@@ -277,3 +277,39 @@ MLton jobs. Outside Git, the helper keeps a lock in its supplied checkout.
 Refresh older staged helper copies before starting another compilation; manifests
 record `compiler_lock` for inspection. Completed artifacts need no rebuild merely
 to change their lock location.
+
+## Optional bounded overlap: review gate, hbox only
+
+Serialized execution remains the default. The worker contains an opt-in
+admission path for one 8 GiB check alongside the existing 16 GiB normal slot.
+It is not enabled by submitting `--check-only`, and no host is enabled merely
+by installing this code. Initial live overlap requires the coordinator's review.
+
+The normal slot keeps `build.lock` through diagnostics and publication. An
+admitted check holds `proof-check-admitted.lock`, acquires `build.lock` to copy
+warm parents, and releases the publication lock only after reserving memory and
+preparing its independent workspace. Its persistent cache lives under
+`proof-check-admitted/`, separate from both normal builds and older serialized
+check workers. There are no writable hardlinks or exports from this mode.
+
+A short `admission.lock` protects reservations. Whenever a checker is reserved,
+both slots require 26 GiB currently free in the shared cgroup and in physical
+`MemAvailable`: normal 16 + check 8 + headroom 2. Normal-only work requires
+18 GiB. Existing unit usage receives no credit, because per-unit and aggregate
+memory samples are not atomic and reclaimable cache can already be counted in
+`MemAvailable`. This deliberately favors serialization when memory is tight.
+Native builds still hold `build.lock` with their existing 8 GiB cap; the reserved
+normal slot covers them, and their unrecognized usage receives no credit either.
+Disk reserve remains 20 GiB plus inventoried parent-copy bytes. Systemd caps,
+timeouts, cancellation and no-export diagnostic receipts are unchanged.
+
+The explicit cutover command is the reviewed worker file's
+`--enable-admission MANAGED_DIRECTORY` entry point, run on hbox. It refuses busy
+slots, nonempty reservations, insufficient headroom, and outstanding attempts
+whose protocol **and exact worker SHA256** differ. It does not cancel anything.
+The resulting policy pins that worker version; updating worker code requires
+another drained cutover. `--disable-admission MANAGED_DIRECTORY` also requires
+idle slots and empty reservations. Do not hand-edit/remove policy or reservation
+files while workers exist. A stale PID identity, unexpected unit cap or failed
+service cleanup blocks admission for inspection instead of silently dropping a
+reservation. Persvati rejects this opt-in policy.

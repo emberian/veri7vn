@@ -6,6 +6,7 @@ state. All jobs use a transient systemd service, so timeout/stop kills the whole
 owned cgroup, including detached Isabelle workers. No process-pattern killing.
 """
 import fcntl
+from contextlib import ExitStack
 import hashlib
 import json
 import os
@@ -13,6 +14,7 @@ from pathlib import Path
 import re
 import shutil
 import signal
+import socket
 import sqlite3
 import subprocess
 import sys
@@ -22,6 +24,8 @@ import time
 GIB = 1024 ** 3
 MIN_DISK = 20 * GIB
 MEMORY_CAP = 16 * GIB
+ADMISSION_PROTOCOL = 1
+CHECK_CAP = 8 * GIB
 
 
 def atomic_json(path, value):
@@ -112,7 +116,7 @@ def check_state(managed, isabelle, dirs, session, result):
     Caller holds the ordinary host lock. New parent copies come from the managed
     cache or installed distribution, never the unmanaged legacy writer cache.
     """
-    base = managed / "proof-check"
+    base = managed / result.get("check_root", "proof-check")
     base.mkdir(exist_ok=True)
     names = subprocess.check_output([str(isabelle), "sessions", "-b", "-R", *dirs, session],
                                     text=True, timeout=120).splitlines()
@@ -194,7 +198,7 @@ def check_parent_inputs(result):
     return inputs
 
 
-def resources(managed):
+def resource_snapshot(managed):
     free = shutil.disk_usage(managed).free
     if free < MIN_DISK:
         raise RuntimeError("disk free is below 20 GiB reserve; stop writing and report")
@@ -207,10 +211,161 @@ def resources(managed):
     current = int(props["MemoryCurrent"])
     available = next(int(line.split()[1]) * 1024 for line in Path("/proc/meminfo").read_text().splitlines()
                      if line.startswith("MemAvailable:"))
-    if int(cap) - current < MEMORY_CAP + 2 * GIB or available < MEMORY_CAP + 2 * GIB:
-        return None
     return {"disk_free": free, "slice_cap": int(cap), "slice_current": current,
             "memory_available": available, "job_cap": MEMORY_CAP}
+
+
+def resources(managed):
+    measured = resource_snapshot(managed)
+    if min(measured["slice_cap"] - measured["slice_current"], measured["memory_available"]) < MEMORY_CAP + 2 * GIB:
+        return None
+    return measured
+
+
+def admission_policy(managed):
+    """Operator-enabled only after review; absence preserves serialized behavior."""
+    path = managed / "admission-policy.json"
+    reservations = managed / "admission-reservations.json"
+    if not path.exists():
+        if reservations.exists() and json.loads(reservations.read_text()):
+            raise RuntimeError("admission policy removed with outstanding reservations")
+        return None
+    policy = json.loads(path.read_text())
+    expected = {"protocol": ADMISSION_PROTOCOL, "host": "hbox", "normal_cap": MEMORY_CAP,
+                "check_cap": CHECK_CAP, "headroom": 2 * GIB,
+                "worker_sha256": digest(Path(__file__))}
+    if policy != expected or socket.gethostname().split(".")[0] != "hbox":
+        raise RuntimeError("unsupported admission policy or host; overlap is hbox-only")
+    return policy
+
+
+def legacy_attempts(managed):
+    old = []
+    for attempt in (managed / "attempts").iterdir():
+        if not attempt.is_dir() or (attempt / "result.json").exists():
+            continue
+        config = attempt / "config.json"
+        data = json.loads(config.read_text()) if config.exists() else {}
+        if (data.get("admission_protocol") != ADMISSION_PROTOCOL or
+                data.get("admission_worker_sha256") != digest(Path(__file__))):
+            old.append(attempt.name)
+    return sorted(old)
+
+
+def process_identity(pid):
+    proc = Path("/proc") / str(pid)
+    # Start time prevents PID reuse from turning a stale reservation into credit.
+    start = (proc / "stat").read_text().rsplit(")", 1)[1].split()[19]
+    return {"start": start, "cwd": str((proc / "cwd").resolve(strict=True))}
+
+
+def reservation_usage(record):
+    try:
+        identity = process_identity(record["pid"])
+    except OSError as exc:
+        raise RuntimeError("stale admission reservation; inspect exact worker/unit before cleanup") from exc
+    if identity != record["identity"]:
+        raise RuntimeError("admission worker identity changed")
+    expected_unit = "veri7vn-build-" + record["attempt"].lower()
+    if record["unit"] != expected_unit:
+        raise RuntimeError("invalid admission unit identity")
+    props = subprocess.check_output(["systemctl", "--user", "show", record["unit"],
+                                    "-p", "ActiveState", "-p", "MemoryCurrent", "-p", "MemoryMax"], text=True)
+    values = dict(line.split("=", 1) for line in props.splitlines() if "=" in line)
+    if values.get("ActiveState") in ("inactive", "failed"):
+        return 0  # Worker may still be preparing, exporting or publishing diagnostics.
+    if values.get("ActiveState") != "active" or values.get("MemoryMax") != str(record["cap"]):
+        raise RuntimeError("cannot attribute admission unit memory safely")
+    used = int(values["MemoryCurrent"])
+    if not 0 <= used <= record["cap"]:
+        raise RuntimeError("admission unit memory exceeds recorded cap")
+    return used
+
+
+def reserve_slot(managed, config, unit, policy):
+    """One short lock makes measurement and the full-cap reservation indivisible."""
+    slot = "check" if config.get("check_only") else "normal"
+    path = managed / "admission-reservations.json"
+    with (managed / "admission.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        # Re-read: deleting/changing policy during a live reservation is unsafe.
+        if admission_policy(managed) != policy:
+            raise RuntimeError("admission policy changed while queued")
+        if slot == "check":
+            old = legacy_attempts(managed)
+            if old:
+                raise RuntimeError("legacy workers must drain before overlap: " + ", ".join(old))
+        records = json.loads(path.read_text()) if path.exists() else {}
+        if set(records) - {"normal", "check"} or slot in records:
+            raise RuntimeError("occupied or invalid admission reservation; inspect before cleanup")
+        for name, record in records.items():
+            expected_cap = policy["check_cap"] if name == "check" else policy["normal_cap"]
+            if (record["cap"] != expected_cap or
+                    record["identity"]["cwd"] != str(managed / "attempts" / record["attempt"])):
+                raise RuntimeError("invalid admission reservation cap or source directory")
+        owned_usage = sum(reservation_usage(record) for record in records.values())
+        measured = resource_snapshot(managed)
+        # Always reserve the full normal slot, even when idle or running a native
+        # compiler that has no reservation record. No sampled usage gets credit:
+        # service and aggregate measurements are not one atomic memory snapshot.
+        required = policy["normal_cap"] + policy["headroom"]
+        if slot == "check" or "check" in records:
+            required += policy["check_cap"]
+        slice_free = measured["slice_cap"] - measured["slice_current"]
+        if min(slice_free, measured["memory_available"]) < required:
+            return None
+        cap = policy["check_cap"] if slot == "check" else policy["normal_cap"]
+        record = {"attempt": config["attempt"], "pid": os.getpid(),
+                  "identity": process_identity(os.getpid()), "unit": unit, "cap": cap}
+        records[slot] = record
+        atomic_json(path, records)
+        return measured | {"job_cap": cap, "reservation": record, "slot": slot,
+                           "reserved_bytes": required, "observed_owned_usage": owned_usage,
+                           "credited_owned_usage": 0}
+
+
+def release_slot(managed, slot, attempt):
+    path = managed / "admission-reservations.json"
+    with (managed / "admission.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        records = json.loads(path.read_text())
+        if records.get(slot, {}).get("attempt") != attempt:
+            raise RuntimeError("refusing to release another attempt's reservation")
+        del records[slot]
+        atomic_json(path, records)
+
+
+def configure_admission(managed, enabled):
+    """Explicit reviewed cutover only; never alter policy underneath running jobs."""
+    managed = managed.resolve()
+    if socket.gethostname().split(".")[0] != "hbox":
+        raise RuntimeError("admission cutover is hbox-only")
+    with ExitStack() as stack:
+        for name in ("proof-check-admitted.lock", "build.lock", "admission.lock"):
+            lock = stack.enter_context((managed / name).open("a"))
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise RuntimeError("cutover requires idle owned slots; leave existing jobs intact") from exc
+        path = managed / "admission-reservations.json"
+        if path.exists() and json.loads(path.read_text()):
+            raise RuntimeError("cutover requires empty reservations; inspect exact owners")
+        policy_path = managed / "admission-policy.json"
+        if not enabled:
+            if policy_path.exists():
+                policy_path.unlink()  # Only our opt-in policy, while both slots are idle.
+            return {"enabled": False}
+        old = legacy_attempts(managed)
+        if old:
+            raise RuntimeError("legacy workers must drain before cutover: " + ", ".join(old))
+        measured = resource_snapshot(managed)
+        if min(measured["slice_cap"] - measured["slice_current"], measured["memory_available"]) < MEMORY_CAP + CHECK_CAP + 2 * GIB:
+            raise RuntimeError("cutover requires normal16GiB + check8GiB + headroom2GiB")
+        policy = {"protocol": ADMISSION_PROTOCOL, "host": "hbox", "normal_cap": MEMORY_CAP,
+                  "check_cap": CHECK_CAP, "headroom": 2 * GIB,
+                  "worker_sha256": digest(Path(__file__))}
+        atomic_json(policy_path, policy)
+        return {"enabled": True, "policy": policy, "resources": measured}
 
 
 def acquire_host_lock(lock, cancel, deadline):
@@ -256,7 +411,8 @@ def source_hashes(root):
 def prepare_workspace(attempt, managed, result):
     # The global host lock makes a stable source path safe. Unique attempt paths
     # otherwise invalidate Isabelle's cached source identities on every request.
-    workspace = managed / ("proof-check/workspace" if result.get("check_only") else "workspace")
+    workspace = (managed / result.get("check_root", "proof-check") / "workspace"
+                 if result.get("check_only") else managed / "workspace")
     workspace.mkdir(parents=True, exist_ok=True)
     subprocess.run(["rsync", "-a", "--checksum", "--delete", str(attempt / "src"),
                     str(attempt / "tests"), str(workspace) + "/"], check=True, timeout=120)
@@ -279,16 +435,23 @@ def main():
     unit = "veri7vn-build-" + config["attempt"].lower()
     log = (results / "build.log").open("w")
     service_started = False
+    reserved_slot = None
     try:
-        lock = (managed / "build.lock").open("a")
         deadline = time.monotonic() + config["queue_timeout"]
+        policy = admission_policy(managed)
+        if policy and config.get("check_only"):
+            check_lock = (managed / "proof-check-admitted.lock").open("a")
+            acquire_host_lock(check_lock, attempt / "cancel", deadline)
+            result["check_root"] = "proof-check-admitted"
+        lock = (managed / "build.lock").open("a")
         acquire_host_lock(lock, attempt / "cancel", deadline)
         result["lock_acquired"] = time.time()
         result["queue_seconds"] = result["lock_acquired"] - result["started"]
         while True:
-            check = resources(managed)
+            check = reserve_slot(managed, config, unit, policy) if policy else resources(managed)
             if check is not None:
                 result["resources"] = check
+                reserved_slot = check.get("slot")
                 break
             if (attempt / "cancel").exists() or time.monotonic() >= deadline:
                 raise RuntimeError("memory wait cancelled or timed out")
@@ -304,6 +467,12 @@ def main():
         result["user_state"] = str(state)
         result["unmanaged_writers"] = active_heap_writers()
         execution_root, expected_sources = prepare_workspace(attempt, managed, result)
+        if policy and config.get("check_only"):
+            # Parent copying required the publication lock. The immutable seed,
+            # private DB/workspace and reserved memory now permit safe overlap.
+            lock.close()
+            result["publication_lock_released"] = time.time()
+            result["admission_protocol"] = ADMISSION_PROTOCOL
         isabelle = Path.home() / "tools/isabelle-rc1/Isabelle2026-RC1/bin/isabelle"
         env = os.environ | {"USER_HOME": str(state)}
         dirs = ["-d", config["session_dir"]]
@@ -315,7 +484,7 @@ def main():
                    "--unit=" + unit, "--slice=swarm.slice", "--working-directory=" + str(execution_root),
                    "--setenv=VERI7VN_BUILD_RESULT=" + str(results / "build-exit.json"),
                    "--setenv=USER_HOME=" + str(state), "--setenv=PATH=" + os.environ["PATH"],
-                   "-p", "MemoryMax=" + str(MEMORY_CAP), "-p", "MemorySwapMax=0",
+                   "-p", "MemoryMax=" + str(result["resources"]["job_cap"]), "-p", "MemorySwapMax=0",
                    "-p", "RuntimeMaxSec=" + str(config["timeout"]), "-p", "TimeoutStopSec=30",
                    "-p", "KillMode=control-group", "-p", "CPUWeight=50", "-p", "Nice=15",
                    "-p", "OOMScoreAdjust=0", sys.executable, str(attempt / "worker.py"),
@@ -400,13 +569,27 @@ def main():
             result["cancelled"] = True
             result["exit_code"] = 1
         result["finished"] = time.time()
+        if reserved_slot and not result.get("cleanup_error"):
+            try:
+                release_slot(managed, reserved_slot, config["attempt"])
+                result["reservation_released"] = True
+            except Exception as exc:
+                result["cleanup_error"] = str(exc)
+                result["exit_code"] = 1
         log.close()
         atomic_json(attempt / "result.json", result)
         if "lock" in locals():
             lock.close()
+        if "check_lock" in locals():
+            check_lock.close()
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] in (["--enable-admission"], ["--disable-admission"]):
+        if len(sys.argv) != 3:
+            raise SystemExit("usage: worker.py --enable-admission|--disable-admission MANAGED_DIRECTORY")
+        print(json.dumps(configure_admission(Path(sys.argv[2]), sys.argv[1] == "--enable-admission")))
+        sys.exit(0)
     if sys.argv[1:2] == ["--run-build"]:
         # This completion evidence is written *inside* the owned service, after
         # Isabelle actually returns. systemd-run can return zero when an explicit

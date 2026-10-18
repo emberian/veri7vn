@@ -1,5 +1,42 @@
 # C-build: bounded remote builds and recoverable evidence
 
+## Pending reviewed admission packet
+
+The next optional overlap implementation is ready for review in
+`remote-build`, `remote_build_worker.py`, `test_remote_build.py` and the build
+README. It has **43 focused remote-driver checks passing**. No overlap has been
+enabled and no live concurrency trial has run. Serialized production behavior
+remains the default; earlier check-only and native-lock work was integrated in
+`be8bf87`.
+
+The opt-in path is hbox-only: one 8 GiB private check can release the publication
+lock after retaining its parents, while normal proof/native work retains the
+ordinary host lock. Short-lock reservations require all 16+8+2 GiB currently
+free whenever a checker is present; no sampled memory is subtracted or credited.
+This conservative rule avoids measurement races and can serialize under load.
+Exact worker hashes must match at cutover and in the outstanding queue. Stale
+worker identities and failed service cleanup retain reservations for inspection.
+Both enable and disable refuse occupied slots. An admitted check uses a separate
+persistent cache so an older serialized check cannot write its databases.
+
+The proposed first trial, after root review, is two tiny retained-source HOL
+sessions on hbox: a checked true theorem and an ordinary true theorem, each with
+a bounded 15-second diagnostic delay so their service intervals can overlap.
+Then repeat the checked session with a deliberately false theorem. Capture both
+service intervals, caps, reservations, source/parent hashes, completion records,
+and the failed diagnostic's absence of exports. Disable the policy after both
+slots drain. No family build or package publication is needed for this trial.
+
+Root reviewed the implementation and independently repeated all 43 checks, then
+authorized that bounded trial. The first actual gate remains closed: six valid
+hbox proofs were outstanding (Stores, Facts, Relation_Query, Finance, Quantity
+and Emoptics); the first four had pre-admission worker copies. Physical available
+memory was 25.7 GiB, below the conservative 26 GiB requirement, despite 57.6 GiB
+of cgroup headroom. Nothing was canceled, enabled or submitted for the trial.
+Tiny retained-source trial inputs are prepared locally under
+`var/c-build/admission-trial/stage`; overlap remains disabled while production
+jobs drain naturally. This does not block ordinary specialist work.
+
 The repaired driver lets the implementation owners submit work without a
 per-build approval. It queues one build per host, including dependent sessions,
 and publishes exports only after a successful build, export and marker check.

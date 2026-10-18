@@ -118,7 +118,9 @@ def main():
             (attempt / "source-sha256.json").write_text(json.dumps(snapshot, indent=2) + "\n")
             receipt["source_digest"] = hashlib.sha256(json.dumps(snapshot, sort_keys=True).encode()).hexdigest()
             shutil.copy2(Path(__file__).resolve().with_name("remote_build_worker.py"), attempt / "worker.py")
-            config = vars(args) | {"attempt": attempt_id, "source_digest": receipt["source_digest"]}
+            config = vars(args) | {"attempt": attempt_id, "source_digest": receipt["source_digest"],
+                                   "admission_protocol": 1,
+                                   "admission_worker_sha256": hashlib.sha256((attempt / "worker.py").read_bytes()).hexdigest()}
             (attempt / "config.json").write_text(json.dumps(config))
             ssh(args.host, "mkdir -p " + qremote)
             transport(args.host, ["rsync", "-a", str(attempt) + "/", args.host + ":" + remote + "/"])
