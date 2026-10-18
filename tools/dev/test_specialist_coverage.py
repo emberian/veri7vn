@@ -238,6 +238,103 @@ class CoverageInventoryTests(unittest.TestCase):
             self.assertEqual(coverage.main(), 0)
         self.assertTrue(output.getvalue().startswith("{\n"))
 
+    def test_explicit_audit_records_preserve_claims_and_validate_ids_and_receipts(self):
+        audit_dir = self.repo / "var/coverage/audits"
+        audit_dir.mkdir(parents=True)
+        receipt = self.repo / "var/receipts/example.json"
+        self.write_json(receipt, {"source": "test fixture"})
+        compile_manifest = self.repo / "var/native/compile-inputs.json"
+        compile_manifest.parent.mkdir(parents=True)
+        compile_manifest.write_text("{}", encoding="utf-8")
+        registered_binary = self.repo / "var/native/bin/reader"
+        registered_binary.parent.mkdir(parents=True)
+        registered_binary.write_bytes(b"native")
+
+        def record(sid, family, receipt_path="var/receipts/example.json", native_binding=None):
+            return {
+                "schema_version": 1,
+                "specialist_id": sid,
+                "family": family,
+                "examined_surface": {"request_types": ["numeric question"], "model_scope": "unit binding"},
+                "cases": [{"case_id": "case-1", "kind": "independently_checked_case",
+                           "request": "convert 2 m to cm", "expected_boundary": "200 cm",
+                           "observed_behavior": "200 cm", "independent_check": "dimensional arithmetic"}],
+                "actual_receipt": receipt_path,
+                "native_binding": native_binding,
+                "current_unresolved_limits": ["compound units not covered"],
+                "reviewer": "reviewer-example",
+                "owner": "physical",
+                "author_claims": {"summary": "case passed in recorded run"},
+            }
+
+        self.write_json(audit_dir / "alpha-first.audit.json", record("alpha", "demo"))
+        self.write_json(audit_dir / "alpha-second.audit.json", record("alpha", "demo"))
+        self.write_json(audit_dir / "unknown.audit.json", record("not-a-specialist", "demo"))
+        self.write_json(audit_dir / "beta.audit.json", record("beta", "demo", "var/receipts/missing.json"))
+        native_record = record("rel-quiet", "relations", native_binding={
+            "compile_inputs_manifest": "var/native/compile-inputs.json",
+            "registered_binary": "var/native/bin/reader",
+        })
+        self.write_json(audit_dir / "rel-quiet.audit.json", native_record)
+
+        class NativeVerifier:
+            def verify(self, manifest_path, repo, binary_path, check_current_source):
+                self.assertions = (manifest_path == compile_manifest and repo == self.repo_path
+                                   and binary_path == registered_binary and check_current_source)
+                return {"ok": True, "verified": {"binary_sha256": "0" * 64},
+                        "current_source": {"status": "different", "runtime_differences": ["src/Reader.sml"],
+                                           "proof_differences": []},
+                        "proof_source_context": "receipt_snapshot", "errors": []}
+
+            repo_path = self.repo
+
+        with patch.object(coverage, "load_verifier", return_value=NativeVerifier()):
+            report = coverage.build_report(self.repo, self.upstream, self.registry_path,
+                                           self.lanes, include_receipts=False)
+        ingestion = report["summary"]["explicit_audit_records"]
+        self.assertEqual(ingestion["unknown_ids"], ["not-a-specialist"])
+        self.assertEqual(ingestion["duplicate_ids"], ["alpha"])
+        self.assertEqual(ingestion["specialist_ids_with_records"], 3)
+        self.assertEqual(ingestion["unmatched_records"][0]["author_claims"]["specialist_id"],
+                         "not-a-specialist")
+        rows = {row["id"]: row for row in report["specialists"]}
+        self.assertEqual(rows["alpha"]["explicit_audit_record_status"], "record_present_invalid")
+        self.assertEqual(rows["beta"]["explicit_audit_records"][0]["validation"]["status"], "record_invalid")
+        self.assertIn("actual_receipt does not exist", " ".join(
+            rows["beta"]["explicit_audit_records"][0]["validation"]["errors"]))
+        native = rows["rel-quiet"]["explicit_audit_records"][0]
+        self.assertEqual(native["validation"]["status"], "record_shape_and_receipt_valid")
+        binding = native["validation"]["native_binding"]
+        self.assertTrue(binding["immutable_receipt_valid"])
+        self.assertEqual(binding["current_source_status"], "different")
+        self.assertEqual(binding["current_source_differences"]["runtime"], ["src/Reader.sml"])
+        self.assertEqual(native["author_claims"]["author_claims"]["summary"], "case passed in recorded run")
+        rendered = coverage.markdown(report)
+        self.assertIn("Explicit audit record", rendered)
+        self.assertIn("record_shape_and_receipt_valid", rendered)
+        output = io.StringIO()
+        args = ["specialist-coverage.py", "--repo", str(self.repo), "--upstream", str(self.upstream),
+                "--registry", str(self.registry_path), "--lanes", str(self.lanes), "--no-receipts"]
+        with patch("sys.argv", args), redirect_stdout(output):
+            self.assertEqual(coverage.main(), 1)
+
+    def test_non_directory_audit_path_reports_error_and_renders_markdown(self):
+        audit_file = self.repo / "var/coverage/audit-file"
+        audit_file.parent.mkdir(parents=True)
+        audit_file.write_text("not a directory", encoding="utf-8")
+        markdown_path = self.repo / "out/inventory.md"
+        output = io.StringIO()
+        args = ["specialist-coverage.py", "--repo", str(self.repo), "--upstream", str(self.upstream),
+                "--registry", str(self.registry_path), "--lanes", str(self.lanes), "--no-receipts",
+                "--audit-dir", str(audit_file), "--markdown-out", str(markdown_path)]
+        with patch("sys.argv", args), redirect_stdout(output):
+            self.assertEqual(coverage.main(), 1)
+        self.assertIn("1 file errors", output.getvalue())
+        rendered = markdown_path.read_text(encoding="utf-8")
+        self.assertIn("Explicit audit record", rendered)
+        self.assertIn("| not_recorded |", rendered)
+        self.assertIn("No explicit audit records were supplied.", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()

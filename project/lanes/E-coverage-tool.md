@@ -31,6 +31,54 @@ The current generated snapshot is in `var/coverage/semantic-audit-backlog.json`:
 24 IDs, grouped under 9 physical and 15 symbolic owner leads, with no unmapped
 families.
 
+Deputies can copy `var/coverage/audits/record-template.json` to
+`var/coverage/audits/<specialist-id>.audit.json` and replace its placeholders.
+The machine-readable schema is `var/coverage/audits/record.schema.json`. A
+concise record looks like:
+
+```json
+{
+  "schema_version": 1,
+  "specialist_id": "example-id",
+  "family": "example-family",
+  "examined_surface": {
+    "request_types": ["..."],
+    "model_scope": "..."
+  },
+  "cases": [{
+    "case_id": "...",
+    "kind": "counterexample",
+    "request": "...",
+    "expected_boundary": "...",
+    "observed_behavior": "..."
+  }],
+  "actual_receipt": "var/.../receipt.json",
+  "native_binding": null,
+  "current_unresolved_limits": ["..."],
+  "reviewer": "...",
+  "owner": "...",
+  "author_claims": {"summary": "..."}
+}
+```
+
+`kind` may instead be `independently_checked_case`, which also requires an
+`independent_check` description. `native_binding` can name a
+`compile_inputs_manifest` and optional `registered_binary`; the tool runs its
+offline native-input verifier and reports immutable receipt validity and
+current source status separately. `actual_receipt` must resolve to an existing
+repository file. The tool preserves the submitted object under `author_claims`
+and puts shape/path/hash checks under tool-generated `validation`; it never
+turns a record into a completion claim. Unknown IDs, duplicate IDs, malformed
+records, and missing receipt paths are reported and make the command exit
+nonzero.
+
+The generated inventory has a separate `explicit_audit_records` section and
+Markdown column; these records do not count as ordinary keyword references.
+The current snapshot has **0 explicit audit records**. The template and schema
+are examples, not evidence. Producers should include one file per specialist
+they examined, keep `author_claims` as their own account, and leave the
+tool-generated `validation` field out of the submitted file.
+
 ## Inventory at 2026-10-18
 
 The live registry has **144 non-relation specialists**, matching all 144

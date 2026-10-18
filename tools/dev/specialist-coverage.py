@@ -258,12 +258,272 @@ def semantic_audit_backlog(records: list[dict]) -> dict:
     }
 
 
+AUDIT_RECORD_FIELDS = {
+    "schema_version", "specialist_id", "family", "examined_surface", "cases",
+    "actual_receipt", "native_binding", "current_unresolved_limits", "reviewer",
+    "owner", "author_claims",
+}
+
+
+def resolve_repo_file(repo: Path, value, label: str) -> Path:
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"{label} must be a repository-relative path")
+    path = Path(value)
+    if path.is_absolute() or ".." in path.parts or path == Path("."):
+        raise ValueError(f"{label} must be a repository-relative path without '..'")
+    candidate = repo / path
+    try:
+        resolved = candidate.resolve(strict=True)
+    except FileNotFoundError as exc:
+        raise ValueError(f"{label} does not exist: {value}") from exc
+    if not resolved.is_relative_to(repo) or not resolved.is_file():
+        raise ValueError(f"{label} must name a file inside the repository")
+    current = candidate
+    while current != repo:
+        if current.is_symlink():
+            raise ValueError(f"{label} may not use symlinks")
+        current = current.parent
+    return resolved
+
+
+def validate_audit_record(repo: Path, record: dict, known: dict[str, str], verifier) -> dict:
+    """Validate record shape and referenced artifacts; keep author claims separate."""
+    errors = []
+    sid = record.get("specialist_id")
+    missing_fields = sorted(AUDIT_RECORD_FIELDS - set(record))
+    if missing_fields:
+        errors.append("missing record fields: " + ", ".join(missing_fields))
+    if type(record.get("schema_version")) is not int or record.get("schema_version") != 1:
+        errors.append("schema_version must be 1")
+    unknown_fields = sorted(set(record) - AUDIT_RECORD_FIELDS)
+    if unknown_fields:
+        errors.append("unknown record fields: " + ", ".join(unknown_fields))
+    if "validation" in record:
+        errors.append("validation is tool-generated and cannot be supplied by the author")
+    if not isinstance(sid, str) or not sid:
+        errors.append("specialist_id is required")
+    elif sid not in known:
+        errors.append("unknown specialist_id")
+    elif record.get("family") != known[sid]:
+        errors.append("family does not match the current registry/manifest mapping")
+
+    surface = record.get("examined_surface")
+    if (not isinstance(surface, dict)
+            or not isinstance(surface.get("request_types"), list)
+            or not surface["request_types"]
+            or not all(isinstance(item, str) and item.strip() for item in surface["request_types"])
+            or not isinstance(surface.get("model_scope"), str)
+            or not surface["model_scope"].strip()):
+        errors.append("examined_surface needs request_types and model_scope")
+    elif set(surface) - {"request_types", "model_scope"}:
+        errors.append("examined_surface has unknown fields")
+
+    cases = record.get("cases")
+    if not isinstance(cases, list) or not cases:
+        errors.append("cases must contain a counterexample or independently checked case")
+    else:
+        for index, case in enumerate(cases):
+            label = f"cases[{index}]"
+            if not isinstance(case, dict):
+                errors.append(f"{label} must be an object")
+                continue
+            if case.get("kind") not in ("counterexample", "independently_checked_case"):
+                errors.append(f"{label}.kind must be counterexample or independently_checked_case")
+            allowed_case_fields = {"case_id", "kind", "request", "expected_boundary", "observed_behavior"}
+            if case.get("kind") == "independently_checked_case":
+                allowed_case_fields.add("independent_check")
+            if set(case) - allowed_case_fields:
+                errors.append(f"{label} has unknown fields")
+            required = ("case_id", "request", "expected_boundary", "observed_behavior")
+            if any(not isinstance(case.get(field), str) or not case[field].strip() for field in required):
+                errors.append(f"{label} needs case_id, request, expected_boundary, and observed_behavior")
+            if case.get("kind") == "independently_checked_case" and (
+                    not isinstance(case.get("independent_check"), str)
+                    or not case["independent_check"].strip()):
+                errors.append(f"{label}.independent_check is required for independently checked cases")
+
+    limits = record.get("current_unresolved_limits")
+    if not isinstance(limits, list) or not all(isinstance(item, str) for item in limits):
+        errors.append("current_unresolved_limits must be a list of strings")
+    for field in ("reviewer", "owner"):
+        if not isinstance(record.get(field), str) or not record[field].strip():
+            errors.append(f"{field} is required")
+    if not isinstance(record.get("author_claims"), dict):
+        errors.append("author_claims must be an object")
+
+    receipt_path = None
+    receipt_digest = None
+    try:
+        receipt_path = resolve_repo_file(repo, record.get("actual_receipt"), "actual_receipt")
+        receipt_digest = sha256(receipt_path)
+    except (OSError, ValueError) as exc:
+        errors.append(str(exc))
+
+    native_validation = None
+    native = record.get("native_binding")
+    if native is not None:
+        if not isinstance(native, dict):
+            errors.append("native_binding must be null or an object")
+        else:
+            manifest_path = None
+            binary_path = None
+            try:
+                manifest_path = resolve_repo_file(
+                    repo, native.get("compile_inputs_manifest"), "native_binding.compile_inputs_manifest")
+            except (OSError, ValueError) as exc:
+                errors.append(str(exc))
+            if native.get("registered_binary") is not None:
+                try:
+                    binary_path = resolve_repo_file(
+                        repo, native["registered_binary"], "native_binding.registered_binary")
+                except (OSError, ValueError) as exc:
+                    errors.append(str(exc))
+            unknown_native = sorted(set(native) - {"compile_inputs_manifest", "registered_binary"})
+            if unknown_native:
+                errors.append("unknown native_binding fields: " + ", ".join(unknown_native))
+            if manifest_path is not None:
+                native_report = verifier.verify(manifest_path, repo, binary_path=binary_path,
+                                                check_current_source=True)
+                native_validation = {
+                    "compile_inputs_manifest": str(manifest_path.relative_to(repo)),
+                    "manifest_sha256": sha256(manifest_path),
+                    "registered_binary": str(binary_path.relative_to(repo)) if binary_path else None,
+                    "immutable_receipt_valid": bool(native_report.get("ok")),
+                    "verified_binary_sha256": native_report.get("verified", {}).get("binary_sha256"),
+                    "current_source_status": native_report.get("current_source", {}).get("status", "unknown"),
+                    "current_source_differences": {
+                        "runtime": native_report.get("current_source", {}).get("runtime_differences", []),
+                        "proof": native_report.get("current_source", {}).get("proof_differences", []),
+                    },
+                    "receipt_proof_context": native_report.get("proof_source_context"),
+                    "errors": native_report.get("errors", []),
+                }
+                if not native_report.get("ok"):
+                    errors.append("native binding receipt failed immutable/hash validation")
+
+    return {
+        "author_claims": record,
+        "validation": {
+            "status": "record_shape_and_receipt_valid" if not errors else "record_invalid",
+            "errors": errors,
+            "actual_receipt_path": str(receipt_path.relative_to(repo)) if receipt_path else None,
+            "actual_receipt_sha256": receipt_digest,
+            "native_binding": native_validation,
+        },
+    }
+
+
+def read_audit_records(repo: Path, audit_dir: Path, records: list[dict], verifier) -> dict:
+    by_id = {record["id"]: record for record in records}
+    expected_family = {record["id"]: record["family"] for record in records}
+    empty_by_kind = {
+        title: {"ids_with_records": 0, "ids_with_shape_and_receipt_valid_records": 0,
+                "ids_with_invalid_records": 0}
+        for title in ("non_relation", "relation")
+    }
+    for record in records:
+        record["explicit_audit_records"] = []
+        record["explicit_audit_record_status"] = "not_recorded"
+    if not audit_dir.exists():
+        return {"directory": str(audit_dir.relative_to(repo)), "record_count": 0,
+                "specialist_ids_with_records": 0, "record_shape_and_receipt_valid": 0,
+                "invalid_records": 0, "by_kind": empty_by_kind, "unknown_ids": [],
+                "duplicate_ids": [], "file_errors": [], "unmatched_records": []}
+    if not audit_dir.is_dir():
+        return {"directory": str(audit_dir.relative_to(repo)), "record_count": 0,
+                "specialist_ids_with_records": 0, "record_shape_and_receipt_valid": 0,
+                "invalid_records": 0, "by_kind": empty_by_kind, "unknown_ids": [],
+                "duplicate_ids": [], "file_errors": [{"path": str(audit_dir.relative_to(repo)),
+                                                        "error": "audit directory is not a directory"}],
+                "unmatched_records": []}
+
+    parsed = []
+    file_errors = []
+    for path in sorted(audit_dir.glob("*.audit.json")):
+        try:
+            if path.is_symlink() or not path.resolve(strict=True).is_relative_to(repo):
+                raise ValueError("audit record path must remain inside the repository and cannot be a symlink")
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+            file_errors.append({"path": str(path.relative_to(repo)), "error": str(exc)})
+            continue
+        if not isinstance(value, dict):
+            file_errors.append({"path": str(path.relative_to(repo)), "error": "record must be a JSON object"})
+            continue
+        parsed.append((path, value))
+
+    id_counts = {}
+    for _, value in parsed:
+        sid = value.get("specialist_id")
+        if isinstance(sid, str):
+            id_counts[sid] = id_counts.get(sid, 0) + 1
+    duplicate_ids = sorted(sid for sid, count in id_counts.items() if count > 1)
+    unknown_ids = []
+    unmatched_records = []
+    for path, value in parsed:
+        sid = value.get("specialist_id")
+        result = validate_audit_record(repo, value, expected_family, verifier)
+        if isinstance(sid, str) and id_counts.get(sid, 0) > 1:
+            result["validation"]["errors"].append("duplicate specialist_id in audit directory")
+            result["validation"]["status"] = "record_invalid"
+        result["record_path"] = str(path.relative_to(repo))
+        if isinstance(sid, str) and sid in by_id:
+            by_id[sid]["explicit_audit_records"].append(result)
+        else:
+            unknown_ids.append(sid if isinstance(sid, str) else "<missing>")
+            unmatched_records.append({
+                "record_path": str(path.relative_to(repo)),
+                "author_claims": value,
+                "validation": result["validation"],
+            })
+
+    for record in records:
+        entries = record["explicit_audit_records"]
+        record["explicit_audit_record_status"] = (
+            "not_recorded" if not entries else
+            "record_present_valid" if len(entries) == 1 and entries[0]["validation"]["status"] == "record_shape_and_receipt_valid"
+            else "record_present_invalid")
+    flat = [entry for record in records for entry in record["explicit_audit_records"]]
+    by_kind = {}
+    for kind, title in (("specialist", "non_relation"), ("relation_reader", "relation")):
+        group = [record for record in records if record["kind"] == kind]
+        by_kind[title] = {
+            "ids_with_records": sum(record["explicit_audit_record_status"] != "not_recorded" for record in group),
+            "ids_with_shape_and_receipt_valid_records": sum(
+                record["explicit_audit_record_status"] == "record_present_valid" for record in group),
+            "ids_with_invalid_records": sum(
+                record["explicit_audit_record_status"] == "record_present_invalid" for record in group),
+        }
+    return {
+        "directory": str(audit_dir.relative_to(repo)),
+        "record_count": len(parsed),
+        "specialist_ids_with_records": sum(bool(record["explicit_audit_records"]) for record in records),
+        "record_shape_and_receipt_valid": sum(entry["validation"]["status"] == "record_shape_and_receipt_valid"
+                                               for entry in flat),
+        "invalid_records": (sum(entry["validation"]["status"] == "record_invalid" for entry in flat)
+                            + sum(entry["validation"]["status"] == "record_invalid"
+                                  for entry in unmatched_records)),
+        "by_kind": by_kind,
+        "unknown_ids": sorted(set(unknown_ids)),
+        "duplicate_ids": duplicate_ids,
+        "file_errors": file_errors,
+        "unmatched_records": unmatched_records,
+    }
+
+
 def build_report(repo: Path = REPO, upstream: Path | None = None, registry_path: Path | None = None,
-                 lane_root: Path | None = None, include_receipts: bool = True) -> dict:
+                 lane_root: Path | None = None, include_receipts: bool = True,
+                 audit_dir: Path | None = None) -> dict:
     repo = repo.resolve(strict=True)
     upstream = (upstream or repo / "upstream").resolve(strict=True)
     registry_path = Path(registry_path or repo / "src/extract/families.json").resolve(strict=True)
     lane_root = Path(lane_root or repo / "project/lanes").resolve(strict=True)
+    audit_dir = Path(audit_dir or "var/coverage/audits")
+    if not audit_dir.is_absolute():
+        audit_dir = repo / audit_dir
+    audit_dir = audit_dir.resolve(strict=False)
+    if not audit_dir.is_relative_to(repo):
+        raise ValueError("audit directory must be inside the repository")
     registry = read_json(registry_path)
     if not isinstance(registry, dict) or not isinstance(registry.get("families"), list):
         raise ValueError("family registry is missing or malformed")
@@ -366,6 +626,10 @@ def build_report(repo: Path = REPO, upstream: Path | None = None, registry_path:
             "receipt_association": association,
         })
 
+    audit_files = list(audit_dir.glob("*.audit.json")) if audit_dir.is_dir() else []
+    audit_verifier = verifier if include_receipts else (load_verifier() if audit_files else None)
+    audit_summary = read_audit_records(repo, audit_dir, records, audit_verifier)
+
     def count(field, expected):
         return sum(1 for row in records if row["kind"] == expected and row[field])
 
@@ -418,6 +682,7 @@ def build_report(repo: Path = REPO, upstream: Path | None = None, registry_path:
             },
             "by_kind": summary,
             "family_receipts": family_receipts,
+            "explicit_audit_records": audit_summary,
         },
         "specialists": records,
         "semantic_audit_backlog": semantic_audit_backlog(records),
@@ -427,6 +692,9 @@ def build_report(repo: Path = REPO, upstream: Path | None = None, registry_path:
 def markdown(report: dict) -> str:
     summary = report["summary"]
     identity = summary["identity_reconciliation"]
+    def md_cell(value):
+        return str(value).replace("|", "\\|").replace("\n", " ")
+
     lines = [
         "# Specialist surface coverage inventory",
         "",
@@ -437,22 +705,24 @@ def markdown(report: dict) -> str:
         "fresh seeds, and authored probes are listed as evidence references, never summed as independent surface coverage. "
         "A build receipt or capability declaration does not mean a specialist is semantically complete.",
         "",
-        "| Surface | IDs | Shipped panel files | Semantic reference | Counterexample text | Change text | Measured delta text | Limits text |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "| Surface | IDs | Shipped panel files | Semantic reference | Explicit audit records | Counterexample text | Change text | Measured delta text | Limits text |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for kind, label in (("non_relation", "Non-relation specialists"), ("relation", "Relation readers")):
         row = summary["by_kind"][kind]
-        lines.append("| %s | %d | %d | %d | %d | %d | %d | %d |" % (
+        explicit = summary["explicit_audit_records"]["by_kind"][kind]
+        lines.append("| %s | %d | %d | %d | %d | %d | %d | %d | %d |" % (
             label, row["unique_id_count"], row["shipped_panel_files_complete"],
-            row["semantic_reference_found"], row["counterexample_text_found"],
+            row["semantic_reference_found"], explicit["ids_with_records"],
+            row["counterexample_text_found"],
             row["reported_change_text_found"], row["measured_delta_text_found"],
             row["limitation_text_found"]))
     lines.extend(["", "## Per-specialist inventory", "",
                   "`reference_found` means matching specialist-ID text appears in a semantic/gap section or ledger; it does not mean the audit is complete. "
                   "`found` values for change, counterexample, delta, and limits are text cues with file/line citations, not independently reviewed classifications.",
                   "",
-                  "| ID | Family | Owner group | Baseline files | Semantic ref | Counterexample | Change | Delta | Limits | Receipt association |",
-                  "|---|---|---|---|---|---|---|---|---|---|"])
+                  "| ID | Family | Owner group | Baseline files | Semantic ref | Explicit audit record | Counterexample | Change | Delta | Limits | Receipt association |",
+                  "|---|---|---|---|---|---|---|---|---|---|---|"])
     for item in report["specialists"]:
         baseline = item["shipped_baseline"]
         panel = baseline.get("status", "unknown")
@@ -461,8 +731,36 @@ def markdown(report: dict) -> str:
         ev = item["semantic_evidence"]
         receipt = item["receipt_association"].get("status", "not_checked")
         lines.append(f"| `{item['id']}` | {item.get('family') or 'unmapped'} | {item['owner_group']} | {panel} | "
-                  f"{ev['semantic_reference']} | {ev['counterexample_text']} | {ev['reported_change_text']} | "
+                  f"{ev['semantic_reference']} | {item['explicit_audit_record_status']} | "
+                  f"{ev['counterexample_text']} | {ev['reported_change_text']} | "
                   f"{ev['measured_delta_text']} | {ev['limitation_text']} | {receipt} |")
+    audit_summary = summary["explicit_audit_records"]
+    lines.extend(["", "## Explicit audit records", "",
+                  f"Found {audit_summary['specialist_ids_with_records']} ID records in `{audit_summary['directory']}`. "
+                  f"{audit_summary['record_shape_and_receipt_valid']} pass record-shape/artifact checks; "
+                  f"{audit_summary['invalid_records']} are invalid. Tool validation checks paths and hashes; "
+                  "it does not validate author claims, semantic conclusions, or completion.", ""])
+    explicit_rows = [(item, entry) for item in report["specialists"]
+                     for entry in item["explicit_audit_records"]]
+    if explicit_rows:
+        lines.extend(["| ID | Owner | Record path | Author model scope | Cases | Receipt path/hash | Validation | Unresolved limits |",
+                      "|---|---|---|---:|---|---|---|---|"])
+        for item, entry in explicit_rows:
+            claims = entry["author_claims"]
+            surface = claims.get("examined_surface", {})
+            scope = surface.get("model_scope", "") if isinstance(surface, dict) else ""
+            validation = entry["validation"]
+            receipt = validation.get("actual_receipt_path") or claims.get("actual_receipt", "missing")
+            digest = validation.get("actual_receipt_sha256") or "unverified"
+            cases = claims.get("cases")
+            case_count = len(cases) if isinstance(cases, list) else "?"
+            raw_limits = claims.get("current_unresolved_limits", [])
+            limits = "; ".join(str(limit) for limit in raw_limits) if isinstance(raw_limits, list) else str(raw_limits)
+            lines.append(f"| `{item['id']}` | {md_cell(item['owner_group'])} | `{md_cell(entry['record_path'])}` | "
+                         f"{md_cell(scope)} | {case_count} | `{md_cell(receipt)}` / `{md_cell(digest)}` | "
+                         f"{md_cell(validation['status'])} | {md_cell(limits)} |")
+    else:
+        lines.append("No explicit audit records were supplied.")
     lines.extend(["", "## Receipt association by family", ""])
     if report["summary"].get("family_receipts"):
         lines.extend(["| Family | Status | Selected manifest | Binary matches | Current source |",
@@ -495,12 +793,15 @@ def main() -> int:
     parser.add_argument("--markdown-out", type=Path, help="also write concise Markdown inventory to this file")
     parser.add_argument("--backlog-out", type=Path,
                         help="write ID-level semantic-reference backlog as a separate JSON file")
+    parser.add_argument("--audit-dir", type=Path,
+                        help="read optional <specialist-id>.audit.json records from this directory (default var/coverage/audits)")
     args = parser.parse_args()
     repo = args.repo.resolve(strict=True)
     upstream = (args.upstream or repo / "upstream").resolve(strict=True)
     registry = args.registry or repo / "src/extract/families.json"
     lanes = args.lanes or repo / "project/lanes"
-    report = build_report(repo, upstream, registry, lanes, include_receipts=not args.no_receipts)
+    report = build_report(repo, upstream, registry, lanes,
+                          include_receipts=not args.no_receipts, audit_dir=args.audit_dir)
     encoded = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     rendered = encoded if args.format == "json" else markdown(report)
     if args.json_out:
@@ -517,13 +818,24 @@ def main() -> int:
     if output_paths:
         identity = report["summary"]["identity_reconciliation"]
         backlog_count = report["semantic_audit_backlog"]["summary"]["id_count"]
+        audit_summary = report["summary"]["explicit_audit_records"]
         destinations = ", ".join(str(path) for path in output_paths)
         status = "; identity issues: " + "; ".join(identity["issues"]) if identity["issues"] else ""
+        audit_count = audit_summary["specialist_ids_with_records"]
+        if audit_summary["invalid_records"] or audit_summary["unknown_ids"] or audit_summary["duplicate_ids"] or audit_summary["file_errors"]:
+            status += (f"; audit-record issues: {audit_summary['invalid_records']} invalid, "
+                      f"{len(audit_summary['unknown_ids'])} unknown IDs, "
+                      f"{len(audit_summary['duplicate_ids'])} duplicate IDs, "
+                      f"{len(audit_summary['file_errors'])} file errors")
         sys.stdout.write(f"Inventory: {report['summary']['total_unique_ids']} IDs; "
-                         f"semantic-reference backlog: {backlog_count} IDs; wrote {destinations}{status}\n")
+                         f"semantic-reference backlog: {backlog_count} IDs; "
+                         f"explicit audit records: {audit_count}; wrote {destinations}{status}\n")
     else:
         sys.stdout.write(rendered)
-    return 1 if report["summary"]["identity_reconciliation"]["issues"] else 0
+    audit_summary = report["summary"]["explicit_audit_records"]
+    audit_has_errors = bool(audit_summary["invalid_records"] or audit_summary["unknown_ids"]
+                            or audit_summary["duplicate_ids"] or audit_summary["file_errors"])
+    return 1 if report["summary"]["identity_reconciliation"]["issues"] or audit_has_errors else 0
 
 
 if __name__ == "__main__":
