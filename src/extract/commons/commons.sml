@@ -11,6 +11,12 @@
    minimal JSON reader for one request object per line and a string quoter
    for replies. Lane D's reader, unchanged in every family's main.sml.
 
+   Three case modes (compile / compileI / compileCS), backreferences \1..\9
+   (lane S12 discrete) and matchHere were folded in from the families that
+   carried their own regex.sml (chemistry, humanities, facts, discrete); with
+   no digit escapes and the default `compile`, behaviour is the old canonical
+   engine's.
+
    A family's .mlb lists this file instead of its own regex.sml, and its
    main.sml keeps only the family dispatch. *)
 
@@ -39,6 +45,9 @@ sig
   type regex
   type match = {start : int, stop : int, groups : (int * int) option vector}
   val compile : string -> regex
+  val compileI : string -> regex
+  val compileCS : string -> regex
+  val matchHere : regex -> string -> int -> match option
   val search : regex -> string -> match option
   val searchFrom : regex -> string -> int -> match option
   val findall : regex -> string -> match list
@@ -57,6 +66,7 @@ struct
     | NotWordB
     | Bol
     | Eol
+    | Back of int                           (* backreference \1..\9 (lane S12) *)
     | Rep of node * int * int option * bool (* node, min, max, greedy *)
 
   type regex = {alts : node list list, ngroups : int}
@@ -68,8 +78,26 @@ struct
 
   exception Bad of string
 
-  fun compile (p : string) : regex =
+  (* How literals and class members meet case. Lower: the caller lower-cases the
+     TEXT and the pattern's literals and class members are lower-cased here (the
+     shared lane D/G behaviour, `compile`). Exact: nothing is folded (`compileCS`,
+     lane S07/S16: patterns matched case-sensitively against the original text).
+     Fold: the text keeps its case and every alphabetic literal or class matches
+     either case (`compileI`, Python re.I; lane O19 facts). *)
+  datatype mode = Lower | Fold | Exact
+
+  fun compileWith (m0 : mode) (p : string) : regex =
     let
+      fun fold m f = case m of
+                       Fold => (fn c => f c orelse f (Char.toLower c) orelse f (Char.toUpper c))
+                     | _ => f
+      fun lit m c = case m of
+                      Lower => Lit (Char.toLower c)
+                    | Fold => if Char.isAlpha c
+                              then Cls (false, fn x => Char.toLower x = Char.toLower c)
+                              else Lit c
+                    | Exact => Lit c
+      fun nm m c = case m of Lower => Char.toLower c | _ => c
       val n = size p
       val count = ref 0
       fun peek i = if i < n then SOME (String.sub (p, i)) else NONE
@@ -82,22 +110,21 @@ struct
         | #"S" => SOME (not o isSpace)
         | #"W" => SOME (not o isWord)
         | _ => NONE
-      val lc = Char.toLower
-      fun parseAlt i =
-        let val (s, i) = parseSeq i []
+      fun parseAlt m i =
+        let val (s, i) = parseSeq m i []
         in case peek i of
-             SOME #"|" => let val (rest, j) = parseAlt (i + 1) in (s :: rest, j) end
+             SOME #"|" => let val (rest, j) = parseAlt m (i + 1) in (s :: rest, j) end
            | _ => ([s], i)
         end
-      and parseSeq i acc =
+      and parseSeq m i acc =
         case peek i of
           NONE => (rev acc, i)
         | SOME #"|" => (rev acc, i)
         | SOME #")" => (rev acc, i)
         | SOME _ =>
-            let val (a, i) = parseAtom i
+            let val (a, i) = parseAtom m i
                 val (a, i) = parseQuant a i
-            in parseSeq i (a :: acc) end
+            in parseSeq m i (a :: acc) end
       and parseQuant a i =
         let
           fun lazy (q, i) =
@@ -134,50 +161,55 @@ struct
                | NONE => (a, i))
           | _ => (a, i)
         end
-      and parseAtom i =
+      and parseAtom m i =
         case String.sub (p, i) of
           #"(" =>
             if peek (i + 1) = SOME #"?" then
               (case peek (i + 2) of
-                 SOME #":" => group NONE (i + 3)
-               | SOME #"!" => look false (i + 3)
-               | SOME #"=" => look true (i + 3)
+                 SOME #":" => group m NONE (i + 3)
+               | SOME #"!" => look m false (i + 3)
+               | SOME #"=" => look m true (i + 3)
+               | SOME #"-" =>
+                   if peek (i + 3) = SOME #"i" andalso peek (i + 4) = SOME #":"
+                   then group Exact NONE (i + 5)
+                   else raise Bad ("unsupported flag group in " ^ p)
                | SOME #"<" =>
                    (case peek (i + 3) of
-                      SOME #"=" => behind true (i + 4)
-                    | SOME #"!" => behind false (i + 4)
+                      SOME #"=" => behind m true (i + 4)
+                    | SOME #"!" => behind m false (i + 4)
                     | _ => raise Bad ("unsupported group in " ^ p))
                | _ => raise Bad ("unsupported group in " ^ p))
-            else (count := !count + 1; group (SOME (!count)) (i + 1))
-        | #"[" => parseClass (i + 1)
+            else (count := !count + 1; group m (SOME (!count)) (i + 1))
+        | #"[" => parseClass m (i + 1)
         | #"." => (Any, i + 1)
         | #"^" => (Bol, i + 1)
         | #"$" => (Eol, i + 1)
         | #"\\" =>
             let val c = String.sub (p, i + 1)
-            in if c = #"b" then (WordB, i + 2)
+            in if Char.isDigit c andalso c <> #"0" then (Back (Char.ord c - 48), i + 2)
+               else if c = #"b" then (WordB, i + 2)
                else if c = #"B" then (NotWordB, i + 2)
                else case escClass c of
                       SOME f => (Cls (false, f), i + 2)
-                    | NONE => (Lit (lc c), i + 2)
+                    | NONE => (lit m c, i + 2)
             end
-        | c => (Lit (lc c), i + 1)
-      and group idx i =
-        let val (alts, j) = parseAlt i
+        | c => (lit m c, i + 1)
+      and group m idx i =
+        let val (alts, j) = parseAlt m i
         in if peek j = SOME #")" then (Grp (idx, alts), j + 1)
            else raise Bad ("unclosed group in " ^ p)
         end
-      and look pos i =
-        let val (alts, j) = parseAlt i
+      and look m pos i =
+        let val (alts, j) = parseAlt m i
         in if peek j = SOME #")" then (Look (pos, alts), j + 1)
            else raise Bad ("unclosed lookahead in " ^ p)
         end
-      and behind pos i =
-        let val (alts, j) = parseAlt i
+      and behind m pos i =
+        let val (alts, j) = parseAlt m i
         in if peek j = SOME #")" then (Behind (pos, alts), j + 1)
            else raise Bad ("unclosed lookbehind in " ^ p)
         end
-      and parseClass i =
+      and parseClass m i =
         let
           val (neg, i) = if peek i = SOME #"^" then (true, i + 1) else (false, i)
           fun item i =
@@ -186,13 +218,13 @@ struct
                 let val c = String.sub (p, i + 1)
                 in case escClass c of
                      SOME f => (f, i + 2)
-                   | NONE => (let val c = lc c in fn x => x = c end, i + 2)
+                   | NONE => (let val c = nm m c in fn x => x = c end, i + 2)
                 end
             | c0 =>
-                let val c = lc c0 in
+                let val c = nm m c0 in
                 if peek (i + 1) = SOME #"-" andalso peek (i + 2) <> SOME #"]"
                    andalso peek (i + 2) <> NONE
-                then let val d = lc (String.sub (p, i + 2))
+                then let val d = nm m (String.sub (p, i + 2))
                      in (fn x => c <= x andalso x <= d, i + 3) end
                 else (fn x => x = c, i + 1)
                 end
@@ -201,11 +233,15 @@ struct
             else if peek i = NONE then raise Bad ("unclosed class in " ^ p)
             else let val (f, j) = item i in loop j (f :: fs) false end
           val (fs, j) = loop i [] true
-        in (Cls (neg, fn c => List.exists (fn f => f c) fs), j) end
-      val (alts, j) = parseAlt 0
+        in (Cls (neg, fold m (fn c => List.exists (fn f => f c) fs)), j) end
+      val (alts, j) = parseAlt m0 0
     in
       if j <> n then raise Bad ("trailing input in " ^ p) else {alts = alts, ngroups = !count}
     end
+
+  val compile = compileWith Lower
+  val compileI = compileWith Fold
+  val compileCS = compileWith Exact
 
   (* Continuation-passing backtracking. Captures are a persistent list. *)
   fun matchAt ({alts, ngroups} : regex) (s : string) (start : int) : match option =
@@ -223,6 +259,13 @@ struct
         | Cls (neg, f) => i < n andalso (f (String.sub (s, i)) <> neg) andalso k (i + 1, caps)
         | WordB => (wordAt (i - 1) <> wordAt i) andalso k (i, caps)
         | NotWordB => (wordAt (i - 1) = wordAt i) andalso k (i, caps)
+        | Back g =>
+            (case List.find (fn (h, _) => h = g) caps of
+               SOME (_, (a, b)) =>
+                 let val len = b - a
+                 in i + len <= n andalso String.substring (s, i, len) = String.substring (s, a, len)
+                    andalso k (i + len, caps) end
+             | NONE => false)
         | Bol => i = 0 andalso k (i, caps)
         | Eol => (i = n orelse (i = n - 1 andalso String.sub (s, i) = #"\n")) andalso k (i, caps)
         | Behind (pos, alts) =>
@@ -256,6 +299,8 @@ struct
     in
       if mAlts alts start [] finish then !result else NONE
     end
+
+  fun matchHere re s pos = matchAt re s pos
 
   fun searchFrom re s from =
     let fun go i = if i > size s then NONE
