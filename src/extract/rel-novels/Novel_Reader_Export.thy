@@ -9,26 +9,14 @@ export_code decide_spec attempt_values attempt_decline transparent
   natural_of_integer integer_of_natural
   in SML module_name Novel_Reader_Code file_prefix novel_reader
 
-text \<open>The same program, written where the MLton build (tools/reader-novels/build_decide.sh) reads
-it. Its SHA-1 is printed as a build marker, so the binary can be tied to this session's receipt.\<close>
 ML \<open>
-local
-  val consts = [@{const_name decide_spec}, @{const_name attempt_values}, @{const_name attempt_decline},
-    @{const_name transparent},
-    @{const_name Entity}, @{const_name Literal}, @{const_name Blank}, @{const_name Answer},
-    @{const_name Decline}, @{const_name Incomplete}, @{const_name Silent},
-    @{const_name candidate_ext}, @{const_name attempt_ext}, @{const_name question_features_ext},
-    @{const_name readers}, @{const_name in_table}, @{const_name dropped}, @{const_name prop_of},
-    @{const_name time_variant},
-    @{const_name natural_of_integer}, @{const_name integer_of_natural}]
-  val (files, _) = Code_Target.produce_code @{context} false consts "SML" "Novel_Reader_Code" NONE []
-  val text = implode (map (Bytes.content o snd) files)
-  val dir = Path.append (Resources.master_directory @{theory}) (Path.explode "../../../var/rel-novels/gen")
-  val _ = Isabelle_System.make_directory dir
-  val _ = File.write (Path.append dir (Path.basic "Novel_Reader_Code.ML")) text
-in
-  val _ = writeln ("VERI7VN_NOVEL code sha1=" ^ Message_Digest.rep (SHA1.digest text))
-end
+  val theorems = @{thms answer_stored decline_stored decline_meaning attempt_values_sound
+    incomplete_meaning silent_meaning walk_answer_exists no_answer_when_none select_subset
+    select_nonempty select_head table_props in_table_iff dropped_iff set_vals domain_member_roots
+    agreed_unfold walk_decline_inv};
+  val oracles = Thm_Deps.all_oracles theorems;
+  val _ = if null oracles then () else error ("novels theorems use oracles: " ^ string_of_int (length oracles));
+  val _ = writeln ("VERI7VN_NOVELS PASS theorems=" ^ string_of_int (length theorems) ^ " oracles=0");
 \<close>
 
 end
