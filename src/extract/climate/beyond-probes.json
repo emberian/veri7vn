@@ -2052,6 +2052,790 @@
       "capability_class": "malformed_input",
       "witnesses": null,
       "specialist": "coldchain-v2"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 0 m2?",
+      "expected": 0.0,
+      "status": "answered",
+      "kind": "graphene_mass",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area .5 m2?",
+      "expected": 0.38056375069879994,
+      "status": "answered",
+      "kind": "graphene_mass",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 1/2 m\u00b2?",
+      "expected": 0.38056375069879994,
+      "status": "answered",
+      "kind": "graphene_mass",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 5e-1 square metres?",
+      "expected": 0.38056375069879994,
+      "status": "answered",
+      "kind": "graphene_mass",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 5000 cm2?",
+      "expected": 0.38056375069879994,
+      "status": "answered",
+      "kind": "graphene_mass",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 500000 mm\u00b2?",
+      "expected": 0.38056375069879994,
+      "status": "answered",
+      "kind": "graphene_mass",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 5e11 \u00b5m\u00b2?",
+      "expected": 0.38056375069879994,
+      "status": "answered",
+      "kind": "graphene_mass",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 5e11 \u03bcm2?",
+      "expected": 0.38056375069879994,
+      "status": "answered",
+      "kind": "graphene_mass",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 5e11 square micrometres?",
+      "expected": 0.38056375069879994,
+      "status": "answered",
+      "kind": "graphene_mass",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 500000 square millimeters?",
+      "expected": 0.38056375069879994,
+      "status": "answered",
+      "kind": "graphene_mass",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area -2 m2?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area \u2212.5 cm2?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area -1/2 mm2?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area -5e11 \u00b5m\u00b2?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite 0 nm thick?",
+      "expected": 0.0,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite .335 nm thick?",
+      "expected": 1.0,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite 67/200 nm thick?",
+      "expected": 1.0,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite 335e-3 nm thick?",
+      "expected": 1.0,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite 3.35 angstroms thick?",
+      "expected": 1.0,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite 3.35 \u00c5 thick?",
+      "expected": 1.0,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite .000335 um thick?",
+      "expected": 1.0,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite .000335 \u00b5m thick?",
+      "expected": 1.0,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite .000335 \u03bcm thick?",
+      "expected": 1.0,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite .335 micrometres thick?",
+      "expected": 999.9999999999999,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite -3.35 nm thick?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite \u2212.335 nm thick?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite -3.35 angstroms thick?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite -.335 \u00b5m thick?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many graphene layers are in a flake 2 nm wide and .335 nm thick?",
+      "expected": 1,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers are in graphite of thickness .335 nm?",
+      "expected": 1,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers are in graphite of thickness .335 nm thick?",
+      "expected": 1,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 1 m2/s?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 1 m\u00b2s?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 1 m2 * s?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 1 m\u00b2\u00b7s?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 1 m\u00b2 per second?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite .335 nm/s thick?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite .335 nm wide with unknown thickness?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a bilayer graphene sheet of area 1 m2?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a 2-layer graphene sheet of area 1 m2?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of two single-layer graphene sheets of areas 1 m2 and 2 m2?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 1 m2 and thickness 10 nm?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers in graphite with thickness 1 nm and thickness 2 nm?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "underspecified",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers are in .335-nm-thick graphite?",
+      "expected": 1,
+      "status": "answered",
+      "kind": "graphene_layers",
+      "capability_class": "answerable_model_case"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area QNUM0Q m2, measured in 2026?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "How many layers are in graphite QNUM0Q nm thick, measured in 2026?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area qnum0q m2?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area QNUM0Q m2?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 1.2.3 m2?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "carbonmat",
+      "q": "What is the mass of a single-layer graphene sheet of area 1e20 m2?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "imprecise",
+      "capability_class": "valid_precision_withheld"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1000 kg CO2 at 2 kWh per tonne?",
+      "expected": 1.6,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1 tonnes CO2 at 2 kWh per tonne?",
+      "expected": 1.6,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1e6 g CO2 at 2 kWh per tonne?",
+      "expected": 1.6,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of .000001 Mt CO2 at 2 kWh per tonne?",
+      "expected": 1.6,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1e-9 Gt CO2 at 2 kWh per tonne?",
+      "expected": 1.6,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of .000001 megatonnes CO2 at 2 kWh per tonne?",
+      "expected": 1.6,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1e-9 gigatonnes CO2 at 2 kWh per tonne?",
+      "expected": 1.6,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1/2 tonnes CO2 at 2 kWh per tonne?",
+      "expected": 0.8,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 0 kg CO2 at 2 kWh per tonne?",
+      "expected": 0.0,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 0% of 1 tonne CO2 at 2 kWh per tonne?",
+      "expected": 0,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 100% of 1 tonne CO2 at 2 kWh per tonne?",
+      "expected": 2,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1 tonne CO2 at 0 kWh per tonne?",
+      "expected": 0,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1 tonne CO2 at 1/2 kWh per tonne?",
+      "expected": 0.4,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 1/2% of 1 tonne CO2 at 2 kWh per tonne?",
+      "expected": 0.01,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 8e1% of 1 tonne CO2 at .5 kWh per tonne?",
+      "expected": 0.4,
+      "status": "answered",
+      "kind": "capture_energy",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of -1000 kg CO2 at 2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture -20% of 1000 kg CO2 at 2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 101% of 1000 kg CO2 at 2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1000 kg CO2 at -2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 0 kg CO2 at -2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is emitted from 0 gallons of gasoline?",
+      "expected": 0,
+      "status": "answered",
+      "kind": "fuel_co2",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is emitted from .5 gallons of gasoline?",
+      "expected": 4.4435,
+      "status": "answered",
+      "kind": "fuel_co2",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is emitted from 1/2 gallons of gasoline?",
+      "expected": 4.4435,
+      "status": "answered",
+      "kind": "fuel_co2",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is emitted from 5e-1 gallons of gasoline?",
+      "expected": 4.4435,
+      "status": "answered",
+      "kind": "fuel_co2",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is emitted from -2 gallons of gasoline?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is emitted from \u2212.5 gallons of gasoline?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is emitted from -1/2 gallons of gasoline?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "What is the gasoline tailpipe CO2 in grams per mile at 40 mpg?",
+      "expected": 222.175,
+      "status": "answered",
+      "kind": "co2_per_mile",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "What is the gasoline tailpipe CO2 in grams per mile at 80/2 mpg?",
+      "expected": 222.175,
+      "status": "answered",
+      "kind": "co2_per_mile",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "What is the gasoline tailpipe CO2 in grams per mile at 0 mpg?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "What is the gasoline tailpipe CO2 in grams per mile at -40 mpg?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is captured from 100 tonnes at 20% capture?",
+      "expected": 20,
+      "status": "answered",
+      "kind": "captured",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is captured from 0 tonnes at 20% capture?",
+      "expected": 0,
+      "status": "answered",
+      "kind": "captured",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is captured from 100 tonnes at 0% capture?",
+      "expected": 0,
+      "status": "answered",
+      "kind": "captured",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is captured from 1/2 tonnes at 50% capture?",
+      "expected": 0.25,
+      "status": "answered",
+      "kind": "captured",
+      "capability_class": "answerable_model"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is captured from 100 tonnes at -20% capture?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is captured from -100 tonnes at 20% capture?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much CO2 is produced from -2 kg of carbon?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much carbon is in -2 kg of CO2?",
+      "expected": null,
+      "status": "withheld",
+      "kind": "impossible",
+      "capability_class": "impossible_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1 mt CO2 at 2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1 tonne CO2?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1 tonne and 2 tonnes CO2 at 2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy in MWh is needed to capture 80% of 1 tonne CO2 at 2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1 tonne CO2 at 2 mWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1000 kg\u00b7s CO2 at 2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1 tonne CO2 at 2 kWh per tonne/s?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How many MWh of energy are needed to capture 80% of 1 tonne CO2 at 2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "What energy is needed to capture 80% of 1 tonne CO2 at 2 kWh per tonne, expressed as GJ?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "valid_unsupported"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of 1.2.3 kg CO2 at 2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
+    },
+    {
+      "specialist": "carboncapture",
+      "q": "How much energy is needed to capture 80% of QNUM0Q kg CO2 at 2 kWh per tonne?",
+      "expected": null,
+      "status": "withheld",
+      "capability_class": "malformed_input"
     }
   ]
 }

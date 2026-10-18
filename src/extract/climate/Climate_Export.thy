@@ -53,7 +53,7 @@ definition self_test :: bool where
      kernel (Req_cm (Cm_type 10 10)) = Verdict K_cnt_type True \<and>
      kernel (Req_cm (Cm_kind 9 3)) = Tube_kind T_chiral \<and>
      kernel (Req_cm (Cm_diameter 3 8)) = Decline (Impossible R_bad_chirality) \<and>
-     stated (reply_of (Req_cm (Cm_mass 100 False))) = Some (STR ''76.1128'') \<and>
+     stated (reply_of (Req_cm (Cm_mass 100 Mat_m2))) = Some (STR ''76.1128'') \<and>
      kernel (Req_cd (Cd_cool (Temp 135 False) (Temp 70 False) (Dur 3 False))) = Verdict K_cooling_check False \<and>
      kernel (Req_cd (Cd_cool (Temp 70 False) (Temp 41 False) (Dur 4 False))) = Verdict K_cooling_check True \<and>
      kernel (Req_cd (Cd_cool (Temp 80 False) (Temp 60 False) (Dur 1 False))) = Decline Not_taken \<and>
@@ -64,10 +64,12 @@ export_code reply_of answered reply_kind response stated answers not_taken
   mk_rat mk_int integer_of_int nat_of_integer int_of_integer
   Req_cc Req_aq Req_cl Req_cm Req_cd
   F_gasoline F_diesel E_kwh E_mwh E_gj
+  Mass_g Mass_kg Mass_tonne Mass_Mt Mass_Gt
   Cc_c_to_co2 Cc_co2_to_c Cc_fuel_co2 Cc_co2_per_mile Cc_captured Cc_capture_energy
   P_pm25 P_pm10 P_o3 P_co P_so2 P_no2 Au_none Au_ug Au_ppm Au_ppb Reading Aq_index Aq_category
   Sens_lambda Sens_ecs Sens_none
   Cl_forcing Cl_warming Cl_ppm_to_gtc Cl_ppm_to_gtco2 Cl_mass_to_ppm Cl_eff_temp Cl_co2e
+  Cm_unsupported Mat_nm Mat_angstrom Mat_um Mat_m2 Mat_cm2 Mat_mm2 Mat_um2
   Cm_diameter Cm_angle Cm_type Cm_kind Cm_layers Cm_mass
   Temp Dur Cook_poultry Cook_ground Cook_whole
   Cd_cool Cd_schedule Cd_schedule_unknown Cd_partial Whole_schedule Checkpoint_only Cd_cold Cd_hot Cd_cook Cd_reheat Cd_tphc Cd_date Cd_danger
@@ -78,6 +80,9 @@ ML \<open>
   val theorems = [
     @{thm not_taken_code}, @{thm approx_out_sound}, @{thm spec_out_exact}, @{thm spec_out_approx},
     @{thm to_fixed_sound}, @{thm enclose_fixed_sound}, @{thm g_dec_sound}, @{thm round_sig_sound},
+    @{thm carbon_success_feasible}, @{thm captured_success_bounds}, @{thm capture_energy_success_nonnegative},
+    @{thm capture_energy_unit_answers(1)}, @{thm capture_energy_unit_answers(2)}, @{thm capture_energy_unit_answers(3)}, @{thm capture_energy_unit_answers(4)},
+    @{thm capture_energy_zero_intensity},
     @{thm cc_kernel_sound}, @{thm cc_kernel_declines}, @{thm c_to_co2_model}, @{thm co2_to_c_model},
     @{thm carbon_co2_roundtrip}, @{thm fuel_co2_model}, @{thm co2_per_mile_model}, @{thm captured_model},
     @{thm capture_energy_model}, @{thm capture_rate_over_100}, @{thm capture_energy_rate_over_100},
@@ -92,6 +97,11 @@ ML \<open>
     @{thm cm_exact_sound}, @{thm cm_approx_sound}, @{thm cm_impossible_iff}, @{thm cnt_circumference},
     @{thm cnt_chiral_angle_tangent}, @{thm cnt_type_metallic}, @{thm cnt_kind_classes},
     @{thm graphene_layers_model}, @{thm graphene_areal_mass}, @{thm graphene_mass_is_area_times_areal},
+    @{thm graphene_unsupported_model}, @{thm graphene_layers_decline}, @{thm graphene_mass_decline}, @{thm graphene_layers_feasible_model},
+    @{thm graphene_mass_nonnegative}, @{thm graphene_squared_area_units},
+    @{thm graphene_area_unit_answers(1)}, @{thm graphene_area_unit_answers(2)}, @{thm graphene_area_unit_answers(3)},
+    @{thm graphene_length_unit_answers(1)}, @{thm graphene_length_unit_answers(2)},
+    @{thm graphene_mass_additive_model}, @{thm graphene_mass_sum_rendered_bound},
     @{thm compatible_cooling_exists}, @{thm compatible_cooling_pass}, @{thm compatible_cooling_fail},
     @{thm partial_clock_true}, @{thm partial_clock_false}, @{thm partial_clock_unknown},
     @{thm partial_clock_negative}, @{thm partial_checkpoint_scope(1)}, @{thm partial_checkpoint_scope(2)},

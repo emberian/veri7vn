@@ -149,25 +149,42 @@ struct
   val N = NUM
 
   (* ---------- carboncapture ---------- *)
-  val ccMass = N ^ "\\s*(tonnes?|tons?|t|kg|kilograms?|mt|gt|gigatonnes?|megatonnes?)\\b"
-  val ccMpg = N ^ "\\s*(?:mpg|miles per gallon)\\b"
-  val ccGal = N ^ "\\s*(?:us\\s+)?gallons?\\b"
-  val ccCap = "(\\d+(?:\\.\\d+)?)\\s*%\\s*(?:capture|of (?:the |its )?(?:co2|emissions))|\\bcapture (?:rate|efficiency)\\s*(?:of|is)?\\s*(\\d+(?:\\.\\d+)?)\\s*%|\\bcaptur\\w*\\s*(\\d+(?:\\.\\d+)?)\\s*%"
-  val ccEnergy = N ^ "\\s*(kwh|mwh|gj)\\s*(?:per|/|a)\\s*(?:tonne|ton|t)\\b"
+  exception UnknownCarbonNumber
+  val CCN = "(qnum[0-9]+q)"
+  val ccMass = CCN ^ "\\s*(tonnes?|tons?|t|kg|kilograms?|g|grams?|mt|gt|gigatonnes?|megatonnes?)\\b(?!\\s*(?:/|\\*|\194\183|per\\b))"
+  val ccMpg = CCN ^ "\\s*(?:mpg|miles per gallon)\\b(?!\\s*(?:/|\\*|\194\183|per\\b))"
+  val ccGal = CCN ^ "\\s*(?:us\\s+)?gallons?\\b(?!\\s*(?:/|\\*|\194\183|per\\b))"
+  val ccCap = "(qnum[0-9]+q)\\s*%\\s*(?:capture|of (?:the |its )?(?:co2|emissions))|\\bcapture (?:rate|efficiency)\\s*(?:of|is)?\\s*(qnum[0-9]+q)\\s*%|\\bcaptur\\w*\\s*(qnum[0-9]+q)\\s*%"
+  val ccEnergy = CCN ^ "\\s*(kwh|mwh|gj)\\s*(?:per|/|a)\\s*(?:tonne|ton|t)\\b(?!\\s*(?:/|\\*|\194\183|per\\b))"
 
   fun carboncapture text =
     let val t = collapse text
     in
       if Narrow.narrative t then NONE
-      else
+      else case ExactNumeric.mask t of NONE => NONE
+      | SOME {text=masked,numbers} =>
         let
-          val low = lower t
+          val low = lower masked
+          fun ratOf marker = case List.find (fn (name,_) => name=marker) numbers of
+              SOME (_, (n,d)) => Q.mk_rat n d | NONE => raise UnknownCarbonNumber
+          fun unique p = case findall p low of [m] => SOME m | _ => NONE
+          fun finish _ req = SOME req
+          fun massUnit m =
+            let val original = valOf (grp masked m 2) val u=lower original in
+              if original="Mt" orelse u="megatonne" orelse u="megatonnes" then SOME Q.Mass_Mt
+              else if original="Gt" orelse u="gigatonne" orelse u="gigatonnes" then SOME Q.Mass_Gt
+              else if u="g" orelse u="gram" orelse u="grams" then SOME Q.Mass_g
+              else if u="kg" orelse u="kilogram" orelse u="kilograms" then SOME Q.Mass_kg
+              else if List.exists (fn x => x=u) ["t","tonne","tonnes","ton","tons"] then SOME Q.Mass_tonne
+              else NONE
+            end
+          val energyGoal = has "\\benergy\\b|\\bhow much (?:energy|electricity|power)\\b" low
           val fuelWord = List.find (fn f => has ("\\b" ^ f ^ "\\b") low) ["gasoline", "petrol", "diesel"]
           fun fuelOf f = if f = "diesel" then Q.F_diesel else Q.F_gasoline
-          val mass = search ccMass low
+          val mass = unique ccMass
           val unit = Option.map (fn m => valOf (grp low m 2)) mass
-          val mpg = search ccMpg low
-          val gal = search ccGal low
+          val mpg = unique ccMpg
+          val gal = unique ccGal
         in
           if has "\\boffsets?\\b|\\bcredits?\\b|\\bprice\\b|\\bworth\\b|\\$" low then NONE
           else if isSome fuelWord andalso isSome mpg andalso has "\\bper mile\\b|\\bco2 per\\b|\\bgrams\\b" low then
@@ -175,23 +192,30 @@ struct
           else if isSome fuelWord andalso isSome gal andalso has "\\bco2\\b|\\bcarbon dioxide\\b|\\bemi\\w+\\b" low then
             finish t (Q.Req_cc (Q.Cc_fuel_co2 (fuelOf (valOf fuelWord), valOf fuelWord, ratOf (g1 low (valOf gal)))))
           else
-            let val cap = search ccCap low
+            let val cap = unique ccCap
             in
               if isSome cap andalso isSome mass andalso has "\\bcaptur\\w*\\b" low then
                 let
                   val c = ratOf (valOf (firstGroup low (valOf cap) [1, 2, 3]))
                   val m = ratOf (g1 low (valOf mass))
                   val u = valOf unit
-                  val ek = search ccEnergy low
+                  val ek = unique ccEnergy
                 in
                   case ek of
                     SOME e =>
-                      if has "\\benergy\\b|\\bhow much (?:energy|electricity|power)\\b" low then
+                      if energyGoal then
                         let val eu = valOf (grp low e 2)
                             val eunit = if eu = "kwh" then Q.E_kwh else if eu = "mwh" then Q.E_mwh else Q.E_gj
-                        in finish t (Q.Req_cc (Q.Cc_capture_energy (m, u, c, ratOf (g1 low e), eunit))) end
+                        in if valOf (grp masked e 2) = "mWh" orelse
+                              List.exists (fn target => g1 low target <> eu)
+                                (findall "\\b(kwh|mwh|gj)\\b" low)
+                           then NONE
+                           else case massUnit (valOf mass) of
+                             SOME mu => finish t (Q.Req_cc (Q.Cc_capture_energy (m, mu, c, ratOf (g1 low e), eunit)))
+                           | NONE => NONE
+                        end
                       else finish t (Q.Req_cc (Q.Cc_captured (m, u, c)))
-                  | NONE => finish t (Q.Req_cc (Q.Cc_captured (m, u, c)))
+                  | NONE => if energyGoal then NONE else finish t (Q.Req_cc (Q.Cc_captured (m, u, c)))
                 end
               else if isSome mass andalso has "\\bco2\\b|\\bcarbon dioxide\\b" low
                       andalso has "\\bcarbon\\b" (replaceAll "carbon dioxide" "" low) then
@@ -207,7 +231,7 @@ struct
               else NONE
             end
         end
-    end
+    end handle UnknownCarbonNumber => NONE
 
   (* ---------- airquality ---------- *)
   val pollutants =
@@ -384,9 +408,10 @@ struct
     end
 
   (* ---------- carbonmat ---------- *)
+  exception UnknownMaterialNumber
   val cmIdx = "\\(\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\)"
-  val cmThick = "(\\d+(?:\\.\\d+)?)\\s*(nm\\b|nanomet\\w+\\b|\195\165|\195\133|angstroms?\\b)"
-  val cmArea = "(\\d+(?:\\.\\d+)?)\\s*(m2\\b|m\194\178|square met(?:er|re)s?\\b|cm2\\b|cm\194\178|square centimet(?:er|re)s?\\b)"
+  val cmThick = "(qnum[0-9]+q)(?:\\s*|-)(nm\\b|nanomet\\w+\\b|\195\165|\195\133|angstroms?\\b|um\\b|\194\181m\\b|\206\188m\\b|micromet\\w+\\b)(?![A-Za-z0-9_]|\\s*(?:/|\\*|\194\183|per\\b))"
+  val cmArea = "(qnum[0-9]+q)(?:\\s*|-)(m2\\b|m\194\178|square met(?:er|re)s?\\b|cm2\\b|cm\194\178|square centimet(?:er|re)s?\\b|mm2\\b|mm\194\178|square millimet(?:er|re)s?\\b|um2\\b|um\194\178|\194\181m2\\b|\194\181m\194\178|\206\188m2\\b|\206\188m\194\178|square micromet(?:er|re)s?\\b)(?![A-Za-z0-9_]|\\s*(?:/|\\*|\194\183|per\\b))"
 
   fun carbonmat text =
     let val t = collapse text
@@ -418,23 +443,46 @@ struct
           | NONE => cmRest t low
         end
     end
-  and cmRest t low =
+  and cmRest t original =
+    case ExactNumeric.mask original of
+      NONE => NONE
+    | SOME {text=low,numbers} =>
     let
-      val th = search cmThick low
-      val ar = search cmArea low
+      fun quantity marker =
+        case List.find (fn (name,_) => name=marker) numbers of
+          SOME (_, (n,d)) => Q.mk_rat n d
+        | NONE => raise UnknownMaterialNumber
+      val thicknessMatches = findall (cmThick ^ "\\s*-?\\s*thick\\w*\\b") low @
+        findall ("\\bthickness\\s*(?:of|is|=)?\\s*" ^ cmThick) low
+      val thicknesses = List.foldl (fn (m, acc) =>
+        if List.exists (fn old => g1 low old = g1 low m) acc then acc else m::acc) [] thicknessMatches
+      val areas = findall cmArea low
+      val layerGoal = has "\\bhow many\\s+(?:(?:graphene|graphite)\\s+)?(?:layers?|sheets?)\\b|\\bnumber of (?:layers?|sheets?)\\b" low
+      val massGoal = has "\\bmass\\b|\\bweigh\\w*\\b|\\bhow (?:much|heavy)\\b" low
+      fun lengthUnit u =
+        if u="angstrom" orelse u="angstroms" orelse u="\195\165" orelse u="\195\133" then Q.Mat_angstrom
+        else if String.isPrefix "n" u then Q.Mat_nm else Q.Mat_um
+      fun areaUnit u =
+        if String.isPrefix "c" u orelse has "centi" u then Q.Mat_cm2
+        else if String.isPrefix "mm" u orelse has "milli" u then Q.Mat_mm2
+        else if String.isPrefix "u" u orelse String.isPrefix "\194\181" u orelse String.isPrefix "\206\188" u orelse has "micro" u then Q.Mat_um2
+        else Q.Mat_m2
     in
-      if isSome th andalso has "\\bgraphene\\b|\\bgraphite\\b" low andalso has "\\blayers?\\b|\\bsheets?\\b" low
-         andalso has "\\bthick\\w*\\b" low then
-        let val u = valOf (grp low (valOf th) 2)
-            val ang = (u = "angstrom" orelse u = "angstroms" orelse u = "\195\165" orelse u = "\195\133")
-        in finish t (Q.Req_cm (Q.Cm_layers (ratOf (g1 low (valOf th)), ang))) end
-      else if isSome ar andalso has "\\bgraphene\\b" low andalso has "\\bmass\\b|\\bweigh\\w*\\b|\\bhow (?:much|heavy)\\b" low
-              andalso has "\\bsingle[- ]layer\\b|\\bmonolayer\\b|\\bone layer\\b|\\bgraphene sheet\\b|\\bof graphene\\b" low then
-        let val u = valOf (grp low (valOf ar) 2)
-            val cm2 = (String.isPrefix "c" u orelse has "centi" u)
-        in finish t (Q.Req_cm (Q.Cm_mass (ratOf (g1 low (valOf ar)), cm2))) end
+      if layerGoal andalso not massGoal andalso length thicknesses=1
+         andalso has "\\bgraphene\\b|\\bgraphite\\b" low
+         andalso (has (cmThick ^ "\\s*-?\\s*thick\\w*\\b") low orelse has ("\\bthickness\\s*(?:of|is|=)?\\s*" ^ cmThick) low) then
+        let val m=hd thicknesses
+        in finish t (Q.Req_cm (Q.Cm_layers (quantity (g1 low m), lengthUnit (valOf (grp low m 2))))) end
+      else if massGoal andalso not layerGoal andalso length areas=1 andalso null thicknesses
+          andalso has "\\bgraphene\\b" low
+          andalso not (has "\\b(?:bilayer|trilayer|multilayer|few[- ]layer|bulk)\\b|qnum[0-9]+q\\s*[- ]?layers?\\b" low)
+          andalso has "\\bsingle[- ]layer\\b|\\bmonolayer\\b|\\bone layer\\b|\\bgraphene sheet\\b|\\bof graphene\\b" low then
+        let val m=hd areas
+        in finish t (Q.Req_cm (Q.Cm_mass (quantity (g1 low m), areaUnit (valOf (grp low m 2))))) end
+      else if (layerGoal orelse massGoal) andalso has "\\bgraphene\\b|\\bgraphite\\b" low
+        then SOME (Q.Req_cm Q.Cm_unsupported)
       else NONE
-    end
+    end handle UnknownMaterialNumber => NONE
 
   (* ---------- coldchain, coldchain-v2 ---------- *)
   val TEMP = "(qnum[0-9]+q)\\s*(?:\194\176\\s*|degrees?\\s*)?(f|c)\\b"

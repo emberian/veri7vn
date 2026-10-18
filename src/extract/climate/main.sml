@@ -13,7 +13,7 @@
 
 structure Main =
 struct
-  val theorems = "[\"cc_kernel_sound\",\"aq_single_sound\",\"aq_overall_sound\",\"cl_exact_sound\",\"cl_approx_sound\",\"cm_exact_sound\",\"cm_approx_sound\",\"partial_cooling_true\",\"partial_cooling_false\",\"partial_cooling_unknown\",\"cooling_schedule_clock_law\",\"g_dec_sound\"]"
+  val theorems = "[\"cc_kernel_sound\",\"carbon_success_feasible\",\"captured_success_bounds\",\"capture_energy_model\",\"capture_energy_unit_answers\",\"aq_single_sound\",\"aq_overall_sound\",\"cl_exact_sound\",\"cl_approx_sound\",\"cm_exact_sound\",\"cm_approx_sound\",\"graphene_mass_nonnegative\",\"graphene_squared_area_units\",\"graphene_mass_sum_rendered_bound\",\"partial_cooling_true\",\"partial_cooling_false\",\"partial_cooling_unknown\",\"cooling_schedule_clock_law\",\"g_dec_sound\"]"
 
   fun ms (t0 : Time.time) : string =
     let val us = Time.toMicroseconds (Time.- (Time.now (), t0))

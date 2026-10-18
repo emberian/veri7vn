@@ -29,11 +29,11 @@ datatype cat = Cat_good | Cat_moderate | Cat_usg | Cat_unhealthy | Cat_very_unhe
 datatype tube = T_armchair | T_zigzag | T_chiral
 datatype weekday = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
 
-datatype need = N_gwp | N_conc | N_sens | N_solar_albedo | N_cooling_schedule | N_partial_cooling
+datatype need = N_gwp | N_conc | N_sens | N_solar_albedo | N_cooling_schedule | N_partial_cooling | N_material_geometry
 
-datatype reason = R_rate_over_100 | R_zero_mpg
+datatype reason = R_rate_over_100 | R_zero_mpg | R_negative_capture_rate | R_negative_carbon_quantity
   | R_pm_hourly | R_beyond pol | R_o3_above_8h | R_so2_above_1h | R_between pol | R_aqi_out_of_scale
-  | R_nonpositive_conc | R_albedo_range | R_negative_solar | R_bad_chirality | R_negative_duration
+  | R_nonpositive_conc | R_albedo_range | R_negative_solar | R_bad_chirality | R_negative_duration | R_negative_geometry
 
 datatype decline = Underspecified need | Impossible reason | Imprecise | Not_taken
 
@@ -93,6 +93,18 @@ section \<open>Carbon capture (carboncapture)\<close>
 
 datatype fuel = F_gasoline | F_diesel
 datatype eunit = E_kwh | E_mwh | E_gj
+datatype mass_unit = Mass_g | Mass_kg | Mass_tonne | Mass_Mt | Mass_Gt
+fun mass_tonnes :: "rat \<Rightarrow> mass_unit \<Rightarrow> rat" where
+  "mass_tonnes m Mass_g = m / 1000000"
+| "mass_tonnes m Mass_kg = m / 1000"
+| "mass_tonnes m Mass_tonne = m"
+| "mass_tonnes m Mass_Mt = m * 1000000"
+| "mass_tonnes m Mass_Gt = m * 1000000000"
+
+lemma mass_tonnes_nonnegative [simp]:
+  "0 \<le> mass_tonnes m u \<longleftrightarrow> 0 \<le> m"
+  by (cases u) simp_all
+
 
 text \<open>EPA tailpipe factors in grams of CO2 per US gallon; the molar masses of
 carbon and CO2 (44.01 / 12.011).\<close>
@@ -118,7 +130,7 @@ datatype ccreq =
   | Cc_fuel_co2 fuel String.literal rat
   | Cc_co2_per_mile fuel String.literal rat
   | Cc_captured rat String.literal rat
-  | Cc_capture_energy rat String.literal rat rat eunit
+  | Cc_capture_energy rat mass_unit rat rat eunit
 
 fun cc_kind :: "ccreq \<Rightarrow> kind" where
   "cc_kind (Cc_c_to_co2 _ _) = K_c_to_co2"
@@ -134,15 +146,27 @@ fun cc_val :: "ccreq \<Rightarrow> rat" where
 | "cc_val (Cc_fuel_co2 f _ gal) = gal * ef f / 1000"
 | "cc_val (Cc_co2_per_mile f _ mpg) = ef f / mpg"
 | "cc_val (Cc_captured m _ c) = m * c / 100"
-| "cc_val (Cc_capture_energy m _ c e _) = m * c / 100 * e"
+| "cc_val (Cc_capture_energy m u c e _) = mass_tonnes m u * c / 100 * e"
 
 fun cc_impossible :: "ccreq \<Rightarrow> reason option" where
-  "cc_impossible (Cc_co2_per_mile _ _ mpg) = (if mpg = 0 then Some R_zero_mpg else None)"
-| "cc_impossible (Cc_captured _ _ c) = (if 100 < c then Some R_rate_over_100 else None)"
-| "cc_impossible (Cc_capture_energy _ _ c _ _) = (if 100 < c then Some R_rate_over_100 else None)"
-| "cc_impossible (Cc_c_to_co2 _ _) = None"
-| "cc_impossible (Cc_co2_to_c _ _) = None"
-| "cc_impossible (Cc_fuel_co2 _ _ _) = None"
+  "cc_impossible (Cc_co2_per_mile _ _ mpg) = (if mpg \<le> 0 then Some R_zero_mpg else None)"
+| "cc_impossible (Cc_captured m _ c) =
+    (if 100 < c then Some R_rate_over_100 else if c < 0 then Some R_negative_capture_rate
+     else if m < 0 then Some R_negative_carbon_quantity else None)"
+| "cc_impossible (Cc_capture_energy m _ c e _) =
+    (if 100 < c then Some R_rate_over_100 else if c < 0 then Some R_negative_capture_rate
+     else if m < 0 \<or> e < 0 then Some R_negative_carbon_quantity else None)"
+| "cc_impossible (Cc_c_to_co2 m _) = (if m < 0 then Some R_negative_carbon_quantity else None)"
+| "cc_impossible (Cc_co2_to_c m _) = (if m < 0 then Some R_negative_carbon_quantity else None)"
+| "cc_impossible (Cc_fuel_co2 _ _ v) = (if v < 0 then Some R_negative_carbon_quantity else None)"
+
+fun cc_feasible :: "ccreq \<Rightarrow> bool" where
+  "cc_feasible (Cc_co2_per_mile _ _ mpg) = (0 < mpg)"
+| "cc_feasible (Cc_captured m _ c) = (0 \<le> m \<and> 0 \<le> c \<and> c \<le> 100)"
+| "cc_feasible (Cc_capture_energy m _ c e _) = (0 \<le> m \<and> 0 \<le> c \<and> c \<le> 100 \<and> 0 \<le> e)"
+| "cc_feasible (Cc_c_to_co2 m _) = (0 \<le> m)"
+| "cc_feasible (Cc_co2_to_c m _) = (0 \<le> m)"
+| "cc_feasible (Cc_fuel_co2 _ _ v) = (0 \<le> v)"
 
 definition cc_kernel :: "ccreq \<Rightarrow> outcome" where
   "cc_kernel r = (case cc_impossible r of Some w \<Rightarrow> Decline (Impossible w)
@@ -163,8 +187,10 @@ theorem carbon_kernel_roundtrip:
   assumes "cc_kernel (Cc_c_to_co2 m u) = Exact k q"
   shows "cc_kernel (Cc_co2_to_c q u') = Exact K_co2_to_c m"
 proof -
-  have "q = m * c_ratio" using cc_kernel_sound[OF assms] by simp
-  then show ?thesis by (simp add: cc_kernel_def)
+  have q: "q = m * c_ratio" and m: "0 \<le> m"
+    using cc_kernel_sound[OF assms] by (auto split: if_splits)
+  have q0: "0 \<le> q" using m q by (simp add: c_ratio_def)
+  show ?thesis using q q0 by (simp add: cc_kernel_def)
 qed
 
 text \<open>What each kind means. One mole of carbon makes one mole of CO2, so the
@@ -230,25 +256,60 @@ qed
 
 theorem capture_energy_model:
   assumes "cc_kernel (Cc_capture_energy m u c e eu) = Exact k q"
-  shows "k = K_capture_energy \<and> c \<le> 100 \<and> q = cc_val (Cc_captured m u c) * e"
-proof -
-  have s: "cc_impossible (Cc_capture_energy m u c e eu) = None" "k = K_capture_energy"
-    "q = m * c / 100 * e"
-    using cc_kernel_sound[OF assms] by simp_all
-  then show ?thesis by (auto split: if_splits)
-qed
+  shows "k = K_capture_energy \<and> c \<le> 100 \<and> q = mass_tonnes m u * c / 100 * e"
+  using cc_kernel_sound[OF assms] by (auto split: if_splits)
 
 theorem capture_rate_over_100:
-  "cc_kernel (Cc_captured m u c) = Decline w \<longleftrightarrow> 100 < c \<and> w = Impossible R_rate_over_100"
+  "cc_kernel (Cc_captured m u c) = Decline (Impossible R_rate_over_100) \<longleftrightarrow> 100 < c"
   by (auto simp: cc_kernel_def split: if_splits)
 
 theorem capture_energy_rate_over_100:
-  "cc_kernel (Cc_capture_energy m u c e eu) = Decline w \<longleftrightarrow> 100 < c \<and> w = Impossible R_rate_over_100"
+  "cc_kernel (Cc_capture_energy m u c e eu) = Decline (Impossible R_rate_over_100) \<longleftrightarrow> 100 < c"
   by (auto simp: cc_kernel_def split: if_splits)
 
 theorem zero_mpg_declined:
-  "cc_kernel (Cc_co2_per_mile f n mpg) = Decline w \<longleftrightarrow> mpg = 0 \<and> w = Impossible R_zero_mpg"
+  "cc_kernel (Cc_co2_per_mile f n mpg) = Decline w \<longleftrightarrow> mpg \<le> 0 \<and> w = Impossible R_zero_mpg"
   by (auto simp: cc_kernel_def split: if_splits)
+
+theorem carbon_success_feasible:
+  "(\<exists>k q. cc_kernel r = Exact k q) \<longleftrightarrow> cc_feasible r"
+proof -
+  have exact_shape: "(\<exists>k q. cc_kernel r = Exact k q) \<longleftrightarrow> cc_impossible r = None"
+    by (cases "cc_impossible r") (auto simp: cc_kernel_def)
+  have guard: "cc_impossible r = None \<longleftrightarrow> cc_feasible r"
+    by (cases r) (auto split: if_splits)
+  show ?thesis using exact_shape guard by simp
+qed
+
+theorem captured_success_bounds:
+  assumes k: "cc_kernel (Cc_captured m u c) = Exact kind q"
+  shows "0 \<le> m \<and> 0 \<le> c \<and> c \<le> 100 \<and> 0 \<le> q \<and> q \<le> m"
+  using carbon_success_feasible[of "Cc_captured m u c"] captured_model[OF k] k by auto
+
+theorem capture_energy_success_nonnegative:
+  assumes k: "cc_kernel (Cc_capture_energy m u c e eu) = Exact kind q"
+  shows "0 \<le> q"
+proof -
+  have f: "0 \<le> m" "0 \<le> c" "0 \<le> e"
+    using carbon_success_feasible[of "Cc_capture_energy m u c e eu"] k by auto
+  have m0: "0 \<le> mass_tonnes m u" using f(1) by simp
+  have q: "q = mass_tonnes m u * c / 100 * e" using capture_energy_model[OF k] by simp
+  have a0: "0 \<le> mass_tonnes m u * c" by (rule mult_nonneg_nonneg[OF m0 f(2)])
+  have b0: "0 \<le> mass_tonnes m u * c / 100" using a0 by simp
+  show ?thesis unfolding q by (rule mult_nonneg_nonneg[OF b0 f(3)])
+qed
+
+theorem capture_energy_unit_answers:
+  "cc_kernel (Cc_capture_energy (1000*m) Mass_kg c e eu) = cc_kernel (Cc_capture_energy m Mass_tonne c e eu)"
+  "cc_kernel (Cc_capture_energy (1000000*m) Mass_g c e eu) = cc_kernel (Cc_capture_energy m Mass_tonne c e eu)"
+  "cc_kernel (Cc_capture_energy m Mass_Mt c e eu) = cc_kernel (Cc_capture_energy (1000000*m) Mass_tonne c e eu)"
+  "cc_kernel (Cc_capture_energy m Mass_Gt c e eu) = cc_kernel (Cc_capture_energy (1000000000*m) Mass_tonne c e eu)"
+  by (simp_all add: cc_kernel_def mult_less_0_iff)
+
+theorem capture_energy_zero_intensity:
+  "0 \<le> m \<Longrightarrow> 0 \<le> c \<Longrightarrow> c \<le> 100 \<Longrightarrow>
+    cc_kernel (Cc_capture_energy m u c 0 eu) = Exact K_capture_energy 0"
+  by (simp add: cc_kernel_def)
 
 
 section \<open>Air quality (airquality): the US AQI from EPA's breakpoint table\<close>
@@ -936,13 +997,17 @@ Avogadro's number 6.02214076e23. It equals @{text "areal_k / sqrt 3"}.\<close>
 definition areal_k :: rat where
   "areal_k = (4 * (12011 / 1000) * 1000) / ((602214076 / 1000) * (246 / 1000) ^ 2)"
 
+datatype material_length_unit = Mat_nm | Mat_angstrom | Mat_um
+datatype material_area_unit = Mat_m2 | Mat_cm2 | Mat_mm2 | Mat_um2
+
 datatype cmreq =
     Cm_diameter int int
   | Cm_angle int int
   | Cm_type int int
   | Cm_kind int int
-  | Cm_layers rat bool
-  | Cm_mass rat bool
+  | Cm_layers rat material_length_unit
+  | Cm_mass rat material_area_unit
+  | Cm_unsupported
 
 fun cm_kind :: "cmreq \<Rightarrow> kind" where
   "cm_kind (Cm_diameter _ _) = K_cnt_diameter"
@@ -951,6 +1016,7 @@ fun cm_kind :: "cmreq \<Rightarrow> kind" where
 | "cm_kind (Cm_kind _ _) = K_cnt_kind"
 | "cm_kind (Cm_layers _ _) = K_graphene_layers"
 | "cm_kind (Cm_mass _ _) = K_graphene_mass"
+| "cm_kind Cm_unsupported = K_graphene_mass"
 
 text \<open>Chiral indices are (n, m) with n >= m >= 0 and not both zero.\<close>
 definition chiral_ok :: "int \<Rightarrow> int \<Rightarrow> bool" where
@@ -961,20 +1027,31 @@ fun cm_impossible :: "cmreq \<Rightarrow> reason option" where
 | "cm_impossible (Cm_angle n m) = (if chiral_ok n m then None else Some R_bad_chirality)"
 | "cm_impossible (Cm_type n m) = (if chiral_ok n m then None else Some R_bad_chirality)"
 | "cm_impossible (Cm_kind n m) = (if chiral_ok n m then None else Some R_bad_chirality)"
-| "cm_impossible (Cm_layers _ _) = None"
-| "cm_impossible (Cm_mass _ _) = None"
+| "cm_impossible (Cm_layers t _) = (if t < 0 then Some R_negative_geometry else None)"
+| "cm_impossible (Cm_mass a _) = (if a < 0 then Some R_negative_geometry else None)"
+| "cm_impossible Cm_unsupported = None"
 
 definition tube_of :: "int \<Rightarrow> int \<Rightarrow> tube" where
   "tube_of n m = (if n = m then T_armchair else if m = 0 then T_zigzag else T_chiral)"
 
 definition circ2 :: "int \<Rightarrow> int \<Rightarrow> int" where "circ2 n m = n * n + n * m + m * m"
 
-text \<open>Thickness in nm (the unit flag says the number was in angstrom), and area
-in m2 (the flag says cm2).\<close>
-definition thickness :: "rat \<Rightarrow> bool \<Rightarrow> rat" where
-  "thickness t ang = (if ang then t / 10 else t)"
-definition area_m2 :: "rat \<Rightarrow> bool \<Rightarrow> rat" where
-  "area_m2 a cm2 = (if cm2 then a / 10000 else a)"
+text \<open>Input dimensions are finite types. Conversion belongs to the kernel:
+length is normalized to nm; physical area is normalized to square metres.\<close>
+fun thickness :: "rat \<Rightarrow> material_length_unit \<Rightarrow> rat" where
+  "thickness t Mat_nm = t"
+| "thickness t Mat_angstrom = t / 10"
+| "thickness t Mat_um = t * 1000"
+fun area_m2 :: "rat \<Rightarrow> material_area_unit \<Rightarrow> rat" where
+  "area_m2 a Mat_m2 = a"
+| "area_m2 a Mat_cm2 = a / 10000"
+| "area_m2 a Mat_mm2 = a / 1000000"
+| "area_m2 a Mat_um2 = a / 1000000000000"
+fun side_m :: "material_area_unit \<Rightarrow> rat" where
+  "side_m Mat_m2 = 1"
+| "side_m Mat_cm2 = 1/100"
+| "side_m Mat_mm2 = 1/1000"
+| "side_m Mat_um2 = 1/1000000"
 
 fun cm_exact :: "cmreq \<Rightarrow> rat option" where
   "cm_exact (Cm_layers t ang) = Some (thickness t ang / layer_sp)"
@@ -983,6 +1060,7 @@ fun cm_exact :: "cmreq \<Rightarrow> rat option" where
 | "cm_exact (Cm_type _ _) = None"
 | "cm_exact (Cm_kind _ _) = None"
 | "cm_exact (Cm_mass _ _) = None"
+| "cm_exact Cm_unsupported = None"
 
 fun cm_fa :: "cmreq \<Rightarrow> floatarith" where
   "cm_fa (Cm_diameter n m) = floatarith.Mult (Q lat_a)
@@ -995,6 +1073,7 @@ fun cm_fa :: "cmreq \<Rightarrow> floatarith" where
 | "cm_fa (Cm_type _ _) = I 0"
 | "cm_fa (Cm_kind _ _) = I 0"
 | "cm_fa (Cm_layers _ _) = I 0"
+| "cm_fa Cm_unsupported = I 0"
 
 fun cm_phys :: "cmreq \<Rightarrow> real" where
   "cm_phys (Cm_diameter n m) = rl lat_a * (sqrt (of_int (circ2 n m)) * inverse pi)"
@@ -1004,6 +1083,7 @@ fun cm_phys :: "cmreq \<Rightarrow> real" where
 | "cm_phys (Cm_layers t ang) = rl (thickness t ang / layer_sp)"
 | "cm_phys (Cm_type _ _) = 0"
 | "cm_phys (Cm_kind _ _) = 0"
+| "cm_phys Cm_unsupported = 0"
 
 lemma cm_fa_interp:
   "cm_exact r = None \<Longrightarrow> interpret_floatarith (cm_fa r) [] = cm_phys r"
@@ -1015,7 +1095,8 @@ lemma cm_exact_phys: "cm_exact r = Some q \<Longrightarrow> cm_phys r = rl q"
 definition cm_kernel :: "cmreq \<Rightarrow> outcome" where
   "cm_kernel r = (case cm_impossible r of Some w \<Rightarrow> Decline (Impossible w)
      | None \<Rightarrow> (case r of
-          Cm_type n m \<Rightarrow> Verdict K_cnt_type ((n - m) mod 3 = 0)
+          Cm_unsupported \<Rightarrow> Decline (Underspecified N_material_geometry)
+        | Cm_type n m \<Rightarrow> Verdict K_cnt_type ((n - m) mod 3 = 0)
         | Cm_kind n m \<Rightarrow> Tube_kind (tube_of n m)
         | _ \<Rightarrow> spec_out 4 (cm_kind r) (cm_exact r) (cm_fa r)))"
 
@@ -1136,6 +1217,72 @@ theorem graphene_mass_is_area_times_areal:
   "cm_phys (Cm_mass a cm2) = rl (area_m2 a cm2) * (rl areal_k / sqrt 3)"
   by (simp add: divide_inverse)
 
+
+theorem graphene_unsupported_model:
+  "cm_kernel Cm_unsupported = Decline (Underspecified N_material_geometry)"
+  by (simp add: cm_kernel_def)
+
+theorem graphene_layers_decline:
+  "(\<exists>w. cm_kernel (Cm_layers t u) = Decline (Impossible w)) \<longleftrightarrow> t < 0"
+  by (simp add: cm_impossible_iff)
+
+theorem graphene_mass_decline:
+  "(\<exists>w. cm_kernel (Cm_mass a u) = Decline (Impossible w)) \<longleftrightarrow> a < 0"
+  by (simp add: cm_impossible_iff)
+
+theorem graphene_layers_feasible_model:
+  assumes k: "cm_kernel (Cm_layers t u) = Exact kind q"
+  shows "0 \<le> t \<and> 0 \<le> q \<and> q * layer_sp = thickness t u"
+proof -
+  have t0: "0 \<le> t" using cm_exact_sound[OF k] by (auto split: if_splits)
+  have eq: "q * layer_sp = thickness t u" using graphene_layers_model[OF k] by simp
+  have th0: "0 \<le> thickness t u" using t0 by (cases u) simp_all
+  have q0: "0 \<le> q" using eq th0 by (simp add: layer_sp_def; linarith)
+  show ?thesis using t0 q0 eq by simp
+qed
+
+theorem graphene_mass_nonnegative:
+  assumes k: "cm_kernel (Cm_mass a u) = Approx kind d"
+  shows "0 \<le> a \<and> 0 \<le> cm_phys (Cm_mass a u)"
+proof -
+  have a0: "0 \<le> a" using cm_approx_sound[OF k] by (auto split: if_splits)
+  have area0: "0 \<le> rl (area_m2 a u)"
+    using a0 by (cases u) (simp_all add: zero_le_of_rat_iff)
+  have coefficient0: "0 \<le> rl areal_k * inverse (sqrt (3::real))"
+    by (intro mult_nonneg_nonneg) (simp_all add: areal_k_def)
+  have physical0: "0 \<le> cm_phys (Cm_mass a u)"
+    using mult_nonneg_nonneg[OF area0 coefficient0] by simp
+  show ?thesis using a0 physical0 by blast
+qed
+
+theorem graphene_squared_area_units:
+  "area_m2 a u = a * (side_m u)^2"
+  by (cases u) (simp_all add: power2_eq_square field_simps)
+
+theorem graphene_area_unit_answers:
+  "cm_kernel (Cm_mass (a*10000) Mat_cm2) = cm_kernel (Cm_mass a Mat_m2)"
+  "cm_kernel (Cm_mass (a*1000000) Mat_mm2) = cm_kernel (Cm_mass a Mat_m2)"
+  "cm_kernel (Cm_mass (a*1000000000000) Mat_um2) = cm_kernel (Cm_mass a Mat_m2)"
+  by (simp_all add: cm_kernel_def mult_less_0_iff)
+
+theorem graphene_length_unit_answers:
+  "cm_kernel (Cm_layers (t*10) Mat_angstrom) = cm_kernel (Cm_layers t Mat_nm)"
+  "cm_kernel (Cm_layers t Mat_um) = cm_kernel (Cm_layers (t*1000) Mat_nm)"
+  by (simp_all add: cm_kernel_def mult_less_0_iff)
+
+lemma graphene_mass_additive_model:
+  "cm_phys (Cm_mass (a+b) u) = cm_phys (Cm_mass a u) + cm_phys (Cm_mass b u)"
+  by (cases u) (simp_all add: of_rat_add of_rat_divide algebra_simps)
+
+theorem graphene_mass_sum_rendered_bound:
+  assumes a: "cm_kernel (Cm_mass x u) = Approx kx dx"
+    and b: "cm_kernel (Cm_mass y u) = Approx ky dy"
+    and c: "cm_kernel (Cm_mass (x+y) u) = Approx kz dz"
+  shows "\<bar>dec_val dz - (dec_val dx + dec_val dy)\<bar> \<le>
+    pow10 (snd dx)/2 + pow10 (snd dy)/2 + pow10 (snd dz)/2 + 3/1000000000"
+  using cm_approx_sound[OF a] cm_approx_sound[OF b] cm_approx_sound[OF c]
+    graphene_mass_additive_model[of x y u]
+  by (auto simp only: abs_le_iff; linarith)
 
 section \<open>Food-safety temperatures and times (coldchain, coldchain-v2)\<close>
 
@@ -1662,7 +1809,7 @@ fun cc_text :: "ccreq \<Rightarrow> String.literal \<Rightarrow> String.literal"
 | "cc_text (Cc_captured m u c) V = STR ''The CO2 captured is '' + V + STR '' '' + u + STR '' ('' + g4 m + STR '' x ''
      + g4 c + STR ''% capture rate).''"
 | "cc_text (Cc_capture_energy m u c e eu) V = STR ''The energy needed is '' + V + STR '' '' + eunit_up eu + STR '' (''
-     + g4 (m * c / 100) + STR '' '' + u + STR '' captured x '' + g4 e + STR '' '' + eunit_low eu + STR '' per tonne).''"
+     + g4 (mass_tonnes m u * c / 100) + STR '' tonnes captured x '' + g4 e + STR '' '' + eunit_low eu + STR '' per tonne).''"
 
 fun join_subs :: "sub list \<Rightarrow> String.literal" where
   "join_subs [] = STR ''''"
@@ -1789,13 +1936,16 @@ definition need_text :: "need \<Rightarrow> String.literal" where
    | N_conc \<Rightarrow> STR ''the starting and final CO2 concentrations (ppm)''
    | N_sens \<Rightarrow> STR ''the climate sensitivity (C per doubling) or the feedback parameter lambda - it is uncertain, so I will not assume one''
    | N_solar_albedo \<Rightarrow> STR ''the solar constant (W/m2) and the albedo''
+   | N_material_geometry \<Rightarrow> STR ''one supported geometry: layer count needs a unique thickness; mass needs one area and the single-layer graphene model, not a rate or multilayer sheet''
    | N_partial_cooling \<Rightarrow> STR ''the missing checkpoint time: specify when 70 F (21 C) and 41 F (5 C) were reached relative to 135 F (57 C); a partial record may fit both compliant and noncompliant complete timelines''
    | N_cooling_schedule \<Rightarrow> STR ''a complete supported cooling schedule: from 135 F to 70 F with its elapsed time, then to 41 F with its additional elapsed time'')"
 
 definition reason_text :: "reason \<Rightarrow> String.literal" where
   "reason_text w = (case w of
      R_rate_over_100 \<Rightarrow> STR ''A capture rate above 100% is not possible.''
-   | R_zero_mpg \<Rightarrow> STR ''A fuel economy of 0 mpg is not possible.''
+   | R_negative_capture_rate \<Rightarrow> STR ''A capture rate cannot be negative.''
+   | R_negative_carbon_quantity \<Rightarrow> STR ''Mass, fuel quantity and capture energy intensity must be nonnegative.''
+   | R_zero_mpg \<Rightarrow> STR ''Fuel economy must be positive.''
    | R_pm_hourly \<Rightarrow> STR ''The AQI for particles uses the 24-hour average (hourly values go through the NowCast, which I do not compute here).''
    | R_beyond p \<Rightarrow> pol_label p + STR '' is beyond the AQI scale (above the 500 breakpoint).''
    | R_o3_above_8h \<Rightarrow> STR ''8-hour ozone above 0.200 ppm is indexed with the 1-hour ozone table, not the 8-hour one.''
@@ -1806,7 +1956,8 @@ definition reason_text :: "reason \<Rightarrow> String.literal" where
    | R_albedo_range \<Rightarrow> STR ''An albedo must be between 0 and 1.''
    | R_negative_solar \<Rightarrow> STR ''A solar constant cannot be negative.''
    | R_bad_chirality \<Rightarrow> STR ''Chiral indices are written (n, m) with n >= m >= 0 and not both zero.''
-   | R_negative_duration \<Rightarrow> STR ''Elapsed time cannot be negative.'')"
+   | R_negative_duration \<Rightarrow> STR ''Elapsed time cannot be negative.''
+   | R_negative_geometry \<Rightarrow> STR ''Physical area and thickness cannot be negative.'')"
 
 definition decline_name :: "decline \<Rightarrow> String.literal" where
   "decline_name w = (case w of Underspecified _ \<Rightarrow> STR ''underspecified'' | Impossible _ \<Rightarrow> STR ''impossible''

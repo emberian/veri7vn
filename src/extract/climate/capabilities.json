@@ -37,6 +37,41 @@
           "Natural-language stage selection, elapsed-time parsing, and the applicability of the declared rule to the situation."
         ]
       }
+    },
+    "carbonmat": {
+      "accept": {
+        "declines_in_domain": [
+          "impossible",
+          "underspecified",
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "Signed physical area and thickness with finite typed units; negative geometry is rejected. Layer count uses a unique explicit thickness; monolayer mass uses one area. Unsupported dimension roles or multilayer inputs are withheld.",
+        "assumptions": [
+          "Ideal graphene lattice and graphite interlayer spacing; the mass model is single-layer graphene."
+        ],
+        "untrusted": [
+          "Natural-language quantity roles and assignment of finite unit tags."
+        ]
+      }
+    },
+    "carboncapture": {
+      "accept": {
+        "declines_in_domain": [
+          "impossible"
+        ]
+      },
+      "evidence": {
+        "computation": "Carbon-capture quantities preserve exact signed numbers. Energy normalizes finite mass units to tonnes before multiplying by energy per tonne. Physical mass, fuel volume and energy intensity are nonnegative; capture fractions are within 0\u2013100% and fuel economy is positive.",
+        "assumptions": [
+          "Energy intensity is per metric tonne; ton/tons are interpreted as metric tonnes. EPA tailpipe factors use US gallons.",
+          "Mass conversion between carbon and CO2 uses the fixed molar masses 44.01 and 12.011."
+        ],
+        "untrusted": [
+          "Natural-language quantity roles and finite unit tags."
+        ]
+      }
     }
   }
 }
