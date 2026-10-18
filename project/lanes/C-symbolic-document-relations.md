@@ -121,10 +121,22 @@ The source assertion, fetched row authenticity and interpretation of the
 question remain outside the theorem. Python presentation preservation is a
 separate executed check, not covered by that HOL theorem.
 
-Build status: pending. The first remote attempt
-`20261018T063216Z-506ab3e2cfd1` was cancelled while queued after a transport
-failure; no proof ran. The build owner recovered that receipt and repaired the
-transport retry behavior before the current attempt was submitted.
+Build status: fresh proof and native consumer passed. Receipt
+`var/document/remote-attempts/20261018T071146Z-0bfc8b40564a/receipt.json`
+records exit 0 and `VERI7VN_DOCUMENT PASS theorems=63 oracles=0` (18 seconds
+session elapsed). `sh tools/document/build.sh` rebuilt the native executable;
+its extracted startup self-test passed. The fresh adapter smoke answered
+“What is photosynthesis?” with its cited sentence preserved, captured “The
+currency of India” as a decisive summary refusal with quotation not applicable,
+and let an unknown invented book-author question fall through. Receipt:
+`var/document/codex-adapter-smoke.jsonl`. This is three integration checks, not
+a new document specialist-panel score.
+
+Earlier attempt `20261018T063216Z-506ab3e2cfd1` was cancelled while queued after
+a transport failure; no proof ran. Attempt `20261018T063617Z-7d22874e313b` ran
+and failed because automation did not synthesize the concatenated prefix
+witness. Explicit prefix/suffix witnesses fixed the proof without changing its
+statement. No failed exports were published.
 
 ## Remaining work and boundaries
 
@@ -132,6 +144,8 @@ transport retry behavior before the current attempt was submitted.
   `conjunctive` fields. Replacing them with a nonempty-ID test would not establish
   a question-to-page anchor. A proper fix needs a title/FTS witness tied to the
   question and the claim fields, with the fetch and fixtures updated together.
+  The current adapter does not emit the typed cause/process/when `Explain`
+  turns, so their tiered claim-pool proofs are not yet connected to that consumer.
 - The audit's description of `released` as a fetch flag is stale: it already
   computes `def_question ev AND names_term ev c` in HOL. The question-class flag
   remains untrusted; the cited sentence's term overlap is checked in HOL.

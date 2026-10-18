@@ -208,7 +208,7 @@ ML \<open>
        weak_answer_iff weak_answer_quotes_the_term weak_unverified_iff weak_declined_iff
        weak_pass_through_iff unverified_reply_shape
        statement_answer_iff statement_quotes_the_topic door_asks_only_what_was_said
-       clarify_shape refusal_shape cited_iff_answer answer_reply_carries_citation
+       clarify_shape refusal_shape cited_iff_answer answer_reply_carries_citation answer_reply_quotes_sentence
        op_scan_sound word_in_sound occurs_sound names_term_sound
        year_scan_sound route_reroute_answer capture_iff capture_never_reaches_statement
        bare_phrase_never_reaches_statement capture_names_the_question timeline_count_read_off_the_text};

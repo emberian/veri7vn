@@ -1034,6 +1034,36 @@ proof -
   qed
 qed
 
+text \<open>The cited sentence itself, not merely its identifier, is present verbatim in
+the generated answer. This is a quotation property; it does not assert that the source
+sentence entails an answer to the natural-language question. An external presentation
+pass must preserve this property separately.\<close>
+theorem answer_reply_quotes_sentence:
+  assumes ans: "decide t ev = Answer c e"
+  shows "\<exists>pre suf. response_of t ev (decide t ev) = pre @ sentence c @ suf"
+proof -
+  have lead: "\<exists>pre suf. render_lead c = pre @ sentence c @ suf"
+    by (rule exI[where x = "''According to '' @ page c @ '', ''"],
+        rule exI[where x = "'' '' @ cite c"]) (simp add: render_lead_def)
+  have statement: "\<exists>pre suf. statement_text ev c = pre @ sentence c @ suf"
+    by (rule exI[where x = "ack_text ev @ '' Since you mention '' @ topic ev @ '': ''"],
+        rule exI[where x = "'' '' @ cite c @ '' Want to know more about it?''"])
+       (simp add: statement_text_def)
+  have render: "\<exists>pre suf. render_answer c e = pre @ sentence c @ suf"
+  proof (cases e)
+    case None thus ?thesis using lead by simp
+  next
+    case (Some d)
+    obtain pre suf where lead_eq: "render_lead c = pre @ sentence c @ suf"
+      using lead by blast
+    show ?thesis
+      by (rule exI[where x = pre], rule exI[where x = "suf @ '' '' @ render_extra d"])
+         (simp add: Some lead_eq)
+  qed
+  show ?thesis using answer_reply_carries_citation(1)[OF ans] lead statement render
+    by (auto split: if_splits)
+qed
+
 section \<open>The capability captures assert nothing, and never reach the statement move\<close>
 
 text \<open>A captured turn is withheld exactly when the gateway lets it through and the question names
