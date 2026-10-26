@@ -179,7 +179,9 @@ class Answerer:
                                                                    rs.label(top) or "Q%d" % top, top)
             else:
                 receipt = "%s (Q%d) - %s (P%d) - %s" % (slab, subj, F.RS1.prop_label(p), p, shown)
-            prov.update(subject_qid="Q%d" % subj, property=p, value=v)
+            # This is the subject's identity label from the same source used for
+            # the citation, not the label-projected value of its asked property.
+            prov.update(subject_qid="Q%d" % subj, subject_label=slab, property=p, value=v)
             context = conversation.metadata(out, ev, att, self.spec.domain) if self.identity else None
             if context is not None:
                 prov["conversation"] = context
@@ -209,7 +211,7 @@ class Answerer:
         if oc == "decline":
             p, subj = out["property"], out["subject"]
             slab = rs.label(subj) or "Q%d" % subj
-            prov.update(subject_qid="Q%d" % subj, property=p)
+            prov.update(subject_qid="Q%d" % subj, subject_label=slab, property=p)
             return {"id": req.get("id"), "status": "withheld", "value": None,
                     "response": "I can't verify the %s of %s from my records, so I won't guess." % (
                         F.RS1.prop_label(p), slab),

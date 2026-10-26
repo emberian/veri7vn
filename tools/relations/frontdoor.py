@@ -96,14 +96,22 @@ class FrontDoor:
         clarifications = [out for out in decisive if out["status"] == "clarify"]
         if clarifications:
             alternatives = {}
+
+            def add_subject(qid, label):
+                labels = alternatives.setdefault(qid, set())
+                # A missing label is still a known ID. Conflicting display
+                # labels must not be resolved by whichever reader ran last.
+                if isinstance(label, str) and label.strip() and label != qid:
+                    labels.add(label)
+
             for out in decisive:
                 prov = out["provenance"]
                 for item in prov.get("alternatives", []):
-                    alternatives[item["qid"]] = item
+                    add_subject(item["qid"], item.get("label"))
                 if out["status"] == "answered" and prov.get("subject_qid"):
-                    alternatives.setdefault(prov["subject_qid"],
-                        {"qid": prov["subject_qid"], "label": str(out.get("value"))})
-            ordered = [alternatives[q] for q in sorted(alternatives)]
+                    add_subject(prov["subject_qid"], prov.get("subject_label"))
+            ordered = [{"qid": q, "label": next(iter(labels)) if len(labels) == 1 else q}
+                       for q, labels in sorted(alternatives.items())]
             shown = "; ".join("%s (%s)" % (a["label"], a["qid"]) for a in ordered[:8])
             more = " and %d more" % (len(ordered)-8) if len(ordered) > 8 else ""
             return {"id": req.get("id"), "status": "clarify", "value": None,
