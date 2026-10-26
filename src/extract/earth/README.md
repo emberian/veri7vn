@@ -1,7 +1,7 @@
 # Earth family kernel
 
-Eight Oracle7 specialists (geography, geology, seismology, hydrology, ocean,
-meteorology, greenhouse, greenhouse-r2) as one verified HOL kernel exported to SML and
+Nine Oracle7 specialists (geography, geology, seismology, hydrology, ocean,
+meteorology, meteorology-v2, greenhouse, greenhouse-r2) as one verified HOL kernel exported to SML and
 compiled into `var/earth/bin/earth`, which speaks the answerer contract.
 
 What is proved: for each domain, a stated value equals the defining formula
@@ -35,3 +35,24 @@ physical feasibility, and distinguishes deep-water group velocity from phase
 velocity. The checked D candidate passes its panels and exact composed probes; the
 selected C delivery remains independently captured pending D integration. See
 [the D report](../../../project/lanes/D-earth.md) for exact state and model limits.
+
+Meteorology v2 adds the `meteorology-v2` specialist ID and makes it the default
+weather reader in the Earth family. The legacy `meteorology` ID uses the same
+corrected reader. Grouped digits, explicit signs, fractions and scientific
+notation pass through the shared exact numeric lexer. Each supplied quantity
+must belong to the selected request; malformed numbers, duplicate roles,
+unsupported compound units and competing weather requests abstain. Negative
+wind speeds and temperatures below absolute zero also abstain. These recognition
+checks are untrusted; they do not add physical claims to the existing weather
+formula and interval-rounding theorems.
+
+The pinned Oracle7 4.9 panel and independent quantity probes can be checked with:
+
+```sh
+python3 -B src/extract/earth/meteorology_v2_check.py \
+  --source var/universe-20261026/huggingface/oracle7-slim/root/specialists/meteorology-v2 \
+  --out var/earth/ap1-meteorology/native-check.json
+```
+
+The runner scores the pinned specialist's own 110-row panel separately from its
+additional probes, through the new ID, legacy ID and whole-family entry point.

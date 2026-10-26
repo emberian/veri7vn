@@ -148,6 +148,23 @@
           "Natural-language recognition, family selection and parsing of numbers and units."
         ]
       }
+    },
+    "meteorology-v2": {
+      "accept": {
+        "declines_in_domain": [
+          "imprecise"
+        ]
+      },
+      "evidence": {
+        "computation": "The typed Earth kernel rejects its explicit impossible-input cases and withholds a numeric reply when interval evaluation cannot certify the requested decimal rounding.",
+        "assumptions": [
+          "The natural-language question was mapped to the intended typed request and units.",
+          "A precision refusal establishes no numeric answer; physical formulas and empirical constants retain their declared model assumptions."
+        ],
+        "untrusted": [
+          "Natural-language recognition, family selection and parsing of numbers and units."
+        ]
+      }
     }
   }
 }

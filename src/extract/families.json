@@ -133,6 +133,7 @@
         "hydrology",
         "ocean",
         "meteorology",
+        "meteorology-v2",
         "greenhouse",
         "greenhouse-r2"
       ],

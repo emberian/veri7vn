@@ -645,15 +645,6 @@ struct
 
   (* ============================ meteorology ============================ *)
   val WN = "(-?\\d+(?:\\.\\d+)?)"
-  val TMP = WN ^ "\\s*" ^ degSp ^ "(?:f|c|fahrenheit|celsius)\\b"
-  val TMPU = WN ^ "\\s*" ^ degSp ^ "(f|c|fahrenheit|celsius)\\b"
-
-  fun tempOf low : (E.rat * E.tscale) option =
-    Option.map (fn m => (fq (frOf (g1 low m)), if startsWith "f" (gs low m 2) then E.TsF else E.TsC)) (search TMPU low)
-
-  fun rhOf low : fr option =
-    Option.map (fn m => frOf (valOf (firstGroup low m [1, 2])))
-      (search (WN ^ "\\s*%\\s*(?:relative )?humidity|(?:relative )?humidity\\s*(?:of|is|at|=)?\\s*" ^ WN ^ "\\s*%?") low)
 
   fun windUnit (u : string) : E.wunit =
     if u = "mph" then E.WMph
@@ -662,21 +653,59 @@ struct
 
   fun f2c (v : fr) : fr = fdivide (fmul (fsub v (fint 32)) (fint 5)) (fint 9)
 
+  (* Recognition is untrusted: issued exact tokens are uniquely bound to roles.
+     Malformed literals, unsupported dimensions, ambiguous and extra quantities
+     abstain; no suffix retry or comma-stripping can change their meaning. *)
+  exception InvalidWeatherInput
   fun meteorology text =
     let
       val t = collapse text
-      val low = lower t
-      val tt = tempOf low
+    in case ExactNumeric.mask (lower t) of NONE => NONE
+    | SOME {text=low,numbers} =>
+    let
+      val used = ref ([] : string list)
+      val WN = "(qnum[0-9]+q)"
+      val unitEnd = "(?![A-Za-z0-9_^]|\\s*(?:/|\\*|\\^|\194\183|per\\b))"
+      val TMP = WN ^ "\\s*" ^ degSp ^ "(?:f|c|fahrenheit|celsius)\\b" ^ unitEnd
+      val TMPU = WN ^ "\\s*" ^ degSp ^ "(f|c|fahrenheit|celsius)\\b" ^ unitEnd
+      fun weatherNumber marker = case List.find (fn (name,_) => name=marker) numbers of
+          SOME (_,q) => (used := marker :: !used; q)
+        | NONE => raise InvalidWeatherInput
+      fun unique pattern = case findall pattern low of
+          [] => NONE | [m] => SOME m | _ => raise InvalidWeatherInput
+      fun tempValue m =
+        let val q = weatherNumber (g1 low m)
+            val isF = startsWith "f" (gs low m 2)
+            val c = if isF then f2c q else q
+        in if flt c (~27315,100) then raise InvalidWeatherInput
+           else (fq q, if isF then E.TsF else E.TsC) end
+      val temps = findall TMPU low
+      val tt = case temps of [m] => SOME (tempValue m) | _ => NONE
       val (tv, tu) = case tt of SOME (v, u) => (SOME v, u) | NONE => (NONE, E.TsF)
-      val rh = rhOf low
+      val rhEnd = "(?![A-Za-z0-9_%^]|\\s*(?:/|\\*|\\^|per\\b|mph\\b|knots?\\b|psi\\b|hpa\\b|pa\\b))"
+      val rm = unique (WN ^ "\\s*%\\s*(?:relative )?humidity\\b|(?:relative )?humidity\\s*(?:of|is|at|=)?\\s*" ^ WN ^ "\\s*%?" ^ rhEnd)
+      fun takeRh () = Option.map (fn m => weatherNumber (valOf (firstGroup low m [1,2]))) rm
+      val rh = takeRh ()
       val rhq = fqo rh
-    in
-      if has "\\b(?:tomorrow|next week|forecast|will it (?:rain|snow)|going to (?:rain|snow))\\b" low then NONE
+      fun takeTemp () = List.app (fn m => (tempValue m; ())) temps
+      val _ = used := []
+      fun windValue m = let val q = weatherNumber (g1 low m)
+        in if flt q (0,1) then raise InvalidWeatherInput else fq q end
+      val goals = [
+        has "\\bheat index\\b|\\bfeels like\\b.*\\bhumid" low,
+        has "\\bwind ?chill\\b" low,
+        has "\\bdew ?point\\b" low andalso has "\\bhumidity\\b" low,
+        has "\\bsaffir|\\bhurricane category\\b|\\bwhat category\\b.*\\b(?:hurricane|storm|wind)|\\bcategory (?:of|would)\\b.*\\bhurricane" low,
+        has "\\bbeaufort\\b" low,
+        has "\\bstandard atmosphere\\b|\\bisa\\b|\\blapse rate\\b" low]
+      val request =
+      if length (List.filter (fn x => x) goals) > 1 then NONE
+      else if has "\\b(?:tomorrow|next week|forecast|will it (?:rain|snow)|going to (?:rain|snow))\\b" low then NONE
       else if has "\\bheat index\\b|\\bfeels like\\b.*\\bhumid" low then
-        SOME (E.RWeather (E.WHeat (tv, tu, rhq)))
+        (takeTemp (); takeRh (); SOME (E.RWeather (E.WHeat (tv, tu, rhq))))
       else if has "\\bwind ?chill\\b" low then
-        let val wm = search (WN ^ "\\s*(mph|km/h|kph|kmh|m/s|knots?|kt)\\b") low
-        in SOME (E.RWeather (E.WChill (tv, tu, Option.map (fn m => fq (frOf (g1 low m))) wm,
+        let val wm = unique (WN ^ "\\s*(mph|km/h|kph|kmh|m/s|knots?|kt)\\b" ^ unitEnd)
+        in takeTemp (); SOME (E.RWeather (E.WChill (tv, tu, Option.map windValue wm,
                                        case wm of SOME m => windUnit (gs low m 2) | NONE => E.WMph))) end
       else
         let
@@ -686,15 +715,17 @@ struct
           if dewWord andalso has "\\bhumidity\\b" low andalso not (nTemps >= 2 andalso not (isSome rh)) then
             let
               val given = has ("\\bdew ?point\\s*(?:is|of|=|:|was|reads)?\\s*" ^ TMP) low orelse has (TMP ^ "\\s*dew ?point\\b") low
-            in SOME (E.RWeather (if given then E.WAirT (tv, tu, rhq) else E.WDew (tv, tu, rhq))) end
+            in takeTemp (); takeRh (); SOME (E.RWeather (if given then E.WAirT (tv, tu, rhq) else E.WDew (tv, tu, rhq))) end
           else if has "\\b(?:relative )?humidity\\b" low andalso dewWord then
             let
               val temps = findall TMPU low
             in
               if length temps < 2 then SOME (E.RWeather (E.WRH (NONE, NONE, E.RhBoth)))
+              else if length temps <> 2 then NONE
               else
                 let
-                  val cs = map (fn m => if startsWith "c" (gs low m 2) then frOf (g1 low m) else f2c (frOf (g1 low m))) temps
+                  val _ = List.app (fn m => (tempValue m; ())) temps
+                  val cs = map (fn m => if startsWith "c" (gs low m 2) then weatherNumber (g1 low m) else f2c (weatherNumber (g1 low m))) temps
                   val dm = case search ("\\bdew ?point\\s*(?:is|of|=|:|was|reads)?\\s*(?:" ^ TMP ^ ")") low of
                              SOME m => SOME m
                            | NONE => search (TMP ^ "\\s*dew ?point\\b") low
@@ -718,24 +749,28 @@ struct
                 end
             end
           else if has "\\bsaffir|\\bhurricane category\\b|\\bwhat category\\b.*\\b(?:hurricane|storm|wind)|\\bcategory (?:of|would)\\b.*\\bhurricane" low then
-            let val wm = search (WN ^ "\\s*(mph|km/h|kph|kmh|knots?|kt|m/s)\\b") low
-            in SOME (E.RWeather (E.WSaffir (Option.map (fn m => fq (frOf (g1 low m))) wm,
+            let val wm = unique (WN ^ "\\s*(mph|km/h|kph|kmh|knots?|kt|m/s)\\b" ^ unitEnd)
+            in SOME (E.RWeather (E.WSaffir (Option.map windValue wm,
                                             case wm of SOME m => windUnit (gs low m 2) | NONE => E.WMph))) end
           else if has "\\bbeaufort\\b" low then
-            let val wm = search (WN ^ "\\s*(knots?|kt|mph|m/s|km/h)\\b") low
-            in SOME (E.RWeather (E.WBeaufort (Option.map (fn m => fq (frOf (g1 low m))) wm,
+            let val wm = unique (WN ^ "\\s*(knots?|kt|mph|m/s|km/h|kph|kmh)\\b" ^ unitEnd)
+            in SOME (E.RWeather (E.WBeaufort (Option.map windValue wm,
                                               case wm of SOME m => windUnit (gs low m 2) | NONE => E.WKn))) end
-          else if has "\\bstandard atmosphere\\b|\\bisa\\b|\\blapse rate\\b" low andalso has "\\baltitude\\b|\\bheight\\b|\\belevation\\b|\\bat \\d" low then
+          else if has "\\bstandard atmosphere\\b|\\bisa\\b|\\blapse rate\\b" low andalso has ("\\baltitude\\b|\\bheight\\b|\\belevation\\b|\\bat " ^ WN) low then
             let
-              val am = search (WN ^ "\\s*(km|m|ft|feet|meters?|metres?)\\b") low
+              val am = unique (WN ^ "\\s*(km|m|ft|feet|meters?|metres?)\\b" ^ unitEnd)
               val au = case am of
                          SOME m => let val u = gs low m 2
                                    in if u = "km" then E.AltKm else if u = "ft" orelse u = "feet" then E.AltFt else E.AltM end
                        | NONE => E.AltM
-            in SOME (E.RWeather (E.WIsa (Option.map (fn m => fq (frOf (g1 low m))) am, au, has "\\bpressure\\b" low))) end
+            in SOME (E.RWeather (E.WIsa (Option.map (fn m => fq (weatherNumber (g1 low m))) am, au, has "\\bpressure\\b" low))) end
           else NONE
         end
+    in
+      if List.all (fn (marker,_) => List.exists (fn name => name=marker) (!used)) numbers
+      then request else NONE
     end
+    end handle InvalidWeatherInput => NONE
 
   (* ============================ greenhouse ============================ *)
   fun gUnit (u : string) : E.gunit = if String.sub (u, 0) = #"f" then E.GF else E.GC
@@ -816,8 +851,8 @@ struct
     in if has NOT_MINE low andalso not (has MINE low) then NONE else greenhouse text end
 
   (* ============================ dispatch ============================ *)
-  val organs = ["geography", "geology", "seismology", "hydrology", "ocean", "meteorology", "greenhouse", "greenhouse-r2"]
-  val familyOrder = ["geography", "geology", "seismology", "hydrology", "ocean", "meteorology", "greenhouse"]
+  val organs = ["geography", "geology", "seismology", "hydrology", "ocean", "meteorology", "meteorology-v2", "greenhouse", "greenhouse-r2"]
+  val familyOrder = ["geography", "geology", "seismology", "hydrology", "ocean", "meteorology-v2", "greenhouse"]
 
   fun byId id text =
     case id of
@@ -827,6 +862,7 @@ struct
     | "hydrology" => hydrology text
     | "ocean" => ocean text
     | "meteorology" => meteorology text
+    | "meteorology-v2" => meteorology text
     | "greenhouse" => greenhouse text
     | "greenhouse-r2" => greenhouseR2 text
     | _ => NONE

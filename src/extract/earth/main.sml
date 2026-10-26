@@ -7,7 +7,7 @@
 
    Usage: earth [--specialist ID]
      ID is one of geography, geology, seismology, hydrology, ocean,
-     meteorology, greenhouse, greenhouse-r2: only that manifest's organ is
+     meteorology, meteorology-v2, greenhouse, greenhouse-r2: only that manifest's organ is
      asked. Without it the whole family is asked in the recognizer's fixed
      order. *)
 structure Json =
