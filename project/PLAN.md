@@ -1,5 +1,6 @@
-> User-requested wrap-up: [WRAPUP-2026-10-18.md](WRAPUP-2026-10-18.md).
-> Work is stopped; unfinished work is preserved on named pushed branches.
+> Active again, 26 October: [appliance and correctness batch](APPLIANCE-2026-10-26.md).
+> Ember authorized appliance packaging, more specialists, upstream repairs and
+> broad Terra review. The October 18 wrap-up below is historical.
 
 > Latest terminal state and resume map: [DRAIN-2026-10-18.md](DRAIN-2026-10-18.md).
 > The usage-aware drain is complete; the broader project remains unfinished.
