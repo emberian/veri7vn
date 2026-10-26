@@ -25,7 +25,7 @@ comma-altitude cases. Baseline independent probe results are diagnostic only.
 Native execution, matching the preceding Poly/ML source check, scores 52/52
 dev and 58/58 heldout through all three modes
 (`meteorology-v2`, legacy `meteorology`, and family). Each mode has zero wrong,
-zero false yes, zero withheld valid answers, and six correct refusals. The 54 independent probes also pass in each mode; they measure quantity and
+zero false yes, zero withheld valid answers, and six correct refusals. The 59 independent probes also pass in each mode; they measure quantity and
 routing policies, not additional shipped panel answers. Native results are in
 `var/earth/ap1-meteorology/native-check.json`; source results remain separately
 in `var/earth/ap1-meteorology/source-check.json`. This packet does not remeasure
@@ -52,11 +52,11 @@ Changed files owned by this lane:
 Executed native build: `sh src/extract/earth/build.sh` (exit 0). The managed
 compiler validated the unchanged live HOL closure and existing checked export.
 Compile receipt:
-`var/earth/native-attempts/20261026T205849Z-ba662abc0c78/compile-inputs.json`.
-The 932,472-byte native binary SHA256 is
-`675414ef139f5d46a09b06a8008e456566fb6ce8a1704e4ca3b9fcc110c5e815`.
+`var/earth/native-attempts/20261026T210718Z-795a8232dcbc/compile-inputs.json`.
+The 932,520-byte native binary SHA256 is
+`fd7b42613289977736ae88e9552ca1dc70017860a3c0371f83d794d2e77a918c`.
 The frozen parser and native input hashes are also recorded in
-`var/earth/ap1-meteorology/source-snapshot.json` and `native-build.log`. Session is `Veri7vn_Earth`, historical proof marker is
+`var/earth/ap1-meteorology/source-snapshot.json` and `native-followup-build.log`. Session is `Veri7vn_Earth`, historical proof marker is
 `VERI7VN_EARTH PASS`; no new proof marker is claimed. Generated kernel SHA256 is
 `827fef6eaff03224df96f26a95cf91f64340267a064a969e272083212b910843`.
 Native inputs are the generated Earth kernel, Earth `regex.sml`, shared
@@ -76,3 +76,11 @@ No broad suite ran. `git diff --check` and Python syntax checks passed. Six
 concrete upstream counterexamples are preserved in
 `var/earth/ap1-meteorology/upstream-counterexamples.json` for a separate upstream
 contribution; this lane changed no upstream files.
+
+The root-authorized follow-up closes humidity unit/compound boundaries and
+requires unique explicit dew-point roles. Upstream repair review exposed these
+three gaps after the initial native run. Five added policies include both
+ascending and descending duplicate dew labels plus an adjacent labelled air/dew
+temperature positive control. The final source was interpreted first, then one
+authorized managed rebuild and the narrow native runner passed. Earlier build
+artifacts remain preserved; no HOL theory changed between these native builds.

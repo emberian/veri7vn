@@ -682,8 +682,8 @@ struct
       val temps = findall TMPU low
       val tt = case temps of [m] => SOME (tempValue m) | _ => NONE
       val (tv, tu) = case tt of SOME (v, u) => (SOME v, u) | NONE => (NONE, E.TsF)
-      val rhEnd = "(?![A-Za-z0-9_%^]|\\s*(?:/|\\*|\\^|per\\b|mph\\b|knots?\\b|psi\\b|hpa\\b|pa\\b))"
-      val rm = unique (WN ^ "\\s*%\\s*(?:relative )?humidity\\b|(?:relative )?humidity\\s*(?:of|is|at|=)?\\s*" ^ WN ^ "\\s*%?" ^ rhEnd)
+      val rhEnd = unitEnd ^ "(?=\\s*(?:[?.,;:]|$|\\b(?:and|at|with|for|find|what|calculate|compute)\\b))"
+      val rm = unique (WN ^ "\\s*%\\s*(?:relative )?humidity\\b" ^ unitEnd ^ "|(?:relative )?humidity\\s*(?:of|is|at|=)?\\s*" ^ WN ^ "\\s*%?" ^ rhEnd)
       fun takeRh () = Option.map (fn m => weatherNumber (valOf (firstGroup low m [1,2]))) rm
       val rh = takeRh ()
       val rhq = fqo rh
@@ -726,9 +726,9 @@ struct
                 let
                   val _ = List.app (fn m => (tempValue m; ())) temps
                   val cs = map (fn m => if startsWith "c" (gs low m 2) then weatherNumber (g1 low m) else f2c (weatherNumber (g1 low m))) temps
-                  val dm = case search ("\\bdew ?point\\s*(?:is|of|=|:|was|reads)?\\s*(?:" ^ TMP ^ ")") low of
+                  val dm = case unique ("\\bdew ?point\\s*(?:is|of|=|:|was|reads)?\\s*(?:" ^ TMP ^ ")") of
                              SOME m => SOME m
-                           | NONE => search (TMP ^ "\\s*dew ?point\\b") low
+                           | NONE => unique (TMP ^ "\\s*dew ?point\\b")
                 in
                   case dm of
                     NONE => SOME (E.RWeather (E.WRH (NONE, NONE, E.RhWhich)))
