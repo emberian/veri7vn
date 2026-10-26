@@ -91,14 +91,17 @@ def run(cmd, **kw):
 
 
 def ssh(script, args=()):
-    return run(["ssh", "-o", "BatchMode=yes", host, "sh", "-s"] + list(args), input=script)
+    return run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=15", host, "sh", "-s"] + list(args), input=script)
 
 
 def sha(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
-home = ssh('echo "$HOME"').stdout.strip().splitlines()[-1]
+home_result = ssh('echo "$HOME"')
+home = home_result.stdout.strip()
+if home_result.returncode or not home.startswith("/") or "\n" in home:
+    raise SystemExit("cannot determine remote home; see " + LOG.name)
 D = home + "/veri7vn-deploy"
 R = D + "/stage/" + RUN_ID   # sources and the fetched export are staged here; managed snapshot is retained for evidence
 

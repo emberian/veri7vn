@@ -10,7 +10,8 @@ inside Oracle7 or on their own.
 
 The aim is to answer more questions correctly, make the assumptions behind an
 answer inspectable, and let both systems grow from each other's components.
-There are implementations for all 144 non-relation specialist IDs and one
+There are implementations for 145 non-relation specialist IDs (including the
+new `meteorology-v2`) and one
 kernel serving the 161 relation readers. Connecting every capability through
 the combined runtime, strengthening its proofs and completing the specialists'
 intended algorithms are active work.
@@ -19,8 +20,14 @@ Each specialist is also being examined beyond its shipped question templates.
 The original answer is a comparison, not a correctness requirement: dropped
 signs, lost units, mistaken subjects and answers to the wrong requested quantity
 are repaired even when the old panels pass. The
-[current continuation](project/CODEX-2026-10-18.md) records integrated changes,
+[current batch](project/APPLIANCE-2026-10-26.md) records integrated changes,
 their measured scope and the next substantive defects.
+
+The [appliance tools](deploy/appliance/README.md) materialize pinned Oracle7 slim
+code and stores, apply the reviewed correctness repairs, and expose a private
+HTTP service with full answer evidence and retry handling. The October 26
+candidate passed a real-engine smoke and includes the new Linux Earth kernel.
+Mini authority/SPK integration is still separate work.
 
 A proof establishes a particular statement about a computation. It can show
 that a result satisfies an equation or a decision follows from supplied rows.
@@ -43,6 +50,7 @@ interference with other routes, identity handling and latency.
 | Oracle7 as shipped (published) | 15,478 / 14 | the control |
 | Oracle7 as shipped, reproduced here | 14,667 / 17 false yes | the 129 non-relation readers exact; the 161 relation readers run on a reconstructed linker index over the v1 store, and the 811 missing answers sit on properties the shipped store does not contain |
 | veri7vn: all 144 non-relation specialist IDs have implementations | no consolidated current score | individual repairs and extensions are being checked and integrated; see the current continuation |
+| Earth including new meteorology-v2 (26 Oct; `project/lanes/AP1-meteorology.md`) | 664/664 shipped panel items across nine IDs, 0 wrong/false yes, identical macOS/Linux replies | meteorology-v2 is 110/110 plus 59 independent quantity probes; registry now has 145 non-relation IDs; no new fleet-wide qualification |
 | Space, mechanics/space packet (18 Oct; `project/lanes/C-physical-mechanics-space.md`) | 1,185 / 1,185 right, 0 wrong, 0 false yes when pinned across eight specialists on shipped dev and held-out panels | the measured binary repairs astronomy and spacecraft cases; family mode scores 1,183 / 1,185, with two false yes outside the planetary panel's narrow scope |
 | Chemistry D (`54c6727`; `project/lanes/D-chemistry.md`) | 1,206 / 1,206 shipped-panel items right, 0 wrong, 0 false yes across five specialists | D's authored capability challenge classified 118 mathematically right, 0 wrong and 20 valid-but-unsupported withholds; its 138/138 direct and composed checks are policy regressions, not newly correct computations |
 | Selected Stores E package (`project/lanes/E-symbolic-stores.md`, `project/lanes/C-runtime-package.md`) | all 2,476 shipped replies match between bound Darwin and Linux binaries; relocated cooking-v3 and warehouse score 811 / 818 right, 0 wrong, 0 false yes, 55 withheld on both platforms | this is the selected E package; ambiguous servings may require clarification, and speculative host calls cannot place orders |

@@ -1,0 +1,193 @@
+{
+  "date": "2026-10-26",
+  "scope": "Bounded appliance and selected Earth integration, not a fleet qualification",
+  "runtime": "var/appliance-20261026/candidate",
+  "source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+  "local_upstream_head": "99502aa",
+  "upstream_contributions": {
+    "github": "https://github.com/psiloceyeben/oracle7/pull/1",
+    "huggingface": "https://huggingface.co/psiloceyeben/oracle7-slim/discussions/1",
+    "huggingface_commit": "ae034e4a3721b517647f2686c99f2c7c2c009918"
+  },
+  "appliance_manifest_sha256": "5e2115181f1b6f0b3fb27894e8c9838f1cf526e5242021420283779dd220517b",
+  "patch": {
+    "path": "deploy/appliance/patches/oracle7-slim-4.9-correctness.patch",
+    "sha256": "feb44d407634699545634350281e530b1bcc0ecf7bd951bdfc01655dbf99ecd6"
+  },
+  "adapter_sha256": "65e3d2941bfd47d80463adef1e60ee7ed51277d6d1e8af16ac7536df7f5a77ab",
+  "kernel_overlay_sha256": "91e3525e922f98a662d81e0c8a154dfaf51ee55ec24e37f6125cc0ea873be1d4",
+  "kernel_families": 20,
+  "kernel_specialist_ids": 137,
+  "veri7vn_registered_specialist_ids": 145,
+  "stores": [
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13a_wordnet_build_a_v4/wordnet_specialist.sqlite3",
+      "sha256": "5f330958033a397aeb1c7e8c4ce165edd1dd2c5e2a91efdf2dcd936c6b22b9c7",
+      "size": 77045760,
+      "zst_size": 19751628
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_conceptnet_build_a_v1/conceptnet_specialist.sqlite3",
+      "sha256": "5e28406c418ca1c82e5fae81ebafe826018c10094b66989c2ca5e97017913669",
+      "size": 491732992,
+      "zst_size": 98294620
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_dbpedia_build_a_v2/wikipedia_specialist.sqlite3",
+      "sha256": "cdbcfc53f8d12952ad748f47107384e218b5221b32b91c2d4ae59b2bbdbcdbd3",
+      "size": 1154691072,
+      "zst_size": 508181350
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_build_a_v1/wikipedia_specialist.sqlite3",
+      "sha256": "206020fdc40b7d3a76ce89d5b4e590a05e0772a363b254e139153a5b506e6b62",
+      "size": 816103424,
+      "zst_size": 358653251
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_full_build_a_v1/wikipedia_specialist.sqlite3",
+      "sha256": "cdbcfc53f8d12952ad748f47107384e218b5221b32b91c2d4ae59b2bbdbcdbd3",
+      "size": 1154691072,
+      "zst_size": 508181350
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_wiktionary_build_a_v1/wiktionary_specialist.sqlite3",
+      "sha256": "5ad78211433bd419be073ec60678c6df792b204f63b043cdbf28420b7ce63d1a",
+      "size": 234348544,
+      "zst_size": 76271098
+    },
+    {
+      "path": "root/fable-content/oracle-m-series-2026-08-15/m31_wordnet_corpus_v3.sqlite3",
+      "sha256": "73ec6c387676eac85d5b55e8f7c0df89c5ebf0f1f7ad183c7596e2f59dc7862c",
+      "size": 252764160,
+      "zst_size": 61367860
+    },
+    {
+      "path": "root/relstore/names_v1.sqlite3",
+      "sha256": "042f94dbe34089e70ca0ae1d3c8bf13c00610f0e22872dc4ba15360690922f2d",
+      "size": 1660297216,
+      "zst_size": 565581124
+    },
+    {
+      "path": "root/relstore/relations_v1.sqlite3",
+      "sha256": "8ef21f19237b8f977735e56a7b62e29943b37d01b5cb6778c217f9c080fbb6da",
+      "size": 3593560064,
+      "zst_size": 1113221569
+    },
+    {
+      "path": "root/relstore/relations_v2.sqlite3",
+      "sha256": "7df5c620982634e7ed6ff097f7d9082605cc879e9ee938d36d6a14af11cc4095",
+      "size": 5569425408,
+      "zst_size": 1725936675
+    }
+  ],
+  "store_bytes": 15004659712,
+  "unique_store_bytes": 13849968640,
+  "python_dependencies": {
+    "sympy": "1.14.0",
+    "mpmath": "1.3.0",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.8.0",
+    "nltk": "3.9.4",
+    "regex": "2026.5.9",
+    "zstandard": "0.25.0"
+  },
+  "real_engine": {
+    "platform": "darwin-arm64",
+    "queries": 5,
+    "checks": {
+      "leaves_of_grass": true,
+      "exact_retry": true,
+      "changed_retry_refused": true,
+      "weather_grouped_altitude": true,
+      "compound_altitude_refused": true,
+      "austen_followup": true,
+      "restart_replay_without_new_ledger_entry": true,
+      "source_tree_unchanged": true
+    },
+    "source_tree_changes": [],
+    "report": "var/appliance-20261026/candidate-smoke/smoke.json"
+  },
+  "earth": {
+    "panel_items": 664,
+    "right": 664,
+    "wrong": 0,
+    "false_yes": 0,
+    "correct_refusals": 44,
+    "linux_macos_differences": 0,
+    "meteorology_v2_panel": 110,
+    "independent_meteorology_probes": 59,
+    "darwin_sha256": "fd7b42613289977736ae88e9552ca1dc70017860a3c0371f83d794d2e77a918c",
+    "linux_sha256": "61646341c4baa7b68eef779baa1c67e9faa6f27f9ec2ac233bd5fca00d87674e",
+    "linux_receipt": "var/linux/receipt-earth-hbox-earth-1793048936-43071.json",
+    "linux_kernel_exchange": {
+      "passed": true,
+      "scope": "actual patched w551 process exchange and actual Linux Earth binary; parent runtime stubbed",
+      "queries": [
+        {
+          "question": "ISA temperature at 3,000 m altitude?",
+          "reply": {
+            "id": "w551-6cfe2db3a2c240fba0ac583479ad4d67",
+            "status": "answered",
+            "response": "The standard-atmosphere temperature is -4.5 C at 3000 m (ISA: 15 C - 6.5 C per km).",
+            "path": "specialist:meteorology-v2>isa_temperature",
+            "kind": "isa_temperature",
+            "value": -4.5,
+            "provenance": {
+              "taken": true,
+              "organ": "meteorology-v2",
+              "specialist_ms": 0.154,
+              "kernel": "Earth.reply_of",
+              "session": "Veri7vn_Earth",
+              "theorems": [
+                "gc_sound",
+                "gl_value_sound",
+                "seis_value_sound",
+                "sp_success_physical",
+                "gr_success_log_model",
+                "hy_value_sound",
+                "oc_value_sound",
+                "w_value_sound",
+                "gh_value_sound",
+                "render_x_sound"
+              ]
+            },
+            "kernel_binary": {
+              "name": "earth",
+              "sha256": "61646341c4baa7b68eef779baa1c67e9faa6f27f9ec2ac233bd5fca00d87674e"
+            }
+          }
+        },
+        {
+          "question": "ISA temperature at 3,000 m/s altitude?",
+          "reply": {
+            "id": "w551-c8b567c036f24ccca4c253f8f669e5cb",
+            "status": "withheld",
+            "response": "",
+            "path": "",
+            "provenance": {
+              "taken": false,
+              "specialist_ms": 0.066
+            },
+            "kernel_binary": {
+              "name": "earth",
+              "sha256": "61646341c4baa7b68eef779baa1c67e9faa6f27f9ec2ac233bd5fca00d87674e"
+            }
+          }
+        }
+      ]
+    },
+    "package": {
+      "path": "var/appliance-20261026/earth-package/veri7vn-specialists-2026-10-26.tar.gz",
+      "sha256": "4c7eaec4ed9f793858c82d312509808239532f85082b14fdcf92d05edb3db8cd"
+    }
+  },
+  "remaining": [
+    "Mini authority and SPK integration/deployment",
+    "Refresh older upstream kernels and current whole veri7vn fleet",
+    "WITH/YEAR premise semantics",
+    "Fresh upstream admission/release verification",
+    "Linux materializer publication path not exercised"
+  ]
+}

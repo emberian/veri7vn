@@ -1,0 +1,2 @@
+# Pin the release's one open-ended requirement for the qualified environment.
+zstandard==0.25.0

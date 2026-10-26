@@ -1,0 +1,114 @@
+{
+  "binaries": {
+    "earth": "61646341c4baa7b68eef779baa1c67e9faa6f27f9ec2ac233bd5fca00d87674e"
+  },
+  "specialists": {
+    "geography": {
+      "binary": "earth",
+      "flag": true,
+      "family": "earth",
+      "session": "Veri7vn_Earth"
+    },
+    "geology": {
+      "binary": "earth",
+      "flag": true,
+      "family": "earth",
+      "session": "Veri7vn_Earth"
+    },
+    "seismology": {
+      "binary": "earth",
+      "flag": true,
+      "family": "earth",
+      "session": "Veri7vn_Earth"
+    },
+    "hydrology": {
+      "binary": "earth",
+      "flag": true,
+      "family": "earth",
+      "session": "Veri7vn_Earth"
+    },
+    "ocean": {
+      "binary": "earth",
+      "flag": true,
+      "family": "earth",
+      "session": "Veri7vn_Earth"
+    },
+    "meteorology": {
+      "binary": "earth",
+      "flag": true,
+      "family": "earth",
+      "session": "Veri7vn_Earth"
+    },
+    "meteorology-v2": {
+      "binary": "earth",
+      "flag": true,
+      "family": "earth",
+      "session": "Veri7vn_Earth"
+    },
+    "greenhouse": {
+      "binary": "earth",
+      "flag": true,
+      "family": "earth",
+      "session": "Veri7vn_Earth"
+    },
+    "greenhouse-r2": {
+      "binary": "earth",
+      "flag": true,
+      "family": "earth",
+      "session": "Veri7vn_Earth"
+    }
+  },
+  "provenance": {
+    "earth": {
+      "source_revision": "2a782018996b58deec8b9d80054b0f4c6a4805a7",
+      "source_sha256": {
+        "src/extract/earth/Earth.thy": "44a8f7254e819ba32e76b65345fc42b1006a5d13e382d48ceff005fd2ce8165a",
+        "src/extract/earth/Earth_Export.thy": "dcf1bd77db02a3f179826a5c2e750a80f8241d94dedd81e80b88b7d9ab8a306c",
+        "src/extract/earth/Earth_Geo.thy": "e4c38e321eaede3f13a9353fb2f9f69ac3bc9f159bd1f718b6943f8587e35de8",
+        "src/extract/earth/Earth_Geol.thy": "9eaa38ceee71aba26d66983f4e0980e9c516924e92e46b105dd80fc7296a0b68",
+        "src/extract/earth/Earth_Green.thy": "e5beafd339fbf1087f1346020d14bc96e520a86fabbb17eed0ab0735b9676f13",
+        "src/extract/earth/Earth_Hydro.thy": "d49d77fcf6dba1b512b86b7dcfbb0bc700d03cad6957eb794ca6f66ef2406b06",
+        "src/extract/earth/Earth_Num.thy": "6cf2e60546edfaa1b88c55ede084d070ef504dcedc37c014ce19870a97c1d203",
+        "src/extract/earth/Earth_Ocean.thy": "130ce30fd3990820983d07670171086a1088af2e25e87e928fb472220ed92fca",
+        "src/extract/earth/Earth_Seis.thy": "4b7ceb70c40667b20723b0a5c57717ac6535685581ad224291b452abb24bdfdb",
+        "src/extract/earth/Earth_Weather.thy": "6982e2dc87cfc03745ede88734a28597fae41d8d6e1a00c38f4c2429f0aa7bcf",
+        "src/extract/earth/README.md": "d1d0c3bd697b73f36b3ec32fdfcca3a71cfd3a7f62c38578c652551af0aa4f6e",
+        "src/extract/earth/ROOT": "9f8848d2dd3ac7414cf5a568ec94678308756c2a32271ccc6c737322157d62fa",
+        "src/extract/earth/base/Earth_Base.thy": "e224c4dbc33afbb47cda1d51571a4a84bebd0285608319ac0a8eb02607aab119",
+        "src/extract/earth/beyond-probes.json": "abe6c4ba20a20cd4a914546141e264d7e460f5d835b887f989a056e9eabb3672",
+        "src/extract/earth/beyond.py": "cba53ce794c020e98f62d403e7d2138f0b6a70f056dc219a3387b4f02895e208",
+        "src/extract/earth/build.sh": "74fa08c6e629a9f0fe0ba23796007e8a3ad82eeb9c99d99c98727bb4561ace36",
+        "src/extract/earth/capabilities.json": "83019a3b82bea6b5a938b6a25cb4e423d4f78cb8f935eba433ec65f28f67ee41",
+        "src/extract/earth/main.sml": "f4e8d13ad3e47b533d86c4a6d86875e20bfa4adfe5ab727be37fb23aab45dd99",
+        "src/extract/earth/meteorology_v2_check.py": "37c6f5e91ddc67fe08a081c33fd1d5361d195d9465b6320401b945856e3bf1dc",
+        "src/extract/earth/recognizer.sml": "272a863eb9a92684103da723ffeaca4e236c0d7dc81675d777a05b6580cedef5",
+        "src/extract/earth/regex.sml": "b92ddc22aa6f002a6ee7bc156ecdb78c06bceb6bfa62764e432be462d3959f59",
+        "src/extract/earth/score.py": "36761e8311a7a0aca92b332b6e752727a6328a3b839bdea90db9691be73929d5",
+        "src/extract/earth/tables_check.py": "81b8c1fb19614869bf586b8d882005b505f254ef866482817496b5bb6be1c63d",
+        "src/extract/commons/numeric.sml": "2f313c77fadce09298f0387599e630b04a6551e800f52b6c79a88468b2cc046d",
+        "src/extract/families.json": "745488ff10184e5ffa3dd0255efe9a794df22fd4ae3071b87b578b4cd790c3cd",
+        "tools/code_evidence.py": "8b611520e9d010d9baa89cc305cb04fcab4bc015deacc3413e9e210987880f5f",
+        "tools/runtime_contract.py": "d766eda61b383939933234214e3fc943c0f26020d505d8cea20439c401f4eb70"
+      },
+      "build_receipt_sha256": "681f5c4734c2421b220af217733d6fa7a6df7dee4458eb0b16807b8808aeb18d",
+      "build_receipt": "var/linux/receipt-earth-hbox-earth-1793048936-43071.json",
+      "validation": {
+        "panel_right": 664,
+        "panel_wrong": 0,
+        "false_yes": 0,
+        "macos_linux_differences": 0
+      },
+      "scope": "Existing proved Earth formulas; untrusted quantity recognition; scoped panel checks, not a fleet qualification.",
+      "runtime_requirements": {
+        "architecture": "linux-x86_64",
+        "dynamic_libraries": [
+          "libgmp.so.10",
+          "libc.so.6"
+        ],
+        "minimum_referenced_glibc": "2.34",
+        "interpreter": "/lib64/ld-linux-x86-64.so.2",
+        "inspection": "ldd and objdump on hbox after the passing scoped build"
+      }
+    }
+  }
+}
