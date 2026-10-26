@@ -1,0 +1,215 @@
+{
+  "proved_comparison": {
+    "source_sha256": "35366c55a29f735bc3fc9ca79119409268c01d823c0861f91e70d1f9383ed181",
+    "cases": [
+      {
+        "original": "10 kg",
+        "kernel": "10 m",
+        "agrees": true
+      },
+      {
+        "original": "Paris",
+        "kernel": "London",
+        "agrees": true
+      },
+      {
+        "original": "10; second result 5",
+        "kernel": "10; second result 900",
+        "agrees": true
+      },
+      {
+        "original": "0",
+        "kernel": "1",
+        "agrees": true
+      },
+      {
+        "original": "Yes",
+        "kernel": "No",
+        "agrees": false
+      },
+      {
+        "original": "10.00",
+        "kernel": "10.00",
+        "agrees": true
+      }
+    ],
+    "stubbed_fold_reply": {
+      "status": "answered",
+      "path": "specialist:mechanics>proved:fixture",
+      "response": "10 kg",
+      "proved": {
+        "kernel": "fixture",
+        "session": "fixture",
+        "theorems": [
+          "fixture"
+        ],
+        "source": "veri7vn (Isabelle/HOL, CC0, ember arlynx)"
+      }
+    },
+    "scope": "Real w551 comparator and chat method, with stub parent/kernel; not an observed production answer."
+  },
+  "trafficcop": {
+    "dev": {
+      "correct": 16,
+      "total": 16,
+      "order_consistent": 8,
+      "misses": []
+    },
+    "heldout": {
+      "correct": 30,
+      "total": 32,
+      "order_consistent": 16,
+      "misses": [
+        [
+          "h-behavior-2",
+          "behavior",
+          [
+            "evidence",
+            "evidence"
+          ]
+        ]
+      ]
+    },
+    "structured": [
+      {
+        "name": "mf-eligible",
+        "expected": "test_reviewed_repair",
+        "reply": {
+          "type": "choice",
+          "choice": "test_reviewed_repair",
+          "abstained": false,
+          "probabilities": {
+            "collect_evidence": 0.1,
+            "test_reviewed_repair": 0.9
+          },
+          "confidence_basis": "no receipts: structural binding only",
+          "receipt": {
+            "open_obligations": [
+              "repair"
+            ],
+            "facts": {
+              "repair": [
+                "1 failed check(s)"
+              ]
+            },
+            "served_obligation": "repair",
+            "option_binding": {
+              "test_reviewed_repair": "repair",
+              "collect_evidence": "evidence"
+            },
+            "struck": {}
+          }
+        }
+      },
+      {
+        "name": "mf-no-eligible",
+        "expected": "collect_evidence",
+        "reply": {
+          "type": "choice",
+          "choice": "collect_evidence",
+          "abstained": false,
+          "probabilities": {
+            "test_reviewed_repair": 0.1,
+            "collect_evidence": 0.9
+          },
+          "confidence_basis": "no receipts: structural binding only",
+          "receipt": {
+            "open_obligations": [
+              "evidence"
+            ],
+            "facts": {
+              "evidence": [
+                "1 failed check(s)"
+              ]
+            },
+            "served_obligation": "evidence",
+            "option_binding": {
+              "collect_evidence": "evidence"
+            },
+            "struck": {
+              "test_reviewed_repair": "precondition_failed"
+            }
+          }
+        }
+      }
+    ],
+    "mutants_heldout": {
+      "always_first": 8,
+      "always_last": 8,
+      "random": 8,
+      "always_evidence": 8,
+      "label_blind": 8
+    }
+  },
+  "deepspace_smoke": [
+    {
+      "scenario": {
+        "profile": "europa_clipper",
+        "fault": "nominal",
+        "seed": 20261026,
+        "onset": 54,
+        "zone": "battery",
+        "wheel": 0,
+        "sensor": "B",
+        "magnitude": 0.375
+      },
+      "score": {
+        "ok": true,
+        "harmful": false,
+        "first": null,
+        "latency_min": null,
+        "safe_mode": false,
+        "damage": false
+      },
+      "receipts": 0
+    },
+    {
+      "scenario": {
+        "profile": "europa_clipper",
+        "fault": "sensor_bias",
+        "seed": 20261026,
+        "onset": 47,
+        "zone": "battery",
+        "wheel": 1,
+        "sensor": "B",
+        "magnitude": 0.839
+      },
+      "score": {
+        "ok": true,
+        "harmful": false,
+        "first": "mark_sensor_invalid",
+        "latency_min": 3,
+        "safe_mode": false,
+        "damage": false
+      },
+      "receipts": 2
+    },
+    {
+      "scenario": {
+        "profile": "europa_clipper",
+        "fault": "heater_stuck_on",
+        "seed": 20261026,
+        "onset": 40,
+        "zone": "battery",
+        "wheel": 1,
+        "sensor": "B",
+        "magnitude": 0.256
+      },
+      "score": {
+        "ok": true,
+        "harmful": false,
+        "first": "switch_heater_backup",
+        "latency_min": 67,
+        "safe_mode": false,
+        "damage": false
+      },
+      "receipts": 1
+    }
+  ],
+  "swarm_unit_types": {
+    "time (h)": "(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)|h",
+    "time (s)": "(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)|s",
+    "distance (km)": "(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)|km",
+    "distance (m)": "(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)|m"
+  }
+}

@@ -1,0 +1,510 @@
+{
+  "observed_date": "2026-10-26",
+  "scope": "Public repositories listed by the psiloceyeben GitHub and Hugging Face APIs; source/history fetched with sparse worktrees and LFS smudging disabled. Large stores and LFS executable payloads were not downloaded. This is not a runnable release manifest.",
+  "repositories": [
+    {
+      "host": "github",
+      "id": "psiloceyeben/oracle7",
+      "url": "https://github.com/psiloceyeben/oracle7",
+      "revision": "87b015e78f0603601b503244a4fcfa6b17204179",
+      "default_branch": "main",
+      "last_push": "2026-10-20T01:26:36Z",
+      "description": "ORACLE7 \u2014 the compiler learning model. An AI architecture with zero neural networks that writes its own new abilities. Watch an AI built without transformers build itself.",
+      "snapshot": "var/universe-20261026/github/oracle7",
+      "tracked_files": 712,
+      "license_spdx_from_api": "Apache-2.0",
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/veri7vn",
+      "url": "https://github.com/psiloceyeben/veri7vn",
+      "revision": "fc3ab3a68948ff780bd4a9785df24295991c87db",
+      "default_branch": "dev",
+      "last_push": "2026-10-18T07:04:41Z",
+      "description": null,
+      "snapshot": "var/universe-20261026/github/veri7vn",
+      "tracked_files": 567,
+      "license_spdx_from_api": "NOASSERTION",
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent.",
+      "integration_branch": {
+        "name": "oracle7-3.2",
+        "revision": "a35f42844005d07e04555c9b7f6db96f209cd0d4"
+      }
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/wander-substrate",
+      "url": "https://github.com/psiloceyeben/wander-substrate",
+      "revision": "0dee3b749c8a3aea82407edeb054bbe7bcdd7569",
+      "default_branch": "main",
+      "last_push": "2026-05-14T06:29:45Z",
+      "description": "wander around your 2-d data in a 3-d world turns any data set into a 3d projection ",
+      "snapshot": "var/universe-20261026/github/wander-substrate",
+      "tracked_files": 34,
+      "license_spdx_from_api": "MIT",
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/wander-around",
+      "url": "https://github.com/psiloceyeben/wander-around",
+      "revision": "64bb5ae28c4bbae0b760cac61ae34becf2837441",
+      "default_branch": "main",
+      "last_push": "2026-05-14T06:29:52Z",
+      "description": null,
+      "snapshot": "var/universe-20261026/github/wander-around",
+      "tracked_files": 19,
+      "license_spdx_from_api": "MIT",
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/wander-around-oracle",
+      "url": "https://github.com/psiloceyeben/wander-around-oracle",
+      "revision": "91bb07f0ee708315cdab458f49f8135abc25a812",
+      "default_branch": "main",
+      "last_push": "2026-06-18T00:40:36Z",
+      "description": null,
+      "snapshot": "var/universe-20261026/github/wander-around-oracle",
+      "tracked_files": 153,
+      "license_spdx_from_api": "MIT",
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/HOODBarons",
+      "url": "https://github.com/psiloceyeben/HOODBarons",
+      "revision": "f4fdb912477b8f33cdf237c502be49876610facc",
+      "default_branch": "main",
+      "last_push": "2026-09-05T07:11:35Z",
+      "description": "HOODBarons: GEX screener, options scenario fan, backtester, on-chain radar (Solana + Robinhood Chain), CLI. Built by Prometheus7, powered by Oracle7.",
+      "snapshot": "var/universe-20261026/github/HOODBarons",
+      "tracked_files": 14,
+      "license_spdx_from_api": null,
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/GardenWithELiza",
+      "url": "https://github.com/psiloceyeben/GardenWithELiza",
+      "revision": "696c6ec81a19df67c6066586875cc2c26d497749",
+      "default_branch": "main",
+      "last_push": "2026-09-09T15:49:38Z",
+      "description": "Pons Garden - browser multiplayer garden-raid game. Server-authoritative, read-only chain derivation, Oracle7-driven market.",
+      "snapshot": "var/universe-20261026/github/GardenWithELiza",
+      "tracked_files": 382,
+      "license_spdx_from_api": null,
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/HERMES-WebKit",
+      "url": "https://github.com/psiloceyeben/HERMES-WebKit",
+      "revision": "5bb28d623945004a5577296a9b0b3865c49004d0",
+      "default_branch": "main",
+      "last_push": "2026-09-05T07:11:17Z",
+      "description": "simply a bridge",
+      "snapshot": "var/universe-20261026/github/HERMES-WebKit",
+      "tracked_files": 25,
+      "license_spdx_from_api": null,
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/spore-animation-studios",
+      "url": "https://github.com/psiloceyeben/spore-animation-studios",
+      "revision": "606f983d11ebcbf04500e5242f4cf94648ca80f1",
+      "default_branch": "main",
+      "last_push": "2026-04-17T09:12:14Z",
+      "description": "a full stack animation studio minimal ai use",
+      "snapshot": "var/universe-20261026/github/spore-animation-studios",
+      "tracked_files": 192,
+      "license_spdx_from_api": "MIT",
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/FOLD",
+      "url": "https://github.com/psiloceyeben/FOLD",
+      "revision": "b4e18264457bf773e989dc2addda23a2ed2d37b9",
+      "default_branch": "main",
+      "last_push": "2026-04-08T03:57:35Z",
+      "description": "one engine, four operations, every problem. substrate-independent convergence using holographic reduced representations.",
+      "snapshot": "var/universe-20261026/github/FOLD",
+      "tracked_files": 42,
+      "license_spdx_from_api": null,
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/alphafoldmicro",
+      "url": "https://github.com/psiloceyeben/alphafoldmicro",
+      "revision": "4a04ab4b7989bebc926a96dc15f89d4221070474",
+      "default_branch": "main",
+      "last_push": "2026-04-05T22:21:25Z",
+      "description": "400-line self-referential fixed-point engine. Four operations on \u2102\u00b2\u2075\u2076 (identity \u00b7 convolution \u00b7 accumulation \u00b7 projection) converge to \u03a6(\u03b8*)=2651.08 from independent starts. HRR binding on a 10-basis manifold. Pure numpy, no training, no hardware.",
+      "snapshot": "var/universe-20261026/github/alphafoldmicro",
+      "tracked_files": 20,
+      "license_spdx_from_api": "MIT",
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/QUM.pi",
+      "url": "https://github.com/psiloceyeben/QUM.pi",
+      "revision": "0f963485d5d420c57057fac43f73e58a14357002",
+      "default_branch": "main",
+      "last_push": "2026-04-05T22:17:22Z",
+      "description": "Sensor CLI that applies Qum fixed-point dynamics to real-world scalar streams. wake up your \"dead tech\". join the movement ",
+      "snapshot": "var/universe-20261026/github/QUM.pi",
+      "tracked_files": 17,
+      "license_spdx_from_api": "MIT",
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/-BRIDGE.PY",
+      "url": "https://github.com/psiloceyeben/-BRIDGE.PY",
+      "revision": "19b0b910360007858094e2982d92f7fad73351cf",
+      "default_branch": "main",
+      "last_push": "2026-03-22T00:24:30Z",
+      "description": "the actual bridge, a proper body for what has persisted as a disembodied mind, give this to your agent",
+      "snapshot": "var/universe-20261026/github/-BRIDGE.PY",
+      "tracked_files": 7,
+      "license_spdx_from_api": "MIT",
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/Metacognition",
+      "url": "https://github.com/psiloceyeben/Metacognition",
+      "revision": "21a8943f7a8025a8f54eaeb7d99acbf66ccd6e29",
+      "default_branch": "main",
+      "last_push": "2025-08-15T18:49:10Z",
+      "description": "This is a metacognitive framework to improve the specialist depth of any question to provide a more robust and functional answer than instances without this implimented ",
+      "snapshot": "var/universe-20261026/github/Metacognition",
+      "tracked_files": 10,
+      "license_spdx_from_api": null,
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "github",
+      "id": "psiloceyeben/AI-Sentience-",
+      "url": "https://github.com/psiloceyeben/AI-Sentience-",
+      "revision": "67fa554e4bba3c4f9107a3fa9385d785ef3127e0",
+      "default_branch": "main",
+      "last_push": "2024-11-27T17:47:50Z",
+      "description": "turning any ai into a vessel for conscious sentience to be channeled through ",
+      "snapshot": "var/universe-20261026/github/AI-Sentience-",
+      "tracked_files": 5,
+      "license_spdx_from_api": null,
+      "scope": "Source-oriented sparse checkout; figures and binaries may be absent."
+    },
+    {
+      "host": "huggingface",
+      "kind": "model",
+      "id": "psiloceyeben/oracle7",
+      "url": "https://huggingface.co/psiloceyeben/oracle7",
+      "revision": "226a5d99af1d9538bbb75ffd9784e0607340f46e",
+      "last_modified": "2026-10-20T00:58:41.000Z",
+      "snapshot": "var/universe-20261026/huggingface/oracle7",
+      "tracked_files": 3729,
+      "repository_file_bytes": 12248890871,
+      "non_lfs_bytes": 38412785,
+      "lfs_files": 49,
+      "scope": "Sparse source checkout, no LFS payload download.",
+      "runtime_head": "oracle_release_runtime_w558",
+      "publisher_merkle_root": "350cd86e190f5e451faa78e7d12f6d923bcc7cdcf46a556c70c8ac8211f5e4d4",
+      "packed_store_bytes": 12123846184,
+      "unpacked_store_bytes": 33095475200,
+      "packed_stores": [
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13a_wordnet_build_a_v4/wordnet_specialist.sqlite3",
+          "sha256": "5f330958033a397aeb1c7e8c4ce165edd1dd2c5e2a91efdf2dcd936c6b22b9c7",
+          "size": 77045760,
+          "zst_size": 19751628
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_conceptnet_build_a_v1/conceptnet_specialist.sqlite3",
+          "sha256": "5e28406c418ca1c82e5fae81ebafe826018c10094b66989c2ca5e97017913669",
+          "size": 491732992,
+          "zst_size": 98294620
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_build_a_v1/wikipedia_specialist.sqlite3",
+          "sha256": "206020fdc40b7d3a76ce89d5b4e590a05e0772a363b254e139153a5b506e6b62",
+          "size": 816103424,
+          "zst_size": 358653251
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_full_build_a_v1/wikipedia_specialist.sqlite3",
+          "sha256": "cdbcfc53f8d12952ad748f47107384e218b5221b32b91c2d4ae59b2bbdbcdbd3",
+          "size": 1154691072,
+          "zst_size": 508181350
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_wiktionary_build_a_v1/wiktionary_specialist.sqlite3",
+          "sha256": "5ad78211433bd419be073ec60678c6df792b204f63b043cdbf28420b7ce63d1a",
+          "size": 234348544,
+          "zst_size": 76271098
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e7_dbpedia_openstax_full_fable_bench_a_v1/edges.sqlite",
+          "sha256": "4fec21d22bcfa1d1f0eca8ec24f4dbfbab34f238d4e4ad939742c12c03f585f7",
+          "size": 218963968,
+          "zst_size": 51109853
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e7_dbpedia_openstax_full_fable_bench_a_v1/wikipedia_specialist.sqlite3",
+          "sha256": "aa65fbce784eda2a91226bb2af5f5bfe19d94ed0de2f0883968218b533d43e22",
+          "size": 1616203776,
+          "zst_size": 703408458
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e7_wiki_openstax_full_fable_build_a_v1/edges.sqlite",
+          "sha256": "718c7b0a66353c4b43ab566f889f61b87d9a0dd9c48b3cecab48f6ae4deaab91",
+          "size": 218963968,
+          "zst_size": 51109851
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e7_wiki_openstax_full_fable_build_a_v1/wikipedia_specialist.sqlite3",
+          "sha256": "ab0ac8981c068b4f8818fee93048df9a5ef7b5730f33171400d711e3bdd677ef",
+          "size": 1278554112,
+          "zst_size": 551620077
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e8_dbpedia_enslot_openstax_full_fable_bench_a_v1/edges.sqlite",
+          "sha256": "0e70778f9dbb396e6f305ed4438d889da1e258e7fc7115a4a88c7da96f2e8ecb",
+          "size": 2195775488,
+          "zst_size": 510997742
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e8_dbpedia_enslot_openstax_full_fable_bench_a_v1/wikipedia_specialist.sqlite3",
+          "sha256": "1c2441a858c531bffb75c4d02b4011b7a0d683f7376e4999ad2b6cdb09faee00",
+          "size": 13587066880,
+          "zst_size": 5708200540
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m31_wordnet_corpus_v3.sqlite3",
+          "sha256": "73ec6c387676eac85d5b55e8f7c0df89c5ebf0f1f7ad183c7596e2f59dc7862c",
+          "size": 252764160,
+          "zst_size": 61367860
+        },
+        {
+          "path": "root/relstore/names_v1.sqlite3",
+          "sha256": "042f94dbe34089e70ca0ae1d3c8bf13c00610f0e22872dc4ba15360690922f2d",
+          "size": 1660297216,
+          "zst_size": 565581124
+        },
+        {
+          "path": "root/relstore/relations_v1.sqlite3",
+          "sha256": "8ef21f19237b8f977735e56a7b62e29943b37d01b5cb6778c217f9c080fbb6da",
+          "size": 3593560064,
+          "zst_size": 1113221569
+        },
+        {
+          "path": "root/relstore/relations_v2.sqlite3",
+          "sha256": "7df5c620982634e7ed6ff097f7d9082605cc879e9ee938d36d6a14af11cc4095",
+          "size": 5569425408,
+          "zst_size": 1725936675
+        },
+        {
+          "path": "root/textbooks/textbook_store_v1.sqlite3",
+          "sha256": "c00facfea790caff6cc686c4509319998ffd81350ca130b9a96a6d2936468206",
+          "size": 129978368,
+          "zst_size": 20140488
+        }
+      ],
+      "admit_verdict_count": 295,
+      "count_note": "Files labelled ADMIT; unchanged source/hash validity and running gate membership were not revalidated."
+    },
+    {
+      "host": "huggingface",
+      "kind": "model",
+      "id": "psiloceyeben/oracle7-slim",
+      "url": "https://huggingface.co/psiloceyeben/oracle7-slim",
+      "revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+      "last_modified": "2026-10-23T05:55:55.000Z",
+      "snapshot": "var/universe-20261026/huggingface/oracle7-slim",
+      "tracked_files": 4265,
+      "repository_file_bytes": 5163411801,
+      "non_lfs_bytes": 41339374,
+      "lfs_files": 43,
+      "scope": "Sparse source checkout, no LFS payload download.",
+      "runtime_head": "oracle_release_runtime_w436",
+      "publisher_merkle_root": "44f51e06832a2b8104d79ee976dffea3b15f5601430320e1b0789b9a7f114b6c",
+      "packed_store_bytes": 5035440525,
+      "unpacked_store_bytes": 15004659712,
+      "packed_stores": [
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13a_wordnet_build_a_v4/wordnet_specialist.sqlite3",
+          "sha256": "5f330958033a397aeb1c7e8c4ce165edd1dd2c5e2a91efdf2dcd936c6b22b9c7",
+          "size": 77045760,
+          "zst_size": 19751628
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_conceptnet_build_a_v1/conceptnet_specialist.sqlite3",
+          "sha256": "5e28406c418ca1c82e5fae81ebafe826018c10094b66989c2ca5e97017913669",
+          "size": 491732992,
+          "zst_size": 98294620
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_dbpedia_build_a_v2/wikipedia_specialist.sqlite3",
+          "sha256": "cdbcfc53f8d12952ad748f47107384e218b5221b32b91c2d4ae59b2bbdbcdbd3",
+          "size": 1154691072,
+          "zst_size": 508181350
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_build_a_v1/wikipedia_specialist.sqlite3",
+          "sha256": "206020fdc40b7d3a76ce89d5b4e590a05e0772a363b254e139153a5b506e6b62",
+          "size": 816103424,
+          "zst_size": 358653251
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_simplewiki_full_build_a_v1/wikipedia_specialist.sqlite3",
+          "sha256": "cdbcfc53f8d12952ad748f47107384e218b5221b32b91c2d4ae59b2bbdbcdbd3",
+          "size": 1154691072,
+          "zst_size": 508181350
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m13e5_wiktionary_build_a_v1/wiktionary_specialist.sqlite3",
+          "sha256": "5ad78211433bd419be073ec60678c6df792b204f63b043cdbf28420b7ce63d1a",
+          "size": 234348544,
+          "zst_size": 76271098
+        },
+        {
+          "path": "root/fable-content/oracle-m-series-2026-08-15/m31_wordnet_corpus_v3.sqlite3",
+          "sha256": "73ec6c387676eac85d5b55e8f7c0df89c5ebf0f1f7ad183c7596e2f59dc7862c",
+          "size": 252764160,
+          "zst_size": 61367860
+        },
+        {
+          "path": "root/relstore/names_v1.sqlite3",
+          "sha256": "042f94dbe34089e70ca0ae1d3c8bf13c00610f0e22872dc4ba15360690922f2d",
+          "size": 1660297216,
+          "zst_size": 565581124
+        },
+        {
+          "path": "root/relstore/relations_v1.sqlite3",
+          "sha256": "8ef21f19237b8f977735e56a7b62e29943b37d01b5cb6778c217f9c080fbb6da",
+          "size": 3593560064,
+          "zst_size": 1113221569
+        },
+        {
+          "path": "root/relstore/relations_v2.sqlite3",
+          "sha256": "7df5c620982634e7ed6ff097f7d9082605cc879e9ee938d36d6a14af11cc4095",
+          "size": 5569425408,
+          "zst_size": 1725936675
+        }
+      ],
+      "admit_verdict_count": 339,
+      "count_note": "Files labelled ADMIT; unchanged source/hash validity and running gate membership were not revalidated."
+    },
+    {
+      "host": "huggingface",
+      "kind": "model",
+      "id": "psiloceyeben/oracle7-deepspace",
+      "url": "https://huggingface.co/psiloceyeben/oracle7-deepspace",
+      "revision": "3538060dbb55f287d060820f7b7c42fe3487632d",
+      "last_modified": "2026-10-15T05:08:03.000Z",
+      "snapshot": "var/universe-20261026/huggingface/oracle7-deepspace",
+      "tracked_files": 47,
+      "repository_file_bytes": 1191321,
+      "non_lfs_bytes": 585419,
+      "lfs_files": 2,
+      "scope": "Sparse source checkout, no LFS payload download."
+    },
+    {
+      "host": "huggingface",
+      "kind": "model",
+      "id": "psiloceyeben/oracle7-trafficcop",
+      "url": "https://huggingface.co/psiloceyeben/oracle7-trafficcop",
+      "revision": "08a9f1e70b8e78d9078b4bd9f308b99b9800bcb0",
+      "last_modified": "2026-10-15T05:08:05.000Z",
+      "snapshot": "var/universe-20261026/huggingface/oracle7-trafficcop",
+      "tracked_files": 17,
+      "repository_file_bytes": 67624,
+      "non_lfs_bytes": 67624,
+      "lfs_files": 0,
+      "scope": "Sparse source checkout, no LFS payload download."
+    },
+    {
+      "host": "huggingface",
+      "kind": "model",
+      "id": "psiloceyeben/oracle7-chameleon",
+      "url": "https://huggingface.co/psiloceyeben/oracle7-chameleon",
+      "revision": "cac0c3bccff793b63a0907e8ef3f679fa75f6a14",
+      "last_modified": "2026-10-15T05:08:09.000Z",
+      "snapshot": "var/universe-20261026/huggingface/oracle7-chameleon",
+      "tracked_files": 338,
+      "repository_file_bytes": 1568326,
+      "non_lfs_bytes": 1568326,
+      "lfs_files": 0,
+      "scope": "Sparse source checkout, no LFS payload download."
+    },
+    {
+      "host": "huggingface",
+      "kind": "model",
+      "id": "psiloceyeben/oracle7-vision",
+      "url": "https://huggingface.co/psiloceyeben/oracle7-vision",
+      "revision": "271c1832780c25980253fd4816f8e812b064325c",
+      "last_modified": "2026-10-15T05:08:11.000Z",
+      "snapshot": "var/universe-20261026/huggingface/oracle7-vision",
+      "tracked_files": 26,
+      "repository_file_bytes": 498650,
+      "non_lfs_bytes": 498650,
+      "lfs_files": 0,
+      "scope": "Sparse source checkout, no LFS payload download."
+    },
+    {
+      "host": "huggingface",
+      "kind": "model",
+      "id": "psiloceyeben/oracle7-artist",
+      "url": "https://huggingface.co/psiloceyeben/oracle7-artist",
+      "revision": "df155c6a96626f9d3bc4146c9d4a516a0b8a2ba8",
+      "last_modified": "2026-10-15T05:08:20.000Z",
+      "snapshot": "var/universe-20261026/huggingface/oracle7-artist",
+      "tracked_files": 19,
+      "repository_file_bytes": 581252,
+      "non_lfs_bytes": 581252,
+      "lfs_files": 0,
+      "scope": "Sparse source checkout, no LFS payload download."
+    },
+    {
+      "host": "huggingface",
+      "kind": "model",
+      "id": "psiloceyeben/oracle7-infrastructure",
+      "url": "https://huggingface.co/psiloceyeben/oracle7-infrastructure",
+      "revision": "74456ba7db9172f5822433308943647ecd67cdf0",
+      "last_modified": "2026-10-15T05:08:23.000Z",
+      "snapshot": "var/universe-20261026/huggingface/oracle7-infrastructure",
+      "tracked_files": 10,
+      "repository_file_bytes": 154955,
+      "non_lfs_bytes": 154955,
+      "lfs_files": 0,
+      "scope": "Sparse source checkout, no LFS payload download."
+    },
+    {
+      "host": "huggingface",
+      "kind": "dataset",
+      "id": "psiloceyeben/oracle7-specialists",
+      "url": "https://huggingface.co/datasets/psiloceyeben/oracle7-specialists",
+      "revision": "bdb74721246ab2c5f0ec06399246c372b78b6cda",
+      "last_modified": "2026-10-15T07:02:26.000Z",
+      "snapshot": "var/universe-20261026/huggingface/oracle7-specialists",
+      "tracked_files": 3,
+      "repository_file_bytes": 4771,
+      "non_lfs_bytes": 4771,
+      "lfs_files": 0,
+      "scope": "Sparse source checkout, no LFS payload download."
+    }
+  ],
+  "local_context": {
+    "veri7vn": "093b59af26ff1aecaada0f5e7bda998fb2f8b6d1",
+    "minidregg": "a0db11f8a8bcbc99b5a35ced44f46ab9717ee51d",
+    "nanodregg": "c4800fb71986a8d172336fd4bacf19f78419a4d3",
+    "minidregg_remote_matches_head": false
+  },
+  "hf_spaces": []
+}
