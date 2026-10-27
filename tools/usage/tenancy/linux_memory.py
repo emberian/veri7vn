@@ -5,6 +5,7 @@ This is a measurement utility, not tenant authentication or admission evidence.
 from __future__ import annotations
 import os
 from pathlib import Path
+import re
 
 
 def read_rollup(pid: int, proc: Path = Path('/proc')) -> dict:
@@ -102,6 +103,21 @@ def process_identity(pid: int, proc: Path = Path('/proc')) -> tuple[int, bytes]:
     ticks = int(fields[19])  # field 22; fields starts at field 3
     argv = (proc / str(pid) / 'cmdline').read_bytes()
     return ticks, argv
+
+
+def is_adapter_identity(identity: tuple[int, bytes], script: str = '/opt/oracle/adapter/serve.py') -> bool:
+    """Select Python's script argument, not a wrapper or -c/-m child payload.
+
+    Selection is only for recorded descendants; signal_if_same must still bind
+    a later signal to this exact start time and argv.
+    """
+    argv = identity[1].split(b'\0')
+    if not argv or re.fullmatch(rb'python(?:[0-9]+(?:\.[0-9]+)*)?', argv[0].rsplit(b'/', 1)[-1]) is None:
+        return False
+    index = 1
+    while index < len(argv) and argv[index] in (b'-B', b'-u', b'-E', b'-I', b'-s', b'-S', b'-O', b'-OO'):
+        index += 1
+    return index < len(argv) and argv[index] == os.fsencode(script)
 
 
 def signal_if_same(pid: int, identity: tuple[int, bytes], sig: int, *,

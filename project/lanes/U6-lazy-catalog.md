@@ -4,9 +4,9 @@ The production adapter source now defers Operations construction until the first
 discovery or new direct invocation. `/query`, capabilities, and retained request
 replays do not construct it. This applies the measured optimization from
 `U6-startup-profile.md`: its scratch run deferred 8.86 seconds and 43.7 MiB of
-worker private memory. Those remain prototype measurements; this new production
-source has not yet been run with the actual Engine or packaged into a candidate.
-Immutable V6 and the in-flight Mini acceptance journey are unchanged.
+worker private memory. The production source has now passed one bounded actual
+Engine qualification in an explicitly labeled scratch overlay, described below.
+Immutable V6 and its Mini acceptance journey are unchanged.
 
 There are no new theorem statements or specialist panel numbers. This is an
 untrusted adapter lifecycle change, not Mini authority or a correctness claim
@@ -65,9 +65,9 @@ timeout and abrupt worker loss; ordinary post-initialization call failure; and
 exact-boundary public replies with the extra private metadata. All test-owned
 children stop during cleanup. `git diff --check` passes.
 
-The next consumer is root's reviewed new candidate. Actual Engine and Mini
-qualification are pending; no new Engine, build, package, signing, or deployment
-was launched in this source-integration step. Discovery-first agents and direct
+The next consumer is root's reviewed new candidate. Mini qualification of this
+change remains pending. No build, package, signing, or deployment was launched
+by this lane. Discovery-first agents and direct
 `core.query` still pay catalog initialization. Tenant eviction/restart behavior
 is unchanged and does not gain seamless conversation persistence.
 
@@ -80,3 +80,57 @@ Changed files and frozen hashes:
 - `tests/appliance/test_lazy_catalog.py`:
   `6ae7e97fb593f4342e087f33884da400188b0e53a1b980ccefa3d639afb060a9`
 - This report.
+
+## Actual production-source Engine qualification
+
+One leased run on dregg-build used the immutable U6-v2 runtime and data with a
+new read-only scratch adapter. Only the reviewed `serve.py` and README changed;
+`QUALIFICATION.json` records every adapter file hash and explicitly identifies
+uninstrumented production source in a non-deployed overlay. No phase markers or
+runtime monkeypatches were used. The host load was about 10 on eight CPUs, so
+this remains a bounded observation rather than a controlled performance claim.
+
+- Readiness: **10.817 seconds**; first real query: **0.518 seconds**.
+- After the query, capabilities remained `deferred`, with `counts: null`.
+- First real discovery: **8.383 seconds**; capabilities then reported `ready`,
+  with **351 live direct, 1 text-only, 9 unavailable** entries.
+- Real `specialist.meteorology-v2.f2c(temperature_f=32)` returned 0 degrees C.
+- All nine behavioral checks passed, including every exact retry and a fresh
+  arithmetic request after initialization. Complete replies again matched all
+  earlier runs' SHA256
+  `7792dcb88aa55a86385d918df648f2e6c6da7be4fd2535ab66b1c56e480b62e8`.
+- Process-tree PSS: 425,201 KiB ready; 431,065 KiB after query; 479,587 KiB after
+  discovery/direct/fresh-query. Accessible runtime size/mtime inventory and
+  base receipt identity remained unchanged; mounts were read-only.
+
+The initial qualification runner **misidentified the bwrap wrapper as the
+adapter** because the wrapper argv also contained the script path. Its claim
+`owned_adapter_stopped: true` only established wrapper exit (-15), not child
+cleanup. That original receipt remains intact. A separate cleanup correction
+validated the recorded actual adapter 2752027/start ticks 5186157, resource
+tracker 2752058/5186188, and Engine 2752061/5186190 against their exact argv and
+original process group 2752025. It then signaled only the adapter after another
+identity check. All three original Python processes exited. This was a harness
+selection defect, not an Engine behavior failure; no additional Engine run was
+performed to repair the tooling.
+
+Linux evidence:
+`/build/lanes/oracle-startup-profile/phase-d-production-source/` contains the
+original receipt, full replies/log, and `cleanup-correction.json`.
+Local copies: `var/startup-profile/phase-d-*`.
+Original receipt SHA256:
+`dd490a7315a4a9fdad2bbaa8811f0ab14037d762c66784bc8a7d417fe79794de`.
+Cleanup correction SHA256:
+`3d39cb328895514abb6c6b7f9a5c3d14ebea8f4f736ae9b1a207938fe3526ab7`.
+The production-source qualification mode is in
+`tools/usage/startup-profile/run.py`; it checks lifecycle/counts without
+mislabeling the overlay as a signed candidate or an instrumented prototype.
+
+The corrected runner uses a shared `is_adapter_identity` helper from
+`tools/usage/tenancy/linux_memory.py`, selecting the Python script position and
+rejecting bwrap and Python `-c`/`-m` children. The regression in
+`test_linux_memory.py` passes; all **7 utility tests pass**. The runner now
+records descendant start times/argv, verifies the original tree stopped, and
+requires wrapper exit 0. The original phase-D receipt would fail these stronger
+checks, as intended; the separate cleanup correction establishes its eventual
+cleanup. No Engine was restarted solely to retest harness cleanup tooling.

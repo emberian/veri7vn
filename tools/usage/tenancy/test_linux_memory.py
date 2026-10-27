@@ -6,6 +6,17 @@ import linux_memory as m
 
 ROLLUP = '''header\nRss: 100 kB\nPss: 60 kB\nPrivate_Clean: 10 kB\nPrivate_Dirty: 20 kB\nShared_Clean: 40 kB\nShared_Dirty: 30 kB\nSwap: 2 kB\n'''
 class MemoryTests(unittest.TestCase):
+    def test_adapter_selection_rejects_wrapper_and_python_command_payloads(self):
+        script=b'/opt/oracle/adapter/serve.py'
+        def identity(*argv):return (123,b'\0'.join(argv)+b'\0')
+        self.assertTrue(m.is_adapter_identity(identity(b'/usr/bin/python3.12',b'-B',script,b'--port',b'0')))
+        self.assertTrue(m.is_adapter_identity(identity(b'python',script)))
+        for argv in ((b'bwrap',b'--',b'/usr/bin/python3.12',b'-B',script),
+                     (b'/usr/bin/python3.12',b'-c',b'child code',script),
+                     (b'/usr/bin/python3.12',b'-m',b'child_module',script),
+                     (b'/usr/bin/not-python',script),
+                     (b'/usr/bin/python3.12',b'/other.py',script)):
+            with self.subTest(argv=argv):self.assertFalse(m.is_adapter_identity(identity(*argv)))
     def test_pss_private_shared_and_vanished(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); (root/'10').mkdir(); (root/'10'/'smaps_rollup').write_text(ROLLUP)
