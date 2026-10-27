@@ -1,0 +1,245 @@
+[
+  {
+    "name": "discover-core-query",
+    "tool": "mini_oracle_discover",
+    "arguments": {
+      "query": "core.query",
+      "availability": "live_direct",
+      "limit": 1
+    },
+    "status": 200,
+    "bodyContains": {
+      "protocol": "oracle-operations-v1",
+      "operations": [
+        {
+          "id": "core.query",
+          "availability": "live_direct"
+        }
+      ]
+    }
+  },
+  {
+    "name": "detail-core-query",
+    "tool": "mini_oracle_discover",
+    "arguments": {
+      "operationId": "core.query"
+    },
+    "status": 200,
+    "bodyContains": {
+      "id": "core.query",
+      "availability": "live_direct",
+      "input_schema": {
+        "required": [
+          "text"
+        ]
+      }
+    }
+  },
+  {
+    "name": "weather-structured",
+    "tool": "mini_oracle_call",
+    "arguments": {
+      "requestId": "mini-u3-weather-structured",
+      "conversationId": "mini-u3-weather-structured",
+      "operationId": "specialist.meteorology-v2.heat_index_f",
+      "arguments": {
+        "temperature_f": 84,
+        "relative_humidity_percent": 40
+      }
+    },
+    "status": 200,
+    "bodyContains": {
+      "outcome": "completed",
+      "operation_id": "specialist.meteorology-v2.heat_index_f",
+      "reply": {
+        "status": "answered",
+        "result": [
+          83.29043364000009,
+          "NWS Rothfusz regression"
+        ],
+        "unit": "degF"
+      }
+    }
+  },
+  {
+    "name": "head-dated-work",
+    "tool": "mini_oracle_call",
+    "arguments": {
+      "requestId": "mini-u3-head-dated-work",
+      "conversationId": "mini-u3-head-dated-work",
+      "operationId": "core.query",
+      "arguments": {
+        "text": "Who wrote the 1813 novel Pride and Prejudice?"
+      }
+    },
+    "status": 200,
+    "bodyContains": {
+      "outcome": "completed",
+      "operation_id": "core.query",
+      "reply": {
+        "status": "answered",
+        "response": "[ev:direct] Jane Austen. From the Wikidata relation store: Pride and Prejudice (Q170583) - author (P50) - Jane Austen.",
+        "references": [
+          "wd:Q170583",
+          "wd:P50"
+        ],
+        "provenance": {
+          "subject_qid": "Q170583",
+          "property": "P50",
+          "value_qids": [
+            "Q36322"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "supplied-table",
+    "tool": "mini_oracle_call",
+    "arguments": {
+      "requestId": "mini-u3-supplied-table",
+      "conversationId": "mini-u3-supplied-table",
+      "operationId": "workbench.tables.lookup",
+      "arguments": {
+        "file": {
+          "name": "stock.csv",
+          "text": "item,price\nhoney,8\n"
+        },
+        "selector_column": "item",
+        "selector_value": "honey",
+        "result_column": "price"
+      }
+    },
+    "status": 200,
+    "bodyContains": {
+      "outcome": "completed",
+      "operation_id": "workbench.tables.lookup",
+      "reply": {
+        "kind": "from_file",
+        "status": "answered",
+        "value": "8",
+        "reference": {
+          "file": "stock.csv",
+          "row": 2,
+          "column": "price",
+          "selector_column": "item",
+          "selector_value": "honey"
+        },
+        "input_sources": [
+          {
+            "name": "stock.csv",
+            "sha256": "c0c56c623684d2ac26275845a7c7f614a1a3cf46e1b69d2b548096a5748a4f4a"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "supplied-artist",
+    "tool": "mini_oracle_call",
+    "arguments": {
+      "requestId": "mini-u3-supplied-artist",
+      "conversationId": "mini-u3-supplied-artist",
+      "operationId": "artist.compose",
+      "arguments": {
+        "prompt": "two cats",
+        "sprites": [
+          {
+            "class": "cat",
+            "image_base64": "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAM0lEQVR4nO3QwQ0AMAzCwKb770yUCfzi5xsAJE+SvKLfHD8eIBMhEyETIRMhEyEToXqiBRctBCwUUHqKAAAAAElFTkSuQmCC",
+            "citation": "caller-supplied:test-cat-label"
+          }
+        ]
+      }
+    },
+    "status": 200,
+    "bodyContains": {
+      "outcome": "completed",
+      "operation_id": "artist.compose",
+      "reply": {
+        "status": "answered",
+        "self_check": {
+          "passed": true,
+          "canvas_size": [
+            512,
+            512
+          ]
+        },
+        "specification": {
+          "objects": [
+            {
+              "class": "cat",
+              "count": 2
+            }
+          ]
+        },
+        "image": {
+          "mime_type": "image/png",
+          "width": 128,
+          "height": 128,
+          "kind": "preview"
+        },
+        "placed": [
+          {
+            "class": "cat",
+            "cite": {
+              "supplied": "caller-supplied:test-cat-label"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "deliberate-refusal",
+    "tool": "mini_oracle_call",
+    "arguments": {
+      "requestId": "mini-u3-deliberate-refusal",
+      "conversationId": "mini-u3-deliberate-refusal",
+      "operationId": "specialist.meteorology-v2.answer",
+      "arguments": {
+        "text": "ISA temperature at 3,000 m/s altitude?"
+      }
+    },
+    "status": 200,
+    "bodyContains": {
+      "outcome": "completed",
+      "operation_id": "specialist.meteorology-v2.answer",
+      "reply": {
+        "status": "withheld",
+        "reason": "outside_specialist_domain",
+        "specialist": "meteorology-v2"
+      }
+    }
+  },
+  {
+    "name": "invalid-arguments",
+    "tool": "mini_oracle_call",
+    "arguments": {
+      "requestId": "mini-u3-invalid-arguments",
+      "conversationId": "mini-u3-invalid-arguments",
+      "operationId": "core.query",
+      "arguments": {}
+    },
+    "status": 400,
+    "bodyContains": {
+      "outcome": "error",
+      "error": "invalid_arguments"
+    }
+  },
+  {
+    "name": "unknown-operation",
+    "tool": "mini_oracle_call",
+    "arguments": {
+      "requestId": "mini-u3-unknown-operation",
+      "conversationId": "mini-u3-unknown-operation",
+      "operationId": "missing.u3.operation",
+      "arguments": {}
+    },
+    "status": 404,
+    "bodyContains": {
+      "outcome": "error",
+      "error": "unknown_operation"
+    }
+  }
+]

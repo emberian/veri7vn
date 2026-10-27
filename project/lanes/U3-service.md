@@ -273,3 +273,20 @@ same request ID/body, unlike a new execution, returned an identical complete
 response. The remaining earlier routing limitations stay in the tracker; the
 specific dated-work, exclusive-premise and supported-session regressions above
 are now exercised successfully against the full packaged Engine.
+
+### Mini agent journey cases
+
+`tools/usage/u3-agent-cases.json` supplies nine small cases to the Mini consumer
+lane: list/detail discovery, structured heat index, sourced dated-work head
+query, supplied table lookup, supplied-sprite Artist composition, a deliberate
+refusal, invalid arguments and an unknown operation. The five successful or
+withheld invocation subsets were compared against retained actual V2/V3 Engine
+replies. Discovery/error expectations follow the service contract; this file
+alone is not a native Mini execution receipt.
+
+Fixed `mini-u3-*` appliance request/conversation IDs allow the consumer harness
+to check exact journal replay after a lifetime restart. Artist checks semantic
+layout, citation and PNG dimensions rather than a Pillow-version-specific
+encoded-image hash. Largest tool arguments are 396 bytes. The consumer inserts
+the admitted application ID. File SHA256:
+`973228806ff37c0421c4a0a6c57615c41de6b59fb80d47b543ce00d172208221`.
