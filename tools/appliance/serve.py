@@ -3,6 +3,7 @@
 
 One process belongs to one host-assigned workspace. This is a private loopback
 backend, not an authenticated public service. No Workbench entrypoint is loaded.
+Optional tenant-pool mode bounds resident workers across host-assigned workspaces.
 """
 from __future__ import annotations
 
@@ -31,6 +32,8 @@ from operations import Operations, OperationError, ID as OPERATION_ID
 REVISION = "083e3a6c0e2cfc131e62bdc16cb4ec1346194635"
 PH = Path("fable-content/oracle-m-series-2026-08-15")
 IDENTIFIER = re.compile(r"[A-Za-z0-9_-]{1,80}\Z")
+TENANT_HEADER = "X-Mini-Oracle-Tenant"
+TENANT_KEY = re.compile(r"[0-9a-f]{64}\Z")
 
 
 def encode(value):
@@ -454,8 +457,9 @@ class Server(ThreadingHTTPServer):
     block_on_close = True
     request_queue_size = 16
 
-    def __init__(self, address, service, ingress_timeout=5.0):
+    def __init__(self, address, service, ingress_timeout=5.0, tenant_pool=False):
         self.service = service
+        self.tenant_pool = tenant_pool
         self.ingress_timeout = ingress_timeout
         self.slots = threading.BoundedSemaphore(16)
         self.ingress_lock = threading.Lock()
@@ -564,6 +568,23 @@ class Handler(BaseHTTPRequestHandler):
             return False
         return True
 
+    def tenant(self):
+        """Only the private Mini bridge supplies this identity, never an app body.
+
+        This header is routing metadata, not authentication. The deployment must
+        isolate loopback ingress from clients, including other tenant processes.
+        """
+        values = self.headers.get_all(TENANT_HEADER, [])
+        if self.server.tenant_pool:
+            if len(values) != 1 or not TENANT_KEY.fullmatch(values[0]):
+                self.respond(400, failure("host_tenant_required"))
+                return False, None
+            return True, values[0]
+        if values:
+            self.respond(400, failure("tenant_pool_disabled"))
+            return False, None
+        return True, None
+
     def do_GET(self):
         if not self.server.finish_ingress(self.connection):
             return
@@ -571,10 +592,19 @@ class Handler(BaseHTTPRequestHandler):
             return
         service = self.server.service
         if self.path == "/health":
-            ready = service.backend.available and not service.stopping
-            self.respond(200 if ready else 503, {"ready": ready, "busy": service.gate.locked()})
-        elif self.path == "/capabilities":
-            self.respond(200, service.capabilities())
+            if self.server.tenant_pool:
+                health = service.health()
+            else:
+                health = {"ready": service.backend.available and not service.stopping,
+                          "busy": service.gate.locked()}
+            self.respond(200 if health["ready"] else 503, health)
+            return
+        valid, tenant = self.tenant()
+        if not valid:
+            return
+        if self.path == "/capabilities":
+            self.respond(*(service.capabilities(tenant) if self.server.tenant_pool
+                           else (200, service.capabilities())))
         elif self.path == "/operations" or self.path.startswith(("/operations?", "/operations/")):
             try:
                 url = urlsplit(self.path)
@@ -594,7 +624,8 @@ class Handler(BaseHTTPRequestHandler):
                                   "availability": values.get("availability", [None])[0]}
                     if not 1 <= parameters["limit"] <= 50 or len(parameters["q"].encode("utf-8")) > 256 or parameters["availability"] not in (None, "live_direct", "text_only", "unavailable"):
                         raise ValueError()
-                self.respond(*service.discover(parameters))
+                self.respond(*(service.discover(tenant, parameters) if self.server.tenant_pool
+                               else service.discover(parameters)))
             except (ValueError, UnicodeError):
                 self.respond(400, failure("invalid_discovery_request"))
         else:
@@ -602,6 +633,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if not self.private_request():
+            return
+        valid, tenant = self.tenant()
+        if not valid:
             return
         if self.path not in ("/query", "/invoke"):
             self.respond(404, failure("not_found"))
@@ -626,7 +660,9 @@ class Handler(BaseHTTPRequestHandler):
             self.respond(400, failure("incomplete_body"))
             return
         if self.server.finish_ingress(self.connection):
-            self.respond(*self.server.service.request(body, self.path))
+            service = self.server.service
+            self.respond(*(service.request(tenant, body, self.path) if self.server.tenant_pool
+                           else service.request(body, self.path)))
 
 
 def main():
@@ -643,9 +679,17 @@ def main():
     parser.add_argument("--startup-timeout", type=float, default=120)
     parser.add_argument("--shutdown-timeout", type=float, default=5)
     parser.add_argument("--check-import", action="store_true", help="import real launcher only; does not construct Engine or verify stores")
+    parser.add_argument("--tenant-pool", action="store_true", help="route private host tenant identities to a bounded worker pool")
+    parser.add_argument("--max-resident", type=int, default=2)
+    parser.add_argument("--max-tenants", type=int, default=128)
+    parser.add_argument("--idle-seconds", type=float, default=300)
     args = parser.parse_args()
     config = Config(**{k: v.resolve() if isinstance(v, Path) else v for k, v in vars(args).items()
-                       if k not in {"port", "check_import"}})
+                       if k not in {"port", "check_import", "tenant_pool", "max_resident", "max_tenants", "idle_seconds"}})
+    if not 1 <= args.max_resident <= min(64, args.max_tenants) or args.max_tenants > 10000:
+        parser.error("require 1 <= max-resident <= 64 and max-resident <= max-tenants <= 10000")
+    if not math.isfinite(args.idle_seconds) or args.idle_seconds <= 0:
+        parser.error("idle-seconds must be positive and finite")
     if any(not math.isfinite(getattr(config, key)) or getattr(config, key) < 1 for key in ("max_request_bytes", "max_reply_bytes", "max_requests", "query_timeout", "startup_timeout", "shutdown_timeout")):
         parser.error("limits must be positive")
     if config.max_reply_bytes < 1024:
@@ -663,10 +707,15 @@ def main():
         return
     # Set before spawn; setting it inside worker would not fix Python's hash seed.
     os.environ.update(PYTHONHASHSEED="0", PYTHONIOENCODING="utf-8")
-    service = Service(config)
+    if args.tenant_pool:
+        from tenant_pool import TenantPool
+        service = TenantPool(config, max_resident=args.max_resident,
+                             max_tenants=args.max_tenants, idle_seconds=args.idle_seconds)
+    else:
+        service = Service(config)
     server = None
     try:
-        server = Server(("127.0.0.1", args.port), service)
+        server = Server(("127.0.0.1", args.port), service, tenant_pool=args.tenant_pool)
         def stop(*_):
             service.stopping = True
             threading.Thread(target=server.shutdown, daemon=True).start()

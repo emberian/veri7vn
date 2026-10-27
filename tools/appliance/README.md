@@ -6,9 +6,11 @@ and preserves every field of a successful reply, including unfamiliar evidence.
 An Oracle label such as `proved` remains an upstream claim. This service does
 not implement Mini admission, resource authority, or proof checking.
 
-The trusted host starts **one process per workspace**. It chooses and protects
-that directory and maps its own authorized caller to this process. The service
-binds only `127.0.0.1`; it has no tenant selector, passwords, or public ingress.
+The trusted host chooses and protects each workspace. Standalone mode starts
+one worker for that workspace. Hosted mode uses a bounded pool of workers and
+separate tenant workspaces; idle tenants do not retain a process. Both modes
+share the same read-only runtime and data. The service binds only `127.0.0.1`;
+it has no passwords or public ingress.
 Loopback does not isolate mutually untrusted local users: use a private network
 namespace/container when required. Browser origins and foreign Host headers
 are rejected. The host must provide the runtime's CPU/memory/filesystem/network
@@ -39,6 +41,42 @@ The host may set `--max-request-bytes` (default 16 KiB), `--max-reply-bytes`
 user policy. Defaults bound a single request/reply and journal record count;
 size retained storage according to the product of those bounds. Oracle's own
 conversation state and logs additionally need host storage quotas.
+
+### Shared hosting
+
+Add `--tenant-pool --max-resident 1 --max-tenants 128` to serve many tenants
+from one appliance. Here `--workspace` names the pool root. The signed Mini
+launcher starts with one resident worker for its 2 GiB class-L budget; choose
+larger pools only with a measured memory budget. Standalone pool defaults are
+two resident workers and 128 persistent tenant workspaces. The operator may
+set 1–64 resident workers and at most 10,000 workspaces. These are configuration
+bounds, not a claim that every setting fits the appliance's resource budget.
+
+The Mini bridge derives a tenant key from its authenticated principal and
+source application/session coordinates. It supplies the private
+`X-Mini-Oracle-Tenant` header as 64 lowercase hexadecimal characters. Browser
+and agent request bodies cannot select that key. This header is routing
+metadata, not authentication: the host must keep the loopback endpoint private
+to the bridge. Missing, duplicated or malformed keys are refused. Standalone
+mode refuses the header rather than silently ignoring it. `/health` requires
+no key and starts no worker.
+
+Each resident tenant has its own Engine process and disk journal. The pool
+retires the least recently used idle worker before admitting another tenant;
+`--idle-seconds` (default 300) also retires unused workers. When every slot is
+busy it returns a retryable 429 without queuing the request. Workers starting
+or stopping still consume a slot. Uncertain cleanup retains its slot until
+the host restarts the contained process tree. Persistent workspace capacity
+does not grow without bound: an exhausted tenant registry returns 507.
+
+Exact completed requests replay from disk without starting an Engine. Oracle
+does not reliably restore conversational context after worker retirement. A
+new turn in an old or uncertain conversation therefore returns 409
+`conversation_reset_required`, with `executed:false`. Start a fresh conversation
+ID and supply the context it needs. This makes eviction explicit; it does not
+provide seamless conversation restoration. Tenant processes separate ordinary
+runtime state, but are not a sandbox for malicious code running under the same
+OS user. The host remains responsible for memory, disk and process-tree limits.
 
 `--source-revision` accepts only the pinned revision. It records the expected
 release; it does not independently attest all source bytes. The adapter checks
@@ -73,15 +111,17 @@ This query profile neither invokes a builder nor adds an update endpoint.
 
 IDs contain 1–80 ASCII letters, digits, `_`, or `-`. Both are mandatory. There
 is no shared default conversation. The host assigns IDs within its workspace;
-the service never interprets an arbitrary header as tenant authority.
+the private bridge assigns tenant scope in hosted mode. Caller-supplied IDs
+never establish tenant authority.
 
 HTTP 200 has `{"outcome":"completed","reply":{...}}`, where `reply` is the
 complete Oracle result. A deliberate `reply.status="withheld"` is completed
 work, distinct from transport/runtime failure. No answer status is converted
 into a stronger assurance claim.
 
-There is one engine child process, retaining its normal single SQLite-owning
-thread. Queries are admitted immediately or return 429 `busy`; there is no
+Each resident workspace has one engine child process, retaining its normal
+single SQLite-owning thread. Queries are admitted immediately or return 429;
+there is no
 hidden query queue. At most 16 HTTP connections are handled at once, each with
 a 5-second absolute deadline covering all request headers and the complete body;
 excess connections close without executing work. Finishing ingress cancels that

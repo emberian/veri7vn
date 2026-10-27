@@ -649,6 +649,10 @@ def materialize(source, target, cache, reuse=None, patches=(), revision=REVISION
         if adapter is not None:
             adapter = adapter.resolve()
             additions = [adapter / 'serve.py', adapter / 'README.md'] if adapter.is_dir() else [adapter]
+            # Older immutable adapters predate the optional tenant pool. New
+            # directory inputs carry its implementation in the same receipt.
+            if adapter.is_dir() and (adapter / 'tenant_pool.py').exists():
+                additions.append(adapter / 'tenant_pool.py')
             if not additions[0].is_file():
                 raise ValueError('adapter must contain serve.py')
             folder = stage / 'adapter'
