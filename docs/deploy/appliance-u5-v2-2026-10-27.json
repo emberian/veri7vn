@@ -1,0 +1,159 @@
+{
+  "adapter_files": {
+    "README.md": "5b563cb330a26ec87b1cef0e0c115f80e4e4093068a673a0501adfa0b890712d",
+    "builder_operations.py": "fddec537922f9f072bae9bf1e8af6adbea9c2145c822f4846496ca19519b0c5d",
+    "component_operations.py": "e4cee111efb9ca72bf0417d4c28a94eb38a1355857fb8b148f99bfc9d086e897",
+    "exam_inspection.py": "8f5235a0fb0da786f38d032a88671ad909e5bfa0912bf260e5ff16e82d7efdfa",
+    "operations.py": "ea53d47f2c284bf4939dd8a008f0609660ca0026636724b529ce7f69de6057ed",
+    "serve.py": "9c0bd9bfb82372187609aa81e15faedf29f56dd7fd6216237fb6682d3dff97d8",
+    "visual_operations.py": "c9106d91f333b9eb395c3a87e6e4b93085e29b56db651604b504bd97a20f69d6",
+    "workbench_operations.py": "387cdb94d4afdb8ebe5e4761d72078b56a22781424948cc3a2c30bf73394cf49"
+  },
+  "appliance_receipt_sha256": "3d0e2c804c7c76f7a683e564053ccb5474bf3f1e97d30246c70f52f33dbd1338",
+  "assurance": "Byte identity and composition only; no theorem or specialist-panel qualification.",
+  "candidate": "var/usage-20261027/candidate-u5-v2",
+  "candidate_status": "ready-for-service-acceptance",
+  "changed_runtime_files": [
+    "adapter/operations.py",
+    "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w554.py",
+    "root/specialists/_gate/standing_extensions_v1.txt",
+    "root/specialists/data-transfer-v1/README.md",
+    "root/specialists/data-transfer-v1/manifest.json",
+    "root/specialists/data-transfer-v1/organ_transfer_v1.py",
+    "root/specialists/data-transfer-v1/panel.json",
+    "root/specialists/data-transfer-v1/scorer.py",
+    "root/specialists/geometry-v4/manifest.json",
+    "root/specialists/geometry-v4/organ_geometry_v4.py"
+  ],
+  "checks": {
+    "complete_file_inventory": "passed; no added/unlisted/missing files or symlinks",
+    "component_core_dependencies": "passed",
+    "component_exact_file_allowlists": "passed",
+    "expected_final_files": "passed",
+    "full_non_store_content": "passed; every non-store file hash, size and executable flag checked",
+    "materialization": "passed; cache-only, no downloads",
+    "service_acceptance": "not run by this lane",
+    "unchanged_other_eight_components_adapters_stores_kernels": "passed; only operations component and operations.py adapter changed"
+  },
+  "closure_files_rechecked": 48,
+  "component_locks": "deploy/appliance/components/locked-u5-v2/bundles.json (one refreshed operations lock; eight locked-u4-v2 references)",
+  "components": {
+    "artist": {
+      "manifest_sha256": "27e4bf681ecd4555c833644a07bf69755c9598c55a36a094276760f9806649df",
+      "profile": "analysis",
+      "status": "partial"
+    },
+    "chameleon": {
+      "manifest_sha256": "769eef0641f2f27ca0e49aa90b04ecbfd5409d8b91cc4f9305c2ccdca0e5cf7f",
+      "profile": "builder",
+      "status": "partial"
+    },
+    "deepspace": {
+      "manifest_sha256": "2930f52b2ff0b0872b9174ebb78f9a8117a245a17c7f645eb0c58e52ac030b0c",
+      "profile": "analysis",
+      "status": "available"
+    },
+    "exam-inspection": {
+      "manifest_sha256": "6004d5e681c62dc0b9cae8f6efe17926ca1feb7d6fc4ea57a82b18ff65a5963a",
+      "profile": "analysis",
+      "status": "available"
+    },
+    "infrastructure": {
+      "manifest_sha256": "eb1cdda87854cdfe9c5501af42c7fdcf481c4718724e27e356d131d211fa4396",
+      "profile": "analysis",
+      "status": "partial"
+    },
+    "operations": {
+      "manifest_sha256": "e6112acc9bb9dbbc8651f78ba9c2f8e729dc7365029c8fb485a608a61a4c54aa",
+      "profile": "analysis",
+      "status": "available"
+    },
+    "trafficcop": {
+      "manifest_sha256": "384e33806b60e56091e03abdb060d46d069ad7413e7b538afaa689c81470c518",
+      "profile": "analysis",
+      "status": "available"
+    },
+    "vision": {
+      "manifest_sha256": "81def1b3670ecac01333b76271b048ade982226d40fa8273d4c9a6f8691bc705",
+      "profile": "analysis",
+      "status": "partial"
+    },
+    "workbench": {
+      "manifest_sha256": "b6d52fe3013dba27dd5d24c1f4a5a5d88f076e831636460c00534b5acf98dc1b",
+      "profile": "analysis",
+      "status": "available"
+    }
+  },
+  "files": 4333,
+  "final_changed_file_sha256": {
+    "adapter/operations.py": "ea53d47f2c284bf4939dd8a008f0609660ca0026636724b529ce7f69de6057ed",
+    "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w554.py": "edeadeb4f65ed7abc4568471912fa8884d6761d0698175046ebf5c1add8550f3",
+    "root/specialists/_gate/standing_extensions_v1.txt": "ef1f7e23ff99698e2443814fac13284d61ea32a2585d5a91e86d4a663a744934",
+    "root/specialists/data-transfer-v1/README.md": "48c1175c66135b0bc32804377d52d5a790f6f059c7ac36cec314567697001bbc",
+    "root/specialists/data-transfer-v1/manifest.json": "a731bfde8af2927cf7ab60bb3977afa30132498ab4ddf4ded4b12dbf21daa99e",
+    "root/specialists/data-transfer-v1/organ_transfer_v1.py": "206d9495ce2f324b3ea056020914469369df80e397511b6ff7b7389d4089d670",
+    "root/specialists/data-transfer-v1/panel.json": "d5dc668d17b909decce95b6db372b42e914ca066bf9d30eb3abcd2956502501c",
+    "root/specialists/data-transfer-v1/scorer.py": "3ecd21c55a60ab18fcc53012fb5cd901a8ca1f233682177b9de70768a0ef5cc2",
+    "root/specialists/geometry-v4/manifest.json": "a2096877a10091c86fc16171e5c9b0a791b7c7e4a0ca86accc1d1d371392d538",
+    "root/specialists/geometry-v4/organ_geometry_v4.py": "c2ea6f84cd23d166bba191fe2b798ba7b84362df91deb160e816914c3d871f24"
+  },
+  "kernel_families": 20,
+  "logical_store_bytes": 15004659712,
+  "non_store_bytes": 132511003,
+  "non_store_file_hashes_rechecked": 4323,
+  "patches": [
+    {
+      "name": "oracle7-slim-4.9-correctness.patch",
+      "sha256": "feb44d407634699545634350281e530b1bcc0ecf7bd951bdfc01655dbf99ecd6"
+    },
+    {
+      "name": "oracle7-slim-4.9-usage.patch",
+      "sha256": "1a2f69d0bdfe112f67ac01557ddb1c923e5e6c6a1fbaab1097852ade20e3e625"
+    },
+    {
+      "name": "oracle7-slim-4.9-dates-mars.patch",
+      "sha256": "963b1f91ba8330b2cd1a099ddf72df05813c94a0156931ed40b257b13e93a57c"
+    },
+    {
+      "name": "oracle7-slim-4.9-operations-v3.patch",
+      "sha256": "9d83ee0122f6897c7e901df6d72137060d09a75c251120a02e3209cbbd097350"
+    },
+    {
+      "name": "oracle7-slim-4.9-conversation-guard.patch",
+      "sha256": "85d6af0a11a271afb542fbbff8408d254ae8d589555b4c371ccefe5de93481da"
+    },
+    {
+      "name": "oracle7-slim-4.9-conversation-grammar.patch",
+      "sha256": "e9cb00d9ea9fcf99e2cf32477bce07de8b7e70ed4f6c1199273724a4d891a18c"
+    },
+    {
+      "name": "u4-geometry.patch",
+      "sha256": "05555f1df3db88dd9df1cc083c67466e65e1553c61f50c7057e9aa1e358041dd"
+    },
+    {
+      "name": "oracle7-slim-4.9-conversation-door.patch",
+      "sha256": "f47f282fc4ecfd4beb8564176c6bedfb86d7314f56df108337efce0e0b8d029b"
+    },
+    {
+      "name": "u5-geometry-units.patch",
+      "sha256": "98b9c263f62f8a1a41d6b09a90e45d662bdb98d67fbf7438117000050d07d115"
+    },
+    {
+      "name": "u5-geometry-route.patch",
+      "sha256": "62c876abfa377730784a024fef06c99e89665b17f7a70474377a6569a3cfa98b"
+    },
+    {
+      "name": "oracle7-slim-4.9-transfer-extension.patch",
+      "sha256": "55d63586cf45ab7a1c614e4d1a0e3d0873f2c9471043c9d19a8153571c8738ae"
+    }
+  ],
+  "previous_appliance_receipt_sha256": "a7d1afb9cbdcabfe23c9f1c7b46128e1a0c2c302c4dbbbc7902be38ad8b3c5f9",
+  "recipe": "deploy/appliance/candidate-u5-v2.recipe.json",
+  "recipe_sha256": "bf8883df33ac10c36b7dc33446ea5e39c8e81b3dc3c2c13f70f7821cf2349b4e",
+  "schema": "oracle7-materialization-receipt-v1",
+  "source_files": 31,
+  "source_repository": "https://huggingface.co/psiloceyeben/oracle7-slim",
+  "source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+  "stores": 10,
+  "stores_share_cache_hardlinks": true
+}

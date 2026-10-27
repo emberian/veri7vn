@@ -1,5 +1,9 @@
 # U5 appliance construction
 
+The latest construction is `candidate-u5-v2`, recorded in the final section below.
+Version 1 remains intact as the comparison point; behavioral qualification is
+owned by the service lane.
+
 The fresh `var/usage-20261027/candidate-u5-v1` contains the reviewed conversation-door
 and geometry-unit repairs. It retains the nine U4-v2 component bundles, service
 adapter, kernel overlay and data stores. Earlier candidates and receipts were not
@@ -57,3 +61,55 @@ packaging.
 
 Changed tracked files for this lane are the new recipe, compact receipt and this
 report. Previous receipts remain untouched.
+
+
+## U5 v2: repair the live geometry route and add transfer time
+
+The fresh `var/usage-20261027/candidate-u5-v2` follows the version-1 service finding
+that the actual geometry specialist route could still give a dimensionally wrong
+answer. The new construction adds the reviewed geometry specialist repair and
+its manifest, plus the transfer-time specialist, standing-extension list, w554
+integration and optional qualification metadata in the operations adapter.
+
+Its `APPLIANCE.json` SHA-256 is
+`3d0e2c804c7c76f7a683e564053ccb5474bf3f1e97d30246c70f52f33dbd1338`.
+The new receipt is
+[`docs/deploy/appliance-u5-v2-2026-10-27.json`](../../docs/deploy/appliance-u5-v2-2026-10-27.json),
+and the recipe is
+[`deploy/appliance/candidate-u5-v2.recipe.json`](../../deploy/appliance/candidate-u5-v2.recipe.json).
+
+After the entire U5-v1 patch set, construction adds:
+
+- `tools/usage/reliability/u5-geometry-route.patch`, SHA-256
+  `62c876abfa377730784a024fef06c99e89665b17f7a70474377a6569a3cfa98b`.
+- `deploy/appliance/patches/oracle7-slim-4.9-transfer-extension.patch`, SHA-256
+  `55d63586cf45ab7a1c614e4d1a0e3d0873f2c9471043c9d19a8153571c8738ae`.
+
+Only the operations component lock was refreshed:
+`deploy/appliance/components/locked-u5-v2/operations.json`, SHA-256
+`e6112acc9bb9dbbc8651f78ba9c2f8e729dc7365029c8fb485a608a61a4c54aa`.
+The adjacent mixed `bundles.json` refers to that lock and the eight unchanged
+`locked-u4-v2` manifests. Existing locks were not rewritten or copied.
+
+The runtime difference is exactly ten files: the operations adapter, w554,
+`standing_extensions_v1.txt`, the five `data-transfer-v1` files (README, manifest,
+organ, panel and scorer), and the geometry-v4 organ and manifest. Their complete
+final hashes are in the receipt. In particular, operations is `ea53d47f…`, w554 is
+`edeadeb4…`, and the geometry organ/manifest are `c2ea6f84…` / `a2096877…`, matching
+the reviewed inputs.
+
+Construction exited successfully using verified cache entries only. All 4,323
+non-store file hashes, sizes and executable flags were checked, as were all 48
+component/provider/core dependencies. The full inventory has 4,333 entries with
+no unexpected, missing or symlinked files. All frozen final-source hashes pass.
+The other eight components, other adapters, store inventory and kernel provenance
+are identical to version 1. All ten stores still share verified cache hardlinks.
+
+There were 598 GiB free before construction. The retained non-store payload is
+132,511,003 bytes. Earlier candidates and receipts remain unchanged; no files were
+deleted. This lane ran no Engine, specialist panels or signed packaging. The
+service lane received this exact candidate identity for its coordinated replay;
+these construction checks do not establish behavioral correctness.
+
+Version-2 lane changes are the new recipe, receipt, operations lock and mixed
+index, plus this report update. The materializer itself is unchanged.
