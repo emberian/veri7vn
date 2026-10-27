@@ -41,8 +41,12 @@ units, availability and implementation limits. Mini agents use
 
 A signed Linux runtime contains the code, dependencies and bridge. Its signed
 data declaration selects a separately published, immutable public dataset:
-about 15 GB, mounted read-only and shared between grains. Each grain keeps its
-own writable conversation and request history. Large stores need no SPK
+about 15 GB, mounted read-only and shared between grains in the same Store.
+Signed v6 serves separate authenticated source-session workspaces from a bounded
+worker pool; its initial configuration allows one resident worker and 128 tenant
+workspaces. Exact completed requests replay without starting a worker. Conversation
+context does not yet survive worker retirement, so new turns explicitly require
+a fresh conversation after eviction. Large stores need no SPK
 chunking or per-grain copy. Mini controls admission and access; packaging a
 calculator does not grant permission or prove every answer it produces.
 
@@ -53,7 +57,8 @@ those 57 records. Earlier signed-package tests answered through Mini in two
 independent grains. The newer agent lifecycle and complete restart/recovery
 journey remain unfinished; this is not a public Dreggnet deployment.
 
-Start with the [Mini appliance overview](https://github.com/emberian/minidregg/blob/main/docs/oracle-appliance.md),
+Start with the [shared-hosting checkpoint](project/HOSTED-2026-10-27.md),
+the [Mini appliance overview](https://github.com/emberian/minidregg/blob/main/docs/oracle-appliance.md),
 the [materialization tools](deploy/appliance/README.md), and the
 [API and operation catalog](tools/appliance/README.md). The
 [current checkpoint](project/CONTINUE-2026-10-27.md) links exact candidates,
