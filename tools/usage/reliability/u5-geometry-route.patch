@@ -1,0 +1,216 @@
+diff --git a/root/specialists/geometry-v4/manifest.json b/root/specialists/geometry-v4/manifest.json
+index a8976da..cd89326 100644
+--- a/root/specialists/geometry-v4/manifest.json
++++ b/root/specialists/geometry-v4/manifest.json
+@@ -45,7 +45,7 @@
+    "underspecified",
+    "impossible"
+   ],
+-  "context_regex": "\\b(?:circle|sphere|cylinder|cone|cube|rectangle|triangle|hypotenuse|polygon|pentagon|hexagon|heptagon|octagon|nonagon|decagon|quadrilateral)\\b"
++  "context_regex": "\\b(?:circles?|circular|spheres?|cylinders?|cones?|cubes?|rectangles?|rectangular|squares?|triangles?|box|boxes|cuboids?|hypotenuse|polygons?|pentagons?|hexagons?|heptagons?|octagons?|nonagons?|decagons?|quadrilaterals?)\\b"
+  },
+  "panel": {
+   "path": "__ORACLE7_ROOT__/specialists/geometry-v4/geometry_panel_v3.json",
+@@ -73,4 +73,4 @@
+  },
+  "notes": "v4 = v3 + imperative verbs (compute / calculate / determine / give / work out) read as 'find' for the hypotenuse. Judged under spec_gate_v2 on a FRESH panel (new seeds, new phrasings both splits including the class). Same author - disclosed. Earlier notes: v3 = v1 + narrowing (v2: word problems to the head; no false 'I need X' when numbers are present - the full-core sweep found v1 taking 17 core word problems incl. a confident wrong 10.95 for 5) + two reading classes v1 missed (sides stated with a verb, 'sides are a, b and c' - all 8 v1 held-out misses; a hypotenuse value stated after the verb). Judged under spec_gate_v2 on a FRESH panel v2 (new seeds, new phrasings both splits, new declines). Same author - disclosed. Deliberately does NOT read '10 feet across' as a diameter: those core textbook problems use pi = 3.14.",
+  "supersedes": "geometry-v3 (ADMIT gate v2, 93/100; 7 misses = imperative 'Compute the hypotenuse')"
+-}
+\ No newline at end of file
++}
+diff --git a/root/specialists/geometry-v4/organ_geometry_v4.py b/root/specialists/geometry-v4/organ_geometry_v4.py
+index 672d2b3..4072fa5 100644
+--- a/root/specialists/geometry-v4/organ_geometry_v4.py
++++ b/root/specialists/geometry-v4/organ_geometry_v4.py
+@@ -1,16 +1,189 @@
+ #!/usr/bin/env python3
+ """organ_geometry_v4 - organ_geometry_v3 (admitted 2026-09-29, held-out 93/100) plus imperative verbs: all 7 v3 held-out
+ misses were "Compute the hypotenuse of a right triangle whose legs are a and b." (v1's reader knew only find / what is /
+-how long is). Compute / calculate / determine / give / work out now read as "find". Everything else v3."""
++how long is). Compute / calculate / determine / give / work out now read as "find". Everything else v3.
++
++This Python dimensional reader is untrusted; it grants no proof or admission authority.
++Explicit same-unit dimensions retain their units, bound rectangles may normalize mixed
++length units, and inherited formulas decline unsupported or inconsistent dimensions.
++"""
+ from __future__ import annotations
+ 
+ import re
++import math
+ 
+ from organ_geometry_v3 import GeometryOrganV3
++from organ_geometry_v1 import g
+ 
+ IMPERATIVE = re.compile(r"\b(?:compute|calculate|determine|give|work out|get)\s+(?=the (?:length of the )?hypotenuse\b)", re.I)
+ 
+ 
++# This organ remains standalone: its dimensional reader must not depend on the
++# head's import path or turn an unsupported binding into a legacy raw product.
++_LENGTHS = {}
++for _unit, _scale, _names in (
++    ("mm", .001, "mm millimeter millimeters"), ("cm", .01, "cm centimeter centimeters"),
++    ("m", 1., "m meter meters"), ("km", 1000., "km kilometer kilometers"),
++    ("in", .0254, "in inch inches"), ("ft", .3048, "ft foot feet"),
++    ("yd", .9144, "yd yard yards"), ("mi", 1609.344, "mi mile miles"),
++):
++    for _name in _names.split():
++        _LENGTHS[_name] = (_unit, _scale)
++_NUMBER = r"(\d+(?:\.\d+)?)"
++_FIELDS = re.compile(r"\b(length|width|radius|diameter|height|side|edge|base|leg|hypotenuse)\s*"
++                     r"(?:(?:of|is|equals|exactly|measures|=|:)\s*)*" + _NUMBER, re.I)
++_NUMBERS = re.compile(r"(?<![\w.+-])" + _NUMBER + r"(?!\d|\.\d)")
++_POWERS = {"rect_area": 2, "rect_perimeter": 1, "circle_area": 2, "circumference": 1,
++           "sphere_volume": 3, "sphere_surface": 2, "cylinder_volume": 3, "cylinder_surface": 2,
++           "cone_volume": 3, "cube_volume": 3, "cube_surface": 2, "box_volume": 3,
++           "square_area": 2, "square_perimeter": 1, "tri_area": 2, "heron": 2,
++           "hypotenuse": 1, "leg": 1}
++
++
++def _unit_at(tail, strict=False):
++    tail = tail.lstrip()
++    if re.match(r"in\s+(?:the|this|a)\s+(?:diagram|drawing|figure)\b", tail):
++        return None, True, None
++    word = re.match(r"([^\W\d_]+)", tail)
++    if not word:
++        return None, False, None
++    token = word.group(1)
++    if token in _LENGTHS:
++        rest = tail[word.end():].lstrip()
++        if re.match(r"(?:\^|\d|[²³]|/|per\b)", rest):
++            return None, False, "These dimensions require length units, not powered or compound units."
++        if token == "in" and rest and not re.match(r"[.,;:?!)]|(?:and|long|wide|tall|high)\b", rest):
++            return None, False, "I cannot tell whether 'in' denotes inches or a preposition here. Please spell out the length unit."
++        return _LENGTHS[token], False, None
++    if strict and token not in ("and", "or", "by", "x", "units", "unit", "long", "wide", "high", "tall"):
++        return None, False, "I cannot bind the stated length unit '%s'; please use an explicit supported length unit." % token
++    return None, False, None
++
++
++def _dimensions(t):
++    fields, positions, units, diagram = {}, set(), [], False
++    for match in _FIELDS.finditer(t):
++        role, raw = match.group(1), match.group(2)
++        unit, drawn, error = _unit_at(t[match.end():], strict=True)
++        if error:
++            return None, None, False, error
++        record = (float(raw), unit)
++        if role in fields:
++            previous = fields[role]
++            if (previous[1] is None) != (unit is None) or previous[0] * (previous[1][1] if previous[1] else 1) != record[0] * (unit[1] if unit else 1):
++                return None, None, False, "The supplied %s values contradict each other; please supply one consistent measurement." % role
++        fields[role] = record
++        positions.add(match.start(2))
++        units.append(unit)
++        diagram = diagram or drawn
++    # A unit or diagram dimension not bound to an explicit role cannot be
++    # silently fed to the old first-number reader.
++    for number in _NUMBERS.finditer(t):
++        unit, drawn, error = _unit_at(t[number.end():])
++        if error:
++            return None, None, False, error
++        if (unit or drawn) and number.start(1) not in positions:
++            return None, None, False, "I cannot bind every supplied length to a geometry role; please name each dimension explicitly."
++        if (any(units) or diagram) and number.start(1) not in positions:
++            # Explicit apartment identifiers are not shape dimensions. Other
++            # unused numbers (including a second '5 by 6' tuple) remain ambiguous.
++            if not re.search(r"\bapartment\s*$", t[:number.start(1)]):
++                return None, None, False, "I cannot account for every number in this dimensional request; please clarify the extra dimensions or constraints."
++    return fields, units, diagram, None
++
++
++def _request_issue(t):
++    asking = re.split(r"(?<=[.!?])\s+", t)[-1]
++    if len(set(re.findall(r"\b(?:area|perimeter|volume|circumference)\b", asking))) > 1:
++        return "I can calculate one geometry measure at a time; please ask for the measures separately."
++    if re.search(r"\b(?:rectangles|rooms|circles|spheres|cylinders|cones|cubes|boxes|triangles|squares|cuboids)\b", t) or re.search(r"\b(?:their|both)\b", asking):
++        return "I can calculate one shape at a time; this request refers to multiple shapes."
++    for requested in re.finditer(r"\b(?:in|into|to)\s+(?:(square|cubic|sq\.?|cu\.?)\s+|(units?\s+of)\s+)?([a-z]+)(?:\^?[23]|[²³])?\b", asking):
++        if requested.group(1) or requested.group(2) or requested.group(3) in _LENGTHS:
++            return "I cannot yet bind an explicitly requested output unit for this geometry calculation."
++    return None
++
++
+ class GeometryOrganV4(GeometryOrganV3):
+     def answer(self, text, session_id="default"):
+-        return super().answer(IMPERATIVE.sub("find ", str(text or "")), session_id)
++        t = IMPERATIVE.sub("find ", str(text or ""))
++        asking = re.split(r"(?<=[.!?])\s+", t.strip())[-1]
++        if (re.match(r"^(?:who|when|where|why|explain|describe|tell me)\b", asking, re.I)
++                or re.search(r"\b(?:colou?r|name|history|origin)\b", asking, re.I)):
++            return None
++        if not re.search(r"\b(?:area|perimeter|volume|circumference|hypotenuse|leg|angles?)\b", asking, re.I):
++            return None  # shape mentions alone are not requests for a calculation
++        low = " ".join(t.lower().replace("−", "-").split())
++        issue = _request_issue(low)
++        if issue and re.search(r"\b(?:rectangles?|rectangular|circles?|spheres?|cylinders?|cones?|cubes?|squares?|triangles?|box|boxes|cuboids?)\b", low):
++            return self._say("underspecified", issue, status="withheld")
++        reply = super().answer(t, session_id)
++        if not reply or reply.get("status") != "answered" or reply.get("kind") not in _POWERS:
++            return reply
++        def refuse(message):
++            return self._say("underspecified", message, status="withheld")
++        if re.search(r"(?<!\w)-\d", low):
++            return refuse("A negative length is not a valid dimension for this geometry calculation.")
++        fields, units, diagram, issue = _dimensions(low)
++        if issue:
++            return refuse(issue)
++        physical = [u for u in units if u]
++        if physical and len(physical) != len(units):
++            return refuse("Some dimensions have length units and others do not; please specify the missing units.")
++        if "radius" in fields and "diameter" in fields:
++            r, ru = fields["radius"]; d, du = fields["diameter"]
++            if 2 * r * (ru[1] if ru else 1) != d * (du[1] if du else 1):
++                return refuse("The radius and diameter contradict each other: the diameter must be twice the radius.")
++        kind = reply["kind"]
++        if physical or diagram:
++            allowed_roles = {
++                "rect_area": {"length", "width"}, "rect_perimeter": {"length", "width"},
++                "circle_area": {"radius", "diameter"}, "circumference": {"radius", "diameter"},
++                "sphere_volume": {"radius", "diameter"}, "sphere_surface": {"radius", "diameter"},
++                "cylinder_volume": {"radius", "diameter", "height"}, "cylinder_surface": {"radius", "diameter", "height"},
++                "cone_volume": {"radius", "diameter", "height"},
++                "cube_volume": {"side", "edge"}, "cube_surface": {"side", "edge"},
++                "box_volume": {"length", "width", "height"},
++                "square_area": {"side"}, "square_perimeter": {"side"},
++                "tri_area": {"base", "height"}, "hypotenuse": {"leg"}, "leg": {"hypotenuse", "leg"},
++            }.get(kind, set())
++            if set(fields) - allowed_roles:
++                return refuse("This formula does not account for all supplied geometry roles; please clarify the extra dimensions or constraints.")
++        if kind.startswith("cube_") and "side" in fields and "edge" in fields:
++            side, su = fields["side"]; edge, eu = fields["edge"]
++            if side * (su[1] if su else 1) != edge * (eu[1] if eu else 1):
++                return refuse("The cube's side and edge values contradict each other; they describe the same length.")
++        scales = {u[1] for u in physical}
++        power = _POWERS[kind]
++        unit = physical[0][0] if physical else None
++        value = reply.get("value")
++        steps = None
++        if kind in ("rect_area", "rect_perimeter") and (physical or diagram):
++            if set(fields) != {"length", "width"}:
++                return refuse("I need exactly a bound length and width for this rectangle calculation.")
++            length, lu = fields["length"]; width, wu = fields["width"]
++            if len(scales) > 1:
++                length, width = length * lu[1], width * wu[1]
++                unit = "m"
++            value = length * width if power == 2 else 2 * (length + width)
++            steps = ("A = l × w = %g × %g" if power == 2 else "P = 2(l + w) = 2(%g + %g)") % (length, width)
++        elif len(scales) > 1:
++            return refuse("I cannot combine mixed length units for this geometry formula; please express its dimensions in one unit.")
++        # Unitless published formulas retain their original behavior. Explicit
++        # diagram dimensions remain useful but must not be presented as inches.
++        if not physical and not diagram:
++            return reply
++        if not math.isfinite(value):
++            return refuse("The geometry result is outside the finite numeric range I can return.")
++        rounding = re.search(r"round(?:ed)?\s+to\s+(?:the\s+nearest\s+)?(tenth|hundredth|thousandth|whole)\b", low)
++        if re.search(r"\bround(?:ed)?\b", low) and not rounding:
++            return refuse("I cannot bind that rounding request; please name the nearest tenth, hundredth, thousandth or whole unit.")
++        if rounding:
++            value = round(value, {"tenth": 1, "hundredth": 2, "thousandth": 3, "whole": 0}[rounding.group(1)])
++        label = (unit + ("²" if power == 2 else "³" if power == 3 else "")) if unit else {1: "units", 2: "square units", 3: "cubic units"}[power]
++        response = reply["response"]
++        if steps is not None:
++            response = "The %s is %s %s (%s)." % ("area" if power == 2 else "perimeter", g(value), label, steps)
++        else:
++            response = re.sub(r"\bis\s+-?\d+(?:\.\d+)?(?:e[+-]?\d+)?", "is %s %s" % (g(value), label), response, count=1)
++        return {**reply, "value": value, "unit": unit if power == 1 else ("%s^%d" % (unit, power) if unit else label), "response": response}
