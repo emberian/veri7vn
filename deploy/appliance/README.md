@@ -5,6 +5,15 @@ This materializer prepares the complete Oracle7 slim 4.9 runtime at
 It does not run queries, install a service, or grant Mini authority. The query
 adapter is documented in [`tools/appliance/README.md`](../../tools/appliance/README.md).
 
+The latest checked local composition is **U5 v2**, still based on that pinned
+4.9 source. Its [recipe](candidate-u5-v2.recipe.json) lists the complete ordered
+patch set and component locks; its [receipt](../../docs/deploy/appliance-u5-v2-2026-10-27.json)
+and [Engine results](../../project/lanes/U5-service.md#final-u5-v2-convergence-checkpoint)
+record what was built and exercised. Use that recipe to reproduce the current
+candidate. The individual patch examples below explain the construction steps
+and earlier versions; they are not its complete patch list. Upstream's newer
+10.0 release has not yet been integrated into this candidate.
+
 The upstream release carries 19 verified-family binaries for Linux x86-64,
 from veri7vn revision `3bf43cff8eaa1c30db2659d186cdcffe9c4f6c61`. They predate
 our current repairs. On other architectures, upstream does not run this kernel
@@ -23,9 +32,9 @@ The upstream 19 kernels remain at their older versions.
 The retained local candidate can be started from the veri7vn checkout:
 
 ```sh
-.venv/bin/python -B var/appliance-20261026/candidate/adapter/serve.py \
-  --runtime var/appliance-20261026/candidate \
-  --data-root var/appliance-20261026/candidate/root \
+.venv/bin/python -B var/usage-20261027/candidate-u5-v2/adapter/serve.py \
+  --runtime var/usage-20261027/candidate-u5-v2 \
+  --data-root var/usage-20261027/candidate-u5-v2/root \
   --workspace var/appliance-workspaces/example --port 7070
 ```
 
