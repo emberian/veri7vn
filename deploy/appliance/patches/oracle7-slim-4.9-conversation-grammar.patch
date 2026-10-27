@@ -1,0 +1,238 @@
+diff --git a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_ao.py b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_ao.py
+index 911a835..7eee783 100644
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_ao.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_ao.py
+@@ -22,6 +22,16 @@ import re
+ 
+ from oracle_release_runtime_an import OracleReleaseRuntimeAN
+ 
++# Untrusted grammar guard: in "does it take/cost ... to <action>", it
++# may be a grammatical subject rather than an entity from the conversation.
++# Decline substitution for that token; other references remain eligible. The
++# match stays within a clause and accepts decimal amounts before the infinitive.
++DUMMY_IT = re.compile(
++    r"\b(?:does|did|will|would|can|could|should|has|had)\s+(?P<it>it)\s+"
++    r"(?:take|taken|cost)\s+"
++    r"(?:(?:\d+(?:\.\d+)?\s+(?:milliseconds?|seconds?|minutes?|hours?|days?|weeks?|"
++    r"months?|years?|dollars?|euros?|pounds?)|[$€£]\d+(?:\.\d+)?)\s+)?"
++    r"to\s+[a-z]", re.I)
+ DEICTIC = re.compile(r"\b(it|there|that|this|its|they|them|those|these|the same)\b", re.I)
+ ELLIPSIS = re.compile(r"^(?:and|what about|the same for)\s+(?P<t>.+?)\??$", re.I)
+ BARE = re.compile(r"^(?:the\s+)?[a-z][a-z \-']{2,40}$", re.I)
+@@ -41,6 +51,17 @@ PREDICATE_OF = {
+ }
+ 
+ 
++def referential_deictic(text):
++    """First eligible reference, excluding only take/cost-infinitive dummy it.
++
++    This does not claim to parse all English expletives. Skipping an ambiguous
++    token leaves the original question available to the unchanged handler.
++    """
++    dummy_spans = {match.span("it") for match in DUMMY_IT.finditer(text)}
++    return next((match for match in DEICTIC.finditer(text)
++                 if match.span() not in dummy_spans), None)
++
++
+ class OracleReleaseRuntimeAO(OracleReleaseRuntimeAN):
+     """Conversions are applied ONLY when the unchanged chain would not answer."""
+ 
+@@ -103,10 +124,11 @@ class OracleReleaseRuntimeAO(OracleReleaseRuntimeAN):
+             if not CONTINUATION.match(s):
+                 return f"Summarize {s.strip()}.", "ELLIPSIS_COMPLETION"
+         topic = self._live_topic(session_id)
+-        if topic and DEICTIC.search(s):
++        reference = referential_deictic(s)
++        if topic and reference:
+             if low in PREDICATE_OF:
+                 return PREDICATE_OF[low].format(t=topic), "REFERENT_SUBSTITUTION"
+-            return DEICTIC.sub(topic, s, count=1), "REFERENT_SUBSTITUTION"
++            return s[:reference.start()] + topic + s[reference.end():], "REFERENT_SUBSTITUTION"
+         return None, None
+ 
+     def chat(self, text: str, session_id: str = "default") -> dict:
+diff --git a/root/wander-train/oracle_release_runtime_ao.py b/root/wander-train/oracle_release_runtime_ao.py
+index 911a835..7eee783 100644
+--- a/root/wander-train/oracle_release_runtime_ao.py
++++ b/root/wander-train/oracle_release_runtime_ao.py
+@@ -22,6 +22,16 @@ import re
+ 
+ from oracle_release_runtime_an import OracleReleaseRuntimeAN
+ 
++# Untrusted grammar guard: in "does it take/cost ... to <action>", it
++# may be a grammatical subject rather than an entity from the conversation.
++# Decline substitution for that token; other references remain eligible. The
++# match stays within a clause and accepts decimal amounts before the infinitive.
++DUMMY_IT = re.compile(
++    r"\b(?:does|did|will|would|can|could|should|has|had)\s+(?P<it>it)\s+"
++    r"(?:take|taken|cost)\s+"
++    r"(?:(?:\d+(?:\.\d+)?\s+(?:milliseconds?|seconds?|minutes?|hours?|days?|weeks?|"
++    r"months?|years?|dollars?|euros?|pounds?)|[$€£]\d+(?:\.\d+)?)\s+)?"
++    r"to\s+[a-z]", re.I)
+ DEICTIC = re.compile(r"\b(it|there|that|this|its|they|them|those|these|the same)\b", re.I)
+ ELLIPSIS = re.compile(r"^(?:and|what about|the same for)\s+(?P<t>.+?)\??$", re.I)
+ BARE = re.compile(r"^(?:the\s+)?[a-z][a-z \-']{2,40}$", re.I)
+@@ -41,6 +51,17 @@ PREDICATE_OF = {
+ }
+ 
+ 
++def referential_deictic(text):
++    """First eligible reference, excluding only take/cost-infinitive dummy it.
++
++    This does not claim to parse all English expletives. Skipping an ambiguous
++    token leaves the original question available to the unchanged handler.
++    """
++    dummy_spans = {match.span("it") for match in DUMMY_IT.finditer(text)}
++    return next((match for match in DEICTIC.finditer(text)
++                 if match.span() not in dummy_spans), None)
++
++
+ class OracleReleaseRuntimeAO(OracleReleaseRuntimeAN):
+     """Conversions are applied ONLY when the unchanged chain would not answer."""
+ 
+@@ -103,10 +124,11 @@ class OracleReleaseRuntimeAO(OracleReleaseRuntimeAN):
+             if not CONTINUATION.match(s):
+                 return f"Summarize {s.strip()}.", "ELLIPSIS_COMPLETION"
+         topic = self._live_topic(session_id)
+-        if topic and DEICTIC.search(s):
++        reference = referential_deictic(s)
++        if topic and reference:
+             if low in PREDICATE_OF:
+                 return PREDICATE_OF[low].format(t=topic), "REFERENT_SUBSTITUTION"
+-            return DEICTIC.sub(topic, s, count=1), "REFERENT_SUBSTITUTION"
++            return s[:reference.start()] + topic + s[reference.end():], "REFERENT_SUBSTITUTION"
+         return None, None
+ 
+     def chat(self, text: str, session_id: str = "default") -> dict:
+diff --git a/tests/conversation_grammar/test_m53_dummy_it.py b/tests/conversation_grammar/test_m53_dummy_it.py
+new file mode 100644
+index 0000000..5d883d5
+--- /dev/null
++++ b/tests/conversation_grammar/test_m53_dummy_it.py
+@@ -0,0 +1,126 @@
++"""Untrusted handler tests: real AO conversion and AN recording, controlled AM replies.
++
++No full Engine or source stores are loaded. These tests establish conversion
++behavior, not whether the full engine can compute the requested duration/cost.
++"""
++from copy import deepcopy
++import importlib.util
++from pathlib import Path
++import sys
++import types
++import unittest
++from unittest.mock import patch
++
++ROOT = Path(__file__).resolve().parents[2]
++WANDER = ROOT / 'root/wander-train'
++MIRROR = ROOT / 'root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_ao.py'
++
++
++def load(name, path):
++    spec = importlib.util.spec_from_file_location(name, path)
++    module = importlib.util.module_from_spec(spec)
++    sys.modules[name] = module
++    spec.loader.exec_module(module)
++    return module
++
++
++def answer(body):
++    return {'status': 'answered', 'path': 'verified:test', 'response': body}
++
++
++def withheld():
++    return {'status': 'withheld', 'path': 'missing:test', 'response': 'No answer for that question.'}
++
++
++class Plain:
++    def __init__(self):
++        self.dialogue = {}
++        self.calls = []
++        self.routes = {}
++
++    def chat(self, text, session_id='default'):
++        self.calls.append((text, session_id))
++        result = deepcopy(self.routes.get(text, withheld()))
++        self.dialogue.setdefault(session_id, {})['last_result'] = deepcopy(result)
++        return result
++
++
++class DummyItTests(unittest.TestCase):
++    def setUp(self):
++        self.modules = patch.dict(sys.modules, {'oracle_release_runtime_am':
++            types.SimpleNamespace(OracleReleaseRuntimeAM=Plain)})
++        self.modules.start()
++        load('oracle_release_runtime_an', WANDER / 'oracle_release_runtime_an.py')
++        self.ao = load('oracle_release_runtime_ao', WANDER / 'oracle_release_runtime_ao.py')
++        self.rt = self.ao.OracleReleaseRuntimeAO()
++        self.rt.dialogue['s'] = {'last_topic': 'that times 2'}
++        self.rt.routes['Summarize that times 2.'] = answer('A summary unrelated to transfer duration.')
++
++    def tearDown(self):
++        self.modules.stop()
++
++    def test_recorded_transfer_failure_does_not_become_old_topic_summary(self):
++        question = 'How long does it take to transfer 1GB at100Mbps?'
++        reply = self.rt.chat(question, 's')
++        self.assertEqual(reply, withheld())
++        self.assertEqual(self.rt.calls, [(question, 's'), (question, 's')])
++        self.assertEqual(len(self.rt.path('s')), 1)
++        self.assertEqual(self.rt.path('s')[0]['in_surface'], question)
++        self.assertNotIn('conversion', self.rt.path('s')[0])
++
++    def test_duration_and_cost_grammar_generalizes_beyond_transfer_wording(self):
++        questions = ['How long will it take to boil 2 litres of water?',
++                     'How much does it cost to run a 2 kW heater for 3 hours?',
++                     'What would it take to build a bridge?',
++                     'Does it take 1.5 hours to charge a battery?',
++                     'Would it cost $2.50 to run the heater?',
++                     'How much time has it taken to compile the program?',
++                     'HOW LONG COULD IT TAKE TO WALK 10 KM?']
++        for question in questions:
++            with self.subTest(question=question):
++                self.assertEqual(self.rt._convert(question, 's'), (None, None))
++
++    def test_real_referential_it_and_other_pronouns_still_resolve(self):
++        self.rt.dialogue['s']['last_topic'] = 'Moon'
++        for question, expected in [('Who discovered it?', 'Who discovered Moon?'),
++                                   ('What is it made of?', 'What is Moon made of?'),
++                                   ('What lives there?', 'What lives in Moon?'),
++                                   ('How long does it take?', 'How long does Moon take?'),
++                                   ('Does it take photos?', 'Does Moon take photos?'),
++                                   ('Does it take photos to upload?', 'Does Moon take photos to upload?'),
++                                   ('Does it take me to London?', 'Does Moon take me to London?')]:
++            with self.subTest(question=question):
++                self.assertEqual(self.rt._convert(question, 's'), (expected, 'REFERENT_SUBSTITUTION'))
++
++    def test_dummy_it_does_not_hide_a_later_real_reference(self):
++        self.rt.dialogue['s']['last_topic'] = 'the battery'
++        question = 'How long does it take to charge that?'
++        rewritten = 'How long does it take to charge the battery?'
++        self.assertEqual(self.rt._convert(question, 's'), (rewritten, 'REFERENT_SUBSTITUTION'))
++        self.rt.routes[rewritten] = answer('Two hours. [source:test]')
++        reply = self.rt.chat(question, 's')
++        self.assertEqual(reply['response'], 'Two hours. [source:test]')
++        self.assertEqual(reply['conversion']['to'], rewritten)
++        self.assertEqual(len(self.rt.path('s')), 1)
++
++    def test_known_answer_and_conversation_moves_are_preserved(self):
++        question = 'How long does it take to transfer 1 GB at 100 Mbps?'
++        self.rt.routes[question] = answer('80 seconds. [source:test]')
++        self.assertEqual(self.rt.chat(question, 's'), self.rt.routes[question])
++        self.assertEqual(len(self.rt.path('s')), 1)
++        self.assertEqual(self.rt._convert('I meant the Pacific Ocean', 's'),
++                         ('Summarize the Pacific Ocean.', 'REPAIR_ACCEPT'))
++        self.assertEqual(self.rt._convert('What about Venus?', 's'),
++                         ('Summarize Venus.', 'ELLIPSIS_COMPLETION'))
++        self.assertEqual(self.rt._convert('Go on', 's'), (None, None))
++
++    def test_absent_topic_and_other_session_never_borrow_referents(self):
++        self.assertEqual(self.rt._convert('Who discovered it?', 'other'), (None, None))
++        self.assertEqual(self.rt._convert('How long does it take to charge that?', 'other'), (None, None))
++        self.assertEqual(self.rt.dialogue['s']['last_topic'], 'that times 2')
++
++    def test_source_mirror_matches(self):
++        self.assertEqual((WANDER / 'oracle_release_runtime_ao.py').read_bytes(), MIRROR.read_bytes())
++
++if __name__ == '__main__':
++    unittest.main()
