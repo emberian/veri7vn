@@ -110,3 +110,39 @@ regressions now pass. Startup cleanup uncertainty was also made conservative.
 Real Linux RSS/PSS/shared-page and 32-tenant qualification belongs to the
 coordinated measurement lane. Those measurements and hosted Mini admission are
 not claimed by these fixtures or the single-workspace restart experiment.
+
+## Refuse stale conversations before worker allocation
+
+Root's efficiency review identified that an otherwise correct reset refusal
+could unnecessarily start an Engine and evict an unrelated idle tenant. The
+request path now checks known conversation generation/poisoning immediately
+after exact journal replay, under the pool metadata lock and before allocation
+or tenant registration. An evicted conversation returns 409 without warming a
+worker; its `generation` is null because no current resident generation exists.
+The authoritative check under the execution lease remains in place for races.
+
+Busy residents are deliberately excluded from this early reset decision: both
+an in-progress poisoned turn and an unfinished constructor return 429 rather
+than a permanent reset. Exact retained request identity still takes precedence.
+Tests assert unchanged resident objects, engine creation count and tenant quota
+on a stale refusal, preserved cold replay, and busy-then-reset behavior around a
+controlled constructor. Combined scoped result is now **30 passing tests**
+(19 pool, six adversarial and five HTTP). Existing immutable candidates were not
+edited; provisioning owns any successor package containing this optimization.
+
+## Standalone-workspace upgrade boundary
+
+Pool construction now refuses any root containing a standalone
+`requests.sqlite3`, including a root that also has a tenant registry. The check
+runs before directory/lock/registry creation or worker startup. A v5 standalone
+journal has no authenticated tenant assignment: ignoring it could reexecute an
+old request ID, while guessing its owner could disclose another user's state.
+The deployment must therefore select a **fresh pool root/new grain**, or carry
+out a separately reviewed identity-aware migration. There is no automatic
+migration of unassigned workspace data. Legacy-format journals already inside a
+known tenant directory remain supported by the read-only replay path.
+
+The regression preserves a real legacy journal byte-for-byte, checks that no
+pool files or Engine are created, and rejects mixed standalone/pool roots.
+Combined scoped result is **31 passing tests** (20 pool, six adversarial and
+five HTTP). Root owns user-facing deployment documentation and package rollover.

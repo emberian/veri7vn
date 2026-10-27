@@ -52,6 +52,12 @@ two resident workers and 128 persistent tenant workspaces. The operator may
 set 1–64 resident workers and at most 10,000 workspaces. These are configuration
 bounds, not a claim that every setting fits the appliance's resource budget.
 
+Use a fresh pool root or a new grain. A root containing a standalone
+`requests.sqlite3` journal is refused, including mixed legacy/pool roots:
+silently skipping that journal could execute a previously completed request
+again. Moving existing shared history to authenticated tenants requires a
+separately reviewed migration; this launcher does not guess its owner.
+
 The Mini bridge derives a tenant key from its authenticated principal and
 source application/session coordinates. It supplies the private
 `X-Mini-Oracle-Tenant` header as 64 lowercase hexadecimal characters. Browser

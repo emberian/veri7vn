@@ -51,6 +51,11 @@ class TenantPool:
             raise ValueError('idle_seconds must be finite and positive')
         validate_paths(config)
         self.config = replace(config, workspace=config.workspace.resolve())
+        if os.path.lexists(self.config.workspace / 'requests.sqlite3'):
+            # A standalone journal has no authenticated tenant assignment.
+            # Ignoring it would permit old request IDs to execute again under
+            # a new tenant directory; guessing an owner would leak old state.
+            raise ValueError('legacy standalone workspace requires explicit migration; use a fresh tenant pool root')
         self.max_resident, self.idle_seconds = max_resident, idle_seconds
         self.max_tenants = max_tenants
         self.factory, self.clock = service_factory, clock
@@ -305,8 +310,21 @@ class TenantPool:
             if self.stopping:
                 return 503, failure('pool_stopping', retryable=False)
             retained = self._retained(identity,raw,request['request_id'],path,method)
-        if retained is not None:
-            return retained
+            if retained is not None:
+                return retained  # exact journal identity wins over conversation reset
+            resident = self.residents.get(identity)
+            # A busy resident may be starting or executing a pending poisoned
+            # turn. Let the existing admission gate return429 in those cases;
+            # transient pending state is not a permanent reset decision.
+            if resident is None or not resident.busy:
+                try:
+                    previous = self.registry.execute('SELECT generation,poisoned FROM conversations WHERE tenant=? AND id=?', (identity,request['conversation_id'])).fetchone()
+                except sqlite3.Error:
+                    self.registry_failed = True
+                    return 507, failure('tenant_registry_error', executed=False)
+                if previous and (resident is None or resident.poisoned or previous[0] != resident.generation or previous[1]):
+                    return 409, failure('conversation_reset_required', executed=False, fresh_conversation_required=True,
+                                        generation=resident.generation if resident is not None else None, retryable=False)
 
         def execute(resident):
             # Recheck under the tenant lease: a racing first caller may have

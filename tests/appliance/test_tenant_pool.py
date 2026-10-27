@@ -217,12 +217,38 @@ class TenantPoolTests(unittest.TestCase):
         created=len(self.factory.created)
         self.assertEqual(self.call('a',raw('first','first')),original)
         self.assertEqual(len(self.factory.created),created)
+        residents=dict(self.pool.residents)
+        registrations=self.pool.registry.execute('SELECT * FROM tenants ORDER BY id').fetchall()
         result=self.call('a',raw('followup','next'))
         self.assertEqual((result[0],result[1]['error']),(409,'conversation_reset_required'))
         self.assertFalse(result[1]['executed'])
         self.assertTrue(result[1]['fresh_conversation_required'])
+        self.assertIsNone(result[1]['generation'])
+        self.assertEqual(len(self.factory.created),created)
+        self.assertEqual(self.pool.residents,residents)
+        self.assertEqual(self.pool.registry.execute('SELECT * FROM tenants ORDER BY id').fetchall(),registrations)
         self.assertEqual(self.call('a',raw('supplied context','fresh','new-conversation'))[0],200)
         self.assertEqual(self.call('a',raw('warm followup','warm','new-conversation'))[0],200)
+
+    def test_stale_conversation_during_startup_stays_busy_until_lease_check(self):
+        self.call('a')
+        self.now[0]=301;self.pool.reap_idle()
+        real_factory=self.pool.factory
+        entered,release=threading.Event(),threading.Event()
+        def starting(config):
+            entered.set()
+            if not release.wait(2):raise RuntimeError('startup barrier timeout')
+            return real_factory(config)
+        self.pool.factory=starting
+        result=[]
+        thread=threading.Thread(target=lambda:result.append(self.pool.capabilities(key('a'))))
+        thread.start();self.assertTrue(entered.wait(1))
+        try:
+            self.assertEqual(self.call('a',raw('followup','new'))[0],429)
+        finally:
+            release.set();thread.join(2)
+        self.assertEqual(result[0][0],200)
+        self.assertEqual(self.call('a',raw('followup','new'))[0],409)
 
     def test_uncertain_turn_poisons_followups_but_retains_original_result(self):
         original=self.call('a',raw('uncertain','uncertain'))
@@ -306,6 +332,25 @@ class TenantPoolTests(unittest.TestCase):
         self.assertEqual(self.pool.request(key('a'),changed_route,'/invoke')[0],409)
         self.assertEqual(self.pool.request(key('a'),body+b' ')[0],409)
         self.assertEqual(len(self.factory.created),created)
+
+    def test_legacy_standalone_workspace_refused_without_mutation_or_engine(self):
+        self.pool.close()
+        legacy=self.root/'legacy-workspace';legacy.mkdir()
+        database=legacy/'requests.sqlite3'
+        with sqlite3.connect(database) as db:
+            db.execute('CREATE TABLE requests(id TEXT PRIMARY KEY, body BLOB, result BLOB)')
+            db.execute('INSERT INTO requests VALUES(?,?,?)',('old',raw(),S.encode({'outcome':'completed','reply':{'status':'answered'}})))
+        before={p.name:p.read_bytes() for p in legacy.iterdir()}
+        config=S.Config(self.config.runtime,self.config.data_root,legacy)
+        with self.assertRaisesRegex(ValueError,'legacy standalone workspace'):
+            TenantPool(config,service_factory=self.factory)
+        self.assertEqual({p.name:p.read_bytes() for p in legacy.iterdir()},before)
+        self.assertEqual(self.factory.created,[])
+        # Even a mixed root with an existing pool registry must not silently
+        # choose between unassigned standalone state and tenant state.
+        (legacy/'tenant-registry.sqlite3').write_bytes(b'fixture-existing-registry')
+        with self.assertRaisesRegex(ValueError,'legacy standalone workspace'):
+            TenantPool(config,service_factory=self.factory)
 
 
 if __name__ == '__main__':unittest.main()
