@@ -1,0 +1,53 @@
+{
+  "schema": "mini-op55-copied-store-qualification-v1",
+  "passed": true,
+  "created_utc": "2026-10-27T18:21:51.545192+00:00",
+  "scope": "Historical opcode55 semantics and public gate through operator UID1000 fixture; not actual controller UID100064 ACL/peer qualification",
+  "host_sha256": "bbf797b4c1b51dae0b4f6fcba292d5f15717885b6925a36f3384de670d3b9bac",
+  "public_mini_sha256": "e024af5de27bb09856c832bb27eb00b2a99d53b9715c44b40f81440c64d82a9e",
+  "recipient_candidate_mini_sha256": "e024af5de27bb09856c832bb27eb00b2a99d53b9715c44b40f81440c64d82a9e",
+  "recipient_original_mini_sha256": "68f8eefadfb0d7bfa9a8bc69f7656a362e32688553ac7114b32cfd07bd9a1d48",
+  "ingress_sha256": "1811bf42e6dc1f4ba238700480727050cf547714d38b695e3cc7df4d6e2c55da",
+  "historical_receipt": {
+    "worldRoot": "22727922975630530694294834043425200342755686359050649657460331516713676686366",
+    "type": "confirmed",
+    "transactionId": "33033121379202146578381276637894255323121380154932618538362314754580355015469",
+    "eventId": "94632139059851984331776195496462556577041304920447110787603584194411108851481",
+    "confirmation": "replayed",
+    "acceptedCount": "29"
+  },
+  "final_report_sha256": "5bae66bbc3f344c0f409cce23638c5bd8cc872d0e66a4e1e07f14f7dae662741",
+  "test_uid": 1000,
+  "test_gid": 1000,
+  "actual_controller_uid_tested": false,
+  "new_runtime_binary_qualified_by_this_probe": false,
+  "original_store_hashes_and_counts_unchanged": true,
+  "copied_store_hashes_and_counts_unchanged": true,
+  "all_owned_processes_stopped": true,
+  "retained_namespace_restarted": false,
+  "operation13_resubmitted": false,
+  "ack_performed": false,
+  "cold_seconds": 172.92402706199937,
+  "whole_run_seconds": 178,
+  "cgroup_peak_rss_bytes": 644280320,
+  "remote_fixture": "dregg-build:/build/lanes/oracle-op55-probe",
+  "remote_final_report": "dregg-build:/build/lanes/oracle-op55-probe/evidence/lookup-compat/report.json",
+  "files": {
+    "export-chain.json": "4374e1d774d2928648e8145ef1c928b92a122ab958a784b835873adf91fb4de7",
+    "final-artifacts.json": "31b8cb8ebfe0126e9ab9d0e78fe1f11b848d18b05d866995b9e90e77e1ce7ba5",
+    "final-run.json": "5bae66bbc3f344c0f409cce23638c5bd8cc872d0e66a4e1e07f14f7dae662741",
+    "concurrent-old-client.json": "28181edf377df613240bc4ae1229b2fe5b09230c3a783c12d8b2fba90acd5ba1",
+    "public-run.json": "4b3ddda447e7b62f0bba84a76c2641dfe4d7453d94e8c127dfc808e803d468a3",
+    "first-native-run.json": "02bd67c6b4f986b81b96e86d64f2f96e4f8f7b83f97f0a1e97408752d7386c15"
+  },
+  "source_statements_read": [
+    "Host/Main.lean applicationGrainShareIssueLookupSession returns original receipt from lookupVerified without a new transition",
+    "Kernel/ApplicationShareIssueGrainLookup.lean lookupVerified requires exact ingress, exact IntentRecord encoding, matching verified certificate and original receipt",
+    "Kernel/ApplicationShareIssueGrainSource.lean decoded_canonical and decoded_grain_bytes bind decoded values to exact canonical bytes"
+  ],
+  "earlier_results": {
+    "first-native-run.json": "Expected empty relay frame to reach native; corrected expectation, source/copy unchanged",
+    "concurrent-old-client.json": "Queue residence deadline behind cold replay; sequential original client succeeds in final run",
+    "public-run.json": "Candidate public/native controls passed before sequential compatibility rerun"
+  }
+}

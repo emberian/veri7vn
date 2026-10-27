@@ -1,0 +1,132 @@
+{
+  "schema": "mini-grain-share-op55-probe-v1",
+  "passed": false,
+  "host_sha256": "bbf797b4c1b51dae0b4f6fcba292d5f15717885b6925a36f3384de670d3b9bac",
+  "mini_sha256": "68f8eefadfb0d7bfa9a8bc69f7656a362e32688553ac7114b32cfd07bd9a1d48",
+  "proxy_sha256": null,
+  "copied_store_before": {
+    "files": {
+      "/build/lanes/oracle-op55-probe/store/forward-link.sqlite3": "f11ae5cbf6a38ffb9755474e3dc0894793aedd2724faee5e5e6d9b492fd1baaa",
+      "/build/lanes/oracle-op55-probe/store.head-anchor": "e82808f1d2ab265334b9ee8246754274e6f7e5a1f1949abdd9bc80f08a3d6662",
+      "/build/lanes/oracle-op55-probe/deployment/config.json": "190723acd38b6a2b917718e899f89e23eaec3712b06ca0ab3a7e27a5228e041c",
+      "/build/lanes/oracle-op55-probe/deployment/checkpoint.key": "6a9cdce0eee58fe4c159e7619dfc5e482dc0b6656eb709bd272778e67f00822b"
+    },
+    "sqlite_rows_and_max": {
+      "durable_log": [
+        40,
+        40
+      ],
+      "archive_journal": [
+        0,
+        null
+      ]
+    }
+  },
+  "measurements": {
+    "exact": {
+      "seconds": 182.74761823299923,
+      "outcome": {
+        "worldRoot": "22727922975630530694294834043425200342755686359050649657460331516713676686366",
+        "type": "confirmed",
+        "transactionId": "33033121379202146578381276637894255323121380154932618538362314754580355015469",
+        "eventId": "94632139059851984331776195496462556577041304920447110787603584194411108851481",
+        "confirmation": "replayed",
+        "acceptedCount": "29"
+      },
+      "frame_sha256": "18fb86d99319a4ef5465ba49c1883c6a78a5548af1499ade4f62eb6a1fa26053"
+    },
+    "canonical-changed-ingress": {
+      "seconds": 0.08591039400198497,
+      "outcome": {
+        "type": "refused",
+        "reason": "conflict",
+        "phase": "7265706c6179",
+        "detail": "7472616e73616374696f6e206964656e7469747920636f6e666c696374"
+      },
+      "frame_sha256": "bdc131f00258e9c6f94721f98760d6b2d2c0f42df280899147318760949ff887"
+    }
+  },
+  "source_store_mutated": false,
+  "original_store_before": {
+    "files": {
+      "/build/lanes/oracle-acceptance-u3-r3/run-v5/world/store/base/workroom/store/forward-link.sqlite3": "f11ae5cbf6a38ffb9755474e3dc0894793aedd2724faee5e5e6d9b492fd1baaa",
+      "/build/lanes/oracle-acceptance-u3-r3/run-v5/world/store/base/workroom/store.head-anchor": "e82808f1d2ab265334b9ee8246754274e6f7e5a1f1949abdd9bc80f08a3d6662",
+      "/build/lanes/oracle-acceptance-u3-r3/run-v5/world/store/base/workroom/deployment/pinned-config.json": "908cc66f8c19610b114c29d0c86e30fbe3350da45c695bb140441ebd88e662d7",
+      "/build/lanes/oracle-acceptance-u3-r3/run-v5/world/store/base/workroom/deployment/checkpoint.key": "6a9cdce0eee58fe4c159e7619dfc5e482dc0b6656eb709bd272778e67f00822b"
+    },
+    "sqlite_rows_and_max": {
+      "durable_log": [
+        40,
+        40
+      ],
+      "archive_journal": [
+        0,
+        null
+      ]
+    }
+  },
+  "admission_or_submit_performed": false,
+  "scope": "Copied Store only; receipt lookup and precise refusal controls",
+  "error": "('empty', b'\\xfeoperation unavailable on selected socket')",
+  "owned_child_pids": [
+    {
+      "pid": 2602985,
+      "state": "S",
+      "parent": 2602944,
+      "birth_ticks": "5022951"
+    },
+    {
+      "pid": 2603015,
+      "state": "S",
+      "parent": 2602985,
+      "birth_ticks": "5022975"
+    },
+    {
+      "pid": 2603418,
+      "state": "S",
+      "parent": 2602985,
+      "birth_ticks": "5023399"
+    }
+  ],
+  "owned_children_stopped": true,
+  "owned_processes_stopped": true,
+  "copied_store_after": {
+    "files": {
+      "/build/lanes/oracle-op55-probe/store/forward-link.sqlite3": "f11ae5cbf6a38ffb9755474e3dc0894793aedd2724faee5e5e6d9b492fd1baaa",
+      "/build/lanes/oracle-op55-probe/store.head-anchor": "e82808f1d2ab265334b9ee8246754274e6f7e5a1f1949abdd9bc80f08a3d6662",
+      "/build/lanes/oracle-op55-probe/deployment/config.json": "190723acd38b6a2b917718e899f89e23eaec3712b06ca0ab3a7e27a5228e041c",
+      "/build/lanes/oracle-op55-probe/deployment/checkpoint.key": "6a9cdce0eee58fe4c159e7619dfc5e482dc0b6656eb709bd272778e67f00822b"
+    },
+    "sqlite_rows_and_max": {
+      "durable_log": [
+        40,
+        40
+      ],
+      "archive_journal": [
+        0,
+        null
+      ]
+    }
+  },
+  "original_hashes_unchanged": true,
+  "copied_store_unchanged": true,
+  "original_store_after": {
+    "files": {
+      "/build/lanes/oracle-acceptance-u3-r3/run-v5/world/store/base/workroom/store/forward-link.sqlite3": "f11ae5cbf6a38ffb9755474e3dc0894793aedd2724faee5e5e6d9b492fd1baaa",
+      "/build/lanes/oracle-acceptance-u3-r3/run-v5/world/store/base/workroom/store.head-anchor": "e82808f1d2ab265334b9ee8246754274e6f7e5a1f1949abdd9bc80f08a3d6662",
+      "/build/lanes/oracle-acceptance-u3-r3/run-v5/world/store/base/workroom/deployment/pinned-config.json": "908cc66f8c19610b114c29d0c86e30fbe3350da45c695bb140441ebd88e662d7",
+      "/build/lanes/oracle-acceptance-u3-r3/run-v5/world/store/base/workroom/deployment/checkpoint.key": "6a9cdce0eee58fe4c159e7619dfc5e482dc0b6656eb709bd272778e67f00822b"
+    },
+    "sqlite_rows_and_max": {
+      "durable_log": [
+        40,
+        40
+      ],
+      "archive_journal": [
+        0,
+        null
+      ]
+    }
+  },
+  "original_store_unchanged": true
+}

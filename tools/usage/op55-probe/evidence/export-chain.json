@@ -1,0 +1,7 @@
+{
+  "final_export": "/build/lanes/oracle-acceptance-u3-r3-checkpoint-r2/final-controller-export.json",
+  "final_export_sha256": "21508586a4cafb48ae0284a766c20307717dbcc1e5a247d7e60cad48873ef08b",
+  "exported_ingress_key": "shared-app-refs/issue-lookup-0000000000000019/ingress.bin",
+  "exported_ingress_sha256": "1811bf42e6dc1f4ba238700480727050cf547714d38b695e3cc7df4d6e2c55da",
+  "exported_ingress_matches_copied": true
+}

@@ -1,0 +1,47 @@
+{
+  "passed": false,
+  "original_mini_sha256": "68f8eefadfb0d7bfa9a8bc69f7656a362e32688553ac7114b32cfd07bd9a1d48",
+  "public_mini_sha256": "e024af5de27bb09856c832bb27eb00b2a99d53b9715c44b40f81440c64d82a9e",
+  "host_sha256": "bbf797b4c1b51dae0b4f6fcba292d5f15717885b6925a36f3384de670d3b9bac",
+  "copied_store_before": {
+    "files": {
+      "/build/lanes/oracle-op55-probe/store/forward-link.sqlite3": "f11ae5cbf6a38ffb9755474e3dc0894793aedd2724faee5e5e6d9b492fd1baaa",
+      "/build/lanes/oracle-op55-probe/store.head-anchor": "e82808f1d2ab265334b9ee8246754274e6f7e5a1f1949abdd9bc80f08a3d6662",
+      "/build/lanes/oracle-op55-probe/deployment/config.json": "190723acd38b6a2b917718e899f89e23eaec3712b06ca0ab3a7e27a5228e041c",
+      "/build/lanes/oracle-op55-probe/deployment/checkpoint.key": "6a9cdce0eee58fe4c159e7619dfc5e482dc0b6656eb709bd272778e67f00822b"
+    },
+    "sqlite_rows_and_max": {
+      "durable_log": [
+        40,
+        40
+      ],
+      "archive_journal": [
+        0,
+        null
+      ]
+    }
+  },
+  "no_submission_or_ack": true,
+  "error": "mini: socket rejected request: busy: queue residence deadline\n",
+  "driver_resumed": true,
+  "proxy_stopped": true,
+  "copied_store_after": {
+    "files": {
+      "/build/lanes/oracle-op55-probe/store/forward-link.sqlite3": "f11ae5cbf6a38ffb9755474e3dc0894793aedd2724faee5e5e6d9b492fd1baaa",
+      "/build/lanes/oracle-op55-probe/store.head-anchor": "e82808f1d2ab265334b9ee8246754274e6f7e5a1f1949abdd9bc80f08a3d6662",
+      "/build/lanes/oracle-op55-probe/deployment/config.json": "190723acd38b6a2b917718e899f89e23eaec3712b06ca0ab3a7e27a5228e041c",
+      "/build/lanes/oracle-op55-probe/deployment/checkpoint.key": "6a9cdce0eee58fe4c159e7619dfc5e482dc0b6656eb709bd272778e67f00822b"
+    },
+    "sqlite_rows_and_max": {
+      "durable_log": [
+        40,
+        40
+      ],
+      "archive_journal": [
+        0,
+        null
+      ]
+    }
+  },
+  "copied_store_unchanged": true
+}
