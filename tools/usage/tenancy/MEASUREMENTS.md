@@ -1,5 +1,17 @@
 # Linux tenant-pool measurements, 2026-10-27
 
+The subsequent [U7 qualification](../../../project/lanes/U7-tenancy-qualification.md)
+completed the 32-tenant workload with one resident worker, durable retries,
+conflict and stale-context refusals, bounded contention and clean restart/shutdown.
+Its 944 process samples saw at most one Engine; peak sampled PSS was 441,971 KiB
+and summed RSS 455,528 KiB. The whole experiment's cgroup peak was 750,977,024
+bytes (716 MiB) under a 2 GiB limit, including charged cache and the harness.
+First requests took 7.51–103.05 seconds under concurrent host activity; this is
+not a clean latency comparison. The [compact evidence](u7-20261027-summary.json)
+identifies the retained raw receipt and exact checks. This supersedes the
+earlier incomplete 32-tenant lifecycle attempt below, without extending its
+scope to Mini authentication, all specialists or simultaneous tenant throughput.
+
 The two-resident design bounds running Engines, but switching to an evicted
  tenant still costs a cold start. This measurement is development evidence,
 not a specialist-panel score or Mini authentication claim.

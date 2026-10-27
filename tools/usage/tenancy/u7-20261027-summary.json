@@ -1,0 +1,136 @@
+{
+  "schema": "oracle-u7-tenancy-summary-v1",
+  "date": "2026-10-27",
+  "source_receipt": {
+    "host": "dregg-build",
+    "path": "/build/lanes/oracle-tenancy-measure/pool-u7-32-final/receipt.json",
+    "sha256": "5e76a4608cf2928dc6e8dd27d494bc9638289c43e98b1c4738875f9d4931c6af"
+  },
+  "source_run_log": {
+    "path": "/build/lanes/oracle-tenancy-measure/pool-u7-32-final.log",
+    "sha256": "42638b171a379f2bbfdc9b28efc9b3ab6ccb1ebde86fe002eef2b4f6d31a557a",
+    "exit_code": 0,
+    "wall_seconds": 581
+  },
+  "candidate_receipt_sha256": "78773bfb4ec72633332dfd67d9a466f4022f2457371fff32d3b673bcd499844c",
+  "data_inventory_sha256": "32bb3cf1a6337ee2c7b6ec902bb5bfdff11ba1fd5f1fa3b730dc269431b27d0a",
+  "harness_sha256": {
+    "tools/usage/tenancy/pool_probe.py": "629f76d18731361cc2ca4c7ca0dd7eec439af7f501819d0887ce93b3d85a2a89",
+    "tools/usage/tenancy/linux_memory.py": "b3513424932f03158b72ab911d432b089550cd53796550e71ae72468df7ccf06"
+  },
+  "adapter_sha256": {
+    "builder_operations.py": "fddec537922f9f072bae9bf1e8af6adbea9c2145c822f4846496ca19519b0c5d",
+    "component_operations.py": "e4cee111efb9ca72bf0417d4c28a94eb38a1355857fb8b148f99bfc9d086e897",
+    "exam_inspection.py": "8f5235a0fb0da786f38d032a88671ad909e5bfa0912bf260e5ff16e82d7efdfa",
+    "operations.py": "ea53d47f2c284bf4939dd8a008f0609660ca0026636724b529ce7f69de6057ed",
+    "serve.py": "1152526eed823e0c2740961115605f5df63a45b865e8303eb2dc4dca3d98da5f",
+    "tenant_pool.py": "a593bbc6ae68f63125ea2d9180f5b38d2a4413e839c020c1dcb23a670b61af0e",
+    "visual_operations.py": "c9106d91f333b9eb395c3a87e6e4b93085e29b56db651604b504bd97a20f69d6",
+    "workbench_operations.py": "387cdb94d4afdb8ebe5e4761d72078b56a22781424948cc3a2c30bf73394cf49"
+  },
+  "scope": "Real Engine arithmetic, lifecycle and memory observation with host-supplied tenant keys. Not Mini authentication, specialist-panel scoring or a hostile tenant isolation proof.",
+  "passed": true,
+  "tenants": 32,
+  "configured_resident_cap": 1,
+  "max_observed_engine_workers": 1,
+  "max_observed_process_tree_count": 4,
+  "sampling": {
+    "observations": 944,
+    "period_seconds": 0.5,
+    "errors": 0,
+    "limitation": "Periodic /proc observations can miss brief peaks; health checks supplement the sampled worker count."
+  },
+  "memory": {
+    "sampled_process_tree_peaks_kib": {
+      "Rss_kib": 455528,
+      "Pss_kib": 441971,
+      "private_kib": 434896,
+      "shared_kib": 32120,
+      "Swap_kib": 0
+    },
+    "cgroup_peak_bytes": 750977024,
+    "cgroup_limit_bytes": 2147483648,
+    "note": "PSS apportions shared mapped pages; summed RSS double-counts shared pages. Cgroup peak covers the entire experiment including measurement process and charged file cache. It is not Engine RSS."
+  },
+  "requests": {
+    "initial_completed": 32,
+    "byte_identical_retries": 32,
+    "changed_body_conflict_refusals": 32,
+    "cold_exact_replay_without_allocation": true,
+    "cold_and_restart_stale_refusal": true,
+    "burst_status_counts": {
+      "200": 1,
+      "429": 7
+    },
+    "retry_policy": "retry only explicit 429 or tenant_journal_unavailable 503 marked retryable",
+    "all_explicit_busy_retries_completed": true,
+    "restart_exact_replay_with_zero_residents": true
+  },
+  "retained_journal_inspection": {
+    "mode": "Read-only immutable SQLite inspection after run",
+    "journals": 32,
+    "same_id_present": 32,
+    "same_id_completed": 32,
+    "distinct_same_id_response_bytes": 32
+  },
+  "timings": {
+    "first_request": {
+      "count": 32,
+      "min_seconds": 7.507201954002085,
+      "median_seconds": 13.843137270996522,
+      "max_seconds": 103.04939190600271
+    },
+    "exact_retry": {
+      "count": 32,
+      "min_seconds": 0.0012181470010546036,
+      "median_seconds": 0.002529500001401175,
+      "max_seconds": 0.025981141996453516
+    },
+    "other_records": [
+      {
+        "case": "cold-exact-replay",
+        "seconds": 0.003756591999263037,
+        "process_tree_unchanged": true
+      },
+      {
+        "case": "cold-stale-refusal",
+        "status": 409,
+        "seconds": 0.0012340870016487315
+      },
+      {
+        "case": "warm-fresh",
+        "status": 200,
+        "seconds": 0.1175450800001272
+      },
+      {
+        "case": "clean-stop",
+        "wrapper_exit": 0,
+        "surviving_processes": []
+      },
+      {
+        "case": "restart-stale-refusal",
+        "status": 409,
+        "seconds": 0.0020610959982150234
+      },
+      {
+        "case": "restart-clean-stop",
+        "wrapper_exit": 0,
+        "surviving_processes": []
+      }
+    ],
+    "conditions": "Concurrent build-host activity; first requests include Engine cold starts. No clean performance comparison."
+  },
+  "cleanup": {
+    "first_wrapper_exit": 0,
+    "restart_wrapper_exit": 0,
+    "recorded_surviving_processes": [],
+    "post_run_process_listing_matches": 0,
+    "post_run_lslocks_matches": 0
+  },
+  "limits": [
+    "32 mostly sequential arithmetic requests do not establish 32-way throughput or all-specialist memory bounds.",
+    "One resident means eviction and cold starts when tenants alternate; old conversational context requires explicit reset.",
+    "No injected mutant or planted fault was run; conflict, stale-context and busy refusals are the negative cases.",
+    "No Mini Store, authenticated browser/agent journey or public deployment was exercised."
+  ]
+}
