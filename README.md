@@ -23,17 +23,41 @@ are repaired even when the old panels pass. The
 [current batch](project/APPLIANCE-2026-10-26.md) records integrated changes,
 their measured scope and the next substantive defects.
 
-The [appliance tools](deploy/appliance/README.md) materialize pinned Oracle7 slim
-code and stores, apply the reviewed correctness repairs, and expose a private
-HTTP service with full answer evidence and retry handling. The October 26
-candidate passed a real-engine smoke and includes the new Linux Earth kernel.
-Mini authority/SPK integration is still separate work.
-
 A proof establishes a particular statement about a computation. It can show
 that a result satisfies an equation or a decision follows from supplied rows.
 It does not establish that an English question was read correctly, a physical
 model fits the world, or a fetched record is true. Those boundaries matter as
 much as the calculation.
+
+## Minidregg appliance
+
+The appliance packages Oracle7, selected veri7vn kernels, Workbench and companion
+tools for use inside a [minidregg](https://github.com/emberian/minidregg) grain.
+It supports conversational questions and a searchable catalog of direct
+operations: calculations, sourced records, document/table analysis, simulations,
+forecast checks and supplied-image tools. Descriptors declare required inputs,
+units, availability and implementation limits. Mini agents use
+`mini_oracle_discover` and `mini_oracle_call` through their application grants.
+
+A signed Linux runtime contains the code, dependencies and bridge. Its signed
+data declaration selects a separately published, immutable public dataset:
+about 15 GB, mounted read-only and shared between grains. Each grain keeps its
+own writable conversation and request history. Large stores need no SPK
+chunking or per-grain copy. Mini controls admission and access; packaging a
+calculator does not grant permission or prove every answer it produces.
+
+As of 27 October 2026, the latest local candidate exposes 351 direct operations.
+Its focused Engine run completed 37 tasks, appropriately refused or clarified
+13, and left seven valid tasks incomplete, with no wrong answers observed in
+those 57 records. Earlier signed-package tests answered through Mini in two
+independent grains. The newer agent lifecycle and complete restart/recovery
+journey remain unfinished; this is not a public Dreggnet deployment.
+
+Start with the [Mini appliance overview](https://github.com/emberian/minidregg/blob/main/docs/oracle-appliance.md),
+the [materialization tools](deploy/appliance/README.md), and the
+[API and operation catalog](tools/appliance/README.md). The
+[current checkpoint](project/CONTINUE-2026-10-27.md) links exact candidates,
+measured results and remaining integration work.
 
 ## The board
 

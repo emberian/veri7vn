@@ -97,3 +97,79 @@ appropriate refusals/clarifications, seven valid or underspecified tasks
 incomplete, and one wrong dimensional answer**. This bounded replay neither
 establishes whole-system correctness nor conceals the specialist override.
 Root owns the next source repair and any later candidate replay.
+
+## Final U5-v2 convergence checkpoint
+
+Root integrated a separate geometry-specialist repair and a locally enabled
+transfer extension into `var/usage-20261027/candidate-u5-v2`.
+APPLIANCE receipt SHA256:
+`3d0e2c804c7c76f7a683e564053ccb5474bf3f1e97d30246c70f52f33dbd1338`.
+The earlier v1 failures above remain retained evidence; this section records the
+new candidate's behavior rather than rewriting them.
+
+One coordinated Engine replay repeated all 39 v1 cases, added the 16 fixed U5
+transfer controls, and invoked the direct transfer specialist for a positive
+and a refusal: **57 requests, all exact retries identical**. Operation discovery
+also confirmed the new specialist is live. Recorded PID **88848** exited normally
+with code **0**. Approximate elapsed time from the owned-PID file to finalized
+receipt was **31.3 seconds**, including startup, calls/retries and shutdown.
+Runtime inventory again shows zero new, missing or changed size/mtime files;
+the APPLIANCE receipt hash stayed unchanged. No Engine remains running.
+
+Final evidence:
+
+- `var/u5-service/u5-v2-real/{receipt.json,calls.jsonl,runtime-before.json}`
+- `var/u5-service/u5-v2-real/analysis.json`
+- `var/u5-service/u5-v2-real/reliability-analysis.json`
+- `var/u5-service/probe-u5-v2.py` and `analyze-v2.py`.
+
+### Actual repairs now reach consumers
+
+The earlier wrong mixed-unit rectangle now answers **0.12 m²**, showing
+`3 × 0.04` through the real `geometry-v4` specialist route. The prepositional
+“in the diagram” case now answers **12 square units**, without inventing inches
+or a physical scale. This completes the abstract diagram calculation; it does
+not assert a measured physical area. All eleven original value/unit/rendering
+checks still pass. The specialist-route wrapper does not retain the organ's
+raw `unit` field, so the repaired mixed-unit result is checked in the full answer
+text, while the word-reader checks also inspect provenance units.
+
+After the original arithmetic context, “How long does it take to transfer
+1GB at100Mbps?” now answers **Ideal transfer time: 80 seconds**, explicitly
+assuming 100% utilization and excluding startup delay. Its path is
+`local_extension>specialist_call>specialist:data-transfer-v1>transfer_seconds`.
+All **16 integration controls pass their bounded expectations**: ten valid
+requests return the expected ideal/estimated seconds and six unsupported,
+invalid or underspecified requests decline or clarify. These are development
+integration controls, not a fresh held-out admission panel. The fractional case
+retains the intended 4/3-second result to the text formatter's stated precision.
+The direct positive additionally preserves the exact rational 80/1 calculation.
+
+The catalog now reports **351 live direct, one text-only and nine unavailable**
+operations. `specialist.data-transfer-v1.answer` is discoverable and directly
+callable. Catalog metadata, full-head provenance and direct raw results retain
+`locally_enabled_unqualified`, `untrusted_python`,
+`fresh_heldout_admission: false` and `formal_proof: false`. The successful
+calculation does not silently acquire an upstream admission, proof or Mini
+permission. The direct unsupported-startup-delay request remains withheld and
+preserves the complete qualification object.
+
+Austen birth follow-up, arithmetic continuation, same-session recall, empty
+other-session recall and privacy controls remain correct within this replay.
+The original 15 reliability cases retain nine correct scalar results, four
+appropriate refusals and two needless refusals, with 7/10 pairs passing.
+
+### What remains after this checkpoint
+
+The final 57-request classification is **37 completed, 13 appropriate
+refusals/clarifications, seven valid tasks incomplete, and zero wrong answers
+observed**. The seven incomplete records are the spelled-negative-temperature
+request, valid speed request, three unsupported geometry-scope calculations,
+and startup-delay transfer through both head and direct invocation. The latter
+requests pass the bounded rejection controls but still do not complete those
+valid calculations; they are not counted as answered tasks.
+
+No further source repair or candidate iteration was launched during convergence.
+This lane changed no runtime source or immutable candidate. Root owns Git and
+any subsequent work. These are local full-Engine checks; no specialist admission
+score, new theorem, Linux result or native Mini admission is claimed.
