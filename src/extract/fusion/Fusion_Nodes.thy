@@ -301,12 +301,13 @@ proof -
   show ?thesis using M R MR kq' law st rr bnd' by blast
 qed
 
-text \<open>Planet weight: weight R^2 = k 9.81 M for k kg on a body of M Earth masses
-and R Earth radii (as the phrasing writes them), stated as the organ states it.\<close>
+text \<open>Planet weight: weight R^2 = k 9.81 M for nonnegative k kg on a body of
+positive M Earth masses and R Earth radii (as the phrasing writes them), stated
+as the organ states it. Acceptance by the Space kernel supplies these domains.\<close>
 theorem planet_weight_node:
   assumes "fnode Planet_weight c [m, em, er] = Some r"
   shows "\<exists>k M R q d. phrase (amount m) = Some k \<and> phrase (amount em) = Some M \<and> phrase (amount er) = Some R \<and>
-     0 < M \<and> 0 < R \<and>
+     0 < M \<and> 0 < R \<and> 0 \<le> k \<and>
      Space.kernel (Space.request.PWeightE M R k) = Space.outcome.Exact (STR ''weight'') q \<and>
      q * R ^ 2 = k * (981 / 100 * M) \<and>
      Space.stated_dec Space.style.St_pl q = Some d \<and> r = NVal (dec_rat d) \<and>
@@ -326,7 +327,8 @@ proof -
     using sv by (auto simp: space_val_def split: Space.outcome.splits option.splits)
   have ex: "Space.reason_of rq = None \<and> kd = Space.kind_of rq \<and> q = Space.qval rq"
     using Space.kernel_exact_sound[OF kq] by blast
-  have MR: "0 < M \<and> 0 < R" using ex by (simp add: rq_def split: if_splits)
+  have MR: "0 < M \<and> 0 < R \<and> 0 \<le> k"
+    using ex by (simp add: rq_def split: if_splits)
   have wm: "Space.kernel (Space.request.PWeightE M R k)
         = Space.outcome.Exact (STR ''weight'') (k * Space.pgrav (Space.pbody.Pb_earth M R)) \<and>
       k * Space.pgrav (Space.pbody.Pb_earth M R) * R ^ 2 = k * (Space_Tables.grav_E * M)"

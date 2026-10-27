@@ -144,5 +144,46 @@ python3 src/extract/space/check_year_conversion.py --host hbox --binary /home/hb
 Changed tracked sources: `Space.thy`, `Space_Export.thy`, `recognizer.sml`,
 `main.sml`, `capabilities.json`, `README.md` and new
 `check_year_conversion.py`, all under `src/extract/space/`, plus this report.
-No lane commit was made. No Isabelle/Fusion build was requested beyond the
-one scoped Space build.
+Root committed the native repair as `381d8d8`. The original native lane used
+one scoped Space build; the later dependent-session check is recorded below.
+
+## Dependent Fusion compatibility check
+
+After the native commit, root requested one scoped check of the known consumer.
+The managed hbox attempt `20261027T045401Z-732ecb64f2ed` **failed**, exit 1, after
+4m50s. All parent heaps were reused; only `Veri7vn_Fusion` was built. No Fusion
+files or existing binaries were changed. The exact command was:
+
+```sh
+python3 tools/dev/remote-build hbox src/extract/fusion Veri7vn_Fusion -d src/extract/quantity -d src/extract/commons -d src/extract/energy -d src/extract/climate -d src/extract/space --expect 'VERI7VN_FUSION PASS' --no-exports
+```
+
+The failure is at `Fusion_Nodes.thy:333`: `planet_weight_node` applies
+`Space.weight_model` without establishing `0 <= k`. The existing accepted-kernel
+fact `ex` already implies that condition through `Space.physical_domain`, but
+the consumer currently extracts only positive planet mass and radius. This
+pre-existing omission is separate from the new year-conversion equation. The
+recommended repair is to derive the nonnegative weight from `ex`, pass it to
+`Space.weight_model`, and include it in the consumer theorem's conclusion.
+Root was notified before any Fusion edit and transferred `Fusion_Nodes.thy`
+for the repair. The theorem now also concludes `0 <= k`, derived from the
+existing accepted-kernel fact; no new assumption was added. Both the original
+weight equation and stated-decimal bound are retained. No theorem consumer
+needed a conjunction adjustment (only the export oracle scan references it).
+The same bounded check then **passed**, exit 0, as attempt
+`20261027T050101Z-f552edec465e`. The stored session log contains
+`VERI7VN_FUSION PASS theorems=39 oracles=0`; the managed receipt confirms the
+marker, completed build and stable source snapshot. Fusion itself took 4m49s
+(5m09s total driver build time). Parent heaps were reused.
+
+Failure receipt:
+`var/fusion/remote-attempts/20261027T045401Z-732ecb64f2ed/receipt.json`.
+The stored `results/session.log` and `results/build.log` contain the exact failed
+subgoal. Passing repair receipt:
+`var/fusion/remote-attempts/20261027T050101Z-f552edec465e/receipt.json`.
+
+This establishes proof compatibility of the current Space request type with
+Fusion, including its connected planet-weight theorem and build-time self-test.
+No new Fusion panel score or binary was produced; `--no-exports` kept this a
+compatibility check. The only additional source change is
+`src/extract/fusion/Fusion_Nodes.thy`, assigned by root after the concrete failure.
