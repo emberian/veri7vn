@@ -42,7 +42,7 @@ units, availability and implementation limits. Mini agents use
 A signed Linux runtime contains the code, dependencies and bridge. Its signed
 data declaration selects a separately published, immutable public dataset:
 about 15 GB, mounted read-only and shared between grains in the same Store.
-Signed v6 serves separate authenticated source-session workspaces from a bounded
+Signed v7 serves separate authenticated source-session workspaces from a bounded
 worker pool; its initial configuration allows one resident worker and 128 tenant
 workspaces. Exact completed requests replay without starting a worker. Conversation
 context does not yet survive worker retirement, so new turns explicitly require
@@ -50,10 +50,12 @@ a fresh conversation after eviction. Large stores need no SPK
 chunking or per-grain copy. Mini controls admission and access; packaging a
 calculator does not grant permission or prove every answer it produces.
 
-As of 27 October 2026, the latest local candidate exposes 351 direct operations.
-Its focused Engine run completed 37 tasks, appropriately refused or clarified
+As of 27 October 2026, the catalog exposes 351 direct operations.
+A focused 57-request Engine run completed 37 tasks, appropriately refused or clarified
 13, and left seven valid tasks incomplete, with no wrong answers observed in
-those 57 records. Earlier signed-package tests answered through Mini in two
+those 57 records. The latest package adds tenant isolation and deferred catalog
+loading, checked separately through lifecycle and real Engine tests.
+Earlier signed-package tests answered through Mini in two
 independent grains. The newer agent lifecycle and complete restart/recovery
 journey remain unfinished; this is not a public Dreggnet deployment.
 
