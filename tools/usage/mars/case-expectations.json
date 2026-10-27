@@ -1,0 +1,86 @@
+{
+  "orbital_ratio": {
+    "value": 5.642710472279261,
+    "status": "answered"
+  },
+  "reverse": {
+    "value": 1.5949781659388647,
+    "status": "answered"
+  },
+  "venus": {
+    "value": 1.25,
+    "status": "answered"
+  },
+  "jupiter_to_mars": {
+    "value": 12.8,
+    "status": "answered"
+  },
+  "half_mars": {
+    "value": 0.9404517453798767,
+    "status": "answered"
+  },
+  "zero": {
+    "value": 0,
+    "status": "answered"
+  },
+  "three_word": {
+    "value": 5.642710472279261,
+    "status": "answered"
+  },
+  "year_definition": {
+    "value": 5.642710472279261,
+    "status": "answered"
+  },
+  "table_default": {
+    "value": 5.642710472279261,
+    "status": "answered"
+  },
+  "supplied_override": {
+    "value": 6,
+    "status": "answered"
+  },
+  "duplicate_consistent": {
+    "value": 5.642710472279261,
+    "status": "answered"
+  },
+  "same_planet": {
+    "value": 3,
+    "status": "answered"
+  },
+  "conflicting": {
+    "value": null,
+    "status": "not answered"
+  },
+  "zero_period": {
+    "value": null,
+    "status": "not answered"
+  },
+  "negative_period": {
+    "value": null,
+    "status": "not answered"
+  },
+  "malformed_period": {
+    "value": null,
+    "status": "not answered"
+  },
+  "malformed_count": {
+    "value": null,
+    "status": "not answered"
+  },
+  "negative_count": {
+    "value": null,
+    "status": "not answered"
+  },
+  "unbound_condition": {
+    "value": null,
+    "status": "not answered"
+  },
+  "unknown_body": {
+    "value": null,
+    "status": "not answered"
+  },
+  "moon_not_year": {
+    "value": null,
+    "status": "not answered"
+  }
+}

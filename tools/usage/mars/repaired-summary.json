@@ -1,0 +1,219 @@
+{
+  "scope": "actual candidate-python engine; task outcomes, not a six-criterion admission",
+  "runtime": "/Users/ember/dev/o7vn/var/usage-20261027/candidate-python",
+  "requests": 21,
+  "valid": {
+    "total": 12,
+    "correct": 12,
+    "wrong": 0,
+    "uncompleted": 0
+  },
+  "invalid_or_unsupported": {
+    "total": 9,
+    "withheld": 9,
+    "answered": 0
+  },
+  "http_errors": 0,
+  "transport_errors": 0,
+  "latency_seconds": {
+    "median": 0.188679,
+    "min": 0.087704,
+    "max": 2.366801
+  },
+  "batch_elapsed_seconds": 18.122,
+  "deployment": {
+    "receipt_sha256": "a19f3dd920d0fbefd8d8d70495c233bd0132a469ea2cd5c62a3c777c7ad4adc5",
+    "base_source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+    "patches": [
+      {
+        "name": "oracle7-slim-4.9-correctness.patch",
+        "sha256": "feb44d407634699545634350281e530b1bcc0ecf7bd951bdfc01655dbf99ecd6"
+      },
+      {
+        "name": "oracle7-slim-4.9-usage.patch",
+        "sha256": "1a2f69d0bdfe112f67ac01557ddb1c923e5e6c6a1fbaab1097852ade20e3e625"
+      },
+      {
+        "name": "oracle7-slim-4.9-dates-mars.patch",
+        "sha256": "ae5cee2b265b0c1902407a9fd88385bd32532a4a828b6661e3209acc07277491"
+      }
+    ],
+    "kernel_overlay_manifest_sha256": "91e3525e922f98a662d81e0c8a154dfaf51ee55ec24e37f6125cc0ea873be1d4",
+    "kernel_base_revision": "3bf43cff8eaa1c30db2659d186cdcffe9c4f6c61",
+    "kernel_source_revision": null,
+    "kernel_families": 20,
+    "kernel_platform": "linux-x86_64",
+    "metadata_verified_by_adapter": false,
+    "verification": "Receipt bytes hashed only; deployment contents require independent host verification."
+  },
+  "judgments": [
+    {
+      "id": "orbital_ratio",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 5.642710472279261,
+      "expected_target_years": "Earth"
+    },
+    {
+      "id": "reverse",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 1.5949781659388647,
+      "expected_target_years": "Mars"
+    },
+    {
+      "id": "venus",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 1.25,
+      "expected_target_years": "Earth"
+    },
+    {
+      "id": "jupiter_to_mars",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 12.8,
+      "expected_target_years": "Mars"
+    },
+    {
+      "id": "half_mars",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 0.9404517453798767,
+      "expected_target_years": "Earth"
+    },
+    {
+      "id": "zero",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 0,
+      "expected_target_years": "Earth"
+    },
+    {
+      "id": "three_word",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 5.642710472279261,
+      "expected_target_years": "Earth"
+    },
+    {
+      "id": "year_definition",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 5.642710472279261,
+      "expected_target_years": "Earth"
+    },
+    {
+      "id": "table_default",
+      "status": "answered",
+      "path": "specialist_after_guard>P4_lookup_for_compute>specialist:astronomy-v3-r2>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 5.642710472279261,
+      "expected_target_years": "Earth"
+    },
+    {
+      "id": "supplied_override",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 6,
+      "expected_target_years": "Earth"
+    },
+    {
+      "id": "duplicate_consistent",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 5.642710472279261,
+      "expected_target_years": "Earth"
+    },
+    {
+      "id": "same_planet",
+      "status": "answered",
+      "path": "specialist_call>specialist:astronomy-v3>year_years",
+      "correct_for_declared_task": true,
+      "expected_value": 3,
+      "expected_target_years": "Mars"
+    },
+    {
+      "id": "conflicting",
+      "status": "withheld",
+      "path": "specialist_call>specialist:astronomy-v3>no_value",
+      "correct_for_declared_task": true,
+      "expected_value": null,
+      "expected_target_years": null
+    },
+    {
+      "id": "zero_period",
+      "status": "withheld",
+      "path": "specialist_call>specialist:astronomy-v3>no_value",
+      "correct_for_declared_task": true,
+      "expected_value": null,
+      "expected_target_years": null
+    },
+    {
+      "id": "negative_period",
+      "status": "withheld",
+      "path": "specialist_call>specialist:astronomy-v3>no_value",
+      "correct_for_declared_task": true,
+      "expected_value": null,
+      "expected_target_years": null
+    },
+    {
+      "id": "malformed_period",
+      "status": "withheld",
+      "path": "specialist_call>specialist:astronomy-v3>no_value",
+      "correct_for_declared_task": true,
+      "expected_value": null,
+      "expected_target_years": null
+    },
+    {
+      "id": "malformed_count",
+      "status": "withheld",
+      "path": "specialist_call>specialist:astronomy-v3>no_value",
+      "correct_for_declared_task": true,
+      "expected_value": null,
+      "expected_target_years": null
+    },
+    {
+      "id": "negative_count",
+      "status": "withheld",
+      "path": "precision_guard:P4_lookup_for_compute|factoid:page",
+      "correct_for_declared_task": true,
+      "expected_value": null,
+      "expected_target_years": null
+    },
+    {
+      "id": "unbound_condition",
+      "status": "withheld",
+      "path": "specialist_call>specialist:astronomy-v3>no_value",
+      "correct_for_declared_task": true,
+      "expected_value": null,
+      "expected_target_years": null
+    },
+    {
+      "id": "unknown_body",
+      "status": "withheld",
+      "path": "specialist_call>specialist:astronomy-v3>no_value",
+      "correct_for_declared_task": true,
+      "expected_value": null,
+      "expected_target_years": null
+    },
+    {
+      "id": "moon_not_year",
+      "status": "withheld",
+      "path": "precision_guard:P4_lookup_for_compute|factoid:page",
+      "correct_for_declared_task": true,
+      "expected_value": null,
+      "expected_target_years": null
+    }
+  ]
+}

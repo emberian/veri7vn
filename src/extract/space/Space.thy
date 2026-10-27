@@ -275,7 +275,8 @@ datatype request =
   | CLight "dist option" bool | CFspl "dist option" "(rat \<times> frequ) option"
   | CXfer rat dpre bool rat rateu | CBits "dist option" "(rat \<times> rateu) option"
   | AProp abody aprop | AFake String.literal | ALight abody | AWeight rat wunit abody
-  | ARatio rstyle abody abody aprop | AYears abody | AMoonKm | AMoonKkm
+  | ARatio rstyle abody abody aprop | AYears abody
+  | AYearConvert abody abody rat rat rat | AMoonKm | AMoonKkm
 
 text \<open>In @{text SProp0} the mass is the initial mass; in @{text SPropF} the final
 (dry) mass. @{text "SDeltaV ve m0 mf"}: initial then final mass. @{text CLight} is
@@ -404,6 +405,8 @@ fun reason_base :: "request \<Rightarrow> reason option" where
 | "reason_base (CFspl d f) = (if 0 < dd d \<and> 0 < ff f then None else Some R_nonpositive)"
 | "reason_base (CXfer n p bytes r u) = (if 0 < r * rate_f u then None else Some R_nonpositive)"
 | "reason_base (ARatio rs b1 b2 p) = (if cell_num (sheet b2 p) \<noteq> 0 then None else Some R_nonpositive)"
+| "reason_base (AYearConvert src dst n ps pt) =
+    (if 0 < ps \<and> 0 < pt then None else Some R_nonpositive)"
 | "reason_base r = None"
 
 
@@ -425,6 +428,7 @@ fun physical_domain :: "request \<Rightarrow> bool" where
 | "physical_domain (CXfer n p bytes r u) =
     (0 \<le> n \<and> snd (quotient_of (n * dpre_f p * (if bytes then 8 else 1))) = 1)"
 | "physical_domain (AWeight w u b) = (0 \<le> w)"
+| "physical_domain (AYearConvert src dst n ps pt) = (0 \<le> n)"
 | "physical_domain r = True"
 
 definition reason_of :: "request \<Rightarrow> reason option" where
@@ -499,6 +503,7 @@ fun qval :: "request \<Rightarrow> rat" where
 | "qval (AWeight w u b) = w * grav_of b / grav_of A_earth"
 | "qval (ARatio rs b1 b2 p) = cell_num (sheet b1 p) / cell_num (sheet b2 p)"
 | "qval (AYears b) = period_of b / (36525 / 100)"
+| "qval (AYearConvert src dst n ps pt) = n * ps / pt"
 | "qval AMoonKm = dist_of A_moon * 1000000"
 | "qval AMoonKkm = dist_of A_moon * 1000"
 | "qval r = 0"
@@ -598,6 +603,7 @@ fun kind_of :: "request \<Rightarrow> String.literal" where
 | "kind_of (AProp b p) = prop_kind p" | "kind_of (AFake n) = STR ''unknown''"
 | "kind_of (ALight b) = STR ''light_time''" | "kind_of (AWeight w u b) = STR ''weight''"
 | "kind_of (ARatio rs a b p) = STR ''ratio''" | "kind_of (AYears b) = STR ''year_years''"
+| "kind_of (AYearConvert src dst n ps pt) = STR ''year_years''"
 | "kind_of AMoonKm = STR ''distance_from_earth''"
 | "kind_of AMoonKkm = STR ''distance from earth''"
 
@@ -612,6 +618,7 @@ fun style_of :: "request \<Rightarrow> style" where
 | "style_of (CFspl d f) = St_f 2"
 | "style_of (ALight b) = St_f 1" | "style_of (AWeight w u b) = St_f 1"
 | "style_of (ARatio rs a b p) = (case rs of Rs_v1 \<Rightarrow> St_f 2 | Rs_v2 \<Rightarrow> St_r3)"
+| "style_of (AYearConvert src dst n ps pt) = St_sig 12"
 | "style_of (AYears b) = St_f 2" | "style_of AMoonKkm = St_f 0"
 | "style_of r = St_orb"
 
@@ -1611,6 +1618,39 @@ proof -
   show ?thesis using kernel_exact_of[OF nd] by simp
 qed
 
+text \<open>Conversion binds a count of source orbits to a count of target orbits.
+Both periods use the same day unit. The body labels record the recognizer's
+roles; the supplied periods, rather than the table, determine this request.
+Positive periods and a nonnegative count are explicit acceptance premises.
+English recognition and the truth of supplied periods remain untrusted.\<close>
+theorem year_conversion_model:
+  assumes "0 \<le> n" "0 < ps" "0 < pt"
+  shows "kernel (AYearConvert src dst n ps pt) =
+           Exact (STR ''year_years'') (qval (AYearConvert src dst n ps pt)) \<and>
+         qval (AYearConvert src dst n ps pt) * pt = n * ps \<and>
+         0 \<le> qval (AYearConvert src dst n ps pt)"
+proof -
+  have nd: "decline_of (AYearConvert src dst n ps pt) = None"
+    using assms by (simp add: decl_none_iff)
+  have p: "pt \<noteq> 0" using assms by simp
+  have nonneg: "0 \<le> n * ps / pt"
+    using assms by (intro divide_nonneg_pos mult_nonneg_nonneg) simp_all
+  show ?thesis using kernel_exact_of[OF nd] p nonneg by simp
+qed
+
+theorem year_conversion_answer_equation:
+  assumes "kernel (AYearConvert src dst n ps pt) = Exact k q"
+  shows "0 \<le> n \<and> 0 < ps \<and> 0 < pt \<and>
+         k = STR ''year_years'' \<and> q * pt = n * ps"
+  using kernel_exact_sound[OF assms]
+  by (auto split: if_splits)
+
+theorem year_conversion_declines:
+  "kernel (AYearConvert src dst n ps pt) = Decline w \<longleftrightarrow>
+   ((ps \<le> 0 \<or> pt \<le> 0) \<and> w = Impossible R_nonpositive) \<or>
+   (0 < ps \<and> 0 < pt \<and> n < 0 \<and> w = Impossible R_physical_domain)"
+  by (auto simp: kernel_def decline_of_def answer_of_def answer_gen_def split: if_splits)
+
 section \<open>Response text (ASCII)\<close>
 
 definition dq :: String.literal where "dq = String.implode [CHR 0x22]"
@@ -1682,6 +1722,10 @@ fun exact_text :: "request \<Rightarrow> rat \<Rightarrow> String.literal \<Righ
      + (case rs of Rs_v1 \<Rightarrow> cell_disp (sheet b2 p) | Rs_v2 \<Rightarrow> cell_plain (sheet b2 p)) + STR '', NASA).''"
 | "exact_text (AYears b) q V = STR ''A year on '' + abody_name b + STR '' lasts about '' + V
      + STR '' Earth years ('' + cell_disp (sheet b P_period) + STR '' Earth days, NASA).''"
+| "exact_text (AYearConvert src dst n ps pt) q V = fmt (St_sig 12) n
+     + STR '' '' + abody_name src + STR '' years are about '' + V + STR '' '' + abody_name dst
+     + STR '' years ('' + fmt (St_sig 12) n + STR '' x '' + fmt (St_sig 12) ps
+     + STR '' days / '' + fmt (St_sig 12) pt + STR '' days per year).''"
 | "exact_text AMoonKm q V = STR ''The Moon is on average about '' + V
      + STR '' km from Earth (NASA lists the Moon'' + apos + STR ''s orbit relative to Earth).''"
 | "exact_text AMoonKkm q V = STR ''The Moon is on average '' + V

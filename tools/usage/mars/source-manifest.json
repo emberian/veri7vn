@@ -1,0 +1,41 @@
+{
+  "source_base": "218d370",
+  "files": [
+    {
+      "path": "root/specialists/astronomy/organ_astronomy_v1.py",
+      "sha256": "24c9e797ddd024e8de30a8294bf254e6d5d3895d070b5458ffbd3f9d46264d8c"
+    },
+    {
+      "path": "root/specialists/astronomy-v2/organ_astronomy_v1.py",
+      "sha256": "24c9e797ddd024e8de30a8294bf254e6d5d3895d070b5458ffbd3f9d46264d8c"
+    },
+    {
+      "path": "root/specialists/astronomy-v2/organ_astronomy_v2.py",
+      "sha256": "5e3f5333153e1bccf3d6e20d17a931e00f9d8d2f3b11c1c11b41dbd3e0c13cab"
+    },
+    {
+      "path": "root/specialists/astronomy-v3/organ_astronomy_v1.py",
+      "sha256": "24c9e797ddd024e8de30a8294bf254e6d5d3895d070b5458ffbd3f9d46264d8c"
+    },
+    {
+      "path": "root/specialists/astronomy-v3/organ_astronomy_v2.py",
+      "sha256": "5e3f5333153e1bccf3d6e20d17a931e00f9d8d2f3b11c1c11b41dbd3e0c13cab"
+    },
+    {
+      "path": "root/specialists/astronomy-v3/organ_astronomy_v3.py",
+      "sha256": "a1f24fc5b4e5dace5cac1187a897ccc718b6e8996d8655c97bb1900e02e502f9"
+    },
+    {
+      "path": "root/specialists/astronomy-v3-r2/organ_astronomy_v1.py",
+      "sha256": "24c9e797ddd024e8de30a8294bf254e6d5d3895d070b5458ffbd3f9d46264d8c"
+    },
+    {
+      "path": "root/specialists/astronomy-v3-r2/organ_astronomy_v2.py",
+      "sha256": "5e3f5333153e1bccf3d6e20d17a931e00f9d8d2f3b11c1c11b41dbd3e0c13cab"
+    },
+    {
+      "path": "root/specialists/astronomy-v3-r2/organ_astronomy_v3.py",
+      "sha256": "a1f24fc5b4e5dace5cac1187a897ccc718b6e8996d8655c97bb1900e02e502f9"
+    }
+  ]
+}

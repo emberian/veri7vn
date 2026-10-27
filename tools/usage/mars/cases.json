@@ -1,0 +1,107 @@
+[
+  {
+    "id": "orbital_ratio",
+    "conversation_id": "mars_orbital_ratio",
+    "text": "Earth takes 365.25 days to orbit the Sun and Mars takes 687 days. How many Earth years are 3 Mars years?"
+  },
+  {
+    "id": "reverse",
+    "conversation_id": "mars_reverse",
+    "text": "Earth takes 365.25 days to orbit the Sun and Mars takes 687 days. How many Mars years are 3 Earth years?"
+  },
+  {
+    "id": "venus",
+    "conversation_id": "mars_venus",
+    "text": "Venus takes 225 days to orbit the Sun and Earth takes 360 days. Convert 2 Venus years to Earth years."
+  },
+  {
+    "id": "jupiter_to_mars",
+    "conversation_id": "mars_jupiter_to_mars",
+    "text": "Jupiter takes 4320 days to orbit the Sun and Mars takes 675 days. How many Mars years are 2 Jupiter years?"
+  },
+  {
+    "id": "half_mars",
+    "conversation_id": "mars_half_mars",
+    "text": "Mars takes 687 days and Earth takes 365.25 days. How many Earth years are 0.5 Mars years?"
+  },
+  {
+    "id": "zero",
+    "conversation_id": "mars_zero",
+    "text": "Mars takes 687 days and Earth takes 365.25 days. How many Earth years are 0 Mars years?"
+  },
+  {
+    "id": "three_word",
+    "conversation_id": "mars_three_word",
+    "text": "Mars takes 687 days and Earth takes 365.25 days. How many Earth years are three Mars years?"
+  },
+  {
+    "id": "year_definition",
+    "conversation_id": "mars_year_definition",
+    "text": "A Mars year is 687 days. An Earth year is 365.25 days. Convert 3 Mars years into Earth years."
+  },
+  {
+    "id": "table_default",
+    "conversation_id": "mars_table_default",
+    "text": "Convert 3 Mars years to Earth years."
+  },
+  {
+    "id": "supplied_override",
+    "conversation_id": "mars_supplied_override",
+    "text": "Mars takes 700 days and Earth takes 350 days. How many Earth years are 3 Mars years?"
+  },
+  {
+    "id": "duplicate_consistent",
+    "conversation_id": "mars_duplicate_consistent",
+    "text": "Mars takes 687 days and Mars takes 687 days. Earth takes 365.25 days. How many Earth years are 3 Mars years?"
+  },
+  {
+    "id": "same_planet",
+    "conversation_id": "mars_same_planet",
+    "text": "Mars takes 687 days. How many Mars years are 3 Mars years?"
+  },
+  {
+    "id": "conflicting",
+    "conversation_id": "mars_conflicting",
+    "text": "Mars takes 687 days and Mars takes 700 days. Earth takes 365.25 days. How many Earth years are 3 Mars years?"
+  },
+  {
+    "id": "zero_period",
+    "conversation_id": "mars_zero_period",
+    "text": "Mars takes 687 days and Earth takes 0 days. How many Earth years are 3 Mars years?"
+  },
+  {
+    "id": "negative_period",
+    "conversation_id": "mars_negative_period",
+    "text": "Mars takes -687 days and Earth takes 365.25 days. How many Earth years are 3 Mars years?"
+  },
+  {
+    "id": "malformed_period",
+    "conversation_id": "mars_malformed_period",
+    "text": "Mars takes 6,87 days and Earth takes 365.25 days. How many Earth years are 3 Mars years?"
+  },
+  {
+    "id": "malformed_count",
+    "conversation_id": "mars_malformed_count",
+    "text": "Mars takes 687 days and Earth takes 365.25 days. How many Earth years are 1,2 Mars years?"
+  },
+  {
+    "id": "negative_count",
+    "conversation_id": "mars_negative_count",
+    "text": "How many Earth years are -3 Mars years?"
+  },
+  {
+    "id": "unbound_condition",
+    "conversation_id": "mars_unbound_condition",
+    "text": "Mars takes 687 days and Earth takes 365.25 days at twice the speed. How many Earth years are 3 Mars years?"
+  },
+  {
+    "id": "unknown_body",
+    "conversation_id": "mars_unknown_body",
+    "text": "How many Earth years are 3 Tatooine years?"
+  },
+  {
+    "id": "moon_not_year",
+    "conversation_id": "mars_moon_not_year",
+    "text": "How many Earth years are 3 Moon years?"
+  }
+]

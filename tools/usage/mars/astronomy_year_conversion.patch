@@ -1,0 +1,556 @@
+--- a/root/specialists/astronomy/organ_astronomy_v1.py
++++ b/root/specialists/astronomy/organ_astronomy_v1.py
+@@ -6,6 +6,7 @@
+ from __future__ import annotations
+ 
+ import html
++import math
+ import re
+ 
+ C_KM_S = 299792.458
+@@ -54,8 +55,113 @@
+     def _say(self, kind, text, value=None, status="answered"):
+         return {"kind": kind, "status": status, "response": text, "value": value}
+ 
++    def _year_conversion(self, text):
++        """Untrusted role parser and arithmetic for explicit orbital-year conversions.
++
++        A quantity is count * source period / target period. Supplied periods
++        override table defaults only when bound to a named body. This is not a
++        proof, and a Moon orbital month is not silently treated as a solar year.
++        """
++        t = " ".join(str(text or "").split())
++        starts = list(re.finditer(r"\b(?:how many|convert|express|give|how long)\b", t, re.I))
++        start = starts[-1].start() if starts else 0
++        if re.match(r"(?:[+-]?[\d.,]+|zero|one|two|three|four|five|six|seven|eight|nine|ten) \w+ years?\b", t, re.I):
++            start = 0
++        prefix, goal = t[:start], t[start:].rstrip("?. ")
++        quantity = r"(?P<count>[+-]?[\d.,]+|zero|one|two|three|four|five|six|seven|eight|nine|ten|an?)"
++        source = r"(?P<source>[A-Za-z]+)"
++        target = r"(?P<target>[A-Za-z]+)"
++        patterns = [
++            r"how many " + target + r" years? (?:are|is|equal|in) " + quantity + r" " + source + r" years?",
++            r"how many " + target + r" years? (?:are|is) " + quantity + r" years? on " + source,
++            r"(?:convert|express) " + quantity + r" " + source + r" years? (?:to|into|in) " + target + r" years?",
++            r"how many " + target + r" years? (?:does|do) " + quantity + r" years? on " + source + r" last",
++            r"how many " + target + r" years? (?:is|are) " + quantity + r" orbits? of " + source,
++            quantity + r" " + source + r" years? (?:in|to|into) " + target + r" years?",
++            quantity + r" " + source + r" years? (?:is|are) how many " + target + r" years?",
++        ]
++        match = next((m for p in patterns if (m := re.fullmatch(p, goal, re.I))), None)
++        # Keep old single-period property questions intact. Explicit quantified
++        # conversions and supplied-period questions must not fall back to them.
++        if match is None:
++            conversion_cue = re.search(r"\bhow many \w+ years?\b|\b(?:to|into|in) \w+ years?\b", goal, re.I)
++            explicit = re.search(r"\d|\b(?:two|three|four|five|six|seven|eight|nine|ten|zero)\b", goal, re.I)
++            if conversion_cue and (explicit or re.search(r"\bdays?\b", prefix, re.I)):
++                return self._say("no_value", "I need an explicit count, source year and target year, with each supplied orbital period named; I won't substitute a one-year table value.", status="withheld")
++            return None
++        try:
++            words = {w: i for i, w in enumerate("zero one two three four five six seven eight nine ten".split())}
++            words.update(a=1, an=1)
++            def number(value):
++                value = value.lower()
++                if value in words:
++                    return float(words[value])
++                if not re.fullmatch(r"[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?", value):
++                    raise ValueError("unambiguous finite decimal numbers (commas must group three digits)")
++                result = float(value.replace(",", ""))
++                if not math.isfinite(result):
++                    raise ValueError("finite numbers")
++                return result
++            names = {b.lower(): b for b in self.bodies if b != "Moon"}
++            src, dst = match['source'].lower(), match['target'].lower()
++            if src not in names or dst not in names:
++                raise ValueError("named solar-system planets (a Moon orbit is not a solar year)")
++            count = number(match['count'])
++            if count < 0:
++                raise ValueError("a nonnegative number of source years")
++            # Bind complete period statements, including a shared 'takes ...'
++            # predicate after 'and'. Other day quantities are not periods by fiat.
++            body = r"(?P<body>[A-Za-z]+)"
++            value = r"(?P<period>[+-]?[\d.,]+)"
++            days = value + r"\s+(?:Earth\s+)?days?\b"
++            definitions = [
++                body + r"\s+takes\s+" + days + r"(?:\s+to orbit (?:the )?Sun)?",
++                r"(?:an? |one )?" + body + r"(?:['’]s)?\s+(?:orbital period|year)\s+(?:is|lasts|takes|=|of)\s+" + days,
++                r"(?:a |one )?year on\s+" + body + r"\s+(?:is|lasts|takes)\s+" + days,
++                r"(?:a |one )?" + body + r"\s+year\s+(?:is|lasts|takes|=)\s+" + days,
++            ]
++            supplied, covered = {}, []
++            for pattern in definitions:
++                for item in re.finditer(pattern, prefix, re.I):
++                    if any(item.start() < end and item.end() > begin for begin,end in covered):
++                        continue
++                    name, period = item['body'].lower(), number(item['period'])
++                    if name not in names or period <= 0:
++                        raise ValueError("positive orbital periods bound to named solar-system planets")
++                    if name in supplied and supplied[name] != period:
++                        raise ValueError("one consistent orbital period for each planet")
++                    supplied[name] = period
++                    covered.append(item.span())
++            rest = list(prefix)
++            for begin,end in covered:
++                rest[begin:end] = " " * (end-begin)
++            rest = re.sub(r"\b(?:and|given|assume|assuming|that|use)\b|[\s.,;:]", "", "".join(rest), flags=re.I)
++            if rest:
++                raise ValueError("each supplied condition expressed as a named orbital period in Earth days")
++            def period(name):
++                if name in supplied:
++                    return supplied[name], "supplied"
++                if name == 'earth':
++                    return 365.25, "Earth-year convention"
++                result = NUM(self.v[(names[name], "Orbital Period (days)")])
++                if not math.isfinite(result) or result <= 0:
++                    raise ValueError("an available positive orbital period")
++                return result, "NASA table"
++            a, a_origin = period(src)
++            b, b_origin = period(dst)
++            result = count * (a / b)
++            if not math.isfinite(result):
++                raise ValueError("a finite year conversion")
++            return self._say("year_years", "%g %s years are about %.12g %s years (%g × %.12g Earth days per %s year ÷ %.12g Earth days per %s year; periods: %s %s, %s %s)." % (
++                count, names[src], result, names[dst], count, a, names[src], b, names[dst], names[src], a_origin, names[dst], b_origin), result)
++        except (ValueError, KeyError, TypeError, OverflowError) as error:
++            return self._say("no_value", "I need %s to convert these orbital years; I won't substitute a different quantity." % error, status="withheld")
++
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
++        conversion = self._year_conversion(t)
++        if conversion is not None:
++            return conversion
+         if not t:
+             return None
+         if KNOWN_FAKE.search(t) and re.search(r"\b(?:planet|moon|gravity|mass|orbit|day|year|sun|diameter)\b", t, re.I):
+--- a/root/specialists/astronomy-v2/organ_astronomy_v1.py
++++ b/root/specialists/astronomy-v2/organ_astronomy_v1.py
+@@ -6,6 +6,7 @@
+ from __future__ import annotations
+ 
+ import html
++import math
+ import re
+ 
+ C_KM_S = 299792.458
+@@ -54,8 +55,113 @@
+     def _say(self, kind, text, value=None, status="answered"):
+         return {"kind": kind, "status": status, "response": text, "value": value}
+ 
++    def _year_conversion(self, text):
++        """Untrusted role parser and arithmetic for explicit orbital-year conversions.
++
++        A quantity is count * source period / target period. Supplied periods
++        override table defaults only when bound to a named body. This is not a
++        proof, and a Moon orbital month is not silently treated as a solar year.
++        """
++        t = " ".join(str(text or "").split())
++        starts = list(re.finditer(r"\b(?:how many|convert|express|give|how long)\b", t, re.I))
++        start = starts[-1].start() if starts else 0
++        if re.match(r"(?:[+-]?[\d.,]+|zero|one|two|three|four|five|six|seven|eight|nine|ten) \w+ years?\b", t, re.I):
++            start = 0
++        prefix, goal = t[:start], t[start:].rstrip("?. ")
++        quantity = r"(?P<count>[+-]?[\d.,]+|zero|one|two|three|four|five|six|seven|eight|nine|ten|an?)"
++        source = r"(?P<source>[A-Za-z]+)"
++        target = r"(?P<target>[A-Za-z]+)"
++        patterns = [
++            r"how many " + target + r" years? (?:are|is|equal|in) " + quantity + r" " + source + r" years?",
++            r"how many " + target + r" years? (?:are|is) " + quantity + r" years? on " + source,
++            r"(?:convert|express) " + quantity + r" " + source + r" years? (?:to|into|in) " + target + r" years?",
++            r"how many " + target + r" years? (?:does|do) " + quantity + r" years? on " + source + r" last",
++            r"how many " + target + r" years? (?:is|are) " + quantity + r" orbits? of " + source,
++            quantity + r" " + source + r" years? (?:in|to|into) " + target + r" years?",
++            quantity + r" " + source + r" years? (?:is|are) how many " + target + r" years?",
++        ]
++        match = next((m for p in patterns if (m := re.fullmatch(p, goal, re.I))), None)
++        # Keep old single-period property questions intact. Explicit quantified
++        # conversions and supplied-period questions must not fall back to them.
++        if match is None:
++            conversion_cue = re.search(r"\bhow many \w+ years?\b|\b(?:to|into|in) \w+ years?\b", goal, re.I)
++            explicit = re.search(r"\d|\b(?:two|three|four|five|six|seven|eight|nine|ten|zero)\b", goal, re.I)
++            if conversion_cue and (explicit or re.search(r"\bdays?\b", prefix, re.I)):
++                return self._say("no_value", "I need an explicit count, source year and target year, with each supplied orbital period named; I won't substitute a one-year table value.", status="withheld")
++            return None
++        try:
++            words = {w: i for i, w in enumerate("zero one two three four five six seven eight nine ten".split())}
++            words.update(a=1, an=1)
++            def number(value):
++                value = value.lower()
++                if value in words:
++                    return float(words[value])
++                if not re.fullmatch(r"[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?", value):
++                    raise ValueError("unambiguous finite decimal numbers (commas must group three digits)")
++                result = float(value.replace(",", ""))
++                if not math.isfinite(result):
++                    raise ValueError("finite numbers")
++                return result
++            names = {b.lower(): b for b in self.bodies if b != "Moon"}
++            src, dst = match['source'].lower(), match['target'].lower()
++            if src not in names or dst not in names:
++                raise ValueError("named solar-system planets (a Moon orbit is not a solar year)")
++            count = number(match['count'])
++            if count < 0:
++                raise ValueError("a nonnegative number of source years")
++            # Bind complete period statements, including a shared 'takes ...'
++            # predicate after 'and'. Other day quantities are not periods by fiat.
++            body = r"(?P<body>[A-Za-z]+)"
++            value = r"(?P<period>[+-]?[\d.,]+)"
++            days = value + r"\s+(?:Earth\s+)?days?\b"
++            definitions = [
++                body + r"\s+takes\s+" + days + r"(?:\s+to orbit (?:the )?Sun)?",
++                r"(?:an? |one )?" + body + r"(?:['’]s)?\s+(?:orbital period|year)\s+(?:is|lasts|takes|=|of)\s+" + days,
++                r"(?:a |one )?year on\s+" + body + r"\s+(?:is|lasts|takes)\s+" + days,
++                r"(?:a |one )?" + body + r"\s+year\s+(?:is|lasts|takes|=)\s+" + days,
++            ]
++            supplied, covered = {}, []
++            for pattern in definitions:
++                for item in re.finditer(pattern, prefix, re.I):
++                    if any(item.start() < end and item.end() > begin for begin,end in covered):
++                        continue
++                    name, period = item['body'].lower(), number(item['period'])
++                    if name not in names or period <= 0:
++                        raise ValueError("positive orbital periods bound to named solar-system planets")
++                    if name in supplied and supplied[name] != period:
++                        raise ValueError("one consistent orbital period for each planet")
++                    supplied[name] = period
++                    covered.append(item.span())
++            rest = list(prefix)
++            for begin,end in covered:
++                rest[begin:end] = " " * (end-begin)
++            rest = re.sub(r"\b(?:and|given|assume|assuming|that|use)\b|[\s.,;:]", "", "".join(rest), flags=re.I)
++            if rest:
++                raise ValueError("each supplied condition expressed as a named orbital period in Earth days")
++            def period(name):
++                if name in supplied:
++                    return supplied[name], "supplied"
++                if name == 'earth':
++                    return 365.25, "Earth-year convention"
++                result = NUM(self.v[(names[name], "Orbital Period (days)")])
++                if not math.isfinite(result) or result <= 0:
++                    raise ValueError("an available positive orbital period")
++                return result, "NASA table"
++            a, a_origin = period(src)
++            b, b_origin = period(dst)
++            result = count * (a / b)
++            if not math.isfinite(result):
++                raise ValueError("a finite year conversion")
++            return self._say("year_years", "%g %s years are about %.12g %s years (%g × %.12g Earth days per %s year ÷ %.12g Earth days per %s year; periods: %s %s, %s %s)." % (
++                count, names[src], result, names[dst], count, a, names[src], b, names[dst], names[src], a_origin, names[dst], b_origin), result)
++        except (ValueError, KeyError, TypeError, OverflowError) as error:
++            return self._say("no_value", "I need %s to convert these orbital years; I won't substitute a different quantity." % error, status="withheld")
++
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
++        conversion = self._year_conversion(t)
++        if conversion is not None:
++            return conversion
+         if not t:
+             return None
+         if KNOWN_FAKE.search(t) and re.search(r"\b(?:planet|moon|gravity|mass|orbit|day|year|sun|diameter)\b", t, re.I):
+--- a/root/specialists/astronomy-v2/organ_astronomy_v2.py
++++ b/root/specialists/astronomy-v2/organ_astronomy_v2.py
+@@ -29,6 +29,9 @@
+ 
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
++        conversion = self._year_conversion(t)
++        if conversion is not None:
++            return conversion
+         if t and COMPARE.search(t):
+             body = self._body(t)
+             other = self._body(t, skip=body) if body else None
+--- a/root/specialists/astronomy-v3/organ_astronomy_v1.py
++++ b/root/specialists/astronomy-v3/organ_astronomy_v1.py
+@@ -6,6 +6,7 @@
+ from __future__ import annotations
+ 
+ import html
++import math
+ import re
+ 
+ C_KM_S = 299792.458
+@@ -54,8 +55,113 @@
+     def _say(self, kind, text, value=None, status="answered"):
+         return {"kind": kind, "status": status, "response": text, "value": value}
+ 
++    def _year_conversion(self, text):
++        """Untrusted role parser and arithmetic for explicit orbital-year conversions.
++
++        A quantity is count * source period / target period. Supplied periods
++        override table defaults only when bound to a named body. This is not a
++        proof, and a Moon orbital month is not silently treated as a solar year.
++        """
++        t = " ".join(str(text or "").split())
++        starts = list(re.finditer(r"\b(?:how many|convert|express|give|how long)\b", t, re.I))
++        start = starts[-1].start() if starts else 0
++        if re.match(r"(?:[+-]?[\d.,]+|zero|one|two|three|four|five|six|seven|eight|nine|ten) \w+ years?\b", t, re.I):
++            start = 0
++        prefix, goal = t[:start], t[start:].rstrip("?. ")
++        quantity = r"(?P<count>[+-]?[\d.,]+|zero|one|two|three|four|five|six|seven|eight|nine|ten|an?)"
++        source = r"(?P<source>[A-Za-z]+)"
++        target = r"(?P<target>[A-Za-z]+)"
++        patterns = [
++            r"how many " + target + r" years? (?:are|is|equal|in) " + quantity + r" " + source + r" years?",
++            r"how many " + target + r" years? (?:are|is) " + quantity + r" years? on " + source,
++            r"(?:convert|express) " + quantity + r" " + source + r" years? (?:to|into|in) " + target + r" years?",
++            r"how many " + target + r" years? (?:does|do) " + quantity + r" years? on " + source + r" last",
++            r"how many " + target + r" years? (?:is|are) " + quantity + r" orbits? of " + source,
++            quantity + r" " + source + r" years? (?:in|to|into) " + target + r" years?",
++            quantity + r" " + source + r" years? (?:is|are) how many " + target + r" years?",
++        ]
++        match = next((m for p in patterns if (m := re.fullmatch(p, goal, re.I))), None)
++        # Keep old single-period property questions intact. Explicit quantified
++        # conversions and supplied-period questions must not fall back to them.
++        if match is None:
++            conversion_cue = re.search(r"\bhow many \w+ years?\b|\b(?:to|into|in) \w+ years?\b", goal, re.I)
++            explicit = re.search(r"\d|\b(?:two|three|four|five|six|seven|eight|nine|ten|zero)\b", goal, re.I)
++            if conversion_cue and (explicit or re.search(r"\bdays?\b", prefix, re.I)):
++                return self._say("no_value", "I need an explicit count, source year and target year, with each supplied orbital period named; I won't substitute a one-year table value.", status="withheld")
++            return None
++        try:
++            words = {w: i for i, w in enumerate("zero one two three four five six seven eight nine ten".split())}
++            words.update(a=1, an=1)
++            def number(value):
++                value = value.lower()
++                if value in words:
++                    return float(words[value])
++                if not re.fullmatch(r"[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?", value):
++                    raise ValueError("unambiguous finite decimal numbers (commas must group three digits)")
++                result = float(value.replace(",", ""))
++                if not math.isfinite(result):
++                    raise ValueError("finite numbers")
++                return result
++            names = {b.lower(): b for b in self.bodies if b != "Moon"}
++            src, dst = match['source'].lower(), match['target'].lower()
++            if src not in names or dst not in names:
++                raise ValueError("named solar-system planets (a Moon orbit is not a solar year)")
++            count = number(match['count'])
++            if count < 0:
++                raise ValueError("a nonnegative number of source years")
++            # Bind complete period statements, including a shared 'takes ...'
++            # predicate after 'and'. Other day quantities are not periods by fiat.
++            body = r"(?P<body>[A-Za-z]+)"
++            value = r"(?P<period>[+-]?[\d.,]+)"
++            days = value + r"\s+(?:Earth\s+)?days?\b"
++            definitions = [
++                body + r"\s+takes\s+" + days + r"(?:\s+to orbit (?:the )?Sun)?",
++                r"(?:an? |one )?" + body + r"(?:['’]s)?\s+(?:orbital period|year)\s+(?:is|lasts|takes|=|of)\s+" + days,
++                r"(?:a |one )?year on\s+" + body + r"\s+(?:is|lasts|takes)\s+" + days,
++                r"(?:a |one )?" + body + r"\s+year\s+(?:is|lasts|takes|=)\s+" + days,
++            ]
++            supplied, covered = {}, []
++            for pattern in definitions:
++                for item in re.finditer(pattern, prefix, re.I):
++                    if any(item.start() < end and item.end() > begin for begin,end in covered):
++                        continue
++                    name, period = item['body'].lower(), number(item['period'])
++                    if name not in names or period <= 0:
++                        raise ValueError("positive orbital periods bound to named solar-system planets")
++                    if name in supplied and supplied[name] != period:
++                        raise ValueError("one consistent orbital period for each planet")
++                    supplied[name] = period
++                    covered.append(item.span())
++            rest = list(prefix)
++            for begin,end in covered:
++                rest[begin:end] = " " * (end-begin)
++            rest = re.sub(r"\b(?:and|given|assume|assuming|that|use)\b|[\s.,;:]", "", "".join(rest), flags=re.I)
++            if rest:
++                raise ValueError("each supplied condition expressed as a named orbital period in Earth days")
++            def period(name):
++                if name in supplied:
++                    return supplied[name], "supplied"
++                if name == 'earth':
++                    return 365.25, "Earth-year convention"
++                result = NUM(self.v[(names[name], "Orbital Period (days)")])
++                if not math.isfinite(result) or result <= 0:
++                    raise ValueError("an available positive orbital period")
++                return result, "NASA table"
++            a, a_origin = period(src)
++            b, b_origin = period(dst)
++            result = count * (a / b)
++            if not math.isfinite(result):
++                raise ValueError("a finite year conversion")
++            return self._say("year_years", "%g %s years are about %.12g %s years (%g × %.12g Earth days per %s year ÷ %.12g Earth days per %s year; periods: %s %s, %s %s)." % (
++                count, names[src], result, names[dst], count, a, names[src], b, names[dst], names[src], a_origin, names[dst], b_origin), result)
++        except (ValueError, KeyError, TypeError, OverflowError) as error:
++            return self._say("no_value", "I need %s to convert these orbital years; I won't substitute a different quantity." % error, status="withheld")
++
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
++        conversion = self._year_conversion(t)
++        if conversion is not None:
++            return conversion
+         if not t:
+             return None
+         if KNOWN_FAKE.search(t) and re.search(r"\b(?:planet|moon|gravity|mass|orbit|day|year|sun|diameter)\b", t, re.I):
+--- a/root/specialists/astronomy-v3/organ_astronomy_v2.py
++++ b/root/specialists/astronomy-v3/organ_astronomy_v2.py
+@@ -29,6 +29,9 @@
+ 
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
++        conversion = self._year_conversion(t)
++        if conversion is not None:
++            return conversion
+         if t and COMPARE.search(t):
+             body = self._body(t)
+             other = self._body(t, skip=body) if body else None
+--- a/root/specialists/astronomy-v3/organ_astronomy_v3.py
++++ b/root/specialists/astronomy-v3/organ_astronomy_v3.py
+@@ -21,6 +21,9 @@
+ 
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
++        conversion = self._year_conversion(t)
++        if conversion is not None:
++            return conversion
+         if t and COMPARE.search(t):
+             names = {b.lower(): b for b in self.bodies}
+             ref = None
+--- a/root/specialists/astronomy-v3-r2/organ_astronomy_v1.py
++++ b/root/specialists/astronomy-v3-r2/organ_astronomy_v1.py
+@@ -6,6 +6,7 @@
+ from __future__ import annotations
+ 
+ import html
++import math
+ import re
+ 
+ C_KM_S = 299792.458
+@@ -54,8 +55,113 @@
+     def _say(self, kind, text, value=None, status="answered"):
+         return {"kind": kind, "status": status, "response": text, "value": value}
+ 
++    def _year_conversion(self, text):
++        """Untrusted role parser and arithmetic for explicit orbital-year conversions.
++
++        A quantity is count * source period / target period. Supplied periods
++        override table defaults only when bound to a named body. This is not a
++        proof, and a Moon orbital month is not silently treated as a solar year.
++        """
++        t = " ".join(str(text or "").split())
++        starts = list(re.finditer(r"\b(?:how many|convert|express|give|how long)\b", t, re.I))
++        start = starts[-1].start() if starts else 0
++        if re.match(r"(?:[+-]?[\d.,]+|zero|one|two|three|four|five|six|seven|eight|nine|ten) \w+ years?\b", t, re.I):
++            start = 0
++        prefix, goal = t[:start], t[start:].rstrip("?. ")
++        quantity = r"(?P<count>[+-]?[\d.,]+|zero|one|two|three|four|five|six|seven|eight|nine|ten|an?)"
++        source = r"(?P<source>[A-Za-z]+)"
++        target = r"(?P<target>[A-Za-z]+)"
++        patterns = [
++            r"how many " + target + r" years? (?:are|is|equal|in) " + quantity + r" " + source + r" years?",
++            r"how many " + target + r" years? (?:are|is) " + quantity + r" years? on " + source,
++            r"(?:convert|express) " + quantity + r" " + source + r" years? (?:to|into|in) " + target + r" years?",
++            r"how many " + target + r" years? (?:does|do) " + quantity + r" years? on " + source + r" last",
++            r"how many " + target + r" years? (?:is|are) " + quantity + r" orbits? of " + source,
++            quantity + r" " + source + r" years? (?:in|to|into) " + target + r" years?",
++            quantity + r" " + source + r" years? (?:is|are) how many " + target + r" years?",
++        ]
++        match = next((m for p in patterns if (m := re.fullmatch(p, goal, re.I))), None)
++        # Keep old single-period property questions intact. Explicit quantified
++        # conversions and supplied-period questions must not fall back to them.
++        if match is None:
++            conversion_cue = re.search(r"\bhow many \w+ years?\b|\b(?:to|into|in) \w+ years?\b", goal, re.I)
++            explicit = re.search(r"\d|\b(?:two|three|four|five|six|seven|eight|nine|ten|zero)\b", goal, re.I)
++            if conversion_cue and (explicit or re.search(r"\bdays?\b", prefix, re.I)):
++                return self._say("no_value", "I need an explicit count, source year and target year, with each supplied orbital period named; I won't substitute a one-year table value.", status="withheld")
++            return None
++        try:
++            words = {w: i for i, w in enumerate("zero one two three four five six seven eight nine ten".split())}
++            words.update(a=1, an=1)
++            def number(value):
++                value = value.lower()
++                if value in words:
++                    return float(words[value])
++                if not re.fullmatch(r"[+-]?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?", value):
++                    raise ValueError("unambiguous finite decimal numbers (commas must group three digits)")
++                result = float(value.replace(",", ""))
++                if not math.isfinite(result):
++                    raise ValueError("finite numbers")
++                return result
++            names = {b.lower(): b for b in self.bodies if b != "Moon"}
++            src, dst = match['source'].lower(), match['target'].lower()
++            if src not in names or dst not in names:
++                raise ValueError("named solar-system planets (a Moon orbit is not a solar year)")
++            count = number(match['count'])
++            if count < 0:
++                raise ValueError("a nonnegative number of source years")
++            # Bind complete period statements, including a shared 'takes ...'
++            # predicate after 'and'. Other day quantities are not periods by fiat.
++            body = r"(?P<body>[A-Za-z]+)"
++            value = r"(?P<period>[+-]?[\d.,]+)"
++            days = value + r"\s+(?:Earth\s+)?days?\b"
++            definitions = [
++                body + r"\s+takes\s+" + days + r"(?:\s+to orbit (?:the )?Sun)?",
++                r"(?:an? |one )?" + body + r"(?:['’]s)?\s+(?:orbital period|year)\s+(?:is|lasts|takes|=|of)\s+" + days,
++                r"(?:a |one )?year on\s+" + body + r"\s+(?:is|lasts|takes)\s+" + days,
++                r"(?:a |one )?" + body + r"\s+year\s+(?:is|lasts|takes|=)\s+" + days,
++            ]
++            supplied, covered = {}, []
++            for pattern in definitions:
++                for item in re.finditer(pattern, prefix, re.I):
++                    if any(item.start() < end and item.end() > begin for begin,end in covered):
++                        continue
++                    name, period = item['body'].lower(), number(item['period'])
++                    if name not in names or period <= 0:
++                        raise ValueError("positive orbital periods bound to named solar-system planets")
++                    if name in supplied and supplied[name] != period:
++                        raise ValueError("one consistent orbital period for each planet")
++                    supplied[name] = period
++                    covered.append(item.span())
++            rest = list(prefix)
++            for begin,end in covered:
++                rest[begin:end] = " " * (end-begin)
++            rest = re.sub(r"\b(?:and|given|assume|assuming|that|use)\b|[\s.,;:]", "", "".join(rest), flags=re.I)
++            if rest:
++                raise ValueError("each supplied condition expressed as a named orbital period in Earth days")
++            def period(name):
++                if name in supplied:
++                    return supplied[name], "supplied"
++                if name == 'earth':
++                    return 365.25, "Earth-year convention"
++                result = NUM(self.v[(names[name], "Orbital Period (days)")])
++                if not math.isfinite(result) or result <= 0:
++                    raise ValueError("an available positive orbital period")
++                return result, "NASA table"
++            a, a_origin = period(src)
++            b, b_origin = period(dst)
++            result = count * (a / b)
++            if not math.isfinite(result):
++                raise ValueError("a finite year conversion")
++            return self._say("year_years", "%g %s years are about %.12g %s years (%g × %.12g Earth days per %s year ÷ %.12g Earth days per %s year; periods: %s %s, %s %s)." % (
++                count, names[src], result, names[dst], count, a, names[src], b, names[dst], names[src], a_origin, names[dst], b_origin), result)
++        except (ValueError, KeyError, TypeError, OverflowError) as error:
++            return self._say("no_value", "I need %s to convert these orbital years; I won't substitute a different quantity." % error, status="withheld")
++
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
++        conversion = self._year_conversion(t)
++        if conversion is not None:
++            return conversion
+         if not t:
+             return None
+         if KNOWN_FAKE.search(t) and re.search(r"\b(?:planet|moon|gravity|mass|orbit|day|year|sun|diameter)\b", t, re.I):
+--- a/root/specialists/astronomy-v3-r2/organ_astronomy_v2.py
++++ b/root/specialists/astronomy-v3-r2/organ_astronomy_v2.py
+@@ -29,6 +29,9 @@
+ 
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
++        conversion = self._year_conversion(t)
++        if conversion is not None:
++            return conversion
+         if t and COMPARE.search(t):
+             body = self._body(t)
+             other = self._body(t, skip=body) if body else None
+--- a/root/specialists/astronomy-v3-r2/organ_astronomy_v3.py
++++ b/root/specialists/astronomy-v3-r2/organ_astronomy_v3.py
+@@ -21,6 +21,9 @@
+ 
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
++        conversion = self._year_conversion(t)
++        if conversion is not None:
++            return conversion
+         if t and COMPARE.search(t):
+             names = {b.lower(): b for b in self.bodies}
+             ref = None

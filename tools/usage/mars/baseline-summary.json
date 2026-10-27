@@ -1,0 +1,23 @@
+{
+  "scope": "actual immutable U1 final engine, adversarial usage pack, not shipped panels",
+  "valid": {
+    "total": 12,
+    "correct": 0,
+    "wrong_quantity": 6,
+    "clarification": 5,
+    "withheld": 1
+  },
+  "invalid_or_unsupported": {
+    "total": 9,
+    "answered": 6,
+    "declined_or_clarified": 3
+  },
+  "requests": 21,
+  "latency_seconds": {
+    "median": 0.144991,
+    "min": 0.080134,
+    "max": 4.465089
+  },
+  "batch_elapsed_seconds": 20.557,
+  "receipt_sha256": "34b685093842cbada93de9cb510db4d322fdeb12e56c88d7346132da6063a156"
+}

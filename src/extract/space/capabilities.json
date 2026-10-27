@@ -75,11 +75,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "computation": "Named orbital-year conversions satisfy result times target period equals source count times source period, with positive periods and a nonnegative count. Existing table and arithmetic requests retain their checked equations.",
         "assumptions": [
           "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
           "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
-          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional.",
+          "Orbital-year source and target periods use Earth days. Supplied periods are bound to their named planets; absent periods use the existing table or Earth-year convention."
         ],
         "untrusted": [
           "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."
@@ -95,11 +96,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "computation": "Named orbital-year conversions satisfy result times target period equals source count times source period, with positive periods and a nonnegative count. Existing table and arithmetic requests retain their checked equations.",
         "assumptions": [
           "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
           "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
-          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional.",
+          "Orbital-year source and target periods use Earth days. Supplied periods are bound to their named planets; absent periods use the existing table or Earth-year convention."
         ],
         "untrusted": [
           "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."
@@ -115,11 +117,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "computation": "Named orbital-year conversions satisfy result times target period equals source count times source period, with positive periods and a nonnegative count. Existing table and arithmetic requests retain their checked equations.",
         "assumptions": [
           "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
           "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
-          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional.",
+          "Orbital-year source and target periods use Earth days. Supplied periods are bound to their named planets; absent periods use the existing table or Earth-year convention."
         ],
         "untrusted": [
           "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."
@@ -135,11 +138,12 @@
       },
       "context_regex_additions": [],
       "evidence": {
-        "computation": "The checked kernel retains its equations and rejects values outside its typed domain; accepted communications values obey nonnegative magnitude and exact balance laws.",
+        "computation": "Named orbital-year conversions satisfy result times target period equals source count times source period, with positive periods and a nonnegative count. Existing table and arithmetic requests retain their checked equations.",
         "assumptions": [
           "The untrusted recognizer assigned each complete numeric token and declared unit to its intended role.",
           "Orbit calculations use a central point-mass model with positive total radius; altitude alone need not be nonnegative.",
-          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional."
+          "Light path, throughput and spacecraft magnitude fields are nonnegative. File payload has whole bits after unit conversion, while average bits in flight may be fractional.",
+          "Orbital-year source and target periods use Earth days. Supplied periods are bound to their named planets; absent periods use the existing table or Earth-year convention."
         ],
         "untrusted": [
           "English interpretation, numerical expression recognition and routing metadata are not proofs of the question interpretation."

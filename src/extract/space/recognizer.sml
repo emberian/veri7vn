@@ -457,6 +457,72 @@ struct
 
   datatype res = Fall | Take of S.request | Crash
 
+  (* UNTRUSTED role parser. A year count, source planet, target planet and
+     every supplied period must be consumed by this grammar. Unused conditions
+     cannot fall through to a one-year NASA property lookup. All arithmetic
+     on the accepted count/periods is performed by AYearConvert in HOL. *)
+  fun yearConversion low : res =
+    let
+      val count = "(qnum[0-9]+q|zero|one|two|three|four|five|six|seven|eight|nine|ten|an?)"
+      val body = "([a-z]+)"
+      val tail = "[?.! ]*$"
+      (* Captures are reordered into source, target, count below. *)
+      val patterns = [
+        ("\\bhow many " ^ body ^ " years? (?:are|is|equal|in) " ^ count ^ " " ^ body ^ " years?" ^ tail, (3,1,2)),
+        ("\\bhow many " ^ body ^ " years? (?:are|is) " ^ count ^ " years? on " ^ body ^ tail, (3,1,2)),
+        ("\\b(?:convert|express) " ^ count ^ " " ^ body ^ " years? (?:to|into|in) " ^ body ^ " years?" ^ tail, (2,3,1)),
+        ("\\bhow many " ^ body ^ " years? (?:does|do) " ^ count ^ " years? on " ^ body ^ " last" ^ tail, (3,1,2)),
+        ("\\bhow many " ^ body ^ " years? (?:is|are) " ^ count ^ " orbits? of " ^ body ^ tail, (3,1,2)),
+        ("\\b" ^ count ^ " " ^ body ^ " years? (?:in|to|into) " ^ body ^ " years?" ^ tail, (2,3,1)),
+        ("\\b" ^ count ^ " " ^ body ^ " years? (?:is|are) how many " ^ body ^ " years?" ^ tail, (2,3,1))]
+      fun first [] = NONE
+        | first ((pat,groups)::rest) = case search pat low of
+            SOME m => SOME(m,groups) | NONE => first rest
+      fun planet name = case List.find(fn(n,b)=>n=name andalso b<>S.A_moon) abodies of
+          SOME(_,b)=>b | NONE=>raise InvalidNumeric
+      val words = [("zero",0),("one",1),("two",2),("three",3),("four",4),("five",5),
+                   ("six",6),("seven",7),("eight",8),("nine",9),("ten",10),("a",1),("an",1)]
+      fun quantity token = case List.find(fn(w,_)=>w=token) words of
+          SOME(_,n)=>(IntInf.fromInt n,1:IntInf.int) | NONE=>rationalOf token
+      fun rat(n,d) = S.mk_rat n d
+      fun equal((a,b):ExactNumeric.rational,(c,d):ExactNumeric.rational) = a*d=c*b
+      val cue = has "\\bhow many [a-z]+ years?\\b|\\b(?:to|into|in) [a-z]+ years?\\b" low
+      val explicit = has "\\b(?:qnum[0-9]+q|zero|two|three|four|five|six|seven|eight|nine|ten)\\b" low orelse has "\\bdays?\\b" low
+    in case first patterns of
+      NONE => if cue andalso explicit then Crash else Fall
+    | SOME(m,(sg,tg,cg)) =>
+      let
+        val src = planet(valOf(grp low m sg))
+        val dst = planet(valOf(grp low m tg))
+        val n = rat(quantity(valOf(grp low m cg)))
+        val prefix = String.substring(low,0,#start m)
+        val days = N ^ "\\s+(?:earth\\s+)?days?\\b"
+        val definitions = [
+          body ^ "\\s+takes\\s+" ^ days ^ "(?:\\s+to orbit (?:the )?sun)?",
+          "(?:an? |one )?" ^ body ^ "(?:'s)?\\s+(?:orbital period|year)\\s+(?:is|lasts|takes|=|of)\\s+" ^ days,
+          "(?:a |one )?year on\\s+" ^ body ^ "\\s+(?:is|lasts|takes)\\s+" ^ days]
+        fun consume [] remaining periods = (remaining,periods)
+          | consume (pat::rest) remaining periods =
+            let
+              fun bind (pm,ps) =
+                let val b = planet(g1 remaining pm)
+                    val value = rationalOf(valOf(grp remaining pm 2))
+                    val _ = if b=src orelse b=dst then () else raise InvalidNumeric
+                in case List.find(fn(c,_)=>c=b) ps of
+                     NONE => (b,value)::ps
+                   | SOME(_,old) => if equal(value,old) then ps else raise InvalidNumeric
+                end
+              val ps = List.foldl bind periods (findall pat remaining)
+            in consume rest (replaceAll pat " " remaining) ps end
+        val (remaining,periods) = consume definitions prefix []
+        val rest = replaceAll "\\b(?:and|given|assume|assuming|that|use)\\b|[\\s.,;:]" "" remaining
+        val _ = if rest="" then () else raise InvalidNumeric
+        fun period b = case List.find(fn(c,_)=>b=c) periods of
+            SOME(_,value)=>rat value
+          | NONE=>if b=S.A_earth then S.mk_rat 36525 100 else S.cell_num(S.sheet b S.P_period)
+      in Take(S.AYearConvert(src,dst,n,period src,period dst)) end
+    end handle InvalidNumeric=>Crash
+
   (* the ratio of two sheet values; v1 reads mass or diameter only *)
   fun ratioReq style subj refb prop =
     case (cellSign (S.sheet subj prop), cellSign (S.sheet refb prop)) of
@@ -586,7 +652,8 @@ struct
              orelse (has "\\bmercury\\b" low andalso
                      (has "\\b(?:liquid|fluid|metal|diver|depth|submerged|buoyant)\\b" low orelse
                       has "\\b(?:solid|metallic|molten|gaseous|vaporous) mercury\\b|\\bmercury (?:vapou?r|gas|metal)\\b" low))
-          then NONE else astroV3 t low
+          then NONE else case yearConversion low of
+            Take r => SOME r | Crash => NONE | Fall => astroV3 t low
         end
     end
 
@@ -635,6 +702,11 @@ struct
     in Option.map (fn r => (id, r, reply)) req end
 
   fun family text =
+    case yearConversion (lower (collapse text)) of
+      Take r => SOME ("astronomy-v3-r2", r, NONE)
+    | Crash => NONE
+    | Fall => familyOther text
+  and familyOther text =
     case call "planetary" text of SOME x => SOME x
     | NONE => (case call "spacecraft" text of SOME x => SOME x
       | NONE => let

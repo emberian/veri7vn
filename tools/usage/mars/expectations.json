@@ -1,0 +1,11 @@
+{
+  "orbital_ratio": {
+    "source": "Mars",
+    "source_years": 3,
+    "source_period_days": 687,
+    "target": "Earth",
+    "target_period_days": 365.25,
+    "expected": 5.642710472279261,
+    "quantity": "Earth years"
+  }
+}

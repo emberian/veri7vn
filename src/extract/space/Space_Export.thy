@@ -13,6 +13,15 @@ definition self_test :: bool where
      kernel (OHohDv (Some O_earth) (Some (400, 400001/1000))) \<noteq> Decline Imprecise \<and>
      enclose_adaptive St_orb (fa (OHohDv (Some O_earth) (Some (400, 400001/1000)))) =
        enclose St_orb prec (fa (OHohDv (Some O_earth) (Some (400, 400001/1000)))) \<and>
+     kernel (AYearConvert A_mars A_earth 3 687 (36525/100)) =
+       Exact (STR ''year_years'') (2748/487) \<and>
+     kernel (AYearConvert A_earth A_mars 3 (36525/100) 687) =
+       Exact (STR ''year_years'') (1461/916) \<and>
+     kernel (AYearConvert A_mars A_earth 0 687 (36525/100)) =
+       Exact (STR ''year_years'') 0 \<and>
+     kernel (AYearConvert A_mars A_earth 3 687 0) = Decline (Impossible R_nonpositive) \<and>
+     kernel (AYearConvert A_mars A_earth (-3) 687 (36525/100)) =
+       Decline (Impossible R_physical_domain) \<and>
      kernel (CLight (Some (Dist 0 Ds_one Db_m)) False) = Exact (STR ''light_time'') 0 \<and>
      kernel (CLight (Some (Dist (-1) Ds_one Db_km)) False) = Decline (Impossible R_physical_domain) \<and>
      kernel (CXfer (1/2) Dp_one False 1 Ru_bps) = Decline (Impossible R_physical_domain) \<and>
@@ -46,7 +55,7 @@ export_code reply_of answered reply_kind response stated kernel mk_rat
   Mu_kg Mu_t Fu_n Fu_kn Fu_mn Su_mps Su_kmps Ve_isp Ve_speed
   CLight CFspl CXfer CBits dkm Dist Ds_one Ds_million Ds_billion Db_km Db_mile Db_au Db_m
   Fq_hz Fq_khz Fq_mhz Fq_ghz Dp_one Dp_k Dp_m Dp_g Dp_t Ru_bps Ru_kbps Ru_mbps Ru_gbps
-  AProp AFake ALight AWeight ARatio AYears AMoonKm AMoonKkm Wu_kg Wu_lb Rs_v1 Rs_v2
+  AProp AFake ALight AWeight ARatio AYears AYearConvert AMoonKm AMoonKkm Wu_kg Wu_lb Rs_v1 Rs_v2
   O_earth O_moon O_mars O_sun O_jupiter O_venus
   A_mercury A_venus A_earth A_moon A_mars A_jupiter A_saturn A_uranus A_neptune A_pluto
   P_mass P_diameter P_density P_gravity P_escape P_rotation P_day P_distance P_perihelion
@@ -71,7 +80,8 @@ ML \<open>
     @{thm light_time_accepted}, @{thm transfer_accepted}, @{thm bits_in_flight_accepted},
     @{thm light_time_model}, @{thm transfer_model}, @{thm bits_in_flight_model}, @{thm fspl_model},
     @{thm property_model}, @{thm weight_elsewhere_model}, @{thm sunlight_model},
-    @{thm ratio_model}, @{thm years_model},
+    @{thm ratio_model}, @{thm years_model}, @{thm year_conversion_model},
+    @{thm year_conversion_answer_equation}, @{thm year_conversion_declines},
     @{thm answered_physical_domain}, @{thm reply_answered_iff}, @{thm reply_states_approx}, @{thm reply_states_exact},
     @{thm reply_states_fact}, @{thm reply_withheld_names_decline},
     @{thm hohmann_dv_vis_viva}, @{thm hohmann_dv_stated}, @{thm unknown_cells}, @{thm ve_of_pos_iff}]

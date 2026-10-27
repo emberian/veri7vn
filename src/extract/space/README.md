@@ -86,3 +86,19 @@ These checks establish the stated mathematical models. In particular, positive
 distance/frequency alone does not establish real antenna far-field applicability;
 the tiny-distance probes do not claim it. Source, theorem and native bindings
 are in `project/lanes/G-physical-space-log.md`.
+
+## Counts of planetary years
+
+The native astronomy readers distinguish a single planet's year from a counted
+conversion. For example, three Mars years with supplied periods of 687 and
+365.25 Earth days give `3 * 687 / 365.25` Earth years. The typed request keeps
+the count, source and destination separate. Its checked equation says that the
+returned count times the destination period equals the source count times the
+source period; periods must be positive and the count nonnegative.
+
+The untrusted recognizer consumes every supplied period and refuses conflicting
+periods or unexplained conditions. It uses table defaults only after the count
+and both planets are explicit. Conversion text shows twelve significant digits;
+the established numeric reply field retains six. English interpretation and
+supplied data remain unproved. Measurements and integration status are in
+[the native conversion report](../../../project/lanes/U2-mars-native.md).
