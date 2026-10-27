@@ -1,0 +1,28 @@
+{
+  "scope": "Targeted real-engine regression, not a fleet panel or formal qualification",
+  "case_count": 22,
+  "transport_completed": 22,
+  "checks": {
+    "heat_uses_explicit_4180": true,
+    "battery_roles_and_constant_condition": true,
+    "invalid_efficiency_declined": true,
+    "document_positive_preserved": true,
+    "document_conflict_keeps_both_quotes": true,
+    "geometry_positive_and_contradiction": true,
+    "energy_requested_quantities": true,
+    "birth_metadata_no_crash": true
+  },
+  "engineering_original_14": {
+    "correct_numerical_answers": 4,
+    "useful_invalid_refusals": 2,
+    "valid_uncompleted": 8,
+    "incorrect_answers": 0
+  },
+  "results_sha256": "ad83dcf206a49f38f4ffaa0687733b64632a0388e3bec13742b7e562ac9ca8d5",
+  "previous_receipt_sha256": "e3628455a546219ad1505cd04b548a4282bff7647cc10a8c78fb30ae548b66d8",
+  "final_receipt_sha256": "34b685093842cbada93de9cb510db4d322fdeb12e56c88d7346132da6063a156",
+  "changed_deployed_files": [
+    "root/specialists/_gate/combo_runtime_v1.py"
+  ],
+  "usage_patch_sha256": "1a2f69d0bdfe112f67ac01557ddb1c923e5e6c6a1fbaab1097852ade20e3e625"
+}

@@ -1,0 +1,13 @@
+{
+ "lift_ideal":{"model":"lift_input","quantities":{"mass":{"value":25,"unit":"kg"},"rise":{"value":4,"unit":"m"},"gravity":{"value":"9.81","unit":"m/s^2"},"efficiency":{"value":100,"unit":"%"}}},
+ "lift_efficiency":{"model":"lift_input","quantities":{"mass":{"value":25,"unit":"kg"},"rise":{"value":4,"unit":"m"},"gravity":{"value":"9.81","unit":"m/s^2"},"efficiency":{"value":80,"unit":"%"}}},
+ "pump_power":{"model":"pump_input","quantities":{"density":{"value":1000,"unit":"kg/m^3"},"flow":{"value":"0.002","unit":"m^3/s"},"rise":{"value":10,"unit":"m"},"gravity":{"value":"9.81","unit":"m/s^2"},"efficiency":{"value":70,"unit":"%"}}},
+ "spring_work":{"model":"spring_energy_change","quantities":{"stiffness":{"value":200,"unit":"N/m"},"initial_extension":{"value":"0.1","unit":"m"},"final_extension":{"value":"0.3","unit":"m"}}},
+ "spring_force":{"model":"spring_force","quantities":{"stiffness":{"value":200,"unit":"N/m"},"unstretched_length":{"value":"0.4","unit":"m"},"final_length":{"value":"0.5","unit":"m"}}},
+ "spring_simple":{"model":"spring_energy_change","quantities":{"stiffness":{"value":200,"unit":"N/m"},"initial_extension":{"value":0,"unit":"m"},"final_extension":{"value":"0.3","unit":"m"}}},
+ "heat_endpoints":{"model":"sensible_heat","quantities":{"mass":{"value":2,"unit":"kg"},"specific_heat":{"value":4180,"unit":"J/(kg K)"},"initial_temperature":{"value":20,"unit":"C"},"final_temperature":{"value":80,"unit":"C"}}},
+ "battery_roles":{"model":"battery_runtime","quantities":{"capacity":{"value":1000,"unit":"Wh"},"load":{"value":100,"unit":"W"},"inverter_rating":{"value":500,"unit":"W"},"efficiency":{"value":90,"unit":"%"},"depth_of_discharge":{"value":80,"unit":"%"}}},
+ "battery_plain":{"model":"battery_runtime","quantities":{"capacity":{"value":1000,"unit":"Wh"},"load":{"value":100,"unit":"W"},"efficiency":{"value":90,"unit":"%"},"depth_of_discharge":{"value":80,"unit":"%"}}},
+ "conversion_flow":{"model":"flow_conversion","quantities":{"flow":{"value":30,"unit":"L/min"}}},
+ "temperature_interval":{"model":"temperature_interval","quantities":{"change":{"value":18,"unit":"delta_F"}}}
+}

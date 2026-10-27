@@ -1,0 +1,69 @@
+[
+  {
+    "text": "When was Albert Einstein born?",
+    "reply": {
+      "status": "answered",
+      "path": "family_precedence>specialist_call>specialist:rel-engineers>engineers",
+      "response": "14 March 1879. From the Wikidata relation store: Albert Einstein (Q937) - year of birth (P569) - 14 March 1879. [rel-engineers]",
+      "provenance": {
+        "kind": "family_precedence",
+        "replaced_route": "capability:when_did",
+        "replaced_response": "[ev:direct] According to Albert Einstein, Albert Einstein (14 March 1879 – 18 April 1955) was a German-born Jewish scientist. [simplewiki_a9a88ffc711143a397966482] Albert Einstein also records: Einstein was born in Ulm, Württemberg, Germany, on 14 March 1879. [simplewiki_e131399c5b98026c642abcac]",
+        "specialist": "rel-engineers",
+        "chat_resolved": null
+      },
+      "latency_ms": 0.2,
+      "zero_model_gate": {
+        "lm_calls": 0,
+        "transformer_calls": 0
+      },
+      "evidential": {
+        "input_marked": null,
+        "answer_licensed": "direct"
+      },
+      "continuation": {
+        "doors": [
+          "germany",
+          "scientist"
+        ],
+        "offer": "from here, germany or scientist stand open"
+      },
+      "references": []
+    },
+    "receipt": "var/usage-20261026/evidence/run-1/results.jsonl"
+  },
+  {
+    "text": "When was John Williams born?",
+    "reply": {
+      "status": "answered",
+      "path": "family_precedence>specialist_call>specialist:rel-composers>composers",
+      "response": "8 February 1932. From the Wikidata relation store: John Williams (Q131285) - year of birth (P569) - 8 February 1932. [rel-composers]",
+      "provenance": {
+        "kind": "family_precedence",
+        "replaced_route": "capability:when_did",
+        "replaced_response": "[ev:direct] According to John Williams, John Towner Williams (born February 8, 1932) is an American composer and conductor. [simplewiki_8cb1cf64a055db807a2b8983] John Williams also records: John Towner Williams was born in Queens, New York City, New York on February 8, 1932. [simplewiki_26349c5d4659",
+        "specialist": "rel-composers",
+        "chat_resolved": null
+      },
+      "latency_ms": 0.1,
+      "zero_model_gate": {
+        "lm_calls": 0,
+        "transformer_calls": 0
+      },
+      "evidential": {
+        "input_marked": null,
+        "answer_licensed": "direct"
+      },
+      "continuation": {
+        "doors": [
+          "city",
+          "composer",
+          "conductor"
+        ],
+        "offer": "from here, city or composer stand open"
+      },
+      "references": []
+    },
+    "receipt": "var/usage-20261026/research/run-1/results.jsonl"
+  }
+]

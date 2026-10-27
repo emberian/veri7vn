@@ -1,0 +1,49 @@
+--- a/root/wander-train/word_problems_v1.py
++++ b/root/wander-train/word_problems_v1.py
+@@ -1,4 +1,6 @@
+ """word_problems_v1 - prose to equations for the recurring shapes of textbook word problems.
++
++This Python recognizer is untrusted; its checks are not proof or admission authority.
+ 
+ Each SCHEMA is a stored form: trigger words, the TYPED quantities it needs (money, percent, time, length ...), and a
+ formula. A schema fires only when every quantity it needs is found with the right type AND the question asks for the
+@@ -182,9 +184,37 @@
+     L = [x for x in qs if x[0] == "length"]
+     tl = t.lower()
+ 
++    # This Python recognizer is untrusted. Bind every explicit dimension role;
++    # the first nearby number cannot establish uniqueness or consistent units.
++    bindings = {}
++    consumed = 0
++    unit_scales = set()
++    for mention in re.finditer(r"\b(length|width|radius|diameter|height)\b", tl):
++        role = mention.group(1)
++        match = re.match(r"\s*(?:(?:is|of|exactly|equals|measures|=|:)\s*)*"
++                         + NUM + r"\s*([a-z]+)\b", tl[mention.end():])
++        if not match:
++            return None
++        unit = unit_of(match.group(2))
++        if unit is None or unit[0] != "length":
++            return None
++        value = num(match.group(1))
++        scale = LENGTH[unit[1]]
++        if role in bindings and bindings[role] != (value, scale):
++            return None
++        bindings[role] = (value, scale)
++        unit_scales.add(scale)
++        consumed += 1
++    # Unbound lengths and mixed units require a richer parser, not a guessed
++    # formula over raw numbers. Unrelated unitless identifiers remain harmless.
++    if consumed != len(L) or len(unit_scales) > 1:
++        return None
++    if "radius" in bindings and "diameter" in bindings:
++        if bindings["radius"][0] * 2 != bindings["diameter"][0]:
++            return None
++
+     def near(word):
+-        m = re.search(r"%s[^.]{0,40}?%s\s*([a-z]+)" % (word, NUM), tl)
+-        return num(m.group(1)) if m else None
++        return bindings[word][0] if word in bindings else None
+     if "rectangle" in tl or "rectangular" in tl:
+         ln, wd = near("length"), near("width")
+         if ln is not None and wd is not None:

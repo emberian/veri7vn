@@ -1,0 +1,22 @@
+{
+  "interval_helper_v2": {
+    "value": 10,
+    "unit": "delta_C",
+    "reason": "18 * 5/9, same interval conversion; explicit arithmetic rather than lone constant"
+  },
+  "battery_rating_first": {
+    "value": 7.2,
+    "unit": "h",
+    "reason": "Only ordering changes; rating remains500W and load100W, capacity1000Wh, efficiency0.9, depth0.8"
+  },
+  "spring_energy_rephrase": {
+    "value": 9,
+    "unit": "J",
+    "reason": "Only wording changes; stiffness200N/m, extension0.3m"
+  },
+  "heat_one_sentence": {
+    "value": 501600,
+    "unit": "J",
+    "reason": "Same physical problem as heat_endpoints, supplied c4180 retained in one sentence"
+  }
+}

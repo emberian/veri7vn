@@ -1,0 +1,6 @@
+{
+  "inputs": {"storage_fraction": {"value": 0.8, "unit": "1"}},
+  "oracle_steps": [{"request_id": "solar_generation", "recipe": "solar_generation", "parameters": {"watts": 400, "hours": 5}, "output": "generated_energy"}],
+  "local_steps": [{"operation": "multiply", "inputs": ["generated_energy", "storage_fraction"], "output": "stored_energy", "unit": "kWh"}],
+  "target": "stored_energy"
+}

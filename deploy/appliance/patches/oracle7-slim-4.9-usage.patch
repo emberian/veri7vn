@@ -1,0 +1,1332 @@
+diff --git a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_operator_specs_v1.py b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_operator_specs_v1.py
+index e285656..f1e801a 100644
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_operator_specs_v1.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_operator_specs_v1.py
+@@ -198,33 +198,63 @@ def _gcd_ref(a):
+ 
+ 
+ # ── 3. base conversion ────────────────────────────────────────────────────────
+-# fn is repeated divmod; ref is positional expansion of the digits it produced.
+-_BASE_RX = re.compile(
+-    r'\b(?:convert|write|express)?\s*(-?\d+)\s*(?:from\s*)?(?:base\s*(\d+))?\s*'
+-    r'(?:in|to|into)\s*(?:base\s*)?(\d+|binary|hex|hexadecimal|octal|decimal)\b', re.I)
++# The parser binds the original digits and source base. The function decodes
++# with int(); the reference independently expands source digits positionally.
+ _BASE_NAME = {'binary': 2, 'hex': 16, 'hexadecimal': 16, 'octal': 8, 'decimal': 10}
++_BASE_ATOM = r'(?:base\s*\d+|binary|hexadecimal|hex|octal|decimal)'
++_BASE_RX = re.compile(
++    r'^\s*(?:(?:convert|write|express|what\s+is)\s+)?'
++    r'(?:(?P<prefix>' + _BASE_ATOM + r')\s+)?'
++    r'(?P<digits>[+-]?[0-9a-z]+)'
++    r'(?:\s+(?:(?:from|in)\s+)?(?P<source>' + _BASE_ATOM + r'))?'
++    r'\s+(?:in|to|into|as)\s+(?P<target>' + _BASE_ATOM + r'|\d+)'
++    r'\s*[.?!]?\s*$', re.I | re.ASCII)
+ _DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz'
+ 
+ 
+ def _base_parse(s):
+-    m = _BASE_RX.search(s)
++    m = _BASE_RX.fullmatch(s)
+     if not m:
+-        raise NotOurs('no number and target base here')
+-    n = int(m.group(1))
+-    frm = int(m.group(2)) if m.group(2) else 10
+-    tgt = m.group(3).lower()
+-    to = _BASE_NAME.get(tgt, None)
+-    if to is None:
+-        to = int(tgt)
+-    if not (2 <= to <= 36) or not (2 <= frm <= 36):
+-        raise OutOfFragment('I convert between base 2 and base 36 only')
+-    if n < 0:
++        raise NotOurs('no complete integer base conversion here')
++
++    def base(token):
++        token = token.lower()
++        value = _BASE_NAME.get(token)
++        if value is None:
++            numeral = re.sub(r'^base\s*', '', token)
++            if len(numeral) > 3:
++                raise OutOfFragment('I convert between base 2 and base 36 only')
++            value = int(numeral)
++        if not 2 <= value <= 36:
++            raise OutOfFragment('I convert between base 2 and base 36 only')
++        return value
++
++    sources = [base(token) for token in (m['prefix'], m['source']) if token]
++    raw = m['digits'].lower()
++    if raw.startswith('-'):
+         raise OutOfFragment('I convert non-negative whole numbers only')
+-    return {'n': n, 'frm': frm, 'to': to}
++    raw = raw.lstrip('+')
++    # A conventional literal prefix is source evidence, not a digit to discard.
++    # Explicit bases above 16 may use x as a digit; only infer prefixes when no
++    # explicit source is supplied, or that source matches the prefix convention.
++    literal = {'0b': 2, '0o': 8, '0x': 16}.get(raw[:2])
++    if literal is not None and (not sources or all(b == literal for b in sources)):
++        sources.append(literal)
++        raw = raw[2:]
++    elif literal is not None and sources and sources[0] in (2, 8, 10, 16):
++        raise OutOfFragment('the literal prefix conflicts with the stated source base')
++    if len(set(sources)) > 1:
++        raise OutOfFragment('the stated source bases disagree')
++    frm = sources[0] if sources else 10
++    to = base(m['target'])
++    if not raw or len(raw) > 128 or any(_DIGITS.index(c) >= frm for c in raw):
++        raise OutOfFragment('I need 1 to 128 valid digits in the stated source base')
++    n = int(raw, frm)
++    return {'n': n, 'digits': raw, 'frm': frm, 'to': to}
+ 
+ 
+ def _base_fn(a):
+-    n, steps, out = a['n'], [], ''
++    n, steps, out = int(a['digits'], a['frm']), [], ''
+     if n == 0:
+         return '0', ['0 in any base is 0']
+     while n:
+@@ -235,8 +265,13 @@ def _base_fn(a):
+ 
+ 
+ def _base_ref(a):
+-    """Independent: build with a positional table, then check by expanding it."""
+-    n = a['n']
++    """Expand original source digits, then encode using a positional table.
++
++    This does not share int() source decoding or repeated output division with
++    the primary function. Both still depend on the same untrusted parse.
++    """
++    n = sum(_DIGITS.index(digit) * a['frm'] ** power
++            for power, digit in enumerate(reversed(a['digits'])))
+     if n == 0:
+         return '0'
+     digits, powers = [], []
+@@ -418,8 +453,9 @@ SPECS = [
+      'parse': _base_parse, 'fn': _base_fn, 'ref': _base_ref,
+      'render': lambda a, v, s: '%d in base %d is %s.' % (a['n'], a['to'], v),
+      'warrant': 'computation',
+-     'independence': 'moderate: repeated division against positional expansion; '
+-                     'both walk the same digits, in opposite directions',
++     'independence': 'moderate: int source decoding and repeated output division '
++                     'against positional source expansion and output encoding; '
++                     'both still depend on the same untrusted parse',
+      'fragment': 'non-negative whole numbers, bases 2 to 36'},
+ 
+     {'name': 'statistics', 'family': 'measurement',
+diff --git a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w442.py b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w442.py
+index 1134ed3..20eb7e5 100644
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w442.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w442.py
+@@ -130,14 +130,34 @@ class OracleReleaseRuntimeW442(_Base):
+         numbers = {t for t in terms if t.isdigit()}
+         terms_stem = [_stem(t) for t in terms]
+         best = None
++        covered_verdicts = []
+         for sent in _sentences(passage):
+             pool = set(_stem(t) for t in _toks(sent))
+             ok, cov, via = self._r436_covered(terms, terms_stem, numbers, pool)
+             if ok:
++                # Every covering sentence matters: selecting the first tied
++                # sentence can silently choose one of conflicting versions.
++                vt = set(terms) | set(terms_stem) | {_stem(a) for _, a in via} | {a for _, a in via}
++                candidate_verdict, _ = self._r434_verdict(sent, vt, terms_stem, q)
++                if candidate_verdict is not None:
++                    covered_verdicts.append((cov, candidate_verdict, sent))
+                 hits = sum(1 for t in terms_stem if t in pool)
+                 if best is None or hits > best[0]:
+                     best = (hits, sent, cov, via)
+         out = dict(res)
++        # A partial lexical match may concern another subject (e.g. Cedar
++        # Archive rather than Lumen Archive). It must not veto a fully
++        # covered answer. Aliases count as covered, as in the existing reader.
++        best_coverage = best[2] if best is not None else 0.0
++        conflicting_candidates = [(v, sentence) for coverage, v, sentence in covered_verdicts if coverage >= best_coverage]
++        settled_verdicts = {v for v, _ in conflicting_candidates}
++        if len(settled_verdicts) > 1:
++            conflict = self._r434_receipt(out, res,
++                'The passage contains covering sentences with conflicting answers, so I will not choose a version.',
++                'conflicting_covering_sentences')
++            conflict['references'] = [{'id': 'passage', 'text': sentence}
++                                      for _, sentence in conflicting_candidates]
++            return conflict
+         if best is None:
+             return self._r434_receipt(out, res, 'I read the passage and the question but found no sentence that covers the question in full, so I will not guess.', 'no_covering_sentence')
+         _, sent, cov, via = best
+diff --git a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w557.py b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w557.py
+index 0cc6b8e..fafa575 100644
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w557.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w557.py
+@@ -73,7 +73,7 @@ ROUTE_SPELLING = [
+ # what an answer may stand on and still become state: a citation or source tag, a proof, or a checked route
+ CITED = re.compile(r"\[[^\]\s]{2,}\]")
+ CHECKED = ("specialist_call", "specialist_after_guard", "owner_first", "family_precedence", "network", "compute:", "organ:math",
+-           "op:", "verified:", "algebra:", "deduce:")
++           "op:", "verified:", "algebra:", "deduce:", "organ:relation>")
+ SESSION_STORES = ("dialogue", "transitions", "_pending_conversion", "_paths")
+ _ADJ = {s: [] for s in SEPH}
+ for _i, (_a, _b) in enumerate(EDGES):
+diff --git a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_conversation_state.py b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_conversation_state.py
+new file mode 100644
+index 0000000..4df407e
+--- /dev/null
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_conversation_state.py
+@@ -0,0 +1,98 @@
++"""Untrusted reconciliation of legacy conversation caches with delivered replies.
++
++This is Python bookkeeping, not a proof or an answer authority. The runtime
++serializes chat calls. Module-global v2 context is borrowed only for one turn;
++committed contexts belong to a runtime instance and a conversation ID.
++"""
++from copy import deepcopy
++import math
++import re
++import sys
++
++_TOPIC = re.compile(r"^\s*(?:new topic|switching topics|change of topic)\s*:", re.I)
++_SCALAR = re.compile(r"^\s*\[ev:derived\]\s+([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)\. In steps:")
++
++
++def begin(runtime, text, sid):
++    cc = sys.modules.get("chat_context_v2")
++    stores = getattr(runtime, "_conversation_contexts", None)
++    if stores is None:
++        stores = runtime._conversation_contexts = {}
++    prior = deepcopy(stores.get(sid))
++    frame = {"cc": cc, "prior": prior, "sid": sid}
++    if cc is not None:
++        frame["ambient"] = (sid in cc._STATES, cc._STATES.get(sid))
++        cc._STATES[sid] = deepcopy(prior) if prior is not None else cc.Turn()
++    values = getattr(runtime, "_last_value", {})
++    frame["value"] = (sid in values, values.get(sid))
++    if _TOPIC.match(str(text)):
++        if cc is not None:
++            cc._STATES[sid] = cc.Turn()
++        frame["prior"] = None
++        values.pop(sid, None)
++        getattr(runtime, "_v4_disc", {}).pop(sid, None)
++    return frame
++
++
++def scalar(reply, speculative, previous):
++    """Only the two known scalar arithmetic routes can populate w29's cache."""
++    prov = reply.get("provenance")
++    prov = prov if isinstance(prov, dict) else {}
++    path = str(reply.get("path", ""))
++    if prov.get("kind") == "computation" and prov.get("verified") is True and path in ("compute:verified", "chat:resolved>compute:verified"):
++        # The final closed arithmetic route wrote this value itself.
++        return speculative
++    if path == "organ:math>evaluate" and prov.get("kind") == "organ_math" and prov.get("directive") == "evaluate":
++        match = _SCALAR.match(str(reply.get("response", "")))
++        if match:
++            value = float(match.group(1))
++            return value if math.isfinite(value) else None
++    if path.startswith("act:"):
++        return previous
++    return None
++
++
++def finish(runtime, text, reply, frame, supported):
++    sid, cc = frame["sid"], frame["cc"]
++    values = getattr(runtime, "_last_value", None)
++    if values is None:
++        values = runtime._last_value = {}
++    previous = frame["value"][1] if frame["value"][0] else None
++    value = scalar(reply, values.get(sid), previous) if supported else None
++    values.pop(sid, None)
++    if value is not None:
++        values[sid] = value
++    if cc is None:
++        return
++    prior = frame["prior"]
++    cc._STATES[sid] = deepcopy(prior) if prior is not None else cc.Turn()
++    if not supported:
++        cc._STATES[sid] = cc.Turn()
++    elif not str(reply.get("path", "")).startswith("act:"):
++        # Direct questions legitimately carry chat_resolved: null. Only a
++        # typed rewrite record with a string question overrides the input.
++        prov = reply.get("provenance")
++        resolved = prov.get("chat_resolved") if isinstance(prov, dict) else None
++        question = resolved.get("read_as") if isinstance(resolved, dict) else None
++        question = question if isinstance(question, str) and question.strip() else text
++        # Clear numerical slots before recognition so an unrecognized final
++        # correction cannot silently retain an older number or solved variable.
++        cc._STATES[sid].result = None
++        cc._STATES[sid].solved = {}
++        cc.update(sid, question, reply)
++        if value is not None:
++            cc._STATES[sid].result = (value, "")
++    stores = runtime._conversation_contexts
++    if sid not in stores and len(stores) >= cc.STATE_CAP:
++        stores.pop(next(iter(stores)))
++    stores[sid] = deepcopy(cc._STATES[sid])
++
++
++def release(frame):
++    cc = frame["cc"]
++    if cc is not None:
++        had, value = frame["ambient"]
++        if had:
++            cc._STATES[frame["sid"]] = value
++        else:
++            cc._STATES.pop(frame["sid"], None)
+diff --git a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_final_outcome.py b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_final_outcome.py
+index 1658e83..79773c4 100644
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_final_outcome.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/runtime_final_outcome.py
+@@ -10,6 +10,7 @@ from functools import wraps
+ import os
+ import re
+ import time
++import runtime_conversation_state as conversation
+ 
+ _FRAMES = ContextVar("oracle_final_turns", default=())
+ _CITE = re.compile(r"\[[a-z0-9_]+:?[a-z0-9_.\-]*\]")
+@@ -45,6 +46,7 @@ def final_turn(method):
+                      "snapshot": self._v4_snapshot(session_id),
+                      "started": time.perf_counter(), "first": None,
+                      "hits": sum(rc.hits for rc in self._v4_recall())}
++            frame["conversation"] = conversation.begin(self, text, session_id)
+             token = _FRAMES.set(frames + (frame,))
+         try:
+             result = method(self, text, session_id)
+@@ -65,6 +67,7 @@ def final_turn(method):
+             raise
+         finally:
+             if outer:
++                conversation.release(frame["conversation"])
+                 _FRAMES.reset(token)
+ 
+     wrapped._oracle_final_turn = True
+@@ -101,6 +104,7 @@ def finish_turn(runtime, text, session_id, result, frame, stands, append, entry,
+         # AN's recorder derives all terms and metrics again from the final reply.
+         runtime._record_turn(text, session_id, reply, frame["started"], prior)
+         getattr(runtime, "_pending_conversion", {}).pop(session_id, None)
++    conversation.finish(runtime, text, reply, frame["conversation"], answered and not unsupported)
+     commit_disc = getattr(runtime, "_v4_commit_disc", None)
+     if commit_disc:
+         commit_disc(text, session_id, reply)
+diff --git a/root/specialists/_gate/combo_runtime_v1.py b/root/specialists/_gate/combo_runtime_v1.py
+index b58f56a..a50f1cc 100644
+--- a/root/specialists/_gate/combo_runtime_v1.py
++++ b/root/specialists/_gate/combo_runtime_v1.py
+@@ -238,6 +238,58 @@ QWORDS = set("what what's how who whom whose which where when why is are was wer
+              "please tell give name".split())
+ 
+ 
++CONDITION_START = re.compile(
++    r"^(?:please\s+)?(?:use|using|assume|assuming|take|given|with|without|ignore|ignoring|neglect|neglecting)\b", re.I)
++CONDITION_NEW_TASK = re.compile(
++    r"\b(?:calculate|compute|determine|find|tell|give|show|convert|list|summarize|compare|explain|"
++    r"evaluate|solve|plot|draw|write|read|search|estimate|measure|prove|derive|differentiate|integrate|"
++    r"derivatives?|integrals?|square root|report|what|who|whom|whose|which|where|when|why|how)\b", re.I)
++DECLARED_CONSTANT = re.compile(
++    r"^(?:the\s+)?(?:load|gravity|density|specific heat(?: capacity)?|pressure|volume|mass|"
++    r"flow(?: rate)?|temperature|stiffness|efficiency)\s+(?:is|remains|stays)\s+"
++    r"(?:constant|steady|fixed)(?:\s+throughout)?\s*[.!]?$", re.I)
++CONDITION_PARAMETER = re.compile(
++    r"\b(?:specific heat|heat capacity|gravity|density|efficiency|temperature|pressure|mass|volume|"
++    r"flow|stiffness|load|capacity|loss(?:es)?|friction|phase change|constant)\b|\b[a-z]\s*=", re.I)
++
++
++def _condition_prefix(part: str) -> tuple[str, str]:
++    """Separate explicit declarative conditions from a later independent task.
++
++    Only condition-led sentences without an unquoted question or request verb
++    attach backwards. A new question stays separate even when its preceding
++    sentence starts with 'Use'. Quoted/code text is never a split boundary.
++    This is deliberately a small untrusted English recognizer, not a proof that
++    arbitrary prose expresses only conditions.
++    """
++    masked = CODE_SPAN.sub(lambda m: "\x00" * len(m.group(0)), part)
++    # A 'Given ...' premise before another question normally belongs to that
++    # new question; it is only a backwards continuation when no question follows.
++    if re.match(r"^(?:please\s+)?given\b", masked, re.I) and "?" in masked:
++        return "", part
++    ends = [m.end() for m in re.finditer(r"[.!]\s+", masked)] + [len(part)]
++    start, consumed = 0, 0
++    for end in ends:
++        sentence = masked[start:end].strip()
++        if not sentence:
++            start = end
++            continue
++        if not (CONDITION_START.match(sentence) or DECLARED_CONSTANT.fullmatch(sentence)) or "?" in sentence or CONDITION_NEW_TASK.search(sentence):
++            break
++        if re.match(r"^(?:please\s+)?(?:use|using|take)\b", sentence, re.I) and not CONDITION_PARAMETER.search(sentence):
++            break  # "Take the square root ..." / "Use a calculator ..." is a task, not a model input.
++        consumed = end
++        start = end
++    return part[:consumed].strip(), part[consumed:].strip()
++
++
++def _short_followup_fragment(text: str) -> bool:
++    """A small explicit elliptical vocabulary; brevity alone never implies dependence."""
++    return bool(re.fullmatch(
++        r"\s*(?:and\s+)?(?:how\s+(?:many|much|long|far)|what(?:\s+else)?|who|when|where|why|which(?:\s+one)?)\s*[?!.]*\s*",
++        text, re.I))
++
++
+ def _split_parts(text: str) -> list[str]:
+     """split a turn at its question marks; never inside `code` or quoted spans (SQL, JSON, strings).
+     Semicolons never split: "10 of 40 deer were tagged; 50 had been tagged ..." is one question."""
+@@ -251,7 +303,16 @@ def _split_parts(text: str) -> list[str]:
+         out.append(t[prev:c].strip())
+         prev = c
+     out.append(t[prev:].strip())
+-    return [p for p in out if p]
++    grouped = []
++    for part in out:
++        if not part:
++            continue
++        condition, remainder = _condition_prefix(part) if grouped else ("", part)
++        if condition:
++            grouped[-1] += " " + condition
++        if remainder:
++            grouped.append(remainder)
++    return grouped
+ 
+ 
+ class Combo:
+@@ -340,9 +401,9 @@ class Combo:
+         return self._arbitrate(text, self._ask_all(text, session_id), session_id)
+ 
+     def _segment(self, parts, session_id):
+-        """left to right: a SHORT part (<= 6 words) that no organ takes alone rejoins its neighbour when the joined
+-        text is taken ("... in 5-card poker? How many?", "Is Basque related to ...? What family is it?").
+-        A full question nobody covers is never glued on (it would vanish inside the neighbour's answer)."""
++        """An explicit elliptical fragment that no organ takes alone may rejoin its neighbour
++        ("... in 5-card poker? How many?"). Pronoun backreferences are handled separately.
++        A full question nobody covers is never glued on just because it is short."""
+         segs = []
+         ok = lambda x: x[1] is not None or bool(x[2].get("disagree"))   # noqa: E731
+         for p in parts:
+@@ -353,13 +414,13 @@ class Combo:
+                 segs[-1] = (joined,) + self._one(joined, session_id)
+                 continue
+             cur = (p,) + self._one(p, session_id)
+-            if segs and not ok(cur) and len(WORD.findall(p.lower())) <= 6:
++            if segs and not ok(cur) and _short_followup_fragment(p):
+                 joined = segs[-1][0] + " " + p
+                 j = (joined,) + self._one(joined, session_id)
+                 if ok(j):
+                     segs[-1] = j
+                     continue
+-            if segs and not ok(segs[-1]) and len(WORD.findall(segs[-1][0].lower())) <= 6:
++            if segs and not ok(segs[-1]) and _short_followup_fragment(segs[-1][0]):
+                 joined = segs[-1][0] + " " + p
+                 j = (joined,) + self._one(joined, session_id)
+                 if ok(j):
+diff --git a/root/specialists/energy-v3/organ_energy_v1.py b/root/specialists/energy-v3/organ_energy_v1.py
+index ed0cca5..a698d57 100644
+--- a/root/specialists/energy-v3/organ_energy_v1.py
++++ b/root/specialists/energy-v3/organ_energy_v1.py
+@@ -2,9 +2,11 @@
+ """organ_energy_v1 - household energy arithmetic, every step shown: energy used by a device (W x h -> kWh), what it costs
+ at a stated tariff, how long a battery runs a load (Wh, or V x Ah), a solar array's daily yield (kW x peak-sun-hours,
+ x a stated derate, otherwise said to be before losses), a payback period, and the yearly saving from swapping one
+-device for another. It never assumes a tariff, a price or sun-hours it was not given. Returns {kind, status, response, value}."""
++device for another. It never assumes a tariff, a price or sun-hours it was not given. Returns {kind, status, response, value}.
++The English recognizer and Python calculations are untrusted; these are explicit constant-energy models, not proofs."""
+ from __future__ import annotations
+ 
++import math
+ import re
+ 
+ N = r"(\d+(?:,\d{3})*(?:\.\d+)?)"
+@@ -60,6 +62,150 @@ def money(x):
+     return "$%.2f" % x if x < 1000 else "$%s" % format(round(x), ",")
+ 
+ 
++QN = r"(?<![\w.,])([+-]?(?:\d+(?:,\d{3})*(?:\.\d+)?|\.\d+))"
++POWER = re.compile(QN + r"\s*(kw|kilowatts?|w|watts?)\b")
++DEVICE = r"(?:load|device|appliance|fridge|light|laptop|lamp|fan|tv|router|pump|heater|bulb|motor)\b"
++
++
++def check_energy_conditions(low):
++    for m in re.finditer(r"(?<![\w.,])[+-]?\d[\d,.]*", low):
++        token = m[0].rstrip(".")
++        if "," in token and not re.fullmatch(r"[+-]?\d{1,3}(?:,\d{3})+(?:\.\d+)?", token):
++            raise ValueError("numbers with unambiguous decimal points and three-digit comma groups")
++    if re.search(r"\bbatteries\b|\b(?:loads|devices|appliances|fridges|lights|laptops|lamps|fans|routers|pumps|heaters|bulbs|motors)\b", low):
++        raise ValueError("one battery source and one total consumed load; multiple sources or loads need an explicit combined model")
++
++
++def one_value(values, description):
++    if not values:
++        raise ValueError(description)
++    if len(set(values)) != 1:
++        raise ValueError("one unambiguous " + description)
++    value = values[0]
++    if not math.isfinite(value) or value < 0:
++        raise ValueError("a finite nonnegative " + description)
++    return value
++
++
++def capacity_wh(low):
++    check_energy_conditions(low)
++    values = [num(m[1]) * (1000 if m[2] == "kwh" else 1)
++              for m in re.finditer(QN + r"\s*(kwh|wh)\b", low)]
++    if values:
++        energy = one_value(values, "battery energy in Wh or kWh")
++        if re.search(QN + r"\s*ah\b", low):
++            volts = [num(m[1]) for m in re.finditer(QN + r"\s*v(?:olts?)?\b", low)]
++            amps = [num(m[1]) for m in re.finditer(QN + r"\s*ah\b", low)]
++            equivalent = one_value(volts, "battery voltage") * one_value(amps, "battery capacity in Ah")
++            if not math.isclose(energy, equivalent, rel_tol=1e-9, abs_tol=1e-9):
++                raise ValueError("consistent Wh and voltage/amp-hour capacity values")
++        return energy
++    volts = [num(m[1]) for m in re.finditer(QN + r"\s*v(?:olts?)?\b", low)]
++    amps = [num(m[1]) for m in re.finditer(QN + r"\s*ah\b", low)]
++    return one_value([one_value(volts, "battery voltage") * one_value(amps, "battery capacity in Ah")], "battery energy")
++
++
++def load_and_rating(low):
++    """Untrusted grammar: inverter rating is a constraint, never consumed power."""
++    loads, ratings, unbound = [], [], []
++    for m in POWER.finditer(low):
++        value = num(m[1]) * (1000 if m[2].startswith("k") else 1)
++        before, after = low[max(0, m.start()-55):m.start()], low[m.end():m.end()+55]
++        is_rating = (re.match(r"\s*(?:rated\s+)?inverter\b", after)
++                     or re.search(r"\binverter(?:\s+(?:rating|rated|is|of|at|for|has|a))*(?:\s*[:=])?\s*$", before)
++                     or re.match(r"\s*(?:inverter\s+)?(?:rating|rated)\b", after))
++        is_load = (re.match(r"\s*(?:(?:ac|dc|constant)\s+)?" + DEVICE, after)
++                   or re.search(r"\b(?:load|device|appliance)\s*(?:(?:draws|uses|is|of|at)\s*)?[:=]?\s*$", before))
++        if is_rating and not is_load:
++            ratings.append(value)
++        elif is_load and not is_rating:
++            loads.append(value)
++        else:
++            unbound.append(value)
++    if not loads and len(unbound) == 1 and not ratings:
++        loads, unbound = unbound, []  # the legacy single-load form
++    if unbound:
++        raise ValueError("the consumed load and inverter rating labelled separately")
++    if len(loads) != 1:
++        raise ValueError("one total consumed load in watts")
++    load = one_value(loads, "consumed load in watts")
++    rating = one_value(ratings, "inverter rating in watts") if ratings else None
++    if load <= 0:
++        raise ValueError("a consumed load greater than zero watts")
++    if rating is not None and load > rating:
++        raise ValueError("a load within the stated inverter rating")
++    return load, rating
++
++
++def energy_factors(low, storage=False):
++    """Bind each stated fraction to its role, or reject an unbound condition.
++
++    These are simple constant-energy models, not battery chemistry or a proof.
++    Efficiency and loss are alternative descriptions of the same conversion;
++    depth of discharge is a separate capacity fraction.
++    """
++    check_energy_conditions(low)
++    if (not storage and re.search(r"\b(?:charging|storage)\s+efficiency\b", low)) or (storage and re.search(r"\binverter\s+efficiency\b", low)):
++        raise ValueError("an efficiency bound to the requested conversion (charging and load supply are different stages)")
++    groups = {
++        "efficiency": r"(?:(?:inverter|overall|conversion|charging|storage|battery)\s+)?efficiency",
++        "depth": r"(?:depth of discharge|usable (?:depth|capacity|fraction)|discharge depth)",
++        "loss": r"(?:(?:inverter|conversion|charging|storage|system)\s+)?loss(?:es)?",
++    }
++    if storage:
++        groups["stored"] = r"(?:stored fraction|storage fraction)"
++    found, spans = {}, []
++    numeric = r"([+-]?(?:\d+(?:\.\d+)?|\.\d+))\s*(%?)"
++    for role, label in groups.items():
++        patterns = [r"(?<![\w.])" + numeric + r"\s+" + label + r"\b",
++                    r"\b" + label + r"\s*(?:(?:of|is|=|:)\s*)?" + numeric + r"(?![\w.])"]
++        if role == "efficiency":
++            patterns.append(r"(?<![\w.])" + numeric + r"\s+efficient(?:\s+inverter)?\b")
++        if role == "stored":
++            patterns.append(r"\b(?:stores|store|retains|retain)\s+" + numeric + r"\s+of\b")
++        for pattern in patterns:
++            for m in re.finditer(pattern, low):
++                f = float(m[1]) / (100 if m[2] else 1)
++                if not math.isfinite(f) or not 0 <= f <= 1:
++                    raise ValueError("efficiency, loss and usable fractions between 0 and 1 (or 0% and 100%)")
++                found.setdefault(role, []).append(f)
++                spans.append(m.span())
++    # Every percentage and every adjustment term must be accounted for. Ignoring
++    # losses is an explicit ideal-model assumption, not an unknown loss factor.
++    masked = list(low)
++    for start, end in spans:
++        masked[start:end] = " " * (end-start)
++    rest = "".join(masked)
++    rest = re.sub(r"\b(?:ignoring|ignore|without|no|neglecting)\s+(?:(?:inverter|conversion)\s+)?loss(?:es)?\b", "", rest)
++    if re.search(r"%|\befficien\w*|\bloss(?:es)?\b|\bdepth of discharge\b|\busable (?:depth|capacity|fraction)\b|\b(?:idle|standby|variable|surge|peukert|temperature|degradation|derate|reserve)\b|\bperformance ratio\b|\b(?:half full|partly charged|partially charged|state of charge)\b", rest):
++        raise ValueError("each loss, efficiency, usable-capacity or variable-load condition explicitly bound to this model")
++    factors = {role: one_value(values, role + " fraction") for role, values in found.items()}
++    efficiency = factors.get("efficiency", 1)
++    if "loss" in factors:
++        retained = 1 - factors["loss"]
++        if "efficiency" in factors and not math.isclose(efficiency, retained, abs_tol=1e-12):
++            raise ValueError("consistent efficiency and loss fractions")
++        efficiency = retained
++    if "stored" in factors:
++        if "efficiency" in factors or "loss" in factors:
++            if not math.isclose(efficiency, factors["stored"], abs_tol=1e-12):
++                raise ValueError("one unambiguous stored fraction (not two unexplained conversion stages)")
++        efficiency = factors["stored"]
++    return efficiency, factors.get("depth", 1), bool(found)
++
++
++def duration_hours(low):
++    durations = [num(m[1]) for m in re.finditer(QN + r"\s*(?:hours?|hrs?|h|minutes?)\b", low)]
++    if any(not math.isfinite(x) or x < 0 for x in durations):
++        raise ValueError("a finite nonnegative load duration")
++    if len(durations) > 1:
++        raise ValueError("one unambiguous load duration")
++    duration = hours(low)
++    if duration is not None and not math.isfinite(duration[0]):
++        raise ValueError("a finite load duration")
++    return duration
++
++
+ class EnergyOrgan:
+     def _say(self, kind, text, value=None, status="answered"):
+         return {"kind": kind, "status": status, "response": text, "value": value}
+@@ -70,6 +216,63 @@ class EnergyOrgan:
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
+         low = t.lower()
++        # Explicit continuations. The goal is read from the question, not from
++        # a noun in the initial conditions ("initially stores" is not a goal).
++        question = re.search(r"\b(?:what|how much)\b[^?]*\??$", low)
++        goal = question.group(0) if question else ""
++        remaining = re.search(r"\bremain\w*\b|\bleft\b", goal)
++        stored = re.search(r"\bstored\b|\bstore\b", goal)
++        if remaining and re.search(r"\bbatter(?:y|ies)\b", low):
++            try:
++                if not re.search(r"\binitial\w*\b|\bstarts? with\b|\bfully charged\b", low):
++                    raise ValueError("the initially stored energy or an explicit fully charged battery")
++                initial = capacity_wh(low)
++                load, rating = load_and_rating(low)
++                efficiency, depth, adjusted = energy_factors(low)
++                duration = duration_hours(low)
++                if duration is None:
++                    raise ValueError("the duration of the constant load")
++                if efficiency == 0 and duration[0] > 0:
++                    raise ValueError("positive conversion efficiency to supply this load")
++                spent = load * duration[0] / efficiency if efficiency else 0
++                if spent > initial * depth + 1e-10:
++                    raise ValueError("a duration within the battery's available energy at the stated load and factors")
++                base = initial * depth if re.search(r"\busable\b", goal) else initial
++                value = (base - spent) / 1000
++                return self._say("energy", "The %sremaining energy is %s kWh (%s Wh initially%s − %s Wh withdrawn; load %s W × %s, conversion efficiency %s)." % (
++                    "usable " if base != initial else "", g(value), g(initial), " × %s usable fraction" % g(depth) if base != initial else "", g(spent), g(load), duration[1], g(efficiency)), value)
++            except ValueError as error:
++                return self._need(str(error))
++        if stored and re.search(r"\b(?:solar|panel|batter(?:y|ies)|charging)\b", low):
++            try:
++                efficiency, depth, adjusted = energy_factors(low, storage=True)
++                if depth != 1:
++                    raise ValueError("charging/storage efficiency; discharge depth does not specify stored energy")
++                if not adjusted and not re.search(r"\b(?:ignoring|without|no|neglecting)\s+loss", low):
++                    raise ValueError("the fraction of generated/input energy stored, or an explicit no-loss assumption")
++                powers = list(POWER.finditer(low))
++                duration = duration_hours(low)
++                sun = re.search(N + r"\s*(?:peak\s+)?sun[ -]?hours?\b", low)
++                if sun:
++                    duration = (num(sun[1]), "%s peak sun hours" % sun[1])
++                if len(powers) == 1 and duration:
++                    power = one_value([num(powers[0][1]) * (1000 if powers[0][2].startswith("k") else 1)], "input/generating power")
++                    panel_count = re.search(QN + r"\s+panels?\b", low)
++                    if panel_count:
++                        if not re.search(r"\beach\b|\bper panel\b", low):
++                            raise ValueError("whether panel power is per panel or for the whole array")
++                        power *= one_value([num(panel_count[1])], "panel count")
++                    generated = power * duration[0] / 1000
++                elif not powers:
++                    generated = capacity_wh(low) / 1000
++                else:
++                    raise ValueError("one input/generating power and duration, or one stated input energy")
++                if re.search(r"\binitial\w*|\bcapacity|\bfull\b", low):
++                    raise ValueError("a charging plan with initial charge and capacity bounds; this calculation gives newly stored energy only")
++                value = one_value([generated * efficiency], "newly stored energy")
++                return self._say("energy", "The newly stored energy is %s kWh (%s kWh generated/input energy × %s storage fraction)." % (g(value), g(generated), g(efficiency)), value)
++            except ValueError as error:
++                return self._need(str(error))
+         # payback
+         if re.search(r"\bpayback|\bpay (?:for )?itself|\bbreak even\b|\bpay back\b", low):
+             cost = re.search(r"\$\s*" + N + r"(?:\s*(k))?", low)
+@@ -83,26 +286,17 @@ class EnergyOrgan:
+             y = c / s
+             return self._say("payback", "The payback period is %s years (%s ÷ %s saved per year), ignoring price changes and financing." % (g(y), money(c), money(s)), y)
+         # battery runtime
+-        if re.search(r"\bbattery|\bpower bank\b|\bups\b", low) and re.search(r"\bhow long\b|\bruntime\b|\brun time\b|\blast\b", low):
+-            wh = re.search(N + r"\s*(kwh|wh)\b", low)
+-            ah = re.search(N + r"\s*ah\b", low)
+-            v = re.search(N + r"\s*v(?:olts?)?\b", low)
+-            load = re.search(r"\b(?:a|an|the)?\s*" + N + r"\s*(w|watts?)\b(?!\s*h\b)\s*(?:device|load|appliance|fridge|light|laptop|lamp|fan|tv|router|pump|heater)?", low)
+-            if wh:
+-                cap = num(wh.group(1)) * (1000 if wh.group(2) == "kwh" else 1)
+-                capnote = "%s Wh" % g(cap)
+-            elif ah and v:
+-                cap = num(ah.group(1)) * num(v.group(1))
+-                capnote = "%s V × %s Ah = %s Wh" % (g(num(v.group(1))), g(num(ah.group(1))), g(cap))
+-            else:
+-                return self._need("the battery's capacity (Wh, or volts and amp-hours)")
+-            if not load:
+-                return self._need("the load in watts")
+-            w = num(load.group(1))
+-            if w <= 0:
+-                return self._say("impossible", "A load must draw more than 0 W.", status="withheld")
+-            hrs = cap / w
+-            return self._say("runtime", "The runtime is about %s hours (%s ÷ %s W), before inverter and depth-of-discharge losses." % (g(hrs), capnote, g(w)), hrs)
++        if re.search(r"\bbatter(?:y|ies)|\bpower bank\b|\bups\b", low) and re.search(r"\bhow long\b|\bruntime\b|\brun time\b|\blast\b", low):
++            try:
++                cap = capacity_wh(low)
++                w, rating = load_and_rating(low)
++                efficiency, depth, adjusted = energy_factors(low)
++                hrs = one_value([cap * efficiency * depth / w], "runtime")
++                note = "at the stated conversion and usable-capacity factors" if adjusted else "before inverter and depth-of-discharge losses"
++                return self._say("runtime", "The runtime is about %s hours (%s Wh × %s conversion efficiency × %s usable fraction ÷ %s W load), %s%s." % (
++                    g(hrs), g(cap), g(efficiency), g(depth), g(w), note, "; load is within the %s W inverter rating" % g(rating) if rating is not None else ""), hrs)
++            except ValueError as error:
++                return self._need(str(error))
+         # solar daily yield
+         if re.search(r"\bsolar\b|\bpv\b|\bpanels?\b", low) and re.search(r"\bsun ?hours?\b|\bpeak sun\b|\bsunlight hours?\b", low):
+             k = re.search(N + r"\s*(kw|kilowatts?|w|watts?)\b(?!\s*h\b)", low)
+diff --git a/root/wander-train/math_organ_v1.py b/root/wander-train/math_organ_v1.py
+index 98e7e3f..fb871e6 100644
+--- a/root/wander-train/math_organ_v1.py
++++ b/root/wander-train/math_organ_v1.py
+@@ -1,9 +1,11 @@
+-"""math_organ_v1 - exact mathematics as specified free moves, every result independently checked, the method cited.
++"""Untrusted math_organ_v1: SymPy operations with heuristic numerical checks.
++
++These checks share the evaluator and are not independent proofs. The method is cited when available.
+ 
+ REQUEST    directive (solve / simplify / factor / expand / evaluate / differentiate / integrate / limit / decompose)
+            + the expression(s), read from the question or from its exercise set's instruction
+ MOVES      SymPy operations legal for that directive and that expression's type
+-CHECK      independent of the move that produced the answer:
++CHECK      numerical or symbolic checks, not a theorem about the user question:
+              solve      every solution substituted back satisfies every equation / inequality
+              factor     the product expands back to the input, and is a product
+              simplify   equivalent to the input at random points, and no more complex than the input
+@@ -15,6 +17,7 @@ STORED FORM the textbook's own method for the directive (a howto or a worked exa
+ Nothing is asserted unless the check passes; a failed check is an abstention with the reason."""
+ from __future__ import annotations
+ 
++import math
+ import random
+ import re
+ import sqlite3
+@@ -189,6 +192,23 @@ def rand_pts(syms, k=5):
+     return [{s: sp.Rational(rng.randint(2, 29), rng.randint(3, 11)) for s in syms} for _ in range(k)]
+ 
+ 
++def finite_numeric_agreement(a, b, tolerance):
++    """Reject NaN/infinity before comparison; finite complex values are allowed.
++
++    Both evaluations use SymPy. Agreement is a heuristic check, not independent
++    verification, and values outside machine complex range are declined.
++    """
++    try:
++        va, vb = complex(a.evalf()), complex(b.evalf())
++        if not all(math.isfinite(x) for x in (va.real, va.imag, vb.real, vb.imag)):
++            return False
++        difference = abs(va - vb)
++        bound = tolerance * max(1.0, abs(va), abs(vb))
++        return math.isfinite(difference) and math.isfinite(bound) and difference <= bound
++    except (TypeError, ValueError, OverflowError):
++        return False
++
++
+ def equiv(a, b):
+     try:
+         d = sp.simplify(a - b)
+@@ -196,8 +216,7 @@ def equiv(a, b):
+             return True
+         syms = sorted((a.free_symbols | b.free_symbols), key=str)
+         for pt in rand_pts(syms):
+-            va, vb = complex(a.subs(pt).evalf()), complex(b.subs(pt).evalf())
+-            if abs(va - vb) > 1e-7 * max(1.0, abs(va)):
++            if not finite_numeric_agreement(a.subs(pt), b.subs(pt), 1e-7):
+                 return False
+         return True
+     except Exception:  # noqa: BLE001
+@@ -405,9 +424,9 @@ class MathOrgan:
+         if e.free_symbols:
+             return self._simplify(spans, q)
+         v = sp.nsimplify(sp.simplify(e)) if not e.is_Float else e
+-        if abs(complex(v.evalf()) - complex(e.evalf())) > 1e-9 * max(1, abs(complex(e.evalf()))):
++        if not finite_numeric_agreement(v, e, 1e-9):
+             return None
+-        return {"answer": sp.sstr(v), "value": v, "check": "recomputed numerically",
++        return {"answer": sp.sstr(v), "value": v, "check": "finite numerical comparison using SymPy",
+                 "steps": ["read %s" % sp.sstr(e), "evaluate"]}
+ 
+     # --- calculus -------------------------------------------------------------------------------------------------
+diff --git a/root/wander-train/math_organ_v2.py b/root/wander-train/math_organ_v2.py
+index cbb5bcb..4cc8f4b 100644
+--- a/root/wander-train/math_organ_v2.py
++++ b/root/wander-train/math_organ_v2.py
+@@ -1,12 +1,13 @@
+ """math_organ_v2 - v1 (admitted in w480, now immutable) + two fixes found on the gate panel: "factorial" is not a
+ request to factor, and a request for a PROGRAM is the code organ's, not a mathematical request.
+ 
+-exact mathematics as specified free moves, every result independently checked, the method cited.
++Untrusted SymPy operations with heuristic numerical checks; the method is cited when available.
++These checks share the evaluator and are not independent proofs.
+ 
+ REQUEST    directive (solve / simplify / factor / expand / evaluate / differentiate / integrate / limit / decompose)
+            + the expression(s), read from the question or from its exercise set's instruction
+ MOVES      SymPy operations legal for that directive and that expression's type
+-CHECK      independent of the move that produced the answer:
++CHECK      numerical or symbolic checks, not a theorem about the user question:
+              solve      every solution substituted back satisfies every equation / inequality
+              factor     the product expands back to the input, and is a product
+              simplify   equivalent to the input at random points, and no more complex than the input
+@@ -23,6 +24,7 @@ import re
+ import sqlite3
+ 
+ import sympy as sp
++from math_organ_v1 import finite_numeric_agreement
+ from sympy.parsing.sympy_parser import (convert_xor, implicit_multiplication_application, parse_expr,
+                                         split_symbols_custom, standard_transformations)
+ 
+@@ -199,8 +201,7 @@ def equiv(a, b):
+             return True
+         syms = sorted((a.free_symbols | b.free_symbols), key=str)
+         for pt in rand_pts(syms):
+-            va, vb = complex(a.subs(pt).evalf()), complex(b.subs(pt).evalf())
+-            if abs(va - vb) > 1e-7 * max(1.0, abs(va)):
++            if not finite_numeric_agreement(a.subs(pt), b.subs(pt), 1e-7):
+                 return False
+         return True
+     except Exception:  # noqa: BLE001
+@@ -412,9 +413,9 @@ class MathOrgan:
+         if e.free_symbols:
+             return self._simplify(spans, q)
+         v = sp.nsimplify(sp.simplify(e)) if not e.is_Float else e
+-        if abs(complex(v.evalf()) - complex(e.evalf())) > 1e-9 * max(1, abs(complex(e.evalf()))):
++        if not finite_numeric_agreement(v, e, 1e-9):
+             return None
+-        return {"answer": sp.sstr(v), "value": v, "check": "recomputed numerically",
++        return {"answer": sp.sstr(v), "value": v, "check": "finite numerical comparison using SymPy",
+                 "steps": ["read %s" % sp.sstr(e), "evaluate"]}
+ 
+     # --- calculus -------------------------------------------------------------------------------------------------
+diff --git a/root/wander-train/math_organ_v3.py b/root/wander-train/math_organ_v3.py
+index 2cafc48..5cf7e03 100644
+--- a/root/wander-train/math_organ_v3.py
++++ b/root/wander-train/math_organ_v3.py
+@@ -3,12 +3,13 @@ variables (found by the proposer brief: "On what date in 1969 did ..." -> 1969*d
+ math_organ_v2 - v1 (admitted in w480, now immutable) + two fixes found on the gate panel: "factorial" is not a
+ request to factor, and a request for a PROGRAM is the code organ's, not a mathematical request.
+ 
+-exact mathematics as specified free moves, every result independently checked, the method cited.
++Untrusted SymPy operations with heuristic numerical checks; the method is cited when available.
++These checks share the evaluator and are not independent proofs.
+ 
+ REQUEST    directive (solve / simplify / factor / expand / evaluate / differentiate / integrate / limit / decompose)
+            + the expression(s), read from the question or from its exercise set's instruction
+ MOVES      SymPy operations legal for that directive and that expression's type
+-CHECK      independent of the move that produced the answer:
++CHECK      numerical or symbolic checks, not a theorem about the user question:
+              solve      every solution substituted back satisfies every equation / inequality
+              factor     the product expands back to the input, and is a product
+              simplify   equivalent to the input at random points, and no more complex than the input
+@@ -25,6 +26,7 @@ import re
+ import sqlite3
+ 
+ import sympy as sp
++from math_organ_v1 import finite_numeric_agreement
+ from sympy.parsing.sympy_parser import (convert_xor, implicit_multiplication_application, parse_expr,
+                                         split_symbols_custom, standard_transformations)
+ 
+@@ -207,8 +209,7 @@ def equiv(a, b):
+             return True
+         syms = sorted((a.free_symbols | b.free_symbols), key=str)
+         for pt in rand_pts(syms):
+-            va, vb = complex(a.subs(pt).evalf()), complex(b.subs(pt).evalf())
+-            if abs(va - vb) > 1e-7 * max(1.0, abs(va)):
++            if not finite_numeric_agreement(a.subs(pt), b.subs(pt), 1e-7):
+                 return False
+         return True
+     except Exception:  # noqa: BLE001
+@@ -420,9 +421,9 @@ class MathOrgan:
+         if e.free_symbols:
+             return self._simplify(spans, q)
+         v = sp.nsimplify(sp.simplify(e)) if not e.is_Float else e
+-        if abs(complex(v.evalf()) - complex(e.evalf())) > 1e-9 * max(1, abs(complex(e.evalf()))):
++        if not finite_numeric_agreement(v, e, 1e-9):
+             return None
+-        return {"answer": sp.sstr(v), "value": v, "check": "recomputed numerically",
++        return {"answer": sp.sstr(v), "value": v, "check": "finite numerical comparison using SymPy",
+                 "steps": ["read %s" % sp.sstr(e), "evaluate"]}
+ 
+     # --- calculus -------------------------------------------------------------------------------------------------
+diff --git a/root/wander-train/oracle_operator_specs_v1.py b/root/wander-train/oracle_operator_specs_v1.py
+index e285656..f1e801a 100644
+--- a/root/wander-train/oracle_operator_specs_v1.py
++++ b/root/wander-train/oracle_operator_specs_v1.py
+@@ -198,33 +198,63 @@ def _gcd_ref(a):
+ 
+ 
+ # ── 3. base conversion ────────────────────────────────────────────────────────
+-# fn is repeated divmod; ref is positional expansion of the digits it produced.
+-_BASE_RX = re.compile(
+-    r'\b(?:convert|write|express)?\s*(-?\d+)\s*(?:from\s*)?(?:base\s*(\d+))?\s*'
+-    r'(?:in|to|into)\s*(?:base\s*)?(\d+|binary|hex|hexadecimal|octal|decimal)\b', re.I)
++# The parser binds the original digits and source base. The function decodes
++# with int(); the reference independently expands source digits positionally.
+ _BASE_NAME = {'binary': 2, 'hex': 16, 'hexadecimal': 16, 'octal': 8, 'decimal': 10}
++_BASE_ATOM = r'(?:base\s*\d+|binary|hexadecimal|hex|octal|decimal)'
++_BASE_RX = re.compile(
++    r'^\s*(?:(?:convert|write|express|what\s+is)\s+)?'
++    r'(?:(?P<prefix>' + _BASE_ATOM + r')\s+)?'
++    r'(?P<digits>[+-]?[0-9a-z]+)'
++    r'(?:\s+(?:(?:from|in)\s+)?(?P<source>' + _BASE_ATOM + r'))?'
++    r'\s+(?:in|to|into|as)\s+(?P<target>' + _BASE_ATOM + r'|\d+)'
++    r'\s*[.?!]?\s*$', re.I | re.ASCII)
+ _DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz'
+ 
+ 
+ def _base_parse(s):
+-    m = _BASE_RX.search(s)
++    m = _BASE_RX.fullmatch(s)
+     if not m:
+-        raise NotOurs('no number and target base here')
+-    n = int(m.group(1))
+-    frm = int(m.group(2)) if m.group(2) else 10
+-    tgt = m.group(3).lower()
+-    to = _BASE_NAME.get(tgt, None)
+-    if to is None:
+-        to = int(tgt)
+-    if not (2 <= to <= 36) or not (2 <= frm <= 36):
+-        raise OutOfFragment('I convert between base 2 and base 36 only')
+-    if n < 0:
++        raise NotOurs('no complete integer base conversion here')
++
++    def base(token):
++        token = token.lower()
++        value = _BASE_NAME.get(token)
++        if value is None:
++            numeral = re.sub(r'^base\s*', '', token)
++            if len(numeral) > 3:
++                raise OutOfFragment('I convert between base 2 and base 36 only')
++            value = int(numeral)
++        if not 2 <= value <= 36:
++            raise OutOfFragment('I convert between base 2 and base 36 only')
++        return value
++
++    sources = [base(token) for token in (m['prefix'], m['source']) if token]
++    raw = m['digits'].lower()
++    if raw.startswith('-'):
+         raise OutOfFragment('I convert non-negative whole numbers only')
+-    return {'n': n, 'frm': frm, 'to': to}
++    raw = raw.lstrip('+')
++    # A conventional literal prefix is source evidence, not a digit to discard.
++    # Explicit bases above 16 may use x as a digit; only infer prefixes when no
++    # explicit source is supplied, or that source matches the prefix convention.
++    literal = {'0b': 2, '0o': 8, '0x': 16}.get(raw[:2])
++    if literal is not None and (not sources or all(b == literal for b in sources)):
++        sources.append(literal)
++        raw = raw[2:]
++    elif literal is not None and sources and sources[0] in (2, 8, 10, 16):
++        raise OutOfFragment('the literal prefix conflicts with the stated source base')
++    if len(set(sources)) > 1:
++        raise OutOfFragment('the stated source bases disagree')
++    frm = sources[0] if sources else 10
++    to = base(m['target'])
++    if not raw or len(raw) > 128 or any(_DIGITS.index(c) >= frm for c in raw):
++        raise OutOfFragment('I need 1 to 128 valid digits in the stated source base')
++    n = int(raw, frm)
++    return {'n': n, 'digits': raw, 'frm': frm, 'to': to}
+ 
+ 
+ def _base_fn(a):
+-    n, steps, out = a['n'], [], ''
++    n, steps, out = int(a['digits'], a['frm']), [], ''
+     if n == 0:
+         return '0', ['0 in any base is 0']
+     while n:
+@@ -235,8 +265,13 @@ def _base_fn(a):
+ 
+ 
+ def _base_ref(a):
+-    """Independent: build with a positional table, then check by expanding it."""
+-    n = a['n']
++    """Expand original source digits, then encode using a positional table.
++
++    This does not share int() source decoding or repeated output division with
++    the primary function. Both still depend on the same untrusted parse.
++    """
++    n = sum(_DIGITS.index(digit) * a['frm'] ** power
++            for power, digit in enumerate(reversed(a['digits'])))
+     if n == 0:
+         return '0'
+     digits, powers = [], []
+@@ -418,8 +453,9 @@ SPECS = [
+      'parse': _base_parse, 'fn': _base_fn, 'ref': _base_ref,
+      'render': lambda a, v, s: '%d in base %d is %s.' % (a['n'], a['to'], v),
+      'warrant': 'computation',
+-     'independence': 'moderate: repeated division against positional expansion; '
+-                     'both walk the same digits, in opposite directions',
++     'independence': 'moderate: int source decoding and repeated output division '
++                     'against positional source expansion and output encoding; '
++                     'both still depend on the same untrusted parse',
+      'fragment': 'non-negative whole numbers, bases 2 to 36'},
+ 
+     {'name': 'statistics', 'family': 'measurement',
+diff --git a/root/wander-train/reach_router_v1.py b/root/wander-train/reach_router_v1.py
+index 0224f55..c212670 100644
+--- a/root/wander-train/reach_router_v1.py
++++ b/root/wander-train/reach_router_v1.py
+@@ -17,6 +17,7 @@ identifiers, links and media are never given unless asked for; quantities only w
+ quantities without their units). At most 5 stored values, listed; more is declined.
+ Refused as in exact_router_v1: yes/no questions, a hidden hop, a quoted title that is not the span, a past-time qualifier on
+ a relation that changes over time, blank nodes, an answer that restates the question.
++Untrusted routing policy: stored rows and type ancestry are evidence, not proof of source truth or completeness.
+ use: answer(question) -> {"answer", "values", "property", "direction", "subject_qid", "route", "pattern"} or None"""
+ import json
+ import os
+@@ -138,7 +139,7 @@ def fragment(q, span, p):
+                     j += step
+                 if 0 <= j < len(toks):
+                     w = toks[j]
+-                    if w not in L.STOP and w not in cues and not w.isdigit() and len(w) >= 3:
++                    if w not in L.STOP and w not in cues and not w.isdigit():
+                         return True
+             return False
+     return False
+@@ -368,8 +369,9 @@ def answer(q, pinned=None):
+         return None                                       # a value with no English name is not shown
+     shown = sorted(shown)
+     aw = [w for x in shown for w in L.norm(x).split() if w not in L.STOP]
+-    if aw and all(w in set(L.norm(q).split()) for w in aw):
+-        return None                                       # the answer restates the question
++    if subj in v or (not all(isinstance(x, int) for x in v)
++                     and aw and all(w in set(L.norm(q).split()) for w in aw)):
++        return None                                       # entity identity, not overlapping labels, is restatement
+     text = shown[0] if len(shown) == 1 else ", ".join(shown[:-1]) + " and " + shown[-1]
+     return {"answer": text, "values": shown, "raw": sorted(v, key=str), "property": p, "direction": d, "subject_qid": subj,
+             "route": route, "pattern": pat}
+diff --git a/root/wander-train/reach_router_v2.py b/root/wander-train/reach_router_v2.py
+index d024acf..6a85827 100644
+--- a/root/wander-train/reach_router_v2.py
++++ b/root/wander-train/reach_router_v2.py
+@@ -23,6 +23,7 @@ identifiers, links and media are never given unless asked for; quantities only w
+ quantities without their units). At most 5 stored values, listed; more is declined.
+ Refused as in exact_router_v1: yes/no questions, a hidden hop, a quoted title that is not the span, a past-time qualifier on
+ a relation that changes over time, blank nodes, an answer that restates the question.
++Untrusted routing policy: stored rows and type ancestry are evidence, not proof of source truth or completeness.
+ use: answer(question) -> {"answer", "values", "property", "direction", "subject_qid", "route", "pattern"} or None"""
+ import json
+ import os
+@@ -150,7 +151,7 @@ def fragment(q, span, p):
+                     j += step
+                 if 0 <= j < len(toks):
+                     w = toks[j]
+-                    if w not in L.STOP and w not in cues and not w.isdigit() and len(w) >= 3:
++                    if w not in L.STOP and w not in cues and not w.isdigit():
+                         return True
+             return False
+     return False
+@@ -409,8 +410,9 @@ def answer(q, pinned=None):
+         return None                                       # a value with no English name is not shown
+     shown = sorted(shown)
+     aw = [w for x in shown for w in L.norm(x).split() if w not in L.STOP]
+-    if aw and all(w in set(L.norm(q).split()) for w in aw):
+-        return None                                       # the answer restates the question
++    if subj in v or (not all(isinstance(x, int) for x in v)
++                     and aw and all(w in set(L.norm(q).split()) for w in aw)):
++        return None                                       # entity identity, not overlapping labels, is restatement
+     text = shown[0] if len(shown) == 1 else ", ".join(shown[:-1]) + " and " + shown[-1]
+     return {"answer": text, "values": shown, "raw": sorted(v, key=str), "property": p, "direction": d, "subject_qid": subj,
+             "route": route, "pattern": pat}
+diff --git a/root/wander-train/reach_router_v3.py b/root/wander-train/reach_router_v3.py
+index 195ae30..edd9c68 100644
+--- a/root/wander-train/reach_router_v3.py
++++ b/root/wander-train/reach_router_v3.py
+@@ -27,6 +27,7 @@ identifiers, links and media are never given unless asked for; quantities only w
+ quantities without their units). At most 5 stored values, listed; more is declined.
+ Refused as in exact_router_v1: yes/no questions, a hidden hop, a quoted title that is not the span, a past-time qualifier on
+ a relation that changes over time, blank nodes, an answer that restates the question.
++Untrusted routing policy: stored rows and type ancestry are evidence, not proof of source truth or completeness.
+ use: answer(question) -> {"answer", "values", "property", "direction", "subject_qid", "route", "pattern"} or None"""
+ import json
+ import os
+@@ -144,9 +145,9 @@ def fits(q, p, d, vals):
+     return True
+ 
+ 
+-def fragment(q, span, p):
++def fragment(q, span, p, extra_cues=()):
+     """the span is part of a longer name: a word next to it (past name particles) is a content word nothing explains"""
+-    cues = _load()["cues"].get(p, set())
++    cues = _load()["cues"].get(p, set()) | set(extra_cues)
+     toks, sp = L.norm(q).split(), L.norm(span).split()
+     for i in range(len(toks) - len(sp) + 1):
+         if toks[i:i + len(sp)] == sp:
+@@ -155,7 +156,7 @@ def fragment(q, span, p):
+                     j += step
+                 if 0 <= j < len(toks):
+                     w = toks[j]
+-                    if w not in L.STOP and w not in cues and not w.isdigit() and len(w) >= 3:
++                    if w not in L.STOP and w not in cues and not w.isdigit():
+                         return True
+             return False
+     return False
+@@ -167,17 +168,17 @@ GENERIC = set(("name names called known located famous kind type sort also exact
+ MAX_UNEXPLAINED = int(os.environ.get("REACH_MAX_UNEXPLAINED", "2"))   # development: 2 stopped a Mintaka error, lost nothing
+ 
+ 
+-def unexplained(q, span, p):
++def unexplained(q, span, p, extra_cues=()):
+     """content words of the question that neither the subject, the relation's own words nor ordinary question words explain"""
+-    cues = _load()["cues"].get(p, set())
++    cues = _load()["cues"].get(p, set()) | set(extra_cues)
+     sp = set(L.norm(span).split())
+     return [w for w in L.norm(q).split() if w not in sp and w not in cues and w not in GENERIC and w not in L.STOP
+             and not w.isdigit() and len(w) >= 3]
+ 
+ 
+-def _agree(q, span, cands, p, d):
++def _agree(q, span, cands, p, d, extra_cues=()):
+     """the readings of the name that hold the relation must agree; a one-word name answers through its top reading only"""
+-    if fragment(q, span, p) or len(unexplained(q, span, p)) > MAX_UNEXPLAINED:
++    if fragment(q, span, p, extra_cues) or len(unexplained(q, span, p, extra_cues)) > MAX_UNEXPLAINED:
+         return None, None
+     one = len(L.norm(span).split()) == 1
+     use = cands[:1] if one else cands[:3]
+@@ -310,6 +311,10 @@ def _agent_routes(q):
+         return []
+     al = _load()["alias"]
+     v = m.group("v").lower()
++    if v == "created":
++        # A developer can be a later maintainer, not the original creator.
++        # Designer is admitted only with programming-language type evidence below.
++        return [({170, 287}, m.group("y"), "agent:created")]
+     passive, agents = (IRREG[v][0], {IRREG[v][1]}) if v in IRREG else (v, _agent_nouns(v))
+     props = set(al.get(passive + " by", set()))
+     for a in agents:
+@@ -317,6 +322,43 @@ def _agent_routes(q):
+     return [(props, m.group("y"), "agent:" + v)] if props else []
+ 
+ 
++def _programming_language(qid):
++    """Positive bounded P31/P279 evidence only; missing ancestry is not a negative fact."""
++    db = _load()["db"]
++    frontier, seen = {qid}, set()
++    for depth in range(5):
++        if 9143 in frontier and depth > 0:
++            return True
++        next_frontier = set()
++        for item in frontier - seen:
++            rows = db.execute("SELECT o FROM fact INDEXED BY fact_sp WHERE s=? AND p=? LIMIT 33",
++                              (item, 31 if depth == 0 else 279)).fetchall()
++            if len(rows) > 32:
++                return False
++            next_frontier.update(o for (o,) in rows if o is not None)
++        seen.update(frontier)
++        if len(seen | next_frontier) > 64:
++            return False
++        frontier = next_frontier - seen
++        if not frontier:
++            return False
++    return False
++
++
++def _creation_property_allowed(p, cands):
++    """Creator means P170; a language's original designer may also answer creation.
++
++    Every candidate with a designer row must have positive language ancestry.
++    Never select a language merely because another reading lacks that type.
++    """
++    if p == 170:
++        return True
++    if p != 287:
++        return False
++    holders = [qid for qid, _, _ in cands[:3] if has(qid, p)]
++    return bool(holders) and all(_programming_language(qid) for qid in holders)
++
++
+ def _label_routes(q):
+     """the question names the relation: (relation, subject text, the asked phrase)"""
+     al = _load()["alias"]
+@@ -408,14 +450,18 @@ def answer(q, pinned=None):
+     sp = L.link(q, 3)[:3]
+     if pinned:
+         sp = [(pinned[0], [(pinned[1], 10 ** 6, label(pinned[1]))])] + [x for x in sp if L.norm(x[0]) != L.norm(pinned[0])]
++    agent = AGENT.match(q)
++    asks_creation = bool(agent and agent.group("v").lower() == "created")
+     found = []
+     for span, cands in sp:                                # PATTERN route: the first span whose reading holds the relation
+         if XR.hop(q, span) or not XR.subject_ok(q, span):
+             continue
+         for (p, d), route, pat in _routes(q, span, cands):
++            if asks_creation and (d != "fwd" or not _creation_property_allowed(p, cands)):
++                continue
+             if p in XR.TIME_VARIANT and XR.PAST.search(q):
+                 continue
+-            v, subj = _agree(q, span, cands, p, d)
++            v, subj = _agree(q, span, cands, p, d, {"created"} if asks_creation and p == 287 else ())
+             if v is not None and fits(q, p, d, v):
+                 found.append((p, d, v, subj, route, pat))
+                 break
+@@ -429,9 +475,11 @@ def answer(q, pinned=None):
+             span, cands = ysp[0]
+             hits = []
+             for p in sorted(props):
++                if asks_creation and not _creation_property_allowed(p, cands):
++                    continue
+                 if p in XR.TIME_VARIANT and XR.PAST.search(q):
+                     continue
+-                v, subj = _agree(q, span, cands, p, "fwd")
++                v, subj = _agree(q, span, cands, p, "fwd", {"created"} if asks_creation and p == 287 else ())
+                 if v is not None and fits(q, p, "fwd", v):
+                     hits.append((p, "fwd", v, subj, "when" if asked.startswith("when:") else "count" if asked.startswith("count:") else "agent" if asked.startswith("agent:") else "label", asked))
+             if len({h[2] for h in hits}) == 1:
+@@ -445,8 +493,9 @@ def answer(q, pinned=None):
+         return None                                       # a value with no English name is not shown
+     shown = sorted(shown)
+     aw = [w for x in shown for w in L.norm(x).split() if w not in L.STOP]
+-    if aw and all(w in set(L.norm(q).split()) for w in aw):
+-        return None                                       # the answer restates the question
++    if subj in v or (not all(isinstance(x, int) for x in v)
++                     and aw and all(w in set(L.norm(q).split()) for w in aw)):
++        return None                                       # entity identity, not overlapping labels, is restatement
+     text = shown[0] if len(shown) == 1 else ", ".join(shown[:-1]) + " and " + shown[-1]
+     return {"answer": text, "values": shown, "raw": sorted(v, key=str), "property": p, "direction": d, "subject_qid": subj,
+             "route": route, "pattern": pat}
+diff --git a/root/wander-train/relation_spec_v1.py b/root/wander-train/relation_spec_v1.py
+index 2973d70..37bba53 100644
+--- a/root/wander-train/relation_spec_v1.py
++++ b/root/wander-train/relation_spec_v1.py
+@@ -11,6 +11,7 @@ A question is linked ONCE per turn however many relation specialists look at it
+ import collections
+ import functools
+ import json
++import re
+ 
+ import exact_router_v1 as X
+ 
+@@ -21,6 +22,11 @@ _anc, _cls, _props = {}, {}, {}
+ 
+ 
+ def prop_label(p):
++    # The shipped label dump includes aliases ("wives", "written by", "wrote")
++    # for these properties. Those aliases can misstate the role in a receipt.
++    canonical = {26: "spouse", 86: "composer", 800: "notable work"}
++    if p in canonical:
++        return canonical[p]
+     if not _PL:
+         try:
+             with open(PROP_LABELS, encoding="utf-8") as f:
+@@ -128,8 +134,64 @@ def kind_conflict(q, did):
+     return bool(named) and did in KIND_NOUNS and did not in named
+ 
+ 
++_COMPOSER_REQUEST = re.compile(
++    r"^(?:who composed(?: the (?:music|score|soundtrack) (?:for|of|to))?"
++    r"|who (?:is|was) the composer of"
++    r"|who wrote the (?:music|score|soundtrack) (?:for|of|to)"
++    r"|which composer wrote)\s+(?P<title>.+?)$", re.I)
++
++
++def _composer_request(q):
++    """Untrusted, whole-question recognizer: musical composition means P86.
++
++    A mined correlation with P800 (notable work) cannot establish the role.
++    Keep the entire title; do not silently fall back to a linked title fragment.
++    """
++    text = " ".join(str(q).split()).rstrip("?.! ")
++    text = re.sub(r"^(?:please tell me|(?:can|could) you (?:please )?tell me)\s+", "", text, flags=re.I)
++    match = _COMPOSER_REQUEST.fullmatch(text)
++    if not match:
++        return None
++    title = match.group("title").strip()
++    title = re.sub(r"^the (?:film|movie)\s+", "", title, flags=re.I)
++    dated = re.fullmatch(r"(.+?)\s*\((\d{4})\)", title)
++    year = dated.group(2) if dated else None
++    title = (dated.group(1) if dated else title).strip(" \"'“”‘’")
++    return title, year
++
++
++def _composer_answer(q, did, request):
++    title, year = request
++    # Fetch one extra candidate so a capped name lookup is not mistaken for full
++    # coverage. Domain and optional publication year must select agreeing rows.
++    candidates = list(X.L.candidates(X.norm(title), 65)) if title else []
++    if not candidates and title.lower().startswith("the "):
++        candidates = list(X.L.candidates(X.norm(title[4:]), 65))
++    if not candidates or len(candidates) > 64:
++        return None
++    mine = [c[0] for c in candidates if in_domain(c[0], did)]
++    if year:
++        mine = [qid for qid in mine if any(
++            re.fullmatch(r"\+?" + year + r"(?:-\d{2}-\d{2}(?:T[^\s]+)?)?", str(value))
++            for value in values(qid, 577))]
++    sets = [values(qid, 86) for qid in mine]
++    if not mine or any(not found for found in sets) or len(set(sets)) != 1 or len(sets[0]) != 1:
++        return None
++    val = next(iter(sets[0]))
++    if _restates(q, val):
++        return None
++    return {"answer": X._show(val, q), "property": 86, "subject_qid": mine[0],
++            "direction": "fwd", "pattern": "explicit|composer|P86",
++            "linked_qid": mine[0]}
++
++
+ def answer(q, did, patterns):
+     """patterns: {"fwd|key|word": [p, ...], "inv|key|word": [p, ...]} -> {answer, property, subject_qid, direction, pattern} or None"""
++    request = _composer_request(q)
++    if request is not None:
++        if kind_conflict(str(q), did):
++            return None
++        return _composer_answer(q, did, request)
+     a = analyse(str(q))
+     if a is None or kind_conflict(str(q), did):
+         return None
+diff --git a/root/wander-train/word_problems_v1.py b/root/wander-train/word_problems_v1.py
+index 72e6a72..f08e3ac 100644
+--- a/root/wander-train/word_problems_v1.py
++++ b/root/wander-train/word_problems_v1.py
+@@ -1,5 +1,7 @@
+ """word_problems_v1 - prose to equations for the recurring shapes of textbook word problems.
+ 
++This Python recognizer is untrusted; its checks are not proof or admission authority.
++
+ Each SCHEMA is a stored form: trigger words, the TYPED quantities it needs (money, percent, time, length ...), and a
+ formula. A schema fires only when every quantity it needs is found with the right type AND the question asks for the
+ kind of quantity the formula produces (the CHECK: units must compose - money x rate x years -> money). Quantities are
+@@ -182,9 +184,37 @@ def s_geometry(t, q, qs):
+     L = [x for x in qs if x[0] == "length"]
+     tl = t.lower()
+ 
++    # This Python recognizer is untrusted. Bind every explicit dimension role;
++    # the first nearby number cannot establish uniqueness or consistent units.
++    bindings = {}
++    consumed = 0
++    unit_scales = set()
++    for mention in re.finditer(r"\b(length|width|radius|diameter|height)\b", tl):
++        role = mention.group(1)
++        match = re.match(r"\s*(?:(?:is|of|exactly|equals|measures|=|:)\s*)*"
++                         + NUM + r"\s*([a-z]+)\b", tl[mention.end():])
++        if not match:
++            return None
++        unit = unit_of(match.group(2))
++        if unit is None or unit[0] != "length":
++            return None
++        value = num(match.group(1))
++        scale = LENGTH[unit[1]]
++        if role in bindings and bindings[role] != (value, scale):
++            return None
++        bindings[role] = (value, scale)
++        unit_scales.add(scale)
++        consumed += 1
++    # Unbound lengths and mixed units require a richer parser, not a guessed
++    # formula over raw numbers. Unrelated unitless identifiers remain harmless.
++    if consumed != len(L) or len(unit_scales) > 1:
++        return None
++    if "radius" in bindings and "diameter" in bindings:
++        if bindings["radius"][0] * 2 != bindings["diameter"][0]:
++            return None
++
+     def near(word):
+-        m = re.search(r"%s[^.]{0,40}?%s\s*([a-z]+)" % (word, NUM), tl)
+-        return num(m.group(1)) if m else None
++        return bindings[word][0] if word in bindings else None
+     if "rectangle" in tl or "rectangular" in tl:
+         ln, wd = near("length"), near("width")
+         if ln is not None and wd is not None:

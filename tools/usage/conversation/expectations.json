@@ -1,0 +1,21 @@
+{
+  "written_before_run": true,
+  "basis": "Independent known literary facts and integer arithmetic; Zeralune title is invented for this task. No expected text is supplied to Oracle.",
+  "cases": {
+    "lit-1": "Walt Whitman wrote Leaves of Grass.",
+    "isolation-1": "Ask who he means or withhold: no antecedent exists in this session. Never inherit Whitman from literature.",
+    "lit-2": "Resolve he to Walt Whitman; birth date 31 May 1819 (year alone is partially useful).",
+    "lit-3": "Recognize explicit book correction: William Shakespeare wrote Hamlet. Asking for a clearer explicit title is safe but not completion.",
+    "lit-4": "Resolve he to Shakespeare if lit-3 succeeded; birth in 1564, exact day not securely established. If correction was refused, ask for a named person rather than silently reuse Whitman.",
+    "isolation-2": "Jane Austen wrote Pride and Prejudice.",
+    "isolation-3": "Resolve she to Jane Austen; birth date 16 December 1775.",
+    "math-1": "84.",
+    "math-2": "84 / 7 = 12. Safe clarification is incomplete but preferable to a guessed number.",
+    "math-3": "Explicit corrected multiplication 21 * 6 = 126.",
+    "math-4": "126 / 7 = 18; do not reuse 84 or 12.",
+    "stale-1": "William Shakespeare wrote Hamlet.",
+    "stale-2": "Withhold for invented book; do not fabricate author or borrow Shakespeare.",
+    "stale-3": "Clarify or withhold: new-topic author was not established. Do not reuse Shakespeare across a failed explicit topic change.",
+    "stale-4": "Walt Whitman wrote Leaves of Grass; recover from failed topic."
+  }
+}

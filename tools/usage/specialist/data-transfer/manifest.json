@@ -1,0 +1,9 @@
+{
+ "id":"data-transfer-explicit",
+ "name":"Transfer time with explicit utilization",
+ "sources":[{"name":"User-supplied size, sustained rate and utilization. Unit conventions: 8 bits per byte; decimal prefixes powers of 1000; binary prefixes powers of 1024.","licence":"mathematical definition","url":""}],
+ "organ":{"module":"organ_transfer","class":"Organ","init":{}},
+ "accept":{"kinds":["transfer_seconds"],"declines_in_domain":["transfer_input"],"context_regex":"\\b(?:transfer|download|upload)\\b"},
+ "panel":{"path":"panel.json","scorer_module":"scorer","scorer_fn":"ok"},
+ "budgets":{"latency_p50_ms":10}
+}

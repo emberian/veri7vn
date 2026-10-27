@@ -1,0 +1,42 @@
+[
+  {
+    "id": "battery_consumption",
+    "conversation_id": "composition_step_battery_consumption",
+    "text": "How much energy in kWh does a 500 W appliance use for 3 hours?"
+  },
+  {
+    "id": "solar_generation",
+    "conversation_id": "composition_step_solar_generation",
+    "text": "A 400 W solar panel receives 5 peak sun hours. What is its daily energy yield in kWh?"
+  },
+  {
+    "id": "drive_hours",
+    "conversation_id": "composition_step_drive_hours",
+    "text": "What is 150 / 60?"
+  },
+  {
+    "id": "resistor_power",
+    "conversation_id": "composition_step_resistor_power",
+    "text": "What is the power dissipated by a 10 ohm resistor carrying 5 A?"
+  },
+  {
+    "id": "aluminium_mass",
+    "conversation_id": "composition_step_aluminium_mass",
+    "text": "What is the mass in kg of a material with density 2700 kg/m^3 and volume 0.002 m^3?"
+  },
+  {
+    "id": "whitman_birth",
+    "conversation_id": "composition_step_whitman_birth",
+    "text": "When was Walt Whitman born?"
+  },
+  {
+    "id": "grass_publication",
+    "conversation_id": "composition_step_grass_publication",
+    "text": "When was Leaves of Grass first published?"
+  },
+  {
+    "id": "mars_ratio",
+    "conversation_id": "composition_step_mars_ratio",
+    "text": "What is 3 * 687 / 365.25?"
+  }
+]

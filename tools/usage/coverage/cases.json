@@ -1,0 +1,77 @@
+[
+  {
+    "id": "leaves",
+    "conversation_id": "leaves",
+    "text": "Who wrote Leaves of Grass?"
+  },
+  {
+    "id": "leaves-author",
+    "conversation_id": "leaves-author",
+    "text": "Who is the author of Leaves of Grass?"
+  },
+  {
+    "id": "leaves-check",
+    "conversation_id": "leaves-check",
+    "text": "Did Walt Whitman write Leaves of Grass?"
+  },
+  {
+    "id": "curie",
+    "conversation_id": "curie",
+    "text": "Where was Marie Curie born?"
+  },
+  {
+    "id": "curie-alias",
+    "conversation_id": "curie-alias",
+    "text": "Where was Maria Skłodowska born?"
+  },
+  {
+    "id": "curie-date",
+    "conversation_id": "curie-date",
+    "text": "When was Marie Curie born?"
+  },
+  {
+    "id": "canada",
+    "conversation_id": "canada",
+    "text": "What is the capital of Canada?"
+  },
+  {
+    "id": "python",
+    "conversation_id": "python",
+    "text": "Who designed the Python programming language?"
+  },
+  {
+    "id": "python-created",
+    "conversation_id": "python-created",
+    "text": "Who created Python?"
+  },
+  {
+    "id": "bridge",
+    "conversation_id": "bridge",
+    "text": "When did the Golden Gate Bridge open?"
+  },
+  {
+    "id": "bridge-pedestrians",
+    "conversation_id": "bridge-pedestrians",
+    "text": "When did the Golden Gate Bridge open to pedestrians?"
+  },
+  {
+    "id": "andromeda",
+    "conversation_id": "andromeda",
+    "text": "In which constellation is the Andromeda Galaxy?"
+  },
+  {
+    "id": "m31",
+    "conversation_id": "m31",
+    "text": "In which constellation is M31?"
+  },
+  {
+    "id": "washington",
+    "conversation_id": "washington",
+    "text": "Where was Washington born?"
+  },
+  {
+    "id": "all-poems",
+    "conversation_id": "all-poems",
+    "text": "List every poem Walt Whitman wrote."
+  }
+]

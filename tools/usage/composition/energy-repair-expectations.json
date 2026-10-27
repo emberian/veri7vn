@@ -1,0 +1,31 @@
+{
+  "solar_useful": {
+    "value": 1.6,
+    "unit": "kWh",
+    "quantity": "newly stored energy"
+  },
+  "net_energy": {
+    "value": 3.5,
+    "unit": "kWh",
+    "quantity": "remaining energy"
+  },
+  "battery_roles": {
+    "value": 7.2,
+    "unit": "h",
+    "quantity": "runtime"
+  },
+  "battery_plain": {
+    "value": 7.2,
+    "unit": "h",
+    "quantity": "runtime"
+  },
+  "battery_rating_first": {
+    "value": 7.2,
+    "unit": "h",
+    "quantity": "runtime"
+  },
+  "battery_invalid": {
+    "status": "not answered",
+    "reason": "120% efficiency is invalid"
+  }
+}

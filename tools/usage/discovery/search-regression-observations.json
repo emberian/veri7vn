@@ -1,0 +1,218 @@
+{
+  "scope": "Exploratory run of an earlier guide search ranking. Units examples accidentally selected military units. No independent factual expectations were written for those two requests; do not score them against conversion expectations.",
+  "runtime_identity": {
+    "protocol": "oracle-appliance-v1",
+    "backend": "Oracle7.Engine.chat",
+    "source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+    "tip": "oracle_release_runtime_w436",
+    "deployment": {
+      "receipt_sha256": "5e2115181f1b6f0b3fb27894e8c9838f1cf526e5242021420283779dd220517b",
+      "base_source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+      "patches": [
+        {
+          "name": "oracle7-slim-4.9-correctness.patch",
+          "sha256": "feb44d407634699545634350281e530b1bcc0ecf7bd951bdfc01655dbf99ecd6"
+        }
+      ],
+      "kernel_overlay_manifest_sha256": "91e3525e922f98a662d81e0c8a154dfaf51ee55ec24e37f6125cc0ea873be1d4",
+      "kernel_base_revision": "3bf43cff8eaa1c30db2659d186cdcffe9c4f6c61",
+      "kernel_source_revision": null,
+      "kernel_families": 20,
+      "kernel_platform": "linux-x86_64",
+      "metadata_verified_by_adapter": false,
+      "verification": "Receipt bytes hashed only; deployment contents require independent host verification."
+    },
+    "evidence": "upstream reply preserved; upstream labels are not Mini authority",
+    "deployment_content_hashes_checked_by_adapter": false,
+    "scope": "one host-assigned workspace per process",
+    "query_queue": 0,
+    "limits": {
+      "request_bytes": 16384,
+      "reply_bytes": 2097152,
+      "retained_requests": 10000,
+      "query_seconds": 30.0
+    }
+  },
+  "run": "var/usage-20261026/discovery/guided",
+  "cases": [
+    {
+      "id": "guide-python-1",
+      "conversation_id": "guide-python-1",
+      "text": "What are the parameters of random.shuffle in Python?",
+      "latency_seconds": 1.21739,
+      "reply": {
+        "status": "answered",
+        "path": "specialist_call>specialist:python-r2>signature",
+        "response": "random.shuffle — signature (x) (Python 3.12.3). [python-r2]",
+        "provenance": {
+          "kind": "core_called_specialist",
+          "core_status": "withheld",
+          "core_path": "factoid:withheld|vessel:receipt",
+          "specialist": "python-r2",
+          "parts": null,
+          "trace": {
+            "rule": "only"
+          }
+        },
+        "latency_ms": 0.1,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "arbitration": {
+          "winner": "definitional",
+          "runner_up": "act_continue",
+          "margin": 0.82,
+          "floor": false,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "authoritative",
+          "arbiter": "v3",
+          "canonical_surface": "What is a python?",
+          "capture_point": "capability"
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "direct"
+        },
+        "continuation": {
+          "doors": [
+            "genus",
+            "name"
+          ],
+          "offer": "from here, genus or name stand open"
+        },
+        "references": []
+      }
+    },
+    {
+      "id": "guide-python-2",
+      "conversation_id": "guide-python-2",
+      "text": "What does the Python function gzip.GzipFile do?",
+      "latency_seconds": 0.192569,
+      "reply": {
+        "status": "answered",
+        "path": "specialist_call>specialist:python-r2>doc",
+        "response": "gzip.GzipFile: The GzipFile class simulates most of the methods of a file object with Call it as gzip.GzipFile(filename=None, mode=None, compresslevel=9, fileobj=None, mtime=None) (Python 3.12.3). [python-r2]",
+        "provenance": {
+          "kind": "core_called_specialist",
+          "core_status": "clarification",
+          "core_path": "act:clarify|vessel:receipt",
+          "specialist": "python-r2",
+          "parts": null,
+          "trace": {
+            "rule": "only"
+          }
+        },
+        "arbitration": {
+          "winner": "definitional",
+          "runner_up": "why_different",
+          "margin": 0.994,
+          "floor": false,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 11.4,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": []
+      }
+    },
+    {
+      "id": "guide-units-1",
+      "conversation_id": "guide-units-1",
+      "text": "When was JW GROM founded?",
+      "latency_seconds": 2.790202,
+      "reply": {
+        "status": "withheld",
+        "path": "capability:when_did|vessel:receipt",
+        "response": "The admitted record for JW GROM contains no dated statement about when it found. It may also be that “when did JW GROM found” is not a well-posed question for a subject of this kind. I will not offer an unrelated date.\n\nI have received \"When was JW GROM founded?\" as an unnamed shape [vessel:v0003]; if it returns it gains weight, and when I can name it, I will.",
+        "provenance": {
+          "kind": "selected_evidence",
+          "selector": "inception",
+          "topic": "JW GROM",
+          "result": "no_inception_statement",
+          "vessel": {
+            "id": "v0003",
+            "weight": 3.0,
+            "count": 1,
+            "slot": "bounds"
+          }
+        },
+        "latency_ms": 0.0,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        }
+      }
+    },
+    {
+      "id": "guide-units-2",
+      "conversation_id": "guide-units-2",
+      "text": "When was Korean People's Navy founded?",
+      "latency_seconds": 0.159277,
+      "reply": {
+        "status": "withheld",
+        "path": "capability:when_did|vessel:receipt",
+        "response": "The admitted record for Korean People's Navy contains no dated statement about when it found. It may also be that “when did Korean People's Navy found” is not a well-posed question for a subject of this kind. I will not offer an unrelated date.\n\nI have received \"When was Korean People's Navy founded?\" as an unnamed shape [vessel:v0004]; if it returns it gains weight, and when I can name it, I will.",
+        "provenance": {
+          "kind": "selected_evidence",
+          "selector": "inception",
+          "topic": "Korean People's Navy",
+          "result": "no_inception_statement",
+          "vessel": {
+            "id": "v0004",
+            "weight": 3.0,
+            "count": 1,
+            "slot": "bounds"
+          }
+        },
+        "latency_ms": 0.0,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        }
+      }
+    },
+    {
+      "id": "guide-prepared",
+      "conversation_id": "guide-prepared",
+      "text": "Convert 12 miles to km.",
+      "latency_seconds": 0.08301,
+      "reply": {
+        "status": "answered",
+        "path": "op:unit_convert",
+        "response": "12 miles is 301752/15625 km. the factor from miles to km is 25146/15625. 12 x 25146/15625 = 301752/15625. I checked it by a second method that agrees.",
+        "provenance": {
+          "kind": "computation",
+          "verified": true,
+          "operator": "unit_convert",
+          "family": "measurement",
+          "steps": [
+            "the factor from miles to km is 25146/15625",
+            "12 x 25146/15625 = 301752/15625"
+          ],
+          "independence": "measured: absolute factors against a composed chain of step ratios, no shared table",
+          "checked_by": "independent reimplementation"
+        },
+        "latency_ms": 2
+      }
+    }
+  ]
+}

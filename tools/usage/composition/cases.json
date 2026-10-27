@@ -1,0 +1,62 @@
+[
+  {
+    "id": "journey",
+    "conversation_id": "composition_journey",
+    "text": "A car travels 150 km at a constant speed of 60 km/h. Parking then takes 15 minutes. What is the total elapsed time in hours?"
+  },
+  {
+    "id": "energy_cost",
+    "conversation_id": "composition_energy_cost",
+    "text": "A 1500 W heater runs for 2 hours. Electricity costs 0.20 dollars per kWh. What is the electricity cost in dollars?"
+  },
+  {
+    "id": "material_cost",
+    "conversation_id": "composition_material_cost",
+    "text": "An aluminium block has volume 0.002 m^3 and density 2700 kg/m^3. Aluminium costs 4 dollars per kg. What is the material cost in dollars?"
+  },
+  {
+    "id": "trip_fuel",
+    "conversation_id": "composition_trip_fuel",
+    "text": "A car uses 6 litres of fuel per 100 km and travels 250 km. Fuel costs 1.60 dollars per litre. What is the total fuel cost in dollars?"
+  },
+  {
+    "id": "resistor_energy",
+    "conversation_id": "composition_resistor_energy",
+    "text": "A 10 ohm resistor has 5 A of current for 60 seconds. What is the energy dissipated in joules?"
+  },
+  {
+    "id": "solar_useful",
+    "conversation_id": "composition_solar_useful",
+    "text": "A solar panel produces 400 W for 5 hours. A battery stores 80% of this energy. What is the stored energy in kWh?"
+  },
+  {
+    "id": "tank_fill",
+    "conversation_id": "composition_tank_fill",
+    "text": "A rectangular tank is 2 m long, 1 m wide and 0.5 m deep. A pump supplies 20 litres per minute. How many minutes does it take to fill the empty tank?"
+  },
+  {
+    "id": "work_price",
+    "conversation_id": "composition_work_price",
+    "text": "Three workers each work 8 hours at 20 dollars per hour. Materials cost 100 dollars. What is the total project cost in dollars?"
+  },
+  {
+    "id": "date_relation",
+    "conversation_id": "composition_date_relation",
+    "text": "Who wrote Leaves of Grass, and how many years after the author was born was the first edition published?"
+  },
+  {
+    "id": "orbital_ratio",
+    "conversation_id": "composition_orbital_ratio",
+    "text": "Earth takes 365.25 days to orbit the Sun and Mars takes 687 days. How many Earth years are 3 Mars years?"
+  },
+  {
+    "id": "net_energy",
+    "conversation_id": "composition_net_energy",
+    "text": "A battery initially stores 5 kWh. A 500 W appliance runs for 3 hours. Ignoring losses, how much energy remains in the battery in kWh?"
+  },
+  {
+    "id": "ambiguous_efficiency",
+    "conversation_id": "composition_ambiguous_efficiency",
+    "text": "A heater uses 2 kWh of electricity. How much useful heat does it produce?"
+  }
+]

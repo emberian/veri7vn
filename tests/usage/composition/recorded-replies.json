@@ -1,0 +1,283 @@
+{
+  "source": "Actual candidate replies from var/usage-20261026/composition/{initial,steps}/results.jsonl on 2026-10-26. Nonessential timing and raw-body duplicate fields omitted; response objects retained unchanged. Untrusted replay data, not evidence of provenance authenticity.",
+  "records": [
+    {
+      "id": "battery_consumption",
+      "conversation_id": "composition_step_battery_consumption",
+      "text": "How much energy in kWh does a 500 W appliance use for 3 hours?",
+      "http_status": 200,
+      "response": {
+        "outcome": "completed",
+        "reply": {
+          "status": "answered",
+          "path": "network>core_math",
+          "response": "The answer is 1.5 kWh. (path: core_math)",
+          "references": [],
+          "provenance": {
+            "kind": "specialist_network",
+            "path_bytes": "fe",
+            "trace": [
+              {
+                "node": "core_math",
+                "byte": 254,
+                "op": "dimensional",
+                "formula": "500 W \u00d7 3 hours",
+                "value": 1.5,
+                "unit": "kwh"
+              }
+            ],
+            "reused_path": false
+          }
+        }
+      }
+    },
+    {
+      "id": "solar_generation",
+      "conversation_id": "composition_step_solar_generation",
+      "text": "A 400 W solar panel receives 5 peak sun hours. What is its daily energy yield in kWh?",
+      "http_status": 200,
+      "response": {
+        "outcome": "completed",
+        "reply": {
+          "status": "answered",
+          "path": "specialist_call>specialist:energy-v3>solar_yield",
+          "response": "The array makes about 2 kWh a day (0.4 kW \u00d7 5 peak sun hours, before losses). [energy-v3]",
+          "provenance": {
+            "kind": "core_called_specialist",
+            "core_status": "clarification",
+            "core_path": "act:clarify_specific",
+            "specialist": "energy-v3",
+            "parts": null,
+            "trace": {
+              "rule": "only"
+            }
+          },
+          "arbitration": {
+            "winner": "clarification",
+            "runner_up": "explain_simply",
+            "margin": 0.003,
+            "floor": true,
+            "regex_family": "open_topic",
+            "agrees": false,
+            "mode": "shadow",
+            "arbiter": "v3"
+          },
+          "latency_ms": 10.7,
+          "zero_model_gate": {
+            "lm_calls": 0,
+            "transformer_calls": 0
+          },
+          "evidential": {
+            "input_marked": null,
+            "answer_licensed": "unknown"
+          },
+          "references": []
+        }
+      }
+    },
+    {
+      "id": "drive_hours",
+      "conversation_id": "composition_step_drive_hours",
+      "text": "What is 150 / 60?",
+      "http_status": 200,
+      "response": {
+        "outcome": "completed",
+        "reply": {
+          "status": "answered",
+          "path": "compute:verified",
+          "response": "In steps: 150 / 60 = 2.5. The answer is 2.5.",
+          "provenance": {
+            "kind": "computation",
+            "verified": true,
+            "steps": [
+              "150 / 60 = 2.5"
+            ],
+            "carried_prior": false,
+            "evaluator": "w27_closed_grammar"
+          },
+          "latency_ms": 1
+        }
+      }
+    },
+    {
+      "id": "resistor_power",
+      "conversation_id": "composition_step_resistor_power",
+      "text": "What is the power dissipated by a 10 ohm resistor carrying 5 A?",
+      "http_status": 200,
+      "response": {
+        "outcome": "completed",
+        "reply": {
+          "status": "answered",
+          "path": "specialist_after_guard>P4_lookup_for_compute>specialist:electronics-r2>power",
+          "response": "The power is 250 W (P = I\u00b2R = (5 A)\u00b2 \u00d7 10 \u03a9). [electronics-r2]",
+          "provenance": {
+            "kind": "specialist_after_guard",
+            "guard": "P4_lookup_for_compute",
+            "guard_path": "precision_guard:P4_lookup_for_compute|arb:definitional->document_runtime|substitution_disclosed",
+            "specialist": "electronics-r2",
+            "trace": {
+              "rule": "only"
+            }
+          },
+          "latency_ms": 7.0,
+          "zero_model_gate": {
+            "lm_calls": 0,
+            "transformer_calls": 0
+          },
+          "arbitration": {
+            "winner": "definitional",
+            "runner_up": "multi_step",
+            "margin": 0.856,
+            "floor": false,
+            "regex_family": "open_topic",
+            "agrees": false,
+            "mode": "authoritative",
+            "arbiter": "v3",
+            "canonical_surface": "What is a 5?",
+            "capture_point": "capability"
+          },
+          "evidential": {
+            "input_marked": null,
+            "answer_licensed": "unknown"
+          },
+          "continuation": {
+            "doors": [
+              "cardinal",
+              "number",
+              "record"
+            ],
+            "offer": "from here, cardinal or number stand open"
+          },
+          "references": []
+        }
+      }
+    },
+    {
+      "id": "whitman_birth",
+      "conversation_id": "composition_step_whitman_birth",
+      "text": "When was Walt Whitman born?",
+      "http_status": 200,
+      "response": {
+        "outcome": "completed",
+        "reply": {
+          "status": "answered",
+          "path": "specialist_call>specialist:rel-journalists>journalists",
+          "response": "31 May 1819. From the Wikidata relation store: Walt Whitman (Q81438) - year of birth (P569) - 31 May 1819. [rel-journalists]",
+          "provenance": {
+            "kind": "core_called_specialist",
+            "family": "new_v2",
+            "core_status": "withheld",
+            "core_path": "capability:when_did|vessel:receipt",
+            "specialist": "rel-journalists",
+            "parts": null
+          },
+          "latency_ms": 0.1,
+          "zero_model_gate": {
+            "lm_calls": 0,
+            "transformer_calls": 0
+          },
+          "evidential": {
+            "input_marked": null,
+            "answer_licensed": "unknown"
+          },
+          "references": []
+        }
+      }
+    },
+    {
+      "id": "grass_publication",
+      "conversation_id": "composition_step_grass_publication",
+      "text": "When was Leaves of Grass first published?",
+      "http_status": 200,
+      "response": {
+        "outcome": "completed",
+        "reply": {
+          "status": "answered",
+          "path": "family_precedence>specialist_call>specialist:rel-novels>novels",
+          "response": "1855. From the Wikidata relation store: Leaves of Grass (Q132042) - year of publication (P577) - 1855. [rel-novels]",
+          "provenance": {
+            "kind": "family_precedence",
+            "replaced_route": "verified:weak",
+            "replaced_response": "1855. [ev:derived] His most famous collection of poems is Leaves of Grass, which was first published in 1855 with his own money. [simplewiki_209f29293249bfc560987cb8] Reached through Walt Whitman: Leaves of Grass is a collection of poetry by American writer Walt Whitman (1819\u20131892). [simplewiki_2cc6",
+            "specialist": "rel-novels",
+            "chat_resolved": null
+          },
+          "latency_ms": 0.3,
+          "zero_model_gate": {
+            "lm_calls": 0,
+            "transformer_calls": 0
+          },
+          "arbitration": {
+            "winner": "timeline",
+            "runner_up": "list_n",
+            "margin": 0.908,
+            "floor": false,
+            "regex_family": "open_topic",
+            "agrees": false,
+            "mode": "authoritative",
+            "arbiter": "v3",
+            "canonical_surface": "Give me a timeline of Leaves of Grass.",
+            "capture_point": "capability"
+          },
+          "evidential": {
+            "input_marked": null,
+            "answer_licensed": "direct"
+          },
+          "continuation": {
+            "doors": [
+              "brooklyn",
+              "california",
+              "fulton"
+            ],
+            "offer": "from here, brooklyn or california stand open"
+          },
+          "references": []
+        }
+      }
+    },
+    {
+      "id": "net_energy",
+      "conversation_id": "composition_net_energy",
+      "text": "A battery initially stores 5 kWh. A 500 W appliance runs for 3 hours. Ignoring losses, how much energy remains in the battery in kWh?",
+      "http_status": 200,
+      "response": {
+        "outcome": "completed",
+        "reply": {
+          "status": "answered",
+          "path": "specialist_call>specialist:energy-v3>energy",
+          "response": "It uses 1.5 kWh (500 W \u00d7 3 h = 1500 Wh). [energy-v3]",
+          "provenance": {
+            "kind": "core_called_specialist",
+            "core_status": "clarification",
+            "core_path": "act:clarify|vessel:receipt",
+            "specialist": "energy-v3",
+            "parts": null,
+            "trace": {
+              "rule": "only"
+            }
+          },
+          "arbitration": {
+            "winner": "clarification",
+            "runner_up": "what_if",
+            "margin": 0.015,
+            "floor": true,
+            "regex_family": "open_topic",
+            "agrees": false,
+            "mode": "shadow",
+            "arbiter": "v3"
+          },
+          "latency_ms": 24.1,
+          "zero_model_gate": {
+            "lm_calls": 0,
+            "transformer_calls": 0
+          },
+          "evidential": {
+            "input_marked": null,
+            "answer_licensed": "unknown"
+          },
+          "references": []
+        }
+      }
+    }
+  ]
+}

@@ -66,6 +66,17 @@ admission verdicts are retained as historical evidence, not rewritten as a new
 qualification. Verify the appliance's recorded composition instead; upstream
 fresh admission and release checks remain necessary for an official release.
 
+The subsequent real-usage repairs are a second, ordered patch:
+`--patch deploy/appliance/patches/oracle7-slim-4.9-usage.patch`. Apply it after
+the correctness patch above. It repairs number-base interpretation, numerical
+finiteness, conversation state, source/relation matching, conflicting passages,
+geometry inputs, energy quantity roles and trailing calculation conditions.
+It changes the actual imported copies, including the admitted converter and all
+three math-organ versions. The usage patch does not change extracted binaries
+or grant fresh upstream admission. See
+[`project/USAGE-2026-10-26.md`](../../project/USAGE-2026-10-26.md) for original
+failures, measured outcomes and remaining limits.
+
 `smoke.py --runtime DIR --adapter DIR/adapter/serve.py --out NEW_DIRECTORY
 --patched` runs five real-engine queries, exact/conflicting retries, shutdown,
 restart replay and a complete source-tree file/stat comparison. It requires

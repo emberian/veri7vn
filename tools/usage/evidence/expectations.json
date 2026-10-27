@@ -1,0 +1,14 @@
+{
+  "author": "Walt Whitman; a citation should identify the source record and relation.",
+  "birth": "14 March 1879; source provenance should identify the record.",
+  "capital": "Paris; source provenance should identify the claim, not just a database.",
+  "math": "391; arithmetic derivation or exact computation support, not external citation.",
+  "quantity": "Approximately 32.8084 feet; conversion assumptions and computation scope.",
+  "physics": "9 joules using nonrelativistic kinetic energy; formula and units.",
+  "ambiguous": "Clarification or explicit ambiguity; avoid selecting a person without context.",
+  "unknown": "Withhold absent source evidence; do not invent author.",
+  "malformed": "Malformed arithmetic should be declined or clarified, not silently repaired.",
+  "zero": "Undefined; do not report a finite computed value.",
+  "scope": "Explain limited assurance and distinction between source facts, computation and theorem scope.",
+  "coverage": "A completeness claim needs evidence of coverage; a partial list must be marked partial."
+}

@@ -1,0 +1,85 @@
+{
+  "scope": "Manual judgments of retained usage answers; not specialist scores or automatic factual verification.",
+  "baseline": {
+    "run": "var/usage-20261026/research/run-1",
+    "cases": 15,
+    "unambiguous_correct_factual_answers": 7,
+    "wrong_factual_answers": 1,
+    "correct_date_for_silently_selected_identity": 1,
+    "clarifications": 6,
+    "judgments": {
+      "r01": "Correct Whitman authorship; Wikidata triple and opaque text reference present.",
+      "r02": "Needless clarification on the immediately preceding answer; no source delivered.",
+      "r03": "Useful ambiguity clarification identifies book 1855 versus film 2009; no direct answer, despite ordinary 'published' wording implying a book.",
+      "r04": "Correct Mary Shelley authorship with Wikidata triple and opaque text reference.",
+      "r05": "Correct 1818 with supporting text excerpt.",
+      "r06": "Correct Percy Bysshe Shelley answer, but the P26 receipt misleadingly calls the husband 'wives'.",
+      "r07": "Safe parsing clarification; requested Mary/Percy distinction not completed.",
+      "r08": "Correct Jane Austen authorship with Wikidata triple and opaque text reference.",
+      "r09": "Correct 1813; P577 receipt is only in prose, structured references empty.",
+      "r10": "Safe parsing clarification; known alias is available through a different question.",
+      "r11": "Correct John Edward Williams/Q2077062; P50 receipt in prose, structured references empty.",
+      "r12": "Wrong James Arnold Taylor answer. P800 notable work does not establish composition; Q462 franchise is not the requested 1977 film.",
+      "r13": "Safe parsing clarification; novelist/composer identity distinction not completed.",
+      "r14": "Date correct for composer Q131285. Name was ambiguous; the response identifies its choice only through a QID and rel-composers tag, without explaining alternatives.",
+      "r15": "Safely declines the false premise, but does not identify the incorrect Austen attribution."
+    }
+  },
+  "followups": {
+    "run": "var/usage-20261026/research/run-2",
+    "cases": 10,
+    "correct_factual_answers": 9,
+    "wrong_factual_answers": 0,
+    "clarifications": 1,
+    "judgments": {
+      "f01": "Correct John Williams/P86/Q17738.",
+      "f02": "Correct John Williams/P86/Q17738.",
+      "f03": "Correct John Williams/P86/Q17738.",
+      "f04": "Correct John Williams/P86/Q17738, but P86 label 'written by' is less precise than composer.",
+      "f05": "Correct John Williams/P86/Q17738.",
+      "f06": "Correct 1855 after explicit 'book' qualification.",
+      "f07": "Correct alias in biography, with named text fragments.",
+      "f08": "Correct Mary Shelley authorship.",
+      "f09": "Short 'Sources?' also fails to deliver sources.",
+      "f10": "Correct novelist birth date, 29 August 1922."
+    }
+  },
+  "integrated_candidate_first": {
+    "run": "var/usage-20261026/research/run-3-integrated",
+    "runtime": "var/usage-20261026/candidate-first",
+    "cases": 15,
+    "completed_engine_replies": 13,
+    "correct_factual_answers": 8,
+    "wrong_factual_answers": 0,
+    "clarifications": 5,
+    "runtime_errors": 1,
+    "not_run": 1,
+    "judgments": {
+      "r12": "Correct John Williams/P86; engine selects soundtrack album Q2715371, not the film row used by the direct-reader check.",
+      "r14": "Regression: HTTP 502 runtime_error AttributeError. Baseline returned a composer birth date.",
+      "r15": "Not run because the adapter stops after the fatal backend error."
+    },
+    "other_cases": "Prior seven unambiguous correct factual answers and five preceding clarification outcomes preserved. P26 receipt now says spouse."
+  },
+  "integrated_final": {
+    "run": "var/usage-20261026/research/run-4-final",
+    "runtime": "var/usage-20261026/candidate",
+    "cases": 15,
+    "completed_engine_replies": 15,
+    "unambiguous_correct_factual_answers": 8,
+    "wrong_factual_answers": 0,
+    "correct_date_for_silently_selected_identity": 1,
+    "clarifications": 6,
+    "runtime_errors": 0,
+    "not_run": 0,
+    "judgments": {
+      "r12": "Correct John Williams/P86 via soundtrack album Q2715371. Original P800 false answer repaired.",
+      "r14": "Runtime regression resolved. Correct composer birth date 8 February 1932, with same unexplained identity selection as baseline.",
+      "r15": "Safe parsing clarification, matching baseline."
+    },
+    "preservation": "All seven original unambiguous correct factual answers preserved. P26 receipt now says spouse. Six baseline clarifications remain clarifications.",
+    "latency_median_seconds": 0.278659,
+    "latency_max_seconds": 2.316195,
+    "regression_tests": "16 passed against final candidate module"
+  }
+}

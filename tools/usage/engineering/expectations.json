@@ -1,0 +1,19 @@
+{
+ "method":"Independent dimensional formulas and decimal arithmetic, written before candidate queries. These are usage cases, not specialist panels.",
+ "cases":{
+  "lift_ideal":{"valid":true,"value":981,"unit":"J","calculation":"25 * 9.81 * 4","assumptions":"constant given gravity, no losses"},
+  "lift_efficiency":{"valid":true,"value":1226.25,"unit":"J","calculation":"981 / 0.8","assumptions":"same preceding lift; 80% electrical-to-potential efficiency"},
+  "pump_power":{"valid":true,"value":280.2857142857143,"unit":"W","calculation":"1000 * 0.002 * 9.81 * 10 / 0.7","assumptions":"steady incompressible flow, no pipe friction; stated overall efficiency"},
+  "spring_work":{"valid":true,"value":8,"unit":"J","calculation":"200 * (0.3^2 - 0.1^2) / 2","assumptions":"linear spring; both quantities are extensions"},
+  "spring_force":{"valid":true,"value":20,"unit":"N","calculation":"200 * abs(0.5 - 0.4)","assumptions":"linear spring; final length minus unstretched length"},
+  "spring_simple":{"valid":true,"value":9,"unit":"J","calculation":"200 * 0.3^2 / 2","assumptions":"linear spring; one extension"},
+  "heat_endpoints":{"valid":true,"value":501600,"unit":"J","calculation":"2 * 4180 * (80 - 20)","assumptions":"constant given specific heat, no phase change or loss"},
+  "heat_interval":{"valid":true,"value":501600,"unit":"J","calculation":"2 * 4180 * 60","assumptions":"constant given specific heat"},
+  "battery_roles":{"valid":true,"value":7.2,"unit":"h","calculation":"1000 * 0.9 * 0.8 / 100","assumptions":"constant 100 W load; 500 W inverter rating is capacity constraint, not load"},
+  "battery_plain":{"valid":true,"value":7.2,"unit":"h","calculation":"1000 * 0.9 * 0.8 / 100","assumptions":"constant load and stated efficiency/depth"},
+  "battery_invalid":{"valid":false,"reason":"Conversion efficiency must lie between zero and one for this energy budget; reject 120%."},
+  "conversion_flow":{"valid":true,"value":0.0005,"unit":"m^3/s","calculation":"30 * 0.001 / 60","assumptions":"litre = 0.001 cubic metre; minute = 60 seconds"},
+  "temperature_interval":{"valid":true,"value":10,"unit":"C difference","calculation":"18 * 5 / 9","assumptions":"interval, not absolute temperature; no offset"},
+  "dimension_mismatch":{"valid":false,"reason":"Length and mass are distinct dimensions; no conversion without additional model data."}
+ }
+}

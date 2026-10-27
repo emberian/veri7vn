@@ -1,0 +1,62 @@
+[
+  {
+    "id": "transfer-heldout-1",
+    "conversation_id": "transfer-heldout-1",
+    "text": "How long does it take to upload 12 MB at 6 Mbps with 80% utilization?"
+  },
+  {
+    "id": "transfer-heldout-2",
+    "conversation_id": "transfer-heldout-2",
+    "text": "How many seconds to download 3 GiB over a 64 MiB/s connection with 75% utilization?"
+  },
+  {
+    "id": "transfer-heldout-3",
+    "conversation_id": "transfer-heldout-3",
+    "text": "How long does it take to transfer 1 TB at 10 Gbps with 80% utilization?"
+  },
+  {
+    "id": "transfer-heldout-4",
+    "conversation_id": "transfer-heldout-4",
+    "text": "How long does it take to transfer 1 TiB at 1 GiB/s with 50% utilization?"
+  },
+  {
+    "id": "transfer-heldout-5",
+    "conversation_id": "transfer-heldout-5",
+    "text": "How long does it take to transfer 125 kB at 1 Mbps with 100% utilization?"
+  },
+  {
+    "id": "transfer-heldout-6",
+    "conversation_id": "transfer-heldout-6",
+    "text": "How long does it take to transfer 1 KiB at 1 kbps with 100% utilization?"
+  },
+  {
+    "id": "transfer-heldout-7",
+    "conversation_id": "transfer-heldout-7",
+    "text": "How long does it take to transfer 0.5 GB at 2.5 MB/s with 25% utilization?"
+  },
+  {
+    "id": "transfer-heldout-8",
+    "conversation_id": "transfer-heldout-8",
+    "text": "How long does it take to transfer 0 GiB at 1 Gbps with 20% utilization?"
+  },
+  {
+    "id": "transfer-heldout-9",
+    "conversation_id": "transfer-heldout-9",
+    "text": "How long does it take to transfer -1 GB at 100 Mbps with 100% utilization?"
+  },
+  {
+    "id": "transfer-heldout-10",
+    "conversation_id": "transfer-heldout-10",
+    "text": "How long does it take to transfer 1 GB at 100 Mbps with 0% utilization?"
+  },
+  {
+    "id": "transfer-heldout-11",
+    "conversation_id": "transfer-heldout-11",
+    "text": "How long does it take to transfer 1 GB at 100 Mbps with 80% utilization and 2 seconds startup latency?"
+  },
+  {
+    "id": "transfer-heldout-12",
+    "conversation_id": "transfer-heldout-12",
+    "text": "How long does it take to transfer 1 GB at 100 Mbps with 80% utilization and 50% utilization?"
+  }
+]

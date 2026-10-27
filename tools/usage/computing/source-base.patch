@@ -1,0 +1,222 @@
+--- a/root/wander-train/oracle_operator_specs_v1.py
++++ b/root/wander-train/oracle_operator_specs_v1.py
+@@ -198,33 +198,63 @@
+ 
+ 
+ # ── 3. base conversion ────────────────────────────────────────────────────────
+-# fn is repeated divmod; ref is positional expansion of the digits it produced.
++# The parser binds the original digits and source base. The function decodes
++# with int(); the reference independently expands source digits positionally.
++_BASE_NAME = {'binary': 2, 'hex': 16, 'hexadecimal': 16, 'octal': 8, 'decimal': 10}
++_BASE_ATOM = r'(?:base\s*\d+|binary|hexadecimal|hex|octal|decimal)'
+ _BASE_RX = re.compile(
+-    r'\b(?:convert|write|express)?\s*(-?\d+)\s*(?:from\s*)?(?:base\s*(\d+))?\s*'
+-    r'(?:in|to|into)\s*(?:base\s*)?(\d+|binary|hex|hexadecimal|octal|decimal)\b', re.I)
+-_BASE_NAME = {'binary': 2, 'hex': 16, 'hexadecimal': 16, 'octal': 8, 'decimal': 10}
++    r'^\s*(?:(?:convert|write|express|what\s+is)\s+)?'
++    r'(?:(?P<prefix>' + _BASE_ATOM + r')\s+)?'
++    r'(?P<digits>[+-]?[0-9a-z]+)'
++    r'(?:\s+(?:(?:from|in)\s+)?(?P<source>' + _BASE_ATOM + r'))?'
++    r'\s+(?:in|to|into|as)\s+(?P<target>' + _BASE_ATOM + r'|\d+)'
++    r'\s*[.?!]?\s*$', re.I | re.ASCII)
+ _DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz'
+ 
+ 
+ def _base_parse(s):
+-    m = _BASE_RX.search(s)
++    m = _BASE_RX.fullmatch(s)
+     if not m:
+-        raise NotOurs('no number and target base here')
+-    n = int(m.group(1))
+-    frm = int(m.group(2)) if m.group(2) else 10
+-    tgt = m.group(3).lower()
+-    to = _BASE_NAME.get(tgt, None)
+-    if to is None:
+-        to = int(tgt)
+-    if not (2 <= to <= 36) or not (2 <= frm <= 36):
+-        raise OutOfFragment('I convert between base 2 and base 36 only')
+-    if n < 0:
++        raise NotOurs('no complete integer base conversion here')
++
++    def base(token):
++        token = token.lower()
++        value = _BASE_NAME.get(token)
++        if value is None:
++            numeral = re.sub(r'^base\s*', '', token)
++            if len(numeral) > 3:
++                raise OutOfFragment('I convert between base 2 and base 36 only')
++            value = int(numeral)
++        if not 2 <= value <= 36:
++            raise OutOfFragment('I convert between base 2 and base 36 only')
++        return value
++
++    sources = [base(token) for token in (m['prefix'], m['source']) if token]
++    raw = m['digits'].lower()
++    if raw.startswith('-'):
+         raise OutOfFragment('I convert non-negative whole numbers only')
+-    return {'n': n, 'frm': frm, 'to': to}
++    raw = raw.lstrip('+')
++    # A conventional literal prefix is source evidence, not a digit to discard.
++    # Explicit bases above 16 may use x as a digit; only infer prefixes when no
++    # explicit source is supplied, or that source matches the prefix convention.
++    literal = {'0b': 2, '0o': 8, '0x': 16}.get(raw[:2])
++    if literal is not None and (not sources or all(b == literal for b in sources)):
++        sources.append(literal)
++        raw = raw[2:]
++    elif literal is not None and sources and sources[0] in (2, 8, 10, 16):
++        raise OutOfFragment('the literal prefix conflicts with the stated source base')
++    if len(set(sources)) > 1:
++        raise OutOfFragment('the stated source bases disagree')
++    frm = sources[0] if sources else 10
++    to = base(m['target'])
++    if not raw or len(raw) > 128 or any(_DIGITS.index(c) >= frm for c in raw):
++        raise OutOfFragment('I need 1 to 128 valid digits in the stated source base')
++    n = int(raw, frm)
++    return {'n': n, 'digits': raw, 'frm': frm, 'to': to}
+ 
+ 
+ def _base_fn(a):
+-    n, steps, out = a['n'], [], ''
++    n, steps, out = int(a['digits'], a['frm']), [], ''
+     if n == 0:
+         return '0', ['0 in any base is 0']
+     while n:
+@@ -235,8 +265,13 @@
+ 
+ 
+ def _base_ref(a):
+-    """Independent: build with a positional table, then check by expanding it."""
+-    n = a['n']
++    """Expand original source digits, then encode using a positional table.
++
++    This does not share int() source decoding or repeated output division with
++    the primary function. Both still depend on the same untrusted parse.
++    """
++    n = sum(_DIGITS.index(digit) * a['frm'] ** power
++            for power, digit in enumerate(reversed(a['digits'])))
+     if n == 0:
+         return '0'
+     digits, powers = [], []
+@@ -418,8 +453,9 @@
+      'parse': _base_parse, 'fn': _base_fn, 'ref': _base_ref,
+      'render': lambda a, v, s: '%d in base %d is %s.' % (a['n'], a['to'], v),
+      'warrant': 'computation',
+-     'independence': 'moderate: repeated division against positional expansion; '
+-                     'both walk the same digits, in opposite directions',
++     'independence': 'moderate: int source decoding and repeated output division '
++                     'against positional source expansion and output encoding; '
++                     'both still depend on the same untrusted parse',
+      'fragment': 'non-negative whole numbers, bases 2 to 36'},
+ 
+     {'name': 'statistics', 'family': 'measurement',
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_operator_specs_v1.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_operator_specs_v1.py
+@@ -198,33 +198,63 @@
+ 
+ 
+ # ── 3. base conversion ────────────────────────────────────────────────────────
+-# fn is repeated divmod; ref is positional expansion of the digits it produced.
++# The parser binds the original digits and source base. The function decodes
++# with int(); the reference independently expands source digits positionally.
++_BASE_NAME = {'binary': 2, 'hex': 16, 'hexadecimal': 16, 'octal': 8, 'decimal': 10}
++_BASE_ATOM = r'(?:base\s*\d+|binary|hexadecimal|hex|octal|decimal)'
+ _BASE_RX = re.compile(
+-    r'\b(?:convert|write|express)?\s*(-?\d+)\s*(?:from\s*)?(?:base\s*(\d+))?\s*'
+-    r'(?:in|to|into)\s*(?:base\s*)?(\d+|binary|hex|hexadecimal|octal|decimal)\b', re.I)
+-_BASE_NAME = {'binary': 2, 'hex': 16, 'hexadecimal': 16, 'octal': 8, 'decimal': 10}
++    r'^\s*(?:(?:convert|write|express|what\s+is)\s+)?'
++    r'(?:(?P<prefix>' + _BASE_ATOM + r')\s+)?'
++    r'(?P<digits>[+-]?[0-9a-z]+)'
++    r'(?:\s+(?:(?:from|in)\s+)?(?P<source>' + _BASE_ATOM + r'))?'
++    r'\s+(?:in|to|into|as)\s+(?P<target>' + _BASE_ATOM + r'|\d+)'
++    r'\s*[.?!]?\s*$', re.I | re.ASCII)
+ _DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz'
+ 
+ 
+ def _base_parse(s):
+-    m = _BASE_RX.search(s)
++    m = _BASE_RX.fullmatch(s)
+     if not m:
+-        raise NotOurs('no number and target base here')
+-    n = int(m.group(1))
+-    frm = int(m.group(2)) if m.group(2) else 10
+-    tgt = m.group(3).lower()
+-    to = _BASE_NAME.get(tgt, None)
+-    if to is None:
+-        to = int(tgt)
+-    if not (2 <= to <= 36) or not (2 <= frm <= 36):
+-        raise OutOfFragment('I convert between base 2 and base 36 only')
+-    if n < 0:
++        raise NotOurs('no complete integer base conversion here')
++
++    def base(token):
++        token = token.lower()
++        value = _BASE_NAME.get(token)
++        if value is None:
++            numeral = re.sub(r'^base\s*', '', token)
++            if len(numeral) > 3:
++                raise OutOfFragment('I convert between base 2 and base 36 only')
++            value = int(numeral)
++        if not 2 <= value <= 36:
++            raise OutOfFragment('I convert between base 2 and base 36 only')
++        return value
++
++    sources = [base(token) for token in (m['prefix'], m['source']) if token]
++    raw = m['digits'].lower()
++    if raw.startswith('-'):
+         raise OutOfFragment('I convert non-negative whole numbers only')
+-    return {'n': n, 'frm': frm, 'to': to}
++    raw = raw.lstrip('+')
++    # A conventional literal prefix is source evidence, not a digit to discard.
++    # Explicit bases above 16 may use x as a digit; only infer prefixes when no
++    # explicit source is supplied, or that source matches the prefix convention.
++    literal = {'0b': 2, '0o': 8, '0x': 16}.get(raw[:2])
++    if literal is not None and (not sources or all(b == literal for b in sources)):
++        sources.append(literal)
++        raw = raw[2:]
++    elif literal is not None and sources and sources[0] in (2, 8, 10, 16):
++        raise OutOfFragment('the literal prefix conflicts with the stated source base')
++    if len(set(sources)) > 1:
++        raise OutOfFragment('the stated source bases disagree')
++    frm = sources[0] if sources else 10
++    to = base(m['target'])
++    if not raw or len(raw) > 128 or any(_DIGITS.index(c) >= frm for c in raw):
++        raise OutOfFragment('I need 1 to 128 valid digits in the stated source base')
++    n = int(raw, frm)
++    return {'n': n, 'digits': raw, 'frm': frm, 'to': to}
+ 
+ 
+ def _base_fn(a):
+-    n, steps, out = a['n'], [], ''
++    n, steps, out = int(a['digits'], a['frm']), [], ''
+     if n == 0:
+         return '0', ['0 in any base is 0']
+     while n:
+@@ -235,8 +265,13 @@
+ 
+ 
+ def _base_ref(a):
+-    """Independent: build with a positional table, then check by expanding it."""
+-    n = a['n']
++    """Expand original source digits, then encode using a positional table.
++
++    This does not share int() source decoding or repeated output division with
++    the primary function. Both still depend on the same untrusted parse.
++    """
++    n = sum(_DIGITS.index(digit) * a['frm'] ** power
++            for power, digit in enumerate(reversed(a['digits'])))
+     if n == 0:
+         return '0'
+     digits, powers = [], []
+@@ -418,8 +453,9 @@
+      'parse': _base_parse, 'fn': _base_fn, 'ref': _base_ref,
+      'render': lambda a, v, s: '%d in base %d is %s.' % (a['n'], a['to'], v),
+      'warrant': 'computation',
+-     'independence': 'moderate: repeated division against positional expansion; '
+-                     'both walk the same digits, in opposite directions',
++     'independence': 'moderate: int source decoding and repeated output division '
++                     'against positional source expansion and output encoding; '
++                     'both still depend on the same untrusted parse',
+      'fragment': 'non-negative whole numbers, bases 2 to 36'},
+ 
+     {'name': 'statistics', 'family': 'measurement',

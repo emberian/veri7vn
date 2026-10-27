@@ -1,0 +1,109 @@
+[
+  {
+    "id": "budget",
+    "kind": "budget",
+    "net_income": "3200",
+    "expenses": [
+      "1200",
+      "450",
+      "180",
+      "170"
+    ]
+  },
+  {
+    "id": "invoice",
+    "kind": "invoice",
+    "lines": [
+      {
+        "quantity": "12",
+        "unit_price": "7.50"
+      },
+      {
+        "quantity": "3",
+        "unit_price": "2"
+      }
+    ]
+  },
+  {
+    "id": "invoice-followup",
+    "kind": "tax",
+    "amount": "96",
+    "tax_percent": "10",
+    "amount_role": "pretax"
+  },
+  {
+    "id": "discount",
+    "kind": "discount",
+    "pretax_price": "80",
+    "discount_percent": "25",
+    "tax_percent": "0"
+  },
+  {
+    "id": "discount-tax",
+    "kind": "discount",
+    "pretax_price": "80",
+    "discount_percent": "25",
+    "tax_percent": "8"
+  },
+  {
+    "id": "tax-inclusive",
+    "kind": "tax",
+    "amount": "108",
+    "tax_percent": "8",
+    "amount_role": "tax_inclusive"
+  },
+  {
+    "id": "simple-interest",
+    "kind": "simple_interest",
+    "principal": "1000",
+    "annual_rate_percent": "6",
+    "duration": "2",
+    "time_unit": "years",
+    "target": "interest"
+  },
+  {
+    "id": "simple-months",
+    "kind": "simple_interest",
+    "principal": "1000",
+    "annual_rate_percent": "6",
+    "duration": "6",
+    "time_unit": "months",
+    "target": "interest"
+  },
+  {
+    "id": "simple-total",
+    "kind": "simple_interest",
+    "principal": "1000",
+    "annual_rate_percent": "6",
+    "duration": "2",
+    "time_unit": "years",
+    "target": "balance"
+  },
+  {
+    "id": "compound",
+    "kind": "compound_annual",
+    "principal": "1000",
+    "annual_rate_percent": "6",
+    "whole_years": "2",
+    "target": "balance"
+  },
+  {
+    "id": "margin",
+    "kind": "margin",
+    "sale_price": "100",
+    "cost": "80"
+  },
+  {
+    "id": "markup",
+    "kind": "markup",
+    "sale_price": "100",
+    "cost": "80"
+  },
+  {
+    "id": "breakeven",
+    "kind": "breakeven",
+    "fixed_cost": "1000",
+    "sale_price_per_unit": "30",
+    "variable_cost_per_unit": "20"
+  }
+]

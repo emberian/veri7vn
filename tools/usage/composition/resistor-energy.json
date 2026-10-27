@@ -1,0 +1,6 @@
+{
+  "inputs": {"duration": {"value": 60, "unit": "s"}},
+  "oracle_steps": [{"request_id": "resistor_power", "recipe": "resistor_power", "parameters": {"ohms": 10, "amps": 5}, "output": "dissipated_power"}],
+  "local_steps": [{"operation": "multiply", "inputs": ["dissipated_power", "duration"], "output": "dissipated_energy", "unit": "J"}],
+  "target": "dissipated_energy"
+}

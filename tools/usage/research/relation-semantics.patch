@@ -1,0 +1,87 @@
+--- a/root/wander-train/relation_spec_v1.py
++++ b/root/wander-train/relation_spec_v1.py
+@@ -11,6 +11,7 @@
+ import collections
+ import functools
+ import json
++import re
+ 
+ import exact_router_v1 as X
+ 
+@@ -21,6 +22,11 @@
+ 
+ 
+ def prop_label(p):
++    # The shipped label dump includes aliases ("wives", "written by", "wrote")
++    # for these properties. Those aliases can misstate the role in a receipt.
++    canonical = {26: "spouse", 86: "composer", 800: "notable work"}
++    if p in canonical:
++        return canonical[p]
+     if not _PL:
+         try:
+             with open(PROP_LABELS, encoding="utf-8") as f:
+@@ -128,8 +134,64 @@
+     return bool(named) and did in KIND_NOUNS and did not in named
+ 
+ 
++_COMPOSER_REQUEST = re.compile(
++    r"^(?:who composed(?: the (?:music|score|soundtrack) (?:for|of|to))?"
++    r"|who (?:is|was) the composer of"
++    r"|who wrote the (?:music|score|soundtrack) (?:for|of|to)"
++    r"|which composer wrote)\s+(?P<title>.+?)$", re.I)
++
++
++def _composer_request(q):
++    """Untrusted, whole-question recognizer: musical composition means P86.
++
++    A mined correlation with P800 (notable work) cannot establish the role.
++    Keep the entire title; do not silently fall back to a linked title fragment.
++    """
++    text = " ".join(str(q).split()).rstrip("?.! ")
++    text = re.sub(r"^(?:please tell me|(?:can|could) you (?:please )?tell me)\s+", "", text, flags=re.I)
++    match = _COMPOSER_REQUEST.fullmatch(text)
++    if not match:
++        return None
++    title = match.group("title").strip()
++    title = re.sub(r"^the (?:film|movie)\s+", "", title, flags=re.I)
++    dated = re.fullmatch(r"(.+?)\s*\((\d{4})\)", title)
++    year = dated.group(2) if dated else None
++    title = (dated.group(1) if dated else title).strip(" \"'“”‘’")
++    return title, year
++
++
++def _composer_answer(q, did, request):
++    title, year = request
++    # Fetch one extra candidate so a capped name lookup is not mistaken for full
++    # coverage. Domain and optional publication year must select agreeing rows.
++    candidates = list(X.L.candidates(X.norm(title), 65)) if title else []
++    if not candidates and title.lower().startswith("the "):
++        candidates = list(X.L.candidates(X.norm(title[4:]), 65))
++    if not candidates or len(candidates) > 64:
++        return None
++    mine = [c[0] for c in candidates if in_domain(c[0], did)]
++    if year:
++        mine = [qid for qid in mine if any(
++            re.fullmatch(r"\+?" + year + r"(?:-\d{2}-\d{2}(?:T[^\s]+)?)?", str(value))
++            for value in values(qid, 577))]
++    sets = [values(qid, 86) for qid in mine]
++    if not mine or any(not found for found in sets) or len(set(sets)) != 1 or len(sets[0]) != 1:
++        return None
++    val = next(iter(sets[0]))
++    if _restates(q, val):
++        return None
++    return {"answer": X._show(val, q), "property": 86, "subject_qid": mine[0],
++            "direction": "fwd", "pattern": "explicit|composer|P86",
++            "linked_qid": mine[0]}
++
++
+ def answer(q, did, patterns):
+     """patterns: {"fwd|key|word": [p, ...], "inv|key|word": [p, ...]} -> {answer, property, subject_qid, direction, pattern} or None"""
++    request = _composer_request(q)
++    if request is not None:
++        if kind_conflict(str(q), did):
++            return None
++        return _composer_answer(q, did, request)
+     a = analyse(str(q))
+     if a is None or kind_conflict(str(q), did):
+         return None

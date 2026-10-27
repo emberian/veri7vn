@@ -1,0 +1,807 @@
+{
+  "scope": "Historical usage observations from 2026-10-26. Agent task judgments against separate expectations; not specialist panels, theorem evidence, or measured general capability. Exact replies preserved without rewriting.",
+  "runtime_identity": {
+    "protocol": "oracle-appliance-v1",
+    "backend": "Oracle7.Engine.chat",
+    "source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+    "tip": "oracle_release_runtime_w436",
+    "deployment": {
+      "receipt_sha256": "5e2115181f1b6f0b3fb27894e8c9838f1cf526e5242021420283779dd220517b",
+      "base_source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+      "patches": [
+        {
+          "name": "oracle7-slim-4.9-correctness.patch",
+          "sha256": "feb44d407634699545634350281e530b1bcc0ecf7bd951bdfc01655dbf99ecd6"
+        }
+      ],
+      "kernel_overlay_manifest_sha256": "91e3525e922f98a662d81e0c8a154dfaf51ee55ec24e37f6125cc0ea873be1d4",
+      "kernel_base_revision": "3bf43cff8eaa1c30db2659d186cdcffe9c4f6c61",
+      "kernel_source_revision": null,
+      "kernel_families": 20,
+      "kernel_platform": "linux-x86_64",
+      "metadata_verified_by_adapter": false,
+      "verification": "Receipt bytes hashed only; deployment contents require independent host verification."
+    },
+    "evidence": "upstream reply preserved; upstream labels are not Mini authority",
+    "deployment_content_hashes_checked_by_adapter": false,
+    "scope": "one host-assigned workspace per process",
+    "query_queue": 0,
+    "limits": {
+      "request_bytes": 16384,
+      "reply_bytes": 2097152,
+      "retained_requests": 10000,
+      "query_seconds": 30.0
+    }
+  },
+  "cases": [
+    {
+      "id": "help",
+      "conversation_id": "discovery-help",
+      "text": "What can you help me with?",
+      "latency_seconds": 2.795198,
+      "topics": [
+        "help",
+        "discovery"
+      ],
+      "task_judgment": "not_completed",
+      "judgment_reason": "Generic refusal; no usable supported request.",
+      "reply": {
+        "status": "withheld",
+        "path": "precision_guard:R3b_desk_reply_to_question|organ:converse>addressed",
+        "response": "I can't verify an answer to that exact question, so I won't guess.",
+        "provenance": {
+          "kind": "precision_guard",
+          "rule": "R3b_desk_reply_to_question",
+          "withheld_path": "organ:converse>addressed",
+          "withheld_response": "You've reached Oracle7, an AI assistant rather than a person or a front desk, so I can't do that part myself. I can look things up, work through problems, write code, tell a joke or find a recipe."
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "summarize",
+          "margin": 0.009,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 9.1,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": []
+      },
+      "run": "initial"
+    },
+    {
+      "id": "examples",
+      "conversation_id": "discovery-examples",
+      "text": "Show three example questions you can answer.",
+      "latency_seconds": 0.781214,
+      "topics": [
+        "help",
+        "discovery",
+        "examples"
+      ],
+      "task_judgment": "not_completed",
+      "judgment_reason": "No example questions supplied.",
+      "reply": {
+        "status": "clarification",
+        "path": "act:clarify|vessel:receipt",
+        "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Show three example questions you can answer.\" as an unnamed shape [vessel:v0002]; if it returns it gains weight, and when I can name it, I will.",
+        "provenance": {
+          "kind": "dialogue_state",
+          "note": "graceful clarify terminal",
+          "vessel": {
+            "id": "v0002",
+            "weight": 3.0,
+            "count": 1,
+            "slot": "bounds"
+          }
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "act_acknowledge",
+          "margin": 0.002,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 5.9,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        }
+      },
+      "run": "initial"
+    },
+    {
+      "id": "units-help",
+      "conversation_id": "discovery-units-help",
+      "text": "Can you convert units? How should I ask?",
+      "latency_seconds": 0.171722,
+      "topics": [
+        "units",
+        "convert",
+        "help"
+      ],
+      "task_judgment": "not_completed",
+      "judgment_reason": "Generic clarification without conversion input guide.",
+      "reply": {
+        "status": "clarification",
+        "path": "act:clarify|vessel:receipt",
+        "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Can you convert units? How should I ask?\" as an unnamed shape [vessel:v0003]; if it returns it gains weight, and when I can name it, I will.",
+        "provenance": {
+          "kind": "dialogue_state",
+          "note": "graceful clarify terminal",
+          "vessel": {
+            "id": "v0003",
+            "weight": 3.0,
+            "count": 1,
+            "slot": "bounds"
+          }
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "summarize",
+          "margin": 0.046,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 6.8,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        }
+      },
+      "run": "initial"
+    },
+    {
+      "id": "facts-help",
+      "conversation_id": "discovery-facts-help",
+      "text": "What facts can you look up?",
+      "latency_seconds": 0.079818,
+      "topics": [
+        "facts",
+        "lookup",
+        "help"
+      ],
+      "task_judgment": "not_completed",
+      "judgment_reason": "Generic refusal without factual lookup guide.",
+      "reply": {
+        "status": "withheld",
+        "path": "precision_guard:R3b_desk_reply_to_question|organ:converse>addressed",
+        "response": "I can't verify an answer to that exact question, so I won't guess.",
+        "provenance": {
+          "kind": "precision_guard",
+          "rule": "R3b_desk_reply_to_question",
+          "withheld_path": "organ:converse>addressed",
+          "withheld_response": "You've reached Oracle7, an AI assistant rather than a person or a front desk, so I can't do that part myself. I can look things up, work through problems, write code, tell a joke or find a recipe."
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "why_different",
+          "margin": 0.006,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 5.4,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": []
+      },
+      "run": "initial"
+    },
+    {
+      "id": "author",
+      "conversation_id": "discovery-author",
+      "text": "Who wrote Leaves of Grass?",
+      "latency_seconds": 0.293867,
+      "topics": [
+        "facts",
+        "author",
+        "literature",
+        "lookup"
+      ],
+      "task_judgment": "completed",
+      "judgment_reason": "Walt Whitman with relation and simplewiki references.",
+      "reply": {
+        "status": "answered",
+        "path": "organ:relation>form:author>READ>FRAME>LINK>RELATE:fwd:P50>CHECK:P50>BIND>EXPAND>VERIFY",
+        "response": "Walt Whitman. Leaves of Grass is a collection of poetry by American writer Walt Whitman (1819–1892).",
+        "provenance": {
+          "kind": "verified_reach",
+          "by": "relation_form",
+          "form": "author",
+          "replaced_path": "compose:bridge"
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "timeline",
+          "margin": 0.017,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 4.7,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": [
+          "wd:Q132042 P50 wd:Q81438",
+          "simplewiki_2cc693b35bb6a059e9dc02d2"
+        ]
+      },
+      "run": "initial"
+    },
+    {
+      "id": "distance-natural",
+      "conversation_id": "discovery-distance-natural",
+      "text": "How far is 5 miles in kilometers?",
+      "latency_seconds": 0.243191,
+      "topics": [
+        "units",
+        "convert",
+        "distance"
+      ],
+      "task_judgment": "completed",
+      "judgment_reason": "8.04672 km; independent exact mile definition gives 5 × 1.609344.",
+      "reply": {
+        "status": "answered",
+        "path": "specialist_call>specialist:units-v3>convert",
+        "response": "5 miles is 8.04672 (exactly 25146/3125) kilometers (NIST exact factors). [units-v3]",
+        "provenance": {
+          "kind": "core_called_specialist",
+          "core_status": "clarification",
+          "core_path": "act:clarify|vessel:receipt",
+          "specialist": "units-v3",
+          "parts": null,
+          "trace": {
+            "rule": "only"
+          }
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "definitional",
+          "margin": 0.005,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 5.9,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": []
+      },
+      "run": "initial"
+    },
+    {
+      "id": "distance-canonical",
+      "conversation_id": "discovery-distance-canonical",
+      "text": "Convert 5 miles to km.",
+      "latency_seconds": 0.00836,
+      "topics": [
+        "units",
+        "convert",
+        "distance"
+      ],
+      "task_judgment": "completed",
+      "judgment_reason": "25146/3125 km equals 8.04672; same task as natural wording.",
+      "reply": {
+        "status": "answered",
+        "path": "op:unit_convert",
+        "response": "5 miles is 25146/3125 km. the factor from miles to km is 25146/15625. 5 x 25146/15625 = 25146/3125. I checked it by a second method that agrees.",
+        "provenance": {
+          "kind": "computation",
+          "verified": true,
+          "operator": "unit_convert",
+          "family": "measurement",
+          "steps": [
+            "the factor from miles to km is 25146/15625",
+            "5 x 25146/15625 = 25146/3125"
+          ],
+          "independence": "measured: absolute factors against a composed chain of step ratios, no shared table",
+          "checked_by": "independent reimplementation"
+        },
+        "latency_ms": 2
+      },
+      "run": "initial"
+    },
+    {
+      "id": "dimension-mismatch",
+      "conversation_id": "discovery-dimension",
+      "text": "Convert 5 miles to kilograms.",
+      "latency_seconds": 0.333787,
+      "topics": [
+        "units",
+        "convert",
+        "clarification"
+      ],
+      "task_judgment": "useful_refusal",
+      "judgment_reason": "Correctly identifies length versus mass.",
+      "reply": {
+        "status": "withheld",
+        "path": "specialist_call>specialist:units-v3>mismatch",
+        "response": "miles measures length and kilograms measures mass, so there's no conversion between them. [units-v3]",
+        "provenance": {
+          "kind": "core_called_specialist",
+          "core_status": "clarification",
+          "core_path": "act:clarify|vessel:receipt",
+          "specialist": "units-v3",
+          "parts": null,
+          "trace": {
+            "rule": "only"
+          }
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "definitional",
+          "margin": 0.014,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 4.7,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": []
+      },
+      "run": "initial"
+    },
+    {
+      "id": "missing-amount",
+      "conversation_id": "discovery-amount",
+      "text": "Convert miles to km.",
+      "latency_seconds": 0.082926,
+      "topics": [
+        "units",
+        "convert",
+        "clarification"
+      ],
+      "task_judgment": "not_completed",
+      "judgment_reason": "Does not invent an amount, but does not ask for the missing amount.",
+      "reply": {
+        "status": "clarification",
+        "path": "act:clarify|vessel:receipt",
+        "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Convert miles to km.\" as an unnamed shape [vessel:v0008]; if it returns it gains weight, and when I can name it, I will.",
+        "provenance": {
+          "kind": "dialogue_state",
+          "note": "graceful clarify terminal",
+          "vessel": {
+            "id": "v0008",
+            "weight": 3.0,
+            "count": 1,
+            "slot": "bounds"
+          }
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "multi_step",
+          "margin": 0.017,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 4.1,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        }
+      },
+      "run": "initial"
+    },
+    {
+      "id": "multiply",
+      "conversation_id": "discovery-multiply",
+      "text": "What is 17 times 23?",
+      "latency_seconds": 0.014028,
+      "topics": [
+        "arithmetic",
+        "math",
+        "multiply"
+      ],
+      "task_judgment": "completed",
+      "judgment_reason": "17 × 23 = 391.",
+      "reply": {
+        "status": "answered",
+        "path": "compute:verified",
+        "response": "In steps: 17 x 23 = 391. The answer is 391.",
+        "provenance": {
+          "kind": "computation",
+          "verified": true,
+          "steps": [
+            "17 x 23 = 391"
+          ],
+          "carried_prior": false,
+          "evaluator": "w27_closed_grammar"
+        },
+        "latency_ms": 1
+      },
+      "run": "initial"
+    },
+    {
+      "id": "code-help",
+      "conversation_id": "discovery-code",
+      "text": "Can you help me write Python code?",
+      "latency_seconds": 0.052627,
+      "topics": [
+        "python",
+        "code",
+        "help"
+      ],
+      "task_judgment": "not_completed",
+      "judgment_reason": "Marked answered, but generic addressed reply supplies no Python task or example.",
+      "reply": {
+        "status": "answered",
+        "path": "organ:converse>addressed",
+        "response": "You've reached Oracle7, an AI assistant rather than a person or a front desk, so I can't do that part myself. I can look things up, work through problems, write code, tell a joke or find a recipe.",
+        "provenance": {
+          "kind": "organ_converse",
+          "move": "addressed",
+          "parent_path": "act:clarify|vessel:receipt",
+          "parent_status": "clarification"
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "definitional",
+          "margin": 0.034,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 7.2,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": []
+      },
+      "run": "initial"
+    },
+    {
+      "id": "code-followup",
+      "conversation_id": "discovery-code",
+      "text": "Why couldn't you answer that?",
+      "latency_seconds": 0.065134,
+      "topics": [
+        "python",
+        "code",
+        "help",
+        "followup"
+      ],
+      "task_judgment": "not_completed",
+      "judgment_reason": "Generic refusal does not explain prior reply.",
+      "reply": {
+        "status": "withheld",
+        "path": "precision_guard:R3b_desk_reply_to_question|organ:converse>addressed",
+        "response": "I can't verify an answer to that exact question, so I won't guess.",
+        "provenance": {
+          "kind": "precision_guard",
+          "rule": "R3b_desk_reply_to_question",
+          "withheld_path": "organ:converse>addressed",
+          "withheld_response": "You've reached Oracle7, an AI assistant rather than a person or a front desk, so I can't do that part myself. I can look things up, work through problems, write code, tell a joke or find a recipe."
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "why_different",
+          "margin": 0.355,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 5.3,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": []
+      },
+      "run": "initial"
+    },
+    {
+      "id": "guide-python-1",
+      "conversation_id": "guide-python-1",
+      "text": "What are the parameters of random.shuffle in Python?",
+      "latency_seconds": 1.301727,
+      "run": "guided-fixed-search",
+      "topics": [
+        "python",
+        "code",
+        "signature"
+      ],
+      "task_judgment": "completed",
+      "judgment_reason": "Returns random.shuffle signature (x), labeled Python 3.12.3.",
+      "reply": {
+        "status": "answered",
+        "path": "specialist_call>specialist:python-r2>signature",
+        "response": "random.shuffle — signature (x) (Python 3.12.3). [python-r2]",
+        "provenance": {
+          "kind": "core_called_specialist",
+          "core_status": "withheld",
+          "core_path": "factoid:withheld|vessel:receipt",
+          "specialist": "python-r2",
+          "parts": null,
+          "trace": {
+            "rule": "only"
+          }
+        },
+        "latency_ms": 0.1,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "arbitration": {
+          "winner": "definitional",
+          "runner_up": "act_continue",
+          "margin": 0.82,
+          "floor": false,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "authoritative",
+          "arbiter": "v3",
+          "canonical_surface": "What is a python?",
+          "capture_point": "capability"
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "direct"
+        },
+        "continuation": {
+          "doors": [
+            "genus",
+            "name"
+          ],
+          "offer": "from here, genus or name stand open"
+        },
+        "references": []
+      }
+    },
+    {
+      "id": "guide-python-2",
+      "conversation_id": "guide-python-2",
+      "text": "What does the Python function gzip.GzipFile do?",
+      "latency_seconds": 0.189065,
+      "run": "guided-fixed-search",
+      "topics": [
+        "python",
+        "code",
+        "documentation"
+      ],
+      "task_judgment": "partially_completed",
+      "judgment_reason": "Returns class signature and a truncated first doc line; does not explain gzip compressed-file behavior.",
+      "reply": {
+        "status": "answered",
+        "path": "specialist_call>specialist:python-r2>doc",
+        "response": "gzip.GzipFile: The GzipFile class simulates most of the methods of a file object with Call it as gzip.GzipFile(filename=None, mode=None, compresslevel=9, fileobj=None, mtime=None) (Python 3.12.3). [python-r2]",
+        "provenance": {
+          "kind": "core_called_specialist",
+          "core_status": "clarification",
+          "core_path": "act:clarify|vessel:receipt",
+          "specialist": "python-r2",
+          "parts": null,
+          "trace": {
+            "rule": "only"
+          }
+        },
+        "arbitration": {
+          "winner": "definitional",
+          "runner_up": "why_different",
+          "margin": 0.994,
+          "floor": false,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 10.7,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": []
+      }
+    },
+    {
+      "id": "guide-units-1",
+      "conversation_id": "guide-units-1",
+      "text": "I have 2.5 g. How many pounds is that?",
+      "latency_seconds": 0.118682,
+      "run": "guided-fixed-search",
+      "topics": [
+        "units",
+        "convert",
+        "mass"
+      ],
+      "task_judgment": "completed",
+      "judgment_reason": "0.005512 pounds is the correct rounded result; reply uses an approximate conversion factor, not an exact proof.",
+      "reply": {
+        "status": "answered",
+        "path": "organ:math>word:convert",
+        "response": "[ev:derived] 0.005512 pounds. Read as convert: 2.5 g = 2.5 x 1 / 453.592 pound. Checked: every quantity the formula needs was found with its unit, and the question asks for what the formula gives.",
+        "provenance": {
+          "kind": "organ_word_problem",
+          "schema": "convert",
+          "value": 0.0055115565546219394,
+          "parent_path": "act:clarify_specific",
+          "parent_status": "clarification"
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "explain_simply",
+          "margin": 0.002,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 9.0,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        }
+      }
+    },
+    {
+      "id": "guide-units-2",
+      "conversation_id": "guide-units-2",
+      "text": "Convert 100 kPa to psi.",
+      "latency_seconds": 0.10563,
+      "run": "guided-fixed-search",
+      "topics": [
+        "units",
+        "convert",
+        "pressure"
+      ],
+      "task_judgment": "completed",
+      "judgment_reason": "14.50377377 psi agrees with independent pressure conversion.",
+      "reply": {
+        "status": "answered",
+        "path": "specialist_call>specialist:units-v3>convert",
+        "response": "100 kPa is 14.50377377 (exactly 129032000000000/8896443230521) psi (NIST exact factors). [units-v3]",
+        "provenance": {
+          "kind": "core_called_specialist",
+          "core_status": "clarification",
+          "core_path": "act:clarify|vessel:receipt",
+          "specialist": "units-v3",
+          "parts": null,
+          "trace": {
+            "rule": "only"
+          }
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "why_different",
+          "margin": 0.056,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 4.9,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": []
+      }
+    },
+    {
+      "id": "guide-prepared",
+      "conversation_id": "guide-prepared",
+      "text": "Convert 12 miles to km.",
+      "latency_seconds": 0.068374,
+      "run": "guided-fixed-search",
+      "topics": [
+        "units",
+        "convert",
+        "distance"
+      ],
+      "task_judgment": "completed",
+      "judgment_reason": "301752/15625 km = 19.312128 km, from 12 × 1.609344.",
+      "reply": {
+        "status": "answered",
+        "path": "op:unit_convert",
+        "response": "12 miles is 301752/15625 km. the factor from miles to km is 25146/15625. 12 x 25146/15625 = 301752/15625. I checked it by a second method that agrees.",
+        "provenance": {
+          "kind": "computation",
+          "verified": true,
+          "operator": "unit_convert",
+          "family": "measurement",
+          "steps": [
+            "the factor from miles to km is 25146/15625",
+            "12 x 25146/15625 = 301752/15625"
+          ],
+          "independence": "measured: absolute factors against a composed chain of step ratios, no shared table",
+          "checked_by": "independent reimplementation"
+        },
+        "latency_ms": 2
+      }
+    }
+  ],
+  "runs": [
+    "var/usage-20261026/discovery/initial",
+    "var/usage-20261026/discovery/guided-fixed-search"
+  ]
+}

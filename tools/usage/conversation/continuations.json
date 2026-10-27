@@ -1,0 +1,10 @@
+[
+{"id":"ack-1","conversation_id":"ack","text":"What is 3 + 4?"},
+{"id":"ack-2","conversation_id":"ack","text":"Thanks."},
+{"id":"ack-3","conversation_id":"ack","text":"What is that times 2?"},
+{"id":"solved-1","conversation_id":"solved","text":"Solve x + 3 = 8."},
+{"id":"solved-2","conversation_id":"solved","text":"What is x squared?"},
+{"id":"quantity-1","conversation_id":"quantity","text":"How much energy does a 2 kW heater use in 3 hours?"},
+{"id":"quantity-2","conversation_id":"quantity","text":"What does that cost at $0.20 per kWh?"},
+{"id":"transfer-1","conversation_id":"ack","text":"How long does it take to transfer 1GB at100Mbps?"}
+]

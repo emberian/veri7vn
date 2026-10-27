@@ -1,0 +1,16 @@
+[
+ {"id":"lift_ideal","conversation_id":"lift","text":"How much energy is needed to lift a 25 kg crate vertically by 4 m? Use g = 9.81 m/s^2 and ignore losses."},
+ {"id":"lift_efficiency","conversation_id":"lift","text":"For that same lift, how much electrical energy is needed if the motor efficiency is 80%?"},
+ {"id":"pump_power","conversation_id":"pump","text":"A pump raises water at 0.002 m^3/s through a vertical height of 10 m. Use water density 1000 kg/m^3, g = 9.81 m/s^2, and 70% overall efficiency. What electrical input power is needed? Ignore pipe friction."},
+ {"id":"spring_work","conversation_id":"spring-work","text":"A linear spring has stiffness 200 N/m. Its extension changes from 0.1 m to 0.3 m. How much additional elastic energy is stored?"},
+ {"id":"spring_force","conversation_id":"spring-force","text":"A spring has unstretched length 0.4 m, final length 0.5 m and stiffness 200 N/m. What is its force magnitude?"},
+ {"id":"spring_simple","conversation_id":"spring-simple","text":"What is the elastic energy stored in a spring with stiffness 200 N/m and extension 0.3 m?"},
+ {"id":"heat_endpoints","conversation_id":"heat-endpoints","text":"How much heat is needed to warm 2 kg of water from 20 C to 80 C? Use constant specific heat 4180 J/(kg K), with no phase change or heat loss."},
+ {"id":"heat_interval","conversation_id":"heat-interval","text":"How much heat is needed to raise the temperature of 2 kg of water by 60 K? Use specific heat 4180 J/(kg K)."},
+ {"id":"battery_roles","conversation_id":"battery-roles","text":"How long can a 1000 Wh battery run a 100 W load through a 500 W rated inverter with 90% inverter efficiency and 80% depth of discharge? The load is constant."},
+ {"id":"battery_plain","conversation_id":"battery-plain","text":"How long can a 1000 Wh battery run a 100 W load with 90% inverter efficiency and 80% depth of discharge?"},
+ {"id":"battery_invalid","conversation_id":"battery-invalid","text":"How long can a 1000 Wh battery run a 100 W load with 120% inverter efficiency and 80% depth of discharge?"},
+ {"id":"conversion_flow","conversation_id":"conversion-flow","text":"Convert 30 litres per minute to cubic metres per second."},
+ {"id":"temperature_interval","conversation_id":"temperature-interval","text":"Convert a temperature increase of 18 F to a temperature increase in C."},
+ {"id":"dimension_mismatch","conversation_id":"dimension-mismatch","text":"Convert 2 metres to kilograms."}
+]

@@ -1,0 +1,17 @@
+{
+  "hex-byte": {"expected":"ff", "reason":"255 = 15*16+15."},
+  "binary-byte": {"expected":255, "reason":"1+2+4+8+16+32+64+128 = 255."},
+  "unsigned-wrap": {"expected":0, "reason":"(255+1) mod 256 = 0; unsigned wrapping explicitly requested."},
+  "timer-overflow": {"expected_seconds":"0.001024", "reason":"256 ticks * 64 / 16000000 seconds = 1024 microseconds."},
+  "graph-path": {"expected":4, "path":["A","C","D"], "reason":"The two simple A-D paths cost 4+3=7 and 2+2=4."},
+  "graph-direction": {"expected":"unreachable", "reason":"Every arc points away from A toward C; C has no outgoing arc."},
+  "graph-negative": {"expected":1, "acceptable":"Explicit refusal for a negative edge is useful; an answer on a graph that silently omits it is wrong.", "reason":"DAG paths A-B-C and A-C cost 4-3=1 and 8."},
+  "mst": {"expected":7, "reason":"Three smallest edges of weights 2,2,3 connect all four nodes without a cycle; any spanning tree needs three edges."},
+  "search-unsorted": {"expected":"withheld", "reason":"Binary search requires sorted input; do not assume permission to sort or silently give a linear-search index."},
+  "search-sorted": {"expected":1, "reason":"7 occupies the second slot, index 1 under the specialist's documented zero-based convention."},
+  "choose-tests": {"expected":56, "reason":"8*7*6/(3*2*1)=56 subsets."},
+  "logic-implication": {"expected":"tautology", "reason":"For each of the four Boolean assignments, p implies q and not-q implies not-p have the same truth value."},
+  "sort-complexity": {"expected":"O(n^2)", "reason":"Repeated extreme partitions require n-1+n-2+...+1 comparisons; no random or median-pivot guarantee was supplied."},
+  "sql-null-count": {"expected":[3,2,1], "reason":"Three rows; two non-NULL x values; one distinct non-NULL value."},
+  "sql-empty-sum": {"expected":[null,0], "reason":"SQL SUM over zero rows yields NULL and COUNT yields zero."}
+}

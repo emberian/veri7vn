@@ -1,0 +1,42 @@
+[
+  {
+    "id": "stored_invalid_fraction",
+    "conversation_id": "composition_boundary_stored_invalid_fraction",
+    "text": "A 400 W solar panel runs for 5 hours. A battery stores 120% of this energy. What is the stored energy?"
+  },
+  {
+    "id": "stored_missing_fraction",
+    "conversation_id": "composition_boundary_stored_missing_fraction",
+    "text": "A 400 W solar panel runs for 5 hours. What is the stored energy?"
+  },
+  {
+    "id": "remaining_overdraw",
+    "conversation_id": "composition_boundary_remaining_overdraw",
+    "text": "A battery initially stores 1 kWh. A 500 W load runs for 3 hours. How much energy remains?"
+  },
+  {
+    "id": "remaining_negative_time",
+    "conversation_id": "composition_boundary_remaining_negative_time",
+    "text": "A battery initially stores 1 kWh. A 500 W load runs for -1 hours. How much energy remains?"
+  },
+  {
+    "id": "remaining_bad_comma",
+    "conversation_id": "composition_boundary_remaining_bad_comma",
+    "text": "A battery initially stores 1,2 kWh. A 100 W load runs for 1 hour. How much energy remains?"
+  },
+  {
+    "id": "remaining_multiple_sources",
+    "conversation_id": "composition_boundary_remaining_multiple_sources",
+    "text": "Two batteries initially store 1000 Wh each. A 100 W load runs for 1 hour. How much energy remains in the batteries?"
+  },
+  {
+    "id": "stored_negative_time",
+    "conversation_id": "composition_boundary_stored_negative_time",
+    "text": "A 400 W solar panel runs for -5 hours. A battery stores 80% of this energy. What is the stored energy?"
+  },
+  {
+    "id": "stored_conflicting_fraction",
+    "conversation_id": "composition_boundary_stored_conflicting_fraction",
+    "text": "A 400 W solar panel runs for 5 hours. A battery stores 80% of this energy at 90% storage efficiency. What is the stored energy?"
+  }
+]

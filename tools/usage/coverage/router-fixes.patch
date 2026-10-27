@@ -1,0 +1,213 @@
+--- a/root/wander-train/reach_router_v1.py
++++ b/root/wander-train/reach_router_v1.py
+@@ -17,6 +17,7 @@
+ quantities without their units). At most 5 stored values, listed; more is declined.
+ Refused as in exact_router_v1: yes/no questions, a hidden hop, a quoted title that is not the span, a past-time qualifier on
+ a relation that changes over time, blank nodes, an answer that restates the question.
++Untrusted routing policy: stored rows and type ancestry are evidence, not proof of source truth or completeness.
+ use: answer(question) -> {"answer", "values", "property", "direction", "subject_qid", "route", "pattern"} or None"""
+ import json
+ import os
+@@ -138,7 +139,7 @@
+                     j += step
+                 if 0 <= j < len(toks):
+                     w = toks[j]
+-                    if w not in L.STOP and w not in cues and not w.isdigit() and len(w) >= 3:
++                    if w not in L.STOP and w not in cues and not w.isdigit():
+                         return True
+             return False
+     return False
+@@ -368,8 +369,9 @@
+         return None                                       # a value with no English name is not shown
+     shown = sorted(shown)
+     aw = [w for x in shown for w in L.norm(x).split() if w not in L.STOP]
+-    if aw and all(w in set(L.norm(q).split()) for w in aw):
+-        return None                                       # the answer restates the question
++    if subj in v or (not all(isinstance(x, int) for x in v)
++                     and aw and all(w in set(L.norm(q).split()) for w in aw)):
++        return None                                       # entity identity, not overlapping labels, is restatement
+     text = shown[0] if len(shown) == 1 else ", ".join(shown[:-1]) + " and " + shown[-1]
+     return {"answer": text, "values": shown, "raw": sorted(v, key=str), "property": p, "direction": d, "subject_qid": subj,
+             "route": route, "pattern": pat}
+--- a/root/wander-train/reach_router_v2.py
++++ b/root/wander-train/reach_router_v2.py
+@@ -23,6 +23,7 @@
+ quantities without their units). At most 5 stored values, listed; more is declined.
+ Refused as in exact_router_v1: yes/no questions, a hidden hop, a quoted title that is not the span, a past-time qualifier on
+ a relation that changes over time, blank nodes, an answer that restates the question.
++Untrusted routing policy: stored rows and type ancestry are evidence, not proof of source truth or completeness.
+ use: answer(question) -> {"answer", "values", "property", "direction", "subject_qid", "route", "pattern"} or None"""
+ import json
+ import os
+@@ -150,7 +151,7 @@
+                     j += step
+                 if 0 <= j < len(toks):
+                     w = toks[j]
+-                    if w not in L.STOP and w not in cues and not w.isdigit() and len(w) >= 3:
++                    if w not in L.STOP and w not in cues and not w.isdigit():
+                         return True
+             return False
+     return False
+@@ -409,8 +410,9 @@
+         return None                                       # a value with no English name is not shown
+     shown = sorted(shown)
+     aw = [w for x in shown for w in L.norm(x).split() if w not in L.STOP]
+-    if aw and all(w in set(L.norm(q).split()) for w in aw):
+-        return None                                       # the answer restates the question
++    if subj in v or (not all(isinstance(x, int) for x in v)
++                     and aw and all(w in set(L.norm(q).split()) for w in aw)):
++        return None                                       # entity identity, not overlapping labels, is restatement
+     text = shown[0] if len(shown) == 1 else ", ".join(shown[:-1]) + " and " + shown[-1]
+     return {"answer": text, "values": shown, "raw": sorted(v, key=str), "property": p, "direction": d, "subject_qid": subj,
+             "route": route, "pattern": pat}
+--- a/root/wander-train/reach_router_v3.py
++++ b/root/wander-train/reach_router_v3.py
+@@ -27,6 +27,7 @@
+ quantities without their units). At most 5 stored values, listed; more is declined.
+ Refused as in exact_router_v1: yes/no questions, a hidden hop, a quoted title that is not the span, a past-time qualifier on
+ a relation that changes over time, blank nodes, an answer that restates the question.
++Untrusted routing policy: stored rows and type ancestry are evidence, not proof of source truth or completeness.
+ use: answer(question) -> {"answer", "values", "property", "direction", "subject_qid", "route", "pattern"} or None"""
+ import json
+ import os
+@@ -144,9 +145,9 @@
+     return True
+ 
+ 
+-def fragment(q, span, p):
++def fragment(q, span, p, extra_cues=()):
+     """the span is part of a longer name: a word next to it (past name particles) is a content word nothing explains"""
+-    cues = _load()["cues"].get(p, set())
++    cues = _load()["cues"].get(p, set()) | set(extra_cues)
+     toks, sp = L.norm(q).split(), L.norm(span).split()
+     for i in range(len(toks) - len(sp) + 1):
+         if toks[i:i + len(sp)] == sp:
+@@ -155,7 +156,7 @@
+                     j += step
+                 if 0 <= j < len(toks):
+                     w = toks[j]
+-                    if w not in L.STOP and w not in cues and not w.isdigit() and len(w) >= 3:
++                    if w not in L.STOP and w not in cues and not w.isdigit():
+                         return True
+             return False
+     return False
+@@ -167,17 +168,17 @@
+ MAX_UNEXPLAINED = int(os.environ.get("REACH_MAX_UNEXPLAINED", "2"))   # development: 2 stopped a Mintaka error, lost nothing
+ 
+ 
+-def unexplained(q, span, p):
++def unexplained(q, span, p, extra_cues=()):
+     """content words of the question that neither the subject, the relation's own words nor ordinary question words explain"""
+-    cues = _load()["cues"].get(p, set())
++    cues = _load()["cues"].get(p, set()) | set(extra_cues)
+     sp = set(L.norm(span).split())
+     return [w for w in L.norm(q).split() if w not in sp and w not in cues and w not in GENERIC and w not in L.STOP
+             and not w.isdigit() and len(w) >= 3]
+ 
+ 
+-def _agree(q, span, cands, p, d):
++def _agree(q, span, cands, p, d, extra_cues=()):
+     """the readings of the name that hold the relation must agree; a one-word name answers through its top reading only"""
+-    if fragment(q, span, p) or len(unexplained(q, span, p)) > MAX_UNEXPLAINED:
++    if fragment(q, span, p, extra_cues) or len(unexplained(q, span, p, extra_cues)) > MAX_UNEXPLAINED:
+         return None, None
+     one = len(L.norm(span).split()) == 1
+     use = cands[:1] if one else cands[:3]
+@@ -310,11 +311,52 @@
+         return []
+     al = _load()["alias"]
+     v = m.group("v").lower()
++    if v == "created":
++        # A developer can be a later maintainer, not the original creator.
++        # Designer is admitted only with programming-language type evidence below.
++        return [({170, 287}, m.group("y"), "agent:created")]
+     passive, agents = (IRREG[v][0], {IRREG[v][1]}) if v in IRREG else (v, _agent_nouns(v))
+     props = set(al.get(passive + " by", set()))
+     for a in agents:
+         props |= set(al.get(a, set()))
+     return [(props, m.group("y"), "agent:" + v)] if props else []
++
++
++def _programming_language(qid):
++    """Positive bounded P31/P279 evidence only; missing ancestry is not a negative fact."""
++    db = _load()["db"]
++    frontier, seen = {qid}, set()
++    for depth in range(5):
++        if 9143 in frontier and depth > 0:
++            return True
++        next_frontier = set()
++        for item in frontier - seen:
++            rows = db.execute("SELECT o FROM fact INDEXED BY fact_sp WHERE s=? AND p=? LIMIT 33",
++                              (item, 31 if depth == 0 else 279)).fetchall()
++            if len(rows) > 32:
++                return False
++            next_frontier.update(o for (o,) in rows if o is not None)
++        seen.update(frontier)
++        if len(seen | next_frontier) > 64:
++            return False
++        frontier = next_frontier - seen
++        if not frontier:
++            return False
++    return False
++
++
++def _creation_property_allowed(p, cands):
++    """Creator means P170; a language's original designer may also answer creation.
++
++    Every candidate with a designer row must have positive language ancestry.
++    Never select a language merely because another reading lacks that type.
++    """
++    if p == 170:
++        return True
++    if p != 287:
++        return False
++    holders = [qid for qid, _, _ in cands[:3] if has(qid, p)]
++    return bool(holders) and all(_programming_language(qid) for qid in holders)
+ 
+ 
+ def _label_routes(q):
+@@ -408,14 +450,18 @@
+     sp = L.link(q, 3)[:3]
+     if pinned:
+         sp = [(pinned[0], [(pinned[1], 10 ** 6, label(pinned[1]))])] + [x for x in sp if L.norm(x[0]) != L.norm(pinned[0])]
++    agent = AGENT.match(q)
++    asks_creation = bool(agent and agent.group("v").lower() == "created")
+     found = []
+     for span, cands in sp:                                # PATTERN route: the first span whose reading holds the relation
+         if XR.hop(q, span) or not XR.subject_ok(q, span):
+             continue
+         for (p, d), route, pat in _routes(q, span, cands):
++            if asks_creation and (d != "fwd" or not _creation_property_allowed(p, cands)):
++                continue
+             if p in XR.TIME_VARIANT and XR.PAST.search(q):
+                 continue
+-            v, subj = _agree(q, span, cands, p, d)
++            v, subj = _agree(q, span, cands, p, d, {"created"} if asks_creation and p == 287 else ())
+             if v is not None and fits(q, p, d, v):
+                 found.append((p, d, v, subj, route, pat))
+                 break
+@@ -429,9 +475,11 @@
+             span, cands = ysp[0]
+             hits = []
+             for p in sorted(props):
++                if asks_creation and not _creation_property_allowed(p, cands):
++                    continue
+                 if p in XR.TIME_VARIANT and XR.PAST.search(q):
+                     continue
+-                v, subj = _agree(q, span, cands, p, "fwd")
++                v, subj = _agree(q, span, cands, p, "fwd", {"created"} if asks_creation and p == 287 else ())
+                 if v is not None and fits(q, p, "fwd", v):
+                     hits.append((p, "fwd", v, subj, "when" if asked.startswith("when:") else "count" if asked.startswith("count:") else "agent" if asked.startswith("agent:") else "label", asked))
+             if len({h[2] for h in hits}) == 1:
+@@ -445,8 +493,9 @@
+         return None                                       # a value with no English name is not shown
+     shown = sorted(shown)
+     aw = [w for x in shown for w in L.norm(x).split() if w not in L.STOP]
+-    if aw and all(w in set(L.norm(q).split()) for w in aw):
+-        return None                                       # the answer restates the question
++    if subj in v or (not all(isinstance(x, int) for x in v)
++                     and aw and all(w in set(L.norm(q).split()) for w in aw)):
++        return None                                       # entity identity, not overlapping labels, is restatement
+     text = shown[0] if len(shown) == 1 else ", ".join(shown[:-1]) + " and " + shown[-1]
+     return {"answer": text, "values": shown, "raw": sorted(v, key=str), "property": p, "direction": d, "subject_qid": subj,
+             "route": route, "pattern": pat}

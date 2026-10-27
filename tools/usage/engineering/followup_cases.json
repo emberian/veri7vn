@@ -1,0 +1,22 @@
+[
+  {
+    "id": "interval_helper_v2",
+    "conversation_id": "interval_helper_v2",
+    "text": "What is 18 * (5 / 9)?"
+  },
+  {
+    "id": "battery_rating_first",
+    "conversation_id": "battery_rating_first",
+    "text": "How long can a 1000 Wh battery with a 500 W rated inverter run a 100 W load with 90% inverter efficiency and 80% depth of discharge?"
+  },
+  {
+    "id": "spring_energy_rephrase",
+    "conversation_id": "spring_energy_rephrase",
+    "text": "How much energy is stored in a spring with stiffness 200 N/m and extension 0.3 m?"
+  },
+  {
+    "id": "heat_one_sentence",
+    "conversation_id": "heat_one_sentence",
+    "text": "How much heat is needed to warm 2 kg of water from 20 C to 80 C using specific heat 4180 J/(kg K), with no phase change or heat loss?"
+  }
+]

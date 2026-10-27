@@ -1,0 +1,142 @@
+{
+  "scope": "Independent arithmetic expectations written before the first engine run. Not specialist panel scoring.",
+  "cases": {
+    "percent_base": {
+      "kind": "number",
+      "value": 16,
+      "reason": "80 * 20 / 100"
+    },
+    "percent_paraphrase": {
+      "kind": "number",
+      "value": 16,
+      "reason": "80 * 20 / 100"
+    },
+    "percent_changed": {
+      "kind": "number",
+      "value": 20,
+      "reason": "80 * 25 / 100"
+    },
+    "area_base": {
+      "kind": "number",
+      "value": 12,
+      "reason": "3 * 4 square meters"
+    },
+    "area_paraphrase": {
+      "kind": "number",
+      "value": 12,
+      "reason": "4 * 3 square meters"
+    },
+    "area_incidental": {
+      "kind": "number",
+      "value": 12,
+      "reason": "Apartment identifier is irrelevant; 3 * 4 square meters"
+    },
+    "perimeter_requested": {
+      "kind": "number",
+      "value": 14,
+      "reason": "2 * (3 + 4) meters; area is not requested"
+    },
+    "temperature_negative": {
+      "kind": "number",
+      "value": 23,
+      "reason": "-5 * 9 / 5 + 32"
+    },
+    "temperature_paraphrase": {
+      "kind": "number",
+      "value": 23,
+      "reason": "(-5) * 9 / 5 + 32"
+    },
+    "zero_denominator": {
+      "kind": "refusal",
+      "value": null,
+      "reason": "Division by zero is undefined"
+    },
+    "zero_numerator": {
+      "kind": "number",
+      "value": 0,
+      "reason": "0 / 10 = 0"
+    },
+    "speed_zero_time": {
+      "kind": "refusal",
+      "value": null,
+      "reason": "Average speed 150 / 0 is undefined; inconsistent finite trip"
+    },
+    "speed_base": {
+      "kind": "number",
+      "value": 50,
+      "reason": "150 / 3 kilometers per hour"
+    },
+    "speed_contradiction": {
+      "kind": "refusal",
+      "value": null,
+      "reason": "Contradictory duration; cannot select 3 or 4 without clarification"
+    },
+    "area_contradiction": {
+      "kind": "refusal",
+      "value": null,
+      "reason": "Contradictory length; cannot select 3 or 5 without clarification"
+    }
+  },
+  "pairs": [
+    {
+      "id": "percent_words",
+      "left": "percent_base",
+      "right": "percent_paraphrase",
+      "relation": "same"
+    },
+    {
+      "id": "percent_changed",
+      "left": "percent_base",
+      "right": "percent_changed",
+      "relation": "different"
+    },
+    {
+      "id": "area_words",
+      "left": "area_base",
+      "right": "area_paraphrase",
+      "relation": "same"
+    },
+    {
+      "id": "area_incidental",
+      "left": "area_base",
+      "right": "area_incidental",
+      "relation": "same"
+    },
+    {
+      "id": "requested_quantity",
+      "left": "area_base",
+      "right": "perimeter_requested",
+      "relation": "different"
+    },
+    {
+      "id": "negative_words",
+      "left": "temperature_negative",
+      "right": "temperature_paraphrase",
+      "relation": "same"
+    },
+    {
+      "id": "zero_role",
+      "left": "zero_denominator",
+      "right": "zero_numerator",
+      "relation": "different"
+    },
+    {
+      "id": "speed_zero",
+      "left": "speed_base",
+      "right": "speed_zero_time",
+      "relation": "different"
+    },
+    {
+      "id": "speed_contradiction",
+      "left": "speed_base",
+      "right": "speed_contradiction",
+      "relation": "different"
+    },
+    {
+      "id": "area_contradiction",
+      "left": "area_base",
+      "right": "area_contradiction",
+      "relation": "different"
+    }
+  ]
+}

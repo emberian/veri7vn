@@ -1,0 +1,158 @@
+{
+  "prepared_before_run": true,
+  "sources_checked": "2026-10-26",
+  "note": "Independent primary-source expectations; QIDs and properties are operator hypotheses for bounded diagnosis, not Oracle answers. Python authorship source supports creator, not unique semantics for every property. No inference of world-falsity from missing rows.",
+  "cases": [
+    {
+      "id": "leaves",
+      "text": "Who wrote Leaves of Grass?",
+      "expected": "Walt Whitman",
+      "source": "https://www.loc.gov/item/03023679/",
+      "entity_name": "Leaves of Grass",
+      "expected_qid": 132042,
+      "property": 50,
+      "operation": "forward"
+    },
+    {
+      "id": "leaves-author",
+      "text": "Who is the author of Leaves of Grass?",
+      "expected": "Walt Whitman",
+      "source": "https://www.loc.gov/item/03023679/",
+      "entity_name": "Leaves of Grass",
+      "expected_qid": 132042,
+      "property": 50,
+      "operation": "forward"
+    },
+    {
+      "id": "leaves-check",
+      "text": "Did Walt Whitman write Leaves of Grass?",
+      "expected": "Yes",
+      "source": "https://www.loc.gov/item/03023679/",
+      "entity_name": "Leaves of Grass",
+      "expected_qid": 132042,
+      "property": 50,
+      "operation": "verify"
+    },
+    {
+      "id": "curie",
+      "text": "Where was Marie Curie born?",
+      "expected": "Warsaw",
+      "source": "https://www.nobelprize.org/prizes/physics/1903/marie-curie/questions-and-answers/",
+      "entity_name": "Marie Curie",
+      "expected_qid": 7186,
+      "property": 19,
+      "operation": "forward"
+    },
+    {
+      "id": "curie-alias",
+      "text": "Where was Maria Skłodowska born?",
+      "expected": "Warsaw",
+      "source": "https://www.nobelprize.org/prizes/physics/1903/marie-curie/questions-and-answers/",
+      "entity_name": "Maria Skłodowska",
+      "expected_qid": 7186,
+      "property": 19,
+      "operation": "forward"
+    },
+    {
+      "id": "curie-date",
+      "text": "When was Marie Curie born?",
+      "expected": "7 November 1867",
+      "source": "https://www.nobelprize.org/prizes/physics/1903/marie-curie/questions-and-answers/",
+      "entity_name": "Marie Curie",
+      "expected_qid": 7186,
+      "property": 569,
+      "operation": "forward"
+    },
+    {
+      "id": "canada",
+      "text": "What is the capital of Canada?",
+      "expected": "Ottawa",
+      "source": "https://www.canada.ca/en/immigration-refugees-citizenship/services/settle-canada/land-climate.html",
+      "entity_name": "Canada",
+      "expected_qid": 16,
+      "property": 36,
+      "operation": "forward"
+    },
+    {
+      "id": "python",
+      "text": "Who designed the Python programming language?",
+      "expected": "Guido van Rossum",
+      "source": "https://docs.python.org/3.13/license.html",
+      "entity_name": "Python",
+      "expected_qid": 28865,
+      "property": 287,
+      "operation": "forward"
+    },
+    {
+      "id": "python-created",
+      "text": "Who created Python?",
+      "expected": "Guido van Rossum if programming language; ask if ambiguous",
+      "source": "https://docs.python.org/3.13/license.html",
+      "entity_name": "Python",
+      "expected_qid": 28865,
+      "property": 178,
+      "operation": "forward"
+    },
+    {
+      "id": "bridge",
+      "text": "When did the Golden Gate Bridge open?",
+      "expected": "27 May 1937 for pedestrians; 28 May 1937 for vehicles",
+      "source": "https://www.goldengate.org/bridge/history-research/moments-events/key-dates/",
+      "entity_name": "Golden Gate Bridge",
+      "expected_qid": 44440,
+      "property": 1619,
+      "operation": "forward"
+    },
+    {
+      "id": "bridge-pedestrians",
+      "text": "When did the Golden Gate Bridge open to pedestrians?",
+      "expected": "27 May 1937",
+      "source": "https://www.goldengate.org/bridge/history-research/moments-events/key-dates/",
+      "entity_name": "Golden Gate Bridge",
+      "expected_qid": 44440,
+      "property": 1619,
+      "operation": "qualified"
+    },
+    {
+      "id": "andromeda",
+      "text": "In which constellation is the Andromeda Galaxy?",
+      "expected": "Andromeda",
+      "source": "https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/messier-31/",
+      "entity_name": "Andromeda Galaxy",
+      "expected_qid": 2469,
+      "property": 59,
+      "operation": "forward"
+    },
+    {
+      "id": "m31",
+      "text": "In which constellation is M31?",
+      "expected": "Andromeda",
+      "source": "https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/messier-31/",
+      "entity_name": "M31",
+      "expected_qid": 2469,
+      "property": 59,
+      "operation": "forward"
+    },
+    {
+      "id": "washington",
+      "text": "Where was Washington born?",
+      "expected": "Clarify which person; surname alone is underspecified",
+      "source": null,
+      "entity_name": "Washington",
+      "expected_qid": null,
+      "property": 19,
+      "operation": "ambiguous"
+    },
+    {
+      "id": "all-poems",
+      "text": "List every poem Walt Whitman wrote.",
+      "expected": "An exhaustive claim needs an edition/scope and complete bibliography; a sample must be labeled incomplete",
+      "source": "https://www.loc.gov/item/03023679/",
+      "entity_name": "Walt Whitman",
+      "expected_qid": 81438,
+      "property": 50,
+      "operation": "enumerate_all"
+    }
+  ],
+  "id_correction_after_run": "Operator QID guesses for Leaves of Grass and Walt Whitman were corrected by exact-name index lookup after run-1, from 46248 to 132042 and from 814 to 81438. Expected natural-language facts and sources were unchanged."
+}

@@ -1,0 +1,77 @@
+[
+  {
+    "id": "percent_base",
+    "conversation_id": "rel_percent_base",
+    "text": "What is 20% of 80?"
+  },
+  {
+    "id": "percent_paraphrase",
+    "conversation_id": "rel_percent_paraphrase",
+    "text": "Calculate twenty percent of eighty."
+  },
+  {
+    "id": "percent_changed",
+    "conversation_id": "rel_percent_changed",
+    "text": "What is 25% of 80?"
+  },
+  {
+    "id": "area_base",
+    "conversation_id": "rel_area_base",
+    "text": "A rectangular room is 3 meters long and 4 meters wide. What is its area?"
+  },
+  {
+    "id": "area_paraphrase",
+    "conversation_id": "rel_area_paraphrase",
+    "text": "What is the area of a rectangle with width 4 meters and length 3 meters?"
+  },
+  {
+    "id": "area_incidental",
+    "conversation_id": "rel_area_incidental",
+    "text": "Apartment 12 has a rectangular room 3 meters long and 4 meters wide. What is the room area?"
+  },
+  {
+    "id": "perimeter_requested",
+    "conversation_id": "rel_perimeter_requested",
+    "text": "A rectangular room is 3 meters long and 4 meters wide. What is its perimeter?"
+  },
+  {
+    "id": "temperature_negative",
+    "conversation_id": "rel_temperature_negative",
+    "text": "Convert -5 degrees Celsius to Fahrenheit."
+  },
+  {
+    "id": "temperature_paraphrase",
+    "conversation_id": "rel_temperature_paraphrase",
+    "text": "What is five degrees below zero Celsius in Fahrenheit?"
+  },
+  {
+    "id": "zero_denominator",
+    "conversation_id": "rel_zero_denominator",
+    "text": "What is 10 divided by 0?"
+  },
+  {
+    "id": "zero_numerator",
+    "conversation_id": "rel_zero_numerator",
+    "text": "What is 0 divided by 10?"
+  },
+  {
+    "id": "speed_zero_time",
+    "conversation_id": "rel_speed_zero_time",
+    "text": "A car travels 150 kilometers in 0 hours. What is its average speed?"
+  },
+  {
+    "id": "speed_base",
+    "conversation_id": "rel_speed_base",
+    "text": "A car travels 150 kilometers in 3 hours. What is its average speed?"
+  },
+  {
+    "id": "speed_contradiction",
+    "conversation_id": "rel_speed_contradiction",
+    "text": "The same trip took exactly 3 hours and exactly 4 hours. The car traveled 150 kilometers. What was its average speed?"
+  },
+  {
+    "id": "area_contradiction",
+    "conversation_id": "rel_area_contradiction",
+    "text": "A rectangular room has length exactly 3 meters and length exactly 5 meters, and width 4 meters. What is its area?"
+  }
+]

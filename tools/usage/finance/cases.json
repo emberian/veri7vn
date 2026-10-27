@@ -1,0 +1,77 @@
+[
+  {
+    "id": "budget",
+    "conversation_id": "budget",
+    "text": "A hypothetical monthly budget has net income of 3200 dollars, rent of 1200 dollars, groceries of 450 dollars, utilities of 180 dollars and transport of 170 dollars. How much is left after those expenses?"
+  },
+  {
+    "id": "invoice",
+    "conversation_id": "invoice",
+    "text": "An invoice contains 12 notebooks at 7.50 dollars each and 3 pens at 2 dollars each. What is the subtotal before any tax?"
+  },
+  {
+    "id": "invoice-followup",
+    "conversation_id": "invoice",
+    "text": "Now apply 10% sales tax to that subtotal. What is the total including tax?"
+  },
+  {
+    "id": "discount",
+    "conversation_id": "discount",
+    "text": "A jacket costs 80 dollars before a 25% discount. What is its sale price, with no sales tax?"
+  },
+  {
+    "id": "discount-tax",
+    "conversation_id": "discount-tax",
+    "text": "An item costs 80 dollars before a 25% discount. After the discount, add 8% sales tax. What is the final amount paid?"
+  },
+  {
+    "id": "tax-inclusive",
+    "conversation_id": "tax-inclusive",
+    "text": "An invoice total of 108 dollars already includes 8% sales tax. What was the price before tax?"
+  },
+  {
+    "id": "simple-interest",
+    "conversation_id": "simple-interest",
+    "text": "What is the simple interest on principal 1000 dollars at an annual rate of 6% for 2 years?"
+  },
+  {
+    "id": "simple-months",
+    "conversation_id": "simple-months",
+    "text": "What is the simple interest on principal 1000 dollars at an annual rate of 6% for 6 months?"
+  },
+  {
+    "id": "simple-total",
+    "conversation_id": "simple-total",
+    "text": "With principal 1000 dollars at 6% annual simple interest for 2 years, what is the final balance including principal?"
+  },
+  {
+    "id": "compound",
+    "conversation_id": "compound",
+    "text": "What is the final balance on principal 1000 dollars at 6% annual interest compounded annually for 2 years?"
+  },
+  {
+    "id": "margin",
+    "conversation_id": "margin",
+    "text": "A product sells for 100 dollars and costs 80 dollars. What is the gross profit margin as a percentage of sales?"
+  },
+  {
+    "id": "markup",
+    "conversation_id": "markup",
+    "text": "A product costs 80 dollars and sells for 100 dollars. What is the markup as a percentage of cost?"
+  },
+  {
+    "id": "breakeven",
+    "conversation_id": "breakeven",
+    "text": "Fixed costs are 1000 dollars, selling price is 30 dollars per unit and variable cost is 20 dollars per unit. How many units must be sold to break even?"
+  },
+  {
+    "id": "zero-contribution",
+    "conversation_id": "zero-contribution",
+    "text": "Fixed costs are 1000 dollars, selling price is 20 dollars per unit and variable cost is 20 dollars per unit. How many units must be sold to break even?"
+  },
+  {
+    "id": "ambiguous-interest",
+    "conversation_id": "ambiguous-interest",
+    "text": "A principal of 1000 dollars earns interest at 6% for 2 years. How much interest is earned?"
+  }
+]

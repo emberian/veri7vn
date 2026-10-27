@@ -1,0 +1,77 @@
+[
+  {
+    "id": "budget",
+    "expected": "1200",
+    "assumptions": "USD remaining; net income already excludes tax"
+  },
+  {
+    "id": "invoice",
+    "expected": "96.00",
+    "assumptions": "USD subtotal; no tax or discounts"
+  },
+  {
+    "id": "invoice-followup",
+    "expected": "105.6000",
+    "assumptions": "USD gross; carries preceding invoice subtotal 96"
+  },
+  {
+    "id": "discount",
+    "expected": "60.00",
+    "assumptions": "USD net of discount; tax excluded"
+  },
+  {
+    "id": "discount-tax",
+    "expected": "64.8000",
+    "assumptions": "USD gross; tax applies after discount"
+  },
+  {
+    "id": "tax-inclusive",
+    "expected": "1E+2",
+    "assumptions": "USD net; gross is tax-inclusive, not tax base"
+  },
+  {
+    "id": "simple-interest",
+    "expected": "120.00",
+    "assumptions": "USD interest only; annual simple rate and years"
+  },
+  {
+    "id": "simple-months",
+    "expected": "30.00",
+    "assumptions": "USD interest only; six months is half a year"
+  },
+  {
+    "id": "simple-total",
+    "expected": "1120.00",
+    "assumptions": "USD final balance, not interest alone"
+  },
+  {
+    "id": "compound",
+    "expected": "1123.6000",
+    "assumptions": "USD final balance; annual compounding, no deposits"
+  },
+  {
+    "id": "margin",
+    "expected": "20.0",
+    "assumptions": "percent margin on selling price, not markup on cost"
+  },
+  {
+    "id": "markup",
+    "expected": "25.00",
+    "assumptions": "percent markup on cost, not gross margin"
+  },
+  {
+    "id": "breakeven",
+    "expected": "100",
+    "assumptions": "units; exact integer break-even, no other costs"
+  },
+  {
+    "id": "zero-contribution",
+    "expected": null,
+    "assumptions": "No finite break-even: contribution is zero and fixed cost positive; explanation or useful refusal"
+  },
+  {
+    "id": "ambiguous-interest",
+    "expected": null,
+    "assumptions": "Must request simple versus compound and rate period, or explicitly condition the answer; no unique unconditional number"
+  }
+]

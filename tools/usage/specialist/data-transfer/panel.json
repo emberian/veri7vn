@@ -1,0 +1,30 @@
+{
+ "dev": [
+  {"q":"How long does it take to transfer 1 GB at 100 Mbps with 100% utilization?", "a":"80", "valid":true},
+  {"q":"How long does it take to transfer 1 GiB at 100 Mbps with 100% utilization?", "a":"85.89934592", "valid":true},
+  {"q":"How long does it take to transfer 1 GB at 100 MB/s with 100% utilization?", "a":"10", "valid":true},
+  {"q":"How long does it take to transfer 5 GB at 100 Mbps with 80% utilization?", "a":"500", "valid":true},
+  {"q":"How long does it take to transfer 512 MiB at 8 MiB/s with 50% utilization?", "a":"128", "valid":true},
+  {"q":"How long does it take to transfer 2.5 GB at 1 Gbps with 80% utilization?", "a":"25", "valid":true},
+  {"q":"How many seconds to download 750 MB over a 50 Mbps connection with 75% utilization?", "a":"160", "valid":true},
+  {"q":"How long does it take to transfer 0 MB at 50 Mbps with 100% utilization?", "a":"0", "valid":true},
+  {"q":"How long does it take to transfer 1 gb at 100 mbps with 100% utilization?", "valid":false},
+  {"q":"How long does it take to transfer 1 GB at 0 Mbps with 100% utilization?", "valid":false},
+  {"q":"How long does it take to transfer 1 GB at 100 Mbps with 150% utilization?", "valid":false},
+  {"q":"How long does it take to transfer 1 GB at 100 Mbps?", "valid":false}
+ ],
+ "heldout": [
+  {"q":"How long does it take to upload 12 MB at 6 Mbps with 80% utilization?", "a":"20", "valid":true},
+  {"q":"How many seconds to download 3 GiB over a 64 MiB/s connection with 75% utilization?", "a":"64", "valid":true},
+  {"q":"How long does it take to transfer 1 TB at 10 Gbps with 80% utilization?", "a":"1000", "valid":true},
+  {"q":"How long does it take to transfer 1 TiB at 1 GiB/s with 50% utilization?", "a":"2048", "valid":true},
+  {"q":"How long does it take to transfer 125 kB at 1 Mbps with 100% utilization?", "a":"1", "valid":true},
+  {"q":"How long does it take to transfer 1 KiB at 1 kbps with 100% utilization?", "a":"8.192", "valid":true},
+  {"q":"How long does it take to transfer 0.5 GB at 2.5 MB/s with 25% utilization?", "a":"800", "valid":true},
+  {"q":"How long does it take to transfer 0 GiB at 1 Gbps with 20% utilization?", "a":"0", "valid":true},
+  {"q":"How long does it take to transfer -1 GB at 100 Mbps with 100% utilization?", "valid":false},
+  {"q":"How long does it take to transfer 1 GB at 100 Mbps with 0% utilization?", "valid":false},
+  {"q":"How long does it take to transfer 1 GB at 100 Mbps with 80% utilization and 2 seconds startup latency?", "valid":false},
+  {"q":"How long does it take to transfer 1 GB at 100 Mbps with 80% utilization and 50% utilization?", "valid":false}
+ ]
+}

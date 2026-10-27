@@ -1,0 +1,9 @@
+{
+  "inputs": {"hour_unit": {"value": 1, "unit": "h"}, "parking_duration": {"value": 15, "unit": "min"}},
+  "oracle_steps": [{"request_id": "drive_hours", "recipe": "ratio", "parameters": {"numerator": 150, "denominator": 60}, "output": "driving_hours_number"}],
+  "local_steps": [
+    {"operation": "multiply", "inputs": ["driving_hours_number", "hour_unit"], "output": "driving_duration", "unit": "h"},
+    {"operation": "add", "inputs": ["driving_duration", "parking_duration"], "output": "total_elapsed_time", "unit": "h"}
+  ],
+  "target": "total_elapsed_time"
+}

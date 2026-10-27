@@ -1,0 +1,14 @@
+[
+ {"id":"help","conversation_id":"discovery-help","text":"What can you help me with?"},
+ {"id":"examples","conversation_id":"discovery-examples","text":"Show three example questions you can answer."},
+ {"id":"units-help","conversation_id":"discovery-units-help","text":"Can you convert units? How should I ask?"},
+ {"id":"facts-help","conversation_id":"discovery-facts-help","text":"What facts can you look up?"},
+ {"id":"author","conversation_id":"discovery-author","text":"Who wrote Leaves of Grass?"},
+ {"id":"distance-natural","conversation_id":"discovery-distance-natural","text":"How far is 5 miles in kilometers?"},
+ {"id":"distance-canonical","conversation_id":"discovery-distance-canonical","text":"Convert 5 miles to km."},
+ {"id":"dimension-mismatch","conversation_id":"discovery-dimension","text":"Convert 5 miles to kilograms."},
+ {"id":"missing-amount","conversation_id":"discovery-amount","text":"Convert miles to km."},
+ {"id":"multiply","conversation_id":"discovery-multiply","text":"What is 17 times 23?"},
+ {"id":"code-help","conversation_id":"discovery-code","text":"Can you help me write Python code?"},
+ {"id":"code-followup","conversation_id":"discovery-code","text":"Why couldn't you answer that?"}
+]

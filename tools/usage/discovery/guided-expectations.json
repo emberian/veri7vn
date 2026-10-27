@@ -1,0 +1,7 @@
+{
+ "guide-python-1": "random.shuffle takes one sequence argument x (positional use supported); it shuffles that mutable sequence in place.",
+ "guide-python-2": "gzip.GzipFile supports gzip compressed file reading/writing using a file-like interface; no unsupported promise of arbitrary code generation.",
+ "guide-units-1": "2.5 g / 453.59237 g per pound = approximately 0.00551155655462194 pounds.",
+ "guide-units-2": "100 kPa / 6.89475729316836 kPa per psi = approximately 14.503773773 psi.",
+ "guide-prepared": "12 × 1.609344 = 19.312128 km, exactly 301752/15625."
+}

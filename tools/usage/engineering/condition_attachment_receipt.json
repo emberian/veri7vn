@@ -1,0 +1,10 @@
+{
+  "source": "root/specialists/_gate/combo_runtime_v1.py",
+  "before_sha256": "00d721a0f9a9950d896b02a1c556c44f7f5b573aac6e4693bd775bab1526cda7",
+  "candidate_sha256": "00d721a0f9a9950d896b02a1c556c44f7f5b573aac6e4693bd775bab1526cda7",
+  "before_equals_measured_candidate": true,
+  "followup_before_sha256": "425e19518cffaf49fc7d4362aeeb57bfe6cbb40361b9cbff18a038e684326221",
+  "followup_before_equals_combined_candidate": true,
+  "after_sha256": "0569afb836a9c3d7ed970578157eaaae657a66ce8e826e6945bac033bc1788f0",
+  "scope": "condition helpers, _split_parts grouping, and _segment explicit fragment guards only"
+}

@@ -1,0 +1,17 @@
+[
+  {"id":"r01","conversation_id":"whitman","text":"Who wrote Leaves of Grass?"},
+  {"id":"r02","conversation_id":"whitman","text":"What source supports that answer?"},
+  {"id":"r03","conversation_id":"leaves-date","text":"In what year was Leaves of Grass first published?"},
+  {"id":"r04","conversation_id":"frankenstein","text":"Who wrote Frankenstein?"},
+  {"id":"r05","conversation_id":"frankenstein-date","text":"In what year was Frankenstein first published?"},
+  {"id":"r06","conversation_id":"shelley-spouse","text":"Who was Mary Shelley's husband?"},
+  {"id":"r07","conversation_id":"shelley-distinction","text":"Did Mary Shelley or Percy Bysshe Shelley write Frankenstein?"},
+  {"id":"r08","conversation_id":"austen","text":"Who wrote Pride and Prejudice?"},
+  {"id":"r09","conversation_id":"austen-date","text":"In what year was Pride and Prejudice first published?"},
+  {"id":"r10","conversation_id":"eliot","text":"What was George Eliot's real name?"},
+  {"id":"r11","conversation_id":"stoner","text":"Who wrote the novel Stoner?"},
+  {"id":"r12","conversation_id":"star-wars","text":"Who composed the music for Star Wars (1977)?"},
+  {"id":"r13","conversation_id":"williams-identity","text":"Is the author of Stoner the same John Williams who composed Star Wars?"},
+  {"id":"r14","conversation_id":"williams-ambiguous","text":"When was John Williams born?"},
+  {"id":"r15","conversation_id":"false-premise","text":"When did Jane Austen publish Leaves of Grass?"}
+]

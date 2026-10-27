@@ -1,0 +1,32 @@
+[
+  {
+    "id": "solar_useful",
+    "conversation_id": "composition_solar_useful",
+    "text": "A solar panel produces 400 W for 5 hours. A battery stores 80% of this energy. What is the stored energy in kWh?"
+  },
+  {
+    "id": "net_energy",
+    "conversation_id": "composition_net_energy",
+    "text": "A battery initially stores 5 kWh. A 500 W appliance runs for 3 hours. Ignoring losses, how much energy remains in the battery in kWh?"
+  },
+  {
+    "id": "battery_roles",
+    "conversation_id": "battery-roles",
+    "text": "How long can a 1000 Wh battery run a 100 W load through a 500 W rated inverter with 90% inverter efficiency and 80% depth of discharge? The load is constant."
+  },
+  {
+    "id": "battery_plain",
+    "conversation_id": "battery-plain",
+    "text": "How long can a 1000 Wh battery run a 100 W load with 90% inverter efficiency and 80% depth of discharge?"
+  },
+  {
+    "id": "battery_invalid",
+    "conversation_id": "battery-invalid",
+    "text": "How long can a 1000 Wh battery run a 100 W load with 120% inverter efficiency and 80% depth of discharge?"
+  },
+  {
+    "id": "battery_rating_first",
+    "conversation_id": "battery_rating_first",
+    "text": "How long can a 1000 Wh battery with a 500 W rated inverter run a 100 W load with 90% inverter efficiency and 80% depth of discharge?"
+  }
+]

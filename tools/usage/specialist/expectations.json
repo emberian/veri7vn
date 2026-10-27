@@ -1,0 +1,18 @@
+{
+ "contract":"Time in seconds = amount in bytes * 8 / (rate in bits per second * utilization / 100). Decimal prefixes use powers of 1000; binary prefixes use powers of 1024; B denotes bytes, b bits. Require explicit utilization, positive rate, nonnegative size, and utilization in (0,100]. No congestion, startup or changing-throughput prediction.",
+ "written_before_queries":true,
+ "expected":{
+  "transfer-gb":{"seconds":"80","valid":true},
+  "transfer-gib":{"seconds":"85.89934592","valid":true},
+  "transfer-byte":{"seconds":"10","valid":true},
+  "transfer-util":{"seconds":"500","valid":true},
+  "transfer-mib":{"seconds":"128","valid":true},
+  "transfer-gbps":{"seconds":"25","valid":true},
+  "transfer-ordinary":{"seconds":"160","valid":true},
+  "transfer-zero":{"seconds":"0","valid":true},
+  "transfer-ambiguous":{"valid":false,"reason":"lowercase gb/mbps does not establish intended bit/byte convention"},
+  "transfer-rate-zero":{"valid":false,"reason":"positive throughput required"},
+  "transfer-util-high":{"valid":false,"reason":"utilization exceeds 100 percent"},
+  "transfer-missing":{"valid":false,"reason":"request utilization or explicitly state idealized full-throughput assumption"}
+ }
+}

@@ -1,0 +1,10 @@
+{
+  "r01":{"relation":"author","acceptable_properties":["P50"]},
+  "r04":{"relation":"author","acceptable_properties":["P50"]},
+  "r06":{"relation":"spouse","acceptable_properties":["P26"]},
+  "r08":{"relation":"author","acceptable_properties":["P50"]},
+  "r09":{"relation":"publication date","acceptable_properties":["P577"]},
+  "r11":{"relation":"author","acceptable_properties":["P50"]},
+  "r12":{"relation":"composer of the film score","acceptable_properties":["P86"]},
+  "r14":{"relation":"birth date; identity still requires human disambiguation","acceptable_properties":["P569"]}
+}

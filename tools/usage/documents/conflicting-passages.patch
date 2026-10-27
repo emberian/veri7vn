@@ -1,0 +1,37 @@
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w442.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w442.py
+@@ -130,14 +130,34 @@
+         numbers = {t for t in terms if t.isdigit()}
+         terms_stem = [_stem(t) for t in terms]
+         best = None
++        covered_verdicts = []
+         for sent in _sentences(passage):
+             pool = set(_stem(t) for t in _toks(sent))
+             ok, cov, via = self._r436_covered(terms, terms_stem, numbers, pool)
+             if ok:
++                # Every covering sentence matters: selecting the first tied
++                # sentence can silently choose one of conflicting versions.
++                vt = set(terms) | set(terms_stem) | {_stem(a) for _, a in via} | {a for _, a in via}
++                candidate_verdict, _ = self._r434_verdict(sent, vt, terms_stem, q)
++                if candidate_verdict is not None:
++                    covered_verdicts.append((cov, candidate_verdict, sent))
+                 hits = sum(1 for t in terms_stem if t in pool)
+                 if best is None or hits > best[0]:
+                     best = (hits, sent, cov, via)
+         out = dict(res)
++        # A partial lexical match may concern another subject (e.g. Cedar
++        # Archive rather than Lumen Archive). It must not veto a fully
++        # covered answer. Aliases count as covered, as in the existing reader.
++        best_coverage = best[2] if best is not None else 0.0
++        conflicting_candidates = [(v, sentence) for coverage, v, sentence in covered_verdicts if coverage >= best_coverage]
++        settled_verdicts = {v for v, _ in conflicting_candidates}
++        if len(settled_verdicts) > 1:
++            conflict = self._r434_receipt(out, res,
++                'The passage contains covering sentences with conflicting answers, so I will not choose a version.',
++                'conflicting_covering_sentences')
++            conflict['references'] = [{'id': 'passage', 'text': sentence}
++                                      for _, sentence in conflicting_candidates]
++            return conflict
+         if best is None:
+             return self._r434_receipt(out, res, 'I read the passage and the question but found no sentence that covers the question in full, so I will not guess.', 'no_covering_sentence')
+         _, sent, cov, via = best

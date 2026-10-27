@@ -1,0 +1,10 @@
+{
+ "explicit-source-binary":{"expected":"255","reason":"eight binary ones sum to 255"},
+ "explicit-source-octal":{"expected":"15","reason":"1*8+7=15"},
+ "invalid-source-digit":{"expected":"withheld","reason":"2 is not a binary digit"},
+ "zero-leading-binary":{"expected":"2","reason":"0*8+0*4+1*2+0=2"},
+ "decimal-control":{"expected":"ff","reason":"15*16+15=255"},
+ "timer-explicit":{"expected_seconds":"0.001024","reason":"256*64/16000000"},
+ "graph-short":{"expected":4,"reason":"A-C-D costs 2+2; A-B-D costs 4+3"},
+ "choose-short":{"expected":56,"reason":"8*7*6/(3*2*1)"}
+}

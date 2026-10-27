@@ -1,0 +1,42 @@
+[
+  {
+    "id": "zero",
+    "conversation_id": "repair-zero",
+    "text": "What is 1 / 0?"
+  },
+  {
+    "id": "indeterminate",
+    "conversation_id": "repair-indeterminate",
+    "text": "What is 0 / 0?"
+  },
+  {
+    "id": "logzero",
+    "conversation_id": "repair-logzero",
+    "text": "Evaluate log(0)."
+  },
+  {
+    "id": "ordinary",
+    "conversation_id": "repair-ordinary",
+    "text": "What is 17 * 23?"
+  },
+  {
+    "id": "rational",
+    "conversation_id": "repair-rational",
+    "text": "Evaluate 1/3."
+  },
+  {
+    "id": "complex",
+    "conversation_id": "repair-complex",
+    "text": "Evaluate sqrt(-1)."
+  },
+  {
+    "id": "quantity",
+    "conversation_id": "repair-quantity",
+    "text": "Convert 10 meters to feet."
+  },
+  {
+    "id": "physics",
+    "conversation_id": "repair-physics",
+    "text": "What is the kinetic energy of a 2 kg object moving at 3 m/s?"
+  }
+]

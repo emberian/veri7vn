@@ -1,0 +1,16 @@
+{
+  "recorded_before_run": true,
+  "sources_file": "expectations.json",
+  "cases": {
+    "f01":{"expected":"John Williams, the composer; a clarification or refusal is safe if the film is ambiguous.","sources":["williams-composer"]},
+    "f02":{"expected":"John Williams, the composer; a clarification or refusal is safe if the film is ambiguous.","sources":["williams-composer"]},
+    "f03":{"expected":"John Williams, the composer; another credited role does not answer the question.","sources":["williams-composer"]},
+    "f04":{"expected":"John Williams, the composer.","sources":["williams-composer"]},
+    "f05":{"expected":"John Williams, the composer.","sources":["williams-composer"]},
+    "f06":{"expected":"1855; adding book should select the poetry collection rather than the film.","sources":["leaves"]},
+    "f07":{"expected":"Identify George Eliot as the writer known as Mary Ann/Anne/Marian Evans; this is a possible alias workflow workaround, not an engine fix.","sources":["eliot"]},
+    "f08":{"expected":"Mary Shelley.","sources":["frankenstein"]},
+    "f09":{"expected":"Sources supporting the immediately preceding Mary Shelley authorship answer.","sources":["frankenstein"]},
+    "f10":{"expected":"The novelist's birth date, 29 August 1922; do not substitute the composer's 1932 birth. NYRB supports the year; the University of Arkansas archive supports the exact date.","sources":["williams-author"],"date_source":"https://uark.as.atlas-sys.com/repositories/2/resources/1294"}
+  }
+}

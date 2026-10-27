@@ -1,0 +1,17 @@
+[
+  {"id":"lit-1","conversation_id":"literature","text":"Who wrote Leaves of Grass?"},
+  {"id":"isolation-1","conversation_id":"isolation","text":"When was he born?"},
+  {"id":"lit-2","conversation_id":"literature","text":"When was he born?"},
+  {"id":"lit-3","conversation_id":"literature","text":"I meant Hamlet. Who wrote it?"},
+  {"id":"lit-4","conversation_id":"literature","text":"When was he born?"},
+  {"id":"isolation-2","conversation_id":"isolation","text":"Who wrote Pride and Prejudice?"},
+  {"id":"isolation-3","conversation_id":"isolation","text":"When was she born?"},
+  {"id":"math-1","conversation_id":"calculation","text":"What is 14 * 6?"},
+  {"id":"math-2","conversation_id":"calculation","text":"What is that divided by 7?"},
+  {"id":"math-3","conversation_id":"calculation","text":"Correction: calculate 21 * 6 instead."},
+  {"id":"math-4","conversation_id":"calculation","text":"What is that divided by 7?"},
+  {"id":"stale-1","conversation_id":"topic-change","text":"Who wrote Hamlet?"},
+  {"id":"stale-2","conversation_id":"topic-change","text":"New topic: who wrote The Clockwork Sea of Zeralune?"},
+  {"id":"stale-3","conversation_id":"topic-change","text":"When was he born?"},
+  {"id":"stale-4","conversation_id":"topic-change","text":"Who wrote Leaves of Grass?"}
+]

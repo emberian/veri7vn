@@ -1,0 +1,6 @@
+{
+  "inputs": {"initial_energy": {"value": 5, "unit": "kWh"}},
+  "oracle_steps": [{"request_id": "battery_consumption", "recipe": "device_consumption", "parameters": {"watts": 500, "hours": 3}, "output": "consumed_energy"}],
+  "local_steps": [{"operation": "subtract", "inputs": ["initial_energy", "consumed_energy"], "output": "remaining_energy", "unit": "kWh"}],
+  "target": "remaining_energy"
+}

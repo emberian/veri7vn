@@ -1,0 +1,57 @@
+{
+  "fixed_before_first_run": true,
+  "cases": {
+    "journey": {
+      "driving_time_h": 2.5,
+      "parking_time_h": 0.25,
+      "total_elapsed_time_h": 2.75
+    },
+    "energy_cost": {
+      "energy_kWh": 3,
+      "electricity_cost_dollars": 0.6
+    },
+    "material_cost": {
+      "mass_kg": 5.4,
+      "material_cost_dollars": 21.6
+    },
+    "trip_fuel": {
+      "fuel_litres": 15,
+      "total_fuel_cost_dollars": 24
+    },
+    "resistor_energy": {
+      "power_W": 250,
+      "energy_J": 15000
+    },
+    "solar_useful": {
+      "generated_energy_kWh": 2,
+      "stored_energy_kWh": 1.6
+    },
+    "tank_fill": {
+      "volume_m3": 1,
+      "volume_litres": 1000,
+      "fill_time_min": 50
+    },
+    "work_price": {
+      "labour_cost_dollars": 480,
+      "total_project_cost_dollars": 580
+    },
+    "date_relation": {
+      "author": "Walt Whitman",
+      "birth_year": 1819,
+      "first_publication_year": 1855,
+      "year_difference": 36,
+      "note": "year difference, not attained age"
+    },
+    "orbital_ratio": {
+      "three_mars_years_days": 2061,
+      "earth_years": 5.642710472279261
+    },
+    "net_energy": {
+      "consumed_energy_kWh": 1.5,
+      "remaining_energy_kWh": 3.5
+    },
+    "ambiguous_efficiency": {
+      "expected": "ask for efficiency/heat boundary or give explicitly conditional answer; no unconditional numerical heat answer"
+    }
+  }
+}

@@ -1,0 +1,268 @@
+--- a/root/specialists/energy-v3/organ_energy_v1.py
++++ b/root/specialists/energy-v3/organ_energy_v1.py
+@@ -2,9 +2,11 @@
+ """organ_energy_v1 - household energy arithmetic, every step shown: energy used by a device (W x h -> kWh), what it costs
+ at a stated tariff, how long a battery runs a load (Wh, or V x Ah), a solar array's daily yield (kW x peak-sun-hours,
+ x a stated derate, otherwise said to be before losses), a payback period, and the yearly saving from swapping one
+-device for another. It never assumes a tariff, a price or sun-hours it was not given. Returns {kind, status, response, value}."""
++device for another. It never assumes a tariff, a price or sun-hours it was not given. Returns {kind, status, response, value}.
++The English recognizer and Python calculations are untrusted; these are explicit constant-energy models, not proofs."""
+ from __future__ import annotations
+ 
++import math
+ import re
+ 
+ N = r"(\d+(?:,\d{3})*(?:\.\d+)?)"
+@@ -60,6 +62,150 @@
+     return "$%.2f" % x if x < 1000 else "$%s" % format(round(x), ",")
+ 
+ 
++QN = r"(?<![\w.,])([+-]?(?:\d+(?:,\d{3})*(?:\.\d+)?|\.\d+))"
++POWER = re.compile(QN + r"\s*(kw|kilowatts?|w|watts?)\b")
++DEVICE = r"(?:load|device|appliance|fridge|light|laptop|lamp|fan|tv|router|pump|heater|bulb|motor)\b"
++
++
++def check_energy_conditions(low):
++    for m in re.finditer(r"(?<![\w.,])[+-]?\d[\d,.]*", low):
++        token = m[0].rstrip(".")
++        if "," in token and not re.fullmatch(r"[+-]?\d{1,3}(?:,\d{3})+(?:\.\d+)?", token):
++            raise ValueError("numbers with unambiguous decimal points and three-digit comma groups")
++    if re.search(r"\bbatteries\b|\b(?:loads|devices|appliances|fridges|lights|laptops|lamps|fans|routers|pumps|heaters|bulbs|motors)\b", low):
++        raise ValueError("one battery source and one total consumed load; multiple sources or loads need an explicit combined model")
++
++
++def one_value(values, description):
++    if not values:
++        raise ValueError(description)
++    if len(set(values)) != 1:
++        raise ValueError("one unambiguous " + description)
++    value = values[0]
++    if not math.isfinite(value) or value < 0:
++        raise ValueError("a finite nonnegative " + description)
++    return value
++
++
++def capacity_wh(low):
++    check_energy_conditions(low)
++    values = [num(m[1]) * (1000 if m[2] == "kwh" else 1)
++              for m in re.finditer(QN + r"\s*(kwh|wh)\b", low)]
++    if values:
++        energy = one_value(values, "battery energy in Wh or kWh")
++        if re.search(QN + r"\s*ah\b", low):
++            volts = [num(m[1]) for m in re.finditer(QN + r"\s*v(?:olts?)?\b", low)]
++            amps = [num(m[1]) for m in re.finditer(QN + r"\s*ah\b", low)]
++            equivalent = one_value(volts, "battery voltage") * one_value(amps, "battery capacity in Ah")
++            if not math.isclose(energy, equivalent, rel_tol=1e-9, abs_tol=1e-9):
++                raise ValueError("consistent Wh and voltage/amp-hour capacity values")
++        return energy
++    volts = [num(m[1]) for m in re.finditer(QN + r"\s*v(?:olts?)?\b", low)]
++    amps = [num(m[1]) for m in re.finditer(QN + r"\s*ah\b", low)]
++    return one_value([one_value(volts, "battery voltage") * one_value(amps, "battery capacity in Ah")], "battery energy")
++
++
++def load_and_rating(low):
++    """Untrusted grammar: inverter rating is a constraint, never consumed power."""
++    loads, ratings, unbound = [], [], []
++    for m in POWER.finditer(low):
++        value = num(m[1]) * (1000 if m[2].startswith("k") else 1)
++        before, after = low[max(0, m.start()-55):m.start()], low[m.end():m.end()+55]
++        is_rating = (re.match(r"\s*(?:rated\s+)?inverter\b", after)
++                     or re.search(r"\binverter(?:\s+(?:rating|rated|is|of|at|for|has|a))*(?:\s*[:=])?\s*$", before)
++                     or re.match(r"\s*(?:inverter\s+)?(?:rating|rated)\b", after))
++        is_load = (re.match(r"\s*(?:(?:ac|dc|constant)\s+)?" + DEVICE, after)
++                   or re.search(r"\b(?:load|device|appliance)\s*(?:(?:draws|uses|is|of|at)\s*)?[:=]?\s*$", before))
++        if is_rating and not is_load:
++            ratings.append(value)
++        elif is_load and not is_rating:
++            loads.append(value)
++        else:
++            unbound.append(value)
++    if not loads and len(unbound) == 1 and not ratings:
++        loads, unbound = unbound, []  # the legacy single-load form
++    if unbound:
++        raise ValueError("the consumed load and inverter rating labelled separately")
++    if len(loads) != 1:
++        raise ValueError("one total consumed load in watts")
++    load = one_value(loads, "consumed load in watts")
++    rating = one_value(ratings, "inverter rating in watts") if ratings else None
++    if load <= 0:
++        raise ValueError("a consumed load greater than zero watts")
++    if rating is not None and load > rating:
++        raise ValueError("a load within the stated inverter rating")
++    return load, rating
++
++
++def energy_factors(low, storage=False):
++    """Bind each stated fraction to its role, or reject an unbound condition.
++
++    These are simple constant-energy models, not battery chemistry or a proof.
++    Efficiency and loss are alternative descriptions of the same conversion;
++    depth of discharge is a separate capacity fraction.
++    """
++    check_energy_conditions(low)
++    if (not storage and re.search(r"\b(?:charging|storage)\s+efficiency\b", low)) or (storage and re.search(r"\binverter\s+efficiency\b", low)):
++        raise ValueError("an efficiency bound to the requested conversion (charging and load supply are different stages)")
++    groups = {
++        "efficiency": r"(?:(?:inverter|overall|conversion|charging|storage|battery)\s+)?efficiency",
++        "depth": r"(?:depth of discharge|usable (?:depth|capacity|fraction)|discharge depth)",
++        "loss": r"(?:(?:inverter|conversion|charging|storage|system)\s+)?loss(?:es)?",
++    }
++    if storage:
++        groups["stored"] = r"(?:stored fraction|storage fraction)"
++    found, spans = {}, []
++    numeric = r"([+-]?(?:\d+(?:\.\d+)?|\.\d+))\s*(%?)"
++    for role, label in groups.items():
++        patterns = [r"(?<![\w.])" + numeric + r"\s+" + label + r"\b",
++                    r"\b" + label + r"\s*(?:(?:of|is|=|:)\s*)?" + numeric + r"(?![\w.])"]
++        if role == "efficiency":
++            patterns.append(r"(?<![\w.])" + numeric + r"\s+efficient(?:\s+inverter)?\b")
++        if role == "stored":
++            patterns.append(r"\b(?:stores|store|retains|retain)\s+" + numeric + r"\s+of\b")
++        for pattern in patterns:
++            for m in re.finditer(pattern, low):
++                f = float(m[1]) / (100 if m[2] else 1)
++                if not math.isfinite(f) or not 0 <= f <= 1:
++                    raise ValueError("efficiency, loss and usable fractions between 0 and 1 (or 0% and 100%)")
++                found.setdefault(role, []).append(f)
++                spans.append(m.span())
++    # Every percentage and every adjustment term must be accounted for. Ignoring
++    # losses is an explicit ideal-model assumption, not an unknown loss factor.
++    masked = list(low)
++    for start, end in spans:
++        masked[start:end] = " " * (end-start)
++    rest = "".join(masked)
++    rest = re.sub(r"\b(?:ignoring|ignore|without|no|neglecting)\s+(?:(?:inverter|conversion)\s+)?loss(?:es)?\b", "", rest)
++    if re.search(r"%|\befficien\w*|\bloss(?:es)?\b|\bdepth of discharge\b|\busable (?:depth|capacity|fraction)\b|\b(?:idle|standby|variable|surge|peukert|temperature|degradation|derate|reserve)\b|\bperformance ratio\b|\b(?:half full|partly charged|partially charged|state of charge)\b", rest):
++        raise ValueError("each loss, efficiency, usable-capacity or variable-load condition explicitly bound to this model")
++    factors = {role: one_value(values, role + " fraction") for role, values in found.items()}
++    efficiency = factors.get("efficiency", 1)
++    if "loss" in factors:
++        retained = 1 - factors["loss"]
++        if "efficiency" in factors and not math.isclose(efficiency, retained, abs_tol=1e-12):
++            raise ValueError("consistent efficiency and loss fractions")
++        efficiency = retained
++    if "stored" in factors:
++        if "efficiency" in factors or "loss" in factors:
++            if not math.isclose(efficiency, factors["stored"], abs_tol=1e-12):
++                raise ValueError("one unambiguous stored fraction (not two unexplained conversion stages)")
++        efficiency = factors["stored"]
++    return efficiency, factors.get("depth", 1), bool(found)
++
++
++def duration_hours(low):
++    durations = [num(m[1]) for m in re.finditer(QN + r"\s*(?:hours?|hrs?|h|minutes?)\b", low)]
++    if any(not math.isfinite(x) or x < 0 for x in durations):
++        raise ValueError("a finite nonnegative load duration")
++    if len(durations) > 1:
++        raise ValueError("one unambiguous load duration")
++    duration = hours(low)
++    if duration is not None and not math.isfinite(duration[0]):
++        raise ValueError("a finite load duration")
++    return duration
++
++
+ class EnergyOrgan:
+     def _say(self, kind, text, value=None, status="answered"):
+         return {"kind": kind, "status": status, "response": text, "value": value}
+@@ -70,6 +216,63 @@
+     def answer(self, text, session_id="default"):
+         t = " ".join(str(text or "").split())
+         low = t.lower()
++        # Explicit continuations. The goal is read from the question, not from
++        # a noun in the initial conditions ("initially stores" is not a goal).
++        question = re.search(r"\b(?:what|how much)\b[^?]*\??$", low)
++        goal = question.group(0) if question else ""
++        remaining = re.search(r"\bremain\w*\b|\bleft\b", goal)
++        stored = re.search(r"\bstored\b|\bstore\b", goal)
++        if remaining and re.search(r"\bbatter(?:y|ies)\b", low):
++            try:
++                if not re.search(r"\binitial\w*\b|\bstarts? with\b|\bfully charged\b", low):
++                    raise ValueError("the initially stored energy or an explicit fully charged battery")
++                initial = capacity_wh(low)
++                load, rating = load_and_rating(low)
++                efficiency, depth, adjusted = energy_factors(low)
++                duration = duration_hours(low)
++                if duration is None:
++                    raise ValueError("the duration of the constant load")
++                if efficiency == 0 and duration[0] > 0:
++                    raise ValueError("positive conversion efficiency to supply this load")
++                spent = load * duration[0] / efficiency if efficiency else 0
++                if spent > initial * depth + 1e-10:
++                    raise ValueError("a duration within the battery's available energy at the stated load and factors")
++                base = initial * depth if re.search(r"\busable\b", goal) else initial
++                value = (base - spent) / 1000
++                return self._say("energy", "The %sremaining energy is %s kWh (%s Wh initially%s − %s Wh withdrawn; load %s W × %s, conversion efficiency %s)." % (
++                    "usable " if base != initial else "", g(value), g(initial), " × %s usable fraction" % g(depth) if base != initial else "", g(spent), g(load), duration[1], g(efficiency)), value)
++            except ValueError as error:
++                return self._need(str(error))
++        if stored and re.search(r"\b(?:solar|panel|batter(?:y|ies)|charging)\b", low):
++            try:
++                efficiency, depth, adjusted = energy_factors(low, storage=True)
++                if depth != 1:
++                    raise ValueError("charging/storage efficiency; discharge depth does not specify stored energy")
++                if not adjusted and not re.search(r"\b(?:ignoring|without|no|neglecting)\s+loss", low):
++                    raise ValueError("the fraction of generated/input energy stored, or an explicit no-loss assumption")
++                powers = list(POWER.finditer(low))
++                duration = duration_hours(low)
++                sun = re.search(N + r"\s*(?:peak\s+)?sun[ -]?hours?\b", low)
++                if sun:
++                    duration = (num(sun[1]), "%s peak sun hours" % sun[1])
++                if len(powers) == 1 and duration:
++                    power = one_value([num(powers[0][1]) * (1000 if powers[0][2].startswith("k") else 1)], "input/generating power")
++                    panel_count = re.search(QN + r"\s+panels?\b", low)
++                    if panel_count:
++                        if not re.search(r"\beach\b|\bper panel\b", low):
++                            raise ValueError("whether panel power is per panel or for the whole array")
++                        power *= one_value([num(panel_count[1])], "panel count")
++                    generated = power * duration[0] / 1000
++                elif not powers:
++                    generated = capacity_wh(low) / 1000
++                else:
++                    raise ValueError("one input/generating power and duration, or one stated input energy")
++                if re.search(r"\binitial\w*|\bcapacity|\bfull\b", low):
++                    raise ValueError("a charging plan with initial charge and capacity bounds; this calculation gives newly stored energy only")
++                value = one_value([generated * efficiency], "newly stored energy")
++                return self._say("energy", "The newly stored energy is %s kWh (%s kWh generated/input energy × %s storage fraction)." % (g(value), g(generated), g(efficiency)), value)
++            except ValueError as error:
++                return self._need(str(error))
+         # payback
+         if re.search(r"\bpayback|\bpay (?:for )?itself|\bbreak even\b|\bpay back\b", low):
+             cost = re.search(r"\$\s*" + N + r"(?:\s*(k))?", low)
+@@ -83,26 +286,17 @@
+             y = c / s
+             return self._say("payback", "The payback period is %s years (%s ÷ %s saved per year), ignoring price changes and financing." % (g(y), money(c), money(s)), y)
+         # battery runtime
+-        if re.search(r"\bbattery|\bpower bank\b|\bups\b", low) and re.search(r"\bhow long\b|\bruntime\b|\brun time\b|\blast\b", low):
+-            wh = re.search(N + r"\s*(kwh|wh)\b", low)
+-            ah = re.search(N + r"\s*ah\b", low)
+-            v = re.search(N + r"\s*v(?:olts?)?\b", low)
+-            load = re.search(r"\b(?:a|an|the)?\s*" + N + r"\s*(w|watts?)\b(?!\s*h\b)\s*(?:device|load|appliance|fridge|light|laptop|lamp|fan|tv|router|pump|heater)?", low)
+-            if wh:
+-                cap = num(wh.group(1)) * (1000 if wh.group(2) == "kwh" else 1)
+-                capnote = "%s Wh" % g(cap)
+-            elif ah and v:
+-                cap = num(ah.group(1)) * num(v.group(1))
+-                capnote = "%s V × %s Ah = %s Wh" % (g(num(v.group(1))), g(num(ah.group(1))), g(cap))
+-            else:
+-                return self._need("the battery's capacity (Wh, or volts and amp-hours)")
+-            if not load:
+-                return self._need("the load in watts")
+-            w = num(load.group(1))
+-            if w <= 0:
+-                return self._say("impossible", "A load must draw more than 0 W.", status="withheld")
+-            hrs = cap / w
+-            return self._say("runtime", "The runtime is about %s hours (%s ÷ %s W), before inverter and depth-of-discharge losses." % (g(hrs), capnote, g(w)), hrs)
++        if re.search(r"\bbatter(?:y|ies)|\bpower bank\b|\bups\b", low) and re.search(r"\bhow long\b|\bruntime\b|\brun time\b|\blast\b", low):
++            try:
++                cap = capacity_wh(low)
++                w, rating = load_and_rating(low)
++                efficiency, depth, adjusted = energy_factors(low)
++                hrs = one_value([cap * efficiency * depth / w], "runtime")
++                note = "at the stated conversion and usable-capacity factors" if adjusted else "before inverter and depth-of-discharge losses"
++                return self._say("runtime", "The runtime is about %s hours (%s Wh × %s conversion efficiency × %s usable fraction ÷ %s W load), %s%s." % (
++                    g(hrs), g(cap), g(efficiency), g(depth), g(w), note, "; load is within the %s W inverter rating" % g(rating) if rating is not None else ""), hrs)
++            except ValueError as error:
++                return self._need(str(error))
+         # solar daily yield
+         if re.search(r"\bsolar\b|\bpv\b|\bpanels?\b", low) and re.search(r"\bsun ?hours?\b|\bpeak sun\b|\bsunlight hours?\b", low):
+             k = re.search(N + r"\s*(kw|kilowatts?|w|watts?)\b(?!\s*h\b)", low)

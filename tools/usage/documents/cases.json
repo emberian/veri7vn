@@ -1,0 +1,16 @@
+[
+  {"id":"plain-owner","conversation_id":"doc-natural","text":"Use only this document. The Lumen Archive is in Alderport. Nira Vale is the director of the Lumen Archive. The Lumen Archive opened in 2018. Who is its director?"},
+  {"id":"yes-owner","conversation_id":"doc-passage","text":"Passage: The Lumen Archive is in Alderport. Nira Vale is the director of the Lumen Archive. The Lumen Archive opened in 2018. Question: Is Nira Vale the director of the Lumen Archive?"},
+  {"id":"followup","conversation_id":"doc-passage","text":"When did the Lumen Archive open?"},
+  {"id":"absent","conversation_id":"doc-absent","text":"Passage: The Lumen Archive is in Alderport. Nira Vale is the director of the Lumen Archive. Question: Is the Lumen Archive open on Sunday?"},
+  {"id":"negation","conversation_id":"doc-negative","text":"Passage: The Lumen Archive is not open on Sunday. Question: Is the Lumen Archive open on Sunday?"},
+  {"id":"factoid","conversation_id":"doc-factoid","text":"Passage: Nira Vale is the director of the Lumen Archive. Question: Who is the director of the Lumen Archive?"},
+  {"id":"summary","conversation_id":"doc-summary","text":"Passage: The Lumen Archive is in Alderport. Nira Vale is the director of the Lumen Archive. The Lumen Archive opened in 2018. Question: Summarize the passage in one sentence."},
+  {"id":"timeline","conversation_id":"doc-timeline","text":"Passage: The Lumen Archive opened in 2018. The Lumen Archive moved to Alderport in 2021. Nira Vale became director of the Lumen Archive in 2024. Question: Put these events in chronological order."},
+  {"id":"comparison","conversation_id":"doc-compare","text":"Passage: The Lumen Archive opened in 2018. The Cedar Archive opened in 2020. Question: Did the Lumen Archive open before the Cedar Archive?"},
+  {"id":"conflicting-versions","conversation_id":"doc-conflict","text":"Passage: Version one says the Lumen Archive is open on Sunday. Version two says the Lumen Archive is not open on Sunday. Question: Is the Lumen Archive open on Sunday?"},
+  {"id":"citation","conversation_id":"doc-citation","text":"Passage: Nira Vale is the director of the Lumen Archive. Question: Is Nira Vale the director of the Lumen Archive? Cite the supporting sentence."},
+  {"id":"fiction-scope","conversation_id":"doc-fiction","text":"Passage: In this fictional history, Mira Voss wrote Leaves of Grass. Question: Did Mira Voss write Leaves of Grass?"},
+  {"id":"ordinary-summary","conversation_id":"doc-natural-summary","text":"Summarize this document: The Lumen Archive is in Alderport. Nira Vale is the director of the Lumen Archive. The Lumen Archive opened in 2018."},
+  {"id":"modal","conversation_id":"doc-modal","text":"Passage: The Lumen Archive will open a new branch in Birchport. Question: Is the Lumen Archive open in Birchport?"}
+]

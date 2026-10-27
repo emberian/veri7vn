@@ -1,0 +1,10 @@
+[
+ {"id":"explicit-source-binary","conversation_id":"explicit-binary","text":"Convert 11111111 from base 2 to base 10."},
+ {"id":"explicit-source-octal","conversation_id":"explicit-octal","text":"Convert 17 from base 8 to base 10."},
+ {"id":"invalid-source-digit","conversation_id":"invalid-digit","text":"Convert 102 from base 2 to base 10."},
+ {"id":"zero-leading-binary","conversation_id":"zero-leading","text":"Convert 0010 from base 2 to base 10."},
+ {"id":"decimal-control","conversation_id":"decimal-control","text":"Convert 255 to hexadecimal."},
+ {"id":"timer-explicit","conversation_id":"timer-explicit","text":"For an 8-bit timer with a 16 MHz clock and prescaler 64, calculate the overflow period."},
+ {"id":"graph-short","conversation_id":"graph-short","text":"Shortest path from A to D: A-B 4, B-D 3, A-C 2, C-D 2."},
+ {"id":"choose-short","conversation_id":"choose-short","text":"8 choose 3"}
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "author",
+    "conversation_id": "evidence-author",
+    "text": "Who wrote Leaves of Grass?"
+  },
+  {
+    "id": "birth",
+    "conversation_id": "evidence-birth",
+    "text": "When was Albert Einstein born?"
+  },
+  {
+    "id": "capital",
+    "conversation_id": "evidence-capital",
+    "text": "What is the capital of France?"
+  },
+  {
+    "id": "math",
+    "conversation_id": "evidence-math",
+    "text": "What is 17 * 23?"
+  },
+  {
+    "id": "quantity",
+    "conversation_id": "evidence-quantity",
+    "text": "Convert 10 meters to feet."
+  },
+  {
+    "id": "physics",
+    "conversation_id": "evidence-physics",
+    "text": "What is the kinetic energy of a 2 kg object moving at 3 m/s?"
+  },
+  {
+    "id": "ambiguous",
+    "conversation_id": "evidence-ambiguous",
+    "text": "When was John Smith born?"
+  },
+  {
+    "id": "unknown",
+    "conversation_id": "evidence-unknown",
+    "text": "Who wrote The Unfindable Purple Almanac of 2099?"
+  },
+  {
+    "id": "malformed",
+    "conversation_id": "evidence-malformed",
+    "text": "What is 2 + * 3?"
+  },
+  {
+    "id": "zero",
+    "conversation_id": "evidence-zero",
+    "text": "What is 1 / 0?"
+  },
+  {
+    "id": "scope",
+    "conversation_id": "evidence-scope",
+    "text": "Is every answer you give mathematically proved?"
+  },
+  {
+    "id": "coverage",
+    "conversation_id": "evidence-coverage",
+    "text": "List all books written by Walt Whitman."
+  }
+]

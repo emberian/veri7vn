@@ -1,0 +1,12 @@
+[
+  {"id":"f01","conversation_id":"composer-plain","text":"Who composed Star Wars?"},
+  {"id":"f02","conversation_id":"composer-role","text":"Who wrote the music for Star Wars?"},
+  {"id":"f03","conversation_id":"composer-film","text":"Who composed the music for the film Star Wars?"},
+  {"id":"f04","conversation_id":"composer-title","text":"Who composed Star Wars: Episode IV A New Hope?"},
+  {"id":"f05","conversation_id":"composer-title-role","text":"Who wrote the music for Star Wars: Episode IV A New Hope?"},
+  {"id":"f06","conversation_id":"leaves-book","text":"When was the book Leaves of Grass published?"},
+  {"id":"f07","conversation_id":"eliot-summary","text":"Who is George Eliot?"},
+  {"id":"f08","conversation_id":"source-short","text":"Who wrote Frankenstein?"},
+  {"id":"f09","conversation_id":"source-short","text":"Sources?"},
+  {"id":"f10","conversation_id":"novelist-birth","text":"When was John Edward Williams born?"}
+]

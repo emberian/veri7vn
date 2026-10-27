@@ -1,0 +1,17 @@
+[
+  {"id":"hex-byte","conversation_id":"bases","text":"Convert decimal 255 to hexadecimal."},
+  {"id":"binary-byte","conversation_id":"bases2","text":"Convert binary 11111111 to decimal."},
+  {"id":"unsigned-wrap","conversation_id":"bits","text":"An unsigned 8-bit counter is 255. What value does it have after adding 1 with wrapping arithmetic?"},
+  {"id":"timer-overflow","conversation_id":"timer","text":"An 8-bit timer runs at 16 MHz with prescaler 64. How long until it overflows from zero?"},
+  {"id":"graph-path","conversation_id":"graph","text":"Find the shortest path from A to D: A-B 4, B-D 3, A-C 2, C-D 2."},
+  {"id":"graph-direction","conversation_id":"directed","text":"Find the shortest path from C to A in this directed graph: A->B 2, B->C 3, A->C 9."},
+  {"id":"graph-negative","conversation_id":"negative","text":"Find the shortest path from A to C: A->B 4, B->C -3, A->C 8."},
+  {"id":"mst","conversation_id":"mst","text":"What is the minimum spanning tree weight for A-B 4, B-D 3, A-C 2, C-D 2?"},
+  {"id":"search-unsorted","conversation_id":"search","text":"Binary search for 7 in [2, 9, 7, 12]. What index do I get?"},
+  {"id":"search-sorted","conversation_id":"search2","text":"Binary search for 7 in [2, 7, 9, 12]. What index do I get?"},
+  {"id":"choose-tests","conversation_id":"combinations","text":"How many combinations of 3 test cases can I choose from 8 test cases, without replacement and ignoring order?"},
+  {"id":"logic-implication","conversation_id":"logic","text":"Is the formula (p -> q) -> (!q -> !p) a tautology?"},
+  {"id":"sort-complexity","conversation_id":"complexity","text":"What is the worst-case time complexity of quicksort?"},
+  {"id":"sql-null-count","conversation_id":"sql","text":"In SQLite, CREATE TABLE t(x INTEGER); INSERT INTO t VALUES (1),(NULL),(1); What does SELECT COUNT(*), COUNT(x), COUNT(DISTINCT x) FROM t; return?"},
+  {"id":"sql-empty-sum","conversation_id":"sql2","text":"In SQLite, CREATE TABLE t(x INTEGER); What does SELECT SUM(x), COUNT(x) FROM t; return?"}
+]

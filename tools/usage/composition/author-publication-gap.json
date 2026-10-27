@@ -1,0 +1,9 @@
+{
+  "inputs": {},
+  "oracle_steps": [
+    {"request_id": "whitman_birth", "recipe": "relation_year", "parameters": {"subject": "Walt Whitman", "property": "birth"}, "output": "birth_year"},
+    {"request_id": "grass_publication", "recipe": "relation_year", "parameters": {"subject": "Leaves of Grass", "property": "publication"}, "output": "publication_year"}
+  ],
+  "local_steps": [{"operation": "subtract", "inputs": ["publication_year", "birth_year"], "output": "calendar_year_gap", "unit": "year"}],
+  "target": "calendar_year_gap"
+}

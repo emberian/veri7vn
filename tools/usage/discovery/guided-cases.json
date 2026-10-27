@@ -1,0 +1,27 @@
+[
+  {
+    "id": "guide-python-1",
+    "conversation_id": "guide-python-1",
+    "text": "What are the parameters of random.shuffle in Python?"
+  },
+  {
+    "id": "guide-python-2",
+    "conversation_id": "guide-python-2",
+    "text": "What does the Python function gzip.GzipFile do?"
+  },
+  {
+    "id": "guide-units-1",
+    "conversation_id": "guide-units-1",
+    "text": "I have 2.5 g. How many pounds is that?"
+  },
+  {
+    "id": "guide-units-2",
+    "conversation_id": "guide-units-2",
+    "text": "Convert 100 kPa to psi."
+  },
+  {
+    "id": "guide-prepared",
+    "conversation_id": "guide-prepared",
+    "text": "Convert 12 miles to km."
+  }
+]

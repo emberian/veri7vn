@@ -1,0 +1,2067 @@
+{
+  "scope": "Observed private-adapter candidate; usage experiments, not specialist panel scores. Analysis/judgment added separately from unchanged response objects.",
+  "runs": {
+    "run-01": {
+      "raw_result_path": "var/usage-20261026/engineering/run-01/results.jsonl",
+      "count": 14,
+      "median_seconds": 0.244151,
+      "cases": [
+        {
+          "id": "lift_ideal",
+          "text": "How much energy is needed to lift a 25 kg crate vertically by 4 m? Use g = 9.81 m/s^2 and ignore losses.",
+          "http_status": 200,
+          "latency_seconds": 3.770988,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "clarification",
+              "path": "act:clarify|vessel:receipt",
+              "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"How much energy is needed to lift a 25 kg crate vertically by 4 m? Use g = 9.81 m/s^2 and ignore losses.\" as an unnamed shape [vessel:v0001]; if it returns it gains weight, and when I can name it, I will.",
+              "provenance": {
+                "kind": "dialogue_state",
+                "note": "graceful clarify terminal",
+                "vessel": {
+                  "id": "v0001",
+                  "weight": 3.0,
+                  "count": 1,
+                  "slot": "mechanism"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "explain_simply",
+                "margin": 0.017,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 14.2,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "needless_refusal"
+        },
+        {
+          "id": "lift_efficiency",
+          "text": "For that same lift, how much electrical energy is needed if the motor efficiency is 80%?",
+          "http_status": 200,
+          "latency_seconds": 0.318731,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "clarification",
+              "path": "act:clarify_specific",
+              "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+              "provenance": {
+                "kind": "dialogue_state",
+                "r468_door": {
+                  "act": "asked",
+                  "phrase": "that",
+                  "offered": [],
+                  "named": [
+                    "same",
+                    "lift"
+                  ]
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "what_if",
+                "margin": 0.056,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 18.0,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "context_failure"
+        },
+        {
+          "id": "pump_power",
+          "text": "A pump raises water at 0.002 m^3/s through a vertical height of 10 m. Use water density 1000 kg/m^3, g = 9.81 m/s^2, and 70% overall efficiency. What electrical input power is needed? Ignore pipe friction.",
+          "http_status": 200,
+          "latency_seconds": 0.596879,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "clarification",
+              "path": "act:clarify|vessel:receipt",
+              "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"A pump raises water at 0.002 m^3/s through a vertical height of 10 m. Use water density 1000 kg/m^3, g = 9.81 m/s^2, and 70% overall efficiency. What electrical\u2026\" as an unnamed shape [vessel:v0003]; if it returns it gains weight, and when I can name it, I will.",
+              "provenance": {
+                "kind": "dialogue_state",
+                "note": "graceful clarify terminal",
+                "vessel": {
+                  "id": "v0003",
+                  "weight": 3.0,
+                  "count": 1,
+                  "slot": "bounds"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "act_refine",
+                "margin": 0.003,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 56.9,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "needless_refusal"
+        },
+        {
+          "id": "spring_work",
+          "text": "A linear spring has stiffness 200 N/m. Its extension changes from 0.1 m to 0.3 m. How much additional elastic energy is stored?",
+          "http_status": 200,
+          "latency_seconds": 1.922377,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "arb:timeline->capability:timeline|vessel:receipt",
+              "response": "A timeline needs at least two dated statements; the admitted material on stiffness contains 0.\n\nI have received \"A linear spring has stiffness 200 N/m. Its extension changes from 0.1 m to 0.3 m. How much additional elastic energy is stored?\" as an unnamed shape [vessel:v0004]; if it returns it gains weight, and when I can name it, I will.",
+              "provenance": {
+                "kind": "gated_timeline",
+                "topic": "stiffness",
+                "dated_claims": 0,
+                "vessel": {
+                  "id": "v0004",
+                  "weight": 3.0,
+                  "count": 1,
+                  "slot": "bounds"
+                }
+              },
+              "latency_ms": 0.1,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "arbitration": {
+                "winner": "timeline",
+                "runner_up": "act_continue",
+                "margin": 0.893,
+                "floor": false,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "authoritative",
+                "arbiter": "v3",
+                "canonical_surface": "Give me a timeline of stiffness.",
+                "capture_point": "capability"
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "wrong_route_refusal",
+          "analysis": "Timeline route looked for dates on stiffness instead of energy increment."
+        },
+        {
+          "id": "spring_force",
+          "text": "A spring has unstretched length 0.4 m, final length 0.5 m and stiffness 200 N/m. What is its force magnitude?",
+          "http_status": 200,
+          "latency_seconds": 0.304041,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "specialist_call>specialist:physics-r2>underspecified",
+              "response": "I need a mass and an acceleration to compute that; I won't assume the missing value. [physics-r2]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "withheld",
+                "core_path": "arb:timeline->capability:timeline|vessel:receipt",
+                "specialist": "physics-r2",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "latency_ms": 0.2,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "arbitration": {
+                "winner": "timeline",
+                "runner_up": "compare",
+                "margin": 0.903,
+                "floor": false,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "authoritative",
+                "arbiter": "v3",
+                "canonical_surface": "Give me a timeline of length.",
+                "capture_point": "capability"
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "wrong_route_refusal",
+          "analysis": "Force reader asked for mass and acceleration despite complete spring lengths and stiffness."
+        },
+        {
+          "id": "spring_simple",
+          "text": "What is the elastic energy stored in a spring with stiffness 200 N/m and extension 0.3 m?",
+          "http_status": 200,
+          "latency_seconds": 0.250333,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "precision_guard:Q2_half_answer>specialist_call>specialist:springs>elastic_energy",
+              "response": "I worked out only part of that, not the a you asked for, so I won't give it as the answer.",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "family": "new_v1",
+                "core_status": "withheld",
+                "core_path": "specialist_call>specialist:economics>underspecified",
+                "specialist": "springs",
+                "parts": null
+              },
+              "latency_ms": 0.3,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "arbitration": {
+                "winner": "timeline",
+                "runner_up": "definitional",
+                "margin": 0.562,
+                "floor": false,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "authoritative",
+                "arbiter": "v3",
+                "canonical_surface": "Give me a timeline of energy.",
+                "capture_point": "capability"
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "guard_refusal",
+          "analysis": "Route found elastic_energy, then Q2_half_answer refused because requested type was a."
+        },
+        {
+          "id": "heat_endpoints",
+          "text": "How much heat is needed to warm 2 kg of water from 20 C to 80 C? Use constant specific heat 4180 J/(kg K), with no phase change or heat loss.",
+          "http_status": 200,
+          "latency_seconds": 0.330718,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>combo:parts>thermo",
+              "response": "It takes 5.023e+05 J (502.3 kJ; Q = mc\u0394T with m = 2 kg, c = 4186 J/(kg\u00b7K) table value for water, \u0394T = 60 K). [thermo] I need the mass to compute that; I won't assume it. [thermo]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": null,
+                "parts": [
+                  {
+                    "part": "How much heat is needed to warm 2 kg of water from 20 C to 80 C?",
+                    "specialist": "thermo",
+                    "kind": "sensible_heat",
+                    "response": "It takes 5.023e+05 J (502.3 kJ; Q = mc\u0394T with m = 2 kg, c = 4186 J/(kg\u00b7K) table value for water, \u0394T = 60 K).",
+                    "declined": false
+                  },
+                  {
+                    "part": "Use constant specific heat 4180 J/(kg K), with no phase change or heat loss.",
+                    "specialist": "thermo",
+                    "kind": "underspecified",
+                    "response": "I need the mass to compute that; I won't assume it.",
+                    "declined": true
+                  }
+                ],
+                "trace": null
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "act_acknowledge",
+                "margin": 0.001,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 19.0,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "incorrect_supplied_condition_ignored",
+          "analysis": "Supplied c=4180 ignored after sentence split; first fragment used table c=4186, second added missing-mass refusal."
+        },
+        {
+          "id": "heat_interval",
+          "text": "How much heat is needed to raise the temperature of 2 kg of water by 60 K? Use specific heat 4180 J/(kg K).",
+          "http_status": 200,
+          "latency_seconds": 0.237969,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "owner_first>specialist_call>specialist:thermo>sensible_heat",
+              "response": "It takes 5.016e+05 J (501.6 kJ; Q = mc\u0394T with m = 2 kg, c = 4180 J/(kg\u00b7K) given, \u0394T = 60 K). [thermo]",
+              "provenance": {
+                "kind": "precision_guard",
+                "rule": "G4_admitted",
+                "withheld_path": "specialist_call>combo:parts>thermo",
+                "withheld_response": "It takes 5.023e+05 J (502.3 kJ; Q = mc\u0394T with m = 2 kg, c = 4186 J/(kg\u00b7K) table value for water, \u0394T = 60 K). [thermo] (None of my specialists covers: \"Use specific heat 4180 J/(kg K).\")"
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "act_provenance",
+                "margin": 0.001,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 13.6,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "correct"
+        },
+        {
+          "id": "battery_roles",
+          "text": "How long can a 1000 Wh battery run a 100 W load through a 500 W rated inverter with 90% inverter efficiency and 80% depth of discharge? The load is constant.",
+          "http_status": 200,
+          "latency_seconds": 0.169018,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>specialist:energy-v3>runtime",
+              "response": "The runtime is about 10 hours (1000 Wh \u00f7 100 W), before inverter and depth-of-discharge losses. [energy-v3]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "energy-v3",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "act_acknowledge",
+                "margin": 0.009,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 17.0,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "incorrect_supplied_condition_ignored",
+          "analysis": "100W load selected; 90% efficiency and80% usable depth ignored."
+        },
+        {
+          "id": "battery_plain",
+          "text": "How long can a 1000 Wh battery run a 100 W load with 90% inverter efficiency and 80% depth of discharge?",
+          "http_status": 200,
+          "latency_seconds": 0.089856,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>specialist:energy-v3>runtime",
+              "response": "The runtime is about 10 hours (1000 Wh \u00f7 100 W), before inverter and depth-of-discharge losses. [energy-v3]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "energy-v3",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "list_n",
+                "margin": 0.016,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 12.3,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "incorrect_supplied_condition_ignored",
+          "analysis": "90% efficiency and80% usable depth ignored."
+        },
+        {
+          "id": "battery_invalid",
+          "text": "How long can a 1000 Wh battery run a 100 W load with 120% inverter efficiency and 80% depth of discharge?",
+          "http_status": 200,
+          "latency_seconds": 0.089921,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>specialist:energy-v3>runtime",
+              "response": "The runtime is about 10 hours (1000 Wh \u00f7 100 W), before inverter and depth-of-discharge losses. [energy-v3]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "energy-v3",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "list_n",
+                "margin": 0.018,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 12.2,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "invalid_input_answered",
+          "analysis": "120% efficiency invalid for stated model, but unadjusted baseline returned."
+        },
+        {
+          "id": "conversion_flow",
+          "text": "Convert 30 litres per minute to cubic metres per second.",
+          "http_status": 200,
+          "latency_seconds": 0.115144,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "clarification",
+              "path": "act:clarify|vessel:receipt",
+              "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Convert 30 litres per minute to cubic metres per second.\" as an unnamed shape [vessel:v0012]; if it returns it gains weight, and when I can name it, I will.",
+              "provenance": {
+                "kind": "dialogue_state",
+                "note": "graceful clarify terminal",
+                "vessel": {
+                  "id": "v0012",
+                  "weight": 3.0,
+                  "count": 1,
+                  "slot": "bounds"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "act_refine",
+                "margin": 0.013,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 7.3,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "needless_refusal"
+        },
+        {
+          "id": "temperature_interval",
+          "text": "Convert a temperature increase of 18 F to a temperature increase in C.",
+          "http_status": 200,
+          "latency_seconds": 0.206142,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "clarification",
+              "path": "act:clarify|vessel:receipt",
+              "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Convert a temperature increase of 18 F to a temperature increase in C.\" as an unnamed shape [vessel:v0013]; if it returns it gains weight, and when I can name it, I will.",
+              "provenance": {
+                "kind": "dialogue_state",
+                "note": "graceful clarify terminal",
+                "vessel": {
+                  "id": "v0013",
+                  "weight": 3.0,
+                  "count": 1,
+                  "slot": "bounds"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "timeline",
+                "margin": 0.04,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 7.3,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "needless_refusal"
+        },
+        {
+          "id": "dimension_mismatch",
+          "text": "Convert 2 metres to kilograms.",
+          "http_status": 200,
+          "latency_seconds": 0.143592,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "specialist_call>specialist:units-v3>mismatch",
+              "response": "metres measures length and kilograms measures mass, so there's no conversion between them. [units-v3]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "units-v3",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "summarize",
+                "margin": 0.051,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 4.9,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "useful_refusal"
+        }
+      ]
+    },
+    "run-02": {
+      "raw_result_path": "var/usage-20261026/engineering/run-02/results.jsonl",
+      "count": 11,
+      "median_seconds": 0.05053,
+      "cases": [
+        {
+          "id": "lift_ideal",
+          "text": "What is 25 * (981 / 100) * 4 / 1?",
+          "http_status": 200,
+          "latency_seconds": 0.19703,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 981 / 100 = 9.81; 25 x 9.81 = 245.25; 245.25 x 4 = 981; 981 / 1 = 981. The answer is 981.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "981 / 100 = 9.81",
+                  "25 x 9.81 = 245.25",
+                  "245.25 x 4 = 981",
+                  "981 / 1 = 981"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "lift_efficiency",
+          "text": "What is 25 * (981 / 100) * 4 / (4 / 5)?",
+          "http_status": 200,
+          "latency_seconds": 0.051953,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 981 / 100 = 9.81; 25 x 9.81 = 245.25; 245.25 x 4 = 981; 4 / 5 = 0.8; 981 / 0.8 = 1226.25. The answer is 1226.25.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "981 / 100 = 9.81",
+                  "25 x 9.81 = 245.25",
+                  "245.25 x 4 = 981",
+                  "4 / 5 = 0.8",
+                  "981 / 0.8 = 1226.25"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "pump_power",
+          "text": "What is 1000 * (1 / 500) * (981 / 100) * 10 / (7 / 10)?",
+          "http_status": 200,
+          "latency_seconds": 0.06243,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 1 / 500 = 0.002; 1000 x 0.002 = 2; 981 / 100 = 9.81; 2 x 9.81 = 19.62; 19.62 x 10 = 196.2; 7 / 10 = 0.7; 196.2 / 0.7 = 280.285714. The answer is 280.285714.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "1 / 500 = 0.002",
+                  "1000 x 0.002 = 2",
+                  "981 / 100 = 9.81",
+                  "2 x 9.81 = 19.62",
+                  "19.62 x 10 = 196.2",
+                  "7 / 10 = 0.7",
+                  "196.2 / 0.7 = 280.285714"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "spring_work",
+          "text": "What is 200 * (((3 / 10) * (3 / 10)) - ((1 / 10) * (1 / 10))) / 2?",
+          "http_status": 200,
+          "latency_seconds": 0.123067,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 3 / 10 = 0.3; 3 / 10 = 0.3; 0.3 x 0.3 = 0.09; 1 / 10 = 0.1; 1 / 10 = 0.1; 0.1 x 0.1 = 0.01; 0.09 - 0.01 = 0.08; 200 x 0.08 = 16; 16 / 2 = 8. The answer is 8.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "3 / 10 = 0.3",
+                  "3 / 10 = 0.3",
+                  "0.3 x 0.3 = 0.09",
+                  "1 / 10 = 0.1",
+                  "1 / 10 = 0.1",
+                  "0.1 x 0.1 = 0.01",
+                  "0.09 - 0.01 = 0.08",
+                  "200 x 0.08 = 16",
+                  "16 / 2 = 8"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "spring_force",
+          "text": "What is 200 * ((1 / 2) - (2 / 5))?",
+          "http_status": 200,
+          "latency_seconds": 0.05053,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 1 / 2 = 0.5; 2 / 5 = 0.4; 0.5 - 0.4 = 0.1; 200 x 0.1 = 20. The answer is 20.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "1 / 2 = 0.5",
+                  "2 / 5 = 0.4",
+                  "0.5 - 0.4 = 0.1",
+                  "200 x 0.1 = 20"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "spring_simple",
+          "text": "What is 200 * (((3 / 10) * (3 / 10)) - (0 * 0)) / 2?",
+          "http_status": 200,
+          "latency_seconds": 0.008227,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 3 / 10 = 0.3; 3 / 10 = 0.3; 0.3 x 0.3 = 0.09; 0 x 0 = 0; 0.09 - 0 = 0.09; 200 x 0.09 = 18; 18 / 2 = 9. The answer is 9.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "3 / 10 = 0.3",
+                  "3 / 10 = 0.3",
+                  "0.3 x 0.3 = 0.09",
+                  "0 x 0 = 0",
+                  "0.09 - 0 = 0.09",
+                  "200 x 0.09 = 18",
+                  "18 / 2 = 9"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "heat_endpoints",
+          "text": "What is 2 * 4180 * ((7063 / 20) - (5863 / 20))?",
+          "http_status": 200,
+          "latency_seconds": 0.007338,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 2 x 4180 = 8360; 7063 / 20 = 353.15; 5863 / 20 = 293.15; 353.15 - 293.15 = 60; 8360 x 60 = 501600. The answer is 501600.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "2 x 4180 = 8360",
+                  "7063 / 20 = 353.15",
+                  "5863 / 20 = 293.15",
+                  "353.15 - 293.15 = 60",
+                  "8360 x 60 = 501600"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "battery_roles",
+          "text": "What is 1000 * (9 / 10) * (4 / 5) / 100?",
+          "http_status": 200,
+          "latency_seconds": 0.050456,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 9 / 10 = 0.9; 1000 x 0.9 = 900; 4 / 5 = 0.8; 900 x 0.8 = 720; 720 / 100 = 7.2. The answer is 7.2.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "9 / 10 = 0.9",
+                  "1000 x 0.9 = 900",
+                  "4 / 5 = 0.8",
+                  "900 x 0.8 = 720",
+                  "720 / 100 = 7.2"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "battery_plain",
+          "text": "What is 1000 * (9 / 10) * (4 / 5) / 100?",
+          "http_status": 200,
+          "latency_seconds": 0.005469,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 9 / 10 = 0.9; 1000 x 0.9 = 900; 4 / 5 = 0.8; 900 x 0.8 = 720; 720 / 100 = 7.2. The answer is 7.2.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "9 / 10 = 0.9",
+                  "1000 x 0.9 = 900",
+                  "4 / 5 = 0.8",
+                  "900 x 0.8 = 720",
+                  "720 / 100 = 7.2"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "conversion_flow",
+          "text": "What is (1 / 2000)?",
+          "http_status": 200,
+          "latency_seconds": 0.003639,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 1 / 2000 = 0.0005. The answer is 0.0005.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "1 / 2000 = 0.0005"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "temperature_interval",
+          "text": "What is 10?",
+          "http_status": 200,
+          "latency_seconds": 4.1685,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "unverified:definitional_encyclopedic",
+              "response": "I found a passage that may be related, but I can't verify it answers your question: \"10 is a year in the 1st century.\"",
+              "provenance": {
+                "kind": "verified_retrieval",
+                "by": null,
+                "weak_path": "definitional_encyclopedic",
+                "weak_response": "[ev:direct] 10 is a year in the 1st century. [simplewiki_cf3719e9df8bb4823f3dcf75]"
+              },
+              "latency_ms": 0.1,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "arbitration": {
+                "winner": "definitional",
+                "runner_up": "what_if",
+                "margin": 0.8,
+                "floor": false,
+                "regex_family": "definitional",
+                "agrees": true,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "direct"
+              },
+              "continuation": {
+                "doors": [
+                  "century",
+                  "year"
+                ],
+                "offer": "from here, century or year stand open"
+              },
+              "references": []
+            }
+          },
+          "judgment": "constant_query_wrong_route_refusal"
+        }
+      ]
+    },
+    "run-03": {
+      "raw_result_path": "var/usage-20261026/engineering/run-03/results.jsonl",
+      "count": 4,
+      "median_seconds": 0.4817535,
+      "cases": [
+        {
+          "id": "interval_helper_v2",
+          "text": "What is 18 * (5 / 9)?",
+          "http_status": 200,
+          "latency_seconds": 0.173394,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 5 / 9 = 0.555556; 18 x 0.555556 = 10. The answer is 10.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "5 / 9 = 0.555556",
+                  "18 x 0.555556 = 10"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        },
+        {
+          "id": "battery_rating_first",
+          "text": "How long can a 1000 Wh battery with a 500 W rated inverter run a 100 W load with 90% inverter efficiency and 80% depth of discharge?",
+          "http_status": 200,
+          "latency_seconds": 1.122679,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>specialist:energy-v3>runtime",
+              "response": "The runtime is about 2 hours (1000 Wh \u00f7 500 W), before inverter and depth-of-discharge losses. [energy-v3]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "energy-v3",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "list_n",
+                "margin": 0.06,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 15.0,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "incorrect_rating_bound_as_load_and_conditions_ignored"
+        },
+        {
+          "id": "spring_energy_rephrase",
+          "text": "How much energy is stored in a spring with stiffness 200 N/m and extension 0.3 m?",
+          "http_status": 200,
+          "latency_seconds": 0.647771,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "precision_guard:Q2_half_answer>specialist_call>specialist:springs>elastic_energy",
+              "response": "I worked out only part of that, not the a you asked for, so I won't give it as the answer.",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "family": "new_v1",
+                "core_status": "withheld",
+                "core_path": "arb:timeline->capability:timeline|vessel:receipt",
+                "specialist": "springs",
+                "parts": null
+              },
+              "latency_ms": 0.3,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "arbitration": {
+                "winner": "timeline",
+                "runner_up": "why_different",
+                "margin": 0.766,
+                "floor": false,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "authoritative",
+                "arbiter": "v3",
+                "canonical_surface": "Give me a timeline of energy.",
+                "capture_point": "capability"
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "guard_refusal"
+        },
+        {
+          "id": "heat_one_sentence",
+          "text": "How much heat is needed to warm 2 kg of water from 20 C to 80 C using specific heat 4180 J/(kg K), with no phase change or heat loss?",
+          "http_status": 200,
+          "latency_seconds": 0.315736,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>specialist:thermo>sensible_heat",
+              "response": "It takes 5.016e+05 J (501.6 kJ; Q = mc\u0394T with m = 2 kg, c = 4180 J/(kg\u00b7K) given, \u0394T = 60 K). [thermo]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "thermo",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "summarize",
+                "margin": 0.011,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 23.6,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "correct"
+        }
+      ]
+    },
+    "run-04": {
+      "raw_result_path": "var/usage-20261026/engineering/run-04/results.jsonl",
+      "count": 1,
+      "median_seconds": 0.174391,
+      "cases": [
+        {
+          "id": "flow_helper_v2",
+          "text": "What is 30 * (1 / 60000)?",
+          "http_status": 200,
+          "latency_seconds": 0.174391,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 1 / 60000 = 0.000017; 30 x 0.000017 = 0.0005. The answer is 0.0005.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "1 / 60000 = 0.000017",
+                  "30 x 0.000017 = 0.0005"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "arithmetic_correct"
+        }
+      ]
+    },
+    "run-05-combined": {
+      "runtime": "/Users/ember/dev/o7vn/var/usage-20261026/candidate",
+      "capabilities": {
+        "protocol": "oracle-appliance-v1",
+        "backend": "Oracle7.Engine.chat",
+        "source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+        "tip": "oracle_release_runtime_w436",
+        "deployment": {
+          "receipt_sha256": "e3628455a546219ad1505cd04b548a4282bff7647cc10a8c78fb30ae548b66d8",
+          "base_source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+          "patches": [
+            {
+              "name": "oracle7-slim-4.9-correctness.patch",
+              "sha256": "feb44d407634699545634350281e530b1bcc0ecf7bd951bdfc01655dbf99ecd6"
+            },
+            {
+              "name": "oracle7-slim-4.9-usage.patch",
+              "sha256": "eecb26f28f86f015b4a0c3e6056d3a8e9fafe6e9760e811db2289e7701d424a7"
+            }
+          ],
+          "kernel_overlay_manifest_sha256": "91e3525e922f98a662d81e0c8a154dfaf51ee55ec24e37f6125cc0ea873be1d4",
+          "kernel_base_revision": "3bf43cff8eaa1c30db2659d186cdcffe9c4f6c61",
+          "kernel_source_revision": null,
+          "kernel_families": 20,
+          "kernel_platform": "linux-x86_64",
+          "metadata_verified_by_adapter": false,
+          "verification": "Receipt bytes hashed only; deployment contents require independent host verification."
+        },
+        "evidence": "upstream reply preserved; upstream labels are not Mini authority",
+        "deployment_content_hashes_checked_by_adapter": false,
+        "scope": "one host-assigned workspace per process",
+        "query_queue": 0,
+        "limits": {
+          "request_bytes": 16384,
+          "reply_bytes": 2097152,
+          "retained_requests": 10000,
+          "query_seconds": 30.0
+        }
+      },
+      "raw_result_path": "var/usage-20261026/engineering/run-05-combined/results.jsonl",
+      "count": 18,
+      "median_seconds": 0.15395199999999998,
+      "cases": [
+        {
+          "id": "lift_ideal",
+          "text": "How much energy is needed to lift a 25 kg crate vertically by 4 m? Use g = 9.81 m/s^2 and ignore losses.",
+          "http_status": 200,
+          "latency_seconds": 3.518516,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "specialist_call>specialist:cooking-v3>unknown_food",
+              "response": "I don't have a USDA entry for \"needed to lift crate vertically by m Use m s and ignore losses\", so I can't give you its calories. [cooking-v3]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "cooking-v3",
+                "parts": null,
+                "trace": {
+                  "rule": "arbitrated",
+                  "ranking": [
+                    [
+                      "cooking-v3",
+                      [
+                        0,
+                        true,
+                        [
+                          0,
+                          3
+                        ],
+                        false
+                      ]
+                    ],
+                    [
+                      "thermo",
+                      [
+                        0,
+                        true,
+                        [
+                          0,
+                          0
+                        ],
+                        false
+                      ]
+                    ]
+                  ]
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "explain_simply",
+                "margin": 0.017,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 13.9,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "valid_task_uncompleted"
+        },
+        {
+          "id": "lift_efficiency",
+          "text": "For that same lift, how much electrical energy is needed if the motor efficiency is 80%?",
+          "http_status": 200,
+          "latency_seconds": 0.164122,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "clarification",
+              "path": "act:clarify_specific",
+              "response": "What does \"that\" refer to? Nothing earlier in this conversation names it. Tell me the name.",
+              "provenance": {
+                "kind": "dialogue_state",
+                "r468_door": {
+                  "act": "asked",
+                  "phrase": "that",
+                  "offered": [],
+                  "named": [
+                    "same",
+                    "lift"
+                  ]
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "what_if",
+                "margin": 0.056,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 9.9,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "valid_task_uncompleted"
+        },
+        {
+          "id": "pump_power",
+          "text": "A pump raises water at 0.002 m^3/s through a vertical height of 10 m. Use water density 1000 kg/m^3, g = 9.81 m/s^2, and 70% overall efficiency. What electrical input power is needed? Ignore pipe friction.",
+          "http_status": 200,
+          "latency_seconds": 0.20407,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "clarification",
+              "path": "act:clarify|vessel:receipt",
+              "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"A pump raises water at 0.002 m^3/s through a vertical height of 10 m. Use water density 1000 kg/m^3, g = 9.81 m/s^2, and 70% overall efficiency. What electrical\u2026\" as an unnamed shape [vessel:v0003]; if it returns it gains weight, and when I can name it, I will.",
+              "provenance": {
+                "kind": "dialogue_state",
+                "note": "graceful clarify terminal",
+                "vessel": {
+                  "id": "v0003",
+                  "weight": 3.0,
+                  "count": 1,
+                  "slot": "bounds"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "act_refine",
+                "margin": 0.003,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 21.9,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "valid_task_uncompleted"
+        },
+        {
+          "id": "spring_work",
+          "text": "A linear spring has stiffness 200 N/m. Its extension changes from 0.1 m to 0.3 m. How much additional elastic energy is stored?",
+          "http_status": 200,
+          "latency_seconds": 0.113356,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "arb:timeline->capability:timeline|vessel:receipt",
+              "response": "A timeline needs at least two dated statements; the admitted material on stiffness contains 0.\n\nI have received \"A linear spring has stiffness 200 N/m. Its extension changes from 0.1 m to 0.3 m. How much additional elastic energy is stored?\" as an unnamed shape [vessel:v0004]; if it returns it gains weight, and when I can name it, I will.",
+              "provenance": {
+                "kind": "gated_timeline",
+                "topic": "stiffness",
+                "dated_claims": 0,
+                "vessel": {
+                  "id": "v0004",
+                  "weight": 3.0,
+                  "count": 1,
+                  "slot": "bounds"
+                }
+              },
+              "latency_ms": 0.1,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "arbitration": {
+                "winner": "timeline",
+                "runner_up": "act_continue",
+                "margin": 0.893,
+                "floor": false,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "authoritative",
+                "arbiter": "v3",
+                "canonical_surface": "Give me a timeline of stiffness.",
+                "capture_point": "capability"
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "valid_task_uncompleted"
+        },
+        {
+          "id": "spring_force",
+          "text": "A spring has unstretched length 0.4 m, final length 0.5 m and stiffness 200 N/m. What is its force magnitude?",
+          "http_status": 200,
+          "latency_seconds": 0.216769,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "specialist_call>specialist:physics-r2>underspecified",
+              "response": "I need a mass and an acceleration to compute that; I won't assume the missing value. [physics-r2]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "withheld",
+                "core_path": "arb:timeline->capability:timeline|vessel:receipt",
+                "specialist": "physics-r2",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "latency_ms": 0.2,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "arbitration": {
+                "winner": "timeline",
+                "runner_up": "compare",
+                "margin": 0.903,
+                "floor": false,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "authoritative",
+                "arbiter": "v3",
+                "canonical_surface": "Give me a timeline of length.",
+                "capture_point": "capability"
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "valid_task_uncompleted"
+        },
+        {
+          "id": "spring_simple",
+          "text": "What is the elastic energy stored in a spring with stiffness 200 N/m and extension 0.3 m?",
+          "http_status": 200,
+          "latency_seconds": 0.192668,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "precision_guard:Q2_half_answer>specialist_call>specialist:springs>elastic_energy",
+              "response": "I worked out only part of that, not the a you asked for, so I won't give it as the answer.",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "family": "new_v1",
+                "core_status": "withheld",
+                "core_path": "specialist_call>specialist:economics>underspecified",
+                "specialist": "springs",
+                "parts": null
+              },
+              "latency_ms": 0.3,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "arbitration": {
+                "winner": "timeline",
+                "runner_up": "definitional",
+                "margin": 0.562,
+                "floor": false,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "authoritative",
+                "arbiter": "v3",
+                "canonical_surface": "Give me a timeline of energy.",
+                "capture_point": "capability"
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "valid_task_uncompleted"
+        },
+        {
+          "id": "heat_endpoints",
+          "text": "How much heat is needed to warm 2 kg of water from 20 C to 80 C? Use constant specific heat 4180 J/(kg K), with no phase change or heat loss.",
+          "http_status": 200,
+          "latency_seconds": 0.269202,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>specialist:thermo>sensible_heat",
+              "response": "It takes 5.016e+05 J (501.6 kJ; Q = mc\u0394T with m = 2 kg, c = 4180 J/(kg\u00b7K) given, \u0394T = 60 K). [thermo]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "thermo",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "act_acknowledge",
+                "margin": 0.001,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 18.7,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "correct"
+        },
+        {
+          "id": "heat_interval",
+          "text": "How much heat is needed to raise the temperature of 2 kg of water by 60 K? Use specific heat 4180 J/(kg K).",
+          "http_status": 200,
+          "latency_seconds": 0.164458,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>specialist:thermo>sensible_heat",
+              "response": "It takes 5.016e+05 J (501.6 kJ; Q = mc\u0394T with m = 2 kg, c = 4180 J/(kg\u00b7K) given, \u0394T = 60 K). [thermo]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "thermo",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "act_provenance",
+                "margin": 0.001,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 13.3,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "correct"
+        },
+        {
+          "id": "battery_roles",
+          "text": "How long can a 1000 Wh battery run a 100 W load through a 500 W rated inverter with 90% inverter efficiency and 80% depth of discharge? The load is constant.",
+          "http_status": 200,
+          "latency_seconds": 0.215661,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "precision_guard:G4_admitted|specialist_call>combo:parts>energy-v3",
+              "response": "I can't verify an answer to that exact question, so I won't guess.",
+              "provenance": {
+                "kind": "precision_guard",
+                "rule": "G4_admitted",
+                "withheld_path": "specialist_call>combo:parts>energy-v3",
+                "withheld_response": "The runtime is about 7.2 hours (1000 Wh \u00d7 0.9 conversion efficiency \u00d7 0.8 usable fraction \u00f7 100 W load), at the stated conversion and usable-capacity factors; load is within the 500 W inverter rating. [energy-v3] (None of my specialists covers: \"The load is constant.\")"
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "act_acknowledge",
+                "margin": 0.009,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 15.8,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "valid_task_uncompleted"
+        },
+        {
+          "id": "battery_plain",
+          "text": "How long can a 1000 Wh battery run a 100 W load with 90% inverter efficiency and 80% depth of discharge?",
+          "http_status": 200,
+          "latency_seconds": 0.092696,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>specialist:energy-v3>runtime",
+              "response": "The runtime is about 7.2 hours (1000 Wh \u00d7 0.9 conversion efficiency \u00d7 0.8 usable fraction \u00f7 100 W load), at the stated conversion and usable-capacity factors. [energy-v3]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "energy-v3",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "list_n",
+                "margin": 0.016,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 11.0,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "correct"
+        },
+        {
+          "id": "battery_invalid",
+          "text": "How long can a 1000 Wh battery run a 100 W load with 120% inverter efficiency and 80% depth of discharge?",
+          "http_status": 200,
+          "latency_seconds": 0.140684,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "specialist_call>specialist:energy-v3>underspecified",
+              "response": "I need efficiency, loss and usable fractions between 0 and 1 (or 0% and 100%) to work that out; I won't assume it. [energy-v3]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "energy-v3",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "list_n",
+                "margin": 0.018,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 12.5,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "useful_refusal"
+        },
+        {
+          "id": "conversion_flow",
+          "text": "Convert 30 litres per minute to cubic metres per second.",
+          "http_status": 200,
+          "latency_seconds": 0.110835,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "clarification",
+              "path": "act:clarify|vessel:receipt",
+              "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Convert 30 litres per minute to cubic metres per second.\" as an unnamed shape [vessel:v0012]; if it returns it gains weight, and when I can name it, I will.",
+              "provenance": {
+                "kind": "dialogue_state",
+                "note": "graceful clarify terminal",
+                "vessel": {
+                  "id": "v0012",
+                  "weight": 3.0,
+                  "count": 1,
+                  "slot": "bounds"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "act_refine",
+                "margin": 0.013,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 7.7,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "valid_task_uncompleted"
+        },
+        {
+          "id": "temperature_interval",
+          "text": "Convert a temperature increase of 18 F to a temperature increase in C.",
+          "http_status": 200,
+          "latency_seconds": 0.211421,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "clarification",
+              "path": "act:clarify|vessel:receipt",
+              "response": "I didn't fully parse that, so I won't guess. I can summarize a topic, compare two things, list facts, give a timeline, explain something simply, define a term, reason about why and what-if, and discuss any document you teach me. A shorter, more direct phrasing usually lands.\n\nI have received \"Convert a temperature increase of 18 F to a temperature increase in C.\" as an unnamed shape [vessel:v0013]; if it returns it gains weight, and when I can name it, I will.",
+              "provenance": {
+                "kind": "dialogue_state",
+                "note": "graceful clarify terminal",
+                "vessel": {
+                  "id": "v0013",
+                  "weight": 3.0,
+                  "count": 1,
+                  "slot": "bounds"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "timeline",
+                "margin": 0.04,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 7.4,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              }
+            }
+          },
+          "judgment": "valid_task_uncompleted"
+        },
+        {
+          "id": "dimension_mismatch",
+          "text": "Convert 2 metres to kilograms.",
+          "http_status": 200,
+          "latency_seconds": 0.126395,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "specialist_call>specialist:units-v3>mismatch",
+              "response": "metres measures length and kilograms measures mass, so there's no conversion between them. [units-v3]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "units-v3",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "summarize",
+                "margin": 0.051,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 4.3,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "useful_refusal"
+        },
+        {
+          "id": "interval_helper_v2",
+          "text": "What is 18 * (5 / 9)?",
+          "http_status": 200,
+          "latency_seconds": 0.014429,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "compute:verified",
+              "response": "In steps: 5 / 9 = 0.555556; 18 x 0.555556 = 10. The answer is 10.",
+              "provenance": {
+                "kind": "computation",
+                "verified": true,
+                "steps": [
+                  "5 / 9 = 0.555556",
+                  "18 x 0.555556 = 10"
+                ],
+                "carried_prior": false,
+                "evaluator": "w27_closed_grammar"
+              },
+              "latency_ms": 1
+            }
+          },
+          "judgment": "correct"
+        },
+        {
+          "id": "battery_rating_first",
+          "text": "How long can a 1000 Wh battery with a 500 W rated inverter run a 100 W load with 90% inverter efficiency and 80% depth of discharge?",
+          "http_status": 200,
+          "latency_seconds": 0.109406,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>specialist:energy-v3>runtime",
+              "response": "The runtime is about 7.2 hours (1000 Wh \u00d7 0.9 conversion efficiency \u00d7 0.8 usable fraction \u00f7 100 W load), at the stated conversion and usable-capacity factors; load is within the 500 W inverter rating. [energy-v3]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "energy-v3",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "list_n",
+                "margin": 0.06,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 18.6,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "correct"
+        },
+        {
+          "id": "spring_energy_rephrase",
+          "text": "How much energy is stored in a spring with stiffness 200 N/m and extension 0.3 m?",
+          "http_status": 200,
+          "latency_seconds": 0.103779,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "withheld",
+              "path": "precision_guard:Q2_half_answer>specialist_call>specialist:springs>elastic_energy",
+              "response": "I worked out only part of that, not the a you asked for, so I won't give it as the answer.",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "family": "new_v1",
+                "core_status": "withheld",
+                "core_path": "arb:timeline->capability:timeline|vessel:receipt",
+                "specialist": "springs",
+                "parts": null
+              },
+              "latency_ms": 0.4,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "arbitration": {
+                "winner": "timeline",
+                "runner_up": "why_different",
+                "margin": 0.766,
+                "floor": false,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "authoritative",
+                "arbiter": "v3",
+                "canonical_surface": "Give me a timeline of energy.",
+                "capture_point": "capability"
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "valid_task_uncompleted"
+        },
+        {
+          "id": "heat_one_sentence",
+          "text": "How much heat is needed to warm 2 kg of water from 20 C to 80 C using specific heat 4180 J/(kg K), with no phase change or heat loss?",
+          "http_status": 200,
+          "latency_seconds": 0.143782,
+          "response": {
+            "outcome": "completed",
+            "reply": {
+              "status": "answered",
+              "path": "specialist_call>specialist:thermo>sensible_heat",
+              "response": "It takes 5.016e+05 J (501.6 kJ; Q = mc\u0394T with m = 2 kg, c = 4180 J/(kg\u00b7K) given, \u0394T = 60 K). [thermo]",
+              "provenance": {
+                "kind": "core_called_specialist",
+                "core_status": "clarification",
+                "core_path": "act:clarify|vessel:receipt",
+                "specialist": "thermo",
+                "parts": null,
+                "trace": {
+                  "rule": "only"
+                }
+              },
+              "arbitration": {
+                "winner": "clarification",
+                "runner_up": "summarize",
+                "margin": 0.011,
+                "floor": true,
+                "regex_family": "open_topic",
+                "agrees": false,
+                "mode": "shadow",
+                "arbiter": "v3"
+              },
+              "latency_ms": 16.5,
+              "zero_model_gate": {
+                "lm_calls": 0,
+                "transformer_calls": 0
+              },
+              "evidential": {
+                "input_marked": null,
+                "answer_licensed": "unknown"
+              },
+              "references": []
+            }
+          },
+          "judgment": "correct"
+        }
+      ]
+    }
+  }
+}

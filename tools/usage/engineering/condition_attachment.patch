@@ -1,0 +1,108 @@
+--- a/root/specialists/_gate/combo_runtime_v1.py
++++ b/root/specialists/_gate/combo_runtime_v1.py
+@@ -238,6 +238,58 @@
+              "please tell give name".split())
+ 
+ 
++CONDITION_START = re.compile(
++    r"^(?:please\s+)?(?:use|using|assume|assuming|take|given|with|without|ignore|ignoring|neglect|neglecting)\b", re.I)
++CONDITION_NEW_TASK = re.compile(
++    r"\b(?:calculate|compute|determine|find|tell|give|show|convert|list|summarize|compare|explain|"
++    r"evaluate|solve|plot|draw|write|read|search|estimate|measure|prove|derive|differentiate|integrate|"
++    r"derivatives?|integrals?|square root|report|what|who|whom|whose|which|where|when|why|how)\b", re.I)
++DECLARED_CONSTANT = re.compile(
++    r"^(?:the\s+)?(?:load|gravity|density|specific heat(?: capacity)?|pressure|volume|mass|"
++    r"flow(?: rate)?|temperature|stiffness|efficiency)\s+(?:is|remains|stays)\s+"
++    r"(?:constant|steady|fixed)(?:\s+throughout)?\s*[.!]?$", re.I)
++CONDITION_PARAMETER = re.compile(
++    r"\b(?:specific heat|heat capacity|gravity|density|efficiency|temperature|pressure|mass|volume|"
++    r"flow|stiffness|load|capacity|loss(?:es)?|friction|phase change|constant)\b|\b[a-z]\s*=", re.I)
++
++
++def _condition_prefix(part: str) -> tuple[str, str]:
++    """Separate explicit declarative conditions from a later independent task.
++
++    Only condition-led sentences without an unquoted question or request verb
++    attach backwards. A new question stays separate even when its preceding
++    sentence starts with 'Use'. Quoted/code text is never a split boundary.
++    This is deliberately a small untrusted English recognizer, not a proof that
++    arbitrary prose expresses only conditions.
++    """
++    masked = CODE_SPAN.sub(lambda m: "\x00" * len(m.group(0)), part)
++    # A 'Given ...' premise before another question normally belongs to that
++    # new question; it is only a backwards continuation when no question follows.
++    if re.match(r"^(?:please\s+)?given\b", masked, re.I) and "?" in masked:
++        return "", part
++    ends = [m.end() for m in re.finditer(r"[.!]\s+", masked)] + [len(part)]
++    start, consumed = 0, 0
++    for end in ends:
++        sentence = masked[start:end].strip()
++        if not sentence:
++            start = end
++            continue
++        if not (CONDITION_START.match(sentence) or DECLARED_CONSTANT.fullmatch(sentence)) or "?" in sentence or CONDITION_NEW_TASK.search(sentence):
++            break
++        if re.match(r"^(?:please\s+)?(?:use|using|take)\b", sentence, re.I) and not CONDITION_PARAMETER.search(sentence):
++            break  # "Take the square root ..." / "Use a calculator ..." is a task, not a model input.
++        consumed = end
++        start = end
++    return part[:consumed].strip(), part[consumed:].strip()
++
++
++def _short_followup_fragment(text: str) -> bool:
++    """A small explicit elliptical vocabulary; brevity alone never implies dependence."""
++    return bool(re.fullmatch(
++        r"\s*(?:and\s+)?(?:how\s+(?:many|much|long|far)|what(?:\s+else)?|who|when|where|why|which(?:\s+one)?)\s*[?!.]*\s*",
++        text, re.I))
++
++
+ def _split_parts(text: str) -> list[str]:
+     """split a turn at its question marks; never inside `code` or quoted spans (SQL, JSON, strings).
+     Semicolons never split: "10 of 40 deer were tagged; 50 had been tagged ..." is one question."""
+@@ -251,7 +303,16 @@
+         out.append(t[prev:c].strip())
+         prev = c
+     out.append(t[prev:].strip())
+-    return [p for p in out if p]
++    grouped = []
++    for part in out:
++        if not part:
++            continue
++        condition, remainder = _condition_prefix(part) if grouped else ("", part)
++        if condition:
++            grouped[-1] += " " + condition
++        if remainder:
++            grouped.append(remainder)
++    return grouped
+ 
+ 
+ class Combo:
+@@ -340,9 +401,9 @@
+         return self._arbitrate(text, self._ask_all(text, session_id), session_id)
+ 
+     def _segment(self, parts, session_id):
+-        """left to right: a SHORT part (<= 6 words) that no organ takes alone rejoins its neighbour when the joined
+-        text is taken ("... in 5-card poker? How many?", "Is Basque related to ...? What family is it?").
+-        A full question nobody covers is never glued on (it would vanish inside the neighbour's answer)."""
++        """An explicit elliptical fragment that no organ takes alone may rejoin its neighbour
++        ("... in 5-card poker? How many?"). Pronoun backreferences are handled separately.
++        A full question nobody covers is never glued on just because it is short."""
+         segs = []
+         ok = lambda x: x[1] is not None or bool(x[2].get("disagree"))   # noqa: E731
+         for p in parts:
+@@ -353,13 +414,13 @@
+                 segs[-1] = (joined,) + self._one(joined, session_id)
+                 continue
+             cur = (p,) + self._one(p, session_id)
+-            if segs and not ok(cur) and len(WORD.findall(p.lower())) <= 6:
++            if segs and not ok(cur) and _short_followup_fragment(p):
+                 joined = segs[-1][0] + " " + p
+                 j = (joined,) + self._one(joined, session_id)
+                 if ok(j):
+                     segs[-1] = j
+                     continue
+-            if segs and not ok(segs[-1]) and len(WORD.findall(segs[-1][0].lower())) <= 6:
++            if segs and not ok(segs[-1]) and _short_followup_fragment(segs[-1][0]):
+                 joined = segs[-1][0] + " " + p
+                 j = (joined,) + self._one(joined, session_id)
+                 if ok(j):

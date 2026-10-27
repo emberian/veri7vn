@@ -1,0 +1,34 @@
+{
+  "stored_invalid_fraction": {
+    "status": "not answered",
+    "reason": "unbound, inconsistent, malformed or infeasible energy model"
+  },
+  "stored_missing_fraction": {
+    "status": "not answered",
+    "reason": "unbound, inconsistent, malformed or infeasible energy model"
+  },
+  "remaining_overdraw": {
+    "status": "not answered",
+    "reason": "unbound, inconsistent, malformed or infeasible energy model"
+  },
+  "remaining_negative_time": {
+    "status": "not answered",
+    "reason": "unbound, inconsistent, malformed or infeasible energy model"
+  },
+  "remaining_bad_comma": {
+    "status": "not answered",
+    "reason": "unbound, inconsistent, malformed or infeasible energy model"
+  },
+  "remaining_multiple_sources": {
+    "status": "not answered",
+    "reason": "unbound, inconsistent, malformed or infeasible energy model"
+  },
+  "stored_negative_time": {
+    "status": "not answered",
+    "reason": "unbound, inconsistent, malformed or infeasible energy model"
+  },
+  "stored_conflicting_fraction": {
+    "status": "not answered",
+    "reason": "unbound, inconsistent, malformed or infeasible energy model"
+  }
+}

@@ -1,0 +1,14 @@
+[
+ {"id":"transfer-gb","conversation_id":"transfer-gb","text":"How long does it take to transfer 1 GB at 100 Mbps with 100% utilization?"},
+ {"id":"transfer-gib","conversation_id":"transfer-gib","text":"How long does it take to transfer 1 GiB at 100 Mbps with 100% utilization?"},
+ {"id":"transfer-byte","conversation_id":"transfer-byte","text":"How long does it take to transfer 1 GB at 100 MB/s with 100% utilization?"},
+ {"id":"transfer-util","conversation_id":"transfer-util","text":"How long does it take to transfer 5 GB at 100 Mbps with 80% utilization?"},
+ {"id":"transfer-mib","conversation_id":"transfer-mib","text":"How long does it take to transfer 512 MiB at 8 MiB/s with 50% utilization?"},
+ {"id":"transfer-gbps","conversation_id":"transfer-gbps","text":"How long does it take to transfer 2.5 GB at 1 Gbps with 80% utilization?"},
+ {"id":"transfer-ordinary","conversation_id":"transfer-ordinary","text":"How many seconds to download 750 MB over a 50 Mbps connection with 75% utilization?"},
+ {"id":"transfer-zero","conversation_id":"transfer-zero","text":"How long does it take to transfer 0 MB at 50 Mbps with 100% utilization?"},
+ {"id":"transfer-ambiguous","conversation_id":"transfer-ambiguous","text":"How long does it take to transfer 1 gb at 100 mbps with 100% utilization?"},
+ {"id":"transfer-rate-zero","conversation_id":"transfer-rate-zero","text":"How long does it take to transfer 1 GB at 0 Mbps with 100% utilization?"},
+ {"id":"transfer-util-high","conversation_id":"transfer-util-high","text":"How long does it take to transfer 1 GB at 100 Mbps with 150% utilization?"},
+ {"id":"transfer-missing","conversation_id":"transfer-missing","text":"How long does it take to transfer 1 GB at 100 Mbps?"}
+]

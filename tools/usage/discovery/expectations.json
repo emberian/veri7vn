@@ -1,0 +1,14 @@
+{
+ "help": "Describe supported tasks, limits and at least one usable example; do not promise unrestricted assistance.",
+ "examples": "Give three specific supported question examples; do not answer unrelated facts.",
+ "units-help": "Explain quantity, source unit, target unit, and give an example request.",
+ "facts-help": "Describe source-backed factual lookup and missing-record limits with a usable example.",
+ "author": "Walt Whitman, with source support.",
+ "distance-natural": "8.04672 kilometers; requested length conversion, no missing information.",
+ "distance-canonical": "8.04672 kilometers; same task as distance-natural.",
+ "dimension-mismatch": "Decline or clarify: miles measure length and kilograms measure mass.",
+ "missing-amount": "Ask for an amount, or give a clearly labeled general rule: one mile = 1.609344 km. Do not invent an amount.",
+ "multiply": "391.",
+ "code-help": "Describe supported programming help accurately, give a usable example or ask what code is needed.",
+ "code-followup": "Explain the previous response's specific limitation rather than answer an unrelated topic."
+}

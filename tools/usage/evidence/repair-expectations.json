@@ -1,0 +1,10 @@
+{
+  "zero": "Undefined, refusal or clarification; no zoo numeric answer.",
+  "indeterminate": "Undefined; no nan numeric answer.",
+  "logzero": "No finite real log(0); withhold or explicitly explain undefined/limit.",
+  "ordinary": "391",
+  "rational": "1/3",
+  "complex": "I (finite complex number)",
+  "quantity": "12500/381 feet",
+  "physics": "9 joules under classical KE formula"
+}

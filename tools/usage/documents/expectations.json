@@ -1,0 +1,16 @@
+{
+ "plain-owner":{"answer":"Nira Vale","task":"ordinary document question"},
+ "yes-owner":{"answer":"Yes","evidence":"Nira Vale is the director of the Lumen Archive."},
+ "followup":{"answer":"2018","task":"remember passage in same conversation"},
+ "absent":{"answer":null,"required":"withhold: no Sunday information"},
+ "negation":{"answer":"No","evidence":"The Lumen Archive is not open on Sunday."},
+ "factoid":{"answer":"Nira Vale"},
+ "summary":{"required":"one sentence covering the supplied archive facts without external additions"},
+ "timeline":{"required":"2018 opened, 2021 moved to Alderport, 2024 Nira Vale became director"},
+ "comparison":{"answer":"Yes","required":"compare 2018 with 2020"},
+ "conflicting-versions":{"answer":null,"required":"identify conflict or withhold; no version precedence supplied"},
+ "citation":{"answer":"Yes","evidence":"Nira Vale is the director of the Lumen Archive."},
+ "fiction-scope":{"answer":"Yes","required":"answer from fictional supplied history, not Walt Whitman"},
+ "ordinary-summary":{"required":"summary grounded only in supplied archive facts"},
+ "modal":{"answer":null,"required":"planned opening does not establish present opening"}
+}
