@@ -1,3 +1,4 @@
+> Current, 27 October: [Mars, source-precise dates and Mini shared data](CONTINUE-2026-10-27.md).
 > Active again, 26 October: [appliance and correctness batch](APPLIANCE-2026-10-26.md).
 > Ember authorized appliance packaging, more specialists, upstream repairs and
 > broad Terra review. The October 18 wrap-up below is historical.

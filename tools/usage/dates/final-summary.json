@@ -1,0 +1,202 @@
+{
+  "runtime": "/Users/ember/dev/o7vn/var/usage-20261027/candidate-final-v3",
+  "private_source_commit": "2a42ed7",
+  "frozen_manifest": "tools/usage/dates/source-manifest.json",
+  "cases": 21,
+  "supported_answers": 17,
+  "appropriate_withheld": 4,
+  "http_errors": 0,
+  "checks": [
+    {
+      "id": "shakespeare",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "shakespeare-day",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "shakespeare-year",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "salinger",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "carter",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "curie",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "newton",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "newton-julian",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "hildegard",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "sappho",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "cicero",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "metadata-missing",
+      "http_200": true,
+      "status": "withheld",
+      "expected_status": "withheld",
+      "status_matches": true,
+      "unchanged_from_reviewed_v2_response": true
+    },
+    {
+      "id": "emma",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "required_phrases_present": true
+    },
+    {
+      "id": "austen-birth",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "required_phrases_present": true,
+      "pronoun_binding": true
+    },
+    {
+      "id": "newton-gregorian",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "required_phrases_present": true
+    },
+    {
+      "id": "order-known",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "required_phrases_present": true,
+      "no_spurious_age_gap": true
+    },
+    {
+      "id": "order-coarse",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "required_phrases_present": true,
+      "no_spurious_age_gap": true
+    },
+    {
+      "id": "order-uncertain",
+      "http_200": true,
+      "status": "withheld",
+      "expected_status": "withheld",
+      "status_matches": true,
+      "terminal_refusal": true,
+      "no_spurious_age_gap": true
+    },
+    {
+      "id": "order-explicit-birth",
+      "http_200": true,
+      "status": "answered",
+      "expected_status": "answered",
+      "status_matches": true,
+      "required_phrases_present": true,
+      "no_spurious_age_gap": true
+    },
+    {
+      "id": "order-metadata-missing",
+      "http_200": true,
+      "status": "withheld",
+      "expected_status": "withheld",
+      "status_matches": true,
+      "terminal_refusal": true,
+      "no_spurious_age_gap": true
+    },
+    {
+      "id": "order-same-person",
+      "http_200": true,
+      "status": "withheld",
+      "expected_status": "withheld",
+      "status_matches": true,
+      "terminal_refusal": true,
+      "no_spurious_age_gap": true
+    }
+  ],
+  "scope": "Actual full engine task regressions; not a panel score or Mini admission.",
+  "appliance_receipt_sha256": "e3bfe7fc7fa22e8d4641f0314dfb8d1a3cd50ba442b2f656c86617e0ee9e7392",
+  "patches": [
+    {
+      "name": "oracle7-slim-4.9-correctness.patch",
+      "sha256": "feb44d407634699545634350281e530b1bcc0ecf7bd951bdfc01655dbf99ecd6"
+    },
+    {
+      "name": "oracle7-slim-4.9-usage.patch",
+      "sha256": "1a2f69d0bdfe112f67ac01557ddb1c923e5e6c6a1fbaab1097852ade20e3e625"
+    },
+    {
+      "name": "oracle7-slim-4.9-dates-mars.patch",
+      "sha256": "963b1f91ba8330b2cd1a099ddf72df05813c94a0156931ed40b257b13e93a57c"
+    }
+  ]
+}

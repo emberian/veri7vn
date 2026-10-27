@@ -1,0 +1,42 @@
+{
+  "root/wander-train/reach_router_v1.py": {
+    "bytes": 19257,
+    "sha256": "e28ad2bb7a3a74459b96b016205f48a8f6bf9c0bd23aad7a32a500af996a8ba0"
+  },
+  "root/wander-train/reach_router_v2.py": {
+    "bytes": 21538,
+    "sha256": "4df70739d42221a9e466e44ae882db9e08da419b132d3b0fee51827982c99835"
+  },
+  "root/wander-train/reach_router_v3.py": {
+    "bytes": 25570,
+    "sha256": "c2221544dbb1143e20110551bbbe125aa9165d874d6cd9eb59d0c593cd1a8319"
+  },
+  "root/wander-train/exact_router_v1.py": {
+    "bytes": 6970,
+    "sha256": "4e38733bed35d3db172c5c6a3d2d3ab029fc0bbb5d3bed7ac2911453db06ab2f"
+  },
+  "root/wander-train/relation_spec_v1.py": {
+    "bytes": 10282,
+    "sha256": "e6a8012a473b83c72532b423c7e158797e761a57b3ac050512e85617b7dd5f10"
+  },
+  "root/wander-train/relation_spec_v2.py": {
+    "bytes": 8094,
+    "sha256": "8a71854225c597256f278a63bdf9f6ed471d310df308c4437f4c4869c6f4d93f"
+  },
+  "root/wander-train/knowledge_composer_v1.py": {
+    "bytes": 6261,
+    "sha256": "c3952a1dc277ae4a3e96b6b2fb08f0d84168e1b03b18e9c3deba38399706de8b"
+  },
+  "root/wander-train/date_precision_v1.py": {
+    "bytes": 14072,
+    "sha256": "d98bcd110be128bebd66bfd91b9a36cd344b56d6b0fbbbeec4fa92de8bc137fc"
+  },
+  "root/relstore/date_precision_v1.json": {
+    "bytes": 2548330,
+    "sha256": "3e2392fbc65a610790b35f06e49d5d28372ff01aa9b8f677b453ab20727a9e15"
+  },
+  "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w426.py": {
+    "bytes": 20642,
+    "sha256": "69f21ef4de39a6362a5d17a311dada007167ea28539f6ad677ac48af80e02d89"
+  }
+}

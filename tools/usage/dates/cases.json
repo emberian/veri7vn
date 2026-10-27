@@ -1,0 +1,62 @@
+[
+  {
+    "id": "shakespeare",
+    "conversation_id": "shakespeare",
+    "text": "When was William Shakespeare born?"
+  },
+  {
+    "id": "shakespeare-day",
+    "conversation_id": "shakespeare-day",
+    "text": "What is the exact date of birth of William Shakespeare?"
+  },
+  {
+    "id": "shakespeare-year",
+    "conversation_id": "shakespeare-year",
+    "text": "In what year was William Shakespeare born?"
+  },
+  {
+    "id": "salinger",
+    "conversation_id": "salinger",
+    "text": "When was J. D. Salinger born?"
+  },
+  {
+    "id": "carter",
+    "conversation_id": "carter",
+    "text": "When was Jimmy Carter born?"
+  },
+  {
+    "id": "curie",
+    "conversation_id": "curie",
+    "text": "When was Marie Curie born?"
+  },
+  {
+    "id": "newton",
+    "conversation_id": "newton",
+    "text": "When was Isaac Newton born?"
+  },
+  {
+    "id": "newton-julian",
+    "conversation_id": "newton-julian",
+    "text": "When was Isaac Newton born in the Julian calendar?"
+  },
+  {
+    "id": "hildegard",
+    "conversation_id": "hildegard",
+    "text": "When was Hildegard of Bingen born?"
+  },
+  {
+    "id": "sappho",
+    "conversation_id": "sappho",
+    "text": "When was Sappho born?"
+  },
+  {
+    "id": "cicero",
+    "conversation_id": "cicero",
+    "text": "When was Cicero born?"
+  },
+  {
+    "id": "metadata-missing",
+    "conversation_id": "metadata-missing",
+    "text": "When was Walt Whitman born?"
+  }
+]

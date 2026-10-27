@@ -1,0 +1,47 @@
+[
+  {
+    "id": "emma",
+    "conversation_id": "austen",
+    "text": "Who wrote Emma?"
+  },
+  {
+    "id": "austen-birth",
+    "conversation_id": "austen",
+    "text": "When was she born?"
+  },
+  {
+    "id": "newton-gregorian",
+    "conversation_id": "newton-gregorian",
+    "text": "When was Isaac Newton born in the Gregorian calendar?"
+  },
+  {
+    "id": "order-known",
+    "conversation_id": "order-known",
+    "text": "Who is older, J. D. Salinger or Jimmy Carter?"
+  },
+  {
+    "id": "order-coarse",
+    "conversation_id": "order-coarse",
+    "text": "Who is older, William Shakespeare or Isaac Newton?"
+  },
+  {
+    "id": "order-uncertain",
+    "conversation_id": "order-uncertain",
+    "text": "Who is older, Hildegard of Bingen or William Shakespeare?"
+  },
+  {
+    "id": "order-explicit-birth",
+    "conversation_id": "order-explicit-birth",
+    "text": "Who was born earlier, J. D. Salinger or Jimmy Carter?"
+  },
+  {
+    "id": "order-metadata-missing",
+    "conversation_id": "order-metadata-missing",
+    "text": "Who is older, Walt Whitman or J. D. Salinger?"
+  },
+  {
+    "id": "order-same-person",
+    "conversation_id": "order-same-person",
+    "text": "Who is older, J. D. Salinger or J. D. Salinger?"
+  }
+]

@@ -61,3 +61,8 @@ The actual U2 Python candidate replay completed all 12 valid conversions and
 withheld all nine invalid/unsupported requests. The unchanged U1 baseline had
 zero valid completions and answered six invalid requests. `repaired-summary.json`
 and `baseline-summary.json` record these task outcomes separately from panels.
+
+The final artifact with the new native Space overlay was independently replayed:
+`candidate-final-v2` again gives 12/12 correct conversions and 9/9 refusals, with
+no changed answer text/status/path. `final-summary.json` records its distinct
+receipt and preserves `repaired-summary.json` as intermediate evidence.

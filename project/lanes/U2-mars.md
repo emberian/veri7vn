@@ -239,3 +239,52 @@ Measured change on this pack: valid completions **0/12 → 12/12**; numerical
 answers to invalid/unsupported requests **6/9 → 0/9**. Including the separately
 repeated original baseline request, this lane has retained 43 real requests over
 21 distinct question texts. No new six-criterion admission or theorem is claimed.
+
+## Final artifact replay after native Space and expanded date integration
+
+The same 21 requests were explicitly rerun against root's immutable final
+artifact `/Users/ember/dev/o7vn/var/usage-20261027/candidate-final-v2` after the
+new native Space kernel and expanded date repair were incorporated. No earlier
+candidate's observations were substituted for this run.
+
+```
+.venv/bin/python -B tools/usage/run_batch.py --runtime var/usage-20261027/candidate-final-v2 --cases tools/usage/mars/cases.json --out var/usage-20261027/mars/final-v2-engine
+```
+
+Result: **12/12 valid conversions correct; 9/9 invalid/unsupported requests
+withheld**. All 21 returned HTTP 200; zero requests were skipped, zero HTTP or
+transport errors occurred, and the adapter exited 0. The requested final value
+and target-year unit were checked separately for every numerical answer.
+
+The original still answers **5.64271047228 Earth years** through
+`specialist_call>specialist:astronomy-v3>year_years`. Direct comparison found
+**zero differences in response text, status or path** across all 21 cases versus
+the earlier `candidate-python` run. Thus the valid v3-r2 table-default fallback
+and the negative-count/Moon refusals are preserved on the final artifact.
+Independent file hashing again found all nine astronomy Python files identical
+to the frozen source manifest. No source or candidate edits were needed.
+
+Complete replies, original bytes and adapter logs:
+`var/usage-20261027/mars/final-v2-engine/`. Separate final judgments and metadata:
+`tools/usage/mars/final-summary.json`. The earlier `repaired-engine/` and
+`repaired-summary.json` remain unchanged as intermediate-candidate evidence.
+Median request latency was 0.196487 s, range 0.096905–2.601886 s; batch elapsed
+time was 17.533 s. Across the baseline, intermediate and final runs, this lane
+now retains **64 actual requests over 21 distinct question texts**.
+
+Final artifact identity:
+
+* Receipt SHA-256:
+  `2f491100b7b7f6331bc7e4e3ad16c704762954814995053441bb11d7aeb57c55`.
+* `oracle7-slim-4.9-dates-mars.patch` SHA-256:
+  `d0c6747a6b2d8ce3371e12522f0ee4b4925721ad528369e8e78c939febd2178b`.
+* Kernel overlay manifest SHA-256:
+  `dc629dbb008931288fed19f3da459be287fa7152da1378de98c3fa9af3a3749f`.
+* Base source revision:
+  `083e3a6c0e2cfc131e62bdc16cb4ec1346194635`.
+
+The artifact's metadata identifies Linux kernel binaries. These local full-engine
+replies retain their actual Python specialist routes; this run is not presented
+as proof that the native binary executed on this macOS host. Native theorem/build
+receipts and the real Linux/Mini receiving-host checks remain separate evidence.
+The adapter's receipt-only verification limitation also remains unchanged.

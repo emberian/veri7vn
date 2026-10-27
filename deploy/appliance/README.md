@@ -77,6 +77,16 @@ or grant fresh upstream admission. See
 [`project/USAGE-2026-10-26.md`](../../project/USAGE-2026-10-26.md) for original
 failures, measured outcomes and remaining limits.
 
+The next ordered patch is
+`--patch deploy/appliance/patches/oracle7-slim-4.9-dates-mars.patch`.
+Apply it after both patches above. It binds orbital-year counts to their source
+and target periods, and renders dates using a bundled source-metadata sidecar.
+That sidecar currently covers 200 entity/property pairs across 195 entities;
+uncovered date lookups decline rather than treating flattened timestamps as
+exact days. Runtime lookup needs no network. A current Space kernel requires the
+separate Earth-and-Space overlay; the Python patch alone does not replace it.
+See [`project/CONTINUE-2026-10-27.md`](../../project/CONTINUE-2026-10-27.md).
+
 `smoke.py --runtime DIR --adapter DIR/adapter/serve.py --out NEW_DIRECTORY
 --patched` runs five real-engine queries, exact/conflicting retries, shutdown,
 restart replay and a complete source-tree file/stat comparison. It requires

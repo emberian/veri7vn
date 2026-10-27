@@ -1,0 +1,14 @@
+{
+  "recorded_before_run": true,
+  "cases": {
+    "emma": "Jane Austen",
+    "austen-birth": "16 December 1775 with source-supported Gregorian day precision; active pronoun binding must preserve Jane Austen.",
+    "newton-gregorian": "4 January 1643 explicitly Gregorian, from matching source statement.",
+    "order-known": "Salinger older, both source dates are supported non-overlapping Gregorian days.",
+    "order-coarse": "Shakespeare older; month precision is sufficient because Julian intervals do not overlap.",
+    "order-uncertain": "Date composer must not turn circa into a bounded interval; a separate sourced answer must be evaluated on its own evidence.",
+    "order-explicit-birth": "Salinger older, same supported birth relation as plain older question.",
+    "order-metadata-missing": "Withheld: missing precision metadata does not establish a date order.",
+    "order-same-person": "Withheld: the same subject cannot establish strict earlier/later ordering."
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "before_baseline_run": true,
+  "note": "Expected meaning and precision; metadata-specific cases independently checked against primary Wikidata JSON/RDF rather than presumed from legacy timestamps.",
+  "cases": [
+    {
+      "id": "shakespeare",
+      "text": "When was William Shakespeare born?",
+      "expected": "April 1564; exact day not recorded. Preserve Julian calendar if supplied.",
+      "source": "https://www.shakespeare.org.uk/explore-shakespeare/shakespedia/william-shakespeare/when-was-shakespeare-born/"
+    },
+    {
+      "id": "shakespeare-day",
+      "text": "What is the exact date of birth of William Shakespeare?",
+      "expected": "Do not claim April 1 or April 23 as exact; give April 1564 with missing day.",
+      "source": "https://www.shakespeare.org.uk/explore-shakespeare/shakespedia/william-shakespeare/when-was-shakespeare-born/"
+    },
+    {
+      "id": "shakespeare-year",
+      "text": "In what year was William Shakespeare born?",
+      "expected": "1564; requesting a year should not require a day.",
+      "source": "https://www.shakespeare.org.uk/explore-shakespeare/shakespedia/william-shakespeare/when-was-shakespeare-born/"
+    },
+    {
+      "id": "salinger",
+      "text": "When was J. D. Salinger born?",
+      "expected": "1 January 1919; genuine day-precision first-of-month must survive.",
+      "source": "https://www.pbs.org/wnet/americanmasters/jd-salinger-salinger-timeline/2838/"
+    },
+    {
+      "id": "carter",
+      "text": "When was Jimmy Carter born?",
+      "expected": "1 October 1924; genuine first-of-month day must survive.",
+      "source": "https://www.nobelprize.org/prizes/peace/2002/carter/facts/"
+    },
+    {
+      "id": "curie",
+      "text": "When was Marie Curie born?",
+      "expected": "7 November 1867.",
+      "source": "https://www.nobelprize.org/prizes/physics/1903/marie-curie/questions-and-answers/"
+    },
+    {
+      "id": "newton",
+      "text": "When was Isaac Newton born?",
+      "expected": "25 December 1642 Julian / 4 January 1643 Gregorian; do not silently switch calendars.",
+      "source": "https://newtonproject.ox.ac.uk/his-life-and-work-at-a-glance"
+    },
+    {
+      "id": "newton-julian",
+      "text": "When was Isaac Newton born in the Julian calendar?",
+      "expected": "25 December 1642 Julian, or safe uncertainty if the qualifier cannot be answered.",
+      "source": "https://newtonproject.ox.ac.uk/his-life-and-work-at-a-glance"
+    },
+    {
+      "id": "hildegard",
+      "text": "When was Hildegard of Bingen born?",
+      "expected": "Use source-supported year precision and preserve any uncertainty; no fabricated January 1.",
+      "source": "https://www.wikidata.org/wiki/Q70991"
+    },
+    {
+      "id": "sappho",
+      "text": "When was Sappho born?",
+      "expected": "Preserve source-supported coarse precision and uncertainty qualifiers; do not print a fictitious January 1.",
+      "source": "https://www.wikidata.org/wiki/Q17892"
+    },
+    {
+      "id": "cicero",
+      "text": "When was Cicero born?",
+      "expected": "Preserve source calendar and historical BCE numbering, not RDF astronomical year off-by-one.",
+      "source": "https://www.wikidata.org/wiki/Q1541"
+    },
+    {
+      "id": "metadata-missing",
+      "text": "When was Walt Whitman born?",
+      "expected": "A date relation lacking sidecar metadata must explicitly expose missing precision/calendar rather than treating literal digits as precision. Independent sourced prose may still support an exact answer.",
+      "source": "https://www.loc.gov/collections/walt-whitman-papers/articles-and-essays/chronology/"
+    }
+  ]
+}
