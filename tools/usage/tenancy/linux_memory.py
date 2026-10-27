@@ -120,6 +120,17 @@ def is_adapter_identity(identity: tuple[int, bytes], script: str = '/opt/oracle/
     return index < len(argv) and argv[index] == os.fsencode(script)
 
 
+def is_engine_worker_identity(identity: tuple[int, bytes]) -> bool:
+    """Recognize Python multiprocessing spawn, accounting for interpreter flags."""
+    argv = identity[1].split(b'\0')
+    if not argv or re.fullmatch(rb'python(?:[0-9]+(?:\.[0-9]+)*)?', argv[0].rsplit(b'/', 1)[-1]) is None:
+        return False
+    index = 1
+    while index < len(argv) and argv[index] in (b'-B', b'-u', b'-E', b'-I', b'-s', b'-S', b'-O', b'-OO'):
+        index += 1
+    return index + 1 < len(argv) and argv[index] == b'-c' and b'from multiprocessing.spawn import spawn_main' in argv[index + 1]
+
+
 def signal_if_same(pid: int, identity: tuple[int, bytes], sig: int, *,
                    proc: Path = Path('/proc'), killer=os.kill) -> bool:
     try:
@@ -127,5 +138,18 @@ def signal_if_same(pid: int, identity: tuple[int, bytes], sig: int, *,
             return False
         killer(pid, sig)
         return True
+    except (FileNotFoundError, ProcessLookupError):
+        return False
+
+
+def identity_still_running(pid: int, identity: tuple[int, bytes], proc: Path = Path('/proc')) -> bool:
+    """A matching zombie has exited; reuse or disappearance is not our process."""
+    try:
+        stat = (proc / str(pid) / 'stat').read_bytes()
+        end = stat.rfind(b')')
+        if end < 0: raise ValueError('invalid process stat')
+        fields = stat[end + 1:].split()
+        if len(fields) < 20: raise ValueError('short process stat')
+        return int(fields[19]) == identity[0] and fields[0] != b'Z'
     except (FileNotFoundError, ProcessLookupError):
         return False

@@ -17,6 +17,14 @@ class MemoryTests(unittest.TestCase):
                      (b'/usr/bin/not-python',script),
                      (b'/usr/bin/python3.12',b'/other.py',script)):
             with self.subTest(argv=argv):self.assertFalse(m.is_adapter_identity(identity(*argv)))
+    def test_spawn_worker_with_interpreter_flags_and_wrapper_refusal(self):
+        def identity(*args): return (7,b'\0'.join(args)+b'\0')
+        code=b'from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=4, pipe_handle=6)'
+        for flags in ((),(b'-B',),(b'-I',b'-B')):
+            self.assertTrue(m.is_engine_worker_identity(identity(b'/usr/bin/python3.12',*flags,b'-c',code)))
+        self.assertFalse(m.is_engine_worker_identity(identity(b'bwrap',b'--',b'python3',b'-c',code)))
+        self.assertFalse(m.is_engine_worker_identity(identity(b'python3',b'-m',b'multiprocessing.spawn')))
+        self.assertFalse(m.is_engine_worker_identity(identity(b'python3',b'-c',b'print(1)')))
     def test_pss_private_shared_and_vanished(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp); (root/'10').mkdir(); (root/'10'/'smaps_rollup').write_text(ROLLUP)
@@ -50,6 +58,16 @@ class MemoryTests(unittest.TestCase):
         with patch.object(m, 'process_identity', side_effect=ProcessLookupError):
             self.assertFalse(m.signal_if_same(7,(11,b'x'),15,killer=lambda *x:signals.append(x)))
         self.assertEqual(signals,[(7,15)])
+    def test_live_identity_handles_exit_zombie_and_reuse(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); p=root/'7'; p.mkdir()
+            def stat(state,ticks):
+                fields=[state]+['0']*18+[str(ticks)]
+                (p/'stat').write_text('7 (name with spaces) '+' '.join(fields))
+            stat('S',42); self.assertTrue(m.identity_still_running(7,(42,b'x'),root))
+            self.assertFalse(m.identity_still_running(7,(41,b'x'),root))
+            stat('Z',42); self.assertFalse(m.identity_still_running(7,(42,b'x'),root))
+            (p/'stat').unlink(); self.assertFalse(m.identity_still_running(7,(42,b'x'),root))
     def test_rejects_incomplete(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)/'2';p.mkdir();(p/'smaps_rollup').write_text('Rss: 7 kB\n')

@@ -2,7 +2,7 @@
 """Real bounded pool experiment; host tenant header is not authentication."""
 import argparse, concurrent.futures, fcntl, hashlib, json, os, signal, subprocess, sys, threading, time, urllib.error, urllib.request
 from pathlib import Path
-from linux_memory import cgroup, descendants, sample, process_identity, signal_if_same
+from linux_memory import cgroup, descendants, sample, process_identity, signal_if_same, is_adapter_identity, identity_still_running, is_engine_worker_identity
 p=argparse.ArgumentParser()
 for name in ('rootfs','shared-data','adapter','output','slots'): p.add_argument('--'+name,type=Path,required=True)
 p.add_argument('--runtime',type=Path)
@@ -30,8 +30,8 @@ def stop_owned(process):
     targets=[]
     for pid in descendants(process.pid):
         try:
-            identity=process_identity(pid); argv=identity[1].split(b'\0')
-            if argv and b'python' in Path(os.fsdecode(argv[0])).name.encode() and (b'/opt/oracle/adapter/serve.py' in argv or (not args.rootfs if hasattr(args, 'rootfs') else False) and str(args.runtime/'adapter/serve.py').encode() in argv):
+            identity=process_identity(pid)
+            if is_adapter_identity(identity):
                 targets.append((pid,identity))
         except (FileNotFoundError, ProcessLookupError):
             pass
@@ -44,11 +44,19 @@ def stop_owned(process):
             signal_if_same(pid,identity,signal.SIGKILL)
         process.kill(); return process.wait()
 
-proc=None; started=time.monotonic(); observations=[]; stop=threading.Event(); sampler=None; records=[]; peak_children=0
+proc=None; started=time.monotonic(); observations=[]; stop=threading.Event(); sampler=None; records=[]; peak_children=0; peak_workers=0
 
 def observe(label):
- global peak_children
- ids=descendants(proc.pid); current=sample(ids);current.update(label=label,elapsed_seconds=time.monotonic()-started,cgroup=cgroup(proc.pid));observations.append(current);peak_children=max(peak_children,len(ids));
+ global peak_children,peak_workers
+ ids=descendants(proc.pid); workers=[]
+ for pid in ids:
+  try:
+   ident=process_identity(pid)
+   if is_engine_worker_identity(ident): workers.append(pid)
+  except (FileNotFoundError,ProcessLookupError): pass
+ if len(workers)>args.max_resident: raise ValueError('Engine process count exceeds resident cap')
+ peak_workers=max(peak_workers,len(workers))
+ current=sample(ids);current.update(label=label,elapsed_seconds=time.monotonic()-started,cgroup=cgroup(proc.pid),engine_worker_pids=workers);observations.append(current);peak_children=max(peak_children,len(ids));
  with (args.output/'samples.jsonl').open('a') as f: f.write(json.dumps(current,separators=(',',':'))+'\n')
  return current
 
@@ -93,11 +101,15 @@ try:
   status,_,retry,elapsed=call(tenant(n),request(n));assert status==200 and retry==raw,(n,'retry')
   records.append({'case':'exact-retry','tenant':n,'status':status,'seconds':elapsed})
   assert call(tenant(n),request(n,text='changed'))[0]==409
+  health=call('',None,'/health')[1]; assert health['resident_or_reserved']<=args.max_resident
+  records.append({'case':'resident-cap','tenant':n,'resident_or_reserved':health['resident_or_reserved']})
   (args.output/'partial-records.json').write_text(json.dumps(records,indent=2)+'\n')
+ assert len({hashlib.sha256(x).digest() for x in initial.values()})==args.tenants, 'tenant replies not distinct'
  observe('after-32-tenants')
  # A cold exact replay must not instantiate a new Engine or alter residency.
- before=call('',None,'/health')[1]; status,_,replay,secs=call(tenant(0),request(0)); after=call('',None,'/health')[1]
- assert status==200 and replay==initial[0] and before['resident_or_reserved']==after['resident_or_reserved']
+ before=call('',None,'/health')[1]; before_tree=descendants(proc.pid); status,_,replay,secs=call(tenant(0),request(0)); after=call('',None,'/health')[1]; after_tree=descendants(proc.pid)
+ assert status==200 and replay==initial[0] and before['resident_or_reserved']==after['resident_or_reserved'] and before_tree==after_tree
+ records.append({'case':'cold-exact-replay','seconds':secs,'process_tree_unchanged':True})
  # A new turn in the evicted conversation must refuse; fresh context succeeds.
  prior=call('',None,'/health')[1]; status,stale,_,stale_seconds=call(tenant(0),request(0,request_id='later'));assert status==409 and stale.get('error')=='conversation_reset_required',stale
  assert call('',None,'/health')[1]['resident_or_reserved']==prior['resident_or_reserved'], 'stale refusal allocated or evicted'
@@ -119,20 +131,21 @@ try:
    code,body,_,_=call(*burst_body[i]);assert code==200,(code,body)
  observe('after-burst')
  stop.set();sampler.join();sampler=None
- stopped_tree=descendants(proc.pid); wrapper_exit=stop_owned(proc)
+ stopped_tree={}
+ for pid in descendants(proc.pid):
+  try: stopped_tree[pid]=process_identity(pid)
+  except (FileNotFoundError,ProcessLookupError): pass
+ wrapper_exit=stop_owned(proc)
  assert wrapper_exit in (0,143,-15), ('wrapper exit',wrapper_exit)
  deadline=time.monotonic()+30
  while True:
   remaining=[]
-  for pid in stopped_tree:
-   try:
-    argv=Path(f'/proc/{pid}/cmdline').read_bytes().split(b'\0')
-    if argv and b'python' in Path(os.fsdecode(argv[0])).name.encode() and b'/opt/oracle/adapter/serve.py' in argv: remaining.append(pid)
-   except (FileNotFoundError, ProcessLookupError): pass
+  for pid,identity in stopped_tree.items():
+   if identity_still_running(pid,identity): remaining.append(pid)
   if not remaining: break
   assert time.monotonic()<deadline, ('owned adapter survived',remaining)
   time.sleep(.05)
- records.append({'case':'clean-stop','wrapper_exit':wrapper_exit,'surviving_adapters':remaining});proc=None
+ records.append({'case':'clean-stop','wrapper_exit':wrapper_exit,'surviving_processes':remaining});proc=None
  # Restart pool in same private workspace. Exact replay survives without Engine.
  with (args.output/'restart.log').open('wb') as log:
   proc=subprocess.Popen(command,env=dict(os.environ,PYTHONHASHSEED='0',PYTHONDONTWRITEBYTECODE='1'),stdout=log,stderr=subprocess.STDOUT,start_new_session=True,pass_fds=tuple(f.fileno() for f in leases))
@@ -153,7 +166,25 @@ try:
  assert call('',None,'/health')[1]['resident_or_reserved']==0, 'restart stale refusal allocated Engine'
  records.append({'case':'restart-stale-refusal','status':status,'seconds':restart_stale_seconds})
  observe('after-restart-stale-refusal')
- report={'schema':'oracle-linux-tenant-pool-v1','passed':True,'scope':'real Engine with host-supplied tenant identities; not Mini authentication or specialist panel','candidate_receipt_sha256':args.receipt_sha256,'adapter_sha256':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(args.adapter.glob('*.py'))},'tenants':args.tenants,'max_resident':args.max_resident,'initial_exact_retries':args.tenants,'conflict_refusals':args.tenants,'cold_replay_without_allocation':True,'evicted_and_restart_conversation_refusals':True,'burst_status_counts':counts,'retry_policy':'retry only explicit 429 or tenant_journal_unavailable 503 marked retryable','max_observed_process_tree_count':peak_children,'observations':observations,'records':records,'memory_note':'sum RSS double counts shared mappings; PSS apportions mapped pages; cgroup includes file cache'}
+ last_tree={}
+ for pid in descendants(proc.pid):
+  try: last_tree[pid]=process_identity(pid)
+  except (FileNotFoundError,ProcessLookupError): pass
+ final_exit=stop_owned(proc)
+ deadline=time.monotonic()+30
+ while True:
+  alive=[]
+  for pid,identity in last_tree.items():
+   if identity_still_running(pid,identity): alive.append(pid)
+  if not alive: break
+  assert time.monotonic()<deadline, ('restart adapter survived',alive)
+  time.sleep(.05)
+ assert final_exit==0, ('restart wrapper exit',final_exit)
+ proc=None
+ records.append({'case':'restart-clean-stop','wrapper_exit':final_exit,'surviving_processes':alive})
+ report={'schema':'oracle-linux-tenant-pool-v1','passed':True,'scope':'real Engine with host-supplied tenant identities; not Mini authentication or specialist panel','candidate_receipt_sha256':args.receipt_sha256,'adapter_sha256':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(args.adapter.glob('*.py'))},'tenants':args.tenants,'max_resident':args.max_resident,'initial_exact_retries':args.tenants,'conflict_refusals':args.tenants,'cold_replay_without_allocation':True,'evicted_and_restart_conversation_refusals':True,'burst_status_counts':counts,'retry_policy':'retry only explicit 429 or tenant_journal_unavailable 503 marked retryable','max_observed_process_tree_count':peak_children,'max_observed_engine_workers':peak_workers,'observations':observations,'records':records,'memory_note':'sum RSS double counts shared mappings; PSS apportions mapped pages; cgroup includes file cache'}
+ assert peak_workers>=1 and peak_workers<=args.max_resident, ('worker observation missing or over cap',peak_workers)
+ assert not (args.output/'sampling-errors.jsonl').exists(), 'sampling errors invalidate memory receipt'
  (args.output/'receipt.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps({'passed':True,'tenants':args.tenants,'burst_status_counts':counts,'max_observed_process_tree_count':peak_children},indent=2))
 finally:
  stop.set()
