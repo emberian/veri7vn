@@ -1,0 +1,202 @@
+{
+  "scope": "Saved successful parent replies from U1 run-2; test fixtures, not fresh Engine output.",
+  "source": "var/usage-20261026/reliability/run-2/results.jsonl",
+  "cases": [
+    {
+      "text": "What is 20% of 80?",
+      "reply": {
+        "status": "answered",
+        "path": "organ:math>word:percent_of",
+        "response": "[ev:derived] 16. Read as percent of: 20% of 80. Checked: every quantity the formula needs was found with its unit, and the question asks for what the formula gives.",
+        "provenance": {
+          "kind": "organ_word_problem",
+          "schema": "percent_of",
+          "value": 16.0,
+          "parent_path": "arb:definitional->document_runtime|substitution_disclosed|math:out_of_fragment|vessel:receipt",
+          "parent_status": "withheld"
+        },
+        "latency_ms": 9.0,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "arbitration": {
+          "winner": "definitional",
+          "runner_up": "act_continue",
+          "margin": 0.799,
+          "floor": false,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "authoritative",
+          "arbiter": "v3",
+          "canonical_surface": "What is a 80?",
+          "capture_point": "capability"
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "continuation": {
+          "doors": [
+            "cardinal",
+            "number",
+            "product"
+          ],
+          "offer": "from here, cardinal or number stand open"
+        }
+      }
+    },
+    {
+      "text": "Calculate twenty percent of eighty.",
+      "reply": {
+        "status": "answered",
+        "path": "compute:verified",
+        "response": "In steps: 20 % of 80 = 16. The answer is 16.",
+        "provenance": {
+          "kind": "computation",
+          "verified": true,
+          "steps": [
+            "20 % of 80 = 16"
+          ],
+          "carried_prior": false,
+          "evaluator": "w27_closed_grammar"
+        },
+        "latency_ms": 1
+      }
+    },
+    {
+      "text": "What is 25% of 80?",
+      "reply": {
+        "status": "answered",
+        "path": "organ:math>word:percent_of",
+        "response": "[ev:derived] 20. Read as percent of: 25% of 80. Checked: every quantity the formula needs was found with its unit, and the question asks for what the formula gives.",
+        "provenance": {
+          "kind": "organ_word_problem",
+          "schema": "percent_of",
+          "value": 20.0,
+          "parent_path": "arb:definitional->document_runtime|substitution_disclosed|math:out_of_fragment|vessel:receipt",
+          "parent_status": "withheld"
+        },
+        "latency_ms": 7.7,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "arbitration": {
+          "winner": "definitional",
+          "runner_up": "timeline",
+          "margin": 0.688,
+          "floor": false,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "authoritative",
+          "arbiter": "v3",
+          "canonical_surface": "What is a 80?",
+          "capture_point": "capability"
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "continuation": {
+          "doors": [
+            "cardinal",
+            "number",
+            "product"
+          ],
+          "offer": "from here, cardinal or number stand open"
+        }
+      }
+    },
+    {
+      "text": "What is the area of a rectangle with width 4 meters and length 3 meters?",
+      "reply": {
+        "status": "answered",
+        "path": "organ:math>word:geometry",
+        "response": "[ev:derived] 12 square units. Read as geometry: A = L x W = 3 x 4. Checked: every quantity the formula needs was found with its unit, and the question asks for what the formula gives.",
+        "provenance": {
+          "kind": "organ_word_problem",
+          "schema": "geometry",
+          "value": 12.0,
+          "parent_path": "corpus_query:property_of|vessel:receipt",
+          "parent_status": "withheld"
+        },
+        "latency_ms": 2.0,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "arbitration": {
+          "winner": "definitional",
+          "runner_up": "multi_step",
+          "margin": 0.722,
+          "floor": false,
+          "regex_family": null,
+          "agrees": null,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        }
+      }
+    },
+    {
+      "text": "Convert -5 degrees Celsius to Fahrenheit.",
+      "reply": {
+        "status": "answered",
+        "path": "specialist_call>specialist:units-v3>temperature",
+        "response": "-5 \u00b0C is 23 \u00b0F. [units-v3]",
+        "provenance": {
+          "kind": "core_called_specialist",
+          "core_status": "clarification",
+          "core_path": "act:clarify|vessel:receipt",
+          "specialist": "units-v3",
+          "parts": null,
+          "trace": {
+            "rule": "only"
+          }
+        },
+        "arbitration": {
+          "winner": "clarification",
+          "runner_up": "summarize",
+          "margin": 0.022,
+          "floor": true,
+          "regex_family": "open_topic",
+          "agrees": false,
+          "mode": "shadow",
+          "arbiter": "v3"
+        },
+        "latency_ms": 6.6,
+        "zero_model_gate": {
+          "lm_calls": 0,
+          "transformer_calls": 0
+        },
+        "evidential": {
+          "input_marked": null,
+          "answer_licensed": "unknown"
+        },
+        "references": []
+      }
+    },
+    {
+      "text": "What is 0 divided by 10?",
+      "reply": {
+        "status": "answered",
+        "path": "compute:verified",
+        "response": "In steps: 0 / 10 = 0. The answer is 0.",
+        "provenance": {
+          "kind": "computation",
+          "verified": true,
+          "steps": [
+            "0 / 10 = 0"
+          ],
+          "carried_prior": false,
+          "evaluator": "w27_closed_grammar"
+        },
+        "latency_ms": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+--- a/root/wander-train/word_problems_v1.py
++++ b/root/wander-train/word_problems_v1.py
+@@ -180,38 +180,115 @@
+                                                                            tab[src[0][2]], tab[to], to)]}
+ 
+ 
+-def s_geometry(t, q, qs):
+-    L = [x for x in qs if x[0] == "length"]
+-    tl = t.lower()
+-
+-    # This Python recognizer is untrusted. Bind every explicit dimension role;
+-    # the first nearby number cannot establish uniqueness or consistent units.
+-    bindings = {}
+-    consumed = 0
+-    unit_scales = set()
++def _geometry_dimensions(t, qs):
++    """Untrusted complete binding for explicit geometry roles; no proof authority.
++
++    Return (bindings, conflict). Unknown syntax/units return (None, None).
++    Prefix roles and postfix long/wide/tall share coverage and uniqueness checks.
++    """
++    tl = t.lower().replace("−", "-")
++    lengths = [x for x in qs if x[0] == "length"]
++    mentions = {}
+     for mention in re.finditer(r"\b(length|width|radius|diameter|height)\b", tl):
+-        role = mention.group(1)
+         match = re.match(r"\s*(?:(?:is|of|exactly|equals|measures|=|:)\s*)*"
+                          + NUM + r"\s*([a-z]+)\b", tl[mention.end():])
+         if not match:
+-            return None
+-        unit = unit_of(match.group(2))
++            return None, None
++        mentions[mention.end() + match.start(1)] = (mention.group(1), match.group(1), match.group(2))
++    for match in re.finditer(r"(?<![\w.+-])" + NUM + r"\s*([a-z]+)\s+(long|wide|tall|high)\b", tl):
++        role = {"long": "length", "wide": "width", "tall": "height", "high": "height"}[match.group(3)]
++        binding = (role, match.group(1), match.group(2))
++        if match.start(1) in mentions and mentions[match.start(1)] != binding:
++            return None, None
++        mentions[match.start(1)] = binding
++    # Every typed length must be bound, including repeats. Apartment IDs are
++    # unitless, so they do not masquerade as dimensions or block a valid room.
++    if len(mentions) != len(lengths):
++        return None, None
++    bindings, unit_scales, records = {}, set(), {}
++    conflict = None
++    for _, (role, raw, unit_word) in sorted(mentions.items()):
++        unit = unit_of(unit_word)
+         if unit is None or unit[0] != "length":
+-            return None
+-        value = num(match.group(1))
+-        scale = LENGTH[unit[1]]
++            return None, None
++        value, scale = num(raw), LENGTH[unit[1]]
++        current = {"value": value, "unit": unit_word}
+         if role in bindings and bindings[role] != (value, scale):
+-            return None
++            if bindings[role][0] * bindings[role][1] != value * scale:
++                conflict = conflict or {"role": role, "values": [records[role], current]}
+         bindings[role] = (value, scale)
++        records[role] = current
+         unit_scales.add(scale)
+-        consumed += 1
+-    # Unbound lengths and mixed units require a richer parser, not a guessed
+-    # formula over raw numbers. Unrelated unitless identifiers remain harmless.
+-    if consumed != len(L) or len(unit_scales) > 1:
+-        return None
++    if conflict:
++        return None, conflict
++    # Conversion between mixed units needs an output-unit contract first.
++    if len(unit_scales) > 1:
++        return None, None
+     if "radius" in bindings and "diameter" in bindings:
+         if bindings["radius"][0] * 2 != bindings["diameter"][0]:
+-            return None
++            return None, {"role": "radius/diameter", "values": [records["radius"], records["diameter"]]}
++    return bindings, None
++
++
++def _geometry_request_issue(t, q):
++    """Bound the subject, requested measure and output unit before calculating."""
++    shapes = re.findall(r"\b(?:rectangles?|rectangular|circles?|circular|cones?|cylinders?|spheres?)\b", t, re.I)
++    if not shapes:
++        return None
++    measures = set(re.findall(r"\b(?:area|perimeter|circumference|volume)\b", q))
++    if not measures:
++        return None
++    if len(measures) > 1:
++        return "I can calculate one geometry measure per question. Please ask for each requested measure separately."
++    # These are subject multiplicity markers, not arbitrary numbers: an
++    # apartment identifier is not a count of rectangles or a dimension.
++    plural = re.search(r"\b(?:rectangles|circles|cones|cylinders|spheres|rooms|boxes)\b", t, re.I)
++    counted = re.search(r"\b(?:" + "|".join(w for w, v in WORDNUM.items() if v != 1)
++                        + r"|[2-9]\d*|1\d+)\s+(?:(?:identical|rectangular|circular)\s+)*"
++                          r"(?:room|box|rectangle|circle|cone|cylinder|sphere)\b", t, re.I)
++    if len(shapes) > 1 or plural or counted or re.search(r"\b(?:their|both)\b", q):
++        return "I can calculate one shape at a time; this question refers to multiple shapes."
++    for requested in re.finditer(r"\b(?:in|into|to)\s+(?:(square|cubic|sq\.?|cu\.?)\s+|(units?\s+of)\s+)?"
++                                  r"([a-z]+)(?:\^?[23]|[²³])?\b", q):
++        unit = unit_of(requested.group(3))
++        if requested.group(1) or requested.group(2) or (unit and unit[0] == "length"):
++            return "I cannot yet bind the requested output unit for this geometry question."
++    return None
++
++
++def explain_refusal(text):
++    """Explain a bounded geometry conflict, without certifying an English parse."""
++    t = " ".join(str(text).split())
++    q = question_part(t)
++    issue = _geometry_request_issue(t, q)
++    if issue:
++        return {"reason": "unsupported_geometry_request", "schema": "geometry", "conflict": None, "response": issue}
++    # Do not conflate dimensions belonging to two explicitly named shapes.
++    shapes = re.findall(r"\b(?:rectangle|rectangular|circle|circular|cone|cylinder|sphere)\b", t, re.I)
++    if len(shapes) != 1 or MULTISTEP.search(t) or not re.search(r"\b(?:area|perimeter|circumference|volume)\b", q):
++        return None
++    _, conflict = _geometry_dimensions(t, quantities(t))
++    if not conflict:
++        return None
++    values = conflict["values"]
++    if conflict["role"] == "radius/diameter":
++        message = ("The supplied radius (%g %s) and diameter (%g %s) disagree: "
++                   "the diameter must be twice the radius. Which measurement should I use?" %
++                   (values[0]["value"], values[0]["unit"], values[1]["value"], values[1]["unit"]))
++    else:
++        message = ("The supplied %s values disagree (%g %s and %g %s). Which %s should I use?" %
++                   (conflict["role"], values[0]["value"], values[0]["unit"],
++                    values[1]["value"], values[1]["unit"], conflict["role"]))
++    return {"reason": "conflicting_dimension", "schema": "geometry", "conflict": conflict, "response": message}
++
++
++def s_geometry(t, q, qs):
++    if _geometry_request_issue(t, q):
++        return None
++    tl = t.lower()
++    bindings, conflict = _geometry_dimensions(t, qs)
++    if bindings is None:
++        return None
+ 
+     def near(word):
+         return bindings[word][0] if word in bindings else None
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w488.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w488.py
+@@ -1,5 +1,7 @@
+ #!/usr/bin/env python3
+ """oracle_release_runtime_w488 - WORD PROBLEMS: single-step prose read into an equation by a stored schema.
++
++This Python routing shim is untrusted; its checks are not proof or admission authority.
+ 
+ The math organ (v1/v2) declines a word problem ("the quantities must be translated into equations first"). This fold
+ connects word_problems_v1 (sha 4c0c60b1): each SCHEMA is a stored form - trigger words, the TYPED quantities it needs
+@@ -46,7 +48,17 @@
+             return out
+         a = _run(_wp.answer, text)
+         if not a:
+-            return out
++            explain = getattr(_wp, 'explain_refusal', None)
++            reason = _run(explain, text) if callable(explain) else None
++            if not reason:
++                return out
++            new = dict(out)
++            new.update({'status': 'clarification', 'path': 'organ:math>word:%s' % reason['reason'],
++                        'response': reason['response'],
++                        'provenance': {'kind': 'word_problem_refusal', 'schema': reason['schema'],
++                                       'reason': reason['reason'], 'conflict': reason['conflict'],
++                                       'parent_path': str(out.get('path', '')), 'parent_status': out.get('status')}})
++            return new
+         body = ("[ev:derived] %s. Read as %s: %s. Checked: every quantity the formula needs was found with its unit, "
+                 "and the question asks for what the formula gives." % (_fmt(a["value"], a["unit"]),
+                                                                         a["schema"].replace("_", " "),
