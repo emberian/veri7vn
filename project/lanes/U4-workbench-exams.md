@@ -42,4 +42,4 @@ One read-only inspection of the actual private Slim `meteorology-v2` folder answ
 
 Service integration is owned by the service lane. Its three focused tests compose the actual provider through registry, discovery, invocation, and persistent replay, including refusal/unavailable behavior. See `U4-service.md` for its authoritative result. Packaging is owned by the provision lane.
 
-No specialist panel was run in this lane; there are **no newly measured panel scores**. No Isabelle theorem was added or changed. No full Engine or frozen candidate was modified. Further admission or execution requires a separately authorized workflow; this inspection is now a reusable input to that workflow.
+No specialist panel was run in this lane; there are **no newly measured panel scores**. No Isabelle theorem was added or changed. No full Engine or frozen candidate was modified. Running exams and installing specialists still need an execution path that records measurements and applies Workbench's admission checks; this inspection supplies evidence for that unfinished workflow.

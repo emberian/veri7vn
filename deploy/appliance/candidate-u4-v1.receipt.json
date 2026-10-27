@@ -1,0 +1,126 @@
+{
+  "adapter_files": {
+    "README.md": "5b563cb330a26ec87b1cef0e0c115f80e4e4093068a673a0501adfa0b890712d",
+    "builder_operations.py": "fddec537922f9f072bae9bf1e8af6adbea9c2145c822f4846496ca19519b0c5d",
+    "component_operations.py": "e4cee111efb9ca72bf0417d4c28a94eb38a1355857fb8b148f99bfc9d086e897",
+    "exam_inspection.py": "91329f18a86baf2dee14086864e5cdd7077c4186a546701eeca86382a3849f6b",
+    "operations.py": "8dce33b5ffc879a132f0a8125cb140714654da65483f14092925d65356258ba7",
+    "serve.py": "9c0bd9bfb82372187609aa81e15faedf29f56dd7fd6216237fb6682d3dff97d8",
+    "visual_operations.py": "c9106d91f333b9eb395c3a87e6e4b93085e29b56db651604b504bd97a20f69d6",
+    "workbench_operations.py": "387cdb94d4afdb8ebe5e4761d72078b56a22781424948cc3a2c30bf73394cf49"
+  },
+  "appliance_receipt_sha256": "66a2ccb8341486f9c640e65ab301245be170ed289226d7a6bae9069554723125",
+  "assurance": "Byte identity and composition only; no theorem or specialist-panel qualification.",
+  "candidate": "var/usage-20261027/candidate-u4-v1",
+  "candidate_status": "superseded-before-acceptance",
+  "changed_runtime_files": [
+    "adapter/exam_inspection.py",
+    "adapter/operations.py",
+    "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_ao.py",
+    "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w488.py",
+    "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w534.py",
+    "root/wander-train/oracle_release_runtime_ao.py",
+    "root/wander-train/word_problems_v1.py",
+    "tests/conversation_grammar/test_m53_dummy_it.py",
+    "tests/conversation_guard/test_last_question.py"
+  ],
+  "checks": {
+    "component_core_dependencies": "passed",
+    "component_exact_file_allowlists": "passed",
+    "expected_final_files": "passed",
+    "materialization": "passed",
+    "provider_final_hashes": "passed",
+    "service_acceptance": "not run by this lane"
+  },
+  "closure_files_rechecked": 48,
+  "components": {
+    "artist": {
+      "manifest_sha256": "27e4bf681ecd4555c833644a07bf69755c9598c55a36a094276760f9806649df",
+      "profile": "analysis",
+      "status": "partial"
+    },
+    "chameleon": {
+      "manifest_sha256": "769eef0641f2f27ca0e49aa90b04ecbfd5409d8b91cc4f9305c2ccdca0e5cf7f",
+      "profile": "builder",
+      "status": "partial"
+    },
+    "deepspace": {
+      "manifest_sha256": "2930f52b2ff0b0872b9174ebb78f9a8117a245a17c7f645eb0c58e52ac030b0c",
+      "profile": "analysis",
+      "status": "available"
+    },
+    "exam-inspection": {
+      "manifest_sha256": "1765b78ee10695bb71447b5ed561ca80e40069a6e232ddf9750bffa694c5fcc9",
+      "profile": "analysis",
+      "status": "available"
+    },
+    "infrastructure": {
+      "manifest_sha256": "eb1cdda87854cdfe9c5501af42c7fdcf481c4718724e27e356d131d211fa4396",
+      "profile": "analysis",
+      "status": "partial"
+    },
+    "operations": {
+      "manifest_sha256": "e8cd312164a7b0d654684896eebdd897357af57ea7820a19bac916a80fecadc2",
+      "profile": "analysis",
+      "status": "available"
+    },
+    "trafficcop": {
+      "manifest_sha256": "384e33806b60e56091e03abdb060d46d069ad7413e7b538afaa689c81470c518",
+      "profile": "analysis",
+      "status": "available"
+    },
+    "vision": {
+      "manifest_sha256": "81def1b3670ecac01333b76271b048ade982226d40fa8273d4c9a6f8691bc705",
+      "profile": "analysis",
+      "status": "partial"
+    },
+    "workbench": {
+      "manifest_sha256": "b6d52fe3013dba27dd5d24c1f4a5a5d88f076e831636460c00534b5acf98dc1b",
+      "profile": "analysis",
+      "status": "available"
+    }
+  },
+  "files": 4327,
+  "kernel_families": 20,
+  "logical_store_bytes": 15004659712,
+  "non_store_bytes": 132481619,
+  "patches": [
+    {
+      "name": "oracle7-slim-4.9-correctness.patch",
+      "sha256": "feb44d407634699545634350281e530b1bcc0ecf7bd951bdfc01655dbf99ecd6"
+    },
+    {
+      "name": "oracle7-slim-4.9-usage.patch",
+      "sha256": "1a2f69d0bdfe112f67ac01557ddb1c923e5e6c6a1fbaab1097852ade20e3e625"
+    },
+    {
+      "name": "oracle7-slim-4.9-dates-mars.patch",
+      "sha256": "963b1f91ba8330b2cd1a099ddf72df05813c94a0156931ed40b257b13e93a57c"
+    },
+    {
+      "name": "oracle7-slim-4.9-operations-v3.patch",
+      "sha256": "9d83ee0122f6897c7e901df6d72137060d09a75c251120a02e3209cbbd097350"
+    },
+    {
+      "name": "oracle7-slim-4.9-conversation-guard.patch",
+      "sha256": "85d6af0a11a271afb542fbbff8408d254ae8d589555b4c371ccefe5de93481da"
+    },
+    {
+      "name": "oracle7-slim-4.9-conversation-grammar.patch",
+      "sha256": "e9cb00d9ea9fcf99e2cf32477bce07de8b7e70ed4f6c1199273724a4d891a18c"
+    },
+    {
+      "name": "u4-geometry.patch",
+      "sha256": "05555f1df3db88dd9df1cc083c67466e65e1553c61f50c7057e9aa1e358041dd"
+    }
+  ],
+  "previous_appliance_receipt_sha256": "05c15112339540e3d1329babbbd86f231c2a91722b360379090ddf98b61092fa",
+  "recipe": "deploy/appliance/candidate-u4-v1.recipe.json",
+  "recipe_sha256": "daea34dfd36b59325270aa8a0284888b16b20ddc951b0126b5678453eab5b719",
+  "schema": "oracle7-materialization-receipt-v1",
+  "source_files": 31,
+  "source_revision": "083e3a6c0e2cfc131e62bdc16cb4ec1346194635",
+  "stores": 10,
+  "stores_share_cache_hardlinks": true,
+  "superseded_reason": "Inspector freeze revoked after materialization completed; candidate retained without Engine testing or signed package publication."
+}

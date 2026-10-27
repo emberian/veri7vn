@@ -1,0 +1,65 @@
+{
+  "adapter_files": {
+    "builder_operations.py": {
+      "executable": false,
+      "path": "../../../../tools/oracle_components/builder.py",
+      "sha256": "fddec537922f9f072bae9bf1e8af6adbea9c2145c822f4846496ca19519b0c5d",
+      "size": 11899
+    }
+  },
+  "execution_notes": [
+    "Composer constructs bounded arithmetic programs from supplied numeric examples and executes its own generated Python in temporary files for read-back and separate-example checks; it accepts no caller source and does not install programs. Chameleon model planning and static contract validation operate on supplied data."
+  ],
+  "id": "chameleon",
+  "profile": "builder",
+  "requirements": [
+    {
+      "kind": "appliance-file",
+      "name": "workbench/swarm/composer_v3.py",
+      "sha256": "6af8ce76c267ad3e33bfcf98390435dcf3191098b65ae59b856be55bbc4a73d9",
+      "size": 36554
+    }
+  ],
+  "schema": "oracle7-component-bundle-v1",
+  "source": {
+    "checkout": "../../../../var/u3-builder/chameleon",
+    "files": {
+      "LICENSE": {
+        "executable": false,
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "size": 11358
+      },
+      "README.md": {
+        "executable": false,
+        "sha256": "df694df853decf70683407063d71cbde0a19708c80180467140aac27a1a8732d",
+        "size": 5356
+      },
+      "packages/core/chameleon_core/browser_contract.py": {
+        "executable": false,
+        "sha256": "9599309fb5ea94d9991a03ec5970000235abe17fcfac766e6bbadfd1d94bdd54",
+        "size": 2947
+      },
+      "packages/core/chameleon_core/microfold.py": {
+        "executable": false,
+        "sha256": "3c1f0bb2cf06f70521da786daaf8eb26686e05c7f0a770a424e8a5c1846c1187",
+        "size": 9077
+      }
+    },
+    "notices": [
+      "LICENSE",
+      "README.md"
+    ],
+    "patches": [
+      {
+        "path": "../../patches/siblings/builder-chameleon.patch",
+        "sha256": "778abca8ddf104c7ee914c37351b1fd2716175fdc384c9e969cae38b98559918"
+      }
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-chameleon",
+    "revision": "cac0c3bccff793b63a0907e8ef3f679fa75f6a14"
+  },
+  "status": "partial",
+  "unavailable_reasons": [
+    "Browser capture, network retrieval, arbitrary repository builds and installation are not exposed."
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "adapter_files": {
+    "visual_operations.py": {
+      "executable": false,
+      "path": "../../../../tools/oracle_components/visual.py",
+      "sha256": "c9106d91f333b9eb395c3a87e6e4b93085e29b56db651604b504bd97a20f69d6",
+      "size": 20873
+    }
+  },
+  "id": "artist",
+  "profile": "analysis",
+  "requirements": [
+    {
+      "kind": "python",
+      "name": "numpy",
+      "version": "2.4.6"
+    },
+    {
+      "kind": "python",
+      "name": "Pillow",
+      "version": "11.3.0"
+    },
+    {
+      "kind": "python",
+      "name": "scipy",
+      "version": "1.17.1"
+    }
+  ],
+  "schema": "oracle7-component-bundle-v1",
+  "source": {
+    "checkout": "../../../../var/u3-sibling-visual/artist",
+    "files": {
+      "LICENSE": {
+        "executable": false,
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "size": 11358
+      },
+      "README.md": {
+        "executable": false,
+        "sha256": "de12d1c2f7fb03a564be0ea27afe9e25dd34b9311e9798a367b20e1dee83bef7",
+        "size": 6099
+      },
+      "artist/__init__.py": {
+        "executable": false,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0
+      },
+      "artist/build_library.py": {
+        "executable": false,
+        "sha256": "c6b4b4cafc386e83a175ca84e550d97c4130a541a310e1fb44ec912141212d84",
+        "size": 5322
+      },
+      "artist/core.py": {
+        "executable": false,
+        "sha256": "84f17c53b2f76de85092c6548f595a24853b3b71937ac3f7ec04625570baac0e",
+        "size": 13375
+      }
+    },
+    "notices": [
+      "LICENSE",
+      "README.md"
+    ],
+    "patches": [
+      {
+        "path": "../../patches/siblings/visual-artist.patch",
+        "sha256": "6622cb5f8804971cb69e2ac91860645fd3a1dd5c010d1602964583bb64355798"
+      }
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-artist",
+    "revision": "df155c6a96626f9d3bc4146c9d4a516a0b8a2ba8"
+  },
+  "status": "partial",
+  "unavailable_reasons": [
+    "The pretrained COCO sprite library/index is not distributed here; callers can supply cited sprites."
+  ]
+}

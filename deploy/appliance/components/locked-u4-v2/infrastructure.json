@@ -1,0 +1,50 @@
+{
+  "adapter_files": {
+    "component_operations.py": {
+      "executable": false,
+      "path": "../../../../tools/oracle_components/decisions.py",
+      "sha256": "e4cee111efb9ca72bf0417d4c28a94eb38a1355857fb8b148f99bfc9d086e897",
+      "size": 18344
+    }
+  },
+  "id": "infrastructure",
+  "profile": "analysis",
+  "requirements": [],
+  "schema": "oracle7-component-bundle-v1",
+  "source": {
+    "checkout": "../../../../var/u3-sibling-decisions/oracle7-infrastructure",
+    "files": {
+      "LICENSE": {
+        "executable": false,
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "size": 11358
+      },
+      "README.md": {
+        "executable": false,
+        "sha256": "34d1fc14beb3340b2b144b2866468c862c24686b3e19eaa21d5dd693e396883a",
+        "size": 8730
+      },
+      "agent.py": {
+        "executable": false,
+        "sha256": "428fabba5e8b2cf5e8192cc9e103774c53fe82abbed4621c5c9b1ffd6812c61c",
+        "size": 39194
+      }
+    },
+    "notices": [
+      "LICENSE",
+      "README.md"
+    ],
+    "patches": [
+      {
+        "path": "../../patches/siblings/decision-infrastructure.patch",
+        "sha256": "7b7e4647c626f0654b7f7ad83bb188924e87be55b76e3c30bcf9c99dc042bd60"
+      }
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-infrastructure",
+    "revision": "74456ba7db9172f5822433308943647ecd67cdf0"
+  },
+  "status": "partial",
+  "unavailable_reasons": [
+    "Host scanning and privileged installation are not exposed by the supplied-data provider."
+  ]
+}

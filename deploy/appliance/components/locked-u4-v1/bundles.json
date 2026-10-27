@@ -1,0 +1,47 @@
+[
+  {
+    "id": "artist",
+    "manifest": "deploy/appliance/components/locked-u4-v1/artist.json",
+    "sha256": "27e4bf681ecd4555c833644a07bf69755c9598c55a36a094276760f9806649df"
+  },
+  {
+    "id": "chameleon",
+    "manifest": "deploy/appliance/components/locked-u4-v1/chameleon.json",
+    "sha256": "769eef0641f2f27ca0e49aa90b04ecbfd5409d8b91cc4f9305c2ccdca0e5cf7f"
+  },
+  {
+    "id": "deepspace",
+    "manifest": "deploy/appliance/components/locked-u4-v1/deepspace.json",
+    "sha256": "2930f52b2ff0b0872b9174ebb78f9a8117a245a17c7f645eb0c58e52ac030b0c"
+  },
+  {
+    "id": "exam-inspection",
+    "manifest": "deploy/appliance/components/locked-u4-v1/exam-inspection.json",
+    "sha256": "1765b78ee10695bb71447b5ed561ca80e40069a6e232ddf9750bffa694c5fcc9"
+  },
+  {
+    "id": "infrastructure",
+    "manifest": "deploy/appliance/components/locked-u4-v1/infrastructure.json",
+    "sha256": "eb1cdda87854cdfe9c5501af42c7fdcf481c4718724e27e356d131d211fa4396"
+  },
+  {
+    "id": "operations",
+    "manifest": "deploy/appliance/components/locked-u4-v1/operations.json",
+    "sha256": "e8cd312164a7b0d654684896eebdd897357af57ea7820a19bac916a80fecadc2"
+  },
+  {
+    "id": "trafficcop",
+    "manifest": "deploy/appliance/components/locked-u4-v1/trafficcop.json",
+    "sha256": "384e33806b60e56091e03abdb060d46d069ad7413e7b538afaa689c81470c518"
+  },
+  {
+    "id": "vision",
+    "manifest": "deploy/appliance/components/locked-u4-v1/vision.json",
+    "sha256": "81def1b3670ecac01333b76271b048ade982226d40fa8273d4c9a6f8691bc705"
+  },
+  {
+    "id": "workbench",
+    "manifest": "deploy/appliance/components/locked-u4-v1/workbench.json",
+    "sha256": "b6d52fe3013dba27dd5d24c1f4a5a5d88f076e831636460c00534b5acf98dc1b"
+  }
+]

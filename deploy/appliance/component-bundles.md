@@ -160,6 +160,10 @@ for name, expected in recipe['input_sha256'].items():
     if hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() != expected:
         raise SystemExit('Construction input changed: ' + name)
 subprocess.run(recipe['argv'], check=True)
+target = pathlib.Path(recipe['argv'][recipe['argv'].index('--target') + 1])
+for name, expected in recipe.get('expected_final_files', {}).items():
+    if hashlib.sha256((target / name).read_bytes()).hexdigest() != expected:
+        raise SystemExit('Final file differs from recipe: ' + name)
 PY
 ```
 
@@ -201,3 +205,23 @@ patch. The earlier patch remains available for reproducing v1 and v2.
 core/test files and confirms unchanged component, adapter and store identities.
 The v3 `APPLIANCE.json` SHA-256 is
 `05c15112339540e3d1329babbbd86f231c2a91722b360379090ddf98b61092fa`.
+
+### U4: conversation, geometry, and exam inspection
+
+The final U4 construction uses `candidate-u4-v2.recipe.json` and
+`components/locked-u4-v2/`. It adds the ordered conversation guard, conversation
+grammar, and geometry patches, plus a ninth component, `exam-inspection`.
+The inspector binds `adapter/exam_inspection.py` to the exact existing
+`workbench/exam.py`; no additional packages or data are required. It reports
+recorded exam state without running specialist code or a new exam.
+
+[`candidate-u4-v2.receipt.json`](candidate-u4-v2.receipt.json) records 48 verified
+component/provider/core files and the expected geometry/inspector byte identities.
+Its `APPLIANCE.json` SHA-256 is
+`d727536c17c2f73243d63aabfac2d2850caf5d342141a84853d0d9eddcac1654`.
+The retained non-store payload is 132,481,913 bytes; all ten stores share verified
+cache hardlinks. Service acceptance and signed Mini packaging are separate work.
+
+The U4 v1 draft, its locks, recipe and receipt are retained but explicitly
+superseded before engine testing. Its inspector freeze was replaced immediately
+after construction; only the inspector's runtime bytes differ from final v2.
