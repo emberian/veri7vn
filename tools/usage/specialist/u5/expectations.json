@@ -1,0 +1,21 @@
+{
+ "scope":"Fresh U5 integration/control cases, not a held-out admission panel. Written before U5 implementation.",
+ "cases":[
+  {"id":"compact-ideal","q":"How long does it take to transfer 1GB at100Mbps?","seconds":"80","mode":"ideal","valid":true},
+  {"id":"compact-util","q":"How long does it take to transfer 9GB at300Mbps with 60% utilization?","seconds":"400","mode":"estimated","valid":true},
+  {"id":"binary-ideal","q":"How long to download 2GiB at128MiB/s?","seconds":"16","mode":"ideal","valid":true},
+  {"id":"bytes-rate","q":"How many seconds to upload 7.5MB at2.5MB/s with 50% utilization?","seconds":"6","mode":"estimated","valid":true},
+  {"id":"small-binary","q":"How long does it take to transfer 3KiB at8kbps with 40% utilisation?","seconds":"7.68","mode":"estimated","valid":true},
+  {"id":"large-decimal","q":"How long does it take to upload 4TB at40Gbps with 80% utilization?","seconds":"1000","mode":"estimated","valid":true},
+  {"id":"fraction","q":"How long to transfer 1B at6bps?","seconds":"1.33333333333333333333","mode":"ideal","valid":true},
+  {"id":"zero","q":"How long does it take to transfer 0GB at1Mbps?","seconds":"0","mode":"ideal","valid":true},
+  {"id":"ordinary","q":"How many seconds to download 600 MB over a 25 Mbps connection with 80% utilization?","seconds":"240","mode":"estimated","valid":true},
+  {"id":"micro-util","q":"How long does it take to transfer 1MB at1Gbps with 0.5% utilization?","seconds":"1.6","mode":"estimated","valid":true},
+  {"id":"ambiguous","q":"How long does it take to transfer 1gb at100mbps?","valid":false},
+  {"id":"delay","q":"How long does it take to transfer 2GB at100Mbps with a 3 second startup delay?","valid":false},
+  {"id":"zero-rate","q":"How long does it take to transfer 2GB at0Mbps?","valid":false},
+  {"id":"repeated-rate","q":"How long does it take to transfer 2GB at100Mbps then at50Mbps?","valid":false},
+  {"id":"over-util","q":"How long does it take to transfer 2GB at100Mbps with 101% utilization?","valid":false},
+  {"id":"private","q":"How long does it take to transfer my private files?","valid":false}
+ ]
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "id": "compact-ideal",
+    "conversation_id": "compact-ideal",
+    "text": "How long does it take to transfer 1GB at100Mbps?"
+  },
+  {
+    "id": "compact-util",
+    "conversation_id": "compact-util",
+    "text": "How long does it take to transfer 9GB at300Mbps with 60% utilization?"
+  },
+  {
+    "id": "binary-ideal",
+    "conversation_id": "binary-ideal",
+    "text": "How long to download 2GiB at128MiB/s?"
+  },
+  {
+    "id": "bytes-rate",
+    "conversation_id": "bytes-rate",
+    "text": "How many seconds to upload 7.5MB at2.5MB/s with 50% utilization?"
+  },
+  {
+    "id": "small-binary",
+    "conversation_id": "small-binary",
+    "text": "How long does it take to transfer 3KiB at8kbps with 40% utilisation?"
+  },
+  {
+    "id": "large-decimal",
+    "conversation_id": "large-decimal",
+    "text": "How long does it take to upload 4TB at40Gbps with 80% utilization?"
+  },
+  {
+    "id": "fraction",
+    "conversation_id": "fraction",
+    "text": "How long to transfer 1B at6bps?"
+  },
+  {
+    "id": "zero",
+    "conversation_id": "zero",
+    "text": "How long does it take to transfer 0GB at1Mbps?"
+  },
+  {
+    "id": "ordinary",
+    "conversation_id": "ordinary",
+    "text": "How many seconds to download 600 MB over a 25 Mbps connection with 80% utilization?"
+  },
+  {
+    "id": "micro-util",
+    "conversation_id": "micro-util",
+    "text": "How long does it take to transfer 1MB at1Gbps with 0.5% utilization?"
+  },
+  {
+    "id": "ambiguous",
+    "conversation_id": "ambiguous",
+    "text": "How long does it take to transfer 1gb at100mbps?"
+  },
+  {
+    "id": "delay",
+    "conversation_id": "delay",
+    "text": "How long does it take to transfer 2GB at100Mbps with a 3 second startup delay?"
+  },
+  {
+    "id": "zero-rate",
+    "conversation_id": "zero-rate",
+    "text": "How long does it take to transfer 2GB at0Mbps?"
+  },
+  {
+    "id": "repeated-rate",
+    "conversation_id": "repeated-rate",
+    "text": "How long does it take to transfer 2GB at100Mbps then at50Mbps?"
+  },
+  {
+    "id": "over-util",
+    "conversation_id": "over-util",
+    "text": "How long does it take to transfer 2GB at100Mbps with 101% utilization?"
+  },
+  {
+    "id": "private",
+    "conversation_id": "private",
+    "text": "How long does it take to transfer my private files?"
+  }
+]

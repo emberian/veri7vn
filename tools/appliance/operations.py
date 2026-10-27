@@ -111,6 +111,25 @@ def validate(value, schema, where="arguments"):
             raise OperationError("invalid_arguments", field=where)
 
 
+def qualification_metadata(manifest):
+    """Optional bounded source declaration; never an independent admission attestation."""
+    qualification = manifest.get("qualification")
+    if qualification is None:
+        return None
+    schema = {"type": "object", "required": ["state"], "additionalProperties": False,
+              "properties": {
+                  "state": {"type": "string", "minLength": 1, "maxLength": 80},
+                  "implementation": {"type": "string", "minLength": 1, "maxLength": 80},
+                  "fresh_heldout_admission": {"type": "boolean"},
+                  "formal_proof": {"type": "boolean"},
+                  "limitations": {"type": "array", "maxItems": 8,
+                                  "items": {"type": "string", "minLength": 1, "maxLength": 512}}}}
+    validate(qualification, schema, "manifest.qualification")
+    if len(encoded(qualification)) > 4096:
+        raise ValueError("manifest qualification exceeds 4 KiB")
+    return dict(qualification)
+
+
 def descriptor(op_id, name, **fields):
     result = {"id": op_id, "name": name, "description": name, "availability": "unavailable",
               "input_schema": TEXT_SCHEMA, "output_schema": OUTPUT_SCHEMA, "units": {"input": "explicit in text", "output": "declared by implementation"},
@@ -215,6 +234,7 @@ class Operations:
                 manifest = read_json(manifest_path, 1024 * 1024)
                 if manifest.get("id") != sid:
                     raise ValueError("manifest id differs from registered id")
+                qualification = qualification_metadata(manifest)
                 organ = combo._Organ(str(manifest_path), str(self.root / sid))
                 if not callable(getattr(organ.organ, "answer", None)):
                     raise ValueError("organ has no answer method")
@@ -224,10 +244,19 @@ class Operations:
                             declined_kinds=sorted(organ.declines), routing_cues=manifest.get("routing_cues", []))
                 item["implementation"].update(module=manifest["organ"]["module"], class_name=manifest["organ"]["class"],
                                               manifest_sha256=hashlib.sha256(manifest_path.read_bytes()).hexdigest())
+                if qualification is not None:
+                    item["implementation"]["qualification"] = qualification
+                    item["limitations"].extend(qualification.get("limitations", []))
+                    item["limitations"].append("Qualification is a source manifest declaration, not an independent admission attestation.")
                 item["examples"] = self._examples(sid, manifest)
                 self.add(item, lambda args, session, o=organ: self._organ_call(o, args["text"], session))
             except Exception as error:
-                item.update(availability="unavailable", unavailable_reason="implementation_load_failed", error_type=type(error).__name__)
+                # Discard partially expanded metadata: a bounded optional field
+                # can still push the whole descriptor past its per-item cap.
+                # Re-adding that oversized item would break the entire catalog.
+                item = descriptor(op_id, sid, unavailable_reason="implementation_load_failed",
+                                  error_type=type(error).__name__,
+                                  limitations=["Specialist metadata or implementation could not be loaded."])
                 self.add(item)
 
     def _examples(self, sid, manifest):
