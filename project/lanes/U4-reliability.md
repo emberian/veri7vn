@@ -159,3 +159,24 @@ lexicon or explicit `square`, `cubic`, `sq`, `cu`, and `units of` syntax;
 explicit unknown units still receive the capability explanation. Shape mentions
 without a requested geometry measure do not trigger this guard or a geometry
 clarification. These controls are included in the final 38 passing tests.
+
+
+## Root checkpoint and full-Engine follow-through
+
+Root committed the final mutable source as
+`2f3fc57ac1cbdfb32bcc092804ec0c169c750d2f`. The public U4-owned file set is
+`tools/usage/reliability/u4-geometry.patch`,
+`tools/usage/reliability/preserved_answers.json`,
+`tests/usage/reliability/test_geometry_consumer.py`, and this report.
+
+The service lane subsequently replayed the original 15 questions unchanged
+through the actual U4-v2 appliance. Its full retained replies are in
+`var/u4-service/u4-v2-real/calls.jsonl`, with independent scalar/pair analysis in
+`reliability-analysis.json`: nine correct scalars, four safe refusals, two
+needless refusals, zero wrong numeric answers, and seven of ten pairs passing.
+The intended room cases and exact conflicting-length explanation reached the
+full serving consumer. Scope controls remained explicit capability explanations;
+apartment 16, rounding and diagram wording worked. Numeric correctness remains
+separate from dimensional completion: geometry replies still lacked specific
+area/perimeter units. U5 owns that bounded follow-up. These are usage receipts,
+not specialist panel scores or Mini admission.

@@ -1,0 +1,80 @@
+diff --git a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w468.py b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w468.py
+index a2027f4..e617b6c 100644
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w468.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w468.py
+@@ -33,6 +33,14 @@ try:
+ except Exception:  # noqa: BLE001
+     _ir = None
+ 
++# Untrusted bounded grammar guard, kept equal to AO without importing its
++# runtime chain. Both binding and clarification exclude the same dummy token.
++DUMMY_IT = re.compile(
++    r"\b(?:does|did|will|would|can|could|should|has|had)\s+(?P<it>it)\s+"
++    r"(?:take|taken|cost)\s+"
++    r"(?:(?:\d+(?:\.\d+)?\s+(?:milliseconds?|seconds?|minutes?|hours?|days?|weeks?|"
++    r"months?|years?|dollars?|euros?|pounds?)|[$€£]\d+(?:\.\d+)?)\s+)?"
++    r"to\s+[a-z]", re.I)
+ POINTER = re.compile(r"\b(it|its|that|this|they|them|those|these)\b", re.I)
+ DEICTIC = re.compile(r"\b(?:the|that|this)\s+(?:thing|one|place|stuff|topic|subject|idea|person|guy|animal|city|country)"
+                      r"(?:\s+(?:with|from|about|of|in|on)\s+(?:the\s+)?[a-z][\w\-]*(?:\s+[a-z][\w\-]*)?)?\b", re.I)
+@@ -96,6 +104,20 @@ def from_thread(question, subject, replies, year_now):
+     return None
+ 
+ 
++def _referential_pointer(text):
++    """One genuine pointing phrase/token, preserving later refs after dummy it.
++
++    Take/cost-infinitive grammar may use it without any prior entity. Leave that
++    token to the original reader; this is not a general English pronoun parser.
++    """
++    phrase = DEICTIC.search(text)
++    if phrase:
++        return phrase
++    dummy_spans = {match.span("it") for match in DUMMY_IT.finditer(text)}
++    return next((match for match in POINTER.finditer(text)
++                 if match.span() not in dummy_spans), None)
++
++
+ class OracleReleaseRuntimeW468(_Base):
+ 
+     def _r468_thread(self, sid):
+@@ -148,19 +170,17 @@ class OracleReleaseRuntimeW468(_Base):
+             del th[:-MAX_THREAD]
+ 
+     def _r468_bind(self, text, subject):
+-        m = DEICTIC.search(text)
+-        if m:
+-            return text[:m.start()] + subject + text[m.end():]
+-        m = POINTER.search(text)
++        m = _referential_pointer(text)
+         if m:
+-            word = m.group(1).lower()
++            word = m.group(0).lower()
+             rep = subject + "'s" if word == "its" else subject
+             return text[:m.start()] + rep + text[m.end():]
+         return None
+ 
+     def _r468_door(self, text, sid, res):
+         thread = self._r468_thread(sid)
+-        points = bool(DEICTIC.search(text) or POINTER.search(text))
++        reference = _referential_pointer(text)
++        points = reference is not None
+         named = self._r468_subjects(text)
+         if points and thread and not named:
+             subject = thread[-1]
+@@ -197,13 +217,13 @@ class OracleReleaseRuntimeW468(_Base):
+                     out = dict(res)
+                     out.update({"status": "withheld", "path": "door:bound|vessel:receipt",
+                                 "response": "I took \"%s\" to mean %s, but I have no attested answer to that about %s."
+-                                            % ((DEICTIC.search(text) or POINTER.search(text)).group(0), subject, subject),
++                                            % (reference.group(0), subject, subject),
+                                 "provenance": {"kind": "dialogue_state",
+                                                "r468_door": {"act": "bound_no_answer", "subject": subject,
+                                                              "rewritten": rewritten}}})
+                     return out
+         # ASK: a specific question, naming what could not be resolved and what this conversation has raised
+-        unresolved = (DEICTIC.search(text) or POINTER.search(text))
++        unresolved = reference
+         phrase = unresolved.group(0) if unresolved else None
+         offers = list(reversed(thread[-3:]))
+         if phrase and offers:
