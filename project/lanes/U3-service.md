@@ -145,3 +145,81 @@ all frozen providers. This report's earlier final-v3 counts are not a claim abou
 that future candidate. Upstream correctness, global guard behavior for direct
 calls, source closure, quotas and optional runtime dependencies remain explicit
 limits rather than being inferred from this catalog.
+
+## Full packaged candidate U3-v2 probe
+
+A later root-requested addition made `core.query` discoverable. It calls
+`Engine._rt.chat` directly on Engine's existing owner thread, preserving the
+complete full-head reply and sharing conversation state with `/query`. It never
+recursively calls the executor-backed `Engine.chat`. A focused thread/state test
+passed: query and invoke use one owner thread, separate sessions stay separate,
+and replay does not add another turn. The integer-safe argument-validator fix
+also landed before this packaged run; large JSON integers cannot turn a normal
+bounds rejection into a floating-point OverflowError.
+
+The full packaged service at
+`var/usage-20261027/candidate-u3-v2` was then exercised with its own immutable
+`adapter/serve.py`, not development code. Receipt SHA256:
+`e87aaadc39a6d7767e88aa34cd5b593f718ecd7256591e462865c9f6b2a003ec`.
+
+Evidence: `var/u3-service/u3-v2-real/receipt.json`, complete `calls.jsonl`,
+`catalog.json`, and `runtime-before.json`; runner/progress log:
+`var/u3-service/probe-u3.py` and `probe-u3.log`.
+
+**69 real HTTP requests, each replayed exactly.** One Engine held the host slot;
+owned PID 58800 exited normally (code 0). All runtime filenames, sizes and
+modification times matched the pre-run snapshot; the receipt hash also remained
+unchanged. This is a before/after mutation check, not another full store rehash.
+
+The local interpreter was the project's Python 3.12 environment. Its NumPy,
+SymPy and other Oracle dependencies stayed first on the import path; Pillow
+12.3.0 came from the Codex bundled Python 3.12 package directory. Thus the visual
+calls are actual local computation, while qualification of the signed Linux
+profile remains Mini's separate integration job.
+
+Discovery returned **349 live direct, one text-only and nine unavailable**
+operations. These are availability counts, not answer scores. Repaired
+`specialist.meteorology-v2.answer` was live and all six weather examples passed:
+ISA at 3000 m = -4.5°C; speed-as-altitude and negative altitude refused; heat
+index, wind chill and dew point matched the earlier numeric expectations.
+Structured v2 heat-index, chemistry mass and symbolic core math also passed.
+
+Actual packaged companion calls succeeded for Workbench table/document/sensor/
+prose operations, Trafficcop, DeepSpace, Infrastructure analysis, bounded program
+construction with held-out read-back, Chameleon search plus witness validation
+and contract validation, Vision image description, and Artist layout/rendering
+with supplied sprites. The forecast-gate operation had no catalog example and
+was not exercised in this run; the fixture explicitly records that coverage gap.
+
+`core.query` and `/query` returned identical status/path/response for separate
+fresh arithmetic sessions (6 × 7 = 42). An attempted cross-route follow-up,
+“What did I just ask?”, was intercepted by `precision_guard:G2_private_state`
+after the dialogue route had been selected. This is an observed guard/routing
+failure, **not evidence that the adapter lost the session**. Root requested the
+previously supported authored-work → author-birth follow-up on the next candidate
+to separate state plumbing from that guard behavior.
+
+The whole-head query cases expose remaining behavior that direct specialist
+calls would conceal:
+
+- All ten valid work/year examples withheld or clarified: eight creator-binding/
+  complete-title-evidence failures and two unparsed Pride and Prejudice film
+  questions. The two unsupported-year cases also withheld. Root assigned the
+  positive-answer loss to the premise lane before final qualification.
+- Both “Which band did Brian May form with Roger Taylor?” and the false
+  Chopin/Freddie Mercury version clarified. The false version made no false
+  assertion; the probe's narrower expected-`withheld` check failed because its
+  actual status was `clarification`.
+- Einstein's biography was withheld without calling Einstein its author.
+- The explicit sole-Shakespeare premise for Emma was ignored: the full head
+  answered Jane Austen through `literature-v2` without addressing the premise.
+- Existing engineering, document and date integration cases were all recorded
+  with their complete replies; this run did not declare every valid unanswered
+  engineering request solved.
+
+The raw receipt retains four failed checks: missing forecast example, the G2
+follow-up, the narrow false-WITH status expectation, and the ignored sole-creator
+premise. Transport/replay/component success must not be substituted for a claim
+that those whole-head behaviors passed. Root is holding final Mini artifact
+qualification while the next premise patch is integrated. No immutable candidate
+or upstream source was edited by this probe.

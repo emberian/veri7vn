@@ -175,3 +175,18 @@ The completed construction is recorded in
 rechecked after publication. Its full `APPLIANCE.json` SHA-256 is
 `7dbb6899ff72490cdfc5f5e383dda4a7671656ac47747a453c4026a1c1504a23`.
 Service and Mini acceptance are separate checks.
+
+### U3 v2: discover the full-engine query operation
+
+The subsequent candidate adds `core.query` to the operation catalog so callers
+can use the complete engine's guards, composition and conversation through the
+same discovery interface. Its frozen inputs are in `components/locked-u3-v2/`;
+use `candidate-u3-v2.recipe.json` in the reproduction command above.
+[`candidate-u3-v2.receipt.json`](candidate-u3-v2.receipt.json) records its result.
+Only `adapter/operations.py` and `adapter/README.md` differ from v1. The v1
+candidate, recipe, locks and receipt are preserved.
+
+The v2 `APPLIANCE.json` SHA-256 is
+`e87aaadc39a6d7767e88aa34cd5b593f718ecd7256591e462865c9f6b2a003ec`.
+Its 46 component/provider/core files were rechecked after publication. This is
+composition evidence; service and Mini acceptance are recorded separately.

@@ -1,0 +1,53 @@
+{
+  "adapter_files": {
+    "component_operations.py": {
+      "executable": false,
+      "path": "../../../../tools/oracle_components/decisions.py",
+      "sha256": "e4cee111efb9ca72bf0417d4c28a94eb38a1355857fb8b148f99bfc9d086e897",
+      "size": 18344
+    }
+  },
+  "id": "trafficcop",
+  "profile": "analysis",
+  "requirements": [],
+  "schema": "oracle7-component-bundle-v1",
+  "source": {
+    "checkout": "../../../../var/u3-sibling-decisions/oracle7-trafficcop",
+    "files": {
+      "LICENSE": {
+        "executable": false,
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "size": 11358
+      },
+      "README.md": {
+        "executable": false,
+        "sha256": "6a850a4d6cf17c8cd38459677825edaa41725106e17e8a7631091926c165f14c",
+        "size": 4479
+      },
+      "trafficcop/__init__.py": {
+        "executable": false,
+        "sha256": "de170bebcd8171c93a65cdd09821bd7c958b8f0ee732fafd67832fc908e1718a",
+        "size": 100
+      },
+      "trafficcop/model.py": {
+        "executable": false,
+        "sha256": "86430bc8797f3553b9cda7eaf8c31eff4d3c6b2c730c1a6d5152a0fce46c89ce",
+        "size": 10967
+      }
+    },
+    "notices": [
+      "LICENSE",
+      "README.md"
+    ],
+    "patches": [
+      {
+        "path": "../../patches/siblings/decision-trafficcop.patch",
+        "sha256": "fd4b8e01815b8118a2848792a38e9d434db34dc32784698f0605899fd9682e88"
+      }
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-trafficcop",
+    "revision": "08a9f1e70b8e78d9078b4bd9f308b99b9800bcb0"
+  },
+  "status": "available",
+  "unavailable_reasons": []
+}

@@ -1,0 +1,16 @@
+{
+  "adapter_files": {
+    "operations.py": {
+      "executable": false,
+      "path": "../../../../tools/appliance/operations.py",
+      "sha256": "7a2f53fcc72ab1b0715456c8b31e5eb9a95f588e4f33a29f5c1ba53d70f07d61",
+      "size": 27356
+    }
+  },
+  "id": "operations",
+  "profile": "analysis",
+  "requirements": [],
+  "schema": "oracle7-component-bundle-v1",
+  "status": "available",
+  "unavailable_reasons": []
+}

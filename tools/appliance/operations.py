@@ -320,6 +320,17 @@ class Operations:
 
     def _core(self):
         rt = getattr(self.engine, "_rt", None)
+        if callable(getattr(rt, "chat", None)):
+            self.add(descriptor("core.query", "Ask the complete Oracle runtime", availability="live_direct",
+                                description="Run the full head with its routing, guards, dialogue and specialist/network composition.",
+                                input_schema={"type": "object", "properties": {"text": {"type": "string", "minLength": 1, "maxLength": 60000}},
+                                              "required": ["text"], "additionalProperties": False},
+                                examples=[{"arguments": {"text": "Who wrote Leaves of Grass?"}}],
+                                implementation={"entrypoint": "Engine._rt.chat", "thread": "Engine's existing dedicated thread"},
+                                state_effects="Reads and updates the supplied conversation_id in this workspace, exactly like POST /query.",
+                                limitations=["Full upstream reply retained; upstream assurance labels remain claims, not Mini authority.",
+                                             "Do not repeat a successful turn under a new request ID unless another conversation turn is intended."]),
+                     lambda args, session: rt.chat(args["text"], session_id=session))
         for op_id, factory, name in (("core.math.answer", "_c480_math", "Core symbolic mathematics organ"),
                                       ("core.relations.answer", "_c480_rel", "Core sourced relation organ")):
             if not callable(getattr(rt, factory, None)):

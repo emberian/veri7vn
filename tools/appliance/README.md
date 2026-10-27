@@ -156,6 +156,13 @@ return 409; invalid arguments return 400. Successful work and deliberate
 refusals both use the completed envelope, with refusal visible in `reply`.
 
 All direct computations run on Engine's dedicated SQLite-owning thread.
+`core.query` runs the complete head with routing, guards, dialogue and network
+composition. It accepts `arguments: {"text": "..."}` and shares the supplied
+conversation ID and its state with `/query`; its complete reply is unchanged.
+The invocation calls the underlying runtime on its existing owner thread,
+without recursively queueing another Engine call. Replaying the same request
+ID does not add a conversation turn. A new ID intentionally runs another turn.
+
 `specialist.<id>.answer` calls the existing organ's native `answer(text, session)`
 under its own module isolation and acceptance rules. Its schema honestly asks
 for text; it does not claim to be a structured formula API. The outer reply says

@@ -172,5 +172,56 @@ class RegistryTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, 'discovery_reply_too_large')
 
 
+class CoreQueryTests(unittest.TestCase):
+    def test_core_query_shares_owner_thread_conversation_and_replay_with_query(self):
+        from concurrent.futures import ThreadPoolExecutor
+        class Head:
+            def __init__(self):
+                self.turns = {}
+                self.thread_ids = []
+            def chat(self, text, session_id='default'):
+                self.thread_ids.append(threading.get_ident())
+                turns = self.turns.setdefault(session_id, [])
+                turns.append(text)
+                return {'status': 'answered', 'response': text, 'turn': len(turns),
+                        'evidence': {'all_turns': list(turns)}}
+        class Backend:
+            available = True
+            tip = 'fake-threaded-head'
+            def __init__(self, config):
+                self.executor = ThreadPoolExecutor(max_workers=1)
+                self.head = self.executor.submit(Head).result()
+                self.ops = registry(config)
+                self.ops.engine = types.SimpleNamespace(_rt=self.head,
+                    chat=lambda *_: (_ for _ in ()).throw(AssertionError('recursive Engine.chat')))
+                self.executor.submit(self.ops._core).result()
+            def query(self, request):
+                if request['_action'] == 'invoke':
+                    reply = self.executor.submit(self.ops.invoke, request['operation_id'], request['arguments'], request['conversation_id']).result()
+                else:
+                    reply = self.executor.submit(self.head.chat, request['text'], request['conversation_id']).result()
+                return {'outcome': 'completed', 'reply': reply}
+            def close(self):
+                self.executor.shutdown()
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            service = S.Service(S.Config(root / 'code', root / 'data', root / 'state'), Backend)
+            try:
+                query = S.encode({'request_id': 'first', 'conversation_id': 'same', 'text': 'first question'})
+                self.assertEqual(service.query(query)[1]['reply']['turn'], 1)
+                call = S.encode({'request_id': 'second', 'conversation_id': 'same', 'operation_id': 'core.query', 'arguments': {'text': 'followup'}})
+                expected = service.invoke(call)
+                self.assertEqual(expected[1]['reply']['evidence']['all_turns'], ['first question', 'followup'])
+                self.assertEqual(service.invoke(call), expected)
+                self.assertEqual(len(service.backend.head.thread_ids), 2)
+                self.assertEqual(len(set(service.backend.head.thread_ids)), 1)
+                self.assertNotEqual(service.backend.head.thread_ids[0], threading.get_ident())
+                other = S.encode({'request_id': 'third', 'conversation_id': 'other', 'operation_id': 'core.query', 'arguments': {'text': 'isolated'}})
+                self.assertEqual(service.invoke(other)[1]['reply']['turn'], 1)
+                self.assertIn('guards', service.backend.ops.items['core.query']['description'])
+            finally:
+                service.close()
+
+
 if __name__ == '__main__':
     unittest.main()
