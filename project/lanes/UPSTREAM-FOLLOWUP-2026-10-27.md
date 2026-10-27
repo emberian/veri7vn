@@ -76,8 +76,13 @@ does not establish coverage of every packaged file. Conversation restoration
 also remains unsupported upstream: retain durable exact-request replay and
 explicit reset after retirement, rather than reconstructing state by replay.
 
-Draft replies for #5 and #4 and public inspection snapshots are in ignored
-`var/upstream-followup-20261027/`. No duplicate status pings are recommended
-on the other threads. Nothing was posted, and no tests, builds, release
-verification or appliance runs were launched. Runtime and signed candidate
-remain unchanged.
+After ember approved both replies, they were published at 21:41 UTC and read
+back byte-for-byte through the official Hub client:
+
+- [Operation-schema reply, #5](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/5#6ae11a7d179d5ba24e54add2).
+- [Date-precision reply, #4](https://huggingface.co/psiloceyeben/oracle7-slim/discussions/4#6ae11a7dc7ebecc5bc5acfbc).
+
+Reply bodies, publication receipts and public inspection snapshots are retained
+in ignored `var/upstream-followup-20261027/`. No duplicate status pings were sent
+on the other threads. No tests, builds, release verification or appliance runs
+were launched. Runtime and signed candidate remain unchanged.
