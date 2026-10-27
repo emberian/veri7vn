@@ -1,0 +1,41 @@
+{
+  "adapter_files": {
+    "builder_operations.py": {
+      "path": "../../../tools/oracle_components/builder.py"
+    }
+  },
+  "execution_notes": [
+    "Composer constructs bounded arithmetic programs from supplied numeric examples and executes its own generated Python in temporary files for read-back and separate-example checks; it accepts no caller source and does not install programs. Chameleon model planning and static contract validation operate on supplied data."
+  ],
+  "id": "chameleon",
+  "profile": "builder",
+  "requirements": [
+    {
+      "kind": "appliance-file",
+      "name": "workbench/swarm/composer_v3.py",
+      "path": "../../../var/ap1-upstream-slim/workbench/swarm/composer_v3.py"
+    }
+  ],
+  "source": {
+    "checkout": "../../../var/u3-builder/chameleon",
+    "files": [
+      "LICENSE",
+      "README.md",
+      "packages/core/chameleon_core/microfold.py",
+      "packages/core/chameleon_core/browser_contract.py"
+    ],
+    "notices": [
+      "LICENSE",
+      "README.md"
+    ],
+    "patches": [
+      "../patches/siblings/builder-chameleon.patch"
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-chameleon",
+    "revision": "cac0c3bccff793b63a0907e8ef3f679fa75f6a14"
+  },
+  "status": "partial",
+  "unavailable_reasons": [
+    "Browser capture, network retrieval, arbitrary repository builds and installation are not exposed."
+  ]
+}

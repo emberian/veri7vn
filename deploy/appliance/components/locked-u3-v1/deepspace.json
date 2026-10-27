@@ -1,0 +1,69 @@
+{
+  "adapter_files": {
+    "component_operations.py": {
+      "executable": false,
+      "path": "../../../../tools/oracle_components/decisions.py",
+      "sha256": "e4cee111efb9ca72bf0417d4c28a94eb38a1355857fb8b148f99bfc9d086e897",
+      "size": 18344
+    }
+  },
+  "id": "deepspace",
+  "profile": "analysis",
+  "requirements": [],
+  "schema": "oracle7-component-bundle-v1",
+  "source": {
+    "checkout": "../../../../var/u3-sibling-decisions/oracle7-deepspace",
+    "files": {
+      "LICENSE": {
+        "executable": false,
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "size": 11358
+      },
+      "README.md": {
+        "executable": false,
+        "sha256": "ec574c39cf68eb4e1d58d9cd42b2c0c4aa17b43d7e58e662819b8e5093c32fdc",
+        "size": 2567
+      },
+      "README_source.md": {
+        "executable": false,
+        "sha256": "fc263d3f6763f51377360d3b247c1ee2e9e58a43e840de8bab945fda13545bfe",
+        "size": 7621
+      },
+      "deepspace/__init__.py": {
+        "executable": false,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0
+      },
+      "deepspace/fdir.py": {
+        "executable": false,
+        "sha256": "51c150836c09993db85a34b372c51c11ac336790a1e89acd3cb6cb6553577d92",
+        "size": 17496
+      },
+      "deepspace/runtime.py": {
+        "executable": false,
+        "sha256": "73fd64e1da0f1d04c236c677e0d38baed75283231b29b741a06f5fb41e8c1234",
+        "size": 3566
+      },
+      "deepspace/sim.py": {
+        "executable": false,
+        "sha256": "23c1d3d2e096b8f2b68241625adf6e7008f5b3558567825ffdad130eb866a36d",
+        "size": 14973
+      }
+    },
+    "notices": [
+      "LICENSE",
+      "README.md",
+      "README_source.md"
+    ],
+    "patches": [
+      {
+        "path": "../../patches/siblings/decision-deepspace.patch",
+        "sha256": "3c72d54365ca4e180b7e5a5fdb4b110857bc119dccddaa2470257e57db40fbf2"
+      }
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-deepspace",
+    "revision": "3538060dbb55f287d060820f7b7c42fe3487632d"
+  },
+  "status": "available",
+  "unavailable_reasons": []
+}

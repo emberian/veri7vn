@@ -1,0 +1,91 @@
+{
+  "adapter_files": {
+    "visual_operations.py": {
+      "executable": false,
+      "path": "../../../../tools/oracle_components/visual.py",
+      "sha256": "c9106d91f333b9eb395c3a87e6e4b93085e29b56db651604b504bd97a20f69d6",
+      "size": 20873
+    }
+  },
+  "id": "vision",
+  "profile": "analysis",
+  "requirements": [
+    {
+      "kind": "python",
+      "name": "numpy",
+      "version": "2.4.6"
+    },
+    {
+      "kind": "python",
+      "name": "Pillow",
+      "version": "11.3.0"
+    },
+    {
+      "kind": "python",
+      "name": "scipy",
+      "version": "1.17.1"
+    }
+  ],
+  "schema": "oracle7-component-bundle-v1",
+  "source": {
+    "checkout": "../../../../var/u3-sibling-visual/vision",
+    "files": {
+      "LICENSE": {
+        "executable": false,
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+        "size": 11358
+      },
+      "README.md": {
+        "executable": false,
+        "sha256": "3fdf742a99f721d19843e26aa67686f748b60b362a78f2dc5c04564efb0fbc4a",
+        "size": 8606
+      },
+      "vision/__init__.py": {
+        "executable": false,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 0
+      },
+      "vision/chartqa.py": {
+        "executable": false,
+        "sha256": "c1b7380272d5ccb018d9dbfa8b57ed903bca2afda2d61c7dc2db16a1a74fa017",
+        "size": 7082
+      },
+      "vision/exemplar.py": {
+        "executable": false,
+        "sha256": "9258dfe8088f49866850a807fbe4c1611d406d72fcbb4903b5c5ec03f8a39170",
+        "size": 3025
+      },
+      "vision/features.py": {
+        "executable": false,
+        "sha256": "a006f8b7de6b88c0ea0a15125f2160f41a135068efc8f0fe262a005deacee55c",
+        "size": 6658
+      },
+      "vision/glyphs.py": {
+        "executable": false,
+        "sha256": "928b1f69d26e11157bfb64b3e44f1f9400278793f2ebdac3e9d2c7710977c0ef",
+        "size": 21121
+      },
+      "vision/screen.py": {
+        "executable": false,
+        "sha256": "7810177b4eafbd486b7cb157c073929582f44354464601b856b2405e8fbab202",
+        "size": 4827
+      }
+    },
+    "notices": [
+      "LICENSE",
+      "README.md"
+    ],
+    "patches": [
+      {
+        "path": "../../patches/siblings/visual-vision.patch",
+        "sha256": "bbd213525c872df039ee5555b83ae91600f58ab36cead2847f78a28adfef2008"
+      }
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-vision",
+    "revision": "271c1832780c25980253fd4816f8e812b064325c"
+  },
+  "status": "partial",
+  "unavailable_reasons": [
+    "Pretrained exemplar and OCR/font stores are not bundled; supplied-image and supplied-exemplar operations remain supported."
+  ]
+}

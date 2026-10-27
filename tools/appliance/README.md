@@ -120,6 +120,73 @@ worker if the grace period expires. Worst-case drain includes the remaining
 query deadline and worker shutdown grace. The host must supervise the whole
 container/process tree, including any descendants launched by upstream.
 
+## Discover and call operations
+
+Agents can list `GET /operations?offset=0&limit=10&q=chemistry` and inspect
+`GET /operations/specialist.chemistry-v3.molar_mass`. Optional `availability`
+filters are `live_direct`, `text_only`, or `unavailable`. Limits are 1–50 entries,
+nonnegative offset at most 999999999, and a search string at most 256 UTF-8 bytes.
+A page may contain fewer entries to keep its complete JSON below 32 KiB; follow
+`next_offset` until null. Descriptors are never silently stripped to fit. The
+configured reply limit may be tighter, in which case discovery explicitly fails.
+
+Descriptors give the actual input/output schemas, units, source declarations,
+examples, implementation entrypoint, availability and limits. A successful load
+establishes that a callable is present, not that all its answers are correct.
+Discovery starts from standing lists referenced by modules in the running
+Engine's class chain and loads those organs using Oracle's own isolation layer.
+It does not make every specialist directory or historical manifest live. Missing
+or failed implementations remain unavailable. Development-panel examples are
+labeled examples, not fresh validation results.
+
+`POST /invoke` uses the same content type, admission lock, worker deadline,
+workspace, and durable journal as `/query`:
+
+```json
+{"request_id":"mass-0001","conversation_id":"analysis-7","operation_id":"specialist.chemistry-v3.molar_mass","arguments":{"formula":"H2O"}}
+```
+
+Operation IDs use 1–160 ASCII letters/digits/dots/underscores/hyphens, starting
+with a letter or digit. Request and conversation IDs retain their original
+1–80-character grammar. Journal identity includes HTTP method, route, and exact
+body bytes; reusing an ID across `/query` and `/invoke` returns 409. Legacy
+journals migrate existing entries as `POST /query` without replaying execution.
+Unknown operations return 404; declared but unavailable/text-only operations
+return 409; invalid arguments return 400. Successful work and deliberate
+refusals both use the completed envelope, with refusal visible in `reply`.
+
+All direct computations run on Engine's dedicated SQLite-owning thread.
+`specialist.<id>.answer` calls the existing organ's native `answer(text, session)`
+under its own module isolation and acceptance rules. Its schema honestly asks
+for text; it does not claim to be a structured formula API. The outer reply says
+whether the manifest accepted it and retains every raw result field under
+`result`. No head routing, arbitration, or global refusal guard is implied by a
+direct call. Core math/relation calls similarly reach their existing organs.
+Symbolic math values use tagged SymPy expression/constructor records and tagged
+mapping entries when keys are symbols; finite values are not rounded away, and
+non-finite numeric outputs fail explicitly.
+
+A small additional set of structured numerical operations calls existing
+functions directly: the registered weather implementation's temperature
+conversions and heat-index function, and a registered chemistry organ's molar
+mass method. No formulas are copied here and no numeric arguments are filled
+into a hidden chat template. Learned network templates remain `text_only`.
+
+Optional Workbench, decision, visual, and builder providers are loaded only from
+fixed package modules. They accept bounded supplied data or use operator-pinned
+component sources. Missing optional providers do not disable unrelated routes.
+They cannot accept arbitrary host paths, URLs, imports, code, live sensor polls,
+or installation requests through this interface. Separate host file, network,
+device and arbitrary execution powers remain explicitly unavailable. Providers'
+input checks do not replace Mini's authority checks.
+
+The signed Mini profile may select `--max-request-bytes 65536`; standalone's
+backward-compatible default is 16384. Capabilities, discovery pages and operation
+descriptors report the configured whole-envelope limit. A provider schema's
+larger text/array ceiling never overrides that transport limit. Request IDs,
+conversation IDs, arguments and JSON escaping all count toward it. Model-facing
+MCP and result-display limits can be tighter still.
+
 ## Narrow checks
 
 ```sh

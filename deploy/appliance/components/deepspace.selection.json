@@ -1,0 +1,34 @@
+{
+  "adapter_files": {
+    "component_operations.py": {
+      "path": "../../../tools/oracle_components/decisions.py"
+    }
+  },
+  "id": "deepspace",
+  "profile": "analysis",
+  "requirements": [],
+  "source": {
+    "checkout": "../../../var/u3-sibling-decisions/oracle7-deepspace",
+    "files": [
+      "LICENSE",
+      "README.md",
+      "deepspace/__init__.py",
+      "deepspace/sim.py",
+      "deepspace/runtime.py",
+      "deepspace/fdir.py",
+      "README_source.md"
+    ],
+    "notices": [
+      "LICENSE",
+      "README.md",
+      "README_source.md"
+    ],
+    "patches": [
+      "../patches/siblings/decision-deepspace.patch"
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-deepspace",
+    "revision": "3538060dbb55f287d060820f7b7c42fe3487632d"
+  },
+  "status": "available",
+  "unavailable_reasons": []
+}

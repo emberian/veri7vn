@@ -1,0 +1,52 @@
+{
+  "adapter_files": {
+    "visual_operations.py": {
+      "path": "../../../tools/oracle_components/visual.py"
+    }
+  },
+  "id": "vision",
+  "profile": "analysis",
+  "requirements": [
+    {
+      "kind": "python",
+      "name": "numpy",
+      "version": "2.4.6"
+    },
+    {
+      "kind": "python",
+      "name": "Pillow",
+      "version": "11.3.0"
+    },
+    {
+      "kind": "python",
+      "name": "scipy",
+      "version": "1.17.1"
+    }
+  ],
+  "source": {
+    "checkout": "../../../var/u3-sibling-visual/vision",
+    "files": [
+      "LICENSE",
+      "README.md",
+      "vision/__init__.py",
+      "vision/features.py",
+      "vision/exemplar.py",
+      "vision/glyphs.py",
+      "vision/screen.py",
+      "vision/chartqa.py"
+    ],
+    "notices": [
+      "LICENSE",
+      "README.md"
+    ],
+    "patches": [
+      "../patches/siblings/visual-vision.patch"
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-vision",
+    "revision": "271c1832780c25980253fd4816f8e812b064325c"
+  },
+  "status": "partial",
+  "unavailable_reasons": [
+    "Pretrained exemplar and OCR/font stores are not bundled; supplied-image and supplied-exemplar operations remain supported."
+  ]
+}

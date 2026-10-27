@@ -1,0 +1,76 @@
+{
+  "adapter_files": {
+    "workbench_operations.py": {
+      "executable": false,
+      "path": "../../../../tools/oracle_workbench/operations.py",
+      "sha256": "387cdb94d4afdb8ebe5e4761d72078b56a22781424948cc3a2c30bf73394cf49",
+      "size": 18289
+    }
+  },
+  "id": "workbench",
+  "profile": "analysis",
+  "requirements": [
+    {
+      "kind": "python",
+      "name": "numpy",
+      "version": "2.4.6"
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/sources.py",
+      "sha256": "a09d2fa68bbb15fd2f81ac957e10dc28d140390e957459abf8e015c5909a7f80",
+      "size": 25173
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/sensors_baseline_v4.py",
+      "sha256": "11fc176400cc78b07372d98ef3d859031d02ebd2d30500d2f314f87ca6c865f1",
+      "size": 20139
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/__init__.py",
+      "sha256": "c5c69825c74bf3349d902cbdda9397819a23d93b3bfaa251c61d55edb3fb89ba",
+      "size": 110
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/core.py",
+      "sha256": "b60e620c102da880f4f651c1f39eb9c6a5ef2025ddf6ffbebf65158731411074",
+      "size": 17425
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/engine.py",
+      "sha256": "744084c0ee27c9ffae946711b5731249a56089bbc1b8f9e3f0dae7f64f8d3c5d",
+      "size": 6997
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/prose.py",
+      "sha256": "4fa5dc98c96b617a4651ece0a42a9be1df1271c36f4638633091b363acdc209a",
+      "size": 10067
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/readback.py",
+      "sha256": "437f5a1e94e230ebbb10216aff38466a0b9b0c764b007797b3bbb8fc84e5540f",
+      "size": 13153
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/speaker.py",
+      "sha256": "7f55379c3134b851f642a904ed7f886399bcababf66e4eb638aa4858ce77f617",
+      "size": 5644
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/voice_default.md",
+      "sha256": "358a0ae9ee13d2dc3cc2ab680a922addd9d2e8bc6189bb5c6dd36ff0d5c206b2",
+      "size": 39663
+    }
+  ],
+  "schema": "oracle7-component-bundle-v1",
+  "status": "available",
+  "unavailable_reasons": []
+}

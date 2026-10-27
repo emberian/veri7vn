@@ -1,0 +1,112 @@
+diff --git a/artist/core.py b/artist/core.py
+index 624e94f..b1c4e7a 100644
+--- a/artist/core.py
++++ b/artist/core.py
+@@ -54,20 +54,15 @@ def _object(phrase):
+     """'a purple wine glass' / 'three skis' -> {'class','count','color'}"""
+     p = phrase.strip().lower()
+     count = 1
+-    m = re.match(r"^(a|an|one|two|three|four|five)\s+(.*)$", p)
++    m = re.match(r"^(a|an|one|two|three|four|five|[1-5])\s+(.*)$", p)
+     if m:
+-        count = NUMS.get(m.group(1), 1)
++        count = int(m.group(1)) if m.group(1).isdigit() else NUMS.get(m.group(1), 1)
+         p = m.group(2)
+     color = None
+     for c in COLORS:
+         if p.startswith(c + " "):
+             color, p = c, p[len(c) + 1:]
+     name = _PLURALS.get(p, p)
+-    if name not in COCO:
+-        for n in _NAMES:
+-            if p.endswith(n) or p.endswith(plural(n)):
+-                name = n
+-                break
+     if name not in COCO:
+         raise ValueError("unknown object %r" % phrase)
+     return {"class": name, "count": count, "color": color}
+@@ -152,16 +147,29 @@ def layout(spec):
+     """boxes (x0, y0, x1, y1) per object instance, making counts and the relation true with clear margins"""
+     objs = spec["objects"]
+     rel = spec["relation"]
+-    slots = []
++    if not 1 <= len(objs) <= 2 or any(type(o.get("count")) is not int or not 1 <= o["count"] <= 5 for o in objs):
++        raise ValueError("layout requires one or two groups of one to five objects")
++    if rel and (len(rel) != 3 or rel[0] != 0 or rel[2] != 1 or len(objs) != 2 or rel[1] not in REL.values()):
++        raise ValueError("relation must join the first group to the second")
++    def subdivide(box, count):
++        if count == 1:
++            return [box]
++        x0, y0, x1, y1 = box
++        cols = 2 if count <= 4 else 3
++        rows = (count + cols - 1) // cols
++        return [(int(x0 + (i % cols) * (x1-x0)/cols + 4),
++                 int(y0 + (i // cols) * (y1-y0)/rows + 4),
++                 int(x0 + (i % cols + 1) * (x1-x0)/cols - 4),
++                 int(y0 + (i // cols + 1) * (y1-y0)/rows - 4)) for i in range(count)]
+     if rel:
+         _, r, _ = rel
+         A = (40, 150, 240, 360) if r in ("left",) else (272, 150, 472, 360) if r == "right" else \
+             (146, 20, 366, 230) if r == "above" else (146, 282, 366, 492)
+         B = {"left": (272, 150, 472, 360), "right": (40, 150, 240, 360), "above": (146, 282, 366, 492),
+              "below": (146, 20, 366, 230)}[r]
+-        return [[A], [B]]
++        return [subdivide(A, objs[0]["count"]), subdivide(B, objs[1]["count"])]
+     if len(objs) == 2:
+-        return [[(30, 120, 246, 392)], [(266, 120, 482, 392)]]
++        return [subdivide((30, 120, 246, 392), objs[0]["count"]), subdivide((266, 120, 482, 392), objs[1]["count"])]
+     n = objs[0]["count"]
+     if n == 1:
+         return [[(96, 86, 416, 426)]]
+@@ -189,7 +197,7 @@ def render(spec, lib, seed=0):
+     rng = random.Random(seed)
+     canvas = _ground(rng)
+     placed = []
+-    for obj, boxes in zip(spec["objects"], layout(spec)):
++    for object_index, (obj, boxes) in enumerate(zip(spec["objects"], layout(spec))):
+         items = lib.pick(obj["class"], rng, len(boxes), obj["color"])
+         for item, box in zip(items, boxes):
+             sp = lib.load(item)
+@@ -200,7 +208,7 @@ def render(spec, lib, seed=0):
+             shadow.putalpha(sp.split()[3].point(lambda a: int(a * 0.25)))
+             canvas.paste(shadow.filter(ImageFilter.GaussianBlur(6)), (x + 6, y + 8), shadow.filter(ImageFilter.GaussianBlur(6)))
+             canvas.paste(sp, (x, y), sp)
+-            placed.append({"class": obj["class"], "color": obj["color"], "box": (x, y, x + sp.size[0], y + sp.size[1]),
++            placed.append({"object_index": object_index, "class": obj["class"], "color": obj["color"], "box": (x, y, x + sp.size[0], y + sp.size[1]),
+                            "alpha": np.asarray(sp.split()[3]) > 128, "cite": item["cite"],
+                            "recoloured": bool(obj["color"]) and item.get("color") != obj["color"]})
+     return canvas, placed
+@@ -231,8 +239,13 @@ def verify(spec, canvas, placed):
+     """re-measure every clause from the rendered pixels; returns (all_certified, [clause reports])"""
+     a = np.asarray(canvas)
+     rep = []
+-    for obj in spec["objects"]:
+-        mine = [p for p in placed if p["class"] == obj["class"]]
++    def group(index):
++        obj = spec["objects"][index]
++        unique = sum(o["class"] == obj["class"] for o in spec["objects"]) == 1
++        return [p for p in placed if p["class"] == obj["class"] and
++                (p.get("object_index") == index or ("object_index" not in p and unique))]
++    for index, obj in enumerate(spec["objects"]):
++        mine = group(index)
+         rep.append({"clause": "%d %s" % (obj["count"], obj["class"]), "ok": len(mine) == obj["count"]})
+         if obj["color"]:
+             for p in mine:
+@@ -242,9 +255,13 @@ def verify(spec, canvas, placed):
+                 rep.append({"clause": "%s %s" % (obj["color"], obj["class"]), "measured": got, "ok": got == obj["color"]})
+     if spec["relation"]:
+         i, r, j = spec["relation"]
+-        A = [p for p in placed if p["class"] == spec["objects"][i]["class"]][0]["box"]
+-        B = [p for p in placed if p["class"] == spec["objects"][j]["class"]][-1]["box"]
+-        ca, cb = ((A[0] + A[2]) / 2, (A[1] + A[3]) / 2), ((B[0] + B[2]) / 2, (B[1] + B[3]) / 2)
+-        ok = {"left": ca[0] < cb[0], "right": ca[0] > cb[0], "above": ca[1] < cb[1], "below": ca[1] > cb[1]}[r]
++        A, B = group(i), group(j)
++        def centre(p):
++            x0, y0, x1, y1 = p["box"]
++            return ((x0+x1)/2, (y0+y1)/2)
++        pairs = [(centre(a), centre(b)) for a in A for b in B]
++        ok = bool(pairs) and all({"left": ca[0] < cb[0], "right": ca[0] > cb[0],
++                                  "above": ca[1] < cb[1], "below": ca[1] > cb[1]}[r]
++                                 for ca, cb in pairs)
+         rep.append({"clause": "%s %s %s" % (spec["objects"][i]["class"], r, spec["objects"][j]["class"]), "ok": ok})
+     return all(r["ok"] for r in rep), rep

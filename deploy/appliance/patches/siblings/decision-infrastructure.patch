@@ -1,0 +1,147 @@
+diff --git a/agent.py b/agent.py
+index 8695738..ed43181 100644
+--- a/agent.py
++++ b/agent.py
+@@ -412,25 +412,46 @@ def kind_of(signal):
+ 
+ 
+ def gate(c):
++    """Compare a method with the baseline on exactly the same forecast events.
++
++    Duplicate method/event rows are ambiguous, not independent evidence.
++    Mismatched actual observations cannot form a baseline comparison.
++    """
++    events = {}
++    for made, target, entity, signal, method, value, actual in c.execute(
++            "SELECT made, target, entity, signal, method, value, actual FROM forecast WHERE scored=1").fetchall():
++        key = (kind_of(signal), int(target - made), made, target, entity)
++        methods = events.setdefault(key, {})
++        methods.setdefault(method, []).append((value, actual))
+     acc = {}
+-    for s, h, m, e in c.execute("SELECT signal, target-made, method, ABS(value-actual) FROM forecast WHERE scored=1").fetchall():
+-        acc.setdefault((kind_of(s), int(h)), {}).setdefault(m, []).append(e)
+-    out = {}
+-    for k, ms in acc.items():
+-        nv = ms.get("naive", [])
+-        if not nv:
++    for key, methods in events.items():
++        base = methods.get("naive", [])
++        if len(base) != 1:
+             continue
+-        mn = sum(nv) / len(nv)
+-        rec = {"n_naive": len(nv), "mae_naive": round(mn, 4), "methods": {}, "admitted": None}
+-        for m in METHODS:
+-            tr = ms.get(m, [])
+-            if tr:
+-                mt = sum(tr) / len(tr)
+-                ok = len(tr) >= 30 and mt <= 0.9 * mn
+-                rec["methods"][m] = {"n": len(tr), "mae": round(mt, 4), "admitted": ok}
+-                if ok and (rec["admitted"] is None or mt < rec["methods"][rec["admitted"]]["mae"]):
+-                    rec["admitted"] = m
+-        out["%s@%dh" % (k[0], k[1] // 3600)] = rec
++        value, actual = base[0]
++        rec = acc.setdefault(key[:2], {"naive": [], "pairs": {}})
++        baseline_error = abs(value - actual)
++        rec["naive"].append(baseline_error)
++        for method in METHODS:
++            rows = methods.get(method, [])
++            if len(rows) == 1 and rows[0][1] == actual:
++                rec["pairs"].setdefault(method, []).append((abs(rows[0][0] - actual), baseline_error))
++    out = {}
++    for (signal, horizon), samples in acc.items():
++        naive = samples["naive"]
++        rec = {"n_naive": len(naive), "mae_naive": round(sum(naive) / len(naive), 4),
++               "methods": {}, "admitted": None}
++        best = None
++        for method, pairs in samples["pairs"].items():
++            mt = sum(a for a, _ in pairs) / len(pairs)
++            mn = sum(b for _, b in pairs) / len(pairs)
++            ok = len(pairs) >= 30 and mt < mn and mt <= 0.9 * mn
++            rec["methods"][method] = {"n": len(pairs), "mae": round(mt, 4),
++                                       "mae_naive_paired": round(mn, 4), "admitted": ok}
++            if ok and (best is None or mt < best):
++                rec["admitted"], best = method, mt
++        duration = "%dh" % (horizon // 3600) if horizon % 3600 == 0 else "%ds" % horizon
++        out["%s@%s" % (signal, duration)] = rec
+     return out
+ 
+ 
+@@ -444,7 +465,7 @@ SAFE_DISK = [   # (kind, command, dry-run command reporting reclaimable MB)
+ def plan_actions(c, now):
+     """CHECKED OPERATIONS proposed from the current facts; dry-run results attached; nothing executes here"""
+     t = c.execute("SELECT MAX(ts) FROM fact").fetchone()[0]
+-    if not t:
++    if t is None:
+         return []
+     _, rows = latest_values(c)
+     rows = [(e, s, v) for e, s, v, _, _ in rows]
+@@ -572,7 +593,7 @@ def run():
+ def latest_values(c):
+     """the newest value of every (entity, signal) in the last 15 minutes (slow sensors run every 5)"""
+     t = c.execute("SELECT MAX(ts) FROM fact").fetchone()[0]
+-    if not t:
++    if t is None:
+         return None, []
+     rows = c.execute("SELECT f.entity, f.signal, f.value, f.source, f.ts FROM fact f JOIN (SELECT entity, signal, MAX(ts) m FROM fact "
+                      "WHERE ts>=? GROUP BY entity, signal) x ON f.entity=x.entity AND f.signal=x.signal AND f.ts=x.m", (t - 900,)).fetchall()
+@@ -581,7 +602,7 @@ def latest_values(c):
+ 
+ def status(c):
+     t, rows = latest_values(c)
+-    if not t:
++    if t is None:
+         return {"facts": 0}
+     crit, warn = [], []
+     for e, s, v, src, ts in rows:
+@@ -616,7 +637,7 @@ def forecast_view(c):
+ 
+ def why(c, entity):
+     t, _ = latest_values(c)
+-    if not t:
++    if t is None:
+         return []
+     out = []
+     for e, s in c.execute("SELECT DISTINCT entity, signal FROM fact WHERE ts>=?", (t - 3600,)).fetchall():
+diff --git a/test_decision_contract.py b/test_decision_contract.py
+new file mode 100644
+index 0000000..e34bf9a
+--- /dev/null
++++ b/test_decision_contract.py
+@@ -0,0 +1,37 @@
++import sqlite3
++import unittest
++from contextlib import closing
++from agent import gate, latest_values
++
++class ForecastContract(unittest.TestCase):
++    def results(self, method, entity, value):
++        return [(i, i+3600, entity, "used_pct", method, value, 1, 0) for i in range(30)]
++
++    def check_gate(self, rows):
++        with closing(sqlite3.connect(":memory:")) as db:
++            db.execute("CREATE TABLE forecast(made,target,entity,signal,method,value,scored,actual)")
++            db.executemany("INSERT INTO forecast VALUES(?,?,?,?,?,?,?,?)", rows)
++            return gate(db)["used_pct@1h"]
++
++    def test_unpaired_baseline_is_not_evidence(self):
++        self.assertIsNone(self.check_gate(self.results("naive", "a", 100) + self.results("trend6h", "b", 1))["admitted"])
++
++    def test_matching_improvement_and_duplicate_refusal(self):
++        baseline = self.results("naive", "a", 100)
++        method = self.results("trend6h", "a", 1)
++        self.assertEqual(self.check_gate(baseline + method)["admitted"], "trend6h")
++        self.assertIsNone(self.check_gate(baseline + method + [method[0]])["admitted"])
++
++    def test_equal_perfect_forecasts_did_not_beat_baseline(self):
++        self.assertIsNone(self.check_gate(self.results("naive", "a", 0) + self.results("trend6h", "a", 0))["admitted"])
++
++    def test_epoch_zero_is_a_real_timestamp(self):
++        with closing(sqlite3.connect(":memory:")) as db:
++            db.execute("CREATE TABLE fact(ts,entity,signal,value,source)")
++            db.execute("INSERT INTO fact VALUES(0,'disk:a','used_pct',98,'supplied')")
++            stamp, rows = latest_values(db)
++            self.assertEqual(stamp, 0)
++            self.assertEqual(len(rows), 1)
++
++if __name__ == "__main__":
++    unittest.main()

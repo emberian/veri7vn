@@ -132,6 +132,14 @@ pins its open-ended zstandard requirement to `0.25.0`. Retain the resolved
 environment lock/wheels for production and record it alongside the runtime. The source/data recipe is pinned;
 dependency resolution alone does not make the whole host reproducible.
 
+## Select additional components
+
+[Component bundles](component-bundles.md) pin optional sibling source, local
+repairs, provider modules, dependencies and notices through explicit manifests.
+Provisioning never grants authority or installs missing runtime dependencies.
+Profiles are metadata: the current service exposes all packaged providers under
+the same appliance grants. Existing candidates remain immutable.
+
 ## Add a newer verified family
 
 `--kernel-overlay /path/to/overlay` accepts a directory containing `bin/<name>`

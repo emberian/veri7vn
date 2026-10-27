@@ -23,6 +23,10 @@ import sys
 import threading
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qs, urlsplit
+# Adapter modules live beside immutable packaged source as well.
+sys.dont_write_bytecode = True
+from operations import Operations, OperationError, ID as OPERATION_ID
 
 REVISION = "083e3a6c0e2cfc131e62bdc16cb4ec1346194635"
 PH = Path("fable-content/oracle-m-series-2026-08-15")
@@ -176,16 +180,29 @@ def _worker(connection, config):
     try:
         preflight(config)
         engine = import_launcher(config).Engine()
-        connection.send_bytes(encode({"ready": True, "tip": engine.tip}))
+        operations = engine._ex.submit(Operations, engine, config).result()
+        summary = {state: sum(item["availability"] == state for item in operations.items.values())
+                   for state in ("live_direct", "text_only", "unavailable")}
+        connection.send_bytes(encode({"ready": True, "tip": engine.tip, "operations": summary}))
         while True:
-            request = json.loads(connection.recv_bytes(config.max_request_bytes))
+            request = json.loads(connection.recv_bytes(config.max_request_bytes + 4096))
             if request.get("stop"):
                 break
             try:
-                reply = engine.chat(request["text"], session_id=request["conversation_id"])
+                action = request.get("_action", "query")
+                if action == "query":
+                    reply = engine.chat(request["text"], session_id=request["conversation_id"])
+                elif action == "invoke":
+                    reply = engine._ex.submit(operations.invoke, request["operation_id"], request["arguments"], request["conversation_id"]).result()
+                elif action == "discover":
+                    reply = engine._ex.submit(operations.discover, **request["parameters"]).result()
+                else:
+                    raise OperationError("unknown_action", 400)
                 if not isinstance(reply, dict):
-                    raise TypeError("Engine.chat did not return an object")
+                    raise TypeError("implementation did not return an object")
                 result = {"outcome": "completed", "reply": reply}
+                if action == "invoke":
+                    result["operation_id"] = request["operation_id"]
                 # Encode incrementally: cap transport bytes without dropping fields.
                 chunks, size = [], 0
                 for chunk in json.JSONEncoder(ensure_ascii=False, allow_nan=False, separators=(",", ":")).iterencode(result):
@@ -199,6 +216,8 @@ def _worker(connection, config):
                                              state_may_have_changed=True))
                 else:
                     payload = b"".join(chunks)
+            except OperationError as error:
+                payload = encode(failure(error.code, http_status=error.status, **error.details))
             except Exception as error:
                 # Errors may follow a session write. Do not turn them into refusal.
                 payload = encode(failure("runtime_error", error_type=type(error).__name__,
@@ -242,6 +261,7 @@ class EngineProcess:
             if not ready.get("ready"):
                 raise RuntimeError(str(ready))
             self.tip = ready["tip"]
+            self.operations = ready.get("operations", {})
             self.available = True
         except BaseException:
             self.close()
@@ -296,6 +316,12 @@ class Service:
         self.db = sqlite3.connect(config.workspace / "requests.sqlite3", check_same_thread=False)
         self.db.execute("PRAGMA synchronous=FULL")
         self.db.execute("CREATE TABLE IF NOT EXISTS requests (id TEXT PRIMARY KEY, body BLOB NOT NULL, result BLOB)")
+        columns = {row[1] for row in self.db.execute("PRAGMA table_info(requests)")}
+        if "method" not in columns:
+            self.db.execute("ALTER TABLE requests ADD COLUMN method TEXT NOT NULL DEFAULT 'POST'")
+        if "path" not in columns:
+            self.db.execute("ALTER TABLE requests ADD COLUMN path TEXT NOT NULL DEFAULT '/query'")
+        # Existing v1 records are exactly POST /query, so migration retains their identity.
         # A crash may have changed the conversation before journaling its result.
         self.db.execute("UPDATE requests SET result=? WHERE result IS NULL",
                         (encode(failure("interrupted", state_may_have_changed=True)),))
@@ -311,15 +337,37 @@ class Service:
         return {"protocol": "oracle-appliance-v1", "backend": "Oracle7.Engine.chat",
                 "source_revision": self.config.source_revision, "tip": self.backend.tip,
                 "deployment": self.deployment,
+                "operation_discovery": {"protocol": "oracle-operations-v1", "list": "/operations", "detail": "/operations/{operation_id}",
+                                        "invoke": "/invoke", "counts": getattr(self.backend, "operations", {})},
                 "evidence": "upstream reply preserved; upstream labels are not Mini authority",
                 "deployment_content_hashes_checked_by_adapter": False,
                 "scope": "one host-assigned workspace per process", "query_queue": 0,
                 "limits": {"request_bytes": self.config.max_request_bytes,
                            "reply_bytes": self.config.max_reply_bytes,
                            "retained_requests": self.config.max_requests,
-                           "query_seconds": self.config.query_timeout}}
+                           "query_seconds": self.config.query_timeout,
+                           "operation_schema_limits": "Provider ceilings; entire invocation envelope must fit request_bytes."}}
 
     def query(self, raw):
+        return self.request(raw, "/query")
+
+    def invoke(self, raw):
+        return self.request(raw, "/invoke")
+
+    def discover(self, parameters):
+        if not self.gate.acquire(blocking=False):
+            return 429, failure("busy", retryable=True)
+        try:
+            if self.stopping or not self.backend.available:
+                return 503, failure("backend_unavailable")
+            result = self.backend.query({"_action": "discover", "parameters": parameters})
+            return (200, result["reply"]) if result.get("outcome") == "completed" else (self.status(result), result)
+        finally:
+            self.gate.release()
+
+    def request(self, raw, path, method="POST"):
+        if method != "POST" or path not in ("/query", "/invoke"):
+            return 405, failure("unsupported_method_or_route")
         if len(raw) > self.config.max_request_bytes:
             return 413, failure("request_too_large")
         try:
@@ -333,24 +381,28 @@ class Service:
                 return result
             request = json.loads(raw.decode("utf-8"), object_pairs_hook=pairs,
                                  parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
-            if not isinstance(request, dict) or set(request) != {"request_id", "conversation_id", "text"}:
+            fields = {"request_id", "conversation_id", "text"} if path == "/query" else {"request_id", "conversation_id", "operation_id", "arguments"}
+            if not isinstance(request, dict) or set(request) != fields:
                 raise ValueError()
             for name in ("request_id", "conversation_id"):
                 if not isinstance(request[name], str) or not IDENTIFIER.fullmatch(request[name]):
                     raise ValueError()
-            if not isinstance(request["text"], str) or not request["text"].strip():
+            if path == "/query":
+                if not isinstance(request["text"], str) or not request["text"].strip():
+                    raise ValueError()
+            elif not isinstance(request["operation_id"], str) or not OPERATION_ID.fullmatch(request["operation_id"]) or not isinstance(request["arguments"], dict):
                 raise ValueError()
-            # Reject escaped lone surrogates before sending to the worker.
-            request["text"].encode("utf-8")
+            # Reject escaped lone surrogates anywhere in structured arguments too.
+            encode(request)
         except (ValueError, UnicodeError, RecursionError):
             return 400, failure("invalid_request")
         if not self.gate.acquire(blocking=False):
             return 429, failure("busy", retryable=True)
         executed = False
         try:
-            previous = self.db.execute("SELECT body,result FROM requests WHERE id=?", (request["request_id"],)).fetchone()
+            previous = self.db.execute("SELECT body,result,method,path FROM requests WHERE id=?", (request["request_id"],)).fetchone()
             if previous:
-                if previous[0] != raw:
+                if previous[0] != raw or previous[2:] != (method, path):
                     return 409, failure("request_id_conflict")
                 if previous[1] is not None and len(previous[1]) > self.config.max_reply_bytes:
                     return 502, failure("reply_too_large", execution_completed=True,
@@ -361,11 +413,11 @@ class Service:
                 return 503, failure("backend_unavailable", retryable=False)
             if self.db.execute("SELECT count(*) FROM requests").fetchone()[0] >= self.config.max_requests:
                 return 507, failure("request_journal_full")
-            self.db.execute("INSERT INTO requests VALUES (?,?,NULL)", (request["request_id"], raw))
+            self.db.execute("INSERT INTO requests (id,body,result,method,path) VALUES (?,?,NULL,?,?)", (request["request_id"], raw, method, path))
             self.db.commit()
             try:
                 executed = True
-                result = self.backend.query(request)
+                result = self.backend.query(dict(request, _action="query" if path == "/query" else "invoke"))
                 payload = encode(result)
                 if len(payload) > self.config.max_reply_bytes:
                     result = failure("reply_too_large", execution_completed=True, state_may_have_changed=True)
@@ -386,7 +438,7 @@ class Service:
     def status(result):
         if result["outcome"] == "completed":
             return 200  # includes deliberate Oracle7 withheld replies
-        return 504 if result.get("error") == "query_timeout" else 502
+        return result.get("http_status", 504 if result.get("error") == "query_timeout" else 502)
 
     def close(self):
         self.stopping = True
@@ -523,13 +575,35 @@ class Handler(BaseHTTPRequestHandler):
             self.respond(200 if ready else 503, {"ready": ready, "busy": service.gate.locked()})
         elif self.path == "/capabilities":
             self.respond(200, service.capabilities())
+        elif self.path == "/operations" or self.path.startswith(("/operations?", "/operations/")):
+            try:
+                url = urlsplit(self.path)
+                if url.path.startswith("/operations/"):
+                    operation_id = url.path[len("/operations/"):]
+                    if not OPERATION_ID.fullmatch(operation_id) or url.query:
+                        raise ValueError()
+                    parameters = {"operation_id": operation_id}
+                else:
+                    values = parse_qs(url.query, keep_blank_values=True, strict_parsing=True, max_num_fields=4)
+                    if set(values) - {"offset", "limit", "q", "availability"} or any(len(v) != 1 for v in values.values()):
+                        raise ValueError()
+                    offset, limit = values.get("offset", ["0"])[0], values.get("limit", ["10"])[0]
+                    if not re.fullmatch(r"[0-9]{1,9}", offset) or not re.fullmatch(r"[0-9]{1,2}", limit):
+                        raise ValueError()
+                    parameters = {"offset": int(offset), "limit": int(limit), "q": values.get("q", [""])[0],
+                                  "availability": values.get("availability", [None])[0]}
+                    if not 1 <= parameters["limit"] <= 50 or len(parameters["q"].encode("utf-8")) > 256 or parameters["availability"] not in (None, "live_direct", "text_only", "unavailable"):
+                        raise ValueError()
+                self.respond(*service.discover(parameters))
+            except (ValueError, UnicodeError):
+                self.respond(400, failure("invalid_discovery_request"))
         else:
             self.respond(404, failure("not_found"))
 
     def do_POST(self):
         if not self.private_request():
             return
-        if self.path != "/query":
+        if self.path not in ("/query", "/invoke"):
             self.respond(404, failure("not_found"))
             return
         lengths = self.headers.get_all("Content-Length", [])
@@ -552,7 +626,7 @@ class Handler(BaseHTTPRequestHandler):
             self.respond(400, failure("incomplete_body"))
             return
         if self.server.finish_ingress(self.connection):
-            self.respond(*self.server.service.query(body))
+            self.respond(*self.server.service.request(body, self.path))
 
 
 def main():

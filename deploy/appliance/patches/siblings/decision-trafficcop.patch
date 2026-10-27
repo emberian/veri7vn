@@ -1,0 +1,114 @@
+diff --git a/trafficcop/model.py b/trafficcop/model.py
+index d02434a..f4601a8 100644
+--- a/trafficcop/model.py
++++ b/trafficcop/model.py
+@@ -162,6 +162,8 @@ def decide(request, table=None):
+     """Answer every question in a DecisionRequest-shaped dict. Returns a response with a receipt per answer."""
+     table = table or EvidenceTable()
+     state = request.get("state") or {}
++    if not isinstance(state, dict) or not isinstance(request.get("questions"), dict):
++        raise ValueError("state and questions must be objects")
+     text = _state_text(state)
+     facts = facts_of(text)
+     for t, why in _structured_obligations(state):
+@@ -174,32 +176,39 @@ def decide(request, table=None):
+         options = q.get("options") or []
+         if isinstance(options, dict):
+             options = list(options.items())
++        if (not isinstance(options, list) or any(not isinstance(pair, (list, tuple)) or len(pair) != 2
++                or not all(isinstance(value, str) and value for value in pair) for pair in options)):
++            raise ValueError("options must contain nonempty string key/label pairs")
++        if len({key for key, _ in options}) != len(options):
++            raise ValueError("duplicate option keys")
+         struck = {k: "precondition_failed" for k, _ in options
+                   if k in PRECONDITIONS and not PRECONDITIONS[k](state)}
+         live = [(k, lab) for k, lab in options if k not in struck]
+         binds = {k: OPERATOR_DISCHARGES.get(k) or option_discharges(lab) for k, lab in live}
+-        chosen, served = None, None
++        chosen, served, ambiguous = None, None, []
+         for ob in open_obs:
+             cands = [k for k, _ in live if binds[k] == ob]
+-            if cands:
+-                chosen, served = cands[0], ob   # ties impossible in practice; first keeps it deterministic
++            if len(cands) == 1:
++                chosen, served = cands[0], ob
+                 break
++            if len(cands) > 1:
++                ambiguous = sorted(cands)
++                break  # equal bindings do not justify a choice by input order
+         abstained = chosen is None
+         if abstained:   # nothing binds: gather evidence if that remedy is offered, otherwise decline
+             ev = [k for k, _ in live if binds[k] == "evidence"]
+-            chosen = ev[0] if ev else None
++            chosen = ev[0] if len(ev) == 1 else None
+         rate, n = table.rate(served or "unbound", binds.get(chosen) or "none")
++        # A structural match or an outcome success rate is not a probability
++        # distribution over options. Do not invent 90% confidence or spread
++        # probability mass over options whose preconditions failed.
+         probs = {}
+-        if chosen is not None:
+-            p_top = rate if n else (0.9 if not abstained else 0.6)
+-            rest = [k for k, _ in options if k != chosen]
+-            probs = {k: (round((1 - p_top) / len(rest), 6) if rest else 0.0) for k in rest}
+-            probs[chosen] = round(1 - sum(probs.values()), 6)
+         answers[qkey] = {
+             "type": "choice",
+             "choice": chosen,
+             "abstained": abstained,
+             "probabilities": probs,
++            "smoothed_success_rate": rate if n else None,
+             "confidence_basis": ("receipts n=%d" % n) if n else "no receipts: structural binding only",
+             "receipt": {
+                 "open_obligations": open_obs,
+@@ -207,7 +216,8 @@ def decide(request, table=None):
+                 "served_obligation": served,
+                 "option_binding": binds,
+                 "struck": struck,
++                "ambiguous_options": ambiguous,
+             },
+         }
+     return {"model": MODEL, "version": VERSION, "answers": answers,
+-            "input_hash": _digest(request.get("state") or {})}
++            "input_hash": _digest(request)}
+diff --git a/test_decision_contract.py b/test_decision_contract.py
+new file mode 100644
+index 0000000..e0724c1
+--- /dev/null
++++ b/test_decision_contract.py
+@@ -0,0 +1,36 @@
++import copy
++import unittest
++from trafficcop.model import decide
++
++class DecisionContract(unittest.TestCase):
++    def request(self):
++        return {"state": {"observation": "button returns wrong result"}, "questions": {"next": {"options": [["a", "repair button behavior"], ["b", "repair button behavior"]]}}}
++
++    def test_equal_bindings_abstain_under_reordering(self):
++        a = self.request()
++        b = copy.deepcopy(a)
++        b["questions"]["next"]["options"].reverse()
++        for request in (a, b):
++            answer = decide(request)["answers"]["next"]
++            self.assertIsNone(answer["choice"])
++            self.assertTrue(answer["abstained"])
++            self.assertEqual(answer["receipt"]["ambiguous_options"], ["a", "b"])
++
++    def test_receipt_binds_questions_and_no_invented_probabilities(self):
++        a = self.request()
++        b = copy.deepcopy(a)
++        b["questions"]["next"]["options"] = [["a", "repair button behavior"]]
++        self.assertNotEqual(decide(a)["input_hash"], decide(b)["input_hash"])
++        answer = decide(b)["answers"]["next"]
++        self.assertEqual(answer["choice"], "a")
++        self.assertEqual(answer["probabilities"], {})
++        self.assertIsNone(answer["smoothed_success_rate"])
++
++    def test_duplicate_option_identity_refused(self):
++        a = self.request()
++        a["questions"]["next"]["options"][1][0] = "a"
++        with self.assertRaises(ValueError):
++            decide(a)
++
++if __name__ == "__main__":
++    unittest.main()

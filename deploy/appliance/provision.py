@@ -270,7 +270,297 @@ def publish(source, target):
         raise OSError(error, os.strerror(error), str(target))
 
 
-def materialize(source, target, cache, reuse=None, patches=(), revision=REVISION, repository=REPOSITORY, adapter=None, kernel_overlay=None):
+COMPONENT_SCHEMA = 'oracle7-component-bundle-v1'
+COMPONENT_PROFILES = {'analysis', 'builder', 'network-builder'}
+
+
+def component_path(name):
+    """Canonical relative package paths; no repository/credential metadata."""
+    if not isinstance(name, str):
+        raise ValueError('component path must be text')
+    parts = name.split('/')
+    forbidden = {'.git', '.hg', '.svn', '.ssh', '.aws', '.gnupg', '.env', '__pycache__'}
+    if (any(x in ('', '.', '..') or x in forbidden for x in parts)
+            or any(ord(c) < 32 for c in name) or '\\' in name):
+        raise ValueError('unsafe component path: ' + repr(name))
+    return safe_path(name)
+
+
+def component_id(value):
+    if not isinstance(value, str) or not re.fullmatch('[a-z][a-z0-9-]{0,63}', value):
+        raise ValueError('invalid component id')
+    return value
+
+
+def input_path(parent, name):
+    if not isinstance(name, str) or not name:
+        raise ValueError('component input path is missing')
+    path = Path(name)
+    path = path if path.is_absolute() else parent / path
+    if path.is_symlink() or not path.is_file():
+        raise ValueError('component input must be a regular file: ' + str(path))
+    return path
+
+
+def validate_file_record(record):
+    if (not isinstance(record, dict) or not isinstance(record.get('sha256'), str)
+            or not re.fullmatch('[0-9a-f]{64}', record['sha256'])
+            or type(record.get('size')) is not int or record['size'] < 0
+            or type(record.get('executable')) is not bool):
+        raise ValueError('invalid component file identity')
+
+
+def read_json_unique(data):
+    def unique(pairs):
+        out = {}
+        for key, value in pairs:
+            if key in out:
+                raise ValueError('duplicate JSON key: ' + key)
+            out[key] = value
+        return out
+    return json.loads(data, object_pairs_hook=unique)
+
+
+def validate_component(doc):
+    if not isinstance(doc, dict) or doc.get('schema') != COMPONENT_SCHEMA:
+        raise ValueError('unsupported component manifest schema')
+    component_id(doc.get('id'))
+    if doc.get('profile') not in COMPONENT_PROFILES:
+        raise ValueError('component needs an explicit analysis/builder/network-builder profile')
+    if doc.get('status') not in {'available', 'partial', 'unavailable'}:
+        raise ValueError('invalid component status')
+    reasons = doc.get('unavailable_reasons')
+    if not isinstance(reasons, list) or any(not isinstance(s, str) or not s.strip() for s in reasons):
+        raise ValueError('component needs explicit unavailable_reasons')
+    if doc['status'] != 'available' and not reasons:
+        raise ValueError('partial/unavailable component needs a reason')
+    if doc['status'] == 'available' and reasons:
+        raise ValueError('available component cannot hide unavailable reasons')
+    notes = doc.get('execution_notes', [])
+    if not isinstance(notes, list) or any(not isinstance(s, str) or not s.strip() for s in notes):
+        raise ValueError('component execution_notes must be nonempty text entries')
+    requirements = doc.get('requirements')
+    if not isinstance(requirements, list):
+        raise ValueError('component needs explicit requirements')
+    for item in requirements:
+        if not isinstance(item, dict) or not all(isinstance(item.get(k), str) and item[k] for k in ('kind', 'name')):
+            raise ValueError('invalid component requirement')
+        if item['kind'] == 'python' and (not isinstance(item.get('version'), str)
+                or not re.fullmatch(r'[0-9]+(?:![0-9]+)?(?:\.[0-9]+)*(?:(?:a|b|rc)[0-9]+)?(?:\.post[0-9]+)?(?:\.dev[0-9]+)?(?:\+[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*)?', item['version'])):
+            raise ValueError('Python requirement needs an exact version')
+        if item['kind'] == 'appliance-file':
+            component_path(item['name'])
+            if not re.fullmatch('[0-9a-f]{64}', item.get('sha256', '')) or type(item.get('size')) is not int or item['size'] < 0:
+                raise ValueError('appliance-file requirement needs exact bytes')
+        if item.get('available') is False and not item.get('reason'):
+            raise ValueError('unavailable dependency needs a reason')
+    for key in ('adapter_files', 'assets'):
+        records = doc.get(key, {})
+        if not isinstance(records, dict):
+            raise ValueError('component file declarations must be a mapping')
+        for name, record in records.items():
+            component_path(name)
+            if key == 'adapter_files' and ('/' in name or not name.endswith(('.py', '.md', '.json'))):
+                raise ValueError('adapter file must be a named Python/Markdown/JSON file')
+            validate_file_record(record)
+            if not isinstance(record.get('path'), str) or not record['path']:
+                raise ValueError('component file needs a local input path')
+    if doc.get('assets'):
+        notices = doc.get('asset_notices', [])
+        if not notices or any(name not in doc['assets'] for name in notices):
+            raise ValueError('selected assets need selected license/notice files')
+    source = doc.get('source')
+    if source is not None:
+        if not isinstance(source, dict) or not isinstance(source.get('repository'), str) or not source['repository']:
+            raise ValueError('component source needs repository attribution')
+        if not re.fullmatch('[0-9a-f]{40}', source.get('revision', '')):
+            raise ValueError('component source needs an exact Git commit')
+        if not isinstance(source.get('checkout'), str) or not source['checkout']:
+            raise ValueError('component source needs a local Git checkout')
+        files = source.get('files')
+        if not isinstance(files, dict) or not files:
+            raise ValueError('component source needs an explicit file allowlist')
+        for name, record in files.items():
+            component_path(name)
+            validate_file_record(record)
+        notices = source.get('notices')
+        if not isinstance(notices, list) or not notices or any(name not in files for name in notices):
+            raise ValueError('component source needs selected license/notice files')
+        if not isinstance(source.get('patches', []), list):
+            raise ValueError('invalid component patch list')
+        for patch in source.get('patches', []):
+            if not isinstance(patch, dict) or not re.fullmatch('[0-9a-f]{64}', patch.get('sha256', '')):
+                raise ValueError('component patch needs its SHA-256')
+    return doc
+
+
+def component_source(source, parent, destination):
+    checkout = Path(source['checkout'])
+    checkout = checkout if checkout.is_absolute() else parent / checkout
+    revision = source['revision']
+    if not re.fullmatch('[0-9a-f]{40}', revision):
+        raise ValueError('component source must be an exact commit')
+    actual = subprocess.check_output(['git', '-C', str(checkout), 'rev-parse', revision + '^{commit}'], text=True).strip()
+    if actual != revision:
+        raise ValueError('component Git commit mismatch')
+    extract(checkout, revision, destination)
+    patch_records = []
+    for item in source.get('patches', []):
+        patch = input_path(parent, item['path'])
+        data = patch.read_bytes()
+        if hashlib.sha256(data).hexdigest() != item['sha256']:
+            raise ValueError('component patch hash mismatch')
+        env = dict(os.environ, GIT_CEILING_DIRECTORIES=str(destination.parent))
+        subprocess.run(['git', 'apply', '--no-index', '--check', '-'], cwd=destination, env=env, input=data, check=True)
+        subprocess.run(['git', 'apply', '--no-index', '-'], cwd=destination, env=env, input=data, check=True)
+        patch_records.append({'name': patch.name, 'sha256': item['sha256']})
+    return patch_records
+
+
+def component_file(path):
+    if path.is_symlink() or not path.is_file():
+        raise ValueError('selected component file must be regular: ' + str(path))
+    if path.stat().st_size < 1024 and path.read_bytes().startswith(b'version https://git-lfs.github.com/spec/v1'):
+        raise ValueError('selected component LFS payload is unavailable: ' + str(path))
+    return {'sha256': digest(path), 'size': path.stat().st_size,
+            'executable': bool(path.stat().st_mode & 0o111)}
+
+
+def selected_source_file(snapshot, name):
+    path = snapshot
+    for part in component_path(name).parts:
+        path = path / part
+        if path.is_symlink():
+            raise ValueError('selected source traverses a symlink: ' + name)
+    return path
+
+
+def load_components(bundles):
+    out, ids = [], set()
+    for path, expected in bundles:
+        path = Path(path).absolute()
+        data = input_path(path.parent, path.name).read_bytes()
+        if not isinstance(expected, str) or hashlib.sha256(data).hexdigest() != expected:
+            raise ValueError('component manifest hash mismatch')
+        doc = validate_component(read_json_unique(data))
+        if doc['id'] in ids:
+            raise ValueError('duplicate component id: ' + doc['id'])
+        ids.add(doc['id'])
+        out.append((path.parent.resolve(), expected, doc))
+    return sorted(out, key=lambda item: item[2]['id'])
+
+
+def stage_components(stage, loaded):
+    receipts, claimed = {}, {}
+    for parent, manifest_sha, doc in loaded:
+        cid = doc['id']
+        base = stage / 'components' / cid
+        if base.exists() or base.is_symlink():
+            raise ValueError('component destination already exists: ' + cid)
+        base.mkdir(parents=True)
+        receipt = {k: doc[k] for k in ('status', 'profile', 'requirements', 'unavailable_reasons')}
+        if doc.get('execution_notes'):
+            receipt['execution_notes'] = doc['execution_notes']
+        receipt.update(manifest_sha256=manifest_sha, source_root=None, source=None, adapter_files={}, assets={})
+        for requirement in doc['requirements']:
+            if requirement['kind'] == 'appliance-file' and requirement.get('available') is not False:
+                required = selected_source_file(stage, requirement['name'])
+                if not matches(required, requirement['sha256'], requirement['size']):
+                    raise ValueError('required appliance file mismatch: ' + requirement['name'])
+        source = doc.get('source')
+        if source:
+            with tempfile.TemporaryDirectory(prefix='component-source-', dir=stage.parent) as temporary:
+                snapshot = Path(temporary)
+                patches = component_source(source, parent, snapshot)
+                dest = base / 'source'
+                for name, record in sorted(source['files'].items()):
+                    src = selected_source_file(snapshot, name)
+                    if component_file(src) != record:
+                        raise ValueError('component source file mismatch: ' + cid + '/' + name)
+                    dst = dest / name
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    checked_copy(src, dst, record['sha256'], record['size'])
+                    dst.chmod(0o755 if record['executable'] else 0o644)
+                receipt['source_root'] = 'components/' + cid + '/source'
+                receipt['source'] = {'repository': source['repository'], 'revision': source['revision'],
+                                     'patches': patches, 'files': source['files'], 'notices': source['notices']}
+        for key in ('adapter_files', 'assets'):
+            for name, record in sorted(doc.get(key, {}).items()):
+                src = input_path(parent, record['path'])
+                actual = component_file(src)
+                expected = {k: record[k] for k in ('sha256', 'size', 'executable')}
+                if actual != expected:
+                    raise ValueError('component local input mismatch: ' + name)
+                relative = 'adapter/' + name if key == 'adapter_files' else 'components/' + cid + '/assets/' + name
+                dst = stage / relative
+                if dst.exists() or dst.is_symlink():
+                    if relative not in claimed or claimed[relative] != expected or component_file(dst) != expected:
+                        raise ValueError('component destination collision: ' + relative)
+                else:
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    checked_copy(src, dst, record['sha256'], record['size'])
+                    dst.chmod(0o755 if record['executable'] else 0o644)
+                claimed[relative] = expected
+                receipt[key][name] = expected
+        if doc.get('asset_notices'):
+            receipt['asset_notices'] = doc['asset_notices']
+        receipts[cid] = receipt
+    return receipts
+
+
+def freeze_component(selection_path, output):
+    """Pin a reviewed explicit selection, without building an appliance or fetching dependencies."""
+    selection_path, output = Path(selection_path).absolute(), Path(output).absolute()
+    doc = read_json_unique(selection_path.read_bytes())
+    parent = selection_path.parent.resolve()
+    output = output.parent.resolve() / output.name
+    source = doc.get('source')
+    if source:
+        source['checkout'] = str((parent / source['checkout']).resolve())
+        patches = []
+        for item in source.get('patches', []):
+            item = {'path': item} if isinstance(item, str) else dict(item)
+            path = input_path(parent, item['path'])
+            actual = digest(path)
+            if item.get('sha256', actual) != actual:
+                raise ValueError('selection patch hash mismatch')
+            patches.append({'path': str(path.resolve()), 'sha256': actual})
+        source['patches'] = patches
+        selected = source['files']
+        if not isinstance(selected, list) or not selected or len(set(selected)) != len(selected):
+            raise ValueError('selection source.files must be unique explicit names')
+        with tempfile.TemporaryDirectory(prefix='component-freeze-') as temporary:
+            snapshot = Path(temporary)
+            component_source(source, parent, snapshot)
+            source['files'] = {name: component_file(selected_source_file(snapshot, name)) for name in sorted(selected)}
+    for key in ('adapter_files', 'assets'):
+        for name, item in doc.get(key, {}).items():
+            path = input_path(parent, item['path'])
+            doc[key][name] = dict(component_file(path), path=str(path.resolve()))
+    for requirement in doc.get('requirements', []):
+        if requirement['kind'] == 'appliance-file' and 'path' in requirement:
+            path = input_path(parent, requirement.pop('path'))
+            identity = component_file(path)
+            requirement.update(sha256=identity['sha256'], size=identity['size'])
+    doc['schema'] = COMPONENT_SCHEMA
+    validate_component(doc)
+    # Local locator paths are relative to the frozen manifest, not receipt paths.
+    if source:
+        source['checkout'] = os.path.relpath(source['checkout'], output.parent)
+        for patch in source['patches']:
+            patch['path'] = os.path.relpath(patch['path'], output.parent)
+    for key in ('adapter_files', 'assets'):
+        for item in doc.get(key, {}).values():
+            item['path'] = os.path.relpath(item['path'], output.parent)
+    data = (json.dumps(doc, indent=2, sort_keys=True) + '\n').encode()
+    with output.open('xb') as out:
+        out.write(data)
+    print(json.dumps({'manifest': str(output), 'sha256': hashlib.sha256(data).hexdigest()}, sort_keys=True))
+    return doc
+
+
+def materialize(source, target, cache, reuse=None, patches=(), revision=REVISION, repository=REPOSITORY, adapter=None, kernel_overlay=None, component_bundles=()):
+    loaded_components = load_components(component_bundles)
     source, target, cache = source.resolve(), target.absolute(), cache.resolve()
     if target.exists() or target.is_symlink():
         raise ValueError('target already exists; choose a new version directory')
@@ -308,7 +598,12 @@ def materialize(source, target, cache, reuse=None, patches=(), revision=REVISION
                 raise ValueError('store compression declaration mismatch')
         # Conservative allowance includes complete raw+compressed data twice for
         # cross-device cache copies, plus 1 GiB. Cache hits make this an upper bound.
-        need = 2 * (sum({i['sha256']: i['size'] for i in stores}.values()) + sum(s for _, s in pointers.values())) + 2**30
+        component_bytes = sum(
+            sum(item['size'] for item in (doc.get('source') or {}).get('files', {}).values())
+            + sum(item['size'] for key in ('adapter_files', 'assets') for item in doc.get(key, {}).values())
+            for _, _, doc in loaded_components)
+        need = 2 * (sum({i['sha256']: i['size'] for i in stores}.values())
+                    + sum(s for _, s in pointers.values()) + component_bytes) + 2**30
         for directory in (target.parent, cache.parent):
             if shutil.disk_usage(directory).free < need:
                 raise ValueError('insufficient free space; need conservative ' + str(need) + ' bytes')
@@ -364,6 +659,9 @@ def materialize(source, target, cache, reuse=None, patches=(), revision=REVISION
                 name = item.name if adapter.is_dir() else 'serve.py'
                 shutil.copyfile(item, folder / name)
                 adapter_files[name] = digest(folder / name)
+        component_receipts = stage_components(stage, loaded_components)
+        for component in component_receipts.values():
+            adapter_files.update({name: value['sha256'] for name, value in component['adapter_files'].items()})
         overlay_record = apply_kernel_overlay(stage, kernel_overlay) if kernel_overlay is not None else None
         # Patches may modify code but must not silently rewrite store contracts.
         if json.loads((stage / 'PACK_MANIFEST.json').read_text()) != manifest:
@@ -379,6 +677,7 @@ def materialize(source, target, cache, reuse=None, patches=(), revision=REVISION
                 raise ValueError('kernel manifest hash mismatch: ' + name)
         receipt = {'schema': 1, 'profile': 'oracle7-slim-4.9', 'source_repository': repository,
                    'source_revision': actual, 'patches': patch_records, 'adapter_files': adapter_files,
+                   'components': component_receipts,
                    'kernel_overlay': overlay_record, 'kernel_family_provenance': proved.get('family_provenance', {}),
                    'stores': stores, 'files': files, 'origins': c.origins,
                    'kernel_source_revision': proved.get('commit'), 'kernel_base_revision': proved.get('base_commit', proved.get('commit')),
@@ -402,15 +701,26 @@ def materialize(source, target, cache, reuse=None, patches=(), revision=REVISION
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--source', type=Path, required=True, help='local Git checkout containing the pinned commit')
-    parser.add_argument('--target', type=Path, required=True)
-    parser.add_argument('--cache', type=Path, required=True)
+    parser.add_argument('--freeze-component', type=Path, help='freeze a reviewed selection; no appliance construction')
+    parser.add_argument('--out', type=Path, help='new frozen component manifest path')
+    parser.add_argument('--component-bundle', nargs=2, action='append', default=[], metavar=('MANIFEST', 'SHA256'))
+    parser.add_argument('--source', type=Path, help='local Git checkout containing the pinned commit')
+    parser.add_argument('--target', type=Path)
+    parser.add_argument('--cache', type=Path)
     parser.add_argument('--reuse-from', type=Path)
     parser.add_argument('--patch', type=Path, action='append', default=[])
     parser.add_argument('--kernel-overlay', type=Path, help='manifest.json and bin/ with explicitly versioned kernels')
     parser.add_argument('--adapter', type=Path, help='finalized service file, or directory with serve.py and README.md')
     args = parser.parse_args()
-    materialize(args.source, args.target, args.cache, args.reuse_from, args.patch, adapter=args.adapter, kernel_overlay=args.kernel_overlay)
+    if args.freeze_component:
+        if not args.out or any((args.source, args.target, args.cache, args.component_bundle)):
+            parser.error('--freeze-component requires --out and cannot materialize an appliance')
+        freeze_component(args.freeze_component, args.out)
+        return
+    if not all((args.source, args.target, args.cache)):
+        parser.error('--source, --target and --cache are required for materialization')
+    materialize(args.source, args.target, args.cache, args.reuse_from, args.patch, adapter=args.adapter,
+                kernel_overlay=args.kernel_overlay, component_bundles=args.component_bundle)
 
 if __name__ == '__main__':
     main()

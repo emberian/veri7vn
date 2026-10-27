@@ -108,7 +108,7 @@ class ContractTests(unittest.TestCase):
     def test_restart_replays_and_does_not_repeat_interrupted_turn(self):
         raw = self.request()
         first = self.service.query(raw)
-        self.service.db.execute("INSERT INTO requests VALUES (?,?,NULL)", ("req-2", self.request("req-2")))
+        self.service.db.execute("INSERT INTO requests (id,body,result) VALUES (?,?,NULL)", ("req-2", self.request("req-2")))
         self.service.db.commit()
         self.service.close()
         self.service = S.Service(self.config, FakeBackend)

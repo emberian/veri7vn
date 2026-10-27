@@ -191,6 +191,54 @@ class PrecisionTests(unittest.TestCase):
             self.assertIsNone(X.answer('When was Example Person born?'))
 
 
+    def bind_publication(self, statements):
+        self.bind(statements)
+        record=D._CACHE.pop(('Q1','P569'));record['property']='P577'
+        for s in record['statements']:s['mainsnak']['property']='P577'
+        D._CACHE[('Q1','P577')]=record
+
+    def test_publication_place_is_existential_scope_not_unqualified_order(self):
+        place=item('Q34');place['datavalue']['value']['entity-type']='item'
+        self.bind_publication([statement(qualifiers={'P291':[place]})])
+        witnesses=D.publication_intervals(LITERAL,1)
+        self.assertEqual(witnesses[0]['interval'],(G,(1919,1,1),(1919,1,1)))
+        self.assertEqual(witnesses[0]['qualifiers']['P291'],[place])
+        self.assertEqual(witnesses[0]['statement_id'],'Q1$abc')
+        self.assertEqual(witnesses[0]['source'],{'revision':1})
+        self.assertIsNone(D.interval(LITERAL,1,577))
+
+    def test_malformed_publication_places_give_no_witness(self):
+        for bad in [[],[{'snaktype':'somevalue'}],[item('Q34')],[{'snaktype':'value','datavalue':{'type':'wikibase-entityid','value':{'entity-type':'item','id':'Q34','numeric-id':42}}}],None]:
+            with self.subTest(place=bad):
+                self.bind_publication([statement(qualifiers={'P291':bad})])
+                self.assertEqual(D.publication_intervals(LITERAL,1),[])
+
+    def test_publication_edition_format_uncertainty_modifiers_remain_unsupported(self):
+        for prop in ['P437','P629','P1480','P9999']:
+            with self.subTest(qualifier=prop):
+                self.bind_publication([statement(qualifiers={prop:[item('Q42')]})])
+                self.assertEqual(D.publication_intervals(LITERAL,1),[])
+
+    def test_publication_year_precision_and_source_calendar_preserved(self):
+        self.bind_publication([statement('+1948-01-01T00:00:00Z',9,G)])
+        self.assertEqual(D.publication_intervals(LITERAL,1)[0]['interval'],(G,(1948,1,1),(1948,12,31)))
+        self.bind_publication([statement('+1642-01-01T00:00:00Z',9,J)])
+        self.assertEqual(D.publication_intervals(LITERAL,1)[0]['interval'][0],J)
+
+    def test_unknown_refinement_does_not_establish_publication_or_order(self):
+        self.bind_publication([statement(qualifiers={'P4241':[item('Q6023488')]})])
+        self.assertEqual(D.publication_intervals(LITERAL,1),[])
+        self.assertIsNone(D.interval(LITERAL,1,577))
+        self.assertIn('Q6023488',D.render(LITERAL,'',1,577))
+        self.bind_publication([statement('+1900-00-00T00:00:00Z',9,G,qualifiers={'P4241':[item('Q40719766')]})])
+        self.assertEqual(D.publication_intervals(LITERAL,1)[0]['interval'],(G,(1900,1,1),(1900,12,31)))
+
+    def test_publication_never_borrows_birth_or_similar_literal_metadata(self):
+        self.assertEqual(D.publication_intervals(LITERAL,1),[])
+        self.bind_publication([statement()])
+        self.assertEqual(D.publication_intervals('1919-01-02T00:00:00Z',1),[])
+
+
 class ActiveComparisonTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -275,6 +323,28 @@ class ImportTests(unittest.TestCase):
         s=statement(rank='deprecated',qualifiers={'P1480':[item('Q5727902')]});e={'id':'Q1','claims':{'P569':[s]}}
         r=I.compile_record(e,'P569',{(s['id'].lower(),'P569'):s['rdf_time']},{LITERAL},{})
         self.assertEqual(r['statements'][0],s)
+
+
+    def test_merge_preserves_base_and_only_replaces_selected_pairs(self):
+        a={'subject':'Q1','property':'P569','statements':[statement()],'bindings':[]}
+        b=dict(a,subject='Q2');fresh_a=dict(a,label='refreshed')
+        base={'schema':'oracle7-date-precision-v1','version':1,'legacy_store':{'sha256_declared':'abc'},'records':[a,b]}
+        fresh=dict(base,records=[fresh_a])
+        merged=I.merge_metadata(base,fresh)
+        self.assertEqual(merged['records'],[fresh_a,b])
+        self.assertEqual(base['records'],[a,b])
+
+    def test_merge_rejects_other_store_and_duplicate_identity(self):
+        a={'subject':'Q1','property':'P569','statements':[],'bindings':[]}
+        base={'schema':'oracle7-date-precision-v1','version':1,'legacy_store':{'sha256_declared':'abc'},'records':[a]}
+        with self.assertRaises(ValueError):I.merge_metadata(base,dict(base,legacy_store={'sha256_declared':'def'}))
+        with self.assertRaises(ValueError):I.merge_metadata(base,dict(base,records=[a,a]))
+        with self.assertRaises(ValueError):I.merge_metadata(dict(base,import_failures=[{'qid':'Q2'}]),base)
+
+    def test_merge_rejects_malformed_schema(self):
+        base={'schema':'oracle7-date-precision-v1','version':1,'legacy_store':{'sha256_declared':'abc'},'records':[]}
+        for bad in [None,[],{},dict(base,records=[None]),dict(base,records=[{'subject':None}])]:
+            with self.subTest(value=bad),self.assertRaises(ValueError):I.merge_metadata(bad,base)
 
 
 if __name__=='__main__':unittest.main()

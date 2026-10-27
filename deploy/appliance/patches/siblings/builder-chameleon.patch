@@ -1,0 +1,15 @@
+diff --git a/packages/core/chameleon_core/microfold.py b/packages/core/chameleon_core/microfold.py
+index 744aaf5..ee787f2 100644
+--- a/packages/core/chameleon_core/microfold.py
++++ b/packages/core/chameleon_core/microfold.py
+@@ -170,6 +170,10 @@ def search(model, *, backend="auto", rounds=10, batch_size=1000):
+ def validate_plan(model, report):
+     """Independent scalar witness replay; does not call search or batch backend."""
+     try:
++        if not isinstance(report, dict):
++            return False
++        if type(report.get("predicted_state")) is not int or type(report.get("predicted_cost")) is not int:
++            return False
+         state, wanted, forbidden, operations = compile_model(model)
+         if (report.get("status") != "PLAN_FOUND" or report.get("model_digest") != fingerprint(model)
+                 or report.get("evidence_digest") != model["evidence_digest"]):

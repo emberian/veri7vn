@@ -1,0 +1,52 @@
+diff --git a/deepspace/runtime.py b/deepspace/runtime.py
+index a4a0d3f..1f53b4b 100644
+--- a/deepspace/runtime.py
++++ b/deepspace/runtime.py
+@@ -49,7 +49,7 @@ def score(params, trace):
+     if f in ("nominal", "seu_spike"):
+         ok = not acts
+     else:
+-        ok = bool(first) and first[1] in correct and _right_target(params, first)
++        ok = bool(first) and first[0] >= params["onset"] and first[1] in correct and _right_target(params, first)
+     harmful = [a for a in acts if a in HARMFUL.get(f, set())] or ([first[1]] if first and not ok and f not in
+                                                                   ("nominal", "seu_spike") and first[1] != "safe_mode" else [])
+     latency = (first[0] - params["onset"]) if (first and ok) else None
+@@ -59,12 +59,12 @@ def score(params, trace):
+ 
+ def _right_target(params, first):
+     _, action, arg = first
+-    if "zone" in arg and params["fault"] in ("heater_stuck_on", "heater_stuck_off", "sensor_bias"):
+-        if arg["zone"] != params["zone"]:
++    if params["fault"] in ("heater_stuck_on", "heater_stuck_off", "sensor_bias"):
++        if arg.get("zone") != params["zone"]:
+             return False
+-    if params["fault"] == "sensor_bias" and arg.get("sensor") not in (None, params["sensor"]):
++    if params["fault"] == "sensor_bias" and arg.get("sensor") != params["sensor"]:
+         return False
+-    if params["fault"] == "wheel_friction" and arg.get("wheel") not in (None, params["wheel"]):
++    if params["fault"] == "wheel_friction" and arg.get("wheel") != params["wheel"]:
+         return False
+     return True
+ 
+diff --git a/test_decision_contract.py b/test_decision_contract.py
+new file mode 100644
+index 0000000..037d57d
+--- /dev/null
++++ b/test_decision_contract.py
+@@ -0,0 +1,16 @@
++import unittest
++from deepspace.runtime import scenario, score
++
++class ScoreContract(unittest.TestCase):
++    def test_missing_required_action_targets_are_not_correct(self):
++        for fault, action in (("sensor_bias", "mark_sensor_invalid"), ("wheel_friction", "switch_to_spare_wheel"), ("heater_stuck_on", "switch_heater_backup")):
++            self.assertFalse(score(scenario(fault, 1), {"actions": [(100, action, {})], "damage": False})["ok"])
++
++    def test_pre_fault_action_does_not_solve_future_fault(self):
++        params = scenario("sensor_bias", 1)
++        target = {"zone": params["zone"], "sensor": params["sensor"]}
++        self.assertFalse(score(params, {"actions": [(0, "mark_sensor_invalid", target)], "damage": False})["ok"])
++        self.assertTrue(score(params, {"actions": [(100, "mark_sensor_invalid", target)], "damage": False})["ok"])
++
++if __name__ == "__main__":
++    unittest.main()

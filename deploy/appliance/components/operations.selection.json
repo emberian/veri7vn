@@ -1,0 +1,12 @@
+{
+  "adapter_files": {
+    "operations.py": {
+      "path": "../../../tools/appliance/operations.py"
+    }
+  },
+  "id": "operations",
+  "profile": "analysis",
+  "requirements": [],
+  "status": "available",
+  "unavailable_reasons": []
+}

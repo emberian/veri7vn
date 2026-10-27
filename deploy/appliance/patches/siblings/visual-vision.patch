@@ -1,0 +1,45 @@
+diff --git a/vision/exemplar.py b/vision/exemplar.py
+index 6709880..c4897f9 100644
+--- a/vision/exemplar.py
++++ b/vision/exemplar.py
+@@ -14,13 +14,24 @@ class ExemplarStore:
+         self.V = vecs.astype(np.float32)
+         self.y = labels.astype(np.int64)
+         self.C = n_classes
++        if self.V.ndim != 2 or not len(self.V) or not self.V.shape[1] or not np.isfinite(self.V).all():
++            raise ValueError("nonempty finite two-dimensional vectors required")
++        if type(n_classes) is not int or n_classes < 1 or self.y.shape != (len(self.V),) or not np.array_equal(self.y, labels):
++            raise ValueError("one integer class label per vector required")
++        if np.any(self.y < 0) or np.any(self.y >= n_classes):
++            raise ValueError("class label outside declared range")
+ 
+     def neighbours(self, Q, k, batch=512):
++        Q = np.asarray(Q, dtype=np.float32)
++        if Q.ndim != 2 or Q.shape[1] != self.V.shape[1] or not np.isfinite(Q).all():
++            raise ValueError("query vectors must match the finite store dimension")
++        if type(k) is not int or not 1 <= k <= len(self.V) or type(batch) is not int or batch < 1:
++            raise ValueError("k must select one through all exemplars and batch must be positive")
+         idx = np.empty((len(Q), k), np.int64)
+         sim = np.empty((len(Q), k), np.float32)
+         for s in range(0, len(Q), batch):
+             S = Q[s:s + batch] @ self.V.T
+-            part = np.argpartition(-S, k, axis=1)[:, :k]
++            part = np.argpartition(-S, k - 1, axis=1)[:, :k]
+             ps = np.take_along_axis(S, part, 1)
+             order = np.argsort(-ps, axis=1)
+             idx[s:s + batch] = np.take_along_axis(part, order, 1)
+@@ -29,9 +40,13 @@ class ExemplarStore:
+ 
+     def vote(self, idx, sim, k, temp=0.05):
+         """similarity-weighted vote over the k nearest; returns label, margin (top1 - top2 share) and the votes"""
++        if not np.isfinite(temp) or temp <= 0 or type(k) is not int or not 1 <= k <= idx.shape[1] or idx.shape != sim.shape:
++            raise ValueError("positive finite temperature and matching nonempty neighbour arrays required")
++        if np.any(idx < 0) or np.any(idx >= len(self.V)) or not np.isfinite(sim).all():
++            raise ValueError("invalid neighbour indices or similarities")
+         w = np.exp((sim[:, :k] - sim[:, :1]) / temp)
+         votes = np.zeros((len(idx), self.C), np.float32)
+         np.add.at(votes, (np.repeat(np.arange(len(idx)), k), self.y[idx[:, :k]].ravel()), w.ravel())
+         votes /= votes.sum(1, keepdims=True)
+         top = np.sort(votes, 1)
+-        return votes.argmax(1), top[:, -1] - top[:, -2], votes
++        return votes.argmax(1), top[:, -1] - (top[:, -2] if self.C > 1 else 0), votes

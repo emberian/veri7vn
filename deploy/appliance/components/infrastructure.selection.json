@@ -1,0 +1,31 @@
+{
+  "adapter_files": {
+    "component_operations.py": {
+      "path": "../../../tools/oracle_components/decisions.py"
+    }
+  },
+  "id": "infrastructure",
+  "profile": "analysis",
+  "requirements": [],
+  "source": {
+    "checkout": "../../../var/u3-sibling-decisions/oracle7-infrastructure",
+    "files": [
+      "LICENSE",
+      "README.md",
+      "agent.py"
+    ],
+    "notices": [
+      "LICENSE",
+      "README.md"
+    ],
+    "patches": [
+      "../patches/siblings/decision-infrastructure.patch"
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-infrastructure",
+    "revision": "74456ba7db9172f5822433308943647ecd67cdf0"
+  },
+  "status": "partial",
+  "unavailable_reasons": [
+    "Host scanning and privileged installation are not exposed by the supplied-data provider."
+  ]
+}

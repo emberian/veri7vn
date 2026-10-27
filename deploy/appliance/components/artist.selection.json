@@ -1,0 +1,49 @@
+{
+  "adapter_files": {
+    "visual_operations.py": {
+      "path": "../../../tools/oracle_components/visual.py"
+    }
+  },
+  "id": "artist",
+  "profile": "analysis",
+  "requirements": [
+    {
+      "kind": "python",
+      "name": "numpy",
+      "version": "2.4.6"
+    },
+    {
+      "kind": "python",
+      "name": "Pillow",
+      "version": "11.3.0"
+    },
+    {
+      "kind": "python",
+      "name": "scipy",
+      "version": "1.17.1"
+    }
+  ],
+  "source": {
+    "checkout": "../../../var/u3-sibling-visual/artist",
+    "files": [
+      "LICENSE",
+      "README.md",
+      "artist/__init__.py",
+      "artist/core.py",
+      "artist/build_library.py"
+    ],
+    "notices": [
+      "LICENSE",
+      "README.md"
+    ],
+    "patches": [
+      "../patches/siblings/visual-artist.patch"
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-artist",
+    "revision": "df155c6a96626f9d3bc4146c9d4a516a0b8a2ba8"
+  },
+  "status": "partial",
+  "unavailable_reasons": [
+    "The pretrained COCO sprite library/index is not distributed here; callers can supply cited sprites."
+  ]
+}

@@ -1,0 +1,176 @@
+diff --git a/workbench/swarm/composer_v3.py b/workbench/swarm/composer_v3.py
+index 8505d86..9855762 100644
+--- a/workbench/swarm/composer_v3.py
++++ b/workbench/swarm/composer_v3.py
+@@ -184,6 +184,8 @@ POSITIONAL = {2: "positional notation, base 2 (binary)", 8: "positional notation
+ 
+ 
+ def _in_base(n, b):
++    if type(n) is not int or n < 0 or b not in (2, 8, 16):
++        raise ValueError("nonnegative integer and supported base required")
+     digits = "0123456789abcdef"
+     if n == 0:
+         return "0"
+@@ -320,8 +322,12 @@ def leaves(inputs, labels=None):
+     return out
+ 
+ 
+-def enumerate_exprs(inputs, max_size=MAX_SIZE, labels=None):
++def enumerate_exprs(inputs, max_size=MAX_SIZE, labels=None, bank_cap=BANK_CAP):
+     """bottom-up, typed (numbers only here), observationally-equivalent expressions merged, smallest kept"""
++    if type(max_size) is not int or not 1 <= max_size <= MAX_SIZE:
++        raise ValueError("invalid expression size budget")
++    if type(bank_cap) is not int or not 1 <= bank_cap <= BANK_CAP:
++        raise ValueError("invalid expression bank budget")
+     seen = {}
+     by_size = {}
+ 
+@@ -329,9 +335,9 @@ def enumerate_exprs(inputs, max_size=MAX_SIZE, labels=None):
+         return tuple(round(v, 9) if v is not None else None for v in vals)
+ 
+     def add(e):
+-        if e.val is None or any(v is None for v in e.val) or e.dim is None or not honest(e):
++        if len(seen) >= bank_cap or e.val is None or any(v is None for v in e.val) or e.dim is None or not honest(e):
+             return
+-        k = key(e.val)
++        k = (e.dim, key(e.val))
+         if k in seen:
+             return
+         seen[k] = e
+@@ -340,7 +346,7 @@ def enumerate_exprs(inputs, max_size=MAX_SIZE, labels=None):
+     for e in leaves(inputs, labels):
+         add(e)
+     for size in range(2, max_size + 1):
+-        if len(seen) >= BANK_CAP:
++        if len(seen) >= bank_cap:
+             break
+         for name, f in UN.items():                       # unary: size-1 child
+             for a in list(by_size.get(size - 1, [])):
+@@ -351,7 +357,7 @@ def enumerate_exprs(inputs, max_size=MAX_SIZE, labels=None):
+                 if name in COMMUTATIVE and ls > rs:
+                     continue
+                 for a in list(by_size.get(ls, [])):
+-                    if len(seen) >= BANK_CAP:
++                    if len(seen) >= bank_cap:
+                         break
+                     for b in list(by_size.get(rs, [])):
+                         add(E(("bin", name), [a, b], val=tuple(_safe(f, x, y) for x, y in zip(a.val, b.val))))
+@@ -531,18 +537,18 @@ def program_source(sol, names, title):
+         py_body = "    seq = %r\n    return seq[(int(%s) - %d) %% %d]" % (sol["seq"], names[0], sol["offset"], len(sol["seq"]))
+         js_body = "  const seq = %s;\n  return seq[(((Math.trunc(%s) - %d) %% %d) + %d) %% %d];" % (json.dumps(sol["seq"]), names[0], sol["offset"], len(sol["seq"]), len(sol["seq"]), len(sol["seq"]))
+     elif sol["kind"] == "positional":
+-        py_body = ("    n, b, digits, out = int(%s), %d, '0123456789abcdef', ''\n    if n == 0:\n        return '0'\n"
++        py_body = ("    n, b, digits, out = int(%s), %d, '0123456789abcdef', ''\n    if n < 0:\n        raise ValueError('nonnegative input required')\n    if n == 0:\n        return '0'\n"
+                    "    while n:\n        out = digits[n %% b] + out\n        n //= b\n    return out" % (names[0], sol["base"]))
+-        js_body = "  return Math.trunc(%s).toString(%d);" % (names[0], sol["base"])
++        js_body = "  if (%s < 0) throw new Error('nonnegative input required');\n  return Math.trunc(%s).toString(%d);" % (names[0], names[0], sol["base"])
+     else:
+         py_body = ("    pairs = %r\n    n, out = int(%s), ''\n    for v, s in pairs:\n        while n >= v:\n            out += s\n            n -= v\n    return out"
+                    % ([tuple(p) for p in sol["pairs"]], names[0]))
+         js_body = ("  const pairs = %s;\n  let n = Math.trunc(%s), out = '';\n  for (const [v, s] of pairs) { while (n >= v) { out += s; n -= v; } }\n  return out;"
+                    % (json.dumps([list(p) for p in sol["pairs"]]), names[0]))
+-    py = ('"""%s"""\nimport math\nimport re\n\n\ndef _nums(code):\n    return [float(x) for x in re.findall(r"\\d+(?:\\.\\d+)?", str(code))]\n\n\n'
++    py = ('%r\nimport math\nimport re\n\n\ndef _nums(code):\n    return [float(x) for x in re.findall(r"\\d+(?:\\.\\d+)?", str(code))]\n\n\n'
+           'def compute(%s):\n%s\n' % (head, args, py_body))
+     js = ('// %s\nfunction _nums(code) { return (String(code).match(/\\d+(?:\\.\\d+)?/g) || []).map(Number); }\n'
+-          'function compute(%s) {\n%s\n}\n' % (head.replace("\n", "\n// "), args, js_body))
++          'function compute(%s) {\n%s\n}\n' % (json.dumps(head, ensure_ascii=True), args, js_body))
+     return py, js
+ 
+ 
+@@ -550,7 +556,8 @@ def read_back(py_src, rows, expected):
+     """run the emitted Python in a SEPARATE interpreter on every example; it must give what the in-process meaning gave"""
+     with tempfile.TemporaryDirectory(prefix="o7compose_") as d:
+         p = os.path.join(d, "prog.py")
+-        open(p, "w", encoding="utf-8").write(py_src)
++        with open(p, "w", encoding="utf-8") as stream:
++            stream.write(py_src)
+         runner = ("import json, sys\nsys.path.insert(0, %r)\nfrom prog import compute\nrows = json.loads(sys.stdin.read())\n"
+                   "print(json.dumps([compute(*r) for r in rows]))\n" % d)
+         try:
+@@ -558,11 +565,13 @@ def read_back(py_src, rows, expected):
+             got = json.loads(r.stdout)
+         except Exception as e:  # noqa: BLE001
+             return False, "the emitted program did not run: %s" % str(e)[:120]
++    if r.returncode != 0 or not isinstance(got, list) or len(got) != len(expected):
++        return False, "the emitted program returned an incomplete or failed result"
+     ok = all(close(g, x) for g, x in zip(got, expected))
+     return ok, "read back %d/%d" % (sum(close(g, x) for g, x in zip(got, expected)), len(expected))
+ 
+ 
+-def compose(task):
++def compose(task, *, max_size=MAX_SIZE, bank_cap=BANK_CAP, allow_fitted=True):
+     rows = [ex["in"] for ex in task["dev"]]
+     outs = [ex["out"] for ex in task["dev"]]
+     names = ["x%d" % (i + 1) for i in range(len(rows[0]))]
+@@ -587,7 +596,7 @@ def compose(task):
+         outs_f = [float(o) for o in outs]
+         labels = task.get("inputs")
+         out_dim = parse_unit(task["output"]) if labels and "(" in task.get("output", "") else None
+-        exprs = enumerate_exprs(rows, labels=labels)
++        exprs = enumerate_exprs(rows, max_size=max_size, labels=labels, bank_cap=bank_cap)
+         best = None
+         for e in sorted(exprs.values(), key=lambda e: (e.size, e.fitted)):
+             if e.inp and dim_ok(e, out_dim) and fits(e.val, outs_f):
+@@ -595,7 +604,7 @@ def compose(task):
+                 break
+         if best is None:                                # larger programs: two bank halves joined by the needed operation
+             best = meet_in_middle(exprs, outs_f, out_dim)
+-        if True:                                        # at most two fitted constants: y = a*f (+ b*g), f, g small expressions;
++        if allow_fitted:                                # at most two fitted constants: y = a*f (+ b*g), f, g small expressions;
+             small = [e for e in exprs.values() if e.size <= 3 and e.inp]   # compared with the structural fit by cost
+             small.sort(key=lambda e: e.size)
+             one = E(("const", 1.0), val=tuple(1.0 for _ in rows), consts=["one"], dim=PURE)
+diff --git a/workbench/swarm/test_composer_safety.py b/workbench/swarm/test_composer_safety.py
+new file mode 100644
+--- /dev/null
++++ b/workbench/swarm/test_composer_safety.py
+@@ -0,0 +1,48 @@
++"""Counterexamples for source emission, differential read-back and typed search."""
++import importlib.util
++from pathlib import Path
++import sys
++import tempfile
++from types import SimpleNamespace
++import unittest
++from unittest.mock import patch
++
++spec = importlib.util.spec_from_file_location('composer_safety_subject', Path(__file__).with_name('composer_v3.py'))
++composer = importlib.util.module_from_spec(spec)
++sys.modules[spec.name] = composer
++spec.loader.exec_module(composer)
++
++
++class ComposerSafety(unittest.TestCase):
++    def test_title_stays_data(self):
++        with tempfile.TemporaryDirectory() as directory:
++            marker = Path(directory)/'injected'
++            title = '"""\nfrom pathlib import Path\nPath('+repr(str(marker))+').write_text("bad")\n"""'
++            sol = {'kind':'expr','py_expr':'x1 * 2','js_expr':'x1 * 2','derivation':'test'}
++            py, js = composer.program_source(sol, ['x1'], title)
++            self.assertTrue(composer.read_back(py, [[2],[3]], [4,6])[0])
++            self.assertFalse(marker.exists())
++            self.assertTrue(js.startswith('// "'))
++
++    def test_readback_count_exit_and_shape(self):
++        for stdout, code in [('[]',0), ('[2,4,6]',0), ('[2,4]',1), ('{}',0)]:
++            with patch.object(composer.subprocess, 'run', return_value=SimpleNamespace(stdout=stdout,returncode=code)):
++                self.assertFalse(composer.read_back('ignored', [[1],[2]], [2,4])[0])
++
++    def test_equal_examples_preserve_distinct_dimensions(self):
++        bank = composer.enumerate_exprs([[1,1],[2,2]], max_size=1, labels=['length (m)','duration (s)'])
++        self.assertEqual(len({e.dim for e in bank.values() if e.op[0]=='in'}), 2)
++
++    def test_bank_budget_is_a_hard_bound(self):
++        bank = composer.enumerate_exprs([[1],[2]], max_size=3, bank_cap=10)
++        self.assertLessEqual(len(bank), 10)
++        for cap in (0, True, composer.BANK_CAP+1):
++            with self.assertRaises(ValueError): composer.enumerate_exprs([[1],[2]], bank_cap=cap)
++
++    def test_negative_positional_input_terminates(self):
++        with self.assertRaises(ValueError): composer._in_base(-1, 2)
++        py, _ = composer.program_source({'kind':'positional','base':2,'derivation':'base two'}, ['x1'], 'binary')
++        self.assertFalse(composer.read_back(py, [[-1]], ['-1'])[0])
++
++
++if __name__ == '__main__': unittest.main()

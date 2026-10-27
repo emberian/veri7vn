@@ -1,0 +1,30 @@
+{
+  "adapter_files": {
+    "component_operations.py": {
+      "path": "../../../tools/oracle_components/decisions.py"
+    }
+  },
+  "id": "trafficcop",
+  "profile": "analysis",
+  "requirements": [],
+  "source": {
+    "checkout": "../../../var/u3-sibling-decisions/oracle7-trafficcop",
+    "files": [
+      "LICENSE",
+      "README.md",
+      "trafficcop/__init__.py",
+      "trafficcop/model.py"
+    ],
+    "notices": [
+      "LICENSE",
+      "README.md"
+    ],
+    "patches": [
+      "../patches/siblings/decision-trafficcop.patch"
+    ],
+    "repository": "https://huggingface.co/psiloceyeben/oracle7-trafficcop",
+    "revision": "08a9f1e70b8e78d9078b4bd9f308b99b9800bcb0"
+  },
+  "status": "available",
+  "unavailable_reasons": []
+}

@@ -1,0 +1,63 @@
+{
+  "adapter_files": {
+    "workbench_operations.py": {
+      "path": "../../../tools/oracle_workbench/operations.py"
+    }
+  },
+  "id": "workbench",
+  "profile": "analysis",
+  "requirements": [
+    {
+      "kind": "python",
+      "name": "numpy",
+      "version": "2.4.6"
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/sources.py",
+      "path": "../../../var/ap1-upstream-slim/workbench/sources.py"
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/sensors_baseline_v4.py",
+      "path": "../../../var/ap1-upstream-slim/workbench/sensors_baseline_v4.py"
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/__init__.py",
+      "path": "../../../var/ap1-upstream-slim/workbench/prosefold/__init__.py"
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/core.py",
+      "path": "../../../var/ap1-upstream-slim/workbench/prosefold/core.py"
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/engine.py",
+      "path": "../../../var/ap1-upstream-slim/workbench/prosefold/engine.py"
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/prose.py",
+      "path": "../../../var/ap1-upstream-slim/workbench/prosefold/prose.py"
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/readback.py",
+      "path": "../../../var/ap1-upstream-slim/workbench/prosefold/readback.py"
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/speaker.py",
+      "path": "../../../var/ap1-upstream-slim/workbench/prosefold/speaker.py"
+    },
+    {
+      "kind": "appliance-file",
+      "name": "workbench/prosefold/voice_default.md",
+      "path": "../../../var/ap1-upstream-slim/workbench/prosefold/voice_default.md"
+    }
+  ],
+  "status": "available",
+  "unavailable_reasons": []
+}

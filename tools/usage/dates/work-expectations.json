@@ -1,0 +1,89 @@
+{
+  "scope": "Expected source condition, not a promise that every earlier title reader resolves the work. No full-engine run in this lane. False means no bound witness, not a false worldly premise. Emma title-page1816 is real; publication1815 differs.",
+  "cases": [
+    {
+      "id": "hamlet1948",
+      "question": "Who directed the 1948 film Hamlet?",
+      "qid": 27178,
+      "year": 1948,
+      "positive_bound_publication_witness": true
+    },
+    {
+      "id": "pride1813",
+      "question": "Who wrote the 1813 novel Pride and Prejudice?",
+      "qid": 170583,
+      "year": 1813,
+      "positive_bound_publication_witness": true
+    },
+    {
+      "id": "emma1815",
+      "question": "Who wrote the 1815 novel Emma?",
+      "qid": 223880,
+      "year": 1815,
+      "positive_bound_publication_witness": true
+    },
+    {
+      "id": "hobbit1937",
+      "question": "Who wrote the 1937 novel The Hobbit?",
+      "qid": 74287,
+      "year": 1937,
+      "positive_bound_publication_witness": true
+    },
+    {
+      "id": "orwell1949",
+      "question": "Who wrote the 1949 novel Nineteen Eighty-Four?",
+      "qid": 208460,
+      "year": 1949,
+      "positive_bound_publication_witness": true
+    },
+    {
+      "id": "rings1954",
+      "question": "Who wrote the 1954 novel The Lord of the Rings?",
+      "qid": 15228,
+      "year": 1954,
+      "positive_bound_publication_witness": true
+    },
+    {
+      "id": "casablanca1942",
+      "question": "Who directed the 1942 film Casablanca?",
+      "qid": 132689,
+      "year": 1942,
+      "positive_bound_publication_witness": true
+    },
+    {
+      "id": "shawshank1994",
+      "question": "Who directed the 1994 film The Shawshank Redemption?",
+      "qid": 172241,
+      "year": 1994,
+      "positive_bound_publication_witness": true
+    },
+    {
+      "id": "pride2005",
+      "question": "Who directed the 2005 film Pride and Prejudice?",
+      "qid": 270385,
+      "year": 2005,
+      "positive_bound_publication_witness": true
+    },
+    {
+      "id": "pride1940",
+      "question": "Who directed the 1940 film Pride and Prejudice?",
+      "qid": 940014,
+      "year": 1940,
+      "positive_bound_publication_witness": true
+    },
+    {
+      "id": "hamlet1949",
+      "question": "Who directed the 1949 film Hamlet?",
+      "qid": 27178,
+      "year": 1949,
+      "positive_bound_publication_witness": false
+    },
+    {
+      "id": "emma1816",
+      "question": "Who wrote the 1816 novel Emma?",
+      "qid": 223880,
+      "year": 1816,
+      "positive_bound_publication_witness": false
+    }
+  ]
+}

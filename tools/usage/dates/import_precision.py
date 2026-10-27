@@ -148,6 +148,41 @@ def source_snapshot(item, cache, allow_fetch):
     return entity, times, source
 
 
+def merge_metadata(base, fresh):
+    """Preserve existing bindings; explicit newly selected pairs replace their old record.
+
+    A sidecar for another store or schema is not a compatible merge input. This
+    only combines source-bound records; it does not fill absent source claims.
+    """
+    for document in (base, fresh):
+        if (not isinstance(document, dict) or document.get('schema') != 'oracle7-date-precision-v1'
+                or document.get('version') != 1 or not isinstance(document.get('records'), list)):
+            raise ValueError('invalid sidecar merge schema')
+    if base.get('legacy_store') != fresh.get('legacy_store') or not fresh.get('legacy_store', {}).get('sha256_declared'):
+        raise ValueError('sidecar merge store identity differs or is missing')
+    if base.get('import_failures'):
+        raise ValueError('base sidecar has unresolved import failures')
+    records = {}
+    for document in (base, fresh):
+        seen = set()
+        for record in document['records']:
+            if not isinstance(record, dict):
+                raise ValueError('invalid sidecar merge record')
+            key = (record.get('subject'), record.get('property'))
+            if (not isinstance(key[0], str) or not re.fullmatch(r'Q[1-9][0-9]*', key[0])
+                    or not isinstance(key[1], str) or not re.fullmatch(r'P[1-9][0-9]*', key[1])
+                    or key in seen or not isinstance(record.get('statements'), list)
+                    or not isinstance(record.get('bindings'), list)):
+                raise ValueError('invalid or duplicate sidecar merge identity')
+            seen.add(key)
+            records[key] = record
+    if len(records) > 2048:
+        raise ValueError('merged sidecar exceeds 2048 records')
+    result = dict(fresh)
+    result['records'] = sorted(records.values(), key=lambda r:(int(r['subject'][1:]),int(r['property'][1:])))
+    return result
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--runtime', type=Path, required=True)
@@ -155,6 +190,7 @@ def main():
     p.add_argument('--cache', type=Path, required=True)
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--fetch', action='store_true', help='Fetch missing bounded entity snapshots; otherwise use only cache')
+    p.add_argument('--base-sidecar', type=Path, help='Preserve a bounded compatible existing sidecar; replace only explicitly selected pairs')
     p.add_argument('--workers', type=int, choices=range(1,5), default=4)
     args = p.parse_args()
     if args.out.exists():
@@ -202,12 +238,18 @@ def main():
               'legacy_store': {'path': store_meta['path'], 'sha256_declared': store_meta['sha256']},
               'records': sorted(records,key=lambda r:(int(r['subject'][1:]),int(r['property'][1:]))),
               'import_failures': failures}
+    if args.base_sidecar:
+        if args.base_sidecar.stat().st_size > 16*1024*1024:
+            raise ValueError('base sidecar exceeds 16 MiB')
+        base_bytes = args.base_sidecar.read_bytes()
+        output = merge_metadata(json.loads(base_bytes), output)
+        output['base_sidecar_sha256'] = hashlib.sha256(base_bytes).hexdigest()
     payload = json.dumps(output, ensure_ascii=False, indent=2)+'\n'
     if len(payload.encode()) > 16*1024*1024:
         raise ValueError('sidecar exceeds 16 MiB')
     with args.out.open('x') as stream:
         stream.write(payload)
-    print('wrote',len(records),'entity/property records',len(payload.encode()),'bytes;',len(failures),'failed entities')
+    print('wrote',len(output['records']),'entity/property records',len(payload.encode()),'bytes;',len(failures),'failed entities')
     return bool(failures)
 
 

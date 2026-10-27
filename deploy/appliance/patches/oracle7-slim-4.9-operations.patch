@@ -1,0 +1,3720 @@
+diff --git a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w571.py b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w571.py
+index 4e44062..44a937c 100644
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w571.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w571.py
+@@ -1,21 +1,11 @@
+ #!/usr/bin/env python3
+-"""oracle_release_runtime_w571 - CORRECTNESS RELEASE (4.8, pre-registration v17): w570 failed its sealed test PI48c - three false
+-premises with no genre word after the owner ("Who painted Rembrandt's Sunflowers?") got through, and "the Christian name of
+-the wife of Robert Schumann" was withheld as if "Christian" were a second person. premise_v3: the owner rule also reads
+-"Who <made> N's X?"; the WITH rule only where the question joins people ("with X", "A and B"). w570 was: w569's premise
+-checks, narrowed after the gate
+-refused w569 for withholding right answers on its frozen panel (premise_v2: only on a single, direct question - never a
+-reading passage; not the WITH rule on a comparison such as "Who is younger, A or B?"; a year more than 10 off, not a slip such
+-as a novel dated by its film). w569 was: a relation answer is not given when the
+-question's own premise contradicts it. PI48 (spent) found the full release answering three questions that must be declined
+-with a true fact that ignores the premise:
+-  OWNER   "Who composed Bach's Symphony No. 9?" -> Beethoven: a who-question about N's work is not answered by someone else
+-  WITH    "Which band did Chopin form with Freddie Mercury?" -> Queen: every person the question names must be connected to
+-          the answer in the relation store (people named side by side are one name)
+-  YEAR    "Who directed the 1850 film Hamlet?" -> Laurence Olivier: the year next to a work must be that work's year
+-(premise_v1; replayed on PI48's recorded replies: the full release's 3 such answers and the slim release's 2 are withheld,
+-and no other answer on either variant, nor any on dev48.) The reply says which premise does not hold.
+-Never overridden: any turn the premise checks do not name. The fold never imports a runtime other than its parent, w568."""
++"""Untrusted premise guard over the prior reader's reply.
++
++Keep positively supported contradictions separate from conditions our records
++do not establish. Both can block a partial answer; only the former says the
++premise conflicts with source evidence. Typed terminal receipts preserve that
++decision through later coverage folds. Unrecognized questions pass unchanged.
++"""
+ from oracle_release_runtime_w568 import OracleReleaseRuntimeW568 as _Base
+ from runtime_final_outcome import replacement_reply
+ from runtime_refusal_guard import terminal_refusal
+@@ -33,14 +23,34 @@ class OracleReleaseRuntimeW571(_Base):
+             return out
+         try:
+             prov = out.get("provenance") if isinstance(out.get("provenance"), dict) else {}
+-            why = _P.check(str(text), str(out.get("response", "")), prov.get("value_qids") or [])
+-        except Exception:  # noqa: BLE001 - a failure never costs the core's own reply
+-            return out
+-        if not why:
++            if hasattr(_P, "assess"):
++                assessment = _P.assess(str(text), str(out.get("response", "")), prov.get("value_qids") or [])
++            else:
++                # Legacy helpers give only a reason, not enough to assert a
++                # real-world contradiction. Preserve refusal without upgrading it.
++                why = _P.check(str(text), str(out.get("response", "")), prov.get("value_qids") or [])
++                assessment = {"kind": "insufficient_evidence", "rule": "legacy", "reason": why} if why else None
++        except Exception as error:  # noqa: BLE001 - failed evidence is not a passed premise check
++            assessment = {"kind": "insufficient_evidence", "rule": "premise_check_error",
++                          "reason": "the premise check could not read usable evidence",
++                          "evidence": {"error_type": type(error).__name__}}
++        if not assessment:
+             return out
++        if assessment.get("kind") == "supported_condition":
++            # Keep the answer and its existing attribution, adding the exact
++            # work/date condition checked. This is not a new proof certificate.
++            return dict(out, premise_check=assessment)
++        contradiction = assessment.get("kind") == "contradiction"
++        why = assessment["reason"]
++        response = ("I can't answer that as asked: %s. The stated premise conflicts with this source evidence." % why
++                    if contradiction else
++                    "I can't verify that answer under the question's conditions: %s. Missing evidence does not establish "
++                    "that the premise is false." % why)
+         new = replacement_reply(out)
+         new.update({"status": "withheld", "path": "premise>withheld>" + str(out.get("path", ""))[:80], "references": [],
+-                    "provenance": {"withheld_reply": str(out.get("response", ""))[:300]},
+-                    "response": "I can't answer that as asked: %s. So the question's premise does not hold in my records, and I "
+-                                "won't answer it as if it did." % why})
++                    "refusal": {"terminal": True, "reason": "premise_conflict" if contradiction else "premise_unverified",
++                                "assessment": assessment},
++                    "provenance": {"kind": "premise_guard", "assessment": assessment,
++                                   "withheld_reply": str(out.get("response", ""))[:300]},
++                    "response": response})
+         return new
+diff --git a/root/relstore/date_precision_v1.json b/root/relstore/date_precision_v1.json
+index 44fa2f2..43291ac 100644
+--- a/root/relstore/date_precision_v1.json
++++ b/root/relstore/date_precision_v1.json
+@@ -10522,6 +10522,98 @@
+         }
+       ]
+     },
++    {
++      "subject": "Q15228",
++      "property": "P577",
++      "label": "The Lord of the Rings",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2560991714,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q15228.json?revision=2560991714",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q15228.rdf?revision=2560991714",
++        "json_sha256": "0336833ab2531629b4019e2494711d2f9bfb41361b47ea1025af1ec58152c287",
++        "rdf_sha256": "5bebfd00954623c179bac7f51109cd92e27f6830ddbfb77636c57ebfe433ec3f",
++        "snapshot_observed_at": "2026-10-27T11:35:49.121392+00:00"
++      },
++      "legacy_literals_observed": [
++        "1954-01-01T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "30277575b479c657ce10d5aae4eba3200363f76f",
++            "datavalue": {
++              "value": {
++                "time": "+1954-00-00T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 9,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "id": "Q15228$6986BC95-BEA9-4487-8B54-9BB1F88BBD60",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "91fee8f5a78467e9b8e692061bb4867298e813a3",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "5ae74bf86436d2f9682d03e35bb85a9b937a3845",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 455,
++                        "id": "Q455"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P1417": [
++                  {
++                    "snaktype": "value",
++                    "property": "P1417",
++                    "hash": "51127d81ee930a942a1dc54d26a909c994576e15",
++                    "datavalue": {
++                      "value": "topic/The-Lord-of-the-Rings",
++                      "type": "string"
++                    },
++                    "datatype": "external-id"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P1417"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1954-01-01T00:00:00Z",
++            "timePrecision": "9",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "1954-01-01T00:00:00Z",
++          "statement_id": "Q15228$6986BC95-BEA9-4487-8B54-9BB1F88BBD60"
++        }
++      ]
++    },
+     {
+       "subject": "Q17892",
+       "property": "P569",
+@@ -12772,6 +12864,161 @@
+         }
+       ]
+     },
++    {
++      "subject": "Q27178",
++      "property": "P577",
++      "label": "Hamlet",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2558285986,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q27178.json?revision=2558285986",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q27178.rdf?revision=2558285986",
++        "json_sha256": "d50ba907b06a3d7e3812503978be3525cc3b87c0d4eff9b8548501e2da41fa5c",
++        "rdf_sha256": "3b73f0ce1f999d8b433d48b65515edd2e49fc202a80bbbf2992a97cfeccdefe7",
++        "snapshot_observed_at": "2026-10-27T11:35:38.671806+00:00"
++      },
++      "legacy_literals_observed": [
++        "1948-01-01T00:00:00Z",
++        "1948-09-28T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "846717ebf7b28025dcf6091172d2578323e01754",
++            "datavalue": {
++              "value": {
++                "time": "+1948-01-01T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 9,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "id": "Q27178$FB1C923A-FFCD-435E-AA38-3A5ECAF2568F",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "d5847b9b6032aa8b13dae3c2dfd9ed5d114d21b3",
++              "snaks": {
++                "P143": [
++                  {
++                    "snaktype": "value",
++                    "property": "P143",
++                    "hash": "5a343e7e758a4282a01316d3e959b6e653b767fc",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 11920,
++                        "id": "Q11920"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P143"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1948-01-01T00:00:00Z",
++            "timePrecision": "9",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "c406e1fb7fea1b0868d4c38a573d12088a24228e",
++            "datavalue": {
++              "value": {
++                "time": "+1948-09-28T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "7e3c5acd8ed74c218a2b55f9a0f77447daa0253b",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 34,
++                    "id": "Q34"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q27178$afb3fe67-4448-7fd2-17c8-8e5fefa6e2ae",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "73434a174dd439861ddde52b8ff59ab4615cbdf6",
++              "snaks": {
++                "P345": [
++                  {
++                    "snaktype": "value",
++                    "property": "P345",
++                    "hash": "5e0806a3d5b4571b145b886f4c9dc405c098863f",
++                    "datavalue": {
++                      "value": "tt0040416",
++                      "type": "string"
++                    },
++                    "datatype": "external-id"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P345"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1948-09-28T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "1948-01-01T00:00:00Z",
++          "statement_id": "Q27178$FB1C923A-FFCD-435E-AA38-3A5ECAF2568F"
++        },
++        {
++          "legacy_literal": "1948-09-28T00:00:00Z",
++          "statement_id": "Q27178$afb3fe67-4448-7fd2-17c8-8e5fefa6e2ae"
++        }
++      ]
++    },
+     {
+       "subject": "Q36322",
+       "property": "P569",
+@@ -13329,6 +13576,92 @@
+         }
+       ]
+     },
++    {
++      "subject": "Q41567",
++      "property": "P577",
++      "label": "Hamlet",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2559684489,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q41567.json?revision=2559684489",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q41567.rdf?revision=2559684489",
++        "json_sha256": "32ffac363a755af51585f1c95b2ee0c5996684ecd05ceb62f472a26b44fa853f",
++        "rdf_sha256": "ca889953423b5936e50b9fc9fa410941dac41953924826cfbac9d0c7939222db",
++        "snapshot_observed_at": "2026-10-27T11:35:39.659595+00:00"
++      },
++      "legacy_literals_observed": [
++        "1602-01-01T00:00:00Z",
++        "1623-01-01T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "284a91427abccf6f39822afbeecc78fe77b98ced",
++            "datavalue": {
++              "value": {
++                "time": "+1602-00-00T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 9,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "id": "Q41567$F9F067E8-5B26-4A00-A985-8D353679ABB2",
++          "rank": "normal",
++          "rdf_time": {
++            "timeValue": "1602-01-01T00:00:00Z",
++            "timePrecision": "9",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "b2358ee12ec90edc1c79f5abbad9b4c70d71b4d8",
++            "datavalue": {
++              "value": {
++                "time": "+1623-00-00T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 9,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "id": "Q41567$BFAD03F5-AC98-4590-9531-A2B995BDC06D",
++          "rank": "normal",
++          "rdf_time": {
++            "timeValue": "1623-01-01T00:00:00Z",
++            "timePrecision": "9",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "1602-01-01T00:00:00Z",
++          "statement_id": "Q41567$F9F067E8-5B26-4A00-A985-8D353679ABB2"
++        },
++        {
++          "legacy_literal": "1623-01-01T00:00:00Z",
++          "statement_id": "Q41567$BFAD03F5-AC98-4590-9531-A2B995BDC06D"
++        }
++      ]
++    },
+     {
+       "subject": "Q70991",
+       "property": "P569",
+@@ -16083,6 +16416,195 @@
+         }
+       ]
+     },
++    {
++      "subject": "Q74287",
++      "property": "P577",
++      "label": "The Hobbit",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2549895075,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q74287.json?revision=2549895075",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q74287.rdf?revision=2549895075",
++        "json_sha256": "52167c7ab97a5a920b59a17282e5ddce66b857a98b6273ee9910809cf28fc268",
++        "rdf_sha256": "7452947a16cb81f0ed5f700981d1d5e7f8f487fb26832544afdc91d9da0272bc",
++        "snapshot_observed_at": "2026-10-27T11:35:46.666548+00:00"
++      },
++      "legacy_literals_observed": [
++        "1937-09-21T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "27fe65991e0378025d5114b858face0bf55f570b",
++            "datavalue": {
++              "value": {
++                "time": "+1937-09-21T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P7452": [
++              {
++                "snaktype": "value",
++                "property": "P7452",
++                "hash": "f9f842b41f249e5504d48025c7ad6d7b5bfc7496",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 71536040,
++                    "id": "Q71536040"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P7452"
++          ],
++          "id": "q74287$cc308f92-4e12-8669-0dcc-e55b2d5b13a0",
++          "rank": "preferred",
++          "rdf_time": {
++            "timeValue": "1937-09-21T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "81728443be086048e56380181acfeffbb1fae970",
++            "datavalue": {
++              "value": {
++                "time": "+1937-00-00T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 9,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "id": "Q74287$37ee1cab-b737-4ad0-aa56-15f9689c8255",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "65ed1f47ef99d13f2a0fdac75fe06c1f215b2453",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "871891c242389d06b23bf809fdc0301df1ed9c77",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 2629164,
++                        "id": "Q2629164"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P1274": [
++                  {
++                    "snaktype": "value",
++                    "property": "P1274",
++                    "hash": "bb40befc427fcba533d5c91a6e055c8b6e7a693c",
++                    "datavalue": {
++                      "value": "1772",
++                      "type": "string"
++                    },
++                    "datatype": "external-id"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "6973856fe2b27aa72f3b52638ccfd7725d6932e2",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2025-06-03T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P1274",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1937-01-01T00:00:00Z",
++            "timePrecision": "9",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "74b9efb4f093d21489197fe70aa06db269bd3787",
++            "datavalue": {
++              "value": {
++                "time": "+1938-00-00T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 9,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "id": "Q74287$019079F5-29A2-4FCB-8F0C-0B9D518ABF9A",
++          "rank": "normal",
++          "rdf_time": {
++            "timeValue": "1938-01-01T00:00:00Z",
++            "timePrecision": "9",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "1937-09-21T00:00:00Z",
++          "statement_id": "q74287$cc308f92-4e12-8669-0dcc-e55b2d5b13a0"
++        }
++      ]
++    },
+     {
+       "subject": "Q79904",
+       "property": "P569",
+@@ -46073,6 +46595,406 @@
+         }
+       ]
+     },
++    {
++      "subject": "Q132689",
++      "property": "P577",
++      "label": "Casablanca",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2561132231,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q132689.json?revision=2561132231",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q132689.rdf?revision=2561132231",
++        "json_sha256": "bbf2c867603433b72e6a5045130817958b05a83cd041f3b48ffafe4bc6861561",
++        "rdf_sha256": "66848b22113c5a783cee697b2a565480016149a679826511f5760d28d6450fdd",
++        "snapshot_observed_at": "2026-10-27T11:35:50.277332+00:00"
++      },
++      "legacy_literals_observed": [
++        "1942-11-26T00:00:00Z",
++        "1943-01-23T00:00:00Z",
++        "1943-10-11T00:00:00Z",
++        "1947-05-23T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "e254b51c9c56e1e83917f36cfd6394a95b06d870",
++            "datavalue": {
++              "value": {
++                "time": "+1942-11-26T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "bbfabec152b0fb6468e2bffcf39a5a534d348a5f",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 60,
++                    "id": "Q60"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q132689$F243467C-C35B-4EFE-AF9E-7B67568B6D57",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "cfc3fc925ddc31f71c67244753346f9fca7ab7d7",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "a94b740202b097dd33355e0e6c00e54b9395e5e0",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 15241312,
++                        "id": "Q15241312"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248"
++              ]
++            },
++            {
++              "hash": "0a6c3ec39b55f8b0451e3b5389ae871bd20325f2",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "6ff43c6ce02fc9e2012771b5595093e7f0c33162",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 37312,
++                        "id": "Q37312"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P854": [
++                  {
++                    "snaktype": "value",
++                    "property": "P854",
++                    "hash": "446fe6e35ec6e172ccc35c0c0491335449354f61",
++                    "datavalue": {
++                      "value": "https://www.imdb.com/title/tt0034583/releaseinfo",
++                      "type": "string"
++                    },
++                    "datatype": "url"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "9e02ddea7c87bc4620cc3df2973fac3e4fc88dc2",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2022-06-18T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P854",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1942-11-26T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "99940c7d2841ab79812a8cf410c243293b949abf",
++            "datavalue": {
++              "value": {
++                "time": "+1943-01-23T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "d030038c836f9ed0d37c69cb8c389d689ebeb05a",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 30,
++                    "id": "Q30"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q132689$1f12d1a4-41b0-35c1-50e0-4abbf107940f",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "0a6c3ec39b55f8b0451e3b5389ae871bd20325f2",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "6ff43c6ce02fc9e2012771b5595093e7f0c33162",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 37312,
++                        "id": "Q37312"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P854": [
++                  {
++                    "snaktype": "value",
++                    "property": "P854",
++                    "hash": "446fe6e35ec6e172ccc35c0c0491335449354f61",
++                    "datavalue": {
++                      "value": "https://www.imdb.com/title/tt0034583/releaseinfo",
++                      "type": "string"
++                    },
++                    "datatype": "url"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "9e02ddea7c87bc4620cc3df2973fac3e4fc88dc2",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2022-06-18T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P854",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1943-01-23T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "ebca1d34de797d1ccbcf0ffbc249dd1818b506eb",
++            "datavalue": {
++              "value": {
++                "time": "+1943-10-11T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "7e3c5acd8ed74c218a2b55f9a0f77447daa0253b",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 34,
++                    "id": "Q34"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q132689$356d803f-4a75-973c-b933-1c51ffb93007",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "f0d4db69fa206ad8d2b6f4ad48de8667fedf273a",
++              "snaks": {
++                "P345": [
++                  {
++                    "snaktype": "value",
++                    "property": "P345",
++                    "hash": "23153e0a4fad8a1a8efae6bb67faffba02d5320a",
++                    "datavalue": {
++                      "value": "tt0034583",
++                      "type": "string"
++                    },
++                    "datatype": "external-id"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P345"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1943-10-11T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "1a047e7bc5f16dcbd4165dee32b58a3af87b7f33",
++            "datavalue": {
++              "value": {
++                "time": "+1947-05-23T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "0e14b091e4290b83034c405fdea4955fecb7f935",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 142,
++                    "id": "Q142"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q132689$095a6628-4a70-17e2-6a45-1b7ea95b57d9",
++          "rank": "normal",
++          "rdf_time": {
++            "timeValue": "1947-05-23T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "1942-11-26T00:00:00Z",
++          "statement_id": "Q132689$F243467C-C35B-4EFE-AF9E-7B67568B6D57"
++        },
++        {
++          "legacy_literal": "1943-01-23T00:00:00Z",
++          "statement_id": "Q132689$1f12d1a4-41b0-35c1-50e0-4abbf107940f"
++        },
++        {
++          "legacy_literal": "1943-10-11T00:00:00Z",
++          "statement_id": "Q132689$356d803f-4a75-973c-b933-1c51ffb93007"
++        },
++        {
++          "legacy_literal": "1947-05-23T00:00:00Z",
++          "statement_id": "Q132689$095a6628-4a70-17e2-6a45-1b7ea95b57d9"
++        }
++      ]
++    },
+     {
+       "subject": "Q133747",
+       "property": "P570",
+@@ -48725,6 +49647,1432 @@
+         }
+       ]
+     },
++    {
++      "subject": "Q170583",
++      "property": "P577",
++      "label": "Pride and Prejudice",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2556968373,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q170583.json?revision=2556968373",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q170583.rdf?revision=2556968373",
++        "json_sha256": "f816f7d19e02bdda9eef7b4e8175a25681cd6cfe45a1fbd44c38c89a2c9836c1",
++        "rdf_sha256": "f0b455b725516996b69546ba768bd228773abb740711533961e8967cc46559bd",
++        "snapshot_observed_at": "2026-10-27T11:35:40.618365+00:00"
++      },
++      "legacy_literals_observed": [
++        "1813-01-28T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "3f0d889d234a57ac486a6f62a8031e4a6c073b6c",
++            "datavalue": {
++              "value": {
++                "time": "+1813-01-28T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "id": "Q170583$3AFAD331-7083-4086-AFC3-342FEE1818DE",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "9e119488b7c0e65cde761ce9e6256a5625dfdad0",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "485d94f21c11e3f88cddb33407f94757f56abe9e",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 63953241,
++                        "id": "Q63953241"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P304": [
++                  {
++                    "snaktype": "value",
++                    "property": "P304",
++                    "hash": "4ce50dfd3d9f69ec584cc09ba966c6a5616a87e2",
++                    "datavalue": {
++                      "value": "xix",
++                      "type": "string"
++                    },
++                    "datatype": "string"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P304"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1813-01-28T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "1813-01-28T00:00:00Z",
++          "statement_id": "Q170583$3AFAD331-7083-4086-AFC3-342FEE1818DE"
++        }
++      ]
++    },
++    {
++      "subject": "Q172241",
++      "property": "P577",
++      "label": "The Shawshank Redemption",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2560728077,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q172241.json?revision=2560728077",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q172241.rdf?revision=2560728077",
++        "json_sha256": "a059125549e1c23eb9e4ee3d0835de1ab5f6187899b52674cf119e909467614a",
++        "rdf_sha256": "5ea5b900391f09560131e24aad439cd0b065072b329015a6cdfd8c35d377e4d6",
++        "snapshot_observed_at": "2026-10-27T11:35:56.367808+00:00"
++      },
++      "legacy_literals_observed": [
++        "1994-09-10T00:00:00Z",
++        "1994-09-23T00:00:00Z",
++        "1995-03-01T00:00:00Z",
++        "1995-03-09T00:00:00Z",
++        "1995-07-06T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "efdccfafa3e5fb0055f711bba9c8c193aafa9f52",
++            "datavalue": {
++              "value": {
++                "time": "+1994-09-23T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "d030038c836f9ed0d37c69cb8c389d689ebeb05a",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 30,
++                    "id": "Q30"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              },
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "215c8c03f45f44014c6803258cd077b498b9c691",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 16,
++                    "id": "Q16"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              },
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "c447ecbf60adcd930d5ee86dda07c2819d50ab3d",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 96,
++                    "id": "Q96"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q172241$069DD880-48DD-47C1-BE51-AB024F64FF54",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "01239ba5b6dcbb2c5fcb69c3e8ebd0389938e361",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "6ff43c6ce02fc9e2012771b5595093e7f0c33162",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 37312,
++                        "id": "Q37312"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P854": [
++                  {
++                    "snaktype": "value",
++                    "property": "P854",
++                    "hash": "e9dbe1732e774f24997940453dce881ffc6805f3",
++                    "datavalue": {
++                      "value": "https://www.imdb.com/title/tt0111161/releaseinfo/",
++                      "type": "string"
++                    },
++                    "datatype": "url"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "b57fb656b04f9ca908ea4f43e1b48137515f3286",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2025-08-02T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P854",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1994-09-23T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "1cce089885e3d59d3dac20597fda679d427aa009",
++            "datavalue": {
++              "value": {
++                "time": "+1994-09-10T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "6e6e79b6cd3b60fcc09878234d49e172b8afcde5",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 390018,
++                    "id": "Q390018"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q172241$B42C774B-B4C4-4F2F-9CBE-3DBFD34D126A",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "4a04f5e4e7358eb16ae555ab54a00be4e85b36bc",
++              "snaks": {
++                "P854": [
++                  {
++                    "snaktype": "value",
++                    "property": "P854",
++                    "hash": "db5786d24e7d46c72bc3ab12b41b41f5357a35d1",
++                    "datavalue": {
++                      "value": "http://www.nndb.com/films/748/000033649/",
++                      "type": "string"
++                    },
++                    "datatype": "url"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P854"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1994-09-10T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "49157526a08370379a25d283aee9b51368918e35",
++            "datavalue": {
++              "value": {
++                "time": "+1995-03-09T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "a15ed95482d52eea03d59e098dae9e31dafef9bd",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 183,
++                    "id": "Q183"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q172241$fb071369-4ffc-3ffc-92da-234cbe8ee3e3",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "b319daed30e740c1fe14bf41b38bbcfc703d6774",
++              "snaks": {
++                "P854": [
++                  {
++                    "snaktype": "value",
++                    "property": "P854",
++                    "hash": "9d584bfbd87647b6445d94a2bc525e9c9f9ebf6f",
++                    "datavalue": {
++                      "value": "http://www.zelluloid.de/filme/index.php3?id=1002",
++                      "type": "string"
++                    },
++                    "datatype": "url"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "bf1386f3ea24c520fd0b1fefc4580f238166bbd8",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2018-03-10T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P854",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1995-03-09T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "a316dfef83cef67a4859e0a6d28e071ed848fce7",
++            "datavalue": {
++              "value": {
++                "time": "+1995-03-01T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "0e14b091e4290b83034c405fdea4955fecb7f935",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 142,
++                    "id": "Q142"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q172241$ad1c723d-422e-f0e4-0040-c6d0580483c3",
++          "rank": "normal",
++          "rdf_time": {
++            "timeValue": "1995-03-01T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "bc33e64b612d83e231f1ca4ccfdcb8486d6d6e21",
++            "datavalue": {
++              "value": {
++                "time": "+1995-07-06T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "927a66562afc5f84affd33c12a815b555acee128",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 213,
++                    "id": "Q213"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q172241$d5f27206-4461-3e22-4daa-6f4b59956a99",
++          "rank": "normal",
++          "rdf_time": {
++            "timeValue": "1995-07-06T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "1994-09-23T00:00:00Z",
++          "statement_id": "Q172241$069DD880-48DD-47C1-BE51-AB024F64FF54"
++        },
++        {
++          "legacy_literal": "1994-09-10T00:00:00Z",
++          "statement_id": "Q172241$B42C774B-B4C4-4F2F-9CBE-3DBFD34D126A"
++        },
++        {
++          "legacy_literal": "1995-03-09T00:00:00Z",
++          "statement_id": "Q172241$fb071369-4ffc-3ffc-92da-234cbe8ee3e3"
++        },
++        {
++          "legacy_literal": "1995-03-01T00:00:00Z",
++          "statement_id": "Q172241$ad1c723d-422e-f0e4-0040-c6d0580483c3"
++        },
++        {
++          "legacy_literal": "1995-07-06T00:00:00Z",
++          "statement_id": "Q172241$d5f27206-4461-3e22-4daa-6f4b59956a99"
++        }
++      ]
++    },
++    {
++      "subject": "Q208460",
++      "property": "P577",
++      "label": "Nineteen Eighty-Four",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2555548448,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q208460.json?revision=2555548448",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q208460.rdf?revision=2555548448",
++        "json_sha256": "c5858b1c6d94d28b78be9f882de64911d8914de68c91d7150052b1129a7e0c12",
++        "rdf_sha256": "d864b462c86ad72bb0323ece3d603f7d5677c2949f352d607c72ed78c31afc32",
++        "snapshot_observed_at": "2026-10-27T11:35:47.936163+00:00"
++      },
++      "legacy_literals_observed": [
++        "1949-01-01T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "27546553ee6d79cbacfa942ad68d888d55a1fbd8",
++            "datavalue": {
++              "value": {
++                "time": "+1949-00-00T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 9,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "id": "Q208460$5e0fb9a3-4662-be7d-7bb5-d23d5adc4cb6",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "d4bd87b862b12d99d26e86472d44f26858dee639",
++              "snaks": {
++                "P143": [
++                  {
++                    "snaktype": "value",
++                    "property": "P143",
++                    "hash": "f30cbd35620c4ea6d0633aaf0210a8916130469b",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 8447,
++                        "id": "Q8447"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P143"
++              ]
++            },
++            {
++              "hash": "4b4668fe4d04a585b1adb87106510718948b91b0",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "52af760ff9ceb914251924abe88e53af182b0f92",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 193563,
++                        "id": "Q193563"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P268": [
++                  {
++                    "snaktype": "value",
++                    "property": "P268",
++                    "hash": "fa983f26fa191214803ef6e6f1e794c3b074fa84",
++                    "datavalue": {
++                      "value": "119437788",
++                      "type": "string"
++                    },
++                    "datatype": "external-id"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "728cab12b6ac7d67c55be832c3fa153f623eb968",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2018-11-06T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P268",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1949-01-01T00:00:00Z",
++            "timePrecision": "9",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "1949-01-01T00:00:00Z",
++          "statement_id": "Q208460$5e0fb9a3-4662-be7d-7bb5-d23d5adc4cb6"
++        }
++      ]
++    },
++    {
++      "subject": "Q223880",
++      "property": "P577",
++      "label": "Emma",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2537443680,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q223880.json?revision=2537443680",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q223880.rdf?revision=2537443680",
++        "json_sha256": "7a3a65bd3d74a708738bbb38843c938736fc6c9aee3b353e463317613d47a59f",
++        "rdf_sha256": "5d22faeca88650fc1d1e06d5d6ccbcabc9bdcdc6dd68f2fb416cf2c9a2a23b37",
++        "snapshot_observed_at": "2026-10-27T11:35:41.010093+00:00"
++      },
++      "legacy_literals_observed": [
++        "1815-12-23T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "16cd16d71560d408b9aab6898c8c15dc40cc81e5",
++            "datavalue": {
++              "value": {
++                "time": "+1815-12-23T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "id": "Q223880$4AFF4B99-BC4E-493B-AD8D-101FAB0A5440",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "fa278ebfc458360e5aed63d5058cca83c46134f1",
++              "snaks": {
++                "P143": [
++                  {
++                    "snaktype": "value",
++                    "property": "P143",
++                    "hash": "e4f6d9441d0600513c4533c672b5ab472dc73694",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 328,
++                        "id": "Q328"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P143"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1815-12-23T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "1815-12-23T00:00:00Z",
++          "statement_id": "Q223880$4AFF4B99-BC4E-493B-AD8D-101FAB0A5440"
++        }
++      ]
++    },
++    {
++      "subject": "Q270385",
++      "property": "P577",
++      "label": "Pride & Prejudice",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2561195212,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q270385.json?revision=2561195212",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q270385.rdf?revision=2561195212",
++        "json_sha256": "b1fbd56f881db674a8786202a85067dd77fe440c0a4c4f668bc147dd2b72c812",
++        "rdf_sha256": "130b3fde6d5ca6be2ef4cb5ada19476fde6b1576717f53166766b7ef45a3ea73",
++        "snapshot_observed_at": "2026-10-27T11:35:57.584047+00:00"
++      },
++      "legacy_literals_observed": [
++        "2005-09-16T00:00:00Z",
++        "2005-10-20T00:00:00Z",
++        "2005-11-11T00:00:00Z",
++        "2005-11-23T00:00:00Z",
++        "2006-01-18T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "2c966185112be7de71523856d07d44e393ddbb29",
++            "datavalue": {
++              "value": {
++                "time": "+2005-09-16T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "0a04593d08cbf7e3266dcb4ca0b01da704269a28",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 145,
++                    "id": "Q145"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              },
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "86e3c9e36cb9ab232786f2f33c349a43f58530ac",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 27,
++                    "id": "Q27"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q270385$C304D8C6-21AA-49BE-BFDD-141D772BCAE2",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "40f673f5182040e9517fc126b8a8d055430adf2d",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "6ff43c6ce02fc9e2012771b5595093e7f0c33162",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 37312,
++                        "id": "Q37312"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P854": [
++                  {
++                    "snaktype": "value",
++                    "property": "P854",
++                    "hash": "3553e6d5854ef7d2bb497f15e735a9440322a5d7",
++                    "datavalue": {
++                      "value": "https://www.imdb.com/title/tt0414387/releaseinfo/",
++                      "type": "string"
++                    },
++                    "datatype": "url"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "eb63abd888fa0d6e71174d2e89352dd9ed751a9c",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2025-05-04T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P854",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "2005-09-16T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "4bab651f1207c44f9ac4fdba325d12c8d714b4ef",
++            "datavalue": {
++              "value": {
++                "time": "+2005-11-11T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P437": [
++              {
++                "snaktype": "value",
++                "property": "P437",
++                "hash": "8ea57a13985562fef0a1d8fd6d9daeb7b25ce94b",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 3491297,
++                    "id": "Q3491297"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ],
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "d030038c836f9ed0d37c69cb8c389d689ebeb05a",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 30,
++                    "id": "Q30"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P437",
++            "P291"
++          ],
++          "id": "Q270385$C1BEC0A2-B39D-4440-BB4C-7C0351073DAD",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "40f673f5182040e9517fc126b8a8d055430adf2d",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "6ff43c6ce02fc9e2012771b5595093e7f0c33162",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 37312,
++                        "id": "Q37312"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P854": [
++                  {
++                    "snaktype": "value",
++                    "property": "P854",
++                    "hash": "3553e6d5854ef7d2bb497f15e735a9440322a5d7",
++                    "datavalue": {
++                      "value": "https://www.imdb.com/title/tt0414387/releaseinfo/",
++                      "type": "string"
++                    },
++                    "datatype": "url"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "eb63abd888fa0d6e71174d2e89352dd9ed751a9c",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2025-05-04T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P854",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "2005-11-11T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "98cc76eb83f07a4313fe58ccc6baae0f3d787d9a",
++            "datavalue": {
++              "value": {
++                "time": "+2005-10-20T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "a15ed95482d52eea03d59e098dae9e31dafef9bd",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 183,
++                    "id": "Q183"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q270385$d79edfec-4e2b-b6b2-e522-0b4333fa55cb",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "d1bd554b122f8a3f979e89392ef4602d4d5d06b1",
++              "snaks": {
++                "P854": [
++                  {
++                    "snaktype": "value",
++                    "property": "P854",
++                    "hash": "3611f2158f4a94d66ff40a2fc85fd100a37851e6",
++                    "datavalue": {
++                      "value": "http://www.kinokalender.com/film5386_stolz-und-vorurteil.html",
++                      "type": "string"
++                    },
++                    "datatype": "url"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "56b6aa0388c9a2711946589902bc195718bb0675",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2017-12-26T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P854",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "2005-10-20T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "6c2815309e06aad5dd27d62b36323ece1fc6098d",
++            "datavalue": {
++              "value": {
++                "time": "+2005-11-23T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "d030038c836f9ed0d37c69cb8c389d689ebeb05a",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 30,
++                    "id": "Q30"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q270385$55974108-5839-407B-B322-79A65CEBB6E8",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "40f673f5182040e9517fc126b8a8d055430adf2d",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "6ff43c6ce02fc9e2012771b5595093e7f0c33162",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 37312,
++                        "id": "Q37312"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P854": [
++                  {
++                    "snaktype": "value",
++                    "property": "P854",
++                    "hash": "3553e6d5854ef7d2bb497f15e735a9440322a5d7",
++                    "datavalue": {
++                      "value": "https://www.imdb.com/title/tt0414387/releaseinfo/",
++                      "type": "string"
++                    },
++                    "datatype": "url"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "eb63abd888fa0d6e71174d2e89352dd9ed751a9c",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2025-05-04T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P854",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "2005-11-23T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        },
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "faaf10a5f3c950c20013b10a8aff7530e604cc48",
++            "datavalue": {
++              "value": {
++                "time": "+2006-01-18T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 11,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "qualifiers": {
++            "P291": [
++              {
++                "snaktype": "value",
++                "property": "P291",
++                "hash": "0e14b091e4290b83034c405fdea4955fecb7f935",
++                "datavalue": {
++                  "value": {
++                    "entity-type": "item",
++                    "numeric-id": 142,
++                    "id": "Q142"
++                  },
++                  "type": "wikibase-entityid"
++                },
++                "datatype": "wikibase-item"
++              }
++            ]
++          },
++          "qualifiers-order": [
++            "P291"
++          ],
++          "id": "Q270385$B73E36F5-FED2-4CEA-A076-ABC3F3200AE2",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "40f673f5182040e9517fc126b8a8d055430adf2d",
++              "snaks": {
++                "P248": [
++                  {
++                    "snaktype": "value",
++                    "property": "P248",
++                    "hash": "6ff43c6ce02fc9e2012771b5595093e7f0c33162",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 37312,
++                        "id": "Q37312"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ],
++                "P854": [
++                  {
++                    "snaktype": "value",
++                    "property": "P854",
++                    "hash": "3553e6d5854ef7d2bb497f15e735a9440322a5d7",
++                    "datavalue": {
++                      "value": "https://www.imdb.com/title/tt0414387/releaseinfo/",
++                      "type": "string"
++                    },
++                    "datatype": "url"
++                  }
++                ],
++                "P813": [
++                  {
++                    "snaktype": "value",
++                    "property": "P813",
++                    "hash": "eb63abd888fa0d6e71174d2e89352dd9ed751a9c",
++                    "datavalue": {
++                      "value": {
++                        "time": "+2025-05-04T00:00:00Z",
++                        "timezone": 0,
++                        "before": 0,
++                        "after": 0,
++                        "precision": 11,
++                        "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++                      },
++                      "type": "time"
++                    },
++                    "datatype": "time"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P248",
++                "P854",
++                "P813"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "2006-01-18T00:00:00Z",
++            "timePrecision": "11",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "2005-09-16T00:00:00Z",
++          "statement_id": "Q270385$C304D8C6-21AA-49BE-BFDD-141D772BCAE2"
++        },
++        {
++          "legacy_literal": "2005-11-11T00:00:00Z",
++          "statement_id": "Q270385$C1BEC0A2-B39D-4440-BB4C-7C0351073DAD"
++        },
++        {
++          "legacy_literal": "2005-10-20T00:00:00Z",
++          "statement_id": "Q270385$d79edfec-4e2b-b6b2-e522-0b4333fa55cb"
++        },
++        {
++          "legacy_literal": "2005-11-23T00:00:00Z",
++          "statement_id": "Q270385$55974108-5839-407B-B322-79A65CEBB6E8"
++        },
++        {
++          "legacy_literal": "2006-01-18T00:00:00Z",
++          "statement_id": "Q270385$B73E36F5-FED2-4CEA-A076-ABC3F3200AE2"
++        }
++      ]
++    },
++    {
++      "subject": "Q940014",
++      "property": "P577",
++      "label": "Pride and Prejudice",
++      "source": {
++        "kind": "wikidata-entity-json-and-rdf",
++        "revision": 2561037503,
++        "json_url": "https://www.wikidata.org/wiki/Special:EntityData/Q940014.json?revision=2561037503",
++        "rdf_url": "https://www.wikidata.org/wiki/Special:EntityData/Q940014.rdf?revision=2561037503",
++        "json_sha256": "2fb17d3644c97cb5f72a0bcaaf1a82bf306efb6965fe2f432d1f43f35b4301ea",
++        "rdf_sha256": "ee1233913eab4fcdfc8baa112c235e1338538960f3f4ba14a3c734f1b7f8e2de",
++        "snapshot_observed_at": "2026-10-27T11:35:58.774080+00:00"
++      },
++      "legacy_literals_observed": [
++        "1940-01-01T00:00:00Z"
++      ],
++      "statements": [
++        {
++          "mainsnak": {
++            "snaktype": "value",
++            "property": "P577",
++            "hash": "54d318122ee2948787bf1498ba763ad4f503c835",
++            "datavalue": {
++              "value": {
++                "time": "+1940-01-01T00:00:00Z",
++                "timezone": 0,
++                "before": 0,
++                "after": 0,
++                "precision": 9,
++                "calendarmodel": "http://www.wikidata.org/entity/Q1985727"
++              },
++              "type": "time"
++            },
++            "datatype": "time"
++          },
++          "type": "statement",
++          "id": "Q940014$3EFD7C6C-9703-471D-B126-273AE4E92D44",
++          "rank": "normal",
++          "references": [
++            {
++              "hash": "d5847b9b6032aa8b13dae3c2dfd9ed5d114d21b3",
++              "snaks": {
++                "P143": [
++                  {
++                    "snaktype": "value",
++                    "property": "P143",
++                    "hash": "5a343e7e758a4282a01316d3e959b6e653b767fc",
++                    "datavalue": {
++                      "value": {
++                        "entity-type": "item",
++                        "numeric-id": 11920,
++                        "id": "Q11920"
++                      },
++                      "type": "wikibase-entityid"
++                    },
++                    "datatype": "wikibase-item"
++                  }
++                ]
++              },
++              "snaks-order": [
++                "P143"
++              ]
++            }
++          ],
++          "rdf_time": {
++            "timeValue": "1940-01-01T00:00:00Z",
++            "timePrecision": "9",
++            "timeTimezone": "0",
++            "timeCalendarModel": "http://www.wikidata.org/entity/Q1985727"
++          }
++        }
++      ],
++      "bindings": [
++        {
++          "legacy_literal": "1940-01-01T00:00:00Z",
++          "statement_id": "Q940014$3EFD7C6C-9703-471D-B126-273AE4E92D44"
++        }
++      ]
++    },
+     {
+       "subject": "Q1026532",
+       "property": "P569",
+@@ -73492,5 +75840,6 @@
+       ]
+     }
+   ],
+-  "import_failures": []
++  "import_failures": [],
++  "base_sidecar_sha256": "3e2392fbc65a610790b35f06e49d5d28372ff01aa9b8f677b453ab20727a9e15"
+ }
+diff --git a/root/specialists/_gate/standing_v1.txt b/root/specialists/_gate/standing_v1.txt
+index 5e1461c..ff69758 100644
+--- a/root/specialists/_gate/standing_v1.txt
++++ b/root/specialists/_gate/standing_v1.txt
+@@ -17,7 +17,7 @@ astronomy-v3
+ planetary
+ spacecraft
+ geology
+-meteorology
++meteorology-v2
+ ocean
+ climate
+ seismology
+diff --git a/root/specialists/_gate/standing_v2.txt b/root/specialists/_gate/standing_v2.txt
+index 25d001f..2fe0598 100644
+--- a/root/specialists/_gate/standing_v2.txt
++++ b/root/specialists/_gate/standing_v2.txt
+@@ -16,7 +16,7 @@ astronomy-v3-r2
+ planetary
+ spacecraft
+ geology
+-meteorology
++meteorology-v2
+ ocean
+ climate
+ seismology
+diff --git a/root/wander-train/date_precision_v1.py b/root/wander-train/date_precision_v1.py
+index 67566cb..d1781f3 100644
+--- a/root/wander-train/date_precision_v1.py
++++ b/root/wander-train/date_precision_v1.py
+@@ -264,42 +264,95 @@ def _time_interval(time):
+     return time['calendarmodel'], low, high
+ 
+ 
++def _statement_interval(record, publication_places=False):
++    qualifiers = record.get('qualifiers', {})
++    allowed = {'P4241', 'P7452', 'P1319', 'P1326'}
++    refinements = qualifiers.get('P4241', [])
++    if not isinstance(refinements, list) or ('P4241' in qualifiers and not refinements):
++        return None
++    for snak in refinements:
++        value = snak.get('datavalue', {})
++        if (snak.get('snaktype') != 'value' or value.get('type') != 'wikibase-entityid'
++                or value.get('value', {}).get('id') not in
++                {'Q40719727', 'Q40719748', 'Q40719766', 'Q40719687', 'Q40719707'}):
++            return None
++    if publication_places:
++        allowed.add('P291')
++        places = qualifiers.get('P291', [])
++        if not isinstance(places, list) or ('P291' in qualifiers and not places):
++            return None
++        for snak in places:
++            value = snak.get('datavalue', {})
++            place = value.get('value', {})
++            if (snak.get('snaktype') != 'value' or value.get('type') != 'wikibase-entityid'
++                    or place.get('entity-type') != 'item'
++                    or not isinstance(place.get('id'), str)
++                    or not re.fullmatch(r'Q[1-9][0-9]*', place['id'])
++                    or ('numeric-id' in place and place['numeric-id'] != int(place['id'][1:]))):
++                return None
++    if set(qualifiers) - allowed:
++        return None
++    bounds = _time_interval(record['mainsnak']['datavalue']['value'])
++    if bounds is None:
++        return None
++    calendar, low, high = bounds
++    for prop in ('P1319', 'P1326'):
++        for snak in qualifiers.get(prop, []):
++            if snak.get('snaktype') != 'value' or snak.get('datavalue', {}).get('type') != 'time':
++                return None
++            bound = _time_interval(snak['datavalue']['value'])
++            if bound is None or bound[0] != calendar:
++                return None
++            if prop == 'P1319':
++                low = max(low, bound[1])
++            else:
++                high = min(high, bound[2])
++    return (calendar, low, high) if low <= high else None
++
++
+ def interval(value, subject, property):
+     """Conservative bounds for ordering; uncertain/unknown qualifiers never prove order.
+ 
+     Refinement can only narrow the coarse source period, so retaining that wider
+     period is safe. Explicit earliest/latest bounds narrow only in the same
+     calendar. Circa/disputed and unrecognized qualifiers remain unknown.
++    Publication-place qualifiers remain ineligible for an unqualified chronology.
+     """
+     records = selected(value, subject, property)
+     if not records:
+         return None
+-    intervals = []
+     try:
+-        for record in records:
+-            qualifiers = record.get('qualifiers', {})
+-            if set(qualifiers) - {'P4241', 'P7452', 'P1319', 'P1326'}:
+-                return None
+-            bounds = _time_interval(record['mainsnak']['datavalue']['value'])
+-            if bounds is None:
+-                return None
+-            calendar, low, high = bounds
+-            for prop in ('P1319', 'P1326'):
+-                for snak in qualifiers.get(prop, []):
+-                    if snak.get('snaktype') != 'value' or snak.get('datavalue', {}).get('type') != 'time':
+-                        return None
+-                    bound = _time_interval(snak['datavalue']['value'])
+-                    if bound is None or bound[0] != calendar:
+-                        return None
+-                    if prop == 'P1319':
+-                        low = max(low, bound[1])
+-                    else:
+-                        high = min(high, bound[2])
+-            if low > high:
+-                return None
+-            intervals.append((calendar, low, high))
+-        if len({b[0] for b in intervals}) != 1:
++        intervals = [_statement_interval(record) for record in records]
++        if any(b is None for b in intervals) or len({b[0] for b in intervals}) != 1:
+             return None
+         return intervals[0][0], min(b[1] for b in intervals), max(b[2] for b in intervals)
+     except (ValueError, KeyError, TypeError, IndexError, AttributeError):
+         return None
++
++
++def publication_intervals(value, subject):
++    """Positive P577 publication/release witnesses, with their source and scope.
++
++    Only for an existential release/publication condition without a requested
++    location, format, edition or first-release restriction. Typed publication
++    place (P291) narrows where that release occurred, without denying its date.
++    The caller must keep this scope visible. Other unknown modifiers, circa,
++    unsupported calendars, and missing/mismatched metadata give no witness.
++    A different release date never proves absence of a release in another year.
++    This does not relax interval(), choose a work identity, or prove completeness.
++    """
++    records = selected(value, subject, 577)
++    metadata = _load().get((_qid(subject, 'Q'), 'P577'), {})
++    out = []
++    try:
++        for record in records:
++            bounds = _statement_interval(record, publication_places=True)
++            if bounds is None:
++                continue
++            out.append({'interval': bounds, 'subject': _qid(subject, 'Q'), 'property': 'P577',
++                        'legacy_literal': value, 'source': metadata.get('source'),
++                        'statement_id': record['id'], 'qualifiers': record.get('qualifiers', {}),
++                        'scope': 'some recorded publication or release; not necessarily the first or every region'})
++        return out
++    except (ValueError, KeyError, TypeError, IndexError, AttributeError):
++        return []
+diff --git a/root/wander-train/premise_v3.py b/root/wander-train/premise_v3.py
+index 0a180cc..40f42fc 100644
+--- a/root/wander-train/premise_v3.py
++++ b/root/wander-train/premise_v3.py
+@@ -6,22 +6,20 @@ subject or owner and is not treated as a creator assertion. None means unproved,
+ not confirmed. Index coverage, source assertions and text interpretation remain
+ assumptions; no theorem about the world is established here.
+ 
+-WITH and YEAR retain the release 4.8 behavior: WITH checks stored connections
+-between named people and the answer; YEAR compares a work-year phrase with dates
+-of the first cited QID, using a ten-year tolerance. Those older checks still need
+-coverage and identity review; missing records alone do not refute a real-world
+-premise. Each function returns a withholding reason or None.
++WITH requires the requested joint relation, not any connection between people.
++YEAR binds the whole title and cited work before checking a specific date role
++with source-bound precision. These guards can withhold for insufficient evidence
++without asserting that the premise is false. The typed assess() result preserves
++that distinction; check() retains the older reason-string interface.
+ """
+ import re
++from itertools import permutations
+ 
+ import entity_linker_v3 as L
+ import reach_router_v3 as R
++import date_precision_v1 as DATE
+ 
+ HUMAN = 5
+-QREF = re.compile(r"\(Q(\d+)\)")
+-YEAR_WORK = re.compile(r"\b(?:the\s+)?(?P<y>1[0-9]{3}|20[0-9]{2})\s+(?:film|movie|novel|book|song|album|opera|play|painting|series)\b"
+-                       r"|\b(?:film|movie|novel|book|song|album|opera|play|painting)\s+[^?]{1,60}?\((?P<y2>1[0-9]{3}|20[0-9]{2})\)", re.I)
+-DATES = (577, 571, 1191, 580)                          # publication date, inception, date of first performance, start time
+ 
+ 
+ def _lead(reply):
+@@ -89,88 +87,252 @@ def owner(q, reply):
+     return None
+ 
+ 
+-def _connected(a, b):
+-    db = R._load()["db"]
+-    return db.execute("SELECT 1 FROM fact INDEXED BY fact_sp WHERE s=? AND o=? LIMIT 1", (a, b)).fetchone() is not None or \
+-        db.execute("SELECT 1 FROM fact INDEXED BY fact_sp WHERE s=? AND o=? LIMIT 1", (b, a)).fetchone() is not None
++def _assessment(rule, reason, **evidence):
++    return {"kind": "insufficient_evidence", "rule": rule, "reason": reason,
++            "evidence": evidence,
++            "scope": "Untrusted recognition and source rows; missing rows are not negative facts."}
+ 
+ 
+-def _answer_qids(reply, value_qids):
+-    vals = [int(str(x).lstrip("Q")) for x in value_qids if str(x).lstrip("Q").isdigit()]
+-    if vals:
+-        return vals
+-    lead = _lead(reply).strip()
+-    sp = [s for s in L.link(lead + "?", 3)[:1] if L.norm(s[0]) == L.norm(lead)]
+-    return [sp[0][1][0][0]] if sp and sp[0][1] else []
++# Only these exact joint relations are interpreted. Full name spans are kept;
++# two adjacent names or a name inside a longer name are not separate people.
++JOINT_ROLES = {("band", "form"): 112, ("band", "found"): 112,
++               ("company", "found"): 112, ("organization", "found"): 112,
++               ("book", "write"): 50, ("novel", "write"): 50,
++               ("film", "direct"): 57, ("movie", "direct"): 57,
++               ("film", "produce"): 162, ("movie", "produce"): 162,
++               ("song", "compose"): 86, ("opera", "compose"): 86}
++KIND_ROOTS = {"band": 215380, "company": 783794, "organization": 43229,
++              "book": 571, "novel": 8261, "film": 11424, "movie": 11424,
++              "song": 7366, "opera": 1344}
++JOINT_ACTIONS = {112: "founded", 50: "wrote", 57: "directed", 162: "produced", 86: "composed"}
++JOINT_WITH = re.compile(
++    r'^\s*(?:which|what)\s+(?P<kind>band|company|organization|book|novel|film|movie|song|opera)\s+'
++    r'did\s+(?P<first>.+?)\s+(?P<verb>form|found|write|direct|produce|compose)\s+with\s+'
++    r'(?P<second>[^?\n]+?)\s*\?\s*$', re.I)
++JOINT_AND = re.compile(
++    r'^\s*(?:which|what)\s+(?P<kind>band|company|organization|book|novel|film|movie|song|opera)\s+'
++    r'did\s+(?P<first>.+?)\s+and\s+(?P<second>.+?)\s+'
++    r'(?P<verb>form|found|write|direct|produce|compose)\s*\?\s*$', re.I)
+ 
+ 
+-def with_(q, reply, value_qids):
+-    """only for questions that name two or more people: each must be connected to the answer"""
+-    toks = L.norm(str(q)).split()
++def _kind_holds(qid, kind):
++    """Positive bounded source classification; failure is unknown, not exclusion."""
++    frontier = set(R.classes(qid))
++    if kind == "novel":
++        # Modern source records distinguish a work's form (novel) from its
++        # genre (romantic fiction) and its broad class (literary work).
++        for prop in (136, 7937):
++            frontier.update(v for v in R.values(qid, prop, "fwd") if type(v) is int)
++    seen = set()
++    for _ in range(5):
++        if KIND_ROOTS[kind] in frontier:
++            return True
++        if len(seen | frontier) > 64:
++            return False
++        following = set()
++        for cls in frontier - seen:
++            parents = R.values(cls, 279, "fwd")
++            if len(parents) > 32:
++                return False
++            following.update(v for v in parents if type(v) is int)
++        seen.update(frontier)
++        frontier = following - seen
++        if not frontier:
++            break
++    return False
+ 
+-    def where(span):
+-        sp = L.norm(span).split()
+-        for i in range(len(toks) - len(sp) + 1):
+-            if toks[i:i + len(sp)] == sp:
+-                return i, i + len(sp)
+-        return None
+ 
+-    people = []
+-    for span, cands in L.link(str(q), 12)[:4]:
+-        w = where(span)
+-        if not cands or not w or len(L.norm(span)) < 4:
+-            continue
+-        # a capitalised name in the question may be a person below its top readings ("Chopin": an asteroid, a film,
+-        # then the composer); a lower-case word counts only through its top reading
+-        proper = re.search(r"\b%s\b" % re.escape(span), str(q)) and span[:1].isupper()
+-        pool = cands[:12] if proper else cands[:1]
+-        hum = next((c[0] for c in pool if _humanq(c[0])), None)
+-        if hum:
+-            people.append((span, hum, w))
+-    # people named side by side are one name ("Prince Michael Jackson"), not two
+-    people = [p for p in people if not any(o is not p and (o[2][1] == p[2][0] or p[2][1] == o[2][0] or
+-                                                           (o[2][0] <= p[2][0] and p[2][1] <= o[2][1])) for o in people)]
+-    if len(people) < 2:
+-        return None
+-    vals = _answer_qids(reply, value_qids)
+-    if not vals:
+-        return None
+-    for span, other, _ in people:
+-        if other in vals:
+-            continue
+-        if not any(_connected(other, v) for v in vals):
+-            return "%s is not connected to that answer in my records" % span
+-    return None
++def _answered_entity(reply, value_qids):
++    """Bind one supplied answer ID to the whole displayed answer label.
+ 
++    Structured IDs remain lower-reader premises, not an authority independent
++    of its answer text. Without one, require an unambiguous whole-name lookup.
++    """
++    lead = L.norm(_lead(reply).strip())
++    if value_qids:
++        if len(value_qids) != 1 or not re.fullmatch(r'Q?[1-9][0-9]*', str(value_qids[0])):
++            return None
++        qid = int(str(value_qids[0]).removeprefix("Q"))
++        return qid if lead and lead == L.norm(L.label(qid) or "") else None
++    return _unique_whole_name(lead)
+ 
+-def year(q, reply):
+-    m = YEAR_WORK.search(str(q))
+-    if not m:
+-        return None
+-    y = int(m.group("y") or m.group("y2"))
+-    refs = [int(x) for x in QREF.findall(str(reply))]
+-    if not refs:
++
++def with_(q, reply, value_qids=()):
++    """Verify both people hold the *asked* relation to the proposed answer.
++
++    A missing row does not establish that they never did. It does mean the
++    earlier answer has not met this recognized joint condition in our records.
++    """
++    match = JOINT_WITH.fullmatch(str(q)) or JOINT_AND.fullmatch(str(q))
++    if not match:
+         return None
+-    work = refs[0]
+-    years = set()
+-    for p in DATES:
+-        for v in R.values(work, p, "fwd"):
+-            mm = re.match(r"^[+-]?(\d{4})", str(v))
+-            if mm:
+-                years.add(int(mm.group(1)))
+-    if years and not any(abs(y - x) <= YEAR_TOLERANCE for x in years):
+-        return "the question says %d, and the work I hold is from %s" % (y, "/".join(str(x) for x in sorted(years)))
++    prop = JOINT_ROLES.get((match["kind"].lower(), match["verb"].lower()))
++    if prop is None:
++        return _assessment("joint_relation", "I cannot establish the requested joint relation")
++    names = [match["first"], match["second"]]
++    people = [_unique_whole_name(name) for name in names]
++    if None in people or len(set(people)) != 2 or not all(_humanq(qid) for qid in people):
++        return _assessment("joint_relation", "I cannot identify two distinct people from the complete names",
++                           property=prop, names=names)
++    answer = _answered_entity(reply, value_qids)
++    if answer is None:
++        return _assessment("joint_relation", "I cannot bind the proposed answer to one stored entity",
++                           property=prop, people=people)
++    if not _kind_holds(answer, match["kind"].lower()):
++        return _assessment("joint_relation", "my records do not establish that %s is a %s" %
++                           (_lead(reply), match["kind"].lower()), property=prop, answer_qid=answer, people=people)
++    values = R.values(answer, prop, "fwd")
++    missing = [name for name, qid in zip(names, people) if qid not in values]
++    if missing:
++        return _assessment("joint_relation", "my records do not establish that %s %s %s" %
++                           (" and ".join(missing), JOINT_ACTIONS[prop], _lead(reply)), property=prop, answer_qid=answer,
++                           people=people, confirmed_people=[qid for qid in people if qid in values])
+     return None
+ 
+ 
+-COMPARE = re.compile(r"\b(?:or|than|older|younger|taller|shorter|earlier|later|first|longer|bigger|larger|smaller|more|less)\b", re.I)
+-YEAR_TOLERANCE = 10                                    # a year a few off is a slip (a novel's film year); an impossible one is not
++# A film-year means release/publication year, and a book-year publication year.
++# No inference from inception, performance or unrelated dates is substituted.
++YEAR_WORK = re.compile(
++    r'^\s*who\s+(?P<verb>directed|wrote)\s+(?:the\s+)?'
++    r'(?:(?P<year>1[0-9]{3}|20[0-9]{2})\s+(?P<kind>film|movie|book|novel)\s+(?P<title>[^?\n]+?)'
++    r'|(?P<kind2>film|movie|book|novel)\s+(?P<title2>[^?\n]+?)\s+\((?P<year2>1[0-9]{3}|20[0-9]{2})\))'
++    r'\s*\?\s*$', re.I)
++YEAR_ROLES = {("directed", "film"): 57, ("directed", "movie"): 57,
++              ("wrote", "book"): 50, ("wrote", "novel"): 50}
++GREGORIAN = "http://www.wikidata.org/entity/Q1985727"
+ 
+ 
+-def check(q, reply, value_qids=()):
++def _publications_in(work, requested):
++    evidence = []
++    for value in R.values(work, 577, "fwd"):
++        if not DATE.is_time(value):
++            continue
++        for item in DATE.publication_intervals(value, work):
++            calendar, low, high = item["interval"]
++            if calendar == GREGORIAN and (requested, 1, 1) <= low <= high <= (requested, 12, 31):
++                evidence.append(item)
++    return evidence
++
++
++def _answer_values_bound(reply, values, value_qids):
++    """Bind complete source values to both rendered answer slots and supplied IDs.
++
++    Reach/title readers show at most five entity values. Their list renderer is
++    reconstructed from complete source labels, never by splitting a name at an
++    arbitrary comma/and or by accepting a matching substring. Order is harmless.
++    No provenance IDs is a legacy display binding, not verified lower-reader IDs.
++    """
++    if not values or len(values) > 5 or any(type(value) is not int or value <= 0 for value in values):
++        return False
++    if value_qids:
++        if not isinstance(value_qids, (list, tuple)):
++            return False
++        if any(not re.fullmatch(r'Q?[1-9][0-9]*', str(value)) for value in value_qids):
++            return False
++        supplied = [int(str(value).removeprefix("Q")) for value in value_qids]
++        if len(supplied) != len(set(supplied)) or set(supplied) != values:
++            return False
++    labels = [L.label(value) for value in sorted(values)]
++    if any(not isinstance(label, str) or not label.strip() for label in labels):
++        return False
++    prefix, separator, _ = str(reply).partition("From the Wikidata relation store:")
++    citation = RELATION_CITATION.search(str(reply))
++    if not separator or citation is None:
++        return False
++    prefix = re.sub(r'^\s*\[ev:[a-z_]+\]\s*', '', prefix).strip()
++    suffix = str(reply)[citation.end():].strip()
++    if not prefix.endswith(".") or not suffix.endswith("."):
++        return False
++    # Strip the envelope terminator, retaining punctuation inside actual names.
++    prefix, suffix = prefix[:-1].strip(), suffix[:-1].strip()
++    canonical = lambda text: " ".join(text.split()).casefold()
++    renderings = set()
++    for ordered in permutations(labels):
++        renderings.add(canonical(", ".join(ordered)))
++        renderings.add(canonical(ordered[0] if len(ordered) == 1 else ", ".join(ordered[:-1]) + " and " + ordered[-1]))
++    return canonical(prefix) in renderings and canonical(suffix) in renderings
++
++
++def year(q, reply, value_qids=()):
++    """Check the requested work's release/publication year, without closed-world claims.
++
++    A positive, precision-bound date wholly inside the requested Gregorian year
++    satisfies this constraint. Other recorded dates do not prove that there
++    was no release in that year: the store can omit editions or regional dates.
++    """
++    match = YEAR_WORK.fullmatch(str(q))
++    if not match:
++        return None
++    kind = (match["kind"] or match["kind2"]).lower()
++    prop = YEAR_ROLES.get((match["verb"].lower(), kind))
++    if prop is None:
++        return _assessment("work_year", "I cannot identify the requested work and date role")
++    title = (match["title"] or match["title2"]).strip()
++    if title.startswith('"') and title.endswith('"'):
++        title = title[1:-1]
++    requested = int(match["year"] or match["year2"])
++    evidence = {"title": title, "requested_year": requested, "date_property": 577,
++                "calendar": GREGORIAN}
++    rows = L.candidates(L.norm(title), 65)
++    if not rows or len(rows) >= 65:
++        return _assessment("work_year", "I cannot bind the complete title within my bounded name index", **evidence)
++    candidates = {int(row[0]) for row in rows}
++    citations = [(int(qid), int(p)) for qid, p in RELATION_CITATION.findall(str(reply))]
++    if len(citations) != 1 or citations[0][0] not in candidates or citations[0][1] != prop:
++        return _assessment("work_year", "the proposed answer does not cite a complete-title reading and requested relation",
++                           **evidence)
++    work = citations[0][0]
++    if not _kind_holds(work, kind):
++        return _assessment("work_year", "my source classification does not establish the requested work kind",
++                           work_qid=work, **evidence)
++    publications = _publications_in(work, requested)
++    if not publications:
++        return _assessment("work_year", 'my publication/release records do not establish a date in %d for "%s"' %
++                           (requested, title), work_qid=work, **evidence)
++    values = R.values(work, prop, "fwd")
++    if not values:
++        return _assessment("work_year", "my records do not establish the cited work's requested creator relation",
++                           work_qid=work, **evidence)
++    if not _answer_values_bound(reply, values, value_qids):
++        return _assessment("work_year", "the proposed answer and its supplied identities do not match the cited creator rows",
++                           work_qid=work, asked_property=prop, **evidence)
++    matching, unresolved = [], []
++    for other in sorted(candidates - {work}):
++        if not _kind_holds(other, kind) or not _publications_in(other, requested):
++            unresolved.append(other)
++            continue
++        other_values = R.values(other, prop, "fwd")
++        if not other_values:
++            unresolved.append(other)
++        elif other_values != values:
++            return _assessment("work_year", "another positively matched work has a different stored answer",
++                               work_qid=work, conflicting_work_qid=other, **evidence)
++        else:
++            matching.append(other)
++    return {"kind": "supported_condition", "rule": "work_year",
++            "evidence": {**evidence, "work_qid": work, "asked_property": prop,
++                         "answer_qids": sorted(values),
++                         "answer_binding": "complete source labels in answer and citation; " +
++                             ("supplied value IDs agree" if value_qids else "no lower-reader value IDs supplied"),
++                         "publications": publications, "agreeing_work_qids": matching,
++                         "unresolved_work_qids": unresolved},
++            "scope": "The cited work satisfies the whole title, kind and publication-year condition. "
++                     "Other senses with missing evidence are not excluded; no complete global disambiguation is claimed."}
++
++
++def assess(q, reply, value_qids=()):
+     """premise checks only on a single, direct question: never on a passage, never on a long multi-sentence text"""
+     q = str(q)
+     if len(q) > 160 or re.search(r"(?i)\bpassage\s*:", q) or q.count("?") > 1 or q.count(". ") > 1:
+         return None
+-    joined = re.search(r"\b(?:with|and)\s+[A-Z]", q)          # the rule is for questions that join people
+-    return owner(q, reply) or (None if COMPARE.search(q) or not joined else with_(q, reply, value_qids)) or year(q, reply)
++    reason = owner(q, reply)
++    if reason:
++        return {"kind": "contradiction", "rule": "exclusive_creator", "reason": reason,
++                "scope": "Explicit exclusive premise conflicts with a positive source row; source truth assumed."}
++    return with_(q, reply, value_qids) or year(q, reply, value_qids)
++
++
++def check(q, reply, value_qids=()):
++    """Compatibility reason string. New consumers should retain assess()'s kind."""
++    result = assess(q, reply, value_qids)
++    return result.get("reason") if result else None
+diff --git a/tests/meteorology_v2/test_weather_registration.py b/tests/meteorology_v2/test_weather_registration.py
+new file mode 100644
+index 0000000..69573bb
+--- /dev/null
++++ b/tests/meteorology_v2/test_weather_registration.py
+@@ -0,0 +1,53 @@
++"""Exercise the weather selection made by the runtime's active standing lists.
++
++Uses the production Family/_Organ loader with the weather slice of each list;
++full Engine/front-door checks belong to the separate application smoke. It does
++not treat either a historical verdict or presence of a directory as admission.
++"""
++import json
++import unittest
++
++from test_weather_coexistence import SPECIALISTS, family, scorer
++
++
++class WeatherRegistration(unittest.TestCase):
++    def test_each_active_family_selects_one_repaired_weather_owner(self):
++        panel = json.loads((SPECIALISTS / 'meteorology-v2/weather_panel_v2.json').read_text())
++        score = scorer('meteorology-v2')
++        for name in ['standing_v1.txt', 'standing_v2.txt']:
++            entries = (SPECIALISTS / '_gate' / name).read_text().split()
++            selected = [sid for entry in entries for sid in entry.split('+')
++                        if sid in ('meteorology', 'meteorology-v2')]
++            self.assertEqual(selected, ['meteorology-v2'], name)
++            owner = family(selected)
++            for row in panel:
++                with self.subTest(list=name, q=row['q']):
++                    reply = owner.reply(row['q'])
++                    self.assertTrue(score(row, reply)[0])
++                    if reply:
++                        self.assertEqual(reply['provenance']['specialist'], 'meteorology-v2')
++            for question in ['ISA temperature at 3,000 m/s altitude?',
++                             'Standard atmosphere: temperature at 3,00 m altitude?',
++                             'ISA temperature at −3,000 m altitude?',
++                             'What Beaufort force is a -5 mph wind?',
++                             'Dew point 10 C and dew point 12 C: what is relative humidity?']:
++                with self.subTest(list=name, q=question):
++                    self.assertNotEqual((owner.reply(question) or {}).get('status'), 'answered')
++
++    def test_network_byte_identity_and_legacy_bundle_remain_available(self):
++        # The network's byte IDs bind learned plans: do not shift or duplicate
++        # those entries merely to select a newer direct weather-family reader.
++        for name in ['standing_net_v1.txt', 'standing_net_v6.txt']:
++            ids = [sid for entry in (SPECIALISTS / '_gate' / name).read_text().split()
++                   for sid in entry.split('+')]
++            self.assertEqual(ids.count('meteorology'), 1)
++            self.assertNotIn('meteorology-v2', ids)
++        legacy = family(['meteorology'])
++        answer = legacy.reply('ISA temperature at 3,000 m altitude?')
++        self.assertEqual(answer['status'], 'answered')
++        self.assertIn('is -4.5', answer['response'])
++        self.assertNotEqual((legacy.reply('ISA temperature at 3,000 m/s altitude?') or {}).get('status'), 'answered')
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/tests/premise_v3/test_conditions.py b/tests/premise_v3/test_conditions.py
+new file mode 100644
+index 0000000..a1b87f1
+--- /dev/null
++++ b/tests/premise_v3/test_conditions.py
+@@ -0,0 +1,366 @@
++"""Actual w571 + premise/lookup/date functions over a small SQLite source fixture.
++
++Only the preceding answerer is a double. No full Engine load or downloaded data.
++"""
++import importlib.util
++from pathlib import Path
++import sqlite3
++import sys
++from types import SimpleNamespace
++import unittest
++from unittest.mock import patch
++
++ROOT = Path(__file__).resolve().parents[2]
++WANDER = ROOT / "root/wander-train"
++ADMITTED = ROOT / "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted"
++GREGORIAN = "http://www.wikidata.org/entity/Q1985727"
++
++
++def load(name, path):
++    spec = importlib.util.spec_from_file_location(name, path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++class Conditions(unittest.TestCase):
++    def setUp(self):
++        self.db = sqlite3.connect(":memory:")
++        self.addCleanup(self.db.close)
++        self.db.executescript("""
++            CREATE TABLE name (norm TEXT, qid INTEGER, links INTEGER, alias INTEGER);
++            CREATE TABLE label (qid INTEGER PRIMARY KEY, label TEXT, links INTEGER);
++            CREATE TABLE fact (s INTEGER, p INTEGER, o INTEGER, lit TEXT);
++            CREATE INDEX fact_sp ON fact(s, p);
++            CREATE INDEX fact_po ON fact(p, o);
++        """)
++        self.names = load("fixture_names", WANDER / "entity_linker_v1.py")
++        self.names._DB = self.db
++        for qid, label in ((1, "Jane Smith"), (2, "John Smith"), (3, "Example Band"),
++                           (101, "Example Work"), (999, "Other Edition")):
++            self.db.execute("INSERT INTO name VALUES (?, ?, 10, 0)", (self.names.norm(label), qid))
++            self.db.execute("INSERT INTO label VALUES (?, ?, 10)", (qid, label))
++        self.fact(1, 31, 5)
++        self.fact(2, 31, 5)
++        self.fact(3, 31, 215380)
++        self.fact(101, 31, 11424)
++        self.fact(101, 57, 1)
++        self.fact(101, 50, 1)
++        self.dates = load("fixture_dates", WANDER / "date_precision_v1.py")
++        self.dates._CACHE = {}
++        with patch.dict(sys.modules, {"entity_linker_v3": self.names, "exact_router_v1": SimpleNamespace(),
++                                      "date_precision_v1": self.dates}):
++            self.router = load("fixture_router", WANDER / "reach_router_v3.py")
++        self.router._S = {"db": self.db}
++        with patch.dict(sys.modules, {"entity_linker_v3": self.names, "reach_router_v3": self.router,
++                                      "date_precision_v1": self.dates}):
++            self.premise = load("fixture_premise", WANDER / "premise_v3.py")
++        conversation = load("runtime_conversation_state", ADMITTED / "runtime_conversation_state.py")
++        with patch.dict(sys.modules, {"runtime_conversation_state": conversation}):
++            helper = load("runtime_final_outcome", ADMITTED / "runtime_final_outcome.py")
++        self.helper = helper
++        with patch.dict(sys.modules, {"runtime_final_outcome": helper}):
++            self.guard = load("runtime_refusal_guard", ADMITTED / "runtime_refusal_guard.py")
++        self.joint = "Which band did Jane Smith form with John Smith?"
++        self.band_reply = "Example Band. From the Wikidata relation store: Jane Smith (Q1) - founder (P112) - Example Band."
++        self.year_question = 'Who directed the 1948 film "Example Work"?'
++        self.work_reply = "Jane Smith. From the Wikidata relation store: Example Work (Q101) - director (P57) - Jane Smith."
++
++    def fact(self, subject, prop, obj=None, literal=None):
++        self.db.execute("INSERT INTO fact VALUES (?, ?, ?, ?)", (subject, prop, obj, literal))
++
++    def date(self, year=1948, subject=101, prop=577, precision=9, calendar=GREGORIAN, qualifiers=None):
++        literal = f"{year:04d}-01-01T00:00:00Z"
++        self.fact(subject, prop, literal=literal)
++        time = {"time": f"+{year:04d}-01-01T00:00:00Z", "precision": precision,
++                "calendarmodel": calendar, "timezone": 0, "before": 0, "after": 0}
++        identifier = f"Q{subject}${prop}-{year}"
++        statement = {"id": identifier, "rank": "normal", "qualifiers": qualifiers or {},
++                     "mainsnak": {"property": f"P{prop}", "datavalue": {"type": "time", "value": time}},
++                     "rdf_time": {"timeValue": literal, "timePrecision": precision,
++                                  "timeCalendarModel": calendar, "timeTimezone": 0}}
++        record = self.dates._CACHE.setdefault((f"Q{subject}", f"P{prop}"),
++            {"subject": f"Q{subject}", "property": f"P{prop}", "statements": [], "bindings": []})
++        record["statements"].append(statement)
++        record["bindings"].append({"statement_id": identifier, "legacy_literal": literal})
++
++    def assessment(self):
++        return self.premise.assess(self.joint, self.band_reply, ["Q3"])
++
++    def assert_supported_year(self, question=None, reply=None):
++        out = self.premise.assess(question or self.year_question, reply or self.work_reply)
++        self.assertEqual(out["kind"], "supported_condition")
++        self.assertEqual(out["evidence"]["work_qid"], 101)
++        self.assertTrue(out["evidence"]["publications"])
++        self.assertIn("not excluded", out["scope"])
++        return out
++
++    def runtime(self, response, **fields):
++        lower = {"status": "answered", "path": "reach", "response": response, **fields}
++
++        class Base:
++            def chat(self, text, session_id="default"):
++                return dict(lower)
++
++        with patch.dict(sys.modules, {"oracle_release_runtime_w568": SimpleNamespace(OracleReleaseRuntimeW568=Base),
++                "runtime_final_outcome": self.helper,
++                "runtime_refusal_guard": self.guard, "premise_v3": self.premise}):
++            fold = load("fixture_w571", ADMITTED / "oracle_release_runtime_w571.py")
++        return fold.OracleReleaseRuntimeW571(), lower
++
++    def test_missing_joint_rows_are_insufficient_not_contradiction(self):
++        out = self.assessment()
++        self.assertEqual(out["kind"], "insufficient_evidence")
++        self.assertEqual(out["evidence"]["confirmed_people"], [])
++
++    def test_arbitrary_connections_do_not_satisfy_the_asked_relation(self):
++        self.fact(1, 26, 3)
++        self.fact(3, 463, 2)
++        self.assertEqual(self.assessment()["kind"], "insufficient_evidence")
++
++    def test_positive_both_founder_rows_preserve_answer_for_both_phrasings(self):
++        self.fact(3, 112, 1)
++        self.fact(3, 112, 2)
++        self.assertIsNone(self.assessment())
++        self.assertIsNone(self.premise.assess("Which band did Jane Smith and John Smith form?", self.band_reply, ["Q3"]))
++
++    def test_one_founder_or_reversed_property_is_not_joint_evidence(self):
++        self.fact(3, 112, 1)
++        self.fact(2, 112, 3)
++        out = self.assessment()
++        self.assertEqual(out["evidence"]["confirmed_people"], [1])
++        self.assertIn("John Smith", out["reason"])
++
++    def test_coauthor_and_codirector_rows_use_distinct_properties(self):
++        for kind, verb, prop in (("novel", "write", 50), ("film", "direct", 57), ("song", "compose", 86)):
++            self.fact(101, 31, self.premise.KIND_ROOTS[kind])
++            q = f"Which {kind} did Jane Smith {verb} with John Smith?"
++            self.assertIsNotNone(self.premise.assess(q, self.work_reply.replace("Jane Smith.", "Example Work."), ["Q101"]))
++            self.fact(101, prop, 1)
++            self.fact(101, prop, 2)
++            self.assertIsNone(self.premise.assess(q, self.work_reply.replace("Jane Smith.", "Example Work."), ["Q101"]))
++
++    def test_full_name_ambiguity_does_not_choose_popular_person(self):
++        self.fact(3, 112, 1)
++        self.fact(3, 112, 2)
++        self.db.execute("INSERT INTO name VALUES ('jane smith', 9, 1, 0)")
++        self.assertEqual(self.assessment()["kind"], "insufficient_evidence")
++
++    def test_unbound_or_disagreeing_answer_id_cannot_pass(self):
++        self.fact(3, 112, 1)
++        self.fact(3, 112, 2)
++        for ids in (["Q101"], ["Q3", "Q101"], ["QQ3"]):
++            self.assertIsNotNone(self.premise.assess(self.joint, self.band_reply, ids))
++        self.assertIsNone(self.premise.assess(self.joint, self.band_reply))
++
++    def test_unrecognized_joins_and_comparison_remain_unchanged(self):
++        for q in ("Who is older, Jane Smith or John Smith?", "What is the Christian name of the wife of Robert Schumann?",
++                  "Who wrote Albert Einstein's biography?"):
++            self.assertIsNone(self.premise.assess(q, self.band_reply, ["Q3"]))
++
++    def test_asked_kind_requires_positive_classification(self):
++        self.fact(3, 112, 1)
++        self.fact(3, 112, 2)
++        self.db.execute("DELETE FROM fact WHERE s=3 AND p=31")
++        self.fact(3, 31, 783794)  # A company with both founders is not a band.
++        self.assertIsNotNone(self.assessment())
++        self.assertIsNone(self.premise.assess(self.joint.replace("band", "company").replace("form", "found"),
++                                            self.band_reply, ["Q3"]))
++
++    def test_positive_subclass_and_novel_genre_paths_are_supported(self):
++        self.fact(3, 112, 1)
++        self.fact(3, 112, 2)
++        self.db.execute("DELETE FROM fact WHERE s=3 AND p=31")
++        self.fact(3, 31, 9999)
++        self.fact(9999, 279, 215380)
++        self.assertIsNone(self.assessment())
++        self.fact(101, 136, 8261)
++        self.date(1948)
++        self.assert_supported_year('Who wrote the 1948 novel "Example Work"?', self.work_reply.replace("P57", "P50"))
++
++    def test_novel_form_is_distinct_from_generic_literary_work_and_romance_genre(self):
++        self.db.execute("DELETE FROM fact WHERE s=101 AND p=31")
++        self.fact(101, 31, 7725634)  # Literary work alone is not a novel.
++        self.fact(101, 136, 19765983)  # Romantic fiction is also not sufficient.
++        self.date(1948)
++        question = 'Who wrote the 1948 novel "Example Work"?'
++        reply = self.work_reply.replace("P57", "P50")
++        self.assertEqual(self.premise.assess(question, reply)["kind"], "insufficient_evidence")
++        self.fact(101, 7937, 7797293)  # Source form: three-volume novel.
++        self.fact(7797293, 279, 8261)
++        self.assert_supported_year(question, reply)
++
++    def test_date_uses_identified_work_not_incidental_first_qid(self):
++        self.date(1800, subject=999)
++        self.date(1948)
++        self.assert_supported_year(reply=self.work_reply.replace("Example Work (Q101)", "Example Work, related edition (Q999) (Q101)"))
++
++    def test_extra_answer_prose_is_not_silently_discarded(self):
++        self.date(1948)
++        out = self.premise.assess(self.year_question, "Related edition (Q999). " + self.work_reply)
++        self.assertEqual(out["kind"], "insufficient_evidence")
++
++    def test_date_missing_precision_or_wrong_role_does_not_establish_year(self):
++        self.fact(101, 577, literal="1948-01-01T00:00:00Z")
++        self.date(1948, prop=571)
++        out = self.premise.assess(self.year_question, self.work_reply)
++        self.assertEqual(out["kind"], "insufficient_evidence")
++
++    def test_other_release_years_do_not_prove_no_release_in_requested_year(self):
++        self.date(1947)
++        out = self.premise.assess(self.year_question, self.work_reply)
++        self.assertEqual(out["kind"], "insufficient_evidence")
++        self.date(1948)
++        self.assert_supported_year()
++
++    def test_no_ten_year_tolerance(self):
++        self.date(1948)
++        out = self.premise.assess(self.year_question.replace("1948", "1949"), self.work_reply)
++        self.assertEqual(out["kind"], "insufficient_evidence")
++
++    def test_broad_uncertain_or_other_calendar_does_not_confirm_exact_year(self):
++        for precision, calendar, qualifiers in ((7, GREGORIAN, {}), (9, GREGORIAN, {"P1480": []}),
++                (9, "http://www.wikidata.org/entity/Q1985786", {})):
++            self.db.execute("DELETE FROM fact WHERE p=577")
++            self.dates._CACHE = {}
++            self.date(1948, precision=precision, calendar=calendar, qualifiers=qualifiers)
++            self.assertIsNotNone(self.premise.assess(self.year_question, self.work_reply))
++
++    def test_regional_publication_witness_is_retained_without_relaxing_chronology(self):
++        qualifiers = {"P291": [{"snaktype": "value", "datavalue": {"type": "wikibase-entityid",
++                              "value": {"entity-type": "item", "id": "Q34", "numeric-id": 34}}}]}
++        self.date(1948, qualifiers=qualifiers)
++        out = self.assert_supported_year()
++        witness = out["evidence"]["publications"][0]
++        self.assertEqual(witness["qualifiers"], qualifiers)
++        self.assertIn("not necessarily the first", witness["scope"])
++        self.assertIsNone(self.dates.interval("1948-01-01T00:00:00Z", 101, 577))
++
++    def test_distribution_format_does_not_silently_become_unqualified_release(self):
++        self.date(1948, qualifiers={"P437": [{"snaktype": "value", "datavalue": {
++            "type": "wikibase-entityid", "value": {"entity-type": "item", "id": "Q5294"}}}]})
++        out = self.premise.assess(self.year_question, self.work_reply)
++        self.assertEqual(out["kind"], "insufficient_evidence")
++
++    def test_year_suffix_and_book_role(self):
++        self.date(1948)
++        self.fact(101, 31, 8261)
++        self.assert_supported_year('Who directed the film "Example Work" (1948)?')
++        self.assert_supported_year('Who wrote the 1948 novel "Example Work"?', self.work_reply.replace("P57", "P50"))
++
++    def test_unrelated_citation_is_unverified_and_unknown_other_senses_remain_explicit(self):
++        self.date(1948)
++        for reply in (self.work_reply.replace("Q101", "Q999"), self.work_reply.replace("P57", "P50"),
++                      self.work_reply + self.work_reply):
++            self.assertIsNotNone(self.premise.assess(self.year_question, reply))
++        self.db.execute("INSERT INTO name VALUES ('example work', 888, 1, 0)")
++        out = self.assert_supported_year()
++        self.assertEqual(out["evidence"]["unresolved_work_qids"], [888])
++
++    def test_positively_matching_different_work_with_different_answer_blocks_choice(self):
++        self.date(1948)
++        self.db.execute("INSERT INTO name VALUES ('example work', 888, 1, 0)")
++        self.fact(888, 31, 11424)
++        self.fact(888, 57, 2)
++        self.date(1948, subject=888)
++        out = self.premise.assess(self.year_question, self.work_reply)
++        self.assertEqual(out["kind"], "insufficient_evidence")
++        self.assertEqual(out["evidence"]["conflicting_work_qid"], 888)
++
++    def test_positively_matching_other_work_can_agree_without_proving_global_uniqueness(self):
++        self.date(1948)
++        self.db.execute("INSERT INTO name VALUES ('example work', 888, 1, 0)")
++        self.fact(888, 31, 11424)
++        self.fact(888, 57, 1)
++        self.date(1948, subject=888)
++        out = self.assert_supported_year()
++        self.assertEqual(out["evidence"]["agreeing_work_qids"], [888])
++
++    def test_no_inner_title_or_truncated_candidate_pool(self):
++        self.date(1948)
++        self.assertEqual(self.premise.assess(self.year_question.replace("Example Work", "Another Example Work"),
++                                          self.work_reply)["kind"], "insufficient_evidence")
++        self.db.executemany("INSERT INTO name VALUES ('example work', ?, 1, 0)", [(i,) for i in range(200, 265)])
++        self.assertEqual(self.premise.assess(self.year_question, self.work_reply)["kind"], "insufficient_evidence")
++
++    def test_w571_emits_typed_terminal_insufficiency_and_clears_old_proof(self):
++        rt, _ = self.runtime(self.band_reply, provenance={"value_qids": ["Q3"]}, proved={"stale": True})
++        out = rt.chat(self.joint)
++        self.assertEqual(out["status"], "withheld")
++        self.assertEqual(out["refusal"]["reason"], "premise_unverified")
++        self.assertTrue(self.guard.terminal_refusal(out))
++        self.assertNotIn("proved", out)
++        self.assertNotIn("premise does not hold", out["response"])
++        self.assertEqual(out["provenance"]["assessment"]["kind"], "insufficient_evidence")
++
++    def test_year_cannot_certify_a_different_answer_from_the_cited_creator(self):
++        self.date(1948)
++        wrong = self.work_reply.replace("Jane Smith", "John Smith")
++        runtime, _ = self.runtime(wrong, provenance={"value_qids": ["Q2"]})
++        out = runtime.chat(self.year_question)
++        self.assertEqual(out["status"], "withheld")
++        self.assertEqual(out["refusal"]["reason"], "premise_unverified")
++        self.assertNotIn("premise_check", out)
++
++    def test_answer_text_and_provenance_are_independently_bound(self):
++        self.date(1948)
++        for reply, ids in ((self.work_reply.replace("Jane Smith", "John Smith"), ["Q1"]),
++                           (self.work_reply, ["Q2"]),
++                           (self.work_reply.replace("Jane Smith.", "John Smith.", 1), ["Q1"]),
++                           (self.work_reply.rsplit("Jane Smith", 1)[0] + "John Smith.", ["Q1"]),
++                           (self.work_reply, {"Q1": "not a list"}),
++                           (self.work_reply, ["Q1", "Q1"])):
++            with self.subTest(reply=reply, ids=ids):
++                self.assertEqual(self.premise.assess(self.year_question, reply, ids)["kind"], "insufficient_evidence")
++
++    def test_complete_multivalue_answer_and_id_sets_allow_reordered_names(self):
++        self.date(1948)
++        self.fact(101, 57, 2)
++        reply = self.work_reply.replace("Jane Smith", "John Smith and Jane Smith")
++        out = self.premise.assess(self.year_question, reply, ["Q2", "Q1"])
++        self.assertEqual(out["kind"], "supported_condition")
++        self.assertEqual(out["evidence"]["answer_qids"], [1, 2])
++        self.assertIn("supplied value IDs agree", out["evidence"]["answer_binding"])
++        # A partial coauthor list cannot be upgraded to the complete source answer.
++        self.assertEqual(self.premise.assess(self.year_question, self.work_reply, ["Q1"])["kind"], "insufficient_evidence")
++
++    def test_complete_source_names_are_not_split_on_comma_or_and(self):
++        self.date(1948)
++        self.db.execute("UPDATE label SET label='Jane Smith, Jr.' WHERE qid=1")
++        reply = self.work_reply.replace("Jane Smith", "Jane Smith, Jr.")
++        self.assertEqual(self.premise.assess(self.year_question, reply, ["Q1"])["kind"], "supported_condition")
++        self.assertEqual(self.premise.assess(self.year_question, self.work_reply, ["Q1"])["kind"], "insufficient_evidence")
++
++    def test_w571_preserves_supported_joint_and_year_answers(self):
++        self.fact(3, 112, 1)
++        self.fact(3, 112, 2)
++        rt, lower = self.runtime(self.band_reply, provenance={"value_qids": ["Q3"]})
++        self.assertEqual(rt.chat(self.joint), lower)
++        self.date(1948)
++        rt, lower = self.runtime(self.work_reply)
++        out = rt.chat(self.year_question)
++        self.assertEqual({k: v for k, v in out.items() if k != "premise_check"}, lower)
++        self.assertEqual(out["premise_check"]["kind"], "supported_condition")
++
++    def test_w571_distinguishes_explicit_sole_creator_conflict(self):
++        self.fact(101, 50, 2)
++        rt, _ = self.runtime(self.work_reply.replace("P57", "P50"))
++        out = rt.chat('Who wrote "Example Work", written solely by Jane Smith?')
++        self.assertEqual(out["refusal"]["reason"], "premise_conflict")
++        self.assertEqual(out["provenance"]["assessment"]["kind"], "contradiction")
++
++    def test_w571_preserves_existing_terminal_refusal(self):
++        rt, lower = self.runtime("No.", status="withheld", refusal={"terminal": True, "reason": "existing"})
++        self.assertEqual(rt.chat(self.joint), lower)
++
++    def test_failed_evidence_read_cannot_be_mistaken_for_a_passed_check(self):
++        rt, _ = self.runtime(self.band_reply, provenance={"value_qids": ["Q3"]})
++        with patch.object(self.router, "values", side_effect=sqlite3.DatabaseError("fixture failure")):
++            out = rt.chat(self.joint)
++        self.assertEqual(out["status"], "withheld")
++        self.assertEqual(out["refusal"]["assessment"]["rule"], "premise_check_error")
++        self.assertTrue(self.guard.terminal_refusal(out))
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/premise_v3/test_owner.py b/tests/premise_v3/test_owner.py
+index 7cc0671..54c27d4 100644
+--- a/tests/premise_v3/test_owner.py
++++ b/tests/premise_v3/test_owner.py
+@@ -34,7 +34,9 @@ class OwnerTests(unittest.TestCase):
+         self.linker = SimpleNamespace(norm=self.names.norm, candidates=self.names.candidates)
+         self.router = SimpleNamespace(classes=lambda qid: {5} if qid in (1, 2) else set(),
+                                       values=Mock(return_value={2}))
+-        with patch.dict(sys.modules, {"entity_linker_v3": self.linker, "reach_router_v3": self.router}):
++        self.dates = load("fixture_dates", WANDER / "date_precision_v1.py")
++        with patch.dict(sys.modules, {"entity_linker_v3": self.linker, "reach_router_v3": self.router,
++                                      "date_precision_v1": self.dates}):
+             self.premise = load("fixture_premise", WANDER / "premise_v3.py")
+         self.question = 'Who wrote "Example Book", written solely by Jane Smith?'
+         self.reply = ('John Smith. From the Wikidata relation store: '
+@@ -132,7 +134,9 @@ class OwnerTests(unittest.TestCase):
+             def chat(self, text, session_id="default"):
+                 return dict(lower)
+ 
+-        helper = load("runtime_final_outcome", ADMITTED / "runtime_final_outcome.py")
++        conversation = load("runtime_conversation_state", ADMITTED / "runtime_conversation_state.py")
++        with patch.dict(sys.modules, {"runtime_conversation_state": conversation}):
++            helper = load("runtime_final_outcome", ADMITTED / "runtime_final_outcome.py")
+         with patch.dict(sys.modules, {"runtime_final_outcome": helper}):
+             guard = load("runtime_refusal_guard", ADMITTED / "runtime_refusal_guard.py")
+         with patch.dict(sys.modules, {
+diff --git a/workbench/sensors_baseline_v4.py b/workbench/sensors_baseline_v4.py
+index 7ef1293..7e3340d 100644
+--- a/workbench/sensors_baseline_v4.py
++++ b/workbench/sensors_baseline_v4.py
+@@ -171,7 +171,7 @@ class Channel:
+             now = lv[i]
+             if now is None:
+                 continue
+-            b2, b8, b48 = lv[i - 2 * H] if i >= 2 * H else None, lv[i - 8 * H], lv[i - 48 * H] if i >= 48 * H else None
++            b2, b8, b48 = lv[i - 2 * H] if i >= 2 * H else None, lv[i - 8 * H] if i >= 8 * H else None, lv[i - 48 * H] if i >= 48 * H else None
+             if b8 is not None and abs(now - b8) > k_step * self.sp8 and b2 is not None and abs(now - b2) > 0.5 * abs(now - b8):
+                 steps[i] = True
+             if b48 is not None and abs(now - b48) > k_drift * self.sp48 and b8 is not None and abs(now - b8) < 0.5 * abs(now - b48):
+diff --git a/workbench/sources.py b/workbench/sources.py
+index f74cc28..91b1dbf 100644
+--- a/workbench/sources.py
++++ b/workbench/sources.py
+@@ -295,10 +295,11 @@ class FilesOrgan:
+         base = Path(os.environ.get("ORACLE7_WORKBENCH_LOCAL", str(Path(__file__).resolve().parent / "local"))) / "specialists"
+         self.dir = base / folder
+         self.name = name
+-        self.loaded_at, self.tables, self.lines = 0, [], []
++        self.loaded_at, self.tables, self.lines = None, [], []
+ 
+     def load(self):
+-        stamp = max([p.stat().st_mtime for p in self.dir.glob("*")] or [0])
++        stamp = tuple((p.name, p.stat().st_mtime_ns, p.stat().st_size)
++                      for p in sorted(self.dir.glob("*")) if p.is_file())
+         if stamp == self.loaded_at:
+             return
+         self.tables, self.lines = [], []
+@@ -318,11 +319,34 @@ class FilesOrgan:
+                 pass
+         self.loaded_at = stamp
+ 
++    def lookup(self, filename, selector_column, selector_value, result_column):
++        """Read one exact table cell. Missing or ambiguous rows are not inferred facts."""
++        self.load()
++        tables = [t for t in self.tables if t[0] == filename]
++        if len(tables) != 1:
++            return {"kind": "from_file", "status": "withheld", "reason": "table_unavailable"}
++        fname, headers, rows = tables[0]
++        if headers.count(selector_column) != 1 or headers.count(result_column) != 1:
++            return {"kind": "from_file", "status": "withheld", "reason": "column_missing_or_ambiguous"}
++        key, col = headers.index(selector_column), headers.index(result_column)
++        matches = [(n, r) for n, r in enumerate(rows, 2)
++                   if key < len(r) and r[key] == selector_value]
++        if len(matches) != 1:
++            return {"kind": "from_file", "status": "withheld",
++                    "reason": "row_missing" if not matches else "row_ambiguous",
++                    "matching_rows": [n for n, _ in matches]}
++        number, row = matches[0]
++        if len(row) != len(headers):
++            return {"kind": "from_file", "status": "withheld", "reason": "malformed_row"}
++        return {"kind": "from_file", "status": "answered", "value": row[col],
++                "reference": {"file": fname, "row": number, "column": result_column,
++                              "selector_column": selector_column, "selector_value": selector_value}}
++
+     def answer(self, text, session):
+         self.load()
+         t = str(text or "")
+         tl = " %s " % " ".join(re.findall(r"[a-z0-9][a-z0-9'.-]*", t.lower()))
+-        best = None
++        candidates = []
+         for fname, hdr, rows in self.tables:
+             cols = [(j, h) for j, h in enumerate(hdr) if j > 0 and h.strip() and " %s " % " ".join(_words(h)) in tl and _words(h)]
+             if not cols:
+@@ -335,18 +359,31 @@ class FilesOrgan:
+                         for j, h in cols:
+                             if j != k and j < len(r) and r[j].strip():
+                                 cand = (len(h) + len(r[k]), fname, n, h, r[k].strip(), r[j].strip())
+-                                best = max(best, cand) if best else cand
+-        if best:
+-            _, fname, n, h, key, val = best
++                                candidates.append(cand)
++        if candidates:
++            best_score = max(c[0] for c in candidates)
++            strongest = sorted(set(c for c in candidates if c[0] == best_score))
++            if len({c[-1] for c in strongest}) > 1:
++                return {"kind": "from_file", "status": "withheld", "reason": "conflicting_cells",
++                        "response": "Matching table cells disagree; choose a file or row explicitly.",
++                        "references": [{"file": f, "row": n, "column": h, "value": v}
++                                       for _, f, n, h, key, v in strongest]}
++            _, fname, n, h, key, val = strongest[0]
+             return {"kind": "from_file", "status": "answered", "subject": key,
+                     "response": "%s. From %s, row %d (%s), column \"%s\"." % (val, fname, n, key, h)}
+         if self.lines and re.search(r"\b(my|our) (notes|files?|documents?|docs|records|manual|handbook)\b|\baccording to\b", t, re.I):
+             q = set(_words(t)) - {"notes", "note", "file", "files", "document", "documents", "docs", "records", "according", "manual", "handbook"}
+             scored = sorted(((len(q & set(_words(s))), -len(s), f, i, s) for f, i, s in self.lines), reverse=True)
+             if scored and scored[0][0] >= 2:
+-                k, _, f, i, s = scored[0]
+-                return {"kind": "from_file", "status": "answered", "response": "\"%s\" (%s, line %d)" % (s, f, i)}
+-            return {"kind": "not_in_files", "status": "withheld", "response": "Nothing in %s says that." % self.name}
++                strongest = [r for r in scored if r[0] == scored[0][0]]
++                if len({r[-1] for r in strongest}) > 1:
++                    return {"kind": "from_file", "status": "withheld", "reason": "ambiguous_passages",
++                            "response": "Several passages match equally; narrow the question or select a document.",
++                            "references": [{"file": f, "line": i, "quote": s} for _, _, f, i, s in strongest]}
++                k, _, f, i, s = strongest[0]
++                return {"kind": "from_file", "status": "answered", "response": "\"%s\" (%s, line %d)" % (s, f, i),
++                        "references": [{"file": f, "line": i, "quote": s}]}
++            return {"kind": "not_in_files", "status": "withheld", "reason": "no_matching_passage", "response": "I found no sufficiently matching passage in %s." % self.name}
+         return None
+ 
+ 
+diff --git a/workbench/swarm/composer_v3.py b/workbench/swarm/composer_v3.py
+index 8505d86..9855762 100644
+--- a/workbench/swarm/composer_v3.py
++++ b/workbench/swarm/composer_v3.py
+@@ -184,6 +184,8 @@ POSITIONAL = {2: "positional notation, base 2 (binary)", 8: "positional notation
+ 
+ 
+ def _in_base(n, b):
++    if type(n) is not int or n < 0 or b not in (2, 8, 16):
++        raise ValueError("nonnegative integer and supported base required")
+     digits = "0123456789abcdef"
+     if n == 0:
+         return "0"
+@@ -320,8 +322,12 @@ def leaves(inputs, labels=None):
+     return out
+ 
+ 
+-def enumerate_exprs(inputs, max_size=MAX_SIZE, labels=None):
++def enumerate_exprs(inputs, max_size=MAX_SIZE, labels=None, bank_cap=BANK_CAP):
+     """bottom-up, typed (numbers only here), observationally-equivalent expressions merged, smallest kept"""
++    if type(max_size) is not int or not 1 <= max_size <= MAX_SIZE:
++        raise ValueError("invalid expression size budget")
++    if type(bank_cap) is not int or not 1 <= bank_cap <= BANK_CAP:
++        raise ValueError("invalid expression bank budget")
+     seen = {}
+     by_size = {}
+ 
+@@ -329,9 +335,9 @@ def enumerate_exprs(inputs, max_size=MAX_SIZE, labels=None):
+         return tuple(round(v, 9) if v is not None else None for v in vals)
+ 
+     def add(e):
+-        if e.val is None or any(v is None for v in e.val) or e.dim is None or not honest(e):
++        if len(seen) >= bank_cap or e.val is None or any(v is None for v in e.val) or e.dim is None or not honest(e):
+             return
+-        k = key(e.val)
++        k = (e.dim, key(e.val))
+         if k in seen:
+             return
+         seen[k] = e
+@@ -340,7 +346,7 @@ def enumerate_exprs(inputs, max_size=MAX_SIZE, labels=None):
+     for e in leaves(inputs, labels):
+         add(e)
+     for size in range(2, max_size + 1):
+-        if len(seen) >= BANK_CAP:
++        if len(seen) >= bank_cap:
+             break
+         for name, f in UN.items():                       # unary: size-1 child
+             for a in list(by_size.get(size - 1, [])):
+@@ -351,7 +357,7 @@ def enumerate_exprs(inputs, max_size=MAX_SIZE, labels=None):
+                 if name in COMMUTATIVE and ls > rs:
+                     continue
+                 for a in list(by_size.get(ls, [])):
+-                    if len(seen) >= BANK_CAP:
++                    if len(seen) >= bank_cap:
+                         break
+                     for b in list(by_size.get(rs, [])):
+                         add(E(("bin", name), [a, b], val=tuple(_safe(f, x, y) for x, y in zip(a.val, b.val))))
+@@ -531,18 +537,18 @@ def program_source(sol, names, title):
+         py_body = "    seq = %r\n    return seq[(int(%s) - %d) %% %d]" % (sol["seq"], names[0], sol["offset"], len(sol["seq"]))
+         js_body = "  const seq = %s;\n  return seq[(((Math.trunc(%s) - %d) %% %d) + %d) %% %d];" % (json.dumps(sol["seq"]), names[0], sol["offset"], len(sol["seq"]), len(sol["seq"]), len(sol["seq"]))
+     elif sol["kind"] == "positional":
+-        py_body = ("    n, b, digits, out = int(%s), %d, '0123456789abcdef', ''\n    if n == 0:\n        return '0'\n"
++        py_body = ("    n, b, digits, out = int(%s), %d, '0123456789abcdef', ''\n    if n < 0:\n        raise ValueError('nonnegative input required')\n    if n == 0:\n        return '0'\n"
+                    "    while n:\n        out = digits[n %% b] + out\n        n //= b\n    return out" % (names[0], sol["base"]))
+-        js_body = "  return Math.trunc(%s).toString(%d);" % (names[0], sol["base"])
++        js_body = "  if (%s < 0) throw new Error('nonnegative input required');\n  return Math.trunc(%s).toString(%d);" % (names[0], names[0], sol["base"])
+     else:
+         py_body = ("    pairs = %r\n    n, out = int(%s), ''\n    for v, s in pairs:\n        while n >= v:\n            out += s\n            n -= v\n    return out"
+                    % ([tuple(p) for p in sol["pairs"]], names[0]))
+         js_body = ("  const pairs = %s;\n  let n = Math.trunc(%s), out = '';\n  for (const [v, s] of pairs) { while (n >= v) { out += s; n -= v; } }\n  return out;"
+                    % (json.dumps([list(p) for p in sol["pairs"]]), names[0]))
+-    py = ('"""%s"""\nimport math\nimport re\n\n\ndef _nums(code):\n    return [float(x) for x in re.findall(r"\\d+(?:\\.\\d+)?", str(code))]\n\n\n'
++    py = ('%r\nimport math\nimport re\n\n\ndef _nums(code):\n    return [float(x) for x in re.findall(r"\\d+(?:\\.\\d+)?", str(code))]\n\n\n'
+           'def compute(%s):\n%s\n' % (head, args, py_body))
+     js = ('// %s\nfunction _nums(code) { return (String(code).match(/\\d+(?:\\.\\d+)?/g) || []).map(Number); }\n'
+-          'function compute(%s) {\n%s\n}\n' % (head.replace("\n", "\n// "), args, js_body))
++          'function compute(%s) {\n%s\n}\n' % (json.dumps(head, ensure_ascii=True), args, js_body))
+     return py, js
+ 
+ 
+@@ -550,7 +556,8 @@ def read_back(py_src, rows, expected):
+     """run the emitted Python in a SEPARATE interpreter on every example; it must give what the in-process meaning gave"""
+     with tempfile.TemporaryDirectory(prefix="o7compose_") as d:
+         p = os.path.join(d, "prog.py")
+-        open(p, "w", encoding="utf-8").write(py_src)
++        with open(p, "w", encoding="utf-8") as stream:
++            stream.write(py_src)
+         runner = ("import json, sys\nsys.path.insert(0, %r)\nfrom prog import compute\nrows = json.loads(sys.stdin.read())\n"
+                   "print(json.dumps([compute(*r) for r in rows]))\n" % d)
+         try:
+@@ -558,11 +565,13 @@ def read_back(py_src, rows, expected):
+             got = json.loads(r.stdout)
+         except Exception as e:  # noqa: BLE001
+             return False, "the emitted program did not run: %s" % str(e)[:120]
++    if r.returncode != 0 or not isinstance(got, list) or len(got) != len(expected):
++        return False, "the emitted program returned an incomplete or failed result"
+     ok = all(close(g, x) for g, x in zip(got, expected))
+     return ok, "read back %d/%d" % (sum(close(g, x) for g, x in zip(got, expected)), len(expected))
+ 
+ 
+-def compose(task):
++def compose(task, *, max_size=MAX_SIZE, bank_cap=BANK_CAP, allow_fitted=True):
+     rows = [ex["in"] for ex in task["dev"]]
+     outs = [ex["out"] for ex in task["dev"]]
+     names = ["x%d" % (i + 1) for i in range(len(rows[0]))]
+@@ -587,7 +596,7 @@ def compose(task):
+         outs_f = [float(o) for o in outs]
+         labels = task.get("inputs")
+         out_dim = parse_unit(task["output"]) if labels and "(" in task.get("output", "") else None
+-        exprs = enumerate_exprs(rows, labels=labels)
++        exprs = enumerate_exprs(rows, max_size=max_size, labels=labels, bank_cap=bank_cap)
+         best = None
+         for e in sorted(exprs.values(), key=lambda e: (e.size, e.fitted)):
+             if e.inp and dim_ok(e, out_dim) and fits(e.val, outs_f):
+@@ -595,7 +604,7 @@ def compose(task):
+                 break
+         if best is None:                                # larger programs: two bank halves joined by the needed operation
+             best = meet_in_middle(exprs, outs_f, out_dim)
+-        if True:                                        # at most two fitted constants: y = a*f (+ b*g), f, g small expressions;
++        if allow_fitted:                                # at most two fitted constants: y = a*f (+ b*g), f, g small expressions;
+             small = [e for e in exprs.values() if e.size <= 3 and e.inp]   # compared with the structural fit by cost
+             small.sort(key=lambda e: e.size)
+             one = E(("const", 1.0), val=tuple(1.0 for _ in rows), consts=["one"], dim=PURE)
+diff --git a/workbench/swarm/test_composer_safety.py b/workbench/swarm/test_composer_safety.py
+new file mode 100644
+index 0000000..6aef659
+--- /dev/null
++++ b/workbench/swarm/test_composer_safety.py
+@@ -0,0 +1,48 @@
++"""Counterexamples for source emission, differential read-back and typed search."""
++import importlib.util
++from pathlib import Path
++import sys
++import tempfile
++from types import SimpleNamespace
++import unittest
++from unittest.mock import patch
++
++spec = importlib.util.spec_from_file_location('composer_safety_subject', Path(__file__).with_name('composer_v3.py'))
++composer = importlib.util.module_from_spec(spec)
++sys.modules[spec.name] = composer
++spec.loader.exec_module(composer)
++
++
++class ComposerSafety(unittest.TestCase):
++    def test_title_stays_data(self):
++        with tempfile.TemporaryDirectory() as directory:
++            marker = Path(directory)/'injected'
++            title = '"""\nfrom pathlib import Path\nPath('+repr(str(marker))+').write_text("bad")\n"""'
++            sol = {'kind':'expr','py_expr':'x1 * 2','js_expr':'x1 * 2','derivation':'test'}
++            py, js = composer.program_source(sol, ['x1'], title)
++            self.assertTrue(composer.read_back(py, [[2],[3]], [4,6])[0])
++            self.assertFalse(marker.exists())
++            self.assertTrue(js.startswith('// "'))
++
++    def test_readback_count_exit_and_shape(self):
++        for stdout, code in [('[]',0), ('[2,4,6]',0), ('[2,4]',1), ('{}',0)]:
++            with patch.object(composer.subprocess, 'run', return_value=SimpleNamespace(stdout=stdout,returncode=code)):
++                self.assertFalse(composer.read_back('ignored', [[1],[2]], [2,4])[0])
++
++    def test_equal_examples_preserve_distinct_dimensions(self):
++        bank = composer.enumerate_exprs([[1,1],[2,2]], max_size=1, labels=['length (m)','duration (s)'])
++        self.assertEqual(len({e.dim for e in bank.values() if e.op[0]=='in'}), 2)
++
++    def test_bank_budget_is_a_hard_bound(self):
++        bank = composer.enumerate_exprs([[1],[2]], max_size=3, bank_cap=10)
++        self.assertLessEqual(len(bank), 10)
++        for cap in (0, True, composer.BANK_CAP+1):
++            with self.assertRaises(ValueError): composer.enumerate_exprs([[1],[2]], bank_cap=cap)
++
++    def test_negative_positional_input_terminates(self):
++        with self.assertRaises(ValueError): composer._in_base(-1, 2)
++        py, _ = composer.program_source({'kind':'positional','base':2,'derivation':'base two'}, ['x1'], 'binary')
++        self.assertFalse(composer.read_back(py, [[-1]], ['-1'])[0])
++
++
++if __name__ == '__main__': unittest.main()
