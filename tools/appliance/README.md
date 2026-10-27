@@ -168,6 +168,36 @@ container/process tree, including any descendants launched by upstream.
 
 ## Discover and call operations
 
+The Engine starts before the direct-operation catalog is constructed. Ordinary
+`/query` requests and retained journal replays do not construct the catalog.
+The first discovery or new `/invoke` request constructs it once on the Engine's
+owning thread, within that request's existing deadline and admission lock.
+Concurrent turns receive `busy`; there is no background initialization queue.
+An agent that discovers operations first still pays that initial catalog cost.
+
+`/capabilities` reports `operation_discovery.state` as `deferred`, `ready`, or
+`failed`. Counts are `null` until construction completes, never invented zeroes.
+After successful construction, counts describe actual loaded catalog entries.
+While construction is in progress, capabilities retains the last confirmed
+state (`deferred`); `/health.busy` shows the admitted request. Reading
+capabilities itself does not initialize the catalog.
+
+A constructor exception returns HTTP 503 `catalog_initialization_failed`, marks
+the catalog failed, and stops that owned worker. Partial initialization may
+have changed process state, so the response reports `state_may_have_changed`
+even though the requested operation did not run. The service never retries
+construction in that worker. Capabilities retains `initialization_error` and
+unknown counts. New requests cannot use the stopped worker, but exact retained
+results still replay. A new worker starts deferred again. Timeout or worker
+loss before a catalog state is received records a failed, unconfirmed state;
+it does not assert whether construction or the following operation was the
+interrupted stage. Existing HTTP timeout/loss errors remain unchanged.
+
+The worker carries catalog metadata in a separate private pipe envelope. That
+envelope is not returned or journaled; all upstream reply keys and evidence
+remain intact, including keys named `catalog` or `result`. Public reply byte
+limits apply to the result, with a separate bounded allowance for pipe metadata.
+
 Agents can list `GET /operations?offset=0&limit=10&q=chemistry` and inspect
 `GET /operations/specialist.chemistry-v3.molar_mass`. Optional `availability`
 filters are `live_direct`, `text_only`, or `unavailable`. Limits are 1–50 entries,

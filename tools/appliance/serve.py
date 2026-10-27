@@ -34,6 +34,8 @@ PH = Path("fable-content/oracle-m-series-2026-08-15")
 IDENTIFIER = re.compile(r"[A-Za-z0-9_-]{1,80}\Z")
 TENANT_HEADER = "X-Mini-Oracle-Tenant"
 TENANT_KEY = re.compile(r"[0-9a-f]{64}\Z")
+CATALOG_STATES = ("live_direct", "text_only", "unavailable")
+WORKER_METADATA_BYTES = 4096
 
 
 def encode(value):
@@ -42,6 +44,34 @@ def encode(value):
 
 def failure(code, **fields):
     return {"outcome": "error", "error": code, **fields}
+
+
+def catalog_failed(code, error_type=None):
+    error = {"code": code}
+    if error_type is not None:
+        error["error_type"] = error_type[:128]
+    return {"state": "failed", "counts": None, "initialization_error": error}
+
+
+def read_catalog(value):
+    """Validate adapter-owned pipe metadata; never interpret upstream reply keys."""
+    if not isinstance(value, dict) or len(encode(value)) > 1024:
+        raise ValueError("invalid catalog metadata")
+    state = value.get("state")
+    if state not in ("deferred", "ready", "failed"):
+        raise ValueError("invalid catalog state")
+    if state == "ready":
+        counts = value.get("counts")
+        if not isinstance(counts, dict) or set(counts) != set(CATALOG_STATES) or any(
+                type(n) is not int or not 0 <= n <= 1000000000 for n in counts.values()):
+            raise ValueError("invalid catalog counts")
+    elif value.get("counts") is not None:
+        raise ValueError("catalog counts are unknown")
+    if state == "failed":
+        error = value.get("initialization_error")
+        if not isinstance(error, dict) or not isinstance(error.get("code"), str):
+            raise ValueError("missing catalog initialization error")
+    return value
 
 
 @dataclass(frozen=True)
@@ -183,16 +213,29 @@ def _worker(connection, config):
     try:
         preflight(config)
         engine = import_launcher(config).Engine()
-        operations = engine._ex.submit(Operations, engine, config).result()
-        summary = {state: sum(item["availability"] == state for item in operations.items.values())
-                   for state in ("live_direct", "text_only", "unavailable")}
-        connection.send_bytes(encode({"ready": True, "tip": engine.tip, "operations": summary}))
+        operations = None
+        catalog = {"state": "deferred", "counts": None}
+        connection.send_bytes(encode({"ready": True, "tip": engine.tip, "catalog": catalog}))
         while True:
             request = json.loads(connection.recv_bytes(config.max_request_bytes + 4096))
             if request.get("stop"):
                 break
             try:
                 action = request.get("_action", "query")
+                if action in ("discover", "invoke") and operations is None:
+                    try:
+                        operations = engine._ex.submit(Operations, engine, config).result()
+                        catalog = {"state": "ready", "counts": {
+                            state: sum(item["availability"] == state for item in operations.items.values())
+                            for state in CATALOG_STATES}}
+                    except Exception as error:
+                        catalog = catalog_failed("catalog_initialization_failed", type(error).__name__)
+                        # Constructors may already have imported code or changed
+                        # process state. Never reuse this partially built runtime.
+                        raise OperationError("catalog_initialization_failed", 503,
+                                             operation_executed=False, retryable=False,
+                                             state_may_have_changed=True,
+                                             error_type=type(error).__name__[:128]) from error
                 if action == "query":
                     reply = engine.chat(request["text"], session_id=request["conversation_id"])
                 elif action == "invoke":
@@ -225,7 +268,11 @@ def _worker(connection, config):
                 # Errors may follow a session write. Do not turn them into refusal.
                 payload = encode(failure("runtime_error", error_type=type(error).__name__,
                                          state_may_have_changed=True))
-            connection.send_bytes(payload)
+            # Separate private envelope: result bytes keep the existing public
+            # limit and every upstream reply key, even "catalog" or "result".
+            connection.send_bytes(b'{"catalog":' + encode(catalog) + b',"result":' + payload + b'}')
+            if catalog["state"] == "failed":
+                break
     except (EOFError, BrokenPipeError):
         pass
     except BaseException as error:
@@ -251,6 +298,7 @@ class EngineProcess:
     def __init__(self, config):
         self.config = config
         self.available = False
+        self.catalog = {"state": "deferred", "counts": None}
         # spawn keeps upstream globals and SQLite thread ownership in one child.
         context = multiprocessing.get_context("spawn")
         self.connection, child = context.Pipe()
@@ -264,7 +312,7 @@ class EngineProcess:
             if not ready.get("ready"):
                 raise RuntimeError(str(ready))
             self.tip = ready["tip"]
-            self.operations = ready.get("operations", {})
+            self.catalog = read_catalog(ready["catalog"])
             self.available = True
         except BaseException:
             self.close()
@@ -276,11 +324,21 @@ class EngineProcess:
         try:
             self.connection.send_bytes(encode(request))
             if not self.connection.poll(self.config.query_timeout):
+                if self.catalog["state"] == "deferred" and request.get("_action") in ("discover", "invoke"):
+                    self.catalog = catalog_failed("catalog_state_unknown_after_timeout")
                 self.available = False
                 self.close()
                 return failure("query_timeout", state_may_have_changed=True)
-            return json.loads(self.connection.recv_bytes(self.config.max_reply_bytes))
+            envelope = json.loads(self.connection.recv_bytes(self.config.max_reply_bytes + WORKER_METADATA_BYTES))
+            if not isinstance(envelope, dict) or set(envelope) != {"catalog", "result"} or not isinstance(envelope["result"], dict):
+                raise ValueError("invalid worker envelope")
+            self.catalog = read_catalog(envelope["catalog"])
+            if self.catalog["state"] == "failed":
+                self.close()
+            return envelope["result"]
         except (OSError, EOFError, ValueError):
+            if self.catalog["state"] == "deferred" and request.get("_action") in ("discover", "invoke"):
+                self.catalog = catalog_failed("catalog_state_unknown_after_worker_loss")
             self.available = False
             self.close()
             return failure("worker_lost", state_may_have_changed=True)
@@ -337,11 +395,15 @@ class Service:
             raise
 
     def capabilities(self):
+        catalog = getattr(self.backend, "catalog", None)
+        if catalog is None:  # injected test backends may supply eager counts
+            counts = getattr(self.backend, "operations", None)
+            catalog = {"state": "ready" if counts is not None else "deferred", "counts": counts}
         return {"protocol": "oracle-appliance-v1", "backend": "Oracle7.Engine.chat",
                 "source_revision": self.config.source_revision, "tip": self.backend.tip,
                 "deployment": self.deployment,
                 "operation_discovery": {"protocol": "oracle-operations-v1", "list": "/operations", "detail": "/operations/{operation_id}",
-                                        "invoke": "/invoke", "counts": getattr(self.backend, "operations", {})},
+                                        "invoke": "/invoke", **catalog},
                 "evidence": "upstream reply preserved; upstream labels are not Mini authority",
                 "deployment_content_hashes_checked_by_adapter": False,
                 "scope": "one host-assigned workspace per process", "query_queue": 0,
