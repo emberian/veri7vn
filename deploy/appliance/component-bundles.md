@@ -190,3 +190,14 @@ The v2 `APPLIANCE.json` SHA-256 is
 `e87aaadc39a6d7767e88aa34cd5b593f718ecd7256591e462865c9f6b2a003ec`.
 Its 46 component/provider/core files were rechecked after publication. This is
 composition evidence; service and Mini acceptance are recorded separately.
+
+### U3 v3: revised premise and title routing
+
+`candidate-u3-v3.recipe.json` retains the v2 component locks and adapters. It
+replaces the fourth ordered patch with
+`patches/oracle7-slim-4.9-operations-v3.patch`; do not apply both versions of that
+patch. The earlier patch remains available for reproducing v1 and v2.
+[`candidate-u3-v3.receipt.json`](candidate-u3-v3.receipt.json) records five changed
+core/test files and confirms unchanged component, adapter and store identities.
+The v3 `APPLIANCE.json` SHA-256 is
+`05c15112339540e3d1329babbbd86f231c2a91722b360379090ddf98b61092fa`.

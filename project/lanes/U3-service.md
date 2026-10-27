@@ -223,3 +223,53 @@ premise. Transport/replay/component success must not be substituted for a claim
 that those whole-head behaviors passed. Root is holding final Mini artifact
 qualification while the next premise patch is integrated. No immutable candidate
 or upstream source was edited by this probe.
+
+## Final bounded replay: packaged U3-v3
+
+Root integrated the canonical dated-work route and exclusive-creator refusal
+into a new immutable candidate. Adapter, provider and component bytes were
+unchanged from U3-v2, so their successful examples above were not all rerun.
+
+Runtime: `var/usage-20261027/candidate-u3-v3`.
+Receipt SHA256:
+`05c15112339540e3d1329babbbd86f231c2a91722b360379090ddf98b61092fa`.
+Evidence: `var/u3-service/u3-v3-real/receipt.json`, `calls.jsonl`,
+`comparison-review.json`, and `runtime-before.json`. Operator runner:
+`var/u3-service/probe-u3-v3.py`; progress log: `probe-u3-v3.log`.
+
+**31 real requests, every exact replay equal.** The one owned Engine process
+(PID 91424) exited normally with code 0. No runtime files were added, removed or
+changed in size/modification time; its receipt hash also stayed unchanged.
+
+- All **ten valid work/year questions answered correctly** through both `/query`
+  and discovered `core.query`, carrying complete title/creator relation evidence.
+- Both unsupported-year cases withheld through both interfaces.
+- The sole-Shakespeare premise for Emma now withheld through both interfaces,
+  explicitly saying the available evidence does not establish the question's
+  condition rather than claiming that missing evidence disproves it.
+- `/query` established Jane Austen as the author of Pride and Prejudice;
+  `core.query` in that same conversation answered “When was she born?” with
+  **16 December 1775**. A separate all-`/query` control returned the same answer,
+  route and evidence. This establishes shared conversation handling for the
+  supported follow-up; it does not claim the earlier G2 “What did I just ask?”
+  guard issue was repaired.
+- The previously uncovered Infrastructure forecast operation ran on 30 distinct
+  matched event pairs. The actual gate reported naive mean absolute error 10,
+  trend error 1, and selected `trend6h` using all 30 pairs. These are supplied
+  example observations, not measurements of a real host or a Mini permission.
+
+The raw receipt deliberately retains two overly strict comparison failures.
+Separate executions have different `latency_ms` values. For the two Pride and
+Prejudice film questions, the earlier route recorded in provenance changed from
+`act:clarify|vessel:receipt` to `act:clarify|vessel:reinforced`: the second execution
+reinforced the same workspace's vessel history before the canonical title reader
+replaced that earlier result. This is a real state difference, so the complete
+replies were not forced to compare equal or stripped of evidence.
+
+The separate comparison review verifies all 14 compared pairs have identical
+final status, path, response and references, with identical source provenance
+apart from that explicitly identified prior-state path. Every retry of the exact
+same request ID/body, unlike a new execution, returned an identical complete
+response. The remaining earlier routing limitations stay in the tracker; the
+specific dated-work, exclusive-premise and supported-session regressions above
+are now exercised successfully against the full packaged Engine.
