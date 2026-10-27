@@ -163,7 +163,7 @@ class RegistryTests(unittest.TestCase):
             with patch.object(Path, 'exists', return_value=True), patch.object(Path, 'is_file', return_value=True), patch.object(O, 'load_module', side_effect=ImportError('optional dependency missing')):
                 ops._extensions()
             self.assertEqual(ops.invoke('working', {'text': 'x'}, 'c'), {'status': 'answered'})
-            self.assertEqual(sum(item['availability'] == 'unavailable' for item in ops.items.values()), 4)
+            self.assertEqual(sum(item['availability'] == 'unavailable' for item in ops.items.values()), 5)
     def test_oversized_discovery_never_silently_drops_descriptor_fields(self):
         ops = registry(types.SimpleNamespace(max_reply_bytes=1024, max_request_bytes=16384))
         ops.add(O.descriptor('large', 'Large', limitations=['x' * 2000]))

@@ -355,6 +355,7 @@ class Operations:
 
     def _extensions(self):
         providers = [("workbench_operations.py", "tools/oracle_workbench/operations.py", "WorkbenchOperations"),
+                     ("exam_inspection.py", "tools/oracle_workbench/exam_inspection.py", "ExamInspection"),
                      ("component_operations.py", "tools/oracle_components/decisions.py", "DecisionOperations"),
                      ("visual_operations.py", "tools/oracle_components/visual.py", "VisualOperations"),
                      ("builder_operations.py", "tools/oracle_components/builder.py", "BuilderOperations")]
