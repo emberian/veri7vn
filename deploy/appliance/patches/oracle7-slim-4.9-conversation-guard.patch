@@ -1,0 +1,249 @@
+diff --git a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w534.py b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w534.py
+index db07c2b..f199782 100644
+--- a/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w534.py
++++ b/root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted/oracle_release_runtime_w534.py
+@@ -16,6 +16,9 @@ in both variants - bar <= 2) and CONVERSATION TEST 2 (run once, head w533). Two
+      to. Here the turn is resolved FIRST (the same engine, chat_context_v2.rewrite), the whole stack is asked the
+      standalone question, and the conversation state is updated from the FINAL answer (its receipt names the entity).
+      A turn the engine splits into parts, or cannot resolve, goes down exactly as typed.
++A last-question recall may pass G2 only when its complete reply and turn references match
++the same session's dialogue record captured before this turn. This does not authorize
++guessing personal facts or answering an additional private question.
+ Every guard WITHHOLDS with its reason; nothing here invents an answer. The fold imports no runtime other than its parent;
+ the conversation engine is called through its own public functions (rewrite, update, split_parts)."""
+ from __future__ import annotations
+@@ -64,6 +67,37 @@ def private_state(q):
+     return bool(PRIVATE.search(q)) and not QUANTITY.search(q)
+ 
+ 
++# A whole request for the last recorded question/utterance, not a substring in
++# a compound private-state request. First-question/history-list semantics are
++# deliberately outside this exception: the dialogue organ selects the last turn.
++LAST_TURN = re.compile(r"\s*(?:what\s+did\s+i\s+(?:(?:just|last)\s+)?(?:ask|say)(?:\s+you)?|"
++                       r"what\s+was\s+my\s+(?:last|previous)\s+question)\s*[?.!]*\s*", re.I)
++
++
++def recorded_history_reply(q, out, expected):
++    """An exact match to a same-session reply captured before the parent ran.
++
++    Path/citation strings alone are not authority. The caller obtains expected
++    from the dialogue organ's pure read of its current, bounded session history.
++    This Python check does not prove the authenticity of that in-memory history.
++    """
++    if not LAST_TURN.fullmatch(q) or not isinstance(expected, dict):
++        return False
++    if expected.get("kind") != "discourse:asked_last":
++        return False
++    turns = expected.get("turns") or []
++    provenance = out.get("provenance")
++    references = [{"id": "session:turn %d" % turn, "text": "this conversation, turn %d" % turn,
++                   "role": "discourse"} for turn in turns]
++    return (out.get("path") == "organ:dialogue>discourse:asked_last"
++            and out.get("response") == expected.get("response")
++            and out.get("references") == references
++            and isinstance(provenance, dict)
++            and provenance.get("kind") == "organ_dialogue"
++            and provenance.get("move") == expected["kind"]
++            and provenance.get("turns") == turns)
++
++
+ def premise_years(q):
+     m = PREMISE.match(q)
+     if not m or _EL is None:
+@@ -98,7 +132,7 @@ def _withhold(out, rule, reason):
+     return new
+ 
+ 
+-def final_guards(q, out):
++def final_guards(q, out, history_reply=None):
+     """the w532 guards, on the FINAL answer of any route"""
+     if not isinstance(out, dict) or str(out.get("status", "")) != "answered":
+         return out
+@@ -107,7 +141,7 @@ def final_guards(q, out):
+         return out
+     if "specialist" in path and sign_dropped(q, reply):
+         return _withhold(out, "G1_sign_kept", REASON["G1_sign_kept"])
+-    if private_state(q):
++    if private_state(q) and not recorded_history_reply(q, out, history_reply):
+         return _withhold(out, "G2_private_state", REASON["G2_private_state"])
+     try:
+         pm = premise_years(q)
+@@ -131,10 +165,19 @@ class OracleReleaseRuntimeW534(_Base):
+                         standalone = s
+             except Exception:  # noqa: BLE001 - an engine failure leaves the turn exactly as typed
+                 standalone = None
++        history_reply = None
++        if LAST_TURN.fullmatch(standalone or q):
++            try:
++                # DialogueOrgan.answer only reads its bounded session log. Read
++                # before the parent appends this turn, including on an empty log.
++                dialogue = self._c480_dialogue()
++                history_reply = dialogue.answer(standalone or q, session_id) if dialogue else None
++            except Exception:  # noqa: BLE001 - missing history keeps the existing private-state guard
++                pass
+         out = super().chat(standalone or q, session_id=session_id)
+         if not isinstance(out, dict):
+             return out
+-        out = final_guards(standalone or q, out)
++        out = final_guards(standalone or q, out, history_reply)
+         if standalone:
+             out = dict(out)
+             if not str(out.get("path", "")).startswith("chat:"):
+diff --git a/tests/conversation_guard/test_last_question.py b/tests/conversation_guard/test_last_question.py
+new file mode 100644
+index 0000000..12dee04
+--- /dev/null
++++ b/tests/conversation_guard/test_last_question.py
+@@ -0,0 +1,152 @@
++"""G2 regression using real dialogue production and guard methods, without a head."""
++import ast
++from copy import deepcopy
++import importlib.util
++from pathlib import Path
++import sys
++from types import ModuleType
++import unittest
++from unittest.mock import patch
++
++ROOT = Path(__file__).resolve().parents[2]
++ADMITTED = ROOT / "root/fable-content/oracle-m-series-2026-08-15/self_loop/admitted"
++
++
++def load(name, path):
++    spec = importlib.util.spec_from_file_location(name,path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++DIALOGUE = load("actual_dialogue",ROOT / "root/wander-train/organ_dialogue_v1.py")
++# Only the actual envelope builder is needed from w480; its module imports the
++# head and unrelated math/relation stores. Compile this unchanged method alone.
++source = ast.parse((ADMITTED / "oracle_release_runtime_w480.py").read_text())
++cls = next(node for node in source.body if isinstance(node,ast.ClassDef))
++method = next(node for node in cls.body if isinstance(node,ast.FunctionDef) and node.name == "_c480_dialogue_reply")
++namespace = {}
++exec(compile(ast.Module(body=[method],type_ignores=[]),"actual_w480_reply", "exec"),namespace)
++reply_builder = namespace["_c480_dialogue_reply"]
++
++
++class Parent:
++    def _c480_dialogue(self):
++        if not hasattr(self,"_c480_d"):
++            self._c480_d = DIALOGUE.DialogueOrgan()
++        return self._c480_d
++
++    def chat(self, text, session_id="default"):
++        dialogue = self._c480_dialogue()
++        if getattr(self,"forced_reply",None) is not None:
++            reply = deepcopy(self.forced_reply)
++        else:
++            answer = dialogue.answer(text,session_id)
++            reply = reply_builder(self,{"status":"clarification","path":"act:clarify"},answer)
++        dialogue.log(session_id,text,reply)
++        return reply
++
++
++parent_module = ModuleType("oracle_release_runtime_w533")
++parent_module.OracleReleaseRuntimeW533 = Parent
++with patch.dict(sys.modules,{"oracle_release_runtime_w533":parent_module,
++                            "chat_context_v2":None,"entity_linker_v2":None,"relation_spec_v1":None}):
++    GUARD = load("actual_w534",ADMITTED / "oracle_release_runtime_w534.py")
++
++
++QUESTION = "What is 6 multiplied by 7?"
++ANSWER = "In steps: 6 x 7 = 42. The answer is 42."
++
++
++class ConversationGuard(unittest.TestCase):
++    def setUp(self):
++        self.runtime = GUARD.OracleReleaseRuntimeW534()
++        self.dialogue = self.runtime._c480_dialogue()
++        self.dialogue.log("a",QUESTION,dict(status="answered",path="compute:verified",response=ANSWER))
++
++    def history_reply(self, session="a", question="What did I just ask?"):
++        return reply_builder(self.runtime,{"status":"clarification","path":"act:clarify"},
++                             self.dialogue.answer(question,session))
++
++    def test_recorded_real_repro_passes_with_exact_turn_evidence(self):
++        expected = self.history_reply()
++        self.assertTrue(GUARD.private_state("What did I just ask?"))
++        self.assertEqual(GUARD.final_guards("What did I just ask?",expected)["status"],"withheld")
++        actual = self.runtime.chat("What did I just ask?","a")
++        self.assertEqual(actual,expected)
++        self.assertEqual(actual["response"],f'You asked: "{QUESTION}" [session:turn 1]. I answered: "{ANSWER}".')
++        self.assertEqual(actual["provenance"]["turns"],[1])
++        self.assertEqual(len(self.dialogue.logs["a"]),2)  # guard read added no turn
++
++    def test_empty_session_does_not_recall_another_session(self):
++        actual = self.runtime.chat("What did I just ask?","empty")
++        self.assertEqual(actual["status"],"answered")
++        self.assertIn("first thing",actual["response"])
++        self.assertEqual(actual["references"],[])
++        self.assertNotIn(QUESTION,actual["response"])
++        self.assertEqual(len(self.dialogue.logs["empty"]),1)
++        self.assertEqual(len(self.dialogue.logs["a"]),1)
++
++    def test_repeat_recall_and_supported_variants_do_not_recall_themselves(self):
++        for question in ("What did I just ask?","What was my previous question?","What did I last say?"):
++            actual = self.runtime.chat(question,"a")
++            self.assertEqual(actual["status"],"answered")
++            self.assertIn(QUESTION,actual["response"])
++            self.assertEqual(actual["provenance"]["turns"],[1])
++        self.assertEqual(len(self.dialogue.logs["a"]),4)
++
++    def test_withheld_turn_is_recalled_as_a_request_not_as_a_true_answer(self):
++        self.dialogue.log("a","What is my bank balance?",dict(status="withheld",path="precision_guard:G2_private_state",
++                                                           response="I do not know your balance."))
++        actual = self.runtime.chat("What did I just ask?","a")
++        self.assertEqual(actual["status"],"answered")
++        self.assertIn('You asked: "What is my bank balance?"',actual["response"])
++        self.assertIn("I did not answer it",actual["response"])
++        self.assertEqual(actual["provenance"]["turns"],[2])
++
++    def test_private_and_compound_questions_are_still_withheld(self):
++        for question in ("What is my bank account balance?","What is my password?",
++                         "What did I dream about last night?","What number am I thinking of?",
++                         "What did I just ask? And what is my PIN?",
++                         "What did I just ask and what is my password?",
++                         "What did I just ask in another conversation?"):
++            with self.subTest(question=question):
++                self.runtime.forced_reply = self.history_reply()
++                actual = self.runtime.chat(question,"a")
++                self.assertEqual(actual["status"],"withheld")
++                self.assertIn("G2_private_state",actual["path"])
++
++    def test_route_or_turn_labels_do_not_license_fabricated_content(self):
++        for field, altered in (("response","Your password is swordfish."),
++                               ("references",[]),
++                               ("provenance",dict(kind="organ_dialogue",move="discourse:asked_last",turns=[99]))):
++            with self.subTest(field=field):
++                self.runtime.forced_reply = self.history_reply()
++                self.runtime.forced_reply[field] = altered
++                self.assertEqual(self.runtime.chat("What did I just ask?","a")["status"],"withheld")
++
++    def test_stale_reply_and_other_session_reply_are_withheld(self):
++        stale = self.history_reply()
++        self.dialogue.log("a","What is 9 multiplied by 9?",dict(status="answered",path="compute:verified",response="81."))
++        self.runtime.forced_reply = stale
++        self.assertEqual(self.runtime.chat("What did I just ask?","a")["status"],"withheld")
++        self.runtime.forced_reply = self.history_reply("a")
++        self.assertEqual(self.runtime.chat("What did I just ask?","b")["status"],"withheld")
++
++    def test_missing_history_handler_fails_closed(self):
++        self.runtime.forced_reply = self.history_reply()
++        self.runtime._c480_dialogue = lambda: None
++        # Invoke the real guard with a controlled parent that does not need its log.
++        with patch.object(Parent,"chat",return_value=self.runtime.forced_reply):
++            self.assertEqual(self.runtime.chat("What did I just ask?","a")["status"],"withheld")
++
++    def test_other_guards_and_quantity_computations_remain_active(self):
++        reply = dict(status="answered",path="specialist_call>x",response="The speed is 3 m/s.")
++        self.assertIn("G1_sign_kept",GUARD.final_guards("Compute speed for -3 m/s",reply)["path"])
++        self.assertIs(GUARD.final_guards("My car does 30 mpg; how far for 2 gallons?",reply),reply)
++        with patch.object(GUARD,"premise_years",return_value=("Painting",1990,[1889])):
++            self.assertIn("G3_date_premise",GUARD.final_guards("Who painted Painting in 1990?",reply)["path"])
++
++
++if __name__ == "__main__":
++    unittest.main()
