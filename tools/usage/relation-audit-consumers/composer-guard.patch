@@ -1,0 +1,41 @@
+--- a/root/wander-train/relation_spec_v1.py
++++ b/root/wander-train/relation_spec_v1.py
+@@ -153,15 +153,19 @@
+     if not match:
+         return None
+     title = match.group("title").strip()
+-    title = re.sub(r"^the (?:film|movie)\s+", "", title, flags=re.I)
++    film = re.match(r"^the (?:film|movie)\s+", title, flags=re.I)
++    if film:
++        title = title[film.end():]
+     dated = re.fullmatch(r"(.+?)\s*\((\d{4})\)", title)
+     year = dated.group(2) if dated else None
+     title = (dated.group(1) if dated else title).strip(" \"'“”‘’")
+-    return title, year
++    return title, year, "films" if film else None
+ 
+ 
+ def _composer_answer(q, did, request):
+-    title, year = request
++    title, year, required_domain = request
++    if required_domain is not None and did != required_domain:
++        return None
+     # Fetch one extra candidate so a capped name lookup is not mistaken for full
+     # coverage. Domain and optional publication year must select agreeing rows.
+     candidates = list(X.L.candidates(X.norm(title), 65)) if title else []
+@@ -171,9 +175,14 @@
+         return None
+     mine = [c[0] for c in candidates if in_domain(c[0], did)]
+     if year:
++        # A missing or unparseable publication date cannot exclude a candidate.
++        dates = {qid: values(qid, 577) for qid in mine}
++        if any(not ds or any(not re.fullmatch(r"\+?\d{4}(?:-\d{2}-\d{2}(?:T[^\s]+)?)?", str(v))
++                             for v in ds) for ds in dates.values()):
++            return None
+         mine = [qid for qid in mine if any(
+             re.fullmatch(r"\+?" + year + r"(?:-\d{2}-\d{2}(?:T[^\s]+)?)?", str(value))
+-            for value in values(qid, 577))]
++            for value in dates[qid])]
+     sets = [values(qid, 86) for qid in mine]
+     if not mine or any(not found for found in sets) or len(set(sets)) != 1 or len(sets[0]) != 1:
+         return None

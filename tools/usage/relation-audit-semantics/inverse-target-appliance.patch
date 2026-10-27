@@ -1,0 +1,2615 @@
+--- a/root/wander-train/relation_spec_v2.py
++++ b/root/wander-train/relation_spec_v2.py
+@@ -108,6 +108,12 @@
+                 qids, links = slot_candidates(slot)
+                 if not qids:
+                     continue
++                # Do not discard another linked identity before an inverse
++                # lookup. Claim this recognized ambiguity instead of guessing.
++                if direction == "inv" and (key, direction, i) not in dropped and len(set(qids)) > 1:
++                    return {"decline": True, "property": p, "subject_qid": qids[0],
++                            "pattern": "%s|%s|%d" % (key, direction, i),
++                            "reason": "ambiguous_inverse_target"}
+                 if V1.X.DOMINANCE and len(qids) > 1 and links[0] >= V1.X.DOMINANCE * max(1, max(links[1:])):
+                     qids = qids[:1]
+                 if (key, direction, i) in dropped:
+--- a/root/specialists/rel-actors/organ_relation_v2.py
++++ b/root/specialists/rel-actors/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-aircraft/organ_relation_v2.py
++++ b/root/specialists/rel-aircraft/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-airlines/organ_relation_v2.py
++++ b/root/specialists/rel-airlines/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-airports/organ_relation_v2.py
++++ b/root/specialists/rel-airports/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-albums/organ_relation_v2.py
++++ b/root/specialists/rel-albums/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-animators/organ_relation_v2.py
++++ b/root/specialists/rel-animators/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-anime/organ_relation_v2.py
++++ b/root/specialists/rel-anime/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-architects/organ_relation_v2.py
++++ b/root/specialists/rel-architects/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-asteroids/organ_relation_v2.py
++++ b/root/specialists/rel-asteroids/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-astronauts/organ_relation_v2.py
++++ b/root/specialists/rel-astronauts/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-astronomers/organ_relation_v2.py
++++ b/root/specialists/rel-astronomers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-athletes/organ_relation_v2.py
++++ b/root/specialists/rel-athletes/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-awards/organ_relation_v2.py
++++ b/root/specialists/rel-awards/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-ballets/organ_relation_v2.py
++++ b/root/specialists/rel-ballets/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-bands/organ_relation_v2.py
++++ b/root/specialists/rel-bands/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-baseball/organ_relation_v2.py
++++ b/root/specialists/rel-baseball/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-basketball/organ_relation_v2.py
++++ b/root/specialists/rel-basketball/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-battles/organ_relation_v2.py
++++ b/root/specialists/rel-battles/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-biathletes/organ_relation_v2.py
++++ b/root/specialists/rel-biathletes/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-biologists/organ_relation_v2.py
++++ b/root/specialists/rel-biologists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-bloggers/organ_relation_v2.py
++++ b/root/specialists/rel-bloggers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-boxers/organ_relation_v2.py
++++ b/root/specialists/rel-boxers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-brands/organ_relation_v2.py
++++ b/root/specialists/rel-brands/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-breeds/organ_relation_v2.py
++++ b/root/specialists/rel-breeds/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-bridges/organ_relation_v2.py
++++ b/root/specialists/rel-bridges/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-business/organ_relation_v2.py
++++ b/root/specialists/rel-business/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-carbrands/organ_relation_v2.py
++++ b/root/specialists/rel-carbrands/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-carmodels/organ_relation_v2.py
++++ b/root/specialists/rel-carmodels/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-castles/organ_relation_v2.py
++++ b/root/specialists/rel-castles/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-channels/organ_relation_v2.py
++++ b/root/specialists/rel-channels/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-characters/organ_relation_v2.py
++++ b/root/specialists/rel-characters/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-chefs/organ_relation_v2.py
++++ b/root/specialists/rel-chefs/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-chemists/organ_relation_v2.py
++++ b/root/specialists/rel-chemists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-chess/organ_relation_v2.py
++++ b/root/specialists/rel-chess/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-churches/organ_relation_v2.py
++++ b/root/specialists/rel-churches/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-comedians/organ_relation_v2.py
++++ b/root/specialists/rel-comedians/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-comics/organ_relation_v2.py
++++ b/root/specialists/rel-comics/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-companies/organ_relation_v2.py
++++ b/root/specialists/rel-companies/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-composers/organ_relation_v2.py
++++ b/root/specialists/rel-composers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-compounds/organ_relation_v2.py
++++ b/root/specialists/rel-compounds/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-computerscientists/organ_relation_v2.py
++++ b/root/specialists/rel-computerscientists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-countries-v2/organ_relation_v2.py
++++ b/root/specialists/rel-countries-v2/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-cricketers/organ_relation_v2.py
++++ b/root/specialists/rel-cricketers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-criminals/organ_relation_v2.py
++++ b/root/specialists/rel-criminals/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-crosscountry/organ_relation_v2.py
++++ b/root/specialists/rel-crosscountry/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-curlers/organ_relation_v2.py
++++ b/root/specialists/rel-curlers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-cyclists/organ_relation_v2.py
++++ b/root/specialists/rel-cyclists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-dancers/organ_relation_v2.py
++++ b/root/specialists/rel-dancers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-diplomats/organ_relation_v2.py
++++ b/root/specialists/rel-diplomats/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-directors/organ_relation_v2.py
++++ b/root/specialists/rel-directors/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-diseases/organ_relation_v2.py
++++ b/root/specialists/rel-diseases/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-dishes/organ_relation_v2.py
++++ b/root/specialists/rel-dishes/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-drivers/organ_relation_v2.py
++++ b/root/specialists/rel-drivers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-economists/organ_relation_v2.py
++++ b/root/specialists/rel-economists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-editors/organ_relation_v2.py
++++ b/root/specialists/rel-editors/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-engineers/organ_relation_v2.py
++++ b/root/specialists/rel-engineers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-equestrians/organ_relation_v2.py
++++ b/root/specialists/rel-equestrians/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-explorers/organ_relation_v2.py
++++ b/root/specialists/rel-explorers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-fencers/organ_relation_v2.py
++++ b/root/specialists/rel-fencers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-fieldhockey/organ_relation_v2.py
++++ b/root/specialists/rel-fieldhockey/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-films-v2/organ_relation_v2.py
++++ b/root/specialists/rel-films-v2/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-footballclubs/organ_relation_v2.py
++++ b/root/specialists/rel-footballclubs/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-footballers/organ_relation_v2.py
++++ b/root/specialists/rel-footballers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-galaxies/organ_relation_v2.py
++++ b/root/specialists/rel-galaxies/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-genres/organ_relation_v2.py
++++ b/root/specialists/rel-genres/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-geologists/organ_relation_v2.py
++++ b/root/specialists/rel-geologists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-golfers/organ_relation_v2.py
++++ b/root/specialists/rel-golfers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-graphicartists/organ_relation_v2.py
++++ b/root/specialists/rel-graphicartists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-gridiron/organ_relation_v2.py
++++ b/root/specialists/rel-gridiron/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-gymnasts/organ_relation_v2.py
++++ b/root/specialists/rel-gymnasts/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-handball/organ_relation_v2.py
++++ b/root/specialists/rel-handball/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-historians/organ_relation_v2.py
++++ b/root/specialists/rel-historians/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-hotels/organ_relation_v2.py
++++ b/root/specialists/rel-hotels/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-icehockey/organ_relation_v2.py
++++ b/root/specialists/rel-icehockey/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-illustrators/organ_relation_v2.py
++++ b/root/specialists/rel-illustrators/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-instruments/organ_relation_v2.py
++++ b/root/specialists/rel-instruments/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-islands/organ_relation_v2.py
++++ b/root/specialists/rel-islands/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-journalists/organ_relation_v2.py
++++ b/root/specialists/rel-journalists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-lakes/organ_relation_v2.py
++++ b/root/specialists/rel-lakes/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-languages/organ_relation_v2.py
++++ b/root/specialists/rel-languages/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-lawyers/organ_relation_v2.py
++++ b/root/specialists/rel-lawyers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-leagues/organ_relation_v2.py
++++ b/root/specialists/rel-leagues/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-libraries/organ_relation_v2.py
++++ b/root/specialists/rel-libraries/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-linguists/organ_relation_v2.py
++++ b/root/specialists/rel-linguists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-mathematicians/organ_relation_v2.py
++++ b/root/specialists/rel-mathematicians/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-military/organ_relation_v2.py
++++ b/root/specialists/rel-military/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-militaryunits/organ_relation_v2.py
++++ b/root/specialists/rel-militaryunits/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-missionaries/organ_relation_v2.py
++++ b/root/specialists/rel-missionaries/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-models/organ_relation_v2.py
++++ b/root/specialists/rel-models/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-monarchs/organ_relation_v2.py
++++ b/root/specialists/rel-monarchs/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-monuments/organ_relation_v2.py
++++ b/root/specialists/rel-monuments/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-moons/organ_relation_v2.py
++++ b/root/specialists/rel-moons/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-mountains/organ_relation_v2.py
++++ b/root/specialists/rel-mountains/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-museums/organ_relation_v2.py
++++ b/root/specialists/rel-museums/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-musicians/organ_relation_v2.py
++++ b/root/specialists/rel-musicians/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-mythology/organ_relation_v2.py
++++ b/root/specialists/rel-mythology/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-newspapers/organ_relation_v2.py
++++ b/root/specialists/rel-newspapers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-novelists/organ_relation_v2.py
++++ b/root/specialists/rel-novelists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-novels/organ_relation_v2.py
++++ b/root/specialists/rel-novels/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-nurses/organ_relation_v2.py
++++ b/root/specialists/rel-nurses/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-observatories/organ_relation_v2.py
++++ b/root/specialists/rel-observatories/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-operas/organ_relation_v2.py
++++ b/root/specialists/rel-operas/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-organisations/organ_relation_v2.py
++++ b/root/specialists/rel-organisations/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-painters/organ_relation_v2.py
++++ b/root/specialists/rel-painters/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-paintings/organ_relation_v2.py
++++ b/root/specialists/rel-paintings/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-parks/organ_relation_v2.py
++++ b/root/specialists/rel-parks/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-parties/organ_relation_v2.py
++++ b/root/specialists/rel-parties/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-pharmacists/organ_relation_v2.py
++++ b/root/specialists/rel-pharmacists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-philosophers/organ_relation_v2.py
++++ b/root/specialists/rel-philosophers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-photographers/organ_relation_v2.py
++++ b/root/specialists/rel-photographers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-physicians/organ_relation_v2.py
++++ b/root/specialists/rel-physicians/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-physicists/organ_relation_v2.py
++++ b/root/specialists/rel-physicists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-planets/organ_relation_v2.py
++++ b/root/specialists/rel-planets/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-playwrights/organ_relation_v2.py
++++ b/root/specialists/rel-playwrights/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-poems/organ_relation_v2.py
++++ b/root/specialists/rel-poems/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-poets/organ_relation_v2.py
++++ b/root/specialists/rel-poets/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-police/organ_relation_v2.py
++++ b/root/specialists/rel-police/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-politicians/organ_relation_v2.py
++++ b/root/specialists/rel-politicians/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-printmakers/organ_relation_v2.py
++++ b/root/specialists/rel-printmakers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-psychologists/organ_relation_v2.py
++++ b/root/specialists/rel-psychologists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-racketsports/organ_relation_v2.py
++++ b/root/specialists/rel-racketsports/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-religions/organ_relation_v2.py
++++ b/root/specialists/rel-religions/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-rivers/organ_relation_v2.py
++++ b/root/specialists/rel-rivers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-rowers/organ_relation_v2.py
++++ b/root/specialists/rel-rowers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-rugby/organ_relation_v2.py
++++ b/root/specialists/rel-rugby/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-sculptors/organ_relation_v2.py
++++ b/root/specialists/rel-sculptors/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-sculptures/organ_relation_v2.py
++++ b/root/specialists/rel-sculptures/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-ships/organ_relation_v2.py
++++ b/root/specialists/rel-ships/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-shooters/organ_relation_v2.py
++++ b/root/specialists/rel-shooters/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-singers/organ_relation_v2.py
++++ b/root/specialists/rel-singers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-skaters/organ_relation_v2.py
++++ b/root/specialists/rel-skaters/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-skiers/organ_relation_v2.py
++++ b/root/specialists/rel-skiers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-skyscrapers/organ_relation_v2.py
++++ b/root/specialists/rel-skyscrapers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-snooker/organ_relation_v2.py
++++ b/root/specialists/rel-snooker/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-software/organ_relation_v2.py
++++ b/root/specialists/rel-software/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-songs/organ_relation_v2.py
++++ b/root/specialists/rel-songs/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-spacecraft/organ_relation_v2.py
++++ b/root/specialists/rel-spacecraft/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-speedskaters/organ_relation_v2.py
++++ b/root/specialists/rel-speedskaters/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-spies/organ_relation_v2.py
++++ b/root/specialists/rel-spies/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-sportsevents/organ_relation_v2.py
++++ b/root/specialists/rel-sportsevents/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-sportsteams/organ_relation_v2.py
++++ b/root/specialists/rel-sportsteams/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-stadiums/organ_relation_v2.py
++++ b/root/specialists/rel-stadiums/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-stations/organ_relation_v2.py
++++ b/root/specialists/rel-stations/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-statisticians/organ_relation_v2.py
++++ b/root/specialists/rel-statisticians/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-swimmers/organ_relation_v2.py
++++ b/root/specialists/rel-swimmers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-temples/organ_relation_v2.py
++++ b/root/specialists/rel-temples/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-tennis/organ_relation_v2.py
++++ b/root/specialists/rel-tennis/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-theatres/organ_relation_v2.py
++++ b/root/specialists/rel-theatres/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-themeparks/organ_relation_v2.py
++++ b/root/specialists/rel-themeparks/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-theologians/organ_relation_v2.py
++++ b/root/specialists/rel-theologians/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-tradeunionists/organ_relation_v2.py
++++ b/root/specialists/rel-tradeunionists/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-translators/organ_relation_v2.py
++++ b/root/specialists/rel-translators/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-triathletes/organ_relation_v2.py
++++ b/root/specialists/rel-triathletes/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-tvproducers/organ_relation_v2.py
++++ b/root/specialists/rel-tvproducers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-tvseries-v2/organ_relation_v2.py
++++ b/root/specialists/rel-tvseries-v2/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-universities/organ_relation_v2.py
++++ b/root/specialists/rel-universities/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-videogames/organ_relation_v2.py
++++ b/root/specialists/rel-videogames/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-volleyball/organ_relation_v2.py
++++ b/root/specialists/rel-volleyball/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-wars/organ_relation_v2.py
++++ b/root/specialists/rel-wars/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-waterpolo/organ_relation_v2.py
++++ b/root/specialists/rel-waterpolo/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/rel-youtubers/organ_relation_v2.py
++++ b/root/specialists/rel-youtubers/organ_relation_v2.py
+@@ -42,8 +42,11 @@
+         rs = RS1._rs()
+         if a.get("decline"):
+             subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+-            return {"kind": "unverified", "status": "withheld", "value": None,
+-                    "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            result = {"kind": "unverified", "status": "withheld", "value": None,
++                      "response": "I can't verify the %s of %s from my records, so I won't guess." % (RS1.prop_label(a["property"]), subj)}
++            if a.get("reason") == "ambiguous_inverse_target":
++                result["reason"] = "ambiguous_inverse_target"
++            return result
+         subj = rs.label(a["subject_qid"]) or "Q%d" % a["subject_qid"]
+         plab = RS1.prop_label(a["property"])
+         if a["direction"] == "fwd":
+--- a/root/specialists/_gate/combo_runtime_v1.py
++++ b/root/specialists/_gate/combo_runtime_v1.py
+@@ -149,7 +149,10 @@
+         declined = k in self.declines
+         if k in self.kinds or (declined and self.ctx.search(str(text))):
+             return {"id": self.id, "kind": k, "declined": declined, "status": a.get("status", "answered"),
+-                    "response": str(a.get("response", ""))}
++                    "response": str(a.get("response", "")),
++                    "blocking_relation_decline": (declined and a.get("status") == "withheld" and
++                        self.m["organ"].get("module") in ("organ_relation_v2", "organ_relation_v2g") and
++                        a.get("reason") == "ambiguous_inverse_target")}
+         return None
+ 
+ 
+@@ -374,6 +377,9 @@
+         on the asking sentence, (4) pick order. Agreeing answers (same value within 0.5%) never 'disagree'."""
+         if not replies:
+             return None, {"rule": "none"}
++        blocked = [r for r in replies if r.get("blocking_relation_decline")]
++        if blocked:
++            return blocked[0], {"rule": "relation_inverse_ambiguity", "ids": [r["id"] for r in blocked]}
+         if len(replies) == 1:
+             return replies[0], {"rule": "only"}
+         givens = _givens(text)
