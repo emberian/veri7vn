@@ -1,0 +1,221 @@
+{
+  "scope": "Owned Linux CLI build of official pinned source; static internal libraries, dynamic system dependencies, not service admission or a hermetic bundle.",
+  "source": {
+    "repository": "https://github.com/potassco/clingo",
+    "tag": "v5.8.2",
+    "commit": "a99ffb2a58293c68b28fcc283a1d1c9ccad900fe",
+    "archive": {
+      "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-a99ffb2a58293c68b28fcc283a1d1c9ccad900fe.tar.gz",
+      "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-a99ffb2a58293c68b28fcc283a1d1c9ccad900fe.tar.gz",
+      "bytes": 5492035,
+      "sha256": "bfa8836098ca6cfe8e2b6663117f745c2489ca05cf6e017f8aca7509e54930df"
+    }
+  },
+  "artifact": {
+    "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/bin/clingo",
+    "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/bin/clingo",
+    "bytes": 5734088,
+    "sha256": "fba811b7b18e9379aa701dd92451880b2ce6537a43c359bd726d5ee5ad7b8753"
+  },
+  "version": "clingo version 5.8.2\nAddress model: 64-bit\n\nlibclingo version 5.8.2\nConfiguration: without Python, without Lua\n\nlibclasp version 3.4.1 (libpotassco version 1.2.0)\nConfiguration: WITH_THREADS=1\nCopyright (C) Benjamin Kaufmann\n\nLicense: The MIT License <https://opensource.org/licenses/MIT>\n",
+  "tools": {
+    "cmake": {
+      "path": "/usr/bin/cmake",
+      "resolved": "/usr/bin/cmake",
+      "bytes": 12554312,
+      "sha256": "773ee086edae2be007efb50b9fff5af5bb6585955fc44b7843f41e0d363dec1d"
+    },
+    "c++": {
+      "path": "/usr/bin/c++",
+      "resolved": "/usr/bin/x86_64-linux-gnu-g++-14",
+      "bytes": 1186944,
+      "sha256": "65526c2dec17e265f36bb3d0e52b4410f72f338aa465da2913d7ef0a9b31c81b"
+    },
+    "cc": {
+      "path": "/usr/bin/cc",
+      "resolved": "/usr/bin/x86_64-linux-gnu-gcc-14",
+      "bytes": 1186944,
+      "sha256": "6c463ee6b351614df480e73ea7faa1831b3c94b28f70ef657f80b49ef4dda4dc"
+    },
+    "gmake": {
+      "path": "/usr/bin/gmake",
+      "resolved": "/usr/bin/make",
+      "bytes": 259808,
+      "sha256": "d78b8f1d099fbcfb6f2f49ab87223b9b68fb3956642f92d6ec6de812e8afa965"
+    },
+    "as": {
+      "path": "/usr/bin/as",
+      "resolved": "/usr/bin/x86_64-linux-gnu-as",
+      "bytes": 795248,
+      "sha256": "7288e03679151b8999631c68ee1f1fc5db07f466397b4137a75f7b5935c99573"
+    },
+    "ld": {
+      "path": "/usr/bin/ld",
+      "resolved": "/usr/bin/x86_64-linux-gnu-ld.bfd",
+      "bytes": 1711424,
+      "sha256": "013c1ec7bf286b85559170d2f0e06646aefb9507f62fea5ba63997d85b968e4c"
+    },
+    "cc1plus": {
+      "path": "/usr/libexec/gcc/x86_64-linux-gnu/14/cc1plus",
+      "resolved": "/usr/libexec/gcc/x86_64-linux-gnu/14/cc1plus",
+      "bytes": 36618856,
+      "sha256": "55183aead1b4ff5017c19e1598c3aa49a7ab1a070d53400b7ea84b1e753dbe44"
+    },
+    "bison": {
+      "path": "/usr/bin/bison",
+      "resolved": "/usr/bin/bison",
+      "bytes": 504656,
+      "sha256": "fa37741dacd93974fb0b21b403a8d8ea50e3bb3a21352ac7aca45f33551a6585",
+      "version": "bison (GNU Bison) 3.8.2"
+    },
+    "m4": {
+      "path": "/usr/bin/m4",
+      "resolved": "/usr/bin/m4",
+      "bytes": 244088,
+      "sha256": "426fbab900b6c676038cf71da51c3ae45a6d546c9580fff9372bc5b1bb81d576",
+      "version": "m4 (GNU M4) 1.4.19"
+    }
+  },
+  "compiler_version": "c++ (Ubuntu 14.2.0-4ubuntu2) 14.2.0\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "cmake_version": "cmake version 3.30.3\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\n",
+  "platform": "Linux hbox 6.11.0-29-generic #29-Ubuntu SMP PREEMPT_DYNAMIC Fri Jun 13 20:29:41 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux\n",
+  "cache": {
+    "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/CMakeCache.txt",
+    "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/CMakeCache.txt",
+    "bytes": 25220,
+    "sha256": "7708af087e069802fb2b32ef8e5524e5f3e53076e848df7d1de8ea586fb59eb0"
+  },
+  "configure_command": "cmake -S clingo-source -B clingo-build -DCMAKE_BUILD_TYPE=Release -DCLINGO_BUILD_APPS=ON -DCLINGO_BUILD_TESTS=OFF -DCLINGO_BUILD_EXAMPLES=OFF -DCLINGO_BUILD_WITH_PYTHON=OFF -DCLINGO_BUILD_WITH_LUA=OFF -DCLINGO_BUILD_STATIC=ON",
+  "build_command": "cmake --build clingo-build --target clingo --parallel 2",
+  "system_dependencies": [
+    {
+      "path": "/lib/x86_64-linux-gnu/libstdc++.so.6",
+      "resolved": "/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33",
+      "bytes": 2592224,
+      "sha256": "ed4cf734b58b94ab52f03f50067058a0cf670f8ef9f6db4c191acec8aea4cc93"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libm.so.6",
+      "resolved": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+      "bytes": 964976,
+      "sha256": "b9972e3ae57d0423dbd9fe0d48113e5d0f236e0f0f544ca3752125ed7b6a3a16"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libgcc_s.so.1",
+      "resolved": "/usr/lib/x86_64-linux-gnu/libgcc_s.so.1",
+      "bytes": 183024,
+      "sha256": "e4bcbad0b943333596a434a7597152f850457eac7173dab2155cd073b29c91e3"
+    },
+    {
+      "path": "/lib/x86_64-linux-gnu/libc.so.6",
+      "resolved": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+      "bytes": 2182752,
+      "sha256": "132ba50d4abaeff314e64f5d84daa4e4e6d9b227135bc035fde1b69a81aab204"
+    },
+    {
+      "path": "/lib64/ld-linux-x86-64.so.2",
+      "resolved": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+      "bytes": 244816,
+      "sha256": "bc2d8ba9f76040abd791dc75015f89bb0733fb013abbf5365782a8824be12b07"
+    }
+  ],
+  "virtual_dependency": "linux-vdso is supplied by the running kernel; no file hash.",
+  "notice": {
+    "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-source/LICENSE.md",
+    "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-source/LICENSE.md",
+    "bytes": 1080,
+    "sha256": "8de01c48f0adf249cd631e7320fbf4f15b6f5c25ddb18cdf1410c95c9f0c445d"
+  },
+  "installed_into_system": false,
+  "logs": {
+    "/tank/lanes/o7-native-20261028/logic-20261029/clingo-configure.log": {
+      "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-configure.log",
+      "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-configure.log",
+      "bytes": 1255,
+      "sha256": "571a842208d52909b4128e492d9f5f62f7eb467b8c6308993a10b2e369f58c7a"
+    },
+    "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build.log": {
+      "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build.log",
+      "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build.log",
+      "bytes": 11658,
+      "sha256": "e4ca14047ec590bca931b90cec3e77bf362c67daa263a5751f62b3e9a71a458b"
+    },
+    "/tank/lanes/o7-native-20261028/logic-20261029/clingo-dependencies.txt": {
+      "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-dependencies.txt",
+      "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-dependencies.txt",
+      "bytes": 374,
+      "sha256": "835f9402db57b0aaa274f77d8defeb691f183adaa02f06dfbfe32ef0b49adc8c"
+    }
+  },
+  "parser_generation": {
+    "bison": "Found 3.8.2 and regenerated two grammar parsers; lexer uses bundled generated source because re2c absent.",
+    "generated_files": {
+      "libgringo/src/input/clingopath.hh": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/clingopath.hh",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/clingopath.hh",
+        "bytes": 52,
+        "sha256": "c31572b4f84439067b73f99e5928672be479d637775bfdf5e49df400ac36ac38"
+      },
+      "libgringo/src/input/nongroundlexer.hh": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/nongroundlexer.hh",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/nongroundlexer.hh",
+        "bytes": 147360,
+        "sha256": "58f2de9791ecf8b20ec2b9594c31d077d15994673646389ebc91f4cf0a7264d2"
+      },
+      "libgringo/src/input/groundtermlexer.hh": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermlexer.hh",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermlexer.hh",
+        "bytes": 15158,
+        "sha256": "89822cc56c11e192f1f9ed8cda60432238a8f03f2d98888c3f2ba90f306ea151"
+      },
+      "libgringo/src/input/nongroundgrammar/grammar.hh": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/nongroundgrammar/grammar.hh",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/nongroundgrammar/grammar.hh",
+        "bytes": 38881,
+        "sha256": "f8569a5bdbaa67a91f4e8b65680d80210c30966a377514e6ff534d32338fc3ed"
+      },
+      "libgringo/src/input/nongroundgrammar/stack.hh": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/nongroundgrammar/stack.hh",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/nongroundgrammar/stack.hh",
+        "bytes": 320,
+        "sha256": "41993bfa85e768182b0d478daab125da0e072db3cc446c0c2fa18d961536c391"
+      },
+      "libgringo/src/input/nongroundgrammar/grammar.cc": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/nongroundgrammar/grammar.cc",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/nongroundgrammar/grammar.cc",
+        "bytes": 220860,
+        "sha256": "742b240e63ab1d59c6c10c97664c75746273732056aa7a7edfbbb29476779585"
+      },
+      "libgringo/src/input/groundtermgrammar/grammar.hh": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermgrammar/grammar.hh",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermgrammar/grammar.hh",
+        "bytes": 26171,
+        "sha256": "eb541fba9d92882db2ac9047e990faa4a3ea69c2786fc44cf72aba3d3f5fb103"
+      },
+      "libgringo/src/input/groundtermgrammar/location.hh": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermgrammar/location.hh",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermgrammar/location.hh",
+        "bytes": 8846,
+        "sha256": "2a9a613f54b5af8732fa0ed6bcd17247bd6d3997accff2549b21793898485bc5"
+      },
+      "libgringo/src/input/groundtermgrammar/grammar.cc": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermgrammar/grammar.cc",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermgrammar/grammar.cc",
+        "bytes": 46984,
+        "sha256": "5e5c08a1628e237915767a9bfb24e38d50ef123e34e0c23540b74cb9367b0109"
+      },
+      "libgringo/src/input/groundtermgrammar/position.hh": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermgrammar/position.hh",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermgrammar/position.hh",
+        "bytes": 401,
+        "sha256": "41f5080456b27b9542734f194fcee9cbcf43a47da65af342b93b4a17006d9120"
+      },
+      "libgringo/src/input/groundtermgrammar/stack.hh": {
+        "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermgrammar/stack.hh",
+        "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/libgringo/src/input/groundtermgrammar/stack.hh",
+        "bytes": 320,
+        "sha256": "41993bfa85e768182b0d478daab125da0e072db3cc446c0c2fa18d961536c391"
+      }
+    }
+  }
+}

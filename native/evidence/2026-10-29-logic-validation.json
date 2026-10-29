@@ -1,0 +1,80 @@
+{
+  "scope": "Standalone oracle-logic prototype qualification against pinned Linux clingo. No workspace/PyO3/HTTP/service/package integration, formal theorem or specialist-panel claim.",
+  "source_files": {
+    "native/oracle-logic/Cargo.toml": "08aea9449fedde381a4a496954b488c6c2320e8521b102e72c39eefc0f6a4bc4",
+    "native/oracle-logic/src/lib.rs": "d6167afe2c52274be43cc94732a5e24f6306a6c36355116204a7fb3686de7c2d",
+    "native/oracle-logic/src/process.rs": "ead7b08e5014565505d2fd26f7b3ac11a3eee59be9bb11a2089a3c521ec4a620",
+    "native/oracle-logic/tests/semantics.rs": "b985d194266e6d4ae74e05b533e80e3d4addaedd85e85ce2ca59b420ffb21d62",
+    "native/oracle-logic/tests/solver_boundary.rs": "7d075d83268d43e5ab4ba2932c49a4627e7b8eaa03272e7246d174c7fa7f3a47",
+    "native/oracle-logic/Cargo.lock": "ff8ee811e461d24d6e5287c97b6523aef650b25e62718889df453f6846e5d0fc"
+  },
+  "local_remote_source_match": true,
+  "dependency_lock": {
+    "path": "native/oracle-logic/Cargo.lock",
+    "sha256": "ff8ee811e461d24d6e5287c97b6523aef650b25e62718889df453f6846e5d0fc",
+    "scope": "Isolated standalone Cargo.lock used with --locked for final gates; shared native workspace lock unchanged."
+  },
+  "solver_build_receipt": "2026-10-29-clingo-build.json",
+  "solver_build_receipt_sha256": "b7c12e32d1caf6bf9a7f491a97fa57a87368682a078fd31c01dbcbbac515747f",
+  "solver_executable": {
+    "path": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/bin/clingo",
+    "resolved": "/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/bin/clingo",
+    "bytes": 5734088,
+    "sha256": "fba811b7b18e9379aa701dd92451880b2ce6537a43c359bd726d5ee5ad7b8753"
+  },
+  "checks": [
+    {
+      "command": "cargo fmt --check",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo clippy --locked --all-targets -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo test --locked --test semantics --test solver_boundary",
+      "passed": 16,
+      "actual_solver_tests_ignored_here": 2,
+      "semantics": 10,
+      "subprocess_boundary": 6,
+      "independent_model_checks": 4900,
+      "notes": "All 1,225 two-atom programs with at most2 rules, checked against exhaustive reduct minimal models. Boundary fixtures use only shell builtins/no descendants and assert their owned PID is reaped after blocked-stdin timeout, stdout overflow and in-flight cancellation."
+    },
+    {
+      "command": "CLINGO_EXECUTABLE=/tank/lanes/o7-native-20261028/logic-20261029/clingo-build/bin/clingo cargo test --locked --test semantics -- --ignored",
+      "passed": 2,
+      "ignored": 0,
+      "filtered_out": 10,
+      "notes": "36 one-atom rule pairs compared with independent model oracle; 60 independent default pairs plus forced query succeeds within two witnesses while enumeration is inconclusive under same bound."
+    }
+  ],
+  "claims_and_limits": [
+    "Each positive model is independently checked by the handwritten GL-reduct/least-Horn-fixpoint criterion. This is not an Isabelle theorem.",
+    "Query consistency and opposite-polarity UNSAT remain explicitly solver-trusted without certificates. Inconsistency never yields vacuous skeptical truth.",
+    "Any checked model contradicting an earlier UNSAT globally revokes absence-dependent answers; later timeout retains only supported witness conclusions or valid completed probes.",
+    "Adapter bounds encoded input, aggregate pipe output, checker work and deadline, stops/reaps only its own child, and assumes the pinned binary launches no descendants.",
+    "No hard address-space/RSS containment, fair multi-tenant admission, artifact-registration policy or hosted consumer is implemented by this standalone crate. CLI/system dependencies are not installed or bundled."
+  ],
+  "retained_initial_failures": [
+    "Clippy unnecessary_map_or in lib.rs repaired without semantic change.",
+    "Clippy six field_reassign_with_default fixtures repaired; final16+2 tests rerun after all source changes."
+  ],
+  "logs_sha256": {
+    "var/native-logic-20261029/remote-logs/clingo-actual-contracts.log": "15ae12615a75fc8b79f47ed3c0de951bdf4cf0ba7a58374d81fd81575f9b86e5",
+    "var/native-logic-20261029/remote-logs/clingo-build.log": "e4ca14047ec590bca931b90cec3e77bf362c67daa263a5751f62b3e9a71a458b",
+    "var/native-logic-20261029/remote-logs/clingo-configure.log": "571a842208d52909b4128e492d9f5f62f7eb467b8c6308993a10b2e369f58c7a",
+    "var/native-logic-20261029/remote-logs/clippy-r2.log": "a564e523a8cb6e1f1eab01bf93f57e1bdfcac67d6639cd433c10a662af5465f3",
+    "var/native-logic-20261029/remote-logs/clippy-r3.log": "324ffc778c09b4635a1ee5215ce1c51f4d1d6a95b681c6c7ee9d97d31710bb9f",
+    "var/native-logic-20261029/remote-logs/clippy.log": "905355122b428dc4a1ded15424ed67943a031ba19293ca4697191e3c16b8c3b9",
+    "var/native-logic-20261029/remote-logs/format-r2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "var/native-logic-20261029/remote-logs/format-r3.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "var/native-logic-20261029/remote-logs/format.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "var/native-logic-20261029/remote-logs/scoped-contracts-r3.log": "5fa9fdb87cf7c5ec3353682c007d80341d27b9740dec89888eebfc11c693e4b8",
+    "var/native-logic-20261029/remote-logs/scoped-contracts.log": "9f3c1f1e2b9e4fcb94439f5b73c28a89f4997ee51fc67af67e4ee0165723fe6b"
+  },
+  "resource_controls": {
+    "cargo_build_jobs": 2,
+    "cmake_parallel": 2,
+    "expensive_builds_serial": true
+  }
+}

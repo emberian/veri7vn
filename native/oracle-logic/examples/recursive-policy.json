@@ -1,0 +1,16 @@
+{
+  "scope":{"tenant":"policy-demo","snapshot":"complete-local-delegations-v1","complete_program":true},
+  "atoms":["owner(alice)","delegate(alice,bob)","delegate(bob,carol)","reachable(alice)","reachable(bob)","reachable(carol)","revoked(carol)","can-read(carol)"],
+  "rules":[
+    {"head":0,"positive":[],"negative":[]},
+    {"head":1,"positive":[],"negative":[]},
+    {"head":2,"positive":[],"negative":[]},
+    {"head":3,"positive":[0],"negative":[]},
+    {"head":4,"positive":[3,1],"negative":[]},
+    {"head":5,"positive":[4,2],"negative":[]},
+    {"head":4,"positive":[5],"negative":[]},
+    {"head":7,"positive":[5],"negative":[6]},
+    {"head":null,"positive":[7,6],"negative":[]}
+  ],
+  "queries":[5,7]
+}

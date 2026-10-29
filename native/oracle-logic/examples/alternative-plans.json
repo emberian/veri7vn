@@ -1,0 +1,12 @@
+{
+  "scope":{"tenant":"plan-demo","snapshot":"two-feasible-options-v1","complete_program":true},
+  "atoms":["use-train","use-bus","travel"],
+  "rules":[
+    {"head":0,"positive":[],"negative":[1]},
+    {"head":1,"positive":[],"negative":[0]},
+    {"head":2,"positive":[0],"negative":[]},
+    {"head":2,"positive":[1],"negative":[]},
+    {"head":null,"positive":[0,1],"negative":[]}
+  ],
+  "queries":[0,1,2]
+}

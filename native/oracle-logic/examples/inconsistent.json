@@ -1,0 +1,6 @@
+{
+  "scope":{"tenant":"plan-demo","snapshot":"impossible-obligation-v1","complete_program":true},
+  "atoms":["must-do-impossible"],
+  "rules":[{"head":0,"positive":[],"negative":[0]}],
+  "queries":[0]
+}

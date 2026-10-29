@@ -1,0 +1,11 @@
+{
+  "scope":{"tenant":"bird-demo","snapshot":"after-penguin-observation","complete_program":true},
+  "atoms":["bird(tweety)","penguin(tweety)","abnormal-flight(tweety)","flies(tweety)"],
+  "rules":[
+    {"head":0,"positive":[],"negative":[]},
+    {"head":1,"positive":[],"negative":[]},
+    {"head":2,"positive":[1],"negative":[]},
+    {"head":3,"positive":[0],"negative":[2]}
+  ],
+  "queries":[1,3]
+}
