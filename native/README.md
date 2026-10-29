@@ -324,3 +324,13 @@ checked with a real HTTP call gated before worker exchange: it returns 503 with
 uncertainty, reaps the child, and restart replays the earlier committed reply.
 A separate lost-response-after-commit test checks exact retry after a successful
 commit. Full routing, dialogue, external effects and signed Mini integration remain.
+
+The [graph/refusal checkpoint](evidence/2026-10-29-graph-pure-validation.json)
+qualifies commit `951a178`: exact directed shortest paths return checked finite,
+unreachable or unbounded witnesses over the supplied graph. Seven graph
+contracts include 6,561 comparisons with an independent oracle; five actual
+binding/HTTP cases and a near-cap 8,100-vertex reply pass. Expected invalid-input
+and resource refusals now retain healthy reasoning/science workers under the
+strict typed protocol, including independent single-feature builds. Other
+faults still retire workers. Pure request IDs correlate recomputation rather
+than durable replay. The reader remains unchanged in this checkpoint.

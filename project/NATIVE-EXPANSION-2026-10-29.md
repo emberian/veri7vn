@@ -213,3 +213,28 @@ diagnostics remain retained. Its structural repair has 30 authored contracts and
 still needs central real-case qualification. Next graph/typed-refusal additions
 are separate frozen work awaiting their own checks. Full routing, dialogue,
 external effects, retention policy and Mini integration remain unfinished.
+
+## Exact directed paths and healthy worker reuse
+
+Commit `951a178` adds callable shortest paths with independently checked finite,
+unreachable and negative-cycle witnesses over the caller's supplied graph.
+It also keeps healthy workers after typed reasoning/science input refusals,
+including workers holding a shared data Runtime. Numerical faults and forged
+exception shapes still retire the process. The [graph/provider receipt](../native/evidence/2026-10-29-graph-pure-validation.json)
+records 39 scoped Rust tests (including 6,561 independent graph comparisons),
+actual PyO3/HTTP calls, independent feature builds and worker identity checks.
+The near-cap HTTP certificate passes without whitespace inflating native bytes.
+The receipt distinguishes initial checks, formatting repairs and the test-only
+HTTP import correction; 144 final source hashes match the committed cut.
+
+The separate reader repair now passes 31 contracts and removes the three earlier
+binding/byte failures. Two comparison questions pass in debug; the third reaches
+the debug deadline. Optimized probes under unchanged limits are still required
+before claiming restoration or wider coverage.
+
+The staged `oracle-logic` prototype adds grounded normal-program reasoning,
+independent stable-model witness checks and targeted counterexample queries.
+It remains outside the shared workspace and host, with no execution claim.
+Official clingo 5.8.2 source is pinned for a later controlled native CLI build;
+solver admission and real-backend qualification remain work. No new specialist
+panel or Isabelle theorem is claimed by these additions.

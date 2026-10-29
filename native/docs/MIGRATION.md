@@ -219,6 +219,18 @@ second invocation before worker exchange, then verifies cancellation uncertainty
 reaping and restart replay of the earlier commit. A separate injection drops a
 reply after commit and verifies exact retry.
 
+The [graph/refusal checkpoint](../evidence/2026-10-29-graph-pure-validation.json)
+qualifies `951a178` with the previous reader unchanged. `graph.shortest_path`
+accepts a complete caller-supplied directed integer graph and returns checked
+finite, unreachable or unbounded witnesses; this adds no external-world coverage
+or new formal theorem. Operator graph work, time and reply caps remain effective.
+Reasoning/science expected Invalid/Limit refusals use the shared exact typed
+protocol and preserve healthy workers. Generic errors still retire workers;
+request IDs continue to correlate pure recomputation without durable replay.
+Independent reasoning, science, default and incremental builds retain their
+feature boundaries. The receipt distinguishes contract tests before formatting,
+subsequent lint/build checks, and the test-only HTTP import correction.
+
 ## Evidence needed to finish
 
 Component/consumer checks and bounded real program/language runs are retained

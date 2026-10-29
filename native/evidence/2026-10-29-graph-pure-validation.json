@@ -1,0 +1,175 @@
+{
+  "scope": "Callable supplied-graph shortest paths and typed expected refusal reuse; component/HTTP qualification, no specialist-panel or new formal theorem claim.",
+  "code_commit": "951a178",
+  "source_manifest": "2026-10-29-graph-pure-sources.json",
+  "source_manifest_sha256": "56fb48a7292e37759745cbc961cf9c52fcc1366585e3cf4a9bd28fa31918381c",
+  "artifact": {
+    "path": "/tank/lanes/o7-native-20261028/graph-pure-20261029/binding-r2/oracle_native.so",
+    "sha256": "da93fb6da61428879947dc41179b244a18e087d571961a13eb392943e48576c9",
+    "bytes": 13230688,
+    "profile": "release",
+    "features": [
+      "reasoning",
+      "science",
+      "incremental",
+      "bio",
+      "statistics"
+    ]
+  },
+  "resource_controls": {
+    "cargo_build_jobs": 2,
+    "target": "/tank/lanes/o7-native-20261028/target",
+    "graph_work": 5000000,
+    "graph_reply_bytes": 262144,
+    "search_ms": 50,
+    "bounds_raised": false
+  },
+  "revisions": [
+    {
+      "revision": "R1",
+      "index_tree": "93a0429eb7c7de1d5345f9beebaec67d32c1dca9",
+      "passed": {
+        "rust_contracts": 39,
+        "contracts": 8,
+        "dimensions": 14,
+        "shortest_path": 7,
+        "stoichiometry": 10
+      },
+      "command": "cargo test --locked --no-fail-fast -p oracle-reasoning --test shortest_path_contract --test contracts --test stoichiometry_contract --test dimensions_contract",
+      "retained_failures": [
+        "rustfmt check failed; initial runner mistakenly displayed tail status, corrected before qualification",
+        "Clippy rejected two shortest-path style issues; release gate did not run"
+      ]
+    },
+    {
+      "revision": "R2",
+      "index_tree": "e8e43c507163657d3e1029427f4321757b071b22",
+      "change": "Rustfmt and two Clippy style fixes; Rust contract suite not repeated after stylistic changes.",
+      "passed": [
+        "standalone rustfmt --check on changed Rust files",
+        "cargo clippy --locked -p oracle-reasoning -p oracle-science -p oracle-runtime-python --features reasoning,science,incremental,bio,statistics --all-targets -- -D warnings",
+        "cargo build --locked --release -p oracle-runtime-python --features reasoning,science,incremental,bio,statistics"
+      ],
+      "retained_failure": "Graph HTTP qualifier helper shadowed imported http module before HTTP execution."
+    },
+    {
+      "revision": "R3",
+      "index_tree": "7567806b83aee58cfbf5f44832ac1077a936b470",
+      "change": "Only native/tests/qualify_shortest_path.py differs: import HTTPConnection directly. Native sources/artifact unchanged from R2.",
+      "passed": "Actual direct-binding and HTTP qualifier rerun; no unnecessary Rust rebuild."
+    }
+  ],
+  "python_checks": {
+    "reasoning_adapter_manufactured": 27,
+    "actual_combined_pure_refusals": 6,
+    "existing_pool": 20,
+    "actual_domain_release_bindings": 15,
+    "independent_reasoning_actual_boundary": 1,
+    "independent_science_actual_boundary": 1,
+    "skips_counted_as_passes": 0,
+    "feature_matrix": {
+      "reasoning": {
+        "mode": "reasoning",
+        "exports": [
+          "reasoning_call",
+          "reasoning_catalog"
+        ],
+        "NativeRequestError": true,
+        "actual_valid_call": true,
+        "passed": true,
+        "extension_sha256": "1fceafa25d91d6e6dd48f5bce5b0db44a4e10c892182d0e13ceb981749be7919"
+      },
+      "science": {
+        "mode": "science",
+        "exports": [
+          "science_call",
+          "science_catalog"
+        ],
+        "NativeRequestError": true,
+        "actual_valid_call": true,
+        "passed": true,
+        "extension_sha256": "bcc0d79abb6c8a24a74a794e44268325374fdc37fdcfd8b4d8dc42b71bf95d7b"
+      },
+      "default": {
+        "mode": "default",
+        "exports": [],
+        "NativeRequestError": false,
+        "actual_valid_call": false,
+        "passed": true,
+        "extension_sha256": "a69a96861296c3c7bb36cc979f68dc7da517bbcb18141c5c11616b9c508f2f2b"
+      },
+      "incremental": {
+        "mode": "incremental",
+        "exports": [
+          "incremental_call",
+          "incremental_catalog"
+        ],
+        "NativeRequestError": false,
+        "actual_valid_call": true,
+        "passed": true,
+        "extension_sha256": "21d9109aeb8e407b2f1dec25d8f267de88de855e7a829b365dc99b5e643a71e7"
+      }
+    },
+    "feature_notes": "Default/incremental direct assertions are not unittest counts. Reasoning/science direct valid calls plus exact exception boundary each pass."
+  },
+  "actual_shortest_paths": {
+    "command": "python -B native/tests/qualify_shortest_path.py --extension /tank/lanes/o7-native-20261028/graph-pure-20261029/binding-r2/oracle_native.so --output /tank/lanes/o7-native-20261028/graph-pure-20261029/shortest-path-actual-r3.json",
+    "cases": [
+      "finite_dead_end_cycle",
+      "finite_unreachable_cycle",
+      "unreachable_with_cycle",
+      "unbounded",
+      "exact_large_total"
+    ],
+    "direct_and_http_cases": 5,
+    "invalid_binding_rejections": 2,
+    "one_worker_reused": true,
+    "same_id_changed_arguments_recomputed": true,
+    "near_cap": {
+      "vertices": 8100,
+      "compact_bytes": 248837,
+      "spaced_bytes": 265041,
+      "http_passed": true
+    },
+    "full_observation": "/Users/ember/dev/o7vn/var/native-graph-pure-20261029/shortest-path-actual-r3.json",
+    "full_observation_sha256": "ce5e3a04498b04414ae4d269591cbeebbaaba163b8591b3956741f5ef1be6898"
+  },
+  "boundaries": [
+    "Exact directed caller-supplied i64 graph, checked i128 totals; finite/unreachable/unbounded witnesses independently checked in Rust, not a new HOL theorem.",
+    "No world graph completeness, durable pure replay, filesystem/network sandbox or specialist-panel completion claim.",
+    "Only exact declared NativeRequestError Invalid/Limit and fixed allowed codes reuse healthy workers; generic/subclass/numerical/runtime faults remain conservative retirement.",
+    "Reader coverage and resource limits unchanged in this checkpoint; live segment repair remains unqualified and excluded."
+  ],
+  "runner_status_audit": "Cargo/Python scripts use set -euo pipefail. Relevant logs audited after initial format status mistake; no other masked gate found. R2 format checked standalone with actual exit0.",
+  "commands_and_logs": {
+    "native_r1_script": "/Users/ember/dev/o7vn/var/native-graph-pure-20261029/check-native.sh",
+    "native_r2_script": "/Users/ember/dev/o7vn/var/native-graph-pure-20261029/check-native-r2.sh",
+    "feature_script": "/Users/ember/dev/o7vn/var/native-graph-pure-20261029/check-feature-builds.sh",
+    "python_script_retained_stopped_failure": "/Users/ember/dev/o7vn/var/native-graph-pure-20261029/check-python.sh",
+    "log_sha256": {
+      "var/native-graph-pure-20261029/adapter-contracts.log": "4f3fc76f5c3bdcdb0a3d33c0e5a3686ffe1b741d92ae3a89302843e8893791e0",
+      "var/native-graph-pure-20261029/binding-contracts.log": "ba4b436e3b65d9563aaad9077f2b4c3721602d30fa3a3957057ece0fe1f49c37",
+      "var/native-graph-pure-20261029/feature-builds.log": "26b8dc8b971f7e92ff12582e700dd232f7f4c2d1d4d1d6417ff8adf06e0e1327",
+      "var/native-graph-pure-20261029/format-check-r2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "var/native-graph-pure-20261029/format-check.log": "d36900f1f07c61b430a02dcd40ee87435214a63224b605682aaf9c0bcf6710ea",
+      "var/native-graph-pure-20261029/initial93a-before-style-fix.log": "5a785eb174020c11506033d4a3a8c21b1aefbf7a3994e6841902fb34ded03f89",
+      "var/native-graph-pure-20261029/native-r2.log": "556839eca15af8c5a639db65f4d1e1581761c1f9dcbdf216dd709181c95b0936",
+      "var/native-graph-pure-20261029/native.log": "5a785eb174020c11506033d4a3a8c21b1aefbf7a3994e6841902fb34ded03f89",
+      "var/native-graph-pure-20261029/python.log": "fa124c31c9119e55d2872f97be94ed2a010368f34663e08bb58f6e7399fcf935",
+      "var/native-graph-pure-20261029/shortest-actual-r3.log": "ce46db9829fd9bfc8d64c5e0f57cb17a696531efd8d61de096d1f342f6229a26",
+      "var/native-graph-pure-20261029/remote-logs/build-feature-default.log": "177bebaae77a2f618b9dd64604ef214fd86e702560b6759a1092edce1c1490fa",
+      "var/native-graph-pure-20261029/remote-logs/build-feature-incremental.log": "58d71887700779a7e7adbd4144d71bb193df53c7372ea5662deec11b5e70c442",
+      "var/native-graph-pure-20261029/remote-logs/build-feature-reasoning.log": "323da1e157c05ea2ba0267e73a093a14552ad9d712455335d4561d511cfee256",
+      "var/native-graph-pure-20261029/remote-logs/build-feature-science.log": "28623c4adadfc8fedf2f48e25c86e11e51574cbd897224620f0048d7bb44e26c",
+      "var/native-graph-pure-20261029/remote-logs/clippy-r2.log": "42dba2fd51aebc8034290b103e2b0b3a5bd789d049fd1f5b6318f6b598cb5586",
+      "var/native-graph-pure-20261029/remote-logs/clippy.log": "a4fcd37a66745026323ba4cc7512bad8ad03e006017bb85c17013034a4185cf5",
+      "var/native-graph-pure-20261029/remote-logs/feature-boundary-reasoning.log": "185169e34f74825818f047a1aa19141982c32b705fafd3454fc9f704ebd08bbd",
+      "var/native-graph-pure-20261029/remote-logs/feature-boundary-science.log": "10063a6af10eb3a2ebb24aa694cc5aa63d76c1bc18774591d00cc6088fb21f13",
+      "var/native-graph-pure-20261029/remote-logs/pool-contracts.log": "ce0c199fbc7faf82ba6be208d539bfc7bb302ce1ad7c3a51444ef59273f5f049",
+      "var/native-graph-pure-20261029/remote-logs/pure-refusal-contracts.log": "960f0f52eeba88de6a33cbcf2f88e3a6149024f87e50215a088e82c1b3dbbcbb",
+      "var/native-graph-pure-20261029/remote-logs/reasoning-contracts.log": "19c5dcb0c8cd2f07dac010f052fe585814806e84c9e93ccf19d0719d62502295",
+      "var/native-graph-pure-20261029/remote-logs/release-build-r2.log": "b2fbc6fc277885dd265aa0c605c0a5aba039d454172b403f50379b6fa48fe811",
+      "var/native-graph-pure-20261029/remote-logs/shortest-path-actual.log": "fb0e784b89979c8679e7f7a7c6b669db09e11b2e16876f15acfd17b00fa2150e"
+    }
+  }
+}

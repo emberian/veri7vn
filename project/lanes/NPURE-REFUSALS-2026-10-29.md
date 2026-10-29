@@ -1,8 +1,8 @@
 # Pure native request refusals, 29 October 2026
 
-Owner: Codex pure-refusal lane. Status: implementation complete; existing paths frozen for
-central integration and execution. No specialist panels scored; no panel numbers yet.
-No tests or builds run: central integrator owns execution and Cargo2.
+Owner: Codex pure-refusal lane. Status: implemented and centrally qualified at
+code checkpoint `951a178`. No specialist panels scored; no panel numbers.
+This lane ran no tests or builds; the central integrator owns those receipts.
 
 The intended behavior is to preserve the same native child, loaded runtime and
 resource identity after a request-local invalid input or resource limit in the
@@ -42,8 +42,8 @@ Authored tests require actual compiled extension calls for invalid/limit input,
 a valid call afterward, unchanged worker/PID/runtime identity/resource identity,
 incremental completed refusal, and numerical-failure retirement. Unit cases
 exclude forged ordinary exceptions, subclasses and undeclared codes. Existing
-pool tests must replace obsolete negative reasoning/science whitelist cases
-with runtime cases. An additional manufactured-import subprocess fixture runs actual worker main
+pool tests replace obsolete negative reasoning/science whitelist cases
+with an incremental case, which remains outside the typed-error exemption. An additional manufactured-import subprocess fixture runs actual worker main
 and pool transport: exact declared errors reuse the child; ordinary ValueError
 with matching args, declared subclasses and unexpected exceptions retire it.
 This fixture is transport evidence only, not native computation evidence.
@@ -52,12 +52,26 @@ No theorem statements added. The consumer is the appliance's shared native pool,
 including a worker which already has a durable runtime/image loaded. This change
 reduces avoidable reloads; it adds no mathematical assurance or sandboxing claim.
 
-## Central qualification requested
+## Central qualification
 
-Run the focused new test file and existing native pool tests against the full
-next-batch extension. Build/import reasoning-only and science-only extensions
-and run ActualFeatureBoundary against each: the shared exception export and
-exact type/args must work without bio or statistics. Also check default and
-incremental-only feature builds preserve their existing behavior. No execution
-receipt is claimed here. Reasoning core lib.rs was released immediately after
-the parse-boundary edit for shortest-path integration; preserve both changes.
+The central integrator reports these successful checks for code `951a178`,
+recorded in `native/evidence/2026-10-29-graph-pure-validation.json`:
+
+- Combined-extension pure-refusal tests: 6 passed, 0 skipped. Native pool tests:
+  20 passed. These cover actual invalid/limit requests, valid followups and
+  resident worker/runtime/resource identity, as well as fault retirement.
+- Reasoning-only and science-only extensions: one actual boundary test each,
+  plus direct successful valid-call assertions. Default-feature export absence
+  and incremental-only completed-refusal assertions also passed; skipped tests
+  are not counted as feature evidence.
+- R2: formatting, Clippy with `-D warnings`, and release build passed. R1:
+  39 focused Rust tests passed. R3 only repaired the graph qualifier's
+  `HTTPConnection` shadowing; it did not change this lane's production behavior.
+
+The combined artifact SHA-256 is
+`da93fb6da61428879947dc41179b244a18e087d571961a13eb392943e48576c9`.
+These are central integration results, not executions performed by this lane.
+
+Reasoning core lib.rs was released immediately after the parse-boundary edit
+for shortest-path integration. No theorem, specialist-panel score or sandbox
+claim follows from these transport and native boundary checks.

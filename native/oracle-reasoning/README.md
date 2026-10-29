@@ -90,3 +90,14 @@ including all outcomes, irrelevant negative cycles and exact large totals.
 Repeated pure calls recompute; request IDs provide correlation, not durable replay.
 It is a component qualification, not a specialist-panel score or a full Engine
 or Mini authentication test.
+
+The [29 October graph/pure receipt](../evidence/2026-10-29-graph-pure-validation.json)
+records 39 Rust checks (including seven shortest-path contracts with 6,561
+independent Floyd-Warshall comparisons), warnings-denied Clippy and formatting,
+27 adapter checks, and five actual PyO3/NativeService HTTP graph cases with two
+invalid-binding refusals. HTTP qualification also passed the near-cap certificate:
+248,837 compact bytes, versus 265,041 with default spacing. One resident worker
+was reused, and changed arguments under the same request ID recomputed the result.
+R3 repaired only the qualifier's HTTP import shadowing and reused the R2 release
+artifact; it did not change native code. These are component results, with no HOL
+proof or specialist-panel completion claim.
