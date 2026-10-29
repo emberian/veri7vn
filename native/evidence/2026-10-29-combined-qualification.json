@@ -1,0 +1,1745 @@
+{
+ "schema": "oracle-combined-qualification-v1",
+ "date": "2026-10-29",
+ "lane": "S4-COMBINED-QUALIFICATION",
+ "subject": "O1 request-local composition arena + O2 scalar Exists/Count query demand, qualified together at HEAD cdc474c against a pre-O1/O2 control",
+ "data": {
+  "image_sha256": "8fcb1db9a08e234179f66ea9e032d2633b38cdcb902f4c95d1ba2c2d49c842f4",
+  "validation": "val.json (sha pinned by qualify_reader.py)",
+  "cohort_file": "native/tests/composition_cases_targeted_20261029.json (original sha256 388810fd2d99c1f25e2e53b0e906e21669915c7836a8fd1524967d755862b853); run copies replace only artifacts (and, on macOS, limits.timeout_ms=60000)",
+  "coverage": "whole_and_exact_fragment_outer_v1+exact_segment_and_single_nested_v1"
+ },
+ "cohort_16_summary": {
+  "control": {
+   "correct": 1,
+   "expected_decline": 4,
+   "unanswered": 7,
+   "wrong": 0,
+   "errors": 4
+  },
+  "candidate": {
+   "correct": 2,
+   "expected_decline": 6,
+   "unanswered": 8,
+   "wrong": 0,
+   "errors": 0
+  },
+  "holds_on": "macOS and Linux, all 4 runs each (two in each order), identical per-case results and result hashes across the 4 runs"
+ },
+ "cohort_16_per_case": [
+  {
+   "id": "baseline_city_website_saskatoon",
+   "macos": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "segment_city_website_population_saskatoon",
+   "macos": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "segment_city_population_website_saskatoon",
+   "macos": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "nested_university_city_website_saskatoon",
+   "macos": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "nested_university_city_website_population_saskatoon",
+   "macos": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "nested_university_city_website_population_belfast",
+   "macos": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "nested_headquarters_city_website_population_bristol",
+   "macos": {
+    "control": "errors: resource limit: composition bytes",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": false
+   },
+   "linux": {
+    "control": "errors: resource limit: composition bytes",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": false
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "segment_city_website_population_bristol",
+   "macos": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "unanswered (answer_form)",
+    "candidate": "unanswered (answer_form)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "nested_human_count_bristol",
+   "macos": {
+    "control": "answered_correct",
+    "candidate": "answered_correct",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "answered_correct",
+    "candidate": "answered_correct",
+    "identical_result": true
+   },
+   "candidate_answer": "6",
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "ambiguous_human_selection_bristol",
+   "macos": {
+    "control": "declined_expected (answer_form)",
+    "candidate": "declined_expected (answer_form)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "declined_expected (answer_form)",
+    "candidate": "declined_expected (answer_form)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "nested_university_count_cardiff",
+   "macos": {
+    "control": "errors: resource limit: composition bytes",
+    "candidate": "answered_correct",
+    "identical_result": false
+   },
+   "linux": {
+    "control": "errors: resource limit: composition bytes",
+    "candidate": "answered_correct",
+    "identical_result": false
+   },
+   "candidate_answer": "2",
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "ambiguous_university_selection_cardiff",
+   "macos": {
+    "control": "errors: resource limit: composition bytes",
+    "candidate": "declined_expected (answer_form)",
+    "identical_result": false
+   },
+   "linux": {
+    "control": "errors: resource limit: composition bytes",
+    "candidate": "declined_expected (answer_form)",
+    "identical_result": false
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "empty_segment_changed_population_bristol",
+   "macos": {
+    "control": "declined_expected (no_template)",
+    "candidate": "declined_expected (no_template)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "declined_expected (no_template)",
+    "candidate": "declined_expected (no_template)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "empty_nested_changed_population_bristol",
+   "macos": {
+    "control": "declined_expected (no_template)",
+    "candidate": "declined_expected (no_template)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "declined_expected (no_template)",
+    "candidate": "declined_expected (no_template)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "empty_segment_conflicting_city_anchors",
+   "macos": {
+    "control": "declined_expected (no_template)",
+    "candidate": "declined_expected (no_template)",
+    "identical_result": true
+   },
+   "linux": {
+    "control": "declined_expected (no_template)",
+    "candidate": "declined_expected (no_template)",
+    "identical_result": true
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  },
+  {
+   "id": "empty_parent_headquarters_saskatoon",
+   "macos": {
+    "control": "errors: resource limit: composition bytes",
+    "candidate": "declined_expected (no_template)",
+    "identical_result": false
+   },
+   "linux": {
+    "control": "errors: resource limit: composition bytes",
+    "candidate": "declined_expected (no_template)",
+    "identical_result": false
+   },
+   "candidate_answer": null,
+   "candidate_result_sha256_macos_equals_linux": true
+  }
+ ],
+ "reader_100_summary": {
+  "control": {
+   "correct": 36,
+   "refused": 4,
+   "unknown": 60,
+   "wrong": 0,
+   "errors": 0
+  },
+  "candidate": {
+   "correct": 36,
+   "refused": 4,
+   "unknown": 60,
+   "wrong": 0,
+   "errors": 0
+  },
+  "question_disagreements": {
+   "macos": 0,
+   "linux": 0
+  }
+ },
+ "disagreements": [
+  {
+   "case": "nested_headquarters_city_website_population_bristol",
+   "control": "error: resource limit: composition bytes",
+   "candidate": "unanswered (answer_form)",
+   "platforms": "both"
+  },
+  {
+   "case": "nested_university_count_cardiff",
+   "control": "error: resource limit: composition bytes",
+   "candidate": "answered_correct (2)",
+   "platforms": "both"
+  },
+  {
+   "case": "ambiguous_university_selection_cardiff",
+   "control": "error: resource limit: composition bytes",
+   "candidate": "expected decline (answer_form)",
+   "platforms": "both"
+  },
+  {
+   "case": "empty_parent_headquarters_saskatoon",
+   "control": "error: resource limit: composition bytes",
+   "candidate": "expected decline (no_template)",
+   "platforms": "both"
+  }
+ ],
+ "macos": {
+  "cohort_runs": [
+   {
+    "dir": "cohort-m1",
+    "order": "control first",
+    "counts": {
+     "control": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "candidate": {
+      "answered_correct": 2,
+      "declined_expected": 6,
+      "unanswered": 8
+     }
+    },
+    "timings_descriptive": {
+     "control": {
+      "count": 16,
+      "max_seconds": 0.7938775839284062,
+      "p50_seconds": 0.34779870859347284,
+      "p95_seconds": 0.7938775839284062
+     },
+     "candidate": {
+      "count": 16,
+      "max_seconds": 0.6858439159113914,
+      "p50_seconds": 0.3536095421295613,
+      "p95_seconds": 0.6858439159113914
+     }
+    },
+    "load_average_at_start": [
+     131.2,
+     153.05,
+     162.88
+    ],
+    "newly_correct": [
+     "nested_university_count_cardiff"
+    ],
+    "lost_correct": [],
+    "cohort_sha256": "e4bf0c142b26893358a6bce50697ce24cf18f830fc31f27aa09f34d56c841694",
+    "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+    "same_per_case_outcomes_and_result_hashes_as_first_run": true
+   },
+   {
+    "dir": "cohort-m2",
+    "order": "control first",
+    "counts": {
+     "control": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "candidate": {
+      "answered_correct": 2,
+      "declined_expected": 6,
+      "unanswered": 8
+     }
+    },
+    "timings_descriptive": {
+     "control": {
+      "count": 16,
+      "max_seconds": 0.7426469170022756,
+      "p50_seconds": 0.2966726874001324,
+      "p95_seconds": 0.7426469170022756
+     },
+     "candidate": {
+      "count": 16,
+      "max_seconds": 0.647421209141612,
+      "p50_seconds": 0.37424377095885575,
+      "p95_seconds": 0.647421209141612
+     }
+    },
+    "load_average_at_start": [
+     102.17,
+     140.83,
+     157.64
+    ],
+    "newly_correct": [
+     "nested_university_count_cardiff"
+    ],
+    "lost_correct": [],
+    "cohort_sha256": "e4bf0c142b26893358a6bce50697ce24cf18f830fc31f27aa09f34d56c841694",
+    "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+    "same_per_case_outcomes_and_result_hashes_as_first_run": true
+   },
+   {
+    "dir": "cohort-m3",
+    "order": "candidate first",
+    "counts": {
+     "candidate": {
+      "answered_correct": 2,
+      "declined_expected": 6,
+      "unanswered": 8
+     },
+     "control": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     }
+    },
+    "timings_descriptive": {
+     "candidate": {
+      "count": 16,
+      "max_seconds": 0.8603215001057833,
+      "p50_seconds": 0.43649089604150504,
+      "p95_seconds": 0.8603215001057833
+     },
+     "control": {
+      "count": 16,
+      "max_seconds": 1.4837897079996765,
+      "p50_seconds": 0.4367704795440659,
+      "p95_seconds": 1.4837897079996765
+     }
+    },
+    "load_average_at_start": [
+     79.59,
+     126.44,
+     150.97
+    ],
+    "newly_correct": [
+     "nested_university_count_cardiff"
+    ],
+    "lost_correct": [],
+    "cohort_sha256": "ec242f0011ac90c8f23c4c910c223b217fdb37caf5e0fb516a7e0261f39a9a25",
+    "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+    "same_per_case_outcomes_and_result_hashes_as_first_run": true
+   },
+   {
+    "dir": "cohort-m4",
+    "order": "candidate first",
+    "counts": {
+     "candidate": {
+      "answered_correct": 2,
+      "declined_expected": 6,
+      "unanswered": 8
+     },
+     "control": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     }
+    },
+    "timings_descriptive": {
+     "candidate": {
+      "count": 16,
+      "max_seconds": 1.0557074171956629,
+      "p50_seconds": 0.46199131244793534,
+      "p95_seconds": 1.0557074171956629
+     },
+     "control": {
+      "count": 16,
+      "max_seconds": 0.6953690832015127,
+      "p50_seconds": 0.36052600003313273,
+      "p95_seconds": 0.6953690832015127
+     }
+    },
+    "load_average_at_start": [
+     99.2,
+     123.0,
+     147.86
+    ],
+    "newly_correct": [
+     "nested_university_count_cardiff"
+    ],
+    "lost_correct": [],
+    "cohort_sha256": "ec242f0011ac90c8f23c4c910c223b217fdb37caf5e0fb516a7e0261f39a9a25",
+    "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+    "same_per_case_outcomes_and_result_hashes_as_first_run": true
+   }
+  ],
+  "cohort_per_case_first_run": [
+   {
+    "id": "baseline_city_website_saskatoon",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "8839359427ce1953e43eadeca61a285c7dc93fe64a7dbd30f67e3a467baea693",
+     "seconds": 0.211,
+     "cpu_seconds": 0.2
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "8839359427ce1953e43eadeca61a285c7dc93fe64a7dbd30f67e3a467baea693",
+     "seconds": 0.18,
+     "cpu_seconds": 0.176
+    },
+    "identical_result": true
+   },
+   {
+    "id": "segment_city_website_population_saskatoon",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "5179cb3676224e0fd58db33934c15ac3699496dee124e5f450612c4c16d4bcdd",
+     "seconds": 0.585,
+     "cpu_seconds": 0.543
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "5179cb3676224e0fd58db33934c15ac3699496dee124e5f450612c4c16d4bcdd",
+     "seconds": 0.358,
+     "cpu_seconds": 0.354
+    },
+    "identical_result": true
+   },
+   {
+    "id": "segment_city_population_website_saskatoon",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "72161dd91a142597ebe29576036ff6b4873869e00db00fdb1dc515780eb196cd",
+     "seconds": 0.633,
+     "cpu_seconds": 0.605
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "72161dd91a142597ebe29576036ff6b4873869e00db00fdb1dc515780eb196cd",
+     "seconds": 0.449,
+     "cpu_seconds": 0.443
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_university_city_website_saskatoon",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "6a224681365a1b21d78a2bbe478a0fef90d84ed60a76bee6cef3e5bf608099bb",
+     "seconds": 0.239,
+     "cpu_seconds": 0.221
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "6a224681365a1b21d78a2bbe478a0fef90d84ed60a76bee6cef3e5bf608099bb",
+     "seconds": 0.183,
+     "cpu_seconds": 0.178
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_university_city_website_population_saskatoon",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "10389aa54bb5836b400cff9847718e480eed9bf50bdf89b226671e98810640ad",
+     "seconds": 0.208,
+     "cpu_seconds": 0.197
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "10389aa54bb5836b400cff9847718e480eed9bf50bdf89b226671e98810640ad",
+     "seconds": 0.138,
+     "cpu_seconds": 0.136
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_university_city_website_population_belfast",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "638279cb29d7cee759bceaf44e1f62465662a0fe82a89ab67b099b64b4957b50",
+     "seconds": 0.183,
+     "cpu_seconds": 0.171
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "638279cb29d7cee759bceaf44e1f62465662a0fe82a89ab67b099b64b4957b50",
+     "seconds": 0.135,
+     "cpu_seconds": 0.133
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_headquarters_city_website_population_bristol",
+    "control": {
+     "outcome": "errors",
+     "reason": null,
+     "answer": null,
+     "error": "resource limit: composition bytes",
+     "result_sha256": null,
+     "seconds": 0.43,
+     "cpu_seconds": 0.357
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "4d1cceef637420a7a89b4f2749b8fc824a38747d4c0475a07fc011036d635a4c",
+     "seconds": 0.665,
+     "cpu_seconds": 0.643
+    },
+    "identical_result": false
+   },
+   {
+    "id": "segment_city_website_population_bristol",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "379ce34bc787577bb648eb10992e1bd4819f197734785612b8d1789428a06c4a",
+     "seconds": 0.794,
+     "cpu_seconds": 0.548
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "379ce34bc787577bb648eb10992e1bd4819f197734785612b8d1789428a06c4a",
+     "seconds": 0.416,
+     "cpu_seconds": 0.399
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_human_count_bristol",
+    "control": {
+     "outcome": "answered_correct",
+     "reason": null,
+     "answer": "6",
+     "error": null,
+     "result_sha256": "2853fb0034be3ffea717d2866ec89920d705c141ab06a1e44734d30db2059784",
+     "seconds": 0.148,
+     "cpu_seconds": 0.144
+    },
+    "candidate": {
+     "outcome": "answered_correct",
+     "reason": null,
+     "answer": "6",
+     "error": null,
+     "result_sha256": "2853fb0034be3ffea717d2866ec89920d705c141ab06a1e44734d30db2059784",
+     "seconds": 0.145,
+     "cpu_seconds": 0.139
+    },
+    "identical_result": true
+   },
+   {
+    "id": "ambiguous_human_selection_bristol",
+    "control": {
+     "outcome": "declined_expected",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "e9b4be4dd5e4cb00280e9ac81ce116e4ecc961eb01f7be0508a1a1c8f7a91799",
+     "seconds": 0.138,
+     "cpu_seconds": 0.136
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "e9b4be4dd5e4cb00280e9ac81ce116e4ecc961eb01f7be0508a1a1c8f7a91799",
+     "seconds": 0.14,
+     "cpu_seconds": 0.139
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_university_count_cardiff",
+    "control": {
+     "outcome": "errors",
+     "reason": null,
+     "answer": null,
+     "error": "resource limit: composition bytes",
+     "result_sha256": null,
+     "seconds": 0.308,
+     "cpu_seconds": 0.305
+    },
+    "candidate": {
+     "outcome": "answered_correct",
+     "reason": null,
+     "answer": "2",
+     "error": null,
+     "result_sha256": "758886ad9353775c989f1c076a4027485e016e034e50415e3c874415a771c6a4",
+     "seconds": 0.61,
+     "cpu_seconds": 0.598
+    },
+    "identical_result": false
+   },
+   {
+    "id": "ambiguous_university_selection_cardiff",
+    "control": {
+     "outcome": "errors",
+     "reason": null,
+     "answer": null,
+     "error": "resource limit: composition bytes",
+     "result_sha256": null,
+     "seconds": 0.388,
+     "cpu_seconds": 0.345
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "f8e06704c4d61c14816c676aa147793f26cf39008c031b6530abdee25dfa44b3",
+     "seconds": 0.686,
+     "cpu_seconds": 0.659
+    },
+    "identical_result": false
+   },
+   {
+    "id": "empty_segment_changed_population_bristol",
+    "control": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.52,
+     "cpu_seconds": 0.498
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.393,
+     "cpu_seconds": 0.38
+    },
+    "identical_result": true
+   },
+   {
+    "id": "empty_nested_changed_population_bristol",
+    "control": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.174,
+     "cpu_seconds": 0.155
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.123,
+     "cpu_seconds": 0.122
+    },
+    "identical_result": true
+   },
+   {
+    "id": "empty_segment_conflicting_city_anchors",
+    "control": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.789,
+     "cpu_seconds": 0.612
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.349,
+     "cpu_seconds": 0.346
+    },
+    "identical_result": true
+   },
+   {
+    "id": "empty_parent_headquarters_saskatoon",
+    "control": {
+     "outcome": "errors",
+     "reason": null,
+     "answer": null,
+     "error": "resource limit: composition bytes",
+     "result_sha256": null,
+     "seconds": 0.475,
+     "cpu_seconds": 0.327
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.637,
+     "cpu_seconds": 0.616
+    },
+    "identical_result": false
+   }
+  ],
+  "reader100_runs": [
+   {
+    "dir": "r100-candidate-3",
+    "artifact_sha256": "5fc84f8de44cb64fa050a7e9bd966b973950bb36123b5af83a8932c30ea07b2e",
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 10000,
+     "fuel": 10000000
+    },
+    "load_average": [
+     128.4,
+     126.1,
+     145.8
+    ],
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "reason_counts": {
+     "ambiguous_execution": 1,
+     "answer_disagreement": 2,
+     "answered": 36,
+     "no_template": 58,
+     "no_viable_reading": 2,
+     "unreadable_script": 1
+    },
+    "query_wall_sum_s": 9.44,
+    "query_cpu_sum_s": 7.91,
+    "p50_s": 0.0435,
+    "p95_s": 0.274,
+    "native_process_wall_s": 25.86
+   },
+   {
+    "dir": "r100-candidate-9",
+    "artifact_sha256": "5fc84f8de44cb64fa050a7e9bd966b973950bb36123b5af83a8932c30ea07b2e",
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 10000,
+     "fuel": 10000000
+    },
+    "load_average": [
+     161.2,
+     136.3,
+     148.3
+    ],
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "reason_counts": {
+     "ambiguous_execution": 1,
+     "answer_disagreement": 2,
+     "answered": 36,
+     "no_template": 58,
+     "no_viable_reading": 2,
+     "unreadable_script": 1
+    },
+    "query_wall_sum_s": 8.87,
+    "query_cpu_sum_s": 7.33,
+    "p50_s": 0.0404,
+    "p95_s": 0.246,
+    "native_process_wall_s": 28.97
+   },
+   {
+    "dir": "r100-control-0",
+    "artifact_sha256": "bed42ac8729f14faa335a0cf57d92d7919c51f9770da5e6c2ab2470cae1b6eb7",
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 10000,
+     "fuel": 10000000
+    },
+    "load_average": [
+     121.6,
+     124.4,
+     145.9
+    ],
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "reason_counts": {
+     "ambiguous_execution": 1,
+     "answer_disagreement": 2,
+     "answered": 36,
+     "no_template": 58,
+     "no_viable_reading": 2,
+     "unreadable_script": 1
+    },
+    "query_wall_sum_s": 7.8,
+    "query_cpu_sum_s": 7.38,
+    "p50_s": 0.0369,
+    "p95_s": 0.2375,
+    "native_process_wall_s": 23.34
+   },
+   {
+    "dir": "r100-control-6",
+    "artifact_sha256": "bed42ac8729f14faa335a0cf57d92d7919c51f9770da5e6c2ab2470cae1b6eb7",
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 10000,
+     "fuel": 10000000
+    },
+    "load_average": [
+     150.4,
+     131.7,
+     147.1
+    ],
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "reason_counts": {
+     "ambiguous_execution": 1,
+     "answer_disagreement": 2,
+     "answered": 36,
+     "no_template": 58,
+     "no_viable_reading": 2,
+     "unreadable_script": 1
+    },
+    "query_wall_sum_s": 11.27,
+    "query_cpu_sum_s": 7.79,
+    "p50_s": 0.0409,
+    "p95_s": 0.3845,
+    "native_process_wall_s": 32.9
+   }
+  ],
+  "cohort_limits": {
+   "workers": 2,
+   "timeout_ms": 60000,
+   "fuel": 10000000
+  },
+  "reader_limits": {
+   "workers": 2,
+   "timeout_ms": 10000,
+   "fuel": 10000000
+  },
+  "build": {
+   "profile": "debug",
+   "features": "default (reasoning feature off)",
+   "command": "cd native && cargo build -p oracle-runtime-python",
+   "head": "cdc474c5818c0adae9f084215140dd81ff85d19a",
+   "candidate": "var/s4-combined/candidate/oracle_native.so",
+   "candidate_sha256": "5fc84f8de44cb64fa050a7e9bd966b973950bb36123b5af83a8932c30ea07b2e",
+   "control": "var/control-20261029/binding/oracle_native.so",
+   "control_sha256": "bed42ac8729f14faa335a0cf57d92d7919c51f9770da5e6c2ab2470cae1b6eb7",
+   "control_built_from": "root debug build of dev at 6077aef (before O1 and O2), ecfeec3-era sources per the lane brief",
+   "worktree_at_build": "Uncommitted files at build time were all in native/oracle-reasoning, native/tests/test_python_domains.py, tools/oracle_components/reasoning.py, native/docs/CAPABILITIES.md and untracked reasoning files (lane O4). None of native/oracle-core or native/oracle-python was modified (git diff --stat over those two directories is empty), and the reasoning feature is off, so the binary is HEAD cdc474c source for its code. Saved in var/s4-combined/build-diffstat.txt."
+  },
+  "reader100_summary": {
+   "control": "36 correct / 4 refused / 60 unknown / 0 wrong / 0 errors",
+   "candidate": "36 correct / 4 refused / 60 unknown / 0 wrong / 0 errors"
+  },
+  "reader100_question_disagreements_control_vs_candidate": 0,
+  "reader100_comparison_keys": [
+   "outcome",
+   "native_status",
+   "answer",
+   "reason",
+   "matched_programs",
+   "successful_readings",
+   "unsupported_programs",
+   "ambiguous_executions"
+  ],
+  "reader100_run_order": "control (r100-control-0), candidate (r100-candidate-3), control (6), candidate (9). The directories under var/s4-combined have space padding in their names from the driver script."
+ },
+ "linux": {
+  "cohort_runs": [
+   {
+    "dir": "cohort-l1",
+    "order": "control first",
+    "counts": {
+     "control": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "candidate": {
+      "answered_correct": 2,
+      "declined_expected": 6,
+      "unanswered": 8
+     }
+    },
+    "timings_descriptive": {
+     "control": {
+      "count": 16,
+      "max_seconds": 0.1252000406384468,
+      "p50_seconds": 0.06542822904884815,
+      "p95_seconds": 0.1252000406384468
+     },
+     "candidate": {
+      "count": 16,
+      "max_seconds": 0.09268751740455627,
+      "p50_seconds": 0.069292769767344,
+      "p95_seconds": 0.09268751740455627
+     }
+    },
+    "load_average_at_start": [
+     10.47,
+     11.77,
+     11.63
+    ],
+    "newly_correct": [
+     "nested_university_count_cardiff"
+    ],
+    "lost_correct": [],
+    "cohort_sha256": "0d4ad0c34e0eb7dcb6c0c9eccd53e211808b9ebb2113723903827ddae9b78b26",
+    "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+    "same_per_case_outcomes_and_result_hashes_as_first_run": true
+   },
+   {
+    "dir": "cohort-l2",
+    "order": "control first",
+    "counts": {
+     "control": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     },
+     "candidate": {
+      "answered_correct": 2,
+      "declined_expected": 6,
+      "unanswered": 8
+     }
+    },
+    "timings_descriptive": {
+     "control": {
+      "count": 16,
+      "max_seconds": 0.0914445985108614,
+      "p50_seconds": 0.04816852416843176,
+      "p95_seconds": 0.0914445985108614
+     },
+     "candidate": {
+      "count": 16,
+      "max_seconds": 0.08126472309231758,
+      "p50_seconds": 0.06052553467452526,
+      "p95_seconds": 0.08126472309231758
+     }
+    },
+    "load_average_at_start": [
+     13.67,
+     12.43,
+     11.86
+    ],
+    "newly_correct": [
+     "nested_university_count_cardiff"
+    ],
+    "lost_correct": [],
+    "cohort_sha256": "0d4ad0c34e0eb7dcb6c0c9eccd53e211808b9ebb2113723903827ddae9b78b26",
+    "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+    "same_per_case_outcomes_and_result_hashes_as_first_run": true
+   },
+   {
+    "dir": "cohort-l3",
+    "order": "candidate first",
+    "counts": {
+     "candidate": {
+      "answered_correct": 2,
+      "declined_expected": 6,
+      "unanswered": 8
+     },
+     "control": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     }
+    },
+    "timings_descriptive": {
+     "candidate": {
+      "count": 16,
+      "max_seconds": 0.08118747174739838,
+      "p50_seconds": 0.06090000830590725,
+      "p95_seconds": 0.08118747174739838
+     },
+     "control": {
+      "count": 16,
+      "max_seconds": 0.08515197224915028,
+      "p50_seconds": 0.04598498065024614,
+      "p95_seconds": 0.08515197224915028
+     }
+    },
+    "load_average_at_start": [
+     12.42,
+     12.26,
+     11.82
+    ],
+    "newly_correct": [
+     "nested_university_count_cardiff"
+    ],
+    "lost_correct": [],
+    "cohort_sha256": "db46698c1444c8047a2e3f56d282d050076961d374c38dfe55015de883e91022",
+    "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+    "same_per_case_outcomes_and_result_hashes_as_first_run": true
+   },
+   {
+    "dir": "cohort-l4",
+    "order": "candidate first",
+    "counts": {
+     "candidate": {
+      "answered_correct": 2,
+      "declined_expected": 6,
+      "unanswered": 8
+     },
+     "control": {
+      "answered_correct": 1,
+      "declined_expected": 4,
+      "errors": 4,
+      "unanswered": 7
+     }
+    },
+    "timings_descriptive": {
+     "candidate": {
+      "count": 16,
+      "max_seconds": 0.07813475839793682,
+      "p50_seconds": 0.05862598028033972,
+      "p95_seconds": 0.07813475839793682
+     },
+     "control": {
+      "count": 16,
+      "max_seconds": 0.08212281577289104,
+      "p50_seconds": 0.04479478020220995,
+      "p95_seconds": 0.08212281577289104
+     }
+    },
+    "load_average_at_start": [
+     11.52,
+     12.06,
+     11.77
+    ],
+    "newly_correct": [
+     "nested_university_count_cardiff"
+    ],
+    "lost_correct": [],
+    "cohort_sha256": "db46698c1444c8047a2e3f56d282d050076961d374c38dfe55015de883e91022",
+    "script_sha256": "d87b77c5f19d0e01de7ceb8258eb69ea562ff889ee4cd53175bed17f76d56195",
+    "same_per_case_outcomes_and_result_hashes_as_first_run": true
+   }
+  ],
+  "cohort_per_case_first_run": [
+   {
+    "id": "baseline_city_website_saskatoon",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "8839359427ce1953e43eadeca61a285c7dc93fe64a7dbd30f67e3a467baea693",
+     "seconds": 0.065,
+     "cpu_seconds": 0.065
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "8839359427ce1953e43eadeca61a285c7dc93fe64a7dbd30f67e3a467baea693",
+     "seconds": 0.052,
+     "cpu_seconds": 0.052
+    },
+    "identical_result": true
+   },
+   {
+    "id": "segment_city_website_population_saskatoon",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "5179cb3676224e0fd58db33934c15ac3699496dee124e5f450612c4c16d4bcdd",
+     "seconds": 0.079,
+     "cpu_seconds": 0.079
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "5179cb3676224e0fd58db33934c15ac3699496dee124e5f450612c4c16d4bcdd",
+     "seconds": 0.069,
+     "cpu_seconds": 0.069
+    },
+    "identical_result": true
+   },
+   {
+    "id": "segment_city_population_website_saskatoon",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "72161dd91a142597ebe29576036ff6b4873869e00db00fdb1dc515780eb196cd",
+     "seconds": 0.102,
+     "cpu_seconds": 0.102
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "72161dd91a142597ebe29576036ff6b4873869e00db00fdb1dc515780eb196cd",
+     "seconds": 0.091,
+     "cpu_seconds": 0.091
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_university_city_website_saskatoon",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "6a224681365a1b21d78a2bbe478a0fef90d84ed60a76bee6cef3e5bf608099bb",
+     "seconds": 0.092,
+     "cpu_seconds": 0.091
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "6a224681365a1b21d78a2bbe478a0fef90d84ed60a76bee6cef3e5bf608099bb",
+     "seconds": 0.054,
+     "cpu_seconds": 0.054
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_university_city_website_population_saskatoon",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "10389aa54bb5836b400cff9847718e480eed9bf50bdf89b226671e98810640ad",
+     "seconds": 0.044,
+     "cpu_seconds": 0.044
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "10389aa54bb5836b400cff9847718e480eed9bf50bdf89b226671e98810640ad",
+     "seconds": 0.045,
+     "cpu_seconds": 0.045
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_university_city_website_population_belfast",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "638279cb29d7cee759bceaf44e1f62465662a0fe82a89ab67b099b64b4957b50",
+     "seconds": 0.045,
+     "cpu_seconds": 0.045
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "638279cb29d7cee759bceaf44e1f62465662a0fe82a89ab67b099b64b4957b50",
+     "seconds": 0.044,
+     "cpu_seconds": 0.044
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_headquarters_city_website_population_bristol",
+    "control": {
+     "outcome": "errors",
+     "reason": null,
+     "answer": null,
+     "error": "resource limit: composition bytes",
+     "result_sha256": null,
+     "seconds": 0.058,
+     "cpu_seconds": 0.058
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "4d1cceef637420a7a89b4f2749b8fc824a38747d4c0475a07fc011036d635a4c",
+     "seconds": 0.093,
+     "cpu_seconds": 0.093
+    },
+    "identical_result": false
+   },
+   {
+    "id": "segment_city_website_population_bristol",
+    "control": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "379ce34bc787577bb648eb10992e1bd4819f197734785612b8d1789428a06c4a",
+     "seconds": 0.081,
+     "cpu_seconds": 0.081
+    },
+    "candidate": {
+     "outcome": "unanswered",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "379ce34bc787577bb648eb10992e1bd4819f197734785612b8d1789428a06c4a",
+     "seconds": 0.07,
+     "cpu_seconds": 0.07
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_human_count_bristol",
+    "control": {
+     "outcome": "answered_correct",
+     "reason": null,
+     "answer": "6",
+     "error": null,
+     "result_sha256": "2853fb0034be3ffea717d2866ec89920d705c141ab06a1e44734d30db2059784",
+     "seconds": 0.044,
+     "cpu_seconds": 0.044
+    },
+    "candidate": {
+     "outcome": "answered_correct",
+     "reason": null,
+     "answer": "6",
+     "error": null,
+     "result_sha256": "2853fb0034be3ffea717d2866ec89920d705c141ab06a1e44734d30db2059784",
+     "seconds": 0.041,
+     "cpu_seconds": 0.041
+    },
+    "identical_result": true
+   },
+   {
+    "id": "ambiguous_human_selection_bristol",
+    "control": {
+     "outcome": "declined_expected",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "e9b4be4dd5e4cb00280e9ac81ce116e4ecc961eb01f7be0508a1a1c8f7a91799",
+     "seconds": 0.045,
+     "cpu_seconds": 0.045
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "e9b4be4dd5e4cb00280e9ac81ce116e4ecc961eb01f7be0508a1a1c8f7a91799",
+     "seconds": 0.042,
+     "cpu_seconds": 0.042
+    },
+    "identical_result": true
+   },
+   {
+    "id": "nested_university_count_cardiff",
+    "control": {
+     "outcome": "errors",
+     "reason": null,
+     "answer": null,
+     "error": "resource limit: composition bytes",
+     "result_sha256": null,
+     "seconds": 0.066,
+     "cpu_seconds": 0.066
+    },
+    "candidate": {
+     "outcome": "answered_correct",
+     "reason": null,
+     "answer": "2",
+     "error": null,
+     "result_sha256": "758886ad9353775c989f1c076a4027485e016e034e50415e3c874415a771c6a4",
+     "seconds": 0.085,
+     "cpu_seconds": 0.085
+    },
+    "identical_result": false
+   },
+   {
+    "id": "ambiguous_university_selection_cardiff",
+    "control": {
+     "outcome": "errors",
+     "reason": null,
+     "answer": null,
+     "error": "resource limit: composition bytes",
+     "result_sha256": null,
+     "seconds": 0.107,
+     "cpu_seconds": 0.107
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "answer_form",
+     "answer": null,
+     "error": null,
+     "result_sha256": "f8e06704c4d61c14816c676aa147793f26cf39008c031b6530abdee25dfa44b3",
+     "seconds": 0.089,
+     "cpu_seconds": 0.089
+    },
+    "identical_result": false
+   },
+   {
+    "id": "empty_segment_changed_population_bristol",
+    "control": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.125,
+     "cpu_seconds": 0.125
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.071,
+     "cpu_seconds": 0.071
+    },
+    "identical_result": true
+   },
+   {
+    "id": "empty_nested_changed_population_bristol",
+    "control": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.049,
+     "cpu_seconds": 0.049
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.041,
+     "cpu_seconds": 0.041
+    },
+    "identical_result": true
+   },
+   {
+    "id": "empty_segment_conflicting_city_anchors",
+    "control": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.075,
+     "cpu_seconds": 0.075
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.069,
+     "cpu_seconds": 0.069
+    },
+    "identical_result": true
+   },
+   {
+    "id": "empty_parent_headquarters_saskatoon",
+    "control": {
+     "outcome": "errors",
+     "reason": null,
+     "answer": null,
+     "error": "resource limit: composition bytes",
+     "result_sha256": null,
+     "seconds": 0.053,
+     "cpu_seconds": 0.053
+    },
+    "candidate": {
+     "outcome": "declined_expected",
+     "reason": "no_template",
+     "answer": null,
+     "error": null,
+     "result_sha256": "a7fc108db1af5d9efce3b6aa3ebfb3ed73cd2b7f7a715768edf95c6e44c9c8cb",
+     "seconds": 0.086,
+     "cpu_seconds": 0.086
+    },
+    "identical_result": false
+   }
+  ],
+  "reader100_runs": [
+   {
+    "dir": "r100-1-control",
+    "artifact_sha256": "499e9e46484e2e48760def00f1acd24ebcf3d5e63d445e9f72ce39e52a9c8858",
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 1000,
+     "fuel": 10000000
+    },
+    "load_average": [
+     10.0,
+     11.7,
+     11.6
+    ],
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "reason_counts": {
+     "ambiguous_execution": 1,
+     "answer_disagreement": 2,
+     "answered": 36,
+     "no_template": 58,
+     "no_viable_reading": 2,
+     "unreadable_script": 1
+    },
+    "query_wall_sum_s": 1.51,
+    "query_cpu_sum_s": 1.51,
+    "p50_s": 0.007,
+    "p95_s": 0.0447,
+    "native_process_wall_s": 2.11
+   },
+   {
+    "dir": "r100-2-candidate",
+    "artifact_sha256": "77a69bff0e6df4dd449bcd69d8cdcac81a68db6c55c91a9cc57cc8a0f5bb7f04",
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 1000,
+     "fuel": 10000000
+    },
+    "load_average": [
+     9.9,
+     11.6,
+     11.6
+    ],
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "reason_counts": {
+     "ambiguous_execution": 1,
+     "answer_disagreement": 2,
+     "answered": 36,
+     "no_template": 58,
+     "no_viable_reading": 2,
+     "unreadable_script": 1
+    },
+    "query_wall_sum_s": 1.51,
+    "query_cpu_sum_s": 1.51,
+    "p50_s": 0.0066,
+    "p95_s": 0.046,
+    "native_process_wall_s": 2.43
+   },
+   {
+    "dir": "r100-3-candidate",
+    "artifact_sha256": "77a69bff0e6df4dd449bcd69d8cdcac81a68db6c55c91a9cc57cc8a0f5bb7f04",
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 1000,
+     "fuel": 10000000
+    },
+    "load_average": [
+     9.9,
+     11.6,
+     11.6
+    ],
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "reason_counts": {
+     "ambiguous_execution": 1,
+     "answer_disagreement": 2,
+     "answered": 36,
+     "no_template": 58,
+     "no_viable_reading": 2,
+     "unreadable_script": 1
+    },
+    "query_wall_sum_s": 1.49,
+    "query_cpu_sum_s": 1.49,
+    "p50_s": 0.0067,
+    "p95_s": 0.0456,
+    "native_process_wall_s": 2.49
+   },
+   {
+    "dir": "r100-4-control",
+    "artifact_sha256": "499e9e46484e2e48760def00f1acd24ebcf3d5e63d445e9f72ce39e52a9c8858",
+    "limits": {
+     "workers": 2,
+     "timeout_ms": 1000,
+     "fuel": 10000000
+    },
+    "load_average": [
+     9.8,
+     11.6,
+     11.6
+    ],
+    "counts": {
+     "answered_correct": 36,
+     "answered_wrong": 0,
+     "refused": 4,
+     "unknown": 60,
+     "errors": 0
+    },
+    "error_types": {},
+    "reason_counts": {
+     "ambiguous_execution": 1,
+     "answer_disagreement": 2,
+     "answered": 36,
+     "no_template": 58,
+     "no_viable_reading": 2,
+     "unreadable_script": 1
+    },
+    "query_wall_sum_s": 1.51,
+    "query_cpu_sum_s": 1.51,
+    "p50_s": 0.0068,
+    "p95_s": 0.0458,
+    "native_process_wall_s": 2.21
+   }
+  ],
+  "cohort_limits": {
+   "workers": 2,
+   "timeout_ms": 1000,
+   "fuel": 10000000
+  },
+  "reader_limits": {
+   "workers": 2,
+   "timeout_ms": 1000,
+   "fuel": 10000000
+  },
+  "build": {
+   "profile": "release",
+   "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/tank/lanes/o7-native-20261029/target swarm-build cargo build --locked --release -p oracle-runtime-python",
+   "tree": "git archive HEAD (cdc474c) shipped to /tank/lanes/o7-native-20261029; working-tree edits not shipped",
+   "build_seconds": 74,
+   "candidate": "/tank/lanes/o7-native-20261029/binding/oracle_native.so",
+   "candidate_sha256": "77a69bff0e6df4dd449bcd69d8cdcac81a68db6c55c91a9cc57cc8a0f5bb7f04",
+   "control": "/tank/lanes/o7-native-20261028/binding-segment-stream31-release-20261029/oracle_native.so",
+   "control_sha256": "499e9e46484e2e48760def00f1acd24ebcf3d5e63d445e9f72ce39e52a9c8858",
+   "control_built_from": "2fda9fe release, the artifact pinned in the retained targeted-composition receipt"
+  },
+  "reader100_summary": {
+   "control": "36 correct / 4 refused / 60 unknown / 0 wrong / 0 errors",
+   "candidate": "36 correct / 4 refused / 60 unknown / 0 wrong / 0 errors"
+  },
+  "reader100_question_disagreements_control_vs_candidate": 0,
+  "reader100_comparison_keys": [
+   "outcome",
+   "native_status",
+   "answer",
+   "reason",
+   "matched_programs",
+   "successful_readings",
+   "unsupported_programs",
+   "ambiguous_executions"
+  ]
+ },
+ "limits": [
+  "macOS binaries are debug builds under load averages of 80 to 160; Linux binaries are release builds on a box at load 10 to 14. Timings are descriptive only and not comparable across platforms or across builds.",
+  "The two controls differ by platform: macOS control is a debug build of dev at 6077aef (before O1 and O2); Linux control is the release build of 2fda9fe pinned in the retained receipts. Neither control contains O1 or O2.",
+  "The macOS cohort ran with a 60 s per-question deadline (the debug build cannot meet 1 s); the Linux cohort and reader runs used the unchanged 1 s deadline; the macOS reader runs used 10 s. No run had a deadline miss.",
+  "Both candidates were built from the same commit, but the combined effect of O1 and O2 is not separated: each lane was qualified alone earlier, and this run does not test either alone.",
+  "The 116 questions are component checks of the learned reader on one finite image, not a specialist-panel score. 100 reader questions are a hash-selected sample of validation rows; 16 are a predeclared targeted cohort chosen before native observation.",
+  "Equal reader-100 outcomes show that answers did not change; they do not show the reader can read more. The only capability gain on these questions is the 16-case cohort (one more correct answer, two more expected declines, four fewer errors).",
+  "The cohort exit code is 1 in every run because the control has operational errors; that is expected and is the failure being repaired.",
+  "The candidate binary on macOS has the reasoning feature off; the Linux archive was cut from HEAD so none of lane O4 edits are present."
+ ]
+}

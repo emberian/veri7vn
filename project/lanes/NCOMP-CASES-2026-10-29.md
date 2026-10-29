@@ -149,6 +149,20 @@ The four operational errors are:
 
 Those errors remain errors, including the ambiguous/empty cases; they are not credited as expected declines. The complete observations and independent SQL evidence are retained in `var/composition-cases-20261029/`.
 
+## Result after the arena and scalar-query changes (S4, 2026-10-29)
+
+The first result above stays as the history of the failure. The same 16 frozen
+questions, with only the artifact block replaced, were run again on the build
+that contains the composition arena (O1) and the scalar viability query (O2).
+On Linux (release builds, control `2fda9fe`) and on macOS (debug builds), in
+four runs each with the order swapped halfway, the four byte-limit errors are
+gone: 2 correct, 6 expected declines, 8 unanswered, 0 wrong, 0 errors, against
+1, 4, 7, 0, 4 for the control. The eight unanswered positives still end in
+`answer_form`, so the cohort's positive questions are not met. The 100-question
+reader sample is unchanged at 36, 4, 60, 0, 0. Receipt:
+[combined qualification](../../native/evidence/2026-10-29-combined-qualification.json);
+report: [S4](S4-COMBINED-QUALIFICATION-2026-10-29.md).
+
 ## Diagnosis boundary
 
 Read-only source inspection verifies a reason for the form refusals. The exact learned outer template `which X1` contains a `Count` skeleton with support 2. Because `Count` has no hidden literal, the pinned source trust policy admits that replicated skeleton alongside the much more common `What` skeletons. The form rows permit entity answers for `which` and `which city`. The native result therefore contains both `1` and `Saskatoon` for the single-city case and vetoes the complete reading set, as Reader7's form rule requires. The same baseline refusal occurs in the old artifact. The other unique-entity misses similarly retain both `1` and the independently expected entity name. Reconstructing the Count programs from the source facts, without executing them, matches both retained successful-program hashes for the Saskatoon baseline: exact-fragment order `cd6e72edbc2591351c92ecacd643029b2cc34b4f02fdd43f4fef81d805ad36f2` and segment order `36c9ae673be15d55082762bb20207965ac86215c93a9cb52a68bc67ca25aaadd`.

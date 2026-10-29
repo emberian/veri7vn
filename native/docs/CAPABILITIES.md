@@ -59,8 +59,8 @@ real-data samples describe narrower results:
 | Retained workload | Result |
 | --- | --- |
 | [233 KQA programs](../evidence/2026-10-28-programs.json) | 225 correct, 8 withheld, 0 wrong; all pinned operations exercised. |
-| [100 retained reader questions](../evidence/2026-10-29-segment-reader-validation.json) | 36 correct, 4 refused, 60 unknown, 0 wrong or execution errors. Segment/nested composition adds interpretations, with no answer gain on this set. |
-| [New 16-question segment/nested acceptance cohort](../evidence/2026-10-29-targeted-composition.json) | Failed acceptance: 1 new correct answer, 7 unanswered, 4 expected declines and 4 byte-limit errors. Passing contracts do not remove these failures. |
+| [100 retained reader questions](../evidence/2026-10-29-segment-reader-validation.json); [re-run with the arena and scalar-query changes](../evidence/2026-10-29-combined-qualification.json) | 36 correct, 4 refused, 60 unknown, 0 wrong or execution errors. Segment/nested composition adds interpretations, with no answer gain on this set. The combined re-run (Linux release, plus a macOS debug check) gives the same counts and the same outcome on all 100 questions. |
+| [New 16-question segment/nested acceptance cohort](../evidence/2026-10-29-targeted-composition.json); [re-run with the arena and scalar-query changes](../evidence/2026-10-29-combined-qualification.json) | First run failed acceptance: 1 correct, 7 unanswered, 4 expected declines, 4 byte-limit errors. After the arena and scalar-query changes, Linux release and macOS debug both give 2 correct, 8 unanswered, 6 expected declines, 0 wrong, 0 errors; the 8 unanswered are still misses (`answer_form`), so acceptance is not met. |
 | [Hosted/relocated appliance](../evidence/2026-10-29-stable-appliance-validation.json) | Durable HTTP and relocated package journeys passed on manufactured data. This does not qualify the full Oracle Engine or signed Mini integration. |
 
 Language coverage still excludes content-key fallback, deeper nesting, analogy,
